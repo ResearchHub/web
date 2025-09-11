@@ -2,11 +2,8 @@
 
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 export const FooterLinks: React.FC = () => {
-  const { showUSD, toggleCurrency } = useCurrencyPreference();
-
   return (
     <div className="px-4 py-6 border-t text-sm">
       <div className="flex items-center justify-between mb-4">
@@ -43,15 +40,6 @@ export const FooterLinks: React.FC = () => {
           >
             <FontAwesomeIcon icon={faLinkedin} className="h-5 w-5" />
           </a>
-          {/* Currency Dropdown */}
-          <select
-            value={showUSD ? 'USD' : 'RSC'}
-            onChange={() => toggleCurrency()}
-            className="text-xs px-2 py-1 border border-gray-200 rounded-md bg-white text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
-          >
-            <option value="RSC">RSC</option>
-            <option value="USD">USD</option>
-          </select>
         </div>
       </div>
       <div className="flex flex-wrap gap-3 text-gray-500">
