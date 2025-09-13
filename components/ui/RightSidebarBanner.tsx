@@ -78,7 +78,7 @@ export const RightSidebarBanner: React.FC<RightSidebarBannerProps> = ({
           </li>
         ))}
       </ul>
-      <Button asChild className="w-full">
+      <Button className="w-full">
         <Link href={buttonLink}>{buttonText}</Link>
       </Button>
     </div>

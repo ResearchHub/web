@@ -4,7 +4,7 @@ import { FC } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
 import { useRouter } from 'next/navigation';
 
-export type MarketplaceTab = 'grants' | 'needs-funding' | 'previously-funded';
+export type MarketplaceTab = 'grants' | 'needs-funding';
 
 interface MarketplaceTabsProps {
   activeTab: MarketplaceTab;
@@ -28,10 +28,6 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
       id: 'needs-funding',
       label: 'Proposals',
     },
-    {
-      id: 'previously-funded',
-      label: 'Previously Funded',
-    },
   ];
 
   const handleTabChange = (tabId: string) => {
@@ -44,8 +40,6 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
       router.push('/fund/grants');
     } else if (tab === 'needs-funding') {
       router.push('/fund/needs-funding');
-    } else if (tab === 'previously-funded') {
-      router.push('/fund/previously-funded');
     }
 
     onTabChange(tab);
