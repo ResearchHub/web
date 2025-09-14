@@ -11,17 +11,11 @@ import { X, ChevronDown, Filter } from 'lucide-react';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { BountyService } from '@/services/bounty.service';
 import { Topic } from '@/types/topic';
-
-export interface Hub {
-  id: string | number;
-  name: string;
-  description?: string;
-  color?: string;
-}
+import { IHub } from '@/types/hub';
 
 interface BountyHubSelectorProps {
-  selectedHubs: Hub[];
-  onChange: (hubs: Hub[]) => void;
+  selectedHubs: IHub[];
+  onChange: (hubs: IHub[]) => void;
   error?: string | null;
   displayCountOnly?: boolean;
   hideSelectedItems?: boolean;
@@ -70,17 +64,17 @@ export function BountyHubSelector({
   }, []);
 
   // utility conversions
-  const hubsToOptions = (hubs: Hub[]): MultiSelectOption[] =>
+  const hubsToOptions = (hubs: IHub[]): MultiSelectOption[] =>
     hubs.map((hub) => ({ value: String(hub.id), label: hub.name }));
 
-  const topicsToHubs = (topics: Topic[]): Hub[] =>
+  const topicsToHubs = (topics: Topic[]): IHub[] =>
     topics.map((topic) => ({
       id: topic.id,
       name: topic.name,
       description: topic.description,
     }));
 
-  const optionsToHubs = (options: MultiSelectOption[]): Hub[] =>
+  const optionsToHubs = (options: MultiSelectOption[]): IHub[] =>
     options.map(
       (opt) =>
         selectedHubs.find((h) => String(h.id) === opt.value) || {

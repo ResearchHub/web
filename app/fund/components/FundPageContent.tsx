@@ -10,14 +10,15 @@ import { MarketplaceTabs, MarketplaceTab } from '@/components/Fund/MarketplaceTa
 import Icon from '@/components/ui/icons/Icon';
 import SortDropdown, { SortOption } from '@/components/ui/SortDropdown';
 import { useState } from 'react';
-import { FundingSelector, Hub } from '@/components/Fund/FundingSelector';
+import { FundingSelector } from '@/components/Fund/FundingSelector';
+import { IHub } from '@/types/hub';
 
 interface FundPageContentProps {
   marketplaceTab: MarketplaceTab;
 }
 
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
-  const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
+  const [selectedHubs, setSelectedHubs] = useState<IHub[]>([]);
   const [selectedVotes, setSelectedVotes] = useState<number>(0);
   const [selectedScore, setSelectedScore] = useState<number>(0);
   const [selectedVerifiedAuthorsOnly, setSelectedVerifiedAuthorsOnly] = useState<boolean>(false);

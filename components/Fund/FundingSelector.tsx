@@ -12,17 +12,11 @@ import { Topic } from '@/types/topic';
 import { Field, Input, Label, Switch } from '@headlessui/react';
 import { ReviewStars } from '../Comment/lib/ReviewExtension';
 import { HubService } from '@/services/hub.service';
-
-export interface Hub {
-  id: string | number;
-  name: string;
-  description?: string;
-  color?: string;
-}
+import { IHub } from '@/types/hub';
 
 interface FundingSelectorProps {
-  selectedHubs: Hub[];
-  onHubsChange: (hubs: Hub[]) => void;
+  selectedHubs: IHub[];
+  onHubsChange: (hubs: IHub[]) => void;
   selectedVotes: number;
   onVotesChange: (votes: number) => void;
   selectedScore: number;
@@ -65,17 +59,17 @@ export function FundingSelector({
   }, []);
 
   // utility conversions
-  const hubsToOptions = (hubs: Hub[]): MultiSelectOption[] =>
+  const hubsToOptions = (hubs: IHub[]): MultiSelectOption[] =>
     hubs.map((hub) => ({ value: String(hub.id), label: hub.name }));
 
-  const topicsToHubs = (topics: Topic[]): Hub[] =>
+  const topicsToHubs = (topics: Topic[]): IHub[] =>
     topics.map((topic) => ({
       id: topic.id,
       name: topic.name,
       description: topic.description,
     }));
 
-  const optionsToHubs = (options: MultiSelectOption[]): Hub[] =>
+  const optionsToHubs = (options: MultiSelectOption[]): IHub[] =>
     options.map(
       (opt) =>
         selectedHubs.find((h) => String(h.id) === opt.value) || {

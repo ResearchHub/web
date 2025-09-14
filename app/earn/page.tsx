@@ -9,11 +9,12 @@ import { EarnRightSidebar } from '@/components/Earn/EarnRightSidebar';
 import { Coins } from 'lucide-react';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import Icon from '@/components/ui/icons/Icon';
-import { BountyHubSelector as HubsSelector, Hub } from '@/components/Earn/BountyHubSelector';
+import { BountyHubSelector as HubsSelector } from '@/components/Earn/BountyHubSelector';
 import SortDropdown, { SortOption } from '@/components/ui/SortDropdown';
 import { Badge } from '@/components/ui/Badge';
 import { X } from 'lucide-react';
 import { useClickContext } from '@/contexts/ClickContext';
+import { IHub } from '@/types/hub';
 
 export default function EarnPage() {
   const [bounties, setBounties] = useState<FeedEntry[]>([]);
@@ -21,7 +22,7 @@ export default function EarnPage() {
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
+  const [selectedHubs, setSelectedHubs] = useState<IHub[]>([]);
   const [sort, setSort] = useState<string>('personalized');
 
   // Click context for topic filter
@@ -35,7 +36,7 @@ export default function EarnPage() {
     { label: 'RSC amount', value: '-total_amount' },
   ];
 
-  const fetchBounties = async (reset = false, hubs: Hub[] = selectedHubs) => {
+  const fetchBounties = async (reset = false, hubs: IHub[] = selectedHubs) => {
     if (reset) {
       // Clear current bounties so skeleton loaders show instead of stale data
       setBounties([]);
@@ -76,7 +77,7 @@ export default function EarnPage() {
     }
   };
 
-  const handleHubsChange = (hubs: Hub[]) => {
+  const handleHubsChange = (hubs: IHub[]) => {
     setSelectedHubs(hubs);
     // Reset pagination and fetch bounties based on new hubs selection
     setPage(1);
@@ -104,7 +105,7 @@ export default function EarnPage() {
   useEffect(() => {
     if (event && event.type === 'topic') {
       const topic = event.payload;
-      const newHub: Hub = {
+      const newHub: IHub = {
         id: topic.id,
         name: topic.name,
         description: topic.description,
