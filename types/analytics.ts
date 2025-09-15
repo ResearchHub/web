@@ -3,6 +3,7 @@ import { FeedContentType } from './feed';
 import { UserVoteType, VotableContentType } from './reaction';
 import { EntityType } from './search';
 import { ContentType, FlagReasonKey } from './work';
+import { DocumentType } from '@/services/reaction.service';
 
 interface UserContext {
   user_id?: string;
@@ -27,6 +28,7 @@ export interface FeedImpressionEvent extends UserContext {
 // 2. Vote Action
 export interface VoteActionEvent extends UserContext {
   vote_type: UserVoteType;
+  document_type: DocumentType;
   content_type: VotableContentType;
   /*
   Work id if content type is paper or post
