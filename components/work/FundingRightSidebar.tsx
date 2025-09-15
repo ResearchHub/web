@@ -28,7 +28,11 @@ export const FundingRightSidebar = ({
       {metadata.fundraising &&
         metadata.fundraising.contributors &&
         metadata.fundraising.contributors.numContributors > 0 && (
-          <FundersSection fundraise={metadata.fundraising} fundraiseTitle={work.title} />
+          <FundersSection
+            fundraise={metadata.fundraising}
+            fundraiseTitle={work.title}
+            workId={work.id.toString()}
+          />
         )}
       {/* Updates Section */}
       <UpdatesSection

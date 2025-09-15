@@ -116,6 +116,7 @@ export const FundingCarouselItem: FC<FundingCarouselItemProps> = ({ entry }) => 
           compact={true} // Use compact mode
           className="p-0 border-0 bg-transparent text-xs" // Minimal styling
           showPercentage={true} // Show percentage instead of amounts
+          workId={post.id.toString()}
         />
       </div>
     </div>

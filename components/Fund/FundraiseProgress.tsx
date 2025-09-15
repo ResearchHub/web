@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 interface FundraiseProgressProps {
+  workId: string;
   fundraise: Fundraise;
   fundraiseTitle: string;
   compact?: boolean;
@@ -31,6 +32,7 @@ interface FundraiseProgressProps {
 }
 
 export const FundraiseProgress: FC<FundraiseProgressProps> = ({
+  workId,
   fundraise,
   fundraiseTitle,
   compact = false,
@@ -131,6 +133,8 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
       url: window.location.href,
       docTitle: fundraiseTitle,
       action: 'USER_FUNDED_PROPOSAL',
+      workId: workId,
+      contentType: 'preregistration',
     });
 
     router.refresh();

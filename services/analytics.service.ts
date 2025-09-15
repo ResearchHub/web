@@ -1,3 +1,4 @@
+import { User } from '@/types/user';
 import * as amplitude from '@amplitude/analytics-browser';
 import { sendGAEvent } from '@next/third-parties/google';
 
@@ -128,6 +129,28 @@ class AnalyticsService {
       }
     }
     await Promise.all(promises);
+  }
+
+  static async logEventWithUserProperties(
+    eventName: LogEventValue,
+    eventProperties?: Record<string, any>,
+    user?: User | null,
+    providers: AnalyticsProvider[] = ['amplitude', 'google']
+  ) {
+    const userProperties = {
+      user_id: user?.id?.toString(),
+      author_id: user?.authorProfile?.id?.toString(),
+      editor: user?.authorProfile?.isHubEditor,
+      moderator: user?.moderator,
+    };
+    await this.logEvent(
+      eventName,
+      {
+        ...eventProperties,
+        ...userProperties,
+      },
+      providers
+    );
   }
 
   static async logSignedUp(

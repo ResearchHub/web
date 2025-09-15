@@ -124,8 +124,8 @@ export default async function RootLayout({
               <ReferralProvider>
                 <AuthSharingWrapper>
                   <AuthModalProvider>
-                    <ShareModalProvider>
-                      <UserProvider>
+                    <UserProvider>
+                      <ShareModalProvider>
                         <VerificationProvider>
                           <ExchangeRateProvider>
                             <CurrencyPreferenceProvider>
@@ -140,9 +140,9 @@ export default async function RootLayout({
                             </CurrencyPreferenceProvider>
                           </ExchangeRateProvider>
                         </VerificationProvider>
-                      </UserProvider>
-                      <SignupModalContainer />
-                    </ShareModalProvider>
+                      </ShareModalProvider>
+                    </UserProvider>
+                    <SignupModalContainer />
                   </AuthModalProvider>
                 </AuthSharingWrapper>
               </ReferralProvider>

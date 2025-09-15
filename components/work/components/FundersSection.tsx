@@ -16,9 +16,10 @@ import { useShareModalContext } from '@/contexts/ShareContext';
 interface FundersSectionProps {
   fundraise: Fundraise;
   fundraiseTitle: string;
+  workId: string;
 }
 
-export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTitle }) => {
+export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTitle, workId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
   const { showUSD } = useCurrencyPreference();
@@ -59,6 +60,8 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
       url: window.location.href,
       docTitle: fundraiseTitle,
       action: 'USER_FUNDED_PROPOSAL',
+      workId: workId,
+      contentType: 'preregistration',
     });
     // Here you could add logic to refresh the data
   };
