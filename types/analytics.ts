@@ -61,7 +61,7 @@ export interface ContentFlaggedEvent extends UserContext {
   Parent work id if content type is comment
   */
   work_id: string;
-  content_type: ContentType;
+  document_type: DocumentType;
   flag_reason: FlagReasonKey;
 }
 

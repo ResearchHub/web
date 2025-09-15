@@ -5,6 +5,9 @@ import { ReactionService } from '@/services/reaction.service';
 import { ApiError } from '@/services/types';
 import type { FlagOptions } from '@/services/reaction.service';
 import { ContentType } from '@/types/work';
+import { ContentFlaggedEvent } from '@/types/analytics';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { useUser } from '@/contexts/UserContext';
 
 interface UseFlagState {
   isLoading: boolean;
@@ -21,6 +24,7 @@ type UseFlagReturn = [UseFlagState, FlagFn];
 export const useFlag = (): UseFlagReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useUser();
 
   const flag = async (params: FlagOptions) => {
     setIsLoading(true);
@@ -28,6 +32,13 @@ export const useFlag = (): UseFlagReturn => {
 
     try {
       await ReactionService.flag(params);
+      const payload: ContentFlaggedEvent = {
+        target_type: params.commentId ? 'comment' : 'document',
+        work_id: params.documentId?.toString() || '',
+        document_type: params.documentType,
+        flag_reason: params.reason,
+      };
+      AnalyticsService.logEventWithUserProperties(LogEvent.CONTENT_FLAGGED, payload, user);
     } catch (err) {
       const parsed = err instanceof ApiError ? JSON.parse(err.message) : {};
       const data = parsed?.data || {};
