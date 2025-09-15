@@ -36,13 +36,15 @@ export default function TopicAndJournalBadges({ topics }: TopicAndJournalBadgesP
         imageUrl={firstTopic.imageUrl}
       />
       <Popover className="relative">
-        <PopoverButton className="relative rounded-full overflow-hidden flex items-center justify-center flex-shrink-0 h-8 w-8 focus:outline-none focus-visible:outline-none cursor-pointer text-primary-700 border border-primary-200 bg-primary-50 hover:bg-primary-100">
-          <Plus className="h-4 w-4" />
+        <PopoverButton className="relative rounded-full overflow-hidden flex items-center justify-center flex-shrink-0 border border-primary-200 bg-primary-50 hover:bg-primary-100 h-6 w-6 focus:outline-none focus-visible:outline-none cursor-pointer">
+          <span className="absolute inset-0 flex items-center justify-center font-medium text-indigo-700 text-sm">
+            <Plus className="h-4 w-4" />
+          </span>
         </PopoverButton>
         <PopoverPanel
           transition
           anchor="bottom"
-          className="z-10 flex flex-wrap gap-2 w-2/5 max-w-100 max-h-20 rounded-md bg-white p-2 mt-1 shadow-lg border border-gray-200"
+          className="z-50 flex flex-wrap gap-2 p-2 mt-1 rounded-lg bg-white border-none shadow-lg overflow-visible min-w-[8rem] !w-[300px] max-w-[60vw]"
         >
           {additionalTopics.map((topic) => (
             <TopicAndJournalBadge

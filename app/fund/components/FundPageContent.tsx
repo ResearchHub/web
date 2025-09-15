@@ -46,7 +46,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
       filters.push(`hub_ids=${hubIds}`);
     }
     if (selectedVotes > 0) {
-      filters.push(`min_votes=${selectedVotes}`);
+      filters.push(`min_upvotes=${selectedVotes}`);
     }
     if (selectedScore > 0) {
       filters.push(`min_score=${selectedScore}`);
