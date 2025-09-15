@@ -100,7 +100,7 @@ export function FundingSelector({
         const hubs = topicsToHubs(topics);
         return hubsToOptions(hubs);
       } catch (error) {
-        console.error('Error fetching topics:', error);
+        console.error('Error searching topics:', error);
         return [];
       }
     },
@@ -161,9 +161,7 @@ export function FundingSelector({
       trigger={trigger}
       align="start"
       sideOffset={5}
-      className="overflow-visible border-none p-0 shadow-lg !w-[300px] max-w-[90vw]"
-      // open={menuOpen}
-      // onOpenChange={setMenuOpen}
+      className="z-50 overflow-hidden rounded-lg border border-gray-200 bg-white p-1 shadow-md min-w-[8rem] w-[var(--trigger-width)] !w-[300px] max-w-[90vw]"
     >
       <div className="p-2 w-full" ref={menuContentRef}>
         <div className="pb-2 border-b border-gray-200">
