@@ -93,7 +93,6 @@ export interface FundraiseSubmittedEvent extends UserContext {
   fundraise_id: string;
   work_id: string;
   fundraise_amount: number;
-  topic_ids: string[];
 }
 
 // 9. Content Shared

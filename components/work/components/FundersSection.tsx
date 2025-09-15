@@ -138,6 +138,7 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
         onClose={() => setIsContributeModalOpen(false)}
         onContributeSuccess={handleContributeSuccess}
         fundraise={fundraise}
+        workId={workId}
       />
     </>
   );

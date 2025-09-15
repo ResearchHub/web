@@ -261,6 +261,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
           onClose={() => setIsContributeModalOpen(false)}
           onContributeSuccess={handleContributeSuccess}
           fundraise={fundraise}
+          workId={workId}
         />
       </>
     );
@@ -343,6 +344,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
           onClose={() => setIsContributeModalOpen(false)}
           onContributeSuccess={handleContributeSuccess}
           fundraise={fundraise}
+          workId={workId}
         />
       </>
     );

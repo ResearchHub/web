@@ -4,7 +4,10 @@ import { useState } from 'react';
 import { FundraiseService } from '@/services/fundraise.service';
 import { Fundraise } from '@/types/funding';
 import { ApiError } from '@/services/types';
-import { ID } from '@/types/root';
+import { Currency, ID } from '@/types/root';
+import { ContentType } from '@/types/work';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { useUser } from '@/contexts/UserContext';
 
 interface UseFundraiseState {
   data: Fundraise | null;
@@ -21,17 +24,34 @@ type UseCloseFundraiseReturn = [UseFundraiseState, CloseFundraiseFn];
 type CompleteFundraiseFn = (id: ID) => Promise<void>;
 type UseCompleteFundraiseReturn = [UseFundraiseState, CompleteFundraiseFn];
 
+type CreateContributionPayload = {
+  amount: number;
+  amount_currency: Currency;
+  work_id: string;
+  content_type: ContentType;
+};
+
 export const useCreateContribution = (): UseCreateContributionReturn => {
   const [data, setData] = useState<Fundraise | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useUser();
 
-  const createContribution = async (id: ID, payload: any) => {
+  const createContribution = async (id: ID, payload: CreateContributionPayload) => {
     setIsLoading(true);
     setError(null);
 
     try {
       const response = await FundraiseService.createContribution(id, payload);
+      AnalyticsService.logEventWithUserProperties(
+        LogEvent.FUNDRAISE_SUBMITTED,
+        {
+          fundraise_id: id,
+          work_id: payload.work_id,
+          content_type: payload.content_type,
+        },
+        user
+      );
       setData(response);
     } catch (err) {
       const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
