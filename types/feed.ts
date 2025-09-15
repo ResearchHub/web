@@ -11,6 +11,7 @@ import { UserVoteType } from './reaction';
 import { User } from './user';
 import { stripHtml } from '@/utils/stringUtils';
 import { Tip } from './tip';
+import { Hub } from './hub';
 
 export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
 
@@ -658,17 +659,23 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                 ? content_object.authors.map(transformAuthorProfile)
                 : [transformAuthorProfile(author)],
             institution: content_object.institution, // Populate institution
-            topics: content_object.hub
-              ? [
-                  content_object.hub.id
-                    ? transformTopic(content_object.hub)
-                    : {
-                        id: 0,
-                        name: content_object.hub.name || '',
-                        slug: content_object.hub.slug || '',
-                      },
-                ]
-              : [],
+            topics: content_object.hubs
+              ? (content_object.hubs as Array<Hub>).map((hub, idx) => ({
+                  id: hub.id || idx,
+                  name: hub.name || '',
+                  slug: hub.slug || '',
+                }))
+              : content_object.hub
+                ? [
+                    content_object.hub.id
+                      ? transformTopic(content_object.hub)
+                      : {
+                          id: 0,
+                          name: content_object.hub.name || '',
+                          slug: content_object.hub.slug || '',
+                        },
+                  ]
+                : [],
             createdBy: transformAuthorProfile(author),
             bounties: content_object.bounties
               ? content_object.bounties.map((bounty: any) =>
