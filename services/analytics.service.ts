@@ -18,6 +18,15 @@ export const LogEvent = {
   CLICKED_SHARE_VIA_BLUESKY: 'clicked_share_via_bluesky',
   CLICKED_SHARE_VIA_QR_CODE: 'clicked_share_via_qr_code',
   SIGNED_UP: 'signed_up',
+  FEED_IMPRESSION: 'feed_impression',
+  VOTE_ACTION: 'vote_action',
+  TIP_STARTED: 'tip_started',
+  CONTENT_FLAGGED: 'content_flagged',
+  SEARCH_SUGGESTION_CLICKED: 'search_suggestion_clicked',
+  TOPIC_BADGE_CLICKED: 'topic_badge_clicked',
+  WORK_INTERACTION: 'work_interaction',
+  FUNDRAISE_SUBMITTED: 'fundraise_submitted',
+  CONTENT_SHARED: 'content_shared',
 } as const;
 
 export type LogEventValue = (typeof LogEvent)[keyof typeof LogEvent];

@@ -1,0 +1,103 @@
+import { TipContentType } from '@/services/transaction.service';
+import { FeedContentType } from './feed';
+import { UserVoteType, VotableContentType } from './reaction';
+import { EntityType } from './search';
+import { ContentType, FlagReasonKey } from './work';
+
+interface UserContext {
+  user_id?: string;
+  author_id?: string;
+  editor?: boolean;
+  moderator?: boolean;
+}
+
+type FeedImpressionType = 'INITIAL' | 'DISPLAYED';
+
+// 1. Feed Impression Tracking
+export interface FeedImpressionEvent extends UserContext {
+  impression_type: FeedImpressionType;
+  items: Array<{
+    content_type: FeedContentType;
+    id: string;
+    topic_ids?: string[];
+    author_ids?: string[];
+  }>;
+}
+
+// 2. Vote Action
+export interface VoteActionEvent extends UserContext {
+  vote_type: UserVoteType;
+  content_type: VotableContentType;
+  /*
+  Work id if content type is paper or post
+  Parent work id if content type is comment
+  */
+  work_id: string;
+}
+
+// 3. Tip Started
+export interface TipStartedEvent extends UserContext {
+  target_type: TipContentType;
+  /*
+  Work id if content type is paper or researchhubpost
+  Parent work id if content type is comment
+  */
+  work_id: string;
+  /*
+  Target author id if content type is rhcommentmodel
+  */
+  target_author_id?: string;
+}
+
+type FlagTargetType = 'document' | 'comment';
+
+// 4. Content Flagged
+export interface ContentFlaggedEvent extends UserContext {
+  target_type: FlagTargetType;
+  /*
+  Work id if content type is paper or post
+  Parent work id if content type is comment
+  */
+  work_id: string;
+  content_type: ContentType;
+  flag_reason: FlagReasonKey;
+}
+
+// 5. Search Suggestion Clicked
+export interface SearchSuggestionClickedEvent extends UserContext {
+  suggestion_type: EntityType;
+  suggestion_id: string;
+}
+
+type TopicBadgeClickSource = 'feed' | 'search' | 'document' | 'navigation';
+
+// 6. Topic Badge Clicked
+export interface TopicBadgeClickedEvent extends UserContext {
+  topic_id: string;
+  click_source: TopicBadgeClickSource;
+  parent_work_id?: string;
+  parent_work_type?: ContentType;
+}
+
+type WorkInteractionType = 'doi_clicked' | 'pdf_downloaded';
+// 7. Work Interaction
+export interface WorkInteractionEvent extends UserContext {
+  interaction_type: WorkInteractionType;
+  work_id: string;
+  content_type: ContentType;
+  link_url?: string;
+}
+
+// 8. Fundraise Submitted
+export interface FundraiseSubmittedEvent extends UserContext {
+  fundraise_id: string;
+  work_id: string;
+  fundraise_amount: number;
+  topic_ids: string[];
+}
+
+// 9. Content Shared
+export interface ContentSharedEvent extends UserContext {
+  content_type: ContentType;
+  work_id: string;
+}
