@@ -108,8 +108,7 @@ export const WorkTabs = ({
                     ? `${baseUrl}/history`
                     : baseUrl;
 
-      // Use history.replaceState to update URL without navigation
-      window.history.replaceState(null, '', newUrl);
+      window.history.pushState(null, '', newUrl);
     }
   };
 

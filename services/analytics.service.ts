@@ -55,7 +55,10 @@ class AnalyticsService {
       try {
         // First time initialization
         amplitude.init(apiKey, paddedUserId || undefined, {
-          autocapture: true,
+          autocapture: {
+            pageViews: true,
+            sessions: true,
+          },
         });
         this.isInitialized.amplitude = true;
       } catch (error) {
