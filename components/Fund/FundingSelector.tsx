@@ -5,7 +5,6 @@ import {
   MultiSelectOption,
   SearchableMultiSelect,
 } from '@/components/ui/form/SearchableMultiSelect';
-import { Badge } from '@/components/ui/Badge';
 import { ChevronDown, Filter } from 'lucide-react';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { Topic } from '@/types/topic';
