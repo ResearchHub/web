@@ -177,14 +177,15 @@ export function FundingSelector({
             className="w-full border-0 SearchableMultiSelect-input"
           />
         </div>
-        <Field className="pt-2 pb-2 border-b border-gray-200 flex items-center justify-between">
-          <Label>Minimum Upvotes</Label>
-          <Input
-            type="number"
+        <Field className="pt-2 pb-2 border-b border-gray-200">
+          <Label>Minimum Upvotes: {selectedVotes}</Label>
+          <input
+            type="range"
             min="0"
+            max="100"
             value={selectedVotes}
             onChange={(e) => onVotesChange(Number(e.target.value))}
-            className="w-24 bg-transparent border-none p-1 text-sm outline-none"
+            className="w-full h-2"
           />
         </Field>
         <Field className="pt-2 pb-2 border-b border-gray-200 flex items-center justify-between">
