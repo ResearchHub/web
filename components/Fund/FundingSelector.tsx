@@ -28,7 +28,6 @@ interface FundingSelectorProps {
   selectedPreviouslyFunded: boolean;
   onPreviouslyFundedChange: (previouslyFunded: boolean) => void;
   error?: string | null;
-  hideSelectedItems?: boolean;
 }
 
 export function FundingSelector({
@@ -45,7 +44,6 @@ export function FundingSelector({
   selectedPreviouslyFunded,
   onPreviouslyFundedChange,
   error,
-  hideSelectedItems = false,
 }: FundingSelectorProps) {
   const [allHubs, setAllHubs] = useState<Topic[]>([]);
   const menuContentRef = useRef<HTMLDivElement>(null);
@@ -80,34 +78,20 @@ export function FundingSelector({
 
   const allHubOptions = hubsToOptions(topicsToHubs(allHubs));
 
-  // Local search within allHubs
-  const filterHubs = useCallback(
-    async (query: string): Promise<MultiSelectOption[]> => {
-      if (!query) {
-        return hubsToOptions(topicsToHubs(allHubs));
-      }
-      const lowered = query.toLowerCase();
-      const filtered = allHubs.filter((hub) => hub.name.toLowerCase().includes(lowered));
-      return hubsToOptions(topicsToHubs(filtered));
-    },
-    [allHubs, selectedHubs]
-  );
+  const handleTopicSearch = useCallback(async (query: string): Promise<MultiSelectOption[]> => {
+    try {
+      const topics = await HubService.suggestTopics(query);
+      return topics.map((topic) => ({
+        value: topic.id.toString(),
+        label: topic.name,
+      }));
+    } catch (error) {
+      console.error('Error searching topics:', error);
+      return [];
+    }
+  }, []);
 
-  const fetchHubs = useCallback(
-    async (query: string): Promise<MultiSelectOption[]> => {
-      try {
-        const topics = await HubService.suggestTopics(query);
-        const hubs = topicsToHubs(topics);
-        return hubsToOptions(hubs);
-      } catch (error) {
-        console.error('Error searching topics:', error);
-        return [];
-      }
-    },
-    [selectedHubs]
-  );
-
-  const handleChange = (options: MultiSelectOption[]) => {
+  const handleTopicsChange = (options: MultiSelectOption[]) => {
     onHubsChange(optionsToHubs(options));
   };
 
@@ -168,13 +152,14 @@ export function FundingSelector({
           <p>Topics</p>
           <SearchableMultiSelect
             value={hubsToOptions(selectedHubs)}
-            onChange={handleChange}
-            onAsyncSearch={filterHubs}
+            onChange={handleTopicsChange}
+            onAsyncSearch={handleTopicSearch}
             options={allHubOptions}
             placeholder="Search for topics..."
             minSearchLength={0}
             error={error || undefined}
             className="w-full border-0 SearchableMultiSelect-input"
+            debounceMs={500}
           />
         </div>
         <Field className="pt-2 pb-2 border-b border-gray-200">

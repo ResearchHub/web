@@ -130,7 +130,6 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
               onTaxDeductibleChange={setSelectedTaxDeductible}
               selectedPreviouslyFunded={selectedPreviouslyFunded}
               onPreviouslyFundedChange={setSelectedPreviouslyFunded}
-              hideSelectedItems={true}
             />
           </div>
           <div className="w-1/2 sm:!w-[120px] flex-1 sm:!flex-none pl-1 sm:!pl-0">
