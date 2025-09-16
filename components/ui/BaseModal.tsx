@@ -96,7 +96,7 @@ export const BaseModal: FC<BaseModalProps> = ({
                   // No rounded corners on mobile, rounded on md+
                   'md:!rounded-2xl',
                   // Only apply max width on md and up
-                  `md:${maxWidth}`
+                  `md:!${maxWidth}`
                 )}
                 style={{
                   display: 'flex',

@@ -14,7 +14,7 @@ export function ModerationSkeleton() {
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex flex-col gap-2 text-sm w-full md:max-w-[300px]">
+        <div className="flex flex-col gap-2 text-sm w-full md:!max-w-[300px]">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex items-center justify-between">
               <span className="font-medium whitespace-nowrap bg-gray-200 rounded h-4 w-24 animate-pulse" />
@@ -232,7 +232,7 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex flex-col gap-2 text-sm w-full md:max-w-[300px]">
+        <div className="flex flex-col gap-2 text-sm w-full md:!max-w-[300px]">
           <div className="flex items-center justify-between">
             <span className="font-medium whitespace-nowrap">Email:</span>
             <span className="truncate max-w-[200px]">{userDetails.email || 'N/A'}</span>

@@ -85,7 +85,7 @@ export function AddPublicationsForm({
   useEffect(() => {
     onStepChange?.({ step });
     setError(null);
-  }, [step, onStepChange]);
+  }, [step]);
 
   // Handle errors from hooks
   useEffect(() => {
