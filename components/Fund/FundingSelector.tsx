@@ -12,6 +12,8 @@ import { Field, Label, Switch } from '@headlessui/react';
 import { ReviewStars } from '../Comment/lib/ReviewExtension';
 import { HubService } from '@/services/hub.service';
 import { IHub } from '@/types/hub';
+import { hubsToOptions, optionsToHubs, topicsToHubs } from '@/utils/hubs';
+import { FilterSwitch } from '../shared/FilterSwitch';
 
 interface FundingSelectorProps {
   selectedHubs: IHub[];
@@ -55,26 +57,6 @@ export function FundingSelector({
     })();
   }, []);
 
-  // utility conversions
-  const hubsToOptions = (hubs: IHub[]): MultiSelectOption[] =>
-    hubs.map((hub) => ({ value: String(hub.id), label: hub.name }));
-
-  const topicsToHubs = (topics: Topic[]): IHub[] =>
-    topics.map((topic) => ({
-      id: topic.id,
-      name: topic.name,
-      description: topic.description,
-    }));
-
-  const optionsToHubs = (options: MultiSelectOption[]): IHub[] =>
-    options.map(
-      (opt) =>
-        selectedHubs.find((h) => String(h.id) === opt.value) || {
-          id: opt.value,
-          name: opt.label,
-        }
-    );
-
   const allHubOptions = hubsToOptions(topicsToHubs(allHubs));
 
   const handleTopicSearch = useCallback(async (query: string): Promise<MultiSelectOption[]> => {
@@ -91,7 +73,7 @@ export function FundingSelector({
   }, []);
 
   const handleTopicsChange = (options: MultiSelectOption[]) => {
-    onHubsChange(optionsToHubs(options));
+    onHubsChange(optionsToHubs(options, selectedHubs));
   };
 
   const filtersUsed =
@@ -159,42 +141,22 @@ export function FundingSelector({
             label=""
           />
         </Field>
-        <Field className="pt-2 pb-2 border-b border-gray-200 flex items-center justify-between">
-          <Label>Verified Authors Only</Label>
-          <Switch
-            checked={selectedVerifiedAuthorsOnly}
-            onChange={onVerifiedAuthorsOnlyChange}
-            className={`group inline-flex h-6 w-11 items-center rounded-full transition ${selectedVerifiedAuthorsOnly ? 'bg-blue-600' : 'bg-gray-200'}`}
-          >
-            <span
-              className={`size-4 translate-x-1 rounded-full bg-white transition ${selectedVerifiedAuthorsOnly ? 'translate-x-6' : ''}`}
-            />
-          </Switch>
-        </Field>
-        <Field className="pt-2 pb-2 border-b border-gray-200 flex items-center justify-between">
-          <Label>Tax-Deductible</Label>
-          <Switch
-            checked={selectedTaxDeductible}
-            onChange={onTaxDeductibleChange}
-            className={`group inline-flex h-6 w-11 items-center rounded-full transition ${selectedTaxDeductible ? 'bg-blue-600' : 'bg-gray-200'}`}
-          >
-            <span
-              className={`size-4 translate-x-1 rounded-full bg-white transition ${selectedTaxDeductible ? 'translate-x-6' : ''}`}
-            />
-          </Switch>
-        </Field>
-        <Field className="pt-2 flex items-center justify-between">
-          <Label>Previously Funded</Label>
-          <Switch
-            checked={selectedPreviouslyFunded}
-            onChange={onPreviouslyFundedChange}
-            className={`group inline-flex h-6 w-11 items-center rounded-full transition ${selectedPreviouslyFunded ? 'bg-blue-600' : 'bg-gray-200'}`}
-          >
-            <span
-              className={`size-4 translate-x-1 rounded-full bg-white transition ${selectedPreviouslyFunded ? 'translate-x-6' : ''}`}
-            />
-          </Switch>
-        </Field>
+        <FilterSwitch
+          label="Verified Authors Only"
+          checked={selectedVerifiedAuthorsOnly}
+          onChange={onVerifiedAuthorsOnlyChange}
+        />
+        <FilterSwitch
+          label="Tax-Deductible"
+          checked={selectedTaxDeductible}
+          onChange={onTaxDeductibleChange}
+        />
+        <FilterSwitch
+          label="Previously Funded"
+          checked={selectedPreviouslyFunded}
+          onChange={onPreviouslyFundedChange}
+          className="pt-2"
+        />
       </div>
     </BaseMenu>
   );

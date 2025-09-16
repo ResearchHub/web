@@ -11,6 +11,7 @@ import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { BountyService } from '@/services/bounty.service';
 import { Topic } from '@/types/topic';
 import { IHub } from '@/types/hub';
+import { hubsToOptions, optionsToHubs, topicsToHubs } from '@/utils/hubs';
 
 interface BountyHubSelectorProps {
   selectedHubs: IHub[];
@@ -62,26 +63,6 @@ export function BountyHubSelector({
     })();
   }, []);
 
-  // utility conversions
-  const hubsToOptions = (hubs: IHub[]): MultiSelectOption[] =>
-    hubs.map((hub) => ({ value: String(hub.id), label: hub.name }));
-
-  const topicsToHubs = (topics: Topic[]): IHub[] =>
-    topics.map((topic) => ({
-      id: topic.id,
-      name: topic.name,
-      description: topic.description,
-    }));
-
-  const optionsToHubs = (options: MultiSelectOption[]): IHub[] =>
-    options.map(
-      (opt) =>
-        selectedHubs.find((h) => String(h.id) === opt.value) || {
-          id: opt.value,
-          name: opt.label,
-        }
-    );
-
   const allHubOptions = hubsToOptions(topicsToHubs(allHubs));
 
   // Local search within allHubs
@@ -98,7 +79,7 @@ export function BountyHubSelector({
   );
 
   const handleChange = (options: MultiSelectOption[]) => {
-    onChange(optionsToHubs(options));
+    onChange(optionsToHubs(options, selectedHubs));
     if (displayCountOnly) {
       setMenuOpen(false);
     }
