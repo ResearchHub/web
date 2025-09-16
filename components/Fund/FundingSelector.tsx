@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/Badge';
 import { ChevronDown, Filter } from 'lucide-react';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { Topic } from '@/types/topic';
-import { Field, Input, Label, Switch } from '@headlessui/react';
+import { Field, Label, Switch } from '@headlessui/react';
 import { ReviewStars } from '../Comment/lib/ReviewExtension';
 import { HubService } from '@/services/hub.service';
 import { IHub } from '@/types/hub';
@@ -94,28 +94,6 @@ export function FundingSelector({
   const handleTopicsChange = (options: MultiSelectOption[]) => {
     onHubsChange(optionsToHubs(options));
   };
-
-  const CustomSelectedItems = () => (
-    <div className="flex flex-wrap gap-2 mt-2">
-      {selectedHubs.map((hub) => (
-        <Badge
-          key={hub.id}
-          variant="default"
-          className="flex items-center gap-1 px-3 py-1 rounded-sm text-sm cursor-pointer hover:bg-gray-200"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onHubsChange(selectedHubs.filter((h) => h.id !== hub.id));
-          }}
-        >
-          {hub.color && (
-            <div className="h-2 w-2 rounded-sm mr-1" style={{ backgroundColor: hub.color }} />
-          )}
-          <span>{hub.name}</span>
-        </Badge>
-      ))}
-    </div>
-  );
 
   const filtersUsed =
     selectedHubs.length +

@@ -6,8 +6,7 @@ import {
   SearchableMultiSelect,
 } from '@/components/ui/form/SearchableMultiSelect';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { X, ChevronDown, Filter } from 'lucide-react';
+import { ChevronDown, Filter } from 'lucide-react';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { BountyService } from '@/services/bounty.service';
 import { Topic } from '@/types/topic';
