@@ -8,7 +8,7 @@ import {
 import { ChevronDown, Filter } from 'lucide-react';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { Topic } from '@/types/topic';
-import { Field, Label, Switch } from '@headlessui/react';
+import { Field, Label } from '@headlessui/react';
 import { ReviewStars } from '../Comment/lib/ReviewExtension';
 import { HubService } from '@/services/hub.service';
 import { IHub } from '@/types/hub';
@@ -16,19 +16,19 @@ import { hubsToOptions, optionsToHubs, topicsToHubs } from '@/utils/hubs';
 import { FilterSwitch } from '../shared/FilterSwitch';
 
 interface FundingSelectorProps {
-  selectedHubs: IHub[];
-  onHubsChange: (hubs: IHub[]) => void;
-  selectedVotes: number;
-  onVotesChange: (votes: number) => void;
-  selectedScore: number;
-  onScoreChange: (score: number) => void;
-  selectedVerifiedAuthorsOnly: boolean;
-  onVerifiedAuthorsOnlyChange: (verifiedOnly: boolean) => void;
-  selectedTaxDeductible: boolean;
-  onTaxDeductibleChange: (taxDeductible: boolean) => void;
-  selectedPreviouslyFunded: boolean;
-  onPreviouslyFundedChange: (previouslyFunded: boolean) => void;
-  error?: string | null;
+  readonly selectedHubs: IHub[];
+  readonly onHubsChange: (hubs: IHub[]) => void;
+  readonly selectedVotes: number;
+  readonly onVotesChange: (votes: number) => void;
+  readonly selectedScore: number;
+  readonly onScoreChange: (score: number) => void;
+  readonly selectedVerifiedAuthorsOnly: boolean;
+  readonly onVerifiedAuthorsOnlyChange: (verifiedOnly: boolean) => void;
+  readonly selectedTaxDeductible: boolean;
+  readonly onTaxDeductibleChange: (taxDeductible: boolean) => void;
+  readonly selectedPreviouslyFunded: boolean;
+  readonly onPreviouslyFundedChange: (previouslyFunded: boolean) => void;
+  readonly error?: string | null;
 }
 
 export function FundingSelector({

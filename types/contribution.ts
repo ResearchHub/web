@@ -118,10 +118,13 @@ export const transformContributionToFeedEntry = ({
 }): FeedEntry => {
   const { content_type, created_by, created_date, hubs, item } = contribution;
 
-  const effectiveHubs: IHub[] = (hubs?.length ? hubs : item?.hubs?.length ? item.hubs : []).slice(
-    0,
-    2
-  );
+  let rawHubs: IHub[] = [];
+  if (hubs?.length) {
+    rawHubs = hubs;
+  } else if (item?.hubs?.length) {
+    rawHubs = item.hubs;
+  }
+  const effectiveHubs: IHub[] = rawHubs.slice(0, 2);
 
   // Base feed entry properties
   const baseFeedEntry: Partial<FeedEntry> = {

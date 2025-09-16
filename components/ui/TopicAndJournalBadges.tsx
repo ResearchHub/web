@@ -6,7 +6,7 @@ import { Topic } from '@/types/topic';
 import { Plus } from 'lucide-react';
 
 export interface TopicAndJournalBadgesProps {
-  topics: Topic[];
+  readonly topics: Topic[];
 }
 
 export default function TopicAndJournalBadges({ topics }: TopicAndJournalBadgesProps) {

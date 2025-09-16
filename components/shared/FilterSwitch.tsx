@@ -3,10 +3,10 @@
 import { Field, Label, Switch } from '@headlessui/react';
 
 interface FilterSwitchProps {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  className?: string;
+  readonly label: string;
+  readonly checked: boolean;
+  readonly onChange: (checked: boolean) => void;
+  readonly className?: string;
 }
 
 export function FilterSwitch({

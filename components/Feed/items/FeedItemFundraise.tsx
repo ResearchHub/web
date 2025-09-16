@@ -13,7 +13,6 @@ import {
 } from '@/components/Feed/BaseFeedItem';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { Users, Building, Pin } from 'lucide-react';

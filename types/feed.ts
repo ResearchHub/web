@@ -644,6 +644,25 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
             contentType = 'PREREGISTRATION';
           }
 
+          let postTopics: Topic[] = [];
+          if (content_object.hubs) {
+            postTopics = (content_object.hubs as Array<Hub>).map((hub, idx) => ({
+              id: hub.id || idx,
+              name: hub.name || '',
+              slug: hub.slug || '',
+            }));
+          } else if (content_object.hub) {
+            postTopics = [
+              content_object.hub.id
+                ? transformTopic(content_object.hub)
+                : {
+                    id: 0,
+                    name: content_object.hub.name || '',
+                    slug: content_object.hub.slug || '',
+                  },
+            ];
+          }
+
           // Create a FeedPostEntry object
           const postEntry: FeedPostContent = {
             id: content_object.id,
@@ -659,23 +678,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                 ? content_object.authors.map(transformAuthorProfile)
                 : [transformAuthorProfile(author)],
             institution: content_object.institution, // Populate institution
-            topics: content_object.hubs
-              ? (content_object.hubs as Array<Hub>).map((hub, idx) => ({
-                  id: hub.id || idx,
-                  name: hub.name || '',
-                  slug: hub.slug || '',
-                }))
-              : content_object.hub
-                ? [
-                    content_object.hub.id
-                      ? transformTopic(content_object.hub)
-                      : {
-                          id: 0,
-                          name: content_object.hub.name || '',
-                          slug: content_object.hub.slug || '',
-                        },
-                  ]
-                : [],
+            topics: postTopics,
             createdBy: transformAuthorProfile(author),
             bounties: content_object.bounties
               ? content_object.bounties.map((bounty: any) =>
