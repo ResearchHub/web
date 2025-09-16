@@ -21,7 +21,7 @@ export const LogEvent = {
   SIGNED_UP: 'signed_up',
   FEED_IMPRESSION: 'feed_impression',
   VOTE_ACTION: 'vote_action',
-  TIP_STARTED: 'tip_started',
+  TIP_SUBMITTED: 'tip_submitted',
   CONTENT_FLAGGED: 'content_flagged',
   SEARCH_SUGGESTION_CLICKED: 'search_suggestion_clicked',
   TOPIC_BADGE_CLICKED: 'topic_badge_clicked',

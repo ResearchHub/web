@@ -37,18 +37,13 @@ export interface VoteActionEvent extends UserContext {
   work_id: string;
 }
 
-// 3. Tip Started
-export interface TipStartedEvent extends UserContext {
+// 3. Tip Submitted
+export interface TipSubmittedEvent extends UserContext {
   target_type: TipContentType;
   /*
   Work id if content type is paper or researchhubpost
-  Parent work id if content type is comment
   */
   work_id: string;
-  /*
-  Target author id if content type is rhcommentmodel
-  */
-  target_author_id?: string;
 }
 
 type FlagTargetType = 'document' | 'comment';
@@ -71,14 +66,9 @@ export interface SearchSuggestionClickedEvent extends UserContext {
   suggestion_id: string;
 }
 
-type TopicBadgeClickSource = 'feed' | 'search' | 'document' | 'navigation';
-
 // 6. Topic Badge Clicked
 export interface TopicBadgeClickedEvent extends UserContext {
-  topic_id: string;
-  click_source: TopicBadgeClickSource;
-  parent_work_id?: string;
-  parent_work_type?: ContentType;
+  slug: string;
 }
 
 type WorkInteractionType = 'doi_clicked' | 'pdf_downloaded';

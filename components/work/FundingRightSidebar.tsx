@@ -47,7 +47,9 @@ export const FundingRightSidebar = ({
       {/* Applicants for the grant */}
       {/* <ApplicantsSection grantId={work.id} /> */}
       <TopicsSection topics={metadata.topics || []} />
-      {work.doi && <DOISection doi={work.doi} />}
+      {work.doi && (
+        <DOISection doi={work.doi} workId={work.id.toString()} contentType={work.contentType} />
+      )}
     </div>
   );
 };

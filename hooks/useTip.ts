@@ -9,6 +9,9 @@ import { toast } from 'react-hot-toast';
 import { ApiError } from '@/services/types';
 import { TransactionService } from '@/services/transaction.service';
 import { FeedContentType } from '@/types/feed';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { TipSubmittedEvent } from '@/types/analytics';
+import { useUser } from '@/contexts/UserContext';
 
 // Define the type for content type mapping result
 type TipContentType = 'researchhubpost' | 'paper' | 'rhcommentmodel';
@@ -46,7 +49,7 @@ function mapFeedContentTypeToTipContentType(feedContentType: FeedContentType): T
 export function useTip({ contentId, feedContentType, onTipSuccess, onTipError }: UseTipOptions) {
   const [isTipping, setIsTipping] = useState(false);
   // Removed session check - handled by caller using executeAuthenticatedAction
-
+  const { user } = useUser();
   /**
    * Tip a piece of content.
    * @param amount The amount of RSC to tip.
@@ -65,13 +68,18 @@ export function useTip({ contentId, feedContentType, onTipSuccess, onTipError }:
         setIsTipping(true);
 
         const contentType = mapFeedContentTypeToTipContentType(feedContentType);
+        if (contentType !== 'rhcommentmodel') {
+          const payload: TipSubmittedEvent = {
+            target_type: contentType,
+            work_id: contentId?.toString() || '',
+          };
+          AnalyticsService.logEventWithUserProperties(LogEvent.TIP_SUBMITTED, payload, user);
+        }
 
-        // Call service with camelCase args
         const response = await TransactionService.tipContentTransaction({
           contentType: contentType,
           objectId: contentId,
           amount,
-          // clientId is now generated in the service
         });
 
         toast.success(`Successfully tipped ${amount} RSC!`);

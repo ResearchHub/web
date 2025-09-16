@@ -23,7 +23,9 @@ export const GrantRightSidebar = ({ work, metadata }: GrantRightSidebarProps) =>
       <GrantStatusSection work={work} />
       <ApplicantsSection applicants={applicants} />
       {metadata.topics && metadata.topics.length > 0 && <TopicsSection topics={metadata.topics} />}
-      {work.doi && <DOISection doi={work.doi} />}
+      {work.doi && (
+        <DOISection doi={work.doi} workId={work.id.toString()} contentType={work.contentType} />
+      )}
     </div>
   );
 };
