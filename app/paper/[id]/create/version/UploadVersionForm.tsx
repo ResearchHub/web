@@ -12,13 +12,14 @@ import {
   AuthorsAndAffiliations,
   SelectedAuthor,
 } from '@/app/paper/create/components/AuthorsAndAffiliations';
-import { HubsSelector, Hub } from '@/app/paper/create/components/HubsSelector';
+import { HubsSelector } from '@/app/paper/create/components/HubsSelector';
 import { FileText, FileUp, Users, Tags, ArrowLeft, Info, MessageCircle } from 'lucide-react';
 import { UploadFileResult } from '@/services/file.service';
 import { PaperService } from '@/services/paper.service';
 import toast from 'react-hot-toast';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
+import { IHub } from '@/types/hub';
 
 interface UploadVersionFormProps {
   initialPaper: Work;
@@ -49,7 +50,7 @@ export default function UploadVersionForm({
       isCorrespondingAuthor: auth.isCorresponding,
     }))
   );
-  const [selectedHubs, setSelectedHubs] = useState<Hub[]>(() => {
+  const [selectedHubs, setSelectedHubs] = useState<IHub[]>(() => {
     const sourceTopics = metadata?.topics ?? initialPaper.topics;
     return sourceTopics.map((topic) => ({
       id: topic.id,
@@ -117,7 +118,7 @@ export default function UploadVersionForm({
     }
   };
 
-  const handleHubsChange = (newHubs: Hub[]) => {
+  const handleHubsChange = (newHubs: IHub[]) => {
     setSelectedHubs(newHubs);
     if (errors.hubs) {
       setErrors({ ...errors, hubs: null });

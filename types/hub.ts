@@ -6,3 +6,10 @@ export type Hub = {
   imageUrl?: string;
   description?: string;
 };
+
+export interface IHub {
+  id: string | number;
+  name: string;
+  description?: string;
+  color?: string;
+}

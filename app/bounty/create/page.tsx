@@ -11,7 +11,7 @@ import { WorkSuggestion } from '@/types/search';
 import { CommentEditor } from '@/components/Comment/CommentEditor';
 import { JSONContent } from '@tiptap/core';
 import { SessionProvider, useSession } from 'next-auth/react';
-import { HubsSelector, Hub } from '@/app/paper/create/components/HubsSelector';
+import { HubsSelector } from '@/app/paper/create/components/HubsSelector';
 import { Currency } from '@/types/root';
 import { BountyType } from '@/types/bounty';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -42,6 +42,7 @@ import { Icon } from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { extractUserMentions } from '@/components/Comment/lib/commentUtils';
 import { removeCommentDraftById } from '@/components/Comment/lib/commentDraftStorage';
+import { IHub } from '@/types/hub';
 
 // Wizard steps.
 // We intentionally separate review-specific and answer-specific steps.
@@ -82,7 +83,7 @@ export default function CreateBountyPage() {
   const [questionTitle, setQuestionTitle] = useState('');
   const [questionPlainText, setQuestionPlainText] = useState<string>('');
   const [questionHtml, setQuestionHtml] = useState<string>('');
-  const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
+  const [selectedHubs, setSelectedHubs] = useState<IHub[]>([]);
 
   // Shared – amount / currency
   const [currency, setCurrency] = useState<Currency>('RSC');

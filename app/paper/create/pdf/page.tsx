@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/form/Input';
 import { FileUpload } from '@/components/ui/form/FileUpload';
 import { SimpleStepProgress, SimpleStep } from '@/components/ui/SimpleStepProgress';
 import { AuthorsAndAffiliations, SelectedAuthor } from '../components/AuthorsAndAffiliations';
-import { HubsSelector, Hub } from '../components/HubsSelector';
+import { HubsSelector } from '../components/HubsSelector';
 import { DeclarationCheckbox } from '../components/DeclarationCheckbox';
 import {
   ArrowLeft,
@@ -30,6 +30,7 @@ import { Switch } from '@/components/ui/Switch';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { Callout } from '@/components/ui/Callout';
+import { IHub } from '@/types/hub';
 
 // Define the steps of our flow
 const steps: SimpleStep[] = [
@@ -52,7 +53,7 @@ export default function UploadPDFPage() {
   const [abstract, setAbstract] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [authors, setAuthors] = useState<SelectedAuthor[]>([]);
-  const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
+  const [selectedHubs, setSelectedHubs] = useState<IHub[]>([]);
   const [changeDescription, setChangeDescription] = useState('Initial submission');
   const [fileUploadResult, setFileUploadResult] = useState<UploadFileResult | null>(null);
 
@@ -151,7 +152,7 @@ export default function UploadPDFPage() {
     }
   };
 
-  const handleHubsChange = (newHubs: Hub[]) => {
+  const handleHubsChange = (newHubs: IHub[]) => {
     setSelectedHubs(newHubs);
     if (errors.hubs) {
       setErrors({ ...errors, hubs: null });

@@ -6,22 +6,16 @@ import {
   SearchableMultiSelect,
 } from '@/components/ui/form/SearchableMultiSelect';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { X, ChevronDown, Filter } from 'lucide-react';
+import { ChevronDown, Filter } from 'lucide-react';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { BountyService } from '@/services/bounty.service';
 import { Topic } from '@/types/topic';
-
-export interface Hub {
-  id: string | number;
-  name: string;
-  description?: string;
-  color?: string;
-}
+import { IHub } from '@/types/hub';
+import { hubsToOptions, optionsToHubs, topicsToHubs } from '@/utils/hubs';
 
 interface BountyHubSelectorProps {
-  selectedHubs: Hub[];
-  onChange: (hubs: Hub[]) => void;
+  selectedHubs: IHub[];
+  onChange: (hubs: IHub[]) => void;
   error?: string | null;
   displayCountOnly?: boolean;
   hideSelectedItems?: boolean;
@@ -69,26 +63,6 @@ export function BountyHubSelector({
     })();
   }, []);
 
-  // utility conversions
-  const hubsToOptions = (hubs: Hub[]): MultiSelectOption[] =>
-    hubs.map((hub) => ({ value: String(hub.id), label: hub.name }));
-
-  const topicsToHubs = (topics: Topic[]): Hub[] =>
-    topics.map((topic) => ({
-      id: topic.id,
-      name: topic.name,
-      description: topic.description,
-    }));
-
-  const optionsToHubs = (options: MultiSelectOption[]): Hub[] =>
-    options.map(
-      (opt) =>
-        selectedHubs.find((h) => String(h.id) === opt.value) || {
-          id: opt.value,
-          name: opt.label,
-        }
-    );
-
   const allHubOptions = hubsToOptions(topicsToHubs(allHubs));
 
   // Local search within allHubs
@@ -105,7 +79,7 @@ export function BountyHubSelector({
   );
 
   const handleChange = (options: MultiSelectOption[]) => {
-    onChange(optionsToHubs(options));
+    onChange(optionsToHubs(options, selectedHubs));
     if (displayCountOnly) {
       setMenuOpen(false);
     }
