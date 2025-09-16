@@ -85,7 +85,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   // Image URL
   const imageUrl = post.previewImage ?? undefined;
 
-  // debugger;
   return (
     <BaseFeedItem
       entry={entry}

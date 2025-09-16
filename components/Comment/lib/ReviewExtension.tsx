@@ -1,3 +1,5 @@
+'use client';
+
 import { Node, Extension, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
 import React from 'react';

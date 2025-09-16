@@ -1,3 +1,5 @@
+'use client';
+
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
 import { TopicAndJournalBadge } from './TopicAndJournalBadge';
 import { Topic } from '@/types/topic';

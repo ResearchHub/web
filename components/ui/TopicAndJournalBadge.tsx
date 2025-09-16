@@ -1,4 +1,5 @@
-import { Avatar } from './Avatar';
+'use client';
+
 import Link from 'next/link';
 
 export type BadgeType = 'topic' | 'journal';

@@ -1,3 +1,5 @@
+'use client';
+
 import { Field, Label, Switch } from '@headlessui/react';
 
 interface FilterSwitchProps {
