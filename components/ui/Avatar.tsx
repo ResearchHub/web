@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ProfileField, PROFILE_FIELD_WEIGHTS } from '@/utils/profileCompletion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleCheck, faCircle } from '@fortawesome/pro-light-svg-icons';
+import { faCircleCheck, faCircle, faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 import { useVerification } from '@/contexts/VerificationContext';
 import { Button } from '@/components/ui/Button';
 
@@ -28,6 +28,7 @@ export interface AvatarProps {
   showProfileCompletionNumber?: boolean;
   missing?: ProfileField[];
   showTooltip?: boolean;
+  laurelRank?: 1 | 2 | 3;
 }
 
 // Define a set of background colors for avatars without images
@@ -273,6 +274,7 @@ export const Avatar: FC<AvatarProps> = ({
   showProfileCompletionNumber = false,
   missing,
   showTooltip = false,
+  laurelRank,
 }) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -348,7 +350,7 @@ export const Avatar: FC<AvatarProps> = ({
     customStyle.height = `${size}px`;
   }
 
-  const avatarElement = (
+  const coreAvatarElement = (
     <div
       className={cn(
         'relative inline-flex rounded-full overflow-hidden',
@@ -403,6 +405,36 @@ export const Avatar: FC<AvatarProps> = ({
       )}
     </div>
   );
+
+  // Optionally wrap with a laurel wreath frame for ranks 1-3
+  const avatarElement = (() => {
+    if (!laurelRank || laurelRank < 1 || laurelRank > 3) return coreAvatarElement;
+
+    const basePx = typeof size === 'number' ? size : (sizeMap[size as AvatarSize] ?? sizeMap.md);
+    const laurelScale = 1.1; // Wreath size relative to avatar diameter
+    const laurelFontSize = `${basePx * laurelScale}px`;
+    const laurelColorClass =
+      laurelRank === 1 ? 'text-yellow-500' : laurelRank === 2 ? 'text-gray-400' : 'text-amber-600';
+
+    return (
+      <div
+        className="relative inline-block"
+        style={
+          typeof size === 'number' ? { width: `${basePx}px`, height: `${basePx}px` } : undefined
+        }
+      >
+        <FontAwesomeIcon
+          icon={faWreathLaurel}
+          className={cn(
+            'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-70 z-20',
+            laurelColorClass
+          )}
+          style={{ fontSize: laurelFontSize }}
+        />
+        <div className="relative z-10">{coreAvatarElement}</div>
+      </div>
+    );
+  })();
 
   // If authorId is provided, wrap the avatar with AuthorTooltip and/or Link
   if (authorId) {
