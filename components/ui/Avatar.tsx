@@ -426,7 +426,7 @@ export const Avatar: FC<AvatarProps> = ({
         <FontAwesomeIcon
           icon={faWreathLaurel}
           className={cn(
-            'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-70 z-20',
+            'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-70',
             laurelColorClass
           )}
           style={{ fontSize: laurelFontSize }}
