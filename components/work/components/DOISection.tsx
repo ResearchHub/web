@@ -1,3 +1,5 @@
+'use client';
+
 import { Link2 } from 'lucide-react';
 import Link from 'next/link';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';

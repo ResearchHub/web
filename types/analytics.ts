@@ -20,8 +20,8 @@ export interface FeedImpressionEvent extends UserContext {
   items: Array<{
     content_type: FeedContentType;
     id: string;
-    topic_ids?: string[];
-    author_ids?: string[];
+    // topic_ids?: string[];
+    // author_ids?: string[];
   }>;
 }
 

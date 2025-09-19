@@ -27,6 +27,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { PreferencesProvider } from '@/contexts/PreferencesContext';
 import { ReferralProvider } from '@/contexts/ReferralContext';
 import { FeatureNotifications } from '@/components/FeatureNotifications';
+import { FeedContentTrackingProvider } from '@/contexts/FeedContentTracking';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -132,7 +133,11 @@ export default async function RootLayout({
                               <NotificationProvider>
                                 <OrganizationProvider>
                                   <PreferencesProvider>
-                                    <FollowProvider>{children}</FollowProvider>
+                                    <FollowProvider>
+                                      <FeedContentTrackingProvider>
+                                        {children}
+                                      </FeedContentTrackingProvider>
+                                    </FollowProvider>
                                   </PreferencesProvider>
                                   <FeatureNotifications />
                                 </OrganizationProvider>
