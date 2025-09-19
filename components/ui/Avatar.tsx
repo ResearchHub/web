@@ -7,7 +7,8 @@ import Link from 'next/link';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ProfileField, PROFILE_FIELD_WEIGHTS } from '@/utils/profileCompletion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleCheck, faCircle, faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
+import { faCircleCheck, faCircle } from '@fortawesome/pro-light-svg-icons';
+import { faWreathLaurel } from '@fortawesome/pro-duotone-svg-icons';
 import { useVerification } from '@/contexts/VerificationContext';
 import { Button } from '@/components/ui/Button';
 

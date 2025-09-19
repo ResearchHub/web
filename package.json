@@ -21,6 +21,7 @@
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/pro-duotone-svg-icons": "6.7.2",
     "@fortawesome/pro-light-svg-icons": "^6.7.2",
     "@headlessui/react": "^2.2.0",
     "@hocuspocus/provider": "^2.14.0",
