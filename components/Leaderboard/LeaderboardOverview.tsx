@@ -6,8 +6,6 @@ import { TopReviewer, TopFunder } from '@/types/leaderboard';
 import { Avatar } from '@/components/ui/Avatar';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import Link from 'next/link';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { formatRSC } from '@/utils/number';
 import { navigateToAuthorProfile } from '@/utils/navigation';
@@ -93,23 +91,6 @@ export const LeaderboardOverview = () => {
     fetchData();
   }, []);
 
-  // Helper to render rank with icon
-  const renderRank = (rank: number) => {
-    if (rank === 1) {
-      return (
-        <div className="relative w-8 h-8 flex items-center justify-center">
-          <FontAwesomeIcon icon={faWreathLaurel} className="text-yellow-500 text-2xl absolute" />
-          <span className="relative text-gray-600 text-[11px] font-bold z-10">1</span>
-        </div>
-      );
-    }
-    return (
-      <div className="relative w-8 h-8 flex items-center justify-center">
-        <span className="text-gray-600 text-sm font-semibold">{rank}</span>
-      </div>
-    );
-  };
-
   const renderListItem = (
     item: TopReviewer | TopFunder,
     index: number,
@@ -124,11 +105,8 @@ export const LeaderboardOverview = () => {
       <div
         key={item.id}
         onClick={() => authorId && navigateToAuthorProfile(authorId)}
-        className="grid grid-cols-[32px_40px_1fr_auto] gap-x-3 items-center hover:bg-gray-50 px-1 py-2 rounded-md cursor-pointer"
+        className="grid grid-cols-[40px_1fr_auto] gap-x-3 items-center hover:bg-gray-50 px-1 py-2 rounded-md cursor-pointer"
       >
-        {/* Rank */}
-        <div className="w-8 flex-shrink-0">{renderRank(rank)}</div>
-
         {/* Avatar */}
         <div className="w-10 flex-shrink-0 flex items-center">
           {authorId ? (
@@ -138,6 +116,7 @@ export const LeaderboardOverview = () => {
                 alt={item.authorProfile.fullName}
                 size="sm"
                 authorId={authorId}
+                laurelRank={rank as 1 | 2 | 3}
               />
             </AuthorTooltip>
           ) : (
@@ -145,6 +124,7 @@ export const LeaderboardOverview = () => {
               src={item.authorProfile.profileImage}
               alt={item.authorProfile.fullName}
               size="sm"
+              laurelRank={rank as 1 | 2 | 3}
             />
           )}
         </div>
