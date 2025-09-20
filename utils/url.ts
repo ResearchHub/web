@@ -1,3 +1,5 @@
+import { ContentType } from '@/types/work';
+
 /**
  * Converts a string to a URL-friendly slug
  * Example: "Hello World!" -> "hello-world"
@@ -66,4 +68,43 @@ export const buildAuthorUrl = (id: string | number) => {
  */
 export const buildTopicUrl = (slug: string) => {
   return `/topic/${slug}`;
+};
+
+export const WORK_ROUTE_PATTERNS: Array<{
+  pattern: RegExp;
+  contentType: ContentType;
+}> = [
+  { pattern: /^\/paper\/(\d+)\/([^\/]+)/, contentType: 'paper' },
+  { pattern: /^\/post\/(\d+)\/([^\/]+)/, contentType: 'post' },
+  { pattern: /^\/fund\/(\d+)\/([^\/]+)/, contentType: 'preregistration' },
+  { pattern: /^\/question\/(\d+)\/([^\/]+)/, contentType: 'question' },
+  { pattern: /^\/grant\/(\d+)\/([^\/]+)/, contentType: 'funding_request' },
+];
+
+/**
+ * Extracts work document information from a pathname
+ * Returns null if the pathname doesn't match any work document pattern
+ */
+export const extractWorkDocumentInfo = (
+  pathname: string
+): {
+  contentType: ContentType;
+  workId: string;
+  workSlug: string;
+} | null => {
+  const match = WORK_ROUTE_PATTERNS.find(({ pattern }) => pattern.test(pathname));
+
+  if (match) {
+    const [, workId, workSlug] = pathname.match(match.pattern) || [];
+
+    if (workId) {
+      return {
+        contentType: match.contentType,
+        workId,
+        workSlug,
+      };
+    }
+  }
+
+  return null;
 };

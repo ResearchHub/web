@@ -28,6 +28,7 @@ import { PreferencesProvider } from '@/contexts/PreferencesContext';
 import { ReferralProvider } from '@/contexts/ReferralContext';
 import { FeatureNotifications } from '@/components/FeatureNotifications';
 import { FeedContentTrackingProvider } from '@/contexts/FeedContentTracking';
+import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -135,6 +136,7 @@ export default async function RootLayout({
                                   <PreferencesProvider>
                                     <FollowProvider>
                                       <FeedContentTrackingProvider>
+                                        <WorkDocumentTracker />
                                         {children}
                                       </FeedContentTrackingProvider>
                                     </FollowProvider>

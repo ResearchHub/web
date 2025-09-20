@@ -28,6 +28,7 @@ export const LogEvent = {
   WORK_INTERACTION: 'work_interaction',
   FUNDRAISE_SUBMITTED: 'fundraise_submitted',
   CONTENT_SHARED: 'content_shared',
+  WORK_DOCUMENT_VIEWED: 'work_document_viewed',
 } as const;
 
 export type LogEventValue = (typeof LogEvent)[keyof typeof LogEvent];

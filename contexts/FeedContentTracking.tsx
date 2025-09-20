@@ -78,13 +78,6 @@ export function FeedContentTrackingProvider({ children }: { children: ReactNode 
     setDisplayedItems([]);
   }, []);
 
-  useEffect(() => {
-    console.log({
-      displayedItems: displayedItems.length,
-      trackedItems: trackedItemIds.size,
-    });
-  }, [displayedItems.length, trackedItemIds.size]);
-
   // Process batch and reset all state
   const processAndReset = useCallback(() => {
     processBatch();

@@ -84,3 +84,9 @@ export interface ContentSharedEvent extends UserContext {
   content_type: ContentType;
   work_id: string;
 }
+
+export interface WorkDocumentViewedEvent extends UserContext {
+  content_type: ContentType;
+  work_id: string;
+  work_slug?: string;
+}
