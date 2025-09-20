@@ -30,9 +30,15 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
       )}
       <SupportersSection tips={work.tips || []} documentId={work.id} />
       <TopicsSection topics={metadata.topics || []} />
-      {work.doi && <DOISection doi={work.doi} />}
+      {work.doi && (
+        <DOISection doi={work.doi} workId={work.id.toString()} contentType={work.contentType} />
+      )}
       {work.postType !== 'QUESTION' && <LicenseSection license={work.license} />}
-      <FormatsSection formats={work.formats} />
+      <FormatsSection
+        formats={work.formats}
+        workId={work.id.toString()}
+        contentType={work.contentType}
+      />
     </div>
   );
 };

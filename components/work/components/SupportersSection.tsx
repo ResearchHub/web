@@ -8,7 +8,6 @@ import { HeartHandshake } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Icon } from '@/components/ui/icons/Icon';
-import { Work } from '@/types/work';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -121,6 +120,7 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
         contentId={documentId}
         feedContentType="PAPER"
         onTipSuccess={handleTipSuccess}
+        relatedWorkContentType="paper"
       />
     </section>
   );

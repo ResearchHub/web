@@ -727,6 +727,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           contentId={tipModalState.contentId}
           feedContentType={feedContentType}
           onTipSuccess={handleTipSuccess}
+          relatedWorkContentType={relatedDocumentContentType}
         />
       )}
     </>

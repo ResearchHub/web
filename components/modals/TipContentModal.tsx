@@ -14,6 +14,7 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { FeedContentType } from '@/types/feed';
 import { useTip } from '@/hooks/useTip'; // Import the useTip hook
 import { formatRSC } from '@/utils/number';
+import { ContentType } from '@/types/work';
 
 interface TipContentModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ interface TipContentModalProps {
   contentId: number; // ID of the content being tipped
   feedContentType: FeedContentType; // Type of content being tipped
   recipientName?: string; // Optional: Name of the recipient for display
+  relatedWorkContentType?: ContentType;
 }
 
 // Currency Input Component (reusable, slightly modified label)
@@ -95,6 +97,7 @@ export function TipContentModal({
   onTipSuccess,
   contentId,
   feedContentType,
+  relatedWorkContentType,
   recipientName, // Optional recipient name
 }: TipContentModalProps) {
   const { user } = useUser();
@@ -109,6 +112,7 @@ export function TipContentModal({
   const { tip, isTipping } = useTip({
     contentId,
     feedContentType,
+    relatedWorkContentType,
     onTipSuccess: (response, tippedAmount) => {
       // Call the passed-in success handler
       if (onTipSuccess) {

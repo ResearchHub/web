@@ -1,3 +1,4 @@
+import { User } from '@/types/user';
 import * as amplitude from '@amplitude/analytics-browser';
 import { sendGAEvent } from '@next/third-parties/google';
 
@@ -18,6 +19,16 @@ export const LogEvent = {
   CLICKED_SHARE_VIA_BLUESKY: 'clicked_share_via_bluesky',
   CLICKED_SHARE_VIA_QR_CODE: 'clicked_share_via_qr_code',
   SIGNED_UP: 'signed_up',
+  FEED_IMPRESSION: 'feed_impression',
+  VOTE_ACTION: 'vote_action',
+  TIP_SUBMITTED: 'tip_submitted',
+  CONTENT_FLAGGED: 'content_flagged',
+  SEARCH_SUGGESTION_CLICKED: 'search_suggestion_clicked',
+  TOPIC_BADGE_CLICKED: 'topic_badge_clicked',
+  WORK_INTERACTION: 'work_interaction',
+  FUNDRAISE_SUBMITTED: 'fundraise_submitted',
+  CONTENT_SHARED: 'content_shared',
+  WORK_DOCUMENT_VIEWED: 'work_document_viewed',
 } as const;
 
 export type LogEventValue = (typeof LogEvent)[keyof typeof LogEvent];
@@ -45,7 +56,10 @@ class AnalyticsService {
       try {
         // First time initialization
         amplitude.init(apiKey, paddedUserId || undefined, {
-          autocapture: true,
+          autocapture: {
+            pageViews: true,
+            sessions: true,
+          },
         });
         this.isInitialized.amplitude = true;
       } catch (error) {
@@ -119,6 +133,28 @@ class AnalyticsService {
       }
     }
     await Promise.all(promises);
+  }
+
+  static async logEventWithUserProperties(
+    eventName: LogEventValue,
+    eventProperties?: Record<string, any>,
+    user?: User | null,
+    providers: AnalyticsProvider[] = ['amplitude', 'google']
+  ) {
+    const userProperties = {
+      user_id: user?.id?.toString(),
+      author_id: user?.authorProfile?.id?.toString(),
+      editor: user?.authorProfile?.isHubEditor,
+      moderator: user?.moderator,
+    };
+    await this.logEvent(
+      eventName,
+      {
+        ...eventProperties,
+        ...userProperties,
+      },
+      providers
+    );
   }
 
   static async logSignedUp(

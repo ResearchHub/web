@@ -185,6 +185,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             compact={true}
             showContribute={true}
             className="p-0 border-0 bg-transparent"
+            workId={post.id.toString()}
           />
         </div>
       )}

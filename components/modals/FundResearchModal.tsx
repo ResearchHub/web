@@ -23,6 +23,7 @@ interface FundResearchModalProps {
   nftRewardsEnabled?: boolean;
   nftImageSrc?: string;
   fundraiseId: ID;
+  workId: string;
 }
 
 type Currency = 'RSC' | 'USD';
@@ -235,6 +236,7 @@ export function FundResearchModal({
   nftRewardsEnabled = false,
   nftImageSrc,
   fundraiseId,
+  workId,
 }: FundResearchModalProps) {
   const { user } = useUser();
   const userBalance = user?.balance || 0;
@@ -293,6 +295,8 @@ export function FundResearchModal({
       await createContribution(fundraiseId, {
         amount: getRscAmount(),
         amount_currency: currency,
+        work_id: workId,
+        content_type: 'preregistration',
       });
 
       onClose();

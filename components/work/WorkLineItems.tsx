@@ -318,6 +318,8 @@ export const WorkLineItems = ({
                 docTitle: work.title,
                 action: 'USER_SHARED_DOCUMENT',
                 shouldShowConfetti: false,
+                workId: work.id.toString(),
+                contentType: work.contentType,
               })
             }
             className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
@@ -498,6 +500,7 @@ export const WorkLineItems = ({
         contentId={work.id}
         feedContentType={work.contentType === 'paper' ? 'PAPER' : 'POST'}
         onTipSuccess={handleTipSuccess}
+        relatedWorkContentType={work.contentType}
       />
 
       {work.contentType === 'paper' && (

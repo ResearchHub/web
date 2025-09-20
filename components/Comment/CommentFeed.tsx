@@ -164,6 +164,8 @@ function CommentFeedContent({
               url: window.location.href,
               docTitle: work?.title || 'the document',
               action: 'USER_PEER_REVIEWED',
+              workId: work?.id.toString() || '',
+              contentType: contentType,
             });
           } catch (reviewError) {
             console.error('Error creating community review:', reviewError);

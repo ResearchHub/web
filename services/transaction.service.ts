@@ -8,7 +8,7 @@ import type {
 import { ApiError } from './types'; // Import from ./types
 
 // Define the type for content type mapping result used internally
-type TipContentType = 'researchhubpost' | 'paper' | 'rhcommentmodel';
+export type TipContentType = 'researchhubpost' | 'paper' | 'rhcommentmodel';
 
 // Define the request payload type for the API call (snake_case)
 interface TipApiPayload {

@@ -478,7 +478,11 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
             <TopicsSection />
             {note.post?.doi && (
               <div className="py-3 px-6 space-y-6">
-                <DOISection doi={note.post.doi} />
+                <DOISection
+                  doi={note.post.doi}
+                  workId={note.post.id.toString()}
+                  contentType={note.post.contentType}
+                />
               </div>
             )}
             {articleType === 'grant' && <GrantFundingAmountSection />}

@@ -38,6 +38,7 @@ export function FlagContentModal({
     try {
       await flag({
         documentType: workType === 'paper' ? 'paper' : 'researchhubpost',
+        contentType: workType,
         documentId,
         reason: selectedReason,
         commentId: commentId ? Number(commentId) : undefined,
