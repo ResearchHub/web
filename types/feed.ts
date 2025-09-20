@@ -132,6 +132,7 @@ export interface FeedCommentContent extends BaseFeedContent {
       threadType: string;
       objectId: number;
     };
+    aiScore?: number;
   };
   isRemoved?: boolean;
   relatedDocumentId?: number | string;
@@ -824,6 +825,7 @@ export const transformCommentToFeedItem = (
             objectId: comment.thread.objectId,
           }
         : undefined,
+      aiScore: comment.aiScore || -1,
     },
     relatedDocumentId: comment.thread?.objectId,
     relatedDocumentContentType: contentType,

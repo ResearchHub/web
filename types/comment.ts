@@ -69,6 +69,7 @@ export interface Comment {
     isVoteUpdate?: boolean;
     [key: string]: any;
   };
+  aiScore?: number;
 }
 
 export const transformThread: BaseTransformer<any, Thread> = (raw) => ({
@@ -150,6 +151,7 @@ export const transformComment = (raw: any): Comment => {
     userVote,
     raw,
     metadata: raw.metadata,
+    aiScore: raw.ai_score,
   };
 
   return result;
