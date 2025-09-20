@@ -74,11 +74,11 @@ export const WORK_ROUTE_PATTERNS: Array<{
   pattern: RegExp;
   contentType: ContentType;
 }> = [
-  { pattern: /^\/paper\/(\d+)\/([^\/]+)/, contentType: 'paper' },
-  { pattern: /^\/post\/(\d+)\/([^\/]+)/, contentType: 'post' },
-  { pattern: /^\/fund\/(\d+)\/([^\/]+)/, contentType: 'preregistration' },
-  { pattern: /^\/question\/(\d+)\/([^\/]+)/, contentType: 'question' },
-  { pattern: /^\/grant\/(\d+)\/([^\/]+)/, contentType: 'funding_request' },
+  { pattern: /^\/paper\/(\d+)\/([^/]+)/, contentType: 'paper' },
+  { pattern: /^\/post\/(\d+)\/([^/]+)/, contentType: 'post' },
+  { pattern: /^\/fund\/(\d+)\/([^/]+)/, contentType: 'preregistration' },
+  { pattern: /^\/question\/(\d+)\/([^/]+)/, contentType: 'question' },
+  { pattern: /^\/grant\/(\d+)\/([^/]+)/, contentType: 'funding_request' },
 ];
 
 /**
@@ -95,14 +95,18 @@ export const extractWorkDocumentInfo = (
   const match = WORK_ROUTE_PATTERNS.find(({ pattern }) => pattern.test(pathname));
 
   if (match) {
-    const [, workId, workSlug] = pathname.match(match.pattern) || [];
+    const result = match.pattern.exec(pathname);
 
-    if (workId) {
-      return {
-        contentType: match.contentType,
-        workId,
-        workSlug,
-      };
+    if (result) {
+      const [, workId, workSlug] = result;
+
+      if (workId) {
+        return {
+          contentType: match.contentType,
+          workId,
+          workSlug,
+        };
+      }
     }
   }
 

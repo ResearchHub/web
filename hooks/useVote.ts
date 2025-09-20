@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { ContentType } from '@/types/work';
 import { toast } from 'react-hot-toast';
-import { useSession } from 'next-auth/react';
 import { ApiError } from '@/services/types';
 import { ReactionService, DocumentType } from '@/services/reaction.service';
 import { UserVoteType, VotableContentType } from '@/types/reaction';

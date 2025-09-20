@@ -9,6 +9,7 @@ import {
   Dispatch,
   useEffect,
   useCallback,
+  useMemo, // Add this import
 } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { useUser } from './UserContext';
@@ -86,15 +87,18 @@ export function FeedContentTrackingProvider({ children }: { children: ReactNode 
     setDisplayedItems([]);
   }, [processBatch]);
 
+  const contextValue = useMemo(
+    () => ({
+      displayedItems,
+      setDisplayedItems,
+      processBatch,
+      processAndReset,
+    }),
+    [displayedItems, setDisplayedItems, processBatch, processAndReset]
+  );
+
   return (
-    <FeedContentTrackingContext.Provider
-      value={{
-        displayedItems,
-        setDisplayedItems,
-        processBatch,
-        processAndReset,
-      }}
-    >
+    <FeedContentTrackingContext.Provider value={contextValue}>
       {children}
     </FeedContentTrackingContext.Provider>
   );
