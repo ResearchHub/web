@@ -18,8 +18,6 @@ import { FeedImpressionEvent } from '@/types/analytics';
 const BATCH_SIZE = 10;
 
 interface FeedContentTrackingContextType {
-  entries: FeedEntry[];
-  setEntries: Dispatch<SetStateAction<FeedEntry[]>>;
   displayedItems: FeedEntry[];
   setDisplayedItems: Dispatch<SetStateAction<FeedEntry[]>>;
   processBatch: () => void;
@@ -29,7 +27,6 @@ interface FeedContentTrackingContextType {
 const FeedContentTrackingContext = createContext<FeedContentTrackingContextType | null>(null);
 
 export function FeedContentTrackingProvider({ children }: { children: ReactNode }) {
-  const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [displayedItems, setDisplayedItems] = useState<FeedEntry[]>([]);
   const [trackedItemIds, setTrackedItemIds] = useState<Set<string>>(new Set());
 
@@ -48,8 +45,12 @@ export function FeedContentTrackingProvider({ children }: { children: ReactNode 
           items: newItems.map((item) => ({
             content_type: item.contentType,
             id: item.id,
-            // topic_ids: item.content.topics?.map((topic) => topic.id.toString()),
-            // author_ids: item.content.authors?.map((author) => author.id.toString()),
+            related_work: item.relatedWork
+              ? {
+                  id: item.relatedWork.id.toString(),
+                  content_type: item.relatedWork.contentType,
+                }
+              : undefined,
           })),
         };
 
@@ -75,7 +76,7 @@ export function FeedContentTrackingProvider({ children }: { children: ReactNode 
   useEffect(() => {
     setTrackedItemIds(new Set());
     setDisplayedItems([]);
-  }, [entries]);
+  }, []);
 
   useEffect(() => {
     console.log({
@@ -95,8 +96,6 @@ export function FeedContentTrackingProvider({ children }: { children: ReactNode 
   return (
     <FeedContentTrackingContext.Provider
       value={{
-        entries,
-        setEntries,
         displayedItems,
         setDisplayedItems,
         processBatch,

@@ -12,6 +12,7 @@ import { FeedContentType } from '@/types/feed';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { TipSubmittedEvent } from '@/types/analytics';
 import { useUser } from '@/contexts/UserContext';
+import { ContentType } from '@/types/work';
 
 // Define the type for content type mapping result
 type TipContentType = 'researchhubpost' | 'paper' | 'rhcommentmodel';
@@ -19,6 +20,7 @@ type TipContentType = 'researchhubpost' | 'paper' | 'rhcommentmodel';
 interface UseTipOptions {
   contentId: number; // The ID of the content being tipped (e.g., comment ID, post ID)
   feedContentType: FeedContentType;
+  relatedWorkContentType?: ContentType;
   onTipSuccess?: (response: any, amount: number) => void;
   onTipError?: (error: any) => void;
 }
@@ -46,7 +48,13 @@ function mapFeedContentTypeToTipContentType(feedContentType: FeedContentType): T
  * A reusable hook for handling tipping functionality.
  * Assumes authentication is handled before calling the `tip` function.
  */
-export function useTip({ contentId, feedContentType, onTipSuccess, onTipError }: UseTipOptions) {
+export function useTip({
+  contentId,
+  feedContentType,
+  relatedWorkContentType,
+  onTipSuccess,
+  onTipError,
+}: UseTipOptions) {
   const [isTipping, setIsTipping] = useState(false);
   // Removed session check - handled by caller using executeAuthenticatedAction
   const { user } = useUser();
@@ -71,7 +79,13 @@ export function useTip({ contentId, feedContentType, onTipSuccess, onTipError }:
         if (contentType !== 'rhcommentmodel') {
           const payload: TipSubmittedEvent = {
             target_type: contentType,
-            work_id: contentId?.toString() || '',
+            related_work:
+              contentId && relatedWorkContentType
+                ? {
+                    id: contentId?.toString() || '',
+                    content_type: relatedWorkContentType,
+                  }
+                : undefined,
           };
           AnalyticsService.logEventWithUserProperties(LogEvent.TIP_SUBMITTED, payload, user);
         }

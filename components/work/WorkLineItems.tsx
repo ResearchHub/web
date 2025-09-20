@@ -500,6 +500,7 @@ export const WorkLineItems = ({
         contentId={work.id}
         feedContentType={work.contentType === 'paper' ? 'PAPER' : 'POST'}
         onTipSuccess={handleTipSuccess}
+        relatedWorkContentType={work.contentType}
       />
 
       {work.contentType === 'paper' && (

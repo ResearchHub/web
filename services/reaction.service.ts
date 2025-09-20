@@ -46,6 +46,7 @@ export interface FlagOptions {
   threadId?: ID;
   commentId?: ID; // ID of the comment to flag (if flagging a comment)
   replyId?: ID;
+  contentType?: ContentType;
 }
 
 export interface VoteOnCommentOptions {

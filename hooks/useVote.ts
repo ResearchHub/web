@@ -111,7 +111,13 @@ export function useVote({
         const payload: VoteActionEvent = {
           vote_type: voteType,
           content_type: votableContentType,
-          work_id: relatedDocumentId ? relatedDocumentId.toString() : votableEntityId.toString(),
+          related_work:
+            relatedDocumentId && relatedDocumentContentType
+              ? {
+                  id: relatedDocumentId ? relatedDocumentId.toString() : votableEntityId.toString(),
+                  content_type: relatedDocumentContentType,
+                }
+              : undefined,
           document_type: documentType,
         };
         AnalyticsService.logEventWithUserProperties(LogEvent.VOTE_ACTION, payload, user);

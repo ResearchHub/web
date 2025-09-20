@@ -12,6 +12,11 @@ interface UserContext {
   moderator?: boolean;
 }
 
+interface RelatedWork {
+  id: string;
+  content_type: ContentType;
+}
+
 type FeedImpressionType = 'INITIAL' | 'DISPLAYED';
 
 // 1. Feed Impression Tracking
@@ -20,8 +25,7 @@ export interface FeedImpressionEvent extends UserContext {
   items: Array<{
     content_type: FeedContentType;
     id: string;
-    // topic_ids?: string[];
-    // author_ids?: string[];
+    related_work?: RelatedWork;
   }>;
 }
 
@@ -30,20 +34,13 @@ export interface VoteActionEvent extends UserContext {
   vote_type: UserVoteType;
   document_type: DocumentType;
   content_type: VotableContentType;
-  /*
-  Work id if content type is paper or post
-  Parent work id if content type is comment
-  */
-  work_id: string;
+  related_work?: RelatedWork;
 }
 
 // 3. Tip Submitted
 export interface TipSubmittedEvent extends UserContext {
   target_type: TipContentType;
-  /*
-  Work id if content type is paper or researchhubpost
-  */
-  work_id: string;
+  related_work?: RelatedWork;
 }
 
 type FlagTargetType = 'document' | 'comment';
@@ -51,12 +48,7 @@ type FlagTargetType = 'document' | 'comment';
 // 4. Content Flagged
 export interface ContentFlaggedEvent extends UserContext {
   target_type: FlagTargetType;
-  /*
-  Work id if content type is paper or post
-  Parent work id if content type is comment
-  */
-  work_id: string;
-  document_type: DocumentType;
+  related_work?: RelatedWork;
   flag_reason: FlagReasonKey;
 }
 

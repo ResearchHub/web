@@ -34,8 +34,13 @@ export const useFlag = (): UseFlagReturn => {
       await ReactionService.flag(params);
       const payload: ContentFlaggedEvent = {
         target_type: params.commentId ? 'comment' : 'document',
-        work_id: params.documentId?.toString() || '',
-        document_type: params.documentType,
+        related_work:
+          params.contentType && params.documentId
+            ? {
+                id: params.documentId.toString(),
+                content_type: params.contentType,
+              }
+            : undefined,
         flag_reason: params.reason,
       };
       AnalyticsService.logEventWithUserProperties(LogEvent.CONTENT_FLAGGED, payload, user);
