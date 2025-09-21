@@ -12,9 +12,10 @@ import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useSession } from 'next-auth/react';
 import { isValidEmail } from '@/utils/validation';
 import { toast } from 'react-hot-toast';
+import { AuthorInfo } from '@/components/ui/AuthorInfo';
 
 // Create a type for organization member as contact suggestion
-interface OrgMemberContactSuggestion {
+interface OrgMemberSuggestion {
   id: string;
   fullName: string;
   profileImage?: string;
@@ -45,9 +46,9 @@ export function ContactsSection() {
   })();
 
   // Transform organization users to contact suggestions
-  const orgMemberContacts: OrgMemberContactSuggestion[] =
+  const orgMemberContacts: OrgMemberSuggestion[] =
     orgUsers?.users?.map((user: OrganizationMember) => ({
-      id: user.id,
+      id: user.id.toString(),
       fullName: user.name,
       profileImage: user.avatarUrl,
       email: user.email,
@@ -57,7 +58,7 @@ export function ContactsSection() {
   // Simple filtering function for organization users
   const handleSearchContacts = async (
     query: string
-  ): Promise<SelectOption<OrgMemberContactSuggestion>[]> => {
+  ): Promise<SelectOption<OrgMemberSuggestion>[]> => {
     if (!query.trim()) {
       // Return all org users when no query
       return orgMemberContacts.map((contact) => ({
@@ -82,7 +83,7 @@ export function ContactsSection() {
   };
 
   // Handle contact selection
-  const handleContactSelect = (selectedOption: SelectOption<OrgMemberContactSuggestion> | null) => {
+  const handleContactSelect = (selectedOption: SelectOption<OrgMemberSuggestion> | null) => {
     if (selectedOption) {
       // Check if contact is already selected
       const isAlreadySelected = contacts.some(
@@ -100,7 +101,7 @@ export function ContactsSection() {
   };
 
   // Handle contact removal
-  const handleRemoveContact = (contactToRemove: SelectOption<OrgMemberContactSuggestion>) => {
+  const handleRemoveContact = (contactToRemove: SelectOption<OrgMemberSuggestion>) => {
     const newContacts = contacts.filter((contact: any) => contact.value !== contactToRemove.value);
     setValue('contacts', newContacts, { shouldValidate: true });
   };
@@ -108,7 +109,7 @@ export function ContactsSection() {
   // Handle inviting a new user
   const handleInviteContact = async (
     query: string
-  ): Promise<SelectOption<OrgMemberContactSuggestion> | null> => {
+  ): Promise<SelectOption<OrgMemberSuggestion> | null> => {
     if (!isValidEmail(query)) {
       toast.error('Please enter a valid email address');
       return null;
@@ -151,38 +152,24 @@ export function ContactsSection() {
 
   // Render selected contact option
   const renderContactOption = (
-    option: SelectOption<OrgMemberContactSuggestion>,
+    option: SelectOption<OrgMemberSuggestion>,
     { focus, selected }: { selected: boolean; focus: boolean }
   ) => {
     const contactData = option.data;
 
     return (
       <li
+        key={option.value}
         className={`relative cursor-pointer select-none py-2 px-3 rounded-md text-sm list-none ${
           focus ? 'bg-gray-100' : 'text-gray-900'
         }`}
       >
-        <div className="flex items-center gap-3 max-w-full truncate">
-          <div className="flex-shrink-0">
-            {contactData?.profileImage ? (
-              <div className="h-8 w-8 rounded-full overflow-hidden">
-                <img
-                  src={contactData.profileImage}
-                  alt={contactData.fullName || ''}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            ) : (
-              <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                <Users className="h-4 w-4 text-gray-500" />
-              </div>
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className={`text-sm ${selected ? 'font-medium' : 'font-normal'}`}>{option.label}</p>
-            <p className="text-xs text-gray-600 truncate">{contactData?.email}</p>
-          </div>
-        </div>
+        <AuthorInfo
+          fullName={option.label}
+          email={contactData?.email}
+          image={contactData?.profileImage}
+          size="sm"
+        />
       </li>
     );
   };
@@ -193,7 +180,7 @@ export function ContactsSection() {
 
       {/* Contact Search */}
       <div className="mb-4">
-        <AutocompleteSelect<OrgMemberContactSuggestion>
+        <AutocompleteSelect<OrgMemberSuggestion>
           value={null}
           onChange={handleContactSelect}
           onSearch={handleSearchContacts}
@@ -214,51 +201,37 @@ export function ContactsSection() {
         <div className="space-y-2">
           <p className="text-sm font-medium text-gray-700">Selected Contacts:</p>
           <div className="space-y-2">
-            {contacts.map((contact: any) => (
-              <div
-                key={contact.value}
-                className="flex items-center justify-between px-2 py-1 bg-gray-50 rounded-lg border border-gray-200"
-              >
-                <div className="flex items-center gap-3 max-w-full truncate">
-                  <div className="flex-shrink-0">
-                    {contact.image ? (
-                      <div className="h-10 w-10 rounded-full overflow-hidden">
-                        <img
-                          src={contact.image}
-                          alt={contact.label || ''}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        <Users className="h-5 w-5 text-gray-500" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {contact.label}
-                      {contact.data?.id === currentUser?.id?.toString() && (
-                        <span className="text-gray-500 ml-1">(you)</span>
-                      )}
-                    </p>
-                    {contact.data?.email && (
-                      <p className="text-xs text-gray-600 truncate">{contact.data.email}</p>
-                    )}
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  onClick={() => handleRemoveContact(contact)}
-                  variant="ghost"
-                  size="icon"
-                  className="flex-shrink-0 text-gray-400 hover:text-red-600"
-                  aria-label="Remove contact"
+            {contacts.map((contact: any) => {
+              const isCurrentUser = contact.data?.id === currentUser?.id?.toString();
+              const orgMember = orgMemberContacts.find(
+                (orgMember) => orgMember.id === contact.value.toString()
+              );
+
+              return (
+                <div
+                  key={contact.value}
+                  className="flex items-center justify-between px-2 py-1 bg-gray-50 rounded-lg border border-gray-200"
                 >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
+                  <AuthorInfo
+                    email={orgMember?.email}
+                    fullName={contact.label || ''}
+                    image={contact.image}
+                    isCurrentUser={isCurrentUser}
+                    size="md"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => handleRemoveContact(contact)}
+                    variant="ghost"
+                    size="icon"
+                    className="flex-shrink-0 text-gray-400 hover:text-red-600"
+                    aria-label="Remove contact"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

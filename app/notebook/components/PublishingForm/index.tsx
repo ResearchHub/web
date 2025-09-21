@@ -175,6 +175,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         const contactOptions = note.post.grant.contacts.map((contact) => ({
           value: contact.id.toString(),
           label: contact.authorProfile?.fullName || contact.name,
+          image: contact.authorProfile?.profileImage,
         }));
         methods.setValue('contacts', contactOptions);
       }
@@ -197,7 +198,6 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       if (note.post.authors && note.post.authors.length > 0) {
         const authorOptions = note.post.authors.map((author) => {
           const orgUser = users?.users.find((user) => user.authorId === author.authorId);
-          console.log('orgUser', orgUser);
 
           return {
             value: author.authorId.toString(),

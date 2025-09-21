@@ -12,9 +12,10 @@ import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useSession } from 'next-auth/react';
 import { isValidEmail } from '@/utils/validation';
 import { toast } from 'react-hot-toast';
+import { AuthorInfo } from '@/components/ui/AuthorInfo';
 
 // Create a type for organization member as author suggestion
-interface OrgMemberAuthorSuggestion {
+interface OrgMemberSuggestion {
   id: string;
   fullName: string;
   profileImage?: string;
@@ -45,9 +46,9 @@ export function AuthorsSection() {
   })();
 
   // Transform organization users to author suggestions
-  const orgMemberAuthors: OrgMemberAuthorSuggestion[] =
+  const orgMemberAuthors: OrgMemberSuggestion[] =
     orgUsers?.users?.map((user: OrganizationMember) => ({
-      id: user.id,
+      id: user.authorId.toString(),
       fullName: user.name,
       profileImage: user.avatarUrl,
       email: user.email,
@@ -57,7 +58,7 @@ export function AuthorsSection() {
   // Simple filtering function for organization users
   const handleSearchAuthors = async (
     query: string
-  ): Promise<SelectOption<OrgMemberAuthorSuggestion>[]> => {
+  ): Promise<SelectOption<OrgMemberSuggestion>[]> => {
     if (!query.trim()) {
       // Return all org users when no query
       return orgMemberAuthors.map((author) => ({
@@ -82,7 +83,7 @@ export function AuthorsSection() {
   };
 
   // Handle author selection
-  const handleAuthorSelect = (selectedOption: SelectOption<OrgMemberAuthorSuggestion> | null) => {
+  const handleAuthorSelect = (selectedOption: SelectOption<OrgMemberSuggestion> | null) => {
     if (selectedOption) {
       // Check if author is already selected
       const isAlreadySelected = authors.some(
@@ -100,7 +101,7 @@ export function AuthorsSection() {
   };
 
   // Handle author removal
-  const handleRemoveAuthor = (authorToRemove: SelectOption<OrgMemberAuthorSuggestion>) => {
+  const handleRemoveAuthor = (authorToRemove: SelectOption<OrgMemberSuggestion>) => {
     const newAuthors = authors.filter((author: any) => author.value !== authorToRemove.value);
     setValue('authors', newAuthors, { shouldValidate: true });
   };
@@ -108,7 +109,7 @@ export function AuthorsSection() {
   // Handle inviting a new user
   const handleInviteAuthor = async (
     query: string
-  ): Promise<SelectOption<OrgMemberAuthorSuggestion> | null> => {
+  ): Promise<SelectOption<OrgMemberSuggestion> | null> => {
     if (!isValidEmail(query)) {
       toast.error('Please enter a valid email address');
       return null;
@@ -151,38 +152,24 @@ export function AuthorsSection() {
 
   // Render selected author option
   const renderAuthorOption = (
-    option: SelectOption<OrgMemberAuthorSuggestion>,
+    option: SelectOption<OrgMemberSuggestion>,
     { focus, selected }: { selected: boolean; focus: boolean }
   ) => {
     const authorData = option.data;
 
     return (
       <li
+        key={option.value}
         className={`relative cursor-pointer select-none py-2 px-3 rounded-md text-sm list-none ${
           focus ? 'bg-gray-100' : 'text-gray-900'
         }`}
       >
-        <div className="flex items-center gap-3 max-w-full truncate">
-          <div className="flex-shrink-0">
-            {authorData?.profileImage ? (
-              <div className="h-8 w-8 rounded-full overflow-hidden">
-                <img
-                  src={authorData.profileImage}
-                  alt={authorData.fullName || ''}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            ) : (
-              <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                <Users className="h-4 w-4 text-gray-500" />
-              </div>
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className={`text-sm ${selected ? 'font-medium' : 'font-normal'}`}>{option.label}</p>
-            <p className="text-xs text-gray-600 truncate">{authorData?.email}</p>
-          </div>
-        </div>
+        <AuthorInfo
+          fullName={option.label}
+          email={authorData?.email}
+          image={authorData?.profileImage}
+          size="sm"
+        />
       </li>
     );
   };
@@ -193,7 +180,7 @@ export function AuthorsSection() {
 
       {/* Author Search */}
       <div className="mb-4">
-        <AutocompleteSelect<OrgMemberAuthorSuggestion>
+        <AutocompleteSelect<OrgMemberSuggestion>
           value={null}
           onChange={handleAuthorSelect}
           onSearch={handleSearchAuthors}
@@ -214,51 +201,38 @@ export function AuthorsSection() {
         <div className="space-y-2">
           <p className="text-sm font-medium text-gray-700">Selected Authors:</p>
           <div className="space-y-2">
-            {authors.map((author: any) => (
-              <div
-                key={author.value}
-                className="flex items-center justify-between px-2 py-1 bg-gray-50 rounded-lg border border-gray-200"
-              >
-                <div className="flex items-center gap-3 max-w-full truncate">
-                  <div className="flex-shrink-0">
-                    {author.image ? (
-                      <div className="h-10 w-10 rounded-full overflow-hidden">
-                        <img
-                          src={author.image}
-                          alt={author.label || ''}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        <Users className="h-5 w-5 text-gray-500" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {author.label}
-                      {author.data?.id === currentUser?.id?.toString() && (
-                        <span className="text-gray-500 ml-1">(you)</span>
-                      )}
-                    </p>
-                    {author.data?.email && (
-                      <p className="text-xs text-gray-600 truncate">{author.data.email}</p>
-                    )}
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  onClick={() => handleRemoveAuthor(author)}
-                  variant="ghost"
-                  size="icon"
-                  className="flex-shrink-0 text-gray-400 hover:text-red-600"
-                  aria-label="Remove author"
+            {authors.map((author: any) => {
+              const isCurrentUser =
+                author.value.toString() === currentUser?.authorProfile?.id?.toString();
+              const orgMember = orgMemberAuthors.find(
+                (orgMember) => orgMember.id === author.value.toString()
+              );
+
+              return (
+                <div
+                  key={author.value}
+                  className="flex items-center justify-between px-2 py-1 bg-gray-50 rounded-lg border border-gray-200"
                 >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
+                  <AuthorInfo
+                    email={orgMember?.email}
+                    fullName={author.label || ''}
+                    image={author.image}
+                    isCurrentUser={isCurrentUser}
+                    size="md"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => handleRemoveAuthor(author)}
+                    variant="ghost"
+                    size="icon"
+                    className="flex-shrink-0 text-gray-400 hover:text-red-600"
+                    aria-label="Remove author"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
