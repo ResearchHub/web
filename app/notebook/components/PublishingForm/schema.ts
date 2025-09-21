@@ -4,6 +4,7 @@ import { NonprofitOrg } from '@/types/nonprofit';
 const optionSchema = z.object({
   value: z.string(),
   label: z.string(),
+  image: z.string().optional(),
 });
 
 export const publishingFormSchema = z
