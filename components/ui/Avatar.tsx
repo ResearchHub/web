@@ -412,10 +412,15 @@ export const Avatar: FC<AvatarProps> = ({
     if (!laurelRank || laurelRank < 1 || laurelRank > 3) return coreAvatarElement;
 
     const basePx = typeof size === 'number' ? size : (sizeMap[size as AvatarSize] ?? sizeMap.md);
-    const laurelScale = 1.1; // Wreath size relative to avatar diameter
+    const laurelScale = 0.9; // Wreath size relative to avatar diameter
+    const laurelStretchY = 1.3; // Vertical stretch factor
     const laurelFontSize = `${basePx * laurelScale}px`;
-    const laurelColorClass =
-      laurelRank === 1 ? 'text-yellow-500' : laurelRank === 2 ? 'text-gray-400' : 'text-amber-600';
+    const palette =
+      laurelRank === 1
+        ? { primary: '#f6d365', secondary: '#d4af37', primaryOpacity: 1, secondaryOpacity: 1 }
+        : laurelRank === 2
+          ? { primary: '#eaeaea', secondary: '#b5b5b5', primaryOpacity: 1, secondaryOpacity: 1 }
+          : { primary: '#efc08d', secondary: '#cd7f32', primaryOpacity: 1, secondaryOpacity: 1 };
 
     return (
       <div
@@ -426,11 +431,17 @@ export const Avatar: FC<AvatarProps> = ({
       >
         <FontAwesomeIcon
           icon={faWreathLaurel}
-          className={cn(
-            'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-70',
-            laurelColorClass
-          )}
-          style={{ fontSize: laurelFontSize }}
+          className={cn('absolute left-1/2 top-1/2 pointer-events-none opacity-70 z-20')}
+          style={
+            {
+              fontSize: laurelFontSize,
+              transform: `translate(-50%, -50%) scaleY(${laurelStretchY})`,
+              ['--fa-primary-color' as any]: palette.primary,
+              ['--fa-secondary-color' as any]: palette.secondary,
+              ['--fa-primary-opacity' as any]: palette.primaryOpacity,
+              ['--fa-secondary-opacity' as any]: palette.secondaryOpacity,
+            } as unknown as CSSProperties
+          }
         />
         <div className="relative z-10">{coreAvatarElement}</div>
       </div>
