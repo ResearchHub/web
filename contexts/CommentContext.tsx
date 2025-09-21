@@ -14,6 +14,7 @@ import { useSession } from 'next-auth/react';
 import { CommentContent } from '@/components/Comment/lib/types';
 import { CommentActionType, commentReducer, initialCommentState } from './CommentReducer';
 import { JSONContent } from '@tiptap/core';
+import { createOptimisticComment } from '@/components/Comment/lib/commentOptimisticUtils';
 
 export type BountyFilterType = 'ALL' | 'OPEN' | 'CLOSED';
 
@@ -49,6 +50,8 @@ interface CommentContextType {
     customWorkId?: string
   ) => Promise<Comment | null>;
   createReply: (parentId: number, content: CommentContent) => Promise<Comment | null>;
+  // Mock helpers
+  addMockReply: (parentId: number, content: CommentContent) => void;
   updateComment: (
     commentId: number,
     content: CommentContent,
@@ -461,6 +464,38 @@ export const CommentProvider = ({
     [documentId, contentType, commentType, state.count]
   );
 
+  /**
+   * Adds a mock reply authored by ResearchHub Agents under a given parent comment.
+   * This is a pure client-side injection for demos/mocks.
+   */
+  const addMockReply = useCallback(
+    (parentId: number, content: CommentContent) => {
+      const mock = createOptimisticComment(
+        content,
+        999999,
+        'ResearchHub Agents',
+        '/static/agents-avatar.png',
+        documentId,
+        parentId
+      );
+
+      // Ensure it looks non-optimistic in UI for this demo
+      mock.id = -Math.floor(Math.random() * 1000000) - 1;
+      mock.metadata = {
+        ...mock.metadata,
+        isOptimistic: false,
+        isMock: true,
+        isAgentResponse: true,
+      } as any;
+
+      dispatch({
+        type: CommentActionType.ADD_REPLY,
+        payload: { parentId, reply: mock },
+      });
+    },
+    [documentId]
+  );
+
   // Create a new bounty
   const createBounty = useCallback(
     async (
@@ -842,6 +877,7 @@ export const CommentProvider = ({
     },
     forceRefresh,
     emitCommentEvent,
+    addMockReply,
   };
 
   return <CommentContext.Provider value={value}>{children}</CommentContext.Provider>;

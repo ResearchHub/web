@@ -282,8 +282,12 @@ export const CommentItem = ({
     // Transform the comment to a feed entry
     const feedEntry = transformCommentToFeedItem(comment, contentType, work);
 
+    const isAgentResponse =
+      (comment.metadata as any)?.isAgentResponse ||
+      comment.createdBy?.fullName === 'ResearchHub Agents';
+
     return (
-      <div className="space-y-4">
+      <div className={'space-y-4'}>
         <FeedItemComment
           entry={feedEntry}
           onReply={() => setReplyingToCommentId(comment.id)}
@@ -298,6 +302,14 @@ export const CommentItem = ({
           }}
           workContentType={workContentType}
         />
+        {isAgentResponse && (
+          <div className="-mt-2">
+            <div className="rounded-md border border-blue-100 bg-gradient-to-br from-blue-50/60 to-white px-3 py-1.5 inline-flex items-center gap-2 text-[12px] text-blue-700">
+              <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+              <span>AI-generated insight by ResearchHub Agents</span>
+            </div>
+          </div>
+        )}
 
         {/* If we're replying, show the reply editor */}
         {isReplying && (

@@ -13,6 +13,7 @@ import { CommentLoader } from './CommentLoader';
 import CommentList from './CommentList';
 import { toast } from 'react-hot-toast';
 import { CommentContent } from './lib/types';
+import { extractTextFromTipTap, parseContent } from './lib/commentContentUtils';
 import { CommentService } from '@/services/comment.service';
 import { MessageSquare, Plus } from 'lucide-react';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
@@ -125,11 +126,14 @@ function CommentFeedContent({
     }
   }, [commentType, debug]);
 
-  const { filteredComments, count, loading, createComment, loadMore } = useCommentsContext();
+  const { filteredComments, count, loading, createComment, loadMore, addMockReply } =
+    useCommentsContext();
 
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser();
   const { showShareModal } = useShareModalContext();
+  const [agentLoadingParentId, setAgentLoadingParentId] = useState<number | null>(null);
+  const [agentLoadingFields, setAgentLoadingFields] = useState<string[]>([]);
   // Check if current user is an author
   const isCurrentUserAuthor = useMemo(() => {
     if (!user?.id || !workAuthors) return false;
@@ -148,6 +152,107 @@ function CommentFeedContent({
         if (!result) {
           toast.error('Failed to submit comment. Please try again.', { id: toastId });
           return false;
+        }
+
+        // Detect agent tags in plain text of TIPTAP content for mock injection
+        const parsed = typeof content === 'string' ? content : parseContent(content, 'TIPTAP');
+        const textForDetection =
+          typeof parsed === 'string' ? parsed : extractTextFromTipTap(parsed);
+        const normalizedText = (textForDetection || '').toLowerCase();
+        const agentTriggers = ['#neuroimaging', '#glymphatic system', "#alzheimer's disease"];
+
+        const shouldTriggerAgents = agentTriggers.every((tag) => normalizedText.includes(tag));
+
+        if (shouldTriggerAgents && result) {
+          setAgentLoadingParentId(result.id);
+          setAgentLoadingFields(['neuroimaging', 'glymphatic system', "alzheimer's disease"]);
+          // Create a robust mock reply content about CSF flow modulation via breathing techniques
+          const mockReplyContent: CommentContent = {
+            type: 'doc',
+            content: [
+              {
+                type: 'paragraph',
+                content: [
+                  {
+                    type: 'text',
+                    text: 'Consensus: Controlled breathing may modulate cerebrospinal fluid (CSF) dynamics and enhance glymphatic clearance, offering a promising, low-risk adjunct for early Alzheimer’s intervention.',
+                  },
+                ],
+              },
+              {
+                type: 'paragraph',
+                content: [
+                  {
+                    type: 'text',
+                    text: 'Rationale: MRI and intracranial physiology studies link slow, deep nasal breathing and extended exhalation with amplified CSF pulsatility, synchronized with venous and arterial oscillations. This appears to entrain perivascular flow and increase solute transport along glymphatic pathways.',
+                  },
+                ],
+              },
+              {
+                type: 'bulletList',
+                content: [
+                  {
+                    type: 'listItem',
+                    content: [
+                      {
+                        type: 'paragraph',
+                        content: [
+                          {
+                            type: 'text',
+                            text: 'Mechanism: Enhanced respiratory-driven CSF waves may improve periarterial influx and perivenous efflux, potentially reducing metabolite burden.',
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  {
+                    type: 'listItem',
+                    content: [
+                      {
+                        type: 'paragraph',
+                        content: [
+                          {
+                            type: 'text',
+                            text: 'Protocol sketch: 10–20 minutes/day, 4–6 breaths/min, nasal inhale, prolonged exhale (e.g., 1:2 ratio). Avoid Valsalva-like strain.',
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  {
+                    type: 'listItem',
+                    content: [
+                      {
+                        type: 'paragraph',
+                        content: [
+                          {
+                            type: 'text',
+                            text: 'Population: Mild cognitive impairment or early AD; pair with sleep hygiene to leverage slow-wave–linked clearance.',
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                type: 'paragraph',
+                content: [
+                  {
+                    type: 'text',
+                    text: 'Next steps: Pilot a randomized, sham-controlled study with MRI CSF-flow quantification, arterial spin labeling, and cognitive secondary outcomes to establish effect sizes and feasibility.',
+                  },
+                ],
+              },
+            ],
+          };
+
+          // After a delay matching the placeholder, inject the mock agent reply and clear loading
+          setTimeout(() => {
+            addMockReply(result.id, mockReplyContent);
+            setAgentLoadingParentId(null);
+            setAgentLoadingFields([]);
+          }, 3600);
         }
 
         if (commentType === 'REVIEW' && overallRating !== undefined && result) {
@@ -292,6 +397,12 @@ function CommentFeedContent({
               comments={filteredComments}
               isRootList={true}
               contentType={contentType}
+              loadingParentId={agentLoadingParentId}
+              loadingFields={agentLoadingFields}
+              onLoadingDone={() => {
+                setAgentLoadingParentId(null);
+                setAgentLoadingFields([]);
+              }}
             />
 
             {filteredComments.length < count && (
