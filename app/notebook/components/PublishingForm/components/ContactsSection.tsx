@@ -265,8 +265,8 @@ export function ContactsSection() {
 
       {/* Helper Text */}
       <p className="text-xs text-gray-500 mt-2">
-        Add contacts who will be responsible for managing this grant. These contacts will receive
-        important updates about the grant's progress.
+        Add contacts who will be responsible for managing this RFP. These contacts will receive
+        important updates about the RFP's progress.
       </p>
     </div>
   );

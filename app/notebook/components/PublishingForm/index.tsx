@@ -227,6 +227,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
     // Priority 3: Check URL params
     const isNewFunding = searchParams?.get('newFunding') === 'true';
     const isNewResearch = searchParams?.get('newResearch') === 'true';
+    const isNewGrant = searchParams?.get('newGrant') === 'true';
     const template = searchParams?.get('template');
 
     if (!note?.post && !storedData) {
@@ -234,6 +235,8 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         methods.setValue('articleType', 'preregistration');
       } else if (isNewResearch) {
         methods.setValue('articleType', 'discussion');
+      } else if (isNewGrant) {
+        methods.setValue('articleType', 'grant');
       } else if (template) {
         const articleType =
           template === 'preregistration'

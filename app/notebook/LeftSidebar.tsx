@@ -162,8 +162,8 @@ export const LeftSidebar = () => {
             <FileText className="h-4 w-4" />
           )}
           <div>
-            <div className="font-medium text-gray-900">Grant Proposal</div>
-            <div className="text-xs text-gray-500">Structured grant application</div>
+            <div className="font-medium text-gray-900">RFP</div>
+            <div className="text-xs text-gray-500">Request for Proposals</div>
           </div>
         </BaseMenuItem>
       }

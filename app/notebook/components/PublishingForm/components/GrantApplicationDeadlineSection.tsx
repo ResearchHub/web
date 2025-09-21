@@ -22,7 +22,7 @@ export function GrantApplicationDeadlineSection() {
           onChange={(date) => setValue('applicationDeadline', date, { shouldValidate: true })}
           placeholder="Select deadline date"
           error={errors.applicationDeadline?.message?.toString()}
-          helperText="When applications for this grant should be submitted by"
+          helperText="When applications for this RFP should be submitted by"
           minDate={new Date()} // Prevent selecting past dates
           required
         />

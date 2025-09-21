@@ -54,6 +54,13 @@ export const ModerationMetadata: FC<ModerationMetadataProps> = ({ entry, classNa
             )}
           </div>
         </div>
+        {entry.reasonMemo && (
+          <div className="mt-2 ml-1">
+            <blockquote className="border-l-4 border-gray-200 pl-3 text-sm text-gray-700 italic">
+              {entry.reasonMemo}
+            </blockquote>
+          </div>
+        )}
       </div>
 
       {/* Show moderator action for removed content */}

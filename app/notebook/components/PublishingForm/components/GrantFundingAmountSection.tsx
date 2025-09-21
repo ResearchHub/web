@@ -24,7 +24,7 @@ export function GrantFundingAmountSection() {
           rightElement={
             <div className="flex items-center pr-4 font-medium text-sm text-orange-600">USD</div>
           }
-          helperText="How much money you are giving for this grant"
+          helperText="How much money you are giving for this RFP"
           required
           onChange={(e) => {
             const numericValue = e.target.value.replace(/[^0-9]/g, '');
