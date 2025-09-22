@@ -274,7 +274,7 @@ const AuthorItem = ({
       <span
         className={cn(
           size === 'xs' ? 'text-xs' : size === 'sm' ? 'text-sm' : 'text-base',
-          'text-gray-900 hover:text-gray-900 font-semibold',
+          'text-gray-900 font-semibold',
           className
         )}
       >
