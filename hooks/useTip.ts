@@ -23,6 +23,7 @@ interface UseTipOptions {
   relatedWorkContentType?: ContentType;
   onTipSuccess?: (response: any, amount: number) => void;
   onTipError?: (error: any) => void;
+  topicIds: string[];
 }
 
 // Map FeedContentType to the content_type string expected by the API
@@ -54,6 +55,7 @@ export function useTip({
   relatedWorkContentType,
   onTipSuccess,
   onTipError,
+  topicIds,
 }: UseTipOptions) {
   const [isTipping, setIsTipping] = useState(false);
   // Removed session check - handled by caller using executeAuthenticatedAction
@@ -84,6 +86,7 @@ export function useTip({
                 ? {
                     id: contentId?.toString() || '',
                     content_type: relatedWorkContentType,
+                    topic_ids: topicIds,
                   }
                 : undefined,
           };

@@ -15,6 +15,7 @@ interface UserContext {
 interface RelatedWork {
   id: string;
   content_type: ContentType;
+  topic_ids: string[];
 }
 
 type FeedImpressionType = 'INITIAL' | 'DISPLAYED';
@@ -32,8 +33,6 @@ export interface FeedImpressionEvent extends UserContext {
 // 2. Vote Action
 export interface VoteActionEvent extends UserContext {
   vote_type: UserVoteType;
-  document_type: DocumentType;
-  content_type: VotableContentType;
   related_work?: RelatedWork;
 }
 

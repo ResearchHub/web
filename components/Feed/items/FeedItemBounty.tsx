@@ -372,6 +372,9 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
               menuItems={menuItems}
               bounties={[bountyEntry.bounty]}
               onComment={onReply}
+              relatedWorkTopicIds={
+                entry.relatedWork?.topics.map((topic) => topic.id.toString()) || []
+              }
             />
           </div>
         )}

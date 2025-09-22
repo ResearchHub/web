@@ -14,6 +14,7 @@ interface UseVoteOptions {
   feedContentType?: FeedContentType;
   relatedDocumentId?: number;
   relatedDocumentContentType?: ContentType;
+  topicIds: string[];
   onVoteSuccess?: (updatedItem: any, voteType: UserVoteType) => void;
   onVoteError?: (error: any) => void;
 }
@@ -49,6 +50,7 @@ export function useVote({
   relatedDocumentContentType,
   onVoteSuccess,
   onVoteError,
+  topicIds,
 }: UseVoteOptions) {
   const [isVoting, setIsVoting] = useState(false);
   const { user } = useUser();
@@ -109,15 +111,14 @@ export function useVote({
 
         const payload: VoteActionEvent = {
           vote_type: voteType,
-          content_type: votableContentType,
           related_work:
             relatedDocumentId && relatedDocumentContentType
               ? {
                   id: relatedDocumentId ? relatedDocumentId.toString() : votableEntityId.toString(),
                   content_type: relatedDocumentContentType,
+                  topic_ids: topicIds,
                 }
               : undefined,
-          document_type: documentType,
         };
         AnalyticsService.logEventWithUserProperties(LogEvent.VOTE_ACTION, payload, user);
         // Call success callback with the server response

@@ -146,6 +146,7 @@ interface FeedItemActionsProps {
   votableEntityId: number;
   relatedDocumentId?: number;
   relatedDocumentContentType?: ContentType;
+  relatedWorkTopicIds: string[];
   userVote?: UserVoteType;
   actionLabels?: {
     comment?: string;
@@ -188,6 +189,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   votableEntityId,
   relatedDocumentId,
   relatedDocumentContentType,
+  relatedWorkTopicIds,
   actionLabels,
   onComment,
   children,
@@ -263,6 +265,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     feedContentType,
     relatedDocumentId,
     relatedDocumentContentType,
+    topicIds: relatedWorkTopicIds,
     onVoteSuccess: () => {
       // The optimistic update already happened in handleVote
       // This confirms the update was successful
@@ -717,6 +720,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           documentId={contentToFlag.documentId}
           workType={contentToFlag.contentType}
           commentId={contentToFlag.commentId}
+          topicIds={relatedWorkTopicIds}
         />
       )}
 
@@ -728,6 +732,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           feedContentType={feedContentType}
           onTipSuccess={handleTipSuccess}
           relatedWorkContentType={relatedDocumentContentType}
+          relatedWorkTopicIds={relatedWorkTopicIds}
         />
       )}
     </>

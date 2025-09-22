@@ -50,6 +50,7 @@ export function FeedContentTrackingProvider({ children }: { children: ReactNode 
               ? {
                   id: item.relatedWork.id.toString(),
                   content_type: item.relatedWork.contentType,
+                  topic_ids: item.relatedWork.topics.map((topic) => topic.id.toString()),
                 }
               : undefined,
           })),

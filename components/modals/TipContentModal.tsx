@@ -24,6 +24,7 @@ interface TipContentModalProps {
   feedContentType: FeedContentType; // Type of content being tipped
   recipientName?: string; // Optional: Name of the recipient for display
   relatedWorkContentType?: ContentType;
+  relatedWorkTopicIds: string[];
 }
 
 // Currency Input Component (reusable, slightly modified label)
@@ -99,6 +100,7 @@ export function TipContentModal({
   feedContentType,
   relatedWorkContentType,
   recipientName, // Optional recipient name
+  relatedWorkTopicIds,
 }: TipContentModalProps) {
   const { user } = useUser();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
@@ -113,6 +115,7 @@ export function TipContentModal({
     contentId,
     feedContentType,
     relatedWorkContentType,
+    topicIds: relatedWorkTopicIds,
     onTipSuccess: (response, tippedAmount) => {
       // Call the passed-in success handler
       if (onTipSuccess) {

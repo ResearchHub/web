@@ -2,7 +2,7 @@
 
 import { FC, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { FeedEntry } from '@/types/feed';
+import { FeedCommentContent, FeedEntry } from '@/types/feed';
 import { useFeedContentTracking } from '@/contexts/FeedContentTracking';
 import { FeedItemSkeleton } from './FeedItemSkeleton';
 import {
@@ -104,7 +104,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/bounties`;
           }
         case 'COMMENT':
-          const comment = entry.content as Comment;
+          const comment = entry.content as FeedCommentContent;
           // For comments, we might want to link to the parent content with the comment ID as a hash
           if (entry.relatedWork?.contentType === 'paper') {
             return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;

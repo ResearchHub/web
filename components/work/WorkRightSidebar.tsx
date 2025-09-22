@@ -28,7 +28,7 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
       {hasResearchHubJournalVersions && (
         <VersionsSection versions={work.versions || []} currentPaperId={work.id} slug={work.slug} />
       )}
-      <SupportersSection tips={work.tips || []} documentId={work.id} />
+      <SupportersSection tips={work.tips || []} documentId={work.id} topics={work.topics} />
       <TopicsSection topics={metadata.topics || []} />
       {work.doi && (
         <DOISection doi={work.doi} workId={work.id.toString()} contentType={work.contentType} />

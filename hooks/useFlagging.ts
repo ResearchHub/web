@@ -14,7 +14,7 @@ interface UseFlagState {
   error: string | null;
 }
 
-type FlagFn = (params: FlagOptions) => Promise<void>;
+type FlagFn = (params: FlagOptions & { topicIds: string[] }) => Promise<void>;
 type UseFlagReturn = [UseFlagState, FlagFn];
 
 /**
@@ -26,7 +26,7 @@ export const useFlag = (): UseFlagReturn => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
 
-  const flag = async (params: FlagOptions) => {
+  const flag = async (params: FlagOptions & { topicIds: string[] }) => {
     setIsLoading(true);
     setError(null);
 
@@ -39,6 +39,7 @@ export const useFlag = (): UseFlagReturn => {
             ? {
                 id: params.documentId.toString(),
                 content_type: params.contentType,
+                topic_ids: params.topicIds,
               }
             : undefined,
         flag_reason: params.reason,
