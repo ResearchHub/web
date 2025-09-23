@@ -9,7 +9,7 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { ChartNoAxesColumnIncreasing } from 'lucide-react';
+import { ChartNoAxesColumnIncreasing, Grid3X3 } from 'lucide-react';
 
 // Define icon mapping for navigation items with both light and solid variants
 interface NavIcon {
@@ -112,6 +112,11 @@ export const Navigation: React.FC<NavigationProps> = ({
       requiresAuth: true,
     },
     {
+      label: 'Browse',
+      href: '/browse',
+      description: 'Browse topics by category',
+    },
+    {
       label: 'Leaderboard',
       href: '/leaderboard',
       description: 'View the ResearchHub Leaderboard',
@@ -210,6 +215,8 @@ export const Navigation: React.FC<NavigationProps> = ({
               color={iconColor}
               strokeWidth={isActive ? 2.5 : 2}
             />
+          ) : item.href === '/browse' ? (
+            <Grid3X3 size={22} color={iconColor} strokeWidth={isActive ? 2.5 : 2} />
           ) : isHomeIcon ? (
             <FontAwesomeIcon
               icon={isActive ? faHouseSolid : faHouseLight}

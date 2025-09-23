@@ -18,9 +18,10 @@ export function FollowTopicButton({
 }: FollowTopicButtonProps) {
   const { isFollowing, toggleFollow } = useFollowContext();
   const [isLoading, setIsLoading] = useState(false);
+  const [optimisticFollowing, setOptimisticFollowing] = useState<boolean | null>(null);
 
   // Check if this topic is being followed
-  const following = isFollowing(topicId);
+  const following = optimisticFollowing !== null ? optimisticFollowing : isFollowing(topicId);
 
   const handleFollowToggle = async (e: React.MouseEvent) => {
     // Stop event propagation to prevent parent click handlers from firing
@@ -28,12 +29,20 @@ export function FollowTopicButton({
 
     if (isLoading) return;
 
+    // Optimistically update the UI
+    const currentFollowingState = isFollowing(topicId);
+    setOptimisticFollowing(!currentFollowingState);
+
     setIsLoading(true);
     try {
       // This will update the global context state
       await toggleFollow(topicId);
+      // Clear optimistic state on success
+      setOptimisticFollowing(null);
     } catch (error) {
       console.error('Error toggling follow status:', error);
+      // Revert optimistic update on error
+      setOptimisticFollowing(null);
     } finally {
       setIsLoading(false);
     }
@@ -51,7 +60,7 @@ export function FollowTopicButton({
           : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
       } ${className}`}
     >
-      {isLoading ? '...' : following ? 'Following' : 'Follow'}
+      {following ? 'Following' : 'Follow'}
     </Button>
   );
 }
