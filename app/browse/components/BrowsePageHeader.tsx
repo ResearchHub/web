@@ -2,6 +2,7 @@
 
 import { TopicSearch } from '@/components/Search/TopicSearch';
 import { SearchSuggestion } from '@/types/search';
+import { ButtonGroup } from '@/components/ui/ButtonGroup';
 
 interface BrowsePageHeaderProps {
   activeTab: 'all' | 'following';
@@ -21,14 +22,14 @@ export function BrowsePageHeader({
   followingCount = 0,
 }: BrowsePageHeaderProps) {
   return (
-    <div className="bg-gray-50 border-b border-gray-200 -mx-4 px-4 py-6 mb-6">
+    <div className="px-0 py-6 mb-6">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Topics</h1>
 
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="w-full sm:w-96">
+        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+          <div className="w-full lg:w-96 order-2 lg:order-1">
             <TopicSearch
-              placeholder="Search topics"
+              placeholder={activeTab === 'following' ? 'Search followed topics' : 'Search topics'}
               onSearch={onSearch}
               onSearchResults={onSearchResults}
               onSearching={onSearching}
@@ -36,32 +37,16 @@ export function BrowsePageHeader({
             />
           </div>
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => onTabChange('all')}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                activeTab === 'all'
-                  ? 'bg-gray-200 text-gray-900'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              All Topics
-            </button>
-            <button
-              onClick={() => onTabChange('following')}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${
-                activeTab === 'following'
-                  ? 'bg-gray-200 text-gray-900'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Following
-              {followingCount > 0 && (
-                <span className="bg-gray-300 text-gray-700 px-2 py-0.5 rounded text-xs font-semibold">
-                  {followingCount}
-                </span>
-              )}
-            </button>
+          <div className="order-1 lg:order-2 flex-shrink-0">
+            <ButtonGroup
+              variant="pill"
+              value={activeTab}
+              onChange={(value) => onTabChange(value as 'all' | 'following')}
+              options={[
+                { value: 'all', label: 'All Topics' },
+                { value: 'following', label: 'Following', badge: followingCount },
+              ]}
+            />
           </div>
         </div>
       </div>

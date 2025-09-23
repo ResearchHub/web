@@ -84,14 +84,12 @@ export function BrowsePageClient({ initialGroupedTopics }: BrowsePageClientProps
 
   // View state booleans
   const isAllTab = activeTab === 'all';
-  const isFollowingTab = activeTab === 'following';
   const hasSearchQuery = Boolean(searchQuery);
   const isSearchingTopics = isSearching && hasSearchQuery;
   const hasNoSearchResults = !isSearching && searchResults.length === 0 && hasSearchQuery;
   const hasSearchResults = !isSearching && searchResults.length > 0 && hasSearchQuery;
   const showCategorizedTopics = !hasSearchQuery && isAllTab;
   const hasFollowedTopics = displayTopics && displayTopics.length > 0;
-  const hasNoFollowedTopics = !hasFollowedTopics;
   const showFollowedSearchCount = hasSearchQuery && hasFollowedTopics;
   const noFollowedTopicsMessage = hasSearchQuery
     ? `No followed topics found matching "${searchQuery}"`

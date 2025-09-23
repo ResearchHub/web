@@ -103,7 +103,7 @@ export function TopicSearch({
         <input
           type="text"
           placeholder={placeholder}
-          className="h-12 w-full rounded-lg border border-gray-300 bg-gray-50 pl-10 pr-10 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
+          className="h-10 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-10 text-md focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
