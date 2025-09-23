@@ -20,9 +20,15 @@ interface DocumentViewerProps {
   url: string;
   className?: string;
   onLoaded?: () => void;
+  onPdfUnavailable?: () => void;
 }
 
-export const DocumentViewer = ({ url, className, onLoaded }: DocumentViewerProps) => {
+export const DocumentViewer = ({
+  url,
+  className,
+  onLoaded,
+  onPdfUnavailable,
+}: DocumentViewerProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,6 +52,22 @@ export const DocumentViewer = ({ url, className, onLoaded }: DocumentViewerProps
 
   const handleError = (error: any) => {
     console.error('PDF loading error:', error);
+
+    // If the PDF request returns errors, treat it as unavailable
+    if (error?.status && error.status >= 400) {
+      // HTTP errors fail silently, allowing the parent to show the abstract instead
+      setError(null);
+      setIsLoading(false);
+      if (onPdfUnavailable) {
+        onPdfUnavailable();
+      }
+      if (onLoaded) {
+        onLoaded();
+      }
+      return;
+    }
+
+    // ... for other errors, show error message
     setError('Failed to load PDF document');
     setIsLoading(false);
     if (onLoaded) {

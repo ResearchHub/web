@@ -58,6 +58,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
 
   const [rewardModalOpen, setRewardModalOpen] = useState(false);
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
+  const [pdfUnavailable, setPdfUnavailable] = useState(false);
 
   // Determine if we should auto focus the review editor based on query param
   const shouldFocusReviewEditor = useMemo(() => {
@@ -109,9 +110,10 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
       case 'paper':
         return (
           <>
-            {/* Abstract - Only show if no PDF or if PDF can't be displayed */}
+            {/* Abstract - Only show if no PDF, if PDF can't be displayed, or if PDF is currently unavailable */}
             {(!work.formats.find((format) => format.type === 'PDF')?.url ||
-              !work.pdfCopyrightAllowsDisplay) && (
+              !work.pdfCopyrightAllowsDisplay ||
+              pdfUnavailable) && (
               <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
                 <h2 className="text-xl font-semibold mb-4">Abstract</h2>
                 <p className="text-gray-700">{work.abstract}</p>
@@ -119,12 +121,13 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
             )}
 
             {/* PDF Viewer */}
-            {work.formats.find((format) => format.type === 'PDF')?.url && (
+            {work.formats.find((format) => format.type === 'PDF')?.url && !pdfUnavailable && (
               <div className="bg-white rounded-lg shadow-sm border mb-6 relative">
                 {work.pdfCopyrightAllowsDisplay ? (
                   <DocumentViewer
                     url={work.formats.find((format) => format.type === 'PDF')?.url || ''}
                     className="min-h-[800px]"
+                    onPdfUnavailable={() => setPdfUnavailable(true)}
                   />
                 ) : (
                   <div className="p-8 text-center">
