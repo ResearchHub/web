@@ -26,8 +26,8 @@ export function BrowsePageHeader({
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Topics</h1>
 
-        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-          <div className="w-full lg:w-96 order-2 lg:order-1">
+        <div className="flex flex-col lg:!flex-row gap-4 items-start lg:!items-center justify-between">
+          <div className="w-full lg:!w-96 order-2 lg:!order-1">
             <TopicSearch
               placeholder={activeTab === 'following' ? 'Search followed topics' : 'Search topics'}
               onSearch={onSearch}
@@ -37,7 +37,7 @@ export function BrowsePageHeader({
             />
           </div>
 
-          <div className="order-1 lg:order-2 flex-shrink-0">
+          <div className="order-1 lg:!order-2 flex-shrink-0">
             <ButtonGroup
               variant="pill"
               value={activeTab}
