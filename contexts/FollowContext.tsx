@@ -2,19 +2,24 @@
 
 import { createContext, useState, useContext, useEffect, useMemo, ReactNode } from 'react';
 import { HubService } from '@/services/hub.service';
+import { FollowService } from '@/services/follow.service';
+import { Topic } from '@/types/topic';
 
 interface FollowContextType {
   followedTopicIds: number[];
+  followedTopics: Topic[];
   isFollowing: (topicId: number) => boolean;
   toggleFollow: (topicId: number) => Promise<void>;
   refreshFollowed: () => Promise<void>;
   loading: boolean;
+  getFollowedTopics: () => Promise<Topic[]>;
 }
 
 const FollowContext = createContext<FollowContextType | undefined>(undefined);
 
 export function FollowProvider({ children }: { children: ReactNode }) {
   const [followedTopicIds, setFollowedTopicIds] = useState<number[]>([]);
+  const [followedTopics, setFollowedTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch followed topics when component mounts
@@ -26,8 +31,14 @@ export function FollowProvider({ children }: { children: ReactNode }) {
   const refreshFollowed = async () => {
     setLoading(true);
     try {
-      const followedHubs = await HubService.getFollowedHubs();
-      setFollowedTopicIds(followedHubs);
+      // Fetch full topic data
+      const followedTopicsData = await FollowService.getFollowedTopics();
+
+      // Extract IDs from the topics
+      const topicIds = followedTopicsData.map((topic) => topic.id);
+
+      setFollowedTopics(followedTopicsData);
+      setFollowedTopicIds(topicIds);
     } catch (error) {
       console.error('Error fetching followed topics:', error);
     } finally {
@@ -55,6 +66,8 @@ export function FollowProvider({ children }: { children: ReactNode }) {
       } else {
         await HubService.followHub(topicId);
       }
+      // Refresh the full data after successful toggle
+      await refreshFollowed();
     } catch (error) {
       console.error('Error toggling follow status:', error);
       // Revert on error
@@ -66,16 +79,34 @@ export function FollowProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Function to get followed topics (returns cached data or fetches if needed)
+  const getFollowedTopics = async (): Promise<Topic[]> => {
+    if (followedTopics.length === 0 && followedTopicIds.length > 0) {
+      // If we have IDs but no topic data, fetch the full data
+      try {
+        const topicsData = await FollowService.getFollowedTopics();
+        setFollowedTopics(topicsData);
+        return topicsData;
+      } catch (error) {
+        console.error('Error fetching followed topics data:', error);
+        return [];
+      }
+    }
+    return followedTopics;
+  };
+
   // Create memoized context value
   const contextValue = useMemo(
     () => ({
       followedTopicIds,
+      followedTopics,
       isFollowing,
       toggleFollow,
       refreshFollowed,
       loading,
+      getFollowedTopics,
     }),
-    [followedTopicIds, loading]
+    [followedTopicIds, followedTopics, loading]
   );
 
   return <FollowContext.Provider value={contextValue}>{children}</FollowContext.Provider>;

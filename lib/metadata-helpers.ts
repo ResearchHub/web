@@ -99,3 +99,21 @@ export function getReferralMetadata({
     },
   };
 }
+
+export function getBrowsePageMetadata() {
+  return buildOpenGraphMetadata({
+    title: 'Browse Topics - ResearchHub',
+    description:
+      'Explore research topics and communities on ResearchHub. Join discussions, follow your interests, and contribute to scientific advancement.',
+    url: '/browse',
+    type: 'website',
+    tags: [
+      'Research Topics',
+      'Scientific Communities',
+      'Research Hub',
+      'Academic Topics',
+      'Science Categories',
+    ],
+    section: 'Browse',
+  });
+}

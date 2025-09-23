@@ -7,14 +7,21 @@ import { Button } from '@/components/ui/Button';
 import { TopicList } from './TopicList';
 import { getCategoryEmoji } from './lib/TopicIcons';
 import { toTitleCase } from '@/utils/stringUtils';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface TopicsByCategoryProps {
   groupedTopics: Record<string, Topic[]>;
   maxInitialTopics?: number;
+  maxMobileTopics?: number;
 }
 
-export function TopicsByCategory({ groupedTopics, maxInitialTopics = 6 }: TopicsByCategoryProps) {
+export function TopicsByCategory({
+  groupedTopics,
+  maxInitialTopics = 6,
+  maxMobileTopics = 4,
+}: TopicsByCategoryProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const isMobile = useIsMobile();
 
   const toggleCategoryExpansion = (category: string) => {
     setExpandedCategories((prev) => {
@@ -34,9 +41,8 @@ export function TopicsByCategory({ groupedTopics, maxInitialTopics = 6 }: Topics
         const categoryEmoji = getCategoryEmoji(category);
         const categoryTitle = toTitleCase(category);
         const isExpanded = expandedCategories.has(category);
-        const topicsToShow = isExpanded
-          ? categoryTopics
-          : categoryTopics.slice(0, maxInitialTopics);
+        const maxTopics = isMobile && !isExpanded ? maxMobileTopics : maxInitialTopics;
+        const topicsToShow = isExpanded ? categoryTopics : categoryTopics.slice(0, maxTopics);
 
         return (
           <div key={category} className="mb-8">
@@ -47,7 +53,7 @@ export function TopicsByCategory({ groupedTopics, maxInitialTopics = 6 }: Topics
 
             <TopicList topics={topicsToShow} />
 
-            {categoryTopics.length > maxInitialTopics && !isExpanded && (
+            {categoryTopics.length > maxTopics && !isExpanded && (
               <div className="flex justify-center mt-4">
                 <Button
                   variant="ghost"
