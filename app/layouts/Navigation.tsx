@@ -9,7 +9,9 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { ChartNoAxesColumnIncreasing, Grid3X3 } from 'lucide-react';
+import { faGrid3 as faGrid3Solid } from '@fortawesome/pro-solid-svg-icons';
+import { faGrid3 as faGrid3Light } from '@fortawesome/pro-light-svg-icons';
+import { ChartNoAxesColumnIncreasing } from 'lucide-react';
 
 // Define icon mapping for navigation items with both light and solid variants
 interface NavIcon {
@@ -115,6 +117,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       label: 'Browse',
       href: '/browse',
       description: 'Browse topics by category',
+      isFontAwesome: true,
     },
     {
       label: 'Leaderboard',
@@ -199,8 +202,8 @@ export const Navigation: React.FC<NavigationProps> = ({
 
     // Conditionally apply minimized classes
     const iconContainerClass = forceMinimize
-      ? 'h-[26px] w-[26px] mr-0 flex items-center justify-center'
-      : 'h-[26px] w-[26px] mr-2.5 tablet:max-sidebar-compact:!mr-0 flex items-center justify-center';
+      ? 'h-[26px] w-[26px] mr-0 flex items-center justify-center flex-shrink-0'
+      : 'h-[26px] w-[26px] mr-2.5 tablet:max-sidebar-compact:!mr-0 flex items-center justify-center flex-shrink-0';
 
     const textContainerClass = forceMinimize
       ? 'flex items-center justify-between w-full min-w-0 !hidden'
@@ -216,7 +219,11 @@ export const Navigation: React.FC<NavigationProps> = ({
               strokeWidth={isActive ? 2.5 : 2}
             />
           ) : item.href === '/browse' ? (
-            <Grid3X3 size={22} color={iconColor} strokeWidth={isActive ? 2.5 : 2} />
+            <FontAwesomeIcon
+              icon={isActive ? faGrid3Solid : faGrid3Light}
+              fontSize={24}
+              color={iconColor}
+            />
           ) : isHomeIcon ? (
             <FontAwesomeIcon
               icon={isActive ? faHouseSolid : faHouseLight}

@@ -45,7 +45,7 @@ export function TopicsByCategory({
         const topicsToShow = isExpanded ? categoryTopics : categoryTopics.slice(0, maxTopics);
 
         return (
-          <div key={category} className="mb-8">
+          <div key={category} className="mb-12">
             <div className="flex items-center gap-3 mb-4">
               <span className="text-3xl">{categoryEmoji}</span>
               <h2 className="text-xl font-semibold text-gray-800">{categoryTitle}</h2>

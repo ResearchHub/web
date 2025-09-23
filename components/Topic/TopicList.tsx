@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { Topic } from '@/types/topic';
-import { Card } from '@/components/ui/Card';
 import { FollowTopicButton } from '@/components/ui/FollowTopicButton';
 import { getSubcategoryEmoji } from './lib/TopicIcons';
 import { toTitleCase } from '@/utils/stringUtils';
@@ -20,11 +19,11 @@ export function TopicList({ topics, className = '' }: TopicListProps) {
         const topicTitle = toTitleCase(topic.name);
 
         return (
-          <Card
+          <div
             key={topic.id}
-            className="group hover:shadow-lg transition-all duration-200 overflow-hidden"
+            className="group bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-200 overflow-hidden h-full flex items-center"
           >
-            <div className="p-2.5">
+            <div className="p-2.5 w-full">
               <div className="flex items-center justify-between gap-3">
                 <Link
                   href={`/topic/${topic.slug}`}
@@ -39,7 +38,7 @@ export function TopicList({ topics, className = '' }: TopicListProps) {
                 <FollowTopicButton topicId={topic.id} size="sm" className="flex-shrink-0 ml-auto" />
               </div>
             </div>
-          </Card>
+          </div>
         );
       })}
     </div>
