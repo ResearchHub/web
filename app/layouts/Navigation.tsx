@@ -133,8 +133,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   ];
 
   const getButtonStyles = (path: string, currentPath: string) => {
-    const isActive =
-      path === '/' ? ['/', '/following', '/latest'].includes(currentPath) : path === currentPath;
+    const isActive = isPathActive(path);
 
     // Use either responsive or force minimized classes
     const responsiveClasses = forceMinimize
@@ -160,6 +159,11 @@ export const Navigation: React.FC<NavigationProps> = ({
     // Special case for leaderboard page
     if (path === '/leaderboard') {
       return currentPath.startsWith('/leaderboard');
+    }
+
+    // Special case for browse page - match /browse with any query parameters
+    if (path === '/browse?exp=browse') {
+      return currentPath.startsWith('/browse');
     }
 
     // Default case - exact match
