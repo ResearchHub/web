@@ -9,6 +9,8 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
+import { faGrid3 as faGrid3Solid } from '@fortawesome/pro-solid-svg-icons';
+import { faGrid3 as faGrid3Light } from '@fortawesome/pro-light-svg-icons';
 import { ChartNoAxesColumnIncreasing } from 'lucide-react';
 
 // Define icon mapping for navigation items with both light and solid variants
@@ -33,6 +35,7 @@ interface NavigationProps {
   currentPath: string;
   onUnimplementedFeature: (featureName: string) => void;
   forceMinimize?: boolean;
+  showBrowse?: boolean;
 }
 
 // Map navigation icons to their light and solid variants
@@ -67,6 +70,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   currentPath,
   onUnimplementedFeature,
   forceMinimize = false,
+  showBrowse = false,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
@@ -111,6 +115,16 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Access your research notes',
       requiresAuth: true,
     },
+    ...(showBrowse
+      ? [
+          {
+            label: 'Browse',
+            href: '/browse?exp=browse',
+            description: 'Browse topics by category',
+            isFontAwesome: true,
+          },
+        ]
+      : []),
     {
       label: 'Leaderboard',
       href: '/leaderboard',
@@ -194,8 +208,8 @@ export const Navigation: React.FC<NavigationProps> = ({
 
     // Conditionally apply minimized classes
     const iconContainerClass = forceMinimize
-      ? 'h-[26px] w-[26px] mr-0 flex items-center justify-center'
-      : 'h-[26px] w-[26px] mr-2.5 tablet:max-sidebar-compact:!mr-0 flex items-center justify-center';
+      ? 'h-[26px] w-[26px] mr-0 flex items-center justify-center flex-shrink-0'
+      : 'h-[26px] w-[26px] mr-2.5 tablet:max-sidebar-compact:!mr-0 flex items-center justify-center flex-shrink-0';
 
     const textContainerClass = forceMinimize
       ? 'flex items-center justify-between w-full min-w-0 !hidden'
@@ -209,6 +223,12 @@ export const Navigation: React.FC<NavigationProps> = ({
               size={22}
               color={iconColor}
               strokeWidth={isActive ? 2.5 : 2}
+            />
+          ) : item.href === '/browse?exp=browse' ? (
+            <FontAwesomeIcon
+              icon={isActive ? faGrid3Solid : faGrid3Light}
+              fontSize={24}
+              color={iconColor}
             />
           ) : isHomeIcon ? (
             <FontAwesomeIcon

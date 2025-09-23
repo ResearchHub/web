@@ -7,7 +7,7 @@ export type Topic = {
   namespace?: 'journal' | 'topic';
   imageUrl?: string;
   description?: string;
-  category?: number;
+  category?: string;
   discussionCount?: number;
   paperCount?: number;
   subscriberCount?: number;
@@ -49,4 +49,23 @@ export const transformTopicSuggestions = (raw: any): Topic[] => {
   });
 
   return topicSuggestions;
+};
+
+export const groupTopicsByCategory = (topics: Topic[]): Record<string, Topic[]> => {
+  const grouped: Record<string, Topic[]> = {};
+
+  topics.forEach((topic) => {
+    const category = topic.category || 'Uncategorized';
+    if (!grouped[category]) {
+      grouped[category] = [];
+    }
+    grouped[category].push(topic);
+  });
+
+  // Sort topics within each category by paper count (descending)
+  Object.keys(grouped).forEach((category) => {
+    grouped[category].sort((a, b) => (b.paperCount || 0) - (a.paperCount || 0));
+  });
+
+  return grouped;
 };

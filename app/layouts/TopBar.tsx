@@ -24,6 +24,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
 import { faCommentsQuestion } from '@fortawesome/pro-light-svg-icons';
+import { faGrid3 as faGrid3Light } from '@fortawesome/pro-light-svg-icons';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { colors } from '@/app/styles/colors';
 
@@ -63,6 +64,15 @@ const getPageInfo = (pathname: string): PageInfo | null => {
       title: 'Explore',
       subtitle: 'Discover trending research, earning, and funding opportunities',
       icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
+    };
+  }
+
+  // Browse page
+  if (pathname === '/browse') {
+    return {
+      title: 'Browse Topics',
+      subtitle: 'Discover and follow research topics',
+      icon: <FontAwesomeIcon icon={faGrid3Light} fontSize={24} color="#000" />,
     };
   }
 
