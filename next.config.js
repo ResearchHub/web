@@ -12,6 +12,11 @@ const nextConfig = {
       destination: '/journal',
       permanent: true,
     },
+    {
+      source: '/fund/previously-funded',
+      destination: '/fund/needs-funding',
+      permanent: true,
+    },
   ],
   headers: async () => [
     {

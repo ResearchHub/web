@@ -22,6 +22,7 @@ export class FeedService {
     grantId?: number;
     createdBy?: number;
     ordering?: string;
+    filtering?: string;
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -34,6 +35,7 @@ export class FeedService {
     if (params?.grantId) queryParams.append('grant_id', params.grantId.toString());
     if (params?.createdBy) queryParams.append('created_by', params.createdBy.toString());
     if (params?.ordering) queryParams.append('ordering', params.ordering);
+    if (params?.filtering) queryParams.append('filtering', params.filtering);
 
     // Determine which endpoint to use
     const basePath =

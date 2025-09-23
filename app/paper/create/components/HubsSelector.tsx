@@ -11,17 +11,11 @@ import { X, ChevronDown, Filter } from 'lucide-react';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { HubService } from '@/services/hub.service';
 import { Topic } from '@/types/topic';
-
-export interface Hub {
-  id: string | number;
-  name: string;
-  description?: string;
-  color?: string;
-}
+import { IHub } from '@/types/hub';
 
 interface HubsSelectorProps {
-  selectedHubs: Hub[];
-  onChange: (hubs: Hub[]) => void;
+  selectedHubs: IHub[];
+  onChange: (hubs: IHub[]) => void;
   error?: string | null;
   displayCountOnly?: boolean;
   hideSelectedItems?: boolean;
@@ -35,7 +29,7 @@ export function HubsSelector({
   hideSelectedItems = false,
 }: HubsSelectorProps) {
   // Convert hubs to the format expected by SearchableMultiSelect
-  const hubsToOptions = (hubs: Hub[]): MultiSelectOption[] => {
+  const hubsToOptions = (hubs: IHub[]): MultiSelectOption[] => {
     return hubs.map((hub) => ({
       value: String(hub.id),
       label: hub.name,
@@ -43,7 +37,7 @@ export function HubsSelector({
   };
 
   // Convert Topic to Hub
-  const topicsToHubs = (topics: Topic[]): Hub[] => {
+  const topicsToHubs = (topics: Topic[]): IHub[] => {
     return topics.map((topic) => ({
       id: topic.id,
       name: topic.name,
@@ -52,7 +46,7 @@ export function HubsSelector({
   };
 
   // Convert MultiSelectOption back to Hub objects
-  const optionsToHubs = (options: MultiSelectOption[]): Hub[] => {
+  const optionsToHubs = (options: MultiSelectOption[]): IHub[] => {
     return options.map((option) => {
       // Find the original hub in the selectedHubs array
       const existingHub = selectedHubs.find((hub) => String(hub.id) === option.value);

@@ -7,11 +7,12 @@ import { Input } from '@/components/ui/form/Input';
 import { CommentEditor } from '@/components/Comment/CommentEditor';
 import { CommentContent } from '@/components/Comment/lib/types';
 import { SessionProvider, useSession } from 'next-auth/react';
-import { HubsSelector, Hub } from '@/app/paper/create/components/HubsSelector';
+import { HubsSelector } from '@/app/paper/create/components/HubsSelector';
 import { Work } from '@/types/work';
 import { PostService } from '@/services/post.service';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { IHub } from '@/types/hub';
 
 interface QuestionEditModalProps {
   isOpen: boolean;
@@ -27,7 +28,7 @@ export const QuestionEditModal = ({ isOpen, onClose, work }: QuestionEditModalPr
   const [title, setTitle] = useState(work.title);
   const [plainText, setPlainText] = useState<string>('');
   const [htmlContent, setHtmlContent] = useState<string>('');
-  const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
+  const [selectedHubs, setSelectedHubs] = useState<IHub[]>([]);
 
   // Initialize hubs from work topics
   useEffect(() => {

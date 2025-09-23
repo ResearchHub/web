@@ -1,7 +1,9 @@
+'use client';
+
 import { Node, Extension, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
 import React from 'react';
-import { Star } from 'lucide-react';
+import { Ban, Star } from 'lucide-react';
 import { useState } from 'react';
 
 // Common ReviewStars component used by both overall and section ratings
@@ -10,12 +12,14 @@ export const ReviewStars = ({
   onRatingChange,
   isRequired = false,
   isReadOnly = false,
+  isClearable = false,
   label = 'Overall rating:',
 }: {
   rating: number;
   onRatingChange: (rating: number) => void;
   isRequired?: boolean;
   isReadOnly?: boolean;
+  isClearable?: boolean;
   label?: string;
 }) => {
   const [hoverRating, setHoverRating] = useState(0);
@@ -41,6 +45,17 @@ export const ReviewStars = ({
             <Star className="h-5 w-5 fill-current" />
           </button>
         ))}
+        {isClearable && (
+          <button
+            type="button"
+            onClick={() => onRatingChange(0)}
+            className={`pl-2 cursor-pointer hover:text-red-500 transition-colors ${
+              rating ? 'text-red-200' : 'text-gray-300'
+            }`}
+          >
+            <Ban className="h-5 w-5" />
+          </button>
+        )}
       </div>
     </div>
   );
