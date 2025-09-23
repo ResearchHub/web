@@ -219,9 +219,9 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   return (
     <div className={cn('space-y-3', className)}>
       {/* Header */}
-      {showHeader && content.createdDate && (
+      {showHeader && entry.timestamp && (
         <FeedItemHeader
-          timestamp={content.createdDate}
+          timestamp={entry.timestamp}
           author={author}
           actionText={customActionText ?? 'created'}
         />
