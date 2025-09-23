@@ -18,6 +18,7 @@ export function BrowsePageClient({ initialGroupedTopics }: BrowsePageClientProps
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchResults, setSearchResults] = useState<SearchSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const { followedTopicIds, followedTopics, getFollowedTopics } = useFollowContext();
 
   useEffect(() => {
@@ -31,6 +32,11 @@ export function BrowsePageClient({ initialGroupedTopics }: BrowsePageClientProps
     setSearchQuery(query);
     if (!query) {
       setSearchResults([]);
+      setIsSearching(false);
+      setHasSearched(false);
+    } else {
+      // Reset hasSearched when starting a new search
+      setHasSearched(false);
     }
   }, []);
 
@@ -49,6 +55,10 @@ export function BrowsePageClient({ initialGroupedTopics }: BrowsePageClientProps
       const isAllTab = activeTab === 'all';
       if (isAllTab) {
         setIsSearching(searching);
+        if (!searching) {
+          // Mark that we've completed a search
+          setHasSearched(true);
+        }
       }
     },
     [activeTab]
@@ -59,6 +69,7 @@ export function BrowsePageClient({ initialGroupedTopics }: BrowsePageClientProps
     setSearchQuery('');
     setSearchResults([]);
     setIsSearching(false);
+    setHasSearched(false);
   };
 
   const getDisplayTopics = () => {
@@ -85,12 +96,12 @@ export function BrowsePageClient({ initialGroupedTopics }: BrowsePageClientProps
   // View state booleans
   const isAllTab = activeTab === 'all';
   const hasSearchQuery = Boolean(searchQuery);
-  const isSearchingTopics = isSearching && hasSearchQuery;
-  const hasNoSearchResults = !isSearching && searchResults.length === 0 && hasSearchQuery;
-  const hasSearchResults = !isSearching && searchResults.length > 0 && hasSearchQuery;
+  const isSearchingTopics = isSearching || (hasSearchQuery && !hasSearched);
+  const hasNoSearchResults = hasSearched && searchResults.length === 0 && hasSearchQuery;
+  const hasSearchResults = searchResults.length > 0 && hasSearchQuery;
   const showCategorizedTopics = !hasSearchQuery && isAllTab;
   const hasFollowedTopics = displayTopics && displayTopics.length > 0;
-  const showFollowedSearchCount = hasSearchQuery && hasFollowedTopics;
+  const showFollowedSearchCount = hasSearchQuery && hasFollowedTopics && !isSearching;
   const noFollowedTopicsMessage = hasSearchQuery
     ? `No followed topics found matching "${searchQuery}"`
     : 'You are not following any topics yet';
