@@ -82,10 +82,6 @@ export function VerificationWithPersonaStep({
           environmentId={process.env.NEXT_PUBLIC_PERSONA_ENVIRONMENT_ID}
           templateId={process.env.NEXT_PUBLIC_PERSONA_TEMPLATE_ID}
           referenceId={`${user.id}`}
-          fields={{
-            nameFirst: user.firstName || '',
-            nameLast: user.lastName || '',
-          }}
           onReady={() => {
             setIsPersonaLoaded(true);
           }}
