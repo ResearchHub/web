@@ -4,6 +4,7 @@ import { UserVoteType, VotableContentType } from './reaction';
 import { EntityType } from './search';
 import { ContentType, FlagReasonKey } from './work';
 import { DocumentType } from '@/services/reaction.service';
+import { Currency } from './root';
 
 interface UserContext {
   user_id?: string;
@@ -71,8 +72,8 @@ export interface WorkInteractionEvent extends UserContext {
   link_url?: string;
 }
 
-// 8. Fundraise Submitted
-export interface FundraiseSubmittedEvent extends UserContext {
+// 8. Proposal Funded
+export interface ProposalFundedEvent extends UserContext {
   fundraise_id: string;
   work_id: string;
   fundraise_amount: number;
@@ -89,4 +90,29 @@ export interface WorkDocumentViewedEvent extends UserContext {
   content_type: ContentType;
   work_id: string;
   work_slug?: string;
+}
+
+// 11. Request for Proposal Created
+export interface RequestForProposalCreatedEvent extends UserContext {
+  available_amount: number;
+  currency: Currency;
+  deadline_days: number;
+  application_deadline: string;
+  related_work?: RelatedWork;
+}
+
+// 12. Proposal Created
+export interface ProposalCreatedEvent extends UserContext {
+  requested_amount: number;
+  currency: Currency;
+  related_work?: RelatedWork;
+}
+
+// 13. Request for Proposal Applied
+export interface RequestForProposalAppliedEvent extends UserContext {
+  proposal: {
+    related_work?: RelatedWork;
+  };
+  days_since_rfp_posted: number;
+  related_work?: RelatedWork;
 }

@@ -44,7 +44,7 @@ export const useCreateContribution = (): UseCreateContributionReturn => {
     try {
       const response = await FundraiseService.createContribution(id, payload);
       AnalyticsService.logEventWithUserProperties(
-        LogEvent.FUNDRAISE_SUBMITTED,
+        LogEvent.PROPOSAL_FUNDED,
         {
           fundraise_id: id,
           work_id: payload.work_id,

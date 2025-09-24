@@ -26,9 +26,20 @@ export const LogEvent = {
   SEARCH_SUGGESTION_CLICKED: 'search_suggestion_clicked',
   TOPIC_BADGE_CLICKED: 'topic_badge_clicked',
   WORK_INTERACTION: 'work_interaction',
-  FUNDRAISE_SUBMITTED: 'fundraise_submitted',
+  PROPOSAL_FUNDED: 'proposal_funded',
   CONTENT_SHARED: 'content_shared',
   WORK_DOCUMENT_VIEWED: 'work_document_viewed',
+  // New events
+  REQUEST_FOR_PROPOSAL_CREATED: 'request_for_proposal_created',
+  REQUEST_FOR_PROPOSAL_APPLIED: 'request_for_proposal_applied',
+  PROPOSAL_CREATED: 'proposal_created',
+  BOUNTY_CREATED: 'bounty_created',
+  BOUNTY_CONTRIBUTED: 'bounty_contributed',
+  BOUNTY_SOLUTION_SUBMITTED: 'bounty_solution_submitted',
+  BOUNTY_AWARDED: 'bounty_awarded',
+  PEER_REVIEW_CREATED: 'peer_review_created',
+  COMMENT_CREATED: 'comment_created',
+  PAPER_ADDED_TO_PROFILE: 'paper_added_to_profile',
 } as const;
 
 export type LogEventValue = (typeof LogEvent)[keyof typeof LogEvent];
