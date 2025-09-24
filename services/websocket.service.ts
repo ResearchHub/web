@@ -21,21 +21,6 @@ export interface WebSocketOptions {
   onError?: (error: Error) => void;
 }
 
-const ALLOWED_ORIGINS = [
-  'localhost',
-  'localhost:8000',
-  'ws://localhost:8000',
-  'ws://localhost:8000/',
-  'backend.prod.researchhub.com',
-  'wss://backend.prod.researchhub.com',
-  'backend.staging.researchhub.com',
-  'wss://backend.staging.researchhub.com',
-  'v2.staging.researchhub.com',
-  'wss://v2.staging.researchhub.com',
-  'researchhub.com',
-  'wss://researchhub.com',
-];
-
 const CLOSE_CODES = {
   GOING_AWAY: 1001,
   POLICY_VIOLATION: 1008,

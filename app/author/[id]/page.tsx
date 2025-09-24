@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useTransition } from 'react';
+import { use, useTransition, useState } from 'react';
 import { useAuthorAchievements, useAuthorInfo, useAuthorSummaryStats } from '@/hooks/useAuthor';
 import { useUser } from '@/contexts/UserContext';
 import { Card } from '@/components/ui/Card';
@@ -18,6 +18,10 @@ import AuthorProfile from './components/AuthorProfile';
 import { useAuthorPublications } from '@/hooks/usePublications';
 import { transformPublicationToFeedEntry } from '@/types/publication';
 import PinnedFundraise from './components/PinnedFundraise';
+import { BookOpen } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { toast } from 'react-hot-toast';
+import { AddPublicationsModal } from '@/components/modals/AddPublicationsModal';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -90,8 +94,18 @@ const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
   bounties: 'BOUNTY',
 };
 
-function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number }) {
+function AuthorTabs({
+  authorId,
+  isOwnProfile,
+  userId,
+}: {
+  authorId: number;
+  isOwnProfile: boolean;
+  userId?: number;
+}) {
   const [isPending, startTransition] = useTransition();
+  const [isAddPublicationsModalOpen, setIsAddPublicationsModalOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const tabs = [
     { id: 'contributions', label: 'Overview' },
     { id: 'publications', label: 'Publications' },
@@ -126,9 +140,19 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
     hasMore: hasMorePublications,
     loadMore: loadMorePublications,
     isLoadingMore: isLoadingMorePublications,
+    refresh: refreshPublications,
   } = useAuthorPublications({
     authorId,
   });
+
+  const handleRefreshPublications = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshPublications();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleTabChange = (tabId: string) => {
     startTransition(() => {
@@ -143,7 +167,6 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
       if (publicationsError) {
         return <div>Error: {publicationsError.message}</div>;
       }
-
       // Filter out invalid publications
       const validPublications = publications.filter((publication) => {
         try {
@@ -157,15 +180,28 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
 
       return (
         <div>
+          {/* Add Publications Button - only show for own profile */}
+          {isOwnProfile && validPublications.length > 0 && (
+            <div className="mb-6 flex justify-end">
+              <Button
+                onClick={() => setIsAddPublicationsModalOpen(true)}
+                className="flex items-center gap-2"
+              >
+                <BookOpen className="h-4 w-4" />
+                Add Publications
+              </Button>
+            </div>
+          )}
+
           <FeedContent
             entries={
-              isPending
+              isPending || isRefreshing
                 ? []
                 : validPublications.map((publication) =>
                     transformPublicationToFeedEntry(publication)
                   )
             }
-            isLoading={isPending || isPublicationsLoading}
+            isLoading={isPending || isPublicationsLoading || isRefreshing}
             hasMore={hasMorePublications}
             loadMore={loadMorePublications}
             showBountyFooter={false}
@@ -173,7 +209,26 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
             isLoadingMore={isLoadingMorePublications}
             showBountySupportAndCTAButtons={false}
             showBountyDeadline={false}
-            noEntriesElement={<SearchEmpty title="No publications found." className="mb-10" />}
+            noEntriesElement={
+              isOwnProfile ? (
+                <div className="text-center py-8">
+                  <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No publications yet</h3>
+                  <p className="text-gray-600 mb-4">
+                    Add your published papers to showcase your research contributions.
+                  </p>
+                  <Button
+                    onClick={() => setIsAddPublicationsModalOpen(true)}
+                    className="flex items-center gap-2 mx-auto"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    Add Your First Publication
+                  </Button>
+                </div>
+              ) : (
+                <SearchEmpty title="No publications found." className="mb-10" />
+              )
+            }
             maxLength={150}
           />
         </div>
@@ -229,6 +284,16 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
         className="border-b"
       />
       <div className="mt-6">{renderTabContent()}</div>
+
+      {/* Add Publications Modal */}
+      <AddPublicationsModal
+        isOpen={isAddPublicationsModalOpen}
+        onClose={() => setIsAddPublicationsModalOpen(false)}
+        onPublicationsAdded={() => {
+          toast.success('Publications added successfully!');
+          handleRefreshPublications(); // Use the wrapper function
+        }}
+      />
     </div>
   );
 }
@@ -239,6 +304,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const authorId = toNumberOrNull(resolvedParams.id);
   const [{ author: user, isLoading, error }, refetchAuthorInfo] = useAuthorInfo(authorId);
   const { user: currentUser } = useUser();
+
   // Determine if current user is a hub editor
   const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
   const [{ achievements, isLoading: isAchievementsLoading, error: achievementsError }] =
@@ -304,7 +370,11 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
           </Card>
         )}
       </div>
-      <AuthorTabs authorId={user.authorProfile.id} userId={user.authorProfile.userId} />
+      <AuthorTabs
+        authorId={user.authorProfile.id}
+        userId={user.authorProfile.userId}
+        isOwnProfile={currentUser?.authorProfile?.id === user.authorProfile.id}
+      />
     </>
   );
 }
