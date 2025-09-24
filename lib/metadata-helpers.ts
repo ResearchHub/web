@@ -24,7 +24,7 @@ export function getWorkMetadata({
   });
 
   // Highwire Press metadata tags
-  const pdfFormat = work.formats?.find((f) => f.type === 'pdf');
+  const pdfFormat = work.formats?.find((f) => f.type.toUpperCase() === 'PDF');
   const publicationType =
     work.type === 'preprint' ? 'preprint' : work.type === 'review' ? 'review' : 'article';
 
