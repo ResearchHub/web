@@ -134,7 +134,7 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
     startTransition(() => {
       const params = new URLSearchParams(searchParams);
       params.set('tab', tabId);
-      router.replace(`/author/${authorId}?${params.toString()}`, { scroll: false });
+      router.push(`/author/${authorId}?${params.toString()}`, { scroll: false });
     });
   };
 

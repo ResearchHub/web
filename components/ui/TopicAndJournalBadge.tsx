@@ -1,5 +1,8 @@
-import { Avatar } from './Avatar';
+'use client';
+
 import Link from 'next/link';
+import { useUser } from '@/contexts/UserContext';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
 export type BadgeType = 'topic' | 'journal';
 export type BadgeSize = 'sm' | 'md' | 'lg';
@@ -36,6 +39,20 @@ export const TopicAndJournalBadge = ({
 }: TopicAndJournalBadgeProps) => {
   // Determine the URL based on the badge type
   const href = type === 'topic' ? `/topic/${slug}` : `/journal/${slug}`;
+  const { user } = useUser();
+
+  // Handle click tracking for topics only
+  const handleClick = () => {
+    if (type === 'topic') {
+      AnalyticsService.logEventWithUserProperties(
+        LogEvent.TOPIC_BADGE_CLICKED,
+        {
+          slug: slug,
+        },
+        user
+      );
+    }
+  };
 
   // Size-based styling
   const sizeStyles = {
@@ -79,7 +96,7 @@ export const TopicAndJournalBadge = ({
   return disableLink ? (
     <div className={badgeStyles}>{badgeContent}</div>
   ) : (
-    <Link href={href} className={badgeStyles}>
+    <Link href={href} className={badgeStyles} onClick={handleClick}>
       {badgeContent}
     </Link>
   );

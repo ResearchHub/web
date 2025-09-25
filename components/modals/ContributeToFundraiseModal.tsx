@@ -13,12 +13,14 @@ import { FundraiseService } from '@/services/fundraise.service';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { Fundraise } from '@/types/funding';
-
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { ProposalFundedEvent } from '@/types/analytics';
 interface ContributeToFundraiseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onContributeSuccess?: () => void;
   fundraise: Fundraise;
+  workId: string;
 }
 
 // Currency Input Component
@@ -138,6 +140,7 @@ export function ContributeToFundraiseModal({
   onClose,
   onContributeSuccess,
   fundraise,
+  workId,
 }: ContributeToFundraiseModalProps) {
   const { user } = useUser();
   const [inputAmount, setInputAmount] = useState(100);
@@ -186,6 +189,14 @@ export function ContributeToFundraiseModal({
 
       setIsContributing(true);
       setError(null);
+
+      const payload: ProposalFundedEvent = {
+        work_id: workId,
+        fundraise_id: fundraise.id?.toString() || '',
+        fundraise_amount: inputAmount,
+      };
+
+      AnalyticsService.logEventWithUserProperties(LogEvent.PROPOSAL_FUNDED, payload, user);
 
       // Pass the contribution amount without the platform fee
       // The API expects the net contribution amount

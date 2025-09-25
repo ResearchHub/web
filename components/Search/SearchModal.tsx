@@ -7,6 +7,8 @@ import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { SearchSuggestion } from '@/types/search';
 import { useRouter } from 'next/navigation';
 import { navigateToAuthorProfile } from '@/utils/navigation';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { useUser } from '@/contexts/UserContext';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -19,6 +21,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(true);
   const router = useRouter();
+  const { user } = useUser();
 
   // Get search suggestions
   const { loading, suggestions } = useSearchSuggestions({
@@ -80,6 +83,15 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   // Handle suggestion selection
   const handleSelect = (suggestion: SearchSuggestion) => {
     try {
+      AnalyticsService.logEventWithUserProperties(
+        LogEvent.SEARCH_SUGGESTION_CLICKED,
+        {
+          suggestion_type: suggestion.entityType,
+          suggestion_id: suggestion.id?.toString() || 'unknown',
+        },
+        user
+      );
+
       onClose(); // Close modal first
 
       // Navigate based on suggestion type

@@ -27,6 +27,8 @@ import { Analytics } from '@vercel/analytics/react';
 import { PreferencesProvider } from '@/contexts/PreferencesContext';
 import { ReferralProvider } from '@/contexts/ReferralContext';
 import { FeatureNotifications } from '@/components/FeatureNotifications';
+import { FeedContentTrackingProvider } from '@/contexts/FeedContentTracking';
+import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -124,15 +126,20 @@ export default async function RootLayout({
               <ReferralProvider>
                 <AuthSharingWrapper>
                   <AuthModalProvider>
-                    <ShareModalProvider>
-                      <UserProvider>
+                    <UserProvider>
+                      <ShareModalProvider>
                         <VerificationProvider>
                           <ExchangeRateProvider>
                             <CurrencyPreferenceProvider>
                               <NotificationProvider>
                                 <OrganizationProvider>
                                   <PreferencesProvider>
-                                    <FollowProvider>{children}</FollowProvider>
+                                    <FollowProvider>
+                                      <FeedContentTrackingProvider>
+                                        <WorkDocumentTracker />
+                                        {children}
+                                      </FeedContentTrackingProvider>
+                                    </FollowProvider>
                                   </PreferencesProvider>
                                   <FeatureNotifications />
                                 </OrganizationProvider>
@@ -140,9 +147,9 @@ export default async function RootLayout({
                             </CurrencyPreferenceProvider>
                           </ExchangeRateProvider>
                         </VerificationProvider>
-                      </UserProvider>
-                      <SignupModalContainer />
-                    </ShareModalProvider>
+                      </ShareModalProvider>
+                    </UserProvider>
+                    <SignupModalContainer />
                   </AuthModalProvider>
                 </AuthSharingWrapper>
               </ReferralProvider>

@@ -8,18 +8,24 @@ import { HeartHandshake } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Icon } from '@/components/ui/icons/Icon';
-import { Work } from '@/types/work';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { Topic } from '@/types/topic';
 
 interface SupportersSectionProps {
   tips: Tip[];
   documentId: number;
   onTip?: () => void;
+  topics: Topic[];
 }
 
-export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], documentId, onTip }) => {
+export const SupportersSection: FC<SupportersSectionProps> = ({
+  tips = [],
+  documentId,
+  onTip,
+  topics,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showAllSupporters, setShowAllSupporters] = useState(false);
   const { showUSD } = useCurrencyPreference();
@@ -121,6 +127,8 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
         contentId={documentId}
         feedContentType="PAPER"
         onTipSuccess={handleTipSuccess}
+        relatedWorkContentType="paper"
+        relatedWorkTopicIds={topics.map((topic) => topic.id.toString())}
       />
     </section>
   );

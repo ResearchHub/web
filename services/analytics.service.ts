@@ -1,3 +1,4 @@
+import { User } from '@/types/user';
 import * as amplitude from '@amplitude/analytics-browser';
 import { sendGAEvent } from '@next/third-parties/google';
 
@@ -18,6 +19,27 @@ export const LogEvent = {
   CLICKED_SHARE_VIA_BLUESKY: 'clicked_share_via_bluesky',
   CLICKED_SHARE_VIA_QR_CODE: 'clicked_share_via_qr_code',
   SIGNED_UP: 'signed_up',
+  FEED_IMPRESSION: 'feed_impression',
+  VOTE_ACTION: 'vote_action',
+  TIP_SUBMITTED: 'tip_submitted',
+  CONTENT_FLAGGED: 'content_flagged',
+  SEARCH_SUGGESTION_CLICKED: 'search_suggestion_clicked',
+  TOPIC_BADGE_CLICKED: 'topic_badge_clicked',
+  WORK_INTERACTION: 'work_interaction',
+  PROPOSAL_FUNDED: 'proposal_funded',
+  CONTENT_SHARED: 'content_shared',
+  WORK_DOCUMENT_VIEWED: 'work_document_viewed',
+  // New events
+  REQUEST_FOR_PROPOSAL_CREATED: 'request_for_proposal_created',
+  REQUEST_FOR_PROPOSAL_APPLIED: 'request_for_proposal_applied',
+  PROPOSAL_CREATED: 'proposal_created',
+  BOUNTY_CREATED: 'bounty_created',
+  BOUNTY_CONTRIBUTED: 'bounty_contributed',
+  BOUNTY_SOLUTION_SUBMITTED: 'bounty_solution_submitted',
+  BOUNTY_AWARDED: 'bounty_awarded',
+  PEER_REVIEW_CREATED: 'peer_review_created',
+  COMMENT_CREATED: 'comment_created',
+  PAPER_ADDED_TO_PROFILE: 'paper_added_to_profile',
 } as const;
 
 export type LogEventValue = (typeof LogEvent)[keyof typeof LogEvent];
@@ -45,7 +67,10 @@ class AnalyticsService {
       try {
         // First time initialization
         amplitude.init(apiKey, paddedUserId || undefined, {
-          autocapture: true,
+          autocapture: {
+            pageViews: true,
+            sessions: true,
+          },
         });
         this.isInitialized.amplitude = true;
       } catch (error) {
@@ -119,6 +144,28 @@ class AnalyticsService {
       }
     }
     await Promise.all(promises);
+  }
+
+  static async logEventWithUserProperties(
+    eventName: LogEventValue,
+    eventProperties?: Record<string, any>,
+    user?: User | null,
+    providers: AnalyticsProvider[] = ['amplitude', 'google']
+  ) {
+    const userProperties = {
+      user_id: user?.id?.toString(),
+      author_id: user?.authorProfile?.id?.toString(),
+      editor: user?.authorProfile?.isHubEditor,
+      moderator: user?.moderator,
+    };
+    await this.logEvent(
+      eventName,
+      {
+        ...eventProperties,
+        ...userProperties,
+      },
+      providers
+    );
   }
 
   static async logSignedUp(

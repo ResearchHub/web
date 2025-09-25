@@ -191,9 +191,6 @@ export interface FeedGrantContent extends BaseFeedContent {
 
 // Update the Content union type to include the base interface
 export type Content =
-  | (Work & Partial<BaseFeedContent>)
-  | (Bounty & Partial<BaseFeedContent>)
-  | (Comment & Partial<BaseFeedContent>)
   | FeedPostContent
   | FeedPaperContent
   | FeedBountyContent
@@ -709,21 +706,33 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       contentType = 'POST'; // Default to POST for unknown types
       try {
         // Create a minimal object that can be transformed to a Work
-        const genericData = {
+        // Create a FeedPostEntry object
+        const postEntry: FeedPostContent = {
           id: content_object.id || id,
-          title: stripHtml(content_object.title || `${content_type} #${content_object.id || id}`),
-          content_type: 'post',
+          contentType: 'POST',
+          createdDate: created_date,
+          textPreview: content_object.renderable_text || '',
           slug: content_object.slug || `${content_type.toLowerCase()}/${content_object.id || id}`,
-          created_date: created_date,
-          authors: [author],
-          hub: content_object.hub,
-          unified_document: {
-            id: content_object.id || id,
-            document_type: 'POST',
-          },
+          title: stripHtml(content_object.title || `${content_type} #${content_object.id || id}`),
+          authors:
+            content_object.authors && content_object.authors.length > 0
+              ? content_object.authors.map(transformAuthorProfile)
+              : [transformAuthorProfile(author)],
+          institution: content_object.institution, // Populate institution
+          topics: content_object.hub
+            ? [
+                content_object.hub.id
+                  ? transformTopic(content_object.hub)
+                  : {
+                      id: 0,
+                      name: content_object.hub.name || '',
+                      slug: content_object.hub.slug || '',
+                    },
+              ]
+            : [],
+          createdBy: transformAuthorProfile(author),
         };
-
-        content = transformPaper(genericData);
+        content = postEntry;
       } catch (error) {
         console.error(`Error transforming ${content_type}:`, error);
         throw new Error(`Failed to transform ${content_type}: ${error}`);

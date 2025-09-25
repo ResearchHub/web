@@ -5,13 +5,16 @@ import { ReactionService } from '@/services/reaction.service';
 import { ApiError } from '@/services/types';
 import type { FlagOptions } from '@/services/reaction.service';
 import { ContentType } from '@/types/work';
+import { ContentFlaggedEvent } from '@/types/analytics';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { useUser } from '@/contexts/UserContext';
 
 interface UseFlagState {
   isLoading: boolean;
   error: string | null;
 }
 
-type FlagFn = (params: FlagOptions) => Promise<void>;
+type FlagFn = (params: FlagOptions & { topicIds: string[] }) => Promise<void>;
 type UseFlagReturn = [UseFlagState, FlagFn];
 
 /**
@@ -21,13 +24,27 @@ type UseFlagReturn = [UseFlagState, FlagFn];
 export const useFlag = (): UseFlagReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useUser();
 
-  const flag = async (params: FlagOptions) => {
+  const flag = async (params: FlagOptions & { topicIds: string[] }) => {
     setIsLoading(true);
     setError(null);
 
     try {
       await ReactionService.flag(params);
+      const payload: ContentFlaggedEvent = {
+        target_type: params.commentId ? 'comment' : 'document',
+        related_work:
+          params.contentType && params.documentId
+            ? {
+                id: params.documentId.toString(),
+                content_type: params.contentType,
+                topic_ids: params.topicIds,
+              }
+            : undefined,
+        flag_reason: params.reason,
+      };
+      AnalyticsService.logEventWithUserProperties(LogEvent.CONTENT_FLAGGED, payload, user);
     } catch (err) {
       const parsed = err instanceof ApiError ? JSON.parse(err.message) : {};
       const data = parsed?.data || {};

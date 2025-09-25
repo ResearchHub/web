@@ -66,6 +66,8 @@ export const FundDocument = ({
         docTitle: work.title,
         url: `${window.location.origin}${pathname}`,
         shouldShowConfetti: true,
+        workId: work.id.toString(),
+        contentType: 'preregistration',
       });
 
       const url = new URL(window.location.href);
@@ -266,6 +268,7 @@ export const FundDocument = ({
             onContribute={() => {
               // Handle contribute action
             }}
+            workId={work.id.toString()}
           />
         </div>
       )}

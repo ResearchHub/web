@@ -194,7 +194,11 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 metrics={entry.metrics}
                 feedContentType="COMMENT"
                 votableEntityId={comment.id}
-                relatedDocumentId={Number(commentEntry.relatedDocumentId)}
+                relatedDocumentId={
+                  commentEntry.relatedDocumentId
+                    ? Number(commentEntry.relatedDocumentId)
+                    : undefined
+                }
                 relatedDocumentContentType={commentEntry.relatedDocumentContentType}
                 userVote={entry.userVote}
                 actionLabels={actionLabels}
@@ -203,6 +207,9 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 menuItems={menuItems}
                 awardedBountyAmount={entry.awardedBountyAmount}
                 tips={entry.tips}
+                relatedWorkTopicIds={
+                  entry.relatedWork?.topics.map((topic) => topic.id.toString()) || []
+                }
               />
             </div>
           </div>

@@ -17,6 +17,10 @@ import { GrantService } from '@/services/grant.service';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { RequestForProposalAppliedEvent } from '@/types/analytics';
+import { Grant } from '@/types/grant';
+import { Work } from '@/types/work';
 
 // Loading skeleton component for proposals
 const ProposalSkeleton = () => (
@@ -45,6 +49,7 @@ interface ApplyToGrantModalProps {
   onClose: () => void;
   onUseSelected: (proposal: ProposalForModal) => void;
   grantId: string;
+  work: Work;
 }
 
 export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
@@ -52,6 +57,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   onClose,
   onUseSelected,
   grantId,
+  work,
 }) => {
   const [showProposalList, setShowProposalList] = useState(false);
   const [proposals, setProposals] = useState<ProposalForModal[]>([]);
@@ -110,6 +116,41 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
     setSubmitting(true);
     try {
       await GrantService.applyToGrant(grantId, selectedProposal.postId);
+
+      // Track analytics for RFP application
+      try {
+        // Calculate days since RFP was posted using grant creation date
+        const grantCreatedDate = new Date(work.publishedDate || work.createdDate);
+        const now = new Date();
+        const daysSinceRfpPosted = Math.ceil(
+          (now.getTime() - grantCreatedDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        const payload: RequestForProposalAppliedEvent = {
+          proposal: {
+            related_work: {
+              id: selectedProposal.postId?.toString() || '',
+              content_type: 'preregistration',
+              topic_ids: [],
+            },
+          },
+          days_since_rfp_posted: daysSinceRfpPosted,
+          related_work: {
+            id: grantId,
+            content_type: 'funding_request',
+            topic_ids: work.topics?.map((topic) => topic.id?.toString()) || [],
+          },
+        };
+
+        await AnalyticsService.logEventWithUserProperties(
+          LogEvent.REQUEST_FOR_PROPOSAL_APPLIED,
+          payload,
+          user
+        );
+      } catch (analyticsError) {
+        console.error('Failed to track RFP application analytics:', analyticsError);
+      }
+
       toast.success('Successfully applied to RFP!');
       onClose();
       onUseSelected(selectedProposal);

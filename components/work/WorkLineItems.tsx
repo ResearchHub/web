@@ -57,6 +57,9 @@ export const WorkLineItems = ({
   const { vote, isVoting } = useVote({
     votableEntityId: work.id,
     feedContentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
+    relatedDocumentId: work.id,
+    relatedDocumentContentType: work.contentType,
+    topicIds: work.topics.map((topic) => topic.id.toString()),
   });
   const [voteCount, setVoteCount] = useState(work.metrics?.votes || 0);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
@@ -72,7 +75,12 @@ export const WorkLineItems = ({
     refresh: refreshVotes,
   } = useUserVotes({
     paperIds: work.contentType === 'paper' ? [work.id] : [],
-    postIds: work.contentType === 'post' || work.contentType === 'preregistration' ? [work.id] : [],
+    postIds:
+      work.contentType === 'post' ||
+      work.contentType === 'preregistration' ||
+      work.contentType === 'funding_request'
+        ? [work.id]
+        : [],
   });
 
   const isUpvoted =
@@ -318,6 +326,8 @@ export const WorkLineItems = ({
                 docTitle: work.title,
                 action: 'USER_SHARED_DOCUMENT',
                 shouldShowConfetti: false,
+                workId: work.id.toString(),
+                contentType: work.contentType,
               })
             }
             className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
@@ -489,6 +499,7 @@ export const WorkLineItems = ({
         onClose={() => setIsFlagModalOpen(false)}
         documentId={work.id.toString()}
         workType={work.contentType}
+        topicIds={work.topics.map((topic) => topic.id.toString())}
       />
 
       {/* Tip Modal */}
@@ -498,6 +509,8 @@ export const WorkLineItems = ({
         contentId={work.id}
         feedContentType={work.contentType === 'paper' ? 'PAPER' : 'POST'}
         onTipSuccess={handleTipSuccess}
+        relatedWorkContentType={work.contentType}
+        relatedWorkTopicIds={work.topics.map((topic) => topic.id.toString())}
       />
 
       {work.contentType === 'paper' && (

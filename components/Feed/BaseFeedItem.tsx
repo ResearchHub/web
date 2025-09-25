@@ -261,6 +261,11 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                   href={href}
                   reviews={content.reviews}
                   bounties={content.bounties}
+                  relatedDocumentId={entry.relatedWork?.id}
+                  relatedDocumentContentType={entry.relatedWork?.contentType}
+                  relatedWorkTopicIds={
+                    entry.relatedWork?.topics.map((topic) => topic.id.toString()) || []
+                  }
                 />
               </div>
             </div>

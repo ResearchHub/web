@@ -28,7 +28,11 @@ export const FundingRightSidebar = ({
       {metadata.fundraising &&
         metadata.fundraising.contributors &&
         metadata.fundraising.contributors.numContributors > 0 && (
-          <FundersSection fundraise={metadata.fundraising} fundraiseTitle={work.title} />
+          <FundersSection
+            fundraise={metadata.fundraising}
+            fundraiseTitle={work.title}
+            workId={work.id.toString()}
+          />
         )}
       {/* Updates Section */}
       <UpdatesSection
@@ -43,7 +47,9 @@ export const FundingRightSidebar = ({
       {/* Applicants for the grant */}
       {/* <ApplicantsSection grantId={work.id} /> */}
       <TopicsSection topics={metadata.topics || []} />
-      {work.doi && <DOISection doi={work.doi} />}
+      {work.doi && (
+        <DOISection doi={work.doi} workId={work.id.toString()} contentType={work.contentType} />
+      )}
     </div>
   );
 };

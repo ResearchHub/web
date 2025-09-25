@@ -10,6 +10,10 @@ import {
   UpdatePaperMetadataPayload,
   UpdatePaperAbstractPayload,
 } from '@/services/paper.service';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { User } from '@/types/user';
+import { RequestForProposalCreatedEvent, ProposalCreatedEvent } from '@/types/analytics';
+import { useUser } from '@/contexts/UserContext';
 
 export interface PreregistrationPostParams {
   // Funding related
@@ -57,6 +61,7 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
   const [data, setData] = useState<TransformedWork | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useUser();
 
   const upsertPost = async (
     postParams: PreregistrationPostParams,
@@ -109,6 +114,61 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
 
       // Set the transformed work as data
       setData(response);
+
+      if (!postId && postParams.articleType === 'GRANT') {
+        // Track analytics for RFP creation
+        try {
+          let deadlineDays = 0;
+          if (postParams.articleType === 'GRANT' && postParams.applicationDeadline) {
+            const now = new Date();
+            const deadline = new Date(postParams.applicationDeadline);
+            deadlineDays = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          }
+
+          const payload: RequestForProposalCreatedEvent = {
+            available_amount: parseFloat(postParams.budget.replace(/[^0-9.]/g, '')),
+            currency: 'USD',
+            deadline_days: deadlineDays,
+            application_deadline: postParams.applicationDeadline?.toISOString() || '',
+            related_work: {
+              id: response.id?.toString() || '',
+              content_type: response.contentType,
+              topic_ids: postParams.topics || [],
+            },
+          };
+
+          await AnalyticsService.logEventWithUserProperties(
+            LogEvent.REQUEST_FOR_PROPOSAL_CREATED,
+            payload,
+            user
+          );
+        } catch (analyticsError) {
+          // Don't fail the main operation if analytics fails
+          console.error('Failed to track proposal creation analytics:', analyticsError);
+        }
+      } else if (!postId && postParams.articleType === 'PREREGISTRATION') {
+        // Track analytics for proposal creation
+        try {
+          const payload: ProposalCreatedEvent = {
+            requested_amount: parseFloat(postParams.budget.replace(/[^0-9.]/g, '')),
+            currency: 'USD',
+            related_work: {
+              id: response.id?.toString() || '',
+              content_type: response.contentType,
+              topic_ids: postParams.topics || [],
+            },
+          };
+
+          await AnalyticsService.logEventWithUserProperties(
+            LogEvent.PROPOSAL_CREATED,
+            payload,
+            user
+          );
+        } catch (analyticsError) {
+          // Don't fail the main operation if analytics fails
+          console.error('Failed to track proposal creation analytics:', analyticsError);
+        }
+      }
 
       // Return an enhanced work object with the raw response and fundraise ID
       return {

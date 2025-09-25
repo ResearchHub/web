@@ -233,6 +233,7 @@ const FundingSpotlight = () => {
                     fundraiseTitle={title}
                     variant="minimal"
                     className="mt-2"
+                    workId={id.toString()}
                   />
                 </div>
               )}

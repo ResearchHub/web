@@ -1,17 +1,20 @@
 import { useState, useCallback } from 'react';
 import { ContentType } from '@/types/work';
 import { toast } from 'react-hot-toast';
-import { useSession } from 'next-auth/react';
 import { ApiError } from '@/services/types';
 import { ReactionService, DocumentType } from '@/services/reaction.service';
 import { UserVoteType, VotableContentType } from '@/types/reaction';
 import { FeedContentType } from '@/types/feed';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { useUser } from '@/contexts/UserContext';
+import { VoteActionEvent } from '@/types/analytics';
 
 interface UseVoteOptions {
   votableEntityId: number;
   feedContentType?: FeedContentType;
   relatedDocumentId?: number;
   relatedDocumentContentType?: ContentType;
+  topicIds: string[];
   onVoteSuccess?: (updatedItem: any, voteType: UserVoteType) => void;
   onVoteError?: (error: any) => void;
 }
@@ -47,9 +50,10 @@ export function useVote({
   relatedDocumentContentType,
   onVoteSuccess,
   onVoteError,
+  topicIds,
 }: UseVoteOptions) {
   const [isVoting, setIsVoting] = useState(false);
-  const { data: session } = useSession();
+  const { user } = useUser();
 
   /**
    * Vote on a document, comment or other content item
@@ -58,7 +62,7 @@ export function useVote({
   const vote = useCallback(
     async (voteType: UserVoteType) => {
       // Don't allow voting if not logged in
-      if (!session?.user) {
+      if (!user) {
         toast.error('Please sign in to vote');
         return;
       }
@@ -105,6 +109,18 @@ export function useVote({
           });
         }
 
+        const payload: VoteActionEvent = {
+          vote_type: voteType,
+          related_work:
+            relatedDocumentId && relatedDocumentContentType
+              ? {
+                  id: relatedDocumentId ? relatedDocumentId.toString() : votableEntityId.toString(),
+                  content_type: relatedDocumentContentType,
+                  topic_ids: topicIds,
+                }
+              : undefined,
+        };
+        AnalyticsService.logEventWithUserProperties(LogEvent.VOTE_ACTION, payload, user);
         // Call success callback with the server response
         if (onVoteSuccess) {
           onVoteSuccess(response, voteType);
@@ -139,7 +155,7 @@ export function useVote({
       relatedDocumentId,
       relatedDocumentContentType,
       isVoting,
-      session,
+      user,
       onVoteSuccess,
       onVoteError,
     ]

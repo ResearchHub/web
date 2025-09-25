@@ -17,6 +17,7 @@ interface FlagContentModalProps {
   documentId: string;
   workType: ContentType;
   commentId?: string;
+  topicIds: string[];
 }
 
 const flagOptions = getFlagOptions();
@@ -27,6 +28,7 @@ export function FlagContentModal({
   documentId,
   workType,
   commentId,
+  topicIds,
 }: FlagContentModalProps) {
   const [selectedReason, setSelectedReason] = useState<FlagReasonKey | null>(null);
   const [reasonMemo, setReasonMemo] = useState('');
@@ -38,10 +40,12 @@ export function FlagContentModal({
     try {
       await flag({
         documentType: workType === 'paper' ? 'paper' : 'researchhubpost',
+        contentType: workType,
         documentId,
         reason: selectedReason,
         commentId: commentId ? Number(commentId) : undefined,
         reasonMemo: reasonMemo.trim(),
+        topicIds,
       });
       toast.success('Content reported successfully');
       onClose();
