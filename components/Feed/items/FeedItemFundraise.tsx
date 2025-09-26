@@ -27,6 +27,7 @@ interface FeedItemFundraiseProps {
   maxLength?: number;
   customActionText?: string;
   isPinnedFundraise?: boolean;
+  onFeedItemClick?: () => void;
 }
 
 /**
@@ -56,6 +57,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   maxLength,
   customActionText,
   isPinnedFundraise = false,
+  onFeedItemClick,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -94,6 +96,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         customActionText ?? (hasFundraise ? `is seeking funding` : 'published a post')
       }
       maxLength={maxLength}
+      onFeedItemClick={onFeedItemClick}
     >
       {/* Pin icon in top right corner for pinned fundraises */}
       {isPinnedFundraise && (

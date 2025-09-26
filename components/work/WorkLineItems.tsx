@@ -57,6 +57,9 @@ export const WorkLineItems = ({
   const { vote, isVoting } = useVote({
     votableEntityId: work.id,
     feedContentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
+    relatedDocumentTopics: work.topics,
+    relatedDocumentId: work.id.toString(),
+    relatedDocumentContentType: work.contentType,
   });
   const [voteCount, setVoteCount] = useState(work.metrics?.votes || 0);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
@@ -72,7 +75,12 @@ export const WorkLineItems = ({
     refresh: refreshVotes,
   } = useUserVotes({
     paperIds: work.contentType === 'paper' ? [work.id] : [],
-    postIds: work.contentType === 'post' || work.contentType === 'preregistration' ? [work.id] : [],
+    postIds:
+      work.contentType === 'post' ||
+      work.contentType === 'preregistration' ||
+      work.contentType === 'funding_request'
+        ? [work.id]
+        : [],
   });
 
   const isUpvoted =

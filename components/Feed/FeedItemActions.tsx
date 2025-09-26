@@ -26,6 +26,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
+import { Topic } from '@/types/topic';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -144,7 +145,7 @@ interface FeedItemActionsProps {
   metrics?: Partial<ExtendedContentMetrics>;
   feedContentType: FeedContentType;
   votableEntityId: number;
-  relatedDocumentId?: number;
+  relatedDocumentId?: string;
   relatedDocumentContentType?: ContentType;
   userVote?: UserVoteType;
   actionLabels?: {
@@ -171,6 +172,8 @@ interface FeedItemActionsProps {
   bounties?: Bounty[]; // Updated to use imported Bounty type
   tips?: Tip[]; // Added tips prop
   awardedBountyAmount?: number; // Add awarded bounty amount
+  relatedDocumentTopics?: Topic[];
+  relatedDocumentUnifiedDocumentId?: string;
 }
 
 // Define interface for avatar items used in local state
@@ -201,6 +204,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   bounties = [],
   tips = [],
   awardedBountyAmount = 0, // Destructure awardedBountyAmount with default value
+  relatedDocumentTopics,
+  relatedDocumentUnifiedDocumentId,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser(); // Get current user
@@ -273,6 +278,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       setLocalVoteCount(metrics?.votes || 0);
       setLocalUserVote(userVote);
     },
+    relatedDocumentTopics: relatedDocumentTopics,
+    relatedDocumentUnifiedDocumentId: relatedDocumentUnifiedDocumentId,
   });
 
   // Use the flag modal hook

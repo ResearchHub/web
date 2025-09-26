@@ -6,12 +6,18 @@ import { ApiError } from '@/services/types';
 import { ReactionService, DocumentType } from '@/services/reaction.service';
 import { UserVoteType, VotableContentType } from '@/types/reaction';
 import { FeedContentType } from '@/types/feed';
+import { Topic } from '@/types/topic';
+import { useUser } from '@/contexts/UserContext';
+import { VoteActionEvent } from '@/types/analytics';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
 interface UseVoteOptions {
   votableEntityId: number;
   feedContentType?: FeedContentType;
-  relatedDocumentId?: number;
+  relatedDocumentId?: string;
   relatedDocumentContentType?: ContentType;
+  relatedDocumentUnifiedDocumentId?: string;
+  relatedDocumentTopics?: Topic[];
   onVoteSuccess?: (updatedItem: any, voteType: UserVoteType) => void;
   onVoteError?: (error: any) => void;
 }
@@ -45,11 +51,13 @@ export function useVote({
   feedContentType,
   relatedDocumentId,
   relatedDocumentContentType,
+  relatedDocumentUnifiedDocumentId,
+  relatedDocumentTopics,
   onVoteSuccess,
   onVoteError,
 }: UseVoteOptions) {
   const [isVoting, setIsVoting] = useState(false);
-  const { data: session } = useSession();
+  const { user } = useUser();
 
   /**
    * Vote on a document, comment or other content item
@@ -58,7 +66,7 @@ export function useVote({
   const vote = useCallback(
     async (voteType: UserVoteType) => {
       // Don't allow voting if not logged in
-      if (!session?.user) {
+      if (!user) {
         toast.error('Please sign in to vote');
         return;
       }
@@ -86,7 +94,7 @@ export function useVote({
         if (feedContentType === 'COMMENT' || feedContentType === 'BOUNTY') {
           response = await ReactionService.voteOnComment({
             commentId: votableEntityId,
-            documentId: relatedDocumentId,
+            documentId: relatedDocumentId?.toString(),
             voteType,
             contentType: votableContentType,
             documentType: documentType,
@@ -105,6 +113,29 @@ export function useVote({
           });
         }
 
+        const payload: VoteActionEvent = {
+          vote_type: voteType,
+          related_work:
+            relatedDocumentId && relatedDocumentContentType
+              ? {
+                  id: relatedDocumentId.toString(),
+                  content_type: relatedDocumentContentType,
+                  topics:
+                    relatedDocumentTopics?.map((topic) => ({
+                      id: topic?.id?.toString(),
+                      name: topic?.name,
+                      slug: topic?.slug,
+                    })) || [],
+                  primary_topic: relatedDocumentTopics?.[0] && {
+                    id: relatedDocumentTopics?.[0]?.id?.toString(),
+                    name: relatedDocumentTopics?.[0]?.name,
+                    slug: relatedDocumentTopics?.[0]?.slug,
+                  },
+                  unified_document_id: relatedDocumentUnifiedDocumentId?.toString(),
+                }
+              : undefined,
+        };
+        AnalyticsService.logEventWithUserProperties(LogEvent.VOTE_ACTION, payload, user);
         // Call success callback with the server response
         if (onVoteSuccess) {
           onVoteSuccess(response, voteType);
@@ -139,7 +170,7 @@ export function useVote({
       relatedDocumentId,
       relatedDocumentContentType,
       isVoting,
-      session,
+      user,
       onVoteSuccess,
       onVoteError,
     ]

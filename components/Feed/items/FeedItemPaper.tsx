@@ -22,6 +22,7 @@ interface FeedItemPaperProps {
   showTooltips?: boolean;
   showActions?: boolean;
   maxLength?: number;
+  onFeedItemClick?: () => void;
 }
 
 /**
@@ -33,6 +34,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   showTooltips = true,
   showActions = true,
   maxLength,
+  onFeedItemClick,
 }) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
@@ -60,6 +62,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
       showTooltips={showTooltips}
       customActionText={actionText}
       maxLength={maxLength}
+      onFeedItemClick={onFeedItemClick}
     >
       {/* Top section with badges and mobile image */}
       <FeedItemTopSection

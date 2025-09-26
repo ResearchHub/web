@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useState, useEffect, useMemo, useLayoutEffect } from 'react';
+import { useParams, useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useFeed, FeedTab } from '@/hooks/useFeed';
 import { useHub } from '@/hooks/useHub';
@@ -9,12 +9,40 @@ import { Hash } from 'lucide-react';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
 
+const DEFAULT_TAB: FeedTab = 'popular';
+
 export default function TopicFeedPage() {
   const params = useParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const slug = params?.slug;
   const decodedSlug = typeof slug === 'string' ? decodeURIComponent(slug) : null;
   const { hub, isLoading: isHubLoading, error: hubError } = useHub(decodedSlug);
-  const [activeTab, setActiveTab] = useState<FeedTab>('popular');
+
+  // Get active tab from URL params
+  const activeTab = useMemo(() => {
+    const tabParam = searchParams.get('tab') as FeedTab | null;
+    return tabParam && ['popular', 'latest'].includes(tabParam) ? tabParam : DEFAULT_TAB;
+  }, [searchParams]);
+
+  // Set default tab in URL if not present
+  useLayoutEffect(() => {
+    if (!searchParams.get('tab')) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('tab', DEFAULT_TAB);
+      window.history.replaceState({}, '', `${pathname}?${params.toString()}`);
+      router.refresh();
+    }
+  }, [pathname, router]);
+
+  // Handle tab changes
+  const handleTabChange = (tab: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', tab);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
   const {
     entries,
     isLoading: isFeedLoading,
@@ -69,7 +97,7 @@ export default function TopicFeedPage() {
     <FeedTabs
       activeTab={activeTab}
       tabs={topicTabs}
-      onTabChange={(tab: string) => setActiveTab(tab as FeedTab)}
+      onTabChange={handleTabChange} // Use the new handler
       isLoading={isFeedLoading}
     />
   );

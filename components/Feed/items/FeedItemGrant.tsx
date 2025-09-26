@@ -73,6 +73,7 @@ interface FeedItemGrantRefactoredProps {
   customActionText?: string;
   maxLength?: number;
   showHeader?: boolean;
+  onFeedItemClick?: () => void;
 }
 
 /**
@@ -87,6 +88,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
   customActionText,
   maxLength,
   showHeader = true,
+  onFeedItemClick,
 }) => {
   const grant = entry.content as FeedGrantContent;
   const router = useRouter();
@@ -127,6 +129,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
       customActionText={customActionText ?? 'opened a grant'}
       maxLength={maxLength}
       showHeader={showHeader}
+      onFeedItemClick={onFeedItemClick}
     >
       {/* Top section with badges and status + image(mobile) */}
       <FeedItemTopSection

@@ -83,6 +83,7 @@ interface FeedItemBountyProps {
   showSupportAndCTAButtons?: boolean; // Show container for Support and CTA buttons
   showDeadline?: boolean; // Show deadline in metadata line
   maxLength?: number;
+  onFeedItemClick?: () => void;
 }
 
 /**
@@ -110,6 +111,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   showSupportAndCTAButtons = true, // Show container for Support and CTA buttons
   showDeadline = true, // Show deadline in metadata line
   maxLength,
+  onFeedItemClick,
 }) => {
   // Extract the bounty entry from the entry's content
   const bountyEntry = entry.content as FeedBountyContent;
@@ -277,7 +279,13 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         work={entry.relatedWork}
       />
 
-      <BaseFeedItem entry={entry} href={href} showHeader={false} showActions={false}>
+      <BaseFeedItem
+        entry={entry}
+        href={href}
+        showHeader={false}
+        showActions={false}
+        onFeedItemClick={onFeedItemClick}
+      >
         <div onClick={(e) => e.stopPropagation()}>
           <BountyMetadataLine
             amount={parseFloat(bounty.totalAmount)}
@@ -363,7 +371,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
               metrics={entry.metrics}
               feedContentType="BOUNTY"
               votableEntityId={bountyEntry.comment.id}
-              relatedDocumentId={bountyEntry.relatedDocumentId}
+              relatedDocumentId={bountyEntry.relatedDocumentId?.toString()}
               relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
               userVote={entry.userVote}
               tips={entry.tips}
@@ -372,6 +380,10 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
               menuItems={menuItems}
               bounties={[bountyEntry.bounty]}
               onComment={onReply}
+              relatedDocumentTopics={entry.relatedWork?.topics}
+              relatedDocumentUnifiedDocumentId={
+                entry.relatedWork?.unifiedDocumentId?.toString() || undefined
+              }
             />
           </div>
         )}

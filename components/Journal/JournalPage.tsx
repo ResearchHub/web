@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState, useEffect, useMemo } from 'react';
+import { FC, useState, useEffect, useMemo, useLayoutEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { JournalFeed } from './JournalFeed';
 import { JournalTabs, TabType } from './JournalTabs';
@@ -22,6 +22,15 @@ export const JournalPage: FC = () => {
       ? tabParam
       : DEFAULT_TAB;
   }, [searchParams]);
+
+  useLayoutEffect(() => {
+    if (!searchParams.get('tab')) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('tab', DEFAULT_TAB);
+      window.history.replaceState({}, '', `${pathname}?${params.toString()}`);
+      router.refresh();
+    }
+  }, [pathname, router]);
 
   const handleTabChange = (tab: TabType) => {
     if (tab === activeTab) return; // Skip if tab is already active

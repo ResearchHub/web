@@ -90,6 +90,7 @@ export interface FeedPostContent extends BaseFeedContent {
   authors: AuthorProfile[];
   topics: Topic[];
   institution?: string;
+  unifiedDocumentId?: string;
 }
 
 export interface ApplicationDetails {
@@ -151,6 +152,7 @@ export interface FeedPaperContent extends BaseFeedContent {
   topics: Topic[];
   journal: Journal;
   workType?: 'paper' | 'preprint' | 'published';
+  unifiedDocumentId?: string;
 }
 
 export interface FeedGrantContent extends BaseFeedContent {
@@ -162,6 +164,7 @@ export interface FeedGrantContent extends BaseFeedContent {
   previewImage?: string;
   authors: AuthorProfile[];
   topics: Topic[];
+  unifiedDocumentId?: string;
   grant: {
     id: number;
     amount: {
@@ -191,9 +194,6 @@ export interface FeedGrantContent extends BaseFeedContent {
 
 // Update the Content union type to include the base interface
 export type Content =
-  | (Work & Partial<BaseFeedContent>)
-  | (Bounty & Partial<BaseFeedContent>)
-  | (Comment & Partial<BaseFeedContent>)
   | FeedPostContent
   | FeedPaperContent
   | FeedBountyContent
@@ -378,6 +378,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         // Create a FeedPaperEntry object directly
         const paperEntry: FeedPaperContent = {
           id: content_object.id,
+          unifiedDocumentId: content_object.unified_document_id?.toString(),
           contentType: 'PAPER',
           createdDate: content_object.created_date,
           textPreview: stripHtml(content_object.abstract || ''),
@@ -499,7 +500,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           review: content_object.review || null,
           user_vote: feedEntry.user_vote || null,
           created_location: '',
-          unified_document_id: content_object.unified_document_id,
+          unified_document_id: content_object.unified_document_id?.toString(),
           bounty_amount: content_object.bounty_amount,
         };
 
@@ -587,6 +588,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         try {
           const grantEntry: FeedGrantContent = {
             id: content_object.id,
+            unifiedDocumentId: content_object.unified_document_id?.toString(),
             contentType: 'GRANT',
             postType: content_object.type, // Add the actual type from content_object
             createdDate: content_object.created_date,
@@ -646,6 +648,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           // Create a FeedPostEntry object
           const postEntry: FeedPostContent = {
             id: content_object.id,
+            unifiedDocumentId: content_object.unified_document_id?.toString(),
             contentType: isPreregistration ? 'PREREGISTRATION' : 'POST',
             postType: content_object.type, // Add the actual type from content_object
             createdDate: content_object.created_date,
@@ -708,22 +711,34 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       );
       contentType = 'POST'; // Default to POST for unknown types
       try {
-        // Create a minimal object that can be transformed to a Work
-        const genericData = {
+        // Create a FeedPostEntry object
+        const postEntry: FeedPostContent = {
           id: content_object.id || id,
-          title: stripHtml(content_object.title || `${content_type} #${content_object.id || id}`),
-          content_type: 'post',
+          unifiedDocumentId: content_object.unified_document_id?.toString(),
+          contentType: 'POST',
+          createdDate: created_date,
+          textPreview: content_object.renderable_text || '',
           slug: content_object.slug || `${content_type.toLowerCase()}/${content_object.id || id}`,
-          created_date: created_date,
-          authors: [author],
-          hub: content_object.hub,
-          unified_document: {
-            id: content_object.id || id,
-            document_type: 'POST',
-          },
+          title: stripHtml(content_object.title || `${content_type} #${content_object.id || id}`),
+          authors:
+            content_object.authors && content_object.authors.length > 0
+              ? content_object.authors.map(transformAuthorProfile)
+              : [transformAuthorProfile(author)],
+          institution: content_object.institution, // Populate institution
+          topics: content_object.hub
+            ? [
+                content_object.hub.id
+                  ? transformTopic(content_object.hub)
+                  : {
+                      id: 0,
+                      name: content_object.hub.name || '',
+                      slug: content_object.hub.slug || '',
+                    },
+              ]
+            : [],
+          createdBy: transformAuthorProfile(author),
         };
-
-        content = transformPaper(genericData);
+        content = postEntry;
       } catch (error) {
         console.error(`Error transforming ${content_type}:`, error);
         throw new Error(`Failed to transform ${content_type}: ${error}`);
@@ -915,3 +930,24 @@ export const transformBountyCommentToFeedItem = (
 
 export type { AuthorProfile };
 export type { Fundraise };
+
+export function mapFeedContentTypeToContentType(
+  feedContentType: FeedContentType
+): ContentType | undefined {
+  switch (feedContentType) {
+    case 'PAPER':
+      return 'paper';
+    case 'POST':
+    case 'PREREGISTRATION':
+      return 'post';
+    case 'COMMENT':
+    case 'BOUNTY':
+      return undefined;
+    case 'APPLICATION':
+      return 'post';
+    case 'GRANT':
+      return 'funding_request';
+    default:
+      return undefined;
+  }
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, ReactNode } from 'react';
-import { FeedContentType, FeedEntry } from '@/types/feed';
+import { FeedContentType, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CardWrapper } from './CardWrapper';
@@ -21,6 +21,7 @@ export interface BaseFeedItemProps {
   showHeader?: boolean;
   customActionText?: string;
   children?: ReactNode;
+  onFeedItemClick?: () => void;
 }
 
 // Badge component interface
@@ -211,6 +212,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   showHeader = true,
   customActionText,
   children,
+  onFeedItemClick,
 }) => {
   const content = entry.content;
   const author = content.createdBy;
@@ -228,7 +230,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
       )}
 
       {/* Main Content Card */}
-      <CardWrapper href={href} isClickable={isClickable}>
+      <CardWrapper href={href} isClickable={isClickable} onClick={onFeedItemClick}>
         <div className="p-4">
           {children}
 
@@ -256,11 +258,25 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                     content.contentType ? (content.contentType as FeedContentType) : 'COMMENT'
                   }
                   votableEntityId={content.id}
+                  relatedDocumentId={
+                    'relatedDocumentId' in content
+                      ? content.relatedDocumentId?.toString()
+                      : content.id.toString()
+                  }
+                  relatedDocumentContentType={
+                    'relatedDocumentContentType' in content
+                      ? content.relatedDocumentContentType
+                      : mapFeedContentTypeToContentType(content.contentType)
+                  }
                   userVote={entry.userVote}
                   showTooltips={showTooltips}
                   href={href}
                   reviews={content.reviews}
                   bounties={content.bounties}
+                  relatedDocumentTopics={'topics' in content ? content.topics : undefined}
+                  relatedDocumentUnifiedDocumentId={
+                    'unifiedDocumentId' in content ? content.unifiedDocumentId : undefined
+                  }
                 />
               </div>
             </div>
