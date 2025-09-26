@@ -70,7 +70,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   // Browse page
   if (pathname === '/browse') {
     return {
-      title: 'Browse Topics',
+      title: 'Browse',
       subtitle: 'Discover and follow research topics',
       icon: <FontAwesomeIcon icon={faGrid3Light} fontSize={24} color="#000" />,
     };

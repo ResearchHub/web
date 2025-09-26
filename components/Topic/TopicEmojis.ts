@@ -1,5 +1,5 @@
 // Topic emoji mapping for fallbacks when API doesn't provide icons
-export const HUB_EMOJIS: Record<string, string> = {
+export const TOPIC_EMOJIS: Record<string, string> = {
   // Primary hubs (from categories)
   biology: '🧬',
   chemistry: '🧪',
@@ -273,5 +273,5 @@ export function getTopicEmoji(topicName: string): string | null {
   // Convert to lowercase and replace spaces with hyphens to match our mapping keys
   const normalizedName = topicName.toLowerCase().replace(/\s+/g, '-');
 
-  return HUB_EMOJIS[normalizedName] || null;
+  return TOPIC_EMOJIS[normalizedName] || null;
 }
