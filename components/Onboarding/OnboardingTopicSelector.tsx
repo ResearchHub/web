@@ -145,7 +145,7 @@ export function OnboardingTopicSelector({
                   key={topic.id}
                   onClick={() => onTopicToggle(topic.id)}
                   className={cn(
-                    'group bg-white rounded-xl shadow-sm border transition-all duration-200 overflow-hidden min-h-[64px] flex items-center p-4 gap-3 w-full text-left',
+                    'group bg-white rounded-xl shadow-sm border transition-all duration-200 overflow-hidden min-h-[64px] flex items-center p-4 gap-3 w-full text-left relative',
                     isSelected
                       ? 'border-blue-500 bg-blue-50 hover:bg-blue-100'
                       : 'border-gray-200 hover:shadow-md hover:border-gray-300'
@@ -171,7 +171,7 @@ export function OnboardingTopicSelector({
                   </h3>
 
                   {isSelected && (
-                    <div className="flex-shrink-0">
+                    <div className="absolute top-1/2 right-2 -translate-y-1/2">
                       <Check className="w-5 h-5 text-blue-600" />
                     </div>
                   )}

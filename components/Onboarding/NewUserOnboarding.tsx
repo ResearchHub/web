@@ -220,12 +220,12 @@ export function NewUserOnboarding({ backgroundVariant = 'grid' }: NewUserOnboard
                 size="lg"
                 onClick={handleContinue}
                 disabled={selectedTopicIds.length === 0 || isSaving}
-                className="w-full bg-[#0153FF] text-white hover:bg-[#0142CC] disabled:bg-gray-200 disabled:text-gray-400"
+                className="w-full bg-[#0153FF] text-white hover:bg-[#0142CC] disabled:bg-gray-300 disabled:text-gray-600"
               >
                 {isSaving
                   ? 'Saving...'
                   : selectedTopicIds.length === 0
-                    ? 'Continue (0 selected)'
+                    ? 'Continue (0 of 1 selected)'
                     : `Continue (${selectedTopicIds.length} selected)`}
               </Button>
             </div>
