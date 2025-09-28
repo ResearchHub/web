@@ -74,7 +74,7 @@ export const FeedContent: FC<FeedContentProps> = ({
         {filters && <div className="py-3">{filters}</div>}
 
         <div className="mt-4">
-          {/* Render existing entries using the new FeedEntryItem component */}
+          {/* Render existing entries */}
           {entries.length > 0 &&
             entries.map((entry, index) => (
               <React.Fragment key={entry.id}>

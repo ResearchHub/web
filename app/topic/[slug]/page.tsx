@@ -97,7 +97,7 @@ export default function TopicFeedPage() {
     <FeedTabs
       activeTab={activeTab}
       tabs={topicTabs}
-      onTabChange={handleTabChange} // Use the new handler
+      onTabChange={handleTabChange}
       isLoading={isFeedLoading}
     />
   );
