@@ -43,22 +43,53 @@ function WelcomeText({ onAnimationComplete }: WelcomeTextProps) {
         <div className="mb-8 flex justify-center">
           <Logo variant="white" noText size={66} />
         </div>
-        <h1 className="text-5xl md:text-7xl font-bold text-white mb-4">
-          {mainText.split('').map((char, index) => (
-            <span
-              key={index}
-              className="inline-block transition-all duration-600"
-              style={{
-                animation: `fadeInUp 0.6s ease-out ${index * 30}ms forwards`,
-                opacity: 0,
-                transform: 'translateY(20px)',
-              }}
-            >
-              {char === ' ' ? '\u00A0' : char}
-            </span>
-          ))}
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
+          <span className="hidden md:inline">
+            {mainText.split('').map((char, index) => (
+              <span
+                key={index}
+                className="inline-block transition-all duration-600"
+                style={{
+                  animation: `fadeInUp 0.6s ease-out ${index * 30}ms forwards`,
+                  opacity: 0,
+                  transform: 'translateY(20px)',
+                }}
+              >
+                {char === ' ' ? '\u00A0' : char}
+              </span>
+            ))}
+          </span>
+          <span className="md:hidden">
+            {'Welcome to'.split('').map((char, index) => (
+              <span
+                key={`m1-${index}`}
+                className="inline-block transition-all duration-600"
+                style={{
+                  animation: `fadeInUp 0.6s ease-out ${index * 30}ms forwards`,
+                  opacity: 0,
+                  transform: 'translateY(20px)',
+                }}
+              >
+                {char === ' ' ? '\u00A0' : char}
+              </span>
+            ))}
+            <br />
+            {'ResearchHub'.split('').map((char, index) => (
+              <span
+                key={`m2-${index}`}
+                className="inline-block transition-all duration-600"
+                style={{
+                  animation: `fadeInUp 0.6s ease-out ${(11 + index) * 30}ms forwards`,
+                  opacity: 0,
+                  transform: 'translateY(20px)',
+                }}
+              >
+                {char}
+              </span>
+            ))}
+          </span>
         </h1>
-        <p className="text-xl md:text-2xl text-white/90">
+        <p className="text-lg sm:!text-xl md:!text-2xl text-white/90">
           {subtext.split('').map((char, index) => (
             <span
               key={index}

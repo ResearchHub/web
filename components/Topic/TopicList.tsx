@@ -38,7 +38,9 @@ export function TopicList({ topics, className = '', variant = 'default' }: Topic
               key={topic.id}
               onClick={(e) => handleCompactClick(e, topic.id)}
               className={cn(
-                'group bg-white rounded-xl shadow-sm border transition-all duration-200 overflow-hidden h-16 flex items-center p-4 gap-3 w-full text-left',
+                'group bg-white rounded-xl shadow-sm border transition-all duration-200 overflow-hidden w-full text-left p-4 relative',
+                'flex items-center gap-3 h-16',
+                'max-[480px]:flex-col max-[480px]:gap-2 max-[480px]:h-auto max-[480px]:items-start max-[480px]:py-3',
                 isFollowed
                   ? 'border-blue-500 bg-blue-50 hover:bg-blue-100'
                   : 'border-gray-200 hover:shadow-md hover:border-gray-300'
@@ -62,7 +64,7 @@ export function TopicList({ topics, className = '', variant = 'default' }: Topic
               </h3>
 
               {isFollowed && (
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 max-[480px]:absolute max-[480px]:top-2 max-[480px]:right-2">
                   <Check className="w-5 h-5 text-blue-600" />
                 </div>
               )}

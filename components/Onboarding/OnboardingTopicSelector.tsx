@@ -145,7 +145,9 @@ export function OnboardingTopicSelector({
                   key={topic.id}
                   onClick={() => onTopicToggle(topic.id)}
                   className={cn(
-                    'group bg-white rounded-xl shadow-sm border transition-all duration-200 overflow-hidden min-h-[64px] flex items-center p-4 gap-3 w-full text-left relative',
+                    'group bg-white rounded-xl shadow-sm border transition-all duration-200 overflow-hidden w-full text-left relative p-4',
+                    'flex items-center gap-3 min-h-[64px]',
+                    'max-[480px]:flex-col max-[480px]:gap-2 max-[480px]:h-auto max-[480px]:items-start max-[480px]:py-3',
                     isSelected
                       ? 'border-blue-500 bg-blue-50 hover:bg-blue-100'
                       : 'border-gray-200 hover:shadow-md hover:border-gray-300'
@@ -171,7 +173,7 @@ export function OnboardingTopicSelector({
                   </h3>
 
                   {isSelected && (
-                    <div className="absolute top-1/2 right-2 -translate-y-1/2">
+                    <div className="absolute top-1/2 right-2 -translate-y-1/2 max-[480px]:top-2 max-[480px]:translate-y-0">
                       <Check className="w-5 h-5 text-blue-600" />
                     </div>
                   )}
