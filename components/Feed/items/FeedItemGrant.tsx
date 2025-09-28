@@ -124,7 +124,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
       className={className}
       showActions={showActions}
       showTooltips={showTooltips}
-      customActionText={customActionText ?? 'opened a grant'}
+      customActionText={customActionText ?? 'opened an RFP'}
       maxLength={maxLength}
       showHeader={showHeader}
     >
