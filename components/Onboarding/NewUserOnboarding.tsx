@@ -154,7 +154,7 @@ export function NewUserOnboarding({ backgroundVariant = 'grid' }: NewUserOnboard
     if (backgroundVariant === 'grid') {
       return {
         background:
-          'linear-gradient(to bottom,rgb(41, 104, 240) 0%, #0153FF 10%,rgb(199, 64, 223) 100%)',
+          'linear-gradient(to bottom,rgb(41, 104, 240) 0%, #0153FF 10%,rgb(205, 115, 221) 100%)',
       };
     }
     return {
@@ -186,8 +186,8 @@ export function NewUserOnboarding({ backgroundVariant = 'grid' }: NewUserOnboard
 
       {/* Logo at the top */}
       {showModal && (
-        <div className="relative z-10 flex justify-center pt-8 pb-4">
-          <Logo variant="white" noText size={140} />
+        <div className="relative z-10 flex justify-center pt-8 mb-12">
+          <Logo variant="white" size={60} />
         </div>
       )}
 

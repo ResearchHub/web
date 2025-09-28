@@ -3,7 +3,7 @@
 import { Topic } from '@/types/topic';
 import { TopicSearch } from '@/components/Search/TopicSearch';
 import { SearchSuggestion } from '@/types/search';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { cn } from '@/utils/styles';
 import { Hash, Check } from 'lucide-react';
 import { toTitleCase } from '@/utils/stringUtils';
@@ -27,6 +27,34 @@ export function OnboardingTopicSelector({
   const [searchResults, setSearchResults] = useState<SearchSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [showShadow, setShowShadow] = useState(false);
+
+  // Effect to detect scroll on parent container
+  useEffect(() => {
+    const handleScroll = (e: Event) => {
+      const target = e.target as HTMLElement;
+      setShowShadow(target.scrollTop > 10);
+    };
+
+    // Find the scrollable parent (the one with overflow-y-auto)
+    const findScrollParent = (element: HTMLElement | null): HTMLElement | null => {
+      if (!element) return null;
+
+      const style = window.getComputedStyle(element);
+      if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+        return element;
+      }
+
+      return findScrollParent(element.parentElement);
+    };
+
+    // Get the component's container and find its scrollable parent
+    const container = document.querySelector('[class*="overflow-y-auto"]');
+    if (container && container.contains(document.querySelector('.sticky.top-0'))) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
@@ -81,7 +109,12 @@ export function OnboardingTopicSelector({
 
   return (
     <div className={className}>
-      <div className="sticky top-0 bg-white z-10 pb-4 mb-2">
+      <div
+        className={cn(
+          'sticky top-0 bg-white z-10 pb-4 mb-2 transition-shadow duration-200',
+          showShadow && 'shadow-md'
+        )}
+      >
         <div className="px-1 pt-1">
           <TopicSearch
             placeholder="Search topics"
