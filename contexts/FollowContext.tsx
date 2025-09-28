@@ -12,6 +12,7 @@ interface FollowContextType {
   followedTopicObjects: FollowedObject[];
   isFollowing: (topicId: number) => boolean;
   toggleFollow: (topicId: number) => Promise<void>;
+  followMultiple: (topicIds: number[]) => Promise<void>;
   refreshFollowed: () => Promise<void>;
   loading: boolean;
   getFollowedTopics: () => Promise<Topic[]>;
@@ -85,6 +86,37 @@ export function FollowProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Follow multiple topics at once
+  const followMultiple = async (topicIds: number[]) => {
+    // Filter out already followed topics
+    const toFollow = topicIds.filter((id) => !followedTopicIds.includes(id));
+    if (toFollow.length === 0) return;
+
+    // Optimistically update the UI
+    setFollowedTopicIds((prev) => [...prev, ...toFollow]);
+
+    try {
+      const response = await FollowService.followMultipleHubs(toFollow);
+
+      // Log any issues for debugging
+      if (response.not_found.length > 0) {
+        console.warn('Topics not found:', response.not_found);
+      }
+      if (response.already_following.length > 0) {
+        console.info('Already following:', response.already_following);
+      }
+
+      // Refresh the full data after successful follow
+      await refreshFollowed();
+    } catch (error) {
+      console.error('Error following multiple topics:', error);
+      // Revert on error
+      setFollowedTopicIds((prev) => prev.filter((id) => !toFollow.includes(id)));
+      // Re-throw the error for components to handle
+      throw error;
+    }
+  };
+
   // Function to get followed topics (returns cached data or fetches if needed)
   const getFollowedTopics = async (): Promise<Topic[]> => {
     if (followedTopics.length === 0 && followedTopicIds.length > 0) {
@@ -129,6 +161,7 @@ export function FollowProvider({ children }: { children: ReactNode }) {
       followedTopicObjects,
       isFollowing,
       toggleFollow,
+      followMultiple,
       refreshFollowed,
       loading,
       getFollowedTopics,

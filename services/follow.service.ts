@@ -1,6 +1,19 @@
 import { ApiClient } from './client';
 import { FollowResponse, FollowedObject, transformFollowedObject } from '@/types/follow';
 
+interface FollowMultipleResponse {
+  followed: Array<{
+    id: number;
+    name: string;
+    slug?: string;
+  }>;
+  already_following: Array<{
+    id: number;
+    name: string;
+  }>;
+  not_found: number[];
+}
+
 export class FollowService {
   private static readonly BASE_PATH = '/api/hub';
 
@@ -47,5 +60,16 @@ export class FollowService {
    */
   static async unfollowHub(hubId: number): Promise<void> {
     await ApiClient.post(`${this.BASE_PATH}/${hubId}/unfollow/`);
+  }
+
+  /**
+   * Follow multiple hubs/topics at once
+   * @param hubIds Array of hub IDs to follow
+   * @returns Response with followed, already following, and not found items
+   */
+  static async followMultipleHubs(hubIds: number[]): Promise<FollowMultipleResponse> {
+    return await ApiClient.post<FollowMultipleResponse>(`${this.BASE_PATH}/follow_multiple/`, {
+      ids: hubIds,
+    });
   }
 }
