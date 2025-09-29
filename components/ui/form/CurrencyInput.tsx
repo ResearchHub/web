@@ -1,9 +1,9 @@
 import React from 'react';
-import { Input } from './Input';
+import { Input, InputProps } from './Input';
 import { ChevronDown } from 'lucide-react';
 import { Currency } from '@/types/root';
 
-interface CurrencyInputProps {
+interface CurrencyInputProps extends InputProps {
   value: string | number;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   currency: Currency;
@@ -14,6 +14,8 @@ interface CurrencyInputProps {
   isExchangeRateLoading?: boolean;
   label?: string;
   className?: string;
+  disableCurrencyToggle?: boolean;
+  required?: boolean;
 }
 
 export const CurrencyInput = ({
@@ -27,6 +29,9 @@ export const CurrencyInput = ({
   isExchangeRateLoading,
   label = 'I am offering',
   className = '',
+  disableCurrencyToggle = false,
+  required = false,
+  ...props
 }: CurrencyInputProps) => {
   const currentAmount =
     typeof value === 'string' ? parseFloat(value.replace(/,/g, '')) || 0 : value;
@@ -47,22 +52,29 @@ export const CurrencyInput = ({
         name="amount"
         value={value === 0 ? '' : value.toString()}
         onChange={onChange}
-        required
+        required={required}
         label={label}
         placeholder="0.00"
         type="text"
         inputMode="numeric"
         className={`w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${error ? 'border-red-500' : ''} ${className}`}
         rightElement={
-          <button
-            type="button"
-            onClick={onCurrencyToggle}
-            className="flex items-center gap-1 pr-3 text-gray-900 hover:text-gray-600"
-          >
-            <span className="font-medium">{currency}</span>
-            <ChevronDown className="w-4 h-4" />
-          </button>
+          disableCurrencyToggle ? (
+            <div className="flex items-center gap-1 pr-3 text-gray-900">
+              <span className="font-medium">{currency}</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={onCurrencyToggle}
+              className="flex items-center gap-1 pr-3 text-gray-900 hover:text-gray-600"
+            >
+              <span className="font-medium">{currency}</span>
+              <ChevronDown className="w-4 h-4" />
+            </button>
+          )
         }
+        {...props}
       />
       {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
       {suggestedAmount && !error && (
