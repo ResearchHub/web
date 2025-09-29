@@ -4,6 +4,9 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { AuthService } from '@/services/auth.service';
 import { AuthSharingService } from '@/services/auth-sharing.service';
 
+// Debug flag - set to true to enable detailed authentication logging
+const DEBUG_AUTH = true;
+
 const promptInvalidCredentials = () => null;
 
 export const authOptions: NextAuthOptions = {
@@ -77,25 +80,76 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       if (account?.type === 'oauth') {
         try {
+          // Log OAuth token state for debugging
+          if (DEBUG_AUTH) {
+            console.log('[Auth] Google OAuth callback received', {
+              hasAccessToken: !!account?.access_token,
+              hasIdToken: !!account?.id_token,
+              accountProvider: account?.provider,
+              timestamp: new Date().toISOString(),
+            });
+          }
+
+          // Validate required tokens
+          if (!account?.access_token || !account?.id_token) {
+            console.error('[Auth] Missing OAuth tokens', {
+              hasAccessToken: !!account?.access_token,
+              hasIdToken: !!account?.id_token,
+            });
+            throw new Error('MissingOAuthTokens');
+          }
+
           const data = await AuthService.googleLogin({
-            access_token: account?.access_token,
-            id_token: account?.id_token,
+            access_token: account.access_token,
+            id_token: account.id_token,
           });
+
+          // Validate API response
+          if (!data || !data.key) {
+            console.error('[Auth] Invalid response from googleLogin', {
+              hasData: !!data,
+              hasKey: !!data?.key,
+            });
+            throw new Error('InvalidAuthResponse');
+          }
 
           // Then fetch user data using the AuthService
           const userData = await AuthService.fetchUserData(data.key);
-          // The API returns an array of results, but for user data we only expect
-          // and need the first element since it represents the current authenticated user
+
+          // Validate user data
+          if (!userData?.results?.[0]) {
+            console.error('[Auth] Invalid user data response', {
+              hasUserData: !!userData,
+              hasResults: !!userData?.results,
+              resultsLength: userData?.results?.length || 0,
+            });
+            throw new Error('InvalidUserData');
+          }
+
           const user = userData.results[0];
 
-          if (data.key) {
-            (account as any).authToken = data.key;
-            (account as any).userId = user.id;
+          // Store auth token and user ID
+          (account as any).authToken = data.key;
+          (account as any).userId = user.id;
+
+          if (DEBUG_AUTH) {
+            console.log('[Auth] Google OAuth successful', {
+              userId: user.id,
+              timestamp: new Date().toISOString(),
+            });
           }
 
           return true;
         } catch (error) {
-          // Instead of returning an error object, throw it to trigger next-auth's error handling
+          // Log detailed error information
+          console.error('[Auth] Google OAuth error', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            errorType: error instanceof Error ? error.constructor.name : typeof error,
+            stack: error instanceof Error ? error.stack : undefined,
+            timestamp: new Date().toISOString(),
+          });
+
+          // Preserve specific error messages for better debugging
           if (error instanceof Error) {
             throw new Error(error.message);
           }
