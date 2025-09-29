@@ -1,6 +1,5 @@
 import { ApiClient } from './client';
 import { FollowResponse, FollowedObject, transformFollowedObject } from '@/types/follow';
-import { Topic } from '@/types/topic';
 
 export class FollowService {
   private static readonly BASE_PATH = '/api/hub';
@@ -15,17 +14,14 @@ export class FollowService {
   }
 
   /**
-   * Get only followed topics/hubs
-   * @returns Array of Topic objects that the user is following
+   * Get only followed topics/hubs with their metadata
+   * @returns Array of FollowedObject containing Topics
    */
-  static async getFollowedTopics(): Promise<Topic[]> {
+  static async getFollowedTopics(): Promise<FollowedObject[]> {
     const followedObjects = await this.getFollowedObjects();
 
-    // Filter for hub/topic objects and extract the Topic data
-    return followedObjects
-      .filter((obj) => obj.type === 'HUB')
-      .map((obj) => obj.data as Topic)
-      .filter((topic) => topic !== null);
+    // Filter for hub/topic objects that have valid topic data
+    return followedObjects.filter((obj) => obj.type === 'HUB' && obj.data !== null);
   }
 
   /**

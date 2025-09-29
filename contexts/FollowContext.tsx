@@ -4,15 +4,18 @@ import { createContext, useState, useContext, useEffect, useMemo, ReactNode } fr
 import { HubService } from '@/services/hub.service';
 import { FollowService } from '@/services/follow.service';
 import { Topic } from '@/types/topic';
+import { FollowedObject } from '@/types/follow';
 
 interface FollowContextType {
   followedTopicIds: number[];
   followedTopics: Topic[];
+  followedTopicObjects: FollowedObject[];
   isFollowing: (topicId: number) => boolean;
   toggleFollow: (topicId: number) => Promise<void>;
   refreshFollowed: () => Promise<void>;
   loading: boolean;
   getFollowedTopics: () => Promise<Topic[]>;
+  getFollowedTopicObjects: () => Promise<FollowedObject[]>;
 }
 
 const FollowContext = createContext<FollowContextType | undefined>(undefined);
@@ -20,6 +23,7 @@ const FollowContext = createContext<FollowContextType | undefined>(undefined);
 export function FollowProvider({ children }: { children: ReactNode }) {
   const [followedTopicIds, setFollowedTopicIds] = useState<number[]>([]);
   const [followedTopics, setFollowedTopics] = useState<Topic[]>([]);
+  const [followedTopicObjects, setFollowedTopicObjects] = useState<FollowedObject[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch followed topics when component mounts
@@ -31,13 +35,15 @@ export function FollowProvider({ children }: { children: ReactNode }) {
   const refreshFollowed = async () => {
     setLoading(true);
     try {
-      // Fetch full topic data
-      const followedTopicsData = await FollowService.getFollowedTopics();
+      // Fetch full topic data with metadata
+      const followedObjects = await FollowService.getFollowedTopics();
 
-      // Extract IDs from the topics
-      const topicIds = followedTopicsData.map((topic) => topic.id);
+      // Extract topics and IDs
+      const topics = followedObjects.map((obj) => obj.data as Topic);
+      const topicIds = topics.map((topic) => topic.id);
 
-      setFollowedTopics(followedTopicsData);
+      setFollowedTopicObjects(followedObjects);
+      setFollowedTopics(topics);
       setFollowedTopicIds(topicIds);
     } catch (error) {
       console.error('Error fetching followed topics:', error);
@@ -84,9 +90,11 @@ export function FollowProvider({ children }: { children: ReactNode }) {
     if (followedTopics.length === 0 && followedTopicIds.length > 0) {
       // If we have IDs but no topic data, fetch the full data
       try {
-        const topicsData = await FollowService.getFollowedTopics();
-        setFollowedTopics(topicsData);
-        return topicsData;
+        const followedObjects = await FollowService.getFollowedTopics();
+        const topics = followedObjects.map((obj) => obj.data as Topic);
+        setFollowedTopicObjects(followedObjects);
+        setFollowedTopics(topics);
+        return topics;
       } catch (error) {
         console.error('Error fetching followed topics data:', error);
         return [];
@@ -95,18 +103,38 @@ export function FollowProvider({ children }: { children: ReactNode }) {
     return followedTopics;
   };
 
+  // Function to get followed topic objects with metadata
+  const getFollowedTopicObjects = async (): Promise<FollowedObject[]> => {
+    if (followedTopicObjects.length === 0 && followedTopicIds.length > 0) {
+      // If we have IDs but no topic objects, fetch the full data
+      try {
+        const followedObjects = await FollowService.getFollowedTopics();
+        const topics = followedObjects.map((obj) => obj.data as Topic);
+        setFollowedTopicObjects(followedObjects);
+        setFollowedTopics(topics);
+        return followedObjects;
+      } catch (error) {
+        console.error('Error fetching followed topic objects:', error);
+        return [];
+      }
+    }
+    return followedTopicObjects;
+  };
+
   // Create memoized context value
   const contextValue = useMemo(
     () => ({
       followedTopicIds,
       followedTopics,
+      followedTopicObjects,
       isFollowing,
       toggleFollow,
       refreshFollowed,
       loading,
       getFollowedTopics,
+      getFollowedTopicObjects,
     }),
-    [followedTopicIds, followedTopics, loading]
+    [followedTopicIds, followedTopics, followedTopicObjects, loading]
   );
 
   return <FollowContext.Provider value={contextValue}>{children}</FollowContext.Provider>;

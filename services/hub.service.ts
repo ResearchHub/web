@@ -9,7 +9,7 @@ interface HubResponse {
   hub_image?: string | null;
   description?: string;
   namespace?: string;
-  category?: number;
+  category?: string;
   discussion_count?: number;
   paper_count?: number;
   subscriber_count?: number;
@@ -44,6 +44,11 @@ interface HubDetailResponse {
   results: HubResponse[];
 }
 
+interface PrimaryHubsResponse {
+  count: number;
+  results: HubResponse[];
+}
+
 export interface Hub {
   id: number;
   name: string;
@@ -67,6 +72,7 @@ export class HubService {
   private static readonly BASE_PATH = '/api/hub';
   private static readonly SUGGEST_PATH = '/api/search/hubs/suggest';
   private static readonly BY_CATEGORY_PATH = '/api/hub/by_category';
+  private static readonly PRIMARY_HUBS_PATH = '/api/hub/primary_only';
 
   static async getHubs(options: GetHubsOptions = {}): Promise<Topic[]> {
     const params = new URLSearchParams({
@@ -128,5 +134,10 @@ export class HubService {
   static async getHubsByCategory(): Promise<Topic[]> {
     const response = await ApiClient.get<HubResponse[]>(this.BY_CATEGORY_PATH);
     return response.map((rawHub) => transformTopic(rawHub));
+  }
+
+  static async getPrimaryHubs(): Promise<Topic[]> {
+    const response = await ApiClient.get<PrimaryHubsResponse>(this.PRIMARY_HUBS_PATH);
+    return response.results.map(transformTopic);
   }
 }

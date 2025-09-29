@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { groupTopicsByCategory } from '@/types/topic';
+import { Topic } from '@/types/topic';
 import { HubService } from '@/services/hub.service';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { BrowsePageClient } from './components/BrowsePageClient';
@@ -14,17 +14,16 @@ export const revalidate = 3600; // Revalidate every hour (3600 seconds)
 
 async function getTopics() {
   try {
-    const topics = await HubService.getHubsByCategory();
-    const groupedTopics = groupTopicsByCategory(topics);
-    return { groupedTopics, error: null };
+    const topics = await HubService.getPrimaryHubs();
+    return { topics, error: null };
   } catch (error) {
     console.error('Failed to fetch topics:', error);
-    return { groupedTopics: {}, error: 'Failed to load topics' };
+    return { topics: [], error: 'Failed to load topics' };
   }
 }
 
 export default async function BrowsePage() {
-  const { groupedTopics, error } = await getTopics();
+  const { topics, error } = await getTopics();
 
   if (error) {
     return (
@@ -38,7 +37,7 @@ export default async function BrowsePage() {
 
   return (
     <PageLayout>
-      <BrowsePageClient initialGroupedTopics={groupedTopics} />
+      <BrowsePageClient initialTopics={topics} />
     </PageLayout>
   );
 }
