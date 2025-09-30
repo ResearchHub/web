@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBadgeCheck } from '@fortawesome/pro-solid-svg-icons';
+import { faBadgeCheck as faBadgeCheckLight } from '@fortawesome/pro-light-svg-icons';
 import clsx from 'clsx';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useVerification } from '@/contexts/VerificationContext';
@@ -9,6 +10,7 @@ interface VerifiedBadgeProps {
   isOrganization?: boolean;
   className?: string;
   showTooltip?: boolean;
+  variant?: 'solid' | 'outlined';
 }
 
 export function VerifiedBadge({
@@ -16,6 +18,7 @@ export function VerifiedBadge({
   isOrganization = false,
   className,
   showTooltip = false,
+  variant = 'solid',
 }: VerifiedBadgeProps) {
   const { openVerificationModal } = useVerification();
 
@@ -27,6 +30,8 @@ export function VerifiedBadge({
     lg: 'w-6 h-6',
   };
 
+  const icon = variant === 'outlined' ? faBadgeCheckLight : faBadgeCheck;
+
   const badge = (
     <span
       className={clsx(
@@ -37,7 +42,7 @@ export function VerifiedBadge({
       )}
     >
       <FontAwesomeIcon
-        icon={faBadgeCheck}
+        icon={icon}
         className={clsx('w-full h-full', isOrganization ? 'text-purple-500' : 'text-blue-500')}
       />
     </span>

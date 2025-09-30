@@ -40,9 +40,9 @@ function WelcomeText({ onAnimationComplete }: WelcomeTextProps) {
   return (
     <div className="fixed inset-0 flex items-center justify-center z-20">
       <div className="text-center px-4">
-        <div className="mb-8 flex justify-center">
+        {/* <div className="mb-8 flex justify-center">
           <Logo variant="white" noText size={66} />
-        </div>
+        </div> */}
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
           <span className="hidden md:inline">
             {mainText.split('').map((char, index) => (
@@ -183,10 +183,7 @@ export function NewUserOnboarding({ backgroundVariant = 'grid' }: NewUserOnboard
 
   const getBackgroundStyle = () => {
     if (backgroundVariant === 'grid') {
-      return {
-        background:
-          'linear-gradient(to bottom,rgb(41, 104, 240) 0%, #0153FF 10%,rgb(205, 115, 221) 100%)',
-      };
+      return {};
     }
     return {
       backgroundImage: 'url(/wavy.png)',
@@ -198,6 +195,28 @@ export function NewUserOnboarding({ backgroundVariant = 'grid' }: NewUserOnboard
 
   return (
     <div className="min-h-screen pb-10 relative overflow-hidden" style={getBackgroundStyle()}>
+      {/* Animated background for grid variant */}
+      {backgroundVariant === 'grid' && (
+        <>
+          {/* Base background layer */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(to bottom, rgb(20, 60, 150) 0%, rgb(10, 40, 120) 50%, rgb(100, 50, 150) 100%)',
+            }}
+          />
+          {/* Animated overlay layer */}
+          <div
+            className="absolute inset-0 animate-gradient-fade-in"
+            style={{
+              background:
+                'linear-gradient(to bottom,rgb(41, 104, 240) 0%, #0153FF 10%,rgb(205, 115, 221) 100%)',
+            }}
+          />
+        </>
+      )}
+
       {/* Grid overlay for grid variant */}
       {backgroundVariant === 'grid' && (
         <div
@@ -285,12 +304,27 @@ export function NewUserOnboarding({ backgroundVariant = 'grid' }: NewUserOnboard
           }
         }
         
+        @keyframes gradient-fade-in {
+          0% {
+            opacity: 0;
+            transform: scale(1.05);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        
         .animate-fade-in {
           animation: fade-in 0.5s ease-out;
         }
         
         .animate-slide-up {
           animation: slide-up 0.5s ease-out;
+        }
+        
+        .animate-gradient-fade-in {
+          animation: gradient-fade-in 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
       `}</style>
     </div>
