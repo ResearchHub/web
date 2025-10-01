@@ -42,10 +42,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   showGrantHeaders = true,
   showReadMoreCTA = false,
 }) => {
-  const { ref, inView } = useInView({
-    threshold: 0.5,
-    rootMargin: '50px',
-  });
+  console.log('entry', entry);
   const { user } = useUser();
   const { source: feedSource, tab: feedTab } = useFeedSource();
   const deviceType = useDeviceType();
@@ -269,9 +266,5 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
     );
   }
 
-  return (
-    <div ref={ref} className={spacingClass}>
-      {content}
-    </div>
-  );
+  return <div className={spacingClass}>{content}</div>;
 };
