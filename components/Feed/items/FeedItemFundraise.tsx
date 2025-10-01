@@ -13,10 +13,10 @@ import {
 } from '@/components/Feed/BaseFeedItem';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { Users, Building, Pin } from 'lucide-react';
+import TopicAndJournalBadges from '@/components/ui/TopicAndJournalBadges';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -120,15 +120,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
           <>
             <ContentTypeBadge type="funding" />
             {isNonprofit && <TaxDeductibleBadge variant={badgeVariant} />}
-            {topics.map((topic) => (
-              <TopicAndJournalBadge
-                key={topic.id || topic.slug}
-                type="topic"
-                name={topic.name}
-                slug={topic.slug}
-                imageUrl={topic.imageUrl}
-              />
-            ))}
+            <TopicAndJournalBadges topics={topics} />
           </>
         }
       />

@@ -1,0 +1,163 @@
+'use client';
+
+import { useEffect, useState, useCallback, useRef } from 'react';
+import {
+  MultiSelectOption,
+  SearchableMultiSelect,
+} from '@/components/ui/form/SearchableMultiSelect';
+import { ChevronDown, Filter } from 'lucide-react';
+import { BaseMenu } from '@/components/ui/form/BaseMenu';
+import { Topic } from '@/types/topic';
+import { Field, Label } from '@headlessui/react';
+import { ReviewStars } from '../Comment/lib/ReviewExtension';
+import { HubService } from '@/services/hub.service';
+import { IHub } from '@/types/hub';
+import { hubsToOptions, optionsToHubs, topicsToHubs } from '@/utils/hubs';
+import { FilterSwitch } from '../shared/FilterSwitch';
+
+interface FundingSelectorProps {
+  readonly selectedHubs: IHub[];
+  readonly onHubsChange: (hubs: IHub[]) => void;
+  readonly selectedVotes: number;
+  readonly onVotesChange: (votes: number) => void;
+  readonly selectedScore: number;
+  readonly onScoreChange: (score: number) => void;
+  readonly selectedVerifiedAuthorsOnly: boolean;
+  readonly onVerifiedAuthorsOnlyChange: (verifiedOnly: boolean) => void;
+  readonly selectedTaxDeductible: boolean;
+  readonly onTaxDeductibleChange: (taxDeductible: boolean) => void;
+  readonly selectedPreviouslyFunded: boolean;
+  readonly onPreviouslyFundedChange: (previouslyFunded: boolean) => void;
+  readonly error?: string | null;
+}
+
+export function FundingSelector({
+  selectedHubs,
+  onHubsChange,
+  selectedVotes,
+  onVotesChange,
+  selectedScore,
+  onScoreChange,
+  selectedVerifiedAuthorsOnly,
+  onVerifiedAuthorsOnlyChange,
+  selectedTaxDeductible,
+  onTaxDeductibleChange,
+  selectedPreviouslyFunded,
+  onPreviouslyFundedChange,
+  error,
+}: FundingSelectorProps) {
+  const [allHubs, setAllHubs] = useState<Topic[]>([]);
+  const menuContentRef = useRef<HTMLDivElement>(null);
+
+  // fetch all hubs at mount
+  useEffect(() => {
+    (async () => {
+      const hubs = await HubService.getHubs({ excludeJournals: false });
+      setAllHubs(hubs);
+    })();
+  }, []);
+
+  const allHubOptions = hubsToOptions(topicsToHubs(allHubs));
+
+  const handleTopicSearch = useCallback(async (query: string): Promise<MultiSelectOption[]> => {
+    try {
+      const topics = await HubService.suggestTopics(query);
+      return topics.map((topic) => ({
+        value: topic.id.toString(),
+        label: topic.name,
+      }));
+    } catch (error) {
+      console.error('Error searching topics:', error);
+      return [];
+    }
+  }, []);
+
+  const handleTopicsChange = (options: MultiSelectOption[]) => {
+    onHubsChange(optionsToHubs(options, selectedHubs));
+  };
+
+  const filtersUsed =
+    selectedHubs.length +
+    (selectedVotes > 0 ? 1 : 0) +
+    (selectedScore > 0 ? 1 : 0) +
+    (selectedVerifiedAuthorsOnly ? 1 : 0) +
+    (selectedTaxDeductible ? 1 : 0) +
+    (selectedPreviouslyFunded ? 1 : 0);
+  const trigger = (
+    <button
+      className="flex items-center gap-2 border border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-lg px-3 py-1.5 text-sm w-full"
+      type="button"
+    >
+      <Filter className="h-4 w-4 text-gray-500" />
+      <span className="text-gray-700">Filters</span>
+      {filtersUsed > 0 && (
+        <span className="text-xs font-semibold text-indigo-700 bg-indigo-100 rounded-full px-1.5">
+          {filtersUsed}
+        </span>
+      )}
+      <ChevronDown className="h-4 w-4 text-gray-500 ml-auto" />
+    </button>
+  );
+
+  return (
+    <BaseMenu
+      trigger={trigger}
+      align="start"
+      sideOffset={5}
+      className="z-50 overflow-hidden rounded-lg border border-gray-200 bg-white p-1 shadow-md min-w-[8rem] w-[var(--trigger-width)] !w-[300px] max-w-[90vw]"
+    >
+      <div className="p-2 w-full" ref={menuContentRef}>
+        <div className="pb-2 border-b border-gray-200">
+          <p>Topics</p>
+          <SearchableMultiSelect
+            value={hubsToOptions(selectedHubs)}
+            onChange={handleTopicsChange}
+            onAsyncSearch={handleTopicSearch}
+            options={allHubOptions}
+            placeholder="Search for topics..."
+            minSearchLength={0}
+            error={error || undefined}
+            className="w-full border-0 SearchableMultiSelect-input"
+            debounceMs={500}
+          />
+        </div>
+        <Field className="pt-2 pb-2 border-b border-gray-200">
+          <Label>Minimum Upvotes: {selectedVotes}</Label>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={selectedVotes}
+            onChange={(e) => onVotesChange(Number(e.target.value))}
+            className="w-full h-2"
+          />
+        </Field>
+        <Field className="pt-2 pb-2 border-b border-gray-200 flex items-center justify-between">
+          <Label>Minimum Score</Label>
+          <ReviewStars
+            rating={selectedScore}
+            onRatingChange={onScoreChange}
+            isClearable={true}
+            label=""
+          />
+        </Field>
+        <FilterSwitch
+          label="Verified Authors Only"
+          checked={selectedVerifiedAuthorsOnly}
+          onChange={onVerifiedAuthorsOnlyChange}
+        />
+        <FilterSwitch
+          label="Tax-Deductible"
+          checked={selectedTaxDeductible}
+          onChange={onTaxDeductibleChange}
+        />
+        <FilterSwitch
+          label="Previously Funded"
+          checked={selectedPreviouslyFunded}
+          onChange={onPreviouslyFundedChange}
+          className="pt-2"
+        />
+      </div>
+    </BaseMenu>
+  );
+}

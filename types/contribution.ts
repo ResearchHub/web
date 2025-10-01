@@ -6,13 +6,7 @@ import { transformBounty } from './bounty';
 import { Work } from './work';
 import { ContributionType } from '@/services/contribution.service';
 import { stripHtml } from '@/utils/stringUtils';
-
-export interface Hub {
-  id: ID;
-  name: string;
-  hub_image: string;
-  slug: string;
-}
+import { IHub } from './hub';
 
 export interface AuthorProfile {
   id: ID;
@@ -46,7 +40,7 @@ export interface Contribution {
   content_type: ContentType;
   created_by: User;
   created_date: string;
-  hubs: Hub[];
+  hubs: IHub[];
   item: ContributionItem;
 }
 
@@ -90,7 +84,7 @@ const getContentType = (contentType: string): FeedContentType => {
   }
 };
 
-const transformUnifiedDocumentToWork = ({ raw, hubs }: { raw: any; hubs: Hub[] }): Work => {
+const transformUnifiedDocumentToWork = ({ raw, hubs }: { raw: any; hubs: IHub[] }): Work => {
   const contentType =
     raw.unified_document?.document_type === 'PAPER'
       ? 'paper'
@@ -124,10 +118,13 @@ export const transformContributionToFeedEntry = ({
 }): FeedEntry => {
   const { content_type, created_by, created_date, hubs, item } = contribution;
 
-  const effectiveHubs: Hub[] = (hubs?.length ? hubs : item?.hubs?.length ? item.hubs : []).slice(
-    0,
-    2
-  );
+  let rawHubs: IHub[] = [];
+  if (hubs?.length) {
+    rawHubs = hubs;
+  } else if (item?.hubs?.length) {
+    rawHubs = item.hubs;
+  }
+  const effectiveHubs: IHub[] = rawHubs.slice(0, 2);
 
   // Base feed entry properties
   const baseFeedEntry: Partial<FeedEntry> = {
