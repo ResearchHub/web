@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useMediaQuery } from './useMediaQuery';
 
-const BREAKPOINTS = {
+export const BREAKPOINTS = {
   sm: 640,
   md: 768,
   lg: 1024,

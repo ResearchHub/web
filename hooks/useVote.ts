@@ -10,6 +10,7 @@ import { Topic } from '@/types/topic';
 import { useUser } from '@/contexts/UserContext';
 import { VoteActionEvent } from '@/types/analytics';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { useDeviceType } from '@/hooks/useDeviceType';
 
 interface UseVoteOptions {
   votableEntityId: number;
@@ -58,6 +59,7 @@ export function useVote({
 }: UseVoteOptions) {
   const [isVoting, setIsVoting] = useState(false);
   const { user } = useUser();
+  const deviceType = useDeviceType();
 
   /**
    * Vote on a document, comment or other content item
@@ -114,6 +116,7 @@ export function useVote({
         }
 
         const payload: VoteActionEvent = {
+          device_type: deviceType,
           vote_type: voteType,
           related_work:
             relatedDocumentId && relatedDocumentContentType

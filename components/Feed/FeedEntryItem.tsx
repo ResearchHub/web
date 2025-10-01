@@ -15,6 +15,7 @@ import { FeedItemClickedEvent } from '@/types/analytics';
 import { useUser } from '@/contexts/UserContext';
 import { useFeedSource } from '@/hooks/useFeedSource';
 import { Topic } from '@/types/topic';
+import { useDeviceType } from '@/hooks/useDeviceType';
 
 interface FeedEntryItemProps {
   entry: FeedEntry;
@@ -47,11 +48,12 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   });
   const { user } = useUser();
   const { source: feedSource, tab: feedTab } = useFeedSource();
-
+  const deviceType = useDeviceType();
   // Handle feed item click with analytics
   const handleFeedItemClick = () => {
     try {
       const payload: FeedItemClickedEvent = {
+        device_type: deviceType,
         feed_position: index + 1,
         feed_source: feedSource,
         feed_tab: feedTab,
