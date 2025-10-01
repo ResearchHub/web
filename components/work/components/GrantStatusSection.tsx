@@ -24,7 +24,7 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
   }
 
   const endDate = new Date(work.note?.post?.grant?.endDate);
-  const isClosedByDate = dayjs(endDate).isBefore(dayjs(), 'day');
+  const isClosedByDate = dayjs(endDate).isBefore(dayjs());
   const isOpen = work.note?.post?.grant?.status === 'OPEN' && !isClosedByDate;
 
   return (

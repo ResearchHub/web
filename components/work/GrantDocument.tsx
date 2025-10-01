@@ -83,7 +83,7 @@ export const GrantDocument = ({
   const endDate = work.note?.post?.grant?.endDate
     ? new Date(work.note?.post?.grant?.endDate)
     : undefined;
-  const isClosedByDate = endDate ? dayjs(endDate).isBefore(dayjs(), 'day') : false;
+  const isClosedByDate = endDate ? dayjs(endDate).isBefore(dayjs()) : false;
   const isOpen = work.note?.post?.grant?.status === 'OPEN' && !isClosedByDate;
 
   // Show countdown when grant expires within 24 hours
