@@ -22,6 +22,7 @@ import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/icons/Icon';
 import { formatDeadline } from '@/utils/date';
 import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
+import dayjs from 'dayjs';
 
 // Grant-specific content type that extends the feed entry structure
 export interface FeedGrantContent {
@@ -91,8 +92,10 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
   const grant = entry.content as FeedGrantContent;
   const router = useRouter();
 
-  // Calculate status and deadline
-  const isOpen = grant.grant?.status === 'OPEN' && !grant.grant?.isExpired;
+  // Calculate status and deadline - use consistent logic with other components
+  const endDate = grant.grant?.endDate ? new Date(grant.grant.endDate) : undefined;
+  const isClosedByDate = endDate ? dayjs(endDate).isBefore(dayjs(), 'day') : false;
+  const isOpen = grant.grant?.status === 'OPEN' && !isClosedByDate;
   const deadline = grant.grant?.endDate;
   const expiringSoon = isExpiringSoon(deadline, 1); // Use 1-day threshold for grants
 

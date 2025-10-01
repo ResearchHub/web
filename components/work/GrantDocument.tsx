@@ -8,7 +8,8 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkTabs, TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { GrantApplications } from './GrantApplications';
-import { differenceInCalendarDays, format } from 'date-fns';
+import { format } from 'date-fns';
+import dayjs from 'dayjs';
 import { PostBlockEditor } from './PostBlockEditor';
 import { formatDeadline } from '@/utils/date';
 import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
@@ -82,7 +83,7 @@ export const GrantDocument = ({
   const endDate = work.note?.post?.grant?.endDate
     ? new Date(work.note?.post?.grant?.endDate)
     : undefined;
-  const isClosedByDate = endDate ? differenceInCalendarDays(endDate, new Date()) < 0 : false;
+  const isClosedByDate = endDate ? dayjs(endDate).isBefore(dayjs(), 'day') : false;
   const isOpen = work.note?.post?.grant?.status === 'OPEN' && !isClosedByDate;
 
   // Show countdown when grant expires within 24 hours

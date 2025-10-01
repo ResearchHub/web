@@ -1,8 +1,9 @@
 'use client';
 
 import { Work } from '@/types/work';
-import { differenceInCalendarDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { Clock } from 'lucide-react';
+import dayjs from 'dayjs';
 
 interface GrantStatusSectionProps {
   work: Work;
@@ -23,7 +24,7 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
   }
 
   const endDate = new Date(work.note?.post?.grant?.endDate);
-  const isClosedByDate = differenceInCalendarDays(endDate, new Date()) < 0;
+  const isClosedByDate = dayjs(endDate).isBefore(dayjs(), 'day');
   const isOpen = work.note?.post?.grant?.status === 'OPEN' && !isClosedByDate;
 
   return (
