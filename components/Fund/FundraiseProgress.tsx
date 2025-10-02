@@ -16,6 +16,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useRouter } from 'next/navigation';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { RelatedWork } from '@/types/analytics';
 
 interface FundraiseProgressProps {
   fundraise: Fundraise;
@@ -28,6 +29,7 @@ interface FundraiseProgressProps {
   showPercentage?: boolean;
   /** Render in minimal mode with just percentage and days left */
   variant?: 'default' | 'minimal';
+  analyticsRelatedWork: RelatedWork;
 }
 
 export const FundraiseProgress: FC<FundraiseProgressProps> = ({
@@ -39,6 +41,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   className,
   showPercentage = false,
   variant = 'default',
+  analyticsRelatedWork,
 }) => {
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
   const { showUSD } = useCurrencyPreference();
@@ -257,6 +260,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
           onClose={() => setIsContributeModalOpen(false)}
           onContributeSuccess={handleContributeSuccess}
           fundraise={fundraise}
+          analyticsRelatedWork={analyticsRelatedWork}
         />
       </>
     );
@@ -339,6 +343,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
           onClose={() => setIsContributeModalOpen(false)}
           onContributeSuccess={handleContributeSuccess}
           fundraise={fundraise}
+          analyticsRelatedWork={analyticsRelatedWork}
         />
       </>
     );

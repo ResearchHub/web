@@ -17,6 +17,7 @@ import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { Users, Building, Pin } from 'lucide-react';
+import { convertFeedPostContentToRelatedWork } from '@/types/analytics';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -188,6 +189,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             compact={true}
             showContribute={true}
             className="p-0 border-0 bg-transparent"
+            analyticsRelatedWork={convertFeedPostContentToRelatedWork(post)}
           />
         </div>
       )}

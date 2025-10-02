@@ -42,7 +42,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   showGrantHeaders = true,
   showReadMoreCTA = false,
 }) => {
-  console.log('entry', entry);
   const { user } = useUser();
   const { source: feedSource, tab: feedTab } = useFeedSource();
   const deviceType = useDeviceType();

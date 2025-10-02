@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
 import Image from 'next/image';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import Icon from '@/components/ui/icons/Icon';
+import { convertFeedPostContentToRelatedWork, RelatedWork } from '@/types/analytics';
 
 interface FundingCarouselItemProps {
   entry: FeedEntry;
@@ -116,6 +116,7 @@ export const FundingCarouselItem: FC<FundingCarouselItemProps> = ({ entry }) => 
           compact={true} // Use compact mode
           className="p-0 border-0 bg-transparent text-xs" // Minimal styling
           showPercentage={true} // Show percentage instead of amounts
+          analyticsRelatedWork={convertFeedPostContentToRelatedWork(post)}
         />
       </div>
     </div>

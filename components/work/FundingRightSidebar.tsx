@@ -9,6 +9,7 @@ import { NonprofitSection } from './components/NonprofitSection';
 import { FundersSection } from './components/FundersSection';
 import { ApplicantsSection } from './components/ApplicantsSection';
 import { UpdatesSection } from './components/UpdatesSection';
+import { convertWorkToRelatedWork } from '@/types/analytics';
 
 interface FundingRightSidebarProps {
   work: Work;
@@ -28,7 +29,11 @@ export const FundingRightSidebar = ({
       {metadata.fundraising &&
         metadata.fundraising.contributors &&
         metadata.fundraising.contributors.numContributors > 0 && (
-          <FundersSection fundraise={metadata.fundraising} fundraiseTitle={work.title} />
+          <FundersSection
+            fundraise={metadata.fundraising}
+            fundraiseTitle={work.title}
+            analyticsRelatedWork={convertWorkToRelatedWork(work)}
+          />
         )}
       {/* Updates Section */}
       <UpdatesSection

@@ -1,7 +1,7 @@
 import { CommentType } from './comment';
-import { FeedContentType } from './feed';
+import { FeedContentType, FeedPostContent, mapFeedContentTypeToContentType } from './feed';
 import { UserVoteType } from './reaction';
-import { ContentType } from './work';
+import { ContentType, Work } from './work';
 import { DeviceType } from '@/hooks/useDeviceType';
 
 interface UserContext {
@@ -21,9 +21,9 @@ interface TopicBasic {
   slug?: string;
 }
 
-interface RelatedWork {
+export interface RelatedWork {
   id: string;
-  content_type: ContentType | FeedContentType;
+  content_type: ContentType | FeedContentType; //TODO we need a mapping function to convert to the COntentTYpe
   topics?: TopicBasic[];
   unified_document_id?: string;
   primary_topic?: TopicBasic;
@@ -69,4 +69,84 @@ export interface PeerReviewCreatedEvent extends UserContext, BaseContext {
   comment_id: string;
   score: number;
   related_work?: RelatedWork;
+}
+
+/**
+ * Helper function to convert FeedPostContent to RelatedWork for analytics
+ * @param post - The FeedPostContent to convert
+ * @returns RelatedWork object for analytics tracking
+ */
+export function convertFeedPostContentToRelatedWork(post: FeedPostContent): RelatedWork {
+  try {
+    return {
+      id: post.id.toString(),
+      content_type:
+        mapFeedContentTypeToContentType(post.contentType) ||
+        (post.contentType.toLowerCase() as ContentType),
+      topics: post.topics?.map((topic) => ({
+        id: topic.id?.toString(),
+        name: topic.name,
+        slug: topic.slug,
+      })),
+      unified_document_id: post.unifiedDocumentId?.toString(),
+      primary_topic: post.topics?.[0] && {
+        id: post.topics[0].id?.toString(),
+        name: post.topics[0].name,
+        slug: post.topics[0].slug,
+      },
+      secondary_topic: post.topics?.[1] && {
+        id: post.topics[1].id?.toString(),
+        name: post.topics[1].name,
+        slug: post.topics[1].slug,
+      },
+    };
+  } catch (error) {
+    console.error('Error converting FeedPostContent to RelatedWork:', error, { post });
+    // Return a minimal RelatedWork object as fallback
+    return {
+      id: post?.id?.toString() || 'unknown',
+      content_type: 'post' as ContentType,
+      topics: [],
+      unified_document_id: post?.unifiedDocumentId?.toString(),
+    };
+  }
+}
+
+/**
+ * Helper function to convert Work to RelatedWork for analytics
+ * @param work - The Work to convert
+ * @returns RelatedWork object for analytics tracking
+ */
+export function convertWorkToRelatedWork(work: Work): RelatedWork {
+  try {
+    return {
+      id: work.id.toString(),
+      content_type: work.contentType,
+      topics: work.topics?.map((topic) => ({
+        id: topic.id?.toString(),
+        name: topic.name,
+        slug: topic.slug,
+      })),
+      unified_document_id: work.unifiedDocumentId?.toString(),
+      primary_topic: work.topics?.[0] && {
+        id: work.topics[0].id?.toString(),
+        name: work.topics[0].name,
+        slug: work.topics[0].slug,
+      },
+      secondary_topic: work.topics?.[1] && {
+        id: work.topics[1].id?.toString(),
+        name: work.topics[1].name,
+        slug: work.topics[1].slug,
+      },
+    };
+  } catch (error) {
+    console.error('Error converting Work to RelatedWork:', error, { work });
+    // Return a minimal RelatedWork object as fallback
+    return {
+      id: work?.id?.toString() || 'unknown',
+      content_type: work?.contentType || ('post' as ContentType),
+      topics: [],
+      unified_document_id: work?.unifiedDocumentId?.toString(),
+    };
+  }
 }
