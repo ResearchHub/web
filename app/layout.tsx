@@ -27,7 +27,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { PreferencesProvider } from '@/contexts/PreferencesContext';
 import { ReferralProvider } from '@/contexts/ReferralContext';
 import { FeatureNotifications } from '@/components/FeatureNotifications';
-import Script from 'next/script';
+import Hotjar from '@/components/Hotjar';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -153,18 +153,7 @@ export default async function RootLayout({
         </ClickProvider>
         {process.env.GA_MEASUREMENT_ID && <GoogleAnalytics gaId={process.env.GA_MEASUREMENT_ID} />}
         <Analytics />
-        <Script id="hotjar" strategy="afterInteractive">
-          {`
-            (function(h,o,t,j,a,r){
-              h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
-              h._hjSettings={hjid:1876155,hjsv:6};
-              a=o.getElementsByTagName('head')[0];
-              r=o.createElement('script');r.async=1;
-              r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
-              a.appendChild(r);
-            })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
-          `}
-        </Script>
+        <Hotjar />
       </body>
     </html>
   );
