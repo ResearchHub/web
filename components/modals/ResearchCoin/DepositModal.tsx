@@ -181,15 +181,18 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     [currentBalance, depositAmount]
   );
 
-  const isButtonDisabled = useMemo(
-    () =>
+  const isButtonDisabled = useMemo(() => {
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+    return (
       !address ||
       !amount ||
       depositAmount <= 0 ||
       depositAmount > walletBalance ||
-      (isMobile && isMobileProcessing),
-    [address, amount, depositAmount, walletBalance, isMobile, isMobileProcessing]
-  );
+      (isMobileDevice && isMobileProcessing)
+    );
+  }, [address, amount, depositAmount, walletBalance, isMobileProcessing]);
 
   // Function to check if inputs should be disabled
   const isInputDisabled = useCallback(() => {
@@ -293,9 +296,13 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       throw new Error('Deposit amount exceeds wallet balance');
     }
 
-    // Set mobile processing state to show spinner
-    if (isMobile) {
+    // Immediate debounce for mobile - set processing state immediately
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+    if (isMobileDevice) {
       setIsMobileProcessing(true);
+      console.log('Mobile: Processing state set immediately');
     }
 
     const amountInWei = BigInt(depositAmount) * BigInt(10 ** 18);
@@ -313,7 +320,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     };
 
     return [transferCall];
-  }, [amount, depositAmount, walletBalance, isMobile]);
+  }, [amount, depositAmount, walletBalance]);
 
   // If no wallet is connected, show nothing - assuming modal shouldn't open in this state
   if (!address) {
@@ -470,15 +477,22 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                       <TransactionButton
                         className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                         disabled={isButtonDisabled || txStatus.state === 'pending'}
-                        text={
-                          isMobile && isMobileProcessing
-                            ? 'Processing...'
-                            : txStatus.state === 'buildingTransaction'
-                              ? 'Building Transaction...'
-                              : txStatus.state === 'pending'
-                                ? 'Transaction Pending...'
-                                : 'Deposit RSC'
-                        }
+                        text={(() => {
+                          const isMobileDevice =
+                            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                              navigator.userAgent
+                            );
+                          if (isMobileDevice && isMobileProcessing) {
+                            return 'Processing...';
+                          }
+                          if (txStatus.state === 'buildingTransaction') {
+                            return 'Building Transaction...';
+                          }
+                          if (txStatus.state === 'pending') {
+                            return 'Transaction Pending...';
+                          }
+                          return 'Deposit RSC';
+                        })()}
                       />
                     </Transaction>
 
