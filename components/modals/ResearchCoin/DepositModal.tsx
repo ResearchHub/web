@@ -174,62 +174,41 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
         if (isMobile) {
           addDebugLog('Attempting to close OnchainKit popup...');
 
-          // Strategy 1: Find all dialogs and close ones that aren't our DepositModal
+          // CONSERVATIVE: Only close dialogs that contain wallet-specific text
           const allDialogs = document.querySelectorAll('[role="dialog"]');
           addDebugLog(`Found ${allDialogs.length} dialogs total`);
 
           allDialogs.forEach((dialog, index) => {
-            // Check if this is NOT our DepositModal (our modal contains "Deposit RSC" title)
-            const isDepositModal = dialog.textContent?.includes('Deposit RSC');
-            if (!isDepositModal) {
-              addDebugLog(`Closing dialog ${index} (not DepositModal)`);
+            const dialogText = dialog.textContent || '';
+            const isDepositModal = dialogText.includes('Deposit RSC');
+            const isWalletDialog =
+              dialogText.includes('Redirecting to Coinbase Wallet') ||
+              dialogText.includes('Open in Wallet') ||
+              dialogText.includes('Coinbase Wallet') ||
+              dialogText.includes('Connect Wallet');
 
-              // Try to find and click close button
-              const closeBtn = dialog.querySelector(
-                'button[aria-label*="lose"], button[aria-label*="Close"], button[class*="close"]'
-              );
-              if (closeBtn instanceof HTMLElement) {
-                closeBtn.click();
-                addDebugLog('Clicked close button');
-              }
+            addDebugLog(`Dialog ${index}: isDeposit=${isDepositModal}, isWallet=${isWalletDialog}`);
 
-              // Force hide the dialog and its parent
+            // Only close if it's a wallet dialog AND not our DepositModal
+            if (isWalletDialog && !isDepositModal) {
+              addDebugLog(`Closing wallet dialog ${index}...`);
+
               if (dialog instanceof HTMLElement) {
                 dialog.style.display = 'none';
-                if (dialog.parentElement) {
-                  dialog.parentElement.style.display = 'none';
+                // Also hide fixed/absolute parent containers
+                let parent = dialog.parentElement;
+                let depth = 0;
+                while (parent && parent !== document.body && depth < 5) {
+                  const position = window.getComputedStyle(parent).position;
+                  if (position === 'fixed' || position === 'absolute') {
+                    parent.style.display = 'none';
+                    addDebugLog('Hid parent container');
+                    break;
+                  }
+                  parent = parent.parentElement;
+                  depth++;
                 }
               }
-            }
-          });
-
-          // Strategy 2: Remove all elements with wallet-specific classes/attributes
-          const walletElements = document.querySelectorAll(
-            '[class*="wallet"], [class*="Wallet"], [data-testid*="wallet"], iframe[src*="wallet"], iframe[src*="coinbase"]'
-          );
-          addDebugLog(`Found ${walletElements.length} wallet-related elements`);
-
-          walletElements.forEach((el) => {
-            if (
-              el instanceof HTMLElement &&
-              !el.closest('[role="dialog"]')?.textContent?.includes('Deposit RSC')
-            ) {
-              el.style.display = 'none';
-              if (el.parentElement) {
-                el.parentElement.style.display = 'none';
-              }
-            }
-          });
-
-          // Strategy 3: Remove all backdrops except the one for DepositModal
-          const allBackdrops = document.querySelectorAll('[class*="backdrop"], [class*="overlay"]');
-          addDebugLog(`Found ${allBackdrops.length} backdrops`);
-
-          allBackdrops.forEach((backdrop) => {
-            // Check if backdrop is for our modal (next sibling contains "Deposit RSC")
-            const isOurBackdrop = backdrop.nextElementSibling?.textContent?.includes('Deposit RSC');
-            if (!isOurBackdrop && backdrop instanceof HTMLElement) {
-              backdrop.style.display = 'none';
             }
           });
 
