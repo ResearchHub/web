@@ -5,7 +5,8 @@ import { Fragment, useCallback, useMemo, useState, useEffect, useRef } from 'rea
 import { X as XIcon, Check, AlertCircle } from 'lucide-react';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { useAccount } from 'wagmi';
+import { useAccount, useConnect } from 'wagmi';
+import { coinbaseWallet } from 'wagmi/connectors';
 import { useWalletRSCBalance } from '@/hooks/useWalletRSCBalance';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction';
@@ -52,6 +53,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const [amount, setAmount] = useState<string>('');
   const { address } = useAccount();
   const { balance: walletBalance } = useWalletRSCBalance();
+  const { connectAsync } = useConnect();
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
   const hasCalledSuccessRef = useRef(false);
   const hasProcessedDepositRef = useRef(false);
@@ -207,17 +209,44 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     [depositAmount, address, onSuccess]
   );
 
+  const handleTransactionClick = useCallback(async () => {
+    // Mobile: Auto-connect wallet if not connected
+    if (isMobile && !address) {
+      try {
+        isProcessingRef.current = true;
+        setTxStatus((prev) => ({ ...prev }));
+
+        const cbConnector = coinbaseWallet({
+          preference: 'smartWalletOnly',
+          appName: 'ResearchHub',
+        });
+
+        await connectAsync({ connector: cbConnector });
+
+        // Reset processing ref after successful connection
+        isProcessingRef.current = false;
+      } catch (error) {
+        console.error('Failed to connect wallet:', error);
+        isProcessingRef.current = false;
+        setTxStatus((prev) => ({ ...prev }));
+        return;
+      }
+    }
+
+    // Mobile: Set processing immediately on click for instant button disable
+    if (isMobile) {
+      isProcessingRef.current = true;
+      // Force re-render to disable button immediately
+      setTxStatus((prev) => ({ ...prev }));
+    }
+  }, [isMobile, address, connectAsync]);
+
   const callsCallback = useCallback(async () => {
     if (!depositAmount || depositAmount <= 0) {
       throw new Error('Invalid deposit amount');
     }
     if (depositAmount > walletBalance) {
       throw new Error('Deposit amount exceeds wallet balance');
-    }
-
-    // Mobile: Set processing immediately to disable button
-    if (isMobile) {
-      isProcessingRef.current = true;
     }
 
     const amountInWei = BigInt(depositAmount) * BigInt(10 ** 18);
@@ -235,7 +264,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     };
 
     return [transferCall];
-  }, [amount, depositAmount, walletBalance, isMobile]);
+  }, [amount, depositAmount, walletBalance]);
 
   // If no wallet is connected, show nothing - assuming modal shouldn't open in this state
   if (!address) {
@@ -389,11 +418,13 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                       calls={callsCallback}
                       onStatus={handleOnStatus}
                     >
-                      <TransactionButton
-                        className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                        disabled={isButtonDisabled || txStatus.state === 'pending'}
-                        text={'Deposit RSC'}
-                      />
+                      <div onClick={handleTransactionClick}>
+                        <TransactionButton
+                          className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                          disabled={isButtonDisabled || txStatus.state === 'pending'}
+                          text={'Deposit RSC'}
+                        />
+                      </div>
                     </Transaction>
 
                     {/* Transaction Status Display */}
