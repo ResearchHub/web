@@ -58,6 +58,21 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const processedTxHashRef = useRef<string | null>(null);
   const isMobile = useIsMobile();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+
+  // Helper to add debug logs (only on mobile)
+  const addDebugLog = useCallback(
+    (message: string) => {
+      if (isMobile) {
+        const timestamp = new Date().toLocaleTimeString();
+        setDebugLogs((prev) => [...prev.slice(-9), `${timestamp}: ${message}`]); // Keep last 10
+        console.log('[DepositModal]', message);
+      } else {
+        console.log('[DepositModal]', message);
+      }
+    },
+    [isMobile]
+  );
 
   // Reset transaction status when modal is closed
   useEffect(() => {
@@ -67,7 +82,62 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     hasProcessedDepositRef.current = false;
     processedTxHashRef.current = null;
     setIsProcessing(false);
+    setDebugLogs([]);
   }, [isOpen]);
+
+  // Mobile: Detect when user returns from Coinbase Wallet app
+  useEffect(() => {
+    if (!isMobile || !isOpen || txStatus.state !== 'pending') {
+      return;
+    }
+
+    addDebugLog('Setting up mobile visibility listener');
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        addDebugLog('User returned to page');
+        addDebugLog(
+          `txStatus: ${txStatus.state}, hasHash: ${!!txStatus.txHash}, processed: ${hasProcessedDepositRef.current}`
+        );
+
+        // If we have a pending transaction with a hash but haven't processed it yet
+        if (txStatus.state === 'pending' && txStatus.txHash && !hasProcessedDepositRef.current) {
+          const currentTxHash = txStatus.txHash;
+          const currentAmount = parseInt(amount || '0', 10);
+
+          addDebugLog(`Fallback: Processing with hash ${currentTxHash.slice(0, 10)}...`);
+          hasProcessedDepositRef.current = true;
+          processedTxHashRef.current = currentTxHash;
+
+          TransactionService.saveDeposit({
+            amount: currentAmount,
+            transaction_hash: currentTxHash,
+            from_address: address!,
+            network: 'BASE',
+          })
+            .then(() => {
+              addDebugLog('Fallback: API success!');
+              setTxStatus({ state: 'success', txHash: currentTxHash });
+              if (onSuccess && !hasCalledSuccessRef.current) {
+                hasCalledSuccessRef.current = true;
+                onSuccess();
+              }
+            })
+            .catch((error) => {
+              addDebugLog(`Fallback: API error: ${error.message || error}`);
+            });
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
+    };
+  }, [isMobile, isOpen, txStatus, amount, address, onSuccess, addDebugLog]);
 
   // Handle custom close with state reset
   const handleClose = useCallback(() => {
@@ -115,15 +185,23 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
   const handleOnStatus = useCallback(
     (status: any) => {
-      console.log('Transaction status:', status.statusName, status);
+      console.log(
+        '[DepositModal] Transaction status:',
+        status.statusName,
+        'isMobile:',
+        isMobile,
+        status
+      );
 
       // Handle building/pending states
       if (status.statusName === 'buildingTransaction') {
+        console.log('[DepositModal] Building transaction...');
         setTxStatus({ state: 'buildingTransaction' });
         return;
       }
 
       if (status.statusName === 'transactionPending') {
+        console.log('[DepositModal] Transaction pending...');
         setTxStatus({ state: 'pending' });
         return;
       }
@@ -133,10 +211,17 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
         status.statusData?.transactionHashList?.[0]
       ) {
         const txHash = status.statusData.transactionHashList[0];
+        console.log(
+          '[DepositModal] transactionLegacyExecuted received, txHash:',
+          txHash,
+          'isMobile:',
+          isMobile
+        );
         setTxStatus({ state: 'pending', txHash });
 
         // Mobile: Process deposit immediately when we have the real transaction hash
         if (isMobile && !hasProcessedDepositRef.current) {
+          console.log('[DepositModal] Mobile: Processing deposit immediately with hash:', txHash);
           hasProcessedDepositRef.current = true;
           processedTxHashRef.current = txHash;
 
@@ -147,7 +232,9 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
             network: 'BASE',
           })
             .then(() => {
-              console.log('Mobile: Deposit processed with real transaction hash');
+              console.log(
+                '[DepositModal] Mobile: Deposit API call successful, setting success state'
+              );
               setTxStatus({ state: 'success', txHash });
               if (onSuccess && !hasCalledSuccessRef.current) {
                 hasCalledSuccessRef.current = true;
@@ -155,8 +242,16 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
               }
             })
             .catch((error) => {
-              console.error('Mobile: Failed to process deposit:', error);
+              console.error('[DepositModal] Mobile: Failed to process deposit:', error);
+              setTxStatus({
+                state: 'error',
+                message: 'Failed to record deposit. Please contact support.',
+              });
             });
+        } else {
+          console.log(
+            '[DepositModal] Skipping mobile processing - already processed or not mobile'
+          );
         }
 
         return;
@@ -204,7 +299,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
         });
       }
     },
-    [depositAmount, address, onSuccess, isMobile]
+    [depositAmount, address, onSuccess, isMobile, addDebugLog]
   );
 
   const callsCallback = useCallback(async () => {
@@ -388,6 +483,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                         onClick={() => {
                           // Mobile: Set processing immediately on click (step 1)
                           if (isMobile && !isProcessing) {
+                            addDebugLog('Button clicked - processing starts');
                             setIsProcessing(true);
                           }
                         }}
@@ -399,6 +495,20 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                         />
                       </div>
                     </Transaction>
+
+                    {/* Mobile Debug Panel */}
+                    {isMobile && debugLogs.length > 0 && (
+                      <div className="mt-4 p-3 rounded-lg bg-gray-900 text-white text-xs font-mono max-h-40 overflow-y-auto">
+                        <div className="font-bold mb-2 text-green-400">
+                          🔍 Debug Logs (Mobile Only):
+                        </div>
+                        {debugLogs.map((log, idx) => (
+                          <div key={idx} className="mb-1">
+                            {log}
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Transaction Status Display */}
                     {(txStatus.state === 'success' || txStatus.state === 'error') && (
