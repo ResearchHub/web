@@ -172,25 +172,35 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
         // Mobile: Immediately close any OnchainKit modals/popups when returning from wallet
         if (isMobile) {
-          // Close any open OnchainKit wallet modals
-          const closeButtons = document.querySelectorAll(
-            '[data-testid="ockCloseButton"], button[aria-label="Close"]'
+          // Close OnchainKit wallet modals specifically (not our DepositModal)
+          // Look for OnchainKit-specific elements
+          const ockWalletModal = document.querySelector(
+            '[class*="ock-wallet"], [class*="ockWallet"], [id*="ock-modal"]'
           );
-          closeButtons.forEach((button) => {
-            if (button instanceof HTMLElement) {
-              button.click();
+          if (ockWalletModal) {
+            const closeButton = ockWalletModal.querySelector(
+              'button[aria-label="Close"], button[type="button"]'
+            );
+            if (closeButton instanceof HTMLElement) {
+              closeButton.click();
             }
-          });
+            // If no close button, try to hide the modal directly
+            if (ockWalletModal instanceof HTMLElement) {
+              ockWalletModal.style.display = 'none';
+            }
+          }
 
-          // Also try to close any backdrop/overlay
-          const overlays = document.querySelectorAll(
-            '[role="dialog"] + div, .ock-backdrop, [class*="backdrop"]'
+          // Also close any OnchainKit-specific overlays (not the DepositModal backdrop)
+          const ockOverlays = document.querySelectorAll(
+            '[class*="ock-backdrop"], [class*="ockBackdrop"]'
           );
-          overlays.forEach((overlay) => {
-            if (overlay instanceof HTMLElement && overlay.style.display !== 'none') {
+          ockOverlays.forEach((overlay) => {
+            if (overlay instanceof HTMLElement) {
               overlay.style.display = 'none';
             }
           });
+
+          addDebugLog('Closed OnchainKit popups');
         }
 
         addDebugLog(
