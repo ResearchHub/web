@@ -15,8 +15,11 @@ import { CommentContent } from '@/components/Comment/lib/types';
 import { CommentActionType, commentReducer, initialCommentState } from './CommentReducer';
 import { JSONContent } from '@tiptap/core';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
-import { CommentCreatedEvent, PeerReviewCreatedEvent } from '@/types/analytics';
-import { convertWorkToRelatedWork } from '@/types/analytics';
+import {
+  CommentCreatedEvent,
+  PeerReviewCreatedEvent,
+  convertWorkToRelatedWork,
+} from '@/types/analytics';
 import { useDeviceType } from '@/hooks/useDeviceType';
 import { useUser } from '@/contexts/UserContext';
 

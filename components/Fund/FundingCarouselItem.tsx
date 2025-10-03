@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
 import Image from 'next/image';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { convertFeedPostContentToRelatedWork, RelatedWork } from '@/types/analytics';
+import { convertFeedPostContentToRelatedWork } from '@/types/analytics';
 
 interface FundingCarouselItemProps {
   entry: FeedEntry;

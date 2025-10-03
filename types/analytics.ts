@@ -23,7 +23,7 @@ interface TopicBasic {
 
 export interface RelatedWork {
   id: string;
-  content_type: ContentType | FeedContentType; //TODO we need a mapping function to convert to the COntentTYpe
+  content_type: ContentType;
   topics?: TopicBasic[];
   unified_document_id?: string;
   primary_topic?: TopicBasic;

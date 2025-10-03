@@ -3,12 +3,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CommentService, CreateCommentOptions } from '@/services/comment.service';
 import { Comment, CommentFilter, CommentSort } from '@/types/comment';
-import { ContentType } from '@/types/work';
+import { ContentType, Work } from '@/types/work';
 import { ApiError } from '@/services/types';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
-import { CommentCreatedEvent } from '@/types/analytics';
-import { convertWorkToRelatedWork, convertFeedPostContentToRelatedWork } from '@/types/analytics';
-import { Work } from '@/types/work';
+import {
+  convertWorkToRelatedWork,
+  convertFeedPostContentToRelatedWork,
+  CommentCreatedEvent,
+} from '@/types/analytics';
 import { FeedPostContent } from '@/types/feed';
 import { useDeviceType } from '@/hooks/useDeviceType';
 import { useUser } from '@/contexts/UserContext';

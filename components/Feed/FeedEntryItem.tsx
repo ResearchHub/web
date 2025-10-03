@@ -1,7 +1,6 @@
 'use client';
 
 import { FC } from 'react';
-import { useInView } from 'react-intersection-observer';
 import { FeedCommentContent, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
 import { FeedPostContent, FeedPaperContent, FeedGrantContent } from '@/types/feed';
 import { FeedItemFundraise } from './items/FeedItemFundraise';

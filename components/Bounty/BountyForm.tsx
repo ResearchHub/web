@@ -26,7 +26,6 @@ import { Switch } from '@headlessui/react';
 import { toast } from 'react-hot-toast';
 import { useComments } from '@/contexts/CommentContext';
 import { useCreateComment } from '@/hooks/useComments';
-import { CommentService } from '@/services/comment.service';
 import { RadioGroup as HeadlessRadioGroup, Listbox } from '@headlessui/react';
 import { useSession } from 'next-auth/react';
 import { SessionProvider } from 'next-auth/react';
