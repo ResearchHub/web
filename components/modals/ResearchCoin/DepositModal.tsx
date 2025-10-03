@@ -5,13 +5,14 @@ import { Fragment, useCallback, useMemo, useState, useEffect, useRef } from 'rea
 import { X as XIcon, Check, AlertCircle } from 'lucide-react';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { useAccount } from 'wagmi';
+import { useAccount, useWaitForTransactionReceipt } from 'wagmi';
 import { useWalletRSCBalance } from '@/hooks/useWalletRSCBalance';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction';
 import { Interface } from 'ethers';
 import { TransactionService } from '@/services/transaction.service';
 import { RSC, TRANSFER_ABI } from '@/constants/tokens';
+import { usePublicClient } from 'wagmi';
 
 const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
 if (!HOT_WALLET_ADDRESS_ENV || HOT_WALLET_ADDRESS_ENV.trim() === '') {
@@ -59,6 +60,8 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const isMobile = useIsMobile();
   const [isProcessing, setIsProcessing] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
+  const publicClient = usePublicClient();
+  const lastCheckedBlockRef = useRef<bigint | null>(null);
 
   // Helper to add debug logs (only on mobile)
   const addDebugLog = useCallback(
@@ -74,6 +77,71 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     [isMobile]
   );
 
+  // Mobile: Function to check for recent transactions from this wallet
+  const checkForRecentTransaction = useCallback(async () => {
+    if (!publicClient || !address) {
+      addDebugLog('No publicClient or address for polling');
+      return null;
+    }
+
+    try {
+      addDebugLog('Checking blockchain for recent transactions...');
+
+      // Get current block number
+      const currentBlock = await publicClient.getBlockNumber();
+      addDebugLog(`Current block: ${currentBlock}`);
+
+      // Check last 5 blocks for transactions from this address
+      const startBlock = currentBlock - BigInt(5);
+
+      // Get transaction count to see if any new transactions
+      const txCount = await publicClient.getTransactionCount({ address, blockTag: 'latest' });
+      addDebugLog(`Address tx count: ${txCount}`);
+
+      // Look for pending transactions
+      const pendingTxCount = await publicClient.getTransactionCount({
+        address,
+        blockTag: 'pending',
+      });
+
+      if (pendingTxCount > txCount) {
+        addDebugLog('Found pending transaction!');
+        // There's a pending transaction, wait a bit and check again
+        return 'pending';
+      }
+
+      // Get recent block with transactions
+      const block = await publicClient.getBlock({
+        blockNumber: currentBlock,
+        includeTransactions: true,
+      });
+
+      if (block.transactions && Array.isArray(block.transactions)) {
+        addDebugLog(`Checking ${block.transactions.length} txs in latest block`);
+
+        for (const tx of block.transactions) {
+          if (typeof tx === 'object' && tx.from?.toLowerCase() === address.toLowerCase()) {
+            // Found a transaction from this address
+            const txHash = tx.hash;
+            addDebugLog(`Found tx from address: ${txHash.slice(0, 10)}...`);
+
+            // Check if it's to the RSC token contract
+            if (tx.to?.toLowerCase() === RSC.address.toLowerCase()) {
+              addDebugLog(`Tx is to RSC token! Hash: ${txHash}`);
+              return txHash;
+            }
+          }
+        }
+      }
+
+      addDebugLog('No matching transaction found in latest blocks');
+      return null;
+    } catch (error) {
+      addDebugLog(`Error checking blockchain: ${error instanceof Error ? error.message : error}`);
+      return null;
+    }
+  }, [publicClient, address, addDebugLog]);
+
   // Reset transaction status when modal is closed
   useEffect(() => {
     setTxStatus({ state: 'idle' });
@@ -83,6 +151,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     processedTxHashRef.current = null;
     setIsProcessing(false);
     setDebugLogs([]);
+    lastCheckedBlockRef.current = null;
   }, [isOpen]);
 
   // Mobile: Detect when user returns from Coinbase Wallet app
@@ -93,19 +162,19 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
     addDebugLog('Setting up mobile visibility listener');
 
-    const handleVisibilityChange = () => {
+    const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible') {
         addDebugLog('User returned to page');
         addDebugLog(
           `txStatus: ${txStatus.state}, hasHash: ${!!txStatus.txHash}, processed: ${hasProcessedDepositRef.current}`
         );
 
-        // If we have a pending transaction with a hash but haven't processed it yet
+        // If we have a pending transaction with a hash, process it
         if (txStatus.state === 'pending' && txStatus.txHash && !hasProcessedDepositRef.current) {
           const currentTxHash = txStatus.txHash;
           const currentAmount = parseInt(amount || '0', 10);
 
-          addDebugLog(`Fallback: Processing with hash ${currentTxHash.slice(0, 10)}...`);
+          addDebugLog(`Has hash: Processing with ${currentTxHash.slice(0, 10)}...`);
           hasProcessedDepositRef.current = true;
           processedTxHashRef.current = currentTxHash;
 
@@ -116,7 +185,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
             network: 'BASE',
           })
             .then(() => {
-              addDebugLog('Fallback: API success!');
+              addDebugLog('API success!');
               setTxStatus({ state: 'success', txHash: currentTxHash });
               if (onSuccess && !hasCalledSuccessRef.current) {
                 hasCalledSuccessRef.current = true;
@@ -124,8 +193,51 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
               }
             })
             .catch((error) => {
-              addDebugLog(`Fallback: API error: ${error.message || error}`);
+              addDebugLog(`API error: ${error.message || error}`);
             });
+          return;
+        }
+
+        // If we don't have a hash yet, try to find the transaction on-chain
+        if (txStatus.state === 'pending' && !txStatus.txHash && !hasProcessedDepositRef.current) {
+          addDebugLog('No hash yet - checking blockchain...');
+
+          const result = await checkForRecentTransaction();
+
+          if (result && result !== 'pending') {
+            // Found a transaction hash!
+            const txHash = result;
+            const currentAmount = parseInt(amount || '0', 10);
+
+            addDebugLog(`Found on blockchain: ${txHash.slice(0, 10)}...`);
+            hasProcessedDepositRef.current = true;
+            processedTxHashRef.current = txHash;
+            setTxStatus({ state: 'pending', txHash });
+
+            TransactionService.saveDeposit({
+              amount: currentAmount,
+              transaction_hash: txHash,
+              from_address: address!,
+              network: 'BASE',
+            })
+              .then(() => {
+                addDebugLog('Blockchain tx processed successfully!');
+                setTxStatus({ state: 'success', txHash });
+                if (onSuccess && !hasCalledSuccessRef.current) {
+                  hasCalledSuccessRef.current = true;
+                  onSuccess();
+                }
+              })
+              .catch((error) => {
+                addDebugLog(`API error: ${error.message || error}`);
+              });
+          } else if (result === 'pending') {
+            addDebugLog('Transaction still pending on blockchain...');
+            // Keep polling
+            setTimeout(handleVisibilityChange, 2000);
+          } else {
+            addDebugLog('No transaction found yet - will retry on next focus');
+          }
         }
       }
     };
@@ -137,7 +249,16 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleVisibilityChange);
     };
-  }, [isMobile, isOpen, txStatus, amount, address, onSuccess, addDebugLog]);
+  }, [
+    isMobile,
+    isOpen,
+    txStatus,
+    amount,
+    address,
+    onSuccess,
+    addDebugLog,
+    checkForRecentTransaction,
+  ]);
 
   // Handle custom close with state reset
   const handleClose = useCallback(() => {
