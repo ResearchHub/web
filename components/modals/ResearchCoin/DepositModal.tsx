@@ -57,6 +57,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const hasProcessedDepositRef = useRef(false);
   const processedTxHashRef = useRef<string | null>(null);
   const isMobile = useIsMobile();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Reset transaction status when modal is closed
   useEffect(() => {
@@ -65,6 +66,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     hasCalledSuccessRef.current = false;
     hasProcessedDepositRef.current = false;
     processedTxHashRef.current = null;
+    setIsProcessing(false);
   }, [isOpen]);
 
   // Mobile wallet return detection - process deposit when user returns from wallet app
@@ -99,19 +101,68 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       }
     };
 
-    const handleUserReturn = () => {
+    // Multiple detection methods for mobile browsers
+    const handleVisibilityChange = () => {
+      console.log('Mobile: visibilitychange event fired', {
+        visibilityState: document.visibilityState,
+        txStatus: txStatus.state,
+        hasProcessed: hasProcessedDepositRef.current,
+        txHash: processedTxHashRef.current,
+      });
+
       if (document.visibilityState === 'visible') {
         processMobileDeposit();
       }
     };
 
-    // Listen for user returning to browser
-    document.addEventListener('visibilitychange', handleUserReturn);
-    window.addEventListener('focus', handleUserReturn);
+    const handleFocus = () => {
+      console.log('Mobile: focus event fired', {
+        txStatus: txStatus.state,
+        hasProcessed: hasProcessedDepositRef.current,
+        txHash: processedTxHashRef.current,
+      });
+      processMobileDeposit();
+    };
+
+    const handlePageShow = () => {
+      console.log('Mobile: pageshow event fired', {
+        txStatus: txStatus.state,
+        hasProcessed: hasProcessedDepositRef.current,
+        txHash: processedTxHashRef.current,
+      });
+      processMobileDeposit();
+    };
+
+    const handleResize = () => {
+      console.log('Mobile: resize event fired', {
+        txStatus: txStatus.state,
+        hasProcessed: hasProcessedDepositRef.current,
+        txHash: processedTxHashRef.current,
+      });
+      processMobileDeposit();
+    };
+
+    // Add multiple event listeners for better mobile detection
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('resize', handleResize);
+
+    // Also try polling as a fallback
+    const pollInterval = setInterval(() => {
+      if (document.visibilityState === 'visible' && txStatus.state === 'pending') {
+        console.log('Mobile: Polling detected user return');
+        processMobileDeposit();
+        clearInterval(pollInterval);
+      }
+    }, 1000);
 
     return () => {
-      document.removeEventListener('visibilitychange', handleUserReturn);
-      window.removeEventListener('focus', handleUserReturn);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('resize', handleResize);
+      clearInterval(pollInterval);
     };
   }, [isMobile, isOpen, txStatus.state, amount, address, onSuccess]);
 
@@ -140,8 +191,9 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   );
 
   const isButtonDisabled = useMemo(
-    () => !address || !amount || depositAmount <= 0 || depositAmount > walletBalance,
-    [address, amount, depositAmount, walletBalance]
+    () =>
+      !address || !amount || depositAmount <= 0 || depositAmount > walletBalance || isProcessing,
+    [address, amount, depositAmount, walletBalance, isProcessing]
   );
 
   // Function to check if inputs should be disabled
@@ -235,18 +287,32 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
           state: 'error',
           message: status.statusData?.message || 'Transaction failed',
         });
+        setIsProcessing(false); // Reset processing state on error
       }
     },
     [depositAmount, address, onSuccess]
   );
 
   const callsCallback = useCallback(async () => {
+    // Debounce protection - prevent multiple rapid clicks
+    if (isProcessing) {
+      throw new Error('Transaction already in progress. Please wait.');
+    }
+
     if (!depositAmount || depositAmount <= 0) {
       throw new Error('Invalid deposit amount');
     }
     if (depositAmount > walletBalance) {
       throw new Error('Deposit amount exceeds wallet balance');
     }
+
+    // Set processing state to prevent multiple clicks
+    setIsProcessing(true);
+
+    // Reset processing state after 30 seconds as fallback
+    setTimeout(() => {
+      setIsProcessing(false);
+    }, 30000);
 
     const amountInWei = BigInt(depositAmount) * BigInt(10 ** 18);
 
@@ -263,7 +329,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     };
 
     return [transferCall];
-  }, [amount, depositAmount, walletBalance]);
+  }, [amount, depositAmount, walletBalance, isProcessing]);
 
   // If no wallet is connected, show nothing - assuming modal shouldn't open in this state
   if (!address) {
@@ -424,6 +490,46 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                               <p>2. Return to this browser tab</p>
                               <p>3. Your deposit will be processed automatically</p>
                             </div>
+                            <div className="mt-3">
+                              <button
+                                onClick={async () => {
+                                  if (
+                                    !hasProcessedDepositRef.current &&
+                                    processedTxHashRef.current
+                                  ) {
+                                    hasProcessedDepositRef.current = true;
+
+                                    try {
+                                      await TransactionService.saveDeposit({
+                                        amount: parseInt(amount || '0', 10),
+                                        transaction_hash: processedTxHashRef.current,
+                                        from_address: address!,
+                                        network: 'BASE',
+                                      });
+
+                                      setTxStatus({
+                                        state: 'success',
+                                        txHash: processedTxHashRef.current!,
+                                      });
+
+                                      if (onSuccess && !hasCalledSuccessRef.current) {
+                                        hasCalledSuccessRef.current = true;
+                                        onSuccess();
+                                      }
+                                    } catch (error) {
+                                      console.error('Failed to process mobile deposit:', error);
+                                      setTxStatus({
+                                        state: 'error',
+                                        message: 'Failed to process deposit. Please try again.',
+                                      });
+                                    }
+                                  }
+                                }}
+                                className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                              >
+                                Process Deposit Manually
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -439,9 +545,35 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                       <TransactionButton
                         className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                         disabled={isButtonDisabled || txStatus.state === 'pending'}
-                        text={'Deposit RSC'}
+                        text={
+                          isProcessing
+                            ? 'Processing...'
+                            : txStatus.state === 'buildingTransaction'
+                              ? 'Building Transaction...'
+                              : txStatus.state === 'pending'
+                                ? 'Transaction Pending...'
+                                : 'Deposit RSC'
+                        }
                       />
                     </Transaction>
+
+                    {/* Mobile-specific CSS to hide "Open in Wallet" button */}
+                    {isMobile && (
+                      <style jsx>{`
+                        :global(.onchainkit-transaction-button) {
+                          display: none !important;
+                        }
+                        :global(.onchainkit-transaction-button[data-variant='primary']) {
+                          display: none !important;
+                        }
+                        :global([data-testid='transaction-button']) {
+                          display: none !important;
+                        }
+                        :global(.wallet-button) {
+                          display: none !important;
+                        }
+                      `}</style>
+                    )}
 
                     {/* Transaction Status Display */}
                     {(txStatus.state === 'success' || txStatus.state === 'error') && (
