@@ -5,8 +5,7 @@ import { Fragment, useCallback, useMemo, useState, useEffect, useRef } from 'rea
 import { X as XIcon, Check, AlertCircle } from 'lucide-react';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { useAccount, useConnect } from 'wagmi';
-import { coinbaseWallet } from 'wagmi/connectors';
+import { useAccount } from 'wagmi';
 import { useWalletRSCBalance } from '@/hooks/useWalletRSCBalance';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction';
@@ -53,13 +52,12 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const [amount, setAmount] = useState<string>('');
   const { address } = useAccount();
   const { balance: walletBalance } = useWalletRSCBalance();
-  const { connectAsync } = useConnect();
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
   const hasCalledSuccessRef = useRef(false);
   const hasProcessedDepositRef = useRef(false);
   const processedTxHashRef = useRef<string | null>(null);
   const isMobile = useIsMobile();
-  const isProcessingRef = useRef(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Reset transaction status when modal is closed
   useEffect(() => {
@@ -68,7 +66,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     hasCalledSuccessRef.current = false;
     hasProcessedDepositRef.current = false;
     processedTxHashRef.current = null;
-    isProcessingRef.current = false;
+    setIsProcessing(false);
   }, [isOpen]);
 
   // Handle custom close with state reset
@@ -101,8 +99,8 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       !amount ||
       depositAmount <= 0 ||
       depositAmount > walletBalance ||
-      isProcessingRef.current,
-    [address, amount, depositAmount, walletBalance]
+      (isMobile && isProcessing),
+    [address, amount, depositAmount, walletBalance, isMobile, isProcessing]
   );
 
   // Function to check if inputs should be disabled
@@ -137,7 +135,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
         const txHash = status.statusData.transactionHashList[0];
         setTxStatus({ state: 'pending', txHash });
 
-        // Mobile: Process deposit immediately when transaction hash is received
+        // Mobile: Process deposit immediately when we have the real transaction hash
         if (isMobile && !hasProcessedDepositRef.current) {
           hasProcessedDepositRef.current = true;
           processedTxHashRef.current = txHash;
@@ -149,7 +147,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
             network: 'BASE',
           })
             .then(() => {
-              console.log('Mobile: Deposit processed immediately');
+              console.log('Mobile: Deposit processed with real transaction hash');
               setTxStatus({ state: 'success', txHash });
               if (onSuccess && !hasCalledSuccessRef.current) {
                 hasCalledSuccessRef.current = true;
@@ -173,7 +171,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
         // Set success state regardless of whether we've processed it
         setTxStatus({ state: 'success', txHash });
 
-        // Desktop: Process deposit immediately (mobile already processed in transactionLegacyExecuted)
+        // Desktop: Process deposit on success (Mobile already processed in transactionLegacyExecuted)
         if (!isMobile && !hasProcessedDepositRef.current && processedTxHashRef.current !== txHash) {
           console.log('Desktop: Processing deposit for transaction:', txHash);
 
@@ -206,40 +204,8 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
         });
       }
     },
-    [depositAmount, address, onSuccess]
+    [depositAmount, address, onSuccess, isMobile]
   );
-
-  const handleTransactionClick = useCallback(async () => {
-    // Mobile: Auto-connect wallet if not connected
-    if (isMobile && !address) {
-      try {
-        isProcessingRef.current = true;
-        setTxStatus((prev) => ({ ...prev }));
-
-        const cbConnector = coinbaseWallet({
-          preference: 'smartWalletOnly',
-          appName: 'ResearchHub',
-        });
-
-        await connectAsync({ connector: cbConnector });
-
-        // Reset processing ref after successful connection
-        isProcessingRef.current = false;
-      } catch (error) {
-        console.error('Failed to connect wallet:', error);
-        isProcessingRef.current = false;
-        setTxStatus((prev) => ({ ...prev }));
-        return;
-      }
-    }
-
-    // Mobile: Set processing immediately on click for instant button disable
-    if (isMobile) {
-      isProcessingRef.current = true;
-      // Force re-render to disable button immediately
-      setTxStatus((prev) => ({ ...prev }));
-    }
-  }, [isMobile, address, connectAsync]);
 
   const callsCallback = useCallback(async () => {
     if (!depositAmount || depositAmount <= 0) {
@@ -264,7 +230,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     };
 
     return [transferCall];
-  }, [amount, depositAmount, walletBalance]);
+  }, [amount, depositAmount, walletBalance, isMobile, address]);
 
   // If no wallet is connected, show nothing - assuming modal shouldn't open in this state
   if (!address) {
@@ -418,7 +384,14 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                       calls={callsCallback}
                       onStatus={handleOnStatus}
                     >
-                      <div onClick={handleTransactionClick}>
+                      <div
+                        onClick={() => {
+                          // Mobile: Set processing immediately on click (step 1)
+                          if (isMobile && !isProcessing) {
+                            setIsProcessing(true);
+                          }
+                        }}
+                      >
                         <TransactionButton
                           className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                           disabled={isButtonDisabled || txStatus.state === 'pending'}
