@@ -71,75 +71,70 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     setIsButtonClicked(false);
   }, [isOpen]);
 
-  // Mobile return detection - simple approach
+  // Check localStorage on mount for pending mobile deposits
   useEffect(() => {
-    if (!isMobile || !isOpen || txStatus.state !== 'pending') return;
+    if (!isMobile) return;
 
-    const processMobileDeposit = async () => {
-      if (!processedTxHashRef.current || hasProcessedDepositRef.current) return;
-
-      hasProcessedDepositRef.current = true;
-
-      console.log('Mobile: Processing deposit after return detection', {
-        txHash: processedTxHashRef.current,
-        amount: parseInt(amount || '0', 10),
-      });
+    const checkPendingDeposit = async () => {
+      const pendingDepositStr = localStorage.getItem('pending_mobile_deposit');
+      if (!pendingDepositStr) return;
 
       try {
-        await TransactionService.saveDeposit({
-          amount: parseInt(amount || '0', 10),
-          transaction_hash: processedTxHashRef.current,
-          from_address: address!,
-          network: 'BASE',
-        });
+        const pendingDeposit = JSON.parse(pendingDepositStr);
+        const { txHash, amount: storedAmount, address: storedAddress, timestamp } = pendingDeposit;
 
-        console.log('Mobile: Deposit processed successfully');
-        setTxStatus({ state: 'success', txHash: processedTxHashRef.current! });
+        // Check if the pending deposit is not too old (within 1 hour)
+        if (Date.now() - timestamp > 3600000) {
+          localStorage.removeItem('pending_mobile_deposit');
+          return;
+        }
 
-        if (onSuccess && !hasCalledSuccessRef.current) {
-          hasCalledSuccessRef.current = true;
-          onSuccess();
+        console.log('Mobile: Found pending deposit in localStorage', pendingDeposit);
+
+        // Process the pending deposit
+        try {
+          await TransactionService.saveDeposit({
+            amount: storedAmount,
+            transaction_hash: txHash,
+            from_address: storedAddress,
+            network: 'BASE',
+          });
+
+          console.log('Mobile: Pending deposit processed successfully from localStorage');
+          localStorage.removeItem('pending_mobile_deposit');
+
+          // Update UI
+          setTxStatus({ state: 'success', txHash });
+
+          if (onSuccess) {
+            onSuccess();
+          }
+        } catch (error) {
+          console.error('Mobile: Failed to process pending deposit from localStorage:', error);
         }
       } catch (error) {
-        console.error('Mobile: Failed to process deposit:', error);
-        setTxStatus({
-          state: 'error',
-          message: 'Failed to process deposit. Please try again.',
-        });
+        console.error('Mobile: Error parsing pending deposit from localStorage:', error);
+        localStorage.removeItem('pending_mobile_deposit');
       }
     };
 
-    const handleVisibilityChange = () => {
-      console.log('Mobile: visibilitychange', document.visibilityState);
-      if (document.visibilityState === 'visible') {
-        processMobileDeposit();
-      }
+    checkPendingDeposit();
+  }, [isMobile, onSuccess]);
+
+  // Store transaction to localStorage when it starts (mobile only)
+  useEffect(() => {
+    if (!isMobile || !isOpen || txStatus.state !== 'pending' || !processedTxHashRef.current) return;
+
+    const pendingDeposit = {
+      txHash: processedTxHashRef.current,
+      amount: parseInt(amount || '0', 10),
+      address: address!,
+      timestamp: Date.now(),
     };
 
-    const handleFocus = () => {
-      console.log('Mobile: focus event');
-      processMobileDeposit();
-    };
-
-    // Simple event listeners
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-
-    // Simple polling
-    const pollInterval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        console.log('Mobile: Polling detected return');
-        processMobileDeposit();
-      }
-    }, 1000);
-
-    // Cleanup
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-      clearInterval(pollInterval);
-    };
-  }, [isMobile, isOpen, txStatus.state, amount, address, onSuccess]);
+    console.log('Mobile: Storing pending deposit to localStorage', pendingDeposit);
+    localStorage.setItem('pending_mobile_deposit', JSON.stringify(pendingDeposit));
+  }, [isMobile, isOpen, txStatus.state, amount, address]);
 
   // Handle custom close with state reset
   const handleClose = useCallback(() => {
