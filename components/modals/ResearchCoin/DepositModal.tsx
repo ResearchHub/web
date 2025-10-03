@@ -7,6 +7,7 @@ import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useAccount } from 'wagmi';
 import { useWalletRSCBalance } from '@/hooks/useWalletRSCBalance';
+import { useDeviceType } from '@/hooks/useDeviceType';
 import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction';
 import { Interface } from 'ethers';
 import { TransactionService } from '@/services/transaction.service';
@@ -55,15 +56,43 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const hasCalledSuccessRef = useRef(false);
   const hasProcessedDepositRef = useRef(false);
   const processedTxHashRef = useRef<string | null>(null);
+  const isMobile = useDeviceType() === 'mobile';
+  const [connectionStatus, setConnectionStatus] = useState<
+    'idle' | 'connecting' | 'connected' | 'failed'
+  >('idle');
+  const [retryCount, setRetryCount] = useState(0);
 
-  // Reset transaction status when modal is closed
+  // Reset state when modal closes
   useEffect(() => {
-    setTxStatus({ state: 'idle' });
-    setAmount('');
-    hasCalledSuccessRef.current = false;
-    hasProcessedDepositRef.current = false;
-    processedTxHashRef.current = null;
+    if (!isOpen) {
+      setTxStatus({ state: 'idle' });
+      setAmount('');
+      hasCalledSuccessRef.current = false;
+      hasProcessedDepositRef.current = false;
+      processedTxHashRef.current = null;
+      setConnectionStatus('idle');
+      setRetryCount(0);
+    }
   }, [isOpen]);
+
+  // Monitor mobile connection
+  useEffect(() => {
+    if (!isMobile || !isOpen) return;
+
+    const updateConnection = () => {
+      if (!navigator.onLine) return setConnectionStatus('failed');
+      setConnectionStatus(address ? 'connected' : 'idle');
+    };
+
+    updateConnection();
+    window.addEventListener('online', () => setConnectionStatus('connected'));
+    window.addEventListener('offline', () => setConnectionStatus('failed'));
+
+    return () => {
+      window.removeEventListener('online', () => setConnectionStatus('connected'));
+      window.removeEventListener('offline', () => setConnectionStatus('failed'));
+    };
+  }, [isMobile, isOpen, address]);
 
   // Handle custom close with state reset
   const handleClose = useCallback(() => {
@@ -106,9 +135,15 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
   const handleOnStatus = useCallback(
     (status: any) => {
-      console.log('Transaction status:', status.statusName, status);
+      console.log('Transaction status:', status.statusName, isMobile ? '(mobile)' : '', status);
 
-      // Handle building/pending states
+      // Update connection status for mobile
+      if (isMobile) {
+        if (status.statusName === 'buildingTransaction') setConnectionStatus('connecting');
+        if (status.statusName === 'transactionPending') setConnectionStatus('connected');
+      }
+
+      // Handle transaction states
       if (status.statusName === 'buildingTransaction') {
         setTxStatus({ state: 'buildingTransaction' });
         return;
@@ -123,8 +158,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
         status.statusName === 'transactionLegacyExecuted' &&
         status.statusData?.transactionHashList?.[0]
       ) {
-        const txHash = status.statusData.transactionHashList[0];
-        setTxStatus({ state: 'pending', txHash });
+        setTxStatus({ state: 'pending', txHash: status.statusData.transactionHashList[0] });
         return;
       }
 
@@ -133,28 +167,34 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
         status.statusData?.transactionReceipts?.[0]?.transactionHash
       ) {
         const txHash = status.statusData.transactionReceipts[0].transactionHash;
-
-        // Set success state regardless of whether we've processed it
         setTxStatus({ state: 'success', txHash });
 
-        // Prevent duplicate API calls by checking if we've processed this specific transaction
+        // Process deposit with mobile retry logic
         if (!hasProcessedDepositRef.current && processedTxHashRef.current !== txHash) {
-          console.log('Processing deposit for transaction:', txHash);
-
-          // Mark as processed first to prevent race conditions
           hasProcessedDepositRef.current = true;
           processedTxHashRef.current = txHash;
 
-          TransactionService.saveDeposit({
-            amount: depositAmount,
-            transaction_hash: txHash,
-            from_address: address!,
-            network: 'BASE',
-          }).catch((error) => {
-            console.error('Failed to record deposit:', error);
-          });
-        } else {
-          console.log('Skipping duplicate deposit processing for transaction:', txHash);
+          const saveDeposit = async (attempt = 0) => {
+            try {
+              await TransactionService.saveDeposit({
+                amount: depositAmount,
+                transaction_hash: txHash,
+                from_address: address!,
+                network: 'BASE',
+              });
+              if (isMobile) setConnectionStatus('connected');
+            } catch (error) {
+              console.error('Failed to record deposit:', error);
+              if (isMobile && attempt < 3) {
+                setRetryCount(attempt + 1);
+                setTimeout(() => saveDeposit(attempt + 1), 2000 * Math.pow(2, attempt));
+              } else if (isMobile) {
+                setConnectionStatus('failed');
+              }
+            }
+          };
+
+          saveDeposit();
         }
 
         if (onSuccess && !hasCalledSuccessRef.current) {
@@ -165,17 +205,26 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       }
 
       if (status.statusName === 'error') {
-        console.error('Transaction error full status:', JSON.stringify(status, null, 2));
+        const errorMessage = status.statusData?.message || 'Transaction failed';
+        if (isMobile) setConnectionStatus('failed');
+
         setTxStatus({
           state: 'error',
-          message: status.statusData?.message || 'Transaction failed',
+          message: isMobile
+            ? `Transaction failed. Please check your connection and try again. (${errorMessage})`
+            : errorMessage,
         });
       }
     },
-    [depositAmount, address, onSuccess]
+    [depositAmount, address, onSuccess, isMobile]
   );
 
   const callsCallback = useCallback(async () => {
+    // Mobile connection validation
+    if (isMobile && (connectionStatus === 'failed' || !navigator.onLine)) {
+      throw new Error('Connection failed. Please check your internet connection and try again.');
+    }
+
     if (!depositAmount || depositAmount <= 0) {
       throw new Error('Invalid deposit amount');
     }
@@ -184,21 +233,19 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     }
 
     const amountInWei = BigInt(depositAmount) * BigInt(10 ** 18);
-
     const transferInterface = new Interface(TRANSFER_ABI);
     const encodedData = transferInterface.encodeFunctionData('transfer', [
       HOT_WALLET_ADDRESS,
       amountInWei.toString(),
     ]);
 
-    // Cast the result to Call type with proper hex type
-    const transferCall: Call = {
-      to: RSC.address as `0x${string}`,
-      data: encodedData as `0x${string}`,
-    };
-
-    return [transferCall];
-  }, [amount, depositAmount, walletBalance]);
+    return [
+      {
+        to: RSC.address as `0x${string}`,
+        data: encodedData as `0x${string}`,
+      },
+    ];
+  }, [depositAmount, walletBalance, isMobile, connectionStatus]);
 
   // If no wallet is connected, show nothing - assuming modal shouldn't open in this state
   if (!address) {
@@ -345,6 +392,39 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                       </div>
                     </div>
 
+                    {/* Mobile Connection Status */}
+                    {isMobile && connectionStatus !== 'idle' && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`w-2 h-2 rounded-full ${
+                              connectionStatus === 'connected'
+                                ? 'bg-green-500'
+                                : connectionStatus === 'connecting'
+                                  ? 'bg-yellow-500 animate-pulse'
+                                  : connectionStatus === 'failed'
+                                    ? 'bg-red-500'
+                                    : 'bg-gray-400'
+                            }`}
+                          />
+                          <span className="text-sm text-blue-700">
+                            {connectionStatus === 'connected'
+                              ? 'Connected to wallet'
+                              : connectionStatus === 'connecting'
+                                ? 'Connecting to wallet...'
+                                : connectionStatus === 'failed'
+                                  ? 'Connection failed - Please try again'
+                                  : 'Checking connection...'}
+                          </span>
+                        </div>
+                        {retryCount > 0 && (
+                          <p className="text-xs text-blue-600 mt-1">
+                            Retry attempt: {retryCount}/3
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     {/* Transaction Button */}
                     <Transaction
                       isSponsored={true}
@@ -354,8 +434,20 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                     >
                       <TransactionButton
                         className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                        disabled={isButtonDisabled || txStatus.state === 'pending'}
-                        text={'Deposit RSC'}
+                        disabled={
+                          isButtonDisabled ||
+                          txStatus.state === 'pending' ||
+                          (isMobile && connectionStatus === 'failed')
+                        }
+                        text={
+                          isMobile && connectionStatus === 'failed'
+                            ? 'Connection Failed - Try Again'
+                            : txStatus.state === 'buildingTransaction'
+                              ? 'Building Transaction...'
+                              : txStatus.state === 'pending'
+                                ? 'Transaction Pending...'
+                                : 'Deposit RSC'
+                        }
                       />
                     </Transaction>
 
