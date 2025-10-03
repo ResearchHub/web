@@ -14,6 +14,11 @@ import { useSession } from 'next-auth/react';
 import { CommentContent } from '@/components/Comment/lib/types';
 import { CommentActionType, commentReducer, initialCommentState } from './CommentReducer';
 import { JSONContent } from '@tiptap/core';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { CommentCreatedEvent, PeerReviewCreatedEvent } from '@/types/analytics';
+import { convertWorkToRelatedWork } from '@/types/analytics';
+import { useDeviceType } from '@/hooks/useDeviceType';
+import { useUser } from '@/contexts/UserContext';
 
 export type BountyFilterType = 'ALL' | 'OPEN' | 'CLOSED';
 
@@ -108,6 +113,8 @@ export const CommentProvider = ({
   });
 
   const { data: session } = useSession();
+  const deviceType = useDeviceType();
+  const { user } = useUser();
 
   // Debug logging for state changes
   useEffect(() => {
@@ -435,11 +442,56 @@ export const CommentProvider = ({
           contentFormat: 'TIPTAP',
           commentType: rating !== undefined ? 'REVIEW' : commentType,
           mentions: mentions || [],
+          unifiedDocumentId: work?.unifiedDocumentId?.toString() || '',
         });
 
         // Only update the UI after successful API response
         if (newComment) {
           console.log(`Comment created successfully with ID: ${newComment.id}`);
+
+          // Track analytics after successful comment creation
+          try {
+            const analyticsEvent: CommentCreatedEvent = {
+              device_type: deviceType,
+              thread_id: newComment.id.toString(),
+              parent_id: newComment.parentId?.toString(),
+              comment_type: newComment.commentType,
+              related_work: work ? convertWorkToRelatedWork(work) : undefined,
+            };
+
+            await AnalyticsService.logEventWithUserProperties(
+              LogEvent.COMMENT_CREATED,
+              analyticsEvent,
+              user
+            );
+
+            // If this is a review with a rating, also track peer review creation
+            if (rating !== undefined && newComment.commentType === 'REVIEW') {
+              try {
+                const peerReviewEvent: PeerReviewCreatedEvent = {
+                  device_type: deviceType,
+                  comment_id: newComment.id.toString(),
+                  score: rating,
+                  related_work: work ? convertWorkToRelatedWork(work) : undefined,
+                };
+
+                await AnalyticsService.logEventWithUserProperties(
+                  LogEvent.PEER_REVIEW_CREATED,
+                  peerReviewEvent,
+                  user
+                );
+              } catch (peerReviewAnalyticsError) {
+                console.error(
+                  'Failed to track peer review creation analytics:',
+                  peerReviewAnalyticsError
+                );
+                // Don't throw - analytics failure shouldn't break comment creation
+              }
+            }
+          } catch (analyticsError) {
+            console.error('Failed to track comment creation analytics:', analyticsError);
+            // Don't throw - analytics failure shouldn't break comment creation
+          }
 
           // Update the state with the new comment
           dispatch({
@@ -496,11 +548,34 @@ export const CommentProvider = ({
           expirationDate,
           privacyType: 'PUBLIC',
           mentions: mentions || [],
+          unifiedDocumentId: work?.unifiedDocumentId?.toString() || '',
         });
 
         // Only update the UI after successful API response
         if (newBounty) {
           console.log(`Bounty created successfully with ID: ${newBounty.id}`);
+
+          // Track analytics after successful bounty creation
+          try {
+            const analyticsEvent: CommentCreatedEvent = {
+              device_type: deviceType,
+              thread_id: newBounty.id.toString(),
+              parent_id: newBounty.parentId?.toString(),
+              bounty_amount: bountyAmount,
+              bounty_type: bountyType,
+              comment_type: newBounty.commentType,
+              related_work: work ? convertWorkToRelatedWork(work) : undefined,
+            };
+
+            await AnalyticsService.logEventWithUserProperties(
+              LogEvent.COMMENT_CREATED,
+              analyticsEvent,
+              user
+            );
+          } catch (analyticsError) {
+            console.error('Failed to track bounty creation analytics:', analyticsError);
+            // Don't throw - analytics failure shouldn't break bounty creation
+          }
 
           // Update the state with the new bounty
           dispatch({
@@ -558,6 +633,7 @@ export const CommentProvider = ({
           parentId: realParentId,
           commentType: 'GENERIC_COMMENT',
           mentions: mentions || [],
+          unifiedDocumentId: work?.unifiedDocumentId?.toString() || '',
         });
         console.log(`API response for reply creation:`, newReply);
 
@@ -566,6 +642,28 @@ export const CommentProvider = ({
         if (existingReply) {
           console.log(`Reply ${newReply.id} already exists in the tree, skipping addition`);
           return newReply;
+        }
+
+        // Track analytics after successful reply creation
+        try {
+          const analyticsEvent: CommentCreatedEvent = {
+            device_type: deviceType,
+            thread_id: newReply.id.toString(),
+            parent_id: newReply.parentId?.toString(),
+            bounty_amount: undefined, // Not available in this context
+            bounty_type: undefined,
+            comment_type: newReply.commentType,
+            related_work: work ? convertWorkToRelatedWork(work) : undefined,
+          };
+
+          await AnalyticsService.logEventWithUserProperties(
+            LogEvent.COMMENT_CREATED,
+            analyticsEvent,
+            user
+          );
+        } catch (analyticsError) {
+          console.error('Failed to track reply creation analytics:', analyticsError);
+          // Don't throw - analytics failure shouldn't break reply creation
         }
 
         // Update the state with the new reply
@@ -588,7 +686,7 @@ export const CommentProvider = ({
         return null;
       }
     },
-    [session, documentId, contentType, commentType, fetchComments]
+    [session, documentId, contentType, commentType, fetchComments, work, deviceType, user]
   );
 
   /**

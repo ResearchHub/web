@@ -46,6 +46,7 @@ export interface CreateCommentOptions {
   commentType?: CommentType;
   threadType?: string;
   mentions: string[];
+  unifiedDocumentId?: string;
 }
 
 export interface UpdateCommentOptions {
