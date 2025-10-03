@@ -61,6 +61,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     'idle' | 'connecting' | 'connected' | 'failed'
   >('idle');
   const [retryCount, setRetryCount] = useState(0);
+  const [showMobileGuidance, setShowMobileGuidance] = useState(false);
 
   // Reset state when modal closes
   useEffect(() => {
@@ -72,6 +73,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       processedTxHashRef.current = null;
       setConnectionStatus('idle');
       setRetryCount(0);
+      setShowMobileGuidance(false);
     }
   }, [isOpen]);
 
@@ -93,6 +95,50 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       window.removeEventListener('offline', () => setConnectionStatus('failed'));
     };
   }, [isMobile, isOpen, address]);
+
+  // Handle mobile wallet app return detection
+  useEffect(() => {
+    if (!isMobile || !isOpen) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && txStatus.state === 'pending') {
+        // User returned from wallet app, check if transaction completed
+        console.log('Mobile: User returned from wallet app, checking transaction status');
+        setConnectionStatus('connected');
+        setShowMobileGuidance(false);
+      }
+    };
+
+    const handleFocus = () => {
+      if (txStatus.state === 'pending') {
+        console.log('Mobile: Window focused, user likely returned from wallet app');
+        setConnectionStatus('connected');
+        setShowMobileGuidance(false);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [isMobile, isOpen, txStatus.state]);
+
+  // Mobile wallet timeout guidance
+  useEffect(() => {
+    if (!isMobile || !isOpen || txStatus.state !== 'pending') return;
+
+    const timeout = setTimeout(() => {
+      if (txStatus.state === 'pending') {
+        console.log('Mobile: Transaction pending for 30s, showing guidance');
+        setShowMobileGuidance(true);
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearTimeout(timeout);
+  }, [isMobile, isOpen, txStatus.state]);
 
   // Handle custom close with state reset
   const handleClose = useCallback(() => {
@@ -422,6 +468,34 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                             Retry attempt: {retryCount}/3
                           </p>
                         )}
+                      </div>
+                    )}
+
+                    {/* Mobile Wallet App Guidance */}
+                    {isMobile && showMobileGuidance && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0">
+                            <AlertCircle className="h-5 w-5 text-amber-600" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="text-sm font-medium text-amber-800 mb-2">
+                              Stuck in Coinbase Wallet?
+                            </h4>
+                            <div className="text-sm text-amber-700 space-y-1">
+                              <p>If you're still in the Coinbase Wallet app:</p>
+                              <ol className="list-decimal list-inside space-y-1 ml-2">
+                                <li>Complete the transaction in your wallet</li>
+                                <li>Return to this browser tab</li>
+                                <li>The deposit will be processed automatically</li>
+                              </ol>
+                              <p className="mt-2 text-xs text-amber-600">
+                                Don't worry - your transaction is safe and will be recorded once you
+                                return.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
 
