@@ -59,7 +59,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const isMobile = useIsMobile();
   const [isMobileProcessing, setIsMobileProcessing] = useState(false);
   const [isButtonClicked, setIsButtonClicked] = useState(false);
-  const [showManualProcess, setShowManualProcess] = useState(false);
 
   // Reset transaction status when modal is closed
   useEffect(() => {
@@ -70,20 +69,15 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     processedTxHashRef.current = null;
     setIsMobileProcessing(false);
     setIsButtonClicked(false);
-    setShowManualProcess(false);
   }, [isOpen]);
 
-  // Mobile return detection - hybrid approach with manual fallback
+  // Mobile return detection - simple approach
   useEffect(() => {
     if (!isMobile || !isOpen || txStatus.state !== 'pending') return;
 
-    let returnDetected = false;
-    let timeoutId: NodeJS.Timeout;
-
     const processMobileDeposit = async () => {
-      if (returnDetected || !processedTxHashRef.current || hasProcessedDepositRef.current) return;
+      if (!processedTxHashRef.current || hasProcessedDepositRef.current) return;
 
-      returnDetected = true;
       hasProcessedDepositRef.current = true;
 
       console.log('Mobile: Processing deposit after return detection', {
@@ -115,7 +109,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       }
     };
 
-    // Multiple detection methods
     const handleVisibilityChange = () => {
       console.log('Mobile: visibilitychange', document.visibilityState);
       if (document.visibilityState === 'visible') {
@@ -128,60 +121,23 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       processMobileDeposit();
     };
 
-    const handlePageShow = () => {
-      console.log('Mobile: pageshow event');
-      processMobileDeposit();
-    };
-
-    const handleResize = () => {
-      console.log('Mobile: resize event');
-      processMobileDeposit();
-    };
-
-    const handleTouchStart = () => {
-      console.log('Mobile: touchstart event');
-      processMobileDeposit();
-    };
-
-    const handleClick = () => {
-      console.log('Mobile: click event');
-      processMobileDeposit();
-    };
-
-    // Add all event listeners
+    // Simple event listeners
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleFocus);
-    window.addEventListener('pageshow', handlePageShow);
-    window.addEventListener('resize', handleResize);
-    document.addEventListener('touchstart', handleTouchStart);
-    document.addEventListener('click', handleClick);
 
-    // Aggressive polling as fallback
+    // Simple polling
     const pollInterval = setInterval(() => {
-      if (document.visibilityState === 'visible' && !returnDetected) {
+      if (document.visibilityState === 'visible') {
         console.log('Mobile: Polling detected return');
         processMobileDeposit();
       }
-    }, 200); // Check every 200ms
-
-    // Timeout fallback - show manual button after 10 seconds
-    timeoutId = setTimeout(() => {
-      if (!returnDetected) {
-        console.log('Mobile: Timeout reached, showing manual button');
-        setShowManualProcess(true);
-      }
-    }, 10000);
+    }, 1000);
 
     // Cleanup
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
-      window.removeEventListener('pageshow', handlePageShow);
-      window.removeEventListener('resize', handleResize);
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('click', handleClick);
       clearInterval(pollInterval);
-      clearTimeout(timeoutId);
     };
   }, [isMobile, isOpen, txStatus.state, amount, address, onSuccess]);
 
@@ -328,37 +284,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       console.log('Mobile: Button clicked - immediate debounce applied');
     }
   }, []);
-
-  // Manual process deposit for mobile fallback
-  const handleManualProcess = useCallback(async () => {
-    if (!processedTxHashRef.current || hasProcessedDepositRef.current) return;
-
-    hasProcessedDepositRef.current = true;
-    setShowManualProcess(false);
-
-    try {
-      await TransactionService.saveDeposit({
-        amount: parseInt(amount || '0', 10),
-        transaction_hash: processedTxHashRef.current,
-        from_address: address!,
-        network: 'BASE',
-      });
-
-      console.log('Mobile: Manual deposit processed successfully');
-      setTxStatus({ state: 'success', txHash: processedTxHashRef.current! });
-
-      if (onSuccess && !hasCalledSuccessRef.current) {
-        hasCalledSuccessRef.current = true;
-        onSuccess();
-      }
-    } catch (error) {
-      console.error('Mobile: Failed to process manual deposit:', error);
-      setTxStatus({
-        state: 'error',
-        message: 'Failed to process deposit. Please try again.',
-      });
-    }
-  }, [amount, address, onSuccess]);
 
   const callsCallback = useCallback(async () => {
     if (!depositAmount || depositAmount <= 0) {
@@ -569,22 +494,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                         />
                       </div>
                     </Transaction>
-
-                    {/* Mobile Manual Process Button */}
-                    {isMobile && showManualProcess && txStatus.state === 'pending' && (
-                      <div className="mt-4">
-                        <button
-                          onClick={handleManualProcess}
-                          className="w-full h-12 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors shadow-md"
-                        >
-                          Process Deposit
-                        </button>
-                        <p className="text-sm text-gray-600 mt-2 text-center">
-                          If automatic processing didn't work, click here to process your deposit
-                          manually.
-                        </p>
-                      </div>
-                    )}
 
                     {/* Transaction Status Display */}
                     {(txStatus.state === 'success' || txStatus.state === 'error') && (
