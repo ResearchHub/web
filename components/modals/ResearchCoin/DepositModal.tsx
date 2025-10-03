@@ -527,7 +527,17 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                           <span>Processing...</span>
                         </button>
                       ) : (
-                        <div onClick={() => isMobile && !isProcessing && setIsProcessing(true)}>
+                        <div
+                          onClick={() => isMobile && !isProcessing && setIsProcessing(true)}
+                          onKeyDown={(e) => {
+                            if ((e.key === 'Enter' || e.key === ' ') && isMobile && !isProcessing) {
+                              e.preventDefault();
+                              setIsProcessing(true);
+                            }
+                          }}
+                          role="button"
+                          tabIndex={0}
+                        >
                           <TransactionButton
                             className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                             disabled={isButtonDisabled || txStatus.state === 'pending'}
