@@ -174,35 +174,37 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
         if (isMobile) {
           addDebugLog('Attempting to close OnchainKit popup...');
 
-          // CONSERVATIVE: Only close dialogs that contain wallet-specific text
-          const allDialogs = document.querySelectorAll('[role="dialog"]');
-          addDebugLog(`Found ${allDialogs.length} dialogs total`);
+          // Strategy: Find ANY fixed/absolute positioned element with wallet text
+          const allElements = document.querySelectorAll('div, aside, section');
+          let foundCount = 0;
 
-          allDialogs.forEach((dialog, index) => {
-            const dialogText = dialog.textContent || '';
-            const isDepositModal = dialogText.includes('Deposit RSC');
-            const isWalletDialog =
-              dialogText.includes('Redirecting to Coinbase Wallet') ||
-              dialogText.includes('Open in Wallet') ||
-              dialogText.includes('Coinbase Wallet') ||
-              dialogText.includes('Connect Wallet');
+          allElements.forEach((el) => {
+            if (!(el instanceof HTMLElement)) return;
 
-            addDebugLog(`Dialog ${index}: isDeposit=${isDepositModal}, isWallet=${isWalletDialog}`);
+            const styles = window.getComputedStyle(el);
+            const isPositioned = styles.position === 'fixed' || styles.position === 'absolute';
+            const isVisible = styles.display !== 'none' && styles.visibility !== 'hidden';
+            const hasHighZIndex = parseInt(styles.zIndex || '0') > 40; // Our modal is z-50
 
-            // Only close if it's a wallet dialog AND not our DepositModal
-            if (isWalletDialog && !isDepositModal) {
-              addDebugLog(`Closing wallet dialog ${index}...`);
+            if (isPositioned && isVisible && hasHighZIndex) {
+              const text = el.textContent || '';
+              const isDepositModal = text.includes('Deposit RSC');
+              const isWalletPopup =
+                text.includes('Redirecting to Coinbase Wallet') || text.includes('Open in Wallet');
 
-              if (dialog instanceof HTMLElement) {
-                dialog.style.display = 'none';
-                // Also hide fixed/absolute parent containers
-                let parent = dialog.parentElement;
+              if (isWalletPopup && !isDepositModal) {
+                foundCount++;
+                addDebugLog(`Found wallet popup (z-index: ${styles.zIndex})`);
+                el.style.display = 'none';
+
+                // Also hide parent if it's positioned
+                let parent = el.parentElement;
                 let depth = 0;
-                while (parent && parent !== document.body && depth < 5) {
-                  const position = window.getComputedStyle(parent).position;
-                  if (position === 'fixed' || position === 'absolute') {
+                while (parent && parent !== document.body && depth < 3) {
+                  const parentStyles = window.getComputedStyle(parent);
+                  if (parentStyles.position === 'fixed' || parentStyles.position === 'absolute') {
                     parent.style.display = 'none';
-                    addDebugLog('Hid parent container');
+                    addDebugLog('Hid parent too');
                     break;
                   }
                   parent = parent.parentElement;
@@ -212,7 +214,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
             }
           });
 
-          addDebugLog('✓ Finished closing OnchainKit elements');
+          addDebugLog(`✓ Found and closed ${foundCount} wallet popups`);
         }
 
         addDebugLog(
