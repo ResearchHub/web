@@ -57,63 +57,60 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const hasProcessedDepositRef = useRef(false);
   const processedTxHashRef = useRef<string | null>(null);
   const isMobile = useDeviceType() === 'mobile';
-  const [connectionStatus, setConnectionStatus] = useState<
-    'idle' | 'connecting' | 'connected' | 'failed'
-  >('idle');
-  const [retryCount, setRetryCount] = useState(0);
-  const [showMobileGuidance, setShowMobileGuidance] = useState(false);
 
-  // Reset state when modal closes
+  // Reset transaction status when modal is closed
   useEffect(() => {
-    if (!isOpen) {
-      setTxStatus({ state: 'idle' });
-      setAmount('');
-      hasCalledSuccessRef.current = false;
-      hasProcessedDepositRef.current = false;
-      processedTxHashRef.current = null;
-      setConnectionStatus('idle');
-      setRetryCount(0);
-      setShowMobileGuidance(false);
-    }
+    setTxStatus({ state: 'idle' });
+    setAmount('');
+    hasCalledSuccessRef.current = false;
+    hasProcessedDepositRef.current = false;
+    processedTxHashRef.current = null;
   }, [isOpen]);
 
-  // Monitor mobile connection
-  useEffect(() => {
-    if (!isMobile || !isOpen) return;
-
-    const updateConnection = () => {
-      if (!navigator.onLine) return setConnectionStatus('failed');
-      setConnectionStatus(address ? 'connected' : 'idle');
-    };
-
-    updateConnection();
-    window.addEventListener('online', () => setConnectionStatus('connected'));
-    window.addEventListener('offline', () => setConnectionStatus('failed'));
-
-    return () => {
-      window.removeEventListener('online', () => setConnectionStatus('connected'));
-      window.removeEventListener('offline', () => setConnectionStatus('failed'));
-    };
-  }, [isMobile, isOpen, address]);
-
-  // Handle mobile wallet app return detection
+  // Mobile-specific: Detect when user returns from Coinbase wallet app
   useEffect(() => {
     if (!isMobile || !isOpen) return;
 
     const handleVisibilityChange = () => {
+      // User returned to browser from wallet app
       if (document.visibilityState === 'visible' && txStatus.state === 'pending') {
-        // User returned from wallet app, check if transaction completed
-        console.log('Mobile: User returned from wallet app, checking transaction status');
-        setConnectionStatus('connected');
-        setShowMobileGuidance(false);
+        console.log('Mobile: User returned from wallet app, processing deposit');
+
+        // Trigger backend processing for mobile users
+        if (!hasProcessedDepositRef.current && processedTxHashRef.current) {
+          hasProcessedDepositRef.current = true;
+
+          TransactionService.saveDeposit({
+            amount: parseInt(amount || '0', 10),
+            transaction_hash: processedTxHashRef.current,
+            from_address: address!,
+            network: 'BASE',
+          })
+            .then(() => {
+              console.log('Mobile: Deposit processed successfully after wallet return');
+              setTxStatus({ state: 'success', txHash: processedTxHashRef.current! });
+
+              if (onSuccess && !hasCalledSuccessRef.current) {
+                hasCalledSuccessRef.current = true;
+                onSuccess();
+              }
+            })
+            .catch((error) => {
+              console.error('Mobile: Failed to process deposit after wallet return:', error);
+              setTxStatus({
+                state: 'error',
+                message: 'Failed to process deposit. Please try again.',
+              });
+            });
+        }
       }
     };
 
     const handleFocus = () => {
+      // Alternative detection method
       if (txStatus.state === 'pending') {
         console.log('Mobile: Window focused, user likely returned from wallet app');
-        setConnectionStatus('connected');
-        setShowMobileGuidance(false);
+        handleVisibilityChange();
       }
     };
 
@@ -124,21 +121,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
     };
-  }, [isMobile, isOpen, txStatus.state]);
-
-  // Mobile wallet timeout guidance
-  useEffect(() => {
-    if (!isMobile || !isOpen || txStatus.state !== 'pending') return;
-
-    const timeout = setTimeout(() => {
-      if (txStatus.state === 'pending') {
-        console.log('Mobile: Transaction pending for 30s, showing guidance');
-        setShowMobileGuidance(true);
-      }
-    }, 30000); // 30 seconds
-
-    return () => clearTimeout(timeout);
-  }, [isMobile, isOpen, txStatus.state]);
+  }, [isMobile, isOpen, txStatus.state, amount, address, onSuccess]);
 
   // Handle custom close with state reset
   const handleClose = useCallback(() => {
@@ -181,15 +164,9 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
   const handleOnStatus = useCallback(
     (status: any) => {
-      console.log('Transaction status:', status.statusName, isMobile ? '(mobile)' : '', status);
+      console.log('Transaction status:', status.statusName, status);
 
-      // Update connection status for mobile
-      if (isMobile) {
-        if (status.statusName === 'buildingTransaction') setConnectionStatus('connecting');
-        if (status.statusName === 'transactionPending') setConnectionStatus('connected');
-      }
-
-      // Handle transaction states
+      // Handle building/pending states
       if (status.statusName === 'buildingTransaction') {
         setTxStatus({ state: 'buildingTransaction' });
         return;
@@ -204,7 +181,17 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
         status.statusName === 'transactionLegacyExecuted' &&
         status.statusData?.transactionHashList?.[0]
       ) {
-        setTxStatus({ state: 'pending', txHash: status.statusData.transactionHashList[0] });
+        const txHash = status.statusData.transactionHashList[0];
+        setTxStatus({ state: 'pending', txHash });
+
+        // Store transaction hash for mobile processing
+        if (isMobile) {
+          processedTxHashRef.current = txHash;
+          console.log(
+            'Mobile: Transaction hash stored, waiting for user to return from wallet app'
+          );
+        }
+
         return;
       }
 
@@ -213,34 +200,34 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
         status.statusData?.transactionReceipts?.[0]?.transactionHash
       ) {
         const txHash = status.statusData.transactionReceipts[0].transactionHash;
+
+        // Set success state regardless of whether we've processed it
         setTxStatus({ state: 'success', txHash });
 
-        // Process deposit with mobile retry logic
+        // For mobile users, skip processing here - it will be handled when they return from wallet app
+        if (isMobile) {
+          console.log('Mobile: Transaction completed, waiting for user to return from wallet app');
+          return;
+        }
+
+        // Desktop processing - handle immediately
         if (!hasProcessedDepositRef.current && processedTxHashRef.current !== txHash) {
+          console.log('Desktop: Processing deposit for transaction:', txHash);
+
+          // Mark as processed first to prevent race conditions
           hasProcessedDepositRef.current = true;
           processedTxHashRef.current = txHash;
 
-          const saveDeposit = async (attempt = 0) => {
-            try {
-              await TransactionService.saveDeposit({
-                amount: depositAmount,
-                transaction_hash: txHash,
-                from_address: address!,
-                network: 'BASE',
-              });
-              if (isMobile) setConnectionStatus('connected');
-            } catch (error) {
-              console.error('Failed to record deposit:', error);
-              if (isMobile && attempt < 3) {
-                setRetryCount(attempt + 1);
-                setTimeout(() => saveDeposit(attempt + 1), 2000 * Math.pow(2, attempt));
-              } else if (isMobile) {
-                setConnectionStatus('failed');
-              }
-            }
-          };
-
-          saveDeposit();
+          TransactionService.saveDeposit({
+            amount: depositAmount,
+            transaction_hash: txHash,
+            from_address: address!,
+            network: 'BASE',
+          }).catch((error) => {
+            console.error('Failed to record deposit:', error);
+          });
+        } else {
+          console.log('Skipping duplicate deposit processing for transaction:', txHash);
         }
 
         if (onSuccess && !hasCalledSuccessRef.current) {
@@ -251,26 +238,17 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       }
 
       if (status.statusName === 'error') {
-        const errorMessage = status.statusData?.message || 'Transaction failed';
-        if (isMobile) setConnectionStatus('failed');
-
+        console.error('Transaction error full status:', JSON.stringify(status, null, 2));
         setTxStatus({
           state: 'error',
-          message: isMobile
-            ? `Transaction failed. Please check your connection and try again. (${errorMessage})`
-            : errorMessage,
+          message: status.statusData?.message || 'Transaction failed',
         });
       }
     },
-    [depositAmount, address, onSuccess, isMobile]
+    [depositAmount, address, onSuccess]
   );
 
   const callsCallback = useCallback(async () => {
-    // Mobile connection validation
-    if (isMobile && (connectionStatus === 'failed' || !navigator.onLine)) {
-      throw new Error('Connection failed. Please check your internet connection and try again.');
-    }
-
     if (!depositAmount || depositAmount <= 0) {
       throw new Error('Invalid deposit amount');
     }
@@ -279,19 +257,21 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     }
 
     const amountInWei = BigInt(depositAmount) * BigInt(10 ** 18);
+
     const transferInterface = new Interface(TRANSFER_ABI);
     const encodedData = transferInterface.encodeFunctionData('transfer', [
       HOT_WALLET_ADDRESS,
       amountInWei.toString(),
     ]);
 
-    return [
-      {
-        to: RSC.address as `0x${string}`,
-        data: encodedData as `0x${string}`,
-      },
-    ];
-  }, [depositAmount, walletBalance, isMobile, connectionStatus]);
+    // Cast the result to Call type with proper hex type
+    const transferCall: Call = {
+      to: RSC.address as `0x${string}`,
+      data: encodedData as `0x${string}`,
+    };
+
+    return [transferCall];
+  }, [amount, depositAmount, walletBalance]);
 
   // If no wallet is connected, show nothing - assuming modal shouldn't open in this state
   if (!address) {
@@ -438,61 +418,21 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                       </div>
                     </div>
 
-                    {/* Mobile Connection Status */}
-                    {isMobile && connectionStatus !== 'idle' && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`w-2 h-2 rounded-full ${
-                              connectionStatus === 'connected'
-                                ? 'bg-green-500'
-                                : connectionStatus === 'connecting'
-                                  ? 'bg-yellow-500 animate-pulse'
-                                  : connectionStatus === 'failed'
-                                    ? 'bg-red-500'
-                                    : 'bg-gray-400'
-                            }`}
-                          />
-                          <span className="text-sm text-blue-700">
-                            {connectionStatus === 'connected'
-                              ? 'Connected to wallet'
-                              : connectionStatus === 'connecting'
-                                ? 'Connecting to wallet...'
-                                : connectionStatus === 'failed'
-                                  ? 'Connection failed - Please try again'
-                                  : 'Checking connection...'}
-                          </span>
-                        </div>
-                        {retryCount > 0 && (
-                          <p className="text-xs text-blue-600 mt-1">
-                            Retry attempt: {retryCount}/3
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Mobile Wallet App Guidance */}
-                    {isMobile && showMobileGuidance && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    {/* Mobile Return Guidance */}
+                    {isMobile && txStatus.state === 'pending' && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                         <div className="flex items-start gap-3">
                           <div className="flex-shrink-0">
-                            <AlertCircle className="h-5 w-5 text-amber-600" />
+                            <AlertCircle className="h-5 w-5 text-blue-600" />
                           </div>
                           <div className="flex-1">
-                            <h4 className="text-sm font-medium text-amber-800 mb-2">
-                              Stuck in Coinbase Wallet?
+                            <h4 className="text-sm font-medium text-blue-800 mb-2">
+                              Complete Transaction & Return
                             </h4>
-                            <div className="text-sm text-amber-700 space-y-1">
-                              <p>If you're still in the Coinbase Wallet app:</p>
-                              <ol className="list-decimal list-inside space-y-1 ml-2">
-                                <li>Complete the transaction in your wallet</li>
-                                <li>Return to this browser tab</li>
-                                <li>The deposit will be processed automatically</li>
-                              </ol>
-                              <p className="mt-2 text-xs text-amber-600">
-                                Don't worry - your transaction is safe and will be recorded once you
-                                return.
-                              </p>
+                            <div className="text-sm text-blue-700 space-y-1">
+                              <p>1. Complete the transaction in your Coinbase Wallet app</p>
+                              <p>2. Return to this browser tab</p>
+                              <p>3. Your deposit will be processed automatically</p>
                             </div>
                           </div>
                         </div>
@@ -508,20 +448,8 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                     >
                       <TransactionButton
                         className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                        disabled={
-                          isButtonDisabled ||
-                          txStatus.state === 'pending' ||
-                          (isMobile && connectionStatus === 'failed')
-                        }
-                        text={
-                          isMobile && connectionStatus === 'failed'
-                            ? 'Connection Failed - Try Again'
-                            : txStatus.state === 'buildingTransaction'
-                              ? 'Building Transaction...'
-                              : txStatus.state === 'pending'
-                                ? 'Transaction Pending...'
-                                : 'Deposit RSC'
-                        }
+                        disabled={isButtonDisabled || txStatus.state === 'pending'}
+                        text={'Deposit RSC'}
                       />
                     </Transaction>
 
