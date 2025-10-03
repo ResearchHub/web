@@ -653,8 +653,6 @@ export const CommentProvider = ({
             device_type: deviceType,
             thread_id: newReply.id.toString(),
             parent_id: newReply.parentId?.toString(),
-            bounty_amount: undefined, // Not available in this context
-            bounty_type: undefined,
             comment_type: newReply.commentType,
             related_work: work ? convertWorkToRelatedWork(work) : undefined,
           };
@@ -689,7 +687,7 @@ export const CommentProvider = ({
         return null;
       }
     },
-    [session, documentId, contentType, commentType, fetchComments, work, deviceType, user]
+    [session, documentId, contentType, commentType, fetchComments]
   );
 
   /**
