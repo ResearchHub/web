@@ -13,7 +13,6 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { TransactionService } from '@/services/transaction.service';
 import { RSC, TRANSFER_ABI } from '@/constants/tokens';
 
-// Constants
 const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
 if (!HOT_WALLET_ADDRESS_ENV?.trim()) {
   throw new Error('Missing environment variable: NEXT_PUBLIC_WEB3_WALLET_ADDRESS');
@@ -26,11 +25,10 @@ const NETWORK_DESCRIPTION = IS_PRODUCTION
   ? 'Deposits are processed on Base L2'
   : 'Deposits are processed on Base Sepolia testnet';
 
-const BLOCKS_TO_CHECK = 10; // ~20 seconds of history on Base
+const BLOCKS_TO_CHECK = 10;
 const MAX_POLLING_RETRIES = 5;
-const POLLING_INTERVAL = 3000; // 3 seconds
+const POLLING_INTERVAL = 3000;
 
-// Types
 type Call = {
   to: `0x${string}`;
   data?: `0x${string}`;
@@ -51,62 +49,70 @@ type TransactionStatus =
   | { state: 'success'; txHash: string }
   | { state: 'error'; message: string };
 
-// Helper Functions
+const isModalLikeElement = (el: HTMLElement): boolean => {
+  const styles = globalThis.getComputedStyle(el);
+  const isPositioned = styles.position === 'fixed' || styles.position === 'absolute';
+  const isVisible = styles.display !== 'none' && styles.visibility !== 'hidden';
+  const hasHighZIndex = Number.parseInt(styles.zIndex || '0', 10) > 40;
+
+  return isPositioned && isVisible && hasHighZIndex;
+};
+
+const isWalletPopupElement = (el: HTMLElement): boolean => {
+  const text = el.textContent || '';
+  const isDepositModal = text.includes('Deposit RSC');
+  const hasWalletText =
+    text.includes('Redirecting to Coinbase Wallet') || text.includes('Open in Wallet');
+
+  return hasWalletText && !isDepositModal;
+};
+
+const hidePositionedParents = (el: HTMLElement): void => {
+  let parent = el.parentElement;
+  let depth = 0;
+  const MAX_DEPTH = 3;
+
+  while (parent && parent !== document.body && depth < MAX_DEPTH) {
+    const parentStyles = globalThis.getComputedStyle(parent);
+    const isPositioned = parentStyles.position === 'fixed' || parentStyles.position === 'absolute';
+
+    if (isPositioned) {
+      parent.style.display = 'none';
+      break;
+    }
+
+    parent = parent.parentElement;
+    depth++;
+  }
+};
+
 const closeWalletPopups = () => {
   const elements = document.querySelectorAll('div, aside, section');
 
   for (const el of elements) {
     if (!(el instanceof HTMLElement)) continue;
 
-    const styles = globalThis.getComputedStyle(el);
-    const isPositioned = styles.position === 'fixed' || styles.position === 'absolute';
-    const isVisible = styles.display !== 'none' && styles.visibility !== 'hidden';
-    const hasHighZIndex = Number.parseInt(styles.zIndex || '0', 10) > 40;
-
-    if (isPositioned && isVisible && hasHighZIndex) {
-      const text = el.textContent || '';
-      const isDepositModal = text.includes('Deposit RSC');
-      const isWalletPopup =
-        text.includes('Redirecting to Coinbase Wallet') || text.includes('Open in Wallet');
-
-      if (isWalletPopup && !isDepositModal) {
-        el.style.display = 'none';
-
-        // Hide positioned parent containers
-        let parent = el.parentElement;
-        let depth = 0;
-        while (parent && parent !== document.body && depth < 3) {
-          const parentStyles = globalThis.getComputedStyle(parent);
-          if (parentStyles.position === 'fixed' || parentStyles.position === 'absolute') {
-            parent.style.display = 'none';
-            break;
-          }
-          parent = parent.parentElement;
-          depth++;
-        }
-      }
+    if (isModalLikeElement(el) && isWalletPopupElement(el)) {
+      el.style.display = 'none';
+      hidePositionedParents(el);
     }
   }
 };
 
 export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: DepositModalProps) {
-  // State
   const [amount, setAmount] = useState('');
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Refs for tracking
   const hasCalledSuccessRef = useRef(false);
   const hasProcessedDepositRef = useRef(false);
   const processedTxHashRef = useRef<string | null>(null);
 
-  // Hooks
   const { address } = useAccount();
   const { balance: walletBalance } = useWalletRSCBalance();
   const publicClient = usePublicClient();
   const isMobile = useIsMobile();
 
-  // Derived values
   const depositAmount = useMemo(() => Number.parseInt(amount || '0', 10), [amount]);
   const newBalance = useMemo(() => currentBalance + depositAmount, [currentBalance, depositAmount]);
 
@@ -129,7 +135,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     [address, txStatus.state]
   );
 
-  // Process deposit helper
   const processDeposit = useCallback(
     async (txHash: string) => {
       if (hasProcessedDepositRef.current || processedTxHashRef.current === txHash) {
@@ -150,7 +155,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
         setIsProcessing(false);
         setTxStatus({ state: 'success', txHash });
 
-        // Force re-render to ensure UI updates
         setTimeout(() => setTxStatus({ state: 'success', txHash }), 0);
 
         if (onSuccess && !hasCalledSuccessRef.current) {
@@ -169,7 +173,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     [depositAmount, address, onSuccess]
   );
 
-  // Helper: Check if there are pending transactions
   const hasPendingTransactions = useCallback(async (): Promise<boolean> => {
     if (!publicClient || !address) return false;
 
@@ -182,7 +185,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     return pendingTxCount > txCount;
   }, [publicClient, address]);
 
-  // Helper: Check if transaction matches RSC deposit criteria
   const isRSCDepositTransaction = useCallback(
     (tx: unknown): boolean => {
       if (typeof tx !== 'object' || !tx) return false;
@@ -196,7 +198,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     [address]
   );
 
-  // Helper: Search a single block for matching transactions
   const searchBlockForTransaction = useCallback(
     async (blockNumber: bigint): Promise<string | null> => {
       try {
@@ -224,17 +225,14 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     [publicClient, isRSCDepositTransaction]
   );
 
-  // Check blockchain for recent transactions
   const checkForRecentTransaction = useCallback(async (): Promise<string | null> => {
     if (!publicClient || !address) return null;
 
     try {
-      // Check for pending transactions first
       if (await hasPendingTransactions()) {
         return 'pending' as const;
       }
 
-      // Search recent blocks for matching transactions
       const currentBlock = await publicClient.getBlockNumber();
 
       for (let i = 0; i < BLOCKS_TO_CHECK; i++) {
@@ -249,7 +247,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     }
   }, [publicClient, address, hasPendingTransactions, searchBlockForTransaction]);
 
-  // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
       setTxStatus({ state: 'idle' });
@@ -261,7 +258,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     }
   }, [isOpen]);
 
-  // Mobile: Handle return from Coinbase Wallet app
   useEffect(() => {
     if (!isMobile || !isOpen || txStatus.state !== 'pending') {
       return;
@@ -270,16 +266,13 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     const handleVisibilityChange = async () => {
       if (document.visibilityState !== 'visible') return;
 
-      // Close OnchainKit wallet popups
       closeWalletPopups();
 
-      // Process existing transaction hash
       if (txStatus.txHash && !hasProcessedDepositRef.current) {
         await processDeposit(txStatus.txHash);
         return;
       }
 
-      // Poll blockchain for transaction hash
       if (!txStatus.txHash && !hasProcessedDepositRef.current) {
         let retryCount = 0;
 
@@ -309,7 +302,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     };
   }, [isMobile, isOpen, txStatus, checkForRecentTransaction, processDeposit]);
 
-  // Handlers
   const handleClose = useCallback(() => {
     setTxStatus({ state: 'idle' });
     setAmount('');
@@ -322,6 +314,41 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       setAmount(value);
     }
   }, []);
+
+  const handleTransactionExecuted = useCallback(
+    (txHash: string) => {
+      setTxStatus({ state: 'pending', txHash });
+
+      if (isMobile && !hasProcessedDepositRef.current) {
+        processDeposit(txHash);
+      }
+    },
+    [isMobile, processDeposit]
+  );
+
+  const handleTransactionSuccess = useCallback(
+    (txHash: string) => {
+      setTxStatus({ state: 'success', txHash });
+
+      if (!isMobile && !hasProcessedDepositRef.current && processedTxHashRef.current !== txHash) {
+        hasProcessedDepositRef.current = true;
+        processedTxHashRef.current = txHash;
+
+        TransactionService.saveDeposit({
+          amount: depositAmount,
+          transaction_hash: txHash,
+          from_address: address!,
+          network: 'BASE',
+        }).catch((error) => console.error('[DepositModal] Failed to record deposit:', error));
+      }
+
+      if (onSuccess && !hasCalledSuccessRef.current) {
+        hasCalledSuccessRef.current = true;
+        onSuccess();
+      }
+    },
+    [isMobile, depositAmount, address, onSuccess]
+  );
 
   const handleOnStatus = useCallback(
     (status: any) => {
@@ -338,37 +365,12 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       }
 
       if (statusName === 'transactionLegacyExecuted' && statusData?.transactionHashList?.[0]) {
-        const txHash = statusData.transactionHashList[0];
-        setTxStatus({ state: 'pending', txHash });
-
-        // Mobile: Process immediately when hash is available
-        if (isMobile && !hasProcessedDepositRef.current) {
-          processDeposit(txHash);
-        }
+        handleTransactionExecuted(statusData.transactionHashList[0]);
         return;
       }
 
       if (statusName === 'success' && statusData?.transactionReceipts?.[0]?.transactionHash) {
-        const txHash = statusData.transactionReceipts[0].transactionHash;
-        setTxStatus({ state: 'success', txHash });
-
-        // Desktop: Process on success (mobile already processed in transactionLegacyExecuted)
-        if (!isMobile && !hasProcessedDepositRef.current && processedTxHashRef.current !== txHash) {
-          hasProcessedDepositRef.current = true;
-          processedTxHashRef.current = txHash;
-
-          TransactionService.saveDeposit({
-            amount: depositAmount,
-            transaction_hash: txHash,
-            from_address: address!,
-            network: 'BASE',
-          }).catch((error) => console.error('[DepositModal] Failed to record deposit:', error));
-        }
-
-        if (onSuccess && !hasCalledSuccessRef.current) {
-          hasCalledSuccessRef.current = true;
-          onSuccess();
-        }
+        handleTransactionSuccess(statusData.transactionReceipts[0].transactionHash);
         return;
       }
 
@@ -379,7 +381,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
         });
       }
     },
-    [depositAmount, address, onSuccess, isMobile, processDeposit]
+    [handleTransactionExecuted, handleTransactionSuccess]
   );
 
   const callsCallback = useCallback(async (): Promise<Call[]> => {
@@ -448,7 +450,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                 </div>
 
                 <div className="space-y-6">
-                  {/* Network Info */}
                   <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-md">
                     <div className="flex items-center gap-3">
                       <img
@@ -463,7 +464,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                     </div>
                   </div>
 
-                  {/* Wallet Balance */}
                   <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Wallet Balance:</span>
@@ -477,7 +477,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                     </div>
                   </div>
 
-                  {/* Amount Input */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-[15px] text-gray-700">Amount to Deposit</span>
@@ -512,7 +511,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                     )}
                   </div>
 
-                  {/* Balance Preview */}
                   <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Current Balance:</span>
@@ -543,7 +541,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                     </div>
                   </div>
 
-                  {/* Transaction Button */}
                   {txStatus.state !== 'success' && txStatus.state !== 'error' && (
                     <Transaction
                       isSponsored={true}
@@ -560,15 +557,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                           <span>Processing...</span>
                         </button>
                       ) : (
-                        <div
-                          onClick={() => isMobile && !isProcessing && setIsProcessing(true)}
-                          onKeyDown={(e) => {
-                            if ((e.key === 'Enter' || e.key === ' ') && isMobile && !isProcessing) {
-                              e.preventDefault();
-                              setIsProcessing(true);
-                            }
-                          }}
-                        >
+                        <div onClick={() => isMobile && !isProcessing && setIsProcessing(true)}>
                           <TransactionButton
                             className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                             disabled={isButtonDisabled || txStatus.state === 'pending'}
@@ -579,7 +568,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                     </Transaction>
                   )}
 
-                  {/* Status Display */}
                   {(txStatus.state === 'success' || txStatus.state === 'error') && (
                     <div className="mt-4 p-4 rounded-lg border">
                       {txStatus.state === 'success' && (
