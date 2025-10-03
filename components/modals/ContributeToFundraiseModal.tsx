@@ -13,12 +13,16 @@ import { FundraiseService } from '@/services/fundraise.service';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { Fundraise } from '@/types/funding';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { ProposalFundedEvent, RelatedWork } from '@/types/analytics';
+import { useDeviceType } from '@/hooks/useDeviceType';
 
 interface ContributeToFundraiseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onContributeSuccess?: () => void;
   fundraise: Fundraise;
+  analyticsRelatedWork: RelatedWork;
 }
 
 // Currency Input Component
@@ -138,8 +142,10 @@ export function ContributeToFundraiseModal({
   onClose,
   onContributeSuccess,
   fundraise,
+  analyticsRelatedWork,
 }: ContributeToFundraiseModalProps) {
   const { user } = useUser();
+  const deviceType = useDeviceType();
   const [inputAmount, setInputAmount] = useState(100);
   const [isContributing, setIsContributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -192,6 +198,16 @@ export function ContributeToFundraiseModal({
       await FundraiseService.contributeToFundraise(fundraise.id, inputAmount);
 
       toast.success('Your contribution has been successfully added to the fundraise.');
+
+      const payload: ProposalFundedEvent = {
+        fundraise_id: fundraise.id?.toString() || '',
+        amount: inputAmount,
+        currency: 'RSC',
+        device_type: deviceType,
+        related_work: analyticsRelatedWork,
+      };
+
+      AnalyticsService.logEventWithUserProperties(LogEvent.PROPOSAL_FUNDED, payload, user);
 
       // Set success flag
       setIsSuccess(true);

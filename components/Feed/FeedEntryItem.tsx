@@ -1,7 +1,6 @@
 'use client';
 
 import { FC } from 'react';
-import { useInView } from 'react-intersection-observer';
 import { FeedCommentContent, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
 import { FeedPostContent, FeedPaperContent, FeedGrantContent } from '@/types/feed';
 import { FeedItemFundraise } from './items/FeedItemFundraise';
@@ -42,10 +41,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   showGrantHeaders = true,
   showReadMoreCTA = false,
 }) => {
-  const { ref, inView } = useInView({
-    threshold: 0.5,
-    rootMargin: '50px',
-  });
   const { user } = useUser();
   const { source: feedSource, tab: feedTab } = useFeedSource();
   const deviceType = useDeviceType();
@@ -269,9 +264,5 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
     );
   }
 
-  return (
-    <div ref={ref} className={spacingClass}>
-      {content}
-    </div>
-  );
+  return <div className={spacingClass}>{content}</div>;
 };

@@ -12,13 +12,19 @@ import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useRouter } from 'next/navigation';
 import { useShareModalContext } from '@/contexts/ShareContext';
+import { RelatedWork } from '@/types/analytics';
 
 interface FundersSectionProps {
   fundraise: Fundraise;
   fundraiseTitle: string;
+  analyticsRelatedWork: RelatedWork;
 }
 
-export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTitle }) => {
+export const FundersSection: FC<FundersSectionProps> = ({
+  fundraise,
+  fundraiseTitle,
+  analyticsRelatedWork,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
   const { showUSD } = useCurrencyPreference();
@@ -135,6 +141,7 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
         onClose={() => setIsContributeModalOpen(false)}
         onContributeSuccess={handleContributeSuccess}
         fundraise={fundraise}
+        analyticsRelatedWork={analyticsRelatedWork}
       />
     </>
   );

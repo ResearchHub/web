@@ -23,6 +23,7 @@ import { useShareModalContext } from '@/contexts/ShareContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '../ui/Button';
+import { convertWorkToRelatedWork } from '@/types/analytics';
 
 interface FundDocumentProps {
   work: Work;
@@ -266,6 +267,7 @@ export const FundDocument = ({
             onContribute={() => {
               // Handle contribute action
             }}
+            analyticsRelatedWork={convertWorkToRelatedWork(work)}
           />
         </div>
       )}
