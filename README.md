@@ -10,7 +10,7 @@ We believe that by empowering scientists to independently fund, create, and publ
 
 ---
 
-# 👀 Important Links
+# 👀 Important Links 👀
 
 💡 Got an idea or request? Found a bug? 🐛 [Open an issue on GitHub](https://github.com/ResearchHub/web/issues).  
 ➕ Want to contribute to this project? [Introduce yourself in our Discord community](https://discord.gg/ZcCYgcnUp5).  
