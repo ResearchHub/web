@@ -7,7 +7,7 @@ import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useAccount } from 'wagmi';
 import { useWalletRSCBalance } from '@/hooks/useWalletRSCBalance';
-import { useDeviceType } from '@/hooks/useDeviceType';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction';
 import { Interface } from 'ethers';
 import { TransactionService } from '@/services/transaction.service';
@@ -56,7 +56,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const hasCalledSuccessRef = useRef(false);
   const hasProcessedDepositRef = useRef(false);
   const processedTxHashRef = useRef<string | null>(null);
-  const isMobile = useDeviceType() === 'mobile';
+  const isMobile = useIsMobile();
 
   // Reset transaction status when modal is closed
   useEffect(() => {
@@ -67,59 +67,51 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     processedTxHashRef.current = null;
   }, [isOpen]);
 
-  // Mobile-specific: Detect when user returns from Coinbase wallet app
+  // Mobile wallet return detection - process deposit when user returns from wallet app
   useEffect(() => {
-    if (!isMobile || !isOpen) return;
+    if (!isMobile || !isOpen || txStatus.state !== 'pending') return;
 
-    const handleVisibilityChange = () => {
-      // User returned to browser from wallet app
-      if (document.visibilityState === 'visible' && txStatus.state === 'pending') {
-        console.log('Mobile: User returned from wallet app, processing deposit');
+    const processMobileDeposit = async () => {
+      if (!hasProcessedDepositRef.current && processedTxHashRef.current) {
+        hasProcessedDepositRef.current = true;
 
-        // Trigger backend processing for mobile users
-        if (!hasProcessedDepositRef.current && processedTxHashRef.current) {
-          hasProcessedDepositRef.current = true;
-
-          TransactionService.saveDeposit({
+        try {
+          await TransactionService.saveDeposit({
             amount: parseInt(amount || '0', 10),
             transaction_hash: processedTxHashRef.current,
             from_address: address!,
             network: 'BASE',
-          })
-            .then(() => {
-              console.log('Mobile: Deposit processed successfully after wallet return');
-              setTxStatus({ state: 'success', txHash: processedTxHashRef.current! });
+          });
 
-              if (onSuccess && !hasCalledSuccessRef.current) {
-                hasCalledSuccessRef.current = true;
-                onSuccess();
-              }
-            })
-            .catch((error) => {
-              console.error('Mobile: Failed to process deposit after wallet return:', error);
-              setTxStatus({
-                state: 'error',
-                message: 'Failed to process deposit. Please try again.',
-              });
-            });
+          setTxStatus({ state: 'success', txHash: processedTxHashRef.current! });
+
+          if (onSuccess && !hasCalledSuccessRef.current) {
+            hasCalledSuccessRef.current = true;
+            onSuccess();
+          }
+        } catch (error) {
+          console.error('Failed to process mobile deposit:', error);
+          setTxStatus({
+            state: 'error',
+            message: 'Failed to process deposit. Please try again.',
+          });
         }
       }
     };
 
-    const handleFocus = () => {
-      // Alternative detection method
-      if (txStatus.state === 'pending') {
-        console.log('Mobile: Window focused, user likely returned from wallet app');
-        handleVisibilityChange();
+    const handleUserReturn = () => {
+      if (document.visibilityState === 'visible') {
+        processMobileDeposit();
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
+    // Listen for user returning to browser
+    document.addEventListener('visibilitychange', handleUserReturn);
+    window.addEventListener('focus', handleUserReturn);
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleUserReturn);
+      window.removeEventListener('focus', handleUserReturn);
     };
   }, [isMobile, isOpen, txStatus.state, amount, address, onSuccess]);
 
@@ -422,9 +414,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                     {isMobile && txStatus.state === 'pending' && (
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                         <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0">
-                            <AlertCircle className="h-5 w-5 text-blue-600" />
-                          </div>
+                          <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                           <div className="flex-1">
                             <h4 className="text-sm font-medium text-blue-800 mb-2">
                               Complete Transaction & Return
