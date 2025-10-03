@@ -91,50 +91,54 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       const currentBlock = await publicClient.getBlockNumber();
       addDebugLog(`Current block: ${currentBlock}`);
 
-      // Check last 5 blocks for transactions from this address
-      const startBlock = currentBlock - BigInt(5);
-
       // Get transaction count to see if any new transactions
       const txCount = await publicClient.getTransactionCount({ address, blockTag: 'latest' });
-      addDebugLog(`Address tx count: ${txCount}`);
-
-      // Look for pending transactions
       const pendingTxCount = await publicClient.getTransactionCount({
         address,
         blockTag: 'pending',
       });
 
+      addDebugLog(`Tx count - confirmed: ${txCount}, pending: ${pendingTxCount}`);
+
       if (pendingTxCount > txCount) {
-        addDebugLog('Found pending transaction!');
-        // There's a pending transaction, wait a bit and check again
+        addDebugLog('Transaction still pending in mempool...');
         return 'pending';
       }
 
-      // Get recent block with transactions
-      const block = await publicClient.getBlock({
-        blockNumber: currentBlock,
-        includeTransactions: true,
-      });
+      // Check last 10 blocks for transactions (Base has ~2 second block time, so this covers ~20 seconds)
+      const blocksToCheck = 10;
+      addDebugLog(`Checking last ${blocksToCheck} blocks...`);
 
-      if (block.transactions && Array.isArray(block.transactions)) {
-        addDebugLog(`Checking ${block.transactions.length} txs in latest block`);
+      for (let i = 0; i < blocksToCheck; i++) {
+        const blockNumber = currentBlock - BigInt(i);
 
-        for (const tx of block.transactions) {
-          if (typeof tx === 'object' && tx.from?.toLowerCase() === address.toLowerCase()) {
-            // Found a transaction from this address
-            const txHash = tx.hash;
-            addDebugLog(`Found tx from address: ${txHash.slice(0, 10)}...`);
+        try {
+          const block = await publicClient.getBlock({
+            blockNumber,
+            includeTransactions: true,
+          });
 
-            // Check if it's to the RSC token contract
-            if (tx.to?.toLowerCase() === RSC.address.toLowerCase()) {
-              addDebugLog(`Tx is to RSC token! Hash: ${txHash}`);
-              return txHash;
+          if (block.transactions && Array.isArray(block.transactions)) {
+            for (const tx of block.transactions) {
+              if (typeof tx === 'object' && tx.from?.toLowerCase() === address.toLowerCase()) {
+                const txHash = tx.hash;
+
+                // Check if it's to the RSC token contract (ERC20 transfer)
+                if (tx.to?.toLowerCase() === RSC.address.toLowerCase()) {
+                  addDebugLog(`✓ Found RSC tx in block ${blockNumber}: ${txHash.slice(0, 10)}...`);
+                  return txHash;
+                }
+              }
             }
           }
+        } catch (blockError) {
+          addDebugLog(
+            `Error checking block ${blockNumber}: ${blockError instanceof Error ? blockError.message : blockError}`
+          );
         }
       }
 
-      addDebugLog('No matching transaction found in latest blocks');
+      addDebugLog(`No RSC transaction found in last ${blocksToCheck} blocks`);
       return null;
     } catch (error) {
       addDebugLog(`Error checking blockchain: ${error instanceof Error ? error.message : error}`);
@@ -186,7 +190,16 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
           })
             .then(() => {
               addDebugLog('API success!');
+
+              // Force state updates to trigger re-render
+              setIsProcessing(false);
               setTxStatus({ state: 'success', txHash: currentTxHash });
+
+              // Force a re-render to ensure UI updates
+              setTimeout(() => {
+                setTxStatus({ state: 'success', txHash: currentTxHash });
+              }, 0);
+
               if (onSuccess && !hasCalledSuccessRef.current) {
                 hasCalledSuccessRef.current = true;
                 onSuccess();
@@ -194,6 +207,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
             })
             .catch((error) => {
               addDebugLog(`API error: ${error.message || error}`);
+              setIsProcessing(false);
             });
           return;
         }
@@ -202,42 +216,72 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
         if (txStatus.state === 'pending' && !txStatus.txHash && !hasProcessedDepositRef.current) {
           addDebugLog('No hash yet - checking blockchain...');
 
-          const result = await checkForRecentTransaction();
+          // Retry mechanism - try up to 5 times with 3 second intervals
+          const maxRetries = 5;
+          let retryCount = 0;
 
-          if (result && result !== 'pending') {
-            // Found a transaction hash!
-            const txHash = result;
-            const currentAmount = parseInt(amount || '0', 10);
+          const pollForTransaction = async () => {
+            retryCount++;
+            addDebugLog(`Polling attempt ${retryCount}/${maxRetries}...`);
 
-            addDebugLog(`Found on blockchain: ${txHash.slice(0, 10)}...`);
-            hasProcessedDepositRef.current = true;
-            processedTxHashRef.current = txHash;
-            setTxStatus({ state: 'pending', txHash });
+            const result = await checkForRecentTransaction();
 
-            TransactionService.saveDeposit({
-              amount: currentAmount,
-              transaction_hash: txHash,
-              from_address: address!,
-              network: 'BASE',
-            })
-              .then(() => {
-                addDebugLog('Blockchain tx processed successfully!');
-                setTxStatus({ state: 'success', txHash });
-                if (onSuccess && !hasCalledSuccessRef.current) {
-                  hasCalledSuccessRef.current = true;
-                  onSuccess();
-                }
+            if (result && result !== 'pending') {
+              // Found a transaction hash!
+              const txHash = result;
+              const currentAmount = parseInt(amount || '0', 10);
+
+              addDebugLog(`Found on blockchain: ${txHash.slice(0, 10)}...`);
+              hasProcessedDepositRef.current = true;
+              processedTxHashRef.current = txHash;
+              setTxStatus({ state: 'pending', txHash });
+
+              TransactionService.saveDeposit({
+                amount: currentAmount,
+                transaction_hash: txHash,
+                from_address: address!,
+                network: 'BASE',
               })
-              .catch((error) => {
-                addDebugLog(`API error: ${error.message || error}`);
-              });
-          } else if (result === 'pending') {
-            addDebugLog('Transaction still pending on blockchain...');
-            // Keep polling
-            setTimeout(handleVisibilityChange, 2000);
-          } else {
-            addDebugLog('No transaction found yet - will retry on next focus');
-          }
+                .then(() => {
+                  addDebugLog('✓ Deposit processed successfully!');
+
+                  // Force state updates to trigger re-render
+                  setIsProcessing(false);
+                  setTxStatus({ state: 'success', txHash });
+
+                  // Force a re-render to ensure UI updates
+                  setTimeout(() => {
+                    setTxStatus({ state: 'success', txHash });
+                  }, 0);
+
+                  if (onSuccess && !hasCalledSuccessRef.current) {
+                    hasCalledSuccessRef.current = true;
+                    onSuccess();
+                  }
+                })
+                .catch((error) => {
+                  addDebugLog(`API error: ${error.message || error}`);
+                  setIsProcessing(false);
+                });
+            } else if (result === 'pending') {
+              addDebugLog('Tx still in mempool, waiting...');
+              if (retryCount < maxRetries) {
+                setTimeout(pollForTransaction, 3000);
+              } else {
+                addDebugLog('Max retries reached - tx may still be pending');
+              }
+            } else {
+              // Not found, retry
+              if (retryCount < maxRetries) {
+                addDebugLog(`Not found yet, retrying in 3s...`);
+                setTimeout(pollForTransaction, 3000);
+              } else {
+                addDebugLog('Max retries - tx not found. Try refreshing balance.');
+              }
+            }
+          };
+
+          pollForTransaction();
         }
       }
     };
@@ -594,28 +638,30 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                     </div>
 
                     {/* Transaction Button */}
-                    <Transaction
-                      isSponsored={true}
-                      chainId={RSC.chainId}
-                      calls={callsCallback}
-                      onStatus={handleOnStatus}
-                    >
-                      <div
-                        onClick={() => {
-                          // Mobile: Set processing immediately on click (step 1)
-                          if (isMobile && !isProcessing) {
-                            addDebugLog('Button clicked - processing starts');
-                            setIsProcessing(true);
-                          }
-                        }}
+                    {txStatus.state !== 'success' && txStatus.state !== 'error' && (
+                      <Transaction
+                        isSponsored={true}
+                        chainId={RSC.chainId}
+                        calls={callsCallback}
+                        onStatus={handleOnStatus}
                       >
-                        <TransactionButton
-                          className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                          disabled={isButtonDisabled || txStatus.state === 'pending'}
-                          text={'Deposit RSC'}
-                        />
-                      </div>
-                    </Transaction>
+                        <div
+                          onClick={() => {
+                            // Mobile: Set processing immediately on click (step 1)
+                            if (isMobile && !isProcessing) {
+                              addDebugLog('Button clicked - processing starts');
+                              setIsProcessing(true);
+                            }
+                          }}
+                        >
+                          <TransactionButton
+                            className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                            disabled={isButtonDisabled || txStatus.state === 'pending'}
+                            text={'Deposit RSC'}
+                          />
+                        </div>
+                      </Transaction>
+                    )}
 
                     {/* Mobile Debug Panel */}
                     {isMobile && debugLogs.length > 0 && (
