@@ -2,7 +2,7 @@
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react';
 import { Fragment, useCallback, useMemo, useState, useEffect, useRef } from 'react';
-import { X as XIcon, Check, AlertCircle } from 'lucide-react';
+import { X as XIcon, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useAccount, useWaitForTransactionReceipt } from 'wagmi';
@@ -169,6 +169,30 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible') {
         addDebugLog('User returned to page');
+
+        // Mobile: Immediately close any OnchainKit modals/popups when returning from wallet
+        if (isMobile) {
+          // Close any open OnchainKit wallet modals
+          const closeButtons = document.querySelectorAll(
+            '[data-testid="ockCloseButton"], button[aria-label="Close"]'
+          );
+          closeButtons.forEach((button) => {
+            if (button instanceof HTMLElement) {
+              button.click();
+            }
+          });
+
+          // Also try to close any backdrop/overlay
+          const overlays = document.querySelectorAll(
+            '[role="dialog"] + div, .ock-backdrop, [class*="backdrop"]'
+          );
+          overlays.forEach((overlay) => {
+            if (overlay instanceof HTMLElement && overlay.style.display !== 'none') {
+              overlay.style.display = 'none';
+            }
+          });
+        }
+
         addDebugLog(
           `txStatus: ${txStatus.state}, hasHash: ${!!txStatus.txHash}, processed: ${hasProcessedDepositRef.current}`
         );
@@ -645,21 +669,32 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                         calls={callsCallback}
                         onStatus={handleOnStatus}
                       >
-                        <div
-                          onClick={() => {
-                            // Mobile: Set processing immediately on click (step 1)
-                            if (isMobile && !isProcessing) {
-                              addDebugLog('Button clicked - processing starts');
-                              setIsProcessing(true);
-                            }
-                          }}
-                        >
-                          <TransactionButton
-                            className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                            disabled={isButtonDisabled || txStatus.state === 'pending'}
-                            text={'Deposit RSC'}
-                          />
-                        </div>
+                        {isMobile && isProcessing ? (
+                          // Mobile: Show custom loading button immediately when processing starts
+                          <button
+                            disabled
+                            className="w-full h-12 bg-primary-400 text-white rounded-lg font-medium transition-colors opacity-75 cursor-not-allowed shadow-md flex items-center justify-center gap-2"
+                          >
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            <span>Processing...</span>
+                          </button>
+                        ) : (
+                          <div
+                            onClick={() => {
+                              // Mobile: Set processing immediately on click (step 1)
+                              if (isMobile && !isProcessing) {
+                                addDebugLog('Button clicked - processing starts');
+                                setIsProcessing(true);
+                              }
+                            }}
+                          >
+                            <TransactionButton
+                              className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                              disabled={isButtonDisabled || txStatus.state === 'pending'}
+                              text={'Deposit RSC'}
+                            />
+                          </div>
+                        )}
                       </Transaction>
                     )}
 
