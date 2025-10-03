@@ -55,13 +55,13 @@ type TransactionStatus =
 const closeWalletPopups = () => {
   const elements = document.querySelectorAll('div, aside, section');
 
-  elements.forEach((el) => {
-    if (!(el instanceof HTMLElement)) return;
+  for (const el of elements) {
+    if (!(el instanceof HTMLElement)) continue;
 
-    const styles = window.getComputedStyle(el);
+    const styles = globalThis.getComputedStyle(el);
     const isPositioned = styles.position === 'fixed' || styles.position === 'absolute';
     const isVisible = styles.display !== 'none' && styles.visibility !== 'hidden';
-    const hasHighZIndex = parseInt(styles.zIndex || '0') > 40;
+    const hasHighZIndex = Number.parseInt(styles.zIndex || '0', 10) > 40;
 
     if (isPositioned && isVisible && hasHighZIndex) {
       const text = el.textContent || '';
@@ -76,7 +76,7 @@ const closeWalletPopups = () => {
         let parent = el.parentElement;
         let depth = 0;
         while (parent && parent !== document.body && depth < 3) {
-          const parentStyles = window.getComputedStyle(parent);
+          const parentStyles = globalThis.getComputedStyle(parent);
           if (parentStyles.position === 'fixed' || parentStyles.position === 'absolute') {
             parent.style.display = 'none';
             break;
@@ -86,7 +86,7 @@ const closeWalletPopups = () => {
         }
       }
     }
-  });
+  }
 };
 
 export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: DepositModalProps) {
@@ -107,7 +107,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const isMobile = useIsMobile();
 
   // Derived values
-  const depositAmount = useMemo(() => parseInt(amount || '0', 10), [amount]);
+  const depositAmount = useMemo(() => Number.parseInt(amount || '0', 10), [amount]);
   const newBalance = useMemo(() => currentBalance + depositAmount, [currentBalance, depositAmount]);
 
   const isButtonDisabled = useMemo(
@@ -169,44 +169,77 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     [depositAmount, address, onSuccess]
   );
 
+  // Helper: Check if there are pending transactions
+  const hasPendingTransactions = useCallback(async (): Promise<boolean> => {
+    if (!publicClient || !address) return false;
+
+    const txCount = await publicClient.getTransactionCount({ address, blockTag: 'latest' });
+    const pendingTxCount = await publicClient.getTransactionCount({
+      address,
+      blockTag: 'pending',
+    });
+
+    return pendingTxCount > txCount;
+  }, [publicClient, address]);
+
+  // Helper: Check if transaction matches RSC deposit criteria
+  const isRSCDepositTransaction = useCallback(
+    (tx: unknown): boolean => {
+      if (typeof tx !== 'object' || !tx) return false;
+
+      const transaction = tx as { from?: string; to?: string; hash?: string };
+      const isFromUser = transaction.from?.toLowerCase() === address?.toLowerCase();
+      const isToRSCContract = transaction.to?.toLowerCase() === RSC.address.toLowerCase();
+
+      return isFromUser && isToRSCContract;
+    },
+    [address]
+  );
+
+  // Helper: Search a single block for matching transactions
+  const searchBlockForTransaction = useCallback(
+    async (blockNumber: bigint): Promise<string | null> => {
+      try {
+        const block = await publicClient?.getBlock({
+          blockNumber,
+          includeTransactions: true,
+        });
+
+        if (!block?.transactions || !Array.isArray(block.transactions)) {
+          return null;
+        }
+
+        for (const tx of block.transactions) {
+          if (isRSCDepositTransaction(tx)) {
+            return (tx as { hash: string }).hash;
+          }
+        }
+
+        return null;
+      } catch (blockError) {
+        console.error('[DepositModal] Error checking block:', blockError);
+        return null;
+      }
+    },
+    [publicClient, isRSCDepositTransaction]
+  );
+
   // Check blockchain for recent transactions
-  const checkForRecentTransaction = useCallback(async (): Promise<string | 'pending' | null> => {
+  const checkForRecentTransaction = useCallback(async (): Promise<string | null> => {
     if (!publicClient || !address) return null;
 
     try {
-      const currentBlock = await publicClient.getBlockNumber();
-      const txCount = await publicClient.getTransactionCount({ address, blockTag: 'latest' });
-      const pendingTxCount = await publicClient.getTransactionCount({
-        address,
-        blockTag: 'pending',
-      });
-
-      if (pendingTxCount > txCount) {
-        return 'pending';
+      // Check for pending transactions first
+      if (await hasPendingTransactions()) {
+        return 'pending' as const;
       }
 
-      // Check last N blocks for RSC token transfers from this address
-      for (let i = 0; i < BLOCKS_TO_CHECK; i++) {
-        try {
-          const block = await publicClient.getBlock({
-            blockNumber: currentBlock - BigInt(i),
-            includeTransactions: true,
-          });
+      // Search recent blocks for matching transactions
+      const currentBlock = await publicClient.getBlockNumber();
 
-          if (block.transactions && Array.isArray(block.transactions)) {
-            for (const tx of block.transactions) {
-              if (
-                typeof tx === 'object' &&
-                tx.from?.toLowerCase() === address.toLowerCase() &&
-                tx.to?.toLowerCase() === RSC.address.toLowerCase()
-              ) {
-                return tx.hash;
-              }
-            }
-          }
-        } catch (blockError) {
-          console.error('[DepositModal] Error checking block:', blockError);
-        }
+      for (let i = 0; i < BLOCKS_TO_CHECK; i++) {
+        const txHash = await searchBlockForTransaction(currentBlock - BigInt(i));
+        if (txHash) return txHash;
       }
 
       return null;
@@ -214,7 +247,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       console.error('[DepositModal] Error checking blockchain:', error);
       return null;
     }
-  }, [publicClient, address]);
+  }, [publicClient, address, hasPendingTransactions, searchBlockForTransaction]);
 
   // Reset state when modal closes
   useEffect(() => {
@@ -268,11 +301,11 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleVisibilityChange);
+    globalThis.addEventListener('focus', handleVisibilityChange);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleVisibilityChange);
+      globalThis.removeEventListener('focus', handleVisibilityChange);
     };
   }, [isMobile, isOpen, txStatus, checkForRecentTransaction, processDeposit]);
 
@@ -535,8 +568,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                               setIsProcessing(true);
                             }
                           }}
-                          role="button"
-                          tabIndex={0}
                         >
                           <TransactionButton
                             className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
