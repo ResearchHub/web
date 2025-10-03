@@ -58,6 +58,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const processedTxHashRef = useRef<string | null>(null);
   const isMobile = useIsMobile();
   const [isMobileProcessing, setIsMobileProcessing] = useState(false);
+  const [isButtonClicked, setIsButtonClicked] = useState(false);
 
   // Reset transaction status when modal is closed
   useEffect(() => {
@@ -67,6 +68,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     hasProcessedDepositRef.current = false;
     processedTxHashRef.current = null;
     setIsMobileProcessing(false);
+    setIsButtonClicked(false);
   }, [isOpen]);
 
   // Mobile return detection - more aggressive approach
@@ -190,9 +192,10 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       !amount ||
       depositAmount <= 0 ||
       depositAmount > walletBalance ||
-      (isMobileDevice && isMobileProcessing)
+      (isMobileDevice && isMobileProcessing) ||
+      isButtonClicked // Immediate debounce protection
     );
-  }, [address, amount, depositAmount, walletBalance, isMobileProcessing]);
+  }, [address, amount, depositAmount, walletBalance, isMobileProcessing, isButtonClicked]);
 
   // Function to check if inputs should be disabled
   const isInputDisabled = useCallback(() => {
@@ -287,6 +290,18 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     },
     [depositAmount, address, onSuccess]
   );
+
+  // Handle button click with immediate debounce
+  const handleButtonClick = useCallback(() => {
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+    if (isMobileDevice) {
+      setIsButtonClicked(true);
+      setIsMobileProcessing(true);
+      console.log('Mobile: Button clicked - immediate debounce applied');
+    }
+  }, []);
 
   const callsCallback = useCallback(async () => {
     if (!depositAmount || depositAmount <= 0) {
@@ -474,26 +489,28 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                       calls={callsCallback}
                       onStatus={handleOnStatus}
                     >
-                      <TransactionButton
-                        className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                        disabled={isButtonDisabled || txStatus.state === 'pending'}
-                        text={(() => {
-                          const isMobileDevice =
-                            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-                              navigator.userAgent
-                            );
-                          if (isMobileDevice && isMobileProcessing) {
-                            return 'Processing...';
-                          }
-                          if (txStatus.state === 'buildingTransaction') {
-                            return 'Building Transaction...';
-                          }
-                          if (txStatus.state === 'pending') {
-                            return 'Transaction Pending...';
-                          }
-                          return 'Deposit RSC';
-                        })()}
-                      />
+                      <div onClick={handleButtonClick}>
+                        <TransactionButton
+                          className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                          disabled={isButtonDisabled || txStatus.state === 'pending'}
+                          text={(() => {
+                            const isMobileDevice =
+                              /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                                navigator.userAgent
+                              );
+                            if (isMobileDevice && (isMobileProcessing || isButtonClicked)) {
+                              return 'Processing...';
+                            }
+                            if (txStatus.state === 'buildingTransaction') {
+                              return 'Building Transaction...';
+                            }
+                            if (txStatus.state === 'pending') {
+                              return 'Transaction Pending...';
+                            }
+                            return 'Deposit RSC';
+                          })()}
+                        />
+                      </div>
                     </Transaction>
 
                     {/* Transaction Status Display */}
