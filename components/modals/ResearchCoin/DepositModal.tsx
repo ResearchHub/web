@@ -172,35 +172,68 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
         // Mobile: Immediately close any OnchainKit modals/popups when returning from wallet
         if (isMobile) {
-          // Close OnchainKit wallet modals specifically (not our DepositModal)
-          // Look for OnchainKit-specific elements
-          const ockWalletModal = document.querySelector(
-            '[class*="ock-wallet"], [class*="ockWallet"], [id*="ock-modal"]'
-          );
-          if (ockWalletModal) {
-            const closeButton = ockWalletModal.querySelector(
-              'button[aria-label="Close"], button[type="button"]'
-            );
-            if (closeButton instanceof HTMLElement) {
-              closeButton.click();
-            }
-            // If no close button, try to hide the modal directly
-            if (ockWalletModal instanceof HTMLElement) {
-              ockWalletModal.style.display = 'none';
-            }
-          }
+          addDebugLog('Attempting to close OnchainKit popup...');
 
-          // Also close any OnchainKit-specific overlays (not the DepositModal backdrop)
-          const ockOverlays = document.querySelectorAll(
-            '[class*="ock-backdrop"], [class*="ockBackdrop"]'
-          );
-          ockOverlays.forEach((overlay) => {
-            if (overlay instanceof HTMLElement) {
-              overlay.style.display = 'none';
+          // Strategy 1: Find all dialogs and close ones that aren't our DepositModal
+          const allDialogs = document.querySelectorAll('[role="dialog"]');
+          addDebugLog(`Found ${allDialogs.length} dialogs total`);
+
+          allDialogs.forEach((dialog, index) => {
+            // Check if this is NOT our DepositModal (our modal contains "Deposit RSC" title)
+            const isDepositModal = dialog.textContent?.includes('Deposit RSC');
+            if (!isDepositModal) {
+              addDebugLog(`Closing dialog ${index} (not DepositModal)`);
+
+              // Try to find and click close button
+              const closeBtn = dialog.querySelector(
+                'button[aria-label*="lose"], button[aria-label*="Close"], button[class*="close"]'
+              );
+              if (closeBtn instanceof HTMLElement) {
+                closeBtn.click();
+                addDebugLog('Clicked close button');
+              }
+
+              // Force hide the dialog and its parent
+              if (dialog instanceof HTMLElement) {
+                dialog.style.display = 'none';
+                if (dialog.parentElement) {
+                  dialog.parentElement.style.display = 'none';
+                }
+              }
             }
           });
 
-          addDebugLog('Closed OnchainKit popups');
+          // Strategy 2: Remove all elements with wallet-specific classes/attributes
+          const walletElements = document.querySelectorAll(
+            '[class*="wallet"], [class*="Wallet"], [data-testid*="wallet"], iframe[src*="wallet"], iframe[src*="coinbase"]'
+          );
+          addDebugLog(`Found ${walletElements.length} wallet-related elements`);
+
+          walletElements.forEach((el) => {
+            if (
+              el instanceof HTMLElement &&
+              !el.closest('[role="dialog"]')?.textContent?.includes('Deposit RSC')
+            ) {
+              el.style.display = 'none';
+              if (el.parentElement) {
+                el.parentElement.style.display = 'none';
+              }
+            }
+          });
+
+          // Strategy 3: Remove all backdrops except the one for DepositModal
+          const allBackdrops = document.querySelectorAll('[class*="backdrop"], [class*="overlay"]');
+          addDebugLog(`Found ${allBackdrops.length} backdrops`);
+
+          allBackdrops.forEach((backdrop) => {
+            // Check if backdrop is for our modal (next sibling contains "Deposit RSC")
+            const isOurBackdrop = backdrop.nextElementSibling?.textContent?.includes('Deposit RSC');
+            if (!isOurBackdrop && backdrop instanceof HTMLElement) {
+              backdrop.style.display = 'none';
+            }
+          });
+
+          addDebugLog('✓ Finished closing OnchainKit elements');
         }
 
         addDebugLog(
