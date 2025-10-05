@@ -56,8 +56,14 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   });
 
   const isButtonDisabled = useMemo(
-    () => !address || !amount || depositAmount <= 0 || depositAmount > walletBalance,
-    [address, amount, depositAmount, walletBalance]
+    () =>
+      !address ||
+      !amount ||
+      depositAmount <= 0 ||
+      depositAmount > walletBalance ||
+      txStatus.state === 'buildingTransaction' ||
+      txStatus.state === 'pending',
+    [address, amount, depositAmount, walletBalance, txStatus.state]
   );
 
   const isInputDisabled = useMemo(
@@ -239,40 +245,52 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                     </div>
                   </div>
 
-                  <Transaction
-                    isSponsored={true}
-                    chainId={RSC.chainId}
-                    calls={callsCallback}
-                    onStatus={handleOnStatus}
-                  >
-                    <TransactionButton
-                      className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                      disabled={isButtonDisabled}
-                      text="Deposit RSC"
-                      pendingOverride={
-                        isMobile
-                          ? {
-                              text: (
-                                <span className="flex items-center justify-center gap-2">
-                                  <Loader2 className="h-5 w-5 animate-spin" />
-                                  <span>Processing...</span>
-                                </span>
-                              ),
-                            }
-                          : undefined
-                      }
-                    />
-                  </Transaction>
+                  {txStatus.state !== 'success' && txStatus.state !== 'error' && (
+                    <Transaction
+                      isSponsored={true}
+                      chainId={RSC.chainId}
+                      calls={callsCallback}
+                      onStatus={handleOnStatus}
+                    >
+                      <TransactionButton
+                        className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                        disabled={isButtonDisabled}
+                        text="Deposit RSC"
+                        pendingOverride={
+                          isMobile
+                            ? {
+                                text: (
+                                  <span className="flex items-center justify-center gap-2">
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                    <span>Processing...</span>
+                                  </span>
+                                ),
+                              }
+                            : undefined
+                        }
+                      />
+                    </Transaction>
+                  )}
 
-                  {txStatus.state === 'success' && (
-                    <div className="mt-4 p-4 rounded-lg border border-green-200 bg-green-50">
-                      <div className="flex items-center text-green-600 mb-2">
-                        <Check className="mr-2 h-5 w-5" />
-                        <span className="font-medium">Deposit successful!</span>
+                  {txStatus.state === 'success' && txStatus.txHash && (
+                    <div className="space-y-3">
+                      <a
+                        href={`https://${IS_PRODUCTION ? 'basescan.org' : 'sepolia.basescan.org'}/tx/${txStatus.txHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center w-full h-12 bg-indigo-600 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
+                      >
+                        View transaction
+                      </a>
+                      <div className="p-4 rounded-lg border border-green-200 bg-green-50">
+                        <div className="flex items-center text-green-600 mb-2">
+                          <Check className="mr-2 h-5 w-5" />
+                          <span className="font-medium">Deposit successful!</span>
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          It can take up to 10-20 minutes for the deposit to appear in your account.
+                        </p>
                       </div>
-                      <p className="text-sm text-gray-600">
-                        It can take up to 10-20 minutes for the deposit to appear in your account.
-                      </p>
                     </div>
                   )}
 
