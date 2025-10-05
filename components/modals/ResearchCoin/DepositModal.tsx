@@ -254,7 +254,16 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                       calls={callsCallback}
                       onStatus={handleOnStatus}
                     >
-                      <div onClick={handleInitiateTransaction}>
+                      <div
+                        onClick={handleInitiateTransaction}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleInitiateTransaction();
+                          }
+                        }}
+                        role="presentation"
+                      >
                         <TransactionButton
                           className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                           disabled={isButtonDisabled}
