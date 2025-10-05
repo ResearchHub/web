@@ -3,7 +3,6 @@ import { useAccount, usePublicClient } from 'wagmi';
 import { TransactionService } from '@/services/transaction.service';
 import { RSC } from '@/constants/tokens';
 import { closeWalletPopups } from '@/components/wallet/lib/utils';
-import type { Address } from 'viem';
 
 const BLOCKS_TO_CHECK = 10;
 const MAX_POLLING_RETRIES = 5;
