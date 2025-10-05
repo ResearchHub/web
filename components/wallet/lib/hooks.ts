@@ -25,6 +25,8 @@ interface UseDepositTransactionParams {
 interface UseDepositTransactionReturn {
   txStatus: TransactionStatus;
   setTxStatus: React.Dispatch<React.SetStateAction<TransactionStatus>>;
+  isInitiating: boolean;
+  handleInitiateTransaction: () => void;
   handleTransactionExecuted: (txHash: string) => void;
   handleTransactionSuccess: (txHash: string) => void;
   handleOnStatus: (status: any) => void;
@@ -41,6 +43,7 @@ export function useDepositTransaction({
   onSuccess,
 }: UseDepositTransactionParams): UseDepositTransactionReturn {
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
+  const [isInitiating, setIsInitiating] = useState(false);
 
   const hasCalledSuccessRef = useRef(false);
   const hasProcessedDepositRef = useRef(false);
@@ -53,11 +56,19 @@ export function useDepositTransaction({
   useEffect(() => {
     if (!isOpen) {
       setTxStatus({ state: 'idle' });
+      setIsInitiating(false);
       hasCalledSuccessRef.current = false;
       hasProcessedDepositRef.current = false;
       processedTxHashRef.current = null;
     }
   }, [isOpen]);
+
+  // Reset isInitiating once transaction state changes
+  useEffect(() => {
+    if (txStatus.state !== 'idle' && isInitiating) {
+      setIsInitiating(false);
+    }
+  }, [txStatus.state, isInitiating]);
 
   /**
    * Process deposit by saving to backend and updating status
@@ -184,6 +195,13 @@ export function useDepositTransaction({
       return null;
     }
   }, [publicClient, address, hasPendingTransactions, searchBlockForTransaction]);
+
+  /**
+   * Handle button click to initiate transaction
+   */
+  const handleInitiateTransaction = useCallback(() => {
+    setIsInitiating(true);
+  }, []);
 
   /**
    * Handle transaction executed event (mobile flow)
@@ -315,6 +333,8 @@ export function useDepositTransaction({
   return {
     txStatus,
     setTxStatus,
+    isInitiating,
+    handleInitiateTransaction,
     handleTransactionExecuted,
     handleTransactionSuccess,
     handleOnStatus,

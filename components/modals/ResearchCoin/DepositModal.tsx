@@ -48,12 +48,13 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const depositAmount = useMemo(() => Number.parseInt(amount || '0', 10), [amount]);
   const newBalance = useMemo(() => currentBalance + depositAmount, [currentBalance, depositAmount]);
 
-  const { txStatus, setTxStatus, handleOnStatus } = useDepositTransaction({
-    depositAmount,
-    isMobile,
-    isOpen,
-    onSuccess,
-  });
+  const { txStatus, setTxStatus, isInitiating, handleInitiateTransaction, handleOnStatus } =
+    useDepositTransaction({
+      depositAmount,
+      isMobile,
+      isOpen,
+      onSuccess,
+    });
 
   const isButtonDisabled = useMemo(
     () =>
@@ -61,9 +62,10 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       !amount ||
       depositAmount <= 0 ||
       depositAmount > walletBalance ||
+      isInitiating ||
       txStatus.state === 'buildingTransaction' ||
       txStatus.state === 'pending',
-    [address, amount, depositAmount, walletBalance, txStatus.state]
+    [address, amount, depositAmount, walletBalance, isInitiating, txStatus.state]
   );
 
   const isInputDisabled = useMemo(
@@ -79,7 +81,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     setTxStatus({ state: 'idle' });
     setAmount('');
     onClose();
-  }, [onClose]);
+  }, [onClose, setTxStatus]);
 
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -252,23 +254,25 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                       calls={callsCallback}
                       onStatus={handleOnStatus}
                     >
-                      <TransactionButton
-                        className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                        disabled={isButtonDisabled}
-                        text="Deposit RSC"
-                        pendingOverride={
-                          isMobile
-                            ? {
-                                text: (
-                                  <span className="flex items-center justify-center gap-2">
-                                    <Loader2 className="h-5 w-5 animate-spin" />
-                                    <span>Processing...</span>
-                                  </span>
-                                ),
-                              }
-                            : undefined
-                        }
-                      />
+                      <div onClick={handleInitiateTransaction}>
+                        <TransactionButton
+                          className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                          disabled={isButtonDisabled}
+                          text="Deposit RSC"
+                          pendingOverride={
+                            isMobile
+                              ? {
+                                  text: (
+                                    <span className="flex items-center justify-center gap-2">
+                                      <Loader2 className="h-5 w-5 animate-spin" />
+                                      <span>Processing...</span>
+                                    </span>
+                                  ),
+                                }
+                              : undefined
+                          }
+                        />
+                      </div>
                     </Transaction>
                   )}
 
