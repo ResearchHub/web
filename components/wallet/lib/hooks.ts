@@ -34,6 +34,7 @@ interface UseDepositTransactionReturn {
   isButtonDisabled: boolean;
   callsCallback: () => Promise<Call[]>;
   handleOnStatus: (status: any) => void;
+  initiateTransaction: () => void;
 }
 
 export function useDepositTransaction({
@@ -89,6 +90,10 @@ export function useDepositTransaction({
 
     return [transferCall];
   }, [depositAmount, walletBalance]);
+
+  const initiateTransaction = useCallback(() => {
+    setTxStatus({ state: 'buildingTransaction' });
+  }, []);
 
   const handleOnStatus = useCallback(
     (status: any) => {
@@ -154,5 +159,6 @@ export function useDepositTransaction({
     isButtonDisabled,
     callsCallback,
     handleOnStatus,
+    initiateTransaction,
   };
 }

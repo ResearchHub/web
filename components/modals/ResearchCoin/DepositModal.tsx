@@ -32,12 +32,13 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
   const depositAmount = useMemo(() => parseInt(amount || '0', 10), [amount]);
 
-  const { txStatus, isButtonDisabled, callsCallback, handleOnStatus } = useDepositTransaction({
-    depositAmount,
-    walletBalance,
-    isOpen,
-    onSuccess,
-  });
+  const { txStatus, isButtonDisabled, callsCallback, handleOnStatus, initiateTransaction } =
+    useDepositTransaction({
+      depositAmount,
+      walletBalance,
+      isOpen,
+      onSuccess,
+    });
 
   const isInputDisabled = useMemo(
     () =>
@@ -208,11 +209,13 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                     calls={callsCallback}
                     onStatus={handleOnStatus}
                   >
-                    <TransactionButton
-                      className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                      disabled={isButtonDisabled}
-                      text="Deposit RSC"
-                    />
+                    <div onClick={initiateTransaction} role="presentation">
+                      <TransactionButton
+                        className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                        disabled={isButtonDisabled}
+                        text="Deposit RSC"
+                      />
+                    </div>
                   </Transaction>
 
                   {/* Transaction Status Display */}
