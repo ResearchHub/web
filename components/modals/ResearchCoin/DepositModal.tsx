@@ -88,6 +88,27 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     }
   }, [isOpen]);
 
+  // CRITICAL: Force Transaction remount when returning from wallet app on mobile
+  // OnchainKit loses connection when switching apps, so remounting forces re-check
+  useEffect(() => {
+    if (!isOpen || txStatus.state !== 'processing') return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log(
+          '[DepositModal] 🔄 Page became visible while processing - remounting Transaction to force re-check'
+        );
+        setTransactionKey((prev) => prev + 1);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isOpen, txStatus.state]);
+
   // Log transaction status changes
   useEffect(() => {
     console.log('[DepositModal] Transaction status changed:', txStatus);
