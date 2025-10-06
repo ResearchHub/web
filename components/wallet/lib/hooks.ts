@@ -141,18 +141,29 @@ export function useDepositTransaction({
       console.log('[useDepositTransaction] ⚡ onStatus fired!', {
         statusName,
         statusData,
-        fullStatus: status,
         timestamp: new Date().toISOString(),
       });
 
-      // Comprehensive hash capture: check ALL possible locations
+      // Deep inspection of the entire status object
+      console.log(
+        '[useDepositTransaction] 🔍 FULL STATUS OBJECT:',
+        JSON.stringify(status, null, 2)
+      );
+
+      // Comprehensive hash capture: check ALL possible locations in status object
       const possibleHash =
         statusData?.transactionHash ||
         statusData?.transactionReceipts?.[0]?.transactionHash ||
         statusData?.receipt?.transactionHash ||
         statusData?.hash ||
         statusData?.txHash ||
-        status?.transactionHash;
+        status?.transactionHash ||
+        status?.hash ||
+        status?.txHash ||
+        status?.receipt?.transactionHash ||
+        status?.transaction?.hash ||
+        status?.data?.transactionHash ||
+        status?.data?.hash;
 
       if (possibleHash && !pendingTxHash) {
         console.log(
@@ -170,10 +181,19 @@ export function useDepositTransaction({
       // Set to processing when transaction starts
       if (statusName === 'buildingTransaction' || statusName === 'transactionPending') {
         console.log('[useDepositTransaction] Setting status to processing');
-        console.log(
-          '[useDepositTransaction] 📤 Transaction being built/sent - statusData:',
-          statusData
-        );
+        console.log('[useDepositTransaction] 📤 Transaction being built/sent');
+        console.log('[useDepositTransaction] 🔎 Searching for hash at this stage...');
+        console.log('[useDepositTransaction] - statusData:', statusData);
+        console.log('[useDepositTransaction] - status object keys:', Object.keys(status));
+
+        // Try to extract hash from any nested property
+        const allKeys = Object.keys(status);
+        for (const key of allKeys) {
+          if (status[key] && typeof status[key] === 'object') {
+            console.log(`[useDepositTransaction] - status.${key}:`, status[key]);
+          }
+        }
+
         setTxStatus({ state: 'processing' });
         return;
       }
@@ -238,9 +258,14 @@ export function useDepositTransaction({
   const handleOnSuccess = useCallback(
     (response: any) => {
       console.log('[useDepositTransaction] 🎉 onSuccess fired!', {
-        response,
         timestamp: new Date().toISOString(),
       });
+
+      // Deep inspection of the entire response object
+      console.log(
+        '[useDepositTransaction] 🔍 FULL SUCCESS RESPONSE:',
+        JSON.stringify(response, null, 2)
+      );
 
       const txHash = response?.transactionReceipts?.[0]?.transactionHash;
 
