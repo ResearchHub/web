@@ -2,15 +2,15 @@
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react';
 import { Fragment, useCallback, useMemo, useState } from 'react';
-import { X as XIcon, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { X as XIcon, Check } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import { Interface } from 'ethers';
 import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useWalletRSCBalance } from '@/hooks/useWalletRSCBalance';
-import { useIsMobile } from '@/hooks/useIsMobile';
 import { useDepositTransaction } from '@/components/wallet/lib';
+import { Input } from '@/components/ui/form/Input';
 import { RSC, TRANSFER_ABI } from '@/constants/tokens';
 
 const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
@@ -43,15 +43,13 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
   const { address } = useAccount();
   const { balance: walletBalance } = useWalletRSCBalance();
-  const isMobile = useIsMobile();
 
   const depositAmount = useMemo(() => Number.parseInt(amount || '0', 10), [amount]);
   const newBalance = useMemo(() => currentBalance + depositAmount, [currentBalance, depositAmount]);
 
-  const { txStatus, setTxStatus, isInitiating, handleInitiateTransaction, handleOnStatus } =
+  const { txStatus, isInitiating, handleInitiateTransaction, handleOnStatus } =
     useDepositTransaction({
       depositAmount,
-      isMobile,
       isOpen,
       onSuccess,
     });
@@ -63,25 +61,19 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       depositAmount <= 0 ||
       depositAmount > walletBalance ||
       isInitiating ||
-      txStatus.state === 'buildingTransaction' ||
-      txStatus.state === 'pending',
+      txStatus.state === 'processing',
     [address, amount, depositAmount, walletBalance, isInitiating, txStatus.state]
   );
 
   const isInputDisabled = useMemo(
-    () =>
-      !address ||
-      txStatus.state === 'buildingTransaction' ||
-      txStatus.state === 'pending' ||
-      txStatus.state === 'success',
+    () => !address || txStatus.state === 'processing' || txStatus.state === 'success',
     [address, txStatus.state]
   );
 
   const handleClose = useCallback(() => {
-    setTxStatus({ state: 'idle' });
     setAmount('');
     onClose();
-  }, [onClose, setTxStatus]);
+  }, [onClose]);
 
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -184,8 +176,8 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                   </div>
 
                   <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[15px] text-gray-700">Amount to Deposit</span>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-semibold text-gray-700">Amount to Deposit</span>
                       <button
                         onClick={() => setAmount(Math.floor(walletBalance).toString())}
                         className="text-sm text-primary-500 font-medium hover:text-primary-600 disabled:opacity-50 disabled:text-gray-400 disabled:hover:text-gray-400"
@@ -194,27 +186,24 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                         MAX
                       </button>
                     </div>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="\d*"
-                        value={amount}
-                        onChange={handleAmountChange}
-                        placeholder="0"
-                        disabled={isInputDisabled}
-                        aria-label="Amount to deposit"
-                        className={`w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200 ${isInputDisabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                      />
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-4">
-                        <span className="text-gray-500">RSC</span>
-                      </div>
-                    </div>
-                    {depositAmount > walletBalance && (
-                      <p className="text-sm text-red-600" role="alert">
-                        Deposit amount exceeds your wallet balance.
-                      </p>
-                    )}
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      value={amount}
+                      onChange={handleAmountChange}
+                      placeholder="0"
+                      disabled={isInputDisabled}
+                      rightElement={
+                        <div className="flex items-center pr-2 pl-2">
+                          <span className="text-gray-500">RSC</span>
+                        </div>
+                      }
+                      error={
+                        depositAmount > walletBalance
+                          ? 'Deposit amount exceeds your wallet balance.'
+                          : undefined
+                      }
+                    />
                   </div>
 
                   <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
@@ -247,73 +236,39 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                     </div>
                   </div>
 
-                  {txStatus.state !== 'success' && txStatus.state !== 'error' && (
-                    <Transaction
-                      isSponsored={true}
-                      chainId={RSC.chainId}
-                      calls={callsCallback}
-                      onStatus={handleOnStatus}
+                  <Transaction
+                    isSponsored={true}
+                    chainId={RSC.chainId}
+                    calls={callsCallback}
+                    onStatus={handleOnStatus}
+                  >
+                    <div
+                      onClick={handleInitiateTransaction}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleInitiateTransaction();
+                        }
+                      }}
+                      role="presentation"
                     >
-                      <div
-                        onClick={handleInitiateTransaction}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            handleInitiateTransaction();
-                          }
-                        }}
-                        role="presentation"
-                      >
-                        <TransactionButton
-                          className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                          disabled={isButtonDisabled}
-                          text="Deposit RSC"
-                          pendingOverride={
-                            isMobile
-                              ? {
-                                  text: (
-                                    <span className="flex items-center justify-center gap-2">
-                                      <Loader2 className="h-5 w-5 animate-spin" />
-                                      <span>Processing...</span>
-                                    </span>
-                                  ),
-                                }
-                              : undefined
-                          }
-                        />
-                      </div>
-                    </Transaction>
-                  )}
-
-                  {txStatus.state === 'success' && txStatus.txHash && (
-                    <div className="space-y-3">
-                      <a
-                        href={`https://${IS_PRODUCTION ? 'basescan.org' : 'sepolia.basescan.org'}/tx/${txStatus.txHash}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center w-full h-12 bg-indigo-600 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
-                      >
-                        View transaction
-                      </a>
-                      <div className="p-4 rounded-lg border border-green-200 bg-green-50">
-                        <div className="flex items-center text-green-600 mb-2">
-                          <Check className="mr-2 h-5 w-5" />
-                          <span className="font-medium">Deposit successful!</span>
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          It can take up to 10-20 minutes for the deposit to appear in your account.
-                        </p>
-                      </div>
+                      <TransactionButton
+                        className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                        disabled={isButtonDisabled}
+                        text="Deposit RSC"
+                      />
                     </div>
-                  )}
+                  </Transaction>
 
-                  {txStatus.state === 'error' && (
-                    <div className="mt-4 p-4 rounded-lg border border-red-200 bg-red-50">
-                      <div className="flex items-center text-red-600 mb-2">
-                        <AlertCircle className="mr-2 h-5 w-5" />
-                        <span className="font-medium">Deposit failed</span>
+                  {txStatus.state === 'success' && (
+                    <div className="mt-4 p-4 rounded-lg border border-green-200 bg-green-50">
+                      <div className="flex items-center text-green-600 mb-2">
+                        <Check className="mr-2 h-5 w-5" />
+                        <span className="font-medium">Deposit successful!</span>
                       </div>
-                      <p className="text-sm text-gray-600">{txStatus.message}</p>
+                      <p className="text-sm text-gray-600">
+                        It can take up to 10-20 minutes for the deposit to appear in your account.
+                      </p>
                     </div>
                   )}
                 </div>

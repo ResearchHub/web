@@ -1,6 +1,5 @@
 /**
- * Wallet utilities and hooks for deposit transactions
+ * Wallet utilities and hooks for transaction handling
  */
 
 export { useDepositTransaction } from './hooks';
-export { closeWalletPopups, isModalLikeElement, isWalletPopupElement } from './utils';
