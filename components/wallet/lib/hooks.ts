@@ -141,24 +141,51 @@ export function useDepositTransaction({
       console.log('[useDepositTransaction] ⚡ onStatus fired!', {
         statusName,
         statusData,
+        fullStatus: status,
         timestamp: new Date().toISOString(),
       });
 
-      // Capture transaction hash early for Wagmi backup monitor
-      // This ensures we can track it even if OnchainKit loses the reference
-      if (statusData?.transactionHash && !pendingTxHash) {
+      // Comprehensive hash capture: check ALL possible locations
+      const possibleHash =
+        statusData?.transactionHash ||
+        statusData?.transactionReceipts?.[0]?.transactionHash ||
+        statusData?.receipt?.transactionHash ||
+        statusData?.hash ||
+        statusData?.txHash ||
+        status?.transactionHash;
+
+      if (possibleHash && !pendingTxHash) {
         console.log(
           '[useDepositTransaction] 🔗 Captured transaction hash for monitoring:',
-          statusData.transactionHash
+          possibleHash
         );
-        setPendingTxHash(statusData.transactionHash as `0x${string}`);
+        setPendingTxHash(possibleHash as `0x${string}`);
+      } else if (statusName !== 'init' && !possibleHash) {
+        console.warn('[useDepositTransaction] ⚠️ No transaction hash found in statusData:', {
+          statusDataKeys: statusData ? Object.keys(statusData) : [],
+          statusData,
+        });
       }
 
       // Set to processing when transaction starts
       if (statusName === 'buildingTransaction' || statusName === 'transactionPending') {
         console.log('[useDepositTransaction] Setting status to processing');
+        console.log(
+          '[useDepositTransaction] 📤 Transaction being built/sent - statusData:',
+          statusData
+        );
         setTxStatus({ state: 'processing' });
         return;
+      }
+
+      // Log all other status names to understand the flow
+      if (statusName !== 'init' && statusName !== 'success') {
+        console.log(
+          '[useDepositTransaction] 📊 Received status:',
+          statusName,
+          'with data:',
+          statusData
+        );
       }
 
       // Handle success and save deposit

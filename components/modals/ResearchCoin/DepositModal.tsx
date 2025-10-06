@@ -91,8 +91,8 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     }
   }, [isOpen]);
 
-  // CRITICAL: Reconnect wallet and remount Transaction when returning from wallet app
-  // This ensures OnchainKit has an active connection to detect transaction completion
+  // CRITICAL: Reconnect wallet when returning from wallet app
+  // OnchainKit should continue monitoring on its own - we just ensure connection is alive
   useEffect(() => {
     if (!isOpen || txStatus.state !== 'processing') {
       // Reset reconnect flag when modal closes or transaction completes
@@ -100,13 +100,11 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       return;
     }
 
-    let remountTimer: NodeJS.Timeout;
-
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible') {
         console.log('[DepositModal] 🔄 Page became visible while processing');
 
-        // Step 1: Check and restore wallet connection if needed
+        // Only reconnect wallet if needed - DON'T remount Transaction
         if (!isConnected && !reconnectAttemptedRef.current) {
           console.log('[DepositModal] 🔌 Wallet disconnected - attempting reconnect...');
           reconnectAttemptedRef.current = true;
@@ -116,21 +114,11 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
           } catch (error) {
             console.error('[DepositModal] ❌ Failed to reconnect wallet:', error);
           }
-          // Wait 500ms for connection to stabilize
-          await new Promise((resolve) => setTimeout(resolve, 500));
         } else {
           console.log('[DepositModal] ✅ Wallet still connected');
         }
 
-        // Step 2: Remount Transaction to force status check
-        console.log('[DepositModal] 🔄 Remounting Transaction to force re-check');
-        setTransactionKey((prev) => prev + 1);
-
-        // Step 3: Secondary remount after 2s for extra reliability
-        remountTimer = setTimeout(() => {
-          console.log('[DepositModal] 🔄 Secondary remount after 2s for extra reliability');
-          setTransactionKey((prev) => prev + 1);
-        }, 2000);
+        console.log('[DepositModal] ⏳ Letting OnchainKit naturally detect completion...');
       }
     };
 
@@ -138,7 +126,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (remountTimer) clearTimeout(remountTimer);
     };
   }, [isOpen, txStatus.state, isConnected, reconnect]);
 
@@ -159,9 +146,28 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
         isConnected,
         hasAddress: !!address,
         address: address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'none',
+        txStatus: txStatus.state,
       });
     }
   }, [isOpen, isConnected, address]);
+
+  // Monitor transaction status and warn if stuck
+  useEffect(() => {
+    if (txStatus.state === 'processing') {
+      const timeoutId = setTimeout(() => {
+        console.warn(
+          '[DepositModal] ⚠️ Transaction still processing after 30s - may need manual intervention'
+        );
+        console.log('[DepositModal] Current state:', {
+          txStatus,
+          isConnected,
+          hasAddress: !!address,
+        });
+      }, 30000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [txStatus, isConnected, address]);
 
   const handleClose = useCallback(() => {
     setAmount('');
