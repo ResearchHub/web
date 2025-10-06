@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useAccount } from 'wagmi';
+import { useAccount, useWaitForTransactionReceipt } from 'wagmi';
 import { TransactionService } from '@/services/transaction.service';
 
 type TransactionStatus = {
@@ -33,9 +33,19 @@ export function useDepositTransaction({
 }: UseDepositTransactionParams): UseDepositTransactionReturn {
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
   const [isInitiating, setIsInitiating] = useState(false);
+  const [pendingTxHash, setPendingTxHash] = useState<`0x${string}` | undefined>(undefined);
 
   const hasProcessedRef = useRef(false);
   const { address } = useAccount();
+
+  // Independent transaction monitor using Wagmi
+  // This continues tracking even if OnchainKit loses the reference
+  const { data: receipt, isSuccess: isReceiptSuccess } = useWaitForTransactionReceipt({
+    hash: pendingTxHash,
+    query: {
+      enabled: !!pendingTxHash && txStatus.state === 'processing',
+    },
+  });
 
   // Reset all state when modal closes
   useEffect(() => {
@@ -43,6 +53,7 @@ export function useDepositTransaction({
       console.log('[useDepositTransaction] Modal closed, resetting all state');
       setTxStatus({ state: 'idle' });
       setIsInitiating(false);
+      setPendingTxHash(undefined);
       hasProcessedRef.current = false;
     } else {
       console.log('[useDepositTransaction] Modal opened, ready for transaction', {
@@ -52,6 +63,46 @@ export function useDepositTransaction({
     }
   }, [isOpen, depositAmount, address]);
 
+  // Wagmi backup monitor: Handle transaction receipt when it arrives
+  // This fires even if OnchainKit loses track of the transaction
+  useEffect(() => {
+    if (isReceiptSuccess && receipt && !hasProcessedRef.current) {
+      const txHash = receipt.transactionHash;
+      console.log('[useDepositTransaction] 🎉 Wagmi backup monitor detected completion!', {
+        txHash,
+        receipt,
+      });
+
+      setTxStatus({ state: 'success', txHash });
+
+      if (address) {
+        console.log('[useDepositTransaction] Saving deposit via Wagmi monitor...');
+        hasProcessedRef.current = true;
+
+        TransactionService.saveDeposit({
+          amount: depositAmount,
+          transaction_hash: txHash,
+          from_address: address,
+          network: 'BASE',
+        })
+          .then(() => {
+            console.log('[useDepositTransaction] Deposit saved successfully via Wagmi monitor');
+          })
+          .catch((error) => {
+            console.error(
+              '[useDepositTransaction] Failed to save deposit via Wagmi monitor:',
+              error
+            );
+          });
+
+        if (onSuccess) {
+          console.log('[useDepositTransaction] Calling onSuccess callback via Wagmi monitor');
+          onSuccess();
+        }
+      }
+    }
+  }, [isReceiptSuccess, receipt, address, depositAmount, onSuccess]);
+
   // Auto-reset isInitiating once transaction starts processing
   useEffect(() => {
     if (txStatus.state === 'processing' && isInitiating) {
@@ -59,6 +110,16 @@ export function useDepositTransaction({
       setIsInitiating(false);
     }
   }, [txStatus.state, isInitiating]);
+
+  // Log when Wagmi backup monitor starts tracking
+  useEffect(() => {
+    if (pendingTxHash) {
+      console.log(
+        '[useDepositTransaction] 🔍 Wagmi backup monitor now tracking transaction:',
+        pendingTxHash
+      );
+    }
+  }, [pendingTxHash]);
 
   /**
    * Handle button click to initiate transaction
@@ -82,6 +143,16 @@ export function useDepositTransaction({
         statusData,
         timestamp: new Date().toISOString(),
       });
+
+      // Capture transaction hash early for Wagmi backup monitor
+      // This ensures we can track it even if OnchainKit loses the reference
+      if (statusData?.transactionHash && !pendingTxHash) {
+        console.log(
+          '[useDepositTransaction] 🔗 Captured transaction hash for monitoring:',
+          statusData.transactionHash
+        );
+        setPendingTxHash(statusData.transactionHash as `0x${string}`);
+      }
 
       // Set to processing when transaction starts
       if (statusName === 'buildingTransaction' || statusName === 'transactionPending') {
@@ -130,7 +201,7 @@ export function useDepositTransaction({
         });
       }
     },
-    [depositAmount, address, onSuccess]
+    [depositAmount, address, onSuccess, pendingTxHash]
   );
 
   /**
@@ -148,6 +219,15 @@ export function useDepositTransaction({
 
       if (txHash) {
         console.log('[useDepositTransaction] ✅ Transaction hash from onSuccess:', txHash);
+
+        // Capture for Wagmi monitor if we don't have it yet
+        if (!pendingTxHash) {
+          console.log(
+            '[useDepositTransaction] 🔗 Captured transaction hash from onSuccess for monitoring'
+          );
+          setPendingTxHash(txHash as `0x${string}`);
+        }
+
         setTxStatus({ state: 'success', txHash });
 
         // Save deposit to backend (only once)
@@ -184,7 +264,7 @@ export function useDepositTransaction({
         });
       }
     },
-    [depositAmount, address, onSuccess]
+    [depositAmount, address, onSuccess, pendingTxHash]
   );
 
   /**
