@@ -12,7 +12,6 @@ import { useWalletRSCBalance } from '@/hooks/useWalletRSCBalance';
 import { useDepositTransaction } from '@/components/wallet/lib';
 import { Input } from '@/components/ui/form/Input';
 import { RSC, TRANSFER_ABI } from '@/constants/tokens';
-import { usePendingDeposits } from '@/hooks/usePendingDeposits';
 
 const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
 if (!HOT_WALLET_ADDRESS_ENV?.trim()) {
@@ -46,11 +45,8 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const { address, isConnected } = useAccount();
   const { reconnect } = useReconnect();
   const { balance: walletBalance } = useWalletRSCBalance();
-  const { deposits: pendingDeposits, refreshDeposits } = usePendingDeposits();
 
   const reconnectAttemptedRef = useRef(false);
-  const initialDepositCountRef = useRef<number>(0);
-  const pollingIntervalRef = useRef<NodeJS.Timeout>();
 
   const depositAmount = useMemo(() => Number.parseInt(amount || '0', 10), [amount]);
   const newBalance = useMemo(() => currentBalance + depositAmount, [currentBalance, depositAmount]);
@@ -62,7 +58,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     handleOnStatus,
     handleOnSuccess,
     handleOnError,
-    triggerSuccess,
   } = useDepositTransaction({
     depositAmount,
     isOpen,
@@ -155,75 +150,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       });
     }
   }, [isOpen, isConnected, address]);
-
-  // Backend polling fallback: Watch for new deposits when transaction is processing
-  useEffect(() => {
-    if (txStatus.state === 'processing' && address) {
-      // Capture initial deposit count when processing starts
-      if (initialDepositCountRef.current === 0) {
-        initialDepositCountRef.current = pendingDeposits.length;
-        console.log(
-          '[DepositModal] 🔍 Starting backend polling, initial deposits:',
-          pendingDeposits.length
-        );
-      }
-
-      // Poll every 5 seconds for new deposits
-      pollingIntervalRef.current = setInterval(async () => {
-        console.log('[DepositModal] 🔄 Polling backend for new deposits...');
-        await refreshDeposits();
-      }, 5000);
-
-      return () => {
-        if (pollingIntervalRef.current) {
-          clearInterval(pollingIntervalRef.current);
-        }
-      };
-    } else {
-      // Reset when not processing
-      initialDepositCountRef.current = 0;
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-      }
-    }
-  }, [txStatus.state, address, refreshDeposits, pendingDeposits.length]);
-
-  // Detect new deposits from backend polling
-  useEffect(() => {
-    if (
-      txStatus.state === 'processing' &&
-      pendingDeposits.length > initialDepositCountRef.current
-    ) {
-      // Check if any new deposit matches our transaction
-      const newDeposits = pendingDeposits.slice(
-        0,
-        pendingDeposits.length - initialDepositCountRef.current
-      );
-
-      for (const deposit of newDeposits) {
-        // Match by address and approximate amount (backend might have slight differences)
-        if (deposit.from_address?.toLowerCase() === address?.toLowerCase()) {
-          const depositAmountNum = parseFloat(deposit.amount || '0');
-
-          // Allow 1% margin for rounding differences
-          const amountMatch = Math.abs(depositAmountNum - depositAmount) < depositAmount * 0.01;
-
-          if (amountMatch) {
-            console.log('[DepositModal] 🎉 Backend detected new deposit!', {
-              txHash: deposit.transaction_hash,
-              amount: deposit.amount,
-            });
-
-            // Trigger success state with the transaction hash from backend
-            if (deposit.transaction_hash) {
-              triggerSuccess(deposit.transaction_hash);
-            }
-            break;
-          }
-        }
-      }
-    }
-  }, [pendingDeposits, txStatus.state, address, depositAmount, triggerSuccess]);
 
   const handleClose = useCallback(() => {
     setAmount('');

@@ -20,7 +20,6 @@ interface UseDepositTransactionReturn {
   handleOnStatus: (status: any) => void;
   handleOnSuccess: (response: any) => void;
   handleOnError: (error: any) => void;
-  triggerSuccess: (txHash: string) => void;
 }
 
 /**
@@ -151,8 +150,20 @@ export function useDepositTransaction({
         JSON.stringify(status, null, 2)
       );
 
+      // CRITICAL: Capture hash from transactionLegacyExecuted status
+      // This fires BEFORE success and provides transactionHashList
+      if (statusName === 'transactionLegacyExecuted' && statusData?.transactionHashList?.[0]) {
+        const txHash = statusData.transactionHashList[0];
+        console.log(
+          '[useDepositTransaction] 🔗 Captured transaction hash from transactionLegacyExecuted:',
+          txHash
+        );
+        setPendingTxHash(txHash as `0x${string}`);
+      }
+
       // Comprehensive hash capture: check ALL possible locations in status object
       const possibleHash =
+        statusData?.transactionHashList?.[0] || // NEW: Check for transactionLegacyExecuted
         statusData?.transactionHash ||
         statusData?.transactionReceipts?.[0]?.transactionHash ||
         statusData?.receipt?.transactionHash ||
@@ -172,28 +183,24 @@ export function useDepositTransaction({
           possibleHash
         );
         setPendingTxHash(possibleHash as `0x${string}`);
-      } else if (statusName !== 'init' && !possibleHash) {
+      } else if (statusName !== 'init' && statusName !== 'transactionIdle' && !possibleHash) {
         console.warn('[useDepositTransaction] ⚠️ No transaction hash found in statusData:', {
+          statusName,
           statusDataKeys: statusData ? Object.keys(statusData) : [],
           statusData,
         });
       }
 
       // Set to processing when transaction starts
-      if (statusName === 'buildingTransaction' || statusName === 'transactionPending') {
+      if (
+        statusName === 'buildingTransaction' ||
+        statusName === 'transactionPending' ||
+        statusName === 'transactionLegacyExecuted'
+      ) {
         console.log('[useDepositTransaction] Setting status to processing');
         console.log('[useDepositTransaction] 📤 Transaction being built/sent');
-        console.log('[useDepositTransaction] 🔎 Searching for hash at this stage...');
+        console.log('[useDepositTransaction] 🔎 Status:', statusName);
         console.log('[useDepositTransaction] - statusData:', statusData);
-        console.log('[useDepositTransaction] - status object keys:', Object.keys(status));
-
-        // Try to extract hash from any nested property
-        const allKeys = Object.keys(status);
-        for (const key of allKeys) {
-          if (status[key] && typeof status[key] === 'object') {
-            console.log(`[useDepositTransaction] - status.${key}:`, status[key]);
-          }
-        }
 
         setTxStatus({ state: 'processing' });
         return;
@@ -334,25 +341,6 @@ export function useDepositTransaction({
     // OnchainKit will handle error UI, we just log it
   }, []);
 
-  /**
-   * Trigger success manually (used by backend polling fallback)
-   */
-  const triggerSuccess = useCallback(
-    (txHash: string) => {
-      console.log(
-        '[useDepositTransaction] 🎉 Success triggered manually by backend polling:',
-        txHash
-      );
-      setTxStatus({ state: 'success', txHash });
-
-      if (!hasProcessedRef.current && onSuccess) {
-        hasProcessedRef.current = true;
-        onSuccess();
-      }
-    },
-    [onSuccess]
-  );
-
   return {
     txStatus,
     isInitiating,
@@ -360,6 +348,5 @@ export function useDepositTransaction({
     handleOnStatus,
     handleOnSuccess,
     handleOnError,
-    triggerSuccess,
   };
 }
