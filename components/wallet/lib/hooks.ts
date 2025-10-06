@@ -18,6 +18,7 @@ interface UseDepositTransactionReturn {
   isInitiating: boolean;
   handleInitiateTransaction: () => void;
   handleOnStatus: (status: any) => void;
+  handleOnSuccess: (response: any) => void;
 }
 
 /**
@@ -100,10 +101,44 @@ export function useDepositTransaction({
     [depositAmount, address, onSuccess]
   );
 
+  /**
+   * Handle OnchainKit onSuccess callback
+   * Alternative success handler that may be more reliable on Android
+   */
+  const handleOnSuccess = useCallback(
+    (response: any) => {
+      const txHash = response?.transactionReceipts?.[0]?.transactionHash;
+
+      if (txHash) {
+        setTxStatus({ state: 'success', txHash });
+
+        // Save deposit to backend (only once)
+        if (!hasProcessedRef.current && address) {
+          hasProcessedRef.current = true;
+
+          TransactionService.saveDeposit({
+            amount: depositAmount,
+            transaction_hash: txHash,
+            from_address: address,
+            network: 'BASE',
+          }).catch((error) =>
+            console.error('[useDepositTransaction] Failed to save deposit:', error)
+          );
+
+          if (onSuccess) {
+            onSuccess();
+          }
+        }
+      }
+    },
+    [depositAmount, address, onSuccess]
+  );
+
   return {
     txStatus,
     isInitiating,
     handleInitiateTransaction,
     handleOnStatus,
+    handleOnSuccess,
   };
 }

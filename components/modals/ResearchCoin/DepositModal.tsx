@@ -47,7 +47,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const depositAmount = useMemo(() => Number.parseInt(amount || '0', 10), [amount]);
   const newBalance = useMemo(() => currentBalance + depositAmount, [currentBalance, depositAmount]);
 
-  const { txStatus, isInitiating, handleInitiateTransaction, handleOnStatus } =
+  const { txStatus, isInitiating, handleInitiateTransaction, handleOnStatus, handleOnSuccess } =
     useDepositTransaction({
       depositAmount,
       isOpen,
@@ -241,6 +241,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                     chainId={RSC.chainId}
                     calls={callsCallback}
                     onStatus={handleOnStatus}
+                    onSuccess={handleOnSuccess}
                   >
                     <div
                       onClick={handleInitiateTransaction}
