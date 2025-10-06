@@ -2,7 +2,7 @@
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react';
 import { Fragment, useCallback, useMemo, useState, useEffect, useRef } from 'react';
-import { X as XIcon, Check } from 'lucide-react';
+import { X as XIcon, Check, Loader2 } from 'lucide-react';
 import { useAccount, useReconnect } from 'wagmi';
 import { Interface } from 'ethers';
 import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction';
@@ -12,6 +12,7 @@ import { useWalletRSCBalance } from '@/hooks/useWalletRSCBalance';
 import { useDepositTransaction } from '@/components/wallet/lib';
 import { Input } from '@/components/ui/form/Input';
 import { RSC, TRANSFER_ABI } from '@/constants/tokens';
+import { usePendingDeposits } from '@/hooks/usePendingDeposits';
 
 const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
 if (!HOT_WALLET_ADDRESS_ENV?.trim()) {
@@ -45,8 +46,11 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const { address, isConnected } = useAccount();
   const { reconnect } = useReconnect();
   const { balance: walletBalance } = useWalletRSCBalance();
+  const { deposits: pendingDeposits, refreshDeposits } = usePendingDeposits();
 
   const reconnectAttemptedRef = useRef(false);
+  const initialDepositCountRef = useRef<number>(0);
+  const pollingIntervalRef = useRef<NodeJS.Timeout>();
 
   const depositAmount = useMemo(() => Number.parseInt(amount || '0', 10), [amount]);
   const newBalance = useMemo(() => currentBalance + depositAmount, [currentBalance, depositAmount]);
@@ -58,6 +62,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     handleOnStatus,
     handleOnSuccess,
     handleOnError,
+    triggerSuccess,
   } = useDepositTransaction({
     depositAmount,
     isOpen,
@@ -151,23 +156,74 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     }
   }, [isOpen, isConnected, address]);
 
-  // Monitor transaction status and warn if stuck
+  // Backend polling fallback: Watch for new deposits when transaction is processing
   useEffect(() => {
-    if (txStatus.state === 'processing') {
-      const timeoutId = setTimeout(() => {
-        console.warn(
-          '[DepositModal] ⚠️ Transaction still processing after 30s - may need manual intervention'
+    if (txStatus.state === 'processing' && address) {
+      // Capture initial deposit count when processing starts
+      if (initialDepositCountRef.current === 0) {
+        initialDepositCountRef.current = pendingDeposits.length;
+        console.log(
+          '[DepositModal] 🔍 Starting backend polling, initial deposits:',
+          pendingDeposits.length
         );
-        console.log('[DepositModal] Current state:', {
-          txStatus,
-          isConnected,
-          hasAddress: !!address,
-        });
-      }, 30000);
+      }
 
-      return () => clearTimeout(timeoutId);
+      // Poll every 5 seconds for new deposits
+      pollingIntervalRef.current = setInterval(async () => {
+        console.log('[DepositModal] 🔄 Polling backend for new deposits...');
+        await refreshDeposits();
+      }, 5000);
+
+      return () => {
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+        }
+      };
+    } else {
+      // Reset when not processing
+      initialDepositCountRef.current = 0;
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
     }
-  }, [txStatus, isConnected, address]);
+  }, [txStatus.state, address, refreshDeposits, pendingDeposits.length]);
+
+  // Detect new deposits from backend polling
+  useEffect(() => {
+    if (
+      txStatus.state === 'processing' &&
+      pendingDeposits.length > initialDepositCountRef.current
+    ) {
+      // Check if any new deposit matches our transaction
+      const newDeposits = pendingDeposits.slice(
+        0,
+        pendingDeposits.length - initialDepositCountRef.current
+      );
+
+      for (const deposit of newDeposits) {
+        // Match by address and approximate amount (backend might have slight differences)
+        if (deposit.from_address?.toLowerCase() === address?.toLowerCase()) {
+          const depositAmountNum = parseFloat(deposit.amount || '0');
+
+          // Allow 1% margin for rounding differences
+          const amountMatch = Math.abs(depositAmountNum - depositAmount) < depositAmount * 0.01;
+
+          if (amountMatch) {
+            console.log('[DepositModal] 🎉 Backend detected new deposit!', {
+              txHash: deposit.transaction_hash,
+              amount: deposit.amount,
+            });
+
+            // Trigger success state with the transaction hash from backend
+            if (deposit.transaction_hash) {
+              triggerSuccess(deposit.transaction_hash);
+            }
+            break;
+          }
+        }
+      }
+    }
+  }, [pendingDeposits, txStatus.state, address, depositAmount, triggerSuccess]);
 
   const handleClose = useCallback(() => {
     setAmount('');
@@ -351,42 +407,65 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                     </div>
                   </div>
 
-                  <Transaction
-                    key={transactionKey}
-                    isSponsored={true}
-                    chainId={RSC.chainId}
-                    calls={callsCallback}
-                    onStatus={handleOnStatus}
-                    onSuccess={handleOnSuccess}
-                    onError={handleOnError}
-                  >
-                    <div
-                      onClick={handleInitiateTransaction}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handleInitiateTransaction();
-                        }
-                      }}
-                      role="presentation"
+                  {txStatus.state !== 'processing' && txStatus.state !== 'success' && (
+                    <Transaction
+                      key={transactionKey}
+                      isSponsored={true}
+                      chainId={RSC.chainId}
+                      calls={callsCallback}
+                      onStatus={handleOnStatus}
+                      onSuccess={handleOnSuccess}
+                      onError={handleOnError}
                     >
-                      <TransactionButton
-                        className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                        disabled={isButtonDisabled}
-                        text="Deposit RSC"
-                      />
+                      <div
+                        onClick={handleInitiateTransaction}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleInitiateTransaction();
+                          }
+                        }}
+                        role="presentation"
+                      >
+                        <TransactionButton
+                          className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                          disabled={isButtonDisabled}
+                          text="Deposit RSC"
+                        />
+                      </div>
+                    </Transaction>
+                  )}
+
+                  {txStatus.state === 'processing' && (
+                    <div className="w-full h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <span className="flex items-center justify-center gap-2 text-gray-600">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span>Waiting for confirmation...</span>
+                      </span>
                     </div>
-                  </Transaction>
+                  )}
 
                   {txStatus.state === 'success' && (
-                    <div className="mt-4 p-4 rounded-lg border border-green-200 bg-green-50">
-                      <div className="flex items-center text-green-600 mb-2">
-                        <Check className="mr-2 h-5 w-5" />
-                        <span className="font-medium">Deposit successful!</span>
+                    <div className="space-y-3">
+                      {txStatus.txHash && (
+                        <a
+                          href={`https://${IS_PRODUCTION ? 'basescan.org' : 'sepolia.basescan.org'}/tx/${txStatus.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center w-full h-12 bg-indigo-600 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
+                        >
+                          View transaction
+                        </a>
+                      )}
+                      <div className="p-4 rounded-lg border border-green-200 bg-green-50">
+                        <div className="flex items-center text-green-600 mb-2">
+                          <Check className="mr-2 h-5 w-5" />
+                          <span className="font-medium">Deposit successful!</span>
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          It can take up to 10-20 minutes for the deposit to appear in your account.
+                        </p>
                       </div>
-                      <p className="text-sm text-gray-600">
-                        It can take up to 10-20 minutes for the deposit to appear in your account.
-                      </p>
                     </div>
                   )}
                 </div>

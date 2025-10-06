@@ -20,6 +20,7 @@ interface UseDepositTransactionReturn {
   handleOnStatus: (status: any) => void;
   handleOnSuccess: (response: any) => void;
   handleOnError: (error: any) => void;
+  triggerSuccess: (txHash: string) => void;
 }
 
 /**
@@ -333,6 +334,25 @@ export function useDepositTransaction({
     // OnchainKit will handle error UI, we just log it
   }, []);
 
+  /**
+   * Trigger success manually (used by backend polling fallback)
+   */
+  const triggerSuccess = useCallback(
+    (txHash: string) => {
+      console.log(
+        '[useDepositTransaction] 🎉 Success triggered manually by backend polling:',
+        txHash
+      );
+      setTxStatus({ state: 'success', txHash });
+
+      if (!hasProcessedRef.current && onSuccess) {
+        hasProcessedRef.current = true;
+        onSuccess();
+      }
+    },
+    [onSuccess]
+  );
+
   return {
     txStatus,
     isInitiating,
@@ -340,5 +360,6 @@ export function useDepositTransaction({
     handleOnStatus,
     handleOnSuccess,
     handleOnError,
+    triggerSuccess,
   };
 }
