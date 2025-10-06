@@ -81,9 +81,22 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   // This helps OnchainKit properly detect transaction status on mobile
   useEffect(() => {
     if (isOpen) {
+      console.log('[DepositModal] Modal opened, incrementing transaction key');
       setTransactionKey((prev) => prev + 1);
+    } else {
+      console.log('[DepositModal] Modal closed');
     }
   }, [isOpen]);
+
+  // Log transaction status changes
+  useEffect(() => {
+    console.log('[DepositModal] Transaction status changed:', txStatus);
+  }, [txStatus]);
+
+  // Log when initiating state changes
+  useEffect(() => {
+    console.log('[DepositModal] isInitiating changed:', isInitiating);
+  }, [isInitiating]);
 
   const handleClose = useCallback(() => {
     setAmount('');
@@ -98,27 +111,43 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   }, []);
 
   const callsCallback = useCallback(async (): Promise<Call[]> => {
+    console.log('[DepositModal] callsCallback invoked', {
+      depositAmount,
+      walletBalance,
+      address,
+    });
+
     if (!depositAmount || depositAmount <= 0) {
+      console.error('[DepositModal] Invalid deposit amount:', depositAmount);
       throw new Error('Invalid deposit amount');
     }
     if (depositAmount > walletBalance) {
+      console.error('[DepositModal] Deposit amount exceeds wallet balance:', {
+        depositAmount,
+        walletBalance,
+      });
       throw new Error('Deposit amount exceeds wallet balance');
     }
 
     const amountInWei = BigInt(depositAmount) * BigInt(10 ** 18);
+    console.log('[DepositModal] Amount in wei:', amountInWei.toString());
+
     const transferInterface = new Interface(TRANSFER_ABI);
     const encodedData = transferInterface.encodeFunctionData('transfer', [
       HOT_WALLET_ADDRESS,
       amountInWei.toString(),
     ]);
 
-    return [
+    const calls = [
       {
         to: RSC.address as `0x${string}`,
         data: encodedData as `0x${string}`,
       },
     ];
-  }, [depositAmount, walletBalance]);
+
+    console.log('[DepositModal] Prepared transaction calls:', calls);
+    return calls;
+  }, [depositAmount, walletBalance, address]);
 
   if (!address) return null;
 

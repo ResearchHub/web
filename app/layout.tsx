@@ -28,6 +28,7 @@ import { PreferencesProvider } from '@/contexts/PreferencesContext';
 import { ReferralProvider } from '@/contexts/ReferralContext';
 import { FeatureNotifications } from '@/components/FeatureNotifications';
 import Hotjar from '@/components/Hotjar';
+import { MobileDebugConsole } from '@/components/MobileDebugConsole';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -154,6 +155,7 @@ export default async function RootLayout({
         {process.env.GA_MEASUREMENT_ID && <GoogleAnalytics gaId={process.env.GA_MEASUREMENT_ID} />}
         <Analytics />
         <Hotjar />
+        <MobileDebugConsole />
       </body>
     </html>
   );
