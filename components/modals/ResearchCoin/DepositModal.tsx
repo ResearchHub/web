@@ -93,12 +93,21 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   useEffect(() => {
     if (!isOpen || txStatus.state !== 'processing') return;
 
+    let remountTimer: NodeJS.Timeout;
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         console.log(
           '[DepositModal] 🔄 Page became visible while processing - remounting Transaction to force re-check'
         );
         setTransactionKey((prev) => prev + 1);
+
+        // Additional safety: remount again after 2s if still processing
+        // This handles cases where OnchainKit needs extra time to detect completion
+        remountTimer = setTimeout(() => {
+          console.log('[DepositModal] 🔄 Secondary remount after 2s for extra reliability');
+          setTransactionKey((prev) => prev + 1);
+        }, 2000);
       }
     };
 
@@ -106,6 +115,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (remountTimer) clearTimeout(remountTimer);
     };
   }, [isOpen, txStatus.state]);
 
