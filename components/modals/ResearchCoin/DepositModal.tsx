@@ -1,9 +1,9 @@
 'use client';
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react';
-import { Fragment, useCallback, useMemo, useState, useEffect } from 'react';
+import { Fragment, useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { X as XIcon, Check } from 'lucide-react';
-import { useAccount } from 'wagmi';
+import { useAccount, useReconnect } from 'wagmi';
 import { Interface } from 'ethers';
 import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction';
 import { formatRSC } from '@/utils/number';
@@ -42,8 +42,11 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const [amount, setAmount] = useState('');
   const [transactionKey, setTransactionKey] = useState(0);
 
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
+  const { reconnect } = useReconnect();
   const { balance: walletBalance } = useWalletRSCBalance();
+
+  const reconnectAttemptedRef = useRef(false);
 
   const depositAmount = useMemo(() => Number.parseInt(amount || '0', 10), [amount]);
   const newBalance = useMemo(() => currentBalance + depositAmount, [currentBalance, depositAmount]);
@@ -88,22 +91,42 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     }
   }, [isOpen]);
 
-  // CRITICAL: Force Transaction remount when returning from wallet app on mobile
-  // OnchainKit loses connection when switching apps, so remounting forces re-check
+  // CRITICAL: Reconnect wallet and remount Transaction when returning from wallet app
+  // This ensures OnchainKit has an active connection to detect transaction completion
   useEffect(() => {
-    if (!isOpen || txStatus.state !== 'processing') return;
+    if (!isOpen || txStatus.state !== 'processing') {
+      // Reset reconnect flag when modal closes or transaction completes
+      reconnectAttemptedRef.current = false;
+      return;
+    }
 
     let remountTimer: NodeJS.Timeout;
 
-    const handleVisibilityChange = () => {
+    const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible') {
-        console.log(
-          '[DepositModal] 🔄 Page became visible while processing - remounting Transaction to force re-check'
-        );
+        console.log('[DepositModal] 🔄 Page became visible while processing');
+
+        // Step 1: Check and restore wallet connection if needed
+        if (!isConnected && !reconnectAttemptedRef.current) {
+          console.log('[DepositModal] 🔌 Wallet disconnected - attempting reconnect...');
+          reconnectAttemptedRef.current = true;
+          try {
+            await reconnect();
+            console.log('[DepositModal] ✅ Wallet reconnected successfully');
+          } catch (error) {
+            console.error('[DepositModal] ❌ Failed to reconnect wallet:', error);
+          }
+          // Wait 500ms for connection to stabilize
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        } else {
+          console.log('[DepositModal] ✅ Wallet still connected');
+        }
+
+        // Step 2: Remount Transaction to force status check
+        console.log('[DepositModal] 🔄 Remounting Transaction to force re-check');
         setTransactionKey((prev) => prev + 1);
 
-        // Additional safety: remount again after 2s if still processing
-        // This handles cases where OnchainKit needs extra time to detect completion
+        // Step 3: Secondary remount after 2s for extra reliability
         remountTimer = setTimeout(() => {
           console.log('[DepositModal] 🔄 Secondary remount after 2s for extra reliability');
           setTransactionKey((prev) => prev + 1);
@@ -117,7 +140,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (remountTimer) clearTimeout(remountTimer);
     };
-  }, [isOpen, txStatus.state]);
+  }, [isOpen, txStatus.state, isConnected, reconnect]);
 
   // Log transaction status changes
   useEffect(() => {
@@ -128,6 +151,17 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   useEffect(() => {
     console.log('[DepositModal] isInitiating changed:', isInitiating);
   }, [isInitiating]);
+
+  // Log wallet connection status
+  useEffect(() => {
+    if (isOpen) {
+      console.log('[DepositModal] Wallet connection status:', {
+        isConnected,
+        hasAddress: !!address,
+        address: address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'none',
+      });
+    }
+  }, [isOpen, isConnected, address]);
 
   const handleClose = useCallback(() => {
     setAmount('');
