@@ -32,6 +32,7 @@ import { WorkMetadata } from '@/services/metadata.service';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useCompleteFundraise } from '@/hooks/useFundraise';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -209,7 +210,7 @@ export const WorkLineItems = ({
     let latestPaperId = work.id;
 
     if (work.versions && work.versions.length > 0) {
-      // Try to use the version flagged as latest first
+      // Try to use the version flagged as the latest first
       const latestFlag = work.versions.find((v) => v.isLatest);
 
       if (latestFlag) {
@@ -301,42 +302,47 @@ export const WorkLineItems = ({
 
   const modalConfig = getModalConfig();
 
+  const icon_shared = 'flex items-center rounded-lg space-x-2 py-2';
+  const icon_color = 'bg-gray-100 text-gray-600 hover:bg-gray-200';
+
   return (
     <div>
       {/* Primary Actions */}
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-3">
-          <button
-            onClick={() => executeAuthenticatedAction(handleVote)}
-            disabled={isVoting || isLoadingVotes}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-              isUpvoted
-                ? 'bg-green-50 text-green-600 hover:bg-green-100'
-                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-            } ${isVoting || isLoadingVotes ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <ArrowUp className={`h-4 w-4`} />
-            <span>{voteCount}</span>
-          </button>
+          <Tooltip content={isUpvoted ? 'Remove vote' : 'Upvote'}>
+            <button
+              onClick={() => executeAuthenticatedAction(handleVote)}
+              disabled={isVoting || isLoadingVotes}
+              className={`${icon_shared} px-4 ${
+                isUpvoted ? 'bg-green-100 text-green-600 hover:bg-green-200' : icon_color
+              } ${isVoting || isLoadingVotes ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <ArrowUp className={`h-5 w-5`} />
+              <span>{voteCount}</span>
+            </button>
+          </Tooltip>
 
-          <button
-            onClick={() =>
-              showShareModal({
-                url: window.location.href,
-                docTitle: work.title,
-                action: 'USER_SHARED_DOCUMENT',
-                shouldShowConfetti: false,
-              })
-            }
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
-          >
-            <Share2 className="h-6 w-6" />
-          </button>
+          <Tooltip content="Share">
+            <button
+              onClick={() =>
+                showShareModal({
+                  url: window.location.href,
+                  docTitle: work.title,
+                  action: 'USER_SHARED_DOCUMENT',
+                  shouldShowConfetti: false,
+                })
+              }
+              className={`${icon_shared} px-2 ${icon_color}`}
+            >
+              <Share2 className="h-5 w-5" />
+            </button>
+          </Tooltip>
 
           {work.contentType !== 'preregistration' && (
             <button
               onClick={() => executeAuthenticatedAction(() => setIsTipModalOpen(true))}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+              className={`${icon_shared} px-4 ${icon_color}`}
             >
               <Icon name="tipRSC" size={20} />
               <span className="hidden md:!block">Tip</span>
@@ -347,60 +353,64 @@ export const WorkLineItems = ({
           {insightsButton}
 
           {/* More Actions Dropdown */}
-          <BaseMenu
-            align="start"
-            trigger={
-              <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg">
-                <MoreHorizontal className="h-5 w-5" />
-              </button>
-            }
-          >
-            {canEdit && (
-              <BaseMenuItem onSelect={handleEdit}>
-                <Edit className="h-4 w-4 mr-2" />
-                <span>Edit</span>
-              </BaseMenuItem>
-            )}
-            {isAuthor && (
-              <BaseMenuItem onSelect={() => executeAuthenticatedAction(handleAddVersion)}>
-                <FileUp className="h-4 w-4 mr-2" />
-                <span>Upload New Version</span>
-              </BaseMenuItem>
-            )}
-            {!isPublished && isModerator && work.contentType !== 'preregistration' && (
-              <BaseMenuItem
-                disabled={isPublishing}
-                onSelect={() => executeAuthenticatedAction(handlePublish)}
-              >
-                <Icon name="rhJournal1" size={16} className="mr-2" />
-                <span>Publish to Journal</span>
-              </BaseMenuItem>
-            )}
-            {isModerator && work.contentType === 'preregistration' && metadata.fundraising?.id && (
-              <>
-                <BaseMenuItem
-                  disabled={isClosingFundraise}
-                  onSelect={() => executeAuthenticatedAction(handleCloseFundraise)}
-                >
-                  <Octagon className="h-4 w-4 mr-2" />
-                  <span>Close fundraise & refund contributors</span>
-                </BaseMenuItem>
-                <BaseMenuItem
-                  disabled={isCompletingFundraise}
-                  onSelect={() => executeAuthenticatedAction(handleCompleteFundraise)}
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  <span>Complete fundraise</span>
-                </BaseMenuItem>
-              </>
-            )}
-            <BaseMenuItem
-              onSelect={() => executeAuthenticatedAction(() => setIsFlagModalOpen(true))}
+          <Tooltip content="More">
+            <BaseMenu
+              align="start"
+              trigger={
+                <button className={`${icon_shared} px-2 ${icon_color}`}>
+                  <MoreHorizontal className="h-5 w-5" />
+                </button>
+              }
             >
-              <Flag className="h-4 w-4 mr-2" />
-              <span>Flag Content</span>
-            </BaseMenuItem>
-          </BaseMenu>
+              {canEdit && (
+                <BaseMenuItem onSelect={handleEdit}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  <span>Edit</span>
+                </BaseMenuItem>
+              )}
+              {isAuthor && (
+                <BaseMenuItem onSelect={() => executeAuthenticatedAction(handleAddVersion)}>
+                  <FileUp className="h-4 w-4 mr-2" />
+                  <span>Upload New Version</span>
+                </BaseMenuItem>
+              )}
+              {!isPublished && isModerator && work.contentType !== 'preregistration' && (
+                <BaseMenuItem
+                  disabled={isPublishing}
+                  onSelect={() => executeAuthenticatedAction(handlePublish)}
+                >
+                  <Icon name="rhJournal1" size={16} className="mr-2" />
+                  <span>Publish to Journal</span>
+                </BaseMenuItem>
+              )}
+              {isModerator &&
+                work.contentType === 'preregistration' &&
+                metadata.fundraising?.id && (
+                  <>
+                    <BaseMenuItem
+                      disabled={isClosingFundraise}
+                      onSelect={() => executeAuthenticatedAction(handleCloseFundraise)}
+                    >
+                      <Octagon className="h-4 w-4 mr-2" />
+                      <span>Close fundraise & refund contributors</span>
+                    </BaseMenuItem>
+                    <BaseMenuItem
+                      disabled={isCompletingFundraise}
+                      onSelect={() => executeAuthenticatedAction(handleCompleteFundraise)}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      <span>Complete fundraise</span>
+                    </BaseMenuItem>
+                  </>
+                )}
+              <BaseMenuItem
+                onSelect={() => executeAuthenticatedAction(() => setIsFlagModalOpen(true))}
+              >
+                <Flag className="h-4 w-4 mr-2" />
+                <span>Flag Content</span>
+              </BaseMenuItem>
+            </BaseMenu>
+          </Tooltip>
         </div>
       </div>
 
