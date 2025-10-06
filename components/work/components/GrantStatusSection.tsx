@@ -4,6 +4,7 @@ import { Work } from '@/types/work';
 import { format } from 'date-fns';
 import { Clock } from 'lucide-react';
 import dayjs from 'dayjs';
+import { isDeadlineInFuture } from '@/utils/date';
 
 interface GrantStatusSectionProps {
   work: Work;
@@ -24,20 +25,21 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
   }
 
   const endDate = new Date(work.note?.post?.grant?.endDate);
-  const isClosedByDate = dayjs(endDate).isBefore(dayjs());
-  const isOpen = work.note?.post?.grant?.status === 'OPEN' && !isClosedByDate;
+  const isActive =
+    work.note?.post?.grant?.status === 'OPEN' &&
+    (work.note?.post?.grant?.endDate ? isDeadlineInFuture(work.note?.post?.grant?.endDate) : true);
 
   return (
     <div>
       <h3 className="text-base font-semibold text-gray-900 mb-2">Status</h3>
       <div className="flex items-center gap-2 text-gray-800 text-sm">
         <span
-          className={`h-2 w-2 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-gray-400'} inline-block`}
+          className={`h-2 w-2 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-gray-400'} inline-block`}
         />
-        <span>{isOpen ? 'Accepting Applications' : 'Closed'}</span>
+        <span>{isActive ? 'Accepting Applications' : 'Closed'}</span>
       </div>
       {/* Deadline information for open grants */}
-      {isOpen && (
+      {isActive && (
         <div className="text-sm text-gray-600 mt-1">
           <div className="flex items-center gap-1">
             <Clock size={14} className="text-gray-500" />
@@ -47,7 +49,7 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
           </div>
         </div>
       )}
-      {!isOpen && (
+      {!isActive && (
         <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
           <Clock size={14} className="text-gray-500" />
           <span>
