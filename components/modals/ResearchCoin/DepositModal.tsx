@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition, DialogPanel, DialogTitle } from '@headlessui/react';
-import { Fragment, useCallback, useMemo, useState } from 'react';
+import { Fragment, useCallback, useMemo, useState, useEffect } from 'react';
 import { X as XIcon, Check } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import { Interface } from 'ethers';
@@ -40,6 +40,7 @@ interface DepositModalProps {
 
 export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: DepositModalProps) {
   const [amount, setAmount] = useState('');
+  const [transactionKey, setTransactionKey] = useState(0);
 
   const { address } = useAccount();
   const { balance: walletBalance } = useWalletRSCBalance();
@@ -47,12 +48,18 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const depositAmount = useMemo(() => Number.parseInt(amount || '0', 10), [amount]);
   const newBalance = useMemo(() => currentBalance + depositAmount, [currentBalance, depositAmount]);
 
-  const { txStatus, isInitiating, handleInitiateTransaction, handleOnStatus, handleOnSuccess } =
-    useDepositTransaction({
-      depositAmount,
-      isOpen,
-      onSuccess,
-    });
+  const {
+    txStatus,
+    isInitiating,
+    handleInitiateTransaction,
+    handleOnStatus,
+    handleOnSuccess,
+    handleOnError,
+  } = useDepositTransaction({
+    depositAmount,
+    isOpen,
+    onSuccess,
+  });
 
   const isButtonDisabled = useMemo(
     () =>
@@ -69,6 +76,14 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     () => !address || txStatus.state === 'processing' || txStatus.state === 'success',
     [address, txStatus.state]
   );
+
+  // Force Transaction component to remount when modal opens
+  // This helps OnchainKit properly detect transaction status on mobile
+  useEffect(() => {
+    if (isOpen) {
+      setTransactionKey((prev) => prev + 1);
+    }
+  }, [isOpen]);
 
   const handleClose = useCallback(() => {
     setAmount('');
@@ -237,11 +252,13 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                   </div>
 
                   <Transaction
+                    key={transactionKey}
                     isSponsored={true}
                     chainId={RSC.chainId}
                     calls={callsCallback}
                     onStatus={handleOnStatus}
                     onSuccess={handleOnSuccess}
+                    onError={handleOnError}
                   >
                     <div
                       onClick={handleInitiateTransaction}

@@ -19,6 +19,7 @@ interface UseDepositTransactionReturn {
   handleInitiateTransaction: () => void;
   handleOnStatus: (status: any) => void;
   handleOnSuccess: (response: any) => void;
+  handleOnError: (error: any) => void;
 }
 
 /**
@@ -134,11 +135,21 @@ export function useDepositTransaction({
     [depositAmount, address, onSuccess]
   );
 
+  /**
+   * Handle OnchainKit onError callback
+   * Helps catch and display transaction errors
+   */
+  const handleOnError = useCallback((error: any) => {
+    console.error('[useDepositTransaction] Transaction error:', error);
+    // OnchainKit will handle error UI, we just log it
+  }, []);
+
   return {
     txStatus,
     isInitiating,
     handleInitiateTransaction,
     handleOnStatus,
     handleOnSuccess,
+    handleOnError,
   };
 }
