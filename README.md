@@ -51,3 +51,22 @@ We believe that by empowering scientists to independently fund, create, and publ
     2. Open the `account_emailaddress` table in the `researchhub` DB
     3. Find your email row and set `verified` to `True`, then submit/save the change
     4. Log in with that email address and your password
+
+## Additional commands
+These are run on commit and typically automated by your IDE, but you can always run them manually if you want to.
+- ESLint checking:
+  ```shell
+  npm run lint
+  ```
+- Auto-fix linting issues
+  ```shell
+  npm run lint:fix
+  ```
+- Prettier formatting:
+  ```shell
+  npm run format
+  ```
+- TypeScript type checking:
+  ```shell
+  npm run type-check
+  ```
