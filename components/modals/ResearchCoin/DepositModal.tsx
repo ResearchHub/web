@@ -7,6 +7,7 @@ import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useAccount } from 'wagmi';
 import { useWalletRSCBalance } from '@/hooks/useWalletRSCBalance';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction';
 import { Interface } from 'ethers';
 import { TransactionService } from '@/services/transaction.service';
@@ -52,6 +53,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const [isInitiating, isDepositButtonDisabled] = useState(false);
   const { address } = useAccount();
   const { balance: walletBalance } = useWalletRSCBalance();
+  const isMobile = useIsMobile();
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
   const hasCalledSuccessRef = useRef(false);
   const hasProcessedDepositRef = useRef(false);
@@ -95,8 +97,13 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
   const isButtonDisabled = useMemo(
     () =>
-      !address || !amount || depositAmount <= 0 || depositAmount > walletBalance || isInitiating,
-    [address, amount, depositAmount, walletBalance, isInitiating]
+      !address ||
+      !amount ||
+      depositAmount <= 0 ||
+      depositAmount > walletBalance ||
+      isInitiating ||
+      isMobile,
+    [address, amount, depositAmount, walletBalance, isInitiating, isMobile]
   );
 
   // Function to check if inputs should be disabled
@@ -105,9 +112,10 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       !address ||
       txStatus.state === 'buildingTransaction' ||
       txStatus.state === 'pending' ||
-      txStatus.state === 'success'
+      txStatus.state === 'success' ||
+      isMobile
     );
-  }, [address, txStatus.state]);
+  }, [address, txStatus.state, isMobile]);
 
   const setButtonDisabledOnClick = useCallback(() => {
     isDepositButtonDisabled(true);
@@ -257,6 +265,18 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                   </div>
 
                   <div className="space-y-6">
+                    {isMobile && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div className="flex gap-3">
+                          <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                          <p className="text-sm text-yellow-800">
+                            Deposits are temporarily unavailable on mobile devices. Please use a
+                            desktop browser to make deposits.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Network Info */}
                     <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 shadow-md">
                       <div className="flex items-center gap-3">
