@@ -49,7 +49,7 @@ type TransactionStatus =
 
 export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: DepositModalProps) {
   const [amount, setAmount] = useState<string>('');
-  const [isInitiating, setIsInitiating] = useState(false);
+  const [isInitiating, isDepositButtonDisabled] = useState(false);
   const { address } = useAccount();
   const { balance: walletBalance } = useWalletRSCBalance();
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
@@ -62,7 +62,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     if (isOpen) {
       setTxStatus({ state: 'idle' });
       setAmount('');
-      setIsInitiating(false);
+      isDepositButtonDisabled(false);
       hasCalledSuccessRef.current = false;
       hasProcessedDepositRef.current = false;
       processedTxHashRef.current = null;
@@ -109,8 +109,8 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     );
   }, [address, txStatus.state]);
 
-  const handleInitiateTransaction = useCallback(() => {
-    setIsInitiating(true);
+  const setButtonDisabledOnClick = useCallback(() => {
+    isDepositButtonDisabled(true);
   }, []);
 
   const handleOnStatus = useCallback(
@@ -179,7 +179,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
           state: 'error',
           message: status.statusData?.message || 'Transaction failed',
         });
-        setIsInitiating(false);
+        isDepositButtonDisabled(false);
       }
     },
     [depositAmount, address, onSuccess]
@@ -362,7 +362,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                       calls={callsCallback}
                       onStatus={handleOnStatus}
                     >
-                      <div onClick={handleInitiateTransaction} role="presentation">
+                      <div onClick={setButtonDisabledOnClick} role="presentation">
                         <TransactionButton
                           className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                           disabled={isButtonDisabled || txStatus.state === 'pending'}
