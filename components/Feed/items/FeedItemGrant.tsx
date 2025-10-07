@@ -22,7 +22,6 @@ import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/icons/Icon';
 import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
 import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
-import dayjs from 'dayjs';
 
 // Grant-specific content type that extends the feed entry structure
 export interface FeedGrantContent {

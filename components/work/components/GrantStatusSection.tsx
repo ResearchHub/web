@@ -3,7 +3,6 @@
 import { Work } from '@/types/work';
 import { format } from 'date-fns';
 import { Clock } from 'lucide-react';
-import dayjs from 'dayjs';
 import { isDeadlineInFuture } from '@/utils/date';
 
 interface GrantStatusSectionProps {

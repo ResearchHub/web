@@ -9,7 +9,6 @@ import { WorkTabs, TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { GrantApplications } from './GrantApplications';
 import { format } from 'date-fns';
-import dayjs from 'dayjs';
 import { PostBlockEditor } from './PostBlockEditor';
 import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
 import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
