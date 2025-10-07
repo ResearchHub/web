@@ -17,6 +17,7 @@ import { ArrowRightIcon } from 'lucide-react';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { LeaderboardSkeleton } from '@/components/Leaderboard/LeaderboardOverview';
 import { TopicsToFollowSkeleton } from './components/TopicsToFollow';
+import { convertFeedPostContentToRelatedWork } from '@/types/analytics';
 
 const LeaderboardOverview = dynamic(
   () =>
@@ -233,6 +234,7 @@ const FundingSpotlight = () => {
                     fundraiseTitle={title}
                     variant="minimal"
                     className="mt-2"
+                    analyticsRelatedWork={convertFeedPostContentToRelatedWork(content)}
                   />
                 </div>
               )}
