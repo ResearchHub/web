@@ -49,6 +49,7 @@ type TransactionStatus =
 
 export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: DepositModalProps) {
   const [amount, setAmount] = useState<string>('');
+  const [isInitiating, isDepositButtonDisabled] = useState(false);
   const { address } = useAccount();
   const { balance: walletBalance } = useWalletRSCBalance();
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
@@ -56,13 +57,16 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const hasProcessedDepositRef = useRef(false);
   const processedTxHashRef = useRef<string | null>(null);
 
-  // Reset transaction status when modal is closed
+  // Reset transaction status when modal opens
   useEffect(() => {
-    setTxStatus({ state: 'idle' });
-    setAmount('');
-    hasCalledSuccessRef.current = false;
-    hasProcessedDepositRef.current = false;
-    processedTxHashRef.current = null;
+    if (isOpen) {
+      setTxStatus({ state: 'idle' });
+      setAmount('');
+      isDepositButtonDisabled(false);
+      hasCalledSuccessRef.current = false;
+      hasProcessedDepositRef.current = false;
+      processedTxHashRef.current = null;
+    }
   }, [isOpen]);
 
   // Handle custom close with state reset
@@ -90,8 +94,9 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   );
 
   const isButtonDisabled = useMemo(
-    () => !address || !amount || depositAmount <= 0 || depositAmount > walletBalance,
-    [address, amount, depositAmount, walletBalance]
+    () =>
+      !address || !amount || depositAmount <= 0 || depositAmount > walletBalance || isInitiating,
+    [address, amount, depositAmount, walletBalance, isInitiating]
   );
 
   // Function to check if inputs should be disabled
@@ -103,6 +108,10 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       txStatus.state === 'success'
     );
   }, [address, txStatus.state]);
+
+  const setButtonDisabledOnClick = useCallback(() => {
+    isDepositButtonDisabled(true);
+  }, []);
 
   const handleOnStatus = useCallback(
     (status: any) => {
@@ -170,6 +179,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
           state: 'error',
           message: status.statusData?.message || 'Transaction failed',
         });
+        isDepositButtonDisabled(false);
       }
     },
     [depositAmount, address, onSuccess]
@@ -352,11 +362,13 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                       calls={callsCallback}
                       onStatus={handleOnStatus}
                     >
-                      <TransactionButton
-                        className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                        disabled={isButtonDisabled || txStatus.state === 'pending'}
-                        text={'Deposit RSC'}
-                      />
+                      <div onClick={setButtonDisabledOnClick} role="presentation">
+                        <TransactionButton
+                          className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                          disabled={isButtonDisabled || txStatus.state === 'pending'}
+                          text={'Deposit RSC'}
+                        />
+                      </div>
                     </Transaction>
 
                     {/* Transaction Status Display */}
