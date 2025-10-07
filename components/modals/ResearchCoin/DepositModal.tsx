@@ -57,14 +57,16 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const hasProcessedDepositRef = useRef(false);
   const processedTxHashRef = useRef<string | null>(null);
 
-  // Reset transaction status when modal is closed
+  // Reset transaction status when modal opens
   useEffect(() => {
-    setTxStatus({ state: 'idle' });
-    setAmount('');
-    setIsInitiating(false);
-    hasCalledSuccessRef.current = false;
-    hasProcessedDepositRef.current = false;
-    processedTxHashRef.current = null;
+    if (isOpen) {
+      setTxStatus({ state: 'idle' });
+      setAmount('');
+      setIsInitiating(false);
+      hasCalledSuccessRef.current = false;
+      hasProcessedDepositRef.current = false;
+      processedTxHashRef.current = null;
+    }
   }, [isOpen]);
 
   // Handle custom close with state reset
