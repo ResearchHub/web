@@ -1,28 +1,30 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import {
   ArrowUp,
-  Flag,
+  CheckCircle,
   Edit,
-  MoreHorizontal,
   FileUp,
+  Flag,
+  ListPlus,
+  MoreHorizontal,
   Octagon,
   Share2,
-  CheckCircle,
 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useVote } from '@/hooks/useVote';
 import { useUserVotes } from '@/hooks/useUserVotes';
-import { useCloseFundraise } from '@/hooks/useFundraise';
+import { useCloseFundraise, useCompleteFundraise } from '@/hooks/useFundraise';
 import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useRouter } from 'next/navigation';
 import { TipContentModal } from '@/components/modals/TipContentModal';
+import SaveToListModal from '@/components/modals/SaveToListModal';
 import { Icon } from '@/components/ui/icons/Icon';
 import { PaperService } from '@/services/paper.service';
 import { useUser } from '@/contexts/UserContext';
@@ -31,7 +33,6 @@ import { WorkEditModal } from './WorkEditModal';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { useCompleteFundraise } from '@/hooks/useFundraise';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 interface WorkLineItemsProps {
@@ -51,6 +52,7 @@ export const WorkLineItems = ({
 }: WorkLineItemsProps) => {
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
+  const [isListModalOpen, setIsListModalOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showFundraiseActionModal, setShowFundraiseActionModal] = useState(false);
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | null>(null);
@@ -152,7 +154,14 @@ export const WorkLineItems = ({
 
   const handleTipSuccess = (amount: number) => {
     toast.success(`Successfully tipped ${amount} RSC`);
+
     setIsTipModalOpen(false);
+  };
+
+  const handleListSave = (listName: string) => {
+    toast.success(`Saved to list:\n${listName}`);
+
+    setIsListModalOpen(false);
   };
 
   // Determine if the latest version has already been published
@@ -339,6 +348,15 @@ export const WorkLineItems = ({
             </button>
           </Tooltip>
 
+          <Tooltip content="Save to list">
+            <button
+              onClick={() => executeAuthenticatedAction(() => setIsListModalOpen(true))}
+              className={`${icon_shared} px-2 ${icon_color}`}
+            >
+              <ListPlus className="h-6 w-6" />
+            </button>
+          </Tooltip>
+
           {work.contentType !== 'preregistration' && (
             <button
               onClick={() => executeAuthenticatedAction(() => setIsTipModalOpen(true))}
@@ -516,6 +534,15 @@ export const WorkLineItems = ({
         contentId={work.id}
         feedContentType={work.contentType === 'paper' ? 'PAPER' : 'POST'}
         onTipSuccess={handleTipSuccess}
+      />
+
+      {/* List Modal */}
+      <SaveToListModal
+        isOpen={isListModalOpen}
+        onClose={() => setIsListModalOpen(false)}
+        contentId={work.id}
+        contentType={work.contentType}
+        onSave={handleListSave}
       />
 
       {work.contentType === 'paper' && (
