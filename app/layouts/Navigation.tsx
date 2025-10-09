@@ -35,7 +35,6 @@ interface NavigationProps {
   currentPath: string;
   onUnimplementedFeature: (featureName: string) => void;
   forceMinimize?: boolean;
-  showBrowse?: boolean;
 }
 
 // Map navigation icons to their light and solid variants
@@ -70,7 +69,6 @@ export const Navigation: React.FC<NavigationProps> = ({
   currentPath,
   onUnimplementedFeature,
   forceMinimize = false,
-  showBrowse = false,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
@@ -89,6 +87,12 @@ export const Navigation: React.FC<NavigationProps> = ({
       iconKey: 'home',
       isFontAwesome: true,
       description: 'Navigate to the home page',
+    },
+    {
+      label: 'Browse',
+      href: '/browse',
+      description: 'Browse topics by category',
+      isFontAwesome: true,
     },
     {
       label: 'Earn',
@@ -115,16 +119,6 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Access your research notes',
       requiresAuth: true,
     },
-    ...(showBrowse
-      ? [
-          {
-            label: 'Browse',
-            href: '/browse?exp=browse',
-            description: 'Browse topics by category',
-            isFontAwesome: true,
-          },
-        ]
-      : []),
     {
       label: 'Leaderboard',
       href: '/leaderboard',
@@ -161,8 +155,8 @@ export const Navigation: React.FC<NavigationProps> = ({
       return currentPath.startsWith('/leaderboard');
     }
 
-    // Special case for browse page - match /browse with any query parameters
-    if (path === '/browse?exp=browse') {
+    // Special case for browse page
+    if (path === '/browse') {
       return currentPath.startsWith('/browse');
     }
 
@@ -228,7 +222,7 @@ export const Navigation: React.FC<NavigationProps> = ({
               color={iconColor}
               strokeWidth={isActive ? 2.5 : 2}
             />
-          ) : item.href === '/browse?exp=browse' ? (
+          ) : item.href === '/browse' ? (
             <FontAwesomeIcon
               icon={isActive ? faGrid3Solid : faGrid3Light}
               fontSize={24}

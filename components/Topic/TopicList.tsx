@@ -73,35 +73,35 @@ export function TopicList({ topics, className = '', variant = 'default' }: Topic
         }
 
         return (
-          <div
+          <Link
             key={topic.id}
-            className="group bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden h-28"
+            href={`/topic/${topic.slug}`}
+            className="group bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden h-28 block"
           >
             <div className="p-5 w-full h-full flex flex-col">
               <div className="flex items-start justify-between mb-3">
-                <Link
-                  href={`/topic/${topic.slug}`}
-                  className="text-3xl flex-shrink-0 w-10 h-10 flex items-center justify-center"
-                >
+                <div className="text-3xl flex-shrink-0 w-10 h-10 flex items-center justify-center">
                   {displayIcon ? (
                     <span className="text-3xl">{displayIcon}</span>
                   ) : (
                     <Hash className="w-8 h-8 text-gray-400" />
                   )}
-                </Link>
+                </div>
 
-                <div className="flex-shrink-0 pt-1">
-                  <FollowTopicButton topicId={topic.id} size="sm" />
+                <div className="flex-shrink-0 -mr-1 -mt-0.5">
+                  <div className="p-1.5">
+                    <FollowTopicButton topicId={topic.id} size="sm" />
+                  </div>
                 </div>
               </div>
 
-              <Link href={`/topic/${topic.slug}`} className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0">
                 <h3 className="font-medium text-md text-gray-900 break-words leading-tight">
                   {topicTitle}
                 </h3>
-              </Link>
+              </div>
             </div>
-          </div>
+          </Link>
         );
       })}
     </div>

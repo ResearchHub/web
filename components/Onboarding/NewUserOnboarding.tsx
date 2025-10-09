@@ -89,6 +89,7 @@ export function OnboardingModalWrapper() {
   const [isSaving, setIsSaving] = useState(false);
   const searchParams = useSearchParams();
   const onboardingEventFired = useRef(false);
+  const hasCompletedOnboarding = useRef(false);
   const pathname = usePathname();
   const { followMultiple } = useFollowContext();
 
@@ -106,6 +107,11 @@ export function OnboardingModalWrapper() {
   // Check if onboarding should be shown
   useEffect(() => {
     if (isUserLoading) {
+      return;
+    }
+
+    // Skip if user has already completed onboarding in this session
+    if (hasCompletedOnboarding.current) {
       return;
     }
 
@@ -157,14 +163,24 @@ export function OnboardingModalWrapper() {
 
     setIsSaving(true);
     try {
-      // Use the batch follow endpoint
-      await followMultiple(selectedTopicIds);
+      // Follow topics and mark onboarding as completed in parallel
+      await Promise.all([followMultiple(selectedTopicIds), UserService.setCompletedOnboarding()]);
+
+      // Mark as completed locally to prevent modal from reopening
+      hasCompletedOnboarding.current = true;
+
+      // Remove onboarding query parameter from URL
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('onboarding');
+        window.history.replaceState({}, '', url.toString());
+      }
 
       // Close the modal and leave user on current page
       setShowModal(false);
       setIsSaving(false);
     } catch (error) {
-      console.error('Failed to follow topics:', error);
+      console.error('Failed to complete onboarding:', error);
       setIsSaving(false);
     }
   };
