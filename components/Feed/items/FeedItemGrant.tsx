@@ -20,7 +20,7 @@ import { Building, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/icons/Icon';
-import { formatDeadline } from '@/utils/date';
+import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
 import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
 
 // Grant-specific content type that extends the feed entry structure
@@ -73,6 +73,7 @@ interface FeedItemGrantRefactoredProps {
   customActionText?: string;
   maxLength?: number;
   showHeader?: boolean;
+  onFeedItemClick?: () => void;
 }
 
 /**
@@ -87,12 +88,15 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
   customActionText,
   maxLength,
   showHeader = true,
+  onFeedItemClick,
 }) => {
   const grant = entry.content as FeedGrantContent;
   const router = useRouter();
 
-  // Calculate status and deadline
-  const isOpen = grant.grant?.status === 'OPEN' && !grant.grant?.isExpired;
+  // Check if RFP is active
+  const isActive =
+    grant.grant?.status === 'OPEN' &&
+    (grant.grant?.endDate ? isDeadlineInFuture(grant.grant?.endDate) : true);
   const deadline = grant.grant?.endDate;
   const expiringSoon = isExpiringSoon(deadline, 1); // Use 1-day threshold for grants
 
@@ -124,9 +128,10 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
       className={className}
       showActions={showActions}
       showTooltips={showTooltips}
-      customActionText={customActionText ?? 'opened a grant'}
+      customActionText={customActionText ?? 'opened an RFP'}
       maxLength={maxLength}
       showHeader={showHeader}
+      onFeedItemClick={onFeedItemClick}
     >
       {/* Top section with badges and status + image(mobile) */}
       <FeedItemTopSection
@@ -155,8 +160,8 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
         }
         rightContent={
           <StatusSection
-            status={isOpen ? 'open' : 'closed'}
-            statusText={isOpen ? 'Open' : 'Closed'}
+            status={isActive ? 'open' : 'closed'}
+            statusText={isActive ? 'Open' : 'Closed'}
           />
         }
       />
@@ -200,7 +205,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             )}
 
             {/* Deadline */}
-            {deadline && isOpen && (
+            {deadline && isActive && (
               <MetadataSection>
                 <div className="flex items-center gap-1.5 text-sm mb-3">
                   <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
@@ -242,7 +247,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             )}
 
             {/* CTA */}
-            {isOpen && (
+            {isActive && (
               <CTASection>
                 <button
                   onClick={handleApplyClick}

@@ -51,6 +51,10 @@ export type DocumentVersion = {
 export interface FormatType {
   type: string;
   url: string;
+  /**
+   * This is a proxied URL for internal use (e.g., to avoid CORS issues when rendering PDFs).
+   */
+  internalUrl?: string;
 }
 
 export interface Enrichment {
@@ -208,12 +212,23 @@ export const transformWork = createTransformer<any, Work>((raw) => {
           ]
         : [],
     formats: raw.pdf_url
-      ? [...(raw.formats || []), { type: 'PDF', url: ProxyService.generateProxyUrl(raw.pdf_url) }]
+      ? [
+          ...(raw.formats || []),
+          {
+            type: 'PDF',
+            url: raw.pdf_url,
+            internalUrl: ProxyService.generateProxyUrl(raw.pdf_url),
+          },
+        ]
       : raw.file
-        ? [...(raw.formats || []), { type: 'PDF', url: ProxyService.generateProxyUrl(raw.file) }]
+        ? [
+            ...(raw.formats || []),
+            { type: 'PDF', url: raw.file, internalUrl: ProxyService.generateProxyUrl(raw.file) },
+          ]
         : (raw.formats || []).map((format: FormatType) => ({
             ...format,
-            url: format.type === 'PDF' ? ProxyService.generateProxyUrl(format.url) : format.url,
+            internalUrl:
+              format.type === 'PDF' ? ProxyService.generateProxyUrl(format.url) : undefined,
           })),
     license: raw.pdf_license,
     pdfCopyrightAllowsDisplay: raw.pdf_copyright_allows_display,

@@ -22,6 +22,7 @@ interface FeedItemPostProps {
   showTooltips?: boolean;
   showActions?: boolean;
   maxLength?: number;
+  onFeedItemClick?: () => void;
 }
 
 /**
@@ -33,6 +34,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   showTooltips = true,
   showActions = true,
   maxLength,
+  onFeedItemClick,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -59,6 +61,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
       showTooltips={showTooltips}
       customActionText={post.postType === 'QUESTION' ? 'asked a question' : 'published an article'}
       maxLength={maxLength}
+      onFeedItemClick={onFeedItemClick}
     >
       {/* Top section with badges and mobile image */}
       <FeedItemTopSection

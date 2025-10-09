@@ -7,6 +7,7 @@ interface CardWrapperProps {
   children: React.ReactNode;
   className?: string;
   isClickable?: boolean;
+  onClick?: () => void;
 }
 
 const defaultClassName =
@@ -19,6 +20,7 @@ export const CardWrapper = ({
   children,
   className,
   isClickable = true,
+  onClick,
 }: CardWrapperProps) => {
   const router = useRouter();
 
@@ -28,6 +30,10 @@ export const CardWrapper = ({
     const isInteractive = target.closest('button, a, [role="button"], input, select, textarea');
 
     if (isInteractive || !href) return;
+
+    if (isClickable && onClick) {
+      onClick();
+    }
 
     // Handle different click types
     if (e.button === 1) {
@@ -52,6 +58,9 @@ export const CardWrapper = ({
     if (!href) return;
 
     if (e.key === 'Enter') {
+      if (isClickable && onClick) {
+        onClick();
+      }
       e.preventDefault();
       router.push(href);
     }
@@ -60,6 +69,9 @@ export const CardWrapper = ({
   const handleAuxClick = (e: React.MouseEvent) => {
     // Handle middle click specifically
     if (e.button === 1 && href) {
+      if (isClickable && onClick) {
+        onClick();
+      }
       e.preventDefault();
       window.open(href, '_blank');
     }

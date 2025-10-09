@@ -231,7 +231,7 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
                 showTooltips={true}
                 badgeVariant="default"
                 showActions={true}
-                customActionText="applied to grant"
+                customActionText="applied to RFP"
               />
             </div>
           );

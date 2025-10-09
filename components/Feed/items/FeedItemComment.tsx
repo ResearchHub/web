@@ -73,6 +73,7 @@ interface FeedItemCommentProps {
   hideActions?: boolean; // New property to hide action buttons completely
   workContentType?: ContentType;
   maxLength?: number;
+  onFeedItemClick?: () => void;
 }
 
 /**
@@ -92,6 +93,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   hideActions = false, // Default to not hiding actions
   workContentType,
   maxLength,
+  onFeedItemClick,
 }) => {
   let [showLegacyCommentBanner, setShowLegacyCommentBanner] = useState(false);
   const commentEntry = entry.content as FeedCommentContent;
@@ -148,7 +150,13 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
           onClose={() => setShowLegacyCommentBanner(false)}
         />
       )}
-      <BaseFeedItem entry={entry} href={commentPageUrl} showHeader={false} showActions={false}>
+      <BaseFeedItem
+        entry={entry}
+        href={commentPageUrl}
+        showHeader={false}
+        showActions={false}
+        onFeedItemClick={onFeedItemClick}
+      >
         {isReview && (
           <div className="flex items-center gap-2 mb-3">
             <ContentTypeBadge type="review" />
@@ -194,7 +202,10 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 metrics={entry.metrics}
                 feedContentType="COMMENT"
                 votableEntityId={comment.id}
-                relatedDocumentId={Number(commentEntry.relatedDocumentId)}
+                relatedDocumentId={commentEntry.relatedDocumentId?.toString()}
+                relatedDocumentUnifiedDocumentId={
+                  entry.relatedWork?.unifiedDocumentId?.toString() || undefined
+                }
                 relatedDocumentContentType={commentEntry.relatedDocumentContentType}
                 userVote={entry.userVote}
                 actionLabels={actionLabels}
@@ -203,6 +214,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 menuItems={menuItems}
                 awardedBountyAmount={entry.awardedBountyAmount}
                 tips={entry.tips}
+                relatedDocumentTopics={entry.relatedWork?.topics}
               />
             </div>
           </div>

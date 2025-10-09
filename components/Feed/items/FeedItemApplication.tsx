@@ -82,7 +82,7 @@ export const FeedItemApplication: FC<FeedItemApplicationProps> = ({
         showTooltips={true}
         badgeVariant="default"
         showActions={true}
-        customActionText="applied to grant"
+        customActionText="applied to RFP"
       />
     </div>
   );
