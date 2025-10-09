@@ -35,20 +35,8 @@ export default function TopicFeedPage() {
     },
   ];
 
-  if (isHubLoading) {
-    return (
-      <PageLayout>
-        <div className="pt-4 pb-7">
-          <h1 className="text-xl text-gray-600 flex items-center gap-2">
-            <Hash className="w-5 h-5 text-indigo-500" />
-            Loading topic...
-          </h1>
-        </div>
-      </PageLayout>
-    );
-  }
-
-  if (hubError || !hub) {
+  // Check for error state ONLY if not loading
+  if (!isHubLoading && (hubError || !hub)) {
     return (
       <PageLayout>
         <div className="pt-4 pb-7">
@@ -58,19 +46,15 @@ export default function TopicFeedPage() {
     );
   }
 
-  const header = (
-    <h1 className="text-xl text-gray-600 flex items-center gap-2">
-      <Hash className="w-5 h-5 text-indigo-500" />
-      Latest Research in {hub.name}
-    </h1>
-  );
+  // Combine loading states
+  const isLoading = isHubLoading || isFeedLoading;
 
   const tabs = (
     <FeedTabs
       activeTab={activeTab}
       tabs={topicTabs}
       onTabChange={(tab: string) => setActiveTab(tab as FeedTab)}
-      isLoading={isFeedLoading}
+      isLoading={isLoading}
     />
   );
 
@@ -78,10 +62,9 @@ export default function TopicFeedPage() {
     <PageLayout>
       <FeedContent
         entries={entries}
-        isLoading={isFeedLoading}
+        isLoading={isLoading}
         hasMore={hasMore}
         loadMore={loadMore}
-        header={header}
         tabs={tabs}
         activeTab={activeTab}
       />

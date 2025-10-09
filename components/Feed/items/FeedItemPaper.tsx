@@ -118,7 +118,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                 <div className="mb-3 text-sm text-gray-500 flex items-center gap-1.5">
                   <BookText className="w-4 h-4 text-gray-500" />
                   <a
-                    href={paper.journal.slug ? `/journal/${paper.journal.slug}` : '#'}
+                    href={paper.journal.slug ? `/topic/${paper.journal.slug}` : '#'}
                     rel="noopener noreferrer"
                     className="hover:text-blue-600 underline cursor-pointer"
                     onClick={(e) => e.stopPropagation()}

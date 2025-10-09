@@ -27,6 +27,9 @@ import { faCommentsQuestion } from '@fortawesome/pro-light-svg-icons';
 import { faGrid3 as faGrid3Light } from '@fortawesome/pro-light-svg-icons';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { colors } from '@/app/styles/colors';
+import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
+import { toTitleCase } from '@/utils/stringUtils';
+import { Hash } from 'lucide-react';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -219,6 +222,27 @@ const getPageInfo = (pathname: string): PageInfo | null => {
       title: 'Profile',
       icon: <Icon name="profile" size={24} className="text-gray-900" />,
     };
+  }
+
+  if (pathname.startsWith('/topic/')) {
+    // Extract topic slug from URL
+    const topicSlug = pathname.split('/topic/')[1]?.split('/')[0];
+    if (topicSlug) {
+      // Get emoji for the topic
+      const emoji = getTopicEmoji(topicSlug);
+      // Convert slug to title case (replace hyphens with spaces)
+      const topicName = toTitleCase(topicSlug.replace(/-/g, ' '));
+
+      return {
+        title: topicName,
+        subtitle: 'Explore research in this topic',
+        icon: emoji ? (
+          <span className="text-2xl">{emoji}</span>
+        ) : (
+          <Hash className="w-6 h-6 text-gray-400" />
+        ),
+      };
+    }
   }
 
   return null;
