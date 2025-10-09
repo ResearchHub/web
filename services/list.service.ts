@@ -1,6 +1,7 @@
 import { ID } from '@/types/root';
 import { ListItem } from '@/services/listItem.service';
 import { ApiClient } from '@/services/client';
+import { getPaginatedQueryParams, PaginatedParams, PaginatedResult } from '@/lib/utils';
 
 export interface List {
   id: ID;
@@ -8,6 +9,10 @@ export interface List {
   items?: ListItem[];
   created_date: string;
   updated_date: string;
+}
+
+export interface PaginatedListsResult extends PaginatedResult {
+  results: List[];
 }
 
 export type CreateListParams = {
@@ -33,9 +38,13 @@ export class ListService {
   // =================== API ===================
 
   // GET /api/list/ — get lists
-  static async getLists(): Promise<List[]> {
+  static async getLists(params: PaginatedParams = {}): Promise<PaginatedListsResult> {
     try {
-      return await ApiClient.get<List[]>(this.basePath);
+      const queryString = getPaginatedQueryParams(params, true);
+
+      return await ApiClient.get<PaginatedListsResult>(
+        queryString ? `${this.basePath}?${queryString}` : this.basePath
+      );
     } catch (e) {
       throw new Error(`Failed to get lists: ${this.getErrorMsg(e)}`);
     }

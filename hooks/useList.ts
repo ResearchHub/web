@@ -1,7 +1,7 @@
 'use client';
 
 import toast from 'react-hot-toast';
-import { AsyncState } from '@/lib/utils';
+import { AsyncState, PaginatedParams, PaginatedState } from '@/lib/utils';
 import { useCallback, useEffect, useState } from 'react';
 import {
   CreateListParams,
@@ -9,39 +9,68 @@ import {
   GetListParams,
   List,
   ListService,
+  PaginatedListsResult,
   UpdateListParams,
 } from '@/services/list.service';
 
 // ==================== GET LISTS ====================
 
-type UseGetListsState = AsyncState & { lists: List[] };
+type UseGetListsState = AsyncState & PaginatedListsResult;
 
-export function useGetLists(): UseGetListsState & { refresh: () => Promise<void> } {
-  const [lists, setLists] = useState<UseGetListsState['lists']>([]);
+export function useGetLists(params: PaginatedParams = {}): UseGetListsState & PaginatedState {
+  const [lists, setLists] = useState<UseGetListsState['results']>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<UseGetListsState['error']>(null);
+  const [count, setCount] = useState(0);
+  const [next, setNext] = useState<UseGetListsState['next']>(null);
+  const [previous, setPrevious] = useState<UseGetListsState['previous']>(null);
 
-  const getLists = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      setLists(await ListService.getLists());
-    } catch (e) {
-      setError(e instanceof Error ? e : new Error('Failed to get lists'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const getLists = useCallback(
+    async (resetLists = true) => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const response = await ListService.getLists(params);
+
+        if (resetLists) {
+          setLists(response.results);
+        } else {
+          setLists((prev) => [...prev, ...response.results]);
+        }
+
+        setCount(response.count);
+        setNext(response.next);
+        setPrevious(response.previous);
+      } catch (e) {
+        setError(e instanceof Error ? e : new Error('Failed to get lists'));
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [params]
+  );
+
+  const loadMore = useCallback(async () => {
+    if (!next || isLoading) return;
+
+    await getLists(false);
+  }, [next, isLoading, getLists]);
 
   useEffect(() => {
     void getLists();
   }, [getLists]);
 
   return {
-    lists,
+    results: lists,
+    count,
+    next,
+    previous,
     isLoading,
     error,
-    refresh: getLists,
+    refresh: () => getLists(true),
+    loadMore,
+    hasMore: !!next,
   };
 }
 
