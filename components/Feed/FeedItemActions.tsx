@@ -1,9 +1,8 @@
 'use client';
 
-import { FC, useState, ReactNode, useEffect, useRef } from 'react';
-import React from 'react';
-import { FeedContentType, FeedEntry, Review } from '@/types/feed';
-import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star } from 'lucide-react';
+import React, { FC, ReactNode, useEffect, useRef, useState } from 'react';
+import { FeedContentType, Review } from '@/types/feed';
+import { ArrowUp, Flag, ListPlus, MessageCircle, MoreHorizontal, Star } from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
@@ -18,7 +17,6 @@ import { TipContentModal } from '@/components/modals/TipContentModal';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Bounty } from '@/types/bounty';
 import { Tip } from '@/types/tip';
-import { formatRSC } from '@/utils/number';
 import { extractBountyAvatars } from '@/components/Bounty/lib/bountyUtil';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -27,6 +25,9 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
 import { Topic } from '@/types/topic';
+import { TYPES_SUPPORTING_LISTS } from '@/services/list.service';
+import SaveToListModal from '@/components/modals/SaveToListModal';
+import toast from 'react-hot-toast';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -141,6 +142,15 @@ export const ActionButton: FC<ActionButtonProps> = ({
   </Button>
 );
 
+type MenuItem = {
+  icon: any;
+  label: string;
+  tooltip?: string;
+  disabled?: boolean;
+  onClick: (e?: React.MouseEvent) => void;
+  className?: string; // Add optional className for styling menu items
+};
+
 interface FeedItemActionsProps {
   metrics?: Partial<ExtendedContentMetrics>;
   feedContentType: FeedContentType;
@@ -158,14 +168,7 @@ interface FeedItemActionsProps {
   showTooltips?: boolean; // New property for controlling tooltips
   hideCommentButton?: boolean; // New property to hide the comment button
   hideReportButton?: boolean; // New property to hide the report button
-  menuItems?: Array<{
-    icon: any;
-    label: string;
-    tooltip?: string;
-    disabled?: boolean;
-    onClick: (e?: React.MouseEvent) => void;
-    className?: string; // Add optional className for styling menu items
-  }>;
+  menuItems?: Array<MenuItem>;
   rightSideActionButton?: ReactNode; // New property for a custom action button on the right side
   href?: string; // URL to use for navigation
   reviews?: Review[]; // New property for reviews
@@ -207,20 +210,17 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   relatedDocumentTopics,
   relatedDocumentUnifiedDocumentId,
 }) => {
+  type ModalState = { isOpen: boolean; contentId?: number };
+
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser(); // Get current user
   const { showUSD } = useCurrencyPreference();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
-
-  // State for dropdown menu
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  // State for Tip Modal
-  const [tipModalState, setTipModalState] = useState<{ isOpen: boolean; contentId?: number }>({
-    isOpen: false,
-  });
+  const [tipModalState, setTipModalState] = useState<ModalState>({ isOpen: false });
+  const [listModalState, setListModalState] = useState<ModalState>({ isOpen: false });
 
   // Calculate initial tip amount and avatars from props
   const initialTotalTipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
@@ -339,6 +339,21 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     }
   };
 
+  const handleOpenListModal = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    executeAuthenticatedAction(() => {
+      setListModalState({ isOpen: true, contentId: votableEntityId });
+    });
+  };
+
+  const handleListSave = (listName: string) => {
+    toast.success(`Saved to list:\n${listName}`);
+
+    setListModalState({ isOpen: false });
+  };
+
   // Handle opening the tip modal
   const handleOpenTipModal = (e?: React.MouseEvent) => {
     if (e) {
@@ -455,32 +470,47 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const isMobile = useMediaQuery('(max-width: 480px)');
   const isTabletOrSmaller = useMediaQuery('(max-width: 768px)');
 
-  // Prepare Tip menu item for smaller screens
-  const tipMenuItem = {
-    icon: (props: any) => (
-      <Icon
-        name="tipRSC"
-        {...props}
-        size={16} // Slightly smaller icon for menu
-        color={totalEarnedAmount > 0 ? '#16A34A' : undefined}
-      />
-    ),
-    label:
-      totalEarnedAmount > 0
-        ? `Tip / Earned +` // The amount will be handled by count prop
-        : showUSD
-          ? 'Tip USD'
-          : 'Tip RSC',
-    tooltip: showUSD ? 'Tip USD' : 'Tip RSC',
-    onClick: (e?: React.MouseEvent) => {
-      setIsMenuOpen(false); // Close dropdown before opening tip modal
-      handleOpenTipModal(e);
-    },
-    className: totalEarnedAmount > 0 ? 'text-green-600' : '',
-  };
+  const combinedMenuItems = [...menuItems];
 
-  // Combine menu items, conditionally adding the tip item
-  const combinedMenuItems = [...menuItems, ...(isTabletOrSmaller ? [tipMenuItem] : [])];
+  const tipIcon = (props: any) => (
+    <Icon
+      name="tipRSC"
+      {...props}
+      size={16} // Slightly smaller icon for the menu
+      color={totalEarnedAmount > 0 ? '#16A34A' : undefined}
+    />
+  );
+
+  const tipTooltip = showUSD ? 'Tip USD' : 'Tip RSC';
+  const listTooltip = 'Save to list';
+  const showList = user && TYPES_SUPPORTING_LISTS.includes(feedContentType);
+
+  if (isTabletOrSmaller) {
+    if (showList) {
+      combinedMenuItems.push({
+        icon: ListPlus,
+        label: listTooltip,
+        tooltip: listTooltip,
+        onClick: (e?: React.MouseEvent) => {
+          setIsMenuOpen(false); // Close dropdown
+          setTipModalState({ isOpen: false }); // Close tip modal
+          handleOpenListModal(e);
+        },
+      });
+    }
+
+    combinedMenuItems.push({
+      icon: tipIcon,
+      label: totalEarnedAmount > 0 ? `Tip / Earned +` : tipTooltip, // Count prop will handle the amount
+      tooltip: tipTooltip,
+      onClick: (e?: React.MouseEvent) => {
+        setIsMenuOpen(false); // Close dropdown
+        setListModalState({ isOpen: false }); // Close list modal
+        handleOpenTipModal(e);
+      },
+      className: totalEarnedAmount > 0 ? 'text-green-600' : '',
+    });
+  }
 
   // Add separator if needed before Report
   const showSeparator =
@@ -491,6 +521,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const showInlineReviews = reviews.length > 0 && (!isMobile || (isMobile && !hasOpenBounties));
   const showInlineBounties = hasOpenBounties && (!isMobile || isMobile); // Show bounties on mobile if they exist
   const showInlineTip = !isTabletOrSmaller;
+  const showInlineList = showList && !isTabletOrSmaller;
+  const icon_color = 'bg-gray-50 text-gray-600 hover:bg-gray-100';
 
   return (
     <>
@@ -504,6 +536,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
             onClick={handleVote}
             isActive={localUserVote === 'UPVOTE'}
             showTooltip={showTooltips}
+            className={icon_color}
           />
           {!hideCommentButton && (
             <ActionButton
@@ -515,6 +548,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               showLabel={Boolean(actionLabels?.comment)}
               showTooltip={showTooltips}
               avatars={commentAvatars}
+              className={icon_color}
             />
           )}
           {showInlineReviews && (
@@ -526,6 +560,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               showTooltip={showTooltips}
               onClick={handleReviewClick}
               avatars={dedupedReviewAvatars}
+              className={icon_color}
             />
           )}
           {showInlineBounties &&
@@ -596,7 +631,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                   className={
                     hasOpenBounties
                       ? 'text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700 mr-0'
-                      : ''
+                      : icon_color
                   }
                 />
               </Tooltip>
@@ -630,24 +665,28 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 className={
                   hasOpenBounties
                     ? 'text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700'
-                    : ''
+                    : icon_color
                 }
               />
             ))}
+          {showInlineList && (
+            <ActionButton
+              icon={ListPlus}
+              tooltip={listTooltip}
+              label="Save"
+              onClick={handleOpenListModal}
+              showTooltip={showTooltips}
+              className={icon_color}
+            />
+          )}
           {showInlineTip && (
             <ActionButton
-              icon={(props: any) => (
-                <Icon
-                  name="tipRSC"
-                  {...props}
-                  size={16}
-                  color={totalEarnedAmount > 0 ? '#16A34A' : undefined}
-                />
-              )}
-              tooltip={showUSD ? 'Tip USD' : 'Tip RSC'}
+              icon={tipIcon}
+              tooltip={tipTooltip}
               label="Tip"
               onClick={handleOpenTipModal}
               showTooltip={showTooltips}
+              className={icon_color}
               {...(totalEarnedAmount > 0 && {
                 count: (
                   <span className="flex items-center gap-0.5">
@@ -681,6 +720,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 <Button
                   variant="ghost"
                   size="sm"
+                  tooltip="More"
                   className="flex items-center text-gray-400 hover:text-gray-600"
                 >
                   <MoreHorizontal className="w-5 h-5" />
@@ -734,6 +774,16 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           contentId={tipModalState.contentId}
           feedContentType={feedContentType}
           onTipSuccess={handleTipSuccess}
+        />
+      )}
+
+      {listModalState.isOpen && listModalState.contentId && showList && (
+        <SaveToListModal
+          isOpen={listModalState.isOpen}
+          onClose={() => setListModalState({ isOpen: false })}
+          contentId={listModalState.contentId}
+          contentType={feedContentType.toLowerCase() as ContentType}
+          onSave={handleListSave}
         />
       )}
     </>
