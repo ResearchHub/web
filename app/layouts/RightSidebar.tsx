@@ -267,7 +267,7 @@ const FundingSpotlight = () => {
 const SidebarComponent = () => (
   <div className="space-y-4 overflow-hidden">
     {/* Next Steps Panel for new users */}
-    <NextStepsPanel />
+    {/* <NextStepsPanel /> */}
 
     <div className="bg-white rounded-lg p-2">
       {/* Dynamic Leaderboard Section */}
