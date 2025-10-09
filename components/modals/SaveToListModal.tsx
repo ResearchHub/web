@@ -11,6 +11,7 @@ import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
 import { ID } from '@/types/root';
 import { useCreateList, useGetLists } from '@/hooks/useList';
 import { useCreateListItem } from '@/hooks/useListItem';
+import { List } from '@/services/list.service';
 
 type saveToListModalProps = {
   isOpen: boolean;
@@ -48,13 +49,15 @@ export default function SaveToListModal({
   const isLoading = createListIsLoading || createListItemIsLoading;
   const hasError = createListError || createListItemError || getListsError;
 
-  const handleSave = async () => {
+  async function handleSave(): Promise<void> {
     try {
       let finalListId: ID;
       let finalListName: string;
 
       if (selectedListId === 'new') {
-        const newList = await createList({ name: newListName }, false);
+        const newList =
+          lists.find((list) => list.name === newListName) ||
+          (await createList({ name: newListName }, false));
 
         finalListId = newList.id;
         finalListName = newList.name;
@@ -88,9 +91,31 @@ export default function SaveToListModal({
     } catch (error) {
       console.error('Error saving to list:', error);
     }
-  };
+  }
 
-  // TODO: if item is already in the list (check list.items), gray it out in the list
+  function idInLists(unified_document: ID): boolean {
+    if (!lists?.length) return false;
+
+    return lists.some((list) => idInList(list, unified_document));
+  }
+
+  function idInList(list: List, unified_document: ID): boolean {
+    return list.items?.some((item) => item.unified_document === unified_document) || false;
+  }
+
+  function getSelectedLabel(): string {
+    if (selectedListId === 'new') return 'New list';
+
+    if (selectedListId) {
+      const list = lists.find((list) => list.id === selectedListId);
+
+      if (list && !idInList(list, contentId) && list.name) {
+        return list.name;
+      }
+    }
+
+    return 'Or create one';
+  }
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} title={`Save ${toTitleCase(contentType)} to List`}>
@@ -107,11 +132,7 @@ export default function SaveToListModal({
             className="w-full justify-between"
             disabled={getListsIsLoading}
           >
-            {selectedListId === 'new'
-              ? 'New list'
-              : selectedListId
-                ? lists.find((list) => list.id === selectedListId)?.name || 'Or create one'
-                : 'Or create one'}
+            {getSelectedLabel()}
             <ChevronDown size={16} className="text-gray-500" />
           </Button>
         }
