@@ -34,6 +34,7 @@ import { WorkMetadata } from '@/services/metadata.service';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { TYPES_SUPPORTING_LISTS } from '@/services/list.service';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -537,13 +538,15 @@ export const WorkLineItems = ({
       />
 
       {/* List Modal */}
-      <SaveToListModal
-        isOpen={isListModalOpen}
-        onClose={() => setIsListModalOpen(false)}
-        contentId={work.id}
-        contentType={work.contentType}
-        onSave={handleListSave}
-      />
+      {user && TYPES_SUPPORTING_LISTS.includes(work.contentType.toUpperCase()) && (
+        <SaveToListModal
+          isOpen={isListModalOpen}
+          onClose={() => setIsListModalOpen(false)}
+          contentId={work.id}
+          contentType={work.contentType}
+          onSave={handleListSave}
+        />
+      )}
 
       {work.contentType === 'paper' && (
         <WorkEditModal
