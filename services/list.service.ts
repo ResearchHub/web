@@ -3,6 +3,8 @@ import { ListItem } from '@/services/listItem.service';
 import { ApiClient } from '@/services/client';
 import { getPaginatedQueryParams, PaginatedParams, PaginatedResult } from '@/lib/utils';
 
+export const TYPES_SUPPORTING_LISTS = ['PAPER', 'GRANT', 'PREREGISTRATION'];
+
 export interface List {
   id: ID;
   name: string;
