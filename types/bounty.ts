@@ -28,8 +28,9 @@ export interface BountyContribution {
 export interface Bounty {
   id: number;
   amount: string;
-  status: 'OPEN' | 'CLOSED';
+  status: 'OPEN' | 'CLOSED' | 'REVIEW_PERIOD' | 'EXPIRED' | 'CANCELLED';
   expirationDate?: string;
+  reviewPeriodEndDate?: string;
   bountyType: BountyType;
   createdBy: User;
   solutions: BountySolution[];
@@ -165,6 +166,7 @@ export const transformBounty = (raw: any, options?: { ignoreBaseAmount?: boolean
       amount: '0',
       status: 'OPEN',
       expirationDate: new Date().toISOString(),
+      reviewPeriodEndDate: undefined,
       bountyType: 'BOUNTY',
       createdBy: transformUser(null),
       solutions: [],
@@ -197,6 +199,7 @@ export const transformBounty = (raw: any, options?: { ignoreBaseAmount?: boolean
       amount: raw.amount || '0',
       status: raw.status || 'OPEN',
       expirationDate: raw.expiration_date || new Date().toISOString(),
+      reviewPeriodEndDate: raw.review_period_end_date || undefined,
       bountyType: raw.bounty_type || 'BOUNTY',
       createdBy: transformUser(raw.created_by),
       solutions: Array.isArray(raw.solutions) ? raw.solutions.map(transformSolution) : [],
@@ -212,6 +215,7 @@ export const transformBounty = (raw: any, options?: { ignoreBaseAmount?: boolean
       amount: raw?.amount || '0',
       status: raw?.status || 'OPEN',
       expirationDate: raw?.expiration_date || new Date().toISOString(),
+      reviewPeriodEndDate: raw?.review_period_end_date || null,
       bountyType: raw?.bounty_type || 'BOUNTY',
       createdBy: transformUser(null),
       solutions: [],
