@@ -1,4 +1,4 @@
-import { clsx, type ClassValue } from 'clsx';
+import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 /**
@@ -10,5 +10,14 @@ export function cn(...inputs: ClassValue[]) {
 
 export function toNumberOrNull(value: any): number | null {
   const num = Number(value);
+
   return Number.isFinite(num) ? num : null;
 }
+
+/**
+ * Common hook state for async operations
+ */
+export type AsyncState = {
+  isLoading: boolean;
+  error: Error | null;
+};
