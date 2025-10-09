@@ -1,139 +1,32 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { OnboardingTopicSelector } from './OnboardingTopicSelector';
 import { Button } from '@/components/ui/Button';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Topic } from '@/types/topic';
-import { Logo } from '@/components/ui/Logo';
 import { useFollowContext } from '@/contexts/FollowContext';
-
-interface WelcomeTextProps {
-  onAnimationComplete: () => void;
-}
-
-function WelcomeText({ onAnimationComplete }: WelcomeTextProps) {
-  useEffect(() => {
-    const mainText = 'Welcome to ResearchHub';
-    const subtext = "Let's get going";
-
-    // Calculate timing
-    const mainTextTime = mainText.length * 30 + 600; // Main text animation
-    const subtextDelay = 1000; // 1 second after main text
-    const subtextTime = subtext.length * 20 + 600; // Subtext animation (20ms per char for faster reveal)
-    const finalDelay = 1000; // 1 second after subtext finishes
-
-    const totalTime = mainTextTime + subtextDelay + subtextTime + finalDelay;
-
-    const timer = setTimeout(() => {
-      onAnimationComplete();
-    }, totalTime);
-
-    return () => clearTimeout(timer);
-  }, [onAnimationComplete]);
-
-  const mainText = 'Welcome to ResearchHub';
-  const subtext = "Let's set up your research feed";
-  const mainTextAnimationTime = mainText.length * 30 + 600;
-  const subtextStartDelay = mainTextAnimationTime + 1000; // Start 1 second after main text finishes
-
-  return (
-    <div className="fixed inset-0 flex items-center justify-center z-20">
-      <div className="text-center px-4">
-        {/* <div className="mb-8 flex justify-center">
-          <Logo variant="white" noText size={66} />
-        </div> */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4">
-          <span className="hidden md:inline">
-            {mainText.split('').map((char, index) => (
-              <span
-                key={index}
-                className="inline-block transition-all duration-600"
-                style={{
-                  animation: `fadeInUp 0.6s ease-out ${index * 30}ms forwards`,
-                  opacity: 0,
-                  transform: 'translateY(20px)',
-                }}
-              >
-                {char === ' ' ? '\u00A0' : char}
-              </span>
-            ))}
-          </span>
-          <span className="md:hidden">
-            {'Welcome to'.split('').map((char, index) => (
-              <span
-                key={`m1-${index}`}
-                className="inline-block transition-all duration-600"
-                style={{
-                  animation: `fadeInUp 0.6s ease-out ${index * 30}ms forwards`,
-                  opacity: 0,
-                  transform: 'translateY(20px)',
-                }}
-              >
-                {char === ' ' ? '\u00A0' : char}
-              </span>
-            ))}
-            <br />
-            {'ResearchHub'.split('').map((char, index) => (
-              <span
-                key={`m2-${index}`}
-                className="inline-block transition-all duration-600"
-                style={{
-                  animation: `fadeInUp 0.6s ease-out ${(11 + index) * 30}ms forwards`,
-                  opacity: 0,
-                  transform: 'translateY(20px)',
-                }}
-              >
-                {char}
-              </span>
-            ))}
-          </span>
-        </h1>
-        <p className="text-lg sm:!text-xl md:!text-2xl text-white/90">
-          {subtext.split('').map((char, index) => (
-            <span
-              key={index}
-              className="inline-block transition-all duration-600"
-              style={{
-                animation: `fadeInUp 0.6s ease-out ${subtextStartDelay + index * 20}ms forwards`,
-                opacity: 0,
-                transform: 'translateY(20px)',
-              }}
-            >
-              {char === ' ' ? '\u00A0' : char}
-            </span>
-          ))}
-        </p>
-      </div>
-      <style>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
-    </div>
-  );
-}
+import { useUser } from '@/contexts/UserContext';
+import { UserService } from '@/services/user.service';
+import { BaseModal } from '@/components/ui/BaseModal';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
 interface NewUserOnboardingProps {
-  backgroundVariant?: 'waves' | 'grid';
+  // Optional props for external state management
+  selectedTopicIds?: number[];
+  onTopicToggle?: (topicId: number) => void;
 }
 
-export function NewUserOnboarding({ backgroundVariant = 'grid' }: NewUserOnboardingProps) {
+export function NewUserOnboarding({
+  selectedTopicIds: externalSelectedTopicIds,
+  onTopicToggle: externalOnTopicToggle,
+}: NewUserOnboardingProps) {
   const [initialTopics, setInitialTopics] = useState<Topic[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [selectedTopicIds, setSelectedTopicIds] = useState<number[]>([]);
-  const [showWelcome, setShowWelcome] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const router = useRouter();
-  const { followMultiple } = useFollowContext();
+  const [internalSelectedTopicIds, setInternalSelectedTopicIds] = useState<number[]>([]);
+
+  // Use external state if provided, otherwise use internal state
+  const selectedTopicIds = externalSelectedTopicIds ?? internalSelectedTopicIds;
+  const setSelectedTopicIds = setInternalSelectedTopicIds;
 
   useEffect(() => {
     // Fetch initial topics using the hub service
@@ -146,8 +39,6 @@ export function NewUserOnboarding({ backgroundVariant = 'grid' }: NewUserOnboard
       } catch (error) {
         console.error('Failed to fetch topics:', error);
         setInitialTopics([]);
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -155,14 +46,111 @@ export function NewUserOnboarding({ backgroundVariant = 'grid' }: NewUserOnboard
   }, []);
 
   const handleTopicToggle = (topicId: number) => {
+    if (externalOnTopicToggle) {
+      externalOnTopicToggle(topicId);
+    } else {
+      setSelectedTopicIds((prev) =>
+        prev.includes(topicId) ? prev.filter((id) => id !== topicId) : [...prev, topicId]
+      );
+    }
+  };
+
+  return (
+    <>
+      {/* Header */}
+      <div className="p-8 pb-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Feed Setup</h1>
+          <p className="text-gray-600">Select the research areas you'd like to see in your feed.</p>
+        </div>
+      </div>
+
+      {/* Scrollable content area */}
+      <div className="px-8 pb-4">
+        <OnboardingTopicSelector
+          topics={initialTopics}
+          selectedTopicIds={selectedTopicIds}
+          onTopicToggle={handleTopicToggle}
+          className="[&_.grid]:!grid-cols-2 [&_.grid]:sm:!grid-cols-3 [&_.grid]:lg:!grid-cols-3"
+        />
+      </div>
+    </>
+  );
+}
+
+/**
+ * Wrapper component that handles the trigger logic for showing the onboarding modal.
+ * This should be placed in the main layout to automatically show onboarding when needed.
+ */
+export function OnboardingModalWrapper() {
+  const { user, isLoading: isUserLoading } = useUser();
+  const [showModal, setShowModal] = useState(false);
+  const [selectedTopicIds, setSelectedTopicIds] = useState<number[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const searchParams = useSearchParams();
+  const onboardingEventFired = useRef(false);
+  const pathname = usePathname();
+  const router = useRouter();
+  const { followMultiple } = useFollowContext();
+
+  // Add ?onboarding=true to URL when modal is shown
+  useEffect(() => {
+    if (typeof window === 'undefined' || !showModal) return;
+
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('onboarding')) {
+      url.searchParams.append('onboarding', 'true');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [showModal]);
+
+  // Check if onboarding should be shown
+  useEffect(() => {
+    if (isUserLoading) {
+      return;
+    }
+
+    // Skip old onboarding for /feed page - they'll use the new onboarding
+    if (pathname === '/feed') {
+      return;
+    }
+
+    const shouldShowOnboarding =
+      UserService.shouldRedirectToOnboarding(user) || searchParams.get('onboarding') === 'true';
+
+    // Log analytics event when onboarding is viewed
+    if (
+      shouldShowOnboarding &&
+      user &&
+      user.hasCompletedOnboarding === false &&
+      !onboardingEventFired.current
+    ) {
+      AnalyticsService.logEvent(LogEvent.ONBOARDING_VIEWED);
+      onboardingEventFired.current = true;
+    }
+
+    setShowModal(shouldShowOnboarding);
+  }, [user, isUserLoading, searchParams, pathname]);
+
+  // Mark onboarding as completed when modal is shown
+  useEffect(() => {
+    const markOnboardingCompleted = async () => {
+      try {
+        await UserService.setCompletedOnboarding();
+      } catch (error) {
+        console.error('Error automatically marking onboarding as completed:', error);
+      }
+    };
+
+    if (showModal) {
+      markOnboardingCompleted();
+    }
+  }, [showModal]);
+
+  const handleTopicToggle = (topicId: number) => {
     setSelectedTopicIds((prev) =>
       prev.includes(topicId) ? prev.filter((id) => id !== topicId) : [...prev, topicId]
     );
-  };
-
-  const handleAnimationComplete = () => {
-    setShowWelcome(false);
-    setShowModal(true);
   };
 
   const handleContinue = async () => {
@@ -181,152 +169,35 @@ export function NewUserOnboarding({ backgroundVariant = 'grid' }: NewUserOnboard
     }
   };
 
-  const getBackgroundStyle = () => {
-    if (backgroundVariant === 'grid') {
-      return {};
-    }
-    return {
-      backgroundImage: 'url(/wavy.png)',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-    };
-  };
+  if (!showModal) {
+    return null;
+  }
 
   return (
-    <div className="min-h-screen pb-10 relative overflow-hidden" style={getBackgroundStyle()}>
-      {/* Animated background for grid variant */}
-      {backgroundVariant === 'grid' && (
-        <>
-          {/* Base background layer */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'linear-gradient(to bottom, rgb(20, 60, 150) 0%, rgb(10, 40, 120) 50%, rgb(100, 50, 150) 100%)',
-            }}
-          />
-          {/* Animated overlay layer */}
-          <div
-            className="absolute inset-0 animate-gradient-fade-in"
-            style={{
-              background:
-                'linear-gradient(to bottom,rgb(41, 104, 240) 0%, #0153FF 10%,rgb(205, 115, 221) 100%)',
-            }}
-          />
-        </>
-      )}
-
-      {/* Grid overlay for grid variant */}
-      {backgroundVariant === 'grid' && (
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, white 1px, transparent 1px),
-              linear-gradient(to bottom, white 1px, transparent 1px)
-            `,
-            backgroundSize: '40px 40px',
-          }}
-        />
-      )}
-
-      {/* Show welcome text */}
-      {showWelcome && <WelcomeText onAnimationComplete={handleAnimationComplete} />}
-
-      {/* Logo at the top */}
-      {showModal && (
-        <div className="relative z-10 flex justify-center pt-8 mb-12">
-          <Logo variant="white" size={60} />
-        </div>
-      )}
-
-      {/* Modal-style container */}
-      {showModal && (
-        <div className="relative z-10 flex items-center justify-center px-4 min-h-[calc(100vh-200px)] animate-fade-in">
-          <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col min-h-[600px] max-h-[80vh] animate-slide-up">
-            <div className="p-8 pb-4 flex-1 flex flex-col min-h-0">
-              <div className="mb-8 text-center flex-shrink-0">
-                <h1 className="text-2xl font-semibold text-gray-900 mb-2">Interests</h1>
-                <p className="text-gray-600">
-                  Select the research areas you'd like to see in your feed.
-                </p>
-              </div>
-
-              <div className="flex-1 overflow-y-auto pb-4 min-h-0">
-                <OnboardingTopicSelector
-                  topics={initialTopics}
-                  selectedTopicIds={selectedTopicIds}
-                  onTopicToggle={handleTopicToggle}
-                  className="[&_.grid]:!grid-cols-2 [&_.grid]:sm:!grid-cols-3 [&_.grid]:lg:!grid-cols-3"
-                />
-              </div>
-            </div>
-
-            {/* Sticky footer inside modal */}
-            <div className="flex-shrink-0 bg-white border-t border-gray-200 p-6">
-              <Button
-                variant="default"
-                size="lg"
-                onClick={handleContinue}
-                disabled={selectedTopicIds.length === 0 || isSaving}
-                className="w-full bg-[#0153FF] text-white hover:bg-[#0142CC] disabled:bg-gray-300 disabled:text-gray-600"
-              >
-                {isSaving
-                  ? 'Saving...'
-                  : selectedTopicIds.length === 0
-                    ? 'Continue (0 of 1 selected)'
-                    : `Continue (${selectedTopicIds.length} selected)`}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <style>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-        
-        @keyframes slide-up {
-          from {
-            transform: translateY(20px);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-        
-        @keyframes gradient-fade-in {
-          0% {
-            opacity: 0;
-            transform: scale(1.05);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-        
-        .animate-fade-in {
-          animation: fade-in 0.5s ease-out;
-        }
-        
-        .animate-slide-up {
-          animation: slide-up 0.5s ease-out;
-        }
-        
-        .animate-gradient-fade-in {
-          animation: gradient-fade-in 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-      `}</style>
-    </div>
+    <BaseModal
+      isOpen={showModal}
+      showCloseButton={false}
+      onClose={() => {}} // We don't want users to close the modal
+      title=""
+      maxWidth="max-w-2xl"
+      padding="p-0"
+      footer={
+        <Button
+          variant="default"
+          size="lg"
+          onClick={handleContinue}
+          disabled={selectedTopicIds.length === 0 || isSaving}
+          className="w-full bg-[#0153FF] text-white hover:bg-[#0142CC] disabled:bg-[#0153FF]/60 disabled:text-white/90"
+        >
+          {isSaving
+            ? 'Saving...'
+            : selectedTopicIds.length === 0
+              ? 'Continue (0 of 1 selected)'
+              : `Continue (${selectedTopicIds.length} selected)`}
+        </Button>
+      }
+    >
+      <NewUserOnboarding selectedTopicIds={selectedTopicIds} onTopicToggle={handleTopicToggle} />
+    </BaseModal>
   );
 }

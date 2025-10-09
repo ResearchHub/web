@@ -36,6 +36,9 @@ export const BaseModal: FC<BaseModalProps> = ({
   const [headerHeight, setHeaderHeight] = useState(0);
   const [footerHeight, setFooterHeight] = useState(0);
 
+  // Determine if modal should be full screen (no title and no footer)
+  const isFullScreen = !title && !footer;
+
   useLayoutEffect(() => {
     if (headerRef.current) {
       setHeaderHeight(headerRef.current.offsetHeight);
@@ -90,13 +93,13 @@ export const BaseModal: FC<BaseModalProps> = ({
                 className={cn(
                   'transform overflow-hidden text-left align-middle shadow-xl transition-all bg-white',
                   // Full width on mobile, constrained width on larger screens
-                  'w-full md:!w-auto',
+                  isFullScreen ? 'w-full' : 'w-full md:!w-auto',
                   // Full height on mobile, constrained height on md+
-                  'h-screen md:!h-auto md:!max-h-[85vh]',
-                  // No rounded corners on mobile, rounded on md+
-                  'md:!rounded-2xl',
-                  // Only apply max width on md and up
-                  `md:${maxWidth}`
+                  isFullScreen ? 'h-screen' : 'h-screen md:!h-auto md:!max-h-[85vh]',
+                  // No rounded corners on mobile, rounded on md+ (unless full screen)
+                  isFullScreen ? '' : 'md:!rounded-2xl',
+                  // Only apply max width on md and up (unless full screen)
+                  isFullScreen ? '' : `md:${maxWidth}`
                 )}
                 style={{
                   display: 'flex',
@@ -133,9 +136,13 @@ export const BaseModal: FC<BaseModalProps> = ({
                 {/* Modal Content */}
                 <div
                   className={cn(padding, 'flex-1 overflow-y-auto')}
-                  style={{
-                    maxHeight: `calc(85vh - ${headerHeight + footerHeight}px)`,
-                  }}
+                  style={
+                    isFullScreen
+                      ? undefined
+                      : {
+                          maxHeight: `calc(100vh - ${headerHeight + footerHeight}px)`,
+                        }
+                  }
                 >
                   {children}
                 </div>

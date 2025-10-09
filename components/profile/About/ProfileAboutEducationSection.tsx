@@ -4,11 +4,10 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/pro-light-svg-icons';
 import { Button } from '@/components/ui/Button';
-import { OnboardingEducationCard } from './OnboardingEducationCard'; // Update import name and path
-import type { EducationEntry } from './OnboardingWizard'; // Adjust path if needed
+import { ProfileAboutEducationCard } from './ProfileAboutEducationCard';
+import type { EducationEntry } from '@/components/profile/About/types';
 
-interface OnboardingEducationSectionProps {
-  // Rename interface
+interface ProfileAboutEducationSectionProps {
   education: EducationEntry[];
   onAdd: () => void;
   onEdit: (index: number) => void;
@@ -16,21 +15,19 @@ interface OnboardingEducationSectionProps {
   onSetMain: (index: number) => void;
 }
 
-export function OnboardingEducationSection({
-  // Rename function
+export function ProfileAboutEducationSection({
   education,
   onAdd,
   onEdit,
   onRemove,
   onSetMain,
-}: OnboardingEducationSectionProps) {
-  // Update interface usage
+}: ProfileAboutEducationSectionProps) {
   return (
     <div className="space-y-3">
       {education.length > 0 && (
         <div className="space-y-3">
           {education.map((edu, index) => (
-            <OnboardingEducationCard
+            <ProfileAboutEducationCard
               key={`edu-${index}`}
               education={edu}
               index={index}

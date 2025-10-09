@@ -15,6 +15,8 @@ interface OnboardingTopicSelectorProps {
   selectedTopicIds: number[];
   onTopicToggle: (topicId: number) => void;
   className?: string;
+  headerTitle?: string;
+  headerSubtitle?: string;
 }
 
 export function OnboardingTopicSelector({
@@ -22,18 +24,24 @@ export function OnboardingTopicSelector({
   selectedTopicIds,
   onTopicToggle,
   className = '',
+  headerTitle,
+  headerSubtitle,
 }: OnboardingTopicSelectorProps) {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchResults, setSearchResults] = useState<SearchSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [showShadow, setShowShadow] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Effect to detect scroll on parent container
   useEffect(() => {
     const handleScroll = (e: Event) => {
       const target = e.target as HTMLElement;
-      setShowShadow(target.scrollTop > 10);
+      const scrollTop = target.scrollTop;
+
+      console.log('scrollTop:', scrollTop); // Debug log
+      setIsScrolling(scrollTop > 45);
     };
 
     // Find the scrollable parent (the one with overflow-y-auto)
@@ -42,17 +50,20 @@ export function OnboardingTopicSelector({
 
       const style = window.getComputedStyle(element);
       if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+        console.log('Found scrollable parent:', element); // Debug log
         return element;
       }
 
       return findScrollParent(element.parentElement);
     };
 
-    // Get the component's container and find its scrollable parent
-    const container = document.querySelector('[class*="overflow-y-auto"]');
-    if (container && container.contains(document.querySelector('.sticky.top-0'))) {
-      container.addEventListener('scroll', handleScroll);
-      return () => container.removeEventListener('scroll', handleScroll);
+    // Use the ref to find the scrollable parent
+    if (containerRef.current) {
+      const scrollableParent = findScrollParent(containerRef.current.parentElement);
+      if (scrollableParent) {
+        scrollableParent.addEventListener('scroll', handleScroll);
+        return () => scrollableParent.removeEventListener('scroll', handleScroll);
+      }
     }
   }, []);
 
@@ -106,16 +117,23 @@ export function OnboardingTopicSelector({
 
   // Show skeleton while searching, when we have a query but haven't searched yet, or when topics are still loading
   const showSkeleton = isSearching || (searchQuery && !hasSearched) || topics.length === 0;
-
   return (
-    <div className={className}>
+    <div ref={containerRef} className={className}>
       <div
         className={cn(
-          'sticky top-0 bg-white z-10 pb-4 mb-2 transition-shadow duration-200',
-          showShadow && 'shadow-md'
+          'top-0 bg-white z-10 pb-4 mb-2 transition-all duration-200',
+          isScrolling ? 'absolute left-0 right-0' : 'sticky',
+          isScrolling && 'shadow-md px-4 pt-3'
         )}
       >
-        <div className="px-1 pt-1">
+        {/* Header - only shown when scrolling */}
+        {isScrolling && (
+          <div className="mb-3">
+            <h2 className="text-md font-medium text-gray-900 text-left">Feed Setup</h2>
+          </div>
+        )}
+
+        <div className={cn(isScrolling ? 'w-full' : 'px-1 pt-1')}>
           <TopicSearch
             placeholder="Search topics"
             onSearch={handleSearch}
