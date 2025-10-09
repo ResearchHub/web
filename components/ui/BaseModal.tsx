@@ -17,6 +17,7 @@ interface BaseModalProps {
   padding?: string; // e.g., 'p-4', 'p-6', 'p-8'
   footer?: ReactNode;
   headerAction?: ReactNode;
+  className?: string; // Additional classes to override default styling
 }
 
 export const BaseModal: FC<BaseModalProps> = ({
@@ -30,6 +31,7 @@ export const BaseModal: FC<BaseModalProps> = ({
   padding = 'p-6', // Default padding
   footer,
   headerAction,
+  className,
 }) => {
   const headerRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
@@ -99,7 +101,9 @@ export const BaseModal: FC<BaseModalProps> = ({
                   // No rounded corners on mobile, rounded on md+ (unless full screen)
                   isFullScreen ? '' : 'md:!rounded-2xl',
                   // Only apply max width on md and up (unless full screen)
-                  isFullScreen ? '' : `md:${maxWidth}`
+                  isFullScreen ? '' : `md:${maxWidth}`,
+                  // Custom className overrides
+                  className
                 )}
                 style={{
                   display: 'flex',

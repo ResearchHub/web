@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { OnboardingTopicSelector } from './OnboardingTopicSelector';
 import { Button } from '@/components/ui/Button';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { Topic } from '@/types/topic';
 import { useFollowContext } from '@/contexts/FollowContext';
 import { useUser } from '@/contexts/UserContext';
@@ -90,7 +90,6 @@ export function OnboardingModalWrapper() {
   const searchParams = useSearchParams();
   const onboardingEventFired = useRef(false);
   const pathname = usePathname();
-  const router = useRouter();
   const { followMultiple } = useFollowContext();
 
   // Add ?onboarding=true to URL when modal is shown
@@ -161,8 +160,9 @@ export function OnboardingModalWrapper() {
       // Use the batch follow endpoint
       await followMultiple(selectedTopicIds);
 
-      // Navigate to feed after successful save
-      router.push('/feed');
+      // Close the modal and leave user on current page
+      setShowModal(false);
+      setIsSaving(false);
     } catch (error) {
       console.error('Failed to follow topics:', error);
       setIsSaving(false);
@@ -179,8 +179,8 @@ export function OnboardingModalWrapper() {
       showCloseButton={false}
       onClose={() => {}} // We don't want users to close the modal
       title=""
-      maxWidth="max-w-2xl"
       padding="p-0"
+      className="!w-full md:!w-[700px]"
       footer={
         <Button
           variant="default"
@@ -190,7 +190,7 @@ export function OnboardingModalWrapper() {
           className="w-full bg-[#0153FF] text-white hover:bg-[#0142CC] disabled:bg-[#0153FF]/60 disabled:text-white/90"
         >
           {isSaving
-            ? 'Saving...'
+            ? 'Setting up your feed...'
             : selectedTopicIds.length === 0
               ? 'Continue (0 of 1 selected)'
               : `Continue (${selectedTopicIds.length} selected)`}
