@@ -32,7 +32,7 @@ export type UpdateListParams = {
   name?: string;
 };
 
-export class ListService {
+export default class ListService {
   private static readonly basePath = '/api/list';
 
   // =================== API ===================
@@ -40,10 +40,8 @@ export class ListService {
   // GET /api/list/ — get lists
   static async getLists(params: PaginatedParams = {}): Promise<PaginatedListsResult> {
     try {
-      const queryString = getPaginatedQueryParams(params, true);
-
       return await ApiClient.get<PaginatedListsResult>(
-        queryString ? `${this.basePath}?${queryString}` : this.basePath
+        this.getPath(undefined, getPaginatedQueryParams(params, true) as string)
       );
     } catch (e) {
       throw new Error(`Failed to get lists: ${this.getErrorMsg(e)}`);
@@ -53,7 +51,7 @@ export class ListService {
   // GET /api/list/{id}/ — get a list
   static async getList(params: GetListParams): Promise<List> {
     try {
-      return await ApiClient.get<List>(this.getIdPath(params.id));
+      return await ApiClient.get<List>(this.getPath(params.id));
     } catch (e) {
       throw new Error(`Failed to get list: ${this.getErrorMsg(e)}`);
     }
@@ -62,7 +60,7 @@ export class ListService {
   // POST /api/list/ — create a list
   static async createList(params: CreateListParams): Promise<List> {
     try {
-      return await ApiClient.post<List>(this.basePath, params);
+      return await ApiClient.post<List>(this.getPath(), params);
     } catch (e) {
       throw new Error(`Failed to create list: ${this.getErrorMsg(e)}`);
     }
@@ -71,7 +69,7 @@ export class ListService {
   // DELETE /api/list/{id}/ — delete a list
   static async deleteList(params: DeleteListParams): Promise<void> {
     try {
-      await ApiClient.delete(this.getIdPath(params.id));
+      await ApiClient.delete(this.getPath(params.id));
     } catch (e) {
       throw new Error(`Failed to delete list: ${this.getErrorMsg(e)}`);
     }
@@ -80,7 +78,7 @@ export class ListService {
   // PATCH /api/list/{id}/ — update a list
   static async updateList(params: UpdateListParams): Promise<List> {
     try {
-      return await ApiClient.patch<List>(this.getIdPath(params.id), params);
+      return await ApiClient.patch<List>(this.getPath(params.id), params);
     } catch (e) {
       throw new Error(`Failed to update list: ${this.getErrorMsg(e)}`);
     }
@@ -100,7 +98,15 @@ export class ListService {
     return 'An unknown error occurred';
   }
 
-  static getIdPath(id: ID): string {
-    return `${this.basePath}/${id}/`;
+  static getPath(id?: ID, query?: string): string {
+    if (query) {
+      return `${this.basePath}?${query}`;
+    }
+
+    if (id) {
+      return `${this.basePath}/${id}/`;
+    }
+
+    return `${this.basePath}/`;
   }
 }

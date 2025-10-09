@@ -17,7 +17,7 @@ export type DeleteListItemParams = {
   id: ID;
 };
 
-export class ListItemService {
+export default class ListItemService {
   private static readonly basePath = '/api/list_item';
 
   // =================== API ===================
@@ -25,7 +25,7 @@ export class ListItemService {
   // POST /api/list_item/ — create list item and add it to a list
   static async createListItem(params: CreateListItemParams): Promise<ListItem> {
     try {
-      return await ApiClient.post<ListItem>(this.basePath, params);
+      return await ApiClient.post<ListItem>(this.getPath(), params);
     } catch (e) {
       throw new Error(`Failed to create list item: ${this.getErrorMsg(e)}`);
     }
@@ -34,7 +34,7 @@ export class ListItemService {
   // DELETE /api/list_item/{id}/ — remove list item from a list
   static async deleteListItem(params: DeleteListItemParams): Promise<void> {
     try {
-      await ApiClient.delete(this.getIdPath(params.id));
+      await ApiClient.delete(this.getPath(params.id));
     } catch (e) {
       throw new Error(`Failed to delete list item: ${this.getErrorMsg(e)}`);
     }
@@ -54,7 +54,15 @@ export class ListItemService {
     return 'An unknown error occurred';
   }
 
-  static getIdPath(id: ID): string {
-    return `${this.basePath}/${id}/`;
+  static getPath(id?: ID, query?: string): string {
+    if (query) {
+      return `${this.basePath}?${query}`;
+    }
+
+    if (id) {
+      return `${this.basePath}/${id}/`;
+    }
+
+    return `${this.basePath}/`;
   }
 }
