@@ -11,7 +11,6 @@ import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { formatRSC } from '@/utils/number';
 import { navigateToAuthorProfile } from '@/utils/navigation';
-import { getLastWeekRange, formatDate } from '@/lib/dateUtils';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 const LeaderboardListSkeleton = () => (
@@ -53,7 +52,7 @@ export const LeaderboardSkeleton = () => (
       <div className="flex justify-between items-baseline mb-3">
         <div>
           <h2 className="font-semibold text-gray-900">Top Funders</h2>
-          <p className="text-xs text-gray-500">This Week</p>
+          <p className="text-xs text-gray-500">This Month</p>
         </div>
         <div className="text-xs text-gray-500">View All</div>
       </div>
@@ -68,10 +67,6 @@ export const LeaderboardOverview = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { showUSD } = useCurrencyPreference();
-
-  // Get date range for current week
-  const { start: startDate, end: endDate } = getLastWeekRange();
-  const dateRangeText = `${formatDate(startDate)} - ${formatDate(endDate)}`;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -215,7 +210,7 @@ export const LeaderboardOverview = () => {
         <div className="flex justify-between items-baseline mb-3">
           <div>
             <h2 className="font-semibold text-gray-900">Top Funders</h2>
-            <p className="text-xs text-gray-500">This Week</p>
+            <p className="text-xs text-gray-500">This Month</p>
           </div>
           <Link href="/leaderboard?tab=funders" className="text-xs text-gray-500 hover:underline">
             View All
@@ -230,7 +225,7 @@ export const LeaderboardOverview = () => {
             {funders.map((funder, index) => renderListItem(funder, index, 'funder'))}
           </div>
         ) : (
-          <p className="text-sm text-gray-500 mt-4 text-center">No funders found this week.</p>
+          <p className="text-sm text-gray-500 mt-4 text-center">No funders found this month.</p>
         )}
       </div>
     </>
