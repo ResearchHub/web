@@ -3,21 +3,25 @@
 import toast from 'react-hot-toast';
 import { AsyncState, PaginatedParams, PaginatedState } from '@/lib/utils';
 import { useCallback, useEffect, useState } from 'react';
-import {
+import ListService, {
   CreateListParams,
   DeleteListParams,
   GetListParams,
   List,
-  ListService,
   PaginatedListsResult,
   UpdateListParams,
 } from '@/services/list.service';
+
+// Ensures a stable default object reference
+const DEFAULT_PAGINATED_PARAMS: PaginatedParams = {};
 
 // ==================== GET LISTS ====================
 
 type UseGetListsState = AsyncState & PaginatedListsResult;
 
-export function useGetLists(params: PaginatedParams = {}): UseGetListsState & PaginatedState {
+export function useGetLists(
+  params: PaginatedParams = DEFAULT_PAGINATED_PARAMS
+): UseGetListsState & PaginatedState {
   const [lists, setLists] = useState<UseGetListsState['results']>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<UseGetListsState['error']>(null);
@@ -113,14 +117,14 @@ export function useGetList(
 
 // =================== CREATE LIST ===================
 
-type CreateListFn = (params: CreateListParams) => Promise<List>;
+type CreateListFn = (params: CreateListParams, useToast?: boolean) => Promise<List>;
 
 export function useCreateList(): AsyncState & { createList: CreateListFn } {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<AsyncState['error']>(null);
 
-  const createList: CreateListFn = useCallback(async (params) => {
-    const toastId = toast.loading('Creating list...');
+  const createList: CreateListFn = useCallback(async (params, useToast = true) => {
+    const toastId = useToast ? toast.loading('Creating list...') : '';
 
     try {
       setIsLoading(true);
@@ -128,15 +132,15 @@ export function useCreateList(): AsyncState & { createList: CreateListFn } {
 
       const response = await ListService.createList(params);
 
-      toast.success(`${params.name} created!`, { id: toastId });
+      if (useToast) toast.success(`${params.name} created!`, { id: toastId });
 
       return response;
     } catch (e) {
-      const msg = 'Failed';
+      const msg = 'Failed to create list';
 
       setError(e instanceof Error ? e : new Error(msg));
 
-      toast.error(msg, { id: toastId });
+      if (useToast) toast.error(msg, { id: toastId });
 
       throw e;
     } finally {
@@ -149,14 +153,14 @@ export function useCreateList(): AsyncState & { createList: CreateListFn } {
 
 // =================== DELETE LIST ===================
 
-type DeleteListFn = (params: DeleteListParams) => Promise<void>;
+type DeleteListFn = (params: DeleteListParams, useToast?: boolean) => Promise<void>;
 
 export function useDeleteList(): AsyncState & { deleteList: DeleteListFn } {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<AsyncState['error']>(null);
 
-  const deleteList: DeleteListFn = useCallback(async (params) => {
-    const toastId = toast.loading('Deleting list...');
+  const deleteList: DeleteListFn = useCallback(async (params, useToast = true) => {
+    const toastId = useToast ? toast.loading('Deleting list...') : '';
 
     try {
       setIsLoading(true);
@@ -164,13 +168,13 @@ export function useDeleteList(): AsyncState & { deleteList: DeleteListFn } {
 
       await ListService.deleteList(params);
 
-      toast.success('Deleted!', { id: toastId });
+      if (useToast) toast.success('List deleted', { id: toastId });
     } catch (e) {
-      const msg = 'Failed';
+      const msg = 'Failed to delete list';
 
       setError(e instanceof Error ? e : new Error(msg));
 
-      toast.error(msg, { id: toastId });
+      if (useToast) toast.error(msg, { id: toastId });
 
       throw e;
     } finally {
@@ -183,14 +187,14 @@ export function useDeleteList(): AsyncState & { deleteList: DeleteListFn } {
 
 // =================== UPDATE LIST ===================
 
-type UpdateListFn = (params: UpdateListParams) => Promise<List>;
+type UpdateListFn = (params: UpdateListParams, useToast?: boolean) => Promise<List>;
 
 export function useUpdateList(): AsyncState & { updateList: UpdateListFn } {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<AsyncState['error']>(null);
 
-  const updateList: UpdateListFn = useCallback(async (params) => {
-    const toastId = toast.loading('Updating list...');
+  const updateList: UpdateListFn = useCallback(async (params, useToast = true) => {
+    const toastId = useToast ? toast.loading('Updating list...') : '';
 
     try {
       setIsLoading(true);
@@ -198,15 +202,15 @@ export function useUpdateList(): AsyncState & { updateList: UpdateListFn } {
 
       const response = ListService.updateList(params);
 
-      toast.success('Updated!', { id: toastId });
+      if (useToast) toast.success('List updated!', { id: toastId });
 
       return response;
     } catch (e) {
-      const msg = 'Failed';
+      const msg = 'Failed to update list';
 
       setError(e instanceof Error ? e : new Error(msg));
 
-      toast.error(msg, { id: toastId });
+      if (useToast) toast.error(msg, { id: toastId });
 
       throw e;
     } finally {
