@@ -1,11 +1,10 @@
 'use client';
 
-import { FC, useRef, useState, useEffect, Suspense } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { Sparkles, Globe, FlaskConical, Microscope } from 'lucide-react';
+import { Sparkles, Globe } from 'lucide-react';
 import { useFeed, FeedTab, FeedSource } from '@/hooks/useFeed';
 import { FeedContent } from './FeedContent';
-import { InterestSelector } from '@/components/InterestSelector/InterestSelector';
 import { FeedTabs } from './FeedTabs';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -29,11 +28,10 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   const { user } = useUser();
   const isAuthenticated = status === 'authenticated';
   const isModerator = user?.isModerator || false;
-  const [isCustomizing, setIsCustomizing] = useState(false);
   const [activeTab, setActiveTab] = useState<FeedTab>(defaultTab);
   const [isNavigating, setIsNavigating] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<FeedSource>('all');
-  const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(defaultTab, {
+  const { entries, isLoading, hasMore, loadMore } = useFeed(defaultTab, {
     source: sourceFilter,
     initialData: initialFeedData,
   });
@@ -43,15 +41,6 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     setActiveTab(defaultTab);
     setIsNavigating(false);
   }, [defaultTab]);
-
-  const handleCustomizeChange = () => {
-    setIsCustomizing(!isCustomizing);
-  };
-
-  const handleSaveComplete = () => {
-    setIsCustomizing(false);
-    refresh();
-  };
 
   const handleTabChange = (tab: string) => {
     // Immediately update the active tab for visual feedback
@@ -111,9 +100,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     <FeedTabs
       activeTab={activeTab}
       tabs={tabs}
-      isCustomizing={isCustomizing}
       onTabChange={handleTabChange}
-      onCustomizeChange={handleCustomizeChange}
       isLoading={combinedIsLoading}
       isModerator={isModerator}
     />
@@ -156,29 +143,15 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
 
   return (
     <PageLayout>
-      {!isCustomizing ? (
-        <>
-          <FeedContent
-            entries={entries}
-            isLoading={combinedIsLoading}
-            hasMore={hasMore}
-            loadMore={loadMore}
-            header={header}
-            tabs={feedTabs}
-            activeTab={activeTab}
-          />
-        </>
-      ) : (
-        <>
-          {header}
-          <div className="max-w-4xl mx-auto">
-            {feedTabs}
-            <div className="mt-6">
-              <InterestSelector mode="preferences" onSaveComplete={handleSaveComplete} />
-            </div>
-          </div>
-        </>
-      )}
+      <FeedContent
+        entries={entries}
+        isLoading={combinedIsLoading}
+        hasMore={hasMore}
+        loadMore={loadMore}
+        header={header}
+        tabs={feedTabs}
+        activeTab={activeTab}
+      />
     </PageLayout>
   );
 };
