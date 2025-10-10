@@ -23,7 +23,7 @@ export function NewUserOnboarding({
 }: NewUserOnboardingProps) {
   const [initialTopics, setInitialTopics] = useState<Topic[]>([]);
   const [internalSelectedTopicIds, setInternalSelectedTopicIds] = useState<number[]>([]);
-
+  console.log('TEST');
   // Use external state if provided, otherwise use internal state
   const selectedTopicIds = externalSelectedTopicIds ?? internalSelectedTopicIds;
   const setSelectedTopicIds = setInternalSelectedTopicIds;
@@ -83,7 +83,7 @@ export function NewUserOnboarding({
  * This should be placed in the main layout to automatically show onboarding when needed.
  */
 export function OnboardingModalWrapper() {
-  const { user, isLoading: isUserLoading } = useUser();
+  const { user, isLoading: isUserLoading, refreshUser } = useUser();
   const [showModal, setShowModal] = useState(false);
   const [selectedTopicIds, setSelectedTopicIds] = useState<number[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -165,6 +165,9 @@ export function OnboardingModalWrapper() {
     try {
       // Follow topics and mark onboarding as completed in parallel
       await Promise.all([followMultiple(selectedTopicIds), UserService.setCompletedOnboarding()]);
+
+      // Refresh user context to get updated hasCompletedOnboarding flag
+      await refreshUser();
 
       // Mark as completed locally to prevent modal from reopening
       hasCompletedOnboarding.current = true;
