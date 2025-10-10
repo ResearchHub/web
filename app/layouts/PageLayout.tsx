@@ -4,7 +4,7 @@ import { ReactNode, useState, Suspense, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
-import { OnboardingModal } from '@/components/Onboarding/OnboardingModal';
+import { OnboardingModalWrapper } from '@/components/Onboarding/NewUserOnboarding';
 import { cn } from '@/lib/utils';
 // Dynamically import sidebar components
 const LeftSidebar = dynamic(() => import('./LeftSidebar').then((mod) => mod.LeftSidebar), {
@@ -147,7 +147,7 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
 
   return (
     <div className="flex h-screen">
-      <OnboardingModal />
+      <OnboardingModalWrapper />
 
       {/* Fixed TopBar starting from LeftSidebar edge */}
       <div

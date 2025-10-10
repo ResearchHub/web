@@ -3,11 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
-import { EducationAutocomplete, University } from './EducationAutocomplete';
-import { YearDropdown, YearOption } from './YearDropdown';
-import type { EducationEntry } from './OnboardingWizard'; // Adjust path if needed
+import {
+  EducationAutocomplete,
+  University,
+} from '@/components/profile/About/EducationAutocomplete';
+import { YearDropdown, YearOption } from '@/components/profile/About/YearDropdown';
+import type { EducationEntry } from '@/components/profile/About/types';
 
-interface OnboardingEducationModalProps {
+interface ProfileAboutEducationModalProps {
   isOpen: boolean;
   onClose: () => void;
   education: EducationEntry;
@@ -206,13 +209,13 @@ const degreeOptions = [
   },
 ];
 
-export function OnboardingEducationModal({
+export function ProfileAboutEducationModal({
   isOpen,
   onClose,
   education,
   onSave,
   setAsMain,
-}: OnboardingEducationModalProps) {
+}: ProfileAboutEducationModalProps) {
   // Convert education.name to a University object if it exists
   const initialUniversity = education.name
     ? {

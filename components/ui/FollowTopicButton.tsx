@@ -27,6 +27,7 @@ export function FollowTopicButton({
   const handleFollowToggle = async (e: React.MouseEvent) => {
     // Stop event propagation to prevent parent click handlers from firing
     e.stopPropagation();
+    e.preventDefault();
 
     if (isLoading) return;
 
