@@ -1,9 +1,10 @@
-import { ID } from '@/types/root';
+import { ID, RawUnifiedDocument } from '@/types/root';
 import { ApiClient } from '@/services/client';
+import { UnifiedDocument } from '@/types/contributionTransformer';
 
 export interface ListItem {
   id: ID;
-  unified_document: ID;
+  unified_document: UnifiedDocument | RawUnifiedDocument;
   document_type: string;
   created_date: string;
 }

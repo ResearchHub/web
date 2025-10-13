@@ -18,14 +18,9 @@ import AuthorProfile from './components/AuthorProfile';
 import { useAuthorPublications } from '@/hooks/usePublications';
 import { transformPublicationToFeedEntry } from '@/types/publication';
 import PinnedFundraise from './components/PinnedFundraise';
+import { toNumberOrNull } from '@/lib/utils';
 
-function toNumberOrNull(value: any): number | null {
-  if (value === '' || value === null || value === undefined) return null;
-  const num = Number(value);
-  return Number.isFinite(num) ? num : null;
-}
-
-function AuthorProfileSkeleton() {
+export function AuthorProfileSkeleton() {
   return (
     <div className="flex flex-col sm:!flex-row gap-6 animate-pulse">
       {/* Left column - Avatar */}
@@ -72,10 +67,16 @@ function AuthorProfileSkeleton() {
   );
 }
 
-function AuthorProfileError({ error }: { error: string }) {
+export function AuthorProfileError({
+  error,
+  label = 'Error loading profile',
+}: {
+  error: string;
+  label?: string;
+}) {
   return (
     <div className="text-center py-8">
-      <div className="text-red-500 text-lg mb-4">Error loading profile</div>
+      <div className="text-red-500 text-lg mb-4">{label}</div>
       <div className="text-gray-600">{error}</div>
     </div>
   );

@@ -1,3 +1,6 @@
+import { ContentType } from '@/types/work';
+import { ID } from '@/types/root';
+
 /**
  * Converts a string to a URL-friendly slug
  * Example: "Hello World!" -> "hello-world"
@@ -21,8 +24,8 @@ export const buildWorkUrl = ({
   slug,
   tab,
 }: {
-  id?: string | number | null;
-  contentType: 'paper' | 'post' | 'funding_request' | 'preregistration';
+  id?: ID;
+  contentType: ContentType;
   doi?: string | null;
   slug?: string;
   tab?: 'reviews' | 'bounties' | 'conversation';

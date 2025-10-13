@@ -1,11 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
-import { AuthorService } from '@/services/author.service';
+import { useCallback, useEffect, useState } from 'react';
 import type { AuthorUpdatePayload } from '@/services/author.service';
+import { AuthorService } from '@/services/author.service';
 import type { User } from '@/types/user';
-import { Achievement } from '@/types/authorProfile';
-import { AuthorSummaryStats } from '@/types/authorProfile';
-import { UserService } from '@/services/user.service';
 import { UserDetailsForModerator } from '@/types/user';
+import { Achievement, AuthorSummaryStats } from '@/types/authorProfile';
+import { UserService } from '@/services/user.service';
 
 interface UseUpdateAuthorProfileImageState {
   isLoading: boolean;
@@ -85,7 +84,7 @@ interface UseAuthorInfoState {
   error: string | null;
 }
 
-type FetchAuthorInfoFn = () => Promise<void>;
+export type FetchAuthorInfoFn = () => Promise<void>;
 
 type UseFetchAuthorInfoReturn = [UseAuthorInfoState, FetchAuthorInfoFn];
 

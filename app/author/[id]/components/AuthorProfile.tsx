@@ -1,19 +1,19 @@
 'use client';
 
-import React, { useId, useState, useEffect } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faXTwitter, faLinkedin, faGoogle, faOrcid } from '@fortawesome/free-brands-svg-icons';
+import { faGoogle, faLinkedin, faOrcid, faXTwitter } from '@fortawesome/free-brands-svg-icons';
 import { faBirthdayCake, faGraduationCap } from '@fortawesome/pro-light-svg-icons';
 import { toast } from 'react-hot-toast';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
-import { formatTimeAgo, specificTimeSince } from '@/utils/date';
+import { specificTimeSince } from '@/utils/date';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { AuthorProfile as AuthorProfileType } from '@/types/authorProfile';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
-import { useUpdateAuthorProfileData } from '@/hooks/useAuthor';
+import { FetchAuthorInfoFn, useUpdateAuthorProfileData } from '@/hooks/useAuthor';
 import { useUser } from '@/contexts/UserContext';
 import { ProfileInformationForm } from '@/components/profile/About/ProfileInformationForm';
 import { ProfileInformationFormValues } from '@/components/profile/About/ProfileInformationForm/schema';
@@ -21,7 +21,7 @@ import { Icon } from '@/components/ui/icons/Icon';
 
 type AuthorProfileProps = {
   author: AuthorProfileType;
-  refetchAuthorInfo: () => Promise<void>;
+  refetchAuthorInfo: FetchAuthorInfoFn;
 };
 
 const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo }) => {
