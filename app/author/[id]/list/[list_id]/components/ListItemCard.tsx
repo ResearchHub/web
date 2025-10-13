@@ -1,7 +1,7 @@
 'use client';
 
 import { ID, RawUnifiedDocument, transformUnifiedDocument } from '@/types/root';
-import { MouseEvent, useCallback, useState } from 'react';
+import { MouseEvent, useCallback, useMemo, useState } from 'react';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useUser } from '@/contexts/UserContext';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -63,7 +63,10 @@ export function ListItemCardSkeleton() {
 }
 
 export default function ListItemCard({ listItem, authorId, refreshList }: ListItemCardProps) {
-  const unifiedDocument = transformUnifiedDocument(listItem.unified_document);
+  const unifiedDocument = useMemo(
+    () => transformUnifiedDocument(listItem.unified_document),
+    [listItem.unified_document]
+  );
 
   if (!unifiedDocument) {
     return (
@@ -79,10 +82,20 @@ export default function ListItemCard({ listItem, authorId, refreshList }: ListIt
   const { user } = useUser();
   const owner = user?.authorProfile?.id === authorId;
   const isMobile = useIsMobile();
-  const deleteColor = isMobile ? 'text-red-400' : 'text-red-600 hover:text-red-800 hover:bg-red-50';
   const router = useRouter();
   const contentType = unifiedDocument.documentType.toLowerCase();
   const { deleteListItem: deleteListItemFn, isLoading: isDeletingListItem } = useDeleteListItem();
+
+  const deleteButtonStyle = useMemo(
+    () =>
+      `p-1.5 ${isMobile ? 'text-red-400' : 'text-red-600 hover:text-red-800 hover:bg-red-50'} rounded-md transition-colors h-7`,
+    [isMobile]
+  );
+
+  const confirmTitle = useMemo(
+    () => `Delete ${toTitleCase(listItem.document_type)}`,
+    [listItem.document_type]
+  );
 
   const navToDocument = useCallback(
     (e: MouseEvent) => {
@@ -108,6 +121,14 @@ export default function ListItemCard({ listItem, authorId, refreshList }: ListIt
     refreshList();
   }, [listItem.id, refreshList, deleteListItemFn]);
 
+  const handleShowDeleteModal = useCallback(() => {
+    executeAuthenticatedAction(() => setShowDeleteModal(true));
+  }, [executeAuthenticatedAction]);
+
+  const handleHideDeleteModal = useCallback(() => {
+    setShowDeleteModal(false);
+  }, []);
+
   return (
     <Card>
       <div className="flex flex-row items-center justify-between mb-2">
@@ -118,8 +139,8 @@ export default function ListItemCard({ listItem, authorId, refreshList }: ListIt
               <Button
                 variant="outlined"
                 size="sm"
-                onClick={() => executeAuthenticatedAction(() => setShowDeleteModal(true))}
-                className={`p-1.5 ${deleteColor} rounded-md transition-colors h-7`}
+                onClick={handleShowDeleteModal}
+                className={deleteButtonStyle}
                 disabled={isDeletingListItem}
               >
                 <Trash2 className="h-4 w-4" />
@@ -127,11 +148,9 @@ export default function ListItemCard({ listItem, authorId, refreshList }: ListIt
             </Tooltip>
             <ConfirmModal
               isOpen={showDeleteModal}
-              onClose={() => {
-                setShowDeleteModal(false);
-              }}
+              onClose={handleHideDeleteModal}
               onConfirm={deleteListItem}
-              title={`Delete ${toTitleCase(listItem.document_type)}`}
+              title={confirmTitle}
               message="Are your sure you want to delete this from your list?"
               confirmText="Yes, delete"
               cancelText="Cancel"
