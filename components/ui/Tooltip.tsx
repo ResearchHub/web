@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/utils/styles';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface TooltipProps {
   children: React.ReactNode;
@@ -122,6 +123,26 @@ export function Tooltip({
   const triggerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isMobile = useIsMobile();
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // TODO: This is more efficient than rendering the tooltips on mobile,
+  //  but it's still not ideal because we still have to call all the hooks
+  //  to satisfy React's rules. The alternative would be to handle tooltip
+  //  vs. no-tooltip on each component, but that's a large scope and needs to
+  //  be maintained. This will do for now, until the alternative is necessary.
+  if (isMobile) return <>{children}</>; // If on mobile, tooltips are irrelevant.
 
   const showTooltip = () => {
     if (timeoutRef.current) {
@@ -167,18 +188,6 @@ export function Tooltip({
     setIsHoveringTooltip(false);
     setIsVisible(false);
   };
-
-  // Clean up timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      if (hideTimeoutRef.current) {
-        clearTimeout(hideTimeoutRef.current);
-      }
-    };
-  }, []);
 
   return (
     <>
