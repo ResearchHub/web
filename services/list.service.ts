@@ -5,6 +5,16 @@ import { getPaginatedQueryParams, PaginatedParams, PaginatedResult } from '@/lib
 
 export const TYPES_SUPPORTING_LISTS = ['PAPER', 'GRANT', 'PREREGISTRATION'];
 
+export type ListItemsSortBy = '-created_date' | 'created_date' | 'name' | '-name';
+
+export type ListsSortBy =
+  | 'name'
+  | '-name'
+  | 'created_date'
+  | '-created_date'
+  | 'updated_date'
+  | '-updated_date';
+
 export interface List {
   id: ID;
   name: string;
@@ -21,8 +31,11 @@ export type CreateListParams = {
   name: string;
 };
 
+export type GetListsParams = PaginatedParams & { order?: ListsSortBy };
+
 export type GetListParams = {
   id?: ID;
+  items_order?: ListItemsSortBy;
 };
 
 export type DeleteListParams = {
@@ -40,10 +53,12 @@ export default class ListService {
   // =================== API ===================
 
   // GET /api/list/ — get lists
-  static async getLists(params: PaginatedParams = {}): Promise<PaginatedListsResult> {
+  static async getLists(params: GetListsParams): Promise<PaginatedListsResult> {
     try {
+      const path = this.getPath(undefined, getPaginatedQueryParams(params, true) as string);
+
       return await ApiClient.get<PaginatedListsResult>(
-        this.getPath(undefined, getPaginatedQueryParams(params, true) as string)
+        params.order ? `${path}?order=${params.order}` : path
       );
     } catch (e) {
       throw new Error(`Failed to get lists: ${this.getErrorMsg(e)}`);
@@ -53,7 +68,11 @@ export default class ListService {
   // GET /api/list/{id}/ — get a list
   static async getList(params: GetListParams): Promise<List> {
     try {
-      return await ApiClient.get<List>(this.getPath(params.id));
+      const path = this.getPath(params.id);
+
+      return await ApiClient.get<List>(
+        params.items_order ? `${path}?items_order=${params.items_order}` : path
+      );
     } catch (e) {
       throw new Error(`Failed to get list: ${this.getErrorMsg(e)}`);
     }
