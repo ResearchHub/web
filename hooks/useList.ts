@@ -8,6 +8,8 @@ import ListService, {
   DeleteListParams,
   GetListParams,
   List,
+  ListItemsSortBy,
+  ListsSortBy,
   PaginatedListsResult,
   UpdateListParams,
 } from '@/services/list.service';
@@ -21,21 +23,24 @@ type UseGetListsState = AsyncState & PaginatedListsResult;
 
 export function useGetLists(
   params: PaginatedParams = DEFAULT_PAGINATED_PARAMS
-): UseGetListsState & PaginatedState {
+): UseGetListsState &
+  PaginatedState & { refresh: (order?: ListsSortBy, resetLists?: boolean) => Promise<void> } {
   const [lists, setLists] = useState<UseGetListsState['results']>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<UseGetListsState['error']>(null);
   const [count, setCount] = useState(0);
   const [next, setNext] = useState<UseGetListsState['next']>(null);
   const [previous, setPrevious] = useState<UseGetListsState['previous']>(null);
 
   const getLists = useCallback(
-    async (resetLists = true) => {
+    async (order = '', resetLists = true) => {
       try {
         setIsLoading(true);
         setError(null);
 
-        const response = await ListService.getLists(params);
+        const response = await ListService.getLists(
+          order ? { ...params, order: order as ListsSortBy } : params
+        );
 
         if (resetLists) {
           setLists(response.results);
@@ -55,11 +60,14 @@ export function useGetLists(
     [params]
   );
 
-  const loadMore = useCallback(async () => {
-    if (!next || isLoading) return;
+  const loadMore = useCallback(
+    async (order = '') => {
+      if (!next || isLoading) return;
 
-    await getLists(false);
-  }, [next, isLoading, getLists]);
+      await getLists(order, false);
+    },
+    [next, isLoading, getLists]
+  );
 
   useEffect(() => {
     void getLists();
@@ -72,7 +80,7 @@ export function useGetLists(
     previous,
     isLoading,
     error,
-    refresh: () => getLists(true),
+    refresh: getLists,
     loadMore,
     hasMore: !!next,
   };
@@ -84,28 +92,35 @@ type UseGetListState = AsyncState & { list: List | null };
 
 export function useGetList(
   params: GetListParams
-): UseGetListState & { refresh: () => Promise<void> } {
+): UseGetListState & { refresh: (items_order?: ListItemsSortBy) => Promise<void> } {
   const [list, setList] = useState<UseGetListState['list']>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<UseGetListState['error']>(null);
 
-  const getList = useCallback(async () => {
-    if (!params.id) return;
+  const getList = useCallback(
+    async (items_order = '') => {
+      if (!params.id) return;
 
-    try {
-      setIsLoading(true);
-      setError(null);
-      setList(await ListService.getList(params));
-    } catch (e) {
-      setError(e instanceof Error ? e : new Error('Failed to get list'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [params]);
+      try {
+        setIsLoading(true);
+        setError(null);
+        setList(
+          await ListService.getList(
+            items_order ? { ...params, items_order: items_order as ListItemsSortBy } : params
+          )
+        );
+      } catch (e) {
+        setError(e instanceof Error ? e : new Error('Failed to get list'));
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [params.id]
+  );
 
   useEffect(() => {
     if (params.id) void getList();
-  }, [params, getList]);
+  }, [params.id, getList]);
 
   return {
     list,
