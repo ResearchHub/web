@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ArrowUp,
   CheckCircle,
@@ -311,9 +311,17 @@ export const WorkLineItems = ({
   };
 
   const modalConfig = getModalConfig();
-
   const icon_shared = 'flex items-center rounded-lg space-x-2 py-2';
   const icon_color = 'bg-gray-100 text-gray-600 hover:bg-gray-200';
+
+  const listsEnabled = useMemo(() => {
+    if (!user) return false;
+
+    return (
+      (work.contentType && TYPES_SUPPORTING_LISTS.includes(work.contentType.toUpperCase())) ||
+      (work.postType && TYPES_SUPPORTING_LISTS.includes(work.postType.toUpperCase()))
+    );
+  }, [work.contentType, work.postType, user]);
 
   return (
     <div>
@@ -349,14 +357,16 @@ export const WorkLineItems = ({
             </button>
           </Tooltip>
 
-          <Tooltip content="Save to list">
-            <button
-              onClick={() => executeAuthenticatedAction(() => setIsListModalOpen(true))}
-              className={`${icon_shared} px-2 ${icon_color}`}
-            >
-              <ListPlus className="h-6 w-6" />
-            </button>
-          </Tooltip>
+          {listsEnabled && (
+            <Tooltip content="Save to list">
+              <button
+                onClick={() => executeAuthenticatedAction(() => setIsListModalOpen(true))}
+                className={`${icon_shared} px-2 ${icon_color}`}
+              >
+                <ListPlus className="h-6 w-6" />
+              </button>
+            </Tooltip>
+          )}
 
           {work.contentType !== 'preregistration' && (
             <button
@@ -538,7 +548,7 @@ export const WorkLineItems = ({
       />
 
       {/* List Modal */}
-      {user && TYPES_SUPPORTING_LISTS.includes(work.contentType.toUpperCase()) && (
+      {listsEnabled && (
         <SaveToListModal
           isOpen={isListModalOpen}
           onClose={() => setIsListModalOpen(false)}
