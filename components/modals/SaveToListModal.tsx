@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { ChangeEvent, useCallback, useMemo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { ContentType } from '@/types/work';
 import { Button } from '@/components/ui/Button';
@@ -48,10 +48,24 @@ export default function SaveToListModal({
     createListItem,
   } = useCreateListItem();
 
-  const isLoading = createListIsLoading || createListItemIsLoading;
-  const hasError = createListError || createListItemError || getListsError;
+  const isLoading = useMemo(
+    () => createListIsLoading || createListItemIsLoading,
+    [createListIsLoading, createListItemIsLoading]
+  );
 
-  async function handleSave(): Promise<void> {
+  const hasError = useMemo(
+    () => createListError || createListItemError || getListsError,
+    [createListError, createListItemError, getListsError]
+  );
+
+  const modalTitle = useMemo(() => `Save ${toTitleCase(contentType)} to List`, [contentType]);
+
+  const buttonDisabled = useMemo(
+    () => isLoading || !selectedListId || (selectedListId === 'new' && !newListName),
+    [isLoading, selectedListId, newListName]
+  );
+
+  const handleSave = useCallback(async (): Promise<void> => {
     try {
       let finalListId: ID;
       let finalListName: string;
@@ -93,15 +107,27 @@ export default function SaveToListModal({
     } catch (error) {
       console.error('Error saving to list:', error);
     }
-  }
+  }, [
+    selectedListId,
+    newListName,
+    lists,
+    createList,
+    createListItem,
+    refreshLists,
+    contentId,
+    onSave,
+    onClose,
+  ]);
 
-  function idInLists(unified_document: ID): boolean {
-    if (!lists?.length) return false;
+  const handleNewListNameChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setNewListName(e.target.value.trim());
+  }, []);
 
-    return lists.some((list) => idInList(list, unified_document));
-  }
+  const handleCreateNewList = useCallback(() => {
+    setSelectedListId('new');
+  }, []);
 
-  function idInList(list: List, unified_document: ID): boolean {
+  const idInList = useCallback((list: List, unified_document: ID): boolean => {
     return (
       list.items?.some(
         (item) =>
@@ -109,9 +135,18 @@ export default function SaveToListModal({
           unified_document
       ) || false
     );
-  }
+  }, []);
 
-  function getSelectedLabel(): string {
+  // const idInLists = useCallback(
+  //   (unified_document: ID): boolean => {
+  //     if (!lists?.length) return false;
+  //
+  //     return lists.some((list) => idInList(list, unified_document));
+  //   },
+  //   [lists, idInList]
+  // );
+
+  const getSelectedLabel = useMemo((): string => {
     if (selectedListId === 'new') return 'New list';
 
     if (selectedListId) {
@@ -123,10 +158,10 @@ export default function SaveToListModal({
     }
 
     return 'Or create one';
-  }
+  }, [selectedListId, lists, contentId, idInList]);
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} title={`Save ${toTitleCase(contentType)} to List`}>
+    <BaseModal isOpen={isOpen} onClose={onClose} title={modalTitle}>
       {hasError && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
           <p className="text-red-600 text-sm">{hasError.message}</p>
@@ -140,13 +175,13 @@ export default function SaveToListModal({
             className="w-full justify-between"
             disabled={getListsIsLoading}
           >
-            {getSelectedLabel()}
+            {getSelectedLabel}
             <ChevronDown size={16} className="text-gray-500" />
           </Button>
         }
         required={true}
       >
-        <DropdownItem key="new" onClick={() => setSelectedListId('new')} className="italic">
+        <DropdownItem key="new" onClick={handleCreateNewList} className="italic">
           Create new list...
         </DropdownItem>
         {lists &&
@@ -165,24 +200,17 @@ export default function SaveToListModal({
             );
           })}
       </Dropdown>
-
       {selectedListId === 'new' && <div className="mt-4"></div>}
-
       {selectedListId === 'new' && (
         <Input
           label="Name"
           placeholder="Enter new list name"
           required={true}
-          onChange={(e) => setNewListName(e.target.value.trim())}
+          onChange={handleNewListNameChange}
           maxLength={LIST_NAME_MAX_LENGTH}
         />
       )}
-
-      <Button
-        className={'w-[400px] mt-8'}
-        disabled={isLoading || !selectedListId || (selectedListId === 'new' && !newListName)}
-        onClick={handleSave}
-      >
+      <Button className={'w-[400px] mt-8'} disabled={buttonDisabled} onClick={handleSave}>
         {isLoading ? 'Saving...' : 'Save'}
       </Button>
     </BaseModal>

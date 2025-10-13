@@ -1,6 +1,6 @@
 'use client';
 
-import { KeyboardEvent, MouseEvent, useCallback, useState } from 'react';
+import { ChangeEvent, KeyboardEvent, MouseEvent, useCallback, useMemo, useState } from 'react';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { List } from '@/services/list.service';
 import { Card } from '@/components/ui/Card';
@@ -104,6 +104,10 @@ export function ListCardName({ list, refresh, listPath = '' }: ListCardNameProps
     [onCheckClick]
   );
 
+  const handleNameChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setNewName(e.target.value.trim());
+  }, []);
+
   if (isEditing) {
     return (
       <div className="flex flex-row items-center justify-between gap-4">
@@ -118,7 +122,7 @@ export function ListCardName({ list, refresh, listPath = '' }: ListCardNameProps
         </Tooltip>
         <Input
           placeholder={list.name}
-          onChange={(e) => setNewName(e.target.value.trim())}
+          onChange={handleNameChange}
           onKeyDown={handleKeyDown}
           maxLength={LIST_NAME_MAX_LENGTH}
           disabled={isUpdating}
@@ -154,14 +158,27 @@ export default function ListCard({ list, authorId, refreshLists }: ListCardProps
   const { user } = useUser();
   const owner = user?.authorProfile?.id === authorId;
   const isMobile = useIsMobile();
-  const deleteColor = isMobile ? 'text-red-400' : 'text-red-600 hover:text-red-800 hover:bg-red-50';
   const { deleteList: deleteListFn, isLoading: isDeletingList } = useDeleteList();
+
+  const deleteButtonStyle = useMemo(
+    () =>
+      `p-2 ${isMobile ? 'text-red-400' : 'text-red-600 hover:text-red-800 hover:bg-red-50'} rounded-md transition-colors`,
+    [isMobile]
+  );
 
   const deleteList = useCallback(async () => {
     await deleteListFn({ id: list.id });
 
     refreshLists();
   }, [list.id, refreshLists]);
+
+  const handleShowDeleteModal = useCallback(() => {
+    executeAuthenticatedAction(() => setShowDeleteModal(true));
+  }, [executeAuthenticatedAction]);
+
+  const handleHideDeleteModal = useCallback(() => {
+    setShowDeleteModal(false);
+  }, []);
 
   return (
     <Card>
@@ -177,8 +194,8 @@ export default function ListCard({ list, authorId, refreshLists }: ListCardProps
               <Button
                 variant="outlined"
                 size="sm"
-                onClick={() => executeAuthenticatedAction(() => setShowDeleteModal(true))}
-                className={`p-2 ${deleteColor} rounded-md transition-colors`}
+                onClick={handleShowDeleteModal}
+                className={deleteButtonStyle}
                 disabled={isDeletingList}
               >
                 <Trash2 className="h-4 w-4" />
@@ -186,9 +203,7 @@ export default function ListCard({ list, authorId, refreshLists }: ListCardProps
             </Tooltip>
             <ConfirmModal
               isOpen={showDeleteModal}
-              onClose={() => {
-                setShowDeleteModal(false);
-              }}
+              onClose={handleHideDeleteModal}
               onConfirm={deleteList}
               title={list.name}
               message="Are your sure you want to delete this list?"
