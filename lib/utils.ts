@@ -9,6 +9,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function toNumberOrNull(value: any): number | null {
+  if (value === '' || value === null || value === undefined) return null;
+
   const num = Number(value);
 
   return Number.isFinite(num) ? num : null;

@@ -13,7 +13,7 @@ interface RawDocument {
   [key: string]: any;
 }
 
-interface RawUnifiedDocument {
+export interface RawUnifiedDocument {
   id: ID;
   documents: RawDocument | RawDocument[];
   document_type: string;
