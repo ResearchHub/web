@@ -1,32 +1,30 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  Menu,
-  User,
   ArrowLeft,
   ChartNoAxesColumnIncreasing,
+  List,
+  Menu,
   Search as SearchIcon,
   Shield,
-  MessageCircleQuestion,
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { SearchModal } from '@/components/Search/SearchModal';
 import UserMenu from '@/components/menus/UserMenu';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { useAuthenticatedAction, useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { Icon } from '@/components/ui/icons';
-import { Tooltip } from '@/components/ui/Tooltip';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
-import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { faCommentsQuestion } from '@fortawesome/pro-light-svg-icons';
-import { faGrid3 as faGrid3Light } from '@fortawesome/pro-light-svg-icons';
+import {
+  faCommentsQuestion,
+  faGrid3 as faGrid3Light,
+  faHouse as faHouseLight,
+} from '@fortawesome/pro-light-svg-icons';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
-import { colors } from '@/app/styles/colors';
 import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
 import { toTitleCase } from '@/utils/stringUtils';
 import { Hash } from 'lucide-react';
@@ -218,6 +216,20 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   }
 
   if (pathname.startsWith('/author/')) {
+    if (pathname.includes('/lists')) {
+      return {
+        title: 'Lists',
+        icon: <List className="text-gray-900" />,
+      };
+    }
+
+    if (pathname.includes('/list/')) {
+      return {
+        title: 'List',
+        icon: <List className="text-gray-900" />,
+      };
+    }
+
     return {
       title: 'Profile',
       icon: <Icon name="profile" size={24} className="text-gray-900" />,

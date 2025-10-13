@@ -1,7 +1,7 @@
 'use client';
 
-import { BadgeCheck, Bell, LogOut, Shield, User as UserIcon, UserPlus } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { BadgeCheck, Bell, List, LogOut, Shield, User as UserIcon, UserPlus } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import type { User } from '@/types/user';
 import VerificationBanner from '@/components/banners/VerificationBanner';
 import { Avatar } from '@/components/ui/Avatar';
@@ -63,13 +63,16 @@ export default function UserMenu({
   // Use controlled or uncontrolled menu state
   const menuOpenState = isMenuOpen !== undefined ? isMenuOpen : internalMenuOpen;
 
-  const setMenuOpenState = (open: boolean) => {
-    if (onMenuOpenChange) {
-      onMenuOpenChange(open);
-    } else {
-      setInternalMenuOpen(open);
-    }
-  };
+  const setMenuOpenState = useCallback(
+    (open: boolean) => {
+      if (onMenuOpenChange) {
+        onMenuOpenChange(open);
+      } else {
+        setInternalMenuOpen(open);
+      }
+    },
+    [onMenuOpenChange]
+  );
 
   // Check if we're on mobile
   useEffect(() => {
@@ -91,24 +94,28 @@ export default function UserMenu({
   const effectiveAvatarSize =
     showAvatarOnly && typeof avatarSize === 'number' ? avatarSize * 1.25 : avatarSize;
 
-  function closeMenu() {
+  const closeMenu = useCallback(() => {
     setMenuOpenState(false);
-  }
+  }, [setMenuOpenState]);
 
-  function openMenu() {
+  const openMenu = useCallback(() => {
     setMenuOpenState(true);
-  }
+  }, [setMenuOpenState]);
 
-  function hideVerificationBanner() {
+  const hideVerificationBanner = useCallback(() => {
     setShowVerificationBanner(false);
-  }
+  }, []);
 
   function signOutFromBothApps() {
     void AuthSharingService.signOutFromBothApps();
   }
 
-  function navToAuthor() {
+  const navToAuthor = useCallback(() => {
     navigateToAuthorProfile(user.authorProfile?.id, false);
+  }, [user.authorProfile?.id]);
+
+  function getListsUrl() {
+    return `/author/${user.authorProfile?.id}/lists/`;
   }
 
   // Common avatar button with adjusted sizing for avatar-only mode
@@ -185,8 +192,6 @@ export default function UserMenu({
               </div>
             </div>
 
-            {/*TODO: LISTS*/}
-
             {/* Menu items */}
             <div className="py-4">
               <div
@@ -198,6 +203,7 @@ export default function UserMenu({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
+
                     navToAuthor();
                     closeMenu();
                   }
@@ -211,6 +217,15 @@ export default function UserMenu({
                   <span className={labelStyle}>{MENU_TEXT.PROFILE}</span>
                 </div>
               </div>
+
+              <Link href={getListsUrl()} className="block" onClick={closeMenu}>
+                <div className={`px-6 py-2 hover:${MENU_STYLE.HOVER_COLOR}`}>
+                  <div className="flex items-center">
+                    <List className={iconStyle} />
+                    <span className={labelStyle}>{MENU_TEXT.LISTS}</span>
+                  </div>
+                </div>
+              </Link>
 
               <Link href="/notifications" className={MENU_STYLE.HIDDEN_BLOCK} onClick={closeMenu}>
                 <div className={`px-6 py-2 hover:${MENU_STYLE.HOVER_COLOR}`}>
@@ -369,6 +384,15 @@ export default function UserMenu({
               <span className={labelStyle}>{MENU_TEXT.PROFILE}</span>
             </div>
           </BaseMenuItem>
+
+          <Link href={getListsUrl()} className="block" onClick={closeMenu}>
+            <div className={link_div1_style}>
+              <div className="flex items-center">
+                <List className={iconStyle} />
+                <span className={labelStyle}>{MENU_TEXT.LISTS}</span>
+              </div>
+            </div>
+          </Link>
 
           <Link href="/notifications" className={MENU_STYLE.HIDDEN_BLOCK} onClick={closeMenu}>
             <div className={link_div1_style}>
