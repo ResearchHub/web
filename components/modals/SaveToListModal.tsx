@@ -8,12 +8,14 @@ import { toTitleCase } from '@/utils/stringUtils';
 import { Input } from '@/components/ui/form/Input';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
-import { ID } from '@/types/root';
+import { ID, RawUnifiedDocument, transformUnifiedDocument } from '@/types/root';
 import { useCreateList, useGetLists } from '@/hooks/useList';
 import { useCreateListItem } from '@/hooks/useListItem';
 import { List } from '@/services/list.service';
 
-type saveToListModalProps = {
+export const LIST_NAME_MAX_LENGTH = 120;
+
+type SaveToListModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSave?: (listName: string) => void;
@@ -27,7 +29,7 @@ export default function SaveToListModal({
   onSave,
   contentId,
   contentType,
-}: saveToListModalProps) {
+}: SaveToListModalProps) {
   const [selectedListId, setSelectedListId] = useState<ID | 'new'>('');
   const [newListName, setNewListName] = useState('');
 
@@ -100,7 +102,13 @@ export default function SaveToListModal({
   }
 
   function idInList(list: List, unified_document: ID): boolean {
-    return list.items?.some((item) => item.unified_document === unified_document) || false;
+    return (
+      list.items?.some(
+        (item) =>
+          transformUnifiedDocument(item.unified_document as RawUnifiedDocument)?.id ===
+          unified_document
+      ) || false
+    );
   }
 
   function getSelectedLabel(): string {
@@ -143,7 +151,7 @@ export default function SaveToListModal({
         </DropdownItem>
         {lists &&
           lists.map((list) => {
-            const inList = list.items?.some((item) => item.unified_document === contentId);
+            const inList = idInList(list, contentId);
 
             return (
               <DropdownItem
@@ -166,7 +174,7 @@ export default function SaveToListModal({
           placeholder="Enter new list name"
           required={true}
           onChange={(e) => setNewListName(e.target.value.trim())}
-          maxLength={120}
+          maxLength={LIST_NAME_MAX_LENGTH}
         />
       )}
 
