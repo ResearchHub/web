@@ -35,6 +35,7 @@ import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { TYPES_SUPPORTING_LISTS } from '@/services/list.service';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -44,6 +45,8 @@ interface WorkLineItemsProps {
   onEditClick?: () => void;
 }
 
+export const ICON_BUTTON_STYLE_COLOR = 'bg-gray-100 text-gray-600 hover:bg-gray-200';
+
 export const WorkLineItems = ({
   work,
   showClaimButton = true,
@@ -51,7 +54,7 @@ export const WorkLineItems = ({
   metadata,
   onEditClick,
 }: WorkLineItemsProps) => {
-  const [claimModalOpen, setClaimModalOpen] = useState(false);
+  // const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
   const [isListModalOpen, setIsListModalOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -72,6 +75,7 @@ export const WorkLineItems = ({
   const { user } = useUser();
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
   const { showShareModal } = useShareModalContext();
+  const isMobile = useIsMobile();
 
   const {
     data: userVotes,
@@ -312,7 +316,6 @@ export const WorkLineItems = ({
 
   const modalConfig = getModalConfig();
   const icon_shared = 'flex items-center rounded-lg space-x-2 py-2';
-  const icon_color = 'bg-gray-100 text-gray-600 hover:bg-gray-200';
 
   const listsEnabled = useMemo(() => {
     if (!user) return false;
@@ -323,6 +326,8 @@ export const WorkLineItems = ({
     );
   }, [work.contentType, work.postType, user]);
 
+  const tipButtonText = isMobile ? '' : 'Tip';
+
   return (
     <div>
       {/* Primary Actions */}
@@ -332,8 +337,10 @@ export const WorkLineItems = ({
             <button
               onClick={() => executeAuthenticatedAction(handleVote)}
               disabled={isVoting || isLoadingVotes}
-              className={`${icon_shared} px-4 ${
-                isUpvoted ? 'bg-green-100 text-green-600 hover:bg-green-200' : icon_color
+              className={`${icon_shared} ${isMobile ? 'pr-3 pl-2' : 'px-4'} ${
+                isUpvoted
+                  ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                  : ICON_BUTTON_STYLE_COLOR
               } ${isVoting || isLoadingVotes ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <ArrowUp className={`h-5 w-5`} />
@@ -351,7 +358,7 @@ export const WorkLineItems = ({
                   shouldShowConfetti: false,
                 })
               }
-              className={`${icon_shared} px-2 ${icon_color}`}
+              className={`${icon_shared} px-2 ${ICON_BUTTON_STYLE_COLOR} flex-none`}
             >
               <Share2 className="h-5 w-5" />
             </button>
@@ -361,7 +368,7 @@ export const WorkLineItems = ({
             <Tooltip content="Save to list">
               <button
                 onClick={() => executeAuthenticatedAction(() => setIsListModalOpen(true))}
-                className={`${icon_shared} px-2 ${icon_color}`}
+                className={`${icon_shared} px-2 ${ICON_BUTTON_STYLE_COLOR} flex-none`}
               >
                 <ListPlus className="h-6 w-6" />
               </button>
@@ -371,10 +378,10 @@ export const WorkLineItems = ({
           {work.contentType !== 'preregistration' && (
             <button
               onClick={() => executeAuthenticatedAction(() => setIsTipModalOpen(true))}
-              className={`${icon_shared} px-4 ${icon_color}`}
+              className={`${icon_shared} px-${tipButtonText ? 4 : 2.5} ${ICON_BUTTON_STYLE_COLOR} ${tipButtonText ? '' : 'flex-none py-2.5'}`}
             >
               <Icon name="tipRSC" size={20} />
-              <span className="hidden md:!block">Tip</span>
+              {tipButtonText && <span className="hidden md:!block">{tipButtonText}</span>}
             </button>
           )}
 
@@ -386,7 +393,7 @@ export const WorkLineItems = ({
             <BaseMenu
               align="start"
               trigger={
-                <button className={`${icon_shared} px-2 ${icon_color}`}>
+                <button className={`${icon_shared} px-2 ${ICON_BUTTON_STYLE_COLOR}`}>
                   <MoreHorizontal className="h-5 w-5" />
                 </button>
               }
