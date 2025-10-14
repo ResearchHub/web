@@ -25,13 +25,12 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
   const { showUSD } = useCurrencyPreference();
 
   const consolidatedTips = useMemo(() => {
-    const byUser = tips.reduce((acc, tip) => {
-      const existing = acc.get(tip.user.id);
-      acc.set(tip.user.id, {
-        user: tip.user,
-        amount: (existing?.amount || 0) + tip.amount,
+    const byUser = tips.reduce((acc, { user, amount }) => {
+      const existing = acc.get(user.id);
+      return acc.set(user.id, {
+        user,
+        amount: (existing?.amount || 0) + amount,
       });
-      return acc;
     }, new Map<number, { user: Tip['user']; amount: number }>());
     return Array.from(byUser.values()).sort((a, b) => b.amount - a.amount);
   }, [tips]);
