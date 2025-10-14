@@ -8,7 +8,7 @@ import { HeartHandshake } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Icon } from '@/components/ui/icons/Icon';
-import { Work } from '@/types/work';
+import { Work, ContentType } from '@/types/work';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -16,10 +16,16 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 interface SupportersSectionProps {
   tips: Tip[];
   documentId: number;
+  contentType: ContentType;
   onTip?: () => void;
 }
 
-export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], documentId, onTip }) => {
+export const SupportersSection: FC<SupportersSectionProps> = ({
+  tips = [],
+  documentId,
+  contentType,
+  onTip,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showAllSupporters, setShowAllSupporters] = useState(false);
   const { showUSD } = useCurrencyPreference();
@@ -119,7 +125,7 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         contentId={documentId}
-        feedContentType="PAPER"
+        feedContentType={contentType === 'paper' ? 'PAPER' : 'POST'}
         onTipSuccess={handleTipSuccess}
       />
     </section>
