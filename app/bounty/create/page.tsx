@@ -21,6 +21,7 @@ import { toast } from 'react-hot-toast';
 import { CommentContent } from '@/components/Comment/lib/types';
 import { BalanceInfo } from '@/components/modals/BalanceInfo';
 import { useUser } from '@/contexts/UserContext';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { Progress } from '@/components/ui/Progress';
 import {
   Star,
@@ -59,6 +60,8 @@ type WizardStep =
 export default function CreateBountyPage() {
   const router = useRouter();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
+  const { showUSD, toggleCurrency: toggleGlobalCurrency } = useCurrencyPreference();
+  const currency: Currency = showUSD ? 'USD' : 'RSC';
 
   // Wizard state
   const [step, setStep] = useState<WizardStep>('TYPE');
@@ -85,7 +88,6 @@ export default function CreateBountyPage() {
   const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
 
   // Shared – amount / currency
-  const [currency, setCurrency] = useState<Currency>('RSC');
   const [inputAmount, setInputAmount] = useState<number>(0);
   const [amountError, setAmountError] = useState<string | undefined>();
 
@@ -115,9 +117,13 @@ export default function CreateBountyPage() {
   // Initialise amount once exchange rate loads (150 USD equivalent)
   useEffect(() => {
     if (!isExchangeRateLoading && exchangeRate > 0 && inputAmount === 0) {
-      setInputAmount(Math.round(150 / exchangeRate));
+      if (showUSD) {
+        setInputAmount(150); // 150 USD
+      } else {
+        setInputAmount(Math.round(150 / exchangeRate)); // 150 USD worth in RSC
+      }
     }
-  }, [exchangeRate, isExchangeRateLoading, inputAmount]);
+  }, [exchangeRate, isExchangeRateLoading, inputAmount, showUSD]);
 
   /* ---------- Helpers ---------- */
 
@@ -149,18 +155,22 @@ export default function CreateBountyPage() {
   };
 
   const toggleCurrency = () => {
-    if (isExchangeRateLoading && currency === 'RSC') {
+    if (isExchangeRateLoading && !showUSD) {
       toast.error('Exchange rate is loading. Please wait before switching to USD.');
       return;
     }
-    if (currency === 'RSC') {
-      // convert current amount to USD when switching
-      setInputAmount(Number((inputAmount * exchangeRate).toFixed(2)));
-      setCurrency('USD');
-    } else {
+
+    // Convert the current input amount to the other currency
+    if (showUSD) {
+      // Switching from USD to RSC
       setInputAmount(Number((inputAmount / exchangeRate).toFixed(2)));
-      setCurrency('RSC');
+    } else {
+      // Switching from RSC to USD
+      setInputAmount(Number((inputAmount * exchangeRate).toFixed(2)));
     }
+
+    // Toggle the global preference
+    toggleGlobalCurrency();
   };
 
   /* ---------- Fees ---------- */
