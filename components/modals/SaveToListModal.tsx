@@ -12,6 +12,7 @@ import { ID, RawUnifiedDocument, transformUnifiedDocument } from '@/types/root';
 import { useCreateList, useGetLists } from '@/hooks/useList';
 import { useCreateListItem } from '@/hooks/useListItem';
 import { List } from '@/services/list.service';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export const LIST_NAME_MAX_LENGTH = 120;
 
@@ -32,6 +33,7 @@ export default function SaveToListModal({
 }: SaveToListModalProps) {
   const [selectedListId, setSelectedListId] = useState<ID | 'new'>('');
   const [newListName, setNewListName] = useState('');
+  const isMobile = useIsMobile();
 
   const {
     results: lists,
@@ -210,7 +212,11 @@ export default function SaveToListModal({
           maxLength={LIST_NAME_MAX_LENGTH}
         />
       )}
-      <Button className={'w-[400px] mt-8'} disabled={buttonDisabled} onClick={handleSave}>
+      <Button
+        className={`w-${isMobile ? 'full' : '[400px]'} mt-8`}
+        disabled={buttonDisabled}
+        onClick={handleSave}
+      >
         {isLoading ? 'Saving...' : 'Save'}
       </Button>
     </BaseModal>
