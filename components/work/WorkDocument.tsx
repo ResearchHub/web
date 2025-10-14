@@ -277,7 +277,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
         onClick={() => setShowMobileMetrics(false)}
       >
         <div
-          className={`absolute right-0 top-0 bottom-0 w-80 bg-white shadow-xl transition-transform duration-200 p-4 ${
+          className={`absolute right-0 top-16 bottom-0 w-80 bg-white shadow-xl transition-transform duration-200 p-4 ${
             showMobileMetrics ? 'translate-x-0' : 'translate-x-full'
           }`}
           onClick={(e) => e.stopPropagation()}
