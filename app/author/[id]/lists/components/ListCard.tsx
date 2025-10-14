@@ -132,7 +132,7 @@ export function ListCardName({ list, refresh, listPath = '' }: ListCardNameProps
   }
 
   return (
-    <div className="flex flex-row items-center justify-between gap-4">
+    <div className={`flex flex-row items-center gap-4`}>
       <Tooltip content="Rename" delay={300}>
         <button
           onClick={() => setIsEditing(true)}
@@ -182,7 +182,7 @@ export default function ListCard({ list, authorId, refreshLists }: ListCardProps
 
   return (
     <Card>
-      <div className="flex flex-row items-center justify-between">
+      <div className="flex flex-row items-center justify-between gap-2">
         <ListCardName
           list={list}
           refresh={refreshLists}
