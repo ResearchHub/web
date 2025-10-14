@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BarChart2, FlaskConicalOff, Plus } from 'lucide-react';
 import { Work } from '@/types/work';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { WorkRightSidebar } from './WorkRightSidebar';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { WorkLineItems } from './WorkLineItems';
+import { GetLatestPaperID, WorkLineItems } from './WorkLineItems';
 import { WorkMetadata } from '@/services/metadata.service';
 import { DocumentViewer } from './DocumentViewer';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
@@ -32,15 +32,15 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   const { user } = useUser();
   const isMobile = useIsMobile();
 
-  // State for active tab
-  const [activeTab, setActiveTab] = useState<TabType>(() => {
+  const startingTab = useMemo(() => {
     if (pathname.includes('/conversation')) return 'conversation';
     if (pathname.includes('/reviews')) return 'reviews';
     if (pathname.includes('/bounties')) return 'bounties';
     if (pathname.includes('/history')) return 'history';
     return defaultTab;
-  });
+  }, [pathname, defaultTab]);
 
+  const [activeTab, setActiveTab] = useState<TabType>(startingTab);
   // const [rewardModalOpen, setRewardModalOpen] = useState(false);
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
   const [pdfUnavailable, setPdfUnavailable] = useState(false);
@@ -65,29 +65,11 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
     return work.authors?.some((a) => a.authorProfile.id === user!.authorProfile!.id);
   }, [user, work.authors]);
 
-  const handleAddVersion = () => {
+  const handleAddVersion = useCallback(() => {
     if (!user) return; // should be authenticated already
 
-    // Determine the latest version's paperId to pre-populate the form with the most recent data
-    let latestPaperId = work.id;
-
-    if (work.versions && work.versions.length > 0) {
-      // Try to use the version flagged as the latest first
-      const latestFlag = work.versions.find((v) => v.isLatest);
-
-      if (latestFlag) {
-        latestPaperId = latestFlag.paperId;
-      } else {
-        // Fallback: pick the version with newest publishedDate
-        const sorted = [...work.versions].sort(
-          (a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
-        );
-        latestPaperId = sorted[0].paperId;
-      }
-    }
-
-    router.push(`/paper/${latestPaperId}/create/version`);
-  };
+    router.push(`/paper/${GetLatestPaperID(work)}/create/version`);
+  }, [work, user, router]);
 
   // Render tab content based on activeTab - memoized to prevent unnecessary re-renders
   const renderTabContent = useMemo(() => {
@@ -234,6 +216,14 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
     handleAddVersion,
   ]);
 
+  const handleShowMobileMetrics = useCallback(() => {
+    setShowMobileMetrics(true);
+  }, []);
+
+  const handleHideMobileMetrics = useCallback(() => {
+    setShowMobileMetrics(false);
+  }, []);
+
   const insightsButtonText = isMobile ? '' : 'Insights';
 
   return (
@@ -249,7 +239,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
         insightsButton={
           <button
             className={`lg:!hidden ${insightsButtonText ? 'flex' : 'flex-none'} items-center space-x-2 px-${insightsButtonText ? 4 : 2.5} py-${insightsButtonText ? 2 : 2.5} rounded-lg ${ICON_BUTTON_STYLE_COLOR}`}
-            onClick={() => setShowMobileMetrics(true)}
+            onClick={handleShowMobileMetrics}
           >
             <BarChart2 className="h-5 w-5" />
             {insightsButtonText && <span>{insightsButtonText}</span>}
@@ -274,7 +264,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
         className={`fixed inset-0 bg-black/50 z-50 lg:hidden ${
           showMobileMetrics ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
-        onClick={() => setShowMobileMetrics(false)}
+        onClick={handleHideMobileMetrics}
       >
         <div
           className={`absolute right-0 top-16 bottom-0 w-80 bg-white shadow-xl transition-transform duration-200 p-4 ${
