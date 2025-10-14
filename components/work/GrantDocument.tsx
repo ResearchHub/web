@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { WorkLineItems } from './WorkLineItems';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { WorkTabs, TabType } from './WorkTabs';
+import { TabType, WorkTabs } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { GrantApplications } from './GrantApplications';
 import { differenceInCalendarDays, format } from 'date-fns';
@@ -91,7 +91,11 @@ export const GrantDocument = ({
   return (
     <div>
       <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
-      <WorkLineItems work={work} showClaimButton={false} metadata={metadata} />
+      <WorkLineItems
+        work={work}
+        // showClaimButton={false}
+        metadata={metadata}
+      />
 
       {/* Top summary as line items */}
       <div className="space-y-2 text-sm text-gray-600 mt-2">

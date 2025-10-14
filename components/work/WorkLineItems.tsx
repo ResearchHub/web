@@ -13,6 +13,7 @@ import {
   Share2,
 } from 'lucide-react';
 import { Work } from '@/types/work';
+import { ID } from '@/types/root';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useVote } from '@/hooks/useVote';
@@ -39,7 +40,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface WorkLineItemsProps {
   work: Work;
-  showClaimButton?: boolean;
+  // showClaimButton?: boolean;
   insightsButton?: React.ReactNode;
   metadata: WorkMetadata;
   onEditClick?: () => void;
@@ -47,9 +48,32 @@ interface WorkLineItemsProps {
 
 export const ICON_BUTTON_STYLE_COLOR = 'bg-gray-100 text-gray-600 hover:bg-gray-200';
 
+export function GetLatestPaperID(work: Work): ID {
+  // Determine the latest version's paperId to pre-populate the form with the most recent data
+  let latestPaperId = work.id;
+
+  if (work.versions && work.versions.length > 0) {
+    // Try to use the version flagged as the latest first
+    const latestFlag = work.versions.find((v) => v.isLatest);
+
+    if (latestFlag) {
+      latestPaperId = latestFlag.paperId;
+    } else {
+      // Fallback: pick the version with newest publishedDate
+      const sorted = [...work.versions].sort(
+        (a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
+      );
+
+      latestPaperId = sorted[0].paperId;
+    }
+  }
+
+  return latestPaperId;
+}
+
 export const WorkLineItems = ({
   work,
-  showClaimButton = true,
+  // showClaimButton = true,
   insightsButton,
   metadata,
   onEditClick,
@@ -61,6 +85,7 @@ export const WorkLineItems = ({
   const [showFundraiseActionModal, setShowFundraiseActionModal] = useState(false);
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | null>(null);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
+
   const { vote, isVoting } = useVote({
     votableEntityId: work.id,
     feedContentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
@@ -68,6 +93,7 @@ export const WorkLineItems = ({
     relatedDocumentId: work.id.toString(),
     relatedDocumentContentType: work.contentType,
   });
+
   const [voteCount, setVoteCount] = useState(work.metrics?.votes || 0);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
   const router = useRouter();
@@ -122,15 +148,16 @@ export const WorkLineItems = ({
     }
   }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
 
-  // Determine if current user is a moderator
-  const isModerator = !!user?.isModerator;
-  // Determine if current user is a hub editor
-  const isHubEditor = !!user?.authorProfile?.isHubEditor;
+  const isModerator = !!user?.isModerator; // Determine if current user is a moderator
+  const isHubEditor = !!user?.authorProfile?.isHubEditor; // Determine if current user is a hub editor
 
   // Determine if current user is an author
-  const isAuthor =
-    user?.authorProfile != null &&
-    work.authors?.some((a) => a.authorProfile.id === user.authorProfile?.id);
+  const isAuthor = useMemo(
+    () =>
+      user?.authorProfile != null &&
+      work.authors?.some((a) => a.authorProfile.id === user.authorProfile?.id),
+    [user?.authorProfile, work.authors]
+  );
 
   const handleEdit = useCallback(() => {
     if (work.contentType === 'paper' && (isModerator || isHubEditor)) {
@@ -157,28 +184,31 @@ export const WorkLineItems = ({
     onEditClick,
   ]);
 
-  const handleTipSuccess = (amount: number) => {
+  const handleTipSuccess = useCallback((amount: number) => {
     toast.success(`Successfully tipped ${amount} RSC`);
 
     setIsTipModalOpen(false);
-  };
+  }, []);
 
-  const handleListSave = (listName: string) => {
+  const handleListSave = useCallback((listName: string) => {
     toast.success(`Saved to list:\n${listName}`);
 
     setIsListModalOpen(false);
-  };
+  }, []);
 
   // Determine if the latest version has already been published
-  const latestVersion = work.versions?.find((v) => v.isLatest);
+  const latestVersion = useMemo(() => work.versions?.find((v) => v.isLatest), [work.versions]);
+
   const isPublished = latestVersion?.publicationStatus === 'PUBLISHED';
 
   const handlePublish = useCallback(async () => {
     if (isPublished) return;
 
     setIsPublishing(true);
+
     try {
       await PaperService.publishPaper(work.id);
+
       toast.success('Paper published to ResearchHub Journal');
 
       // Refresh the page data to reflect new publication status
@@ -196,14 +226,17 @@ export const WorkLineItems = ({
     }
   }, [work.id, isPublished, router]);
 
-  const isGrantContact =
-    user?.authorProfile != null &&
-    work.contentType === 'funding_request' &&
-    work.note?.post?.grant?.contacts?.some(
-      (contact) => contact.authorProfile?.id === user.authorProfile?.id
-    );
+  const isGrantContact = useMemo(
+    () =>
+      user?.authorProfile != null &&
+      work.contentType === 'funding_request' &&
+      work.note?.post?.grant?.contacts?.some(
+        (contact) => contact.authorProfile?.id === user.authorProfile?.id
+      ),
+    [user?.authorProfile, work.contentType, work.note?.post?.grant?.contacts]
+  );
 
-  const canEdit = (() => {
+  const canEdit = useMemo(() => {
     switch (work.contentType) {
       case 'paper':
         return isModerator || isHubEditor;
@@ -215,31 +248,21 @@ export const WorkLineItems = ({
       default:
         return selectedOrg && work.note;
     }
-  })();
+  }, [
+    work.contentType,
+    isModerator,
+    isHubEditor,
+    isGrantContact,
+    isAuthor,
+    selectedOrg,
+    work.note,
+  ]);
 
   const handleAddVersion = useCallback(() => {
     if (!user) return; // should be authenticated already
 
-    // Determine the latest version's paperId to pre-populate the form with the most recent data
-    let latestPaperId = work.id;
-
-    if (work.versions && work.versions.length > 0) {
-      // Try to use the version flagged as the latest first
-      const latestFlag = work.versions.find((v) => v.isLatest);
-
-      if (latestFlag) {
-        latestPaperId = latestFlag.paperId;
-      } else {
-        // Fallback: pick the version with newest publishedDate
-        const sorted = [...work.versions].sort(
-          (a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
-        );
-        latestPaperId = sorted[0].paperId;
-      }
-    }
-
-    router.push(`/paper/${latestPaperId}/create/version`);
-  }, [work.id, work.versions, user, router]);
+    router.push(`/paper/${GetLatestPaperID(work)}/create/version`);
+  }, [work, user, router]);
 
   const [{ isLoading: isClosingFundraise }, closeFundraise] = useCloseFundraise();
   const [{ isLoading: isCompletingFundraise }, completeFundraise] = useCompleteFundraise();
@@ -283,7 +306,7 @@ export const WorkLineItems = ({
     }
   }, [metadata.fundraising?.id, fundraiseAction, closeFundraise, completeFundraise, router]);
 
-  const getModalConfig = () => {
+  const modalConfig = useMemo(() => {
     switch (fundraiseAction) {
       case 'close':
         return {
@@ -312,9 +335,8 @@ export const WorkLineItems = ({
           isLoading: false,
         };
     }
-  };
+  }, [fundraiseAction, isClosingFundraise, isCompletingFundraise]);
 
-  const modalConfig = getModalConfig();
   const icon_shared = 'flex items-center rounded-lg space-x-2 py-2';
 
   const listsEnabled = useMemo(() => {
@@ -328,6 +350,68 @@ export const WorkLineItems = ({
 
   const tipButtonText = isMobile ? '' : 'Tip';
 
+  const handleShowShareModal = useCallback(
+    () =>
+      showShareModal({
+        url: window.location.href,
+        docTitle: work.title,
+        action: 'USER_SHARED_DOCUMENT',
+        shouldShowConfetti: false,
+      }),
+    [work.title, showShareModal]
+  );
+
+  const handleAuthdVote = useCallback(
+    () => executeAuthenticatedAction(handleVote),
+    [executeAuthenticatedAction, handleVote]
+  );
+
+  const openListModal = useCallback(() => setIsListModalOpen(true), []);
+  const closeListModal = useCallback(() => setIsListModalOpen(false), []);
+
+  const handleAuthdOpenListModal = useCallback(
+    () => executeAuthenticatedAction(openListModal),
+    [executeAuthenticatedAction, openListModal]
+  );
+
+  const openTipModal = useCallback(() => setIsTipModalOpen(true), []);
+  const closeTipModal = useCallback(() => setIsTipModalOpen(false), []);
+
+  const handleAuthdOpenTipModal = useCallback(
+    () => executeAuthenticatedAction(openTipModal),
+    [executeAuthenticatedAction, openTipModal]
+  );
+
+  const handleAuthdAddVersion = useCallback(
+    () => executeAuthenticatedAction(handleAddVersion),
+    [executeAuthenticatedAction, handleAddVersion]
+  );
+
+  const handleAuthdPublish = useCallback(
+    () => executeAuthenticatedAction(handlePublish),
+    [executeAuthenticatedAction, handlePublish]
+  );
+
+  const handleAuthdCloseFundraise = useCallback(
+    () => executeAuthenticatedAction(handleCloseFundraise),
+    [executeAuthenticatedAction, handleCloseFundraise]
+  );
+
+  const handleAuthdCompleteFundraise = useCallback(
+    () => executeAuthenticatedAction(handleCompleteFundraise),
+    [executeAuthenticatedAction, handleCompleteFundraise]
+  );
+
+  const openFlagModal = useCallback(() => setIsFlagModalOpen(true), []);
+  const closeFlagModal = useCallback(() => setIsFlagModalOpen(false), []);
+
+  const handleAuthdOpenFlagModal = useCallback(
+    () => executeAuthenticatedAction(openFlagModal),
+    [executeAuthenticatedAction, openFlagModal]
+  );
+
+  const closeWorkEditModal = useCallback(() => setIsWorkEditModalOpen(false), []);
+
   return (
     <div>
       {/* Primary Actions */}
@@ -335,7 +419,7 @@ export const WorkLineItems = ({
         <div className="flex items-center space-x-3">
           <Tooltip content={isUpvoted ? 'Remove vote' : 'Upvote'}>
             <button
-              onClick={() => executeAuthenticatedAction(handleVote)}
+              onClick={handleAuthdVote}
               disabled={isVoting || isLoadingVotes}
               className={`${icon_shared} ${isMobile ? 'pr-3 pl-2' : 'px-4'} ${
                 isUpvoted
@@ -350,14 +434,7 @@ export const WorkLineItems = ({
 
           <Tooltip content="Share">
             <button
-              onClick={() =>
-                showShareModal({
-                  url: window.location.href,
-                  docTitle: work.title,
-                  action: 'USER_SHARED_DOCUMENT',
-                  shouldShowConfetti: false,
-                })
-              }
+              onClick={handleShowShareModal}
               className={`${icon_shared} px-2 ${ICON_BUTTON_STYLE_COLOR} flex-none`}
             >
               <Share2 className="h-5 w-5" />
@@ -367,7 +444,7 @@ export const WorkLineItems = ({
           {listsEnabled && (
             <Tooltip content="Save to list">
               <button
-                onClick={() => executeAuthenticatedAction(() => setIsListModalOpen(true))}
+                onClick={handleAuthdOpenListModal}
                 className={`${icon_shared} px-2 ${ICON_BUTTON_STYLE_COLOR} flex-none`}
               >
                 <ListPlus className="h-6 w-6" />
@@ -377,7 +454,7 @@ export const WorkLineItems = ({
 
           {work.contentType !== 'preregistration' && (
             <button
-              onClick={() => executeAuthenticatedAction(() => setIsTipModalOpen(true))}
+              onClick={handleAuthdOpenTipModal}
               className={`${icon_shared} px-${tipButtonText ? 4 : 2.5} ${ICON_BUTTON_STYLE_COLOR} ${tipButtonText ? '' : 'flex-none py-2.5'}`}
             >
               <Icon name="tipRSC" size={20} />
@@ -405,16 +482,13 @@ export const WorkLineItems = ({
                 </BaseMenuItem>
               )}
               {isAuthor && (
-                <BaseMenuItem onSelect={() => executeAuthenticatedAction(handleAddVersion)}>
+                <BaseMenuItem onSelect={handleAuthdAddVersion}>
                   <FileUp className="h-4 w-4 mr-2" />
                   <span>Upload New Version</span>
                 </BaseMenuItem>
               )}
               {!isPublished && isModerator && work.contentType !== 'preregistration' && (
-                <BaseMenuItem
-                  disabled={isPublishing}
-                  onSelect={() => executeAuthenticatedAction(handlePublish)}
-                >
+                <BaseMenuItem disabled={isPublishing} onSelect={handleAuthdPublish}>
                   <Icon name="rhJournal1" size={16} className="mr-2" />
                   <span>Publish to Journal</span>
                 </BaseMenuItem>
@@ -425,23 +499,21 @@ export const WorkLineItems = ({
                   <>
                     <BaseMenuItem
                       disabled={isClosingFundraise}
-                      onSelect={() => executeAuthenticatedAction(handleCloseFundraise)}
+                      onSelect={handleAuthdCloseFundraise}
                     >
                       <Octagon className="h-4 w-4 mr-2" />
                       <span>Close fundraise & refund contributors</span>
                     </BaseMenuItem>
                     <BaseMenuItem
                       disabled={isCompletingFundraise}
-                      onSelect={() => executeAuthenticatedAction(handleCompleteFundraise)}
+                      onSelect={handleAuthdCompleteFundraise}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       <span>Complete fundraise</span>
                     </BaseMenuItem>
                   </>
                 )}
-              <BaseMenuItem
-                onSelect={() => executeAuthenticatedAction(() => setIsFlagModalOpen(true))}
-              >
+              <BaseMenuItem onSelect={handleAuthdOpenFlagModal}>
                 <Flag className="h-4 w-4 mr-2" />
                 <span>Flag Content</span>
               </BaseMenuItem>
@@ -540,7 +612,7 @@ export const WorkLineItems = ({
 
       <FlagContentModal
         isOpen={isFlagModalOpen}
-        onClose={() => setIsFlagModalOpen(false)}
+        onClose={closeFlagModal}
         documentId={work.id.toString()}
         workType={work.contentType}
       />
@@ -548,7 +620,7 @@ export const WorkLineItems = ({
       {/* Tip Modal */}
       <TipContentModal
         isOpen={isTipModalOpen}
-        onClose={() => setIsTipModalOpen(false)}
+        onClose={closeTipModal}
         contentId={work.id}
         feedContentType={work.contentType === 'paper' ? 'PAPER' : 'POST'}
         onTipSuccess={handleTipSuccess}
@@ -558,7 +630,7 @@ export const WorkLineItems = ({
       {listsEnabled && (
         <SaveToListModal
           isOpen={isListModalOpen}
-          onClose={() => setIsListModalOpen(false)}
+          onClose={closeListModal}
           contentId={work.id}
           contentType={work.contentType}
           onSave={handleListSave}
@@ -568,7 +640,7 @@ export const WorkLineItems = ({
       {work.contentType === 'paper' && (
         <WorkEditModal
           isOpen={isWorkEditModalOpen}
-          onClose={() => setIsWorkEditModalOpen(false)}
+          onClose={closeWorkEditModal}
           work={work}
           metadata={metadata}
         />
