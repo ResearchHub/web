@@ -19,7 +19,6 @@ import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useUser } from '@/contexts/UserContext';
 import { CommentEmptyState } from './CommentEmptyState';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
-import { comment } from 'postcss';
 import { useShareModalContext } from '@/contexts/ShareContext';
 
 interface CommentFeedProps {
@@ -126,6 +125,29 @@ function CommentFeedContent({
   }, [commentType, debug]);
 
   const { filteredComments, count, loading, createComment, loadMore } = useCommentsContext();
+
+  const displayComments = useMemo(() => {
+    if (commentType !== 'BOUNTY') {
+      return filteredComments.map((comment) => ({ comment, isCompleted: false }));
+    }
+
+    const now = Date.now();
+    return [...filteredComments]
+      .map((comment) => ({
+        comment,
+        isCompleted: !!(
+          (comment.expirationDate && new Date(comment.expirationDate).getTime() < now) ||
+          (comment.awardedBountyAmount && comment.awardedBountyAmount > 0)
+        ),
+        expirationTime: comment.expirationDate
+          ? new Date(comment.expirationDate).getTime()
+          : Infinity,
+      }))
+      .sort(
+        (a, b) =>
+          Number(a.isCompleted) - Number(b.isCompleted) || a.expirationTime - b.expirationTime
+      );
+  }, [filteredComments, commentType]);
 
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser();
@@ -271,28 +293,33 @@ function CommentFeedContent({
         ) : (
           <>
             {commentType === 'BOUNTY' && (
-              <div className="flex justify-between items-center mb-4">
-                <CommentSortAndFilters commentType={commentType} commentCount={count} />
-                <Button
-                  onClick={() => executeAuthenticatedAction(handleCreateBounty)}
-                  variant="default"
-                  size="sm"
-                  className="flex items-center gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  Create Bounty
-                </Button>
-              </div>
+              <>
+                <div className="flex justify-between items-center mb-4">
+                  <CommentSortAndFilters commentType={commentType} commentCount={count} />
+                  <Button
+                    onClick={() => executeAuthenticatedAction(handleCreateBounty)}
+                    variant="default"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create Bounty
+                  </Button>
+                </div>
+                <div className="h-px bg-gray-200 my-4" />
+              </>
             )}
 
-            {commentType === 'BOUNTY' && <div className="h-px bg-gray-200 my-4"></div>}
-
-            <CommentList
-              commentType={commentType}
-              comments={filteredComments}
-              isRootList={true}
-              contentType={contentType}
-            />
+            {displayComments.map(({ comment, isCompleted }) => (
+              <div key={comment.id} className={isCompleted ? 'opacity-50' : ''}>
+                <CommentList
+                  commentType={commentType}
+                  comments={[comment]}
+                  isRootList
+                  contentType={contentType}
+                />
+              </div>
+            ))}
 
             {filteredComments.length < count && (
               <div className="flex justify-center mt-4">
@@ -302,7 +329,7 @@ function CommentFeedContent({
                   disabled={loading}
                   className="w-full md:w-auto"
                 >
-                  {loading ? 'Loading...' : `Load More`}
+                  {loading ? 'Loading...' : 'Load More'}
                 </Button>
               </div>
             )}

@@ -19,13 +19,8 @@ export interface WorkMetadata {
 }
 
 function transformWorkMetadata(response: any): WorkMetadata {
-  // Handle both array and object document structures
   const document = Array.isArray(response.documents) ? response.documents[0] : response.documents;
-
-  // Transform bounties if they exist using the existing transformer
   const bounties = document.bounties?.map((bounty: any) => transformBounty(bounty)) || [];
-
-  // Calculate open and closed bounty counts using utility functions
   const openBounties = countOpenBounties(bounties);
   const closedBounties = countClosedBounties(bounties);
 
@@ -40,14 +35,14 @@ function transformWorkMetadata(response: any): WorkMetadata {
     metrics: {
       votes: response.score,
       comments: document.discussion_aggregates.discussion_count,
-      saves: 0, // Not provided in metadata response
+      saves: 0,
       reviewScore: response.reviews.avg,
       conversationComments: document.discussion_aggregates.conversation_count || 0,
       reviewComments: document.discussion_aggregates.review_count || 0,
-      bountyComments: document.discussion_aggregates.bounty_count || 0,
+      bountyComments: openBounties,
     },
     fundraising: response.fundraise ? transformFundraise(response.fundraise) : undefined,
-    bounties: bounties,
+    bounties,
     openBounties,
     closedBounties,
   };
