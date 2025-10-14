@@ -30,14 +30,6 @@ export const SupportersSection: FC<SupportersSectionProps> = ({
   const [showAllSupporters, setShowAllSupporters] = useState(false);
   const { showUSD } = useCurrencyPreference();
 
-  const feedContentType = contentType === 'paper' ? 'PAPER' : 'POST';
-  console.log(
-    '[SupportersSection] contentType:',
-    contentType,
-    '→ feedContentType:',
-    feedContentType
-  );
-
   const hasSupporters = tips && tips.length > 0;
   const displayLimit = 5; // Show only top 5 supporters in the sidebar
   const displayedSupporters = showAllSupporters ? tips : tips.slice(0, displayLimit);
@@ -128,12 +120,11 @@ export const SupportersSection: FC<SupportersSectionProps> = ({
         </div>
       )}
 
-      {/* Tip Modal */}
       <TipContentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         contentId={documentId}
-        feedContentType={feedContentType}
+        feedContentType={contentType === 'paper' ? 'PAPER' : 'POST'}
         onTipSuccess={handleTipSuccess}
       />
     </section>
