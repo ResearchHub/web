@@ -311,7 +311,7 @@ function CommentFeedContent({
             )}
 
             {displayComments.map(({ comment, isCompleted }) => (
-              <div key={comment.id} className={isCompleted ? 'opacity-50' : ''}>
+              <div key={comment.id} className={isCompleted ? 'bg-gray-50 rounded-lg' : ''}>
                 <CommentList
                   commentType={commentType}
                   comments={[comment]}
