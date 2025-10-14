@@ -65,6 +65,14 @@ export function useTip({ contentId, feedContentType, onTipSuccess, onTipError }:
         setIsTipping(true);
 
         const contentType = mapFeedContentTypeToTipContentType(feedContentType);
+        console.log(
+          '[useTip] feedContentType:',
+          feedContentType,
+          '→ contentType:',
+          contentType,
+          'objectId:',
+          contentId
+        );
 
         // Call service with camelCase args
         const response = await TransactionService.tipContentTransaction({
