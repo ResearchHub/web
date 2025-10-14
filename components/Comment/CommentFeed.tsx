@@ -310,16 +310,12 @@ function CommentFeedContent({
               </>
             )}
 
-            {displayComments.map(({ comment, isCompleted }) => (
-              <div key={comment.id} className={isCompleted ? 'bg-gray-50 rounded-lg' : ''}>
-                <CommentList
-                  commentType={commentType}
-                  comments={[comment]}
-                  isRootList
-                  contentType={contentType}
-                />
-              </div>
-            ))}
+            <CommentList
+              commentType={commentType}
+              comments={displayComments.map(({ comment }) => comment)}
+              isRootList
+              contentType={contentType}
+            />
 
             {filteredComments.length < count && (
               <div className="flex justify-center mt-4">
