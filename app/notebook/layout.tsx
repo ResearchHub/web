@@ -41,7 +41,7 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
   } = useSidebar();
 
   // Initialize with null to indicate we don't know yet
-  const { currentNote, isLoading } = useNotebookContext();
+  const { currentNote, isLoading, leftSidebarWidth, rightSidebarWidth } = useNotebookContext();
 
   const isLegacyNote =
     currentNote && !currentNote.contentJson && isFeatureEnabled(FeatureFlag.LegacyNoteBanner);
@@ -93,8 +93,8 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
           style={{
             gridTemplateColumns:
               shouldShowRightSidebar && isRightSidebarOpen
-                ? '70px 300px minmax(0, 1fr) 300px'
-                : '70px 300px minmax(0, 1fr)',
+                ? `70px ${leftSidebarWidth}px minmax(0, 1fr) ${rightSidebarWidth}px`
+                : `70px ${leftSidebarWidth}px minmax(0, 1fr)`,
           }}
         >
           {/* Main Left Sidebar - 70px fixed width (minimized) */}

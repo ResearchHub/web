@@ -47,6 +47,12 @@ interface NotebookContextType {
   activeRightSidebarTab: 'details' | 'ai-assistant';
   setActiveRightSidebarTab: (tab: 'details' | 'ai-assistant') => void;
 
+  // Sidebar width state
+  leftSidebarWidth: number;
+  setLeftSidebarWidth: (width: number) => void;
+  rightSidebarWidth: number;
+  setRightSidebarWidth: (width: number) => void;
+
   // General loading state (true if any of the above are loading)
   isLoading: boolean;
 
@@ -88,6 +94,38 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
   const [activeRightSidebarTab, setActiveRightSidebarTab] = useState<'details' | 'ai-assistant'>(
     'details'
   );
+
+  // Sidebar width state
+  const [leftSidebarWidth, setLeftSidebarWidth] = useState<number>(300);
+  const [rightSidebarWidth, setRightSidebarWidth] = useState<number>(300);
+
+  // Load saved sidebar widths from localStorage
+  useEffect(() => {
+    const savedLeft = localStorage.getItem('notebook-left-sidebar-width');
+    if (savedLeft) {
+      const width = parseInt(savedLeft, 10);
+      if (!isNaN(width)) {
+        setLeftSidebarWidth(width);
+      }
+    }
+
+    const savedRight = localStorage.getItem('notebook-right-sidebar-width');
+    if (savedRight) {
+      const width = parseInt(savedRight, 10);
+      if (!isNaN(width)) {
+        setRightSidebarWidth(width);
+      }
+    }
+  }, []);
+
+  // Persist sidebar widths to localStorage
+  useEffect(() => {
+    localStorage.setItem('notebook-left-sidebar-width', leftSidebarWidth.toString());
+  }, [leftSidebarWidth]);
+
+  useEffect(() => {
+    localStorage.setItem('notebook-right-sidebar-width', rightSidebarWidth.toString());
+  }, [rightSidebarWidth]);
 
   // Fetch notes list
   const fetchNotes = useCallback(async (slug?: string) => {
@@ -282,6 +320,12 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
     // Right sidebar tab state
     activeRightSidebarTab,
     setActiveRightSidebarTab,
+
+    // Sidebar width state
+    leftSidebarWidth,
+    setLeftSidebarWidth,
+    rightSidebarWidth,
+    setRightSidebarWidth,
 
     // General loading state
     isLoading,

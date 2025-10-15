@@ -3,13 +3,15 @@
 import { PublishingForm } from '@/app/notebook/components/PublishingForm';
 import { AIChatPanel } from '@/components/LabNotebook/AIChatPanel';
 import { useNotebookContext } from '@/contexts/NotebookContext';
+import { ResizeHandle } from './components/ResizeHandle';
 
 /**
  * Right sidebar component for the notebook layout
  * Displays tabs for Work Details and AI Assistant
  */
 export const RightSidebar = () => {
-  const { activeRightSidebarTab, setActiveRightSidebarTab, currentNote } = useNotebookContext();
+  const { activeRightSidebarTab, setActiveRightSidebarTab, currentNote, setRightSidebarWidth } =
+    useNotebookContext();
 
   const tabs = [
     { id: 'details' as const, label: 'Work Details' },
@@ -17,7 +19,8 @@ export const RightSidebar = () => {
   ];
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col relative">
+      <ResizeHandle onResize={setRightSidebarWidth} side="left" />
       {/* Tabs */}
       <div className="flex border-b border-gray-200 bg-white">
         {tabs.map((tab) => (

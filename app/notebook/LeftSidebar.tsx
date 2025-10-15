@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useTransition } from 'react';
 import { useNoteContent, useCreateNote } from '@/hooks/useNote';
 import { getInitialContent } from '@/components/Editor/lib/data/initialContent';
+import { ResizeHandle } from './components/ResizeHandle';
 
 import toast from 'react-hot-toast';
 import { useNotebookContext } from '@/contexts/NotebookContext';
@@ -36,7 +37,13 @@ export const LeftSidebar = () => {
     setSelectedOrg,
     isLoading: isLoadingOrgs,
   } = useOrganizationContext();
-  const { notes, isLoading: isLoadingNotes, refreshNotes, currentNote } = useNotebookContext();
+  const {
+    notes,
+    isLoading: isLoadingNotes,
+    refreshNotes,
+    currentNote,
+    setLeftSidebarWidth,
+  } = useNotebookContext();
 
   const handleOrgSelect = useCallback(
     async (org: Organization) => {
@@ -201,7 +208,8 @@ export const LeftSidebar = () => {
   );
 
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-full overflow-y-auto relative">
+      <ResizeHandle onResize={setLeftSidebarWidth} side="right" minWidth={250} maxWidth={500} />
       <OrganizationSwitcher
         organizations={organizations}
         selectedOrg={selectedOrg}
