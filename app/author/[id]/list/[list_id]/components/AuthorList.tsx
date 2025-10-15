@@ -112,7 +112,7 @@ export default function AuthorList({ authorId, listId }: AuthorListProps) {
 
   const sortByComponent = useMemo(() => {
     return (
-      <div className={`flex items-center space-x-2 ${isMobile ? 'mt-4' : ''}`}>
+      <div className={`flex items-center space-x-2 ${isMobile ? 'mt-4' : 'min-w-56'}`}>
         <Dropdown
           label={isMobile ? '' : 'Sort by'}
           trigger={
@@ -134,7 +134,7 @@ export default function AuthorList({ authorId, listId }: AuthorListProps) {
         </Dropdown>
       </div>
     );
-  }, [getListIsLoading, onSortChange, sortOptions, sortBy]);
+  }, [getListIsLoading, onSortChange, sortOptions, sortBy, isMobile]);
 
   if (getListError) {
     return (
