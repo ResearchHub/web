@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useTransition } from 'react';
+import { use, useTransition, useEffect } from 'react';
 import { useAuthorAchievements, useAuthorInfo, useAuthorSummaryStats } from '@/hooks/useAuthor';
 import { useUser } from '@/contexts/UserContext';
 import { Card } from '@/components/ui/Card';
@@ -245,6 +245,13 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     useAuthorAchievements(authorId);
   const [{ summaryStats, isLoading: isSummaryStatsLoading, error: summaryStatsError }] =
     useAuthorSummaryStats(authorId);
+
+  // Update document title when author data is loaded
+  useEffect(() => {
+    if (user?.authorProfile?.fullName) {
+      document.title = `${user.authorProfile.fullName} | ResearchHub`;
+    }
+  }, [user?.authorProfile?.fullName]);
 
   if (isLoading || isUserLoading) {
     return (
