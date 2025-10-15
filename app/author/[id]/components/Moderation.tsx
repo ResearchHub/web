@@ -64,15 +64,6 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
     useUserModeration();
 
   // Handler functions for moderation menu items
-  const handleSIFTProfile = () => {
-    setIsMenuOpen(false);
-    if (userDetails?.id) {
-      // Open SIFT profile in new tab
-      const siftUrl = `https://console.sift.com/users/${userDetails.id}?abuse_type=content_abuse`;
-      window.open(siftUrl, '_blank', 'noopener,noreferrer');
-    }
-  };
-
   const handleBanUser = () => {
     setIsMenuOpen(false);
 
@@ -119,12 +110,6 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
   };
 
   const moderationMenuItems: ModerationMenuItem[] = [
-    {
-      id: 'sift_profile',
-      label: 'SIFT profile',
-      onClick: handleSIFTProfile,
-      shouldShow: (isModerator) => isModerator,
-    },
     {
       id: 'flag_user',
       label: 'Flag user',
@@ -248,10 +233,6 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
           <div className="flex items-center justify-between">
             <span className="font-medium whitespace-nowrap">Suspended?</span>
             <span>{userDetails.isSuspended ? 'Yes' : 'No'}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="font-medium whitespace-nowrap">Sift risk score:</span>
-            <span>{userDetails.riskScore ?? 'N/A'}</span>
           </div>
         </div>
 
