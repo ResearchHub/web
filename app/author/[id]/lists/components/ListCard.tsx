@@ -1,6 +1,7 @@
 'use client';
 
-import { ChangeEvent, KeyboardEvent, MouseEvent, useCallback, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { ChangeEvent, KeyboardEvent, useCallback, useMemo, useState } from 'react';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { List } from '@/services/list.service';
 import { Card } from '@/components/ui/Card';
@@ -9,7 +10,6 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useUser } from '@/contexts/UserContext';
 import { ID } from '@/types/root';
-import { useRouter } from 'next/navigation';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
@@ -55,22 +55,9 @@ export function ListCardSkeleton() {
 }
 
 export function ListCardName({ list, refresh, listPath = '' }: ListCardNameProps) {
-  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState('');
   const { updateList, isLoading: isUpdating } = useUpdateList();
-
-  const navToList = useCallback(
-    (e: MouseEvent) => {
-      if (!listPath) return;
-
-      e.preventDefault();
-      e.stopPropagation();
-
-      router.push(listPath);
-    },
-    [listPath, router]
-  );
 
   const renameList = useCallback(async () => {
     await updateList({ id: list.id, name: newName });
@@ -142,12 +129,12 @@ export function ListCardName({ list, refresh, listPath = '' }: ListCardNameProps
           <Pencil className="h-3.5 w-3.5" />
         </button>
       </Tooltip>
-      <div onClick={navToList}>
+      <Link href={listPath} className="block">
         <TitleSection
           title={list.name}
           className={`mb-0 ${listPath ? 'hover:text-blue-600 cursor-pointer' : ''}`}
         />
-      </div>
+      </Link>
     </div>
   );
 }

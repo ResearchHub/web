@@ -1,7 +1,8 @@
 'use client';
 
-import { ID, RawUnifiedDocument, transformUnifiedDocument } from '@/types/root';
-import { MouseEvent, useCallback, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { ID, RawUnifiedDocument, transformUnifiedDocument, UnifiedDocument } from '@/types/root';
+import { useCallback, useMemo, useState } from 'react';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useUser } from '@/contexts/UserContext';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -11,7 +12,6 @@ import { Button } from '@/components/ui/Button';
 import { Trash2 } from 'lucide-react';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { toTitleCase } from '@/utils/stringUtils';
-import { useRouter } from 'next/navigation';
 import { useDeleteListItem } from '@/hooks/useListItem';
 import { ContentSection, TitleSection } from '@/components/Feed/BaseFeedItem';
 import { AuthorProfileError } from '@/app/author/[id]/page';
@@ -77,13 +77,69 @@ export default function ListItemCard({ listItem, authorId, refreshList }: ListIt
     );
   }
 
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const { executeAuthenticatedAction } = useAuthenticatedAction();
+  return (
+    <_ListItemCard
+      unifiedDocument={unifiedDocument}
+      authorId={authorId}
+      listItem={listItem}
+      refreshList={refreshList}
+    />
+  );
+}
+
+function _ListItemCard({
+  listItem,
+  authorId,
+  refreshList,
+  unifiedDocument,
+}: ListItemCardProps & { unifiedDocument: UnifiedDocument }) {
   const { user } = useUser();
   const owner = user?.authorProfile?.id === authorId;
-  const isMobile = useIsMobile();
-  const router = useRouter();
   const contentType = unifiedDocument.documentType.toLowerCase();
+
+  const docPath = useMemo(() => {
+    return buildWorkUrl({
+      id: unifiedDocument.document.id,
+      contentType: contentType as ContentType,
+      slug: unifiedDocument.document.slug,
+    });
+  }, [unifiedDocument.document.id, contentType, unifiedDocument.document.slug]);
+
+  return (
+    <Card>
+      <div className="flex flex-row items-center justify-between mb-2">
+        <ContentTypeBadge type={contentType as ContentTypeBadgeTypes} />
+        {owner && (
+          <OwnerControls
+            listItemId={listItem.id}
+            documentType={listItem.document_type}
+            refreshList={refreshList}
+          />
+        )}
+      </div>
+      <Link href={docPath} className="block">
+        <TitleSection
+          title={unifiedDocument.document.title || 'Untitled'}
+          className="hover:text-blue-600 cursor-pointer"
+        />
+      </Link>
+      <ContentSection content={unifiedDocument.document.abstract || ''} />
+    </Card>
+  );
+}
+
+function OwnerControls({
+  listItemId,
+  documentType,
+  refreshList,
+}: {
+  listItemId: ID;
+  documentType: string;
+  refreshList: () => Promise<void>;
+}) {
+  const isMobile = useIsMobile();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { deleteListItem: deleteListItemFn, isLoading: isDeletingListItem } = useDeleteListItem();
 
   const deleteButtonStyle = useMemo(
@@ -92,34 +148,13 @@ export default function ListItemCard({ listItem, authorId, refreshList }: ListIt
     [isMobile]
   );
 
-  const confirmTitle = useMemo(
-    () => `Delete ${toTitleCase(listItem.document_type)}`,
-    [listItem.document_type]
-  );
-
-  const navToDocument = useCallback(
-    (e: MouseEvent) => {
-      const path = buildWorkUrl({
-        id: unifiedDocument.document.id,
-        contentType: contentType as ContentType,
-        slug: unifiedDocument.document.slug,
-      });
-
-      if (!path) return;
-
-      e.preventDefault();
-      e.stopPropagation();
-
-      router.push(path);
-    },
-    [unifiedDocument.document.id, contentType, unifiedDocument.document.slug, router]
-  );
+  const confirmTitle = useMemo(() => `Delete ${toTitleCase(documentType)}`, [documentType]);
 
   const deleteListItem = useCallback(async () => {
-    await deleteListItemFn({ id: listItem.id });
+    await deleteListItemFn({ id: listItemId });
 
     refreshList();
-  }, [listItem.id, refreshList, deleteListItemFn]);
+  }, [listItemId, refreshList, deleteListItemFn]);
 
   const handleShowDeleteModal = useCallback(() => {
     executeAuthenticatedAction(() => setShowDeleteModal(true));
@@ -130,43 +165,29 @@ export default function ListItemCard({ listItem, authorId, refreshList }: ListIt
   }, []);
 
   return (
-    <Card>
-      <div className="flex flex-row items-center justify-between mb-2">
-        <ContentTypeBadge type={contentType as ContentTypeBadgeTypes} />
-        {owner && (
-          <div className="flex items-center space-x-2">
-            <Tooltip content="Delete from list" delay={300}>
-              <Button
-                variant="outlined"
-                size="sm"
-                onClick={handleShowDeleteModal}
-                className={deleteButtonStyle}
-                disabled={isDeletingListItem}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </Tooltip>
-            <ConfirmModal
-              isOpen={showDeleteModal}
-              onClose={handleHideDeleteModal}
-              onConfirm={deleteListItem}
-              title={confirmTitle}
-              message="Are your sure you want to delete this from your list?"
-              confirmText="Yes, delete"
-              cancelText="Cancel"
-              confirmButtonClass="bg-red-600 hover:bg-red-700"
-              cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-            />
-          </div>
-        )}
-      </div>
-      <div onClick={navToDocument}>
-        <TitleSection
-          title={unifiedDocument.document.title || 'Untitled'}
-          className="hover:text-blue-600 cursor-pointer"
-        />
-      </div>
-      <ContentSection content={unifiedDocument.document.abstract || ''} />
-    </Card>
+    <div className="flex items-center space-x-2">
+      <Tooltip content="Delete from list" delay={300}>
+        <Button
+          variant="outlined"
+          size="sm"
+          onClick={handleShowDeleteModal}
+          className={deleteButtonStyle}
+          disabled={isDeletingListItem}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </Tooltip>
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={handleHideDeleteModal}
+        onConfirm={deleteListItem}
+        title={confirmTitle}
+        message="Are your sure you want to delete this from your list?"
+        confirmText="Yes, delete"
+        cancelText="Cancel"
+        confirmButtonClass="bg-red-600 hover:bg-red-700"
+        cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+      />
+    </div>
   );
 }

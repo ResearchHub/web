@@ -152,9 +152,7 @@ export default function UserMenu({
     return (
       <>
         {/* Mobile view with SwipeableDrawer */}
-        <div className="flex center" onClick={openMenu}>
-          {avatarButton}
-        </div>
+        <div className="flex center">{avatarButton}</div>
         <SwipeableDrawer isOpen={menuOpenState} onClose={closeMenu} showCloseButton={false}>
           <>
             {/* User info section */}
