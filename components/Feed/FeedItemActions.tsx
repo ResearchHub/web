@@ -145,6 +145,7 @@ interface FeedItemActionsProps {
   metrics?: Partial<ExtendedContentMetrics>;
   feedContentType: FeedContentType;
   votableEntityId: number;
+  postType?: string;
   relatedDocumentId?: string;
   relatedDocumentContentType?: ContentType;
   userVote?: UserVoteType;
@@ -188,6 +189,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   metrics,
   userVote,
   feedContentType,
+  postType,
   votableEntityId,
   relatedDocumentId,
   relatedDocumentContentType,
@@ -517,7 +519,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               avatars={commentAvatars}
             />
           )}
-          {showInlineReviews && (
+          {showInlineReviews && postType !== 'QUESTION' && (
             <ActionButton
               icon={Star}
               count={metrics?.reviewScore !== 0 ? formatScore(metrics?.reviewScore || 0) : '3.0'}

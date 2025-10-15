@@ -258,6 +258,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                     content.contentType ? (content.contentType as FeedContentType) : 'COMMENT'
                   }
                   votableEntityId={content.id}
+                  postType={'postType' in content ? content.postType : undefined}
                   relatedDocumentId={
                     'relatedDocumentId' in content
                       ? content.relatedDocumentId?.toString()
