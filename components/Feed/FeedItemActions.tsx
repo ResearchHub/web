@@ -174,6 +174,7 @@ interface FeedItemActionsProps {
   awardedBountyAmount?: number; // Add awarded bounty amount
   relatedDocumentTopics?: Topic[];
   relatedDocumentUnifiedDocumentId?: string;
+  showPeerReviews?: boolean;
 }
 
 // Define interface for avatar items used in local state
@@ -206,6 +207,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   awardedBountyAmount = 0, // Destructure awardedBountyAmount with default value
   relatedDocumentTopics,
   relatedDocumentUnifiedDocumentId,
+  showPeerReviews = true,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser(); // Get current user
@@ -488,7 +490,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     (!hideReportButton && combinedMenuItems.length > 1 && isTabletOrSmaller); // Adjusted for tip in menu
 
   // Determine which buttons to show inline based on screen size
-  const showInlineReviews = reviews.length > 0 && (!isMobile || (isMobile && !hasOpenBounties));
+  const showInlineReviews =
+    showPeerReviews && reviews.length > 0 && (!isMobile || (isMobile && !hasOpenBounties));
   const showInlineBounties = hasOpenBounties && (!isMobile || isMobile); // Show bounties on mobile if they exist
   const showInlineTip = !isTabletOrSmaller;
 

@@ -22,6 +22,7 @@ export interface BaseFeedItemProps {
   customActionText?: string;
   children?: ReactNode;
   onFeedItemClick?: () => void;
+  showPeerReviews?: boolean;
 }
 
 // Badge component interface
@@ -213,6 +214,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   customActionText,
   children,
   onFeedItemClick,
+  showPeerReviews = true,
 }) => {
   const content = entry.content;
   const author = content.createdBy;
@@ -277,6 +279,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                   relatedDocumentUnifiedDocumentId={
                     'unifiedDocumentId' in content ? content.unifiedDocumentId : undefined
                   }
+                  showPeerReviews={showPeerReviews}
                 />
               </div>
             </div>
