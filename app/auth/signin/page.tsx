@@ -6,34 +6,27 @@ import Image from 'next/image';
 import { Suspense } from 'react';
 
 function SignInContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const errorCode = searchParams?.get('error');
   let callbackUrl = searchParams?.get('callbackUrl') || '/';
 
-  // Extract pathname from full URL if needed (NextAuth sometimes passes full URLs)
-  try {
-    if (callbackUrl.startsWith('http')) {
+  if (callbackUrl.startsWith('http')) {
+    try {
       const url = new URL(callbackUrl);
       callbackUrl = url.pathname + url.search + url.hash;
-    }
-  } catch (e) {
-    // If URL parsing fails, use as-is
+    } catch {}
   }
 
-  // Prevent redirect loops
-  if (callbackUrl.includes('/auth/signin') || callbackUrl.includes('/auth/error')) {
+  if (callbackUrl.includes('/auth/')) {
     callbackUrl = '/';
   }
 
-  // Map NextAuth error codes to user-friendly messages
-  let error = null;
-  if (errorCode === 'OAuthAccountNotLinked') {
-    error =
-      'Please log in by typing in your email and password instead of using Continue with Google.';
-  } else if (errorCode) {
-    error = 'An error occurred during authentication. Please try again.';
-  }
+  const error =
+    errorCode === 'OAuthAccountNotLinked'
+      ? 'Please log in by typing in your email and password instead of using Continue with Google.'
+      : errorCode
+        ? 'An error occurred during authentication. Please try again.'
+        : null;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -79,7 +72,7 @@ function SignInContent() {
 
 export default function SignInPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense>
       <SignInContent />
     </Suspense>
   );

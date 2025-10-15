@@ -33,6 +33,21 @@ export default function SelectProvider({
   const emailInputRef = useAutoFocus<HTMLInputElement>(true);
   const { referralCode } = useReferral();
 
+  const getCallbackUrl = () => {
+    const searchParams = new URLSearchParams(window.location.search);
+    return searchParams.get('callbackUrl') || '/';
+  };
+
+  const initiateGoogleSignIn = (callbackUrl: string) => {
+    const finalUrl = referralCode
+      ? new URL('/referral/join/apply-referral-code', window.location.origin).toString() +
+        `?refr=${referralCode}&redirect=${encodeURIComponent(callbackUrl)}`
+      : callbackUrl;
+
+    document.cookie = `oauth_callback=${encodeURIComponent(finalUrl)}; path=/; max-age=600; samesite=lax`;
+    signIn('google', { callbackUrl: finalUrl });
+  };
+
   const handleCheckAccount = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!isValidEmail(email)) {
@@ -48,12 +63,7 @@ export default function SelectProvider({
 
       if (response.exists) {
         if (response.auth === 'google') {
-          // Preserve callbackUrl from current URL
-          const searchParams = new URLSearchParams(window.location.search);
-          const callbackUrl = searchParams.get('callbackUrl') || '/';
-          // Store in sessionStorage to preserve through OAuth flow
-          sessionStorage.setItem('oauth_callback_url', callbackUrl);
-          signIn('google', { callbackUrl });
+          initiateGoogleSignIn(getCallbackUrl());
         } else if (response.is_verified) {
           onContinue();
         } else {
@@ -73,24 +83,7 @@ export default function SelectProvider({
     AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED).catch((error) => {
       console.error('Analytics failed:', error);
     });
-
-    const searchParams = new URLSearchParams(window.location.search);
-    const originalCallbackUrl = searchParams.get('callbackUrl') || '/';
-
-    let finalCallbackUrl = originalCallbackUrl;
-
-    if (referralCode) {
-      // Create referral application URL with referral code and redirect as URL parameters
-      const referralUrl = new URL('/referral/join/apply-referral-code', window.location.origin);
-      referralUrl.searchParams.set('refr', referralCode);
-      referralUrl.searchParams.set('redirect', originalCallbackUrl);
-      finalCallbackUrl = referralUrl.toString();
-    }
-
-    // Store callbackUrl in sessionStorage to preserve it through OAuth flow
-    sessionStorage.setItem('oauth_callback_url', finalCallbackUrl);
-
-    signIn('google', { callbackUrl: finalCallbackUrl });
+    initiateGoogleSignIn(getCallbackUrl());
   };
 
   return (

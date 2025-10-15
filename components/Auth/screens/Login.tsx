@@ -47,24 +47,11 @@ export default function Login({
     setError(null);
 
     try {
-      // If we have a callbackUrl (not in modal), let NextAuth handle redirect
       if (callbackUrl) {
-        // Clean up any stored OAuth callback before letting NextAuth redirect
-        sessionStorage.removeItem('oauth_callback_url');
-
-        await signIn('credentials', {
-          email,
-          password,
-          callbackUrl,
-        });
-        // NextAuth will handle the redirect
+        document.cookie = 'oauth_callback=; path=/; max-age=0';
+        await signIn('credentials', { email, password, callbackUrl });
       } else {
-        // Modal flow: use redirect: false and call callbacks
-        const result = await signIn('credentials', {
-          email,
-          password,
-          redirect: false,
-        });
+        const result = await signIn('credentials', { email, password, redirect: false });
 
         if (result?.error) {
           setError('Invalid email or password');
@@ -74,11 +61,10 @@ export default function Login({
           onClose();
         }
       }
-    } catch (err) {
+    } catch {
       setError('Login failed');
     } finally {
       if (!isRedirecting && !callbackUrl) {
-        // Only reset loading if we're not redirecting
         setIsLoading(false);
       }
     }

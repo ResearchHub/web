@@ -9,20 +9,19 @@ function ErrorContent() {
 
   useEffect(() => {
     const error = searchParams?.get('error');
-    let callbackUrl = searchParams?.get('callbackUrl');
+    const urlCallback = searchParams?.get('callbackUrl');
 
-    // Try to retrieve from sessionStorage if not in URL
-    if (!callbackUrl || callbackUrl.trim() === '') {
-      callbackUrl = sessionStorage.getItem('oauth_callback_url') || '/';
-    }
+    const getCookie = (name: string) => {
+      const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+      return match ? decodeURIComponent(match[2]) : null;
+    };
 
-    // Always clean up sessionStorage
-    sessionStorage.removeItem('oauth_callback_url');
+    const storedCallback = getCookie('oauth_callback');
+    if (storedCallback) document.cookie = 'oauth_callback=; path=/; max-age=0';
 
-    // Build signin URL with error and callbackUrl
-    const params = new URLSearchParams();
+    const callbackUrl = urlCallback?.trim() || storedCallback || '/';
+    const params = new URLSearchParams({ callbackUrl });
     if (error) params.set('error', error);
-    params.set('callbackUrl', callbackUrl);
 
     router.replace(`/auth/signin?${params}`);
   }, [searchParams, router]);
@@ -32,7 +31,7 @@ function ErrorContent() {
 
 export default function ErrorPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense>
       <ErrorContent />
     </Suspense>
   );
