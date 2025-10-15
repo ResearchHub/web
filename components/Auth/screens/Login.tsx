@@ -14,6 +14,7 @@ interface Props extends BaseScreenProps {
   setIsLoading: (loading: boolean) => void;
   onSuccess?: () => void;
   modalView?: boolean;
+  callbackUrl?: string;
 }
 
 export default function Login({
@@ -27,6 +28,7 @@ export default function Login({
   onBack,
   onForgotPassword,
   modalView = false,
+  callbackUrl,
 }: Props) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -45,27 +47,37 @@ export default function Login({
     setError(null);
 
     try {
-      // This endpoint will return a CredentialsSignin error with no description.
-      // Currently we try to login with email and password + fetch the user's data separately,
-      // because the current endpoint only returns a token
-      // So, we show "Invalid email or password" error
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
+      // If we have a callbackUrl (not in modal), let NextAuth handle redirect
+      if (callbackUrl) {
+        // Clean up any stored OAuth callback before letting NextAuth redirect
+        sessionStorage.removeItem('oauth_callback_url');
 
-      if (result?.error) {
-        setError('Invalid email or password');
+        await signIn('credentials', {
+          email,
+          password,
+          callbackUrl,
+        });
+        // NextAuth will handle the redirect
       } else {
-        setIsRedirecting(true); // Set redirecting state before navigation
-        onSuccess?.();
-        onClose();
+        // Modal flow: use redirect: false and call callbacks
+        const result = await signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        });
+
+        if (result?.error) {
+          setError('Invalid email or password');
+        } else {
+          setIsRedirecting(true);
+          onSuccess?.();
+          onClose();
+        }
       }
     } catch (err) {
       setError('Login failed');
     } finally {
-      if (!isRedirecting) {
+      if (!isRedirecting && !callbackUrl) {
         // Only reset loading if we're not redirecting
         setIsLoading(false);
       }

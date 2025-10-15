@@ -149,11 +149,7 @@ export const authOptions: NextAuthOptions = {
             timestamp: new Date().toISOString(),
           });
 
-          // Preserve specific error messages for better debugging
-          if (error instanceof Error) {
-            throw new Error(error.message);
-          }
-          throw new Error('AuthenticationFailed');
+          return false;
         }
       }
 

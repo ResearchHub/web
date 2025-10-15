@@ -1,16 +1,39 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import AuthContent from '@/components/Auth/AuthContent';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Suspense } from 'react';
 
 function SignInContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const error = searchParams?.get('error');
-  const callbackUrl = searchParams?.get('callbackUrl') || '/';
+  const errorCode = searchParams?.get('error');
+  let callbackUrl = searchParams?.get('callbackUrl') || '/';
+
+  // Extract pathname from full URL if needed (NextAuth sometimes passes full URLs)
+  try {
+    if (callbackUrl.startsWith('http')) {
+      const url = new URL(callbackUrl);
+      callbackUrl = url.pathname + url.search + url.hash;
+    }
+  } catch (e) {
+    // If URL parsing fails, use as-is
+  }
+
+  // Prevent redirect loops
+  if (callbackUrl.includes('/auth/signin') || callbackUrl.includes('/auth/error')) {
+    callbackUrl = '/';
+  }
+
+  // Map NextAuth error codes to user-friendly messages
+  let error = null;
+  if (errorCode === 'OAuthAccountNotLinked') {
+    error =
+      'Please log in by typing in your email and password instead of using Continue with Google.';
+  } else if (errorCode) {
+    error = 'An error occurred during authentication. Please try again.';
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -35,17 +58,7 @@ function SignInContent() {
       </div>
 
       <div className="bg-white w-full max-w-md rounded-lg shadow-sm border border-gray-200 p-8">
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
-        )}
-
-        <AuthContent
-          initialError={error}
-          onSuccess={() => router.push(callbackUrl)}
-          showHeader={false}
-        />
+        <AuthContent initialError={error} callbackUrl={callbackUrl} showHeader={false} />
       </div>
 
       <div className="mt-8 text-center text-sm text-gray-500">

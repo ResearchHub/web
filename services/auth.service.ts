@@ -159,28 +159,17 @@ export class AuthService {
       });
 
       if (!response.ok) {
-        // Log error details for debugging
-        const errorBody = await response.text().catch(() => 'Unable to read response body');
+        const errorBody = await response.text().catch(() => '');
         console.error('[AuthService] Google login failed', {
           status: response.status,
-          statusText: response.statusText,
-          errorBody: errorBody,
-          hasAccessToken: !!tokens.access_token,
-          hasIdToken: !!tokens.id_token,
-          url: url,
+          errorBody,
           timestamp: new Date().toISOString(),
         });
 
-        switch (response.status) {
-          case 401:
-            throw new Error('AuthenticationFailed');
-          case 403:
-            throw new Error('AccessDenied');
-          case 409:
-            throw new Error('Verification');
-          default:
-            throw new Error('AuthenticationFailed');
-        }
+        if (response.status === 400 || response.status === 409)
+          throw new Error('OAuthAccountNotLinked');
+        if (response.status === 403) throw new Error('AccessDenied');
+        throw new Error('AuthenticationFailed');
       }
 
       const data = await response.json();

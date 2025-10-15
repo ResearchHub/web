@@ -48,7 +48,12 @@ export default function SelectProvider({
 
       if (response.exists) {
         if (response.auth === 'google') {
-          signIn('google', { callbackUrl: '/' });
+          // Preserve callbackUrl from current URL
+          const searchParams = new URLSearchParams(window.location.search);
+          const callbackUrl = searchParams.get('callbackUrl') || '/';
+          // Store in sessionStorage to preserve through OAuth flow
+          sessionStorage.setItem('oauth_callback_url', callbackUrl);
+          signIn('google', { callbackUrl });
         } else if (response.is_verified) {
           onContinue();
         } else {
@@ -81,6 +86,9 @@ export default function SelectProvider({
       referralUrl.searchParams.set('redirect', originalCallbackUrl);
       finalCallbackUrl = referralUrl.toString();
     }
+
+    // Store callbackUrl in sessionStorage to preserve it through OAuth flow
+    sessionStorage.setItem('oauth_callback_url', finalCallbackUrl);
 
     signIn('google', { callbackUrl: finalCallbackUrl });
   };
