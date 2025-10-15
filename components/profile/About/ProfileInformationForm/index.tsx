@@ -12,9 +12,9 @@ import { Input } from '@/components/ui/form/Input';
 import { Textarea } from '@/components/ui/form/Textarea';
 import { Button } from '@/components/ui/Button';
 import { useState, useEffect } from 'react';
-import { OnboardingEducationSection } from '../OnboardingEducationSection';
-import { OnboardingEducationModal } from '../OnboardingEducationModal';
-import type { EducationEntry } from '../OnboardingWizard';
+import { ProfileAboutEducationSection } from '@/components/profile/About/ProfileAboutEducationSection';
+import { ProfileAboutEducationModal } from '@/components/profile/About/ProfileAboutEducationModal';
+import type { EducationEntry } from '@/components/profile/About/types';
 import { faXTwitter, faLinkedin, faGoogle, faOrcid } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { SocialIcon } from '@/components/ui/SocialIcon';
@@ -216,7 +216,7 @@ export function ProfileInformationForm({
     // Education section
     if (fields.includes('education')) {
       const educationContent = (
-        <OnboardingEducationSection
+        <ProfileAboutEducationSection
           education={education}
           onAdd={handleAddEducation}
           onEdit={handleEditEducation}
@@ -341,7 +341,7 @@ export function ProfileInformationForm({
     <FormProvider {...methods}>
       {/* Education Modal */}
       {/* TODO make the Year field required */}
-      <OnboardingEducationModal
+      <ProfileAboutEducationModal
         isOpen={isEducationModalOpen}
         onClose={() => setIsEducationModalOpen(false)}
         education={education[activeEducationIndex ?? 0] || {}}

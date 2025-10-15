@@ -99,11 +99,11 @@ export function TopicSearch({
   return (
     <div ref={containerRef} className={cn('w-full', className)}>
       <div className="relative">
-        <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        <SearchIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
           placeholder={placeholder}
-          className="h-10 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-10 text-md focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
+          className="h-12 w-full rounded-lg border-2 border-gray-200 bg-white pl-12 pr-12 text-base focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
@@ -111,9 +111,9 @@ export function TopicSearch({
         {query && (
           <button
             onClick={handleClearSearch}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 transition-colors"
           >
-            <X className="h-4 w-4 text-gray-400" />
+            <X className="h-5 w-5 text-gray-400" />
           </button>
         )}
       </div>

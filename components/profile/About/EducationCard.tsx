@@ -3,9 +3,9 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faTrash } from '@fortawesome/free-solid-svg-icons';
-import type { EducationEntry } from './OnboardingWizard'; // Adjust path if needed
+import type { EducationEntry } from './types';
 
-interface EducationCardProps {
+interface ProfileAboutEducationCardProps {
   education: EducationEntry;
   index: number;
   onEdit: () => void;
@@ -13,13 +13,13 @@ interface EducationCardProps {
   onSetMain: () => void;
 }
 
-export function EducationCard({
+export function ProfileAboutEducationCard({
   education,
   index,
   onEdit,
   onRemove,
   onSetMain,
-}: EducationCardProps) {
+}: ProfileAboutEducationCardProps) {
   const [hover, setHover] = useState(false);
 
   if (!education.summary && !education.name) {

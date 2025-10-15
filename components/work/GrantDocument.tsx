@@ -8,9 +8,9 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { TabType, WorkTabs } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { GrantApplications } from './GrantApplications';
-import { differenceInCalendarDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { PostBlockEditor } from './PostBlockEditor';
-import { formatDeadline } from '@/utils/date';
+import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
 import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
 
 interface GrantDocumentProps {
@@ -82,8 +82,9 @@ export const GrantDocument = ({
   const endDate = work.note?.post?.grant?.endDate
     ? new Date(work.note?.post?.grant?.endDate)
     : undefined;
-  const isClosedByDate = endDate ? differenceInCalendarDays(endDate, new Date()) < 0 : false;
-  const isOpen = work.note?.post?.grant?.status === 'OPEN' && !isClosedByDate;
+  const isActive =
+    work.note?.post?.grant?.status === 'OPEN' &&
+    (work.note?.post?.grant?.endDate ? isDeadlineInFuture(work.note?.post?.grant?.endDate) : true);
 
   // Show countdown when grant expires within 24 hours
   const expiringSoon = isExpiringSoon(work.note?.post?.grant?.endDate, 1);
@@ -123,13 +124,13 @@ export const GrantDocument = ({
               {/* Status line */}
               <div className="flex items-center gap-2 text-gray-800">
                 <span
-                  className={`h-2 w-2 rounded-full ${isOpen ? 'bg-emerald-500' : 'bg-gray-400'} inline-block`}
+                  className={`h-2 w-2 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-gray-400'} inline-block`}
                 />
-                <span>{isOpen ? 'Accepting Applications' : 'Closed'}</span>
+                <span>{isActive ? 'Accepting Applications' : 'Closed'}</span>
               </div>
 
               {/* Deadline and countdown - stack on mobile */}
-              {endDate && isOpen && (
+              {endDate && isActive && (
                 <div className="space-y-1 md:space-y-0 md:flex md:items-center md:gap-2">
                   <span className="text-sm text-gray-600">
                     Closes {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
@@ -147,7 +148,7 @@ export const GrantDocument = ({
               )}
 
               {/* Closed grant deadline */}
-              {!isOpen && endDate && (
+              {!isActive && endDate && (
                 <span className="text-gray-600 text-sm">
                   Closed on {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
                 </span>

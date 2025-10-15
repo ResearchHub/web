@@ -57,6 +57,14 @@ const TopicsToFollow = dynamic(
   }
 );
 
+const NextStepsPanel = dynamic(
+  () => import('./components/NextStepsPanel').then((mod) => mod.NextStepsPanel),
+  {
+    ssr: false,
+    loading: () => null, // No loading state needed, component handles its own visibility
+  }
+);
+
 // Sample journal contributors for social proof (similar to JournalFeed)
 const journalContributors = [
   {
@@ -258,6 +266,9 @@ const FundingSpotlight = () => {
 // Main RightSidebar Component - memoized to prevent re-renders when parent components change
 const SidebarComponent = () => (
   <div className="space-y-4 overflow-hidden">
+    {/* Next Steps Panel for new users */}
+    {/* <NextStepsPanel /> */}
+
     <div className="bg-white rounded-lg p-2">
       {/* Dynamic Leaderboard Section */}
       <LeaderboardOverview />

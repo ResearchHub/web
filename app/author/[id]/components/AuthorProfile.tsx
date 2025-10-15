@@ -15,8 +15,8 @@ import { AuthorProfile as AuthorProfileType } from '@/types/authorProfile';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { FetchAuthorInfoFn, useUpdateAuthorProfileData } from '@/hooks/useAuthor';
 import { useUser } from '@/contexts/UserContext';
-import { ProfileInformationForm } from '@/components/Onboarding/ProfileInformationForm';
-import { ProfileInformationFormValues } from '@/components/Onboarding/ProfileInformationForm/schema';
+import { ProfileInformationForm } from '@/components/profile/About/ProfileInformationForm';
+import { ProfileInformationFormValues } from '@/components/profile/About/ProfileInformationForm/schema';
 import { Icon } from '@/components/ui/icons/Icon';
 
 type AuthorProfileProps = {
