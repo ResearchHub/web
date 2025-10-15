@@ -19,15 +19,37 @@ interface SupportersSectionProps {
   onTip?: () => void;
 }
 
+type ConsolidatedSupporter = {
+  user: Tip['user'];
+  amount: number;
+};
+
+function consolidateTipsByUser(tips: Tip[]): ConsolidatedSupporter[] {
+  const supporterTotals = new Map<number, ConsolidatedSupporter>();
+
+  for (const tip of tips) {
+    const existingTotal = supporterTotals.get(tip.user.id);
+    supporterTotals.set(tip.user.id, {
+      user: tip.user,
+      amount: (existingTotal?.amount || 0) + tip.amount,
+    });
+  }
+
+  return Array.from(supporterTotals.values()).sort((a, b) => b.amount - a.amount);
+}
+
 export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], documentId, onTip }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showAllSupporters, setShowAllSupporters] = useState(false);
   const { showUSD } = useCurrencyPreference();
 
-  const hasSupporters = tips && tips.length > 0;
+  const consolidatedTips = consolidateTipsByUser(tips);
+  const hasSupporters = consolidatedTips.length > 0;
   const displayLimit = 5; // Show only top 5 supporters in the sidebar
-  const displayedSupporters = showAllSupporters ? tips : tips.slice(0, displayLimit);
-  const hasMoreSupporters = tips.length > displayLimit;
+  const displayedSupporters = showAllSupporters
+    ? consolidatedTips
+    : consolidatedTips.slice(0, displayLimit);
+  const hasMoreSupporters = consolidatedTips.length > displayLimit;
 
   const handleTipSuccess = (amount: number) => {
     // Close the modal and potentially refresh data
@@ -53,20 +75,22 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
       {hasSupporters ? (
         <>
           <div className="space-y-3">
-            {displayedSupporters.map((tip, index) => (
-              <div key={`${tip.user.id}-${index}`} className="flex items-center justify-between">
+            {displayedSupporters.map((supporter) => (
+              <div key={supporter.user.id} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Avatar
-                    src={tip.user.authorProfile?.profileImage || ''}
-                    alt={tip.user.fullName}
+                    src={supporter.user.authorProfile?.profileImage || ''}
+                    alt={supporter.user.fullName}
                     size="xs"
                   />
-                  <span className="text-sm font-medium text-gray-900">{tip.user.fullName}</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {supporter.user.fullName}
+                  </span>
                 </div>
                 <div className="flex items-center text-sm font-medium text-orange-500">
                   <span className="mr-0.5">+</span>
                   <CurrencyBadge
-                    amount={tip.amount}
+                    amount={supporter.amount}
                     variant="text"
                     size="xs"
                     currency={showUSD ? 'USD' : 'RSC'}
@@ -83,7 +107,7 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
               onClick={() => setShowAllSupporters(!showAllSupporters)}
               className="text-sm text-blue-600 hover:text-blue-800 font-medium mt-3 w-full text-center"
             >
-              {showAllSupporters ? 'Show less' : `View all supporters (${tips.length})`}
+              {showAllSupporters ? 'Show less' : `View all supporters (${consolidatedTips.length})`}
             </button>
           )}
 
