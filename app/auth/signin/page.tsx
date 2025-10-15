@@ -72,7 +72,7 @@ function SignInContent() {
 
 export default function SignInPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<div>Loading...</div>}>
       <SignInContent />
     </Suspense>
   );
