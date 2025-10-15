@@ -11,6 +11,7 @@ import { LegacyNoteBanner } from '@/components/LegacyNoteBanner';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { NotePaperSkeleton } from '../../components/NotePaperSkeleton';
 import { NotePaperWrapper } from '../../components/NotePaperWrapper';
+import { useSidebar } from '@/contexts/SidebarContext';
 
 export default function NotePage() {
   const searchParams = useSearchParams();
@@ -26,8 +27,11 @@ export default function NotePage() {
     updateNoteTitle,
     isLoading,
     setEditor,
+    editor,
+    setActiveRightSidebarTab,
   } = useNotebookContext();
   const { selectedOrg } = useOrganizationContext();
+  const { openRightSidebar, closeRightSidebar, isRightSidebarOpen } = useSidebar();
 
   const [{ isLoading: isUpdating }, updateNote] = useUpdateNote(note?.id, {
     onTitleUpdate: (newTitle) => {
@@ -55,6 +59,24 @@ export default function NotePage() {
     const isLegacy = !note.contentJson && isFeatureEnabled(FeatureFlag.LegacyNoteBanner);
     setIsLegacyNote(isLegacy);
   }, [note, noteError, isLoadingNote]);
+
+  // Keyboard shortcut for AI chat (Cmd+K / Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        if (!isRightSidebarOpen) {
+          setActiveRightSidebarTab('ai-assistant');
+          openRightSidebar();
+        } else {
+          closeRightSidebar();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [setActiveRightSidebarTab, openRightSidebar, closeRightSidebar, isRightSidebarOpen]);
 
   // Handle loading states
   if (isLoadingNote || isLegacyNote === undefined) {

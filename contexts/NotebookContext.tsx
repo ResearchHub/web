@@ -43,6 +43,10 @@ interface NotebookContextType {
   editor: Editor | null;
   setEditor: (editor: Editor | null) => void;
 
+  // Right sidebar tab state
+  activeRightSidebarTab: 'details' | 'ai-assistant';
+  setActiveRightSidebarTab: (tab: 'details' | 'ai-assistant') => void;
+
   // General loading state (true if any of the above are loading)
   isLoading: boolean;
 
@@ -79,6 +83,11 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
 
   // Editor state
   const [editor, setEditor] = useState<Editor | null>(null);
+
+  // Right sidebar tab state
+  const [activeRightSidebarTab, setActiveRightSidebarTab] = useState<'details' | 'ai-assistant'>(
+    'details'
+  );
 
   // Fetch notes list
   const fetchNotes = useCallback(async (slug?: string) => {
@@ -269,6 +278,10 @@ export function NotebookProvider({ children }: { children: ReactNode }) {
     // Editor state
     editor,
     setEditor,
+
+    // Right sidebar tab state
+    activeRightSidebarTab,
+    setActiveRightSidebarTab,
 
     // General loading state
     isLoading,

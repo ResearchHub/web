@@ -2,6 +2,7 @@ import { ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
 import { useNotebookContext } from '@/contexts/NotebookContext';
+import { AIUsageBadge } from '@/components/LabNotebook/AIUsageBadge';
 
 export function PublishedStatusSection() {
   const { currentNote: note, isLoading } = useNotebookContext();
@@ -16,7 +17,7 @@ export function PublishedStatusSection() {
   }
 
   return (
-    <div className="flex-1 text-center">
+    <div className="flex-1 flex items-center justify-center gap-2">
       {isLoading ? (
         <div className="h-5 w-14 inline-flex items-center bg-gray-100 animate-pulse rounded-full" />
       ) : isPublished ? (
@@ -43,6 +44,7 @@ export function PublishedStatusSection() {
           <span className="mr-1 text-sm">Draft</span>
         </Badge>
       )}
+      <AIUsageBadge pollingInterval={30000} />
     </div>
   );
 }

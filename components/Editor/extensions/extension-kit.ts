@@ -57,6 +57,7 @@ import { AnyExtension } from '@tiptap/core';
 import { PlaceholderOptions } from '@tiptap/extension-placeholder';
 import { Youtube } from './Youtube';
 import { ReadOnlyFigure } from './ReadOnlyFigure';
+import { AICompletionExtension } from './AICompletion';
 
 interface ExtensionKitProps {
   provider?: HocuspocusProvider | null;
@@ -177,6 +178,7 @@ export const ExtensionKit = ({
   }),
   Youtube,
   ReadOnlyFigure,
+  AICompletionExtension,
 ];
 
 export default ExtensionKit;
