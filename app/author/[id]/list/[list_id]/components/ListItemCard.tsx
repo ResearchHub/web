@@ -78,7 +78,7 @@ export default function ListItemCard({ listItem, authorId, refreshList }: ListIt
   }
 
   return (
-    <_ListItemCard
+    <ListItemCardCore
       unifiedDocument={unifiedDocument}
       authorId={authorId}
       listItem={listItem}
@@ -87,7 +87,7 @@ export default function ListItemCard({ listItem, authorId, refreshList }: ListIt
   );
 }
 
-function _ListItemCard({
+function ListItemCardCore({
   listItem,
   authorId,
   refreshList,
