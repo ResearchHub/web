@@ -141,15 +141,14 @@ export const authOptions: NextAuthOptions = {
 
           return true;
         } catch (error) {
-          // Log detailed error information
+          const errorMessage = error instanceof Error ? error.message : 'AuthenticationFailed';
           console.error('[Auth] Google OAuth error', {
             error: error instanceof Error ? error.message : 'Unknown error',
             errorType: error instanceof Error ? error.constructor.name : typeof error,
             stack: error instanceof Error ? error.stack : undefined,
             timestamp: new Date().toISOString(),
           });
-
-          return false;
+          return `/auth/error?error=${errorMessage}`;
         }
       }
 
