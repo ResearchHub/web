@@ -48,7 +48,7 @@ export function TopBarDesktop() {
                   <ChevronLeft className="h-5 w-5" />
                   <ChevronLeft className="h-5 w-5 -ml-3" />
                 </div>
-                <span>{isPublished ? 'PUBLISH' : 'Publish'}</span>
+                <span>{isPublished ? 'PUBLISH' : 'Open sidebar'}</span>
               </div>
             </Button>
           )
