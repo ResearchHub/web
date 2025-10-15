@@ -48,7 +48,6 @@ export default function Login({
 
     try {
       if (callbackUrl) {
-        document.cookie = 'oauth_callback=; path=/; max-age=0';
         await signIn('credentials', { email, password, callbackUrl });
       } else {
         const result = await signIn('credentials', { email, password, redirect: false });

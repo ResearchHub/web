@@ -44,7 +44,6 @@ export default function SelectProvider({
         `?refr=${referralCode}&redirect=${encodeURIComponent(callbackUrl)}`
       : callbackUrl;
 
-    document.cookie = `oauth_callback=${encodeURIComponent(finalUrl)}; path=/; max-age=600; samesite=lax`;
     signIn('google', { callbackUrl: finalUrl });
   };
 
