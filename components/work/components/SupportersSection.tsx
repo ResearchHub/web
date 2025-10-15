@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState, useMemo } from 'react';
+import { FC, useState } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatRSC } from '@/utils/number';
 import { Tip } from '@/types/tip';
@@ -19,22 +19,31 @@ interface SupportersSectionProps {
   onTip?: () => void;
 }
 
+type ConsolidatedSupporter = {
+  user: Tip['user'];
+  amount: number;
+};
+
+function consolidateTipsByUser(tips: Tip[]): ConsolidatedSupporter[] {
+  const supporterTotals = new Map<number, ConsolidatedSupporter>();
+
+  for (const tip of tips) {
+    const existingTotal = supporterTotals.get(tip.user.id);
+    supporterTotals.set(tip.user.id, {
+      user: tip.user,
+      amount: (existingTotal?.amount || 0) + tip.amount,
+    });
+  }
+
+  return Array.from(supporterTotals.values()).sort((a, b) => b.amount - a.amount);
+}
+
 export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], documentId, onTip }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showAllSupporters, setShowAllSupporters] = useState(false);
   const { showUSD } = useCurrencyPreference();
 
-  const consolidatedTips = useMemo(() => {
-    const byUser = tips.reduce((acc, { user, amount }) => {
-      const existing = acc.get(user.id);
-      return acc.set(user.id, {
-        user,
-        amount: (existing?.amount || 0) + amount,
-      });
-    }, new Map<number, { user: Tip['user']; amount: number }>());
-    return Array.from(byUser.values()).sort((a, b) => b.amount - a.amount);
-  }, [tips]);
-
+  const consolidatedTips = consolidateTipsByUser(tips);
   const hasSupporters = consolidatedTips.length > 0;
   const displayLimit = 5; // Show only top 5 supporters in the sidebar
   const displayedSupporters = showAllSupporters
