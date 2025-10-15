@@ -11,6 +11,7 @@ export interface Author {
   verified?: boolean;
   profileUrl?: string;
   authorUrl?: string;
+  position?: 'first' | 'middle' | 'last';
 }
 
 interface AuthorListProps {
@@ -50,6 +51,12 @@ export const AuthorList = ({
     (author) => !(author?.name || '').toLowerCase().match(/^et\.?\s*al\.?$/i)
   );
 
+  // Sort authors by position if available (first -> middle -> last)
+  const sortedAuthors = [...filteredAuthors].sort((a, b) => {
+    const order = { first: 0, middle: 1, last: 2 };
+    return (order[a.position ?? 'middle'] ?? 1) - (order[b.position ?? 'middle'] ?? 1);
+  });
+
   const getTextSize = () => {
     switch (size) {
       case 'xs':
@@ -64,9 +71,9 @@ export const AuthorList = ({
   // Render the full author list (for desktop or non-mobile-responsive version)
   const renderAuthors = () => {
     // Handle maxLength format if provided
-    if (maxLength !== undefined && maxLength > 0 && filteredAuthors.length > 0) {
-      const authorsToShow = filteredAuthors.slice(0, maxLength);
-      const showEtAl = filteredAuthors.length > maxLength;
+    if (maxLength !== undefined && maxLength > 0 && sortedAuthors.length > 0) {
+      const authorsToShow = sortedAuthors.slice(0, maxLength);
+      const showEtAl = sortedAuthors.length > maxLength;
 
       return (
         <>
@@ -90,29 +97,24 @@ export const AuthorList = ({
 
     // Handle abbreviated format
     if (abbreviated) {
-      if (filteredAuthors.length === 1) {
+      if (sortedAuthors.length === 1) {
         return (
-          <AuthorItem
-            author={filteredAuthors[0]}
-            showDot={false}
-            size={size}
-            className={className}
-          />
+          <AuthorItem author={sortedAuthors[0]} showDot={false} size={size} className={className} />
         );
       }
 
-      if (filteredAuthors.length === 2) {
+      if (sortedAuthors.length === 2) {
         return (
           <>
             <AuthorItem
-              author={filteredAuthors[0]}
+              author={sortedAuthors[0]}
               showDot={false}
               size={size}
               className={className}
             />
             <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
             <AuthorItem
-              author={filteredAuthors[1]}
+              author={sortedAuthors[1]}
               showDot={false}
               size={size}
               className={className}
@@ -121,18 +123,18 @@ export const AuthorList = ({
         );
       }
 
-      if (filteredAuthors.length > 2) {
+      if (sortedAuthors.length > 2) {
         return (
           <>
             <AuthorItem
-              author={filteredAuthors[0]}
+              author={sortedAuthors[0]}
               showDot={false}
               size={size}
               className={className}
             />
             <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
             <AuthorItem
-              author={filteredAuthors[filteredAuthors.length - 1]}
+              author={sortedAuthors[sortedAuthors.length - 1]}
               showDot={false}
               size={size}
               className={className}
@@ -145,21 +147,21 @@ export const AuthorList = ({
     }
 
     // Original expanded format
-    if (filteredAuthors.length <= 3 || showAll) {
+    if (sortedAuthors.length <= 3 || showAll) {
       return (
         <>
-          {filteredAuthors.map((author, index) => (
+          {sortedAuthors.map((author, index) => (
             <Fragment key={author?.name + index}>
               <AuthorItem author={author} showDot={false} size={size} className={className} />
-              {index < filteredAuthors.length - 2 && (
+              {index < sortedAuthors.length - 2 && (
                 <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
               )}
-              {index === filteredAuthors.length - 2 && (
+              {index === sortedAuthors.length - 2 && (
                 <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
               )}
             </Fragment>
           ))}
-          {showAll && filteredAuthors.length > 3 && (
+          {showAll && sortedAuthors.length > 3 && (
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -179,9 +181,9 @@ export const AuthorList = ({
     // Show first two authors, then CTA, then last author
     return (
       <>
-        <AuthorItem author={filteredAuthors[0]} showDot={false} size={size} className={className} />
+        <AuthorItem author={sortedAuthors[0]} showDot={false} size={size} className={className} />
         <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
-        <AuthorItem author={filteredAuthors[1]} showDot={false} size={size} className={className} />
+        <AuthorItem author={sortedAuthors[1]} showDot={false} size={size} className={className} />
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -191,11 +193,11 @@ export const AuthorList = ({
           className="flex items-center text-blue-500 hover:text-blue-600 mx-1"
         >
           <Plus className="w-3.5 h-3.5 mr-1" />
-          <span className={getTextSize()}>{filteredAuthors.length - 3} more</span>
+          <span className={getTextSize()}>{sortedAuthors.length - 3} more</span>
         </button>
         <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
         <AuthorItem
-          author={filteredAuthors[filteredAuthors.length - 1]}
+          author={sortedAuthors[sortedAuthors.length - 1]}
           showDot={false}
           size={size}
           className={className}
@@ -206,15 +208,15 @@ export const AuthorList = ({
 
   // Render mobile-abbreviated list (first author + et al.)
   const renderMobileAbbreviatedAuthors = () => {
-    if (filteredAuthors.length <= 1) {
+    if (sortedAuthors.length <= 1) {
       return (
-        <AuthorItem author={filteredAuthors[0]} showDot={false} size={size} className={className} />
+        <AuthorItem author={sortedAuthors[0]} showDot={false} size={size} className={className} />
       );
     }
 
     return (
       <>
-        <AuthorItem author={filteredAuthors[0]} showDot={false} size={size} className={className} />
+        <AuthorItem author={sortedAuthors[0]} showDot={false} size={size} className={className} />
         <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
         <span className={cn(getTextSize(), 'text-gray-500')}>et al.</span>
       </>

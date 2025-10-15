@@ -2,7 +2,15 @@ import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { ContentMetrics } from './metrics';
 import { Topic, transformTopic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
-import { Work, transformPaper, transformPost, FundingRequest, ContentType } from './work';
+import {
+  Work,
+  transformPaper,
+  transformPost,
+  FundingRequest,
+  ContentType,
+  Authorship,
+  transformAuthorship,
+} from './work';
 import { Bounty, transformBounty } from './bounty';
 import { Comment, CommentType, ContentFormat, transformComment } from './comment';
 import { Fundraise, transformFundraise } from './funding';
@@ -148,7 +156,7 @@ export interface FeedPaperContent extends BaseFeedContent {
   textPreview: string;
   slug: string;
   title: string;
-  authors: AuthorProfile[];
+  authors: Authorship[];
   topics: Topic[];
   journal: Journal;
   workType?: 'paper' | 'preprint' | 'published';
@@ -386,15 +394,20 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           title: stripHtml(content_object.title || ''),
           authors:
             content_object.authors && content_object.authors.length > 0
-              ? content_object.authors.map(transformAuthorProfile)
+              ? content_object.authors.map(transformAuthorship)
               : content_object.raw_authors && content_object.raw_authors.length > 0
                 ? content_object.raw_authors.map((author: any) => ({
-                    id: 0, // We don't have a real ID for raw authors
-                    fullName: `${author.first_name || ''} ${author.last_name || ''}`.trim(),
-                    profileImage: '',
-                    headline: '',
-                    profileUrl: '/author/0',
-                    isClaimed: false,
+                    authorProfile: {
+                      id: 0, // We don't have a real ID for raw authors
+                      fullName: `${author.first_name || ''} ${author.last_name || ''}`.trim(),
+                      profileImage: '',
+                      headline: '',
+                      profileUrl: '/author/0',
+                      isClaimed: false,
+                      isVerified: false,
+                    },
+                    isCorresponding: false,
+                    position: 'middle' as const,
                   }))
                 : [],
           workType:

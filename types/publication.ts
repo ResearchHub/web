@@ -163,14 +163,18 @@ export const transformPublicationToFeedEntry = (
       slug: documents.slug,
       title: documents.title,
       authors: documents.authors.map((author) => ({
-        id: author.id,
-        profileImage: '',
-        firstName: author.first_name,
-        lastName: author.last_name,
-        fullName: `${author.first_name} ${author.last_name}`,
-        profileUrl: '',
-        isClaimed: false,
-        isVerified: false,
+        authorProfile: {
+          id: author.id,
+          profileImage: '',
+          firstName: author.first_name,
+          lastName: author.last_name,
+          fullName: `${author.first_name} ${author.last_name}`,
+          profileUrl: '',
+          isClaimed: false,
+          isVerified: false,
+        },
+        isCorresponding: false,
+        position: 'middle' as const,
       })),
       topics: (
         hubs.map((hub: any) => ({

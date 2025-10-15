@@ -102,10 +102,14 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               <div className="mb-3 flex items-center gap-1.5">
                 <Users className="w-4 h-4 text-gray-500" />
                 <AuthorList
-                  authors={paper.authors.map((author) => ({
-                    name: author.fullName,
-                    verified: author.user?.isVerified,
-                    authorUrl: author.id === 0 ? undefined : author.profileUrl,
+                  authors={paper.authors.map((authorship) => ({
+                    name: authorship.authorProfile.fullName,
+                    verified: authorship.authorProfile.user?.isVerified,
+                    authorUrl:
+                      authorship.authorProfile.id === 0
+                        ? undefined
+                        : authorship.authorProfile.profileUrl,
+                    position: authorship.position,
                   }))}
                   size="sm"
                   className="text-gray-500 font-normal"

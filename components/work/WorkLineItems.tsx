@@ -454,6 +454,7 @@ export const WorkLineItems = ({
                     authorUrl: authorship.authorProfile.user
                       ? `/author/${authorship.authorProfile.id}`
                       : undefined,
+                    position: authorship.position,
                   }))}
                   size="sm"
                   className="inline-flex items-center text-gray-600 font-medium"
