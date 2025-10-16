@@ -44,9 +44,11 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
           </div>
           <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-orange-500 rounded-full"
+              className={`h-full rounded-full ${
+                fundraise.status === 'COMPLETED' ? 'bg-green-500' : 'bg-orange-500'
+              }`}
               style={{
-                width: `${progress}%`,
+                width: `${fundraise.status === 'COMPLETED' ? 100 : progress}%`,
               }}
             />
           </div>
