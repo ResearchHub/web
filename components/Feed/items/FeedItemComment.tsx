@@ -100,9 +100,9 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   const comment = commentEntry.comment;
   const parentComment = commentEntry.parentComment;
   const author = commentEntry.createdBy;
-  const isReview = comment.commentType === 'REVIEW';
-  const isLegacyComment = comment.contentFormat === 'QUILL_EDITOR';
   const reviewScore = comment.reviewScore || commentEntry.review?.score || comment.score || 0;
+  const isReview = !!reviewScore;
+  const isLegacyComment = comment.contentFormat === 'QUILL_EDITOR';
   const isRemoved = commentEntry.isRemoved;
   const relatedWork = entry.relatedWork;
   const commentPageUrl = href;
