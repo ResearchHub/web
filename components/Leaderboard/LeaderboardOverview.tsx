@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { formatRSC } from '@/utils/number';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -148,14 +149,20 @@ export const LeaderboardOverview = () => {
         <div className="flex-grow min-w-0">
           {authorId ? (
             <AuthorTooltip authorId={authorId}>
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-medium text-gray-900 block break-words">
+                  {item.authorProfile.fullName}
+                </span>
+                {item.authorProfile.isVerified && <VerifiedBadge size="sm" showTooltip={true} />}
+              </div>
+            </AuthorTooltip>
+          ) : (
+            <div className="flex items-center gap-1">
               <span className="text-sm font-medium text-gray-900 block break-words">
                 {item.authorProfile.fullName}
               </span>
-            </AuthorTooltip>
-          ) : (
-            <span className="text-sm font-medium text-gray-900 block break-words">
-              {item.authorProfile.fullName}
-            </span>
+              {item.authorProfile.isVerified && <VerifiedBadge size="sm" showTooltip={true} />}
+            </div>
           )}
         </div>
 
