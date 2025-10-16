@@ -77,7 +77,7 @@ export const authOptions: NextAuthOptions = {
     error: '/auth/error',
   },
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account, profile, email, credentials }) {
       if (account?.type === 'oauth') {
         try {
           // Log OAuth token state for debugging
@@ -141,23 +141,38 @@ export const authOptions: NextAuthOptions = {
 
           return true;
         } catch (error) {
-          // Log detailed error information
+          const errorType = error instanceof Error ? error.message : 'AuthenticationFailed';
           console.error('[Auth] Google OAuth error', {
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: errorType,
             errorType: error instanceof Error ? error.constructor.name : typeof error,
             stack: error instanceof Error ? error.stack : undefined,
             timestamp: new Date().toISOString(),
           });
-
-          // Preserve specific error messages for better debugging
-          if (error instanceof Error) {
-            throw new Error(error.message);
-          }
-          throw new Error('AuthenticationFailed');
+          throw new Error(errorType);
         }
       }
 
       return true;
+    },
+
+    async redirect({ url, baseUrl }) {
+      if (url.includes('/auth/error')) {
+        const urlObj = new URL(url, baseUrl);
+        const error = urlObj.searchParams.get('error');
+
+        if (
+          error &&
+          (error === 'OAuthSignin' || error === 'OAuthCallback' || error === 'AccessDenied')
+        ) {
+          urlObj.searchParams.set('error', 'OAuthAccountNotLinked');
+        }
+
+        return urlObj.toString();
+      }
+
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
     },
 
     async jwt({ token, user, account }) {
