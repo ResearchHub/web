@@ -226,6 +226,8 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
           timestamp={entry.timestamp}
           author={author}
           actionText={customActionText ?? 'created'}
+          hotScoreV2={entry.hotScoreV2}
+          externalMetrics={entry.externalMetrics}
         />
       )}
 
