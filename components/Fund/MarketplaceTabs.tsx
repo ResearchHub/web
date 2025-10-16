@@ -56,17 +56,14 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
 
   const handleTabChange = (tabId: string) => {
     if (disableTabs) return;
-
     const tab = tabId as MarketplaceTab;
     const queryString = searchParams.toString();
-    const route = TAB_ROUTES[tab];
-
-    router.push(queryString ? `${route}?${queryString}` : route);
+    router.push(queryString ? `${TAB_ROUTES[tab]}?${queryString}` : TAB_ROUTES[tab]);
     onTabChange(tab);
   };
 
-  const currentOption = SORT_OPTIONS.find((option) => option.value === sortBy) || SORT_OPTIONS[0];
-  const CurrentIcon = currentOption.icon;
+  const { label, icon: CurrentIcon } =
+    SORT_OPTIONS.find((option) => option.value === sortBy) || SORT_OPTIONS[0];
 
   return (
     <div className="bg-white pb-6">
@@ -84,12 +81,12 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
             trigger={
               <Button variant="outlined" size="sm" className="flex items-center gap-1">
                 <CurrentIcon className="h-4 w-4 mr-1" />
-                <span>{currentOption.label}</span>
+                <span>{label}</span>
                 <ChevronDown className="h-4 w-4" />
               </Button>
             }
           >
-            {SORT_OPTIONS.map(({ value, label, icon: OptionIcon }) => (
+            {SORT_OPTIONS.map(({ value, label: optionLabel, icon: OptionIcon }) => (
               <BaseMenuItem
                 key={value || 'best'}
                 onClick={() => onSortChange(value)}
@@ -97,7 +94,7 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
               >
                 <div className="flex items-center gap-2">
                   <OptionIcon className="h-4 w-4" />
-                  <span>{label}</span>
+                  <span>{optionLabel}</span>
                 </div>
               </BaseMenuItem>
             ))}

@@ -13,27 +13,39 @@ import {
   FundingSortOption,
 } from '@/components/Fund/MarketplaceTabs';
 import Icon from '@/components/ui/icons/Icon';
+import { ReactNode } from 'react';
 
-const TAB_CONFIG: Record<
-  MarketplaceTab,
-  {
-    title: string;
-    subtitle: string;
-    fundraiseStatus?: 'OPEN' | 'CLOSED';
-  }
-> = {
+type TabConfig = {
+  title: string;
+  subtitle: string;
+  contentType: 'GRANT' | 'PREREGISTRATION';
+  endpoint: 'grant_feed' | 'funding_feed';
+  sidebar: ReactNode;
+  fundraiseStatus?: 'OPEN' | 'CLOSED';
+};
+
+const TAB_CONFIG: Record<MarketplaceTab, TabConfig> = {
   grants: {
     title: 'Request for Proposals',
     subtitle: 'Explore available funding opportunities',
+    contentType: 'GRANT',
+    endpoint: 'grant_feed',
+    sidebar: <GrantRightSidebar />,
   },
   'needs-funding': {
     title: 'Proposals',
     subtitle: 'Fund breakthrough research shaping tomorrow',
+    contentType: 'PREREGISTRATION',
+    endpoint: 'funding_feed',
+    sidebar: <FundRightSidebar />,
     fundraiseStatus: 'OPEN',
   },
   'previously-funded': {
     title: 'Previously Funded',
     subtitle: 'Browse research that has been successfully funded',
+    contentType: 'PREREGISTRATION',
+    endpoint: 'funding_feed',
+    sidebar: <FundRightSidebar />,
     fundraiseStatus: 'CLOSED',
   },
 };
@@ -46,6 +58,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sortBy = (searchParams.get('sort') as FundingSortOption) || '';
+  const config = TAB_CONFIG[marketplaceTab];
 
   const handleSortChange = (newSort: FundingSortOption) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -57,18 +70,15 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  const config = TAB_CONFIG[marketplaceTab];
   const { entries, isLoading, hasMore, loadMore } = useFeed('all', {
-    contentType: marketplaceTab === 'grants' ? 'GRANT' : 'PREREGISTRATION',
-    endpoint: marketplaceTab === 'grants' ? 'grant_feed' : 'funding_feed',
+    contentType: config.contentType,
+    endpoint: config.endpoint,
     fundraiseStatus: config.fundraiseStatus,
     ordering: sortBy || undefined,
   });
 
   return (
-    <PageLayout
-      rightSidebar={marketplaceTab === 'grants' ? <GrantRightSidebar /> : <FundRightSidebar />}
-    >
+    <PageLayout rightSidebar={config.sidebar}>
       <MainPageHeader
         icon={<Icon name="solidHand" size={26} color="#3971ff" />}
         title={config.title}
