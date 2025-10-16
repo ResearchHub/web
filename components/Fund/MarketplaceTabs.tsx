@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { ChevronDown, Star, TrendingUp, ArrowUp, DollarSign, Clock } from 'lucide-react';
 
 export type MarketplaceTab = 'grants' | 'needs-funding' | 'previously-funded';
-export type FundingSortOption = '' | 'hot_score' | 'upvotes' | 'amount_raised' | 'newest';
+export type FundingSortOption = '' | 'best' | 'hot_score' | 'upvotes' | 'amount_raised';
 
 type SortOption = {
   label: string;
@@ -17,11 +17,11 @@ type SortOption = {
 };
 
 const SORT_OPTIONS: SortOption[] = [
-  { label: 'Best', value: '', icon: Star },
+  { label: 'Best', value: 'best', icon: Star },
   { label: 'Score', value: 'hot_score', icon: TrendingUp },
   { label: 'Top', value: 'upvotes', icon: ArrowUp },
   { label: 'Raised', value: 'amount_raised', icon: DollarSign },
-  { label: 'Newest', value: 'newest', icon: Clock },
+  { label: 'Newest', value: '', icon: Clock },
 ];
 
 const TABS = [
@@ -88,7 +88,7 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
           >
             {SORT_OPTIONS.map(({ value, label: optionLabel, icon: OptionIcon }) => (
               <BaseMenuItem
-                key={value || 'best'}
+                key={value || 'newest'}
                 onClick={() => onSortChange(value)}
                 className={sortBy === value ? 'bg-gray-100' : ''}
               >
