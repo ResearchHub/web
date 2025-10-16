@@ -127,12 +127,16 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
                       </div>
 
                       <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
-                        <span className="text-gray-500">EIN:</span>
-                        <span className="font-medium">
-                          {selectedNonprofit.ein.substring(0, 2) +
-                            '-' +
-                            selectedNonprofit.ein.substring(2)}
-                        </span>
+                        {selectedNonprofit.ein && (
+                          <>
+                            <span className="text-gray-500">EIN:</span>
+                            <span className="font-medium">
+                              {selectedNonprofit.ein.substring(0, 2) +
+                                '-' +
+                                selectedNonprofit.ein.substring(2)}
+                            </span>
+                          </>
+                        )}
 
                         <span className="text-gray-500">Location:</span>
                         <span>

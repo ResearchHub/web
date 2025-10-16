@@ -23,7 +23,7 @@ export interface NonprofitDeployment {
 export interface NonprofitDetails extends BaseTransformed {
   id: string;
   name: string;
-  ein: string;
+  ein?: string;
   endaomentOrgId: string;
   baseWalletAddress?: string;
   createdDate?: string;
@@ -43,7 +43,7 @@ export interface NonprofitLink extends BaseTransformed {
 export interface NonprofitOrg extends BaseTransformed {
   id: string;
   name: string;
-  ein: string;
+  ein?: string;
   deployments: NonprofitDeployment[];
   logoUrl?: string;
   nteeCode: string;
