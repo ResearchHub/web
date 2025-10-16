@@ -9,7 +9,7 @@ function SignInContent() {
   const searchParams = useSearchParams();
   const errorCode = searchParams?.get('error');
   let callbackUrl = searchParams?.get('callbackUrl') || '/';
-
+  //this is to help prevent redirecting issues when using the auth modal after an error occurs
   if (callbackUrl.startsWith('http')) {
     try {
       const url = new URL(callbackUrl);
@@ -23,7 +23,7 @@ function SignInContent() {
 
   const error =
     errorCode === 'OAuthAccountNotLinked'
-      ? 'Please log in by typing in your email and password instead of using Continue with Google.'
+      ? 'Enter email and password to login to your account.'
       : errorCode
         ? 'An error occurred during authentication. Please try again.'
         : null;
