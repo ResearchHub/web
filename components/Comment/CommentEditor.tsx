@@ -2,6 +2,7 @@
 
 import { EditorContent } from '@tiptap/react';
 import { useRef, useCallback, useEffect, useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useSession } from 'next-auth/react';
 import 'highlight.js/styles/atom-one-dark.css';
 import { CommentType } from '@/types/comment';
@@ -143,6 +144,30 @@ export const CommentEditor = ({
     setSectionRatings,
   });
 
+  const handleEditorKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLDivElement>) => {
+      if (event.nativeEvent.isComposing) {
+        return;
+      }
+
+      const isCommandOrControlEnter =
+        (event.metaKey || event.ctrlKey) && event.key === 'Enter' && !event.shiftKey;
+
+      if (!isCommandOrControlEnter) {
+        return;
+      }
+
+      if (isReadOnly || editing || isSubmitting || !editor?.isEditable) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      void handleSubmit();
+    },
+    [editing, editor, handleSubmit, isReadOnly, isSubmitting]
+  );
+
   // Configure editor click handler for links
   if (editor && !isReadOnly) {
     editor.setOptions({
@@ -239,7 +264,7 @@ export const CommentEditor = ({
           </div>
         )}
 
-        <EditorContent editor={editor} />
+        <EditorContent editor={editor} onKeyDown={handleEditorKeyDown} />
       </div>
 
       {/* Editor footer */}

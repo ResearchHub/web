@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 
 interface EditorFooterProps {
@@ -23,6 +24,13 @@ export const EditorFooter = ({
   isSubmitting,
   hideSubmit = false,
 }: EditorFooterProps) => {
+  const [submitShortcutHint, setSubmitShortcutHint] = useState('Ctrl+Enter');
+
+  useEffect(() => {
+    const isMac = typeof window !== 'undefined' && /Mac/i.test(navigator.platform);
+    setSubmitShortcutHint(isMac ? '⌘⏎' : 'Ctrl+Enter');
+  }, []);
+
   return (
     <div className="flex justify-between items-center px-4 py-2 border-t border-gray-200">
       {/* Draft status */}
@@ -49,7 +57,18 @@ export const EditorFooter = ({
         )}
         {!hideSubmit && (
           <Button variant="default" size="sm" onClick={onSubmit} disabled={isSubmitting}>
-            {isSubmitting ? 'Submitting...' : 'Submit'}
+            {isSubmitting ? (
+              'Submitting...'
+            ) : (
+              <span className="inline-flex items-center">
+                <span>Submit</span>
+                <span className="hidden md:!inline-flex items-center space-x-1 ml-2 flex-shrink-0">
+                  <span className="text-xs text-primary-200 bg-primary-600 px-2 py-1 rounded font-medium">
+                    {submitShortcutHint}
+                  </span>
+                </span>
+              </span>
+            )}
           </Button>
         )}
       </div>
