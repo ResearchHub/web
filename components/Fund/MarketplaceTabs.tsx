@@ -17,10 +17,10 @@ type SortOption = {
 };
 
 const SORT_OPTIONS: SortOption[] = [
+  { label: 'Newest', value: '', icon: Clock },
   { label: 'Best', value: 'hot_score', icon: TrendingUp },
   { label: 'Top', value: 'upvotes', icon: ArrowUp },
   { label: 'Raised', value: 'amount_raised', icon: DollarSign },
-  { label: 'Newest', value: '', icon: Clock },
 ];
 
 const TABS = [
