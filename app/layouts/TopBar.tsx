@@ -51,6 +51,7 @@ const isRootNavigationPage = (pathname: string): boolean => {
     '/earn',
     '/fund/grants',
     '/fund/needs-funding', // Fundraises page
+    '/fund/previously-funded',
     '/journal',
     '/notebook',
     '/browse',

@@ -4,11 +4,26 @@ import { Bounty, BountyType, transformBounty } from '@/types/bounty';
 import { transformUser, User } from '@/types/user';
 import { transformAuthorProfile } from '@/types/authorProfile';
 import { Fundraise, transformFundraise } from '@/types/funding';
+import { Topic, transformTopic } from '@/types/topic';
+
+type Endpoints = 'feed' | 'funding_feed' | 'grant_feed' | undefined;
 
 export class FeedService {
   private static readonly BASE_PATH = '/api/feed';
   private static readonly FUNDING_PATH = '/api/funding_feed';
   private static readonly GRANT_PATH = '/api/grant_feed';
+
+  // Determine which endpoint to use
+  private static getEndpointPath(endpoint: Endpoints) {
+    switch (endpoint) {
+      case 'funding_feed':
+        return this.FUNDING_PATH;
+      case 'grant_feed':
+        return this.GRANT_PATH;
+      default:
+        return this.BASE_PATH;
+    }
+  }
 
   static async getFeed(params?: {
     page?: number;
@@ -17,11 +32,12 @@ export class FeedService {
     hubSlug?: string;
     contentType?: string;
     source?: 'all' | 'researchhub';
-    endpoint?: 'feed' | 'funding_feed' | 'grant_feed';
+    endpoint?: Endpoints;
     fundraiseStatus?: 'OPEN' | 'CLOSED';
     grantId?: number;
     createdBy?: number;
     ordering?: string;
+    hubIds?: (string | number)[];
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -34,14 +50,11 @@ export class FeedService {
     if (params?.grantId) queryParams.append('grant_id', params.grantId.toString());
     if (params?.createdBy) queryParams.append('created_by', params.createdBy.toString());
     if (params?.ordering) queryParams.append('ordering', params.ordering);
+    if (params?.hubIds && params.hubIds.length > 0) {
+      queryParams.append('hub_ids', JSON.stringify(params.hubIds));
+    }
 
-    // Determine which endpoint to use
-    const basePath =
-      params?.endpoint === 'funding_feed'
-        ? this.FUNDING_PATH
-        : params?.endpoint === 'grant_feed'
-          ? this.GRANT_PATH
-          : this.BASE_PATH;
+    const basePath = this.getEndpointPath(params?.endpoint);
     const url = `${basePath}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
 
     try {
@@ -242,5 +255,23 @@ export class FeedService {
     };
 
     return transformFundraise(formattedRawFundraise);
+  }
+
+  static async getFeedHubs(endpoint: Endpoints): Promise<Topic[]> {
+    // Hub search not implemented for feed
+    if (endpoint === 'feed') {
+      return [];
+    }
+
+    let basePath = this.getEndpointPath(endpoint);
+    const path = `${basePath}/hubs/`;
+
+    try {
+      const response = await ApiClient.get<any[]>(path);
+      return response.map((raw) => transformTopic(raw));
+    } catch (error) {
+      console.error(`Error fetching ${endpoint} hubs`, error);
+      return [];
+    }
   }
 }
