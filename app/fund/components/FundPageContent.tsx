@@ -1,77 +1,85 @@
 'use client';
 
+import { useRouter, useSearchParams } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useFeed } from '@/hooks/useFeed';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { FundRightSidebar } from '@/components/Fund/FundRightSidebar';
 import { GrantRightSidebar } from '@/components/Fund/GrantRightSidebar';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
-import { MarketplaceTabs, MarketplaceTab } from '@/components/Fund/MarketplaceTabs';
+import {
+  MarketplaceTabs,
+  MarketplaceTab,
+  FundingSortOption,
+} from '@/components/Fund/MarketplaceTabs';
 import Icon from '@/components/ui/icons/Icon';
+
+const TAB_CONFIG: Record<
+  MarketplaceTab,
+  {
+    title: string;
+    subtitle: string;
+    fundraiseStatus?: 'OPEN' | 'CLOSED';
+  }
+> = {
+  grants: {
+    title: 'Request for Proposals',
+    subtitle: 'Explore available funding opportunities',
+  },
+  'needs-funding': {
+    title: 'Proposals',
+    subtitle: 'Fund breakthrough research shaping tomorrow',
+    fundraiseStatus: 'OPEN',
+  },
+  'previously-funded': {
+    title: 'Previously Funded',
+    subtitle: 'Browse research that has been successfully funded',
+    fundraiseStatus: 'CLOSED',
+  },
+};
 
 interface FundPageContentProps {
   marketplaceTab: MarketplaceTab;
 }
 
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
-  const getFundraiseStatus = (tab: MarketplaceTab): 'OPEN' | 'CLOSED' | undefined => {
-    if (tab === 'needs-funding') return 'OPEN';
-    if (tab === 'previously-funded') return 'CLOSED';
-    return undefined;
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const sortBy = (searchParams.get('sort') as FundingSortOption) || '';
+
+  const handleSortChange = (newSort: FundingSortOption) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (newSort) {
+      params.set('sort', newSort);
+    } else {
+      params.delete('sort');
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  const getOrdering = (tab: MarketplaceTab): string | undefined => {
-    if (tab === 'needs-funding') return 'amount_raised';
-    return undefined;
-  };
-
+  const config = TAB_CONFIG[marketplaceTab];
   const { entries, isLoading, hasMore, loadMore } = useFeed('all', {
     contentType: marketplaceTab === 'grants' ? 'GRANT' : 'PREREGISTRATION',
     endpoint: marketplaceTab === 'grants' ? 'grant_feed' : 'funding_feed',
-    fundraiseStatus: getFundraiseStatus(marketplaceTab),
-    ordering: getOrdering(marketplaceTab),
+    fundraiseStatus: config.fundraiseStatus,
+    ordering: sortBy || undefined,
   });
 
-  const getTitle = (tab: MarketplaceTab): string => {
-    switch (tab) {
-      case 'grants':
-        return 'Request for Proposals';
-      case 'needs-funding':
-        return 'Proposals';
-      case 'previously-funded':
-        return 'Previously Funded';
-      default:
-        return '';
-    }
-  };
-
-  const getSubtitle = (tab: MarketplaceTab): string => {
-    switch (tab) {
-      case 'grants':
-        return 'Explore available funding opportunities';
-      case 'needs-funding':
-        return 'Fund breakthrough research shaping tomorrow';
-      case 'previously-funded':
-        return 'Browse research that has been successfully funded';
-      default:
-        return '';
-    }
-  };
-
-  const header = (
-    <MainPageHeader
-      icon={<Icon name="solidHand" size={26} color="#3971ff" />}
-      title={getTitle(marketplaceTab)}
-      subtitle={getSubtitle(marketplaceTab)}
-    />
-  );
-
-  const rightSidebar = marketplaceTab === 'grants' ? <GrantRightSidebar /> : <FundRightSidebar />;
-
   return (
-    <PageLayout rightSidebar={rightSidebar}>
-      {header}
-      <MarketplaceTabs activeTab={marketplaceTab} onTabChange={() => {}} />
+    <PageLayout
+      rightSidebar={marketplaceTab === 'grants' ? <GrantRightSidebar /> : <FundRightSidebar />}
+    >
+      <MainPageHeader
+        icon={<Icon name="solidHand" size={26} color="#3971ff" />}
+        title={config.title}
+        subtitle={config.subtitle}
+      />
+      <MarketplaceTabs
+        activeTab={marketplaceTab}
+        onTabChange={() => {}}
+        sortBy={sortBy}
+        onSortChange={handleSortChange}
+      />
       <FeedContent
         entries={entries}
         isLoading={isLoading}
