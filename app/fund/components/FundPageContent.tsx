@@ -13,7 +13,7 @@ import {
   FundingSortOption,
 } from '@/components/Fund/MarketplaceTabs';
 import Icon from '@/components/ui/icons/Icon';
-import { ReactNode } from 'react';
+import { ReactNode, useTransition } from 'react';
 
 type TabConfig = {
   title: string;
@@ -57,17 +57,20 @@ interface FundPageContentProps {
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
   const sortBy = (searchParams.get('sort') as FundingSortOption) || '';
   const config = TAB_CONFIG[marketplaceTab];
 
   const handleSortChange = (newSort: FundingSortOption) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (newSort) {
-      params.set('sort', newSort);
-    } else {
-      params.delete('sort');
-    }
-    router.push(`?${params.toString()}`, { scroll: false });
+    startTransition(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (newSort) {
+        params.set('sort', newSort);
+      } else {
+        params.delete('sort');
+      }
+      router.push(`?${params.toString()}`, { scroll: false });
+    });
   };
 
   const { entries, isLoading, hasMore, loadMore } = useFeed('all', {
@@ -92,7 +95,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
       />
       <FeedContent
         entries={entries}
-        isLoading={isLoading}
+        isLoading={isLoading || isPending}
         hasMore={hasMore}
         loadMore={loadMore}
         showGrantHeaders={false}

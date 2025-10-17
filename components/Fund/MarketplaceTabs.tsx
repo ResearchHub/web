@@ -16,11 +16,11 @@ type SortOption = {
   icon: typeof TrendingUp | typeof ArrowUp | typeof DollarSign | typeof Clock;
 };
 
-const SORT_OPTIONS: SortOption[] = [
+const getSortOptions = (activeTab: MarketplaceTab): SortOption[] => [
   { label: 'Newest', value: '', icon: Clock },
   { label: 'Best', value: 'hot_score', icon: TrendingUp },
   { label: 'Top', value: 'upvotes', icon: ArrowUp },
-  { label: 'Raised', value: 'amount_raised', icon: DollarSign },
+  { label: activeTab === 'grants' ? 'Amount' : 'Raised', value: 'amount_raised', icon: DollarSign },
 ];
 
 const TABS = [
@@ -52,6 +52,7 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const sortOptions = getSortOptions(activeTab);
 
   const handleTabChange = (tabId: string) => {
     if (disableTabs) return;
@@ -62,7 +63,7 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
   };
 
   const { label, icon: CurrentIcon } =
-    SORT_OPTIONS.find((option) => option.value === sortBy) || SORT_OPTIONS[0];
+    sortOptions.find((option) => option.value === sortBy) || sortOptions[0];
 
   return (
     <div className="bg-white pb-6">
@@ -85,7 +86,7 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
               </Button>
             }
           >
-            {SORT_OPTIONS.map(({ value, label: optionLabel, icon: OptionIcon }) => (
+            {sortOptions.map(({ value, label: optionLabel, icon: OptionIcon }) => (
               <BaseMenuItem
                 key={value || 'newest'}
                 onClick={() => onSortChange(value)}
