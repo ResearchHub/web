@@ -14,7 +14,7 @@ export function BrowsePageSkeleton() {
           <div className="flex flex-col lg:!flex-row gap-4 items-start lg:!items-center justify-between">
             {/* Search box skeleton */}
             <div className="w-full lg:!w-96 order-2 lg:!order-1">
-              <Skeleton className="h-10 w-full rounded-lg" />
+              <Skeleton className="h-12 w-full rounded-lg" />
             </div>
 
             {/* Tab buttons skeleton */}
