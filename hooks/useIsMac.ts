@@ -12,7 +12,7 @@ export function useIsMac(): boolean {
   const [isMac, setIsMac] = useState(false);
 
   useEffect(() => {
-    if (typeof globalThis.window === 'undefined') {
+    if (globalThis.window === undefined) {
       return;
     }
 
