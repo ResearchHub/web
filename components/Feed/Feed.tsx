@@ -7,7 +7,7 @@ import { useFeed, FeedTab, FeedSource } from '@/hooks/useFeed';
 import { FeedContent } from './FeedContent';
 import { FeedTabs } from './FeedTabs';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { FeedEntry } from '@/types/feed';
 import Icon from '@/components/ui/icons/Icon';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
@@ -25,15 +25,18 @@ interface FeedProps {
 export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFilter = true }) => {
   const { status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useUser();
   const isAuthenticated = status === 'authenticated';
   const isModerator = user?.isModerator || false;
   const [activeTab, setActiveTab] = useState<FeedTab>(defaultTab);
   const [isNavigating, setIsNavigating] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<FeedSource>('all');
+  const hotScoreVersion = (searchParams.get('hot_score_version') as 'v1' | 'v2') || 'v1';
   const { entries, isLoading, hasMore, loadMore } = useFeed(defaultTab, {
     source: sourceFilter,
     initialData: initialFeedData,
+    hotScoreVersion,
   });
 
   // Sync the activeTab with the defaultTab when the component mounts or defaultTab changes
@@ -48,11 +51,14 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     // Set navigating state to true to show loading state
     setIsNavigating(true);
 
+    // Preserve hot_score_version query param
+    const queryString = hotScoreVersion !== 'v1' ? `?hot_score_version=${hotScoreVersion}` : '';
+
     // Navigate to the appropriate URL
     if (tab === 'popular') {
-      router.push('/');
+      router.push(`/${queryString}`);
     } else {
-      router.push(`/${tab}`);
+      router.push(`/${tab}${queryString}`);
     }
   };
 
