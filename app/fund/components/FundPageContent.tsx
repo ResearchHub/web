@@ -99,7 +99,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
         onSortChange={handleSortChange}
       />
       <FeedContent
-        entries={entries}
+        entries={isSortChanging ? [] : entries}
         isLoading={isLoading || isSortChanging}
         hasMore={hasMore}
         loadMore={loadMore}
