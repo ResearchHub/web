@@ -12,8 +12,19 @@ export function useIsMac(): boolean {
   const [isMac, setIsMac] = useState(false);
 
   useEffect(() => {
+    if (typeof globalThis.window === 'undefined') {
+      return;
+    }
+
+    // Modern approach: use userAgentData if available, fallback to userAgent
+    const nav = navigator as Navigator & {
+      userAgentData?: { platform?: string };
+    };
+
     const detectMac =
-      typeof window !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      nav.userAgentData?.platform?.toUpperCase().includes('MAC') ||
+      navigator.userAgent.toUpperCase().includes('MAC');
+
     setIsMac(detectMac);
   }, []);
 
