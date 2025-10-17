@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { formatRSC } from '@/utils/number';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -115,11 +116,15 @@ export const LeaderboardOverview = () => {
     const amount =
       type === 'reviewer' ? (item as TopReviewer).earnedRsc : (item as TopFunder).totalFunding;
 
+    const displayName = item.authorProfile.fullName;
+    // Show gradient for long names, or shorter names if there's a verified badge (which takes up space)
+    const needsGradient = displayName.length > 15 || (item.isVerified && displayName.length > 12);
+
     return (
       <div
         key={item.id}
         onClick={() => authorId && navigateToAuthorProfile(authorId)}
-        className="grid grid-cols-[32px_40px_1fr_auto] gap-x-3 items-center hover:bg-gray-50 px-1 py-2 rounded-md cursor-pointer"
+        className="grid grid-cols-[32px_40px_1fr_auto] gap-x-2 items-center hover:bg-gray-50 px-1 py-2 rounded-md cursor-pointer"
       >
         {/* Rank */}
         <div className="w-8 flex-shrink-0">{renderRank(rank)}</div>
@@ -145,17 +150,27 @@ export const LeaderboardOverview = () => {
         </div>
 
         {/* Name */}
-        <div className="flex-grow min-w-0">
-          {authorId ? (
-            <AuthorTooltip authorId={authorId}>
-              <span className="text-sm font-medium text-gray-900 block break-words">
-                {item.authorProfile.fullName}
+        <div className="flex items-center gap-1.5 min-w-0 overflow-hidden mr-0.5">
+          <div className="min-w-0 flex-shrink overflow-hidden relative">
+            {authorId ? (
+              <AuthorTooltip authorId={authorId}>
+                <span className="text-sm font-medium text-gray-900 block whitespace-nowrap overflow-hidden">
+                  {displayName}
+                </span>
+              </AuthorTooltip>
+            ) : (
+              <span className="text-sm font-medium text-gray-900 block whitespace-nowrap overflow-hidden">
+                {displayName}
               </span>
-            </AuthorTooltip>
-          ) : (
-            <span className="text-sm font-medium text-gray-900 block break-words">
-              {item.authorProfile.fullName}
-            </span>
+            )}
+            {needsGradient && (
+              <div className="absolute top-0 right-0 bottom-0 w-4 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+            )}
+          </div>
+          {item.isVerified && (
+            <div className="flex-shrink-0">
+              <VerifiedBadge size="sm" />
+            </div>
           )}
         </div>
 
