@@ -1,28 +1,31 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ArrowUp,
-  Flag,
+  CheckCircle,
   Edit,
-  MoreHorizontal,
   FileUp,
+  Flag,
+  ListPlus,
+  MoreHorizontal,
   Octagon,
   Share2,
-  CheckCircle,
 } from 'lucide-react';
 import { Work } from '@/types/work';
+import { ID } from '@/types/root';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useVote } from '@/hooks/useVote';
 import { useUserVotes } from '@/hooks/useUserVotes';
-import { useCloseFundraise } from '@/hooks/useFundraise';
+import { useCloseFundraise, useCompleteFundraise } from '@/hooks/useFundraise';
 import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useRouter } from 'next/navigation';
 import { TipContentModal } from '@/components/modals/TipContentModal';
+import SaveToListModal from '@/components/modals/SaveToListModal';
 import { Icon } from '@/components/ui/icons/Icon';
 import { PaperService } from '@/services/paper.service';
 import { useUser } from '@/contexts/UserContext';
@@ -31,29 +34,58 @@ import { WorkEditModal } from './WorkEditModal';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { useCompleteFundraise } from '@/hooks/useFundraise';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { TYPES_SUPPORTING_LISTS } from '@/services/list.service';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface WorkLineItemsProps {
   work: Work;
-  showClaimButton?: boolean;
+  // showClaimButton?: boolean;
   insightsButton?: React.ReactNode;
   metadata: WorkMetadata;
   onEditClick?: () => void;
 }
 
+export const ICON_BUTTON_STYLE_COLOR = 'bg-gray-100 text-gray-600 hover:bg-gray-200';
+
+export function GetLatestPaperID(work: Work): ID {
+  // Determine the latest version's paperId to pre-populate the form with the most recent data
+  let latestPaperId = work.id;
+
+  if (work.versions && work.versions.length > 0) {
+    // Try to use the version flagged as the latest first
+    const latestFlag = work.versions.find((v) => v.isLatest);
+
+    if (latestFlag) {
+      latestPaperId = latestFlag.paperId;
+    } else {
+      // Fallback: pick the version with newest publishedDate
+      const sorted = [...work.versions].sort(
+        (a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
+      );
+
+      latestPaperId = sorted[0].paperId;
+    }
+  }
+
+  return latestPaperId;
+}
+
 export const WorkLineItems = ({
   work,
-  showClaimButton = true,
+  // showClaimButton = true,
   insightsButton,
   metadata,
   onEditClick,
 }: WorkLineItemsProps) => {
-  const [claimModalOpen, setClaimModalOpen] = useState(false);
+  // const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
+  const [isListModalOpen, setIsListModalOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showFundraiseActionModal, setShowFundraiseActionModal] = useState(false);
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | null>(null);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
+
   const { vote, isVoting } = useVote({
     votableEntityId: work.id,
     feedContentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
@@ -61,6 +93,7 @@ export const WorkLineItems = ({
     relatedDocumentId: work.id.toString(),
     relatedDocumentContentType: work.contentType,
   });
+
   const [voteCount, setVoteCount] = useState(work.metrics?.votes || 0);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
   const router = useRouter();
@@ -68,6 +101,7 @@ export const WorkLineItems = ({
   const { user } = useUser();
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
   const { showShareModal } = useShareModalContext();
+  const isMobile = useIsMobile();
 
   const {
     data: userVotes,
@@ -114,15 +148,16 @@ export const WorkLineItems = ({
     }
   }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
 
-  // Determine if current user is a moderator
-  const isModerator = !!user?.isModerator;
-  // Determine if current user is a hub editor
-  const isHubEditor = !!user?.authorProfile?.isHubEditor;
+  const isModerator = !!user?.isModerator; // Determine if current user is a moderator
+  const isHubEditor = !!user?.authorProfile?.isHubEditor; // Determine if current user is a hub editor
 
   // Determine if current user is an author
-  const isAuthor =
-    user?.authorProfile != null &&
-    work.authors?.some((a) => a.authorProfile.id === user.authorProfile?.id);
+  const isAuthor = useMemo(
+    () =>
+      user?.authorProfile != null &&
+      work.authors?.some((a) => a.authorProfile.id === user.authorProfile?.id),
+    [user?.authorProfile, work.authors]
+  );
 
   const handleEdit = useCallback(() => {
     if (work.contentType === 'paper' && (isModerator || isHubEditor)) {
@@ -149,21 +184,31 @@ export const WorkLineItems = ({
     onEditClick,
   ]);
 
-  const handleTipSuccess = (amount: number) => {
+  const handleTipSuccess = useCallback((amount: number) => {
     toast.success(`Successfully tipped ${amount} RSC`);
+
     setIsTipModalOpen(false);
-  };
+  }, []);
+
+  const handleListSave = useCallback((listName: string) => {
+    toast.success(`Saved to list:\n${listName}`);
+
+    setIsListModalOpen(false);
+  }, []);
 
   // Determine if the latest version has already been published
-  const latestVersion = work.versions?.find((v) => v.isLatest);
+  const latestVersion = useMemo(() => work.versions?.find((v) => v.isLatest), [work.versions]);
+
   const isPublished = latestVersion?.publicationStatus === 'PUBLISHED';
 
   const handlePublish = useCallback(async () => {
     if (isPublished) return;
 
     setIsPublishing(true);
+
     try {
       await PaperService.publishPaper(work.id);
+
       toast.success('Paper published to ResearchHub Journal');
 
       // Refresh the page data to reflect new publication status
@@ -181,14 +226,17 @@ export const WorkLineItems = ({
     }
   }, [work.id, isPublished, router]);
 
-  const isGrantContact =
-    user?.authorProfile != null &&
-    work.contentType === 'funding_request' &&
-    work.note?.post?.grant?.contacts?.some(
-      (contact) => contact.authorProfile?.id === user.authorProfile?.id
-    );
+  const isGrantContact = useMemo(
+    () =>
+      user?.authorProfile != null &&
+      work.contentType === 'funding_request' &&
+      work.note?.post?.grant?.contacts?.some(
+        (contact) => contact.authorProfile?.id === user.authorProfile?.id
+      ),
+    [user?.authorProfile, work.contentType, work.note?.post?.grant?.contacts]
+  );
 
-  const canEdit = (() => {
+  const canEdit = useMemo(() => {
     switch (work.contentType) {
       case 'paper':
         return isModerator || isHubEditor;
@@ -200,31 +248,21 @@ export const WorkLineItems = ({
       default:
         return selectedOrg && work.note;
     }
-  })();
+  }, [
+    work.contentType,
+    isModerator,
+    isHubEditor,
+    isGrantContact,
+    isAuthor,
+    selectedOrg,
+    work.note,
+  ]);
 
   const handleAddVersion = useCallback(() => {
     if (!user) return; // should be authenticated already
 
-    // Determine the latest version's paperId to pre-populate the form with the most recent data
-    let latestPaperId = work.id;
-
-    if (work.versions && work.versions.length > 0) {
-      // Try to use the version flagged as latest first
-      const latestFlag = work.versions.find((v) => v.isLatest);
-
-      if (latestFlag) {
-        latestPaperId = latestFlag.paperId;
-      } else {
-        // Fallback: pick the version with newest publishedDate
-        const sorted = [...work.versions].sort(
-          (a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
-        );
-        latestPaperId = sorted[0].paperId;
-      }
-    }
-
-    router.push(`/paper/${latestPaperId}/create/version`);
-  }, [work.id, work.versions, user, router]);
+    router.push(`/paper/${GetLatestPaperID(work)}/create/version`);
+  }, [work, user, router]);
 
   const [{ isLoading: isClosingFundraise }, closeFundraise] = useCloseFundraise();
   const [{ isLoading: isCompletingFundraise }, completeFundraise] = useCompleteFundraise();
@@ -268,7 +306,7 @@ export const WorkLineItems = ({
     }
   }, [metadata.fundraising?.id, fundraiseAction, closeFundraise, completeFundraise, router]);
 
-  const getModalConfig = () => {
+  const modalConfig = useMemo(() => {
     switch (fundraiseAction) {
       case 'close':
         return {
@@ -297,49 +335,130 @@ export const WorkLineItems = ({
           isLoading: false,
         };
     }
-  };
+  }, [fundraiseAction, isClosingFundraise, isCompletingFundraise]);
 
-  const modalConfig = getModalConfig();
+  const icon_shared = 'flex items-center rounded-lg space-x-2 py-2';
+
+  const listsEnabled = useMemo(() => {
+    if (!user) return false;
+
+    return (
+      (work.contentType && TYPES_SUPPORTING_LISTS.includes(work.contentType.toUpperCase())) ||
+      (work.postType && TYPES_SUPPORTING_LISTS.includes(work.postType.toUpperCase()))
+    );
+  }, [work.contentType, work.postType, user]);
+
+  const tipButtonText = isMobile ? '' : 'Tip';
+
+  const handleShowShareModal = useCallback(
+    () =>
+      showShareModal({
+        url: window.location.href,
+        docTitle: work.title,
+        action: 'USER_SHARED_DOCUMENT',
+        shouldShowConfetti: false,
+      }),
+    [work.title, showShareModal]
+  );
+
+  const handleAuthdVote = useCallback(
+    () => executeAuthenticatedAction(handleVote),
+    [executeAuthenticatedAction, handleVote]
+  );
+
+  const openListModal = useCallback(() => setIsListModalOpen(true), []);
+  const closeListModal = useCallback(() => setIsListModalOpen(false), []);
+
+  const handleAuthdOpenListModal = useCallback(
+    () => executeAuthenticatedAction(openListModal),
+    [executeAuthenticatedAction, openListModal]
+  );
+
+  const openTipModal = useCallback(() => setIsTipModalOpen(true), []);
+  const closeTipModal = useCallback(() => setIsTipModalOpen(false), []);
+
+  const handleAuthdOpenTipModal = useCallback(
+    () => executeAuthenticatedAction(openTipModal),
+    [executeAuthenticatedAction, openTipModal]
+  );
+
+  const handleAuthdAddVersion = useCallback(
+    () => executeAuthenticatedAction(handleAddVersion),
+    [executeAuthenticatedAction, handleAddVersion]
+  );
+
+  const handleAuthdPublish = useCallback(
+    () => executeAuthenticatedAction(handlePublish),
+    [executeAuthenticatedAction, handlePublish]
+  );
+
+  const handleAuthdCloseFundraise = useCallback(
+    () => executeAuthenticatedAction(handleCloseFundraise),
+    [executeAuthenticatedAction, handleCloseFundraise]
+  );
+
+  const handleAuthdCompleteFundraise = useCallback(
+    () => executeAuthenticatedAction(handleCompleteFundraise),
+    [executeAuthenticatedAction, handleCompleteFundraise]
+  );
+
+  const openFlagModal = useCallback(() => setIsFlagModalOpen(true), []);
+  const closeFlagModal = useCallback(() => setIsFlagModalOpen(false), []);
+
+  const handleAuthdOpenFlagModal = useCallback(
+    () => executeAuthenticatedAction(openFlagModal),
+    [executeAuthenticatedAction, openFlagModal]
+  );
+
+  const closeWorkEditModal = useCallback(() => setIsWorkEditModalOpen(false), []);
 
   return (
     <div>
       {/* Primary Actions */}
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-3">
-          <button
-            onClick={() => executeAuthenticatedAction(handleVote)}
-            disabled={isVoting || isLoadingVotes}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-              isUpvoted
-                ? 'bg-green-50 text-green-600 hover:bg-green-100'
-                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-            } ${isVoting || isLoadingVotes ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <ArrowUp className={`h-4 w-4`} />
-            <span>{voteCount}</span>
-          </button>
+          <Tooltip content={isUpvoted ? 'Remove vote' : 'Upvote'}>
+            <button
+              onClick={handleAuthdVote}
+              disabled={isVoting || isLoadingVotes}
+              className={`${icon_shared} ${isMobile ? 'pr-3 pl-2' : 'px-4'} ${
+                isUpvoted
+                  ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                  : ICON_BUTTON_STYLE_COLOR
+              } ${isVoting || isLoadingVotes ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <ArrowUp className={`h-5 w-5`} />
+              <span>{voteCount}</span>
+            </button>
+          </Tooltip>
 
-          <button
-            onClick={() =>
-              showShareModal({
-                url: window.location.href,
-                docTitle: work.title,
-                action: 'USER_SHARED_DOCUMENT',
-                shouldShowConfetti: false,
-              })
-            }
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
-          >
-            <Share2 className="h-6 w-6" />
-          </button>
+          <Tooltip content="Share">
+            <button
+              onClick={handleShowShareModal}
+              className={`${icon_shared} px-2 ${ICON_BUTTON_STYLE_COLOR} flex-none`}
+            >
+              <Share2 className="h-5 w-5" />
+            </button>
+          </Tooltip>
+
+          {listsEnabled && (
+            <Tooltip content="Save to list">
+              <button
+                onClick={handleAuthdOpenListModal}
+                className={`${icon_shared} px-2 ${ICON_BUTTON_STYLE_COLOR} flex-none`}
+              >
+                <ListPlus className="h-6 w-6" />
+              </button>
+            </Tooltip>
+          )}
 
           {work.contentType !== 'preregistration' && (
             <button
-              onClick={() => executeAuthenticatedAction(() => setIsTipModalOpen(true))}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+              onClick={handleAuthdOpenTipModal}
+              className={`${icon_shared} px-${tipButtonText ? 4 : 2.5} ${ICON_BUTTON_STYLE_COLOR} ${tipButtonText ? '' : 'flex-none py-2.5'}`}
             >
               <Icon name="tipRSC" size={20} />
-              <span className="hidden md:!block">Tip</span>
+              {tipButtonText && <span className="hidden md:!block">{tipButtonText}</span>}
             </button>
           )}
 
@@ -347,60 +466,59 @@ export const WorkLineItems = ({
           {insightsButton}
 
           {/* More Actions Dropdown */}
-          <BaseMenu
-            align="start"
-            trigger={
-              <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg">
-                <MoreHorizontal className="h-5 w-5" />
-              </button>
-            }
-          >
-            {canEdit && (
-              <BaseMenuItem onSelect={handleEdit}>
-                <Edit className="h-4 w-4 mr-2" />
-                <span>Edit</span>
-              </BaseMenuItem>
-            )}
-            {isAuthor && (
-              <BaseMenuItem onSelect={() => executeAuthenticatedAction(handleAddVersion)}>
-                <FileUp className="h-4 w-4 mr-2" />
-                <span>Upload New Version</span>
-              </BaseMenuItem>
-            )}
-            {!isPublished && isModerator && work.contentType !== 'preregistration' && (
-              <BaseMenuItem
-                disabled={isPublishing}
-                onSelect={() => executeAuthenticatedAction(handlePublish)}
-              >
-                <Icon name="rhJournal1" size={16} className="mr-2" />
-                <span>Publish to Journal</span>
-              </BaseMenuItem>
-            )}
-            {isModerator && work.contentType === 'preregistration' && metadata.fundraising?.id && (
-              <>
-                <BaseMenuItem
-                  disabled={isClosingFundraise}
-                  onSelect={() => executeAuthenticatedAction(handleCloseFundraise)}
-                >
-                  <Octagon className="h-4 w-4 mr-2" />
-                  <span>Close fundraise & refund contributors</span>
-                </BaseMenuItem>
-                <BaseMenuItem
-                  disabled={isCompletingFundraise}
-                  onSelect={() => executeAuthenticatedAction(handleCompleteFundraise)}
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  <span>Complete fundraise</span>
-                </BaseMenuItem>
-              </>
-            )}
-            <BaseMenuItem
-              onSelect={() => executeAuthenticatedAction(() => setIsFlagModalOpen(true))}
+          <Tooltip content="More">
+            <BaseMenu
+              align="start"
+              trigger={
+                <button className={`${icon_shared} px-2 ${ICON_BUTTON_STYLE_COLOR}`}>
+                  <MoreHorizontal className="h-5 w-5" />
+                </button>
+              }
             >
-              <Flag className="h-4 w-4 mr-2" />
-              <span>Flag Content</span>
-            </BaseMenuItem>
-          </BaseMenu>
+              {canEdit && (
+                <BaseMenuItem onSelect={handleEdit}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  <span>Edit</span>
+                </BaseMenuItem>
+              )}
+              {isAuthor && (
+                <BaseMenuItem onSelect={handleAuthdAddVersion}>
+                  <FileUp className="h-4 w-4 mr-2" />
+                  <span>Upload New Version</span>
+                </BaseMenuItem>
+              )}
+              {!isPublished && isModerator && work.contentType !== 'preregistration' && (
+                <BaseMenuItem disabled={isPublishing} onSelect={handleAuthdPublish}>
+                  <Icon name="rhJournal1" size={16} className="mr-2" />
+                  <span>Publish to Journal</span>
+                </BaseMenuItem>
+              )}
+              {isModerator &&
+                work.contentType === 'preregistration' &&
+                metadata.fundraising?.id && (
+                  <>
+                    <BaseMenuItem
+                      disabled={isClosingFundraise}
+                      onSelect={handleAuthdCloseFundraise}
+                    >
+                      <Octagon className="h-4 w-4 mr-2" />
+                      <span>Close fundraise & refund contributors</span>
+                    </BaseMenuItem>
+                    <BaseMenuItem
+                      disabled={isCompletingFundraise}
+                      onSelect={handleAuthdCompleteFundraise}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      <span>Complete fundraise</span>
+                    </BaseMenuItem>
+                  </>
+                )}
+              <BaseMenuItem onSelect={handleAuthdOpenFlagModal}>
+                <Flag className="h-4 w-4 mr-2" />
+                <span>Flag Content</span>
+              </BaseMenuItem>
+            </BaseMenu>
+          </Tooltip>
         </div>
       </div>
 
@@ -494,7 +612,7 @@ export const WorkLineItems = ({
 
       <FlagContentModal
         isOpen={isFlagModalOpen}
-        onClose={() => setIsFlagModalOpen(false)}
+        onClose={closeFlagModal}
         documentId={work.id.toString()}
         workType={work.contentType}
       />
@@ -502,16 +620,27 @@ export const WorkLineItems = ({
       {/* Tip Modal */}
       <TipContentModal
         isOpen={isTipModalOpen}
-        onClose={() => setIsTipModalOpen(false)}
+        onClose={closeTipModal}
         contentId={work.id}
         feedContentType={work.contentType === 'paper' ? 'PAPER' : 'POST'}
         onTipSuccess={handleTipSuccess}
       />
 
+      {/* List Modal */}
+      {listsEnabled && (
+        <SaveToListModal
+          isOpen={isListModalOpen}
+          onClose={closeListModal}
+          contentId={work.id}
+          contentType={work.contentType}
+          onSave={handleListSave}
+        />
+      )}
+
       {work.contentType === 'paper' && (
         <WorkEditModal
           isOpen={isWorkEditModalOpen}
-          onClose={() => setIsWorkEditModalOpen(false)}
+          onClose={closeWorkEditModal}
           work={work}
           metadata={metadata}
         />

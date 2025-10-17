@@ -1,6 +1,3 @@
-import { PaperIcon } from '@/components/ui/icons';
-import { FundingIcon } from '@/components/ui/icons/FundingIcon';
-import { Coins, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
@@ -8,17 +5,19 @@ import Icon from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCommentsQuestion } from '@fortawesome/pro-light-svg-icons';
 
+export type ContentTypeBadgeTypes =
+  | 'paper'
+  | 'funding'
+  | 'bounty'
+  | 'review'
+  | 'article'
+  | 'preprint'
+  | 'published'
+  | 'grant'
+  | 'question';
+
 interface ContentTypeBadgeProps {
-  type:
-    | 'paper'
-    | 'funding'
-    | 'bounty'
-    | 'review'
-    | 'article'
-    | 'preprint'
-    | 'published'
-    | 'grant'
-    | 'question';
+  type: ContentTypeBadgeTypes;
   className?: string;
   size?: 'default' | 'sm' | 'lg' | 'xs';
   score?: number;

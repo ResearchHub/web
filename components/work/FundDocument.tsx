@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { BarChart2 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Comment } from '@/types/comment';
 import { WorkLineItems } from './WorkLineItems';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { WorkTabs, TabType } from './WorkTabs';
+import { TabType, WorkTabs } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
@@ -227,7 +227,7 @@ export const FundDocument = ({
       <WorkLineItems
         work={work}
         metadata={metadata}
-        showClaimButton={false}
+        // showClaimButton={false}
         insightsButton={
           <button
             className="lg:!hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"

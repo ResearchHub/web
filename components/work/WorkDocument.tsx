@@ -1,38 +1,23 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  BarChart2,
-  CheckCircle,
-  FileText,
-  MessageCircle,
-  Play,
-  Star,
-  AlertTriangle,
-  FlaskConicalOff,
-  History,
-  Plus,
-} from 'lucide-react';
-import { Work, DocumentVersion } from '@/types/work';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { BarChart2, FlaskConicalOff, Plus } from 'lucide-react';
+import { Work } from '@/types/work';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { WorkRightSidebar } from './WorkRightSidebar';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { WorkLineItems } from './WorkLineItems';
+import { GetLatestPaperID, WorkLineItems } from './WorkLineItems';
 import { WorkMetadata } from '@/services/metadata.service';
 import { DocumentViewer } from './DocumentViewer';
-import { CommentEditor } from '@/components/Comment/CommentEditor';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
-import { formatRSC } from '@/utils/number';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { WorkTabs, TabType } from './WorkTabs';
+import { TabType, WorkTabs } from './WorkTabs';
 import { WorkHistoryDisplay } from './WorkHistoryDisplay';
-import { Badge } from '@/components/ui/Badge';
-import { Tooltip } from '@/components/ui/Tooltip';
-
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { ICON_BUTTON_STYLE_COLOR } from '@/components/work/WorkLineItems';
 
 interface WorkDocumentProps {
   work: Work;
@@ -44,23 +29,23 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-
   const { user } = useUser();
+  const isMobile = useIsMobile();
 
-  // State for active tab
-  const [activeTab, setActiveTab] = useState<TabType>(() => {
+  const startingTab = useMemo(() => {
     if (pathname.includes('/conversation')) return 'conversation';
     if (pathname.includes('/reviews')) return 'reviews';
     if (pathname.includes('/bounties')) return 'bounties';
     if (pathname.includes('/history')) return 'history';
     return defaultTab;
-  });
+  }, [pathname, defaultTab]);
 
-  const [rewardModalOpen, setRewardModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>(startingTab);
+  // const [rewardModalOpen, setRewardModalOpen] = useState(false);
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
   const [pdfUnavailable, setPdfUnavailable] = useState(false);
 
-  // Determine if we should auto focus the review editor based on query param
+  // Determine if we should autofocus the review editor based on query param
   const shouldFocusReviewEditor = useMemo(() => {
     return searchParams?.get('focus') === 'true';
   }, [searchParams]);
@@ -80,29 +65,11 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
     return work.authors?.some((a) => a.authorProfile.id === user!.authorProfile!.id);
   }, [user, work.authors]);
 
-  const handleAddVersion = () => {
+  const handleAddVersion = useCallback(() => {
     if (!user) return; // should be authenticated already
 
-    // Determine the latest version's paperId to pre-populate the form with the most recent data
-    let latestPaperId = work.id;
-
-    if (work.versions && work.versions.length > 0) {
-      // Try to use the version flagged as latest first
-      const latestFlag = work.versions.find((v) => v.isLatest);
-
-      if (latestFlag) {
-        latestPaperId = latestFlag.paperId;
-      } else {
-        // Fallback: pick the version with newest publishedDate
-        const sorted = [...work.versions].sort(
-          (a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
-        );
-        latestPaperId = sorted[0].paperId;
-      }
-    }
-
-    router.push(`/paper/${latestPaperId}/create/version`);
-  };
+    router.push(`/paper/${GetLatestPaperID(work)}/create/version`);
+  }, [work, user, router]);
 
   // Render tab content based on activeTab - memoized to prevent unnecessary re-renders
   const renderTabContent = useMemo(() => {
@@ -249,6 +216,16 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
     handleAddVersion,
   ]);
 
+  const handleShowMobileMetrics = useCallback(() => {
+    setShowMobileMetrics(true);
+  }, []);
+
+  const handleHideMobileMetrics = useCallback(() => {
+    setShowMobileMetrics(false);
+  }, []);
+
+  const insightsButtonText = isMobile ? '' : 'Insights';
+
   return (
     <div>
       <EarningOpportunityBanner work={work} metadata={metadata} />
@@ -261,11 +238,11 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
         metadata={metadata}
         insightsButton={
           <button
-            className="lg:!hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
-            onClick={() => setShowMobileMetrics(true)}
+            className={`lg:!hidden ${insightsButtonText ? 'flex' : 'flex-none'} items-center space-x-2 px-${insightsButtonText ? 4 : 2.5} py-${insightsButtonText ? 2 : 2.5} rounded-lg ${ICON_BUTTON_STYLE_COLOR}`}
+            onClick={handleShowMobileMetrics}
           >
-            <BarChart2 className="h-4 w-4" />
-            <span>Insights</span>
+            <BarChart2 className="h-5 w-5" />
+            {insightsButtonText && <span>{insightsButtonText}</span>}
           </button>
         }
       />
@@ -284,13 +261,13 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
 
       {/* Mobile sidebar overlay */}
       <div
-        className={`fixed inset-0 bg-black/50 z-30 z-50 lg:hidden ${
+        className={`fixed inset-0 bg-black/50 z-50 lg:hidden ${
           showMobileMetrics ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
-        onClick={() => setShowMobileMetrics(false)}
+        onClick={handleHideMobileMetrics}
       >
         <div
-          className={`absolute right-0 top-0 bottom-0 w-80 bg-white shadow-xl transition-transform duration-200 p-4 ${
+          className={`absolute right-0 top-16 bottom-0 w-80 bg-white shadow-xl transition-transform duration-200 p-4 ${
             showMobileMetrics ? 'translate-x-0' : 'translate-x-full'
           }`}
           onClick={(e) => e.stopPropagation()}

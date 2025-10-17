@@ -1,0 +1,224 @@
+'use client';
+
+import { ChangeEvent, useCallback, useMemo, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { ContentType } from '@/types/work';
+import { Button } from '@/components/ui/Button';
+import { toTitleCase } from '@/utils/stringUtils';
+import { Input } from '@/components/ui/form/Input';
+import { BaseModal } from '@/components/ui/BaseModal';
+import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
+import { ID, RawUnifiedDocument, transformUnifiedDocument } from '@/types/root';
+import { useCreateList, useGetLists } from '@/hooks/useList';
+import { useCreateListItem } from '@/hooks/useListItem';
+import { List } from '@/services/list.service';
+import { useIsMobile } from '@/hooks/useIsMobile';
+
+export const LIST_NAME_MAX_LENGTH = 120;
+
+type SaveToListModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave?: (listName: string) => void;
+  contentId: ID;
+  contentType: ContentType;
+};
+
+export default function SaveToListModal({
+  isOpen,
+  onClose,
+  onSave,
+  contentId,
+  contentType,
+}: SaveToListModalProps) {
+  const [selectedListId, setSelectedListId] = useState<ID | 'new'>('');
+  const [newListName, setNewListName] = useState('');
+  const isMobile = useIsMobile();
+
+  const {
+    results: lists,
+    isLoading: getListsIsLoading,
+    error: getListsError,
+    refresh: refreshLists,
+  } = useGetLists();
+
+  const { isLoading: createListIsLoading, error: createListError, createList } = useCreateList();
+
+  const {
+    isLoading: createListItemIsLoading,
+    error: createListItemError,
+    createListItem,
+  } = useCreateListItem();
+
+  const isLoading = useMemo(
+    () => createListIsLoading || createListItemIsLoading,
+    [createListIsLoading, createListItemIsLoading]
+  );
+
+  const hasError = useMemo(
+    () => createListError || createListItemError || getListsError,
+    [createListError, createListItemError, getListsError]
+  );
+
+  const modalTitle = useMemo(() => `Save ${toTitleCase(contentType)} to List`, [contentType]);
+
+  const buttonDisabled = useMemo(
+    () => isLoading || !selectedListId || (selectedListId === 'new' && !newListName),
+    [isLoading, selectedListId, newListName]
+  );
+
+  const handleSave = useCallback(async (): Promise<void> => {
+    try {
+      let finalListId: ID;
+      let finalListName: string;
+
+      if (selectedListId === 'new') {
+        const newList =
+          lists.find((list) => list.name === newListName) ||
+          (await createList({ name: newListName }, false));
+
+        finalListId = newList.id;
+        finalListName = newList.name;
+      } else {
+        finalListId = selectedListId;
+
+        const selectedList = lists.find((list) => list.id === finalListId);
+
+        if (!selectedList) {
+          console.error(`List not found for ID: ${finalListId}`);
+
+          return;
+        }
+
+        finalListName = selectedList.name;
+      }
+
+      await createListItem(
+        {
+          parent_list: finalListId,
+          unified_document: contentId,
+        },
+        false
+      );
+
+      await refreshLists();
+
+      onSave?.(finalListName);
+
+      onClose();
+    } catch (error) {
+      console.error('Error saving to list:', error);
+    }
+  }, [
+    selectedListId,
+    newListName,
+    lists,
+    createList,
+    createListItem,
+    refreshLists,
+    contentId,
+    onSave,
+    onClose,
+  ]);
+
+  const handleNewListNameChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setNewListName(e.target.value.trim());
+  }, []);
+
+  const handleCreateNewList = useCallback(() => {
+    setSelectedListId('new');
+  }, []);
+
+  const idInList = useCallback((list: List, unified_document: ID): boolean => {
+    return (
+      list.items?.some(
+        (item) =>
+          transformUnifiedDocument(item.unified_document as RawUnifiedDocument)?.id ===
+          unified_document
+      ) || false
+    );
+  }, []);
+
+  // const idInLists = useCallback(
+  //   (unified_document: ID): boolean => {
+  //     if (!lists?.length) return false;
+  //
+  //     return lists.some((list) => idInList(list, unified_document));
+  //   },
+  //   [lists, idInList]
+  // );
+
+  const getSelectedLabel = useMemo((): string => {
+    if (selectedListId === 'new') return 'New list';
+
+    if (selectedListId) {
+      const list = lists.find((list) => list.id === selectedListId);
+
+      if (list && !idInList(list, contentId) && list.name) {
+        return list.name;
+      }
+    }
+
+    return 'Or create one';
+  }, [selectedListId, lists, contentId, idInList]);
+
+  return (
+    <BaseModal isOpen={isOpen} onClose={onClose} title={modalTitle}>
+      {hasError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-600 text-sm">{hasError.message}</p>
+        </div>
+      )}
+      <Dropdown
+        label="Select a List"
+        trigger={
+          <Button
+            variant="outlined"
+            className="w-full justify-between"
+            disabled={getListsIsLoading}
+          >
+            {getSelectedLabel}
+            <ChevronDown size={16} className="text-gray-500" />
+          </Button>
+        }
+        required={true}
+      >
+        <DropdownItem key="new" onClick={handleCreateNewList} className="italic">
+          Create new list...
+        </DropdownItem>
+        {lists &&
+          lists.map((list) => {
+            const inList = idInList(list, contentId);
+
+            return (
+              <DropdownItem
+                key={list.id}
+                onClick={() => setSelectedListId(list.id)}
+                className={inList ? 'opacity-50' : ''}
+                disabled={inList}
+              >
+                {(inList ? '(Already in list) ' : '') + list.name}
+              </DropdownItem>
+            );
+          })}
+      </Dropdown>
+      {selectedListId === 'new' && <div className="mt-4"></div>}
+      {selectedListId === 'new' && (
+        <Input
+          label="Name"
+          placeholder="Enter new list name"
+          required={true}
+          onChange={handleNewListNameChange}
+          maxLength={LIST_NAME_MAX_LENGTH}
+        />
+      )}
+      <Button
+        className={`w-${isMobile ? 'full' : '[400px]'} mt-8`}
+        disabled={buttonDisabled}
+        onClick={handleSave}
+      >
+        {isLoading ? 'Saving...' : 'Save'}
+      </Button>
+    </BaseModal>
+  );
+}
