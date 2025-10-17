@@ -61,6 +61,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const config = TAB_CONFIG[marketplaceTab];
   const [isSortChanging, setIsSortChanging] = useState(false);
   const previousSortRef = useRef(sortBy);
+  const isInitialMount = useRef(true);
 
   const handleSortChange = (newSort: FundingSortOption) => {
     setIsSortChanging(true);
@@ -81,6 +82,12 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   });
 
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      previousSortRef.current = sortBy;
+      return;
+    }
+
     if (sortBy !== previousSortRef.current) {
       setIsSortChanging(true);
       previousSortRef.current = sortBy;
@@ -88,14 +95,8 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   }, [sortBy]);
 
   useEffect(() => {
-    if (isSortChanging && isLoading) {
-      return;
-    }
-    if (isSortChanging && !isLoading) {
-      const timer = setTimeout(() => {
-        setIsSortChanging(false);
-      }, 100);
-      return () => clearTimeout(timer);
+    if (!isLoading && isSortChanging) {
+      setIsSortChanging(false);
     }
   }, [isLoading, isSortChanging]);
 
