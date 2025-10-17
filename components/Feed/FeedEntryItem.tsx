@@ -149,9 +149,9 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
           } else if (entry.relatedWork) {
             // Check if the related work is a question
             if ('postType' in entry.relatedWork && entry.relatedWork.postType === 'QUESTION') {
-              return `/question/${entry.relatedWork.id}/${entry.relatedWork.slug}/${tab}#comment-${comment.id}`;
+              return `/question/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
             }
-            return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/${tab}#comment-${comment.id}`;
+            return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
           }
 
         case 'GRANT':
