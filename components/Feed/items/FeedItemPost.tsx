@@ -62,6 +62,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
       customActionText={post.postType === 'QUESTION' ? 'asked a question' : 'published an article'}
       maxLength={maxLength}
       onFeedItemClick={onFeedItemClick}
+      showPeerReviews={post.postType !== 'QUESTION'}
     >
       {/* Top section with badges and mobile image */}
       <FeedItemTopSection
