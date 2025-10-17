@@ -212,33 +212,9 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
 
       {/* Debug: Hot Score V2 Badge */}
       {isDebugMode && hotScoreV2 !== null && hotScoreV2 !== undefined && (
-        <Tooltip
-          content={
-            <div className="space-y-2">
-              <div className="font-semibold">Hot Score V2: {hotScoreV2}</div>
-              {externalMetrics && (
-                <>
-                  <div className="text-sm">External Metrics:</div>
-                  <div className="text-xs space-y-1">
-                    <div>Score: {externalMetrics.score}</div>
-                    <div>Bluesky: {externalMetrics.blueskyCount}</div>
-                    <div>Twitter: {externalMetrics.twitterCount}</div>
-                    <div>Facebook: {externalMetrics.facebookCount}</div>
-                    <div>
-                      Last Updated: {new Date(externalMetrics.lastUpdated).toLocaleString()}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          }
-          width="w-72"
-          position="top"
-        >
-          <div className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-700 cursor-help">
-            <span className="text-md font-medium">🔥 {Math.round(hotScoreV2)}</span>
-          </div>
-        </Tooltip>
+        <div className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-700 cursor-help">
+          <span className="text-md font-medium">🔥 {Math.round(hotScoreV2)}</span>
+        </div>
       )}
     </div>
   );
