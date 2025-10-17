@@ -13,7 +13,7 @@ import {
   FundingSortOption,
 } from '@/components/Fund/MarketplaceTabs';
 import Icon from '@/components/ui/icons/Icon';
-import { ReactNode, useTransition } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 
 type TabConfig = {
   title: string;
@@ -57,20 +57,19 @@ interface FundPageContentProps {
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
   const sortBy = (searchParams.get('sort') as FundingSortOption) || '';
   const config = TAB_CONFIG[marketplaceTab];
+  const [isSortChanging, setIsSortChanging] = useState(false);
 
   const handleSortChange = (newSort: FundingSortOption) => {
-    startTransition(() => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (newSort) {
-        params.set('sort', newSort);
-      } else {
-        params.delete('sort');
-      }
-      router.push(`?${params.toString()}`, { scroll: false });
-    });
+    setIsSortChanging(true);
+    const params = new URLSearchParams(searchParams.toString());
+    if (newSort) {
+      params.set('sort', newSort);
+    } else {
+      params.delete('sort');
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const { entries, isLoading, hasMore, loadMore } = useFeed('all', {
@@ -79,6 +78,12 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     fundraiseStatus: config.fundraiseStatus,
     ordering: sortBy || undefined,
   });
+
+  useEffect(() => {
+    if (!isLoading && isSortChanging) {
+      setIsSortChanging(false);
+    }
+  }, [isLoading, isSortChanging]);
 
   return (
     <PageLayout rightSidebar={config.sidebar}>
@@ -95,7 +100,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
       />
       <FeedContent
         entries={entries}
-        isLoading={isLoading || isPending}
+        isLoading={isLoading || isSortChanging}
         hasMore={hasMore}
         loadMore={loadMore}
         showGrantHeaders={false}
