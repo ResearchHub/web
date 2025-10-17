@@ -138,7 +138,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             }
             return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/bounties`;
           }
-        case 'COMMENT':
+        case 'COMMENT': {
           const comment = entry.content as FeedCommentContent;
           const isReview = comment.comment.commentType === 'REVIEW';
           const tab = isReview ? 'reviews' : 'conversation';
@@ -149,10 +149,14 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
           } else if (entry.relatedWork) {
             // Check if the related work is a question
             if ('postType' in entry.relatedWork && entry.relatedWork.postType === 'QUESTION') {
+              // Questions don't support reviews tab, always use conversation
               return `/question/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
             }
-            return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
+            // Regular posts support reviews tab
+            return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/${tab}#comment-${comment.id}`;
           }
+          break;
+        }
 
         case 'GRANT':
           const grantContent = entry.content as FeedGrantContent;
