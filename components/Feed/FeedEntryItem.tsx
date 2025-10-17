@@ -138,7 +138,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             }
             return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/bounties`;
           }
-        case 'COMMENT':
+        case 'COMMENT': {
           const comment = entry.content as FeedCommentContent;
           // Check if this is a review
           const isReview = comment.comment.commentType === 'REVIEW' || !!comment.review;
@@ -155,6 +155,8 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             }
             return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
           }
+          break;
+        }
 
         case 'GRANT':
           const grantContent = entry.content as FeedGrantContent;
