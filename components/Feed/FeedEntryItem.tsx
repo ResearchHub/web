@@ -138,11 +138,16 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             }
             return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/bounties`;
           }
-        case 'COMMENT':
+        case 'COMMENT': {
           const comment = entry.content as FeedCommentContent;
+          // Check if this is a review
+          const isReview = comment.comment.commentType === 'REVIEW' || !!comment.review;
+
           // For comments, we might want to link to the parent content with the comment ID as a hash
           if (entry.relatedWork?.contentType === 'paper') {
-            return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
+            // For reviews, use /reviews tab; for regular comments, use /conversation tab
+            const tab = isReview ? 'reviews' : 'conversation';
+            return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}/${tab}#comment-${comment.id}`;
           } else if (entry.relatedWork) {
             // Check if the related work is a question
             if ('postType' in entry.relatedWork && entry.relatedWork.postType === 'QUESTION') {
@@ -150,6 +155,8 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             }
             return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
           }
+          break;
+        }
 
         case 'GRANT':
           const grantContent = entry.content as FeedGrantContent;
