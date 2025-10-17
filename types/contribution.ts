@@ -191,7 +191,10 @@ export const transformContributionToFeedEntry = ({
           id: item.id,
           content: item.comment_content_json,
           contentFormat: 'TIPTAP',
-          commentType: reviewScore ? 'REVIEW' : item.thread?.thread_type || 'GENERIC_COMMENT',
+          commentType:
+            contributionType === 'REVIEW' || reviewScore
+              ? 'REVIEW'
+              : item.thread?.thread_type || 'GENERIC_COMMENT',
           thread: item.thread
             ? {
                 id: item.thread.content_object.id,
