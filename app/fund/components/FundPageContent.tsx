@@ -13,7 +13,7 @@ import {
   FundingSortOption,
 } from '@/components/Fund/MarketplaceTabs';
 import Icon from '@/components/ui/icons/Icon';
-import { ReactNode, useState, useEffect } from 'react';
+import { ReactNode, useState, useEffect, useRef } from 'react';
 
 type TabConfig = {
   title: string;
@@ -60,6 +60,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const sortBy = (searchParams.get('sort') as FundingSortOption) || '';
   const config = TAB_CONFIG[marketplaceTab];
   const [isSortChanging, setIsSortChanging] = useState(false);
+  const previousSortRef = useRef(sortBy);
 
   const handleSortChange = (newSort: FundingSortOption) => {
     setIsSortChanging(true);
@@ -80,8 +81,21 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   });
 
   useEffect(() => {
-    if (!isLoading && isSortChanging) {
-      setIsSortChanging(false);
+    if (sortBy !== previousSortRef.current) {
+      setIsSortChanging(true);
+      previousSortRef.current = sortBy;
+    }
+  }, [sortBy]);
+
+  useEffect(() => {
+    if (isSortChanging && isLoading) {
+      return;
+    }
+    if (isSortChanging && !isLoading) {
+      const timer = setTimeout(() => {
+        setIsSortChanging(false);
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [isLoading, isSortChanging]);
 
