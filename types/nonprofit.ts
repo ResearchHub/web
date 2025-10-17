@@ -130,8 +130,8 @@ export const transformNonprofitSearchResult = createTransformer<any, Omit<Nonpro
     description: raw.description,
     address: { ...raw.address },
     endaomentUrl: raw.endaomentUrl,
-    contributionCount: raw.contibutionCount, // Fix typo from API
-    contributionTotal: raw.contibutionTotal, // Fix typo from API
+    contributionCount: raw.contributionCount ?? raw.contibutionCount ?? 0, // Handle both correct and typo from API
+    contributionTotal: raw.contributionTotal ?? raw.contibutionTotal ?? '0', // Handle both correct and typo from API
     baseWalletAddress: raw.deployments.find(
       (d: NonprofitDeployment) => d.chainId === CHAIN_IDS.BASE
     )?.address,
