@@ -26,6 +26,7 @@ import {
 import { parseISO, isValid, differenceInDays } from 'date-fns';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { BaseModal as Modal } from '@/components/ui/BaseModal';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import Icon from '@/components/ui/icons/Icon';
@@ -542,14 +543,20 @@ function LeaderboardPageContent() {
                       <div className="flex flex-col min-w-0">
                         {authorId ? (
                           <AuthorTooltip authorId={authorId}>
+                            <div className="flex items-center gap-1">
+                              <span className="text-base font-medium text-gray-900 truncate">
+                                {reviewer.authorProfile.fullName}
+                              </span>
+                              {reviewer.isVerified && <VerifiedBadge size="sm" />}
+                            </div>
+                          </AuthorTooltip>
+                        ) : (
+                          <div className="flex items-center gap-1">
                             <span className="text-base font-medium text-gray-900 truncate">
                               {reviewer.authorProfile.fullName}
                             </span>
-                          </AuthorTooltip>
-                        ) : (
-                          <span className="text-base font-medium text-gray-900 truncate">
-                            {reviewer.authorProfile.fullName}
-                          </span>
+                            {reviewer.isVerified && <VerifiedBadge size="sm" />}
+                          </div>
                         )}
                         {reviewer.authorProfile.headline && (
                           <span className="text-sm text-gray-500 line-clamp-2">
@@ -626,14 +633,20 @@ function LeaderboardPageContent() {
                     <div className="flex flex-col min-w-0">
                       {authorId ? (
                         <AuthorTooltip authorId={authorId}>
+                          <div className="flex items-center gap-1">
+                            <span className="text-base font-medium text-gray-900 truncate">
+                              {funder.authorProfile.fullName}
+                            </span>
+                            {funder.isVerified && <VerifiedBadge size="sm" />}
+                          </div>
+                        </AuthorTooltip>
+                      ) : (
+                        <div className="flex items-center gap-1">
                           <span className="text-base font-medium text-gray-900 truncate">
                             {funder.authorProfile.fullName}
                           </span>
-                        </AuthorTooltip>
-                      ) : (
-                        <span className="text-base font-medium text-gray-900 truncate">
-                          {funder.authorProfile.fullName}
-                        </span>
+                          {funder.isVerified && <VerifiedBadge size="sm" />}
+                        </div>
                       )}
                       {funder.authorProfile.headline && (
                         <span className="text-sm text-gray-500 line-clamp-2">
