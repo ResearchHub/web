@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/Button';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface EditorFooterProps {
   saveStatus: 'idle' | 'saving' | 'saved';
@@ -10,6 +11,7 @@ interface EditorFooterProps {
   clearDraft: () => void;
   isSubmitting: boolean;
   hideSubmit?: boolean;
+  isMac?: boolean;
 }
 
 export const EditorFooter = ({
@@ -22,7 +24,10 @@ export const EditorFooter = ({
   clearDraft,
   isSubmitting,
   hideSubmit = false,
+  isMac = false,
 }: EditorFooterProps) => {
+  const isMobile = useIsMobile();
+
   return (
     <div className="flex justify-between items-center px-4 py-2 border-t border-gray-200">
       {/* Draft status */}
@@ -49,7 +54,14 @@ export const EditorFooter = ({
         )}
         {!hideSubmit && (
           <Button variant="default" size="sm" onClick={onSubmit} disabled={isSubmitting}>
-            {isSubmitting ? 'Submitting...' : 'Submit'}
+            <span className="flex items-center justify-between w-full gap-3">
+              <span>{isSubmitting ? 'Submitting...' : 'Submit'}</span>
+              {!isSubmitting && !isMobile && (
+                <span className="text-xs font-normal opacity-60 bg-white/20 px-2 py-0.5 rounded">
+                  {isMac ? '⌘↵' : 'Ctrl+↵'}
+                </span>
+              )}
+            </span>
           </Button>
         )}
       </div>
