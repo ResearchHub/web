@@ -150,7 +150,7 @@ export const LeaderboardOverview = () => {
         </div>
 
         {/* Name */}
-        <div className="flex items-center gap-1.5 min-w-0 overflow-hidden mr-0.5">
+        <div className="flex items-center gap-1.5 min-w-0 overflow-hidden mr-0.3">
           <div className="min-w-0 flex-shrink overflow-hidden relative">
             {authorId ? (
               <AuthorTooltip authorId={authorId}>
