@@ -168,14 +168,14 @@ export const LeaderboardOverview = () => {
             )}
           </div>
           {item.isVerified && (
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 flex items-center">
               <VerifiedBadge size="sm" />
             </div>
           )}
         </div>
 
         {/* RSC Badge */}
-        <div className="flex-shrink-0 text-right">
+        <div className="flex-shrink-0 text-right flex items-center">
           <CurrencyBadge
             amount={amount}
             variant="text"
