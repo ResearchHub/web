@@ -9,6 +9,7 @@ import { User } from '@/types/user';
 import { cn } from '@/utils/styles';
 import { InfoIcon } from 'lucide-react';
 import { SocialIcon } from '@/components/ui/SocialIcon';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 
 interface AuthorTooltipProps {
   authorId?: number;
@@ -232,7 +233,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
           />
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
               {userData.authorProfile?.id ? (
                 <Link
                   href={`/author/${userData.authorProfile.id}`}
@@ -244,6 +245,11 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
                 <span className="font-semibold text-gray-900 block truncate">
                   {userData.fullName}
                 </span>
+              )}
+              {userData.isVerified && (
+                <div className="flex-shrink-0 flex items-center">
+                  <VerifiedBadge size="sm" />
+                </div>
               )}
             </div>
 

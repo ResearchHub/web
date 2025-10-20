@@ -136,6 +136,11 @@ export class AuthorService {
         throw new Error('Received empty response from API');
       }
 
+      console.log(
+        `AuthorService.getAuthorInfo(${authorId}): is_verified =`,
+        (response as any).is_verified
+      );
+
       // Properly prepare the data for transformUser
       let userData;
       if ('author_profile' in response) {
@@ -148,6 +153,7 @@ export class AuthorService {
           id: response.id,
           first_name: response.first_name,
           last_name: response.last_name,
+          is_verified: (response as any).is_verified,
           author_profile: {
             ...response,
             id: response.id,
@@ -183,6 +189,7 @@ export class AuthorService {
           id: response.id,
           first_name: response.first_name,
           last_name: response.last_name,
+          is_verified: (response as any).is_verified,
           author_profile: {
             ...response,
             id: response.id,
