@@ -1,13 +1,23 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 function ErrorContent() {
   const searchParams = useSearchParams();
-  const error = searchParams?.get('error');
+  const router = useRouter();
 
-  return null; // This page won't render anything, it just redirects
+  useEffect(() => {
+    const error = searchParams?.get('error');
+    const callbackUrl = searchParams?.get('callbackUrl') || '/';
+
+    const params = new URLSearchParams({ callbackUrl });
+    if (error) params.set('error', error);
+
+    router.replace(`/auth/signin?${params}`);
+  }, [searchParams, router]);
+
+  return null;
 }
 
 export default function ErrorPage() {
