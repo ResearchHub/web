@@ -108,7 +108,7 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
   const contributionType = TAB_TO_CONTRIBUTION_TYPE[currentTab] || 'ALL';
 
   const {
-    contributions,
+    contributions: allContributions,
     isLoading: isContributionsLoading,
     error: contributionsError,
     hasMore: hasMoreContributions,
@@ -118,6 +118,12 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
     contribution_type: contributionType,
     author_id: authorId,
   });
+
+  // Filter out reviews from comments tab
+  const contributions =
+    currentTab === 'comments'
+      ? allContributions.filter((contribution) => !contribution.item?.review?.score)
+      : allContributions;
 
   const {
     publications,
