@@ -4,6 +4,8 @@ import { FC } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
 import { FeedTab } from '@/hooks/useFeed';
 import { useRouter } from 'next/navigation';
+import { Edit3 } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 interface TabItem {
   id: string;
@@ -17,6 +19,8 @@ interface FeedTabsProps {
   onTabChange: (tab: string) => void;
   isLoading?: boolean;
   isModerator?: boolean;
+  showGearIcon?: boolean;
+  onGearClick?: () => void;
 }
 
 export const FeedTabs: FC<FeedTabsProps> = ({
@@ -25,6 +29,8 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   onTabChange,
   isLoading,
   isModerator = false,
+  showGearIcon = false,
+  onGearClick,
 }) => {
   const router = useRouter();
 
@@ -70,6 +76,19 @@ export const FeedTabs: FC<FeedTabsProps> = ({
           }}
           disabled={isLoading}
         />
+        {/* Edit topics button */}
+        {showGearIcon && onGearClick && (
+          <Button
+            onClick={onGearClick}
+            variant="ghost"
+            size="sm"
+            className="ml-3 whitespace-nowrap bg-gray-50 hover:bg-gray-100"
+            aria-label="Edit topics"
+          >
+            <Edit3 className="w-4 h-4" />
+            <span className="ml-2">Edit topics</span>
+          </Button>
+        )}
       </div>
     </div>
   );
