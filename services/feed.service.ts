@@ -23,6 +23,7 @@ export class FeedService {
     createdBy?: number;
     ordering?: string;
     hotScoreVersion?: 'v1' | 'v2';
+    includeHotScoreBreakdown?: boolean;
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -36,6 +37,7 @@ export class FeedService {
     if (params?.createdBy) queryParams.append('created_by', params.createdBy.toString());
     if (params?.ordering) queryParams.append('ordering', params.ordering);
     if (params?.hotScoreVersion) queryParams.append('hot_score_version', params.hotScoreVersion);
+    if (params?.includeHotScoreBreakdown) queryParams.append('include_hot_score_breakdown', 'true');
 
     // Determine which endpoint to use
     const basePath =

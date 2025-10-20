@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useEffect } from 'react';
+import { FC, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Avatar } from '@/components/ui/Avatar';
@@ -16,8 +16,9 @@ import { AuthorBadge } from '@/components/ui/AuthorBadge';
 import { Work } from '@/types/work';
 import { TrendingUp } from 'lucide-react';
 import { ImpactScoreTooltip } from '@/components/tooltips/ImpactScoreTooltip';
+import { HotScoreBreakdownModal } from '@/components/modals/HotScoreBreakdownModal';
 import { User } from '@/types/user';
-import { ExternalMetrics } from '@/types/feed';
+import { ExternalMetrics, HotScoreBreakdown } from '@/types/feed';
 
 interface Contributor {
   profileImage?: string;
@@ -48,6 +49,7 @@ interface FeedItemHeaderProps {
   newsMentions?: number;
   altmetricScore?: number | null;
   hotScoreV2?: number;
+  hotScoreBreakdown?: HotScoreBreakdown;
   externalMetrics?: ExternalMetrics;
 }
 
@@ -73,11 +75,15 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   newsMentions = 0,
   altmetricScore,
   hotScoreV2,
+  hotScoreBreakdown,
   externalMetrics,
 }) => {
   // Check for debug mode
   const searchParams = useSearchParams();
   const isDebugMode = searchParams?.get('debug') !== null;
+
+  // State for hot score breakdown modal
+  const [isHotScoreModalOpen, setIsHotScoreModalOpen] = useState(false);
 
   // Format date consistently
   const formattedDate = timestamp instanceof Date ? timestamp : new Date(timestamp);
@@ -212,9 +218,32 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
 
       {/* Debug: Hot Score V2 Badge */}
       {isDebugMode && hotScoreV2 !== null && hotScoreV2 !== undefined && (
-        <div className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-700 cursor-help">
-          <span className="text-md font-medium">🔥 {Math.round(hotScoreV2)}</span>
-        </div>
+        <>
+          {hotScoreBreakdown ? (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsHotScoreModalOpen(true);
+                }}
+                className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-700 cursor-pointer transition-colors"
+                aria-label="View hot score breakdown"
+              >
+                <span className="text-md font-medium">🔥 {Math.round(hotScoreV2)}</span>
+              </button>
+              <HotScoreBreakdownModal
+                isOpen={isHotScoreModalOpen}
+                onClose={() => setIsHotScoreModalOpen(false)}
+                breakdown={hotScoreBreakdown}
+                hotScore={hotScoreV2}
+              />
+            </>
+          ) : (
+            <div className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-700">
+              <span className="text-md font-medium">🔥 {Math.round(hotScoreV2)}</span>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

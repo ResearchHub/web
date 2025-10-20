@@ -218,6 +218,40 @@ export interface ExternalMetrics {
   facebookCount: number;
 }
 
+export interface HotScoreBreakdown {
+  steps: string[];
+  signals: {
+    [key: string]: {
+      raw: number;
+      weight: number;
+      component: number;
+      urgent?: boolean;
+      urgency_multiplier?: number;
+    };
+  };
+  equation: string;
+  calculation: {
+    raw_score: number;
+    final_score: number;
+    engagement_score: number;
+    time_denominator: number;
+    adjusted_engagement: number;
+  };
+  time_factors: {
+    gravity: number;
+    age_hours: number;
+    base_hours: number;
+    freshness_multiplier: number;
+  };
+  config_snapshot: {
+    gravity: number;
+    base_hours: number;
+    signal_weights: {
+      [key: string]: number;
+    };
+  };
+}
+
 export interface FeedEntry {
   id: string;
   timestamp: string;
@@ -231,6 +265,7 @@ export interface FeedEntry {
   userVote?: UserVoteType;
   awardedBountyAmount?: number;
   hotScoreV2?: number;
+  hotScoreBreakdown?: HotScoreBreakdown;
   externalMetrics?: ExternalMetrics;
 }
 
@@ -243,6 +278,39 @@ export interface RawApiFeedEntry {
   action_date: string;
   is_nonprofit?: boolean;
   hot_score_v2?: number;
+  hot_score_breakdown?: {
+    steps: string[];
+    signals: {
+      [key: string]: {
+        raw: number;
+        weight: number;
+        component: number;
+        urgent?: boolean;
+        urgency_multiplier?: number;
+      };
+    };
+    equation: string;
+    calculation: {
+      raw_score: number;
+      final_score: number;
+      engagement_score: number;
+      time_denominator: number;
+      adjusted_engagement: number;
+    };
+    time_factors: {
+      gravity: number;
+      age_hours: number;
+      base_hours: number;
+      freshness_multiplier: number;
+    };
+    config_snapshot: {
+      gravity: number;
+      base_hours: number;
+      signal_weights: {
+        [key: string]: number;
+      };
+    };
+  };
   external_metadata?: {
     metrics: {
       score: number;
@@ -312,6 +380,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     action_date,
     author,
     hot_score_v2,
+    hot_score_breakdown,
     external_metadata,
   } = feedEntry;
 
@@ -783,6 +852,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     relatedWork,
     contentType,
     hotScoreV2: hot_score_v2,
+    hotScoreBreakdown: hot_score_breakdown,
     externalMetrics: external_metadata?.metrics
       ? {
           score: external_metadata.metrics.score,

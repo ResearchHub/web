@@ -33,10 +33,12 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   const [isNavigating, setIsNavigating] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<FeedSource>('all');
   const hotScoreVersion = (searchParams.get('hot_score_version') as 'v1' | 'v2') || 'v1';
+  const isDebugMode = searchParams?.get('debug') !== null;
   const { entries, isLoading, hasMore, loadMore } = useFeed(defaultTab, {
     source: sourceFilter,
     initialData: initialFeedData,
     hotScoreVersion,
+    includeHotScoreBreakdown: isDebugMode,
   });
 
   // Sync the activeTab with the defaultTab when the component mounts or defaultTab changes
