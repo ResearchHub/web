@@ -8,7 +8,7 @@ import { HeartHandshake } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Icon } from '@/components/ui/icons/Icon';
-import { Work } from '@/types/work';
+import { Work, ContentType } from '@/types/work';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -16,16 +16,22 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 interface SupportersSectionProps {
   tips: Tip[];
   documentId: number;
+  contentType: ContentType;
   onTip?: () => void;
 }
 
-export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], documentId, onTip }) => {
+export const SupportersSection: FC<SupportersSectionProps> = ({
+  tips = [],
+  documentId,
+  contentType,
+  onTip,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showAllSupporters, setShowAllSupporters] = useState(false);
   const { showUSD } = useCurrencyPreference();
 
   const hasSupporters = tips && tips.length > 0;
-  const displayLimit = 5; // Show only top 5 supporters in the sidebar
+  const displayLimit = 5;
   const displayedSupporters = showAllSupporters ? tips : tips.slice(0, displayLimit);
   const hasMoreSupporters = tips.length > displayLimit;
 
@@ -114,12 +120,11 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
         </div>
       )}
 
-      {/* Tip Modal */}
       <TipContentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         contentId={documentId}
-        feedContentType="PAPER"
+        feedContentType={contentType === 'paper' ? 'PAPER' : 'POST'}
         onTipSuccess={handleTipSuccess}
       />
     </section>
