@@ -34,13 +34,13 @@ export default function SelectProvider({
   const { referralCode } = useReferral();
 
   const getCallbackUrl = () => {
-    const searchParams = new URLSearchParams(window.location.search);
+    const searchParams = new URLSearchParams(globalThis.location.search);
     return searchParams.get('callbackUrl') || '/';
   };
 
   const initiateGoogleSignIn = (callbackUrl: string) => {
     const finalUrl = referralCode
-      ? new URL('/referral/join/apply-referral-code', window.location.origin).toString() +
+      ? new URL('/referral/join/apply-referral-code', globalThis.location.origin).toString() +
         `?refr=${referralCode}&redirect=${encodeURIComponent(callbackUrl)}`
       : callbackUrl;
 

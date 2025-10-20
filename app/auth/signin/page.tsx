@@ -1,6 +1,6 @@
 'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import AuthContent from '@/components/Auth/AuthContent';
 import Image from 'next/image';
 import { Suspense } from 'react';
@@ -21,12 +21,12 @@ function SignInContent() {
     callbackUrl = '/';
   }
 
-  const error =
-    errorCode === 'OAuthAccountNotLinked'
-      ? 'Enter email and password to login to your account.'
-      : errorCode
-        ? 'An error occurred during authentication. Please try again.'
-        : null;
+  let error = null;
+  if (errorCode === 'OAuthAccountNotLinked') {
+    error = 'Enter email and password to login to your account.';
+  } else if (errorCode) {
+    error = 'An error occurred during authentication. Please try again.';
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
