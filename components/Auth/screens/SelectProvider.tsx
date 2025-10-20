@@ -33,20 +33,6 @@ export default function SelectProvider({
   const emailInputRef = useAutoFocus<HTMLInputElement>(true);
   const { referralCode } = useReferral();
 
-  const getCallbackUrl = () => {
-    const searchParams = new URLSearchParams(globalThis.location.search);
-    return searchParams.get('callbackUrl') || '/';
-  };
-
-  const initiateGoogleSignIn = (callbackUrl: string) => {
-    const finalUrl = referralCode
-      ? new URL('/referral/join/apply-referral-code', globalThis.location.origin).toString() +
-        `?refr=${referralCode}&redirect=${encodeURIComponent(callbackUrl)}`
-      : callbackUrl;
-
-    signIn('google', { callbackUrl: finalUrl });
-  };
-
   const handleCheckAccount = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!isValidEmail(email)) {
@@ -62,7 +48,7 @@ export default function SelectProvider({
 
       if (response.exists) {
         if (response.auth === 'google') {
-          initiateGoogleSignIn(getCallbackUrl());
+          signIn('google', { callbackUrl: '/' });
         } else if (response.is_verified) {
           onContinue();
         } else {
@@ -82,7 +68,21 @@ export default function SelectProvider({
     AnalyticsService.logEvent(LogEvent.AUTH_VIA_GOOGLE_INITIATED).catch((error) => {
       console.error('Analytics failed:', error);
     });
-    initiateGoogleSignIn(getCallbackUrl());
+
+    const searchParams = new URLSearchParams(window.location.search);
+    const originalCallbackUrl = searchParams.get('callbackUrl') || '/';
+
+    let finalCallbackUrl = originalCallbackUrl;
+
+    if (referralCode) {
+      // Create referral application URL with referral code and redirect as URL parameters
+      const referralUrl = new URL('/referral/join/apply-referral-code', window.location.origin);
+      referralUrl.searchParams.set('refr', referralCode);
+      referralUrl.searchParams.set('redirect', originalCallbackUrl);
+      finalCallbackUrl = referralUrl.toString();
+    }
+
+    signIn('google', { callbackUrl: finalCallbackUrl });
   };
 
   return (

@@ -2,31 +2,15 @@
 
 import { useSearchParams } from 'next/navigation';
 import AuthContent from '@/components/Auth/AuthContent';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Suspense } from 'react';
 
 function SignInContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const errorCode = searchParams?.get('error');
-  let callbackUrl = searchParams?.get('callbackUrl') || '/';
-  //this is to help prevent redirecting issues when using the auth modal after an error occurs
-  if (callbackUrl.startsWith('http')) {
-    try {
-      const url = new URL(callbackUrl);
-      callbackUrl = url.pathname + url.search + url.hash;
-    } catch {}
-  }
-
-  if (callbackUrl.includes('/auth/')) {
-    callbackUrl = '/';
-  }
-
-  let error = null;
-  if (errorCode === 'OAuthAccountNotLinked') {
-    error = 'Enter email and password to login to your account.';
-  } else if (errorCode) {
-    error = 'An error occurred during authentication. Please try again.';
-  }
+  const error = searchParams?.get('error');
+  const callbackUrl = searchParams?.get('callbackUrl') || '/';
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -51,7 +35,17 @@ function SignInContent() {
       </div>
 
       <div className="bg-white w-full max-w-md rounded-lg shadow-sm border border-gray-200 p-8">
-        <AuthContent initialError={error} callbackUrl={callbackUrl} showHeader={false} />
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
+
+        <AuthContent
+          initialError={error}
+          onSuccess={() => router.push(callbackUrl)}
+          showHeader={false}
+        />
       </div>
 
       <div className="mt-8 text-center text-sm text-gray-500">
