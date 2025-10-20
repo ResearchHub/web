@@ -22,6 +22,13 @@ interface FeedProps {
   showSourceFilter?: boolean;
 }
 
+// Helper function to determine default ordering based on tab
+const getDefaultOrdering = (tab: FeedTab): string => {
+  if (tab === 'popular' || tab === 'following') return 'hot_score';
+  if (tab === 'latest') return 'latest';
+  return 'hot_score'; // fallback
+};
+
 export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFilter = true }) => {
   const { status } = useSession();
   const router = useRouter();
@@ -32,6 +39,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   const [activeTab, setActiveTab] = useState<FeedTab>(defaultTab);
   const [isNavigating, setIsNavigating] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<FeedSource>('all');
+  const [ordering, setOrdering] = useState<string>(getDefaultOrdering(defaultTab));
   const hotScoreVersion = (searchParams.get('hot_score_version') as 'v1' | 'v2') || 'v1';
   const isDebugMode = searchParams?.get('debug') !== null;
   const { entries, isLoading, hasMore, loadMore } = useFeed(defaultTab, {
@@ -39,17 +47,21 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     initialData: initialFeedData,
     hotScoreVersion,
     includeHotScoreBreakdown: isDebugMode,
+    ordering,
   });
 
   // Sync the activeTab with the defaultTab when the component mounts or defaultTab changes
   useEffect(() => {
     setActiveTab(defaultTab);
+    setOrdering(getDefaultOrdering(defaultTab));
     setIsNavigating(false);
   }, [defaultTab]);
 
   const handleTabChange = (tab: string) => {
     // Immediately update the active tab for visual feedback
     setActiveTab(tab as FeedTab);
+    // Update ordering based on the new tab
+    setOrdering(getDefaultOrdering(tab as FeedTab));
     // Set navigating state to true to show loading state
     setIsNavigating(true);
 
