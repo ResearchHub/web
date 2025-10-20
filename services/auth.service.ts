@@ -171,10 +171,16 @@ export class AuthService {
           timestamp: new Date().toISOString(),
         });
 
-        if (response.status === 400 || response.status === 403 || response.status === 409) {
-          throw new Error('OAuthAccountNotLinked');
+        switch (response.status) {
+          case 401:
+            throw new Error('AuthenticationFailed');
+          case 403:
+            throw new Error('AccessDenied');
+          case 409:
+            throw new Error('Verification');
+          default:
+            throw new Error('AuthenticationFailed');
         }
-        throw new Error('AuthenticationFailed');
       }
 
       const data = await response.json();
