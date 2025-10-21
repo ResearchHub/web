@@ -44,7 +44,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   const [isManageTopicsModalOpen, setIsManageTopicsModalOpen] = useState(false);
   const hotScoreVersion = (searchParams.get('hot_score_version') as 'v1' | 'v2') || 'v1';
   const isDebugMode = searchParams?.get('debug') !== null;
-  const { entries, isLoading, hasMore, loadMore } = useFeed(defaultTab, {
+  const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(defaultTab, {
     source: sourceFilter,
     initialData: initialFeedData,
     hotScoreVersion,
@@ -183,7 +183,10 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
       />
       <ManageTopicsModal
         isOpen={isManageTopicsModalOpen}
-        onClose={() => setIsManageTopicsModalOpen(false)}
+        onClose={() => {
+          refresh();
+          setIsManageTopicsModalOpen(false);
+        }}
       />
     </PageLayout>
   );

@@ -195,8 +195,8 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               </div>
             </MetadataSection>
 
-            {/* Journal Link */}
-            {paper.journal && paper.journal.name && (
+            {/* Journal Link - Hide on following feed */}
+            {!isFollowingFeed && paper.journal && paper.journal.name && (
               <MetadataSection>
                 <div className="mb-3 text-sm text-gray-500 flex items-center gap-1.5">
                   <BookText className="w-4 h-4 text-gray-500" />
