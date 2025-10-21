@@ -210,6 +210,48 @@ export type FeedContentType =
   | 'APPLICATION'
   | 'GRANT';
 
+export interface ExternalMetrics {
+  score: number;
+  lastUpdated: string;
+  blueskyCount: number;
+  twitterCount: number;
+  facebookCount: number;
+}
+
+export interface HotScoreBreakdown {
+  steps: string[];
+  signals: {
+    [key: string]: {
+      raw: number;
+      weight: number;
+      component: number;
+      urgent?: boolean;
+      urgency_multiplier?: number;
+    };
+  };
+  equation: string;
+  calculation: {
+    raw_score: number;
+    final_score: number;
+    engagement_score: number;
+    time_denominator: number;
+    adjusted_engagement: number;
+  };
+  time_factors: {
+    gravity: number;
+    age_hours: number;
+    base_hours: number;
+    freshness_multiplier: number;
+  };
+  config_snapshot: {
+    gravity: number;
+    base_hours: number;
+    signal_weights: {
+      [key: string]: number;
+    };
+  };
+}
+
 export interface FeedEntry {
   id: string;
   timestamp: string;
@@ -222,6 +264,9 @@ export interface FeedEntry {
   raw?: RawApiFeedEntry;
   userVote?: UserVoteType;
   awardedBountyAmount?: number;
+  hotScoreV2?: number;
+  hotScoreBreakdown?: HotScoreBreakdown;
+  externalMetrics?: ExternalMetrics;
 }
 
 export interface RawApiFeedEntry {
@@ -232,6 +277,50 @@ export interface RawApiFeedEntry {
   action: string;
   action_date: string;
   is_nonprofit?: boolean;
+  hot_score_v2?: number;
+  hot_score_breakdown?: {
+    steps: string[];
+    signals: {
+      [key: string]: {
+        raw: number;
+        weight: number;
+        component: number;
+        urgent?: boolean;
+        urgency_multiplier?: number;
+      };
+    };
+    equation: string;
+    calculation: {
+      raw_score: number;
+      final_score: number;
+      engagement_score: number;
+      time_denominator: number;
+      adjusted_engagement: number;
+    };
+    time_factors: {
+      gravity: number;
+      age_hours: number;
+      base_hours: number;
+      freshness_multiplier: number;
+    };
+    config_snapshot: {
+      gravity: number;
+      base_hours: number;
+      signal_weights: {
+        [key: string]: number;
+      };
+    };
+  };
+  external_metadata?: {
+    metrics: {
+      score: number;
+      altmetric_id: number;
+      last_updated: string;
+      bluesky_count: number;
+      twitter_count: number;
+      facebook_count: number;
+    };
+  };
   user_vote?: {
     id: number;
     content_type: number;
@@ -282,7 +371,18 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     throw new Error('Feed entry is undefined');
   }
 
-  const { id, content_type, content_object, created_date, action, action_date, author } = feedEntry;
+  const {
+    id,
+    content_type,
+    content_object,
+    created_date,
+    action,
+    action_date,
+    author,
+    hot_score_v2,
+    hot_score_breakdown,
+    external_metadata,
+  } = feedEntry;
 
   // Base feed entry properties
   const baseFeedEntry: Partial<FeedEntry> = {
@@ -751,6 +851,17 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     content,
     relatedWork,
     contentType,
+    hotScoreV2: hot_score_v2,
+    hotScoreBreakdown: hot_score_breakdown,
+    externalMetrics: external_metadata?.metrics
+      ? {
+          score: external_metadata.metrics.score,
+          lastUpdated: external_metadata.metrics.last_updated,
+          blueskyCount: external_metadata.metrics.bluesky_count,
+          twitterCount: external_metadata.metrics.twitter_count,
+          facebookCount: external_metadata.metrics.facebook_count,
+        }
+      : undefined,
     metrics: processedMetrics
       ? {
           votes: processedMetrics.votes || 0,
