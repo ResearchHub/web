@@ -94,9 +94,11 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     setIsNavigating(true);
 
     // Preserve query params (hot_score_version and ordering)
+    // Only preserve if they were explicitly set by the user, not defaults
     const params = new URLSearchParams();
-    if (hotScoreVersion !== 'v1') {
-      params.set('hot_score_version', hotScoreVersion);
+    const hotScoreParam = searchParams.get('hot_score_version');
+    if (hotScoreParam) {
+      params.set('hot_score_version', hotScoreParam);
     }
     if (orderingParam) {
       params.set('ordering', orderingParam);
