@@ -1,6 +1,8 @@
 'use client';
 
 import { FC } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { FeedPaperContent, FeedEntry } from '@/types/feed';
 import {
   BaseFeedItem,
@@ -11,9 +13,10 @@ import {
   FeedItemLayout,
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
+import { Badge } from '@/components/ui/Badge';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Users, BookText } from 'lucide-react';
 
 interface FeedItemPaperProps {
@@ -23,6 +26,7 @@ interface FeedItemPaperProps {
   showActions?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
+  feedView?: string;
 }
 
 /**
@@ -35,6 +39,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   showActions = true,
   maxLength,
   onFeedItemClick,
+  feedView,
 }) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
@@ -42,9 +47,29 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   // Get topics/tags for display
   const topics = paper.topics || [];
 
+  // Check if we're on the following feed
+  const isFollowingFeed = feedView === 'following';
+
   // Determine the badge type based on the paper's status
   const getPaperBadgeType = () => {
     return 'paper' as const;
+  };
+
+  // Helper function to get source logo
+  const getSourceLogo = (source: string) => {
+    const sourceLower = source.toLowerCase();
+    switch (sourceLower) {
+      case 'arxiv':
+        return '/logos/arxiv.png';
+      case 'biorxiv':
+        return '/logos/biorxiv.png';
+      case 'chemrxiv':
+        return '/logos/chemrxiv.png';
+      case 'medrxiv':
+        return '/logos/medrxiv.jpg';
+      default:
+        return null;
+    }
   };
 
   // Use provided href or create default paper page URL
@@ -53,6 +78,9 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   // Construct the dynamic action text
   const journalName = paper.journal?.name;
   const actionText = journalName ? `published in ${journalName}` : 'published in a journal';
+
+  // Get journal logo if available
+  const journalLogo = paper.journal?.name ? getSourceLogo(paper.journal.name) : null;
 
   return (
     <BaseFeedItem
@@ -77,16 +105,68 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         }
         leftContent={
           <>
-            <ContentTypeBadge type={getPaperBadgeType()} />
-            {topics.map((topic) => (
-              <TopicAndJournalBadge
-                key={topic.id || topic.slug}
-                type="topic"
-                name={topic.name}
-                slug={topic.slug}
-                imageUrl={topic.imageUrl}
-              />
-            ))}
+            {isFollowingFeed ? (
+              <>
+                {/* Journal Badge - Only on following feed */}
+                {paper.journal && paper.journal.slug && (
+                  <Link href={`/topic/${paper.journal.slug}`}>
+                    <Badge
+                      variant="default"
+                      className="text-xs bg-white border border-gray-200 hover:bg-gray-50 cursor-pointer px-2 py-1 h-[26px]"
+                    >
+                      {journalLogo ? (
+                        <Image
+                          src={journalLogo}
+                          alt={paper.journal.name}
+                          width={50}
+                          height={14}
+                          className="object-contain"
+                          style={{ maxHeight: '14px' }}
+                        />
+                      ) : (
+                        <span className="text-gray-700">{paper.journal.name}</span>
+                      )}
+                    </Badge>
+                  </Link>
+                )}
+                {/* Category Badge - Only on following feed */}
+                {paper.category && paper.category.slug && (
+                  <Link href={`/topic/${paper.category.slug}`}>
+                    <Badge
+                      variant="default"
+                      className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 cursor-pointer font-medium px-2 py-1"
+                    >
+                      {paper.category.name}
+                    </Badge>
+                  </Link>
+                )}
+                {/* Subcategory Badge - Only on following feed */}
+                {paper.subcategory && paper.subcategory.slug && (
+                  <Link href={`/topic/${paper.subcategory.slug}`}>
+                    <Badge
+                      variant="default"
+                      className="text-xs bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer px-2 py-1"
+                    >
+                      {paper.subcategory.name}
+                    </Badge>
+                  </Link>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Default badges for non-following feeds */}
+                <ContentTypeBadge type={getPaperBadgeType()} />
+                {topics.map((topic) => (
+                  <TopicAndJournalBadge
+                    key={topic.id || topic.slug}
+                    type="topic"
+                    name={topic.name}
+                    slug={topic.slug}
+                    imageUrl={topic.imageUrl}
+                  />
+                ))}
+              </>
+            )}
           </>
         }
       />
@@ -115,8 +195,8 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               </div>
             </MetadataSection>
 
-            {/* Journal Link */}
-            {paper.journal && paper.journal.name && (
+            {/* Journal Link - Hide on following feed */}
+            {!isFollowingFeed && paper.journal && paper.journal.name && (
               <MetadataSection>
                 <div className="mb-3 text-sm text-gray-500 flex items-center gap-1.5">
                   <BookText className="w-4 h-4 text-gray-500" />

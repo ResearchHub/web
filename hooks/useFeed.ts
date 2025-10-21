@@ -80,6 +80,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
 
   const loadFeed = async () => {
     setIsLoading(true);
+    setEntries([]); // Clear entries to show skeleton
     try {
       const result = await FeedService.getFeed({
         page: 1,
