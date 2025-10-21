@@ -42,7 +42,6 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   const searchParams = useSearchParams();
   const { user } = useUser();
   const isAuthenticated = status === 'authenticated';
-  const isModerator = user?.isModerator || false;
 
   // Get experiment variant for following feed ordering
   const followingFeedExperiment = getExperimentVariant(Experiment.FollowingFeedOrdering, user?.id);
@@ -158,7 +157,6 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
       tabs={tabs}
       onTabChange={handleTabChange}
       isLoading={combinedIsLoading}
-      isModerator={isModerator}
       showGearIcon={activeTab === 'following'}
       onGearClick={() => setIsManageTopicsModalOpen(true)}
     />
