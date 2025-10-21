@@ -15,6 +15,7 @@ interface ManageTopicsProps {
   defaultTab?: 'all' | 'following';
   className?: string;
   topicListVariant?: 'default' | 'compact';
+  showTitle?: boolean;
 }
 
 export function ManageTopics({
@@ -23,6 +24,7 @@ export function ManageTopics({
   defaultTab = 'all',
   className = '',
   topicListVariant = 'default',
+  showTitle = true,
 }: ManageTopicsProps) {
   const [activeTab, setActiveTab] = useState<'all' | 'following'>(defaultTab);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -136,6 +138,7 @@ export function ManageTopics({
           onSearchResults={handleSearchResults}
           onSearching={handleSearching}
           followingCount={followedTopics.length}
+          showTitle={showTitle}
         />
       ) : (
         <div className="mb-6 mt-1 px-1">

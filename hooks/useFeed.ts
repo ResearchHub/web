@@ -15,6 +15,8 @@ interface UseFeedOptions {
   fundraiseStatus?: 'OPEN' | 'CLOSED';
   createdBy?: number;
   ordering?: string;
+  hotScoreVersion?: 'v1' | 'v2';
+  includeHotScoreBreakdown?: boolean;
   initialData?: {
     entries: FeedEntry[];
     hasMore: boolean;
@@ -66,7 +68,9 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       options.endpoint !== currentOptions.endpoint ||
       options.fundraiseStatus !== currentOptions.fundraiseStatus ||
       options.createdBy !== currentOptions.createdBy ||
-      options.ordering !== currentOptions.ordering;
+      options.ordering !== currentOptions.ordering ||
+      options.hotScoreVersion !== currentOptions.hotScoreVersion ||
+      options.includeHotScoreBreakdown !== currentOptions.includeHotScoreBreakdown;
 
     if (relevantOptionsChanged) {
       setCurrentOptions(options);
@@ -76,6 +80,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
 
   const loadFeed = async () => {
     setIsLoading(true);
+    setEntries([]); // Clear entries to show skeleton
     try {
       const result = await FeedService.getFeed({
         page: 1,
@@ -88,6 +93,8 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         fundraiseStatus: options.fundraiseStatus,
         createdBy: options.createdBy,
         ordering: options.ordering,
+        hotScoreVersion: options.hotScoreVersion,
+        includeHotScoreBreakdown: options.includeHotScoreBreakdown,
       });
       setEntries(result.entries);
       setHasMore(result.hasMore);
@@ -116,6 +123,8 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         fundraiseStatus: options.fundraiseStatus,
         createdBy: options.createdBy,
         ordering: options.ordering,
+        hotScoreVersion: options.hotScoreVersion,
+        includeHotScoreBreakdown: options.includeHotScoreBreakdown,
       });
       setEntries((prev) => [...prev, ...result.entries]);
       setHasMore(result.hasMore);

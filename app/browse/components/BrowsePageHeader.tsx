@@ -11,6 +11,7 @@ interface BrowsePageHeaderProps {
   onSearchResults?: (results: SearchSuggestion[]) => void;
   onSearching?: (isSearching: boolean) => void;
   followingCount?: number;
+  showTitle?: boolean;
 }
 
 export function BrowsePageHeader({
@@ -20,11 +21,12 @@ export function BrowsePageHeader({
   onSearchResults,
   onSearching,
   followingCount = 0,
+  showTitle = true,
 }: BrowsePageHeaderProps) {
   return (
     <div className="px-0 py-6 mb-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Topics</h1>
+        {showTitle && <h1 className="text-3xl font-bold text-gray-900 mb-6">Topics</h1>}
 
         <div className="flex flex-col lg:!flex-row gap-4 items-start lg:!items-center justify-between">
           <div className="w-full lg:!w-96 order-2 lg:!order-1">

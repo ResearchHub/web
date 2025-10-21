@@ -28,6 +28,9 @@ interface FeedEntryItemProps {
   maxLength?: number;
   showGrantHeaders?: boolean;
   showReadMoreCTA?: boolean;
+  feedView?: string;
+  experimentVariant?: string;
+  feedOrdering?: string;
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
@@ -41,6 +44,9 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   maxLength,
   showGrantHeaders = true,
   showReadMoreCTA = false,
+  feedView,
+  experimentVariant,
+  feedOrdering,
 }) => {
   const { ref, inView } = useInView({
     threshold: 0.5,
@@ -90,8 +96,14 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
               ? entry.content.unifiedDocumentId
               : entry.relatedWork?.unifiedDocumentId?.toString() || '',
         },
+        // Track experiment data for following feed
+        ...(experimentVariant &&
+          feedTab === 'following' && {
+            experiment_name: 'following_feed_ordering',
+            experiment_variant: experimentVariant,
+            feed_ordering: feedOrdering,
+          }),
       };
-
       AnalyticsService.logEventWithUserProperties(LogEvent.FEED_ITEM_CLICKED, payload, user);
     } catch (analyticsError) {
       console.error('Failed to track feed item click analytics:', analyticsError);
@@ -138,18 +150,11 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             }
             return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/bounties`;
           }
-        case 'COMMENT': {
+        case 'COMMENT':
           const comment = entry.content as FeedCommentContent;
-          // Check if this is a review
-          const hasReviewType = comment.comment.commentType === 'REVIEW';
-          const hasReviewObject = !!comment.review;
-          const isReview = hasReviewType || hasReviewObject;
-
           // For comments, we might want to link to the parent content with the comment ID as a hash
           if (entry.relatedWork?.contentType === 'paper') {
-            // For reviews, use /reviews tab; for regular comments, use /conversation tab
-            const targetTab = isReview ? 'reviews' : 'conversation';
-            return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}/${targetTab}#comment-${comment.id}`;
+            return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
           } else if (entry.relatedWork) {
             // Check if the related work is a question
             if ('postType' in entry.relatedWork && entry.relatedWork.postType === 'QUESTION') {
@@ -157,8 +162,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             }
             return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
           }
-          break;
-        }
 
         case 'GRANT':
           const grantContent = entry.content as FeedGrantContent;
@@ -212,6 +215,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             showActions={!hideActions}
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
+            feedView={feedView}
           />
         );
         break;
