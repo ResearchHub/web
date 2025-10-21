@@ -40,7 +40,8 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   const [activeTab, setActiveTab] = useState<FeedTab>(defaultTab);
   const [isNavigating, setIsNavigating] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<FeedSource>('all');
-  const [ordering, setOrdering] = useState<string>(getDefaultOrdering(defaultTab));
+  const orderingParam = searchParams.get('ordering');
+  const [ordering, setOrdering] = useState<string>(orderingParam || getDefaultOrdering(defaultTab));
   const [isManageTopicsModalOpen, setIsManageTopicsModalOpen] = useState(false);
   const hotScoreVersion = (searchParams.get('hot_score_version') as 'v1' | 'v2') || 'v1';
   const isDebugMode = searchParams?.get('debug') !== null;
@@ -55,9 +56,13 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   // Sync the activeTab with the defaultTab when the component mounts or defaultTab changes
   useEffect(() => {
     setActiveTab(defaultTab);
-    setOrdering(getDefaultOrdering(defaultTab));
+    // Only update ordering if there's no query param override
+    const orderingParam = searchParams.get('ordering');
+    if (!orderingParam) {
+      setOrdering(getDefaultOrdering(defaultTab));
+    }
     setIsNavigating(false);
-  }, [defaultTab]);
+  }, [defaultTab, searchParams]);
 
   const handleTabChange = (tab: string) => {
     // Don't navigate if clicking the already active tab
@@ -67,13 +72,23 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
 
     // Immediately update the active tab for visual feedback
     setActiveTab(tab as FeedTab);
-    // Update ordering based on the new tab
-    setOrdering(getDefaultOrdering(tab as FeedTab));
+    // Update ordering based on the new tab (unless overridden by query param)
+    const orderingParam = searchParams.get('ordering');
+    if (!orderingParam) {
+      setOrdering(getDefaultOrdering(tab as FeedTab));
+    }
     // Set navigating state to true to show loading state
     setIsNavigating(true);
 
-    // Preserve hot_score_version query param
-    const queryString = hotScoreVersion !== 'v1' ? `?hot_score_version=${hotScoreVersion}` : '';
+    // Preserve query params (hot_score_version and ordering)
+    const params = new URLSearchParams();
+    if (hotScoreVersion !== 'v1') {
+      params.set('hot_score_version', hotScoreVersion);
+    }
+    if (orderingParam) {
+      params.set('ordering', orderingParam);
+    }
+    const queryString = params.toString() ? `?${params.toString()}` : '';
 
     // Navigate to the appropriate URL
     if (tab === 'popular') {
