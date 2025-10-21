@@ -46,7 +46,8 @@ export function FlagContentModal({
       toast.success('Content reported successfully');
       onClose();
     } catch (error) {
-      toast.error('Failed to report content');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to report content';
+      toast.error(errorMessage);
     }
   };
 
