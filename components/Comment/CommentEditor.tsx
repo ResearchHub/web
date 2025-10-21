@@ -13,6 +13,7 @@ import { EditorFooter } from './components/EditorFooter';
 import { EditorModals } from './components/EditorModals';
 import { CommentContent } from './lib/types';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
+import { useIsMac } from '@/hooks/useIsMac';
 
 export interface CommentEditorProps {
   onSubmit: (content: {
@@ -66,6 +67,7 @@ export const CommentEditor = ({
   const editorRef = useRef<HTMLDivElement>(null);
   const [isReviewBannerDismissed, setIsReviewBannerDismissed] = useState(false);
   const [isBountyReplyBannerDismissed, setIsBountyReplyBannerDismissed] = useState(false);
+  const isMac = useIsMac();
 
   // Adapt the onSubmit function to the format expected by useEditorHandlers
   const adaptedOnSubmit = useCallback(
@@ -143,7 +145,7 @@ export const CommentEditor = ({
     setSectionRatings,
   });
 
-  // Configure editor click handler for links
+  // Configure editor click handler for links and keyboard shortcuts
   if (editor && !isReadOnly) {
     editor.setOptions({
       editorProps: {
@@ -171,6 +173,14 @@ export const CommentEditor = ({
             setSelectedLink(null);
             return false;
           }
+        },
+        handleKeyDown: (view, event) => {
+          if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+            event.preventDefault();
+            handleSubmit();
+            return true;
+          }
+          return false;
         },
       },
     });
@@ -253,6 +263,7 @@ export const CommentEditor = ({
           onSubmit={handleSubmit}
           clearDraft={clearDraft}
           isSubmitting={isSubmitting}
+          isMac={isMac}
         />
       )}
 
