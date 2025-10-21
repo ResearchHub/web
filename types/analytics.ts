@@ -43,4 +43,7 @@ export interface FeedItemClickedEvent extends UserContext, BaseContext {
   feed_source: FeedSource;
   feed_tab: string;
   related_work?: RelatedWork;
+  experiment_name?: string;
+  experiment_variant?: string;
+  feed_ordering?: string;
 }

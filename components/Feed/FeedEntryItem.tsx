@@ -29,6 +29,8 @@ interface FeedEntryItemProps {
   showGrantHeaders?: boolean;
   showReadMoreCTA?: boolean;
   feedView?: string;
+  experimentVariant?: string;
+  feedOrdering?: string;
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
@@ -43,6 +45,8 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   showGrantHeaders = true,
   showReadMoreCTA = false,
   feedView,
+  experimentVariant,
+  feedOrdering,
 }) => {
   const { ref, inView } = useInView({
     threshold: 0.5,
@@ -92,8 +96,14 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
               ? entry.content.unifiedDocumentId
               : entry.relatedWork?.unifiedDocumentId?.toString() || '',
         },
+        // Track experiment data for following feed
+        ...(experimentVariant &&
+          feedTab === 'following' && {
+            experiment_name: 'following_feed_ordering',
+            experiment_variant: experimentVariant,
+            feed_ordering: feedOrdering,
+          }),
       };
-
       AnalyticsService.logEventWithUserProperties(LogEvent.FEED_ITEM_CLICKED, payload, user);
     } catch (analyticsError) {
       console.error('Failed to track feed item click analytics:', analyticsError);

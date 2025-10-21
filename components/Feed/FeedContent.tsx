@@ -29,6 +29,8 @@ interface FeedContentProps {
   maxLength?: number;
   showGrantHeaders?: boolean; // Prop to control grant header visibility
   showReadMoreCTA?: boolean; // Prop to control read more CTA visibility
+  experimentVariant?: string; // A/B test experiment variant
+  ordering?: string; // Feed ordering method
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -50,6 +52,8 @@ export const FeedContent: FC<FeedContentProps> = ({
   maxLength,
   showGrantHeaders = true, // Default to true
   showReadMoreCTA = false,
+  experimentVariant,
+  ordering,
 }) => {
   // Set up intersection observer for infinite scrolling (must be called before any conditional returns)
   const { ref: loadMoreRef, inView } = useInView({
@@ -90,6 +94,8 @@ export const FeedContent: FC<FeedContentProps> = ({
                   showGrantHeaders={showGrantHeaders}
                   showReadMoreCTA={showReadMoreCTA}
                   feedView={activeTab}
+                  experimentVariant={experimentVariant}
+                  feedOrdering={ordering}
                 />
                 {activeTab === 'popular' && index === 2 && <FundingCarousel />}
                 {activeTab === 'popular' && index === 8 && <BountiesCarousel />}
