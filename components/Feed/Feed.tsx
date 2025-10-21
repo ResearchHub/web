@@ -12,6 +12,7 @@ import { FeedEntry } from '@/types/feed';
 import Icon from '@/components/ui/icons/Icon';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { useUser } from '@/contexts/UserContext';
+import { ManageTopicsModal } from '@/components/modals/ManageTopicsModal';
 
 interface FeedProps {
   defaultTab: FeedTab;
@@ -40,6 +41,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   const [isNavigating, setIsNavigating] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<FeedSource>('all');
   const [ordering, setOrdering] = useState<string>(getDefaultOrdering(defaultTab));
+  const [isManageTopicsModalOpen, setIsManageTopicsModalOpen] = useState(false);
   const hotScoreVersion = (searchParams.get('hot_score_version') as 'v1' | 'v2') || 'v1';
   const isDebugMode = searchParams?.get('debug') !== null;
   const { entries, isLoading, hasMore, loadMore } = useFeed(defaultTab, {
@@ -58,6 +60,11 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   }, [defaultTab]);
 
   const handleTabChange = (tab: string) => {
+    // Don't navigate if clicking the already active tab
+    if (tab === activeTab) {
+      return;
+    }
+
     // Immediately update the active tab for visual feedback
     setActiveTab(tab as FeedTab);
     // Update ordering based on the new tab
@@ -123,6 +130,8 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
       onTabChange={handleTabChange}
       isLoading={combinedIsLoading}
       isModerator={isModerator}
+      showGearIcon={activeTab === 'following'}
+      onGearClick={() => setIsManageTopicsModalOpen(true)}
     />
   );
 
@@ -171,6 +180,10 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
         header={header}
         tabs={feedTabs}
         activeTab={activeTab}
+      />
+      <ManageTopicsModal
+        isOpen={isManageTopicsModalOpen}
+        onClose={() => setIsManageTopicsModalOpen(false)}
       />
     </PageLayout>
   );
