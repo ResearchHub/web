@@ -151,6 +151,8 @@ export interface FeedPaperContent extends BaseFeedContent {
   authors: AuthorProfile[];
   topics: Topic[];
   journal: Journal;
+  category?: Topic;
+  subcategory?: Topic;
   workType?: 'paper' | 'preprint' | 'published';
   unifiedDocumentId?: string;
 }
@@ -546,6 +548,24 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
             image: null,
             description: '',
           },
+          category: content_object.category
+            ? content_object.category.id
+              ? transformTopic(content_object.category)
+              : {
+                  id: content_object.category.id || 0,
+                  name: content_object.category.name || '',
+                  slug: content_object.category.slug || '',
+                }
+            : undefined,
+          subcategory: content_object.subcategory
+            ? content_object.subcategory.id
+              ? transformTopic(content_object.subcategory)
+              : {
+                  id: content_object.subcategory.id || 0,
+                  name: content_object.subcategory.name || '',
+                  slug: content_object.subcategory.slug || '',
+                }
+            : undefined,
           bounties: Array.isArray(content_object.bounties)
             ? content_object.bounties.map((bounty: any) =>
                 transformBounty(bounty, { ignoreBaseAmount: true })

@@ -89,6 +89,7 @@ export const FeedContent: FC<FeedContentProps> = ({
                   maxLength={maxLength}
                   showGrantHeaders={showGrantHeaders}
                   showReadMoreCTA={showReadMoreCTA}
+                  feedView={activeTab}
                 />
                 {activeTab === 'popular' && index === 2 && <FundingCarousel />}
                 {activeTab === 'popular' && index === 8 && <BountiesCarousel />}
