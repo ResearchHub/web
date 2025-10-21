@@ -183,10 +183,8 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
       />
       <ManageTopicsModal
         isOpen={isManageTopicsModalOpen}
-        onClose={() => {
-          refresh();
-          setIsManageTopicsModalOpen(false);
-        }}
+        onClose={() => setIsManageTopicsModalOpen(false)}
+        onTopicsChanged={refresh}
       />
     </PageLayout>
   );

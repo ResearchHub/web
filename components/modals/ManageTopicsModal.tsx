@@ -1,25 +1,38 @@
 'use client';
 
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useRef } from 'react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { ManageTopics } from '@/components/Topic/ManageTopics';
 import { Topic } from '@/types/topic';
 import { HubService } from '@/services/hub.service';
 import { TopicListSkeleton } from '@/components/skeletons/TopicListSkeleton';
+import { useFollowContext } from '@/contexts/FollowContext';
 
 interface ManageTopicsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onTopicsChanged?: () => void;
 }
 
-export const ManageTopicsModal: FC<ManageTopicsModalProps> = ({ isOpen, onClose }) => {
+export const ManageTopicsModal: FC<ManageTopicsModalProps> = ({
+  isOpen,
+  onClose,
+  onTopicsChanged,
+}) => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { followedTopicIds } = useFollowContext();
+  const initialFollowedTopicIds = useRef<number[]>([]);
 
   useEffect(() => {
-    if (isOpen && topics.length === 0) {
-      fetchTopics();
+    if (isOpen) {
+      // Capture the initial followed topics when modal first opens
+      initialFollowedTopicIds.current = [...followedTopicIds];
+
+      if (topics.length === 0) {
+        fetchTopics();
+      }
     }
   }, [isOpen]);
 
@@ -37,10 +50,23 @@ export const ManageTopicsModal: FC<ManageTopicsModalProps> = ({ isOpen, onClose 
     }
   };
 
+  const handleClose = () => {
+    // Check if followed topics have changed
+    const hasChanged =
+      initialFollowedTopicIds.current.length !== followedTopicIds.length ||
+      !initialFollowedTopicIds.current.every((id) => followedTopicIds.includes(id));
+
+    if (hasChanged && onTopicsChanged) {
+      onTopicsChanged();
+    }
+
+    onClose();
+  };
+
   return (
     <BaseModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       title="Manage Topics"
       padding="p-6"
       className="!w-full md:!w-[900px]"
@@ -63,6 +89,7 @@ export const ManageTopicsModal: FC<ManageTopicsModalProps> = ({ isOpen, onClose 
           showFollowingTab={true}
           defaultTab="following"
           topicListVariant="default"
+          showTitle={false}
           className="[&_.grid]:!grid-cols-2 [&_.grid]:sm:!grid-cols-3 [&_.grid]:lg:!grid-cols-3"
         />
       )}
