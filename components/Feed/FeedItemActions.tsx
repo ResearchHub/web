@@ -552,7 +552,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                       <div className="font-medium mb-1">ResearchCoin Earning Opportunity</div>
                       <div>
                         Complete tasks during the bounty period for an opportunity to earn{''}
-                        <span className="inline-flex items-center">
+                        <span
+                          className={cn('inline-flex items-center', !showUSD && 'translate-y-0.5')}
+                        >
                           <CurrencyBadge
                             amount={totalBountyAmount}
                             variant="text"
