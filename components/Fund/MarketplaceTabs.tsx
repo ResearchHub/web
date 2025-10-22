@@ -8,7 +8,11 @@ import { Button } from '@/components/ui/Button';
 import { ChevronDown, TrendingUp, ArrowUp, DollarSign, Clock } from 'lucide-react';
 
 export type MarketplaceTab = 'grants' | 'needs-funding' | 'previously-funded';
-export type FundingSortOption = '' | 'hot_score' | 'upvotes' | 'amount_raised';
+export type FundingSortOption =
+  | '-created_date'
+  | '-unified_document__hot_score'
+  | '-score'
+  | '-amount_raised';
 
 type SortOption = {
   label: string;
@@ -17,10 +21,14 @@ type SortOption = {
 };
 
 const getSortOptions = (activeTab: MarketplaceTab): SortOption[] => [
-  { label: 'Newest', value: '', icon: Clock },
-  { label: 'Best', value: 'hot_score', icon: TrendingUp },
-  { label: 'Top', value: 'upvotes', icon: ArrowUp },
-  { label: activeTab === 'grants' ? 'Amount' : 'Raised', value: 'amount_raised', icon: DollarSign },
+  { label: 'Newest', value: '-created_date', icon: Clock },
+  { label: 'Best', value: '-unified_document__hot_score', icon: TrendingUp },
+  { label: 'Top', value: '-score', icon: ArrowUp },
+  {
+    label: activeTab === 'grants' ? 'Amount' : 'Raised',
+    value: '-amount_raised',
+    icon: DollarSign,
+  },
 ];
 
 const TABS = [
