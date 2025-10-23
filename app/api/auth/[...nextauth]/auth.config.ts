@@ -158,6 +158,13 @@ export const authOptions: NextAuthOptions = {
             stack: error instanceof Error ? error.stack : undefined,
             timestamp: new Date().toISOString(),
           });
+
+          // Return false for OAuthAccountNotLinked to trigger consistent error flow
+          // This ensures the error is properly handled by the redirect callback
+          if (errorType === 'OAuthAccountNotLinked') {
+            return false;
+          }
+
           throw new NextAuthError(errorType, 'OAUTH_ERROR');
         }
       }
@@ -170,9 +177,15 @@ export const authOptions: NextAuthOptions = {
         const urlObj = new URL(url, baseUrl);
         const error = urlObj.searchParams.get('error');
 
+        // Map various OAuth error codes to OAuthAccountNotLinked
+        // This handles environment-specific error code variations
         if (
           error &&
-          (error === 'OAuthSignin' || error === 'OAuthCallback' || error === 'AccessDenied')
+          (error === 'OAuthSignin' ||
+            error === 'OAuthCallback' ||
+            error === 'AccessDenied' ||
+            error === 'Callback' ||
+            error === 'OAuthCreateAccount')
         ) {
           urlObj.searchParams.set('error', 'OAuthAccountNotLinked');
         }

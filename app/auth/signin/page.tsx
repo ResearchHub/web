@@ -22,7 +22,15 @@ function SignInContent() {
   }
 
   let error = null;
-  if (errorCode === 'OAuthAccountNotLinked') {
+  // Map various OAuth error codes to the account linking message
+  if (
+    errorCode === 'OAuthAccountNotLinked' ||
+    errorCode === 'OAuthSignin' ||
+    errorCode === 'OAuthCallback' ||
+    errorCode === 'AccessDenied' ||
+    errorCode === 'Callback' ||
+    errorCode === 'OAuthCreateAccount'
+  ) {
     error = 'Enter email and password to login to your account.';
   } else if (errorCode) {
     error = 'An error occurred during authentication. Please try again.';
