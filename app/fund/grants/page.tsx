@@ -1,7 +1,12 @@
 'use client';
 
+import { Suspense } from 'react';
 import { FundPageContent } from '../components/FundPageContent';
 
 export default function GrantsPage() {
-  return <FundPageContent marketplaceTab="grants" />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <FundPageContent marketplaceTab="grants" />
+    </Suspense>
+  );
 }
