@@ -66,7 +66,7 @@ export const EarningOpportunityBanner = ({
                       currency={showUSD ? 'USD' : 'RSC'}
                       showExchangeRate={false}
                       showText={true}
-                      showIcon={false}
+                      showIcon={showUSD}
                       textColor="text-orange-700"
                       className="font-medium p-0 text-sm inline-flex"
                     />
