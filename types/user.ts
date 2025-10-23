@@ -122,7 +122,6 @@ export type UserDetailsForModerator = {
   isSuspended: boolean;
   email: string;
   createdData: string;
-  riskScore: number;
   verification: {
     createdDate: string;
     externalId: string;
@@ -143,7 +142,6 @@ export const transformUserDetailsForModerator = (raw: any): UserDetailsForModera
       isSuspended: false,
       email: '',
       createdData: '',
-      riskScore: 0,
       verification: null,
     };
   }
@@ -154,7 +152,6 @@ export const transformUserDetailsForModerator = (raw: any): UserDetailsForModera
     isSuspended: raw.is_suspended || false,
     email: raw.email || '',
     createdData: raw.created_date || '',
-    riskScore: raw.risk_score || 0,
     verification: raw.verification
       ? {
           createdDate: raw.verification.created_date || '',
