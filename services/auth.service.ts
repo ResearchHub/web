@@ -42,7 +42,12 @@ export class AuthService {
     } catch (error: any) {
       if (error instanceof ApiError) {
         const data = error.errors || {};
-        const errorMsg = Object.values(data as Record<string, string[]>)?.[0]?.[0];
+        const errorValues = Object.values(data as Record<string, string[]>)?.[0];
+        const errorMsg = Array.isArray(errorValues)
+          ? errorValues[0]
+          : typeof errorValues === 'string'
+            ? errorValues
+            : 'Registration failed';
         throw new AuthError(errorMsg || 'Registration failed', error.status);
       }
 

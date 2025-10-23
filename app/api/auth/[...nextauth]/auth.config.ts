@@ -4,6 +4,16 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { AuthService } from '@/services/auth.service';
 import { AuthSharingService } from '@/services/auth-sharing.service';
 
+export class NextAuthError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string
+  ) {
+    super(message);
+    this.name = 'NextAuthError';
+  }
+}
+
 // Debug flag - set to true to enable detailed authentication logging
 const DEBUG_AUTH = true;
 
@@ -148,7 +158,7 @@ export const authOptions: NextAuthOptions = {
             stack: error instanceof Error ? error.stack : undefined,
             timestamp: new Date().toISOString(),
           });
-          throw new Error(errorType);
+          throw new NextAuthError(errorType, 'OAUTH_ERROR');
         }
       }
 
