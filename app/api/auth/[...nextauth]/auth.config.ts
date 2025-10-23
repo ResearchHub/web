@@ -185,7 +185,8 @@ export const authOptions: NextAuthOptions = {
             error === 'OAuthCallback' ||
             error === 'AccessDenied' ||
             error === 'Callback' ||
-            error === 'OAuthCreateAccount')
+            error === 'OAuthCreateAccount' ||
+            error === 'AuthenticationFailed')
         ) {
           urlObj.searchParams.set('error', 'OAuthAccountNotLinked');
         }

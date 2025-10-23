@@ -29,7 +29,8 @@ function SignInContent() {
     errorCode === 'OAuthCallback' ||
     errorCode === 'AccessDenied' ||
     errorCode === 'Callback' ||
-    errorCode === 'OAuthCreateAccount'
+    errorCode === 'OAuthCreateAccount' ||
+    errorCode === 'AuthenticationFailed'
   ) {
     error = 'Enter email and password to login to your account.';
   } else if (errorCode) {
