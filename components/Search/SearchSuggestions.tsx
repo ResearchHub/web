@@ -134,22 +134,6 @@ export function SearchSuggestions({
         return 'Research Topic';
       };
 
-      // Get the appropriate icon for the suggestion type
-      const getIcon = () => {
-        if (suggestion.isRecent) return <History className="h-6 w-6 text-gray-600" />;
-        if (isPaperSuggestion) return <FileText className="h-6 w-6 text-gray-600" />;
-        if (isUserSuggestion) return <User className="h-6 w-6 text-gray-600" />;
-        if (isTopicSuggestion) return <Hash className="h-6 w-6 text-gray-600" />;
-        if (isGrantPost)
-          return (
-            <div style={{ padding: '5px' }}>
-              <Icon name="fund" size={24} className="text-gray-600" />
-            </div>
-          );
-        if (isPostSuggestion) return <FileText className="h-6 w-6 text-gray-600" />;
-        return <HelpCircle className="h-6 w-6 text-gray-600" />; // Default with a more distinctive fallback icon
-      };
-
       // Get the smaller icon variant for dropdown mode
       const getSmallIcon = () => {
         if (suggestion.isRecent)
