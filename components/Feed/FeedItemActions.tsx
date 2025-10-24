@@ -3,10 +3,11 @@
 import { FC, useState, ReactNode, useEffect, useRef } from 'react';
 import React from 'react';
 import { FeedContentType, FeedEntry, Review } from '@/types/feed';
-import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star } from 'lucide-react';
+import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star, ThumbsDown } from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
+import { useInterest } from '@/hooks/useInterest';
 import { UserVoteType } from '@/types/reaction';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useFlagModal } from '@/hooks/useFlagging';
@@ -284,6 +285,15 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     relatedDocumentUnifiedDocumentId: relatedDocumentUnifiedDocumentId,
   });
 
+  const { markNotInterested, isProcessing: isMarkingNotInterested } = useInterest({
+    votableEntityId,
+    feedContentType,
+    relatedDocumentId,
+    relatedDocumentContentType,
+    relatedDocumentTopics: relatedDocumentTopics,
+    relatedDocumentUnifiedDocumentId: relatedDocumentUnifiedDocumentId,
+  });
+
   // Use the flag modal hook
   const { isOpen, contentToFlag, openFlagModal, closeFlagModal } = useFlagModal();
 
@@ -481,8 +491,28 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     className: totalEarnedAmount > 0 ? 'text-green-600' : '',
   };
 
-  // Combine menu items, conditionally adding the tip item
-  const combinedMenuItems = [...menuItems, ...(isTabletOrSmaller ? [tipMenuItem] : [])];
+  // Prepare Not Interested menu item (only for dismissible content)
+  const notInterestedMenuItem = {
+    icon: (props: any) => <ThumbsDown {...props} size={16} />,
+    label: 'Not Interested',
+    tooltip: 'Mark as not interested',
+    disabled: isMarkingNotInterested,
+    onClick: (e?: React.MouseEvent) => {
+      setIsMenuOpen(false); // Close dropdown before marking as not interested
+      executeAuthenticatedAction(markNotInterested);
+    },
+    className: '',
+  };
+
+  // Check if content is dismissible (not comments or bounties)
+  const isDismissible = feedContentType !== 'COMMENT' && feedContentType !== 'BOUNTY';
+
+  // Combine menu items, conditionally adding the tip item and not interested item
+  const combinedMenuItems = [
+    ...menuItems,
+    ...(isTabletOrSmaller ? [tipMenuItem] : []),
+    ...(isDismissible ? [notInterestedMenuItem] : []),
+  ];
 
   // Add separator if needed before Report
   const showSeparator =

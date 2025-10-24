@@ -10,12 +10,14 @@ import {
   Octagon,
   Share2,
   CheckCircle,
+  ThumbsDown,
 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useVote } from '@/hooks/useVote';
 import { useUserVotes } from '@/hooks/useUserVotes';
+import { useInterest } from '@/hooks/useInterest';
 import { useCloseFundraise } from '@/hooks/useFundraise';
 import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
@@ -55,6 +57,14 @@ export const WorkLineItems = ({
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | null>(null);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { vote, isVoting } = useVote({
+    votableEntityId: work.id,
+    feedContentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
+    relatedDocumentTopics: work.topics,
+    relatedDocumentId: work.id.toString(),
+    relatedDocumentContentType: work.contentType,
+  });
+
+  const { markNotInterested, isProcessing: isMarkingNotInterested } = useInterest({
     votableEntityId: work.id,
     feedContentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
     relatedDocumentTopics: work.topics,
@@ -367,6 +377,13 @@ export const WorkLineItems = ({
                 <span>Upload New Version</span>
               </BaseMenuItem>
             )}
+            <BaseMenuItem
+              disabled={isMarkingNotInterested}
+              onSelect={() => executeAuthenticatedAction(markNotInterested)}
+            >
+              <ThumbsDown className="h-4 w-4 mr-2" />
+              <span>Not Interested</span>
+            </BaseMenuItem>
             {!isPublished && isModerator && work.contentType !== 'preregistration' && (
               <BaseMenuItem
                 disabled={isPublishing}
