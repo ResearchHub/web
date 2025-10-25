@@ -60,7 +60,7 @@ export interface VoteOnCommentOptions {
 
 export interface MarkNotInterestedOptions {
   documentType: DocumentType;
-  documentId: ID; // ID of the document to mark as not interested
+  documentId: ID;
 }
 
 export class ReactionService {

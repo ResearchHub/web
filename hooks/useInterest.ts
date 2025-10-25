@@ -25,7 +25,7 @@ interface UseInterestOptions {
  */
 function mapContentTypeToDocumentType(contentType?: FeedContentType): DocumentType {
   if (!contentType) {
-    return 'paper'; // Default to paper if no contentType is provided
+    return 'paper';
   }
 
   switch (contentType) {
@@ -72,7 +72,6 @@ export function useInterest({
       return;
     }
 
-    // Don't allow multiple requests at once
     if (isProcessing) return;
 
     try {
@@ -88,7 +87,6 @@ export function useInterest({
         documentType = mapContentTypeToDocumentType(contentType);
       }
 
-      // Ensure we have a valid entity ID
       if (!entityId) {
         throw new Error('Entity ID is required for marking as not interested');
       }
@@ -98,7 +96,6 @@ export function useInterest({
         documentType,
       });
 
-      // Show success message
       toast.success('Marked as not interested');
 
       // Call success callback with the server response
@@ -108,7 +105,6 @@ export function useInterest({
     } catch (error: any) {
       console.error('Mark not interested error:', error);
 
-      // Handle specific error cases
       if (error instanceof ApiError) {
         console.error(error);
         toast.error(error.message || 'Failed to mark as not interested. Please try again.');
@@ -116,7 +112,6 @@ export function useInterest({
         toast.error('Failed to mark as not interested. Please try again.');
       }
 
-      // Call the error callback
       if (onMarkNotInterestedError) {
         onMarkNotInterestedError(error);
       }
