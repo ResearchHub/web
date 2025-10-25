@@ -10,6 +10,7 @@
     "lint:fix": "next lint --fix",
     "format": "prettier --write --ignore-path .gitignore \"./**/*.{js,jsx,ts,tsx,json,css}\"",
     "type-check": "tsc --noEmit",
+    "type-check:watch": "tsc --noEmit --watch",
     "prepare": "husky"
   },
   "dependencies": {

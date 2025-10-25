@@ -15,7 +15,6 @@ import { HubsSelector, Hub } from '@/app/paper/create/components/HubsSelector';
 import { Currency } from '@/types/root';
 import { BountyType } from '@/types/bounty';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { CommentService } from '@/services/comment.service';
 import { PostService } from '@/services/post.service';
 import { toast } from 'react-hot-toast';
 import { CommentContent } from '@/components/Comment/lib/types';
@@ -43,6 +42,7 @@ import { Icon } from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { extractUserMentions } from '@/components/Comment/lib/commentUtils';
 import { removeCommentDraftById } from '@/components/Comment/lib/commentDraftStorage';
+import { useCreateComment } from '@/hooks/useComments';
 
 // Wizard steps.
 // We intentionally separate review-specific and answer-specific steps.
@@ -60,6 +60,7 @@ type WizardStep =
 export default function CreateBountyPage() {
   const router = useRouter();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
+  const [_, createComment] = useCreateComment();
   const { showUSD, toggleCurrency: toggleGlobalCurrency } = useCurrencyPreference();
   const currency: Currency = showUSD ? 'USD' : 'RSC';
 
@@ -246,7 +247,7 @@ export default function CreateBountyPage() {
             ? extractUserMentions(reviewContent as JSONContent)
             : [];
 
-        await CommentService.createComment({
+        await createComment({
           workId: paperId.toString(),
           contentType: 'paper',
           content:
@@ -258,6 +259,7 @@ export default function CreateBountyPage() {
           expirationDate,
           privacyType: 'PUBLIC',
           mentions,
+          unifiedDocumentId: selectedPaper?.id?.toString() || '',
         });
         toast.success('Bounty created!', { id: toastId });
 
@@ -322,7 +324,7 @@ export default function CreateBountyPage() {
         ],
       } as any;
 
-      await CommentService.createComment({
+      await createComment({
         workId: post.id.toString(),
         contentType: 'post',
         content: bountyCommentContent,
@@ -332,6 +334,7 @@ export default function CreateBountyPage() {
         privacyType: 'PUBLIC',
         commentType: 'GENERIC_COMMENT',
         mentions: [],
+        unifiedDocumentId: post.unifiedDocumentId?.toString() || '',
       });
 
       toast.success('Question published & bounty created!', { id: toastId });

@@ -26,7 +26,6 @@ import { Switch } from '@headlessui/react';
 import { toast } from 'react-hot-toast';
 import { useComments } from '@/contexts/CommentContext';
 import { useCreateComment } from '@/hooks/useComments';
-import { CommentService } from '@/services/comment.service';
 import { RadioGroup as HeadlessRadioGroup, Listbox } from '@headlessui/react';
 import { useSession } from 'next-auth/react';
 import { SessionProvider } from 'next-auth/react';
@@ -53,6 +52,7 @@ interface BountyFormProps {
   workId?: string;
   onSubmitSuccess?: () => void;
   className?: string;
+  unifiedDocumentId?: string;
 }
 
 // Reuse the existing components from CreateBountyModal
@@ -219,7 +219,12 @@ const SessionAwareCommentEditor = (props: CommentEditorProps) => {
   );
 };
 
-export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormProps) {
+export function BountyForm({
+  workId,
+  onSubmitSuccess,
+  className,
+  unifiedDocumentId,
+}: BountyFormProps) {
   const { user } = useUser();
   const { data: session, status } = useSession();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
@@ -248,8 +253,7 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
   const [isSubmitting, setIsSubmitting] = useState(false);
   const userBalance = user?.balance || 0;
 
-  const [{ data: commentData, isLoading: isCreatingBounty, error: bountyError }, createComment] =
-    useCreateComment();
+  const [_, createComment] = useCreateComment();
 
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
   const [hasInteractedWithAmount, setHasInteractedWithAmount] = useState(false);
@@ -328,7 +332,7 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
           content: editorContent?.content || [],
         };
 
-        createdComment = await CommentService.createComment({
+        createdComment = await createComment({
           workId: workId || selectedPaper?.id,
           contentType: 'paper',
           content: JSON.stringify(apiContent),
@@ -339,6 +343,7 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
           expirationDate,
           privacyType: 'PUBLIC',
           mentions,
+          unifiedDocumentId: unifiedDocumentId?.toString() || '',
         });
       }
 
