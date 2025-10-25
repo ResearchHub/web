@@ -15,8 +15,8 @@ import { AuthorProfile as AuthorProfileType } from '@/types/authorProfile';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { useUpdateAuthorProfileData } from '@/hooks/useAuthor';
 import { useUser } from '@/contexts/UserContext';
-import { ProfileInformationForm } from '@/components/Onboarding/ProfileInformationForm';
-import { ProfileInformationFormValues } from '@/components/Onboarding/ProfileInformationForm/schema';
+import { ProfileInformationForm } from '@/components/profile/About/ProfileInformationForm';
+import { ProfileInformationFormValues } from '@/components/profile/About/ProfileInformationForm/schema';
 import { Icon } from '@/components/ui/icons/Icon';
 
 type AuthorProfileProps = {
@@ -121,7 +121,7 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
             <div className="flex flex-col items-start">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-gray-900">{fullName}</h1>
-                {author.isVerified && <VerifiedBadge />}
+                {author.isVerified && <VerifiedBadge showTooltip={true} />}
               </div>
               {author.headline && (
                 <div className="text-gray-600 font-sm text-left">

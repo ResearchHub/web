@@ -27,6 +27,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { PreferencesProvider } from '@/contexts/PreferencesContext';
 import { ReferralProvider } from '@/contexts/ReferralContext';
 import { FeatureNotifications } from '@/components/FeatureNotifications';
+import Hotjar from '@/components/Hotjar';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -152,6 +153,7 @@ export default async function RootLayout({
         </ClickProvider>
         {process.env.GA_MEASUREMENT_ID && <GoogleAnalytics gaId={process.env.GA_MEASUREMENT_ID} />}
         <Analytics />
+        <Hotjar />
       </body>
     </html>
   );

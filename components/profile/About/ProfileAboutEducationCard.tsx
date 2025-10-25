@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/Button';
-import type { EducationEntry } from './OnboardingWizard'; // Adjust path if needed
+import type { EducationEntry } from '@/components/profile/About/types';
 
-interface OnboardingEducationCardProps {
+interface ProfileAboutEducationCardProps {
   education: EducationEntry;
   index: number;
   onEdit: () => void;
@@ -12,13 +12,13 @@ interface OnboardingEducationCardProps {
   onSetMain: () => void;
 }
 
-export function OnboardingEducationCard({
+export function ProfileAboutEducationCard({
   education,
   index,
   onEdit,
   onRemove,
   onSetMain,
-}: OnboardingEducationCardProps) {
+}: ProfileAboutEducationCardProps) {
   if (!education.summary && !education.name) {
     return null;
   }

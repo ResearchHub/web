@@ -9,9 +9,9 @@ import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { formatRSC } from '@/utils/number';
 import { navigateToAuthorProfile } from '@/utils/navigation';
-import { getLastWeekRange, formatDate } from '@/lib/dateUtils';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 const LeaderboardListSkeleton = () => (
@@ -53,7 +53,7 @@ export const LeaderboardSkeleton = () => (
       <div className="flex justify-between items-baseline mb-3">
         <div>
           <h2 className="font-semibold text-gray-900">Top Funders</h2>
-          <p className="text-xs text-gray-500">This Week</p>
+          <p className="text-xs text-gray-500">This Month</p>
         </div>
         <div className="text-xs text-gray-500">View All</div>
       </div>
@@ -68,10 +68,6 @@ export const LeaderboardOverview = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { showUSD } = useCurrencyPreference();
-
-  // Get date range for current week
-  const { start: startDate, end: endDate } = getLastWeekRange();
-  const dateRangeText = `${formatDate(startDate)} - ${formatDate(endDate)}`;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -120,11 +116,15 @@ export const LeaderboardOverview = () => {
     const amount =
       type === 'reviewer' ? (item as TopReviewer).earnedRsc : (item as TopFunder).totalFunding;
 
+    const displayName = item.authorProfile.fullName;
+    // Show gradient for long names, or shorter names if there's a verified badge (which takes up space)
+    const needsGradient = displayName.length > 15 || (item.isVerified && displayName.length > 12);
+
     return (
       <div
         key={item.id}
         onClick={() => authorId && navigateToAuthorProfile(authorId)}
-        className="grid grid-cols-[32px_40px_1fr_auto] gap-x-3 items-center hover:bg-gray-50 px-1 py-2 rounded-md cursor-pointer"
+        className="grid grid-cols-[32px_40px_1fr_auto] gap-x-2 items-center hover:bg-gray-50 px-1 py-2 rounded-md cursor-pointer"
       >
         {/* Rank */}
         <div className="w-8 flex-shrink-0">{renderRank(rank)}</div>
@@ -150,22 +150,32 @@ export const LeaderboardOverview = () => {
         </div>
 
         {/* Name */}
-        <div className="flex-grow min-w-0">
-          {authorId ? (
-            <AuthorTooltip authorId={authorId}>
-              <span className="text-sm font-medium text-gray-900 block break-words">
-                {item.authorProfile.fullName}
+        <div className="flex items-center gap-1.5 min-w-0 overflow-hidden mr-0.3">
+          <div className="min-w-0 flex-shrink overflow-hidden relative">
+            {authorId ? (
+              <AuthorTooltip authorId={authorId}>
+                <span className="text-sm font-medium text-gray-900 block whitespace-nowrap overflow-hidden">
+                  {displayName}
+                </span>
+              </AuthorTooltip>
+            ) : (
+              <span className="text-sm font-medium text-gray-900 block whitespace-nowrap overflow-hidden">
+                {displayName}
               </span>
-            </AuthorTooltip>
-          ) : (
-            <span className="text-sm font-medium text-gray-900 block break-words">
-              {item.authorProfile.fullName}
-            </span>
+            )}
+            {needsGradient && (
+              <div className="absolute top-0 right-0 bottom-0 w-4 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+            )}
+          </div>
+          {item.isVerified && (
+            <div className="flex-shrink-0 flex items-center">
+              <VerifiedBadge size="sm" />
+            </div>
           )}
         </div>
 
         {/* RSC Badge */}
-        <div className="flex-shrink-0 text-right">
+        <div className="flex-shrink-0 text-right flex items-center">
           <CurrencyBadge
             amount={amount}
             variant="text"
@@ -215,7 +225,7 @@ export const LeaderboardOverview = () => {
         <div className="flex justify-between items-baseline mb-3">
           <div>
             <h2 className="font-semibold text-gray-900">Top Funders</h2>
-            <p className="text-xs text-gray-500">This Week</p>
+            <p className="text-xs text-gray-500">This Month</p>
           </div>
           <Link href="/leaderboard?tab=funders" className="text-xs text-gray-500 hover:underline">
             View All
@@ -230,7 +240,7 @@ export const LeaderboardOverview = () => {
             {funders.map((funder, index) => renderListItem(funder, index, 'funder'))}
           </div>
         ) : (
-          <p className="text-sm text-gray-500 mt-4 text-center">No funders found this week.</p>
+          <p className="text-sm text-gray-500 mt-4 text-center">No funders found this month.</p>
         )}
       </div>
     </>

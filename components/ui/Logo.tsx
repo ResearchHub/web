@@ -6,9 +6,10 @@ interface LogoProps {
   noText?: boolean;
   size?: number | { height: number; width: number };
   color?: string;
+  variant?: 'default' | 'white';
 }
 
-export const Logo = ({ className, noText = false, size }: LogoProps) => {
+export const Logo = ({ className, noText = false, size, variant = 'default' }: LogoProps) => {
   const dimensions = (() => {
     if (!size) return { height: 32, width: noText ? 23 : 150 };
     if (typeof size === 'number') {
@@ -19,9 +20,16 @@ export const Logo = ({ className, noText = false, size }: LogoProps) => {
     return size;
   })();
 
+  const logoSrc = (() => {
+    if (noText && variant === 'white') {
+      return '/beaker_white.png';
+    }
+    return variant === 'white' ? '/icons/white_logo.png' : '/logo_blue.png';
+  })();
+
   return (
     <Image
-      src="/logo_blue.png"
+      src={logoSrc}
       alt="ResearchHub Logo"
       width={dimensions.width}
       height={dimensions.height}

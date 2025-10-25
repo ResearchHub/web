@@ -53,10 +53,13 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   const deadlineText = fundraise.endDate ? formatDeadline(fundraise.endDate) : undefined;
 
   // Calculate progress percentage with a minimum of 5% for visibility
-  const progressPercentage = Math.max(
-    0,
-    Math.min(100, Math.max(5, (fundraise.amountRaised.rsc / fundraise.goalAmount.rsc) * 100))
-  );
+  const progressPercentage =
+    fundraise.status === 'COMPLETED'
+      ? 100
+      : Math.max(
+          0,
+          Math.min(100, Math.max(5, (fundraise.amountRaised.rsc / fundraise.goalAmount.rsc) * 100))
+        );
 
   // Calculate actual percentage for display
   const actualPercentage = Math.floor(
@@ -142,7 +145,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   // Determine the progress bar variant based on fundraise status and funding percentage
   const getProgressVariant = () => {
     if (fundraise.status === 'COMPLETED') {
-      return actualPercentage >= 100 ? 'success' : 'gray';
+      return 'success'; // Always green when completed
     }
     return 'default';
   };

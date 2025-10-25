@@ -99,9 +99,11 @@ function NonprofitResultItem({
         <div className="flex items-center">
           <span className="text-sm font-medium">{nonprofit.name}</span>
         </div>
-        <div className="text-xs text-gray-500">
-          EIN: {nonprofit.ein.substring(0, 2) + '-' + nonprofit.ein.substring(2)}
-        </div>
+        {nonprofit.ein && (
+          <div className="text-xs text-gray-500">
+            EIN: {nonprofit.ein.substring(0, 2) + '-' + nonprofit.ein.substring(2)}
+          </div>
+        )}
       </div>
       <Button
         className={cn(

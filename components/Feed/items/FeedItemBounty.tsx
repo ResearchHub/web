@@ -277,6 +277,9 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         isBounty={true}
         totalContributorsCount={bounty.contributions?.length || 0}
         work={entry.relatedWork}
+        hotScoreV2={entry.hotScoreV2}
+        hotScoreBreakdown={entry.hotScoreBreakdown}
+        externalMetrics={entry.externalMetrics}
       />
 
       <BaseFeedItem

@@ -35,7 +35,8 @@ export const TopicAndJournalBadge = ({
   variant = 'primary',
 }: TopicAndJournalBadgeProps) => {
   // Determine the URL based on the badge type
-  const href = type === 'topic' ? `/topic/${slug}` : `/journal/${slug}`;
+  // Both topic and journal types now use /topic/:slug (journals redirect to topics)
+  const href = `/topic/${slug}`;
 
   // Size-based styling
   const sizeStyles = {

@@ -143,6 +143,9 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         user={author.user}
         actionText={isReview ? `submitted a peer review` : 'added a comment'}
         work={entry.relatedWork}
+        hotScoreV2={entry.hotScoreV2}
+        hotScoreBreakdown={entry.hotScoreBreakdown}
+        externalMetrics={entry.externalMetrics}
       />
       {showLegacyCommentBanner && (
         <LegacyCommentBanner

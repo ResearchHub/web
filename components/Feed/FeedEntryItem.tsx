@@ -27,6 +27,9 @@ interface FeedEntryItemProps {
   maxLength?: number;
   showGrantHeaders?: boolean;
   showReadMoreCTA?: boolean;
+  feedView?: string;
+  experimentVariant?: string;
+  feedOrdering?: string;
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
@@ -40,6 +43,9 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   maxLength,
   showGrantHeaders = true,
   showReadMoreCTA = false,
+  feedView,
+  experimentVariant,
+  feedOrdering,
 }) => {
   const { user } = useUser();
   const { source: feedSource, tab: feedTab } = useFeedSource();
@@ -85,8 +91,14 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
               ? entry.content.unifiedDocumentId
               : entry.relatedWork?.unifiedDocumentId?.toString() || '',
         },
+        // Track experiment data for following feed
+        ...(experimentVariant &&
+          feedTab === 'following' && {
+            experiment_name: 'following_feed_ordering',
+            experiment_variant: experimentVariant,
+            feed_ordering: feedOrdering,
+          }),
       };
-
       AnalyticsService.logEventWithUserProperties(LogEvent.FEED_ITEM_CLICKED, payload, user);
     } catch (analyticsError) {
       console.error('Failed to track feed item click analytics:', analyticsError);
@@ -198,6 +210,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             showActions={!hideActions}
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
+            feedView={feedView}
           />
         );
         break;

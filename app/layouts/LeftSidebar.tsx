@@ -1,7 +1,7 @@
 'use client';
 
 import { AlertCircle } from 'lucide-react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { FooterLinks } from '../../components/FooterLinks';
 import { Navigation } from './Navigation';
 import toast from 'react-hot-toast';
@@ -16,8 +16,6 @@ interface LeftSidebarProps {
 
 export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false }) => {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const showBrowse = searchParams.get('exp') === 'browse';
 
   const handleUnimplementedFeature = (featureName: string) => {
     toast(
@@ -69,7 +67,6 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false 
             currentPath={pathname || ''}
             onUnimplementedFeature={handleUnimplementedFeature}
             forceMinimize={forceMinimize}
-            showBrowse={showBrowse}
           />
         </div>
       </div>

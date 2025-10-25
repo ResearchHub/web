@@ -36,7 +36,9 @@ export default function NonprofitDisplay({
         <div className="flex-1 pr-2">
           <h4 className="text-xs font-medium text-gray-800">{nonprofit.name}</h4>
           <p className="text-xs text-gray-500 flex items-center">
-            <span>EIN: {nonprofit.ein.substring(0, 2) + '-' + nonprofit.ein.substring(2)}</span>
+            {nonprofit.ein && (
+              <span>EIN: {nonprofit.ein.substring(0, 2) + '-' + nonprofit.ein.substring(2)}</span>
+            )}
             <Button
               type="button"
               onClick={onInfoClick}

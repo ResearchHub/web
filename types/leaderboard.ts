@@ -5,6 +5,7 @@ import { createTransformer } from './transformer';
 export interface RawTopReviewer {
   id: number;
   author_profile: any; // Raw author profile data, can be {} or actual profile
+  is_verified: boolean;
   first_name: string;
   last_name: string;
   created_date: string;
@@ -18,12 +19,14 @@ export interface TopReviewer {
   id: number;
   authorProfile: AuthorProfile;
   earnedRsc: number;
+  isVerified: boolean;
 }
 
 // Define the structure for a top funder entry from the API
 export interface RawTopFunder {
   id: number;
   author_profile: any; // Raw author profile data
+  is_verified: boolean;
   first_name: string;
   last_name: string;
   created_date: string;
@@ -38,6 +41,7 @@ export interface TopFunder {
   id: number;
   authorProfile: AuthorProfile;
   totalFunding: number;
+  isVerified: boolean;
 }
 
 // Define the structure for the leaderboard overview API response
@@ -64,6 +68,7 @@ export const transformTopReviewer = createTransformer<RawTopReviewer, TopReviewe
       id: raw.id,
       authorProfile: authorProfile,
       earnedRsc: typeof raw.earned_rsc === 'string' ? parseFloat(raw.earned_rsc) : raw.earned_rsc,
+      isVerified: raw.is_verified || false,
     };
   }
 );
@@ -80,6 +85,7 @@ export const transformTopFunder = createTransformer<RawTopFunder, TopFunder>(
       authorProfile: authorProfile,
       totalFunding:
         typeof raw.total_funding === 'string' ? parseFloat(raw.total_funding) : raw.total_funding,
+      isVerified: raw.is_verified || false,
     };
   }
 );

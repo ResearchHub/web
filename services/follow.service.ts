@@ -1,6 +1,18 @@
 import { ApiClient } from './client';
 import { FollowResponse, FollowedObject, transformFollowedObject } from '@/types/follow';
-import { Topic } from '@/types/topic';
+
+interface FollowMultipleResponse {
+  followed: Array<{
+    id: number;
+    name: string;
+    slug?: string;
+  }>;
+  already_following: Array<{
+    id: number;
+    name: string;
+  }>;
+  not_found: number[];
+}
 
 export class FollowService {
   private static readonly BASE_PATH = '/api/hub';
@@ -15,17 +27,14 @@ export class FollowService {
   }
 
   /**
-   * Get only followed topics/hubs
-   * @returns Array of Topic objects that the user is following
+   * Get only followed topics/hubs with their metadata
+   * @returns Array of FollowedObject containing Topics
    */
-  static async getFollowedTopics(): Promise<Topic[]> {
+  static async getFollowedTopics(): Promise<FollowedObject[]> {
     const followedObjects = await this.getFollowedObjects();
 
-    // Filter for hub/topic objects and extract the Topic data
-    return followedObjects
-      .filter((obj) => obj.type === 'HUB')
-      .map((obj) => obj.data as Topic)
-      .filter((topic) => topic !== null);
+    // Filter for hub/topic objects that have valid topic data
+    return followedObjects.filter((obj) => obj.type === 'HUB' && obj.data !== null);
   }
 
   /**
@@ -51,5 +60,16 @@ export class FollowService {
    */
   static async unfollowHub(hubId: number): Promise<void> {
     await ApiClient.post(`${this.BASE_PATH}/${hubId}/unfollow/`);
+  }
+
+  /**
+   * Follow multiple hubs/topics at once
+   * @param hubIds Array of hub IDs to follow
+   * @returns Response with followed, already following, and not found items
+   */
+  static async followMultipleHubs(hubIds: number[]): Promise<FollowMultipleResponse> {
+    return await ApiClient.post<FollowMultipleResponse>(`${this.BASE_PATH}/follow_multiple/`, {
+      ids: hubIds,
+    });
   }
 }
