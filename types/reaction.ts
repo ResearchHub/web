@@ -86,3 +86,15 @@ export const transformFlag = createTransformer<any, Flag>((raw) => ({
   reason: raw.reason,
   objectId: raw.object_id,
 }));
+
+export type NotInterested = {
+  id: ID;
+  createdDate: string;
+  objectId: ID;
+};
+
+export const transformNotInterested = createTransformer<any, NotInterested>((raw) => ({
+  id: raw.id,
+  createdDate: raw.created_date,
+  objectId: raw.object_id,
+}));

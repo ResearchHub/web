@@ -33,6 +33,7 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
+import { NotInterestedButton } from './components/NotInterestedButton';
 
 interface WorkDocumentProps {
   work: Work;
@@ -281,6 +282,17 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
 
       {/* Tab Content */}
       <div className="mt-6">{renderTabContent}</div>
+
+      {/* Not Interested Button */}
+      <div className="mt-8 flex justify-center">
+        <NotInterestedButton
+          entityId={work.id}
+          contentType={work.contentType === 'paper' ? 'PAPER' : 'POST'}
+          relatedDocumentTopics={work.topics}
+          relatedDocumentId={work.id.toString()}
+          relatedDocumentContentType={work.contentType}
+        />
+      </div>
 
       {/* Mobile sidebar overlay */}
       <div
