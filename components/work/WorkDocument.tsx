@@ -12,6 +12,7 @@ import {
   FlaskConicalOff,
   History,
   Plus,
+  ThumbsDown,
 } from 'lucide-react';
 import { Work, DocumentVersion } from '@/types/work';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
@@ -33,6 +34,8 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
+import { useInterest } from '@/hooks/useInterest';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 interface WorkDocumentProps {
   work: Work;
@@ -46,6 +49,15 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   const pathname = usePathname();
 
   const { user } = useUser();
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
+
+  const { markNotInterested, isProcessing: isMarkingNotInterested } = useInterest({
+    votableEntityId: work.id,
+    feedContentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
+    relatedDocumentTopics: work.topics,
+    relatedDocumentId: work.id.toString(),
+    relatedDocumentContentType: work.contentType,
+  });
 
   // State for active tab
   const [activeTab, setActiveTab] = useState<TabType>(() => {
@@ -281,6 +293,20 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
 
       {/* Tab Content */}
       <div className="mt-6">{renderTabContent}</div>
+
+      {/* Not Interested Button */}
+      <div className="mt-8 flex justify-center">
+        <Button
+          variant="outlined"
+          size="sm"
+          onClick={() => executeAuthenticatedAction(markNotInterested)}
+          disabled={isMarkingNotInterested}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+        >
+          <ThumbsDown className="h-4 w-4" />
+          {'Not Interested'}
+        </Button>
+      </div>
 
       {/* Mobile sidebar overlay */}
       <div

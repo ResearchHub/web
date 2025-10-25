@@ -10,6 +10,10 @@ import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 import { QuestionEditModal } from '@/components/modals/QuestionEditModal';
+import { useInterest } from '@/hooks/useInterest';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { Button } from '@/components/ui/Button';
+import { ThumbsDown } from 'lucide-react';
 import TipTapRenderer from '@/components/Comment/lib/TipTapRenderer';
 import { htmlToTipTapJSON } from '@/components/Comment/lib/htmlToTipTap';
 
@@ -29,6 +33,15 @@ export const PostDocument = ({
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [parsedQuestionContent, setParsedQuestionContent] = useState<any>(null);
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
+
+  const { markNotInterested, isProcessing: isMarkingNotInterested } = useInterest({
+    votableEntityId: work.id,
+    feedContentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
+    relatedDocumentTopics: work.topics,
+    relatedDocumentId: work.id.toString(),
+    relatedDocumentContentType: work.contentType,
+  });
 
   // Parse question content on client side
   useEffect(() => {
@@ -153,6 +166,20 @@ export const PostDocument = ({
 
       {/* Tab Content */}
       {renderTabContent}
+
+      {/* Not Interested Button */}
+      <div className="mt-8 flex justify-center">
+        <Button
+          variant="outlined"
+          size="sm"
+          onClick={() => executeAuthenticatedAction(markNotInterested)}
+          disabled={isMarkingNotInterested}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+        >
+          <ThumbsDown className="h-4 w-4" />
+          {'Not Interested'}
+        </Button>
+      </div>
 
       {/* Question Edit Modal */}
       <QuestionEditModal

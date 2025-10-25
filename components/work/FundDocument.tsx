@@ -23,6 +23,9 @@ import { useShareModalContext } from '@/contexts/ShareContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '../ui/Button';
+import { useInterest } from '@/hooks/useInterest';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { ThumbsDown } from 'lucide-react';
 
 interface FundDocumentProps {
   work: Work;
@@ -49,6 +52,15 @@ export const FundDocument = ({
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
+
+  const { markNotInterested, isProcessing: isMarkingNotInterested } = useInterest({
+    votableEntityId: work.id,
+    feedContentType: 'POST', // Funding requests are posts
+    relatedDocumentTopics: work.topics,
+    relatedDocumentId: work.id.toString(),
+    relatedDocumentContentType: work.contentType,
+  });
 
   // Check if current user is an author of the work
   const isCurrentUserAuthor = useMemo(() => {
@@ -280,6 +292,21 @@ export const FundDocument = ({
       />
       {/* Tab Content */}
       {renderTabContent}
+
+      {/* Not Interested Button */}
+      <div className="mt-8 flex justify-center">
+        <Button
+          variant="outlined"
+          size="sm"
+          onClick={() => executeAuthenticatedAction(markNotInterested)}
+          disabled={isMarkingNotInterested}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+        >
+          <ThumbsDown className="h-4 w-4" />
+          {'Not Interested'}
+        </Button>
+      </div>
+
       {/* Mobile overlay */}
       {showOverlay && (
         <div
