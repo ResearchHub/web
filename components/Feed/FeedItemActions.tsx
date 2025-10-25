@@ -286,8 +286,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   });
 
   const { markNotInterested, isProcessing: isMarkingNotInterested } = useInterest({
-    votableEntityId,
-    feedContentType,
+    entityId: votableEntityId,
+    contentType: feedContentType,
     relatedDocumentId,
     relatedDocumentContentType,
     relatedDocumentTopics: relatedDocumentTopics,
@@ -498,7 +498,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     tooltip: 'Mark as not interested',
     disabled: isMarkingNotInterested,
     onClick: (e?: React.MouseEvent) => {
-      setIsMenuOpen(false); // Close dropdown before marking as not interested
+      setIsMenuOpen(false);
       executeAuthenticatedAction(markNotInterested);
     },
     className: '',

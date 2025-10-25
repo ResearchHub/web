@@ -65,8 +65,8 @@ export const WorkLineItems = ({
   });
 
   const { markNotInterested, isProcessing: isMarkingNotInterested } = useInterest({
-    votableEntityId: work.id,
-    feedContentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
+    entityId: work.id,
+    contentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
     relatedDocumentTopics: work.topics,
     relatedDocumentId: work.id.toString(),
     relatedDocumentContentType: work.contentType,

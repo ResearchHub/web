@@ -12,10 +12,7 @@ import { format } from 'date-fns';
 import { PostBlockEditor } from './PostBlockEditor';
 import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
 import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
-import { useInterest } from '@/hooks/useInterest';
-import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
-import { Button } from '@/components/ui/Button';
-import { ThumbsDown } from 'lucide-react';
+import { NotInterestedButton } from './components/NotInterestedButton';
 
 interface GrantDocumentProps {
   work: Work;
@@ -31,15 +28,6 @@ export const GrantDocument = ({
   defaultTab = 'paper',
 }: GrantDocumentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
-  const { executeAuthenticatedAction } = useAuthenticatedAction();
-
-  const { markNotInterested, isProcessing: isMarkingNotInterested } = useInterest({
-    votableEntityId: work.id,
-    feedContentType: 'POST', // Grants are posts
-    relatedDocumentTopics: work.topics,
-    relatedDocumentId: work.id.toString(),
-    relatedDocumentContentType: work.contentType,
-  });
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -181,16 +169,13 @@ export const GrantDocument = ({
 
       {/* Not Interested Button */}
       <div className="mt-8 flex justify-center">
-        <Button
-          variant="outlined"
-          size="sm"
-          onClick={() => executeAuthenticatedAction(markNotInterested)}
-          disabled={isMarkingNotInterested}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
-        >
-          <ThumbsDown className="h-4 w-4" />
-          {'Not Interested'}
-        </Button>
+        <NotInterestedButton
+          entityId={work.id}
+          contentType="POST"
+          relatedDocumentTopics={work.topics}
+          relatedDocumentId={work.id.toString()}
+          relatedDocumentContentType={work.contentType}
+        />
       </div>
     </div>
   );

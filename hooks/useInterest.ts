@@ -10,8 +10,8 @@ import { useUser } from '@/contexts/UserContext';
 import { useDeviceType } from '@/hooks/useDeviceType';
 
 interface UseInterestOptions {
-  votableEntityId: number;
-  feedContentType?: FeedContentType;
+  entityId: number;
+  contentType?: FeedContentType;
   relatedDocumentId?: string;
   relatedDocumentContentType?: ContentType;
   relatedDocumentUnifiedDocumentId?: string;
@@ -21,14 +21,14 @@ interface UseInterestOptions {
 }
 
 /**
- * Maps FeedContentType to DocumentType for API calls
+ * Maps ContentType to DocumentType for API calls
  */
-function mapFeedContentTypeToDocumentType(feedContentType?: FeedContentType): DocumentType {
-  if (!feedContentType) {
-    return 'paper'; // Default to paper if no feedContentType is provided
+function mapContentTypeToDocumentType(contentType?: FeedContentType): DocumentType {
+  if (!contentType) {
+    return 'paper'; // Default to paper if no contentType is provided
   }
 
-  switch (feedContentType) {
+  switch (contentType) {
     case 'PAPER':
       return 'paper';
     case 'POST':
@@ -49,8 +49,8 @@ function mapFeedContentTypeToDocumentType(feedContentType?: FeedContentType): Do
  * A reusable hook for handling "not interested" functionality across different content types
  */
 export function useInterest({
-  votableEntityId,
-  feedContentType,
+  entityId,
+  contentType,
   relatedDocumentId,
   relatedDocumentContentType,
   relatedDocumentUnifiedDocumentId,
@@ -84,17 +84,17 @@ export function useInterest({
         // Use the related document content type when available (e.g., `paper`)
         documentType = relatedDocumentContentType === 'paper' ? 'paper' : 'researchhubpost';
       } else {
-        // Fallback to feed content type mapping
-        documentType = mapFeedContentTypeToDocumentType(feedContentType);
+        // Fallback to content type mapping
+        documentType = mapContentTypeToDocumentType(contentType);
       }
 
       // Ensure we have a valid entity ID
-      if (!votableEntityId) {
+      if (!entityId) {
         throw new Error('Entity ID is required for marking as not interested');
       }
 
       const response = await ReactionService.markNotInterested({
-        documentId: votableEntityId,
+        documentId: entityId,
         documentType,
       });
 
@@ -124,8 +124,8 @@ export function useInterest({
       setIsProcessing(false);
     }
   }, [
-    votableEntityId,
-    feedContentType,
+    entityId,
+    contentType,
     relatedDocumentId,
     relatedDocumentContentType,
     isProcessing,
