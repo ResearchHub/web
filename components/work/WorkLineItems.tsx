@@ -10,12 +10,14 @@ import {
   Octagon,
   Share2,
   CheckCircle,
+  ThumbsDown,
 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useVote } from '@/hooks/useVote';
 import { useUserVotes } from '@/hooks/useUserVotes';
+import { useInterest } from '@/hooks/useInterest';
 import { useCloseFundraise } from '@/hooks/useFundraise';
 import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
@@ -32,6 +34,7 @@ import { WorkMetadata } from '@/services/metadata.service';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useCompleteFundraise } from '@/hooks/useFundraise';
+import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -60,6 +63,11 @@ export const WorkLineItems = ({
     relatedDocumentTopics: work.topics,
     relatedDocumentId: work.id.toString(),
     relatedDocumentContentType: work.contentType,
+  });
+
+  const { markNotInterested, isProcessing: isMarkingNotInterested } = useInterest({
+    entityId: work.id,
+    workContentType: work.contentType,
   });
   const [voteCount, setVoteCount] = useState(work.metrics?.votes || 0);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
@@ -365,6 +373,15 @@ export const WorkLineItems = ({
               <BaseMenuItem onSelect={() => executeAuthenticatedAction(handleAddVersion)}>
                 <FileUp className="h-4 w-4 mr-2" />
                 <span>Upload New Version</span>
+              </BaseMenuItem>
+            )}
+            {isFeatureEnabled(FeatureFlag.NotInterested) && (
+              <BaseMenuItem
+                disabled={isMarkingNotInterested}
+                onSelect={() => executeAuthenticatedAction(markNotInterested)}
+              >
+                <ThumbsDown className="h-4 w-4 mr-2" />
+                <span>Not Interested</span>
               </BaseMenuItem>
             )}
             {!isPublished && isModerator && work.contentType !== 'preregistration' && (

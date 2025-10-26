@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { PostBlockEditor } from './PostBlockEditor';
 import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
 import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
+import { NotInterestedButton } from '@/components/ui/NotInterestedButton';
 
 interface GrantDocumentProps {
   work: Work;
@@ -165,6 +166,11 @@ export const GrantDocument = ({
 
       {/* Tab content */}
       {renderTabContent}
+
+      {/* Not Interested Button */}
+      <div className="mt-8 flex justify-center">
+        <NotInterestedButton entityId={work.id} contentType={work.contentType} />
+      </div>
     </div>
   );
 };
