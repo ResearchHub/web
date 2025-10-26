@@ -10,7 +10,7 @@ import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 import { QuestionEditModal } from '@/components/modals/QuestionEditModal';
-import { NotInterestedButton } from './components/NotInterestedButton';
+import { NotInterestedButton } from '@/components/ui/NotInterestedButton';
 import TipTapRenderer from '@/components/Comment/lib/TipTapRenderer';
 import { htmlToTipTapJSON } from '@/components/Comment/lib/htmlToTipTap';
 
@@ -157,13 +157,7 @@ export const PostDocument = ({
 
       {/* Not Interested Button */}
       <div className="mt-8 flex justify-center">
-        <NotInterestedButton
-          entityId={work.id}
-          contentType={work.contentType === 'paper' ? 'PAPER' : 'POST'}
-          relatedDocumentTopics={work.topics}
-          relatedDocumentId={work.id.toString()}
-          relatedDocumentContentType={work.contentType}
-        />
+        <NotInterestedButton entityId={work.id} contentType={work.contentType} />
       </div>
 
       {/* Question Edit Modal */}

@@ -11,7 +11,7 @@ import {
   transformComment,
 } from '@/types/comment';
 import { ID } from '@/types/root';
-import { getContentTypePath } from '@/utils/contentTypeMapping';
+import { mapAppContentTypeToApiType } from '@/utils/contentTypeMapping';
 
 interface FetchCommentsOptions {
   documentId: number;
@@ -101,7 +101,7 @@ export class CommentService {
     threadType,
     mentions,
   }: CreateCommentOptions): Promise<Comment> {
-    const contentTypePath = getContentTypePath(contentType);
+    const contentTypePath = mapAppContentTypeToApiType(contentType);
     const path =
       `${this.BASE_PATH}/${contentTypePath}/${workId}/comments/` +
       (bountyAmount ? 'create_comment_with_bounty/' : 'create_rh_comment/');
@@ -145,7 +145,7 @@ export class CommentService {
     ascending = false,
     privacyType = 'PUBLIC',
   }: FetchCommentsOptions): Promise<{ comments: Comment[]; count: number }> {
-    const contentTypePath = getContentTypePath(contentType);
+    const contentTypePath = mapAppContentTypeToApiType(contentType);
     const queryParams = new URLSearchParams({
       page_size: pageSize.toString(),
       child_page_size: childPageSize.toString(),
@@ -181,7 +181,7 @@ export class CommentService {
     contentFormat,
     mentions,
   }: UpdateCommentOptions): Promise<Comment> {
-    const contentTypePath = getContentTypePath(contentType);
+    const contentTypePath = mapAppContentTypeToApiType(contentType);
     const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/${commentId}/`;
     const payload = {
       comment_content_json: content,
@@ -198,7 +198,7 @@ export class CommentService {
     documentId,
     contentType,
   }: DeleteCommentOptions): Promise<void> {
-    const contentTypePath = getContentTypePath(contentType);
+    const contentTypePath = mapAppContentTypeToApiType(contentType);
     const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/${commentId}/censor/`;
     await ApiClient.patch(path);
   }
@@ -224,7 +224,7 @@ export class CommentService {
     documentId,
     contentType,
   }: FetchCommentOptions): Promise<Comment> {
-    const contentTypePath = getContentTypePath(contentType);
+    const contentTypePath = mapAppContentTypeToApiType(contentType);
     const path = `${this.BASE_PATH}/${contentTypePath}/${documentId}/comments/${commentId}/`;
     const response = await ApiClient.get<any>(path);
     return transformComment(response);
@@ -239,7 +239,7 @@ export class CommentService {
     sort = 'BEST',
     ascending = false,
   }: FetchCommentRepliesOptions): Promise<{ replies: Comment[]; count: number }> {
-    const contentTypePath = getContentTypePath(contentType);
+    const contentTypePath = mapAppContentTypeToApiType(contentType);
     // Calculate child_offset based on page and pageSize
     const childOffset = (page - 1) * pageSize;
 

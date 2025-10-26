@@ -25,7 +25,7 @@ import {
 } from '@/types/reaction';
 import { FlagReasonKey } from '@/types/work';
 import { ContentType } from '@/types/work';
-import { getContentTypePath } from '@/utils/contentTypeMapping';
+import { mapAppContentTypeToApiType } from '@/utils/contentTypeMapping';
 
 export type DocumentType = 'paper' | 'researchhubpost';
 
@@ -115,7 +115,7 @@ export class ReactionService {
       apiContentType = contentType as ContentType;
     }
 
-    const contentTypePath = getContentTypePath(apiContentType);
+    const contentTypePath = mapAppContentTypeToApiType(apiContentType);
     let endpoint = '';
 
     if (voteType === 'UPVOTE') {

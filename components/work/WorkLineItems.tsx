@@ -67,10 +67,7 @@ export const WorkLineItems = ({
 
   const { markNotInterested, isProcessing: isMarkingNotInterested } = useInterest({
     entityId: work.id,
-    contentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
-    relatedDocumentTopics: work.topics,
-    relatedDocumentId: work.id.toString(),
-    relatedDocumentContentType: work.contentType,
+    workContentType: work.contentType,
   });
   const [voteCount, setVoteCount] = useState(work.metrics?.votes || 0);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
@@ -378,7 +375,7 @@ export const WorkLineItems = ({
                 <span>Upload New Version</span>
               </BaseMenuItem>
             )}
-            {isFeatureEnabled(FeatureFlag.NotInterestedButton) && (
+            {isFeatureEnabled(FeatureFlag.NotInterested) && (
               <BaseMenuItem
                 disabled={isMarkingNotInterested}
                 onSelect={() => executeAuthenticatedAction(markNotInterested)}

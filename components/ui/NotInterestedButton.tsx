@@ -6,16 +6,11 @@ import { useInterest } from '@/hooks/useInterest';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { FeedContentType } from '@/types/feed';
 import { ContentType } from '@/types/work';
-import { Topic } from '@/types/topic';
 import { isFeatureEnabled, FeatureFlag } from '@/utils/featureFlags';
 
 interface NotInterestedButtonProps {
   entityId: number;
-  contentType: FeedContentType;
-  relatedDocumentId?: string;
-  relatedDocumentContentType?: ContentType;
-  relatedDocumentTopics?: Topic[];
-  relatedDocumentUnifiedDocumentId?: string;
+  contentType: ContentType;
   className?: string;
   showText?: boolean;
 }
@@ -23,10 +18,6 @@ interface NotInterestedButtonProps {
 export const NotInterestedButton = ({
   entityId,
   contentType,
-  relatedDocumentId,
-  relatedDocumentContentType,
-  relatedDocumentTopics,
-  relatedDocumentUnifiedDocumentId,
   className = '',
   showText = true,
 }: NotInterestedButtonProps) => {
@@ -34,15 +25,11 @@ export const NotInterestedButton = ({
 
   const { markNotInterested, isProcessing: isMarkingNotInterested } = useInterest({
     entityId,
-    contentType,
-    relatedDocumentId,
-    relatedDocumentContentType,
-    relatedDocumentTopics,
-    relatedDocumentUnifiedDocumentId,
+    workContentType: contentType,
   });
 
   // Check if feature is enabled
-  if (!isFeatureEnabled(FeatureFlag.NotInterestedButton)) {
+  if (!isFeatureEnabled(FeatureFlag.NotInterested)) {
     return null;
   }
 

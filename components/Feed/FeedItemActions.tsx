@@ -283,16 +283,11 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       setLocalUserVote(userVote);
     },
     relatedDocumentTopics: relatedDocumentTopics,
-    relatedDocumentUnifiedDocumentId: relatedDocumentUnifiedDocumentId,
   });
 
   const { markNotInterested, isProcessing: isMarkingNotInterested } = useInterest({
     entityId: votableEntityId,
-    contentType: feedContentType,
-    relatedDocumentId,
-    relatedDocumentContentType,
-    relatedDocumentTopics: relatedDocumentTopics,
-    relatedDocumentUnifiedDocumentId: relatedDocumentUnifiedDocumentId,
+    feedContentType: feedContentType,
   });
 
   // Use the flag modal hook
@@ -509,7 +504,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const isDismissible =
     feedContentType !== 'COMMENT' &&
     feedContentType !== 'BOUNTY' &&
-    isFeatureEnabled(FeatureFlag.NotInterestedButton);
+    isFeatureEnabled(FeatureFlag.NotInterested);
 
   // Combine menu items, conditionally adding the tip item and not interested item
   const combinedMenuItems = [

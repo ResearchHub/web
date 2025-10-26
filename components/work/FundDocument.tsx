@@ -23,7 +23,7 @@ import { useShareModalContext } from '@/contexts/ShareContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '../ui/Button';
-import { NotInterestedButton } from './components/NotInterestedButton';
+import { NotInterestedButton } from '@/components/ui/NotInterestedButton';
 
 interface FundDocumentProps {
   work: Work;
@@ -284,13 +284,7 @@ export const FundDocument = ({
 
       {/* Not Interested Button */}
       <div className="mt-8 flex justify-center">
-        <NotInterestedButton
-          entityId={work.id}
-          contentType="POST"
-          relatedDocumentTopics={work.topics}
-          relatedDocumentId={work.id.toString()}
-          relatedDocumentContentType={work.contentType}
-        />
+        <NotInterestedButton entityId={work.id} contentType={work.contentType} />
       </div>
 
       {/* Mobile overlay */}
