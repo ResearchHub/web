@@ -28,6 +28,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
 import { Topic } from '@/types/topic';
+import { isFeatureEnabled, FeatureFlag } from '@/utils/featureFlags';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -504,8 +505,11 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     className: '',
   };
 
-  // Check if content is dismissible (not comments or bounties)
-  const isDismissible = feedContentType !== 'COMMENT' && feedContentType !== 'BOUNTY';
+  // Check if content is dismissible (not comments or bounties) and feature is enabled
+  const isDismissible =
+    feedContentType !== 'COMMENT' &&
+    feedContentType !== 'BOUNTY' &&
+    isFeatureEnabled(FeatureFlag.NotInterestedButton);
 
   // Combine menu items, conditionally adding the tip item and not interested item
   const combinedMenuItems = [

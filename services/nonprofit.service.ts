@@ -13,15 +13,7 @@ import {
 } from '@/types/nonprofit';
 import { ApiClient } from './client';
 import { ID } from '@/types/root';
-import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { ApiError } from './types';
-
-export class NonprofitFeatureDisabledError extends Error {
-  constructor() {
-    super('Nonprofit integration is not available in this environment');
-    this.name = 'NonprofitFeatureDisabledError';
-  }
-}
 
 export class NonprofitServiceError extends Error {
   constructor(message: string) {
@@ -32,12 +24,6 @@ export class NonprofitServiceError extends Error {
 
 export class NonprofitService {
   private static readonly BASE_PATH = '/api/organizations/non-profit';
-
-  private static checkFeatureEnabled(): void {
-    if (!isFeatureEnabled(FeatureFlag.NonprofitIntegration)) {
-      throw new NonprofitFeatureDisabledError();
-    }
-  }
 
   /**
    * Search for nonprofit organizations based on provided parameters
@@ -51,8 +37,6 @@ export class NonprofitService {
     searchTerm: string,
     options: Omit<NonprofitSearchParams, 'searchTerm'> = {}
   ): Promise<NonprofitOrg[]> {
-    this.checkFeatureEnabled();
-
     const params = new URLSearchParams({
       searchTerm,
       ...(options.nteeMajorCodes && { nteeMajorCodes: options.nteeMajorCodes }),
@@ -82,7 +66,6 @@ export class NonprofitService {
    * @throws NonprofitServiceError when the API request fails
    */
   static async createNonprofit(params: CreateNonprofitParams): Promise<NonprofitDetails> {
-    this.checkFeatureEnabled();
     const endpoint = `${this.BASE_PATH}/create/`;
 
     if (!params.endaomentOrgId) {
@@ -125,7 +108,6 @@ export class NonprofitService {
    * @throws NonprofitServiceError when the API request fails
    */
   static async linkToFundraise(params: LinkToFundraiseParams): Promise<NonprofitFundraiseLink> {
-    this.checkFeatureEnabled();
     const endpoint = `${this.BASE_PATH}/link_to_fundraise/`;
 
     const apiParams = {
@@ -171,7 +153,6 @@ export class NonprofitService {
    * @throws NonprofitServiceError when the API request fails
    */
   static async getNonprofitsByFundraiseId(fundraiseId: ID): Promise<NonprofitLink[]> {
-    this.checkFeatureEnabled();
     const endpoint = `${this.BASE_PATH}/get_by_fundraise/?fundraise_id=${fundraiseId}`;
 
     try {

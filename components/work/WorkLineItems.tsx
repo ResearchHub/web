@@ -34,6 +34,7 @@ import { WorkMetadata } from '@/services/metadata.service';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useCompleteFundraise } from '@/hooks/useFundraise';
+import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -377,13 +378,15 @@ export const WorkLineItems = ({
                 <span>Upload New Version</span>
               </BaseMenuItem>
             )}
-            <BaseMenuItem
-              disabled={isMarkingNotInterested}
-              onSelect={() => executeAuthenticatedAction(markNotInterested)}
-            >
-              <ThumbsDown className="h-4 w-4 mr-2" />
-              <span>Not Interested</span>
-            </BaseMenuItem>
+            {isFeatureEnabled(FeatureFlag.NotInterestedButton) && (
+              <BaseMenuItem
+                disabled={isMarkingNotInterested}
+                onSelect={() => executeAuthenticatedAction(markNotInterested)}
+              >
+                <ThumbsDown className="h-4 w-4 mr-2" />
+                <span>Not Interested</span>
+              </BaseMenuItem>
+            )}
             {!isPublished && isModerator && work.contentType !== 'preregistration' && (
               <BaseMenuItem
                 disabled={isPublishing}

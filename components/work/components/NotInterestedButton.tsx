@@ -7,6 +7,7 @@ import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { FeedContentType } from '@/types/feed';
 import { ContentType } from '@/types/work';
 import { Topic } from '@/types/topic';
+import { isFeatureEnabled, FeatureFlag } from '@/utils/featureFlags';
 
 interface NotInterestedButtonProps {
   entityId: number;
@@ -39,6 +40,11 @@ export const NotInterestedButton = ({
     relatedDocumentTopics,
     relatedDocumentUnifiedDocumentId,
   });
+
+  // Check if feature is enabled
+  if (!isFeatureEnabled(FeatureFlag.NotInterestedButton)) {
+    return null;
+  }
 
   return (
     <Button

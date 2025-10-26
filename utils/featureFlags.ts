@@ -3,13 +3,13 @@
  */
 
 export enum FeatureFlag {
-  NonprofitIntegration = 'nonprofitIntegration',
+  NotInterestedButton = 'notInterestedButton',
   LegacyNoteBanner = 'legacyNoteBanner',
 }
 
-function getLocalStorageFlag(key: string): boolean | undefined {
+function getLocalStorageFlag(key: FeatureFlag): boolean | undefined {
   if (typeof window === 'undefined') return undefined;
-  const value = window.localStorage.getItem(`featureFlag:${key}`);
+  const value = window.localStorage.getItem(`ff:${key}`);
   if (value === 'true') return true;
   if (value === 'false') return false;
   return undefined;
@@ -73,7 +73,9 @@ export function isProduction(): boolean {
  * Centralize all feature flag logic here.
  */
 export const FeatureFlags: Record<FeatureFlag, () => boolean> = {
-  [FeatureFlag.NonprofitIntegration]: () => true,
+  [FeatureFlag.NotInterestedButton]: () => {
+    return getLocalStorageFlag(FeatureFlag.NotInterestedButton) ?? false;
+  },
   [FeatureFlag.LegacyNoteBanner]: () => true,
 };
 
