@@ -83,8 +83,7 @@ export function SearchSuggestions({
         suggestion.entityType === 'user' || suggestion.entityType === 'author';
       const isTopicSuggestion = suggestion.entityType === 'hub';
       const isPostSuggestion = suggestion.entityType === 'post';
-      const isGrantPost =
-        isPostSuggestion && 'documentType' in suggestion && suggestion.documentType === 'GRANT';
+      const isGrantPost = isPostSuggestion && suggestion?.documentType === 'GRANT';
 
       // Safely access nested properties
       const safeGetAuthorsList = () => {

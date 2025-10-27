@@ -1,6 +1,6 @@
 import { createTransformer, BaseTransformed } from './transformer';
 import { buildWorkUrl, buildAuthorUrl, buildTopicUrl } from '@/utils/url';
-import { getContentTypeFromDocumentType } from '@/utils/contentTypeMapping';
+import { mapApiContentTypeToClientType } from '@/utils/contentTypeMapping';
 import { AuthorProfile } from './authorProfile';
 import { ID } from './root';
 import { transformTopic } from './topic';
@@ -43,7 +43,7 @@ export interface PostSuggestion extends BaseSuggestion {
   entityType: 'post';
   displayName: string;
   id: number;
-  documentType?: string; // Will contain 'GRANT', 'PREREGISTRATION', 'DISCUSSION', etc.
+  documentType?: string;
 }
 
 export interface TopicSuggestion extends BaseSuggestion {
@@ -186,10 +186,10 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
           displayName: raw.display_name || 'Untitled Post',
           source: raw.source || '',
           isRecent: false,
-          documentType, // Capture GRANT, PREREGISTRATION, etc.
+          documentType,
           url: buildWorkUrl({
             id: raw.id,
-            contentType: getContentTypeFromDocumentType(documentType),
+            contentType: mapApiContentTypeToClientType(documentType),
           }),
         };
 

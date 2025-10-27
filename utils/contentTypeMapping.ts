@@ -27,7 +27,7 @@ export function getContentTypePath(contentType: ContentType): string {
  * @param documentType The document type from the API (e.g., 'GRANT', 'PREREGISTRATION', 'DISCUSSION')
  * @returns The corresponding content type for URL building
  */
-export function getContentTypeFromDocumentType(
+export function mapApiContentTypeToClientType(
   documentType: string
 ): 'paper' | 'post' | 'funding_request' | 'preregistration' {
   const contentTypeMap: Record<string, 'paper' | 'post' | 'funding_request' | 'preregistration'> = {
