@@ -1,23 +1,46 @@
 import { ContentType } from '@/types/work';
+import { FeedContentType } from '@/types/feed';
+import { DocumentType } from '@/services/reaction.service';
 
 /**
  * Maps a ContentType to the corresponding API endpoint path
  * @param contentType The content type from the application
- * @returns The API endpoint path for the content type
+ * @returns The document type for API calls
  */
-export function getContentTypePath(contentType: ContentType): string {
-  // Map 'post' content type to 'researchhubpost' for API calls
-  if (contentType === 'post') {
-    return 'researchhubpost';
+export function mapAppContentTypeToApiType(contentType: ContentType): DocumentType {
+  switch (contentType) {
+    case 'post':
+    case 'preregistration':
+    case 'funding_request':
+      return 'researchhubpost';
+    case 'paper':
+      return 'paper';
+    default:
+      return 'researchhubpost';
   }
-  // Map 'preregistration' to the correct API path if needed
-  if (contentType === 'preregistration') {
+}
+
+/**
+ * Maps FeedContentType to DocumentType for API calls
+ * @param contentType The feed content type from the application
+ * @returns The document type for API calls
+ */
+export function mapAppFeedContentTypeToApiType(contentType?: FeedContentType): DocumentType {
+  if (!contentType) {
     return 'researchhubpost';
   }
 
-  if (contentType === 'funding_request') {
-    return 'researchhubpost';
+  switch (contentType) {
+    case 'PAPER':
+      return 'paper';
+    case 'POST':
+    case 'PREREGISTRATION':
+    case 'GRANT':
+    case 'BOUNTY':
+    case 'COMMENT':
+    case 'APPLICATION':
+      return 'researchhubpost';
+    default:
+      return 'researchhubpost';
   }
-
-  return contentType.toLowerCase();
 }

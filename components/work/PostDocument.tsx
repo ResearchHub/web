@@ -10,6 +10,7 @@ import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 import { QuestionEditModal } from '@/components/modals/QuestionEditModal';
+import { NotInterestedButton } from '@/components/ui/NotInterestedButton';
 import TipTapRenderer from '@/components/Comment/lib/TipTapRenderer';
 import { htmlToTipTapJSON } from '@/components/Comment/lib/htmlToTipTap';
 
@@ -153,6 +154,11 @@ export const PostDocument = ({
 
       {/* Tab Content */}
       {renderTabContent}
+
+      {/* Not Interested Button */}
+      <div className="mt-8 flex justify-center">
+        <NotInterestedButton entityId={work.id} contentType={work.contentType} />
+      </div>
 
       {/* Question Edit Modal */}
       <QuestionEditModal

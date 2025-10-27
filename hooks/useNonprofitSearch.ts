@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { NonprofitOrg, NonprofitSearchParams } from '@/types/nonprofit';
-import { NonprofitService, NonprofitFeatureDisabledError } from '@/services/nonprofit.service';
+import { NonprofitService } from '@/services/nonprofit.service';
 
 export interface UseNonprofitSearchOptions {
   initialSearchTerm?: string;
@@ -70,9 +70,7 @@ export const useNonprofitSearch = (
       } catch (error) {
         setResults([]);
 
-        if (error instanceof NonprofitFeatureDisabledError) {
-          setError(error);
-        } else if (error instanceof Error) {
+        if (error instanceof Error) {
           setError(error);
         } else {
           setError(new Error('Unknown error occurred while searching for nonprofits'));

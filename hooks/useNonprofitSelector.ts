@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { NonprofitOrg } from '@/types/nonprofit';
 import { useNonprofitSearch } from './useNonprofitSearch';
-import { FeatureFlags } from '@/utils/featureFlags';
 import { CHAIN_IDS } from '@/constants/chains';
 
 /**
@@ -45,8 +44,6 @@ export interface UseNonprofitSelectorReturn {
   handleShowInfo: (nonprofit: NonprofitOrg, position: { top: number; left: number }) => void;
   handleCloseInfo: () => void;
   toggleEndaomentInfo: (position: { top: number; left: number; arrowPosition?: number }) => void;
-
-  isFeatureEnabled: boolean;
 }
 
 /**
@@ -63,8 +60,6 @@ export const useNonprofitSelector = ({
   initialNote = '',
   onSelectNonprofit,
 }: UseNonprofitSelectorProps = {}): UseNonprofitSelectorReturn => {
-  const isFeatureEnabled = FeatureFlags.nonprofitIntegration();
-
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { results, isLoading, searchNonprofits, clearResults } = useNonprofitSearch();
@@ -176,7 +171,5 @@ export const useNonprofitSelector = ({
     handleShowInfo,
     handleCloseInfo,
     toggleEndaomentInfo,
-
-    isFeatureEnabled,
   };
 };

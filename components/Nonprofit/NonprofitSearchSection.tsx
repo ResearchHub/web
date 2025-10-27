@@ -102,7 +102,6 @@ function NonprofitSearchSectionInner({
     setNote,
     handleSelectNonprofit,
     handleClearNonprofit,
-    isFeatureEnabled,
   } = useNonprofitSelector({
     initialSelectedNonprofit: selectedNonprofit,
     initialNote: departmentLabName,
@@ -150,10 +149,6 @@ function NonprofitSearchSectionInner({
     setShowInfoDialog(true);
     // No longer closing the dropdown when viewing info
   };
-
-  if (!isFeatureEnabled) {
-    return null;
-  }
 
   const handleClear = () => {
     handleClearNonprofit();

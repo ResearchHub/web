@@ -15,15 +15,17 @@ import {
   transformFlag,
   transformVote,
   transformVotes,
+  transformNotInterested,
   Vote,
   VoteTypeString,
   Flag,
+  NotInterested,
   UserVoteType,
   VotableContentType,
 } from '@/types/reaction';
 import { FlagReasonKey } from '@/types/work';
 import { ContentType } from '@/types/work';
-import { getContentTypePath } from '@/utils/contentTypeMapping';
+import { mapAppContentTypeToApiType } from '@/utils/contentTypeMapping';
 
 export type DocumentType = 'paper' | 'researchhubpost';
 
@@ -54,6 +56,11 @@ export interface VoteOnCommentOptions {
   voteType: UserVoteType;
   contentType: VotableContentType;
   documentType: DocumentType;
+}
+
+export interface MarkNotInterestedOptions {
+  documentType: DocumentType;
+  documentId: ID;
 }
 
 export class ReactionService {
@@ -108,7 +115,7 @@ export class ReactionService {
       apiContentType = contentType as ContentType;
     }
 
-    const contentTypePath = getContentTypePath(apiContentType);
+    const contentTypePath = mapAppContentTypeToApiType(apiContentType);
     let endpoint = '';
 
     if (voteType === 'UPVOTE') {
@@ -155,5 +162,19 @@ export class ReactionService {
     const response = await ApiClient.post(url, payload);
 
     return transformFlag(response);
+  }
+
+  static async markNotInterested({
+    documentType,
+    documentId,
+  }: MarkNotInterestedOptions): Promise<NotInterested> {
+    if (!documentType || !documentId) {
+      throw new Error('Document type and ID are required');
+    }
+
+    const url = `${this.BASE_PATH}/${documentType}/${documentId}/mark_not_interested/`;
+    const response = await ApiClient.post<any>(url);
+
+    return transformNotInterested(response);
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { NonprofitService, NonprofitFeatureDisabledError } from '@/services/nonprofit.service';
+import { NonprofitService } from '@/services/nonprofit.service';
 import { NonprofitOrg, NonprofitFundraiseLink, CreateNonprofitParams } from '@/types/nonprofit';
 import { ID } from '@/types/root';
 import { ApiError } from '@/services/types';
@@ -70,9 +70,7 @@ export const useNonprofitLink = (): UseNonprofitLinkReturn => {
       // Handle various error types
       let errorMessage: string;
 
-      if (err instanceof NonprofitFeatureDisabledError) {
-        errorMessage = err.message;
-      } else if (err instanceof ApiError) {
+      if (err instanceof ApiError) {
         try {
           const errorData = JSON.parse(err.message);
 
