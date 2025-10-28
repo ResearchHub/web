@@ -58,6 +58,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sortBy = (searchParams.get('sort') as FundingSortOption) || '';
+  const includeEnded = searchParams.get('includeEnded') !== 'false';
   const config = TAB_CONFIG[marketplaceTab];
   const [isSortChanging, setIsSortChanging] = useState(false);
   const previousSortRef = useRef(sortBy);
@@ -74,11 +75,25 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
+  const handleIncludeEndedChange = (newIncludeEnded: boolean) => {
+    setIsSortChanging(true);
+    const params = new URLSearchParams(searchParams.toString());
+    if (newIncludeEnded) {
+      // Default is true, so we don't need to set the parameter
+      params.delete('includeEnded');
+    } else {
+      // Only set parameter when explicitly excluding ended proposals
+      params.set('includeEnded', 'false');
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
   const { entries, isLoading, hasMore, loadMore } = useFeed('all', {
     contentType: config.contentType,
     endpoint: config.endpoint,
     fundraiseStatus: config.fundraiseStatus,
     ordering: sortBy || undefined,
+    includeEnded: includeEnded,
   });
 
   useEffect(() => {
@@ -112,6 +127,8 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
         onTabChange={() => {}}
         sortBy={sortBy}
         onSortChange={handleSortChange}
+        includeEnded={includeEnded}
+        onIncludeEndedChange={handleIncludeEndedChange}
       />
       <FeedContent
         entries={isSortChanging ? [] : entries}
