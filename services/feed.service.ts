@@ -36,7 +36,7 @@ export class FeedService {
     if (params?.fundraiseStatus) queryParams.append('fundraise_status', params.fundraiseStatus);
     if (params?.grantId) queryParams.append('grant_id', params.grantId.toString());
     if (params?.createdBy) queryParams.append('created_by', params.createdBy.toString());
-    if (params?.ordering) queryParams.append('sort_by', params.ordering);
+    if (params?.ordering) queryParams.append('ordering', params.ordering);
     if (params?.hotScoreVersion) queryParams.append('hot_score_version', params.hotScoreVersion);
     if (params?.includeHotScoreBreakdown) queryParams.append('include_hot_score_breakdown', 'true');
     if (params?.includeEnded !== undefined)
