@@ -85,7 +85,7 @@ export default async function FundingProjectPage({ params }: Props) {
           authorUpdates={authorUpdates}
         />
         <SearchHistoryTracker work={work} />
-        {/* <WorkDocumentTracker work={work} metadata={metadata} tab="paper" /> */}
+        <WorkDocumentTracker work={work} metadata={metadata} tab="paper" />
       </Suspense>
     </PageLayout>
   );
