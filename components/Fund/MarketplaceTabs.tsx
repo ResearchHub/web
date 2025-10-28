@@ -69,7 +69,7 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
 
     // If switching to previously-funded tab, clear the sort parameter
     if (tab === 'previously-funded') {
-      newParams.delete('sort');
+      newParams.delete('sort_by');
       // Also call onSortChange to update the parent component's state
       onSortChange('');
     }

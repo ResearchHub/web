@@ -57,7 +57,7 @@ interface FundPageContentProps {
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const sortBy = (searchParams.get('sort') as FundingSortOption) || '';
+  const sortBy = (searchParams.get('sort_by') as FundingSortOption) || '';
   const includeEnded = searchParams.get('includeEnded') !== 'false';
   const config = TAB_CONFIG[marketplaceTab];
   const [isSortChanging, setIsSortChanging] = useState(false);
@@ -68,9 +68,9 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     setIsSortChanging(true);
     const params = new URLSearchParams(searchParams.toString());
     if (newSort) {
-      params.set('sort', newSort);
+      params.set('sort_by', newSort);
     } else {
-      params.delete('sort');
+      params.delete('sort_by');
     }
     router.push(`?${params.toString()}`, { scroll: false });
   };
