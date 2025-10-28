@@ -8,6 +8,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkDocument } from '@/components/work/WorkDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 
 interface Props {
@@ -52,6 +53,7 @@ export default async function WorkBountiesPage({ params }: Props) {
       <Suspense>
         <WorkDocument work={work} metadata={metadata} defaultTab="bounties" />
         <SearchHistoryTracker work={work} />
+        <WorkDocumentTracker work={work} metadata={metadata} tab="bounties" />
       </Suspense>
     </PageLayout>
   );

@@ -8,8 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
+    "lint:work-pages": "find app -path '*/\\[id\\]/\\[slug\\]/*/page.tsx' -exec npx eslint {} --rulesdir eslint-rules \\;",
     "format": "prettier --write --ignore-path .gitignore \"./**/*.{js,jsx,ts,tsx,json,css}\"",
-    "type-check": "tsc --noEmit",
+    "type-check": "tsc --noEmit && npm run lint:work-pages",
+    "type-check:watch": "tsc --noEmit --watch",
     "prepare": "husky"
   },
   "dependencies": {
@@ -167,7 +169,7 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "prettier --write --ignore-path .gitignore",
-      "eslint --fix --ignore-pattern 'public/*'"
+      "eslint --fix --ignore-pattern 'public/*' --rulesdir eslint-rules"
     ],
     "**/*.{ts,tsx}": "bash -c 'npm run type-check'"
   }

@@ -8,6 +8,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkDocument } from '@/components/work/WorkDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { PostDocument } from '@/components/work/PostDocument';
 import { handleFundraiseRedirect } from '@/utils/navigation';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
@@ -81,6 +82,7 @@ export default async function QuestionPage({ params }: Props) {
           <WorkDocument work={post} metadata={metadata} defaultTab="paper" />
         )}
         <SearchHistoryTracker work={post} />
+        <WorkDocumentTracker work={post} metadata={metadata} tab="paper" />
       </Suspense>
     </PageLayout>
   );

@@ -8,6 +8,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { PostDocument } from '@/components/work/PostDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { handleFundraiseRedirect } from '@/utils/navigation';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 
@@ -80,6 +81,7 @@ export default async function QuestionConversationPage({ params }: Props) {
           <PostDocument work={post} metadata={metadata} defaultTab="conversation" />
         )}
         <SearchHistoryTracker work={post} />
+        <WorkDocumentTracker work={post} metadata={metadata} tab="conversation" />
       </Suspense>
     </PageLayout>
   );
