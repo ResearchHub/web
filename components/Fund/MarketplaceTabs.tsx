@@ -70,8 +70,11 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
     // If switching to previously-funded tab, clear the sort parameter
     if (tab === 'previously-funded') {
       newParams.delete('sort_by');
+      newParams.delete('includeEnded');
       // Also call onSortChange to update the parent component's state
       onSortChange('');
+      // Call onIncludeEndedChange to update the parent component's state
+      onIncludeEndedChange(true);
     }
 
     const queryString = newParams.toString();
