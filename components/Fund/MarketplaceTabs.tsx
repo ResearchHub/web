@@ -119,7 +119,7 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
                 <Switch
                   checked={includeEnded}
                   onCheckedChange={onIncludeEndedChange}
-                  className="h-4 w-7 [&>span]:h-3 [&>span]:w-3 [&>span]:translate-x-0 [&[aria-checked=true]>span]:translate-x-4 ml-5"
+                  className="h-4 w-7 [&>span]:h-3 [&>span]:w-3 [&>span]:translate-x-0 [&[aria-checked=true]>span]:translate-x-3 ml-5"
                 />
               </BaseMenuItem>
             </BaseMenu>
