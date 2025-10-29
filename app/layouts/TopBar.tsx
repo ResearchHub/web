@@ -25,6 +25,7 @@ import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
 import { faCommentsQuestion } from '@fortawesome/pro-light-svg-icons';
 import { faGrid3 as faGrid3Light } from '@fortawesome/pro-light-svg-icons';
+import { faMagnifyingGlass } from '@fortawesome/pro-light-svg-icons';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { colors } from '@/app/styles/colors';
 import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
@@ -77,6 +78,15 @@ const getPageInfo = (pathname: string): PageInfo | null => {
       title: 'Browse',
       subtitle: 'Discover and follow research topics',
       icon: <FontAwesomeIcon icon={faGrid3Light} fontSize={24} color="#000" />,
+    };
+  }
+
+  // Search page
+  if (pathname === '/search') {
+    return {
+      title: 'Search',
+      subtitle: 'Find papers, grants, authors, and peer reviews',
+      icon: <FontAwesomeIcon icon={faMagnifyingGlass} fontSize={24} color="#000" />,
     };
   }
 
