@@ -13,7 +13,6 @@ import {
   FundingSortOption,
 } from '@/components/Fund/MarketplaceTabs';
 import Icon from '@/components/ui/icons/Icon';
-import { useState, useEffect } from 'react';
 import { createTabConfig } from '@/components/Fund/lib/FundingFeedConfig';
 
 interface FundPageContentProps {
@@ -27,10 +26,8 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const includeEnded = searchParams.get('include_ended') !== 'false';
   const TAB_CONFIG = createTabConfig(<GrantRightSidebar />, <FundRightSidebar />);
   const config = TAB_CONFIG[marketplaceTab];
-  const [isSortChanging, setIsSortChanging] = useState(false);
 
   const handleSortChange = (newSort: FundingSortOption) => {
-    setIsSortChanging(true);
     const params = new URLSearchParams(searchParams.toString());
     if (newSort) {
       params.set('ordering', newSort);
@@ -41,7 +38,6 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   };
 
   const handleIncludeEndedChange = (newIncludeEnded: boolean) => {
-    setIsSortChanging(true);
     const params = new URLSearchParams(searchParams.toString());
     if (newIncludeEnded) {
       // Default is true, so we don't need to set the parameter
@@ -61,19 +57,6 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     includeEnded: includeEnded,
   });
 
-  // Reset loading state when sort changes from URL updates
-  useEffect(() => {
-    if (isSortChanging) {
-      setIsSortChanging(false);
-    }
-  }, [sortBy, includeEnded]);
-
-  useEffect(() => {
-    if (!isLoading && isSortChanging) {
-      setIsSortChanging(false);
-    }
-  }, [isLoading, isSortChanging]);
-
   return (
     <PageLayout rightSidebar={config.sidebar}>
       <MainPageHeader
@@ -90,8 +73,8 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
         onIncludeEndedChange={handleIncludeEndedChange}
       />
       <FeedContent
-        entries={isSortChanging ? [] : entries}
-        isLoading={isLoading || isSortChanging}
+        entries={entries}
+        isLoading={isLoading}
         hasMore={hasMore}
         loadMore={loadMore}
         showGrantHeaders={false}
