@@ -22,10 +22,7 @@ interface TopicBasic {
 interface RelatedWork {
   id: string;
   content_type: DocumentType;
-  topics?: TopicBasic[];
   unified_document_id?: string;
-  primary_topic?: TopicBasic;
-  secondary_topic?: TopicBasic;
 }
 
 export type FeedSource = 'home' | 'earn' | 'fund' | 'journal' | 'topic' | 'unknown';

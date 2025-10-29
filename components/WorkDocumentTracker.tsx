@@ -25,16 +25,6 @@ export function WorkDocumentTracker({ work, metadata, tab }: WorkDocumentTracker
       related_work: {
         id: work.id.toString(),
         content_type: mapAppContentTypeToApiType(work.contentType),
-        topics: metadata.topics.map((topic) => ({
-          id: topic.id.toString(),
-          name: topic.name,
-          slug: topic.slug,
-        })),
-        primary_topic: metadata.topics[0] && {
-          id: metadata.topics[0].id.toString(),
-          name: metadata.topics[0].name,
-          slug: metadata.topics[0].slug,
-        },
         unified_document_id: work.unifiedDocumentId?.toString(),
       },
       tab,

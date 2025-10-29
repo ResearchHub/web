@@ -74,27 +74,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             entry.content.relatedDocumentContentType
               ? mapAppContentTypeToApiType(entry.content.relatedDocumentContentType)
               : mapAppFeedContentTypeToApiType(entry.content.contentType),
-          topics:
-            ('topics' in entry.content ? entry.content.topics : entry.relatedWork?.topics)?.map(
-              (topic: Topic) => ({
-                id: topic?.id?.toString(),
-                name: topic?.name,
-                slug: topic?.slug,
-              })
-            ) || [],
-          primary_topic: ('topics' in entry.content
-            ? entry.content.topics
-            : entry.relatedWork?.topics)?.[0] && {
-            id: ('topics' in entry.content
-              ? entry.content.topics
-              : entry.relatedWork?.topics)?.[0]?.id?.toString(),
-            name: ('topics' in entry.content
-              ? entry.content.topics
-              : entry.relatedWork?.topics)?.[0]?.name,
-            slug: ('topics' in entry.content
-              ? entry.content.topics
-              : entry.relatedWork?.topics)?.[0]?.slug,
-          },
           unified_document_id:
             'unifiedDocumentId' in entry.content
               ? entry.content.unifiedDocumentId

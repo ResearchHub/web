@@ -124,17 +124,6 @@ export function useVote({
               ? {
                   id: relatedDocumentId.toString(),
                   content_type: mapAppContentTypeToApiType(relatedDocumentContentType),
-                  topics:
-                    relatedDocumentTopics?.map((topic) => ({
-                      id: topic?.id?.toString(),
-                      name: topic?.name,
-                      slug: topic?.slug,
-                    })) || [],
-                  primary_topic: relatedDocumentTopics?.[0] && {
-                    id: relatedDocumentTopics?.[0]?.id?.toString(),
-                    name: relatedDocumentTopics?.[0]?.name,
-                    slug: relatedDocumentTopics?.[0]?.slug,
-                  },
                   unified_document_id: relatedDocumentUnifiedDocumentId?.toString(),
                 }
               : undefined,
