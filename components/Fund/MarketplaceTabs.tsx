@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Switch';
 import { ChevronDown, TrendingUp, ArrowUp, DollarSign, Users } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export type MarketplaceTab = 'grants' | 'needs-funding' | 'previously-funded';
 export type FundingSortOption = '' | 'upvotes' | 'most_applicants' | 'amount_raised';
@@ -29,8 +30,8 @@ const getSortOptions = (activeTab: MarketplaceTab): SortOption[] => [
   { label: activeTab === 'grants' ? 'Amount' : 'Raised', value: 'amount_raised', icon: DollarSign },
 ];
 
-const TABS = [
-  { id: 'grants' as const, label: 'Request for Proposals' },
+const getTabs = (isMobile: boolean) => [
+  { id: 'grants' as const, label: isMobile ? 'RFPs' : 'Request for Proposals' },
   { id: 'needs-funding' as const, label: 'Proposals' },
   { id: 'previously-funded' as const, label: 'Previously Funded' },
 ];
@@ -62,7 +63,9 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const isMobile = useIsMobile();
   const sortOptions = getSortOptions(activeTab);
+  const tabs = getTabs(isMobile);
 
   const handleTabChange = (tabId: string) => {
     if (disableTabs) return;
@@ -92,19 +95,21 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
   return (
     <div className="bg-white pb-6">
       <div className="full-w border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <Tabs
-            tabs={TABS}
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            variant="primary"
-            className="border-b-0"
-          />
+        <div className="flex items-center gap-4">
+          <div className="flex-1">
+            <Tabs
+              tabs={tabs}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              variant="primary"
+              className="border-b-0"
+            />
+          </div>
           {activeTab !== 'previously-funded' && (
             <BaseMenu
               align="end"
               trigger={
-                <Button variant="outlined" size="sm" className="flex items-center gap-1 ml-[5px]">
+                <Button variant="outlined" size="sm" className="flex items-center gap-1">
                   <CurrentIcon className="h-4 w-4 mr-1" />
                   <span>{label}</span>
                   <ChevronDown className="h-4 w-4" />
