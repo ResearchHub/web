@@ -115,6 +115,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
             initialQuery={query}
             onSearch={handleSearch}
             placeholder="Search papers, grants, authors..."
+            autoFocus
           />
         </div>
       </div>

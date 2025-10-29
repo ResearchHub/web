@@ -19,14 +19,6 @@ export function SearchSortControls({ sortBy, onSortChange, activeTab }: SearchSo
       value: 'newest',
       label: 'Newest',
     },
-    {
-      value: 'hot',
-      label: 'Popular',
-    },
-    {
-      value: 'upvoted',
-      label: 'Most Upvoted',
-    },
   ];
 
   const handleChange = (option: SortOption) => {

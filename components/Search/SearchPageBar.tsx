@@ -14,6 +14,7 @@ interface SearchPageBarProps {
   onSearch: (query: string) => void;
   className?: string;
   placeholder?: string;
+  autoFocus?: boolean;
 }
 
 export function SearchPageBar({
@@ -21,6 +22,7 @@ export function SearchPageBar({
   onSearch,
   className,
   placeholder = 'Search papers, grants, authors...',
+  autoFocus = false,
 }: SearchPageBarProps) {
   const [query, setQuery] = useState(initialQuery);
   const [isFocused, setIsFocused] = useState(false);
@@ -32,6 +34,16 @@ export function SearchPageBar({
   useEffect(() => {
     setQuery(initialQuery);
   }, [initialQuery]);
+
+  // Auto-focus input when component mounts if autoFocus is true
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      // Small delay to ensure the page has loaded
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [autoFocus]);
 
   // Handle clicks outside the search component
   useEffect(() => {
