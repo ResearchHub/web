@@ -21,7 +21,11 @@ type SortOption = {
 const getSortOptions = (activeTab: MarketplaceTab): SortOption[] => [
   { label: 'Best', value: '', icon: TrendingUp },
   { label: 'Top', value: 'upvotes', icon: ArrowUp },
-  { label: 'Applicants', value: 'most_applicants', icon: Users },
+  {
+    label: activeTab === 'grants' ? 'Applicants' : 'Funders',
+    value: 'most_applicants',
+    icon: Users,
+  },
   { label: activeTab === 'grants' ? 'Amount' : 'Raised', value: 'amount_raised', icon: DollarSign },
 ];
 
