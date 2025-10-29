@@ -16,6 +16,10 @@ import { useUser } from '@/contexts/UserContext';
 import { useFeedSource } from '@/hooks/useFeedSource';
 import { Topic } from '@/types/topic';
 import { useDeviceType } from '@/hooks/useDeviceType';
+import {
+  mapAppContentTypeToApiType,
+  mapAppFeedContentTypeToApiType,
+} from '@/utils/contentTypeMapping';
 
 interface FeedEntryItemProps {
   entry: FeedEntry;
@@ -68,29 +72,8 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
           content_type:
             'relatedDocumentContentType' in entry.content &&
             entry.content.relatedDocumentContentType
-              ? entry.content.relatedDocumentContentType
-              : mapFeedContentTypeToContentType(entry.content.contentType) || 'post',
-          topics:
-            ('topics' in entry.content ? entry.content.topics : entry.relatedWork?.topics)?.map(
-              (topic: Topic) => ({
-                id: topic?.id?.toString(),
-                name: topic?.name,
-                slug: topic?.slug,
-              })
-            ) || [],
-          primary_topic: ('topics' in entry.content
-            ? entry.content.topics
-            : entry.relatedWork?.topics)?.[0] && {
-            id: ('topics' in entry.content
-              ? entry.content.topics
-              : entry.relatedWork?.topics)?.[0]?.id?.toString(),
-            name: ('topics' in entry.content
-              ? entry.content.topics
-              : entry.relatedWork?.topics)?.[0]?.name,
-            slug: ('topics' in entry.content
-              ? entry.content.topics
-              : entry.relatedWork?.topics)?.[0]?.slug,
-          },
+              ? mapAppContentTypeToApiType(entry.content.relatedDocumentContentType)
+              : mapAppFeedContentTypeToApiType(entry.content.contentType),
           unified_document_id:
             'unifiedDocumentId' in entry.content
               ? entry.content.unifiedDocumentId

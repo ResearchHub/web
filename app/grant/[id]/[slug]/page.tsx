@@ -7,6 +7,7 @@ import { Work } from '@/types/work';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundingRightSidebar } from '@/components/work/FundingRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { GrantDocument } from '@/components/work/GrantDocument';
 import { GrantRightSidebar } from '@/components/work/GrantRightSidebar';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
@@ -64,6 +65,7 @@ export default async function GrantPage({ params }: Props) {
       <Suspense>
         <GrantDocument work={work} metadata={metadata} content={content} defaultTab="paper" />
         <SearchHistoryTracker work={work} />
+        <WorkDocumentTracker work={work} metadata={metadata} tab="paper" />
       </Suspense>
     </PageLayout>
   );

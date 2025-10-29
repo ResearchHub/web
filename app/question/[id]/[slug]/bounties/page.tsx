@@ -8,6 +8,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { PostDocument } from '@/components/work/PostDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { handleFundraiseRedirect } from '@/utils/navigation';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 
@@ -76,6 +77,7 @@ export default async function QuestionBountiesPage({ params }: Props) {
           <PostDocument work={post} metadata={metadata} defaultTab="bounties" />
         )}
         <SearchHistoryTracker work={post} />
+        <WorkDocumentTracker work={post} metadata={metadata} tab="bounties" />
       </Suspense>
     </PageLayout>
   );

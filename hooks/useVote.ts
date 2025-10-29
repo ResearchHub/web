@@ -11,6 +11,7 @@ import { useUser } from '@/contexts/UserContext';
 import { VoteActionEvent } from '@/types/analytics';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { useDeviceType } from '@/hooks/useDeviceType';
+import { mapAppContentTypeToApiType } from '@/utils/contentTypeMapping';
 
 interface UseVoteOptions {
   votableEntityId: number;
@@ -122,18 +123,7 @@ export function useVote({
             relatedDocumentId && relatedDocumentContentType
               ? {
                   id: relatedDocumentId.toString(),
-                  content_type: relatedDocumentContentType,
-                  topics:
-                    relatedDocumentTopics?.map((topic) => ({
-                      id: topic?.id?.toString(),
-                      name: topic?.name,
-                      slug: topic?.slug,
-                    })) || [],
-                  primary_topic: relatedDocumentTopics?.[0] && {
-                    id: relatedDocumentTopics?.[0]?.id?.toString(),
-                    name: relatedDocumentTopics?.[0]?.name,
-                    slug: relatedDocumentTopics?.[0]?.slug,
-                  },
+                  content_type: mapAppContentTypeToApiType(relatedDocumentContentType),
                   unified_document_id: relatedDocumentUnifiedDocumentId?.toString(),
                 }
               : undefined,

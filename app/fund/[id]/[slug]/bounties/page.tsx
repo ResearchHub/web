@@ -9,6 +9,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundDocument } from '@/components/work/FundDocument';
 import { FundingRightSidebar } from '@/components/work/FundingRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 
 interface Props {
@@ -79,6 +80,7 @@ export default async function FundBountiesPage({ params }: Props) {
       <Suspense>
         <FundDocument work={work} metadata={metadata} content={content} defaultTab="bounties" />
         <SearchHistoryTracker work={work} />
+        <WorkDocumentTracker work={work} metadata={metadata} tab="bounties" />
       </Suspense>
     </PageLayout>
   );
