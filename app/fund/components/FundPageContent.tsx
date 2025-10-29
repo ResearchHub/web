@@ -23,8 +23,8 @@ interface FundPageContentProps {
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const sort_by = (searchParams.get('ordering') as FundingSortOption) || '';
-  const include_ended = searchParams.get('includeEnded') !== 'false';
+  const sortBy = (searchParams.get('ordering') as FundingSortOption) || '';
+  const includeEnded = searchParams.get('include_ended') !== 'false';
   const TAB_CONFIG = createTabConfig(<GrantRightSidebar />, <FundRightSidebar />);
   const config = TAB_CONFIG[marketplaceTab];
   const [isSortChanging, setIsSortChanging] = useState(false);
@@ -45,10 +45,10 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     const params = new URLSearchParams(searchParams.toString());
     if (newIncludeEnded) {
       // Default is true, so we don't need to set the parameter
-      params.delete('includeEnded');
+      params.delete('include_ended');
     } else {
       // Only set parameter when explicitly excluding ended proposals
-      params.set('includeEnded', 'false');
+      params.set('include_ended', 'false');
     }
     router.push(`?${params.toString()}`, { scroll: false });
   };
@@ -57,8 +57,8 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     contentType: config.contentType,
     endpoint: config.endpoint,
     fundraiseStatus: config.fundraiseStatus,
-    ordering: sort_by || undefined,
-    includeEnded: include_ended,
+    ordering: sortBy || undefined,
+    includeEnded: includeEnded,
   });
 
   // Reset loading state when sort changes from URL updates
@@ -66,7 +66,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     if (isSortChanging) {
       setIsSortChanging(false);
     }
-  }, [sort_by, include_ended]);
+  }, [sortBy, includeEnded]);
 
   useEffect(() => {
     if (!isLoading && isSortChanging) {
@@ -84,9 +84,9 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
       <MarketplaceTabs
         activeTab={marketplaceTab}
         onTabChange={() => {}}
-        sortBy={sort_by}
+        sortBy={sortBy}
         onSortChange={handleSortChange}
-        includeEnded={include_ended}
+        includeEnded={includeEnded}
         onIncludeEndedChange={handleIncludeEndedChange}
       />
       <FeedContent

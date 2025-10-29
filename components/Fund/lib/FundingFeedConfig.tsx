@@ -1,15 +1,15 @@
 import { ReactNode } from 'react';
 import { MarketplaceTab, FundingSortOption } from '../MarketplaceTabs';
-import { TrendingUp, ArrowUp, DollarSign, Users } from 'lucide-react';
+import { Star, ArrowUp, DollarSign, Users } from 'lucide-react';
 
 export type SortOption = {
   label: string;
   value: FundingSortOption;
-  icon: typeof TrendingUp | typeof ArrowUp | typeof DollarSign | typeof Users;
+  icon: typeof Star | typeof ArrowUp | typeof DollarSign | typeof Users;
 };
 
 export const getSortOptions = (activeTab: MarketplaceTab): SortOption[] => [
-  { label: 'Best', value: '', icon: TrendingUp },
+  { label: 'Best', value: '', icon: Star },
   { label: 'Top', value: 'upvotes', icon: ArrowUp },
   {
     label: activeTab === 'grants' ? 'Applicants' : 'Funders',
