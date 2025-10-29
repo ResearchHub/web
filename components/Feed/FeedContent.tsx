@@ -9,6 +9,7 @@ import { FeedTab } from '@/hooks/useFeed'; // Import FeedTab type
 import { FundingCarousel } from '@/components/Fund/FundingCarousel';
 import { BountiesCarousel } from '@/components/Earn/BountiesCarousel';
 import { FeedEntryItem } from './FeedEntryItem';
+import { useNavigation } from '@/contexts/NavigationContext';
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
@@ -60,6 +61,10 @@ export const FeedContent: FC<FeedContentProps> = ({
     threshold: 0,
     rootMargin: '100px',
   });
+
+  const { isBackNavigation } = useNavigation();
+
+  console.log('FeedContent - isBackNavigation:', isBackNavigation);
 
   // Trigger load more when the sentinel element is in view
   useEffect(() => {

@@ -15,6 +15,7 @@ import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { OnchainProvider } from '@/contexts/OnchainContext';
 import { FollowProvider } from '@/contexts/FollowContext';
 import { ClickProvider } from '@/contexts/ClickContext';
+import { NavigationProvider } from '@/contexts/NavigationContext';
 
 import { AuthSharingWrapper } from '@/components/AuthSharingWrapper';
 import { VerificationProvider } from '@/contexts/VerificationContext';
@@ -120,36 +121,38 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ApmProvider />
         <ClickProvider>
-          <OnchainProvider>
-            <NextAuthProvider session={session}>
-              <ReferralProvider>
-                <AuthSharingWrapper>
-                  <AuthModalProvider>
-                    <ShareModalProvider>
-                      <UserProvider>
-                        <VerificationProvider>
-                          <ExchangeRateProvider>
-                            <CurrencyPreferenceProvider>
-                              <NotificationProvider>
-                                <OrganizationProvider>
-                                  <PreferencesProvider>
-                                    <FollowProvider>{children}</FollowProvider>
-                                  </PreferencesProvider>
-                                  <FeatureNotifications />
-                                </OrganizationProvider>
-                              </NotificationProvider>
-                            </CurrencyPreferenceProvider>
-                          </ExchangeRateProvider>
-                        </VerificationProvider>
-                      </UserProvider>
-                      <SignupModalContainer />
-                    </ShareModalProvider>
-                  </AuthModalProvider>
-                </AuthSharingWrapper>
-              </ReferralProvider>
-            </NextAuthProvider>
-            <ToasterProvider />
-          </OnchainProvider>
+          <NavigationProvider>
+            <OnchainProvider>
+              <NextAuthProvider session={session}>
+                <ReferralProvider>
+                  <AuthSharingWrapper>
+                    <AuthModalProvider>
+                      <ShareModalProvider>
+                        <UserProvider>
+                          <VerificationProvider>
+                            <ExchangeRateProvider>
+                              <CurrencyPreferenceProvider>
+                                <NotificationProvider>
+                                  <OrganizationProvider>
+                                    <PreferencesProvider>
+                                      <FollowProvider>{children}</FollowProvider>
+                                    </PreferencesProvider>
+                                    <FeatureNotifications />
+                                  </OrganizationProvider>
+                                </NotificationProvider>
+                              </CurrencyPreferenceProvider>
+                            </ExchangeRateProvider>
+                          </VerificationProvider>
+                        </UserProvider>
+                        <SignupModalContainer />
+                      </ShareModalProvider>
+                    </AuthModalProvider>
+                  </AuthSharingWrapper>
+                </ReferralProvider>
+              </NextAuthProvider>
+              <ToasterProvider />
+            </OnchainProvider>
+          </NavigationProvider>
         </ClickProvider>
         {process.env.GA_MEASUREMENT_ID && <GoogleAnalytics gaId={process.env.GA_MEASUREMENT_ID} />}
         <Analytics />
