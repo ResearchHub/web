@@ -27,10 +27,10 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const include_ended = searchParams.get('includeEnded') !== 'false';
   const TAB_CONFIG = createTabConfig(<GrantRightSidebar />, <FundRightSidebar />);
   const config = TAB_CONFIG[marketplaceTab];
-  const [is_sort_changing, set_is_sort_changing] = useState(false);
+  const [isSortChanging, setIsSortChanging] = useState(false);
 
   const handleSortChange = (newSort: FundingSortOption) => {
-    set_is_sort_changing(true);
+    setIsSortChanging(true);
     const params = new URLSearchParams(searchParams.toString());
     if (newSort) {
       params.set('ordering', newSort);
@@ -41,7 +41,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   };
 
   const handleIncludeEndedChange = (newIncludeEnded: boolean) => {
-    set_is_sort_changing(true);
+    setIsSortChanging(true);
     const params = new URLSearchParams(searchParams.toString());
     if (newIncludeEnded) {
       // Default is true, so we don't need to set the parameter
@@ -63,16 +63,16 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
 
   // Reset loading state when sort changes from URL updates
   useEffect(() => {
-    if (is_sort_changing) {
-      set_is_sort_changing(false);
+    if (isSortChanging) {
+      setIsSortChanging(false);
     }
   }, [sort_by, include_ended]);
 
   useEffect(() => {
-    if (!isLoading && is_sort_changing) {
-      set_is_sort_changing(false);
+    if (!isLoading && isSortChanging) {
+      setIsSortChanging(false);
     }
-  }, [isLoading, is_sort_changing]);
+  }, [isLoading, isSortChanging]);
 
   return (
     <PageLayout rightSidebar={config.sidebar}>
@@ -90,8 +90,8 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
         onIncludeEndedChange={handleIncludeEndedChange}
       />
       <FeedContent
-        entries={is_sort_changing ? [] : entries}
-        isLoading={isLoading || is_sort_changing}
+        entries={isSortChanging ? [] : entries}
+        isLoading={isLoading || isSortChanging}
         hasMore={hasMore}
         loadMore={loadMore}
         showGrantHeaders={false}
