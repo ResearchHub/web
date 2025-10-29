@@ -13,7 +13,7 @@ export class FeedService {
   static async getFeed(params?: {
     page?: number;
     pageSize?: number;
-    feedView?: string;
+    feedView?: 'popular' | 'following' | 'latest' | 'personalized' | string;
     hubSlug?: string;
     contentType?: string;
     source?: 'all' | 'researchhub';
@@ -24,6 +24,7 @@ export class FeedService {
     ordering?: string;
     hotScoreVersion?: 'v1' | 'v2';
     includeHotScoreBreakdown?: boolean;
+    includeEnded?: boolean;
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -35,9 +36,22 @@ export class FeedService {
     if (params?.fundraiseStatus) queryParams.append('fundraise_status', params.fundraiseStatus);
     if (params?.grantId) queryParams.append('grant_id', params.grantId.toString());
     if (params?.createdBy) queryParams.append('created_by', params.createdBy.toString());
-    if (params?.ordering) queryParams.append('sort_by', params.ordering);
+
+    // Shim: Use 'sort_by' for feed views (popular, following, latest), 'ordering' for funding/grant feeds
+    // Ticket: https://github.com/ResearchHub/issues/issues/658
+    if (params?.ordering) {
+      const isHomeFeedView =
+        params.feedView === 'popular' ||
+        params.feedView === 'following' ||
+        params.feedView === 'latest';
+      const orderingParamName = isHomeFeedView ? 'sort_by' : 'ordering';
+      queryParams.append(orderingParamName, params.ordering);
+    }
+
     if (params?.hotScoreVersion) queryParams.append('hot_score_version', params.hotScoreVersion);
     if (params?.includeHotScoreBreakdown) queryParams.append('include_hot_score_breakdown', 'true');
+    if (params?.includeEnded !== undefined)
+      queryParams.append('include_ended', params.includeEnded.toString());
 
     // Determine which endpoint to use
     const basePath =
