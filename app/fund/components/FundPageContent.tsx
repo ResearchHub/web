@@ -27,10 +27,10 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const include_ended = searchParams.get('includeEnded') !== 'false';
   const TAB_CONFIG = createTabConfig(<GrantRightSidebar />, <FundRightSidebar />);
   const config = TAB_CONFIG[marketplaceTab];
-  const [is_sort_changing, setIsSortChanging] = useState(false);
+  const [is_sort_changing, set_is_sort_changing] = useState(false);
 
   const handleSortChange = (newSort: FundingSortOption) => {
-    setIsSortChanging(true);
+    set_is_sort_changing(true);
     const params = new URLSearchParams(searchParams.toString());
     if (newSort) {
       params.set('ordering', newSort);
@@ -41,7 +41,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   };
 
   const handleIncludeEndedChange = (newIncludeEnded: boolean) => {
-    setIsSortChanging(true);
+    set_is_sort_changing(true);
     const params = new URLSearchParams(searchParams.toString());
     if (newIncludeEnded) {
       // Default is true, so we don't need to set the parameter
@@ -64,13 +64,13 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   // Reset loading state when sort changes from URL updates
   useEffect(() => {
     if (is_sort_changing) {
-      setIsSortChanging(false);
+      set_is_sort_changing(false);
     }
   }, [sort_by, include_ended]);
 
   useEffect(() => {
     if (!isLoading && is_sort_changing) {
-      setIsSortChanging(false);
+      set_is_sort_changing(false);
     }
   }, [isLoading, is_sort_changing]);
 
