@@ -84,10 +84,14 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     setIsLoading(true);
     setEntries([]); // Clear entries to show skeleton
     try {
+      // Only pass feedView for actual feed tabs (popular, following, latest)
+      const isHomeFeedTab =
+        activeTab === 'popular' || activeTab === 'following' || activeTab === 'latest';
+
       const result = await FeedService.getFeed({
         page: 1,
         pageSize: 20,
-        feedView: activeTab as FeedTab, // Only pass feedView if it's a FeedTab
+        feedView: isHomeFeedTab ? (activeTab as FeedTab) : undefined,
         hubSlug: options.hubSlug,
         contentType: options.contentType,
         source: options.source,
@@ -115,10 +119,14 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     setIsLoading(true);
     try {
       const nextPage = page + 1;
+      // Only pass feedView for actual feed tabs (popular, following, latest)
+      const isHomeFeedTab =
+        activeTab === 'popular' || activeTab === 'following' || activeTab === 'latest';
+
       const result = await FeedService.getFeed({
         page: nextPage,
         pageSize: 20,
-        feedView: activeTab as FeedTab, // Only pass feedView if it's a FeedTab
+        feedView: isHomeFeedTab ? (activeTab as FeedTab) : undefined,
         hubSlug: options.hubSlug,
         contentType: options.contentType,
         source: options.source,
