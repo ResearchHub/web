@@ -175,26 +175,6 @@ export function SearchEmptyState({
         </p>
       </div>
 
-      {/* Search bar */}
-      <div className="max-w-2xl mx-auto mb-8">
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <Search
-              onSelect={(suggestion) => {
-                if (suggestion.url) {
-                  window.location.href = suggestion.url;
-                }
-              }}
-              placeholder="Search papers, grants, authors..."
-              className="w-full"
-            />
-          </div>
-          <Button onClick={handleSearch} disabled={!searchQuery.trim()} className="px-6">
-            Search
-          </Button>
-        </div>
-      </div>
-
       {/* What you can search */}
       <div className="mb-12">
         <h3 className="text-lg font-semibold text-gray-900 mb-6">What you can search</h3>
