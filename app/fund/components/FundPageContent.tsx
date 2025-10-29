@@ -13,42 +13,8 @@ import {
   FundingSortOption,
 } from '@/components/Fund/MarketplaceTabs';
 import Icon from '@/components/ui/icons/Icon';
-import { ReactNode, useState, useEffect, useRef } from 'react';
-
-type TabConfig = {
-  title: string;
-  subtitle: string;
-  contentType: 'GRANT' | 'PREREGISTRATION';
-  endpoint: 'grant_feed' | 'funding_feed';
-  sidebar: ReactNode;
-  fundraiseStatus?: 'OPEN' | 'CLOSED';
-};
-
-const TAB_CONFIG: Record<MarketplaceTab, TabConfig> = {
-  grants: {
-    title: 'Request for Proposals',
-    subtitle: 'Explore available funding opportunities',
-    contentType: 'GRANT',
-    endpoint: 'grant_feed',
-    sidebar: <GrantRightSidebar />,
-  },
-  'needs-funding': {
-    title: 'Proposals',
-    subtitle: 'Fund breakthrough research shaping tomorrow',
-    contentType: 'PREREGISTRATION',
-    endpoint: 'funding_feed',
-    sidebar: <FundRightSidebar />,
-    fundraiseStatus: 'OPEN',
-  },
-  'previously-funded': {
-    title: 'Previously Funded',
-    subtitle: 'Browse research that has been successfully funded',
-    contentType: 'PREREGISTRATION',
-    endpoint: 'funding_feed',
-    sidebar: <FundRightSidebar />,
-    fundraiseStatus: 'CLOSED',
-  },
-};
+import { useState, useEffect } from 'react';
+import { createTabConfig } from '@/components/Fund/lib/FundingFeedConfig';
 
 interface FundPageContentProps {
   marketplaceTab: MarketplaceTab;
@@ -57,12 +23,11 @@ interface FundPageContentProps {
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const sortBy = (searchParams.get('ordering') as FundingSortOption) || '';
-  const includeEnded = searchParams.get('includeEnded') !== 'false';
+  const sort_by = (searchParams.get('ordering') as FundingSortOption) || '';
+  const include_ended = searchParams.get('includeEnded') !== 'false';
+  const TAB_CONFIG = createTabConfig(<GrantRightSidebar />, <FundRightSidebar />);
   const config = TAB_CONFIG[marketplaceTab];
-  const [isSortChanging, setIsSortChanging] = useState(false);
-  const previousSortRef = useRef(sortBy);
-  const isInitialMount = useRef(true);
+  const [is_sort_changing, setIsSortChanging] = useState(false);
 
   const handleSortChange = (newSort: FundingSortOption) => {
     setIsSortChanging(true);
@@ -92,28 +57,22 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     contentType: config.contentType,
     endpoint: config.endpoint,
     fundraiseStatus: config.fundraiseStatus,
-    ordering: sortBy || undefined,
-    includeEnded: includeEnded,
+    ordering: sort_by || undefined,
+    includeEnded: include_ended,
   });
 
+  // Reset loading state when sort changes from URL updates
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      previousSortRef.current = sortBy;
-      return;
-    }
-
-    if (sortBy !== previousSortRef.current) {
-      setIsSortChanging(true);
-      previousSortRef.current = sortBy;
-    }
-  }, [sortBy]);
-
-  useEffect(() => {
-    if (!isLoading && isSortChanging) {
+    if (is_sort_changing) {
       setIsSortChanging(false);
     }
-  }, [isLoading, isSortChanging]);
+  }, [sort_by, include_ended]);
+
+  useEffect(() => {
+    if (!isLoading && is_sort_changing) {
+      setIsSortChanging(false);
+    }
+  }, [isLoading, is_sort_changing]);
 
   return (
     <PageLayout rightSidebar={config.sidebar}>
@@ -125,14 +84,14 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
       <MarketplaceTabs
         activeTab={marketplaceTab}
         onTabChange={() => {}}
-        sortBy={sortBy}
+        sortBy={sort_by}
         onSortChange={handleSortChange}
-        includeEnded={includeEnded}
+        includeEnded={include_ended}
         onIncludeEndedChange={handleIncludeEndedChange}
       />
       <FeedContent
-        entries={isSortChanging ? [] : entries}
-        isLoading={isLoading || isSortChanging}
+        entries={is_sort_changing ? [] : entries}
+        isLoading={isLoading || is_sort_changing}
         hasMore={hasMore}
         loadMore={loadMore}
         showGrantHeaders={false}

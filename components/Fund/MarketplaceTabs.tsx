@@ -6,29 +6,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Switch';
-import { ChevronDown, TrendingUp, ArrowUp, DollarSign, Users } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { getSortOptions } from './lib/FundingFeedConfig';
 
 export type MarketplaceTab = 'grants' | 'needs-funding' | 'previously-funded';
 export type FundingSortOption = '' | 'upvotes' | 'most_applicants' | 'amount_raised';
-
-type SortOption = {
-  label: string;
-  value: FundingSortOption;
-  icon: typeof TrendingUp | typeof ArrowUp | typeof DollarSign | typeof Users;
-};
-
-const getSortOptions = (activeTab: MarketplaceTab): SortOption[] => [
-  { label: 'Best', value: '', icon: TrendingUp },
-  { label: 'Top', value: 'upvotes', icon: ArrowUp },
-  {
-    label: activeTab === 'grants' ? 'Applicants' : 'Funders',
-    value: 'most_applicants',
-    icon: Users,
-  },
-  { label: activeTab === 'grants' ? 'Amount' : 'Raised', value: 'amount_raised', icon: DollarSign },
-];
 
 const getTabs = (isMobile: boolean) => [
   { id: 'grants' as const, label: isMobile ? 'RFPs' : 'Request for Proposals' },
@@ -71,19 +55,20 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
     if (disableTabs) return;
     const tab = tabId as MarketplaceTab;
 
-    // Create new URLSearchParams to modify query parameters
-    const newParams = new URLSearchParams(searchParams.toString());
-
-    // If switching to previously-funded tab, clear the sort parameter
+    // If switching to previously-funded tab, clear all parameters
     if (tab === 'previously-funded') {
-      newParams.delete('ordering');
-      newParams.delete('includeEnded');
       // Also call onSortChange to update the parent component's state
       onSortChange('');
       // Call onIncludeEndedChange to update the parent component's state
       onIncludeEndedChange(true);
+      // Navigate without any query parameters
+      router.push(TAB_ROUTES[tab]);
+      onTabChange(tab);
+      return;
     }
 
+    // For other tabs, preserve existing parameters
+    const newParams = new URLSearchParams(searchParams.toString());
     const queryString = newParams.toString();
     router.push(queryString ? `${TAB_ROUTES[tab]}?${queryString}` : TAB_ROUTES[tab]);
     onTabChange(tab);
