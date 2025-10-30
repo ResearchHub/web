@@ -115,7 +115,7 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
               ))}
               <DropdownMenu.Separator className="my-1 h-px bg-gray-200" />
               <BaseMenuItem className="flex items-center justify-between">
-                <span>Include ended</span>
+                <span>{activeTab === 'grants' ? 'Include Closed' : 'Include Ended'}</span>
                 <Switch
                   checked={includeEnded}
                   onCheckedChange={onIncludeEndedChange}
