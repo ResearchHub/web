@@ -20,6 +20,7 @@ interface TabsProps {
   className?: string;
   variant?: 'primary' | 'pill';
   disabled?: boolean;
+  disableOverflow?: boolean;
 }
 
 export const Tabs: React.FC<TabsProps> = ({
@@ -29,6 +30,7 @@ export const Tabs: React.FC<TabsProps> = ({
   className,
   variant = 'primary',
   disabled = false,
+  disableOverflow = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -40,7 +42,8 @@ export const Tabs: React.FC<TabsProps> = ({
   const [overflowIds, setOverflowIds] = useState<string[]>([]);
 
   const calculateOverflow = useCallback(() => {
-    if (!containerRef.current) {
+    if (!containerRef.current || disableOverflow) {
+      setOverflowIds([]);
       return;
     }
 
@@ -163,7 +166,7 @@ export const Tabs: React.FC<TabsProps> = ({
       // No overflow detected
       setOverflowIds([]);
     }
-  }, [tabs, activeTab]);
+  }, [tabs, activeTab, disableOverflow]);
 
   const debouncedCalculateOverflow = useRef(debounce(calculateOverflow, 100)).current;
 
@@ -265,8 +268,8 @@ export const Tabs: React.FC<TabsProps> = ({
   };
 
   // Filter tabs based on the calculated state
-  const visibleTabs = tabs.filter((t) => !overflowIds.includes(t.id));
-  const overflowTabs = tabs.filter((t) => overflowIds.includes(t.id));
+  const visibleTabs = disableOverflow ? tabs : tabs.filter((t) => !overflowIds.includes(t.id));
+  const overflowTabs = disableOverflow ? [] : tabs.filter((t) => overflowIds.includes(t.id));
 
   return (
     <div className={wrapperStyles} ref={containerRef}>
