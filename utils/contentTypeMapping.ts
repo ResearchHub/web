@@ -41,5 +41,5 @@ export function mapApiContentTypeToClientType(
     BOUNTY: 'post',
     HYPOTHESIS: 'post',
   };
-  return contentTypeMap[documentType] || 'post';
+  return contentTypeMap[documentType] ?? 'post';
 }
