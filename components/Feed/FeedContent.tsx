@@ -1,7 +1,8 @@
 'use client';
 
-import { FC, ReactNode, useEffect, useRef } from 'react';
+import { FC, ReactNode, useEffect, useRef, useState } from 'react';
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import { FeedItemSkeleton } from './FeedItemSkeleton';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
@@ -10,6 +11,9 @@ import { FundingCarousel } from '@/components/Fund/FundingCarousel';
 import { BountiesCarousel } from '@/components/Earn/BountiesCarousel';
 import { FeedEntryItem } from './FeedEntryItem';
 import { useNavigation } from '@/contexts/NavigationContext';
+import { useScrollContainer } from '@/contexts/ScrollContainerContext';
+import { getFeedKey } from '@/utils/feedStateStorage';
+import { json } from 'stream/consumers';
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
@@ -56,13 +60,175 @@ export const FeedContent: FC<FeedContentProps> = ({
   experimentVariant,
   ordering,
 }) => {
+  const pathname = usePathname();
+  const entriesRef = useRef(entries);
+  const [restoredEntries, setRestoredEntries] = useState<FeedEntry[] | null>(null);
+  const hasRestoredRef = useRef(false);
+  const scrollPositionRef = useRef(0);
+  const scrollContainerRef = useScrollContainer();
+
   // Set up intersection observer for infinite scrolling (must be called before any conditional returns)
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
     rootMargin: '100px',
   });
 
-  const { isBackNavigation } = useNavigation();
+  const {
+    isBackNavigation,
+    startTrackingFeed,
+    stopTrackingFeed,
+    saveFeedState,
+    getFeedState,
+    clearFeedState,
+    resetBackNavigation,
+  } = useNavigation();
+
+  // Update entries ref
+  useEffect(() => {
+    entriesRef.current = entries;
+  }, [entries]);
+
+  // Track scroll position continuously
+  useEffect(() => {
+    const updateScrollPosition = () => {
+      // Always check the current value of scrollContainerRef.current
+      if (scrollContainerRef?.current) {
+        scrollPositionRef.current = scrollContainerRef.current.scrollTop;
+      } else {
+        scrollPositionRef.current = window.scrollY;
+      }
+    };
+
+    // Listen to scroll container if available, otherwise window
+    const container = scrollContainerRef?.current;
+    const scrollElement = container || window;
+
+    // Add scroll listener
+    scrollElement.addEventListener('scroll', updateScrollPosition, { passive: true });
+
+    // Initial value
+    updateScrollPosition();
+
+    // Also check if container becomes available and set up listener for it
+    let containerListenerAdded = false;
+    const checkContainer = () => {
+      if (
+        scrollContainerRef?.current &&
+        !containerListenerAdded &&
+        scrollElement !== scrollContainerRef.current
+      ) {
+        scrollContainerRef.current.addEventListener('scroll', updateScrollPosition, {
+          passive: true,
+        });
+        containerListenerAdded = true;
+        updateScrollPosition();
+      }
+    };
+
+    // Check immediately and after a short delay
+    checkContainer();
+    const timeoutId = setTimeout(checkContainer, 100);
+
+    return () => {
+      scrollElement.removeEventListener('scroll', updateScrollPosition);
+      if (scrollContainerRef?.current && containerListenerAdded) {
+        scrollContainerRef.current.removeEventListener('scroll', updateScrollPosition);
+      }
+      clearTimeout(timeoutId);
+    };
+  }, []); // Empty deps - we capture scrollContainerRef in the closure
+
+  // Check for saved feed state on mount if back navigation
+  useEffect(() => {
+    if (isBackNavigation && !hasRestoredRef.current) {
+      console.log('FeedContent - checking for saved feed state');
+      const feedKey = getFeedKey({
+        pathname,
+        tab: activeTab,
+      });
+      console.log('FeedContent - feedKey:', feedKey);
+      const savedState = getFeedState(feedKey);
+      console.log('FeedContent - savedState:', savedState);
+      if (savedState) {
+        console.log(
+          '🔄 FeedContent: Restored feed state with',
+          savedState.entries.length,
+          'entries'
+        );
+        setRestoredEntries(savedState.entries);
+        clearFeedState(feedKey);
+        hasRestoredRef.current = true;
+
+        // Scroll to saved position after render
+        setTimeout(() => {
+          if (scrollContainerRef?.current) {
+            scrollContainerRef.current.scrollTop = savedState.scrollPosition;
+          } else {
+            // Fallback to window scroll if scroll container not available
+            window.scrollTo(0, savedState.scrollPosition);
+          }
+          resetBackNavigation();
+        }, 100);
+      }
+    }
+  }, [
+    isBackNavigation,
+    pathname,
+    activeTab,
+    getFeedState,
+    clearFeedState,
+    resetBackNavigation,
+    // scrollContainerRef is a ref and doesn't need to be in dependencies
+  ]);
+
+  // Reset restoration flag when feed key changes
+  useEffect(() => {
+    hasRestoredRef.current = false;
+    setRestoredEntries(null);
+  }, [pathname, activeTab]);
+
+  // Start tracking on mount, save feed state and stop tracking on unmount
+  useEffect(() => {
+    console.log('FeedContent - starting tracking feed');
+    startTrackingFeed();
+    return () => {
+      console.log('FeedContent - cleanup: saving feed state and stopping tracking');
+      const currentEntries = entriesRef.current;
+      console.log('FeedContent - currentEntries:', currentEntries);
+
+      // Save feed state FIRST while tracking is still active
+      if (currentEntries.length > 0) {
+        const feedKey = getFeedKey({
+          pathname,
+          tab: activeTab,
+        });
+        // Get the latest scroll position one more time before saving
+        let scrollPosition = scrollPositionRef.current;
+        //TODO: it's 0 and we reset the actual value with 0 here
+        // if (scrollContainerRef?.current) {
+        //   scrollPosition = scrollContainerRef.current.scrollTop;
+        // } else {
+        //   scrollPosition = window.scrollY;
+        // }
+        // Update ref with the latest value
+        scrollPositionRef.current = scrollPosition;
+        console.log('FeedContent - saving feed state:', feedKey, scrollPosition);
+        saveFeedState({
+          feedKey,
+          entries: currentEntries,
+          scrollPosition,
+        });
+      }
+
+      // Then stop tracking AFTER saving
+      console.log('FeedContent - stopping tracking feed');
+      stopTrackingFeed();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, activeTab, startTrackingFeed, stopTrackingFeed, saveFeedState]);
+
+  // Use restored entries if available, otherwise use prop entries
+  const displayEntries = restoredEntries || entries;
 
   console.log('FeedContent - isBackNavigation:', isBackNavigation);
 
@@ -84,8 +250,8 @@ export const FeedContent: FC<FeedContentProps> = ({
 
         <div className="mt-4">
           {/* Render existing entries */}
-          {entries.length > 0 &&
-            entries.map((entry, index) => (
+          {displayEntries.length > 0 &&
+            displayEntries.map((entry, index) => (
               <React.Fragment key={entry.id}>
                 <FeedEntryItem
                   entry={entry}
@@ -114,7 +280,7 @@ export const FeedContent: FC<FeedContentProps> = ({
                 // Add margin-top if it's not the very first skeleton overall (i.e., if there are entries or previous skeletons)
                 <div
                   key={`skeleton-${index}`}
-                  className={index > 0 || entries.length > 0 ? 'mt-12' : ''}
+                  className={index > 0 || displayEntries.length > 0 ? 'mt-12' : ''}
                 >
                   <FeedItemSkeleton />
                 </div>
@@ -124,7 +290,7 @@ export const FeedContent: FC<FeedContentProps> = ({
 
           {/* Show 'No entries' message only if not loading and entries are empty */}
           {!isLoading &&
-            entries.length === 0 &&
+            displayEntries.length === 0 &&
             (noEntriesElement || (
               <div className="text-center py-8">
                 <p className="text-gray-500">No feed entries found</p>

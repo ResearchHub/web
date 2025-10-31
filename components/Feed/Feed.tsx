@@ -54,6 +54,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     orderingParam || getDefaultOrdering(defaultTab, followingFeedExperiment)
   );
   const [isManageTopicsModalOpen, setIsManageTopicsModalOpen] = useState(false);
+
   const hotScoreVersion =
     (searchParams.get('hot_score_version') as 'v1' | 'v2') ||
     (defaultTab === 'following' ? 'v2' : 'v1'); // Always use v2 for following feed (experiment uses v2 for both variants)
@@ -228,6 +229,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
         activeTab={activeTab}
         experimentVariant={isInExperiment ? followingFeedExperiment : undefined}
         ordering={ordering}
+        filters={sourceFilters}
       />
       <ManageTopicsModal
         isOpen={isManageTopicsModalOpen}
