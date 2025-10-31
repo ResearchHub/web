@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FileText, History, Search, X, ArrowRight, User, Hash, HelpCircle } from 'lucide-react';
+import Icon from '@/components/ui/icons/Icon';
 import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { cn } from '@/utils/styles';
 import { SearchSuggestion } from '@/types/search';
@@ -81,6 +82,8 @@ export function SearchSuggestions({
       const isUserSuggestion =
         suggestion.entityType === 'user' || suggestion.entityType === 'author';
       const isTopicSuggestion = suggestion.entityType === 'hub';
+      const isPostSuggestion = suggestion.entityType === 'post';
+      const isGrantPost = isPostSuggestion && suggestion?.documentType === 'GRANT';
 
       // Safely access nested properties
       const safeGetAuthorsList = () => {
@@ -130,15 +133,6 @@ export function SearchSuggestions({
         return 'Research Topic';
       };
 
-      // Get the appropriate icon for the suggestion type
-      const getIcon = () => {
-        if (suggestion.isRecent) return <History className="h-6 w-6 text-gray-600" />;
-        if (isPaperSuggestion) return <FileText className="h-6 w-6 text-gray-600" />;
-        if (isUserSuggestion) return <User className="h-6 w-6 text-gray-600" />;
-        if (isTopicSuggestion) return <Hash className="h-6 w-6 text-gray-600" />;
-        return <HelpCircle className="h-6 w-6 text-gray-600" />; // Default with a more distinctive fallback icon
-      };
-
       // Get the smaller icon variant for dropdown mode
       const getSmallIcon = () => {
         if (suggestion.isRecent)
@@ -161,6 +155,14 @@ export function SearchSuggestions({
         }
         if (isTopicSuggestion)
           return <Hash className="h-5 w-8 text-gray-500 mt-0.5 flex-shrink-0" />;
+        if (isGrantPost)
+          return (
+            <div style={{ padding: '6px' }} className="mt-0.5 flex-shrink-0">
+              <Icon name="fund" size={20} className="text-gray-500" />
+            </div>
+          );
+        if (isPostSuggestion)
+          return <FileText className="h-5 w-8 text-gray-500 mt-0.5 flex-shrink-0" />;
         return <HelpCircle className="h-5 w-8 text-gray-500 mt-0.5 flex-shrink-0" />; // Default
       };
 

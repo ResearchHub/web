@@ -44,3 +44,25 @@ export function mapAppFeedContentTypeToApiType(contentType?: FeedContentType): D
       return 'researchhubpost';
   }
 }
+
+/**
+ * Maps document types from the API to content types for URL building
+ * @param documentType The document type from the API (e.g., 'GRANT', 'PREREGISTRATION', 'DISCUSSION')
+ * @returns The corresponding content type for URL building
+ */
+export function mapApiContentTypeToClientType(
+  documentType: string
+): 'paper' | 'post' | 'funding_request' | 'preregistration' {
+  const contentTypeMap: Record<string, 'paper' | 'post' | 'funding_request' | 'preregistration'> = {
+    GRANT: 'funding_request',
+    PREREGISTRATION: 'preregistration',
+    DISCUSSION: 'post',
+    ELN: 'post',
+    NOTE: 'post',
+    PAPER: 'paper',
+    QUESTION: 'post',
+    BOUNTY: 'post',
+    HYPOTHESIS: 'post',
+  };
+  return contentTypeMap[documentType] ?? 'post';
+}
