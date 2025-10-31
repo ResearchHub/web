@@ -12,7 +12,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { getSortOptions } from './lib/FundingFeedConfig';
 
 export type MarketplaceTab = 'grants' | 'needs-funding' | 'previously-funded';
-export type FundingSortOption = '' | 'upvotes' | 'most_applicants' | 'amount_raised';
+export type FundingSortOption = '' | 'best' | 'upvotes' | 'most_applicants' | 'amount_raised';
 
 const getTabs = (isMobile: boolean) => [
   { id: 'grants' as const, label: isMobile ? 'RFPs' : 'Request for Proposals' },
@@ -63,6 +63,17 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
       onIncludeEndedChange(true);
       // Navigate without any query parameters
       router.push(TAB_ROUTES[tab]);
+      onTabChange(tab);
+      return;
+    }
+
+    // If switching to grants tab with "best" sort, reset to newest
+    if (tab === 'grants' && sortBy === 'best') {
+      onSortChange('');
+      const newParams = new URLSearchParams(searchParams.toString());
+      newParams.delete('ordering');
+      const queryString = newParams.toString();
+      router.push(queryString ? `${TAB_ROUTES[tab]}?${queryString}` : TAB_ROUTES[tab]);
       onTabChange(tab);
       return;
     }
