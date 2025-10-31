@@ -2,7 +2,7 @@
 
 import { FC } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { FeedCommentContent, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
+import { FeedCommentContent, FeedEntry } from '@/types/feed';
 import { FeedPostContent, FeedPaperContent, FeedGrantContent } from '@/types/feed';
 import { FeedItemFundraise } from './items/FeedItemFundraise';
 import { FeedItemPaper } from './items/FeedItemPaper';
@@ -10,16 +10,7 @@ import { FeedItemBounty } from './items/FeedItemBounty';
 import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
 import { FeedItemGrant } from './items/FeedItemGrant';
-import AnalyticsService, { LogEvent } from '@/services/analytics.service';
-import { FeedItemClickedEvent } from '@/types/analytics';
-import { useUser } from '@/contexts/UserContext';
-import { useFeedSource } from '@/hooks/useFeedSource';
-import { Topic } from '@/types/topic';
-import { useDeviceType } from '@/hooks/useDeviceType';
-import {
-  mapAppContentTypeToApiType,
-  mapAppFeedContentTypeToApiType,
-} from '@/utils/contentTypeMapping';
+import { useFeedItemClick } from '@/hooks/useFeedItemClick';
 
 interface FeedEntryItemProps {
   entry: FeedEntry;
@@ -56,42 +47,14 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
     threshold: 0.5,
     rootMargin: '50px',
   });
-  const { user } = useUser();
-  const { source: feedSource, tab: feedTab } = useFeedSource();
-  const deviceType = useDeviceType();
+
   // Handle feed item click with analytics
-  const handleFeedItemClick = () => {
-    try {
-      const payload: FeedItemClickedEvent = {
-        device_type: deviceType,
-        feed_position: index + 1,
-        feed_source: feedSource,
-        feed_tab: feedTab,
-        related_work: {
-          id: entry.content.id?.toString() || '',
-          content_type:
-            'relatedDocumentContentType' in entry.content &&
-            entry.content.relatedDocumentContentType
-              ? mapAppContentTypeToApiType(entry.content.relatedDocumentContentType)
-              : mapAppFeedContentTypeToApiType(entry.content.contentType),
-          unified_document_id:
-            'unifiedDocumentId' in entry.content
-              ? entry.content.unifiedDocumentId
-              : entry.relatedWork?.unifiedDocumentId?.toString() || '',
-        },
-        // Track experiment data for following feed
-        ...(experimentVariant &&
-          feedTab === 'following' && {
-            experiment_name: 'following_feed_ordering',
-            experiment_variant: experimentVariant,
-            feed_ordering: feedOrdering,
-          }),
-      };
-      AnalyticsService.logEventWithUserProperties(LogEvent.FEED_ITEM_CLICKED, payload, user);
-    } catch (analyticsError) {
-      console.error('Failed to track feed item click analytics:', analyticsError);
-    }
-  };
+  const handleFeedItemClick = useFeedItemClick({
+    entry,
+    feedPosition: index + 1,
+    experimentVariant,
+    feedOrdering,
+  });
 
   if (!entry) {
     console.error('Feed entry is undefined');

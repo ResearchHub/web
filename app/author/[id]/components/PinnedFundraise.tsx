@@ -4,6 +4,7 @@ import { FC } from 'react';
 import { useFeed } from '@/hooks/useFeed';
 import { ID } from '@/types/root';
 import { FeedItemFundraise } from '@/components/Feed/items/FeedItemFundraise';
+import { useFeedItemClick } from '@/hooks/useFeedItemClick';
 import { cn } from '@/utils/styles';
 
 export function PinnedFundraiseSkeleton({ className }: { className?: string }) {
@@ -60,6 +61,13 @@ const PinnedFundraise: FC<PinnedFundraiseProps> = ({
     createdBy: Number(userId),
   });
 
+  const mostFundedFundraise = getMostFundedFundraise(entries);
+
+  // Handle feed item click with analytics
+  const handleFeedItemClick = useFeedItemClick({
+    entry: mostFundedFundraise,
+  });
+
   if (isLoading) {
     return <PinnedFundraiseSkeleton className={className} />;
   }
@@ -67,8 +75,6 @@ const PinnedFundraise: FC<PinnedFundraiseProps> = ({
   if (!entries || entries.length === 0) {
     return null;
   }
-
-  const mostFundedFundraise = getMostFundedFundraise(entries);
 
   if (!mostFundedFundraise) {
     return null;
@@ -83,6 +89,7 @@ const PinnedFundraise: FC<PinnedFundraiseProps> = ({
         maxLength={compact ? 150 : 250}
         customActionText="is seeking funding"
         isPinnedFundraise={true}
+        onFeedItemClick={handleFeedItemClick}
       />
     </div>
   );
