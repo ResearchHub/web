@@ -10,8 +10,8 @@ export type SortOption = {
 
 export const getSortOptions = (activeTab: MarketplaceTab): SortOption[] => {
   const allOptions: SortOption[] = [
-    { label: 'Newest', value: '', icon: Clock },
     { label: 'Best', value: 'best', icon: Star },
+    { label: 'Newest', value: '', icon: Clock },
     { label: 'Most upvoted', value: 'upvotes', icon: ArrowUp },
     {
       label: activeTab === 'grants' ? 'Most applicants' : 'Most funders',
