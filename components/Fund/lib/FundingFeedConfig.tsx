@@ -14,19 +14,31 @@ export type SortOption = {
     | typeof CheckCircle;
 };
 
-export const getSortOptions = (activeTab: MarketplaceTab): SortOption[] => [
-  { label: 'Newest', value: '', icon: Clock },
-  { label: 'Best', value: 'best', icon: Star },
-  { label: 'Most upvoted', value: 'upvotes', icon: ArrowUp },
-  {
-    label: activeTab === 'grants' ? 'Most applicants' : 'Most funders',
-    value: 'most_applicants',
-    icon: Users,
-  },
-  { label: activeTab === 'grants' ? 'Amount' : 'Raised', value: 'amount_raised', icon: DollarSign },
-  { label: 'Ended', value: 'ended', icon: CheckCircle },
-];
+export const getSortOptions = (activeTab: MarketplaceTab): SortOption[] => {
+  const allOptions: SortOption[] = [
+    { label: 'Newest', value: '', icon: Clock },
+    { label: 'Best', value: 'best', icon: Star },
+    { label: 'Most upvoted', value: 'upvotes', icon: ArrowUp },
+    {
+      label: activeTab === 'grants' ? 'Most applicants' : 'Most funders',
+      value: 'most_applicants',
+      icon: Users,
+    },
+    {
+      label: activeTab === 'grants' ? 'Amount' : 'Raised',
+      value: 'amount_raised',
+      icon: DollarSign,
+    },
+    { label: 'Ended', value: 'ended', icon: CheckCircle },
+  ];
 
+  // Hide "Best" option on the RFPs (grants) tab
+  if (activeTab === 'grants') {
+    return allOptions.filter((option) => option.value !== 'best');
+  }
+
+  return allOptions;
+};
 export type TabConfig = {
   title: string;
   subtitle: string;

@@ -53,8 +53,17 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
   const handleTabChange = (tabId: string) => {
     if (disableTabs) return;
     const tab = tabId as MarketplaceTab;
+    // If switching to grants tab with "best" sort, reset to newest
+    if (tab === 'grants' && sortBy === 'best') {
+      onSortChange('');
+      const newParams = new URLSearchParams(searchParams.toString());
+      newParams.delete('ordering');
+      const queryString = newParams.toString();
+      router.push(queryString ? `${TAB_ROUTES[tab]}?${queryString}` : TAB_ROUTES[tab]);
+      onTabChange(tab);
+      return;
+    }
 
-    // Preserve existing parameters when switching tabs
     const newParams = new URLSearchParams(searchParams.toString());
     const queryString = newParams.toString();
     router.push(queryString ? `${TAB_ROUTES[tab]}?${queryString}` : TAB_ROUTES[tab]);
