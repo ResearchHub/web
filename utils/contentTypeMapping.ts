@@ -30,10 +30,10 @@ export function mapApiDocumentTypeToAppWorkContentType(
       return 'preregistration';
     case 'QUESTION':
       return 'question';
-    case 'DISCUSSION':
-      return 'discussion';
     case 'GRANT':
       return 'funding_request';
+    case 'DISCUSSION':
+      return 'post';
     case 'ELN':
     case 'NOTE':
     default:

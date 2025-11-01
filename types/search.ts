@@ -1,5 +1,6 @@
 import { createTransformer, BaseTransformed } from './transformer';
 import { buildWorkUrl, buildAuthorUrl, buildTopicUrl } from '@/utils/url';
+import { mapApiDocumentTypeToAppWorkContentType } from '@/utils/contentTypeMapping';
 import { AuthorProfile } from './authorProfile';
 import { ID } from './root';
 import { transformTopic } from './topic';
@@ -42,6 +43,7 @@ export interface PostSuggestion extends BaseSuggestion {
   entityType: 'post';
   displayName: string;
   id: number;
+  documentType?: string;
 }
 
 export interface TopicSuggestion extends BaseSuggestion {
@@ -176,16 +178,22 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
         };
 
       case 'post':
+        const documentType = raw.document_type || raw.type;
+        const documentContentType = mapApiDocumentTypeToAppWorkContentType(documentType);
+
         return {
           entityType: 'post',
           id: raw.id,
           displayName: raw.display_name || 'Untitled Post',
           source: raw.source || '',
           isRecent: false,
-          url: buildWorkUrl({
-            id: raw.id,
-            contentType: 'post',
-          }),
+          documentType,
+          url: documentContentType
+            ? buildWorkUrl({
+                id: raw.id,
+                contentType: documentContentType,
+              })
+            : undefined,
         };
 
       case 'hub':
