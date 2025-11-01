@@ -23,7 +23,7 @@ interface FundPageContentProps {
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const defaultSort = marketplaceTab === 'needs-funding' ? 'best' : '';
+  const defaultSort = marketplaceTab === 'needs-funding' ? 'best' : 'newest';
   const sortBy = (searchParams.get('ordering') as FundingSortOption) || defaultSort;
   const includeEnded = searchParams.get('include_ended') !== 'false';
   const TAB_CONFIG = createTabConfig(<GrantRightSidebar />, <FundRightSidebar />);
@@ -31,11 +31,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
 
   const handleSortChange = (newSort: FundingSortOption) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (newSort) {
-      params.set('ordering', newSort);
-    } else {
-      params.delete('ordering');
-    }
+    params.set('ordering', newSort);
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
@@ -51,14 +47,14 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  // Set default 'best' sort in URL for needs-funding tab on initial load
+  // Set default sort in URL on initial load if no ordering parameter exists
   useEffect(() => {
-    if (marketplaceTab === 'needs-funding' && !searchParams.get('ordering')) {
+    if (!searchParams.get('ordering')) {
       const params = new URLSearchParams(searchParams.toString());
-      params.set('ordering', 'best');
+      params.set('ordering', defaultSort);
       router.replace(`?${params.toString()}`, { scroll: false });
     }
-  }, [marketplaceTab, searchParams, router]);
+  }, [marketplaceTab, searchParams, router, defaultSort]);
 
   const { entries, isLoading, hasMore, loadMore } = useFeed('all', {
     contentType: config.contentType,
