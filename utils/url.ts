@@ -34,8 +34,11 @@ export const buildWorkUrl = ({
   if (contentType === 'post') {
     if (!id) return '#'; // Return a safe fallback for posts without ID
     baseUrl = slug ? `/post/${id}/${slug}` : `/post/${id}`;
-  } else if (contentType === 'funding_request' || contentType === 'preregistration') {
-    if (!id) return '#'; // Return a safe fallback for funding requests without ID
+  } else if (contentType === 'funding_request') {
+    if (!id) return '#'; // Return a safe fallback for grants without ID
+    baseUrl = slug ? `/grant/${id}/${slug}` : `/grant/${id}`;
+  } else if (contentType === 'preregistration') {
+    if (!id) return '#'; // Return a safe fallback for proposals without ID
     baseUrl = slug ? `/fund/${id}/${slug}` : `/fund/${id}`;
   } else {
     // For papers
