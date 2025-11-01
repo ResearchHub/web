@@ -13,7 +13,7 @@ import {
 } from '@/utils/contentTypeMapping';
 
 interface UseFeedItemClickOptions {
-  entry: FeedEntry;
+  entry: FeedEntry | null;
   feedPosition?: number;
   experimentVariant?: string;
   feedOrdering?: string;
@@ -37,6 +37,8 @@ export function useFeedItemClick({
 
   const handleFeedItemClick = useCallback(() => {
     try {
+      if (!entry) return;
+
       const payload: FeedItemClickedEvent = {
         device_type: deviceType,
         feed_position: feedPosition ?? 1,

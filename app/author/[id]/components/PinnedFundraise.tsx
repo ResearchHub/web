@@ -63,7 +63,6 @@ const PinnedFundraise: FC<PinnedFundraiseProps> = ({
 
   const mostFundedFundraise = getMostFundedFundraise(entries);
 
-  // Handle feed item click with analytics
   const handleFeedItemClick = useFeedItemClick({
     entry: mostFundedFundraise,
   });
