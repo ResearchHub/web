@@ -12,7 +12,13 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { getSortOptions } from './lib/FundingFeedConfig';
 
 export type MarketplaceTab = 'grants' | 'needs-funding' | 'previously-funded';
-export type FundingSortOption = '' | 'upvotes' | 'most_applicants' | 'amount_raised';
+export type FundingSortOption =
+  | ''
+  | 'newest'
+  | 'best'
+  | 'upvotes'
+  | 'most_applicants'
+  | 'amount_raised';
 
 const getTabs = (isMobile: boolean) => [
   { id: 'grants' as const, label: isMobile ? 'RFPs' : 'Request for Proposals' },
@@ -58,12 +64,23 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
     // If switching to previously-funded tab, clear all parameters
     if (tab === 'previously-funded') {
       // Also call onSortChange to update the parent component's state
-      onSortChange('');
+      onSortChange('newest');
       // Call onIncludeEndedChange to update the parent component's state
       onIncludeEndedChange(true);
       // Navigate without any query parameters
       router.push(TAB_ROUTES[tab]);
       onTabChange(tab);
+      return;
+    }
+
+    // If switching to grants tab with "best" or "newest" sort, reset to default (empty)
+    if (tab === 'grants' && (sortBy === 'best' || sortBy === 'newest')) {
+      onSortChange('');
+      onTabChange(tab);
+      const newParams = new URLSearchParams(searchParams.toString());
+      newParams.delete('ordering');
+      const queryString = newParams.toString();
+      router.push(queryString ? `${TAB_ROUTES[tab]}?${queryString}` : TAB_ROUTES[tab]);
       return;
     }
 
@@ -103,7 +120,7 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
             >
               {sortOptions.map(({ value, label: optionLabel, icon: OptionIcon }) => (
                 <BaseMenuItem
-                  key={value || 'newest'}
+                  key={value || 'default'}
                   onClick={() => onSortChange(value)}
                   className={sortBy === value ? 'bg-gray-100' : ''}
                 >

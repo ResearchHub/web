@@ -1,23 +1,41 @@
 import { ReactNode } from 'react';
 import { MarketplaceTab, FundingSortOption } from '../MarketplaceTabs';
-import { Star, ArrowUp, DollarSign, Users } from 'lucide-react';
+import { Clock, Star, ArrowUp, DollarSign, Users } from 'lucide-react';
 
 export type SortOption = {
   label: string;
   value: FundingSortOption;
-  icon: typeof Star | typeof ArrowUp | typeof DollarSign | typeof Users;
+  icon: typeof Clock | typeof Star | typeof ArrowUp | typeof DollarSign | typeof Users;
 };
 
-export const getSortOptions = (activeTab: MarketplaceTab): SortOption[] => [
-  { label: 'Best', value: '', icon: Star },
-  { label: 'Top', value: 'upvotes', icon: ArrowUp },
-  {
-    label: activeTab === 'grants' ? 'Applicants' : 'Funders',
-    value: 'most_applicants',
-    icon: Users,
-  },
-  { label: activeTab === 'grants' ? 'Amount' : 'Raised', value: 'amount_raised', icon: DollarSign },
-];
+export const getSortOptions = (activeTab: MarketplaceTab): SortOption[] => {
+  const allOptions: SortOption[] = [
+    { label: 'Best', value: 'best', icon: Star },
+    {
+      label: 'Newest',
+      value: activeTab === 'needs-funding' ? 'newest' : '',
+      icon: Clock,
+    },
+    { label: 'Most upvoted', value: 'upvotes', icon: ArrowUp },
+    {
+      label: activeTab === 'grants' ? 'Most applicants' : 'Most funders',
+      value: 'most_applicants',
+      icon: Users,
+    },
+    {
+      label: activeTab === 'grants' ? 'Amount' : 'Raised',
+      value: 'amount_raised',
+      icon: DollarSign,
+    },
+  ];
+
+  // Hide "Best" option on the RFPs (grants) tab
+  if (activeTab === 'grants') {
+    return allOptions.filter((option) => option.value !== 'best');
+  }
+
+  return allOptions;
+};
 
 export type TabConfig = {
   title: string;
