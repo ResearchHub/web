@@ -14,17 +14,13 @@ import {
 
 interface UseFeedItemClickOptions {
   entry: FeedEntry;
-  feedPosition?: number; // Optional since not all contexts have a position
+  feedPosition?: number;
   experimentVariant?: string;
   feedOrdering?: string;
 }
 
 /**
  * Custom hook for tracking feed item clicks with analytics.
- *
- * Returns a memoized function that can be called when a feed item is clicked.
- * The function tracks analytics data including device type, feed position,
- * feed source, and related work information.
  *
  * @param options - Configuration for the feed item click tracking
  * @returns A function to call when the feed item is clicked

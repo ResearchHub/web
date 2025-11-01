@@ -383,7 +383,6 @@ export function getUnifiedDocumentId(content_object: any): string | undefined {
   }
 
   // Second try: extract from unified_document.id
-  // Safely check each level to avoid errors
   if (content_object?.unified_document?.id != null) {
     return content_object.unified_document.id.toString();
   }
