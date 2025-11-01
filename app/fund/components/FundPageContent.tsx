@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useFeed } from '@/hooks/useFeed';
@@ -31,7 +30,11 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
 
   const handleSortChange = (newSort: FundingSortOption) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set('ordering', newSort);
+    if (newSort) {
+      params.set('ordering', newSort);
+    } else {
+      params.delete('ordering');
+    }
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
@@ -46,15 +49,6 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     }
     router.push(`?${params.toString()}`, { scroll: false });
   };
-
-  // Set default sort in URL on initial load if no ordering parameter exists
-  useEffect(() => {
-    if (!searchParams.get('ordering')) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set('ordering', defaultSort);
-      router.replace(`?${params.toString()}`, { scroll: false });
-    }
-  }, [marketplaceTab, searchParams, router, defaultSort]);
 
   const { entries, isLoading, hasMore, loadMore } = useFeed('all', {
     contentType: config.contentType,
