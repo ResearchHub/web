@@ -3,6 +3,45 @@ import { FeedContentType } from '@/types/feed';
 import { DocumentType } from '@/services/reaction.service';
 
 /**
+ * Django document type from API (src/researchhub_document/related_models/constants/document_type.py)
+ */
+export type ApiDocumentType =
+  | 'DISCUSSION'
+  | 'ELN'
+  | 'GRANT'
+  | 'NOTE'
+  | 'PAPER'
+  | 'QUESTION'
+  | 'PREREGISTRATION';
+
+/**
+ * Maps an API document type (from Django backend) to the app's ContentType (used in Work).
+ *
+ * @param documentType - The document type from the API
+ * @returns The corresponding ContentType, or undefined if no mapping exists
+ */
+export function mapApiDocumentTypeToAppWorkContentType(
+  documentType: ApiDocumentType
+): ContentType | undefined {
+  switch (documentType) {
+    case 'PAPER':
+      return 'paper';
+    case 'PREREGISTRATION':
+      return 'preregistration';
+    case 'QUESTION':
+      return 'question';
+    case 'DISCUSSION':
+      return 'discussion';
+    case 'GRANT':
+      return 'funding_request';
+    case 'ELN':
+    case 'NOTE':
+    default:
+      return undefined;
+  }
+}
+
+/**
  * Maps a ContentType to the corresponding API endpoint path
  * @param contentType The content type from the application
  * @returns The document type for API calls

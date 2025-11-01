@@ -47,7 +47,10 @@ export function useFeedItemClick({
         feed_source: feedSource,
         feed_tab: feedTab,
         related_work: {
-          id: entry.content.id?.toString() || '',
+          id:
+            'relatedDocumentId' in entry.content && entry.content.relatedDocumentId
+              ? entry.content.relatedDocumentId.toString()
+              : entry.content.id?.toString() || '',
           content_type:
             'relatedDocumentContentType' in entry.content &&
             entry.content.relatedDocumentContentType

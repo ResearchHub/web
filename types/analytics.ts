@@ -25,7 +25,7 @@ interface RelatedWork {
   unified_document_id?: string;
 }
 
-export type FeedSource = 'home' | 'earn' | 'fund' | 'journal' | 'topic' | 'unknown';
+export type FeedSource = 'home' | 'earn' | 'fund' | 'journal' | 'topic' | 'author' | 'unknown';
 
 // 1. Vote Action
 export interface VoteActionEvent extends UserContext, BaseContext {
