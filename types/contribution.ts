@@ -1,11 +1,12 @@
 import { ID } from './root';
-import { FeedEntry, FeedActionType, FeedContentType } from './feed';
+import { FeedEntry, FeedActionType, FeedContentType, getUnifiedDocumentId } from './feed';
 import { transformAuthorProfile } from './authorProfile';
 import { transformTopic } from './topic';
 import { transformBounty } from './bounty';
 import { Work } from './work';
 import { ContributionType } from '@/services/contribution.service';
 import { stripHtml } from '@/utils/stringUtils';
+import { mapApiDocumentTypeToAppWorkContentType } from '@/utils/contentTypeMapping';
 
 export interface Hub {
   id: ID;
@@ -97,18 +98,19 @@ const transformUnifiedDocumentToWork = ({ raw, hubs }: { raw: any; hubs: Hub[] }
       : raw.unified_document?.document_type === 'PREREGISTRATION'
         ? 'preregistration'
         : 'post';
-  const relatedUnifiedDocument =
+  const relatedDocument =
     contentType === 'paper' ? raw.unified_document?.documents : raw.unified_document?.documents[0];
 
   return {
     id: raw.id,
     contentType: contentType,
-    title: relatedUnifiedDocument?.title,
-    slug: relatedUnifiedDocument?.slug,
+    title: relatedDocument?.title,
+    slug: relatedDocument?.slug,
     createdDate: raw.created_date,
     authors: [],
-    abstract: stripHtml(relatedUnifiedDocument?.renderable_text || ''),
+    abstract: stripHtml(relatedDocument?.renderable_text || ''),
     topics: hubs.map((hub) => transformTopic(hub)),
+    unifiedDocumentId: Number(getUnifiedDocumentId(raw)) || undefined,
     formats: [], // TODO we need formats here
     figures: [], // TODO we need figures here
   };
@@ -159,8 +161,9 @@ export const transformContributionToFeedEntry = ({
         },
         createdBy: transformAuthorProfile(created_by.author_profile),
         relatedDocumentId: item.item?.thread?.content_object?.id,
-        relatedDocumentContentType:
-          item.item?.thread?.content_object?.unified_document?.document_type,
+        relatedDocumentContentType: mapApiDocumentTypeToAppWorkContentType(
+          item.item?.thread?.content_object?.unified_document?.document_type
+        ),
         comment: {
           id: item.item?.id,
           content: item.item?.comment_content_json,
@@ -203,7 +206,9 @@ export const transformContributionToFeedEntry = ({
         },
         review: reviewScore ? { score: reviewScore } : undefined,
         relatedDocumentId: item.thread?.content_object?.id,
-        relatedDocumentContentType: item.thread?.content_object?.unified_document?.document_type,
+        relatedDocumentContentType: mapApiDocumentTypeToAppWorkContentType(
+          item.thread?.content_object?.unified_document?.document_type
+        ),
       };
 
       // Set related work if available

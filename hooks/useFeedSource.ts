@@ -7,7 +7,7 @@ import { FeedSource } from '@/types/analytics';
  * Custom hook that extracts feed source and tab information from the current URL.
  *
  * This hook analyzes the URL pathname and search parameters to determine:
- * 1. The feed source (home, earn, fund, journal, topic, or unknown)
+ * 1. The feed source (home, earn, fund, journal, topic, author, or unknown)
  * 2. The specific tab or section within that source
  *
  * Tab extraction follows this priority order:
@@ -20,6 +20,7 @@ import { FeedSource } from '@/types/analytics';
  * - Root path (/) is treated as 'home' source
  * - trending, following, latest are all treated as 'home' source
  * - Topic pages (/topic/slug) don't use the second path segment as tab
+ * - Author pages (/author/[id]) don't use the second path segment as tab
  *
  * URL Structure Examples:
  * - /trending → source: 'home', tab: 'trending'
@@ -30,6 +31,7 @@ import { FeedSource } from '@/types/analytics';
  * - /journal?tab=all → source: 'journal', tab: 'all'
  * - /topic/ai?tab=popular → source: 'topic', tab: 'popular'
  * - /fund/needs-funding → source: 'fund', tab: 'needs-funding'
+ * - /author/153397?tab=contributions → source: 'author', tab: 'contributions'
  */
 
 export interface FeedSourceInfo {
@@ -43,7 +45,7 @@ export interface FeedSourceInfo {
  * @returns true if the source is a valid FeedSource, false otherwise
  */
 function isValidFeedSource(source: string): source is FeedSource {
-  const validSources: FeedSource[] = ['home', 'earn', 'fund', 'journal', 'topic'];
+  const validSources: FeedSource[] = ['home', 'earn', 'fund', 'journal', 'topic', 'author'];
   return validSources.includes(source as FeedSource);
 }
 
@@ -73,6 +75,7 @@ export function useFeedSource(): FeedSourceInfo {
   const homeTabs = ['trending', 'following', 'latest'];
   const isHomeTab = homeTabs.includes(source);
   const isTopicTab = source === 'topic';
+  const isAuthorTab = source === 'author';
 
   const feedSource = isHomeTab ? 'home' : toFeedSource(source);
 
@@ -84,7 +87,7 @@ export function useFeedSource(): FeedSourceInfo {
 
   if (queryTab) {
     tab = queryTab;
-  } else if (pathTab && !isTopicTab) {
+  } else if (pathTab && !isTopicTab && !isAuthorTab) {
     tab = pathTab;
   } else if (isHomeTab) {
     // For home tabs, use the source as the tab
