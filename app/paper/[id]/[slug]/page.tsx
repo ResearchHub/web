@@ -8,6 +8,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkDocument } from '@/components/work/WorkDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 
 interface Props {
@@ -53,6 +54,7 @@ export default async function WorkPage({ params }: Props) {
       <Suspense>
         <WorkDocument work={work} metadata={metadata} />
         <SearchHistoryTracker work={work} />
+        <WorkDocumentTracker work={work} metadata={metadata} tab="paper" />
       </Suspense>
     </PageLayout>
   );

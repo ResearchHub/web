@@ -8,6 +8,7 @@ import { Work } from '@/types/work';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundingRightSidebar } from '@/components/work/FundingRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { FundDocument } from '@/components/work/FundDocument';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 
@@ -84,6 +85,7 @@ export default async function FundingProjectPage({ params }: Props) {
           authorUpdates={authorUpdates}
         />
         <SearchHistoryTracker work={work} />
+        <WorkDocumentTracker work={work} metadata={metadata} tab="paper" />
       </Suspense>
     </PageLayout>
   );

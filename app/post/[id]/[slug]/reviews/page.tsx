@@ -8,6 +8,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { PostDocument } from '@/components/work/PostDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { handlePostRedirect } from '@/utils/navigation';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 
@@ -75,6 +76,7 @@ export default async function PostReviewsPage({ params }: Props) {
           <PostDocument work={post} metadata={metadata} defaultTab="reviews" />
         )}
         <SearchHistoryTracker work={post} />
+        <WorkDocumentTracker work={post} metadata={metadata} tab="reviews" />
       </Suspense>
     </PageLayout>
   );

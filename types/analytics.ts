@@ -1,7 +1,6 @@
-import { FeedContentType } from './feed';
 import { UserVoteType } from './reaction';
-import { ContentType } from './work';
 import { DeviceType } from '@/hooks/useDeviceType';
+import { DocumentType } from '@/services/reaction.service';
 
 interface UserContext {
   user_id?: string;
@@ -22,11 +21,8 @@ interface TopicBasic {
 
 interface RelatedWork {
   id: string;
-  content_type: ContentType | FeedContentType;
-  topics?: TopicBasic[];
+  content_type: DocumentType;
   unified_document_id?: string;
-  primary_topic?: TopicBasic;
-  secondary_topic?: TopicBasic;
 }
 
 export type FeedSource = 'home' | 'earn' | 'fund' | 'journal' | 'topic' | 'unknown';
@@ -46,4 +42,10 @@ export interface FeedItemClickedEvent extends UserContext, BaseContext {
   experiment_name?: string;
   experiment_variant?: string;
   feed_ordering?: string;
+}
+
+// 3. Work Document Viewed
+export interface WorkDocumentViewedEvent extends UserContext {
+  related_work?: RelatedWork;
+  tab?: string;
 }

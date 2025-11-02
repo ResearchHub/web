@@ -8,6 +8,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { GrantDocument } from '@/components/work/GrantDocument';
 import { GrantRightSidebar } from '@/components/work/GrantRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
+import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 
 interface Props {
@@ -74,6 +75,7 @@ export default async function GrantApplicationsPage({ params }: Props) {
           defaultTab="conversation"
         />
         <SearchHistoryTracker work={work} />
+        <WorkDocumentTracker work={work} metadata={metadata} tab="conversation" />
       </Suspense>
     </PageLayout>
   );

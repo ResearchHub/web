@@ -619,7 +619,6 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           metadata: content_object.metadata || {},
           review: content_object.review || null,
           user_vote: feedEntry.user_vote || null,
-          created_location: '',
           unified_document_id: content_object.unified_document_id?.toString(),
           bounty_amount: content_object.bounty_amount,
         };
