@@ -13,7 +13,6 @@ import { FeedEntryItem } from './FeedEntryItem';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 import { getFeedKey } from '@/utils/feedStateStorage';
-import { json } from 'stream/consumers';
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
@@ -36,6 +35,8 @@ interface FeedContentProps {
   showReadMoreCTA?: boolean; // Prop to control read more CTA visibility
   experimentVariant?: string; // A/B test experiment variant
   ordering?: string; // Feed ordering method
+  restoredScrollPosition?: number | null; // Scroll position to restore (from useFeed)
+  page?: number; // Current page number (to save in feed state)
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -59,11 +60,12 @@ export const FeedContent: FC<FeedContentProps> = ({
   showReadMoreCTA = false,
   experimentVariant,
   ordering,
+  restoredScrollPosition, // Scroll position from useFeed
+  page, // Current page number
 }) => {
   const pathname = usePathname();
   const entriesRef = useRef(entries);
-  const [restoredEntries, setRestoredEntries] = useState<FeedEntry[] | null>(null);
-  const hasRestoredRef = useRef(false);
+  const hasRestoredScrollRef = useRef(false);
   const scrollPositionRef = useRef(0);
   const scrollContainerRef = useScrollContainer();
 
@@ -73,15 +75,8 @@ export const FeedContent: FC<FeedContentProps> = ({
     rootMargin: '100px',
   });
 
-  const {
-    isBackNavigation,
-    startTrackingFeed,
-    stopTrackingFeed,
-    saveFeedState,
-    getFeedState,
-    clearFeedState,
-    resetBackNavigation,
-  } = useNavigation();
+  const { startTrackingFeed, stopTrackingFeed, saveFeedState, resetBackNavigation } =
+    useNavigation();
 
   // Update entries ref
   useEffect(() => {
@@ -138,53 +133,33 @@ export const FeedContent: FC<FeedContentProps> = ({
     };
   }, []); // Empty deps - we capture scrollContainerRef in the closure
 
-  // Check for saved feed state on mount if back navigation
+  // Restore scroll position if provided from useFeed
   useEffect(() => {
-    if (isBackNavigation && !hasRestoredRef.current) {
-      console.log('FeedContent - checking for saved feed state');
-      const feedKey = getFeedKey({
-        pathname,
-        tab: activeTab,
-      });
-      console.log('FeedContent - feedKey:', feedKey);
-      const savedState = getFeedState(feedKey);
-      console.log('FeedContent - savedState:', savedState);
-      if (savedState) {
-        console.log(
-          '🔄 FeedContent: Restored feed state with',
-          savedState.entries.length,
-          'entries'
-        );
-        setRestoredEntries(savedState.entries);
-        clearFeedState(feedKey);
-        hasRestoredRef.current = true;
+    if (
+      restoredScrollPosition !== null &&
+      restoredScrollPosition !== undefined &&
+      !hasRestoredScrollRef.current
+    ) {
+      const scrollPos = restoredScrollPosition;
+      console.log('FeedContent - restoring scroll position:', scrollPos);
+      hasRestoredScrollRef.current = true;
 
-        // Scroll to saved position after render
-        setTimeout(() => {
-          if (scrollContainerRef?.current) {
-            scrollContainerRef.current.scrollTop = savedState.scrollPosition;
-          } else {
-            // Fallback to window scroll if scroll container not available
-            window.scrollTo(0, savedState.scrollPosition);
-          }
-          resetBackNavigation();
-        }, 100);
-      }
+      // Scroll to saved position after render
+      setTimeout(() => {
+        if (scrollContainerRef?.current) {
+          scrollContainerRef.current.scrollTop = scrollPos;
+        } else {
+          // Fallback to window scroll if scroll container not available
+          window.scrollTo(0, scrollPos);
+        }
+        resetBackNavigation();
+      }, 100);
     }
-  }, [
-    isBackNavigation,
-    pathname,
-    activeTab,
-    getFeedState,
-    clearFeedState,
-    resetBackNavigation,
-    // scrollContainerRef is a ref and doesn't need to be in dependencies
-  ]);
+  }, [restoredScrollPosition, resetBackNavigation]);
 
-  // Reset restoration flag when feed key changes
+  // Reset scroll restoration flag when pathname or tab changes
   useEffect(() => {
-    hasRestoredRef.current = false;
-    setRestoredEntries(null);
+    hasRestoredScrollRef.current = false;
   }, [pathname, activeTab]);
 
   // Start tracking on mount, save feed state and stop tracking on unmount
@@ -204,7 +179,6 @@ export const FeedContent: FC<FeedContentProps> = ({
         });
         // Get the latest scroll position one more time before saving
         let scrollPosition = scrollPositionRef.current;
-        //TODO: it's 0 and we reset the actual value with 0 here
         // if (scrollContainerRef?.current) {
         //   scrollPosition = scrollContainerRef.current.scrollTop;
         // } else {
@@ -217,6 +191,8 @@ export const FeedContent: FC<FeedContentProps> = ({
           feedKey,
           entries: currentEntries,
           scrollPosition,
+          hasMore, // Save hasMore if provided
+          page, // Save page if provided
         });
       }
 
@@ -225,12 +201,10 @@ export const FeedContent: FC<FeedContentProps> = ({
       stopTrackingFeed();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, activeTab, startTrackingFeed, stopTrackingFeed, saveFeedState]);
+  }, [pathname, activeTab, startTrackingFeed, stopTrackingFeed, saveFeedState, hasMore, page]);
 
-  // Use restored entries if available, otherwise use prop entries
-  const displayEntries = restoredEntries || entries;
-
-  console.log('FeedContent - isBackNavigation:', isBackNavigation);
+  // Use entries directly (already restored by useFeed if applicable)
+  const displayEntries = entries;
 
   // Trigger load more when the sentinel element is in view
   useEffect(() => {

@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { FeedService } from '@/services/feed.service';
 import { useSession } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
+import { useNavigation } from '@/contexts/NavigationContext';
+import { getFeedKey } from '@/utils/feedStateStorage';
 
 export type FeedTab = 'following' | 'latest' | 'popular';
 export type FundingTab = 'all' | 'open' | 'closed';
@@ -26,17 +29,58 @@ interface UseFeedOptions {
 
 export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions = {}) => {
   const { status } = useSession();
-  const [entries, setEntries] = useState<FeedEntry[]>(options.initialData?.entries || []);
-  const [isLoading, setIsLoading] = useState(!options.initialData);
-  const [hasMore, setHasMore] = useState(options.initialData?.hasMore || false);
-  const [page, setPage] = useState(1);
+  const pathname = usePathname();
+  const { isBackNavigation, getFeedState, clearFeedState } = useNavigation();
+
+  // Check for restored state synchronously before initializing state
+  const restoredState = useMemo(() => {
+    if (!isBackNavigation) return null;
+
+    const feedKey = getFeedKey({
+      pathname,
+      tab: activeTab,
+    });
+
+    const savedState = getFeedState(feedKey);
+    if (savedState) {
+      console.log('🔄 useFeed: Restored feed state with', savedState.entries.length, 'entries');
+      // Clear the state after using it
+      clearFeedState(feedKey);
+      return savedState;
+    }
+    return null;
+  }, [isBackNavigation, pathname, activeTab, getFeedState, clearFeedState]);
+
+  // Use restored entries if available, otherwise use initialData
+  const initialEntries = restoredState?.entries || options.initialData?.entries || [];
+  // Restore hasMore and page from stored state if available
+  const initialHasMore = restoredState?.hasMore ?? options.initialData?.hasMore ?? false;
+  const initialPage = restoredState?.page ?? 1;
+  const hasRestoredEntries = restoredState !== null;
+
+  const [entries, setEntries] = useState<FeedEntry[]>(initialEntries);
+  const [isLoading, setIsLoading] = useState(!hasRestoredEntries && !options.initialData);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  console.log('hasMore', hasMore);
+  const [page, setPage] = useState(initialPage); // Use restored page
   const [currentTab, setCurrentTab] = useState<FeedTab | FundingTab>(activeTab);
   const [currentOptions, setCurrentOptions] = useState<UseFeedOptions>(options);
+
+  // Store scroll position for FeedContent to use
+  const [restoredScrollPosition, setRestoredScrollPosition] = useState<number | null>(
+    restoredState?.scrollPosition ?? null
+  );
 
   // Only load the feed when the component mounts or when the session status changes
   // We no longer reload when activeTab changes, as that will be handled by page navigation
   useEffect(() => {
     if (status === 'loading') {
+      return;
+    }
+
+    // If we restored entries from sessionStorage, don't fetch
+    if (hasRestoredEntries && entries.length > 0) {
+      console.log('🔄 useFeed: Skipping fetch - using restored entries');
       return;
     }
 
@@ -57,7 +101,15 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       // Initial load
       loadFeed();
     }
-  }, [status, activeTab]);
+  }, [
+    status,
+    activeTab,
+    hasRestoredEntries,
+    entries.length,
+    page,
+    currentTab,
+    options.initialData,
+  ]);
 
   // Check if options have changed
   useEffect(() => {
@@ -154,5 +206,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     hasMore,
     loadMore,
     refresh: loadFeed,
+    restoredScrollPosition, // Return scroll position for FeedContent to restore
+    page, // Return current page for FeedContent to save
   };
 };

@@ -7,7 +7,6 @@ import { FeedEntry } from '@/types/feed';
 export interface FeedIdentifier {
   pathname: string; // e.g., "/", "/topic/neuroscience", "/latest"
   tab?: string; // e.g., "popular", "latest", "following"
-  filters?: Record<string, any>; // Filter object (will be serialized)
 }
 
 export interface StoredFeedState {
@@ -15,6 +14,8 @@ export interface StoredFeedState {
   entries: FeedEntry[]; // Cap at 300 items
   scrollPosition: number; // Pixels from top
   timestamp: number; // When state was saved (for LRU eviction)
+  hasMore?: boolean; // Whether there are more entries to load (optional for backward compatibility)
+  page?: number; // Current page number (optional for backward compatibility)
 }
 
 const STORAGE_KEY = 'rh_feed_states'; // Plural - stores multiple feeds
@@ -27,20 +28,6 @@ const MAX_FEEDS = 2;
 export const getFeedKey = (id: FeedIdentifier): string => {
   const parts = [id.pathname];
   if (id.tab) parts.push(`tab:${id.tab}`);
-  if (id.filters) {
-    // Sort filters for consistent key generation
-    const sortedKeys = Object.keys(id.filters).sort();
-    const filterStr = JSON.stringify(
-      sortedKeys.reduce(
-        (acc, key) => {
-          acc[key] = id.filters![key];
-          return acc;
-        },
-        {} as Record<string, any>
-      )
-    );
-    parts.push(`f:${filterStr}`);
-  }
   return parts.join('|');
 };
 

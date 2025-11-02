@@ -48,6 +48,8 @@ export default function TopicFeedPage() {
     isLoading: isFeedLoading,
     hasMore,
     loadMore,
+    restoredScrollPosition,
+    page,
   } = useFeed(activeTab, {
     hubSlug: decodedSlug || '',
   });
@@ -95,6 +97,8 @@ export default function TopicFeedPage() {
         loadMore={loadMore}
         tabs={tabs}
         activeTab={activeTab}
+        restoredScrollPosition={restoredScrollPosition}
+        page={page}
       />
     </PageLayout>
   );

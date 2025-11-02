@@ -59,13 +59,16 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     (searchParams.get('hot_score_version') as 'v1' | 'v2') ||
     (defaultTab === 'following' ? 'v2' : 'v1'); // Always use v2 for following feed (experiment uses v2 for both variants)
   const isDebugMode = searchParams?.get('debug') !== null;
-  const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(defaultTab, {
-    source: sourceFilter,
-    initialData: initialFeedData,
-    hotScoreVersion,
-    includeHotScoreBreakdown: isDebugMode,
-    ordering,
-  });
+  const { entries, isLoading, hasMore, loadMore, refresh, restoredScrollPosition, page } = useFeed(
+    defaultTab,
+    {
+      source: sourceFilter,
+      initialData: initialFeedData,
+      hotScoreVersion,
+      includeHotScoreBreakdown: isDebugMode,
+      ordering,
+    }
+  );
 
   // Sync the activeTab with the defaultTab when the component mounts or defaultTab changes
   useEffect(() => {
@@ -230,6 +233,8 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
         experimentVariant={isInExperiment ? followingFeedExperiment : undefined}
         ordering={ordering}
         filters={sourceFilters}
+        restoredScrollPosition={restoredScrollPosition}
+        page={page}
       />
       <ManageTopicsModal
         isOpen={isManageTopicsModalOpen}

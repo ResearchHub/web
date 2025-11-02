@@ -13,6 +13,8 @@ export interface FeedStateData {
   feedKey: string; // pathname|tab:filters format
   entries: FeedEntry[]; // Up to 300 items
   scrollPosition: number; // window.scrollY
+  hasMore?: boolean; // Whether there are more entries to load
+  page?: number; // Current page number
 }
 
 interface NavigationContextType {
@@ -114,7 +116,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
     }
 
     try {
-      console.log('💾 Saving feed state:', feedData.feedKey);
+      console.log('💾 Saving feed state:', feedData);
       const allFeeds = getAllStoredFeeds();
       const feedCount = Object.keys(allFeeds).length;
 
@@ -135,6 +137,8 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
         entries,
         scrollPosition: feedData.scrollPosition,
         timestamp: Date.now(),
+        hasMore: feedData.hasMore, // Save hasMore if provided
+        page: feedData.page, // Save page if provided
       };
 
       sessionStorage.setItem(STORAGE_KEY_FEEDS, JSON.stringify(allFeeds));
