@@ -110,7 +110,10 @@ const transformUnifiedDocumentToWork = ({ raw, hubs }: { raw: any; hubs: Hub[] }
     authors: [],
     abstract: stripHtml(relatedDocument?.renderable_text || ''),
     topics: hubs.map((hub) => transformTopic(hub)),
-    unifiedDocumentId: Number(getUnifiedDocumentId(raw)) || undefined,
+    unifiedDocumentId: (() => {
+      const unifiedId = getUnifiedDocumentId(raw);
+      return unifiedId ? Number(unifiedId) : null;
+    })(),
     formats: [], // TODO we need formats here
     figures: [], // TODO we need figures here
   };
