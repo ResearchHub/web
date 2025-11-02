@@ -6,13 +6,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { getSortOptions } from './lib/FundingFeedConfig';
-
 export type MarketplaceTab = 'grants' | 'needs-funding';
 export type FundingSortOption =
   | ''
+  | 'newest'
   | 'best'
   | 'upvotes'
   | 'most_applicants'
@@ -53,14 +52,13 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
   const handleTabChange = (tabId: string) => {
     if (disableTabs) return;
     const tab = tabId as MarketplaceTab;
-    // If switching to grants tab with "best" sort, reset to newest
     if (tab === 'grants' && sortBy === 'best') {
       onSortChange('');
+      onTabChange(tab);
       const newParams = new URLSearchParams(searchParams.toString());
       newParams.delete('ordering');
       const queryString = newParams.toString();
       router.push(queryString ? `${TAB_ROUTES[tab]}?${queryString}` : TAB_ROUTES[tab]);
-      onTabChange(tab);
       return;
     }
 
