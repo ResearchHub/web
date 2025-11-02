@@ -31,24 +31,43 @@ export const buildWorkUrl = ({
 }) => {
   let baseUrl = '';
 
-  if (contentType === 'post') {
-    if (!id) return '#'; // Return a safe fallback for posts without ID
-    baseUrl = slug ? `/post/${id}/${slug}` : `/post/${id}`;
-  } else if (contentType === 'funding_request') {
-    if (!id) return '#'; // Return a safe fallback for grants without ID
-    baseUrl = slug ? `/grant/${id}/${slug}` : `/grant/${id}`;
-  } else if (contentType === 'preregistration') {
-    if (!id) return '#'; // Return a safe fallback for proposals without ID
-    baseUrl = slug ? `/fund/${id}/${slug}` : `/fund/${id}`;
-  } else {
-    // For papers
-    if (id) {
-      baseUrl = slug ? `/paper/${id}/${slug}` : `/paper/${id}`;
-    } else if (doi) {
-      baseUrl = `/paper?doi=${encodeURIComponent(doi)}`;
-    } else {
-      return '#'; // Return a safe fallback URL when neither id nor doi is available
-    }
+  switch (contentType) {
+    case 'post':
+    case 'discussion':
+      if (!id) return '#'; // Return a safe fallback for posts or discussions without ID
+      baseUrl = slug ? `/post/${id}/${slug}` : `/post/${id}`;
+      break;
+    case 'funding_request':
+      if (!id) return '#'; // Return a safe fallback for grants without ID
+      baseUrl = slug ? `/grant/${id}/${slug}` : `/grant/${id}`;
+      break;
+    case 'preregistration':
+      if (!id) return '#'; // Return a safe fallback for proposals without ID
+      baseUrl = slug ? `/fund/${id}/${slug}` : `/fund/${id}`;
+      break;
+    case 'question':
+      if (!id) return '#'; // Return a safe fallback for questions without ID
+      baseUrl = slug ? `/question/${id}/${slug}` : `/question/${id}`;
+      break;
+    case 'paper':
+      if (id) {
+        baseUrl = slug ? `/paper/${id}/${slug}` : `/paper/${id}`;
+      } else if (doi) {
+        baseUrl = `/paper?doi=${encodeURIComponent(doi)}`;
+      } else {
+        return '#'; // Return a safe fallback URL when neither id nor doi is available
+      }
+      break;
+    default:
+      // Fallback for unknown content types
+      if (id) {
+        baseUrl = slug ? `/paper/${id}/${slug}` : `/paper/${id}`;
+      } else if (doi) {
+        baseUrl = `/paper?doi=${encodeURIComponent(doi)}`;
+      } else {
+        return '#'; // Return a safe fallback URL when neither id nor doi is available
+      }
+      break;
   }
 
   // Append tab if provided

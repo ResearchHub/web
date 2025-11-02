@@ -6,7 +6,7 @@ import { transformBounty } from './bounty';
 import { Work } from './work';
 import { ContributionType } from '@/services/contribution.service';
 import { stripHtml } from '@/utils/stringUtils';
-import { mapApiDocumentTypeToAppWorkContentType } from '@/utils/contentTypeMapping';
+import { mapApiDocumentTypeToClientType } from '@/utils/contentTypeMapping';
 
 export interface Hub {
   id: ID;
@@ -161,7 +161,7 @@ export const transformContributionToFeedEntry = ({
         },
         createdBy: transformAuthorProfile(created_by.author_profile),
         relatedDocumentId: item.item?.thread?.content_object?.id,
-        relatedDocumentContentType: mapApiDocumentTypeToAppWorkContentType(
+        relatedDocumentContentType: mapApiDocumentTypeToClientType(
           item.item?.thread?.content_object?.unified_document?.document_type
         ),
         comment: {
@@ -206,7 +206,7 @@ export const transformContributionToFeedEntry = ({
         },
         review: reviewScore ? { score: reviewScore } : undefined,
         relatedDocumentId: item.thread?.content_object?.id,
-        relatedDocumentContentType: mapApiDocumentTypeToAppWorkContentType(
+        relatedDocumentContentType: mapApiDocumentTypeToClientType(
           item.thread?.content_object?.unified_document?.document_type
         ),
       };
@@ -237,6 +237,7 @@ export const transformContributionToFeedEntry = ({
         authors: [transformAuthorProfile(created_by.author_profile)],
         topics: effectiveHubs.map((hub) => transformTopic(hub)),
         createdBy: transformAuthorProfile(created_by.author_profile),
+        unifiedDocumentId: getUnifiedDocumentId(item),
       };
       break;
 
@@ -252,6 +253,7 @@ export const transformContributionToFeedEntry = ({
         authors: [transformAuthorProfile(created_by.author_profile)],
         topics: effectiveHubs.map((hub) => transformTopic(hub)),
         createdBy: transformAuthorProfile(created_by.author_profile),
+        unifiedDocumentId: getUnifiedDocumentId(item),
         journal: item.journal || {
           id: 0,
           name: '',
@@ -275,27 +277,4 @@ export const transformContributionToFeedEntry = ({
     relatedWork,
     metrics: undefined,
   } as FeedEntry;
-};
-
-// Transform a list of contributions to FeedEntries
-export const transformContributionsToFeedEntries = (contributions: Contribution[]): FeedEntry[] => {
-  return contributions
-    .map((contribution) =>
-      transformContributionToFeedEntry({
-        contribution,
-      })
-    )
-    .filter((entry): entry is FeedEntry => entry !== null);
-};
-
-// Transform a ContributionListResponse to FeedEntries
-export const transformContributionListResponseToFeedEntries = (
-  response: ContributionListResponse
-): { entries: FeedEntry[]; next: string | null; previous: string | null; count: number | null } => {
-  return {
-    entries: transformContributionsToFeedEntries(response.results),
-    next: response.next,
-    previous: response.previous,
-    count: response.count,
-  };
 };

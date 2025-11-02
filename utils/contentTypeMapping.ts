@@ -15,14 +15,18 @@ export type ApiDocumentType =
   | 'PREREGISTRATION';
 
 /**
- * Maps an API document type (from Django backend) to the app's ContentType (used in Work).
+ * Maps an API document type (from Django backend) to the client's ContentType (used in Work).
  *
  * @param documentType - The document type from the API
  * @returns The corresponding ContentType, or undefined if no mapping exists
  */
-export function mapApiDocumentTypeToAppWorkContentType(
-  documentType: ApiDocumentType
+export function mapApiDocumentTypeToClientType(
+  documentType?: ApiDocumentType
 ): ContentType | undefined {
+  if (!documentType) {
+    return undefined;
+  }
+
   switch (documentType) {
     case 'PAPER':
       return 'paper';
