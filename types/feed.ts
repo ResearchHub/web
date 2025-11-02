@@ -364,6 +364,32 @@ export interface FeedApiResponse {
   results: RawApiFeedEntry[];
 }
 
+/**
+ * Safely extracts the unified document ID from a content object.
+ *
+ * Tries in this order:
+ * 1. content_object.unified_document_id
+ * 2. content_object.unified_document.id
+ *
+ * Returns undefined if neither is available or if any intermediate property is null/undefined.
+ *
+ * @param content_object - The content object from the API response
+ * @returns The unified document ID as a string, or undefined if not available
+ */
+export function getUnifiedDocumentId(content_object: any): string | undefined {
+  // First try: direct unified_document_id property
+  if (content_object?.unified_document_id != null) {
+    return content_object.unified_document_id.toString();
+  }
+
+  // Second try: extract from unified_document.id
+  if (content_object?.unified_document?.id != null) {
+    return content_object.unified_document.id.toString();
+  }
+
+  return undefined;
+}
+
 export type TransformedContent = Content & BaseTransformed;
 export type TransformedFeedEntry = FeedEntry & BaseTransformed;
 
@@ -480,7 +506,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         // Create a FeedPaperEntry object directly
         const paperEntry: FeedPaperContent = {
           id: content_object.id,
-          unifiedDocumentId: content_object.unified_document_id?.toString(),
+          unifiedDocumentId: getUnifiedDocumentId(content_object),
           contentType: 'PAPER',
           createdDate: content_object.created_date,
           textPreview: stripHtml(content_object.abstract || ''),
@@ -619,7 +645,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           metadata: content_object.metadata || {},
           review: content_object.review || null,
           user_vote: feedEntry.user_vote || null,
-          unified_document_id: content_object.unified_document_id?.toString(),
+          unified_document_id: getUnifiedDocumentId(content_object),
           bounty_amount: content_object.bounty_amount,
         };
 
@@ -707,7 +733,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         try {
           const grantEntry: FeedGrantContent = {
             id: content_object.id,
-            unifiedDocumentId: content_object.unified_document_id?.toString(),
+            unifiedDocumentId: getUnifiedDocumentId(content_object),
             contentType: 'GRANT',
             postType: content_object.type, // Add the actual type from content_object
             createdDate: content_object.created_date,
@@ -767,7 +793,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           // Create a FeedPostEntry object
           const postEntry: FeedPostContent = {
             id: content_object.id,
-            unifiedDocumentId: content_object.unified_document_id?.toString(),
+            unifiedDocumentId: getUnifiedDocumentId(content_object),
             contentType: isPreregistration ? 'PREREGISTRATION' : 'POST',
             postType: content_object.type, // Add the actual type from content_object
             createdDate: content_object.created_date,
@@ -833,7 +859,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         // Create a FeedPostEntry object
         const postEntry: FeedPostContent = {
           id: content_object.id || id,
-          unifiedDocumentId: content_object.unified_document_id?.toString(),
+          unifiedDocumentId: getUnifiedDocumentId(content_object),
           contentType: 'POST',
           createdDate: created_date,
           textPreview: content_object.renderable_text || '',
