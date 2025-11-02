@@ -48,7 +48,7 @@ export function useFeedItemClick({
 
       AnalyticsService.logEventWithUserProperties(LogEvent.FEED_ITEM_CLICKED, payload, user);
     } catch (analyticsError) {
-      console.error('Failed to track feed item click analytics:', analyticsError);
+      console.warn('Failed to track feed item click analytics:', analyticsError);
     }
   }, [entry, feedPosition, feedSource, feedTab, deviceType, user, experimentVariant, feedOrdering]);
 
