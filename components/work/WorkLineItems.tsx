@@ -35,6 +35,8 @@ import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useCompleteFundraise } from '@/hooks/useFundraise';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
+import { useHotScore } from '@/hooks/useHotScore';
+import { HotScoreBreakdownModal } from '@/components/modals/HotScoreBreakdownModal';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -71,6 +73,7 @@ export const WorkLineItems = ({
   });
   const [voteCount, setVoteCount] = useState(work.metrics?.votes || 0);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
+  const [isHotScoreModalOpen, setIsHotScoreModalOpen] = useState(false);
   const router = useRouter();
   const { selectedOrg } = useOrganizationContext();
   const { user } = useUser();
@@ -126,6 +129,20 @@ export const WorkLineItems = ({
   const isModerator = !!user?.isModerator;
   // Determine if current user is a hub editor
   const isHubEditor = !!user?.authorProfile?.isHubEditor;
+
+  // Determine if user should see hot score (Editor or Moderator)
+  const shouldShowHotScore = isHubEditor || isModerator;
+
+  // Fetch hot score data if user has permissions
+  const {
+    hotScoreV2,
+    hotScoreBreakdown,
+    isLoading: isLoadingHotScore,
+  } = useHotScore(
+    work.contentType === 'paper' ? work.id : undefined,
+    work.unifiedDocumentId || undefined,
+    shouldShowHotScore && !!work.unifiedDocumentId
+  );
 
   // Determine if current user is an author
   const isAuthor =
@@ -411,6 +428,19 @@ export const WorkLineItems = ({
                 </BaseMenuItem>
               </>
             )}
+            {shouldShowHotScore && hotScoreV2 !== undefined && hotScoreV2 !== null && (
+              <BaseMenuItem
+                disabled={!hotScoreBreakdown || isLoadingHotScore}
+                onSelect={() => {
+                  if (hotScoreBreakdown) {
+                    setIsHotScoreModalOpen(true);
+                  }
+                }}
+              >
+                <span className="mr-2">🔥</span>
+                <span>Hot Score: {Math.round(hotScoreV2)}</span>
+              </BaseMenuItem>
+            )}
             <BaseMenuItem
               onSelect={() => executeAuthenticatedAction(() => setIsFlagModalOpen(true))}
             >
@@ -548,6 +578,16 @@ export const WorkLineItems = ({
         confirmButtonClass={modalConfig.confirmButtonClass}
         cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
       />
+
+      {/* Hot Score Breakdown Modal */}
+      {hotScoreBreakdown && hotScoreV2 !== undefined && (
+        <HotScoreBreakdownModal
+          isOpen={isHotScoreModalOpen}
+          onClose={() => setIsHotScoreModalOpen(false)}
+          breakdown={hotScoreBreakdown}
+          hotScore={hotScoreV2}
+        />
+      )}
     </div>
   );
 };
