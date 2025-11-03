@@ -61,9 +61,7 @@ export interface UpdatePaperMetadataPayload {
 }
 
 export interface UpdatePaperAbstractPayload {
-  abstract_src?: string;
   abstract: string;
-  abstract_src_type: 'TEXT_FIELD' | 'CK_EDITOR';
 }
 
 export class PaperService {
