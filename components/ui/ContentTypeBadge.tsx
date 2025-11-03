@@ -35,26 +35,28 @@ export const ContentTypeBadge = ({
   showTooltip = true,
 }: ContentTypeBadgeProps) => {
   if (type === 'paper') {
+    const iconSize = size === 'sm' ? 12 : size === 'lg' ? 18 : 14;
     return (
       <Badge
         variant="default"
         size={size}
-        className={cn('gap-1.5 py-1 border-gray-300', className)}
+        className={cn('gap-1.5 border border-gray-200', className)}
       >
-        <Icon name="workType" size={16} color="#374151" />
+        <Icon name="workType" size={iconSize} color="#374151" />
         <span>Paper</span>
       </Badge>
     );
   }
 
   if (type === 'preprint') {
+    const iconSize = size === 'sm' ? 10 : size === 'lg' ? 14 : 12;
     const badge = (
       <Badge
         variant="default"
         size={size}
-        className={cn('gap-1 py-1 border-gray-300 cursor-pointer', className)}
+        className={cn('gap-1 border border-gray-200 cursor-pointer', className)}
       >
-        <Icon name="preprint" size={12} color="#6B7280" />
+        <Icon name="preprint" size={iconSize} color="#6B7280" />
         <span>Preprint</span>
       </Badge>
     );
@@ -82,13 +84,14 @@ export const ContentTypeBadge = ({
   }
 
   if (type === 'published') {
+    const iconSize = size === 'sm' ? 12 : size === 'lg' ? 18 : 14;
     const badge = (
       <Badge
         variant="default"
         size={size}
-        className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
+        className={cn('gap-1.5 border border-gray-200 cursor-pointer', className)}
       >
-        <Icon name="verify1" size={16} color="#10B981" />
+        <Icon name="verify1" size={iconSize} color="#10B981" />
         <span>Published</span>
       </Badge>
     );
@@ -116,27 +119,29 @@ export const ContentTypeBadge = ({
   }
 
   if (type === 'article') {
+    const iconSize = size === 'sm' ? 12 : size === 'lg' ? 18 : 14;
     return (
       <Badge
         variant="default"
         size={size}
-        className={cn('gap-1.5 py-1 border-gray-300', className)}
+        className={cn('gap-1.5 border border-gray-200', className)}
       >
-        <Icon name="workType" size={16} color="#374151" />
+        <Icon name="workType" size={iconSize} color="#374151" />
         <span>Article</span>
       </Badge>
     );
   }
 
   if (type === 'grant') {
+    const iconSize = size === 'sm' ? 12 : size === 'lg' ? 18 : 14;
     const badge = (
       <Badge
         variant="default"
         size={size}
-        className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
+        className={cn('gap-1.5 border border-gray-200 cursor-pointer', className)}
       >
-        <Icon name="fund" size={16} color="#374151" />
-        <span>RFP</span>
+        <Icon name="fund" size={iconSize} color="#374151" />
+        <span>Request for Proposal</span>
       </Badge>
     );
 
@@ -163,6 +168,7 @@ export const ContentTypeBadge = ({
   }
 
   if (type === 'funding') {
+    const iconSize = size === 'sm' ? 12 : size === 'lg' ? 18 : 14;
     return (
       <Tooltip
         content={
@@ -179,9 +185,9 @@ export const ContentTypeBadge = ({
         <Badge
           variant="default"
           size={size}
-          className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
+          className={cn('gap-1.5 border border-gray-200 cursor-pointer', className)}
         >
-          <Icon name="createBounty" size={16} color="#374151" />
+          <Icon name="createBounty" size={iconSize} color="#374151" />
           <span>Proposal</span>
         </Badge>
       </Tooltip>
@@ -189,6 +195,7 @@ export const ContentTypeBadge = ({
   }
 
   if (type === 'bounty') {
+    const iconSize = size === 'sm' ? 12 : size === 'lg' ? 18 : 14;
     return (
       <Tooltip
         content={
@@ -205,9 +212,9 @@ export const ContentTypeBadge = ({
         <Badge
           variant="default"
           size={size}
-          className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
+          className={cn('gap-1.5 border border-gray-200 cursor-pointer', className)}
         >
-          <Icon name="earn1" size={16} color="#6B7280" />
+          <Icon name="earn1" size={iconSize} color="#6B7280" />
           <span>Bounty</span>
         </Badge>
       </Tooltip>
@@ -215,6 +222,7 @@ export const ContentTypeBadge = ({
   }
 
   if (type === 'review') {
+    const iconSize = size === 'sm' ? 12 : size === 'lg' ? 18 : 14;
     return (
       <Tooltip
         content={
@@ -231,9 +239,9 @@ export const ContentTypeBadge = ({
         <Badge
           variant="default"
           size={size}
-          className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
+          className={cn('gap-1.5 border border-gray-200 cursor-pointer', className)}
         >
-          <Icon name="peerReview1" size={16} color="#6B7280" />
+          <Icon name="peerReview1" size={iconSize} color="#6B7280" />
           <span>Peer Review</span>
         </Badge>
       </Tooltip>
@@ -241,13 +249,14 @@ export const ContentTypeBadge = ({
   }
 
   if (type === 'question') {
+    const iconSize = size === 'sm' ? 12 : size === 'lg' ? 18 : 14;
     const badge = (
       <Badge
         variant="default"
         size={size}
-        className={cn('gap-1.5 py-1 border-gray-300 cursor-pointer', className)}
+        className={cn('gap-1.5 border border-gray-200 cursor-pointer', className)}
       >
-        <FontAwesomeIcon icon={faCommentsQuestion} fontSize={16} className="text-gray-600" />
+        <FontAwesomeIcon icon={faCommentsQuestion} fontSize={iconSize} className="text-gray-600" />
         <span>Question</span>
       </Badge>
     );

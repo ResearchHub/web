@@ -82,6 +82,18 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'researchhub-dev-storage.s3.amazonaws.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.figshare.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.pravatar.cc',
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
     ],
     formats: ['image/webp', 'image/avif'],
   },

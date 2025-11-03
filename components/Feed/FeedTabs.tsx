@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 interface TabItem {
   id: string;
   label: string | React.ReactNode;
+  icon?: React.ReactNode;
   customAction?: () => void;
 }
 

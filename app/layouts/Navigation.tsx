@@ -140,9 +140,10 @@ export const Navigation: React.FC<NavigationProps> = ({
   };
 
   const isPathActive = (path: string) => {
-    // Special case for home page
-    if (path === '/') {
-      return ['/', '/following', '/latest'].includes(currentPath);
+    // Special case for home page variants
+    const homePagePaths = ['/', '/following', '/latest', '/trending', '/scientific-feed'];
+    if (path === '/' || path === '/trending') {
+      return homePagePaths.includes(currentPath);
     }
 
     // Special case for notebook page - match any route that starts with /notebook
