@@ -76,6 +76,7 @@ export interface BaseFeedContent {
   createdBy: AuthorProfile;
   bounties?: Bounty[];
   reviews?: Review[];
+  unifiedDocumentId?: string;
 }
 
 // Update all feed content types to extend the base
@@ -90,7 +91,6 @@ export interface FeedPostContent extends BaseFeedContent {
   authors: AuthorProfile[];
   topics: Topic[];
   institution?: string;
-  unifiedDocumentId?: string;
 }
 
 export interface ApplicationDetails {
@@ -154,7 +154,6 @@ export interface FeedPaperContent extends BaseFeedContent {
   category?: Topic;
   subcategory?: Topic;
   workType?: 'paper' | 'preprint' | 'published';
-  unifiedDocumentId?: string;
 }
 
 export interface FeedGrantContent extends BaseFeedContent {
@@ -166,7 +165,6 @@ export interface FeedGrantContent extends BaseFeedContent {
   previewImage?: string;
   authors: AuthorProfile[];
   topics: Topic[];
-  unifiedDocumentId?: string;
   grant: {
     id: number;
     amount: {
@@ -478,6 +476,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         // Create a FeedBountyEntry object
         const bountyEntry: FeedBountyContent = {
           id: content_object.id,
+          unifiedDocumentId: getUnifiedDocumentId(content_object),
           contentType: 'BOUNTY',
           createdDate: content_object.created_date || created_date,
           bounty: bounty,
@@ -663,6 +662,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         // Create a FeedCommentContent object
         const commentContent: FeedCommentContent = {
           id: content_object.id,
+          unifiedDocumentId: getUnifiedDocumentId(content_object),
           contentType: 'COMMENT',
           createdDate: content_object.created_date || created_date,
           updatedDate: content_object.updated_date || created_date,
