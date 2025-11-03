@@ -22,7 +22,8 @@ interface FundPageContentProps {
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const sortBy = (searchParams.get('ordering') as FundingSortOption) || '';
+  const defaultSort = marketplaceTab === 'needs-funding' ? 'best' : 'newest';
+  const sortBy = (searchParams.get('ordering') as FundingSortOption) || defaultSort;
   const includeEnded = searchParams.get('include_ended') !== 'false';
   const TAB_CONFIG = createTabConfig(<GrantRightSidebar />, <FundRightSidebar />);
   const config = TAB_CONFIG[marketplaceTab];
