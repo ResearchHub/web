@@ -137,25 +137,33 @@ export class SearchService {
       }
     }
 
-    const response = await ApiClient.get<OpenSearchResponse>(
+    const response = await ApiClient.get<OpenSearchResponse | { error?: string }>(
       `${this.BASE_PATH}/search/?${searchParams.toString()}`
     );
 
+    // If backend returns an error payload, throw to be handled by caller
+    if ((response as any)?.error) {
+      throw new Error((response as any).error || 'Search failed');
+    }
+
+    const resp = response as OpenSearchResponse;
+
     // Transform documents to FeedEntry format, passing the query for highlighting
-    const entries: FeedEntry[] = response.documents.map((doc) =>
+    const documents = Array.isArray(resp.documents) ? resp.documents : [];
+    const entries: FeedEntry[] = documents.map((doc) =>
       this.transformDocumentToFeedEntry(doc, params.query)
     );
 
     // Calculate hasMore based on count and current page
     const currentPage = params.page || 1;
     const pageSize = params.pageSize || 20;
-    const hasMore = currentPage * pageSize < response.count;
+    const hasMore = currentPage * pageSize < (resp?.count || 0);
 
     return {
       entries,
-      people: response.people || [],
-      count: response.count,
-      aggregations: response.aggregations,
+      people: Array.isArray(resp.people) ? resp.people : [],
+      count: resp.count || 0,
+      aggregations: resp.aggregations,
       hasMore,
     };
   }
@@ -181,7 +189,7 @@ export class SearchService {
         abstract: plainSnippet,
         slug: doc.slug || '',
         created_date: doc.created_date || doc.paper_publish_date || new Date().toISOString(),
-        authors: doc.authors.map((name) => ({
+        authors: (doc.authors || []).map((name) => ({
           first_name: name.split(' ')[0] || '',
           last_name: name.split(' ').slice(1).join(' ') || '',
           profile_image: '',
