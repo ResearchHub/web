@@ -211,19 +211,16 @@ export const transformWork = createTransformer<any, Work>((raw) => {
             },
           ]
         : [],
-    formats: raw.pdf_url
-      ? [
-          ...(raw.formats || []),
-          {
-            type: 'PDF',
-            url: raw.pdf_url,
-            internalUrl: ProxyService.generateProxyUrl(raw.pdf_url),
-          },
-        ]
-      : raw.file
+    formats: raw.file
+      ? [...(raw.formats || []), { type: 'PDF', url: raw.file, internalUrl: raw.file }]
+      : raw.pdf_url
         ? [
             ...(raw.formats || []),
-            { type: 'PDF', url: raw.file, internalUrl: ProxyService.generateProxyUrl(raw.file) },
+            {
+              type: 'PDF',
+              url: raw.pdf_url,
+              internalUrl: ProxyService.generateProxyUrl(raw.pdf_url),
+            },
           ]
         : (raw.formats || []).map((format: FormatType) => ({
             ...format,
