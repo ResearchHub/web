@@ -64,8 +64,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   page, // Current page number
 }) => {
   const pathname = usePathname();
-  const entriesRef = useRef(entries);
-  const hasRestoredScrollRef = useRef(false);
+  const [hasRestoredScroll, setHasRestoredScroll] = useState(false);
   const scrollPositionRef = useRef(0);
   const scrollContainerRef = useScrollContainer();
 
@@ -78,29 +77,22 @@ export const FeedContent: FC<FeedContentProps> = ({
   const { startTrackingFeed, stopTrackingFeed, saveFeedState, resetBackNavigation } =
     useNavigation();
 
-  // Update entries ref
-  useEffect(() => {
-    entriesRef.current = entries;
-  }, [entries]);
-
   // Track scroll position continuously
   useEffect(() => {
     const updateScrollPosition = () => {
       if (scrollContainerRef?.current) {
         scrollPositionRef.current = scrollContainerRef.current.scrollTop;
-      } else {
-        scrollPositionRef.current = window.scrollY;
       }
     };
 
     const container = scrollContainerRef?.current;
-    const scrollElement = container || window;
+    if (!container) return;
 
-    scrollElement.addEventListener('scroll', updateScrollPosition, { passive: true });
+    container.addEventListener('scroll', updateScrollPosition, { passive: true });
     updateScrollPosition();
 
     return () => {
-      scrollElement.removeEventListener('scroll', updateScrollPosition);
+      container.removeEventListener('scroll', updateScrollPosition);
     };
   }, [scrollContainerRef]);
 
@@ -109,10 +101,10 @@ export const FeedContent: FC<FeedContentProps> = ({
     if (
       restoredScrollPosition !== null &&
       restoredScrollPosition !== undefined &&
-      !hasRestoredScrollRef.current
+      !hasRestoredScroll
     ) {
       const scrollPos = restoredScrollPosition;
-      hasRestoredScrollRef.current = true;
+      setHasRestoredScroll(true);
 
       // Use requestAnimationFrame for reliable scroll restoration
       requestAnimationFrame(() => {
@@ -120,34 +112,45 @@ export const FeedContent: FC<FeedContentProps> = ({
           if (scrollContainerRef?.current) {
             scrollContainerRef.current.scrollTop = scrollPos;
           } else {
-            window.scrollTo(0, scrollPos);
+            const feedKey = getFeedKey({
+              pathname,
+              tab: activeTab,
+            });
+            console.warn(
+              `Skipping feed scroll restoration for ${feedKey} because scrollContainer is missing`
+            );
           }
           resetBackNavigation();
         });
       });
     }
-  }, [restoredScrollPosition, resetBackNavigation, scrollContainerRef]);
+  }, [
+    restoredScrollPosition,
+    resetBackNavigation,
+    scrollContainerRef,
+    hasRestoredScroll,
+    pathname,
+    activeTab,
+  ]);
 
   // Reset scroll restoration flag when pathname or tab changes
   useEffect(() => {
-    hasRestoredScrollRef.current = false;
+    setHasRestoredScroll(false);
   }, [pathname, activeTab]);
 
   // Start tracking on mount, save feed state and stop tracking on unmount
   useEffect(() => {
     startTrackingFeed();
     return () => {
-      const currentEntries = entriesRef.current;
-
       // Save feed state while tracking is still active
-      if (currentEntries.length > 0) {
+      if (entries.length > 0) {
         const feedKey = getFeedKey({
           pathname,
           tab: activeTab,
         });
         saveFeedState({
           feedKey,
-          entries: currentEntries,
+          entries,
           scrollPosition: scrollPositionRef.current,
           hasMore,
           page,
@@ -156,8 +159,16 @@ export const FeedContent: FC<FeedContentProps> = ({
 
       stopTrackingFeed();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, activeTab, startTrackingFeed, stopTrackingFeed, saveFeedState, hasMore, page]);
+  }, [
+    pathname,
+    activeTab,
+    startTrackingFeed,
+    stopTrackingFeed,
+    saveFeedState,
+    hasMore,
+    page,
+    entries,
+  ]);
 
   // Use entries directly (already restored by useFeed if applicable)
   const displayEntries = entries;

@@ -143,10 +143,13 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
       // Cap entries to MAX_ENTRIES_PER_FEED
       const entries = feedData.entries.slice(0, MAX_ENTRIES_PER_FEED);
 
+      // Don't store scroll position if less than 100px (user is near the top)
+      const scrollPosition = feedData.scrollPosition < 100 ? 0 : feedData.scrollPosition;
+
       allFeeds[feedData.feedKey] = {
         feedKey: feedData.feedKey,
         entries,
-        scrollPosition: feedData.scrollPosition,
+        scrollPosition,
         timestamp: Date.now(),
         hasMore: feedData.hasMore,
         page: feedData.page,
