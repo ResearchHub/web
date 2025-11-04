@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { SearchPageBar } from '@/components/Search/SearchPageBar';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { SearchSortControls } from '@/components/Search/SearchSortControls';
 import { SearchEmptyState } from '@/components/Search/SearchEmptyState';
@@ -101,24 +100,12 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
 
   const header = (
     <div className="space-y-4 mb-8">
-      {/* Mobile header - TopBar handles desktop */}
+      {/* Title only; users will use the header search bar */}
       <MainPageHeader
         icon={<SearchIcon className="w-6 h-6 text-primary-500" />}
         title="Search"
         subtitle="Find papers, grants, authors, and peer reviews"
       />
-
-      {/* Search bar with autocomplete and search button */}
-      <div className="max-w-7xl mx-auto">
-        <div className="max-w-3xl">
-          <SearchPageBar
-            initialQuery={query}
-            onSearch={handleSearch}
-            placeholder="Search papers, grants, authors..."
-            autoFocus
-          />
-        </div>
-      </div>
     </div>
   );
 
@@ -132,7 +119,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     </div>
   );
 
-  // Show empty state if no query
+  // Show a blank page (no default search UI) if no query
   if (!query.trim()) {
     return (
       <PageLayout
@@ -140,13 +127,6 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
         className="tablet:!max-w-full content-md:!max-w-full content-lg:!max-w-full content-xl:!max-w-full"
       >
         {header}
-        <SearchEmptyState
-          onSearch={handleSearch}
-          query={query}
-          filters={stagedFilters}
-          hasFilters={false}
-          onClearFilters={() => {}}
-        />
       </PageLayout>
     );
   }
