@@ -59,16 +59,32 @@ export const useFeedScrollTracking = ({
 
   // Restore scroll position if provided from useFeed
   useEffect(() => {
+    console.log('[useFeedScrollTracking] scroll restoration effect triggered', {
+      feedKey,
+      restoredScrollPosition,
+      hasRestoredScroll,
+      scrollContainerAvailable: !!scrollContainerRef?.current,
+    });
+
     if (
       restoredScrollPosition !== null &&
       restoredScrollPosition !== undefined &&
       !hasRestoredScroll
     ) {
       const scrollPos = restoredScrollPosition;
+      console.log('[useFeedScrollTracking] restoring scroll position', {
+        feedKey,
+        scrollPosition: scrollPos,
+      });
       setHasRestoredScroll(true);
 
       requestAnimationFrame(() => {
         if (scrollContainerRef?.current) {
+          console.log('[useFeedScrollTracking] setting scroll position', {
+            feedKey,
+            scrollPosition: scrollPos,
+            currentScrollTop: scrollContainerRef.current.scrollTop,
+          });
           scrollContainerRef.current.scrollTop = scrollPos;
         } else {
           console.warn(
@@ -87,10 +103,24 @@ export const useFeedScrollTracking = ({
 
   // Start tracking on mount, save feed state and stop tracking on unmount
   useEffect(() => {
+    console.log('[useFeedScrollTracking] starting tracking', {
+      feedKey,
+      entriesLength: entries.length,
+      currentScrollPosition: scrollPositionRef.current,
+    });
     startTrackingFeed();
     return () => {
       // Save feed state while tracking is still active
       if (entries.length > 0) {
+        const scrollPos = scrollPositionRef.current;
+        console.log('[useFeedScrollTracking] saving feed state', {
+          feedKey,
+          entriesLength: entries.length,
+          scrollPosition: scrollPos,
+          hasMore,
+          page,
+          scrollContainerAvailable: !!scrollContainerRef?.current,
+        });
         if (!scrollContainerRef?.current) {
           console.warn(
             `Skipping feed scroll position save for ${feedKey} because scrollContainer is missing`
@@ -99,12 +129,15 @@ export const useFeedScrollTracking = ({
         saveFeedState({
           feedKey,
           entries,
-          scrollPosition: scrollPositionRef.current,
+          scrollPosition: scrollPos,
           hasMore,
           page,
         });
+      } else {
+        console.log('[useFeedScrollTracking] skipping save (no entries)', { feedKey });
       }
 
+      console.log('[useFeedScrollTracking] stopping tracking', { feedKey });
       stopTrackingFeed();
     };
   }, [

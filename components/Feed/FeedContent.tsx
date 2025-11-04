@@ -6,7 +6,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { FeedItemSkeleton } from './FeedItemSkeleton';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
-import { FeedTab } from '@/hooks/useFeed';
+import { FeedTab, FundingTab } from '@/hooks/useFeed';
 import { FundingCarousel } from '@/components/Fund/FundingCarousel';
 import { BountiesCarousel } from '@/components/Earn/BountiesCarousel';
 import { FeedEntryItem } from './FeedEntryItem';
@@ -22,7 +22,7 @@ interface FeedContentProps {
   tabs?: ReactNode;
   filters?: ReactNode; // New prop for source filters
   disableCardLinks?: boolean; // Optional prop to disable all card links
-  activeTab?: FeedTab; // Add the activeTab prop as optional
+  activeTab?: FeedTab | FundingTab; // Add the activeTab prop as optional (supports both FeedTab and FundingTab)
   showBountyFooter?: boolean; // Prop to control bounty item footer visibility
   hideActions?: boolean; // Prop to control comment item actions visibility
   isLoadingMore?: boolean;
@@ -83,6 +83,18 @@ export const FeedContent: FC<FeedContentProps> = ({
     tab: activeTab,
     queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
   });
+
+  console.log('[FeedContent] generated feed key for tracking', {
+    feedKey,
+    pathname,
+    tab: activeTab,
+    queryParams,
+    queryParamsKeys: Object.keys(queryParams),
+    entriesLength: entries.length,
+    restoredScrollPosition,
+    page,
+  });
+
   useFeedScrollTracking({
     feedKey,
     entries,

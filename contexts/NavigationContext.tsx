@@ -136,7 +136,17 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   };
 
   const saveFeedState = (feedData: FeedStateData) => {
+    console.log('[NavigationContext] saveFeedState called', {
+      feedKey: feedData.feedKey,
+      entriesLength: feedData.entries.length,
+      scrollPosition: feedData.scrollPosition,
+      hasMore: feedData.hasMore,
+      page: feedData.page,
+      isTracking: isTrackingRef.current,
+    });
+
     if (!isTrackingRef.current) {
+      console.log('[NavigationContext] saveFeedState skipped (not tracking)');
       return;
     }
 
@@ -144,11 +154,20 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
       const allFeeds = getAllStoredFeeds();
       const feedCount = Object.keys(allFeeds).length;
 
+      console.log('[NavigationContext] current stored feeds', {
+        feedCount,
+        feedKeys: Object.keys(allFeeds),
+      });
+
       // If at limit and this is a new feed key, remove oldest
       if (feedCount >= MAX_FEEDS && !allFeeds[feedData.feedKey]) {
         const oldestEntry = Object.entries(allFeeds).sort(
           (a, b) => a[1].timestamp - b[1].timestamp
         )[0];
+        console.log('[NavigationContext] removing oldest feed', {
+          oldestKey: oldestEntry[0],
+          timestamp: oldestEntry[1].timestamp,
+        });
         delete allFeeds[oldestEntry[0]];
       }
 
@@ -167,8 +186,18 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
         page: feedData.page,
       };
 
+      console.log('[NavigationContext] saving feed state', {
+        feedKey: feedData.feedKey,
+        entriesLength: entries.length,
+        scrollPosition,
+        hasMore: feedData.hasMore,
+        page: feedData.page,
+        allFeedKeys: Object.keys(allFeeds),
+      });
+
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allFeeds));
     } catch (error) {
+      console.error('[NavigationContext] error saving feed state', error);
       // Silently fail - storage errors shouldn't break the app
     }
   };
@@ -176,8 +205,26 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   const getFeedState = (feedKey: string): StoredFeedState | null => {
     try {
       const allFeeds = getAllStoredFeeds();
-      return allFeeds[feedKey] || null;
+      console.log('[NavigationContext] getFeedState called', {
+        feedKey,
+        allFeedKeys: Object.keys(allFeeds),
+        hasFeed: !!allFeeds[feedKey],
+      });
+      const state = allFeeds[feedKey] || null;
+      if (state) {
+        console.log('[NavigationContext] found feed state', {
+          feedKey,
+          entriesLength: state.entries?.length || 0,
+          scrollPosition: state.scrollPosition,
+          page: state.page,
+          hasMore: state.hasMore,
+        });
+      } else {
+        console.log('[NavigationContext] feed state not found', { feedKey });
+      }
+      return state;
     } catch (error) {
+      console.error('[NavigationContext] error getting feed state', error);
       return null;
     }
   };

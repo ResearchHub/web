@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { FeedService } from '@/services/feed.service';
 import { useSession } from 'next-auth/react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { getFeedKey } from '@/contexts/NavigationContext';
 
@@ -30,25 +30,80 @@ interface UseFeedOptions {
 export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions = {}) => {
   const { status } = useSession();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { isBackNavigation, getFeedState, clearFeedState } = useNavigation();
+
+  // Read query params from URL for feed key generation
+  const queryParams = useMemo(() => {
+    const params: Record<string, string> = {};
+    const searchParamsString = searchParams.toString();
+    console.log('[useFeed] reading query params', {
+      pathname,
+      searchParamsString,
+      searchParamsSize: searchParams.size,
+    });
+    searchParams.forEach((value, key) => {
+      params[key] = value;
+      console.log('[useFeed] query param found', { key, value });
+    });
+    console.log('[useFeed] query params from URL', {
+      pathname,
+      queryParams: params,
+      queryParamsKeys: Object.keys(params),
+      searchParamsString,
+    });
+    return params;
+  }, [searchParams, pathname]);
 
   // Check for restored state synchronously before initializing state
   const restoredState = useMemo(() => {
-    if (!isBackNavigation) return null;
+    console.log('[useFeed] checking restored state', {
+      isBackNavigation,
+      pathname,
+      activeTab,
+      queryParams,
+      queryParamsKeys: Object.keys(queryParams),
+    });
+
+    if (!isBackNavigation) {
+      console.log('[useFeed] not back navigation, no restored state');
+      return null;
+    }
+
+    // For fund pages, 'all' is just a placeholder - don't include it in feed key
+    // since there are no actual tabs on these pages
+    // const tabForFeedKey = activeTab === 'all' ? undefined : activeTab;
 
     const feedKey = getFeedKey({
       pathname,
       tab: activeTab,
+      queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+    });
+
+    console.log('[useFeed] generated feed key for restoration', {
+      feedKey,
+      pathname,
+      tab: activeTab,
+      queryParams,
     });
 
     const savedState = getFeedState(feedKey);
     if (savedState) {
+      console.log('[useFeed] found restored state', {
+        feedKey,
+        entriesLength: savedState.entries?.length || 0,
+        scrollPosition: savedState.scrollPosition,
+        page: savedState.page,
+        hasMore: savedState.hasMore,
+      });
       // Clear the state after using it
       clearFeedState(feedKey);
       return savedState;
     }
+
+    console.log('[useFeed] no restored state found', { feedKey });
     return null;
-  }, [isBackNavigation, pathname, activeTab, getFeedState, clearFeedState]);
+  }, [isBackNavigation, pathname, activeTab, queryParams, getFeedState, clearFeedState]);
 
   // Use restored entries if available, otherwise use initialData
   const initialEntries = restoredState?.entries || options.initialData?.entries || [];

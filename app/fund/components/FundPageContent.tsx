@@ -80,6 +80,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
         showGrantHeaders={false}
         restoredScrollPosition={restoredScrollPosition}
         page={page}
+        activeTab="all"
       />
     </PageLayout>
   );
