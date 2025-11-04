@@ -40,18 +40,15 @@ const NavigationContext = createContext<NavigationContextType>({
 
 export function NavigationProvider({ children }: { children: React.ReactNode }) {
   const [isBackNavigation, setIsBackNavigation] = useState(false);
-  const trackingCountRef = useRef(0); // Track how many components are tracking
+  const isTrackingRef = useRef(false);
 
   useEffect(() => {
-    console.log('🔍 NavigationProvider: Setting up back navigation detection');
-
     // Check performance API immediately
     const checkPerformanceAPI = () => {
       const navigation = performance.getEntriesByType(
         'navigation'
       )[0] as PerformanceNavigationTiming;
       if (navigation?.type === 'back_forward') {
-        console.log('🔍 Performance API detected back navigation');
         setIsBackNavigation(true);
       }
     };
@@ -82,7 +79,6 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   const resetBackNavigation = () => {
-    console.log('🔍 Resetting back navigation flag');
     setIsBackNavigation(false);
   };
 
@@ -92,31 +88,24 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
       const stored = sessionStorage.getItem(STORAGE_KEY_FEEDS);
       return stored ? JSON.parse(stored) : {};
     } catch (error) {
-      console.warn('Failed to get stored feeds:', error);
       return {};
     }
   };
 
   const startTrackingFeed = () => {
-    trackingCountRef.current += 1;
-    console.log('📊 Started tracking feed, count:', trackingCountRef.current);
+    isTrackingRef.current = true;
   };
 
   const stopTrackingFeed = () => {
-    trackingCountRef.current = Math.max(0, trackingCountRef.current - 1);
-    console.log('📊 Stopped tracking feed, count:', trackingCountRef.current);
+    isTrackingRef.current = false;
   };
 
-  const isTracking = () => trackingCountRef.current > 0;
-
   const saveFeedState = (feedData: FeedStateData) => {
-    if (!isTracking()) {
-      console.log('📊 Not saving feed state - tracking not active');
+    if (!isTrackingRef.current) {
       return;
     }
 
     try {
-      console.log('💾 Saving feed state:', feedData);
       const allFeeds = getAllStoredFeeds();
       const feedCount = Object.keys(allFeeds).length;
 
@@ -125,7 +114,6 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
         const oldestEntry = Object.entries(allFeeds).sort(
           (a, b) => a[1].timestamp - b[1].timestamp
         )[0];
-        console.log('💾 Evicting oldest feed:', oldestEntry[0]);
         delete allFeeds[oldestEntry[0]];
       }
 
@@ -137,29 +125,21 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
         entries,
         scrollPosition: feedData.scrollPosition,
         timestamp: Date.now(),
-        hasMore: feedData.hasMore, // Save hasMore if provided
-        page: feedData.page, // Save page if provided
+        hasMore: feedData.hasMore,
+        page: feedData.page,
       };
 
       sessionStorage.setItem(STORAGE_KEY_FEEDS, JSON.stringify(allFeeds));
-      console.log('💾 Feed state saved successfully');
     } catch (error) {
-      console.error('💾 Failed to save feed state:', error);
+      // Silently fail - storage errors shouldn't break the app
     }
   };
 
   const getFeedState = (feedKey: string): StoredFeedState | null => {
     try {
       const allFeeds = getAllStoredFeeds();
-      const state = allFeeds[feedKey];
-      if (state) {
-        console.log('📖 Found saved feed state for:', feedKey);
-        return state;
-      }
-      console.log('📖 No saved feed state found for:', feedKey);
-      return null;
+      return allFeeds[feedKey] || null;
     } catch (error) {
-      console.error('📖 Failed to get feed state:', error);
       return null;
     }
   };
@@ -170,14 +150,11 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
       if (allFeeds[feedKey]) {
         delete allFeeds[feedKey];
         sessionStorage.setItem(STORAGE_KEY_FEEDS, JSON.stringify(allFeeds));
-        console.log('🗑️ Cleared feed state for:', feedKey);
       }
     } catch (error) {
-      console.warn('Failed to clear feed state:', error);
+      // Silently fail - storage errors shouldn't break the app
     }
   };
-
-  console.log('🔍 NavigationProvider: isBackNavigation =', isBackNavigation);
 
   return (
     <NavigationContext.Provider

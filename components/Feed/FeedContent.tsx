@@ -86,7 +86,6 @@ export const FeedContent: FC<FeedContentProps> = ({
   // Track scroll position continuously
   useEffect(() => {
     const updateScrollPosition = () => {
-      // Always check the current value of scrollContainerRef.current
       if (scrollContainerRef?.current) {
         scrollPositionRef.current = scrollContainerRef.current.scrollTop;
       } else {
@@ -94,44 +93,16 @@ export const FeedContent: FC<FeedContentProps> = ({
       }
     };
 
-    // Listen to scroll container if available, otherwise window
     const container = scrollContainerRef?.current;
     const scrollElement = container || window;
 
-    // Add scroll listener
     scrollElement.addEventListener('scroll', updateScrollPosition, { passive: true });
-
-    // Initial value
     updateScrollPosition();
-
-    // Also check if container becomes available and set up listener for it
-    let containerListenerAdded = false;
-    const checkContainer = () => {
-      if (
-        scrollContainerRef?.current &&
-        !containerListenerAdded &&
-        scrollElement !== scrollContainerRef.current
-      ) {
-        scrollContainerRef.current.addEventListener('scroll', updateScrollPosition, {
-          passive: true,
-        });
-        containerListenerAdded = true;
-        updateScrollPosition();
-      }
-    };
-
-    // Check immediately and after a short delay
-    checkContainer();
-    const timeoutId = setTimeout(checkContainer, 100);
 
     return () => {
       scrollElement.removeEventListener('scroll', updateScrollPosition);
-      if (scrollContainerRef?.current && containerListenerAdded) {
-        scrollContainerRef.current.removeEventListener('scroll', updateScrollPosition);
-      }
-      clearTimeout(timeoutId);
     };
-  }, []); // Empty deps - we capture scrollContainerRef in the closure
+  }, [scrollContainerRef]);
 
   // Restore scroll position if provided from useFeed
   useEffect(() => {
@@ -141,21 +112,21 @@ export const FeedContent: FC<FeedContentProps> = ({
       !hasRestoredScrollRef.current
     ) {
       const scrollPos = restoredScrollPosition;
-      console.log('FeedContent - restoring scroll position:', scrollPos);
       hasRestoredScrollRef.current = true;
 
-      // Scroll to saved position after render
-      setTimeout(() => {
-        if (scrollContainerRef?.current) {
-          scrollContainerRef.current.scrollTop = scrollPos;
-        } else {
-          // Fallback to window scroll if scroll container not available
-          window.scrollTo(0, scrollPos);
-        }
-        resetBackNavigation();
-      }, 100);
+      // Use requestAnimationFrame for reliable scroll restoration
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (scrollContainerRef?.current) {
+            scrollContainerRef.current.scrollTop = scrollPos;
+          } else {
+            window.scrollTo(0, scrollPos);
+          }
+          resetBackNavigation();
+        });
+      });
     }
-  }, [restoredScrollPosition, resetBackNavigation]);
+  }, [restoredScrollPosition, resetBackNavigation, scrollContainerRef]);
 
   // Reset scroll restoration flag when pathname or tab changes
   useEffect(() => {
@@ -164,40 +135,25 @@ export const FeedContent: FC<FeedContentProps> = ({
 
   // Start tracking on mount, save feed state and stop tracking on unmount
   useEffect(() => {
-    console.log('FeedContent - starting tracking feed');
     startTrackingFeed();
     return () => {
-      console.log('FeedContent - cleanup: saving feed state and stopping tracking');
       const currentEntries = entriesRef.current;
-      console.log('FeedContent - currentEntries:', currentEntries);
 
-      // Save feed state FIRST while tracking is still active
+      // Save feed state while tracking is still active
       if (currentEntries.length > 0) {
         const feedKey = getFeedKey({
           pathname,
           tab: activeTab,
         });
-        // Get the latest scroll position one more time before saving
-        let scrollPosition = scrollPositionRef.current;
-        // if (scrollContainerRef?.current) {
-        //   scrollPosition = scrollContainerRef.current.scrollTop;
-        // } else {
-        //   scrollPosition = window.scrollY;
-        // }
-        // Update ref with the latest value
-        scrollPositionRef.current = scrollPosition;
-        console.log('FeedContent - saving feed state:', feedKey, scrollPosition);
         saveFeedState({
           feedKey,
           entries: currentEntries,
-          scrollPosition,
-          hasMore, // Save hasMore if provided
-          page, // Save page if provided
+          scrollPosition: scrollPositionRef.current,
+          hasMore,
+          page,
         });
       }
 
-      // Then stop tracking AFTER saving
-      console.log('FeedContent - stopping tracking feed');
       stopTrackingFeed();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

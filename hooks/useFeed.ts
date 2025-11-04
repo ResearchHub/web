@@ -43,7 +43,6 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
 
     const savedState = getFeedState(feedKey);
     if (savedState) {
-      console.log('🔄 useFeed: Restored feed state with', savedState.entries.length, 'entries');
       // Clear the state after using it
       clearFeedState(feedKey);
       return savedState;
@@ -61,8 +60,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
   const [entries, setEntries] = useState<FeedEntry[]>(initialEntries);
   const [isLoading, setIsLoading] = useState(!hasRestoredEntries && !options.initialData);
   const [hasMore, setHasMore] = useState(initialHasMore);
-  console.log('hasMore', hasMore);
-  const [page, setPage] = useState(initialPage); // Use restored page
+  const [page, setPage] = useState(initialPage);
   const [currentTab, setCurrentTab] = useState<FeedTab | FundingTab>(activeTab);
   const [currentOptions, setCurrentOptions] = useState<UseFeedOptions>(options);
 
@@ -80,7 +78,6 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
 
     // If we restored entries from sessionStorage, don't fetch
     if (hasRestoredEntries && entries.length > 0) {
-      console.log('🔄 useFeed: Skipping fetch - using restored entries');
       return;
     }
 
@@ -159,7 +156,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       setHasMore(result.hasMore);
       setPage(1);
     } catch (error) {
-      console.error('Error loading feed:', error);
+      // Error handling is done at component level
     } finally {
       setIsLoading(false);
     }
