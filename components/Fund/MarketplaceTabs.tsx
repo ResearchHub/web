@@ -5,9 +5,7 @@ import { Tabs } from '@/components/ui/Tabs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
-import { Switch } from '@/components/ui/Switch';
 import { ChevronDown } from 'lucide-react';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { getSortOptions } from './lib/FundingFeedConfig';
 
@@ -38,8 +36,6 @@ interface MarketplaceTabsProps {
   disableTabs?: boolean;
   sortBy: FundingSortOption;
   onSortChange: (sort: FundingSortOption) => void;
-  includeEnded: boolean;
-  onIncludeEndedChange: (includeEnded: boolean) => void;
 }
 
 export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
@@ -48,8 +44,6 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
   disableTabs,
   sortBy,
   onSortChange,
-  includeEnded,
-  onIncludeEndedChange,
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -65,8 +59,6 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
     if (tab === 'previously-funded') {
       // Also call onSortChange to update the parent component's state
       onSortChange('newest');
-      // Call onIncludeEndedChange to update the parent component's state
-      onIncludeEndedChange(true);
       // Navigate without any query parameters
       router.push(TAB_ROUTES[tab]);
       onTabChange(tab);
@@ -130,15 +122,6 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
                   </div>
                 </BaseMenuItem>
               ))}
-              <DropdownMenu.Separator className="my-1 h-px bg-gray-200" />
-              <BaseMenuItem className="flex items-center justify-between">
-                <span>{activeTab === 'grants' ? 'Include Closed' : 'Include Ended'}</span>
-                <Switch
-                  checked={includeEnded}
-                  onCheckedChange={onIncludeEndedChange}
-                  className="h-4 w-7 [&>span]:h-3 [&>span]:w-3 [&>span]:translate-x-0 [&[aria-checked=true]>span]:translate-x-3 ml-5"
-                />
-              </BaseMenuItem>
             </BaseMenu>
           )}
         </div>
