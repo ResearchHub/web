@@ -34,6 +34,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     entries,
     people,
     isLoading,
+    error,
     hasMore,
     loadMore,
     aggregations,
@@ -131,8 +132,25 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     );
   }
 
+  // Show error state if API failed
+  if (!isLoading && error && query.trim()) {
+    return (
+      <PageLayout
+        rightSidebar={false}
+        className="tablet:!max-w-full content-md:!max-w-full content-lg:!max-w-full content-xl:!max-w-full"
+      >
+        {header}
+        <div className="max-w-7xl mx-auto">
+          <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error || 'Something went wrong while fetching results. Please try again.'}
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
   // Show empty state with no results
-  if (!isLoading && entries.length === 0 && query.trim()) {
+  if (!isLoading && !error && entries.length === 0 && query.trim()) {
     return (
       <PageLayout
         rightSidebar={false}

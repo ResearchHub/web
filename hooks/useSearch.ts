@@ -18,6 +18,7 @@ interface UseSearchReturn {
   entries: FeedEntry[];
   people: OpenSearchPerson[];
   isLoading: boolean;
+  error: string | null;
   hasMore: boolean;
   loadMore: () => void;
   aggregations: OpenSearchResponse['aggregations'] | null;
@@ -38,6 +39,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
   const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [people, setPeople] = useState<OpenSearchPerson[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
   const [aggregations, setAggregations] = useState<OpenSearchResponse['aggregations'] | null>(null);
@@ -131,10 +133,12 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
         setPeople([]);
         setAggregations(null);
         setHasMore(false);
+        setError(null);
         return;
       }
 
       setIsLoading(true);
+      setError(null);
       setCurrentQuery(query);
       setCurrentTab(tab);
       setPage(1);
@@ -157,12 +161,14 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
 
         setAggregations(response.aggregations);
         setHasMore(response.hasMore);
+        setError(null);
       } catch (error) {
         console.error('Search error:', error);
         setEntries([]);
         setPeople([]);
         setAggregations(null);
         setHasMore(false);
+        setError("We're experiencing issues with search right now. Please try again shortly.");
       } finally {
         setIsLoading(false);
       }
@@ -194,8 +200,10 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
 
       setHasMore(response.hasMore);
       setPage(nextPage);
+      setError(null);
     } catch (error) {
       console.error('Load more error:', error);
+      setError("We're experiencing issues loading more results. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -278,6 +286,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
     entries: sortedEntries,
     people: sortedPeople,
     isLoading,
+    error,
     hasMore,
     loadMore,
     aggregations,
