@@ -1,18 +1,17 @@
 'use client';
 
-import { FC, ReactNode, useEffect, useRef, useState } from 'react';
+import { FC, ReactNode, useEffect } from 'react';
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import { FeedItemSkeleton } from './FeedItemSkeleton';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
-import { FeedTab } from '@/hooks/useFeed'; // Import FeedTab type
+import { FeedTab } from '@/hooks/useFeed';
 import { FundingCarousel } from '@/components/Fund/FundingCarousel';
 import { BountiesCarousel } from '@/components/Earn/BountiesCarousel';
 import { FeedEntryItem } from './FeedEntryItem';
-import { useNavigation } from '@/contexts/NavigationContext';
-import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 import { getFeedKey } from '@/contexts/NavigationContext';
+import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
@@ -60,13 +59,10 @@ export const FeedContent: FC<FeedContentProps> = ({
   showReadMoreCTA = false,
   experimentVariant,
   ordering,
-  restoredScrollPosition, // Scroll position from useFeed
-  page, // Current page number
+  restoredScrollPosition,
+  page,
 }) => {
   const pathname = usePathname();
-  const [hasRestoredScroll, setHasRestoredScroll] = useState(false);
-  const scrollPositionRef = useRef(0);
-  const scrollContainerRef = useScrollContainer();
 
   // Set up intersection observer for infinite scrolling (must be called before any conditional returns)
   const { ref: loadMoreRef, inView } = useInView({
@@ -74,101 +70,19 @@ export const FeedContent: FC<FeedContentProps> = ({
     rootMargin: '100px',
   });
 
-  const { startTrackingFeed, stopTrackingFeed, saveFeedState, resetBackNavigation } =
-    useNavigation();
-
-  // Track scroll position continuously
-  useEffect(() => {
-    const updateScrollPosition = () => {
-      if (scrollContainerRef?.current) {
-        scrollPositionRef.current = scrollContainerRef.current.scrollTop;
-      }
-    };
-
-    const container = scrollContainerRef?.current;
-    if (!container) return;
-
-    container.addEventListener('scroll', updateScrollPosition, { passive: true });
-    updateScrollPosition();
-
-    return () => {
-      container.removeEventListener('scroll', updateScrollPosition);
-    };
-  }, [scrollContainerRef]);
-
-  // Restore scroll position if provided from useFeed
-  useEffect(() => {
-    if (
-      restoredScrollPosition !== null &&
-      restoredScrollPosition !== undefined &&
-      !hasRestoredScroll
-    ) {
-      const scrollPos = restoredScrollPosition;
-      setHasRestoredScroll(true);
-
-      // Use requestAnimationFrame for reliable scroll restoration
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (scrollContainerRef?.current) {
-            scrollContainerRef.current.scrollTop = scrollPos;
-          } else {
-            const feedKey = getFeedKey({
-              pathname,
-              tab: activeTab,
-            });
-            console.warn(
-              `Skipping feed scroll restoration for ${feedKey} because scrollContainer is missing`
-            );
-          }
-          resetBackNavigation();
-        });
-      });
-    }
-  }, [
-    restoredScrollPosition,
-    resetBackNavigation,
-    scrollContainerRef,
-    hasRestoredScroll,
+  // Handle all scroll tracking, restoration, and state saving
+  const feedKey = getFeedKey({
     pathname,
-    activeTab,
-  ]);
-
-  // Reset scroll restoration flag when pathname or tab changes
-  useEffect(() => {
-    setHasRestoredScroll(false);
-  }, [pathname, activeTab]);
-
-  // Start tracking on mount, save feed state and stop tracking on unmount
-  useEffect(() => {
-    startTrackingFeed();
-    return () => {
-      // Save feed state while tracking is still active
-      if (entries.length > 0) {
-        const feedKey = getFeedKey({
-          pathname,
-          tab: activeTab,
-        });
-        saveFeedState({
-          feedKey,
-          entries,
-          scrollPosition: scrollPositionRef.current,
-          hasMore,
-          page,
-        });
-      }
-
-      stopTrackingFeed();
-    };
-  }, [
-    pathname,
-    activeTab,
-    startTrackingFeed,
-    stopTrackingFeed,
-    saveFeedState,
+    tab: activeTab,
+  });
+  useFeedScrollTracking({
+    feedKey,
+    entries,
     hasMore,
     page,
-    entries,
-  ]);
+    restoredScrollPosition,
+    activeTab,
+  });
 
   // Use entries directly (already restored by useFeed if applicable)
   const displayEntries = entries;
