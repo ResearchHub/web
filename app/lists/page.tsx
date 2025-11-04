@@ -6,6 +6,7 @@ import { useUserLists } from '@/hooks/useUserLists';
 import { UserList } from '@/types/user-list';
 import { ListsRightSidebar } from '@/app/lists/components/ListsRightSidebar';
 import { Plus, Edit2, Trash2, FolderOpen } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { LoadingButton } from '@/components/ui/LoadingButton';
 import { ListModal } from '@/components/modals/ListModal';
@@ -190,9 +191,10 @@ function ListsPageContent() {
         ) : (
           <div className="grid grid-cols-1 gap-3">
             {(lists || []).map((list) => (
-              <div
+              <Link
                 key={list.id}
-                className="group flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3 bg-white rounded-lg hover:bg-gray-50 transition-all duration-200"
+                href={`/lists/${list.id}`}
+                className="group flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3 bg-white rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-all duration-200"
               >
                 <div className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
                   <FolderOpen className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
@@ -212,11 +214,17 @@ function ListsPageContent() {
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0">
+                <div
+                  className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0"
+                  onClick={(e) => e.preventDefault()}
+                >
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleEditClick(list)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleEditClick(list);
+                    }}
                     className="h-8 w-8 sm:h-8 sm:w-8 text-gray-400 hover:text-gray-600 hover:bg-rhBlue-50 active:bg-rhBlue-100"
                   >
                     <Edit2 className="w-4 h-4" />
@@ -224,13 +232,16 @@ function ListsPageContent() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleDeleteClick(list)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDeleteClick(list);
+                    }}
                     className="h-8 w-8 sm:h-8 sm:w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 active:bg-red-100"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

@@ -2,10 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { ListService } from '@/services/list.service';
 import {
   UserList,
+  UserListDetail,
   CreateListRequest,
   UpdateListRequest,
   ListStats,
   UserListsResponse,
+  AddItemRequest,
 } from '@/types/user-list';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/utils/apiError';
@@ -92,5 +94,89 @@ export function useUserLists() {
     createList,
     updateList,
     deleteList,
+  };
+}
+
+export function useUserList(listId: number | null) {
+  const [list, setList] = useState<UserListDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchList = useCallback(async () => {
+    if (!listId) {
+      setList(null);
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    try {
+      setList(await ListService.getListById(listId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load list');
+      console.error('Failed to fetch list:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [listId]);
+
+  useEffect(() => {
+    fetchList();
+  }, [fetchList]);
+
+  const addItem = useCallback(
+    async (data: AddItemRequest) => {
+      if (!listId) return;
+      try {
+        const newItem = await ListService.addItemToList(listId, data.unified_document);
+        setList((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            items: [...prev.items, newItem],
+            item_count: (prev.item_count || prev.items?.length || 0) + 1,
+          };
+        });
+        toast.success('Item added to list');
+        return newItem;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to add item';
+        toast.error(errorMessage);
+        throw err;
+      }
+    },
+    [listId]
+  );
+
+  const removeItem = useCallback(
+    async (itemId: number) => {
+      if (!listId) return;
+      try {
+        await ListService.removeItemFromList(listId, itemId);
+        setList((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            items: prev.items.filter((item) => item.id !== itemId),
+            item_count: Math.max(0, (prev.item_count || prev.items?.length || 0) - 1),
+          };
+        });
+        toast.success('Item removed from list');
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to remove item';
+        toast.error(errorMessage);
+        throw err;
+      }
+    },
+    [listId]
+  );
+
+  return {
+    list,
+    isLoading,
+    error,
+    fetchList,
+    addItem,
+    removeItem,
   };
 }
