@@ -24,7 +24,6 @@ export class FeedService {
     ordering?: string;
     hotScoreVersion?: 'v1' | 'v2';
     includeHotScoreBreakdown?: boolean;
-    includeEnded?: boolean;
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -50,8 +49,6 @@ export class FeedService {
 
     if (params?.hotScoreVersion) queryParams.append('hot_score_version', params.hotScoreVersion);
     if (params?.includeHotScoreBreakdown) queryParams.append('include_hot_score_breakdown', 'true');
-    if (params?.includeEnded !== undefined)
-      queryParams.append('include_ended', params.includeEnded.toString());
 
     // Determine which endpoint to use
     const basePath =
