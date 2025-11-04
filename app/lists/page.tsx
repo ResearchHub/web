@@ -5,8 +5,8 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserLists } from '@/hooks/useUserLists';
 import { UserList } from '@/types/user-list';
 import { ListsRightSidebar } from '@/app/lists/components/ListsRightSidebar';
-import { Plus, Edit2, Trash2, FolderOpen } from 'lucide-react';
 import Link from 'next/link';
+import { Plus, Edit2, Trash2, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LoadingButton } from '@/components/ui/LoadingButton';
 import { ListModal } from '@/components/modals/ListModal';
@@ -83,7 +83,8 @@ function ListsPageContent() {
     return (
       <PageLayout rightSidebar={<ListsRightSidebar isLoading={isLoading} />}>
         <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
+          {/* Banner Section */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
             <div className="flex flex-col sm:flex-row gap-6">
               <div className="flex-shrink-0">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
@@ -120,7 +121,8 @@ function ListsPageContent() {
     return (
       <PageLayout rightSidebar={<ListsRightSidebar stats={stats} isLoading={isLoading} />}>
         <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
+          {/* Banner Section */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
             <div className="flex flex-col sm:flex-row gap-6">
               <div className="flex-shrink-0">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
@@ -171,7 +173,7 @@ function ListsPageContent() {
           </div>
         </div>
 
-        {!lists || lists.length === 0 ? (
+        {lists.length === 0 ? (
           <div className="text-center py-8 sm:py-12 px-4 bg-gray-50 rounded-lg border border-gray-200">
             <FolderOpen className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No lists yet</h3>
@@ -190,7 +192,7 @@ function ListsPageContent() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3">
-            {(lists || []).map((list) => (
+            {lists.map((list) => (
               <Link
                 key={list.id}
                 href={`/lists/${list.id}`}

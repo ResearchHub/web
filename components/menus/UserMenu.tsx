@@ -166,6 +166,15 @@ export default function UserMenu({
           </div>
         </div>
 
+        <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
+          <div className="px-6 py-2 hover:bg-gray-50">
+            <div className="flex items-center">
+              <FolderOpen className="h-5 w-5 mr-3 text-gray-500" />
+              <span className="text-base text-gray-700">My Lists</span>
+            </div>
+          </div>
+        </Link>
+
         <Link
           href="/notifications"
           className="block sidebar-compact:hidden"
@@ -342,6 +351,15 @@ export default function UserMenu({
               </div>
             </BaseMenuItem>
 
+            <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
+              <div className="w-full px-4 py-2 hover:bg-gray-50">
+                <div className="flex items-center">
+                  <FolderOpen className="h-4 w-4 mr-3 text-gray-500" />
+                  <span className="text-sm text-gray-700">My Lists</span>
+                </div>
+              </div>
+            </Link>
+
             <Link
               href="/notifications"
               className="block sidebar-compact:hidden"
@@ -368,19 +386,6 @@ export default function UserMenu({
                     color="#676767"
                   />
                   <span className="text-sm text-gray-700">My ResearchCoin</span>
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              href="/lists"
-              className="block sidebar-compact:hidden"
-              onClick={() => setMenuOpenState(false)}
-            >
-              <div className="w-full px-4 py-2 hover:bg-gray-50">
-                <div className="flex items-center">
-                  <FolderOpen className="h-4 w-4 mr-3 text-gray-500" />
-                  <span className="text-sm text-gray-700">My Lists</span>
                 </div>
               </div>
             </Link>

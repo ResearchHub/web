@@ -11,6 +11,7 @@ import {
   Share2,
   CheckCircle,
   ThumbsDown,
+  FolderOpen,
 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
@@ -25,6 +26,8 @@ import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useRouter } from 'next/navigation';
 import { TipContentModal } from '@/components/modals/TipContentModal';
+import { AddToListModal } from '@/components/modals/AddToListModal';
+import { useIsInList } from '@/hooks/useIsInList';
 import { Icon } from '@/components/ui/icons/Icon';
 import { PaperService } from '@/services/paper.service';
 import { useUser } from '@/contexts/UserContext';
@@ -53,6 +56,14 @@ export const WorkLineItems = ({
 }: WorkLineItemsProps) => {
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
+  const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
+
+  // Check if document is already in a list
+  const {
+    isInList: isDocumentInList,
+    isLoading: isCheckingList,
+    refetch: refetchIsInList,
+  } = useIsInList(work.unifiedDocumentId);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showFundraiseActionModal, setShowFundraiseActionModal] = useState(false);
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | null>(null);
@@ -341,6 +352,23 @@ export const WorkLineItems = ({
             <Share2 className="h-6 w-6" />
           </button>
 
+          {/* Add to List Button */}
+          {work.unifiedDocumentId && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                executeAuthenticatedAction(() => setIsAddToListModalOpen(true));
+              }}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                isDocumentInList
+                  ? 'bg-green-50 text-green-600 hover:bg-green-100'
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <FolderOpen className="h-6 w-6" />
+            </button>
+          )}
+
           {work.contentType !== 'preregistration' && (
             <button
               onClick={() => executeAuthenticatedAction(() => setIsTipModalOpen(true))}
@@ -524,6 +552,19 @@ export const WorkLineItems = ({
         feedContentType={work.contentType === 'paper' ? 'PAPER' : 'POST'}
         onTipSuccess={handleTipSuccess}
       />
+
+      {/* Add to List Modal */}
+      {work.unifiedDocumentId && (
+        <AddToListModal
+          isOpen={isAddToListModalOpen}
+          onClose={() => setIsAddToListModalOpen(false)}
+          unifiedDocumentId={work.unifiedDocumentId}
+          onItemAdded={() => {
+            // Refetch lists to update the isInList status
+            refetchIsInList();
+          }}
+        />
+      )}
 
       {work.contentType === 'paper' && (
         <WorkEditModal

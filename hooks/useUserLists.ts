@@ -1,13 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ListService } from '@/services/list.service';
+import { ListService, UserListsResponse } from '@/services/list.service';
 import {
   UserList,
   UserListDetail,
   CreateListRequest,
   UpdateListRequest,
-  ListStats,
-  UserListsResponse,
   AddItemRequest,
+  ListStats,
 } from '@/types/user-list';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/utils/apiError';
@@ -23,7 +22,7 @@ export function useUserLists() {
     setError(null);
     try {
       const data: UserListsResponse = await ListService.getUserLists();
-      setLists(data.results || []);
+      setLists(data.lists);
       if (data.stats) setStats(data.stats);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load lists');
@@ -75,6 +74,7 @@ export function useUserLists() {
         await ListService.deleteList(listId);
         setLists((prev) => prev.filter((list) => list.id !== listId));
         toast.success('List deleted successfully');
+        // Refresh lists to get updated counts
         await fetchLists();
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to delete list';

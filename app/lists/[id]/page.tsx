@@ -78,6 +78,7 @@ export default function ListDetailPage() {
     }
   };
 
+  // Convert list items to FeedEntry format for display
   const convertItemsToFeedEntries = (): FeedEntry[] => {
     if (!list?.items) return [];
 
@@ -85,6 +86,7 @@ export default function ListDetailPage() {
       const unifiedDocData = item.unified_document_data || {};
       const document = unifiedDocData.documents?.[0] || {};
 
+      // Map document_type to FeedContentType
       const mapDocumentType = (docType?: string): string => {
         if (!docType) return 'PAPER';
         const upper = docType.toUpperCase();
@@ -97,6 +99,7 @@ export default function ListDetailPage() {
 
       const contentType = mapDocumentType(unifiedDocData.document_type || item.contentType);
 
+      // Extract authors from the document
       const authors = ((document as any).authors || []).map((author: any) => ({
         id: author.id || 0,
         firstName: author.first_name || '',
@@ -110,6 +113,7 @@ export default function ListDetailPage() {
         user: author.user ? { isVerified: false } : undefined,
       }));
 
+      // Extract topics/hubs
       const topics = (unifiedDocData.hubs || []).map((hub: any) => ({
         id: hub.id || 0,
         name: hub.name || '',
@@ -117,6 +121,7 @@ export default function ListDetailPage() {
         imageUrl: hub.hub_image || null,
       }));
 
+      // Get createdBy from first author or created_by
       const createdBy =
         authors[0] ||
         (unifiedDocData.created_by
@@ -148,6 +153,8 @@ export default function ListDetailPage() {
               isVerified: false,
             });
 
+      // Extract fundraise data if it exists (for PREREGISTRATION)
+      // Check multiple locations for fundraise data
       let fundraise: any = undefined;
       const fundraiseData =
         (unifiedDocData as any).fundraise ||
@@ -155,6 +162,7 @@ export default function ListDetailPage() {
         (document as any).note?.post?.fundraise ||
         (unifiedDocData as any).documents?.[0]?.fundraise;
 
+      // Check if this is a PREREGISTRATION type (either from document_type or contentType)
       const isPreregistration =
         contentType === 'PREREGISTRATION' ||
         unifiedDocData.document_type === 'PREREGISTRATION' ||
@@ -221,9 +229,11 @@ export default function ListDetailPage() {
         };
       }
 
+      // Build content based on type
       let content: any;
 
       if (contentType === 'PREREGISTRATION' || contentType === 'POST') {
+        // POST or PREREGISTRATION content
         content = {
           id: (document as any).id || item.unified_document || 0,
           contentType: contentType,
@@ -246,12 +256,16 @@ export default function ListDetailPage() {
           reviews: [],
         };
       } else if (contentType === 'GRANT') {
+        // GRANT/RFP content
+        // Try multiple possible locations for grant data
         const grantData =
           (unifiedDocData as any).grant ||
           (document as any).grant ||
           (document as any).note?.post?.grant ||
           {};
 
+        // Extract amount - handle various formats and locations
+        // Check document-level grant data, unified_document_data grant, and nested structures
         const grantAmountUsd =
           grantData.amount?.usd ||
           grantData.amount_usd ||
@@ -344,6 +358,7 @@ export default function ListDetailPage() {
           reviews: [],
         };
       } else if (contentType === 'PAPER') {
+        // PAPER content
         content = {
           id: (document as any).id || item.unified_document || 0,
           contentType: 'PAPER',
@@ -365,6 +380,7 @@ export default function ListDetailPage() {
             (item.unified_document || unifiedDocData.unified_document_id)?.toString() || undefined,
         };
       } else {
+        // Default to PAPER structure
         content = {
           id: (document as any).id || item.unified_document || 0,
           contentType: contentType,
@@ -387,6 +403,7 @@ export default function ListDetailPage() {
         };
       }
 
+      // Extract metrics if available from unified document
       const unifiedDoc = (unifiedDocData as any).unified_document || {};
       const metrics =
         unifiedDoc.score !== undefined || unifiedDoc.reviews
@@ -398,6 +415,7 @@ export default function ListDetailPage() {
             }
           : undefined;
 
+      // Use document's created date for timestamp (when content was created, not when added to list)
       const documentCreatedDate =
         (document as any).created_date || unifiedDocData.created_date || item.created_date;
 
