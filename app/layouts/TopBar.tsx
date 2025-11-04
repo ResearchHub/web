@@ -9,11 +9,12 @@ import {
   Search as SearchIcon,
   Shield,
   MessageCircleQuestion,
+  FolderPlus,
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { SearchModal } from '@/components/Search/SearchModal';
 import UserMenu from '@/components/menus/UserMenu';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { useAuthenticatedAction, useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useNotifications } from '@/contexts/NotificationContext';
@@ -30,6 +31,7 @@ import { colors } from '@/app/styles/colors';
 import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
 import { toTitleCase } from '@/utils/stringUtils';
 import { Hash } from 'lucide-react';
+import { useUserList } from '@/hooks/useUserLists';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -55,6 +57,7 @@ const isRootNavigationPage = (pathname: string): boolean => {
     '/notebook',
     '/browse',
     '/leaderboard',
+    '/lists',
   ];
 
   return rootNavigationPaths.includes(pathname);
@@ -94,6 +97,21 @@ const getPageInfo = (pathname: string): PageInfo | null => {
       title: 'My ResearchCoin',
       subtitle: 'Manage your RSC wallet and transactions',
       icon: <Icon name="rscThin" size={28} />,
+    };
+  }
+
+  if (pathname === '/lists') {
+    return {
+      title: 'Lists',
+      subtitle: 'Organize your saved papers, posts, and more',
+      icon: <FolderPlus size={24} className="text-gray-900" />,
+    };
+  }
+
+  if (pathname.startsWith('/list/')) {
+    return {
+      title: 'List',
+      icon: <FolderPlus size={24} className="text-gray-900" />,
     };
   }
 
@@ -307,6 +325,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
+  const params = useParams();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { unreadCount } = useNotifications();
   const goBack = useSmartBack();
@@ -314,7 +333,16 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const [shortcutText, setShortcutText] = useState('Ctrl+K');
   const { showAuthModal } = useAuthModalContext();
 
-  const pageInfo = getPageInfo(pathname);
+  const listId = pathname.startsWith('/list/') && params?.id ? Number(params.id) : null;
+  const { list } = useUserList(listId);
+
+  const basePageInfo = getPageInfo(pathname);
+  const pageInfo = basePageInfo
+    ? {
+        ...basePageInfo,
+        title: list?.name || basePageInfo.title,
+      }
+    : null;
 
   const calculatePercent = useCallback(() => {
     if (user) {

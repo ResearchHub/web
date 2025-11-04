@@ -6,13 +6,14 @@ import { useUserLists } from '@/hooks/useUserLists';
 import { UserList } from '@/types/user-list';
 import { ListsRightSidebar } from '@/app/lists/components/ListsRightSidebar';
 import Link from 'next/link';
-import { Plus, Edit2, Trash2, FolderOpen } from 'lucide-react';
+import { Plus, Edit2, Trash2, FolderPlus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LoadingButton } from '@/components/ui/LoadingButton';
 import { ListModal } from '@/components/modals/ListModal';
 import { Input } from '@/components/ui/form/Input';
 import { formatDistanceToNow } from 'date-fns';
 import { formatItemCount } from '@/utils/listUtils';
+import { buildListUrl, generateSlug } from '@/utils/url';
 
 function ListsPageContent() {
   const { lists, stats, isLoading, error, createList, updateList, deleteList } = useUserLists();
@@ -88,7 +89,7 @@ function ListsPageContent() {
             <div className="flex flex-col sm:flex-row gap-6">
               <div className="flex-shrink-0">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
-                  <FolderOpen className="w-8 h-8 sm:w-10 sm:h-10 text-gray-600" />
+                  <FolderPlus className="w-8 h-8 sm:w-10 sm:h-10 text-gray-600" />
                 </div>
               </div>
               <div className="flex-1 min-w-0">
@@ -126,7 +127,7 @@ function ListsPageContent() {
             <div className="flex flex-col sm:flex-row gap-6">
               <div className="flex-shrink-0">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
-                  <FolderOpen className="w-8 h-8 sm:w-10 sm:h-10 text-gray-600" />
+                  <FolderPlus className="w-8 h-8 sm:w-10 sm:h-10 text-gray-600" />
                 </div>
               </div>
               <div className="flex-1 min-w-0">
@@ -150,7 +151,7 @@ function ListsPageContent() {
           <div className="flex flex-col sm:flex-row gap-6">
             <div className="flex-shrink-0">
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
-                <FolderOpen className="w-8 h-8 sm:w-10 sm:h-10 text-gray-600" />
+                <FolderPlus className="w-8 h-8 sm:w-10 sm:h-10 text-gray-600" />
               </div>
             </div>
             <div className="flex-1 min-w-0">
@@ -175,7 +176,7 @@ function ListsPageContent() {
 
         {lists.length === 0 ? (
           <div className="text-center py-8 sm:py-12 px-4 bg-gray-50 rounded-lg border border-gray-200">
-            <FolderOpen className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-4" />
+            <FolderPlus className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No lists yet</h3>
             <p className="text-sm sm:text-base text-gray-600 mb-6">
               Create your first list to start organizing content
@@ -195,11 +196,11 @@ function ListsPageContent() {
             {lists.map((list) => (
               <Link
                 key={list.id}
-                href={`/lists/${list.id}`}
+                href={buildListUrl(list.id, generateSlug(list.name))}
                 className="group flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3 bg-white rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-all duration-200"
               >
                 <div className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
-                  <FolderOpen className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                  <FolderPlus className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate group-hover:text-gray-600 transition-colors">

@@ -11,7 +11,7 @@ import {
   Share2,
   CheckCircle,
   ThumbsDown,
-  FolderOpen,
+  FolderPlus,
 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
@@ -365,7 +365,7 @@ export const WorkLineItems = ({
                   : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <FolderOpen className="h-6 w-6" />
+              <FolderPlus className="h-6 w-6" />
             </button>
           )}
 

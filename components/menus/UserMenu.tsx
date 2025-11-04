@@ -7,7 +7,7 @@ import {
   Bell,
   Shield,
   UserPlus,
-  FolderOpen,
+  FolderPlus,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
@@ -169,7 +169,7 @@ export default function UserMenu({
         <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
           <div className="px-6 py-2 hover:bg-gray-50">
             <div className="flex items-center">
-              <FolderOpen className="h-5 w-5 mr-3 text-gray-500" />
+              <FolderPlus className="h-5 w-5 mr-3 text-gray-500" />
               <span className="text-base text-gray-700">My Lists</span>
             </div>
           </div>
@@ -354,7 +354,7 @@ export default function UserMenu({
             <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
               <div className="w-full px-4 py-2 hover:bg-gray-50">
                 <div className="flex items-center">
-                  <FolderOpen className="h-4 w-4 mr-3 text-gray-500" />
+                  <FolderPlus className="h-4 w-4 mr-3 text-gray-500" />
                   <span className="text-sm text-gray-700">My Lists</span>
                 </div>
               </div>

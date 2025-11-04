@@ -91,3 +91,12 @@ export const buildAuthorUrl = (id: string | number) => {
 export const buildTopicUrl = (slug: string) => {
   return `/topic/${slug}`;
 };
+
+/**
+ * Builds a list URL from an ID and optional slug
+ */
+export const buildListUrl = (id: string | number, slug?: string) => {
+  if (!id) return '#';
+  const slugged = slug ? `/${slug}` : '';
+  return `/list/${id}${slugged}`;
+};

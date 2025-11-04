@@ -10,7 +10,7 @@ import {
   MoreHorizontal,
   Star,
   ThumbsDown,
-  FolderOpen,
+  FolderPlus,
 } from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
@@ -571,7 +571,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           )}
           {relatedDocumentUnifiedDocumentId && (
             <ActionButton
-              icon={FolderOpen}
+              icon={FolderPlus}
               tooltip="Add to List"
               label="Add to List"
               onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}

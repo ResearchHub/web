@@ -5,23 +5,36 @@ import { useUserList } from '@/hooks/useUserLists';
 import { useRouter, useParams } from 'next/navigation';
 import { FeedEntryItem } from '@/components/Feed/FeedEntryItem';
 import { FeedEntry } from '@/types/feed';
-import { FolderOpen, Loader2, Edit2, Trash2 } from 'lucide-react';
+import { FolderPlus, Loader2, Edit2, Trash2, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LoadingButton } from '@/components/ui/LoadingButton';
 import { ListModal } from '@/components/modals/ListModal';
 import { Input } from '@/components/ui/form/Input';
-import { useState } from 'react';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { useState, useEffect } from 'react';
 import { ListService } from '@/services/list.service';
-import { ListsRightSidebar } from '../components/ListsRightSidebar';
+import { ListsRightSidebar } from '../../../lists/components/ListsRightSidebar';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/utils/apiError';
 import { formatItemCount } from '@/utils/listUtils';
+import { generateSlug, buildListUrl } from '@/utils/url';
 
 export default function ListDetailPage() {
   const router = useRouter();
   const params = useParams();
   const listId = params?.id ? parseInt(params.id as string) : null;
+  const slug = params?.slug as string | undefined;
   const { list, isLoading, error, fetchList, removeItem } = useUserList(listId);
+
+  useEffect(() => {
+    if (list && slug) {
+      const expectedSlug = generateSlug(list.name);
+      if (slug !== expectedSlug) {
+        router.replace(buildListUrl(list.id, expectedSlug));
+      }
+    }
+  }, [list, slug, router]);
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editListName, setEditListName] = useState('');
@@ -43,6 +56,8 @@ export default function ListDetailPage() {
       await fetchList();
       setIsEditModalOpen(false);
       toast.success('List updated successfully');
+      const newSlug = generateSlug(editListName.trim());
+      router.replace(buildListUrl(list.id, newSlug));
     } catch (error) {
       console.error('Failed to update list:', error);
       toast.error(extractApiErrorMessage(error, 'Failed to update list'));
@@ -464,16 +479,6 @@ export default function ListDetailPage() {
           <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <nav className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                  <button
-                    onClick={() => router.push('/lists')}
-                    className="hover:text-gray-900 transition-colors"
-                  >
-                    Lists
-                  </button>
-                  <span>/</span>
-                  <span className="text-gray-900 font-medium">List</span>
-                </nav>
                 <h1 className="text-2xl font-bold text-gray-900 mb-1">List</h1>
                 <p className="text-gray-600">Loading list details...</p>
               </div>
@@ -493,42 +498,43 @@ export default function ListDetailPage() {
     <PageLayout rightSidebar={<ListsRightSidebar />}>
       <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">
         <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex flex-row items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <nav className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                <button
-                  onClick={() => router.push('/lists')}
-                  className="hover:text-gray-900 transition-colors"
-                >
-                  Lists
-                </button>
-                <span>/</span>
-                <span className="text-gray-900 font-medium truncate">{list.name}</span>
-              </nav>
               <h1 className="text-2xl font-bold text-gray-900 mb-1 truncate">{list.name}</h1>
               <p className="text-gray-600">{formatItemCount(list)}</p>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Button variant="outlined" size="sm" onClick={handleEditClick} className="gap-2">
-                <Edit2 className="w-4 h-4" />
-                Edit
-              </Button>
-              <Button
-                variant="outlined"
-                size="sm"
-                onClick={handleDeleteClick}
-                className="gap-2 text-red-600 border-red-200 hover:bg-red-50"
+            <div className="flex items-center flex-shrink-0">
+              <BaseMenu
+                trigger={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center text-gray-400 hover:text-gray-600"
+                  >
+                    <MoreHorizontal className="w-5 h-5" />
+                  </Button>
+                }
+                align="end"
               >
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </Button>
+                <BaseMenuItem onClick={handleEditClick} className="flex items-center gap-2">
+                  <Edit2 className="w-4 h-4" />
+                  <span>Edit</span>
+                </BaseMenuItem>
+                <BaseMenuItem
+                  onClick={handleDeleteClick}
+                  className="flex items-center gap-2 text-red-600"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Delete</span>
+                </BaseMenuItem>
+              </BaseMenu>
             </div>
           </div>
         </div>
 
         {feedEntries.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-            <FolderOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <FolderPlus className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">This list is empty</h3>
             <p className="text-gray-600">Start adding items to this list</p>
           </div>
