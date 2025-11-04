@@ -185,11 +185,12 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
           <div className="flex-1 min-w-0">
             {sortControls && <div className="mb-4">{sortControls}</div>}
 
-            {/* Lightweight spinner for initial load; keep content when not loading */}
+            {/* Show skeletons while loading initial results */}
             {isLoading && entries.length === 0 ? (
-              <div className="flex items-center justify-center py-16">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-transparent" />
-                <span className="sr-only">Loading results…</span>
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <FeedItemSkeleton key={`skeleton-${i}`} />
+                ))}
               </div>
             ) : (
               <FeedContent
