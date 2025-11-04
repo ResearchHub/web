@@ -12,7 +12,7 @@ import { BountiesCarousel } from '@/components/Earn/BountiesCarousel';
 import { FeedEntryItem } from './FeedEntryItem';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
-import { getFeedKey } from '@/utils/feedStateStorage';
+import { getFeedKey } from '@/contexts/NavigationContext';
 
 interface FeedContentProps {
   entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry

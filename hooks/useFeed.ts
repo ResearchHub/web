@@ -4,7 +4,7 @@ import { FeedService } from '@/services/feed.service';
 import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { useNavigation } from '@/contexts/NavigationContext';
-import { getFeedKey } from '@/utils/feedStateStorage';
+import { getFeedKey } from '@/contexts/NavigationContext';
 
 export type FeedTab = 'following' | 'latest' | 'popular';
 export type FundingTab = 'all' | 'open' | 'closed';

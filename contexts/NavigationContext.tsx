@@ -2,12 +2,21 @@
 
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { FeedEntry } from '@/types/feed';
-import { getFeedKey, FeedIdentifier, StoredFeedState } from '@/utils/feedStateStorage';
-import {
-  STORAGE_KEY_FEEDS,
-  MAX_ENTRIES_PER_FEED_CONST,
-  MAX_FEEDS_CONST,
-} from '@/utils/feedStateStorage';
+
+// Feed state storage types and utilities
+export interface FeedIdentifier {
+  pathname: string; // e.g., "/", "/topic/neuroscience", "/latest"
+  tab?: string; // e.g., "popular", "latest", "following"
+}
+
+export interface StoredFeedState {
+  feedKey: string; // Unique feed identifier
+  entries: FeedEntry[]; // Cap at 300 items
+  scrollPosition: number; // Pixels from top
+  timestamp: number; // When state was saved (for LRU eviction)
+  hasMore?: boolean; // Whether there are more entries to load
+  page?: number; // Current page number
+}
 
 export interface FeedStateData {
   feedKey: string; // pathname|tab:filters format
@@ -16,6 +25,20 @@ export interface FeedStateData {
   hasMore?: boolean; // Whether there are more entries to load
   page?: number; // Current page number
 }
+
+// Storage constants
+const STORAGE_KEY = 'rh_feed_states'; // Plural - stores multiple feeds
+const MAX_ENTRIES_PER_FEED = 300;
+const MAX_FEEDS = 2;
+
+/**
+ * Generate unique key for feed identification
+ */
+export const getFeedKey = (id: FeedIdentifier): string => {
+  const parts = [id.pathname];
+  if (id.tab) parts.push(`tab:${id.tab}`);
+  return parts.join('|');
+};
 
 interface NavigationContextType {
   isBackNavigation: boolean;
@@ -85,7 +108,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   // Feed state management functions
   const getAllStoredFeeds = (): Record<string, StoredFeedState> => {
     try {
-      const stored = sessionStorage.getItem(STORAGE_KEY_FEEDS);
+      const stored = sessionStorage.getItem(STORAGE_KEY);
       return stored ? JSON.parse(stored) : {};
     } catch (error) {
       return {};
@@ -110,7 +133,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
       const feedCount = Object.keys(allFeeds).length;
 
       // If at limit and this is a new feed key, remove oldest
-      if (feedCount >= MAX_FEEDS_CONST && !allFeeds[feedData.feedKey]) {
+      if (feedCount >= MAX_FEEDS && !allFeeds[feedData.feedKey]) {
         const oldestEntry = Object.entries(allFeeds).sort(
           (a, b) => a[1].timestamp - b[1].timestamp
         )[0];
@@ -118,7 +141,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
       }
 
       // Cap entries to MAX_ENTRIES_PER_FEED
-      const entries = feedData.entries.slice(0, MAX_ENTRIES_PER_FEED_CONST);
+      const entries = feedData.entries.slice(0, MAX_ENTRIES_PER_FEED);
 
       allFeeds[feedData.feedKey] = {
         feedKey: feedData.feedKey,
@@ -129,7 +152,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
         page: feedData.page,
       };
 
-      sessionStorage.setItem(STORAGE_KEY_FEEDS, JSON.stringify(allFeeds));
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allFeeds));
     } catch (error) {
       // Silently fail - storage errors shouldn't break the app
     }
@@ -149,7 +172,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
       const allFeeds = getAllStoredFeeds();
       if (allFeeds[feedKey]) {
         delete allFeeds[feedKey];
-        sessionStorage.setItem(STORAGE_KEY_FEEDS, JSON.stringify(allFeeds));
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allFeeds));
       }
     } catch (error) {
       // Silently fail - storage errors shouldn't break the app
