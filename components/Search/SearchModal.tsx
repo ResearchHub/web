@@ -19,6 +19,16 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(true);
   const router = useRouter();
+  const hasPrefetchedRef = useRef(false);
+
+  const prefetchSearchRoute = () => {
+    if (!hasPrefetchedRef.current) {
+      try {
+        router.prefetch('/search');
+        hasPrefetchedRef.current = true;
+      } catch {}
+    }
+  };
 
   // Get search suggestions
   const { loading, suggestions } = useSearchSuggestions({
@@ -40,6 +50,8 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
+      // Prefetch search route to speed up navigation
+      prefetchSearchRoute();
     }
 
     return () => {
@@ -148,7 +160,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 className="h-12 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-8 md:!pr-24 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                onFocus={() => setIsFocused(true)}
+                onFocus={() => {
+                  setIsFocused(true);
+                  prefetchSearchRoute();
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && query.trim()) {
                     e.preventDefault();
