@@ -1,7 +1,7 @@
 import { ApiClient } from './client';
 import { ID, transformUnifiedDocument } from '@/types/root';
 import { BountyType } from '@/types/bounty';
-import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
+import { FeedEntry, getUnifiedDocumentId, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
 import { Topic } from '@/types/topic';
 
 interface BountyAwardPayload {
@@ -225,6 +225,7 @@ export class BountyService {
             expiration_date: rawBounty.expiration_date,
             bounty_type: rawBounty.bounty_type,
             created_date: rawBounty.created_date,
+            unified_document_id: getUnifiedDocumentId(rawBounty),
             // Map the comment data if available
             comment: rawBounty.item
               ? {

@@ -232,9 +232,7 @@ export function WorkEditModal({ isOpen, onClose, work, metadata }: WorkEditModal
     setIsSubmitting(true);
     try {
       const payload: UpdatePaperAbstractPayload = {
-        // abstract_src: data.abstractHtml || '',
         abstract: data.abstractPlainText || '',
-        abstract_src_type: 'TEXT_FIELD',
       };
 
       // Only make the API call if there are changes

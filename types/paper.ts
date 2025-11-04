@@ -23,6 +23,7 @@ export interface Paper {
   server: string;
   doi: string;
   url: string;
+  file?: string;
   pdfUrl: string;
   authors: string;
   category: string;
@@ -64,6 +65,7 @@ export const transformPaper = createTransformer<any, Paper>((raw) => ({
   server: raw.server || '',
   doi: raw.doi || '',
   url: raw.url || '',
+  file: raw.file,
   pdfUrl: raw.pdfUrl || '',
   authors: raw.authors || '',
   category: raw.category || '',
