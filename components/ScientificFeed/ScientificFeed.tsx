@@ -13,12 +13,14 @@ import {
   Clock,
   Sparkles,
   Users,
+  Settings,
 } from 'lucide-react';
 import { mockFeedData, followingTopics, FeedCard } from '@/data/mockFeedData';
 import { PaperCard } from './PaperCard';
 import { BountyCard } from './BountyCard';
 import { ProposalCard } from './ProposalCard';
 import { RFPCard } from './RFPCard';
+import { TopicPreferencesModal } from './TopicPreferencesModal';
 
 type FeedView = 'trending' | 'for-you' | 'following';
 type SortOption = 'trending' | 'latest';
@@ -27,6 +29,8 @@ export function ScientificFeed() {
   const [activeTab, setActiveTab] = useState<FeedView>('trending');
   const [sortBy, setSortBy] = useState<SortOption>('trending');
   const [selectedTopic, setSelectedTopic] = useState<string>('All');
+  const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState(false);
+  const [followed, setFollowed] = useState<string[]>(followingTopics);
   const topicsScrollRef = useRef<HTMLDivElement>(null);
 
   const tabs = [
@@ -55,6 +59,12 @@ export function ScientificFeed() {
         behavior: 'smooth',
       });
     }
+  };
+
+  const handleToggleTopic = (topic: string) => {
+    setFollowed((prev) =>
+      prev.includes(topic) ? prev.filter((t) => t !== topic) : [...prev, topic]
+    );
   };
 
   const getSortedFeedData = (): FeedCard[] => {
@@ -146,56 +156,68 @@ export function ScientificFeed() {
       {/* Following Topics */}
       {activeTab === 'following' && (
         <div className="mb-6">
-          <div className="relative group">
-            {/* Left scroll button */}
-            <button
-              onClick={() => scrollTopics('left')}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full p-1.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-50"
-              aria-label="Scroll left"
-            >
-              <ChevronLeft className="w-4 h-4 text-gray-600" />
-            </button>
-
-            {/* Topics scroll container */}
-            <div
-              ref={topicsScrollRef}
-              className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
+          <div className="flex items-center gap-3">
+            <div className="relative group flex-1">
+              {/* Left scroll button */}
               <button
-                onClick={() => setSelectedTopic('All')}
-                className={cn(
-                  'flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors',
-                  selectedTopic === 'All'
-                    ? 'bg-primary-600 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                )}
+                onClick={() => scrollTopics('left')}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full p-1.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-50"
+                aria-label="Scroll left"
               >
-                All
+                <ChevronLeft className="w-4 h-4 text-gray-600" />
               </button>
-              {followingTopics.map((topic) => (
+
+              {/* Topics scroll container */}
+              <div
+                ref={topicsScrollRef}
+                className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
                 <button
-                  key={topic}
-                  onClick={() => setSelectedTopic(topic)}
+                  onClick={() => setSelectedTopic('All')}
                   className={cn(
-                    'flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap',
-                    selectedTopic === topic
+                    'flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors',
+                    selectedTopic === 'All'
                       ? 'bg-primary-600 text-white shadow-sm'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   )}
                 >
-                  {topic}
+                  All
                 </button>
-              ))}
+                {followed.map((topic) => (
+                  <button
+                    key={topic}
+                    onClick={() => setSelectedTopic(topic)}
+                    className={cn(
+                      'flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap',
+                      selectedTopic === topic
+                        ? 'bg-primary-600 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    )}
+                  >
+                    {topic}
+                  </button>
+                ))}
+              </div>
+
+              {/* Right scroll button */}
+              <button
+                onClick={() => scrollTopics('right')}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full p-1.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-50"
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="w-4 h-4 text-gray-600" />
+              </button>
             </div>
 
-            {/* Right scroll button */}
+            {/* Settings/Gear Button */}
             <button
-              onClick={() => scrollTopics('right')}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full p-1.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-50"
-              aria-label="Scroll right"
+              onClick={() => setIsPreferencesModalOpen(true)}
+              className="flex-shrink-0 p-2.5 rounded-full border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-primary-500 transition-all shadow-sm group"
+              aria-label="Topic preferences"
+              title="Manage topics"
             >
-              <ChevronRight className="w-4 h-4 text-gray-600" />
+              <Settings className="w-5 h-5 text-gray-600 group-hover:text-primary-600 transition-colors" />
             </button>
           </div>
         </div>
@@ -203,6 +225,14 @@ export function ScientificFeed() {
 
       {/* Feed Cards */}
       <div className="space-y-4">{getSortedFeedData().map((item) => renderCard(item))}</div>
+
+      {/* Topic Preferences Modal */}
+      <TopicPreferencesModal
+        isOpen={isPreferencesModalOpen}
+        onClose={() => setIsPreferencesModalOpen(false)}
+        followedTopics={followed}
+        onToggleTopic={handleToggleTopic}
+      />
     </div>
   );
 }
