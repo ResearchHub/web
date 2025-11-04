@@ -95,10 +95,9 @@ export function buildPayloadForFeedItemClick(
         'relatedDocumentContentType' in entry.content && entry.content.relatedDocumentContentType
           ? mapAppContentTypeToApiType(entry.content.relatedDocumentContentType)
           : mapAppFeedContentTypeToApiType(entry.content.contentType),
-      unified_document_id:
-        'unifiedDocumentId' in entry.content
-          ? entry.content.unifiedDocumentId
-          : entry.relatedWork?.unifiedDocumentId?.toString() || '',
+      unified_document_id: entry.content.unifiedDocumentId
+        ? entry.content.unifiedDocumentId
+        : entry.relatedWork?.unifiedDocumentId?.toString() || '',
     },
     // Track experiment data for following feed
     ...(experimentVariant &&
