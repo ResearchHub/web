@@ -120,6 +120,13 @@ export function Search({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && query.trim()) {
+              e.preventDefault();
+              setIsFocused(false);
+              router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+            }
+          }}
           // No blur handler to prevent dropdown from closing too early
         />
         {query && (
