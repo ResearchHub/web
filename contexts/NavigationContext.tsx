@@ -7,6 +7,7 @@ import { FeedEntry } from '@/types/feed';
 export interface FeedIdentifier {
   pathname: string; // e.g., "/", "/topic/neuroscience", "/latest"
   tab?: string; // e.g., "popular", "latest", "following"
+  queryParams?: Record<string, string>; // e.g., { sort: "personalized", hubs: "1,2,3" }
 }
 
 export interface StoredFeedState {
@@ -33,10 +34,21 @@ const MAX_FEEDS = 2;
 
 /**
  * Generate unique key for feed identification
+ * Format: pathname|tab:tab|params:key1:value1,key2:value2
  */
 export const getFeedKey = (id: FeedIdentifier): string => {
   const parts = [id.pathname];
   if (id.tab) parts.push(`tab:${id.tab}`);
+
+  // Include query params in feed key if provided (sorted keys for consistency)
+  if (id.queryParams && Object.keys(id.queryParams).length > 0) {
+    const sortedParams = Object.keys(id.queryParams)
+      .sort()
+      .map((key) => `${key}:${id.queryParams![key]}`)
+      .join(',');
+    parts.push(`params:${sortedParams}`);
+  }
+
   return parts.join('|');
 };
 

@@ -2,7 +2,7 @@
 
 import { FC, ReactNode, useEffect } from 'react';
 import React from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { FeedItemSkeleton } from './FeedItemSkeleton';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
@@ -63,6 +63,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   page,
 }) => {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   // Set up intersection observer for infinite scrolling (must be called before any conditional returns)
   const { ref: loadMoreRef, inView } = useInView({
@@ -70,10 +71,17 @@ export const FeedContent: FC<FeedContentProps> = ({
     rootMargin: '100px',
   });
 
+  // Build query params from URL for feed key
+  const queryParams: Record<string, string> = {};
+  searchParams.forEach((value, key) => {
+    queryParams[key] = value;
+  });
+
   // Handle all scroll tracking, restoration, and state saving
   const feedKey = getFeedKey({
     pathname,
     tab: activeTab,
+    queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
   });
   useFeedScrollTracking({
     feedKey,

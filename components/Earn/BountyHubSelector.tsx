@@ -69,6 +69,39 @@ export function BountyHubSelector({
     })();
   }, []);
 
+  // Populate missing names in selectedHubs when hubs are fetched
+  useEffect(() => {
+    if (allHubs.length === 0) return;
+
+    // Populate missing names in selectedHubs by matching IDs with fetched hubs
+    const hasMissingNames = selectedHubs.some((hub) => !hub.name || hub.name === '');
+    if (hasMissingNames) {
+      const populatedHubs = selectedHubs.map((hub) => {
+        // If hub already has a name, keep it
+        if (hub.name && hub.name !== '') {
+          return hub;
+        }
+        // Otherwise, find matching hub from fetched hubs and populate name/description
+        const matchedHub = allHubs.find((h) => h.id === hub.id);
+        if (matchedHub) {
+          return {
+            ...hub,
+            name: matchedHub.name,
+            description: matchedHub.description,
+          };
+        }
+        // If no match found, return as-is
+        return hub;
+      });
+
+      // Only update if we actually populated any names
+      const anyChanged = populatedHubs.some((hub, index) => hub.name !== selectedHubs[index]?.name);
+      if (anyChanged) {
+        onChange(populatedHubs);
+      }
+    }
+  }, [allHubs, selectedHubs, onChange]);
+
   // utility conversions
   const hubsToOptions = (hubs: Hub[]): MultiSelectOption[] =>
     hubs.map((hub) => ({ value: String(hub.id), label: hub.name }));
@@ -89,6 +122,9 @@ export function BountyHubSelector({
         }
     );
 
+  console.log('allHubs', allHubs);
+  console.log('topicsToHubs(allHubs)', topicsToHubs(allHubs));
+  console.log('hubsToOptions(topicsToHubs(allHubs))', hubsToOptions(topicsToHubs(allHubs)));
   const allHubOptions = hubsToOptions(topicsToHubs(allHubs));
 
   // Local search within allHubs
