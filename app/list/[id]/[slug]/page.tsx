@@ -4,11 +4,13 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserList } from '@/hooks/useUserLists';
 import { useUserListsContext } from '@/contexts/UserListsContext';
 import { useListModals } from '@/hooks/useListModals';
+import { useShareModalContext } from '@/contexts/ShareContext';
+import { useUser } from '@/contexts/UserContext';
 import { useRouter, useParams } from 'next/navigation';
 import { FeedEntryItem } from '@/components/Feed/FeedEntryItem';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 import { FeedEntry } from '@/types/feed';
-import { FolderPlus, Loader2, Edit2, Trash2, MoreHorizontal } from 'lucide-react';
+import { FolderPlus, Loader2, Edit2, Trash2, MoreHorizontal, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LoadingButton } from '@/components/ui/LoadingButton';
 import { ListModal } from '@/components/modals/ListModal';
@@ -23,13 +25,23 @@ import { generateSlug, buildListUrl } from '@/utils/url';
 export default function ListDetailPage() {
   const router = useRouter();
   const params = useParams();
+  const { user, isLoading: isUserLoading } = useUser();
   const listId = params?.id ? parseInt(params.id as string) : null;
   const slug = params?.slug as string | undefined;
   const { list, items, isLoading, error, hasMore, loadMore, fetchList, removeItem } =
     useUserList(listId);
   const { updateList, deleteList } = useUserListsContext();
+  const { showShareModal } = useShareModalContext();
   const modals = useListModals();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // Redirect to signin if not authenticated
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+      router.push(`/auth/signin?redirect=${encodeURIComponent(currentPath)}`);
+    }
+  }, [user, isUserLoading, router]);
 
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
@@ -89,7 +101,28 @@ export default function ListDetailPage() {
     }
   };
 
+  // Check if current user is the owner of the list
+  const isOwner = user && list && list.created_by === user.id;
+
   // Convert list items to FeedEntry format for display
+  // Show loading while checking authentication
+  if (isUserLoading) {
+    return (
+      <PageLayout rightSidebar={<ListsRightSidebar />}>
+        <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  // Don't render anything if not authenticated (will redirect)
+  if (!user) {
+    return null;
+  }
+
   const convertItemsToFeedEntries = (): FeedEntry[] => {
     if (!items || items.length === 0) return [];
 
@@ -501,34 +534,51 @@ export default function ListDetailPage() {
               <h1 className="text-2xl font-bold text-gray-900 mb-1 truncate">{list.name}</h1>
               <p className="text-gray-600">{formatItemCount(list)}</p>
             </div>
-            <div className="flex items-center flex-shrink-0">
-              <BaseMenu
-                trigger={
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center text-gray-400 hover:text-gray-600"
-                  >
-                    <MoreHorizontal className="w-5 h-5" />
-                  </Button>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  showShareModal({
+                    url: typeof window !== 'undefined' ? window.location.href : '',
+                    docTitle: list.name,
+                    action: 'USER_SHARED_DOCUMENT',
+                    shouldShowConfetti: false,
+                  })
                 }
-                align="end"
+                className="flex items-center text-gray-400 hover:text-gray-600"
               >
-                <BaseMenuItem
-                  onClick={() => list && modals.openEditModal(list)}
-                  className="flex items-center gap-2"
+                <Share2 className="w-5 h-5" />
+              </Button>
+              {isOwner && (
+                <BaseMenu
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center text-gray-400 hover:text-gray-600"
+                    >
+                      <MoreHorizontal className="w-5 h-5" />
+                    </Button>
+                  }
+                  align="end"
                 >
-                  <Edit2 className="w-4 h-4" />
-                  <span>Edit</span>
-                </BaseMenuItem>
-                <BaseMenuItem
-                  onClick={() => list && modals.openDeleteModal(list)}
-                  className="flex items-center gap-2 text-red-600"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Delete</span>
-                </BaseMenuItem>
-              </BaseMenu>
+                  <BaseMenuItem
+                    onClick={() => list && modals.openEditModal(list)}
+                    className="flex items-center gap-2"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    <span>Edit</span>
+                  </BaseMenuItem>
+                  <BaseMenuItem
+                    onClick={() => list && modals.openDeleteModal(list)}
+                    className="flex items-center gap-2 text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Delete</span>
+                  </BaseMenuItem>
+                </BaseMenu>
+              )}
             </div>
           </div>
         </div>
@@ -544,20 +594,22 @@ export default function ListDetailPage() {
                   hideActions={false}
                   disableCardLinks={false}
                 />
-                <div className="absolute top-16 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleRemoveItem(Number(entry.id));
-                    }}
-                    className="h-8 w-8 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-300 shadow-md rounded-full"
-                  >
-                    <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-600" />
-                  </Button>
-                </div>
+                {isOwner && (
+                  <div className="absolute top-16 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleRemoveItem(Number(entry.id));
+                      }}
+                      className="h-8 w-8 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-300 shadow-md rounded-full"
+                    >
+                      <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-600" />
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

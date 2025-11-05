@@ -4,6 +4,7 @@ export interface UserList {
   is_public: boolean;
   created_date: string;
   updated_date: string;
+  created_by?: number;
   top_authors?: TopAuthor[];
   top_hubs?: TopHub[];
   top_topics?: TopTopic[];

@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserListsContext } from '@/contexts/UserListsContext';
 import { useListModals } from '@/hooks/useListModals';
+import { useUser } from '@/contexts/UserContext';
+import { useRouter } from 'next/navigation';
 import { ListsRightSidebar } from '@/app/lists/components/ListsRightSidebar';
 import Link from 'next/link';
-import { Plus, Edit2, Trash2, FolderPlus, Loader2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, FolderPlus, Loader2, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LoadingButton } from '@/components/ui/LoadingButton';
 import { ListModal } from '@/components/modals/ListModal';
@@ -15,12 +17,23 @@ import { formatDistanceToNow } from 'date-fns';
 import { formatItemCount } from '@/utils/listUtils';
 import { buildListUrl, generateSlug } from '@/utils/url';
 import { useInView } from 'react-intersection-observer';
+import { useShareModalContext } from '@/contexts/ShareContext';
 
 function ListsPageContent() {
+  const router = useRouter();
+  const { user, isLoading: isUserLoading } = useUser();
   const { lists, stats, isLoading, error, hasMore, loadMore, createList, updateList, deleteList } =
     useUserListsContext();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const modals = useListModals();
+  const { showShareModal } = useShareModalContext();
+
+  // Redirect to signin if not authenticated
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push(`/auth/signin?redirect=${encodeURIComponent('/lists')}`);
+    }
+  }, [user, isUserLoading, router]);
 
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
@@ -69,6 +82,24 @@ function ListsPageContent() {
       modals.setIsSubmitting(false);
     }
   };
+
+  // Show loading while checking authentication
+  if (isUserLoading) {
+    return (
+      <PageLayout rightSidebar={<ListsRightSidebar isLoading={true} />}>
+        <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  // Don't render anything if not authenticated (will redirect)
+  if (!user) {
+    return null;
+  }
 
   if (isLoading) {
     return (
@@ -195,6 +226,24 @@ function ListsPageContent() {
                   className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 flex-shrink-0"
                   onClick={(e) => e.preventDefault()}
                 >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const listUrl = buildListUrl(list.id, generateSlug(list.name));
+                      const fullUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}${listUrl}`;
+                      showShareModal({
+                        url: fullUrl,
+                        docTitle: list.name,
+                        action: 'USER_SHARED_DOCUMENT',
+                        shouldShowConfetti: false,
+                      });
+                    }}
+                    className="h-8 w-8 sm:h-8 sm:w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:bg-gray-200"
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"
