@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { debounce } from 'lodash';
 import { SearchService } from '@/services/search.service';
 import { SearchResult } from '@/types/searchResult';
 import {
@@ -211,13 +212,15 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
 
   // Debounced search effect - only re-search when filters change, not sortBy
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
+    const debouncedSearch = debounce(() => {
       if (currentQuery.trim()) {
         search(currentQuery, currentTab);
       }
     }, 300);
 
-    return () => clearTimeout(timeoutId);
+    debouncedSearch();
+
+    return () => debouncedSearch.cancel();
   }, [currentQuery, currentTab, filters, search]);
 
   // Frontend sorting - sort the already-fetched results

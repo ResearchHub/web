@@ -12,6 +12,11 @@ import { FeedItemPost } from './items/FeedItemPost';
 import { FeedItemGrant } from './items/FeedItemGrant';
 import { useFeedItemClick } from '@/hooks/useFeedItemClick';
 
+export interface Highlight {
+  field: string;
+  value: string;
+}
+
 interface FeedEntryItemProps {
   entry: FeedEntry;
   index: number;
@@ -26,6 +31,7 @@ interface FeedEntryItemProps {
   feedView?: string;
   experimentVariant?: string;
   feedOrdering?: string;
+  highlights?: Highlight[];
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
@@ -42,6 +48,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   feedView,
   experimentVariant,
   feedOrdering,
+  highlights,
 }) => {
   const { ref, inView } = useInView({
     threshold: 0.5,
@@ -124,6 +131,10 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
 
   const href = generateHref(entry);
 
+  // Extract highlighted fields from highlights prop
+  const highlightedTitle = highlights?.find((h) => h.field === 'title')?.value;
+  const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
+
   let content = null;
 
   try {
@@ -137,6 +148,8 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             showActions={!hideActions}
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
+            highlightedTitle={highlightedTitle}
+            highlightedSnippet={highlightedSnippet}
           />
         );
         break;
@@ -162,6 +175,8 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
             feedView={feedView}
+            highlightedTitle={highlightedTitle}
+            highlightedSnippet={highlightedSnippet}
           />
         );
         break;
@@ -208,6 +223,8 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             maxLength={maxLength}
             showHeader={showGrantHeaders}
             onFeedItemClick={handleFeedItemClick}
+            highlightedTitle={highlightedTitle}
+            highlightedSnippet={highlightedSnippet}
           />
         );
         break;

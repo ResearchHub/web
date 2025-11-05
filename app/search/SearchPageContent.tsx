@@ -12,6 +12,7 @@ import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { Search as SearchIcon } from 'lucide-react';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 import { useInView } from 'react-intersection-observer';
+import { cn } from '@/utils/styles';
 
 export type SearchTab = 'documents';
 
@@ -111,12 +112,14 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     </div>
   );
 
-  const feedTabs = (
-    <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} variant="primary" />
-  );
+  // Hide tabs when there's only one tab (Documents)
+  const feedTabs =
+    tabs.length > 1 ? (
+      <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} variant="primary" />
+    ) : null;
 
   const sortControls = query.trim() && (
-    <div className="flex justify-end">
+    <div className="flex justify-end pr-0">
       <SearchSortControls sortBy={sortBy} onSortChange={setSortBy} activeTab={activeTab} />
     </div>
   );
@@ -193,7 +196,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
       <div className="max-w-7xl mx-auto">
         {feedTabs}
 
-        <div className="flex gap-6 mt-6">
+        <div className={cn('flex gap-6', feedTabs ? 'mt-6' : '')}>
           {/* Main content */}
           <div className="flex-1 min-w-0">
             {sortControls && <div className="mb-4">{sortControls}</div>}
