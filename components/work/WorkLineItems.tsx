@@ -63,6 +63,7 @@ export const WorkLineItems = ({
     isInList: isDocumentInList,
     isLoading: isCheckingList,
     refetch: refetchIsInList,
+    listDetails,
   } = useIsInList(work.unifiedDocumentId);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showFundraiseActionModal, setShowFundraiseActionModal] = useState(false);
@@ -559,6 +560,9 @@ export const WorkLineItems = ({
           isOpen={isAddToListModalOpen}
           onClose={() => setIsAddToListModalOpen(false)}
           unifiedDocumentId={work.unifiedDocumentId}
+          listDetails={listDetails}
+          isLoadingListDetails={isCheckingList}
+          refetchListDetails={refetchIsInList}
           onItemAdded={() => {
             // Refetch lists to update the isInList status
             refetchIsInList();

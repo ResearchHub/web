@@ -244,6 +244,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     isInList: isDocumentInList,
     isLoading: isCheckingList,
     refetch: refetchIsInList,
+    listDetails,
   } = useIsInList(relatedDocumentUnifiedDocumentId);
 
   // Calculate initial tip amount and avatars from props
@@ -810,6 +811,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           isOpen={isAddToListModalOpen}
           onClose={() => setIsAddToListModalOpen(false)}
           unifiedDocumentId={parseInt(relatedDocumentUnifiedDocumentId)}
+          listDetails={listDetails}
+          isLoadingListDetails={isCheckingList}
+          refetchListDetails={refetchIsInList}
           onItemAdded={() => {
             // Refetch lists to update the isInList status
             refetchIsInList();

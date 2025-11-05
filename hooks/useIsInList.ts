@@ -7,6 +7,7 @@ export function useIsInList(unifiedDocumentId: number | string | undefined | nul
   isInList: boolean;
   isLoading: boolean;
   refetch: () => void;
+  listDetails: UserListDetail[];
 } {
   const { lists } = useUserLists();
   const [listDetails, setListDetails] = useState<UserListDetail[]>([]);
@@ -38,5 +39,5 @@ export function useIsInList(unifiedDocumentId: number | string | undefined | nul
     return listDetails.some((list) => list.items?.some((item) => item.unified_document === docId));
   }, [listDetails, unifiedDocumentId]);
 
-  return { isInList, isLoading, refetch };
+  return { isInList, isLoading, refetch, listDetails };
 }
