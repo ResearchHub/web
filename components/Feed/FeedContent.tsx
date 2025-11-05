@@ -22,7 +22,7 @@ interface FeedContentProps {
   tabs?: ReactNode;
   filters?: ReactNode; // New prop for source filters
   disableCardLinks?: boolean; // Optional prop to disable all card links
-  activeTab?: FeedTab | FundingTab; // Add the activeTab prop as optional (supports both FeedTab and FundingTab)
+  activeTab?: FeedTab | FundingTab | string; // Add the activeTab prop as optional (supports FeedTab, FundingTab, and custom tabs like journal tabs)
   showBountyFooter?: boolean; // Prop to control bounty item footer visibility
   hideActions?: boolean; // Prop to control comment item actions visibility
   isLoadingMore?: boolean;
