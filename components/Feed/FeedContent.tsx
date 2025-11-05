@@ -84,17 +84,6 @@ export const FeedContent: FC<FeedContentProps> = ({
     queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
   });
 
-  console.log('[FeedContent] generated feed key for tracking', {
-    feedKey,
-    pathname,
-    tab: activeTab,
-    queryParams,
-    queryParamsKeys: Object.keys(queryParams),
-    entriesLength: entries.length,
-    restoredScrollPosition,
-    page,
-  });
-
   useFeedScrollTracking({
     feedKey,
     entries,

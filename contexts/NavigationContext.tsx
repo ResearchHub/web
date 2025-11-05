@@ -29,8 +29,9 @@ export interface FeedStateData {
 
 // Storage constants
 const STORAGE_KEY = 'rh_feed_states'; // Plural - stores multiple feeds
-const MAX_ENTRIES_PER_FEED = 300;
+const MAX_TOTAL_ENTRIES = 200; // Total entries across all feeds
 const MAX_FEEDS = 2;
+const MIN_SCROLL_POSITION_TO_STORE = 500; // Don't store scroll position if less than this (user is near the top)
 
 /**
  * Generate unique key for feed identification
@@ -136,68 +137,101 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   };
 
   const saveFeedState = (feedData: FeedStateData) => {
-    console.log('[NavigationContext] saveFeedState called', {
-      feedKey: feedData.feedKey,
-      entriesLength: feedData.entries.length,
-      scrollPosition: feedData.scrollPosition,
-      hasMore: feedData.hasMore,
-      page: feedData.page,
-      isTracking: isTrackingRef.current,
-    });
-
     if (!isTrackingRef.current) {
-      console.log('[NavigationContext] saveFeedState skipped (not tracking)');
       return;
     }
 
     try {
       const allFeeds = getAllStoredFeeds();
-      const feedCount = Object.keys(allFeeds).length;
 
-      console.log('[NavigationContext] current stored feeds', {
-        feedCount,
-        feedKeys: Object.keys(allFeeds),
-      });
-
-      // If at limit and this is a new feed key, remove oldest
-      if (feedCount >= MAX_FEEDS && !allFeeds[feedData.feedKey]) {
-        const oldestEntry = Object.entries(allFeeds).sort(
-          (a, b) => a[1].timestamp - b[1].timestamp
-        )[0];
-        console.log('[NavigationContext] removing oldest feed', {
-          oldestKey: oldestEntry[0],
-          timestamp: oldestEntry[1].timestamp,
-        });
-        delete allFeeds[oldestEntry[0]];
+      // Rule 4: If feed has more than 200 entries, don't store it at all
+      if (feedData.entries.length > MAX_TOTAL_ENTRIES) {
+        // Remove existing feed if it exists (don't restore position)
+        if (allFeeds[feedData.feedKey]) {
+          delete allFeeds[feedData.feedKey];
+          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allFeeds));
+        }
+        return;
       }
 
-      // Cap entries to MAX_ENTRIES_PER_FEED
-      const entries = feedData.entries.slice(0, MAX_ENTRIES_PER_FEED);
+      // Calculate total entries across all feeds
+      const totalEntries = Object.values(allFeeds).reduce(
+        (sum, feed) => sum + (feed.entries?.length || 0),
+        0
+      );
 
-      // Don't store scroll position if less than 100px (user is near the top)
-      const scrollPosition = feedData.scrollPosition < 100 ? 0 : feedData.scrollPosition;
+      // Check if this is updating an existing feed or adding a new one
+      const isUpdatingExisting = !!allFeeds[feedData.feedKey];
+      const existingFeedEntries = isUpdatingExisting
+        ? allFeeds[feedData.feedKey]?.entries?.length || 0
+        : 0;
 
+      // Calculate available space after removing existing feed entries
+      const availableSpace = MAX_TOTAL_ENTRIES - (totalEntries - existingFeedEntries);
+      const newFeedEntries = feedData.entries.length;
+
+      // Rule 3: If not enough space, remove oldest feed(s) completely
+      if (newFeedEntries > availableSpace) {
+        // Remove oldest feed(s) until we have enough space
+        const sortedFeeds = Object.entries(allFeeds)
+          .filter(([key]) => key !== feedData.feedKey) // Don't remove the feed we're saving
+          .sort((a, b) => a[1].timestamp - b[1].timestamp);
+
+        let currentTotal = totalEntries - existingFeedEntries;
+
+        // Remove oldest feeds until we have space
+        for (const [oldFeedKey, oldFeed] of sortedFeeds) {
+          if (currentTotal + newFeedEntries <= MAX_TOTAL_ENTRIES) {
+            break;
+          }
+          currentTotal -= oldFeed.entries?.length || 0;
+          delete allFeeds[oldFeedKey];
+        }
+
+        // Check if we have enough space after removing feeds
+        const finalAvailableSpace = MAX_TOTAL_ENTRIES - currentTotal;
+        if (newFeedEntries > finalAvailableSpace) {
+          // Still not enough space, don't save
+          // Remove existing feed if it exists
+          if (isUpdatingExisting && allFeeds[feedData.feedKey]) {
+            delete allFeeds[feedData.feedKey];
+          }
+
+          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allFeeds));
+          return;
+        }
+      }
+
+      // Rule 1: Enforce max 2 feeds
+      const feedKeys = Object.keys(allFeeds).filter((key) => key !== feedData.feedKey);
+      if (feedKeys.length >= MAX_FEEDS && !isUpdatingExisting) {
+        // Remove oldest feed if we're at the limit
+        const sortedFeeds = feedKeys
+          .map((key) => [key, allFeeds[key]] as [string, StoredFeedState])
+          .sort((a, b) => a[1].timestamp - b[1].timestamp);
+
+        if (sortedFeeds.length > 0) {
+          const oldestKey = sortedFeeds[0][0];
+          delete allFeeds[oldestKey];
+        }
+      }
+
+      // Don't store scroll position if less than MIN_SCROLL_POSITION_TO_STORE (user is near the top)
+      const scrollPosition =
+        feedData.scrollPosition < MIN_SCROLL_POSITION_TO_STORE ? 0 : feedData.scrollPosition;
+
+      // Save the feed
       allFeeds[feedData.feedKey] = {
         feedKey: feedData.feedKey,
-        entries,
+        entries: feedData.entries,
         scrollPosition,
         timestamp: Date.now(),
         hasMore: feedData.hasMore,
         page: feedData.page,
       };
 
-      console.log('[NavigationContext] saving feed state', {
-        feedKey: feedData.feedKey,
-        entriesLength: entries.length,
-        scrollPosition,
-        hasMore: feedData.hasMore,
-        page: feedData.page,
-        allFeedKeys: Object.keys(allFeeds),
-      });
-
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allFeeds));
     } catch (error) {
-      console.error('[NavigationContext] error saving feed state', error);
       // Silently fail - storage errors shouldn't break the app
     }
   };
@@ -205,26 +239,8 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   const getFeedState = (feedKey: string): StoredFeedState | null => {
     try {
       const allFeeds = getAllStoredFeeds();
-      console.log('[NavigationContext] getFeedState called', {
-        feedKey,
-        allFeedKeys: Object.keys(allFeeds),
-        hasFeed: !!allFeeds[feedKey],
-      });
-      const state = allFeeds[feedKey] || null;
-      if (state) {
-        console.log('[NavigationContext] found feed state', {
-          feedKey,
-          entriesLength: state.entries?.length || 0,
-          scrollPosition: state.scrollPosition,
-          page: state.page,
-          hasMore: state.hasMore,
-        });
-      } else {
-        console.log('[NavigationContext] feed state not found', { feedKey });
-      }
-      return state;
+      return allFeeds[feedKey] || null;
     } catch (error) {
-      console.error('[NavigationContext] error getting feed state', error);
       return null;
     }
   };
