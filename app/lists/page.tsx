@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { useUserLists } from '@/hooks/useUserLists';
+import { useUserListsContext } from '@/contexts/UserListsContext';
 import { UserList } from '@/types/user-list';
 import { ListsRightSidebar } from '@/app/lists/components/ListsRightSidebar';
 import Link from 'next/link';
-import { Plus, Edit2, Trash2, FolderPlus } from 'lucide-react';
+import { Plus, Edit2, Trash2, FolderPlus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LoadingButton } from '@/components/ui/LoadingButton';
 import { ListModal } from '@/components/modals/ListModal';
@@ -14,9 +14,24 @@ import { Input } from '@/components/ui/form/Input';
 import { formatDistanceToNow } from 'date-fns';
 import { formatItemCount } from '@/utils/listUtils';
 import { buildListUrl, generateSlug } from '@/utils/url';
+import { useInView } from 'react-intersection-observer';
 
 function ListsPageContent() {
-  const { lists, stats, isLoading, error, createList, updateList, deleteList } = useUserLists();
+  const { lists, stats, isLoading, error, hasMore, loadMore, createList, updateList, deleteList } =
+    useUserListsContext();
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const { ref: loadMoreRef, inView } = useInView({
+    threshold: 0,
+    rootMargin: '100px',
+  });
+
+  useEffect(() => {
+    if (inView && hasMore && !isLoading && !isLoadingMore) {
+      setIsLoadingMore(true);
+      loadMore().finally(() => setIsLoadingMore(false));
+    }
+  }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -174,24 +189,8 @@ function ListsPageContent() {
           </div>
         </div>
 
-        {lists.length === 0 ? (
-          <div className="text-center py-8 sm:py-12 px-4 bg-gray-50 rounded-lg border border-gray-200">
-            <FolderPlus className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No lists yet</h3>
-            <p className="text-sm sm:text-base text-gray-600 mb-6">
-              Create your first list to start organizing content
-            </p>
-            <Button
-              variant="outlined"
-              size="sm"
-              onClick={() => setIsCreateModalOpen(true)}
-              className="gap-2 w-full sm:w-auto"
-            >
-              <Plus className="w-4 h-4" />
-              Create Your First List
-            </Button>
-          </div>
-        ) : (
+        {/* Always render existing lists */}
+        {lists.length > 0 && (
           <div className="grid grid-cols-1 gap-3">
             {lists.map((list) => (
               <Link
@@ -247,6 +246,58 @@ function ListsPageContent() {
               </Link>
             ))}
           </div>
+        )}
+
+        {/* Show skeletons when initially loading with no lists */}
+        {isLoading && lists.length === 0 && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          </div>
+        )}
+
+        {/* Show empty state only when not loading and no lists */}
+        {!isLoading && lists.length === 0 && (
+          <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+            <FolderPlus className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No lists yet</h3>
+            <p className="text-sm sm:text-base text-gray-600 mb-6">
+              Create your first list to start organizing content
+            </p>
+            <Button
+              variant="outlined"
+              size="sm"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="gap-2 w-full sm:w-auto"
+            >
+              <Plus className="w-4 h-4" />
+              Create Your First List
+            </Button>
+          </div>
+        )}
+
+        {/* Show skeleton loaders for new items being loaded */}
+        {isLoadingMore && (
+          <>
+            {[...Array(3)].map((_, index) => (
+              <div
+                key={`skeleton-more-${index}`}
+                className={`bg-white rounded-lg p-4 border border-gray-200 ${index > 0 || lists.length > 0 ? 'mt-3' : ''}`}
+              >
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gray-200 animate-pulse"></div>
+                  <div className="flex-1 min-w-0">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse w-32 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* Infinite scroll sentinel */}
+        {!isLoading && hasMore && (
+          <div ref={loadMoreRef} className="h-10 flex items-center justify-center mt-4"></div>
         )}
       </div>
 

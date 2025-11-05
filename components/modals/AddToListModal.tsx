@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/Button';
 import { LoadingButton } from '@/components/ui/LoadingButton';
 import { ListModal } from './ListModal';
 import { Input } from '@/components/ui/form/Input';
 import { Checkbox } from '@/components/ui/form/Checkbox';
-import { useUserLists } from '@/hooks/useUserLists';
+import { useUserListsContext } from '@/contexts/UserListsContext';
 import { useListsContainingItem } from '@/hooks/useListsContainingItem';
+import { useIsInList } from '@/hooks/useIsInList';
+import { SimplifiedUserList } from '@/types/user-list';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/utils/apiError';
@@ -19,7 +21,7 @@ interface AddToListModalProps {
   onClose: () => void;
   unifiedDocumentId: number;
   onItemAdded?: () => void;
-  listDetails?: import('@/types/user-list').UserListDetail[]; // Optional pre-fetched list details from useIsInList
+  listDetails?: SimplifiedUserList[]; // Optional pre-fetched simplified list details from useIsInList
   isLoadingListDetails?: boolean; // Optional loading state
   refetchListDetails?: () => void; // Optional refetch function
 }
@@ -33,17 +35,26 @@ export function AddToListModal({
   isLoadingListDetails: preFetchedIsLoading,
   refetchListDetails: preFetchedRefetch,
 }: AddToListModalProps) {
-  const { lists, isLoading: listsLoading, createList, fetchLists } = useUserLists();
+  // Use user_check endpoint via useIsInList for the lists data
+  const {
+    listDetails: checkLists,
+    isLoading: isLoadingCheckLists,
+    refetch: refetchCheckLists,
+  } = useIsInList(isOpen ? unifiedDocumentId : null);
+
+  // Use context only for createList function
+  const { createList } = useUserListsContext();
+
+  // Use pre-fetched data if available, otherwise use data from useIsInList
+  const lists = preFetchedListDetails || checkLists;
+  const listsLoading = preFetchedIsLoading ?? isLoadingCheckLists;
+  const refetchLists = preFetchedRefetch || refetchCheckLists;
+
   const {
     listIds: listsContainingItem,
     isLoading: isLoadingListDetails,
     refetch: refetchListsContainingItem,
-  } = useListsContainingItem(
-    isOpen ? unifiedDocumentId : null,
-    preFetchedListDetails,
-    preFetchedIsLoading,
-    preFetchedRefetch
-  );
+  } = useListsContainingItem(isOpen ? unifiedDocumentId : null, lists, listsLoading, refetchLists);
   const [selectedListIds, setSelectedListIds] = useState<Set<number>>(new Set());
   const [isAdding, setIsAdding] = useState(false);
   const [newListName, setNewListName] = useState('');
@@ -51,20 +62,62 @@ export function AddToListModal({
   const [isCreating, setIsCreating] = useState(false);
   const [removingListId, setRemovingListId] = useState<number | null>(null);
 
+  const lastListsContainingItemStrRef = useRef<string>('');
+  const hasInitializedRef = useRef(false);
+
+  // Reset when modal opens/closes
   useEffect(() => {
-    if (isOpen) {
-      fetchLists();
-      // Pre-check checkboxes for lists that already contain the item
-      if (listsContainingItem.size > 0) {
-        setSelectedListIds(new Set(listsContainingItem));
-      } else {
-        setSelectedListIds(new Set());
-      }
-    } else {
+    if (!isOpen) {
       // Reset when modal closes
+      hasInitializedRef.current = false;
       setSelectedListIds(new Set());
+      lastListsContainingItemStrRef.current = '';
     }
-  }, [isOpen, fetchLists, listsContainingItem]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]); // Only depend on isOpen
+
+  // Update selectedListIds when listsContainingItem changes (but only if modal is open)
+  // Use a ref to track the previous Set size to detect changes without depending on the Set itself
+  const prevSetSizeRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!isOpen) {
+      prevSetSizeRef.current = 0;
+      return;
+    }
+
+    // Check if Set size changed (simple check)
+    const currentSize = listsContainingItem?.size || 0;
+    const sizeChanged = currentSize !== prevSetSizeRef.current;
+
+    // Calculate string from Set for value comparison
+    const currentStr =
+      listsContainingItem && listsContainingItem.size > 0
+        ? Array.from(listsContainingItem)
+            .sort((a, b) => a - b)
+            .join(',')
+        : '';
+
+    // Update if size changed OR values changed (even if size is same)
+    if (sizeChanged || currentStr !== lastListsContainingItemStrRef.current) {
+      prevSetSizeRef.current = currentSize;
+      lastListsContainingItemStrRef.current = currentStr;
+
+      // Recreate Set from the string
+      const newSet = currentStr
+        ? new Set(currentStr.split(',').map(Number).filter(Boolean))
+        : new Set<number>();
+
+      // Use functional update to prevent unnecessary re-renders
+      setSelectedListIds((prev) => {
+        const prevStr = Array.from(prev)
+          .sort((a, b) => a - b)
+          .join(',');
+        if (prevStr === currentStr) return prev; // No change, return same Set reference
+        return newSet;
+      });
+    }
+  }, [isOpen, listsContainingItem?.size]); // Only depend on isOpen and Set size, not the Set itself
 
   const handleToggleList = (listId: number, checked: boolean) => {
     setSelectedListIds((prev) => {
@@ -100,17 +153,14 @@ export function AddToListModal({
       const successes = results.filter((r) => r.status === 'fulfilled');
 
       // Build success message
-      if (successes.length > 0 || alreadyInLists.length > 0) {
-        const parts: string[] = [];
-        if (successes.length > 0) {
-          parts.push(`Added to ${successes.length} list${successes.length > 1 ? 's' : ''}`);
-        }
-        if (alreadyInLists.length > 0) {
-          parts.push(
-            `Already in ${alreadyInLists.length} list${alreadyInLists.length > 1 ? 's' : ''}`
-          );
-        }
-        toast.success(parts.join(', '));
+      if (successes.length > 0) {
+        // If items were added, only show the "Added to" message
+        toast.success(`Added to ${successes.length} list${successes.length > 1 ? 's' : ''}`);
+      } else if (alreadyInLists.length > 0) {
+        // If nothing was added but items are already in lists, show "Already in" message
+        toast.success(
+          `Already in ${alreadyInLists.length} list${alreadyInLists.length > 1 ? 's' : ''}`
+        );
       }
 
       if (failures.length > 0) {
@@ -126,6 +176,7 @@ export function AddToListModal({
 
       onItemAdded?.();
       refetchListsContainingItem(); // Refetch to update which lists contain the item
+      refetchLists(); // Refetch lists from user_check endpoint
       onClose();
       setSelectedListIds(new Set());
     } catch (error) {
@@ -146,6 +197,8 @@ export function AddToListModal({
       setSelectedListIds((prev) => new Set(prev).add(newList.id));
       setShowCreateForm(false);
       setNewListName('');
+      // Refetch lists from user_check endpoint to include the new list
+      refetchLists();
     } catch (error) {
       console.error('Failed to create list:', error);
     } finally {
@@ -163,10 +216,8 @@ export function AddToListModal({
     const docId =
       typeof unifiedDocumentId === 'string' ? parseInt(unifiedDocumentId) : unifiedDocumentId;
     const item = list.items.find((i) => {
-      // Handle both number and string comparisons
-      const itemDocId =
-        typeof i.unified_document === 'string' ? parseInt(i.unified_document) : i.unified_document;
-      return itemDocId === docId;
+      // Use unified_document_id from simplified structure
+      return i.unified_document_id === docId;
     });
     if (!item || !item.id) return;
 
@@ -184,9 +235,7 @@ export function AddToListModal({
       });
 
       // Refetch list details to update the UI
-      if (preFetchedRefetch) {
-        preFetchedRefetch();
-      }
+      refetchLists(); // Refetch from user_check endpoint
       onItemAdded?.();
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to remove item from list'));
@@ -195,6 +244,21 @@ export function AddToListModal({
       setRemovingListId(null);
     }
   };
+
+  // Sort lists to show those containing the item at the top
+  const sortedLists = useMemo(() => {
+    return [...lists].sort((a, b) => {
+      const aContainsItem = listsContainingItem.has(a.id);
+      const bContainsItem = listsContainingItem.has(b.id);
+
+      // Lists containing the item come first
+      if (aContainsItem && !bContainsItem) return -1;
+      if (!aContainsItem && bContainsItem) return 1;
+
+      // Otherwise maintain original order
+      return 0;
+    });
+  }, [lists, listsContainingItem]);
 
   return (
     <ListModal
@@ -263,7 +327,7 @@ export function AddToListModal({
                 {!showCreateForm && (
                   <>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {lists.map((list) => {
+                      {sortedLists.map((list) => {
                         const isAlreadyInList = listsContainingItem.has(list.id);
                         const isSelected = selectedListIds.has(list.id);
                         const isRemoving = removingListId === list.id;
@@ -283,7 +347,8 @@ export function AddToListModal({
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-gray-900">{list.name}</div>
                               <div className="text-xs text-gray-500 mt-1">
-                                {formatItemCount(list)}
+                                {list.items?.length || 0}{' '}
+                                {list.items?.length === 1 ? 'item' : 'items'}
                                 {isAlreadyInList && (
                                   <span className="ml-2 text-green-600 font-medium">
                                     • Already in list

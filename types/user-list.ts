@@ -159,3 +159,20 @@ export interface AddItemRequest {
   parent_list: number;
   unified_document: number;
 }
+
+// Simplified types for user check endpoint
+export interface SimplifiedListItem {
+  id: number; // ListItem ID - use this to remove the item
+  unified_document_id: number; // Use this to check if a doc is already in the list
+}
+
+export interface SimplifiedUserList {
+  id: number;
+  name: string;
+  is_public: boolean;
+  items: SimplifiedListItem[];
+}
+
+export interface UserCheckResponse {
+  lists: SimplifiedUserList[];
+}

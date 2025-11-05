@@ -4,6 +4,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserList } from '@/hooks/useUserLists';
 import { useRouter, useParams } from 'next/navigation';
 import { FeedEntryItem } from '@/components/Feed/FeedEntryItem';
+import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 import { FeedEntry } from '@/types/feed';
 import { FolderPlus, Loader2, Edit2, Trash2, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -12,6 +13,7 @@ import { ListModal } from '@/components/modals/ListModal';
 import { Input } from '@/components/ui/form/Input';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useState, useEffect } from 'react';
+import { useInView } from 'react-intersection-observer';
 import { ListService } from '@/services/list.service';
 import { ListsRightSidebar } from '../../../lists/components/ListsRightSidebar';
 import { toast } from 'react-hot-toast';
@@ -24,7 +26,21 @@ export default function ListDetailPage() {
   const params = useParams();
   const listId = params?.id ? parseInt(params.id as string) : null;
   const slug = params?.slug as string | undefined;
-  const { list, isLoading, error, fetchList, removeItem } = useUserList(listId);
+  const { list, items, isLoading, error, hasMore, loadMore, fetchList, removeItem } =
+    useUserList(listId);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const { ref: loadMoreRef, inView } = useInView({
+    threshold: 0,
+    rootMargin: '100px',
+  });
+
+  useEffect(() => {
+    if (inView && hasMore && !isLoading && !isLoadingMore) {
+      setIsLoadingMore(true);
+      loadMore().finally(() => setIsLoadingMore(false));
+    }
+  }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
 
   useEffect(() => {
     if (list && slug) {
@@ -95,9 +111,9 @@ export default function ListDetailPage() {
 
   // Convert list items to FeedEntry format for display
   const convertItemsToFeedEntries = (): FeedEntry[] => {
-    if (!list?.items) return [];
+    if (!items || items.length === 0) return [];
 
-    return list.items.map((item) => {
+    return items.map((item) => {
       const unifiedDocData = item.unified_document_data || {};
       const document = unifiedDocData.documents?.[0] || {};
 
@@ -464,8 +480,10 @@ export default function ListDetailPage() {
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          <div className="space-y-12">
+            {[...Array(3)].map((_, index) => (
+              <FeedItemSkeleton key={`skeleton-loading-${index}`} />
+            ))}
           </div>
         </div>
       </PageLayout>
@@ -532,13 +550,8 @@ export default function ListDetailPage() {
           </div>
         </div>
 
-        {feedEntries.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-            <FolderPlus className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">This list is empty</h3>
-            <p className="text-gray-600">Start adding items to this list</p>
-          </div>
-        ) : (
+        {/* Always render existing items */}
+        {items.length > 0 && (
           <div className="space-y-12">
             {feedEntries.map((entry, index) => (
               <div key={entry.id || index} className="relative group">
@@ -564,6 +577,38 @@ export default function ListDetailPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Show skeletons when initially loading with no items */}
+        {isLoading && items.length === 0 && (
+          <>
+            {[...Array(3)].map((_, index) => (
+              <div key={`skeleton-${index}`} className={index > 0 ? 'mt-12' : ''}>
+                <FeedItemSkeleton />
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* Show empty state only when not loading and no items */}
+        {!isLoading && items.length === 0 && (
+          <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+            <FolderPlus className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">This list is empty</h3>
+            <p className="text-gray-600">Start adding items to this list</p>
+          </div>
+        )}
+
+        {/* Infinite scroll sentinel */}
+        {!isLoading && hasMore && (
+          <div ref={loadMoreRef} className="h-10 flex items-center justify-center mt-4">
+            {isLoadingMore && (
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Loading more items...</span>
+              </div>
+            )}
           </div>
         )}
       </div>
