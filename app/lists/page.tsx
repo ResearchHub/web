@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserListsContext } from '@/contexts/UserListsContext';
-import { UserList } from '@/types/user-list';
+import { useListModals } from '@/hooks/useListModals';
 import { ListsRightSidebar } from '@/app/lists/components/ListsRightSidebar';
 import Link from 'next/link';
 import { Plus, Edit2, Trash2, FolderPlus, Loader2 } from 'lucide-react';
@@ -20,6 +20,7 @@ function ListsPageContent() {
   const { lists, stats, isLoading, error, hasMore, loadMore, createList, updateList, deleteList } =
     useUserListsContext();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const modals = useListModals();
 
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
@@ -32,66 +33,40 @@ function ListsPageContent() {
       loadMore().finally(() => setIsLoadingMore(false));
     }
   }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedList, setSelectedList] = useState<UserList | null>(null);
-  const [newListName, setNewListName] = useState('');
-  const [editListName, setEditListName] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleCreateList = async () => {
-    if (!newListName.trim()) return;
-    setIsCreating(true);
+    if (!modals.listName.trim()) return;
+    modals.setIsSubmitting(true);
     try {
-      await createList({ name: newListName.trim() });
-      setNewListName('');
-      setIsCreateModalOpen(false);
+      await createList({ name: modals.listName.trim() });
+      modals.closeModals();
     } catch (error) {
       console.error('Failed to create list:', error);
-    } finally {
-      setIsCreating(false);
+      modals.setIsSubmitting(false);
     }
-  };
-
-  const handleEditClick = (list: UserList) => {
-    setSelectedList(list);
-    setEditListName(list.name);
-    setIsEditModalOpen(true);
   };
 
   const handleUpdateList = async () => {
-    if (!selectedList || !editListName.trim()) return;
-    setIsUpdating(true);
+    if (!modals.selectedList || !modals.listName.trim()) return;
+    modals.setIsSubmitting(true);
     try {
-      await updateList(selectedList.id, { name: editListName.trim() });
-      setIsEditModalOpen(false);
-      setSelectedList(null);
+      await updateList(modals.selectedList.id, { name: modals.listName.trim() });
+      modals.closeModals();
     } catch (error) {
       console.error('Failed to update list:', error);
-    } finally {
-      setIsUpdating(false);
+      modals.setIsSubmitting(false);
     }
   };
 
-  const handleDeleteClick = (list: UserList) => {
-    setSelectedList(list);
-    setIsDeleteModalOpen(true);
-  };
-
   const handleDeleteList = async () => {
-    if (!selectedList) return;
-    setIsDeleting(true);
+    if (!modals.selectedList) return;
+    modals.setIsSubmitting(true);
     try {
-      await deleteList(selectedList.id);
-      setIsDeleteModalOpen(false);
-      setSelectedList(null);
+      await deleteList(modals.selectedList.id);
+      modals.closeModals();
     } catch (error) {
       console.error('Failed to delete list:', error);
-    } finally {
-      setIsDeleting(false);
+      modals.setIsSubmitting(false);
     }
   };
 
@@ -178,7 +153,7 @@ function ListsPageContent() {
                 <Button
                   variant="outlined"
                   size="sm"
-                  onClick={() => setIsCreateModalOpen(true)}
+                  onClick={modals.openCreateModal}
                   className="gap-2 w-full sm:w-auto flex-shrink-0"
                 >
                   <Plus className="w-4 h-4" />
@@ -225,7 +200,7 @@ function ListsPageContent() {
                     size="icon"
                     onClick={(e) => {
                       e.preventDefault();
-                      handleEditClick(list);
+                      modals.openEditModal(list);
                     }}
                     className="h-8 w-8 sm:h-8 sm:w-8 text-gray-400 hover:text-gray-600 hover:bg-rhBlue-50 active:bg-rhBlue-100"
                   >
@@ -236,7 +211,7 @@ function ListsPageContent() {
                     size="icon"
                     onClick={(e) => {
                       e.preventDefault();
-                      handleDeleteClick(list);
+                      modals.openDeleteModal(list);
                     }}
                     className="h-8 w-8 sm:h-8 sm:w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 active:bg-red-100"
                   >
@@ -266,7 +241,7 @@ function ListsPageContent() {
             <Button
               variant="outlined"
               size="sm"
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={modals.openCreateModal}
               className="gap-2 w-full sm:w-auto"
             >
               <Plus className="w-4 h-4" />
@@ -302,11 +277,8 @@ function ListsPageContent() {
       </div>
 
       <ListModal
-        isOpen={isCreateModalOpen}
-        onClose={() => {
-          setIsCreateModalOpen(false);
-          setNewListName('');
-        }}
+        isOpen={modals.isCreateModalOpen}
+        onClose={modals.closeModals}
         title="Create New List"
         subtitle="Organize your saved papers, posts, and more"
       >
@@ -314,30 +286,23 @@ function ListsPageContent() {
           <Input
             label="List Name"
             placeholder="Enter list name"
-            value={newListName}
-            onChange={(e) => setNewListName(e.target.value)}
+            value={modals.listName}
+            onChange={(e) => modals.setListName(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && newListName.trim()) {
+              if (e.key === 'Enter' && modals.listName.trim()) {
                 handleCreateList();
               }
             }}
             autoFocus
           />
           <div className="flex justify-end gap-3 pt-4">
-            <Button
-              variant="outlined"
-              onClick={() => {
-                setIsCreateModalOpen(false);
-                setNewListName('');
-              }}
-              disabled={isCreating}
-            >
+            <Button variant="outlined" onClick={modals.closeModals} disabled={modals.isSubmitting}>
               Cancel
             </Button>
             <LoadingButton
               onClick={handleCreateList}
-              disabled={!newListName.trim() || isCreating}
-              isLoading={isCreating}
+              disabled={!modals.listName.trim() || modals.isSubmitting}
+              isLoading={modals.isSubmitting}
               loadingText="Creating..."
             >
               Create List
@@ -347,11 +312,8 @@ function ListsPageContent() {
       </ListModal>
 
       <ListModal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedList(null);
-        }}
+        isOpen={modals.isEditModalOpen}
+        onClose={modals.closeModals}
         title="Edit List"
         subtitle="Update your list name"
       >
@@ -359,30 +321,23 @@ function ListsPageContent() {
           <Input
             label="List Name"
             placeholder="Enter list name"
-            value={editListName}
-            onChange={(e) => setEditListName(e.target.value)}
+            value={modals.listName}
+            onChange={(e) => modals.setListName(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && editListName.trim()) {
+              if (e.key === 'Enter' && modals.listName.trim()) {
                 handleUpdateList();
               }
             }}
             autoFocus
           />
           <div className="flex justify-end gap-3 pt-4">
-            <Button
-              variant="outlined"
-              onClick={() => {
-                setIsEditModalOpen(false);
-                setSelectedList(null);
-              }}
-              disabled={isUpdating}
-            >
+            <Button variant="outlined" onClick={modals.closeModals} disabled={modals.isSubmitting}>
               Cancel
             </Button>
             <LoadingButton
               onClick={handleUpdateList}
-              disabled={!editListName.trim() || isUpdating}
-              isLoading={isUpdating}
+              disabled={!modals.listName.trim() || modals.isSubmitting}
+              isLoading={modals.isSubmitting}
               loadingText="Updating..."
             >
               Save Changes
@@ -392,33 +347,24 @@ function ListsPageContent() {
       </ListModal>
 
       <ListModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => {
-          setIsDeleteModalOpen(false);
-          setSelectedList(null);
-        }}
+        isOpen={modals.isDeleteModalOpen}
+        onClose={modals.closeModals}
         title="Delete List"
         subtitle="This action cannot be undone"
       >
         <div className="space-y-6">
           <p className="text-gray-600">
-            Are you sure you want to delete "{selectedList?.name}"? This action cannot be undone.
+            Are you sure you want to delete "{modals.selectedList?.name}"? This action cannot be
+            undone.
           </p>
           <div className="flex justify-end gap-3 pt-4">
-            <Button
-              variant="outlined"
-              onClick={() => {
-                setIsDeleteModalOpen(false);
-                setSelectedList(null);
-              }}
-              disabled={isDeleting}
-            >
+            <Button variant="outlined" onClick={modals.closeModals} disabled={modals.isSubmitting}>
               Cancel
             </Button>
             <LoadingButton
               onClick={handleDeleteList}
-              disabled={isDeleting}
-              isLoading={isDeleting}
+              disabled={modals.isSubmitting}
+              isLoading={modals.isSubmitting}
               loadingText="Deleting..."
               className="bg-red-600 hover:bg-red-700"
             >

@@ -57,98 +57,48 @@ export class ListService {
     };
   }
 
-  /**
-   * Aggregate stats from all lists
-   */
   private static aggregateStats(lists: UserList[]): ListStats | undefined {
-    if (lists.length === 0) return undefined;
+    if (!lists.length) return undefined;
 
-    try {
-      // Aggregate authors
-      const authorMap = new Map<number, { author: TopAuthor; totalCount: number }>();
+    const aggregateByField = <T extends { id: number }>(
+      lists: UserList[],
+      field: keyof UserList,
+      countField?: string
+    ) => {
+      const map = new Map<number, { item: T; count: number }>();
       lists.forEach((list) => {
-        list.top_authors?.forEach((author) => {
-          if (author?.id && author?.full_name) {
-            const existing = authorMap.get(author.id);
-            if (existing) {
-              existing.totalCount += author.count || 0;
-            } else {
-              authorMap.set(author.id, { author, totalCount: author.count || 0 });
-            }
+        const items = list[field] as T[] | undefined;
+        items?.forEach((item) => {
+          if (item?.id) {
+            const existing = map.get(item.id);
+            const itemCount = (countField && (item as any)[countField]) || 1;
+            map.set(item.id, {
+              item,
+              count: (existing?.count || 0) + itemCount,
+            });
           }
         });
       });
-
-      // Aggregate hubs (these are categories/topics)
-      const hubMap = new Map<number, { hub: TopHub; count: number }>();
-      lists.forEach((list) => {
-        list.top_hubs?.forEach((hub) => {
-          if (hub?.id && hub?.name) {
-            const existing = hubMap.get(hub.id);
-            if (existing) {
-              existing.count += 1;
-            } else {
-              hubMap.set(hub.id, { hub, count: 1 });
-            }
-          }
-        });
-      });
-
-      // Aggregate topics - handle cases where top_topics might have different structure
-      const topicMap = new Map<number, { topic: any; count: number }>();
-      lists.forEach((list) => {
-        if (Array.isArray(list.top_topics)) {
-          list.top_topics.forEach((topic: any) => {
-            if (topic?.id && topic?.name) {
-              const existing = topicMap.get(topic.id);
-              if (existing) {
-                existing.count += 1;
-              } else {
-                topicMap.set(topic.id, { topic, count: 1 });
-              }
-            }
-          });
-        }
-      });
-
-      // Sort and take top 5
-      const topAuthors = Array.from(authorMap.values())
-        .sort((a, b) => b.totalCount - a.totalCount)
-        .slice(0, 5)
-        .map((item) => item.author);
-
-      const topCategories = Array.from(hubMap.values())
+      return Array.from(map.values())
         .sort((a, b) => b.count - a.count)
-        .slice(0, 5)
-        .map((item) => ({
-          id: item.hub.id,
-          name: item.hub.name,
-          itemCount: item.count,
-        }));
+        .slice(0, 5);
+    };
 
-      const topTopics = Array.from(topicMap.values())
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 5)
-        .map((item) => ({
-          id: item.topic.id,
-          name: item.topic.name || item.topic.label || 'Unknown',
-          itemCount: item.count,
-        }));
-
-      return {
-        topAuthors,
-        topCategories,
-        topTopics,
-      };
-    } catch (error) {
-      console.error('Error aggregating list stats:', error);
-      // Return empty stats instead of failing completely
-      return {
-        topAuthors: [],
-        topCategories: [],
-        topTopics: [],
-      };
-    }
+    return {
+      topAuthors: aggregateByField<TopAuthor>(lists, 'top_authors', 'count').map(
+        (item) => item.item
+      ),
+      topCategories: aggregateByField<TopHub>(lists, 'top_hubs').map((item) => ({
+        id: item.item.id,
+        name: item.item.name,
+        itemCount: item.count,
+      })),
+      topTopics: aggregateByField<any>(lists, 'top_topics').map((item) => ({
+        id: item.item.id,
+        name: item.item.name || 'Unknown',
+        itemCount: item.count,
+      })),
+    };
   }
 
   /**

@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/Button';
 import { LoadingButton } from '@/components/ui/LoadingButton';
 import { ListModal } from './ListModal';
 import { Input } from '@/components/ui/form/Input';
 import { Checkbox } from '@/components/ui/form/Checkbox';
 import { useUserListsContext } from '@/contexts/UserListsContext';
-import { useListsContainingItem } from '@/hooks/useListsContainingItem';
 import { useIsInList } from '@/hooks/useIsInList';
 import { SimplifiedUserList } from '@/types/user-list';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
@@ -21,9 +20,9 @@ interface AddToListModalProps {
   onClose: () => void;
   unifiedDocumentId: number;
   onItemAdded?: () => void;
-  listDetails?: SimplifiedUserList[]; // Optional pre-fetched simplified list details from useIsInList
-  isLoadingListDetails?: boolean; // Optional loading state
-  refetchListDetails?: () => void; // Optional refetch function
+  listDetails?: SimplifiedUserList[];
+  isLoadingListDetails?: boolean;
+  refetchListDetails?: () => void;
 }
 
 export function AddToListModal({
@@ -35,26 +34,18 @@ export function AddToListModal({
   isLoadingListDetails: preFetchedIsLoading,
   refetchListDetails: preFetchedRefetch,
 }: AddToListModalProps) {
-  // Use user_check endpoint via useIsInList for the lists data
   const {
     listDetails: checkLists,
     isLoading: isLoadingCheckLists,
     refetch: refetchCheckLists,
+    listIds: listsContainingItem,
   } = useIsInList(isOpen ? unifiedDocumentId : null);
 
-  // Use context only for createList function
   const { createList } = useUserListsContext();
 
-  // Use pre-fetched data if available, otherwise use data from useIsInList
   const lists = preFetchedListDetails || checkLists;
   const listsLoading = preFetchedIsLoading ?? isLoadingCheckLists;
   const refetchLists = preFetchedRefetch || refetchCheckLists;
-
-  const {
-    listIds: listsContainingItem,
-    isLoading: isLoadingListDetails,
-    refetch: refetchListsContainingItem,
-  } = useListsContainingItem(isOpen ? unifiedDocumentId : null, lists, listsLoading, refetchLists);
   const [selectedListIds, setSelectedListIds] = useState<Set<number>>(new Set());
   const [isAdding, setIsAdding] = useState(false);
   const [newListName, setNewListName] = useState('');
@@ -62,62 +53,13 @@ export function AddToListModal({
   const [isCreating, setIsCreating] = useState(false);
   const [removingListId, setRemovingListId] = useState<number | null>(null);
 
-  const lastListsContainingItemStrRef = useRef<string>('');
-  const hasInitializedRef = useRef(false);
-
-  // Reset when modal opens/closes
   useEffect(() => {
-    if (!isOpen) {
-      // Reset when modal closes
-      hasInitializedRef.current = false;
+    if (isOpen) {
+      setSelectedListIds(new Set(listsContainingItem));
+    } else {
       setSelectedListIds(new Set());
-      lastListsContainingItemStrRef.current = '';
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]); // Only depend on isOpen
-
-  // Update selectedListIds when listsContainingItem changes (but only if modal is open)
-  // Use a ref to track the previous Set size to detect changes without depending on the Set itself
-  const prevSetSizeRef = useRef<number>(0);
-
-  useEffect(() => {
-    if (!isOpen) {
-      prevSetSizeRef.current = 0;
-      return;
-    }
-
-    // Check if Set size changed (simple check)
-    const currentSize = listsContainingItem?.size || 0;
-    const sizeChanged = currentSize !== prevSetSizeRef.current;
-
-    // Calculate string from Set for value comparison
-    const currentStr =
-      listsContainingItem && listsContainingItem.size > 0
-        ? Array.from(listsContainingItem)
-            .sort((a, b) => a - b)
-            .join(',')
-        : '';
-
-    // Update if size changed OR values changed (even if size is same)
-    if (sizeChanged || currentStr !== lastListsContainingItemStrRef.current) {
-      prevSetSizeRef.current = currentSize;
-      lastListsContainingItemStrRef.current = currentStr;
-
-      // Recreate Set from the string
-      const newSet = currentStr
-        ? new Set(currentStr.split(',').map(Number).filter(Boolean))
-        : new Set<number>();
-
-      // Use functional update to prevent unnecessary re-renders
-      setSelectedListIds((prev) => {
-        const prevStr = Array.from(prev)
-          .sort((a, b) => a - b)
-          .join(',');
-        if (prevStr === currentStr) return prev; // No change, return same Set reference
-        return newSet;
-      });
-    }
-  }, [isOpen, listsContainingItem?.size]); // Only depend on isOpen and Set size, not the Set itself
+  }, [isOpen, listsContainingItem]);
 
   const handleToggleList = (listId: number, checked: boolean) => {
     setSelectedListIds((prev) => {
@@ -175,10 +117,8 @@ export function AddToListModal({
       }
 
       onItemAdded?.();
-      refetchListsContainingItem(); // Refetch to update which lists contain the item
-      refetchLists(); // Refetch lists from user_check endpoint
+      refetchLists();
       onClose();
-      setSelectedListIds(new Set());
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to add item to lists'));
       console.error('Failed to add item to lists:', error);
@@ -268,7 +208,7 @@ export function AddToListModal({
       subtitle="Select one or more lists to save this item"
     >
       <div className="space-y-6">
-        {listsLoading || isLoadingListDetails ? (
+        {listsLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
           </div>

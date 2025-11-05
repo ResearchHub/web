@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ListService, UserListsResponse } from '@/services/list.service';
+import { ListService } from '@/services/list.service';
 import {
   UserList,
   UserListDetail,
@@ -12,8 +12,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/utils/apiError';
 
-// Global ref to track if lists are being fetched to prevent duplicate calls
-const globalFetchingRef = { current: false };
+const PAGE_SIZE = 20;
 
 export function useUserLists() {
   const [lists, setLists] = useState<UserList[]>([]);
@@ -22,25 +21,14 @@ export function useUserLists() {
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 20;
   const hasInitialized = useRef(false);
 
   const fetchLists = useCallback(async (pageNum: number = 1, reset: boolean = true) => {
-    // Prevent duplicate concurrent fetches
-    if (globalFetchingRef.current && pageNum === 1 && reset) {
-      return;
-    }
-
-    globalFetchingRef.current = true;
     setIsLoading(true);
     setError(null);
     try {
       const data = await ListService.getUserLists({ page: pageNum, pageSize: PAGE_SIZE });
-      if (reset) {
-        setLists(data.lists);
-      } else {
-        setLists((prev) => [...prev, ...data.lists]);
-      }
+      setLists(reset ? data.lists : (prev) => [...prev, ...data.lists]);
       if (data.stats && (reset || pageNum === 1)) setStats(data.stats);
       setHasMore(data.hasMore);
       setPage(pageNum);
@@ -49,9 +37,6 @@ export function useUserLists() {
       console.error('Failed to fetch lists:', err);
     } finally {
       setIsLoading(false);
-      if (pageNum === 1 && reset) {
-        globalFetchingRef.current = false;
-      }
     }
   }, []);
 

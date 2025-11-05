@@ -7,8 +7,8 @@ export interface UserList {
   top_authors?: TopAuthor[];
   top_hubs?: TopHub[];
   top_topics?: TopTopic[];
-  item_count?: number; // May be in response, or calculated from items
-  items_count?: number; // Backend returns this field
+  item_count?: number;
+  items_count?: number;
 }
 
 export interface UserListItem {
