@@ -16,7 +16,6 @@ import { useFeed } from '@/hooks/useFeed';
 import { ArrowRightIcon } from 'lucide-react';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { LeaderboardSkeleton } from '@/components/Leaderboard/LeaderboardOverview';
-import { TopicsToFollowSkeleton } from './components/TopicsToFollow';
 
 const LeaderboardOverview = dynamic(
   () =>
@@ -49,13 +48,7 @@ const InfoBanner = dynamic(() => import('./components/InfoBanner').then((mod) =>
   ),
 });
 
-const TopicsToFollow = dynamic(
-  () => import('./components/TopicsToFollow').then((mod) => mod.TopicsToFollow),
-  {
-    ssr: false,
-    loading: () => <TopicsToFollowSkeleton />,
-  }
-);
+// Follow recommendations removed from sidebar
 
 const NextStepsPanel = dynamic(
   () => import('./components/NextStepsPanel').then((mod) => mod.NextStepsPanel),
@@ -265,7 +258,7 @@ const FundingSpotlight = () => {
 
 // Main RightSidebar Component - memoized to prevent re-renders when parent components change
 const SidebarComponent = () => (
-  <div className="space-y-4 overflow-hidden">
+  <div className="space-y-4">
     {/* Next Steps Panel for new users */}
     {/* <NextStepsPanel /> */}
 
@@ -274,10 +267,7 @@ const SidebarComponent = () => (
       <LeaderboardOverview />
     </div>
 
-    <div className="bg-white rounded-lg p-2">
-      {/* Topics to Follow Section */}
-      <TopicsToFollow />
-    </div>
+    {/* Follow recommendations removed */}
   </div>
 );
 
