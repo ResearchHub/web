@@ -33,6 +33,7 @@ const getDefaultOrdering = (tab: FeedTab, experimentVariant?: ExperimentVariant)
 
   if (tab === 'popular' || tab === 'following') return 'hot_score';
   if (tab === 'latest') return 'latest';
+  if (tab === 'for-you') return 'latest'; // Default for personalized feed
   return 'hot_score'; // fallback
 };
 
@@ -42,6 +43,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   const searchParams = useSearchParams();
   const { user } = useUser();
   const isAuthenticated = status === 'authenticated';
+  const isModerator = !!user?.isModerator;
 
   // Get experiment variant for following feed ordering
   const followingFeedExperiment = getExperimentVariant(Experiment.FollowingFeedOrdering, user?.id);
@@ -50,6 +52,8 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   const [isNavigating, setIsNavigating] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<FeedSource>('all');
   const orderingParam = searchParams.get('ordering');
+  const filterParam = searchParams.get('filter');
+  const userIdParam = searchParams.get('user_id');
   const [ordering, setOrdering] = useState<string>(
     orderingParam || getDefaultOrdering(defaultTab, followingFeedExperiment)
   );
@@ -58,12 +62,19 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     (searchParams.get('hot_score_version') as 'v1' | 'v2') ||
     (defaultTab === 'following' ? 'v2' : 'v1'); // Always use v2 for following feed (experiment uses v2 for both variants)
   const isDebugMode = searchParams?.get('debug') !== null;
+
+  // For 'for-you' tab, use 'personalized' endpoint
+  const endpoint = defaultTab === 'for-you' ? 'personalized' : undefined;
+
   const { entries, isLoading, hasMore, loadMore, refresh } = useFeed(defaultTab, {
     source: sourceFilter,
     initialData: initialFeedData,
     hotScoreVersion,
     includeHotScoreBreakdown: isDebugMode,
     ordering,
+    filter: filterParam || undefined,
+    userId: userIdParam || undefined,
+    endpoint,
   });
 
   // Sync the activeTab with the defaultTab when the component mounts or defaultTab changes
@@ -93,7 +104,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     // Set navigating state to true to show loading state
     setIsNavigating(true);
 
-    // Preserve query params (hot_score_version and ordering)
+    // Preserve query params (hot_score_version, ordering, and filter)
     // Only preserve if they were explicitly set by the user, not defaults
     const params = new URLSearchParams();
     const hotScoreParam = searchParams.get('hot_score_version');
@@ -102,6 +113,10 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     }
     if (orderingParam) {
       params.set('ordering', orderingParam);
+    }
+    const filterParam = searchParams.get('filter');
+    if (filterParam) {
+      params.set('filter', filterParam);
     }
     const queryString = params.toString() ? `?${params.toString()}` : '';
 
@@ -132,6 +147,14 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
           {
             id: 'following',
             label: 'Following',
+          },
+        ]
+      : []),
+    ...(isModerator
+      ? [
+          {
+            id: 'for-you',
+            label: 'For You',
           },
         ]
       : []),
