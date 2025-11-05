@@ -14,10 +14,6 @@ interface UseFeedScrollTrackingOptions {
   activeTab?: string;
 }
 
-/**
- * Hook that handles all feed scroll tracking, restoration, and state saving.
- * Keeps FeedContent component clean by moving all scroll-related logic here.
- */
 export const useFeedScrollTracking = ({
   feedKey,
   entries,
@@ -33,7 +29,6 @@ export const useFeedScrollTracking = ({
   const { startTrackingFeed, stopTrackingFeed, saveFeedState, resetBackNavigation } =
     useNavigation();
 
-  // Track scroll position continuously
   useEffect(() => {
     const updateScrollPosition = () => {
       if (scrollContainerRef?.current) {
@@ -57,7 +52,6 @@ export const useFeedScrollTracking = ({
     };
   }, [scrollContainerRef, feedKey]);
 
-  // Restore scroll position if provided from useFeed
   useEffect(() => {
     if (
       restoredScrollPosition !== null &&
@@ -80,16 +74,13 @@ export const useFeedScrollTracking = ({
     }
   }, [restoredScrollPosition, resetBackNavigation, scrollContainerRef, hasRestoredScroll, feedKey]);
 
-  // Reset scroll restoration flag when pathname or tab changes
   useEffect(() => {
     setHasRestoredScroll(false);
   }, [pathname, activeTab]);
 
-  // Start tracking on mount, save feed state and stop tracking on unmount
   useEffect(() => {
     startTrackingFeed();
     return () => {
-      // Save feed state while tracking is still active
       if (entries.length > 0) {
         const scrollPos = scrollPositionRef.current;
         if (!scrollContainerRef?.current) {

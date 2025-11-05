@@ -33,7 +33,6 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
   const searchParams = useSearchParams();
   const { isBackNavigation, getFeedState, clearFeedState } = useNavigation();
 
-  // Read query params from URL for feed key generation
   const queryParams = useMemo(() => {
     const params: Record<string, string> = {};
     searchParams.forEach((value, key) => {
@@ -42,7 +41,6 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     return params;
   }, [searchParams]);
 
-  // Check for restored state synchronously before initializing state
   const restoredState = useMemo(() => {
     if (!isBackNavigation) {
       return null;
@@ -56,7 +54,6 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
 
     const savedState = getFeedState(feedKey);
     if (savedState) {
-      // Clear the state after using it
       clearFeedState(feedKey);
       return savedState;
     }
@@ -64,9 +61,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     return null;
   }, [isBackNavigation, pathname, activeTab, queryParams, getFeedState, clearFeedState]);
 
-  // Use restored entries if available, otherwise use initialData
   const initialEntries = restoredState?.entries || options.initialData?.entries || [];
-  // Restore hasMore and page from stored state if available
   const initialHasMore = restoredState?.hasMore ?? options.initialData?.hasMore ?? false;
   const initialPage = restoredState?.page ?? 1;
   const hasRestoredEntries = restoredState !== null;
@@ -78,24 +73,19 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
   const [currentTab, setCurrentTab] = useState<FeedTab | FundingTab>(activeTab);
   const [currentOptions, setCurrentOptions] = useState<UseFeedOptions>(options);
 
-  // Store scroll position for FeedContent to use
   const [restoredScrollPosition, setRestoredScrollPosition] = useState<number | null>(
     restoredState?.scrollPosition ?? null
   );
 
-  // Only load the feed when the component mounts or when the session status changes
-  // We no longer reload when activeTab changes, as that will be handled by page navigation
   useEffect(() => {
     if (status === 'loading') {
       return;
     }
 
-    // If we restored entries from sessionStorage, don't fetch
     if (hasRestoredEntries && entries.length > 0) {
       return;
     }
 
-    // If we have initial data and it's the first load, don't fetch again
     if (
       options.initialData &&
       entries.length === options.initialData.entries.length &&
@@ -104,12 +94,10 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       return;
     }
 
-    // Only load the feed if the tab has changed
     if (currentTab !== activeTab) {
       setCurrentTab(activeTab);
       loadFeed();
     } else if (entries.length === 0) {
-      // Initial load
       loadFeed();
     }
   }, [
@@ -122,9 +110,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     options.initialData,
   ]);
 
-  // Check if options have changed
   useEffect(() => {
-    // Compare relevant options (excluding initialData which shouldn't trigger a reload)
     const relevantOptionsChanged =
       options.hubSlug !== currentOptions.hubSlug ||
       options.contentType !== currentOptions.contentType ||
@@ -145,9 +131,8 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
 
   const loadFeed = async () => {
     setIsLoading(true);
-    setEntries([]); // Clear entries to show skeleton
+    setEntries([]);
     try {
-      // Only pass feedView for actual feed tabs (popular, following, latest)
       const isHomeFeedTab =
         activeTab === 'popular' || activeTab === 'following' || activeTab === 'latest';
 
@@ -170,7 +155,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       setHasMore(result.hasMore);
       setPage(1);
     } catch (error) {
-      // Error handling is done at component level
+      console.error('Error loading feed:', error);
     } finally {
       setIsLoading(false);
     }
@@ -182,7 +167,6 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     setIsLoading(true);
     try {
       const nextPage = page + 1;
-      // Only pass feedView for actual feed tabs (popular, following, latest)
       const isHomeFeedTab =
         activeTab === 'popular' || activeTab === 'following' || activeTab === 'latest';
 
@@ -217,7 +201,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     hasMore,
     loadMore,
     refresh: loadFeed,
-    restoredScrollPosition, // Return scroll position for FeedContent to restore
-    page, // Return current page for FeedContent to save
+    restoredScrollPosition,
+    page,
   };
 };

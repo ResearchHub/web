@@ -122,9 +122,6 @@ export function BountyHubSelector({
         }
     );
 
-  console.log('allHubs', allHubs);
-  console.log('topicsToHubs(allHubs)', topicsToHubs(allHubs));
-  console.log('hubsToOptions(topicsToHubs(allHubs))', hubsToOptions(topicsToHubs(allHubs)));
   const allHubOptions = hubsToOptions(topicsToHubs(allHubs));
 
   // Local search within allHubs

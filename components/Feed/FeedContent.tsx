@@ -14,28 +14,28 @@ import { getFeedKey } from '@/contexts/NavigationContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 
 interface FeedContentProps {
-  entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
+  entries: FeedEntry[];
   isLoading: boolean;
   hasMore: boolean;
   loadMore: () => void;
   header?: ReactNode;
   tabs?: ReactNode;
-  filters?: ReactNode; // New prop for source filters
-  disableCardLinks?: boolean; // Optional prop to disable all card links
-  activeTab?: FeedTab | FundingTab | string; // Add the activeTab prop as optional (supports FeedTab, FundingTab, and custom tabs like journal tabs)
-  showBountyFooter?: boolean; // Prop to control bounty item footer visibility
-  hideActions?: boolean; // Prop to control comment item actions visibility
+  filters?: ReactNode;
+  disableCardLinks?: boolean;
+  activeTab?: FeedTab | FundingTab | string;
+  showBountyFooter?: boolean;
+  hideActions?: boolean;
   isLoadingMore?: boolean;
-  showBountySupportAndCTAButtons?: boolean; // Show container for Support and CTA buttons for bounty items
-  showBountyDeadline?: boolean; // Show deadline in metadata line
-  noEntriesElement?: ReactNode; // Element to render if there are no entries
+  showBountySupportAndCTAButtons?: boolean;
+  showBountyDeadline?: boolean;
+  noEntriesElement?: ReactNode;
   maxLength?: number;
-  showGrantHeaders?: boolean; // Prop to control grant header visibility
-  showReadMoreCTA?: boolean; // Prop to control read more CTA visibility
-  experimentVariant?: string; // A/B test experiment variant
-  ordering?: string; // Feed ordering method
-  restoredScrollPosition?: number | null; // Scroll position to restore (from useFeed)
-  page?: number; // Current page number (to save in feed state)
+  showGrantHeaders?: boolean;
+  showReadMoreCTA?: boolean;
+  experimentVariant?: string;
+  ordering?: string;
+  restoredScrollPosition?: number | null;
+  page?: number;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -47,15 +47,15 @@ export const FeedContent: FC<FeedContentProps> = ({
   tabs,
   filters,
   disableCardLinks = false,
-  activeTab, // Destructure activeTab
-  showBountyFooter = true, // Default to true
+  activeTab,
+  showBountyFooter = true,
   hideActions = false,
   isLoadingMore = false,
-  showBountySupportAndCTAButtons = true, // Show container for Support and CTA buttons
-  showBountyDeadline = true, // Show deadline in metadata line
+  showBountySupportAndCTAButtons = true,
+  showBountyDeadline = true,
   noEntriesElement,
   maxLength,
-  showGrantHeaders = true, // Default to true
+  showGrantHeaders = true,
   showReadMoreCTA = false,
   experimentVariant,
   ordering,
@@ -65,7 +65,6 @@ export const FeedContent: FC<FeedContentProps> = ({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Set up intersection observer for infinite scrolling (must be called before any conditional returns)
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
     rootMargin: '100px',
@@ -77,7 +76,6 @@ export const FeedContent: FC<FeedContentProps> = ({
     queryParams[key] = value;
   });
 
-  // Handle all scroll tracking, restoration, and state saving
   const feedKey = getFeedKey({
     pathname,
     tab: activeTab,
@@ -93,10 +91,8 @@ export const FeedContent: FC<FeedContentProps> = ({
     activeTab,
   });
 
-  // Use entries directly (already restored by useFeed if applicable)
   const displayEntries = entries;
 
-  // Trigger load more when the sentinel element is in view
   useEffect(() => {
     if (inView && hasMore && !isLoading && !isLoadingMore) {
       loadMore();
@@ -113,7 +109,6 @@ export const FeedContent: FC<FeedContentProps> = ({
         {filters && <div className="py-3">{filters}</div>}
 
         <div className="mt-4">
-          {/* Render existing entries */}
           {displayEntries.length > 0 &&
             displayEntries.map((entry, index) => (
               <React.Fragment key={entry.id}>
@@ -137,11 +132,9 @@ export const FeedContent: FC<FeedContentProps> = ({
               </React.Fragment>
             ))}
 
-          {/* Show skeletons when loading (initial or load more) */}
           {isLoading && (
             <>
               {[...Array(3)].map((_, index) => (
-                // Add margin-top if it's not the very first skeleton overall (i.e., if there are entries or previous skeletons)
                 <div
                   key={`skeleton-${index}`}
                   className={index > 0 || displayEntries.length > 0 ? 'mt-12' : ''}
