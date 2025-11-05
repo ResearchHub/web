@@ -85,9 +85,10 @@ export class ListService {
     };
 
     return {
-      topAuthors: aggregateByField<TopAuthor>(lists, 'top_authors', 'count').map(
-        (item) => item.item
-      ),
+      topAuthors: aggregateByField<TopAuthor>(lists, 'top_authors', 'count').map((item) => ({
+        ...item.item,
+        count: item.count,
+      })),
       topCategories: aggregateByField<TopHub>(lists, 'top_hubs').map((item) => ({
         id: item.item.id,
         name: item.item.name,

@@ -2,6 +2,8 @@
 
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserList } from '@/hooks/useUserLists';
+import { useUserListsContext } from '@/contexts/UserListsContext';
+import { useListModals } from '@/hooks/useListModals';
 import { useRouter, useParams } from 'next/navigation';
 import { FeedEntryItem } from '@/components/Feed/FeedEntryItem';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
@@ -14,10 +16,7 @@ import { Input } from '@/components/ui/form/Input';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useState, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { ListService } from '@/services/list.service';
 import { ListsRightSidebar } from '../../../lists/components/ListsRightSidebar';
-import { toast } from 'react-hot-toast';
-import { extractApiErrorMessage } from '@/utils/apiError';
 import { formatItemCount } from '@/utils/listUtils';
 import { generateSlug, buildListUrl } from '@/utils/url';
 
@@ -28,6 +27,8 @@ export default function ListDetailPage() {
   const slug = params?.slug as string | undefined;
   const { list, items, isLoading, error, hasMore, loadMore, fetchList, removeItem } =
     useUserList(listId);
+  const { updateList, deleteList } = useUserListsContext();
+  const modals = useListModals();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const { ref: loadMoreRef, inView } = useInView({
@@ -51,53 +52,32 @@ export default function ListDetailPage() {
     }
   }, [list, slug, router]);
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [editListName, setEditListName] = useState('');
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleEditClick = () => {
-    if (list) {
-      setEditListName(list.name);
-      setIsEditModalOpen(true);
-    }
-  };
-
   const handleUpdateList = async () => {
-    if (!list || !editListName.trim()) return;
-    setIsUpdating(true);
+    if (!list || !modals.listName.trim()) return;
+    const newName = modals.listName.trim();
+    modals.setIsSubmitting(true);
     try {
-      await ListService.updateList(list.id, { name: editListName.trim() });
+      await updateList(list.id, { name: newName });
       await fetchList();
-      setIsEditModalOpen(false);
-      toast.success('List updated successfully');
-      const newSlug = generateSlug(editListName.trim());
+      const newSlug = generateSlug(newName);
+      modals.closeModals();
       router.replace(buildListUrl(list.id, newSlug));
     } catch (error) {
       console.error('Failed to update list:', error);
-      toast.error(extractApiErrorMessage(error, 'Failed to update list'));
-    } finally {
-      setIsUpdating(false);
+      modals.setIsSubmitting(false);
     }
-  };
-
-  const handleDeleteClick = () => {
-    setIsDeleteModalOpen(true);
   };
 
   const handleDeleteList = async () => {
     if (!list) return;
-    setIsDeleting(true);
+    modals.setIsSubmitting(true);
     try {
-      await ListService.deleteList(list.id);
-      toast.success('List deleted successfully');
+      await deleteList(list.id);
+      modals.closeModals();
       router.push('/lists');
     } catch (error) {
       console.error('Failed to delete list:', error);
-      toast.error('Failed to delete list');
-    } finally {
-      setIsDeleting(false);
+      modals.setIsSubmitting(false);
     }
   };
 
@@ -534,12 +514,15 @@ export default function ListDetailPage() {
                 }
                 align="end"
               >
-                <BaseMenuItem onClick={handleEditClick} className="flex items-center gap-2">
+                <BaseMenuItem
+                  onClick={() => list && modals.openEditModal(list)}
+                  className="flex items-center gap-2"
+                >
                   <Edit2 className="w-4 h-4" />
                   <span>Edit</span>
                 </BaseMenuItem>
                 <BaseMenuItem
-                  onClick={handleDeleteClick}
+                  onClick={() => list && modals.openDeleteModal(list)}
                   className="flex items-center gap-2 text-red-600"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -614,8 +597,8 @@ export default function ListDetailPage() {
       </div>
 
       <ListModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
+        isOpen={modals.isEditModalOpen}
+        onClose={modals.closeModals}
         title="Edit List"
         subtitle="Update your list name"
       >
@@ -623,27 +606,23 @@ export default function ListDetailPage() {
           <Input
             label="List Name"
             placeholder="Enter list name"
-            value={editListName}
-            onChange={(e) => setEditListName(e.target.value)}
+            value={modals.listName}
+            onChange={(e) => modals.setListName(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && editListName.trim()) {
+              if (e.key === 'Enter' && modals.listName.trim()) {
                 handleUpdateList();
               }
             }}
             autoFocus
           />
           <div className="flex justify-end gap-3 pt-4">
-            <Button
-              variant="outlined"
-              onClick={() => setIsEditModalOpen(false)}
-              disabled={isUpdating}
-            >
+            <Button variant="outlined" onClick={modals.closeModals} disabled={modals.isSubmitting}>
               Cancel
             </Button>
             <LoadingButton
               onClick={handleUpdateList}
-              disabled={!editListName.trim() || isUpdating}
-              isLoading={isUpdating}
+              disabled={!modals.listName.trim() || modals.isSubmitting}
+              isLoading={modals.isSubmitting}
               loadingText="Updating..."
             >
               Save Changes
@@ -653,8 +632,8 @@ export default function ListDetailPage() {
       </ListModal>
 
       <ListModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
+        isOpen={modals.isDeleteModalOpen}
+        onClose={modals.closeModals}
         title="Delete List"
         subtitle="This action cannot be undone"
       >
@@ -663,17 +642,13 @@ export default function ListDetailPage() {
             Are you sure you want to delete "{list.name}"? This action cannot be undone.
           </p>
           <div className="flex justify-end gap-3 pt-4">
-            <Button
-              variant="outlined"
-              onClick={() => setIsDeleteModalOpen(false)}
-              disabled={isDeleting}
-            >
+            <Button variant="outlined" onClick={modals.closeModals} disabled={modals.isSubmitting}>
               Cancel
             </Button>
             <LoadingButton
               onClick={handleDeleteList}
-              disabled={isDeleting}
-              isLoading={isDeleting}
+              disabled={modals.isSubmitting}
+              isLoading={modals.isSubmitting}
               loadingText="Deleting..."
               className="bg-red-600 hover:bg-red-700"
             >

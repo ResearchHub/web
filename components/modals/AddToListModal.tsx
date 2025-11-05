@@ -13,7 +13,6 @@ import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/utils/apiError';
 import { ListService } from '@/services/list.service';
-import { formatItemCount } from '@/utils/listUtils';
 
 interface AddToListModalProps {
   isOpen: boolean;
@@ -147,35 +146,28 @@ export function AddToListModal({
   };
 
   const handleRemoveFromList = async (listId: number, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent checkbox toggle
-    if (!preFetchedListDetails) return;
+    e.stopPropagation();
 
-    const list = preFetchedListDetails.find((l) => l.id === listId);
-    if (!list || !list.items) return;
+    const list = lists.find((l) => l.id === listId);
+    if (!list?.items) return;
 
     const docId =
       typeof unifiedDocumentId === 'string' ? parseInt(unifiedDocumentId) : unifiedDocumentId;
-    const item = list.items.find((i) => {
-      // Use unified_document_id from simplified structure
-      return i.unified_document_id === docId;
-    });
-    if (!item || !item.id) return;
+    const item = list.items.find((i) => i.unified_document_id === docId);
+    if (!item?.id) return;
 
     setRemovingListId(listId);
     try {
-      // Use the UserListItem ID (item.id), not the unified_document ID
       await ListService.removeItemFromList(listId, Number(item.id));
       toast.success(`Removed from "${list.name}"`);
 
-      // Uncheck the checkbox
       setSelectedListIds((prev) => {
         const newSet = new Set(prev);
         newSet.delete(listId);
         return newSet;
       });
 
-      // Refetch list details to update the UI
-      refetchLists(); // Refetch from user_check endpoint
+      refetchLists();
       onItemAdded?.();
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to remove item from list'));
@@ -286,15 +278,11 @@ export function AddToListModal({
                             />
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-gray-900">{list.name}</div>
-                              <div className="text-xs text-gray-500 mt-1">
-                                {list.items?.length || 0}{' '}
-                                {list.items?.length === 1 ? 'item' : 'items'}
-                                {isAlreadyInList && (
-                                  <span className="ml-2 text-green-600 font-medium">
-                                    • Already in list
-                                  </span>
-                                )}
-                              </div>
+                              {isAlreadyInList && (
+                                <div className="text-xs text-green-600 font-medium mt-1">
+                                  • Already in list
+                                </div>
+                              )}
                             </div>
                             {isAlreadyInList && (
                               <button
