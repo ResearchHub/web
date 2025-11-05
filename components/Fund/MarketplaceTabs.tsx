@@ -5,14 +5,18 @@ import { Tabs } from '@/components/ui/Tabs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
-import { Switch } from '@/components/ui/Switch';
 import { ChevronDown } from 'lucide-react';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { getSortOptions } from './lib/FundingFeedConfig';
 
 export type MarketplaceTab = 'grants' | 'needs-funding' | 'previously-funded';
-export type FundingSortOption = '' | 'upvotes' | 'most_applicants' | 'amount_raised';
+export type FundingSortOption =
+  | ''
+  | 'newest'
+  | 'best'
+  | 'upvotes'
+  | 'most_applicants'
+  | 'amount_raised';
 
 const getTabs = (isMobile: boolean) => [
   { id: 'grants' as const, label: isMobile ? 'RFPs' : 'Request for Proposals' },
@@ -32,8 +36,6 @@ interface MarketplaceTabsProps {
   disableTabs?: boolean;
   sortBy: FundingSortOption;
   onSortChange: (sort: FundingSortOption) => void;
-  includeEnded: boolean;
-  onIncludeEndedChange: (includeEnded: boolean) => void;
 }
 
 export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
@@ -42,8 +44,6 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
   disableTabs,
   sortBy,
   onSortChange,
-  includeEnded,
-  onIncludeEndedChange,
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -58,12 +58,21 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
     // If switching to previously-funded tab, clear all parameters
     if (tab === 'previously-funded') {
       // Also call onSortChange to update the parent component's state
-      onSortChange('');
-      // Call onIncludeEndedChange to update the parent component's state
-      onIncludeEndedChange(true);
+      onSortChange('newest');
       // Navigate without any query parameters
       router.push(TAB_ROUTES[tab]);
       onTabChange(tab);
+      return;
+    }
+
+    // If switching to grants tab with "best" or "newest" sort, reset to default (empty)
+    if (tab === 'grants' && (sortBy === 'best' || sortBy === 'newest')) {
+      onSortChange('');
+      onTabChange(tab);
+      const newParams = new URLSearchParams(searchParams.toString());
+      newParams.delete('ordering');
+      const queryString = newParams.toString();
+      router.push(queryString ? `${TAB_ROUTES[tab]}?${queryString}` : TAB_ROUTES[tab]);
       return;
     }
 
@@ -103,7 +112,7 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
             >
               {sortOptions.map(({ value, label: optionLabel, icon: OptionIcon }) => (
                 <BaseMenuItem
-                  key={value || 'newest'}
+                  key={value || 'default'}
                   onClick={() => onSortChange(value)}
                   className={sortBy === value ? 'bg-gray-100' : ''}
                 >
@@ -113,15 +122,6 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
                   </div>
                 </BaseMenuItem>
               ))}
-              <DropdownMenu.Separator className="my-1 h-px bg-gray-200" />
-              <BaseMenuItem className="flex items-center justify-between">
-                <span>{activeTab === 'grants' ? 'Include Closed' : 'Include Ended'}</span>
-                <Switch
-                  checked={includeEnded}
-                  onCheckedChange={onIncludeEndedChange}
-                  className="h-4 w-7 [&>span]:h-3 [&>span]:w-3 [&>span]:translate-x-0 [&[aria-checked=true]>span]:translate-x-3 ml-5"
-                />
-              </BaseMenuItem>
             </BaseMenu>
           )}
         </div>

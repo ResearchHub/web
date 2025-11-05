@@ -22,8 +22,8 @@ interface FundPageContentProps {
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const sortBy = (searchParams.get('ordering') as FundingSortOption) || '';
-  const includeEnded = searchParams.get('include_ended') !== 'false';
+  const defaultSort = marketplaceTab === 'needs-funding' ? 'best' : 'newest';
+  const sortBy = (searchParams.get('ordering') as FundingSortOption) || defaultSort;
   const TAB_CONFIG = createTabConfig(<GrantRightSidebar />, <FundRightSidebar />);
   const config = TAB_CONFIG[marketplaceTab];
 
@@ -37,24 +37,11 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  const handleIncludeEndedChange = (newIncludeEnded: boolean) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (newIncludeEnded) {
-      // Default is true, so we don't need to set the parameter
-      params.delete('include_ended');
-    } else {
-      // Only set parameter when explicitly excluding ended proposals
-      params.set('include_ended', 'false');
-    }
-    router.push(`?${params.toString()}`, { scroll: false });
-  };
-
   const { entries, isLoading, hasMore, loadMore, restoredScrollPosition, page } = useFeed('all', {
     contentType: config.contentType,
     endpoint: config.endpoint,
     fundraiseStatus: config.fundraiseStatus,
     ordering: sortBy || undefined,
-    includeEnded: includeEnded,
   });
 
   return (
@@ -69,8 +56,6 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
         onTabChange={() => {}}
         sortBy={sortBy}
         onSortChange={handleSortChange}
-        includeEnded={includeEnded}
-        onIncludeEndedChange={handleIncludeEndedChange}
       />
       <FeedContent
         entries={entries}

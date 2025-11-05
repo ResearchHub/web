@@ -60,7 +60,7 @@ export function NewUserOnboarding({
       {/* Header */}
       <div className="p-8 pb-4">
         <div className="text-center">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Feed Setup</h1>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Research areas</h1>
           <p className="text-gray-600">Select the research areas you'd like to see in your feed.</p>
         </div>
       </div>
@@ -208,11 +208,7 @@ export function OnboardingModalWrapper() {
           disabled={selectedTopicIds.length === 0 || isSaving}
           className="w-full bg-[#0153FF] text-white hover:bg-[#0142CC] disabled:bg-[#0153FF]/60 disabled:text-white/90"
         >
-          {isSaving
-            ? 'Setting up your feed...'
-            : selectedTopicIds.length === 0
-              ? 'Continue (0 of 1 selected)'
-              : `Continue (${selectedTopicIds.length} selected)`}
+          {isSaving ? 'Setting up your feed...' : 'Continue'}
         </Button>
       }
     >

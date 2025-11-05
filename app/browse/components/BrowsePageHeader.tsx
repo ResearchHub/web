@@ -31,7 +31,11 @@ export function BrowsePageHeader({
         <div className="flex flex-col lg:!flex-row gap-4 items-start lg:!items-center justify-between">
           <div className="w-full lg:!w-96 order-2 lg:!order-1">
             <TopicSearch
-              placeholder={activeTab === 'following' ? 'Search followed topics' : 'Search topics'}
+              placeholder={
+                activeTab === 'following'
+                  ? 'Filter followed topics'
+                  : 'Filter topics (AI, bioinformatics, etc.)'
+              }
               onSearch={onSearch}
               onSearchResults={onSearchResults}
               onSearching={onSearching}

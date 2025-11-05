@@ -9,6 +9,7 @@ export class FeedService {
   private static readonly BASE_PATH = '/api/feed';
   private static readonly FUNDING_PATH = '/api/funding_feed';
   private static readonly GRANT_PATH = '/api/grant_feed';
+  private static readonly PERSONALIZED_PATH = '/api/feed/personalized';
 
   static async getFeed(params?: {
     page?: number;
@@ -17,14 +18,15 @@ export class FeedService {
     hubSlug?: string;
     contentType?: string;
     source?: 'all' | 'researchhub';
-    endpoint?: 'feed' | 'funding_feed' | 'grant_feed';
+    endpoint?: 'feed' | 'funding_feed' | 'grant_feed' | 'personalized';
     fundraiseStatus?: 'OPEN' | 'CLOSED';
     grantId?: number;
     createdBy?: number;
     ordering?: string;
     hotScoreVersion?: 'v1' | 'v2';
     includeHotScoreBreakdown?: boolean;
-    includeEnded?: boolean;
+    filter?: string;
+    userId?: string;
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -50,8 +52,8 @@ export class FeedService {
 
     if (params?.hotScoreVersion) queryParams.append('hot_score_version', params.hotScoreVersion);
     if (params?.includeHotScoreBreakdown) queryParams.append('include_hot_score_breakdown', 'true');
-    if (params?.includeEnded !== undefined)
-      queryParams.append('include_ended', params.includeEnded.toString());
+    if (params?.filter) queryParams.append('filter', params.filter);
+    if (params?.userId) queryParams.append('user_id', params.userId);
 
     // Determine which endpoint to use
     const basePath =
@@ -59,7 +61,9 @@ export class FeedService {
         ? this.FUNDING_PATH
         : params?.endpoint === 'grant_feed'
           ? this.GRANT_PATH
-          : this.BASE_PATH;
+          : params?.endpoint === 'personalized'
+            ? this.PERSONALIZED_PATH
+            : this.BASE_PATH;
     const url = `${basePath}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
 
     try {

@@ -3,6 +3,49 @@ import { FeedContentType } from '@/types/feed';
 import { DocumentType } from '@/services/reaction.service';
 
 /**
+ * Django document type from API (src/researchhub_document/related_models/constants/document_type.py)
+ */
+export type ApiDocumentType =
+  | 'DISCUSSION'
+  | 'ELN'
+  | 'GRANT'
+  | 'NOTE'
+  | 'PAPER'
+  | 'QUESTION'
+  | 'PREREGISTRATION';
+
+/**
+ * Maps an API document type (from Django backend) to the client's ContentType (used in Work).
+ *
+ * @param documentType - The document type from the API
+ * @returns The corresponding ContentType, or undefined if no mapping exists
+ */
+export function mapApiDocumentTypeToClientType(
+  documentType?: ApiDocumentType
+): ContentType | undefined {
+  if (!documentType) {
+    return undefined;
+  }
+
+  switch (documentType) {
+    case 'PAPER':
+      return 'paper';
+    case 'PREREGISTRATION':
+      return 'preregistration';
+    case 'QUESTION':
+      return 'question';
+    case 'GRANT':
+      return 'funding_request';
+    case 'DISCUSSION':
+      return 'post';
+    case 'ELN':
+    case 'NOTE':
+    default:
+      return undefined;
+  }
+}
+
+/**
  * Maps a ContentType to the corresponding API endpoint path
  * @param contentType The content type from the application
  * @returns The document type for API calls
@@ -43,26 +86,4 @@ export function mapAppFeedContentTypeToApiType(contentType?: FeedContentType): D
     default:
       return 'researchhubpost';
   }
-}
-
-/**
- * Maps document types from the API to content types for URL building
- * @param documentType The document type from the API (e.g., 'GRANT', 'PREREGISTRATION', 'DISCUSSION')
- * @returns The corresponding content type for URL building
- */
-export function mapApiContentTypeToClientType(
-  documentType: string
-): 'paper' | 'post' | 'funding_request' | 'preregistration' {
-  const contentTypeMap: Record<string, 'paper' | 'post' | 'funding_request' | 'preregistration'> = {
-    GRANT: 'funding_request',
-    PREREGISTRATION: 'preregistration',
-    DISCUSSION: 'post',
-    ELN: 'post',
-    NOTE: 'post',
-    PAPER: 'paper',
-    QUESTION: 'post',
-    BOUNTY: 'post',
-    HYPOTHESIS: 'post',
-  };
-  return contentTypeMap[documentType] ?? 'post';
 }

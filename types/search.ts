@@ -1,6 +1,6 @@
 import { createTransformer, BaseTransformed } from './transformer';
 import { buildWorkUrl, buildAuthorUrl, buildTopicUrl } from '@/utils/url';
-import { mapApiContentTypeToClientType } from '@/utils/contentTypeMapping';
+import { mapApiDocumentTypeToClientType } from '@/utils/contentTypeMapping';
 import { AuthorProfile } from './authorProfile';
 import { ID } from './root';
 import { transformTopic } from './topic';
@@ -179,6 +179,7 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
 
       case 'post':
         const documentType = raw.document_type || raw.type;
+        const documentContentType = mapApiDocumentTypeToClientType(documentType);
 
         return {
           entityType: 'post',
@@ -187,10 +188,12 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
           source: raw.source || '',
           isRecent: false,
           documentType,
-          url: buildWorkUrl({
-            id: raw.id,
-            contentType: mapApiContentTypeToClientType(documentType),
-          }),
+          url: documentContentType
+            ? buildWorkUrl({
+                id: raw.id,
+                contentType: documentContentType,
+              })
+            : undefined,
         };
 
       case 'hub':

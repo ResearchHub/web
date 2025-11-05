@@ -6,7 +6,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { getFeedKey } from '@/contexts/NavigationContext';
 
-export type FeedTab = 'following' | 'latest' | 'popular';
+export type FeedTab = 'following' | 'latest' | 'popular' | 'for-you';
 export type FundingTab = 'all' | 'open' | 'closed';
 export type FeedSource = 'all' | 'researchhub';
 
@@ -14,13 +14,14 @@ interface UseFeedOptions {
   hubSlug?: string;
   contentType?: string;
   source?: FeedSource;
-  endpoint?: 'feed' | 'funding_feed' | 'grant_feed';
+  endpoint?: 'feed' | 'funding_feed' | 'grant_feed' | 'personalized';
   fundraiseStatus?: 'OPEN' | 'CLOSED';
   createdBy?: number;
   ordering?: string;
   hotScoreVersion?: 'v1' | 'v2';
   includeHotScoreBreakdown?: boolean;
-  includeEnded?: boolean;
+  filter?: string;
+  userId?: string;
   initialData?: {
     entries: FeedEntry[];
     hasMore: boolean;
@@ -121,7 +122,8 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       options.ordering !== currentOptions.ordering ||
       options.hotScoreVersion !== currentOptions.hotScoreVersion ||
       options.includeHotScoreBreakdown !== currentOptions.includeHotScoreBreakdown ||
-      options.includeEnded !== currentOptions.includeEnded;
+      options.filter !== currentOptions.filter ||
+      options.userId !== currentOptions.userId;
 
     if (relevantOptionsChanged) {
       setCurrentOptions(options);
@@ -149,7 +151,8 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         ordering: options.ordering,
         hotScoreVersion: options.hotScoreVersion,
         includeHotScoreBreakdown: options.includeHotScoreBreakdown,
-        includeEnded: options.includeEnded,
+        filter: options.filter,
+        userId: options.userId,
       });
       setEntries(result.entries);
       setHasMore(result.hasMore);
@@ -183,7 +186,8 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         ordering: options.ordering,
         hotScoreVersion: options.hotScoreVersion,
         includeHotScoreBreakdown: options.includeHotScoreBreakdown,
-        includeEnded: options.includeEnded,
+        filter: options.filter,
+        userId: options.userId,
       });
       setEntries((prev) => [...prev, ...result.entries]);
       setHasMore(result.hasMore);
