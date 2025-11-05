@@ -150,7 +150,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
           },
         ]
       : []),
-    ...(isModerator
+    ...(isModerator || isDebugMode
       ? [
           {
             id: 'for-you',
