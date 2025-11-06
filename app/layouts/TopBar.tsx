@@ -48,6 +48,7 @@ const isRootNavigationPage = (pathname: string): boolean => {
     '/following',
     '/latest',
     '/trending', // Home variants
+    '/for-you',
     '/earn',
     '/fund/grants',
     '/fund/needs-funding', // Fundraises page
@@ -63,7 +64,7 @@ const isRootNavigationPage = (pathname: string): boolean => {
 // Function to get page info based on current route
 const getPageInfo = (pathname: string): PageInfo | null => {
   // Homepage variants
-  if (['/', '/following', '/latest', '/trending'].includes(pathname)) {
+  if (['/', '/following', '/latest', '/trending', '/for-you'].includes(pathname)) {
     return {
       title: 'Explore',
       subtitle: 'Discover trending research, earning, and funding opportunities',
