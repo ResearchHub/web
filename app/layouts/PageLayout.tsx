@@ -223,7 +223,7 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
         {rightSidebar && (
           <aside
             ref={rightSidebarWrapperRef}
-            className="fixed top-16 right-0 h-[calc(100vh-64px)] overflow-hidden
+            className="fixed top-16 right-[14px] h-[calc(100vh-64px)] overflow-hidden
                       lg:!block !hidden right-sidebar:!block w-80 bg-white
                       z-30"
           >
