@@ -39,6 +39,20 @@ export default function ListDetailPage() {
     removeItem,
     updateListDetails,
   } = useUserList(listId, { onItemMutated: fetchLists });
+
+  // Create stats from the current list's data
+  const listStats = useMemo(() => {
+    if (!list) return null;
+    return {
+      topAuthors: list.top_authors || [],
+      topCategories: (list.top_hubs || []).map((hub) => ({
+        id: hub.id,
+        name: hub.name,
+        slug: hub.slug,
+        itemCount: 0, // Not needed for display
+      })),
+    };
+  }, [list]);
   const { showShareModal } = useShareModalContext();
   const modals = useListModals();
 
@@ -117,7 +131,7 @@ export default function ListDetailPage() {
   // Show loading while checking authentication
   if (isUserLoading) {
     return (
-      <PageLayout rightSidebar={<ListsRightSidebar />}>
+      <PageLayout rightSidebar={<ListsRightSidebar stats={listStats} isLoading={isLoading} />}>
         <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
@@ -134,7 +148,7 @@ export default function ListDetailPage() {
 
   if (isLoading) {
     return (
-      <PageLayout rightSidebar={<ListsRightSidebar />}>
+      <PageLayout rightSidebar={<ListsRightSidebar stats={listStats} isLoading={isLoading} />}>
         <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">
           <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -161,7 +175,7 @@ export default function ListDetailPage() {
 
   if (error || !list) {
     return (
-      <PageLayout rightSidebar={<ListsRightSidebar />}>
+      <PageLayout rightSidebar={<ListsRightSidebar stats={listStats} isLoading={isLoading} />}>
         <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">
           <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -180,7 +194,7 @@ export default function ListDetailPage() {
   }
 
   return (
-    <PageLayout rightSidebar={<ListsRightSidebar />}>
+    <PageLayout rightSidebar={<ListsRightSidebar stats={listStats} isLoading={isLoading} />}>
       <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">
         <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
           <div className="flex flex-row items-start justify-between gap-4">

@@ -9,7 +9,6 @@ import {
   TopAuthor,
   TopHub,
   TopCategory,
-  TopTopic,
   UserCheckResponse,
 } from '@/types/user-list';
 
@@ -93,11 +92,7 @@ export class ListService {
       topCategories: aggregateByField<TopHub>(lists, 'top_hubs').map((item) => ({
         id: item.item.id,
         name: item.item.name,
-        itemCount: item.count,
-      })),
-      topTopics: aggregateByField<any>(lists, 'top_topics', 'itemCount').map((item) => ({
-        id: item.item.id,
-        name: item.item.name || 'Unknown',
+        slug: item.item.slug,
         itemCount: item.count,
       })),
     };

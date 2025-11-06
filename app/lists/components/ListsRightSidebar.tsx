@@ -1,10 +1,13 @@
 'use client';
 
-import { ListStats, TopAuthor, TopCategory, TopTopic } from '@/types/user-list';
+import { ListStats, TopAuthor, TopCategory } from '@/types/user-list';
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { formatCount } from '@/utils/listUtils';
+import { Tags } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 
 const ListStatsSkeleton = () => (
   <div className="animate-pulse space-y-4">
@@ -27,9 +30,20 @@ const TopAuthorsSection = ({ authors, isLoading }: TopAuthorsSectionProps) => {
     return (
       <div>
         <div className="flex justify-between items-baseline mb-3">
-          <h2 className="font-semibold text-gray-900">Top Authors</h2>
+          <h2 className="font-semibold text-gray-900">Authors</h2>
         </div>
-        <ListStatsSkeleton />
+        <div className="space-y-3 animate-pulse">
+          {[...Array(5)].map((_, i) => (
+            <div
+              key={i}
+              className="grid grid-cols-[32px_40px_1fr] gap-x-3 items-center px-1 py-2 rounded-md"
+            >
+              <div className="w-8 h-8 bg-gray-200 rounded-md" />
+              <div className="w-8 h-8 bg-gray-200 rounded-full" />
+              <div className="h-4 bg-gray-200 rounded w-24" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -38,26 +52,48 @@ const TopAuthorsSection = ({ authors, isLoading }: TopAuthorsSectionProps) => {
     return null;
   }
 
+  const renderRank = (rank: number) => {
+    if (rank === 1) {
+      return (
+        <div className="relative w-8 h-8 flex items-center justify-center">
+          <FontAwesomeIcon icon={faWreathLaurel} className="text-yellow-500 text-2xl absolute" />
+          <span className="relative text-gray-600 text-[11px] font-bold z-10">1</span>
+        </div>
+      );
+    }
+    return (
+      <div className="relative w-8 h-8 flex items-center justify-center">
+        <span className="text-gray-600 text-sm font-semibold">{rank}</span>
+      </div>
+    );
+  };
+
   return (
     <div>
       <div className="flex justify-between items-baseline mb-3">
-        <h2 className="font-semibold text-gray-900">Top Authors</h2>
+        <h2 className="font-semibold text-gray-900">Authors</h2>
       </div>
       <div className="space-y-3">
-        {authors.slice(0, 5).map((author) => {
+        {authors.slice(0, 5).map((author, index) => {
           const authorName =
             author.full_name ||
             `${author.first_name || ''} ${author.last_name || ''}`.trim() ||
             'Unknown Author';
+          const rank = index + 1;
           return (
             <div
               key={author.id}
               onClick={() => navigateToAuthorProfile(author.id)}
-              className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+              className="grid grid-cols-[32px_40px_1fr] gap-x-2 items-center hover:bg-gray-50 px-1 py-2 rounded-md cursor-pointer"
             >
-              <Avatar size="sm" authorId={author.id} alt={authorName} />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900 truncate">{authorName}</div>
+              <div className="w-8 flex-shrink-0">{renderRank(rank)}</div>
+              <div className="w-10 flex-shrink-0 flex items-center">
+                <Avatar size="sm" authorId={author.id} alt={authorName} />
+              </div>
+              <div className="min-w-0 overflow-hidden">
+                <div className="text-sm font-medium text-gray-900 block whitespace-nowrap overflow-hidden">
+                  {authorName}
+                </div>
                 <div className="text-xs text-gray-500">{formatCount(author.count)}</div>
               </div>
             </div>
@@ -68,19 +104,24 @@ const TopAuthorsSection = ({ authors, isLoading }: TopAuthorsSectionProps) => {
   );
 };
 
-interface TopCategoriesSectionProps {
+interface TopicsSectionProps {
   categories: TopCategory[];
   isLoading: boolean;
 }
 
-const TopCategoriesSection = ({ categories, isLoading }: TopCategoriesSectionProps) => {
+const TopicsSection = ({ categories, isLoading }: TopicsSectionProps) => {
   if (isLoading) {
     return (
       <div>
-        <div className="flex justify-between items-baseline mb-3">
-          <h2 className="font-semibold text-gray-900">Top Categories</h2>
+        <div className="flex items-center space-x-2 mb-4">
+          <Tags className="h-6 w-6 text-gray-500" />
+          <h2 className="text-base font-semibold text-gray-900">Topics</h2>
         </div>
-        <ListStatsSkeleton />
+        <div className="animate-pulse flex flex-wrap gap-2">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-6 w-20 bg-gray-200 rounded-full"></div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -91,60 +132,18 @@ const TopCategoriesSection = ({ categories, isLoading }: TopCategoriesSectionPro
 
   return (
     <div>
-      <div className="flex justify-between items-baseline mb-3">
-        <h2 className="font-semibold text-gray-900">Top Categories</h2>
+      <div className="flex items-center space-x-2 mb-4">
+        <Tags className="h-6 w-6 text-gray-500" />
+        <h2 className="text-base font-semibold text-gray-900">Topics</h2>
       </div>
-      <div className="space-y-3">
-        {categories.slice(0, 5).map((category) => (
+      <div className="flex flex-wrap gap-2">
+        {categories.map((category) => (
           <Link
             key={category.id}
-            href={`/hub/${category.id}`}
-            className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+            href={`/topic/${category.slug}`}
+            className="flex items-center gap-1.5 rounded-full font-medium border transition-colors border-gray-200 bg-gray-50 hover:bg-gray-100 text-xs px-2 py-1 text-gray-700"
           >
-            <span className="text-sm text-gray-900">{category.name}</span>
-            <span className="text-xs text-gray-500">{category.itemCount}</span>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-interface TopTopicsSectionProps {
-  topics: TopTopic[];
-  isLoading: boolean;
-}
-
-const TopTopicsSection = ({ topics, isLoading }: TopTopicsSectionProps) => {
-  if (isLoading) {
-    return (
-      <div>
-        <div className="flex justify-between items-baseline mb-3">
-          <h2 className="font-semibold text-gray-900">Top Topics</h2>
-        </div>
-        <ListStatsSkeleton />
-      </div>
-    );
-  }
-
-  if (topics.length === 0) {
-    return null;
-  }
-
-  return (
-    <div>
-      <div className="flex justify-between items-baseline mb-3">
-        <h2 className="font-semibold text-gray-900">Top Topics</h2>
-      </div>
-      <div className="space-y-3">
-        {topics.slice(0, 5).map((topic) => (
-          <Link
-            key={topic.id}
-            href={`/topic/${topic.id}`}
-            className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-          >
-            <span className="text-sm text-gray-900">{topic.name}</span>
-            <span className="text-xs text-gray-500">{topic.itemCount}</span>
+            {category.name}
           </Link>
         ))}
       </div>
@@ -168,16 +167,7 @@ export function ListsRightSidebar({ stats, isLoading = false }: ListsRightSideba
         <>
           <div className="border-t border-gray-200"></div>
           <div className="bg-white rounded-lg p-4">
-            <TopCategoriesSection categories={stats?.topCategories || []} isLoading={isLoading} />
-          </div>
-        </>
-      )}
-
-      {(stats?.topTopics?.length || 0) > 0 && (
-        <>
-          <div className="border-t border-gray-200"></div>
-          <div className="bg-white rounded-lg p-4">
-            <TopTopicsSection topics={stats?.topTopics || []} isLoading={isLoading} />
+            <TopicsSection categories={stats?.topCategories || []} isLoading={isLoading} />
           </div>
         </>
       )}

@@ -7,7 +7,6 @@ export interface UserList {
   created_by?: number;
   top_authors?: TopAuthor[];
   top_hubs?: TopHub[];
-  top_topics?: TopTopic[];
   item_count?: number;
   items_count?: number;
 }
@@ -133,19 +132,13 @@ export interface TopHub {
 export interface TopCategory {
   id: number;
   name: string;
-  itemCount: number;
-}
-
-export interface TopTopic {
-  id: number;
-  name: string;
+  slug: string;
   itemCount: number;
 }
 
 export interface ListStats {
   topAuthors: TopAuthor[];
   topCategories: TopCategory[];
-  topTopics: TopTopic[];
 }
 
 export interface CreateListRequest {
