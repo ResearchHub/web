@@ -8,6 +8,7 @@ interface UserListsContextType {
   lists: UserList[];
   stats: ListStats | null;
   isLoading: boolean;
+  isLoadingMore: boolean;
   error: string | null;
   hasMore: boolean;
   loadMore: () => Promise<void>;

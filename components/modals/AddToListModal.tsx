@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { LoadingButton } from '@/components/ui/LoadingButton';
 import { ListModal } from './ListModal';
@@ -9,10 +9,11 @@ import { Checkbox } from '@/components/ui/form/Checkbox';
 import { useUserListsContext } from '@/contexts/UserListsContext';
 import { useIsInList } from '@/hooks/useIsInList';
 import { SimplifiedUserList } from '@/types/user-list';
-import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Plus, Trash2, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/utils/apiError';
 import { ListService } from '@/services/list.service';
+import { pluralizeSuffix } from '@/utils/stringUtils';
 
 interface AddToListModalProps {
   isOpen: boolean;
@@ -40,36 +41,49 @@ export function AddToListModal({
     listIds: listsContainingItem,
   } = useIsInList(isOpen ? unifiedDocumentId : null);
 
-  const { createList } = useUserListsContext();
+  const { createList, fetchLists } = useUserListsContext();
 
   const lists = preFetchedListDetails || checkLists;
   const listsLoading = preFetchedIsLoading ?? isLoadingCheckLists;
   const refetchLists = preFetchedRefetch || refetchCheckLists;
+
   const [selectedListIds, setSelectedListIds] = useState<Set<number>>(new Set());
   const [isAdding, setIsAdding] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [removingListId, setRemovingListId] = useState<number | null>(null);
+  const hasFetchedRef = useRef(false);
+
+  const refreshAllLists = useCallback(() => {
+    refetchLists();
+    fetchLists();
+  }, [refetchLists, fetchLists]);
+
+  const updateSelectedLists = useCallback((listId: number, add: boolean) => {
+    setSelectedListIds((prev) => {
+      const next = new Set(prev);
+      if (add) next.add(listId);
+      else next.delete(listId);
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
       setSelectedListIds(new Set(listsContainingItem));
+      if (!hasFetchedRef.current) {
+        refetchLists();
+        hasFetchedRef.current = true;
+      }
     } else {
       setSelectedListIds(new Set());
+      hasFetchedRef.current = false;
     }
-  }, [isOpen, listsContainingItem]);
+  }, [isOpen, listsContainingItem, refetchLists]);
 
   const handleToggleList = (listId: number, checked: boolean) => {
-    setSelectedListIds((prev) => {
-      const newSet = new Set(prev);
-      if (checked) {
-        newSet.add(listId);
-      } else {
-        newSet.delete(listId);
-      }
-      return newSet;
-    });
+    updateSelectedLists(listId, checked);
   };
 
   const handleAddToList = async () => {
@@ -77,46 +91,37 @@ export function AddToListModal({
 
     setIsAdding(true);
     const listIdsArray = Array.from(selectedListIds);
-    const selectedLists = lists.filter((l) => selectedListIds.has(l.id));
-
-    // Separate lists that already contain the item from those that don't
     const listsToAdd = listIdsArray.filter((id) => !listsContainingItem.has(id));
     const alreadyInLists = listIdsArray.filter((id) => listsContainingItem.has(id));
 
     try {
-      // Only add to lists that don't already contain the item
       const results = await Promise.allSettled(
         listsToAdd.map((listId) => ListService.addItemToList(listId, unifiedDocumentId))
       );
 
-      // Check for failures
       const failures = results.filter((r) => r.status === 'rejected');
       const successes = results.filter((r) => r.status === 'fulfilled');
 
-      // Build success message
       if (successes.length > 0) {
-        // If items were added, only show the "Added to" message
-        toast.success(`Added to ${successes.length} list${successes.length > 1 ? 's' : ''}`);
+        toast.success(`Added to ${successes.length} list${pluralizeSuffix(successes.length)}`);
       } else if (alreadyInLists.length > 0) {
-        // If nothing was added but items are already in lists, show "Already in" message
         toast.success(
-          `Already in ${alreadyInLists.length} list${alreadyInLists.length > 1 ? 's' : ''}`
+          `Already in ${alreadyInLists.length} list${pluralizeSuffix(alreadyInLists.length)}`
         );
       }
 
       if (failures.length > 0) {
-        // Some failed
         if (successes.length === 0 && alreadyInLists.length === 0) {
-          // All failed
           toast.error(extractApiErrorMessage(failures[0].reason, 'Failed to add item to lists'));
         } else {
-          // Some succeeded, some failed
-          toast.error(`Failed to add to ${failures.length} list${failures.length > 1 ? 's' : ''}`);
+          toast.error(
+            `Failed to add to ${failures.length} list${pluralizeSuffix(failures.length)}`
+          );
         }
       }
 
       onItemAdded?.();
-      refetchLists();
+      refreshAllLists();
       onClose();
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to add item to lists'));
@@ -132,12 +137,10 @@ export function AddToListModal({
     setIsCreating(true);
     try {
       const newList = await createList({ name: newListName.trim() });
-      // Automatically select the newly created list
-      setSelectedListIds((prev) => new Set(prev).add(newList.id));
+      updateSelectedLists(newList.id, true);
       setShowCreateForm(false);
       setNewListName('');
-      // Refetch lists from user_check endpoint to include the new list
-      refetchLists();
+      refreshAllLists();
     } catch (error) {
       console.error('Failed to create list:', error);
     } finally {
@@ -147,50 +150,39 @@ export function AddToListModal({
 
   const handleRemoveFromList = async (listId: number, e: React.MouseEvent) => {
     e.stopPropagation();
-
     const list = lists.find((l) => l.id === listId);
-    if (!list?.items) return;
-
-    const docId =
-      typeof unifiedDocumentId === 'string' ? parseInt(unifiedDocumentId) : unifiedDocumentId;
-    const item = list.items.find((i) => i.unified_document_id === docId);
-    if (!item?.id) return;
+    const item = list?.items?.find((i) => i.unified_document_id === unifiedDocumentId);
+    if (!item?.id || !list) return;
 
     setRemovingListId(listId);
     try {
-      await ListService.removeItemFromList(listId, Number(item.id));
+      await ListService.removeItemFromList(item.id);
       toast.success(`Removed from "${list.name}"`);
-
-      setSelectedListIds((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(listId);
-        return newSet;
-      });
-
-      refetchLists();
+      updateSelectedLists(listId, false);
+      refreshAllLists();
       onItemAdded?.();
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to remove item from list'));
-      console.error('Failed to remove item from list:', error);
     } finally {
       setRemovingListId(null);
     }
   };
 
-  // Sort lists to show those containing the item at the top
-  const sortedLists = useMemo(() => {
-    return [...lists].sort((a, b) => {
-      const aContainsItem = listsContainingItem.has(a.id);
-      const bContainsItem = listsContainingItem.has(b.id);
+  const sortedLists = useMemo(
+    () =>
+      lists.slice().sort((a, b) => {
+        const aIn = listsContainingItem.has(a.id);
+        const bIn = listsContainingItem.has(b.id);
+        return aIn === bIn ? 0 : aIn ? -1 : 1;
+      }),
+    [lists, listsContainingItem]
+  );
 
-      // Lists containing the item come first
-      if (aContainsItem && !bContainsItem) return -1;
-      if (!aContainsItem && bContainsItem) return 1;
-
-      // Otherwise maintain original order
-      return 0;
-    });
-  }, [lists, listsContainingItem]);
+  const newListsCount = useMemo(
+    () =>
+      Math.max(0, Array.from(selectedListIds).filter((id) => !listsContainingItem.has(id)).length),
+    [selectedListIds, listsContainingItem]
+  );
 
   return (
     <ListModal
@@ -279,8 +271,9 @@ export function AddToListModal({
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-gray-900">{list.name}</div>
                               {isAlreadyInList && (
-                                <div className="text-xs text-green-600 font-medium mt-1">
-                                  • Already in list
+                                <div className="text-xs text-green-600 font-medium mt-1 flex items-center gap-1">
+                                  <Check className="w-3 h-3" />
+                                  Already in list
                                 </div>
                               )}
                             </div>
@@ -324,13 +317,13 @@ export function AddToListModal({
           </Button>
           <LoadingButton
             onClick={handleAddToList}
-            disabled={selectedListIds.size === 0 || isAdding}
+            disabled={newListsCount === 0 || isAdding}
             isLoading={isAdding}
             loadingText="Adding..."
           >
-            {selectedListIds.size === 0
+            {newListsCount === 0
               ? 'Add to List'
-              : `Add to ${selectedListIds.size} List${selectedListIds.size > 1 ? 's' : ''}`}
+              : `Add to ${newListsCount} List${pluralizeSuffix(newListsCount)}`}
           </LoadingButton>
         </div>
       </div>

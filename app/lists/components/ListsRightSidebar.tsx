@@ -9,7 +9,7 @@ import { formatCount } from '@/utils/listUtils';
 const ListStatsSkeleton = () => (
   <div className="animate-pulse space-y-4">
     <div className="h-4 bg-gray-200 rounded w-32"></div>
-    <div className="space-y-2">
+    <div className="space-y-3">
       {[...Array(5)].map((_, i) => (
         <div key={i} className="h-8 bg-gray-200 rounded"></div>
       ))}
@@ -94,15 +94,16 @@ const TopCategoriesSection = ({ categories, isLoading }: TopCategoriesSectionPro
       <div className="flex justify-between items-baseline mb-3">
         <h2 className="font-semibold text-gray-900">Top Categories</h2>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-3">
         {categories.slice(0, 5).map((category) => (
-          <div
+          <Link
             key={category.id}
-            className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors"
+            href={`/hub/${category.id}`}
+            className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
           >
             <span className="text-sm text-gray-900">{category.name}</span>
             <span className="text-xs text-gray-500">{category.itemCount}</span>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
@@ -135,17 +136,15 @@ const TopTopicsSection = ({ topics, isLoading }: TopTopicsSectionProps) => {
       <div className="flex justify-between items-baseline mb-3">
         <h2 className="font-semibold text-gray-900">Top Topics</h2>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-3">
         {topics.slice(0, 5).map((topic) => (
           <Link
             key={topic.id}
             href={`/topic/${topic.id}`}
-            className="block p-2 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-900">{topic.name}</span>
-              <span className="text-xs text-gray-500">{topic.itemCount}</span>
-            </div>
+            <span className="text-sm text-gray-900">{topic.name}</span>
+            <span className="text-xs text-gray-500">{topic.itemCount}</span>
           </Link>
         ))}
       </div>

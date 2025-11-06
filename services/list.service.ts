@@ -4,13 +4,12 @@ import {
   UserListDetail,
   CreateListRequest,
   UpdateListRequest,
-  AddItemRequest,
   ListStats,
   UserListItem,
   TopAuthor,
   TopHub,
-  TopTopic,
   TopCategory,
+  TopTopic,
   UserCheckResponse,
 } from '@/types/user-list';
 
@@ -36,20 +35,22 @@ export class ListService {
   private static readonly BASE_PATH = '/api/user_list';
   private static readonly ITEM_BASE_PATH = '/api/user_list_item';
 
-  /**
-   * Fetch all lists for the current user
-   */
+  private static buildUrl(path: string, params?: Record<string, any>): string {
+    if (!params) return path;
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined) query.append(key === 'pageSize' ? 'page_size' : key, val.toString());
+    });
+    return query.toString() ? `${path}?${query}` : path;
+  }
+
   static async getUserLists(params?: {
     page?: number;
     pageSize?: number;
   }): Promise<PaginatedListResponse<UserList>> {
-    const queryParams = new URLSearchParams();
-    if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.pageSize) queryParams.append('page_size', params.pageSize.toString());
-
-    const url = `${this.BASE_PATH}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    const response = await ApiClient.get<ListApiResponse<UserList>>(url);
-
+    const response = await ApiClient.get<ListApiResponse<UserList>>(
+      this.buildUrl(`${this.BASE_PATH}/`, params)
+    );
     return {
       lists: response.results || [],
       hasMore: !!response.next,
@@ -94,7 +95,7 @@ export class ListService {
         name: item.item.name,
         itemCount: item.count,
       })),
-      topTopics: aggregateByField<any>(lists, 'top_topics').map((item) => ({
+      topTopics: aggregateByField<any>(lists, 'top_topics', 'itemCount').map((item) => ({
         id: item.item.id,
         name: item.item.name || 'Unknown',
         itemCount: item.count,
@@ -102,66 +103,37 @@ export class ListService {
     };
   }
 
-  /**
-   * Fetch a specific list by ID
-   */
   static async getListById(
     listId: number,
     params?: { page?: number; pageSize?: number }
   ): Promise<UserListDetail> {
-    const queryParams = new URLSearchParams();
-    if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.pageSize) queryParams.append('page_size', params.pageSize.toString());
-
-    const url = `${this.BASE_PATH}/${listId}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    const response = await ApiClient.get<UserListDetail>(url);
-
-    return response;
+    return ApiClient.get<UserListDetail>(this.buildUrl(`${this.BASE_PATH}/${listId}/`, params));
   }
 
-  /**
-   * Create a new list
-   */
   static async createList(data: CreateListRequest): Promise<UserList> {
-    return await ApiClient.post<UserList>(`${this.BASE_PATH}/`, data);
+    return ApiClient.post<UserList>(`${this.BASE_PATH}/`, data);
   }
 
-  /**
-   * Update a list name
-   */
   static async updateList(listId: number, data: UpdateListRequest): Promise<UserList> {
-    return await ApiClient.patch<UserList>(`${this.BASE_PATH}/${listId}/`, data);
+    return ApiClient.patch<UserList>(`${this.BASE_PATH}/${listId}/`, data);
   }
 
-  /**
-   * Delete a list
-   */
   static async deleteList(listId: number): Promise<void> {
-    await ApiClient.delete(`${this.BASE_PATH}/${listId}/`);
+    return ApiClient.delete(`${this.BASE_PATH}/${listId}/`);
   }
 
-  /**
-   * Add an item to a list
-   */
   static async addItemToList(listId: number, unifiedDocumentId: number): Promise<UserListItem> {
-    return await ApiClient.post<UserListItem>(`${this.ITEM_BASE_PATH}/`, {
+    return ApiClient.post<UserListItem>(`${this.ITEM_BASE_PATH}/`, {
       parent_list: listId,
       unified_document: unifiedDocumentId,
     });
   }
 
-  /**
-   * Remove an item from a list
-   */
-  static async removeItemFromList(listId: number, itemId: number): Promise<void> {
-    await ApiClient.delete(`${this.ITEM_BASE_PATH}/${itemId}/`);
+  static async removeItemFromList(itemId: number): Promise<void> {
+    return ApiClient.delete(`${this.ITEM_BASE_PATH}/${itemId}/`);
   }
 
-  /**
-   * Get simplified list data for checking if documents are in lists
-   * This is a lightweight endpoint for the green folder button and add to list modal
-   */
   static async getUserCheck(): Promise<UserCheckResponse> {
-    return await ApiClient.get<UserCheckResponse>(`${this.BASE_PATH}/user_check/`);
+    return ApiClient.get<UserCheckResponse>(`${this.BASE_PATH}/user_check/`);
   }
 }

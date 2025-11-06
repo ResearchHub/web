@@ -22,9 +22,18 @@ import { useShareModalContext } from '@/contexts/ShareContext';
 function ListsPageContent() {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useUser();
-  const { lists, stats, isLoading, error, hasMore, loadMore, createList, updateList, deleteList } =
-    useUserListsContext();
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const {
+    lists,
+    stats,
+    isLoading,
+    isLoadingMore,
+    error,
+    hasMore,
+    loadMore,
+    createList,
+    updateList,
+    deleteList,
+  } = useUserListsContext();
   const modals = useListModals();
   const { showShareModal } = useShareModalContext();
 
@@ -42,8 +51,7 @@ function ListsPageContent() {
 
   useEffect(() => {
     if (inView && hasMore && !isLoading && !isLoadingMore) {
-      setIsLoadingMore(true);
-      loadMore().finally(() => setIsLoadingMore(false));
+      loadMore();
     }
   }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
 
