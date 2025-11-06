@@ -129,7 +129,7 @@ export function OnboardingTopicSelector({
         {/* Header - only shown when scrolling */}
         {isScrolling && (
           <div className="mb-3">
-            <h2 className="text-md font-medium text-gray-900 text-left">Feed Setup</h2>
+            <h2 className="text-md font-medium text-gray-900 text-left">Research areas</h2>
           </div>
         )}
 

@@ -16,7 +16,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 const LeaderboardListSkeleton = () => (
   <div className="space-y-3 animate-pulse">
-    {[...Array(3)].map((_, i) => (
+    {[...Array(5)].map((_, i) => (
       <div
         key={i}
         className="grid grid-cols-[32px_40px_1fr_auto] gap-x-3 items-center px-1 py-2 rounded-md"
@@ -75,9 +75,9 @@ export const LeaderboardOverview = () => {
       setError(null);
       try {
         const data = await LeaderboardService.fetchLeaderboardOverview();
-        // Limit to top 3 for display
-        setReviewers(data.reviewers.slice(0, 3));
-        setFunders(data.funders.slice(0, 3));
+        // Limit to top 5 for display
+        setReviewers(data.reviewers.slice(0, 5));
+        setFunders(data.funders.slice(0, 5));
       } catch (err) {
         console.error('Failed to fetch leaderboard overview:', err);
         setError('Failed to load leaderboard data.');

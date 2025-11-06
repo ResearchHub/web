@@ -47,9 +47,6 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   // Get topics/tags for display
   const topics = paper.topics || [];
 
-  // Check if we're on the following feed
-  const isFollowingFeed = feedView === 'following';
-
   // Determine the badge type based on the paper's status
   const getPaperBadgeType = () => {
     return 'paper' as const;
@@ -82,6 +79,10 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   // Get journal logo if available
   const journalLogo = paper.journal?.name ? getSourceLogo(paper.journal.name) : null;
 
+  // Show journal badge on following and for-you feeds
+  const showJournalBadge = journalLogo && (feedView === 'following' || feedView === 'for-you');
+  const showPaperContentType = feedView !== 'following' && feedView !== 'for-you';
+
   return (
     <BaseFeedItem
       entry={entry}
@@ -105,9 +106,9 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         }
         leftContent={
           <>
-            {isFollowingFeed ? (
+            {showJournalBadge ? (
               <>
-                {/* Journal Badge - Only on following feed */}
+                {/* Journal Badge - On following and for-you feeds */}
                 {paper.journal && paper.journal.slug && (
                   <Link href={`/topic/${paper.journal.slug}`}>
                     <Badge
@@ -129,7 +130,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                     </Badge>
                   </Link>
                 )}
-                {/* Category Badge - Only on following feed */}
+                {/* Category Badge - On following and for-you feeds */}
                 {paper.category && paper.category.slug && (
                   <Link href={`/topic/${paper.category.slug}`}>
                     <Badge
@@ -140,7 +141,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                     </Badge>
                   </Link>
                 )}
-                {/* Subcategory Badge - Only on following feed */}
+                {/* Subcategory Badge - On following and for-you feeds */}
                 {paper.subcategory && paper.subcategory.slug && (
                   <Link href={`/topic/${paper.subcategory.slug}`}>
                     <Badge
@@ -154,8 +155,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               </>
             ) : (
               <>
-                {/* Default badges for non-following feeds */}
-                <ContentTypeBadge type={getPaperBadgeType()} />
+                {showPaperContentType && <ContentTypeBadge type={getPaperBadgeType()} />}
                 {topics.map((topic) => (
                   <TopicAndJournalBadge
                     key={topic.id || topic.slug}
@@ -195,8 +195,8 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               </div>
             </MetadataSection>
 
-            {/* Journal Link - Hide on following feed */}
-            {!isFollowingFeed && paper.journal && paper.journal.name && (
+            {/* Journal Link - Hide on following and for-you feeds */}
+            {!showJournalBadge && paper.journal && paper.journal.name && (
               <MetadataSection>
                 <div className="mb-3 text-sm text-gray-500 flex items-center gap-1.5">
                   <BookText className="w-4 h-4 text-gray-500" />

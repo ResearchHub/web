@@ -223,17 +223,17 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
         {rightSidebar && (
           <aside
             ref={rightSidebarWrapperRef}
-            className="fixed top-16 right-0 h-[calc(100vh-64px)] overflow-hidden
+            className="fixed top-16 right-0 h-[calc(100vh-64px)] overflow-y-auto
                       lg:!block !hidden right-sidebar:!block w-80 bg-white
                       z-30"
           >
             <div
               ref={rightSidebarRef}
               style={{ transform: `translateY(${sidebarTransform}px)` }}
-              className="transition-transform duration-150 ease-out h-full"
+              className="transition-transform duration-150 ease-out min-h-full"
             >
               {/* Sidebar Content */}
-              <div className="px-4 pt-4">
+              <div className="px-4 pt-4 pb-24">
                 <Suspense fallback={<RightSidebarSkeleton />}>
                   {pathname.startsWith('/paper/create') ? (
                     <RHJRightSidebar showBanner={false} />
