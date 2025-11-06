@@ -5,8 +5,8 @@ import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
 import { OnboardingModalWrapper } from '@/components/Onboarding/NewUserOnboarding';
-import { ScrollContainerProvider } from '@/contexts/ScrollContainerContext';
 import { cn } from '@/lib/utils';
+import { ScrollContainerProvider } from '@/contexts/ScrollContainerContext';
 // Dynamically import sidebar components
 const LeftSidebar = dynamic(() => import('./LeftSidebar').then((mod) => mod.LeftSidebar), {
   ssr: true,
