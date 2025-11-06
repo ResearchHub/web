@@ -32,11 +32,13 @@ function transformWorkMetadata(response: any): WorkMetadata {
   return {
     id: response.id,
     score: response.score,
-    topics: response.hubs.map((hub: any) => ({
-      id: hub.id,
-      name: hub.name,
-      slug: hub.slug,
-    })),
+    topics: response.hubs
+      .filter((hub: any) => hub.namespace !== 'journal')
+      .map((hub: any) => ({
+        id: hub.id,
+        name: hub.name,
+        slug: hub.slug,
+      })),
     metrics: {
       votes: response.score,
       comments: document.discussion_aggregates.discussion_count,
