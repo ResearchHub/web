@@ -1,6 +1,14 @@
 'use client';
 
-import { User as UserIcon, LogOut, BadgeCheck, Bell, Shield, UserPlus } from 'lucide-react';
+import {
+  User as UserIcon,
+  LogOut,
+  BadgeCheck,
+  Bell,
+  Shield,
+  UserPlus,
+  RefreshCw,
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
 import VerificationBanner from '@/components/banners/VerificationBanner';
@@ -16,7 +24,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@/components/ui/Button';
 import { useVerification } from '@/contexts/VerificationContext';
-
+import { handleOrcidSync } from '@/services/orcid.service';
 interface UserMenuProps {
   user: User;
   onViewProfile: () => void;
@@ -69,6 +77,11 @@ export default function UserMenu({
 
   const handleCloseMenu = () => {
     setMenuOpenState(false);
+  };
+
+  const onOrcidSync = async () => {
+    const navigating = !(await handleOrcidSync());
+    if (!navigating) setMenuOpenState(false);
   };
 
   // Apply different avatar size for avatar-only mode
@@ -233,7 +246,20 @@ export default function UserMenu({
             </div>
           </div>
         )}
-
+        <div
+          className="px-6 py-2 hover:bg-gray-50"
+          onClick={onOrcidSync}
+          tabIndex={0}
+          role="button"
+          aria-label="Sync Authorship"
+        >
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center">
+              <RefreshCw className="h-5 w-5 mr-3 text-gray-500" />
+              <span className="text-base text-gray-700">Sync Authorship</span>
+            </div>
+          </div>
+        </div>
         <div
           className="px-6 py-2 hover:bg-gray-50"
           onClick={() => AuthSharingService.signOutFromBothApps()}
@@ -397,7 +423,14 @@ export default function UserMenu({
                 </div>
               </BaseMenuItem>
             )}
-
+            <BaseMenuItem onClick={onOrcidSync} className="w-full px-4 py-2">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center">
+                  <RefreshCw className="h-4 w-4 mr-3 text-gray-500" />
+                  <span className="text-sm text-gray-700">Sync Authorship</span>
+                </div>
+              </div>
+            </BaseMenuItem>
             <BaseMenuItem
               onClick={() => AuthSharingService.signOutFromBothApps()}
               className="w-full px-4 py-2"
