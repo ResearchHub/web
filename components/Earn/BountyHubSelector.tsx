@@ -70,10 +70,10 @@ export function BountyHubSelector({
   }, []);
 
   // Populate missing names in selectedHubs when hubs are fetched
+  // This is needed when we restore topics from URL params (only IDs are stored)
   useEffect(() => {
     if (allHubs.length === 0) return;
 
-    // Populate missing names in selectedHubs by matching IDs with fetched hubs
     const hasMissingNames = selectedHubs.some((hub) => !hub.name || hub.name === '');
     if (hasMissingNames) {
       const populatedHubs = selectedHubs.map((hub) => {
@@ -94,7 +94,6 @@ export function BountyHubSelector({
         return hub;
       });
 
-      // Only update if we actually populated any names
       const anyChanged = populatedHubs.some((hub, index) => hub.name !== selectedHubs[index]?.name);
       if (anyChanged) {
         onChange(populatedHubs);

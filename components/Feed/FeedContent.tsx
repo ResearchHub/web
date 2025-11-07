@@ -36,6 +36,7 @@ interface FeedContentProps {
   ordering?: string;
   restoredScrollPosition?: number | null;
   page?: number;
+  lastClickedEntryId?: string;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -61,6 +62,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   ordering,
   restoredScrollPosition,
   page,
+  lastClickedEntryId,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -89,6 +91,7 @@ export const FeedContent: FC<FeedContentProps> = ({
     page,
     restoredScrollPosition,
     activeTab,
+    lastClickedEntryId,
   });
 
   const displayEntries = entries;
@@ -111,7 +114,7 @@ export const FeedContent: FC<FeedContentProps> = ({
         <div className="mt-4">
           {displayEntries.length > 0 &&
             displayEntries.map((entry, index) => (
-              <React.Fragment key={entry.id}>
+              <React.Fragment key={`${entry.id}-${index}`}>
                 <FeedEntryItem
                   entry={entry}
                   index={index}

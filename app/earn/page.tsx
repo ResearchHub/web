@@ -23,6 +23,7 @@ export default function EarnPage() {
     handleHubsChange,
     restoredScrollPosition,
     page,
+    lastClickedEntryId,
   } = useBounties();
 
   // Available sort options
@@ -99,6 +100,7 @@ export default function EarnPage() {
         showBountyFooter={false}
         restoredScrollPosition={restoredScrollPosition}
         page={page}
+        lastClickedEntryId={lastClickedEntryId ?? undefined}
       />
     </PageLayout>
   );

@@ -67,19 +67,25 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   // For 'for-you' tab, use 'personalized' endpoint
   const endpoint = defaultTab === 'for-you' ? 'personalized' : undefined;
 
-  const { entries, isLoading, hasMore, loadMore, refresh, restoredScrollPosition, page } = useFeed(
-    defaultTab,
-    {
-      source: sourceFilter,
-      initialData: initialFeedData,
-      hotScoreVersion,
-      includeHotScoreBreakdown: isDebugMode,
-      ordering,
-      filter: filterParam || undefined,
-      userId: userIdParam || undefined,
-      endpoint,
-    }
-  );
+  const {
+    entries,
+    isLoading,
+    hasMore,
+    loadMore,
+    refresh,
+    restoredScrollPosition,
+    page,
+    lastClickedEntryId,
+  } = useFeed(defaultTab, {
+    source: sourceFilter,
+    initialData: initialFeedData,
+    hotScoreVersion,
+    includeHotScoreBreakdown: isDebugMode,
+    ordering,
+    filter: filterParam || undefined,
+    userId: userIdParam || undefined,
+    endpoint,
+  });
 
   // Sync the activeTab with the defaultTab when the component mounts or defaultTab changes
   useEffect(() => {
@@ -255,9 +261,9 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
         activeTab={activeTab}
         experimentVariant={isInExperiment ? followingFeedExperiment : undefined}
         ordering={ordering}
-        filters={sourceFilters}
         restoredScrollPosition={restoredScrollPosition}
         page={page}
+        lastClickedEntryId={lastClickedEntryId ?? undefined}
       />
       <ManageTopicsModal
         isOpen={isManageTopicsModalOpen}

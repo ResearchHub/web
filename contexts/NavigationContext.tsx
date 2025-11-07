@@ -16,6 +16,7 @@ export interface StoredFeedState {
   timestamp: number;
   hasMore?: boolean;
   page?: number;
+  lastClickedEntryId?: string;
 }
 
 export interface FeedStateData {
@@ -29,7 +30,7 @@ export interface FeedStateData {
 const STORAGE_KEY = 'rh_feed_states';
 const MAX_TOTAL_ENTRIES = 200;
 const MAX_FEEDS = 2;
-const MIN_SCROLL_POSITION_TO_STORE = 500;
+const MIN_SCROLL_POSITION_TO_STORE = 10;
 
 /**
  * Generate unique key for feed identification
@@ -53,11 +54,12 @@ export const getFeedKey = (id: FeedIdentifier): string => {
 interface NavigationContextType {
   isBackNavigation: boolean;
   resetBackNavigation: () => void;
-  startTrackingFeed: () => void;
+  startTrackingFeed: (minScrollPosition?: number) => void;
   stopTrackingFeed: () => void;
   saveFeedState: (feedData: FeedStateData) => void;
   getFeedState: (feedKey: string) => StoredFeedState | null;
   clearFeedState: (feedKey: string) => void;
+  updateLastClickedEntryId: (entryId: string) => void;
 }
 
 const NavigationContext = createContext<NavigationContextType>({
@@ -68,11 +70,15 @@ const NavigationContext = createContext<NavigationContextType>({
   saveFeedState: () => {},
   getFeedState: () => null,
   clearFeedState: () => {},
+  updateLastClickedEntryId: () => {},
 });
 
 export function NavigationProvider({ children }: { children: React.ReactNode }) {
   const [isBackNavigation, setIsBackNavigation] = useState(false);
   const isTrackingRef = useRef(false);
+  const minScrollPositionRef = useRef<number>(MIN_SCROLL_POSITION_TO_STORE);
+  // Store last clicked entry IDs in context state (feedKey -> entryId)
+  const lastClickedEntryIdsRef = useRef<string | null>(null);
 
   useEffect(() => {
     const checkPerformanceAPI = () => {
@@ -117,8 +123,13 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
-  const startTrackingFeed = () => {
+  const startTrackingFeed = (minScrollPosition?: number) => {
     isTrackingRef.current = true;
+    if (minScrollPosition !== undefined) {
+      minScrollPositionRef.current = minScrollPosition;
+    } else {
+      minScrollPositionRef.current = MIN_SCROLL_POSITION_TO_STORE;
+    }
   };
 
   const stopTrackingFeed = () => {
@@ -126,50 +137,54 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   };
 
   const saveFeedState = (feedData: FeedStateData) => {
-    if (!isTrackingRef.current) {
-      return;
-    }
-
-    if (feedData.entries.length === 0) {
-      return;
-    }
-
-    const scrollPosition =
-      feedData.scrollPosition < MIN_SCROLL_POSITION_TO_STORE ? 0 : feedData.scrollPosition;
-    if (scrollPosition === 0) {
-      return;
-    }
-
     try {
       const allFeeds = getAllStoredFeeds();
 
-      if (feedData.entries.length > MAX_TOTAL_ENTRIES) {
-        if (allFeeds[feedData.feedKey]) {
-          delete allFeeds[feedData.feedKey];
-          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allFeeds));
-        }
+      // Remove existing feed data first (cleanup on unmount)
+      if (allFeeds[feedData.feedKey]) {
+        delete allFeeds[feedData.feedKey];
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allFeeds));
+      }
+
+      // If not tracking, don't save (already removed above)
+      if (!isTrackingRef.current) {
         return;
       }
 
+      // If no entries, don't save (already removed above)
+      if (feedData.entries.length === 0) {
+        return;
+      }
+
+      const minScrollPosition = minScrollPositionRef.current;
+      const scrollPosition =
+        feedData.scrollPosition < minScrollPosition ? 0 : feedData.scrollPosition;
+
+      // If scroll position is 0, don't save (already removed above)
+      if (scrollPosition === 0) {
+        return;
+      }
+
+      // If entries exceed max, don't save (already removed above)
+      if (feedData.entries.length > MAX_TOTAL_ENTRIES) {
+        return;
+      }
+
+      // Calculate available space
       const totalEntries = Object.values(allFeeds).reduce(
         (sum, feed) => sum + (feed.entries?.length || 0),
         0
       );
 
-      const isUpdatingExisting = !!allFeeds[feedData.feedKey];
-      const existingFeedEntries = isUpdatingExisting
-        ? allFeeds[feedData.feedKey]?.entries?.length || 0
-        : 0;
-
-      const availableSpace = MAX_TOTAL_ENTRIES - (totalEntries - existingFeedEntries);
+      const availableSpace = MAX_TOTAL_ENTRIES - totalEntries;
       const newFeedEntries = feedData.entries.length;
 
       if (newFeedEntries > availableSpace) {
-        const sortedFeeds = Object.entries(allFeeds)
-          .filter(([key]) => key !== feedData.feedKey)
-          .sort((a, b) => a[1].timestamp - b[1].timestamp);
+        const sortedFeeds = Object.entries(allFeeds).sort(
+          (a, b) => a[1].timestamp - b[1].timestamp
+        );
 
-        let currentTotal = totalEntries - existingFeedEntries;
+        let currentTotal = totalEntries;
 
         for (const [oldFeedKey, oldFeed] of sortedFeeds) {
           if (currentTotal + newFeedEntries <= MAX_TOTAL_ENTRIES) {
@@ -181,17 +196,14 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
 
         const finalAvailableSpace = MAX_TOTAL_ENTRIES - currentTotal;
         if (newFeedEntries > finalAvailableSpace) {
-          if (isUpdatingExisting && allFeeds[feedData.feedKey]) {
-            delete allFeeds[feedData.feedKey];
-          }
-
+          // Already removed above, just save the cleaned state
           sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allFeeds));
           return;
         }
       }
 
-      const feedKeys = Object.keys(allFeeds).filter((key) => key !== feedData.feedKey);
-      if (feedKeys.length >= MAX_FEEDS && !isUpdatingExisting) {
+      const feedKeys = Object.keys(allFeeds);
+      if (feedKeys.length >= MAX_FEEDS) {
         const sortedFeeds = feedKeys
           .map((key) => [key, allFeeds[key]] as [string, StoredFeedState])
           .sort((a, b) => a[1].timestamp - b[1].timestamp);
@@ -202,6 +214,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
         }
       }
 
+      // Save the feed data
       allFeeds[feedData.feedKey] = {
         feedKey: feedData.feedKey,
         entries: feedData.entries,
@@ -209,12 +222,20 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
         timestamp: Date.now(),
         hasMore: feedData.hasMore,
         page: feedData.page,
+        lastClickedEntryId: lastClickedEntryIdsRef.current ?? undefined,
       };
 
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allFeeds));
+
+      // Clear the ref after saving it to the feed entry
+      lastClickedEntryIdsRef.current = null;
     } catch (error) {
       // Silently fail - storage errors shouldn't break the app
     }
+  };
+
+  const updateLastClickedEntryId = (entryId: string) => {
+    lastClickedEntryIdsRef.current = entryId;
   };
 
   const getFeedState = (feedKey: string): StoredFeedState | null => {
@@ -248,6 +269,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
         saveFeedState,
         getFeedState,
         clearFeedState,
+        updateLastClickedEntryId,
       }}
     >
       {children}

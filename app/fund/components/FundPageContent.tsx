@@ -37,7 +37,15 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  const { entries, isLoading, hasMore, loadMore, restoredScrollPosition, page } = useFeed('all', {
+  const {
+    entries,
+    isLoading,
+    hasMore,
+    loadMore,
+    restoredScrollPosition,
+    page,
+    lastClickedEntryId,
+  } = useFeed('all', {
     contentType: config.contentType,
     endpoint: config.endpoint,
     fundraiseStatus: config.fundraiseStatus,
@@ -66,6 +74,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
         restoredScrollPosition={restoredScrollPosition}
         page={page}
         activeTab="all"
+        lastClickedEntryId={lastClickedEntryId ?? undefined}
       />
     </PageLayout>
   );

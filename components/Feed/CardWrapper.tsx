@@ -8,6 +8,7 @@ interface CardWrapperProps {
   className?: string;
   isClickable?: boolean;
   onClick?: () => void;
+  entryId?: string;
 }
 
 const defaultClassName =
@@ -15,12 +16,28 @@ const defaultClassName =
 const defaultHoverClassName =
   'group hover:shadow-md hover:border-indigo-100 transition-all duration-200 cursor-pointer';
 
+// Add styles for programmatic focus
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = `
+    .programmatic-focus {
+      outline: 2px solid rgb(59 130 246) !important;
+      outline-offset: 2px !important;
+    }
+  `;
+  if (!document.head.querySelector('style[data-programmatic-focus]')) {
+    style.setAttribute('data-programmatic-focus', 'true');
+    document.head.appendChild(style);
+  }
+}
+
 export const CardWrapper = ({
   href,
   children,
   className,
   isClickable = true,
   onClick,
+  entryId,
 }: CardWrapperProps) => {
   const router = useRouter();
 
@@ -80,7 +97,8 @@ export const CardWrapper = ({
   const wrapperClassName = cn(
     defaultClassName,
     isClickable && defaultHoverClassName,
-    href && 'focus:outline-2 focus:outline-blue-500 focus:outline-offset-2',
+    href &&
+      'focus:outline-2 focus:outline-blue-500 focus:outline-offset-2 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2',
     className
   );
 
@@ -93,6 +111,7 @@ export const CardWrapper = ({
       role="link"
       tabIndex={0}
       aria-label="View details"
+      data-entry-id={entryId ?? undefined}
     >
       {children}
     </div>

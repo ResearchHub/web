@@ -77,7 +77,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
   const [restoredScrollPosition, setRestoredScrollPosition] = useState<number | null>(
     restoredState?.scrollPosition ?? null
   );
-
+  const lastClickedEntryId = restoredState?.lastClickedEntryId ?? null;
   useEffect(() => {
     if (status === 'loading') {
       return;
@@ -207,5 +207,6 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     refresh: loadFeed,
     restoredScrollPosition,
     page,
+    lastClickedEntryId,
   };
 };
