@@ -196,6 +196,17 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
         sortBy: 'relevance',
       });
 
+      // If we get no new results, stop pagination
+      const hasNewResults =
+        currentTab === 'documents' ? response.entries.length > 0 : response.people.length > 0;
+
+      if (!hasNewResults) {
+        setHasMore(false);
+        setIsLoading(false);
+        isLoadingMoreRef.current = false;
+        return;
+      }
+
       if (currentTab === 'documents') {
         setEntries((prev) => [...prev, ...response.entries]);
       } else {
