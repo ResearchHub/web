@@ -31,16 +31,6 @@ export function Search({
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const hasPrefetchedRef = useRef(false);
-
-  const prefetchSearchRoute = () => {
-    if (!hasPrefetchedRef.current) {
-      try {
-        router.prefetch('/search');
-        hasPrefetchedRef.current = true;
-      } catch {}
-    }
-  };
 
   // Handle clicks outside the search component
   useEffect(() => {
@@ -129,17 +119,7 @@ export function Search({
           className="h-12 w-full rounded-lg border border-gray-300 bg-gray-50 pl-10 pr-10 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => {
-            setIsFocused(true);
-            prefetchSearchRoute();
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && query.trim()) {
-              e.preventDefault();
-              setIsFocused(false);
-              router.push(`/search?q=${encodeURIComponent(query.trim())}`);
-            }
-          }}
+          onFocus={() => setIsFocused(true)}
           // No blur handler to prevent dropdown from closing too early
         />
         {query && (
