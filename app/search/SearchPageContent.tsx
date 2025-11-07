@@ -131,14 +131,9 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
   });
 
   useEffect(() => {
-    if (!inView || !hasMore || isLoading) return;
-
-    // Small delay to prevent rapid-fire calls
-    const timeoutId = setTimeout(() => {
+    if (inView && hasMore && !isLoading) {
       loadMore();
-    }, 100);
-
-    return () => clearTimeout(timeoutId);
+    }
   }, [inView, hasMore, isLoading, loadMore]);
 
   // Show a blank page (no default search UI) if no query
