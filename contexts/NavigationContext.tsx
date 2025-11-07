@@ -13,24 +13,16 @@ export interface StoredFeedState {
   feedKey: string;
   entries: FeedEntry[];
   scrollPosition: number;
-  timestamp: number;
+  timestamp?: number; // Added automatically when saving
   hasMore?: boolean;
   page?: number;
-  lastClickedEntryId?: string;
-}
-
-export interface FeedStateData {
-  feedKey: string;
-  entries: FeedEntry[];
-  scrollPosition: number;
-  hasMore?: boolean;
-  page?: number;
+  lastClickedEntryId?: string; // Added automatically when saving
 }
 
 const STORAGE_KEY = 'rh_feed_states';
 const MAX_TOTAL_ENTRIES = 200;
 const MAX_FEEDS = 2;
-const MIN_SCROLL_POSITION_TO_STORE = 10;
+const MIN_SCROLL_POSITION_TO_STORE = 250;
 
 /**
  * Generate unique key for feed identification
@@ -56,7 +48,7 @@ interface NavigationContextType {
   resetBackNavigation: () => void;
   startTrackingFeed: (minScrollPosition?: number) => void;
   stopTrackingFeed: () => void;
-  saveFeedState: (feedData: FeedStateData) => void;
+  saveFeedState: (feedData: StoredFeedState) => void;
   getFeedState: (feedKey: string) => StoredFeedState | null;
   clearFeedState: (feedKey: string) => void;
   updateLastClickedEntryId: (entryId: string) => void;
@@ -136,7 +128,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
     isTrackingRef.current = false;
   };
 
-  const saveFeedState = (feedData: FeedStateData) => {
+  const saveFeedState = (feedData: StoredFeedState) => {
     try {
       const allFeeds = getAllStoredFeeds();
 
@@ -181,7 +173,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
 
       if (newFeedEntries > availableSpace) {
         const sortedFeeds = Object.entries(allFeeds).sort(
-          (a, b) => a[1].timestamp - b[1].timestamp
+          (a, b) => (a[1].timestamp ?? 0) - (b[1].timestamp ?? 0)
         );
 
         let currentTotal = totalEntries;
@@ -206,7 +198,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
       if (feedKeys.length >= MAX_FEEDS) {
         const sortedFeeds = feedKeys
           .map((key) => [key, allFeeds[key]] as [string, StoredFeedState])
-          .sort((a, b) => a[1].timestamp - b[1].timestamp);
+          .sort((a, b) => (a[1].timestamp ?? 0) - (b[1].timestamp ?? 0));
 
         if (sortedFeeds.length > 0) {
           const oldestKey = sortedFeeds[0][0];
@@ -216,13 +208,11 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
 
       // Save the feed data
       allFeeds[feedData.feedKey] = {
-        feedKey: feedData.feedKey,
-        entries: feedData.entries,
+        ...feedData,
         scrollPosition,
-        timestamp: Date.now(),
-        hasMore: feedData.hasMore,
-        page: feedData.page,
-        lastClickedEntryId: lastClickedEntryIdsRef.current ?? undefined,
+        timestamp: feedData.timestamp ?? Date.now(),
+        lastClickedEntryId:
+          feedData.lastClickedEntryId ?? lastClickedEntryIdsRef.current ?? undefined,
       };
 
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allFeeds));

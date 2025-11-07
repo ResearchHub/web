@@ -28,7 +28,6 @@ export const useBounties = () => {
 
   // Check for restored state synchronously before initializing state
   const restoredState = useMemo(() => {
-    // Build query params for feed key (inside useMemo to avoid recreating object)
     const queryParams: Record<string, string> = {
       sort: sortFromUrl,
     };
@@ -43,34 +42,18 @@ export const useBounties = () => {
       queryParams,
     });
 
-    console.log('[useBounties] Checking restored state', {
-      isBackNavigation,
-      pathname,
-      sortFromUrl,
-      hubsFromUrl,
-      feedKey,
-    });
-
     if (!isBackNavigation) {
       return null;
     }
 
     const savedState = getFeedState(feedKey);
     if (savedState) {
-      console.log('[useBounties] Found restored state', {
-        feedKey,
-        entriesCount: savedState.entries?.length || 0,
-        scrollPosition: savedState.scrollPosition,
-        lastClickedEntryId: savedState.lastClickedEntryId,
-      });
-      // Clear the state after using it
       clearFeedState(feedKey);
       return savedState;
     }
     return null;
   }, [isBackNavigation, pathname, getFeedState, clearFeedState, sortFromUrl, hubsFromUrl]);
 
-  // Use restored entries if available
   const initialEntries = restoredState?.entries || [];
   const initialHasMore = restoredState?.hasMore ?? false;
   const initialPage = restoredState?.page ?? 1;
@@ -97,7 +80,6 @@ export const useBounties = () => {
   useEffect(() => {
     const currentSort = searchParams.get('sort');
     if (!currentSort) {
-      // Set default sort in URL if missing
       const params = new URLSearchParams(searchParams.toString());
       params.set('sort', 'personalized');
       router.replace(`?${params.toString()}`, { scroll: false });
@@ -160,24 +142,7 @@ export const useBounties = () => {
   }, [searchParams]);
 
   const fetchBounties = async (reset = false, hubs: Hub[] = selectedHubs) => {
-    const timestamp = Date.now();
-    console.log('[useBounties] fetchBounties called', {
-      timestamp,
-      reset,
-      currentPage: reset ? 1 : page,
-      sort,
-      hubIds: hubs.map((h) => h.id),
-      hubCount: hubs.length,
-      currentEntriesCount: entries.length,
-      currentIsLoading: isLoading,
-    });
-
     if (reset) {
-      // Clear current bounties so skeleton loaders show instead of stale data
-      console.log('[useBounties] Clearing entries (reset=true)', {
-        timestamp,
-        previousEntriesCount: entries.length,
-      });
       setEntries([]);
     }
     setIsLoading(true);
@@ -195,18 +160,7 @@ export const useBounties = () => {
         hubIds: hubs.map((h) => h.id),
       });
 
-      console.log('[useBounties] fetchBounties result', {
-        entriesCount: result.entries.length,
-        hasMore: result.hasMore,
-        total: result.total,
-        reset,
-      });
-
       if (reset) {
-        console.log('[useBounties] Setting entries (reset=true)', {
-          timestamp,
-          newEntriesCount: result.entries.length,
-        });
         setEntries(result.entries);
       } else {
         setEntries((prev) => [...prev, ...result.entries]);
@@ -252,7 +206,6 @@ export const useBounties = () => {
     if (hubs.length > 0) {
       const hubIds = hubs.map((h) => String(h.id)).join(',');
       params.set('topics', hubIds);
-      // Track the URL param we're setting
       previousHubsParamRef.current = hubs
         .map((h) => String(h.id))
         .sort()
@@ -262,35 +215,16 @@ export const useBounties = () => {
       previousHubsParamRef.current = '';
     }
     router.replace(`?${params.toString()}`, { scroll: false });
-    // Reset pagination and fetch bounties based on new hubs selection
     setPage(1);
     fetchBounties(true, hubs);
   };
 
-  // Track entries changes for debugging
-  useEffect(() => {
-    console.log('[useBounties] entries state changed', {
-      entriesCount: entries.length,
-      isLoading,
-      hasMore,
-      page,
-      sort,
-      selectedHubsCount: selectedHubs.length,
-    });
-  }, [entries, isLoading, hasMore, page, sort, selectedHubs]);
-
-  // Update ref when selectedHubs changes
   useEffect(() => {
     selectedHubsRef.current = selectedHubs;
   }, [selectedHubs]);
 
-  // Trigger fetch when selectedHubs changes (from URL or user selection)
   useEffect(() => {
     if (selectedHubs.length > 0 && !hasInitialFetchRef.current && !hasRestoredEntries) {
-      console.log('[useBounties] Fetching bounties due to selectedHubs change', {
-        selectedHubsCount: selectedHubs.length,
-        hubIds: selectedHubs.map((h) => h.id),
-      });
       hasInitialFetchRef.current = true;
       setPage(1);
       fetchBounties(true, selectedHubs);
@@ -298,12 +232,6 @@ export const useBounties = () => {
   }, [selectedHubs, hasRestoredEntries]);
 
   const handleSortChange = (newSort: string) => {
-    console.log('[useBounties] handleSortChange called', {
-      oldSort: sort,
-      newSort,
-      currentEntriesCount: entries.length,
-    });
-    // Only update URL - the sync effect will update state from URL
     const params = new URLSearchParams(searchParams.toString());
     params.set('sort', newSort);
     router.replace(`?${params.toString()}`, { scroll: false });
@@ -313,43 +241,20 @@ export const useBounties = () => {
     fetchBounties();
   };
 
-  // Consolidated effect: handles initial load and sort changes
   useEffect(() => {
-    const timestamp = Date.now();
-    console.log('[useBounties] useEffect triggered [sort]', {
-      timestamp,
-      sort,
-      hasRestoredEntries,
-      entriesCount: entries.length,
-      hasInitialFetch: hasInitialFetchRef.current,
-      previousSort: previousSortRef.current,
-      hubsFromUrl,
-      selectedHubsCount: selectedHubs.length,
-      isLoading,
-      isFetching: isFetchingRef.current,
-    });
-
-    // If we restored entries from sessionStorage, mark as fetched and don't fetch
     if (hasRestoredEntries && entries.length > 0) {
       hasInitialFetchRef.current = true;
       previousSortRef.current = sort;
       return;
     }
 
-    // Skip if we're already fetching to prevent duplicate fetches
     if (isFetchingRef.current) {
-      console.log('[useBounties] Skipping fetch - already fetching', { timestamp });
       return;
     }
 
-    // Check if sort actually changed (not just initial mount)
     const sortChanged = previousSortRef.current !== sort;
 
-    // On initial load (first mount), fetch if we haven't already
-    // On sort change (after initial load), also fetch
-    // Use hubs from URL if available, otherwise use selectedHubs
     if (!hasInitialFetchRef.current || sortChanged) {
-      // Update previous sort before fetching to prevent duplicate fetches
       previousSortRef.current = sort;
 
       // If there are hubs in URL but selectedHubs is empty, create Hub objects from URL
@@ -360,13 +265,6 @@ export const useBounties = () => {
               name: '',
             }))
           : selectedHubs;
-
-      console.log('[useBounties] Fetching bounties due to sort change or initial load', {
-        timestamp,
-        sortChanged,
-        hubsToUseCount: hubsToUse.length,
-        hubIds: hubsToUse.map((h) => h.id),
-      });
 
       hasInitialFetchRef.current = true;
       isFetchingRef.current = true;
@@ -389,10 +287,8 @@ export const useBounties = () => {
         description: topic.description,
       };
       setSelectedHubs([newHub]);
-      // Update URL with topic ID
       const params = new URLSearchParams(searchParams.toString());
       params.set('topics', String(topic.id));
-      // Track the URL param we're setting
       previousHubsParamRef.current = String(topic.id);
       router.replace(`?${params.toString()}`, { scroll: false });
       setPage(1);
