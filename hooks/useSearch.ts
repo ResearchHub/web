@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { debounce } from 'lodash';
 import { SearchService } from '@/services/search.service';
 import { SearchResult } from '@/types/searchResult';
@@ -46,6 +46,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
   const [aggregations, setAggregations] = useState<SearchResponse['aggregations'] | null>(null);
   const [currentQuery, setCurrentQuery] = useState('');
   const [currentTab, setCurrentTab] = useState<'documents' | 'people'>('documents');
+  const isLoadingMoreRef = useRef(false);
 
   // Load preferences from localStorage
   const [filters, setFiltersState] = useState<SearchFilters>(() => {
@@ -138,6 +139,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
         return;
       }
 
+      isLoadingMoreRef.current = false; // Reset the ref for new search
       setIsLoading(true);
       setError(null);
       setCurrentQuery(query);
@@ -178,8 +180,9 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
   );
 
   const loadMore = useCallback(async () => {
-    if (!hasMore || isLoading || !currentQuery.trim()) return;
+    if (!hasMore || isLoading || !currentQuery.trim() || isLoadingMoreRef.current) return;
 
+    isLoadingMoreRef.current = true;
     setIsLoading(true);
     const nextPage = page + 1;
 
@@ -207,6 +210,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
       setError("We're experiencing issues loading more results. Please try again.");
     } finally {
       setIsLoading(false);
+      isLoadingMoreRef.current = false;
     }
   }, [hasMore, isLoading, currentQuery, page, filters, currentTab, options.pageSize]);
 
