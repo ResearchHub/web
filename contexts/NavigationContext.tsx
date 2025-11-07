@@ -13,10 +13,10 @@ export interface StoredFeedState {
   feedKey: string;
   entries: FeedEntry[];
   scrollPosition: number;
-  timestamp?: number; // Added automatically when saving
+  timestamp?: number;
   hasMore?: boolean;
   page?: number;
-  lastClickedEntryId?: string; // Added automatically when saving
+  lastClickedEntryId?: string;
 }
 
 const STORAGE_KEY = 'rh_feed_states';
@@ -69,8 +69,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   const [isBackNavigation, setIsBackNavigation] = useState(false);
   const isTrackingRef = useRef(false);
   const minScrollPositionRef = useRef<number>(MIN_SCROLL_POSITION_TO_STORE);
-  // Store last clicked entry IDs in context state (feedKey -> entryId)
-  const lastClickedEntryIdsRef = useRef<string | null>(null);
+  const lastClickedEntryIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const checkPerformanceAPI = () => {
@@ -138,12 +137,10 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allFeeds));
       }
 
-      // If not tracking, don't save (already removed above)
       if (!isTrackingRef.current) {
         return;
       }
 
-      // If no entries, don't save (already removed above)
       if (feedData.entries.length === 0) {
         return;
       }
@@ -152,12 +149,10 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
       const scrollPosition =
         feedData.scrollPosition < minScrollPosition ? 0 : feedData.scrollPosition;
 
-      // If scroll position is 0, don't save (already removed above)
       if (scrollPosition === 0) {
         return;
       }
 
-      // If entries exceed max, don't save (already removed above)
       if (feedData.entries.length > MAX_TOTAL_ENTRIES) {
         return;
       }
@@ -188,7 +183,6 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
 
         const finalAvailableSpace = MAX_TOTAL_ENTRIES - currentTotal;
         if (newFeedEntries > finalAvailableSpace) {
-          // Already removed above, just save the cleaned state
           sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allFeeds));
           return;
         }
@@ -212,20 +206,20 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
         scrollPosition,
         timestamp: feedData.timestamp ?? Date.now(),
         lastClickedEntryId:
-          feedData.lastClickedEntryId ?? lastClickedEntryIdsRef.current ?? undefined,
+          feedData.lastClickedEntryId ?? lastClickedEntryIdRef.current ?? undefined,
       };
 
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allFeeds));
 
       // Clear the ref after saving it to the feed entry
-      lastClickedEntryIdsRef.current = null;
+      lastClickedEntryIdRef.current = null;
     } catch (error) {
       // Silently fail - storage errors shouldn't break the app
     }
   };
 
   const updateLastClickedEntryId = (entryId: string) => {
-    lastClickedEntryIdsRef.current = entryId;
+    lastClickedEntryIdRef.current = entryId;
   };
 
   const getFeedState = (feedKey: string): StoredFeedState | null => {

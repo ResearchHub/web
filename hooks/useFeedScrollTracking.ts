@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
-import { getFeedKey } from '@/contexts/NavigationContext';
 import { FeedEntry } from '@/types/feed';
 
 interface UseFeedScrollTrackingOptions {
@@ -21,7 +20,6 @@ export const useFeedScrollTracking = ({
   hasMore,
   page,
   restoredScrollPosition,
-  activeTab,
   lastClickedEntryId,
 }: UseFeedScrollTrackingOptions) => {
   const pathname = usePathname();

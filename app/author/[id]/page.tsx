@@ -121,7 +121,7 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
   } = useContributions({
     contribution_type: contributionType,
     author_id: authorId,
-    activeTab: currentTab, // Pass activeTab for feed key generation
+    activeTab: currentTab,
   });
 
   // Filter out reviews from comments tab
@@ -142,7 +142,7 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
     lastClickedEntryId: lastClickedPublicationsEntryId,
   } = useAuthorPublications({
     authorId,
-    activeTab: currentTab, // Pass activeTab for feed key generation
+    activeTab: currentTab,
   });
 
   const handleTabChange = (tabId: string) => {

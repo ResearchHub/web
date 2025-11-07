@@ -90,7 +90,6 @@ export const FeedContent: FC<FeedContentProps> = ({
     hasMore,
     page,
     restoredScrollPosition,
-    activeTab,
     lastClickedEntryId,
   });
 
