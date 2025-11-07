@@ -165,10 +165,9 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                   prefetchSearchRoute();
                 }}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && query.trim()) {
+                  if (e.key === 'Enter' && e.shiftKey && query.trim()) {
                     e.preventDefault();
-                    // Navigate immediately for optimistic feedback
-                    router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+                    router.push(`/search?debug&q=${encodeURIComponent(query.trim())}`);
                     onClose();
                   }
                 }}
