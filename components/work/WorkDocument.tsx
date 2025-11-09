@@ -49,7 +49,6 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
 
   const { user } = useUser();
 
-  // Use hook to manage metadata counters
   const {
     openBounties,
     totalBountyAmount,

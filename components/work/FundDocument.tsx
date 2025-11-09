@@ -52,8 +52,6 @@ export const FundDocument = ({
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  // Use hook to manage metadata counters
-  // Pass authorUpdates.length as initialUpdateCount so it syncs when authorUpdates changes
   const {
     openBounties,
     totalBountyAmount,

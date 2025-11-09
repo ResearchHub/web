@@ -175,7 +175,6 @@ function CommentFeedContent({
               docTitle: work?.title || 'the document',
               action: 'USER_PEER_REVIEWED',
             });
-            // Notify parent about review creation
             onCommentCreated?.('REVIEW');
           } catch (reviewError) {
             console.error('Error creating community review:', reviewError);
@@ -185,7 +184,6 @@ function CommentFeedContent({
           }
         } else {
           toast.success('Comment submitted successfully!', { id: toastId });
-          // Notify parent about comment creation
           onCommentCreated?.(commentType || 'GENERIC_COMMENT');
         }
 
@@ -196,7 +194,7 @@ function CommentFeedContent({
         return false;
       }
     },
-    [commentType, createComment, unifiedDocumentId, work, showShareModal, onCommentCreated]
+    [commentType, createComment, unifiedDocumentId]
   );
 
   const handleLoadMore = useCallback(async () => {

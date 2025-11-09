@@ -32,7 +32,6 @@ export const PostDocument = ({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [parsedQuestionContent, setParsedQuestionContent] = useState<any>(null);
 
-  // Use hook to manage metadata counters
   const {
     openBounties,
     totalBountyAmount,

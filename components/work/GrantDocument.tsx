@@ -30,8 +30,6 @@ export const GrantDocument = ({
 }: GrantDocumentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
 
-  // Use hook to manage metadata counters
-  // Grants don't have bounties, but we still need counters for tabs
   const { bountyComments, reviewComments, conversationComments, handleCommentCreated } =
     useWorkMetadata(metadata);
 

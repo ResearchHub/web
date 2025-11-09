@@ -13,19 +13,15 @@ interface WorkMetadataState {
 }
 
 interface UseWorkMetadataReturn {
-  // Bounty-related state
   openBounties: number;
   totalBountyAmount: number;
   bountyComments: number;
-  // Comment counters
   reviewComments: number;
   conversationComments: number;
   updateComments: number;
-  // Callbacks to update when comments are created
   handleCommentCreated: (commentType: CommentType, bountyAmount?: number) => void;
 }
 
-// Action types
 enum WorkMetadataActionType {
   SYNC_METADATA = 'SYNC_METADATA',
   SYNC_UPDATE_COUNT = 'SYNC_UPDATE_COUNT',
@@ -35,7 +31,6 @@ enum WorkMetadataActionType {
   CREATE_UPDATE = 'CREATE_UPDATE',
 }
 
-// Action interfaces
 interface SyncMetadataAction {
   type: WorkMetadataActionType.SYNC_METADATA;
   payload: WorkMetadata;
@@ -71,7 +66,6 @@ type WorkMetadataAction =
   | CreateCommentAction
   | CreateUpdateAction;
 
-// Initial state factory
 const createInitialState = (
   metadata: WorkMetadata,
   initialUpdateCount: number = 0
@@ -84,7 +78,6 @@ const createInitialState = (
   updateComments: initialUpdateCount,
 });
 
-// Reducer function
 function workMetadataReducer(
   state: WorkMetadataState,
   action: WorkMetadataAction
@@ -93,7 +86,7 @@ function workMetadataReducer(
     case WorkMetadataActionType.SYNC_METADATA:
       return {
         ...createInitialState(action.payload, state.updateComments),
-        updateComments: state.updateComments, // Preserve update count
+        updateComments: state.updateComments,
       };
 
     case WorkMetadataActionType.SYNC_UPDATE_COUNT:
@@ -133,12 +126,6 @@ function workMetadataReducer(
   }
 }
 
-/**
- * Hook to manage work metadata counters with optimistic updates using reducer
- * @param metadata The initial metadata from server
- * @param initialUpdateCount Optional initial count for author updates (defaults to 0)
- * @returns Local state for counters and callback to update when comments are created
- */
 export function useWorkMetadata(
   metadata: WorkMetadata,
   initialUpdateCount: number = 0
@@ -148,7 +135,6 @@ export function useWorkMetadata(
     createInitialState(metadata, initialUpdateCount)
   );
 
-  // Sync state when metadata prop changes (e.g., after router.refresh)
   useEffect(() => {
     dispatch({
       type: WorkMetadataActionType.SYNC_METADATA,
@@ -156,7 +142,6 @@ export function useWorkMetadata(
     });
   }, [metadata]);
 
-  // Sync update count when initialUpdateCount changes (e.g., when authorUpdates prop changes)
   useEffect(() => {
     dispatch({
       type: WorkMetadataActionType.SYNC_UPDATE_COUNT,
@@ -164,7 +149,6 @@ export function useWorkMetadata(
     });
   }, [initialUpdateCount]);
 
-  // Handle comment creation - update counters based on comment type
   const handleCommentCreated = useCallback((commentType: CommentType, bountyAmount?: number) => {
     switch (commentType) {
       case 'BOUNTY':
@@ -211,5 +195,4 @@ export function useWorkMetadata(
   };
 }
 
-// Export WorkMetadataAction type for use in components
 export type { WorkMetadataAction };
