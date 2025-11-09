@@ -24,47 +24,23 @@ interface UseWorkMetadataReturn {
 
 enum WorkMetadataActionType {
   SYNC_METADATA = 'SYNC_METADATA',
-  SYNC_UPDATE_COUNT = 'SYNC_UPDATE_COUNT',
-  CREATE_BOUNTY = 'CREATE_BOUNTY',
-  CREATE_REVIEW = 'CREATE_REVIEW',
   CREATE_COMMENT = 'CREATE_COMMENT',
-  CREATE_UPDATE = 'CREATE_UPDATE',
 }
 
 interface SyncMetadataAction {
   type: WorkMetadataActionType.SYNC_METADATA;
-  payload: WorkMetadata;
-}
-
-interface CreateBountyAction {
-  type: WorkMetadataActionType.CREATE_BOUNTY;
-  payload: { bountyAmount: number };
-}
-
-interface CreateReviewAction {
-  type: WorkMetadataActionType.CREATE_REVIEW;
+  payload: WorkMetadata & { updateCount?: number };
 }
 
 interface CreateCommentAction {
   type: WorkMetadataActionType.CREATE_COMMENT;
+  payload: {
+    commentType: CommentType;
+    bountyAmount?: number;
+  };
 }
 
-interface CreateUpdateAction {
-  type: WorkMetadataActionType.CREATE_UPDATE;
-}
-
-interface SyncUpdateCountAction {
-  type: WorkMetadataActionType.SYNC_UPDATE_COUNT;
-  payload: { count: number };
-}
-
-type WorkMetadataAction =
-  | SyncMetadataAction
-  | SyncUpdateCountAction
-  | CreateBountyAction
-  | CreateReviewAction
-  | CreateCommentAction
-  | CreateUpdateAction;
+type WorkMetadataAction = SyncMetadataAction | CreateCommentAction;
 
 const createInitialState = (
   metadata: WorkMetadata,
@@ -83,43 +59,49 @@ function workMetadataReducer(
   action: WorkMetadataAction
 ): WorkMetadataState {
   switch (action.type) {
-    case WorkMetadataActionType.SYNC_METADATA:
-      return {
-        ...createInitialState(action.payload, state.updateComments),
-        updateComments: state.updateComments,
-      };
+    case WorkMetadataActionType.SYNC_METADATA: {
+      const { updateCount, ...metadata } = action.payload;
+      return createInitialState(metadata, updateCount ?? state.updateComments);
+    }
 
-    case WorkMetadataActionType.SYNC_UPDATE_COUNT:
-      return {
-        ...state,
-        updateComments: action.payload.count,
-      };
+    case WorkMetadataActionType.CREATE_COMMENT: {
+      const { commentType, bountyAmount } = action.payload;
 
-    case WorkMetadataActionType.CREATE_BOUNTY:
-      return {
-        ...state,
-        openBounties: state.openBounties + 1,
-        totalBountyAmount: state.totalBountyAmount + action.payload.bountyAmount,
-        bountyComments: state.bountyComments + 1,
-      };
+      switch (commentType) {
+        case 'BOUNTY':
+          if (bountyAmount !== undefined) {
+            return {
+              ...state,
+              openBounties: state.openBounties + 1,
+              totalBountyAmount: state.totalBountyAmount + bountyAmount,
+              bountyComments: state.bountyComments + 1,
+            };
+          }
+          return state;
 
-    case WorkMetadataActionType.CREATE_REVIEW:
-      return {
-        ...state,
-        reviewComments: state.reviewComments + 1,
-      };
+        case 'REVIEW':
+          return {
+            ...state,
+            reviewComments: state.reviewComments + 1,
+          };
 
-    case WorkMetadataActionType.CREATE_COMMENT:
-      return {
-        ...state,
-        conversationComments: state.conversationComments + 1,
-      };
+        case 'GENERIC_COMMENT':
+        case 'ANSWER':
+          return {
+            ...state,
+            conversationComments: state.conversationComments + 1,
+          };
 
-    case WorkMetadataActionType.CREATE_UPDATE:
-      return {
-        ...state,
-        updateComments: state.updateComments + 1,
-      };
+        case 'AUTHOR_UPDATE':
+          return {
+            ...state,
+            updateComments: state.updateComments + 1,
+          };
+
+        default:
+          return state;
+      }
+    }
 
     default:
       return state;
@@ -138,50 +120,15 @@ export function useWorkMetadata(
   useEffect(() => {
     dispatch({
       type: WorkMetadataActionType.SYNC_METADATA,
-      payload: metadata,
+      payload: { ...metadata, updateCount: initialUpdateCount },
     });
-  }, [metadata]);
-
-  useEffect(() => {
-    dispatch({
-      type: WorkMetadataActionType.SYNC_UPDATE_COUNT,
-      payload: { count: initialUpdateCount },
-    });
-  }, [initialUpdateCount]);
+  }, [metadata, initialUpdateCount]);
 
   const handleCommentCreated = useCallback((commentType: CommentType, bountyAmount?: number) => {
-    switch (commentType) {
-      case 'BOUNTY':
-        if (bountyAmount !== undefined) {
-          dispatch({
-            type: WorkMetadataActionType.CREATE_BOUNTY,
-            payload: { bountyAmount },
-          });
-        }
-        break;
-
-      case 'REVIEW':
-        dispatch({
-          type: WorkMetadataActionType.CREATE_REVIEW,
-        });
-        break;
-
-      case 'GENERIC_COMMENT':
-      case 'ANSWER':
-        dispatch({
-          type: WorkMetadataActionType.CREATE_COMMENT,
-        });
-        break;
-
-      case 'AUTHOR_UPDATE':
-        dispatch({
-          type: WorkMetadataActionType.CREATE_UPDATE,
-        });
-        break;
-
-      default:
-        break;
-    }
+    dispatch({
+      type: WorkMetadataActionType.CREATE_COMMENT,
+      payload: { commentType, bountyAmount },
+    });
   }, []);
 
   return {
