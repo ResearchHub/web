@@ -34,6 +34,7 @@ interface CommentFeedProps {
   unifiedDocumentId: number | null;
   work?: Work;
   workAuthors?: Work['authors'];
+  onCommentCreated?: (commentType: CommentType, bountyAmount?: number) => void;
 }
 
 function CommentFeed({
@@ -48,6 +49,7 @@ function CommentFeed({
   unifiedDocumentId,
   work,
   workAuthors,
+  onCommentCreated,
 }: CommentFeedProps) {
   // Add debugging for mount/unmount if debug is enabled
   useEffect(() => {
@@ -90,12 +92,16 @@ function CommentFeed({
           unifiedDocumentId={unifiedDocumentId}
           work={work}
           workAuthors={workAuthors}
+          onCommentCreated={onCommentCreated}
         />
       </div>
       <CreateBountyModal
         isOpen={isBountyModalOpen}
         onClose={handleCloseBountyModal}
         workId={documentId.toString()}
+        onBountyCreated={(bountyAmount) => {
+          onCommentCreated?.('BOUNTY', bountyAmount);
+        }}
       />
     </CommentProvider>
   );
@@ -114,7 +120,11 @@ function CommentFeedContent({
   onCreateBounty,
   work,
   workAuthors,
-}: Omit<CommentFeedProps, 'documentId'> & { onCreateBounty: () => void }) {
+  onCommentCreated,
+}: Omit<CommentFeedProps, 'documentId'> & {
+  onCreateBounty: () => void;
+  onCommentCreated?: (commentType: CommentType, bountyAmount?: number) => void;
+}) {
   // Add debugging for content component if debug is enabled
   useEffect(() => {
     if (debug) {
@@ -165,6 +175,8 @@ function CommentFeedContent({
               docTitle: work?.title || 'the document',
               action: 'USER_PEER_REVIEWED',
             });
+            // Notify parent about review creation
+            onCommentCreated?.('REVIEW');
           } catch (reviewError) {
             console.error('Error creating community review:', reviewError);
             toast.success('Comment submitted, but review data could not be saved.', {
@@ -173,6 +185,8 @@ function CommentFeedContent({
           }
         } else {
           toast.success('Comment submitted successfully!', { id: toastId });
+          // Notify parent about comment creation
+          onCommentCreated?.(commentType || 'GENERIC_COMMENT');
         }
 
         return true;
@@ -182,7 +196,7 @@ function CommentFeedContent({
         return false;
       }
     },
-    [commentType, createComment]
+    [commentType, createComment, unifiedDocumentId, work, showShareModal, onCommentCreated]
   );
 
   const handleLoadMore = useCallback(async () => {

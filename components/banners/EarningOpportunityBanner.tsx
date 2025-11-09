@@ -4,28 +4,28 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
-import { calculateOpenBountiesAmount } from '@/components/Bounty/lib/bountyUtil';
 import { buildWorkUrl } from '@/utils/url';
 import { useRouter } from 'next/navigation';
 import { Work } from '@/types/work';
-import { WorkMetadata } from '@/services/metadata.service';
 
 interface EarningOpportunityBannerProps {
   work: Work;
-  metadata: WorkMetadata;
+  openBounties: number;
+  totalBountyAmount: number;
   onViewBounties?: () => void;
 }
 
 export const EarningOpportunityBanner = ({
   work,
-  metadata,
+  openBounties,
+  totalBountyAmount,
   onViewBounties,
 }: EarningOpportunityBannerProps) => {
   const { showUSD } = useCurrencyPreference();
   const router = useRouter();
 
   // Don't show banner if no open bounties
-  if (!metadata.bounties || metadata.openBounties === 0) {
+  if (openBounties === 0) {
     return null;
   }
 
@@ -60,7 +60,7 @@ export const EarningOpportunityBanner = ({
                 <h2 className="text-sm font-medium text-orange-700">
                   <span className="flex flex-wrap items-baseline gap-x-1">
                     <CurrencyBadge
-                      amount={calculateOpenBountiesAmount(metadata.bounties)}
+                      amount={totalBountyAmount}
                       variant="text"
                       size="sm"
                       currency={showUSD ? 'USD' : 'RSC'}
@@ -83,7 +83,7 @@ export const EarningOpportunityBanner = ({
               onClick={handleViewBounties}
               size="default"
               className="bg-orange-400 hover:bg-orange-500 text-white focus-visible:ring-orange-400 whitespace-nowrap group w-full min-[650px]:!w-auto flex-shrink-0"
-              aria-label={`View ${metadata.openBounties} available ${metadata.openBounties === 1 ? 'bounty' : 'bounties'}`}
+              aria-label={`View ${openBounties} available ${openBounties === 1 ? 'bounty' : 'bounties'}`}
             >
               View Bounties
               <span

@@ -23,7 +23,6 @@ import { SessionProvider } from 'next-auth/react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useStorageKey } from '@/utils/storageKeys';
 import { extractUserMentions } from '@/components/Comment/lib/commentUtils';
-import { useRouter } from 'next/navigation';
 
 type Step = 'details' | 'payment';
 type BountyLength = '14' | '30' | '60' | 'custom';
@@ -42,7 +41,7 @@ interface BountyLengthOption {
 
 interface BountyFormProps {
   workId?: string;
-  onSubmitSuccess?: () => void;
+  onSubmitSuccess?: (bountyAmount: number) => void;
   className?: string;
 }
 
@@ -213,7 +212,6 @@ const SessionAwareCommentEditor = (props: CommentEditorProps) => {
 export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormProps) {
   const { user } = useUser();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
-  const router = useRouter();
 
   const [step, setStep] = useState<Step>('details');
   const [selectedPaper, setSelectedPaper] = useState<SelectedPaper | null>(null);
@@ -324,7 +322,7 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
 
       if (createdComment) {
         toast.success('Bounty created successfully!', { id: toastId });
-        onSubmitSuccess?.();
+        onSubmitSuccess?.(rscAmount);
       } else {
         toast.error('Failed to create bounty. Please try again.', { id: toastId });
       }
@@ -332,7 +330,6 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
       console.error('Failed to create bounty:', error);
       toast.error('Failed to create bounty. Please try again.', { id: toastId });
     } finally {
-      router.refresh();
       setIsSubmitting(false);
     }
   };

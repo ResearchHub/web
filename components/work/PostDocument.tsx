@@ -13,6 +13,7 @@ import { QuestionEditModal } from '@/components/modals/QuestionEditModal';
 import { NotInterestedButton } from '@/components/ui/NotInterestedButton';
 import TipTapRenderer from '@/components/Comment/lib/TipTapRenderer';
 import { htmlToTipTapJSON } from '@/components/Comment/lib/htmlToTipTap';
+import { useWorkMetadata } from '@/hooks/useWorkMetadata';
 
 interface PostDocumentProps {
   work: Work;
@@ -30,6 +31,16 @@ export const PostDocument = ({
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [parsedQuestionContent, setParsedQuestionContent] = useState<any>(null);
+
+  // Use hook to manage metadata counters
+  const {
+    openBounties,
+    totalBountyAmount,
+    bountyComments,
+    reviewComments,
+    conversationComments,
+    handleCommentCreated,
+  } = useWorkMetadata(metadata);
 
   // Parse question content on client side
   useEffect(() => {
@@ -95,6 +106,7 @@ export const PostDocument = ({
               }}
               key={`review-feed-${work.id}`}
               work={work}
+              onCommentCreated={handleCommentCreated}
             />
           </div>
         );
@@ -110,6 +122,7 @@ export const PostDocument = ({
               hideEditor={true}
               key={`bounty-feed-${work.id}`}
               work={work}
+              onCommentCreated={handleCommentCreated}
             />
           </div>
         );
@@ -123,6 +136,7 @@ export const PostDocument = ({
               commentType="GENERIC_COMMENT"
               key={`comment-feed-${work.id}`}
               work={work}
+              onCommentCreated={handleCommentCreated}
             />
           </div>
         );
@@ -133,7 +147,11 @@ export const PostDocument = ({
 
   return (
     <div>
-      <EarningOpportunityBanner work={work} metadata={metadata} />
+      <EarningOpportunityBanner
+        work={work}
+        openBounties={openBounties}
+        totalBountyAmount={totalBountyAmount}
+      />
       {/* Title & Actions */}
       {work.type === 'preprint' && (
         <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -146,7 +164,9 @@ export const PostDocument = ({
       {/* Tabs */}
       <WorkTabs
         work={work}
-        metadata={metadata}
+        bountyComments={bountyComments}
+        reviewComments={reviewComments}
+        conversationComments={conversationComments}
         defaultTab={defaultTab}
         contentType="post"
         onTabChange={handleTabChange}

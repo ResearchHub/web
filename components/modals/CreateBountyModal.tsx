@@ -9,9 +9,15 @@ interface CreateBountyModalProps {
   isOpen: boolean;
   onClose: () => void;
   workId?: string;
+  onBountyCreated?: (bountyAmount: number) => void;
 }
 
-export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModalProps) {
+export function CreateBountyModal({
+  isOpen,
+  onClose,
+  workId,
+  onBountyCreated,
+}: CreateBountyModalProps) {
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-[100]" onClose={onClose}>
@@ -64,7 +70,13 @@ export function CreateBountyModal({ isOpen, onClose, workId }: CreateBountyModal
                       </svg>
                     </button>
                   </div>
-                  <BountyForm workId={workId} onSubmitSuccess={onClose} />
+                  <BountyForm
+                    workId={workId}
+                    onSubmitSuccess={(bountyAmount) => {
+                      onBountyCreated?.(bountyAmount);
+                      onClose();
+                    }}
+                  />
                 </div>
               </Dialog.Panel>
             </Transition.Child>

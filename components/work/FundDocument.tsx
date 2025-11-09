@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { BarChart2 } from 'lucide-react';
 import { Work } from '@/types/work';
@@ -24,6 +24,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '../ui/Button';
 import { NotInterestedButton } from '@/components/ui/NotInterestedButton';
+import { useWorkMetadata } from '@/hooks/useWorkMetadata';
 
 interface FundDocumentProps {
   work: Work;
@@ -50,6 +51,18 @@ export const FundDocument = ({
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+
+  // Use hook to manage metadata counters
+  // Pass authorUpdates.length as initialUpdateCount so it syncs when authorUpdates changes
+  const {
+    openBounties,
+    totalBountyAmount,
+    bountyComments,
+    reviewComments,
+    conversationComments,
+    updateComments,
+    handleCommentCreated,
+  } = useWorkMetadata(metadata, authorUpdates.length);
 
   // Check if current user is an author of the work
   const isCurrentUserAuthor = useMemo(() => {
@@ -150,6 +163,7 @@ export const FundDocument = ({
                 storageKey: `${storageKey}-update-feed-${work.id}`,
               }}
               work={work}
+              onCommentCreated={handleCommentCreated}
             />
           </div>
         );
@@ -170,6 +184,7 @@ export const FundDocument = ({
                 storageKey: `${storageKey}-review-feed-${work.id}`,
               }}
               work={work}
+              onCommentCreated={handleCommentCreated}
             />
           </div>
         );
@@ -189,6 +204,7 @@ export const FundDocument = ({
                 storageKey: `${storageKey}-bounty-feed-${work.id}`,
               }}
               work={work}
+              onCommentCreated={handleCommentCreated}
             />
           </div>
         );
@@ -206,6 +222,7 @@ export const FundDocument = ({
                 storageKey: `${storageKey}-comment-feed-${work.id}`,
               }}
               work={work}
+              onCommentCreated={handleCommentCreated}
             />
           </div>
         );
@@ -216,7 +233,11 @@ export const FundDocument = ({
 
   return (
     <div>
-      <EarningOpportunityBanner work={work} metadata={metadata} />
+      <EarningOpportunityBanner
+        work={work}
+        openBounties={openBounties}
+        totalBountyAmount={totalBountyAmount}
+      />
       {/* Title & Actions */}
       {work.type === 'preprint' && (
         <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -273,11 +294,13 @@ export const FundDocument = ({
       {/* Tabs */}
       <WorkTabs
         work={work}
-        metadata={metadata}
+        bountyComments={bountyComments}
+        reviewComments={reviewComments}
+        conversationComments={conversationComments}
         defaultTab={defaultTab}
         contentType="fund"
         onTabChange={handleTabChange}
-        updatesCount={authorUpdates.length}
+        updatesCount={updateComments}
       />
       {/* Tab Content */}
       {renderTabContent}

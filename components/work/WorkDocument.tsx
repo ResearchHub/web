@@ -34,6 +34,7 @@ import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 import { NotInterestedButton } from '@/components/ui/NotInterestedButton';
+import { useWorkMetadata } from '@/hooks/useWorkMetadata';
 
 interface WorkDocumentProps {
   work: Work;
@@ -47,6 +48,16 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   const pathname = usePathname();
 
   const { user } = useUser();
+
+  // Use hook to manage metadata counters
+  const {
+    openBounties,
+    totalBountyAmount,
+    bountyComments,
+    reviewComments,
+    conversationComments,
+    handleCommentCreated,
+  } = useWorkMetadata(metadata);
 
   // State for active tab
   const [activeTab, setActiveTab] = useState<TabType>(() => {
@@ -178,6 +189,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
               }}
               key={`review-feed-${work.id}`}
               work={work}
+              onCommentCreated={handleCommentCreated}
             />
           </div>
         );
@@ -193,6 +205,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
               hideEditor={true}
               key={`bounty-feed-${work.id}`}
               work={work}
+              onCommentCreated={handleCommentCreated}
             />
           </div>
         );
@@ -206,6 +219,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
               commentType="GENERIC_COMMENT"
               key={`comment-feed-${work.id}`}
               work={work}
+              onCommentCreated={handleCommentCreated}
             />
           </div>
         );
@@ -252,7 +266,11 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
 
   return (
     <div>
-      <EarningOpportunityBanner work={work} metadata={metadata} />
+      <EarningOpportunityBanner
+        work={work}
+        openBounties={openBounties}
+        totalBountyAmount={totalBountyAmount}
+      />
       {/* Title & Actions */}
       {work.type === 'preprint' && <ContentTypeBadge type="preprint" size="lg" />}
       <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
@@ -274,7 +292,9 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
       {/* Navigation */}
       <WorkTabs
         work={work}
-        metadata={metadata}
+        bountyComments={bountyComments}
+        reviewComments={reviewComments}
+        conversationComments={conversationComments}
         defaultTab={defaultTab}
         contentType="paper"
         onTabChange={handleTabChange}
