@@ -1,31 +1,21 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Search } from '@/components/Search/Search';
 import { SearchSuggestion } from '@/types/search';
-import {
-  ChevronDown,
-  Users,
-  MessageCircleQuestion,
-  Star,
-  Calendar,
-  MessageCircle,
-  RecycleIcon,
-} from 'lucide-react';
+import { ChevronDown, MessageCircleQuestion, Star, MessageCircle } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import { Currency } from '@/types/root';
 import { BountyType } from '@/types/bounty';
-import { BalanceInfo } from '@/components/modals/BalanceInfo';
 import { useUser } from '@/contexts/UserContext';
 import { CommentEditor, CommentEditorProps } from '@/components/Comment/CommentEditor';
 import { Switch } from '@headlessui/react';
 import { toast } from 'react-hot-toast';
 import { useComments } from '@/contexts/CommentContext';
-import { useCreateComment } from '@/hooks/useComments';
 import { CommentService } from '@/services/comment.service';
 import { RadioGroup as HeadlessRadioGroup, Listbox } from '@headlessui/react';
 import { useSession } from 'next-auth/react';
@@ -33,6 +23,7 @@ import { SessionProvider } from 'next-auth/react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useStorageKey } from '@/utils/storageKeys';
 import { extractUserMentions } from '@/components/Comment/lib/commentUtils';
+import { useRouter } from 'next/navigation';
 
 type Step = 'details' | 'payment';
 type BountyLength = '14' | '30' | '60' | 'custom';
@@ -221,14 +212,8 @@ const SessionAwareCommentEditor = (props: CommentEditorProps) => {
 
 export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormProps) {
   const { user } = useUser();
-  const { data: session, status } = useSession();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
-
-  // Debug session information
-  useEffect(() => {
-    console.log('BountyForm - Session Status:', status);
-    console.log('BountyForm - Session Data:', session);
-  }, [session, status]);
+  const router = useRouter();
 
   const [step, setStep] = useState<Step>('details');
   const [selectedPaper, setSelectedPaper] = useState<SelectedPaper | null>(null);
@@ -240,16 +225,11 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
   const [currency, setCurrency] = useState<Currency>('RSC');
   const [bountyLength, setBountyLength] = useState<BountyLength>('30');
   const [bountyType, setBountyType] = useState<BountyType>('REVIEW');
-  const [otherDescription, setOtherDescription] = useState('');
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
-  const [customDate, setCustomDate] = useState('');
   const [editorContent, setEditorContent] = useState<any>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const userBalance = user?.balance || 0;
-
-  const [{ data: commentData, isLoading: isCreatingBounty, error: bountyError }, createComment] =
-    useCreateComment();
 
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
   const [hasInteractedWithAmount, setHasInteractedWithAmount] = useState(false);
@@ -352,6 +332,7 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
       console.error('Failed to create bounty:', error);
       toast.error('Failed to create bounty. Please try again.', { id: toastId });
     } finally {
+      router.refresh();
       setIsSubmitting(false);
     }
   };
