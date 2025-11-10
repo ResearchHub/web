@@ -7,6 +7,7 @@ import { FeedItemSkeleton } from './FeedItemSkeleton';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
 import { FeedTab, FundingTab } from '@/hooks/useFeed';
+import { TabType } from '@/components/Journal/JournalTabs';
 import { FundingCarousel } from '@/components/Fund/FundingCarousel';
 import { BountiesCarousel } from '@/components/Earn/BountiesCarousel';
 import { FeedEntryItem } from './FeedEntryItem';
@@ -22,7 +23,7 @@ interface FeedContentProps {
   tabs?: ReactNode;
   filters?: ReactNode;
   disableCardLinks?: boolean;
-  activeTab?: FeedTab | FundingTab | string;
+  activeTab?: FeedTab | FundingTab | TabType | string;
   showBountyFooter?: boolean;
   hideActions?: boolean;
   isLoadingMore?: boolean;
@@ -74,9 +75,9 @@ export const FeedContent: FC<FeedContentProps> = ({
 
   // Build query params from URL for feed key
   const queryParams: Record<string, string> = {};
-  searchParams.forEach((value, key) => {
+  for (const [key, value] of searchParams) {
     queryParams[key] = value;
-  });
+  }
 
   const feedKey = getFeedKey({
     pathname,

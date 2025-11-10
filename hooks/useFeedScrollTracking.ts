@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 import { FeedEntry } from '@/types/feed';

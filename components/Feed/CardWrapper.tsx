@@ -26,7 +26,7 @@ if (typeof document !== 'undefined') {
     }
   `;
   if (!document.head.querySelector('style[data-programmatic-focus]')) {
-    style.setAttribute('data-programmatic-focus', 'true');
+    style.dataset.programmaticFocus = 'true';
     document.head.appendChild(style);
   }
 }

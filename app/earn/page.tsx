@@ -5,7 +5,7 @@ import { FeedContent } from '@/components/Feed/FeedContent';
 import { EarnRightSidebar } from '@/components/Earn/EarnRightSidebar';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import Icon from '@/components/ui/icons/Icon';
-import { BountyHubSelector as HubsSelector, Hub } from '@/components/Earn/BountyHubSelector';
+import { BountyHubSelector as HubsSelector } from '@/components/Earn/BountyHubSelector';
 import SortDropdown, { SortOption } from '@/components/ui/SortDropdown';
 import { Badge } from '@/components/ui/Badge';
 import { X } from 'lucide-react';

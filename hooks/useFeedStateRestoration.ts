@@ -25,9 +25,9 @@ export function useFeedStateRestoration(
 
   const queryParams = useMemo(() => {
     const params: Record<string, string> = {};
-    searchParams.forEach((value, key) => {
+    for (const [key, value] of searchParams) {
       params[key] = value;
-    });
+    }
     return params;
   }, [searchParams]);
 
