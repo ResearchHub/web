@@ -22,7 +22,6 @@ export const useFeedScrollTracking = ({
   restoredScrollPosition,
   lastClickedEntryId,
 }: UseFeedScrollTrackingOptions) => {
-  const pathname = usePathname();
   const scrollContainerRef = useScrollContainer();
   const scrollPositionRef = useRef(0);
   const hasRestoredScrollRef = useRef(false);
@@ -94,12 +93,12 @@ export const useFeedScrollTracking = ({
             resetBackNavigation();
             return;
           }
-        } else {
-          // If lastClickedEntryId is undefined but we have a scroll position,
-          // it means the state was cleared or lastClickedEntryId was never set
-          // Use the fallback scroll position
-          scrollContainerRef.current.scrollTop = scrollPos;
         }
+
+        // Fallback to stored scroll position if:
+        // 1. lastClickedEntryId doesn't exist, OR
+        // 2. lastClickedEntryId exists but element not found
+        scrollContainerRef.current.scrollTop = scrollPos;
       } else {
         console.warn(
           `Skipping feed scroll restoration for ${feedKey} because scrollContainer is missing`
