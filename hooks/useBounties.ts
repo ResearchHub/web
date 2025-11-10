@@ -196,7 +196,6 @@ export const useBounties = () => {
     setSelectedHubs(hubs);
     selectedHubsRef.current = hubs;
 
-    // If only names changed (IDs are the same), don't update URL or fetch
     if (isOnlyNameUpdate) {
       return;
     }
@@ -257,7 +256,6 @@ export const useBounties = () => {
     if (!hasInitialFetchRef.current || sortChanged) {
       previousSortRef.current = sort;
 
-      // If there are hubs in URL but selectedHubs is empty, create Hub objects from URL
       const hubsToUse =
         hubsFromUrl.length > 0 && selectedHubs.length === 0
           ? hubsFromUrl.map((id) => ({
@@ -273,10 +271,8 @@ export const useBounties = () => {
         isFetchingRef.current = false;
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sort]);
 
-  // Apply clicked topic filter
   useEffect(() => {
     if (event && event.type === 'topic') {
       const topic = event.payload;
@@ -295,7 +291,6 @@ export const useBounties = () => {
       fetchBounties(true, [newHub]);
       clearEvent();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event, router, searchParams]);
 
   return {

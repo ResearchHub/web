@@ -16,7 +16,6 @@ const defaultClassName =
 const defaultHoverClassName =
   'group hover:shadow-md hover:border-indigo-100 transition-all duration-200 cursor-pointer';
 
-// Add styles for programmatic focus
 if (typeof document !== 'undefined') {
   const style = document.createElement('style');
   style.textContent = `

@@ -126,8 +126,6 @@ export function useAuthorPublications(options: UseAuthorPublicationsOptions) {
   );
   const [error, setError] = useState<Error | null>(null);
 
-  // Store restored entries separately for FeedContent to use
-  // Preserve hasRestoredEntries in state so it doesn't change when isBackNavigation changes
   const [restoredFeedEntries, setRestoredFeedEntries] = useState<FeedEntry[]>(initialEntries);
   const [hasRestoredEntries, setHasRestoredEntries] = useState<boolean>(initialHasRestoredEntries);
 

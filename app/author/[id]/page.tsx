@@ -158,14 +158,13 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
         return <div>Error: {publicationsError.message}</div>;
       }
 
-      // Use restored entries if available, otherwise transform publications
       const entries =
         restoredPublicationsEntries ||
         publications
           .filter((publication) => {
             try {
               const entry = transformPublicationToFeedEntry(publication);
-              return !!entry; // Return true if transformation was successful
+              return !!entry;
             } catch (error) {
               console.error('[Publication] Could not parse publication', error);
               return false;
@@ -199,7 +198,6 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
       return <div>Error: {contributionsError.message}</div>;
     }
 
-    // Use restored entries if available, otherwise transform contributions
     const entries =
       restoredContributionsEntries ||
       contributions.map((contribution) =>
