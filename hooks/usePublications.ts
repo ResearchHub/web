@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   PublicationService,
   PublicationSearchParams,
@@ -10,8 +10,7 @@ import {
 } from '@/services/publication.service';
 import { OpenAlexWork, OpenAlexAuthor, PublicationSearchResponse } from '@/types/publication';
 import { ID } from '@/types/root';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { useNavigation, getFeedKey } from '@/contexts/NavigationContext';
+import { useFeedStateRestoration } from './useFeedStateRestoration';
 import { FeedEntry } from '@/types/feed';
 
 interface UsePublicationsSearchState {
@@ -112,43 +111,12 @@ interface UseAuthorPublicationsOptions {
 }
 
 export function useAuthorPublications(options: UseAuthorPublicationsOptions) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const { isBackNavigation, getFeedState, clearFeedState } = useNavigation();
-
-  const queryParams = useMemo(() => {
-    const params: Record<string, string> = {};
-    searchParams.forEach((value, key) => {
-      params[key] = value;
-    });
-    return params;
-  }, [searchParams]);
-
-  // Check for restored state
-  const restoredState = useMemo(() => {
-    if (!isBackNavigation) {
-      return null;
-    }
-
-    const feedKey = getFeedKey({
-      pathname,
-      tab: options.activeTab,
-      queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+  const { restoredState, initialEntries, restoredScrollPosition, lastClickedEntryId } =
+    useFeedStateRestoration({
+      activeTab: options.activeTab,
     });
 
-    const savedState = getFeedState(feedKey);
-    if (savedState) {
-      clearFeedState(feedKey);
-      return savedState;
-    }
-
-    return null;
-  }, [isBackNavigation, pathname, options.activeTab, queryParams, getFeedState, clearFeedState]);
-
-  const initialEntries = restoredState?.entries || [];
   const initialHasRestoredEntries = restoredState !== null;
-  const restoredScrollPosition = restoredState?.scrollPosition ?? null;
-  const lastClickedEntryId = restoredState?.lastClickedEntryId;
 
   const [publications, setPublications] = useState<any[]>(options.initialData?.results || []);
   const [isLoading, setIsLoading] = useState(!initialHasRestoredEntries && !options.initialData);

@@ -34,7 +34,7 @@ export const getFeedKey = (id: FeedIdentifier): string => {
 
   if (id.queryParams && Object.keys(id.queryParams).length > 0) {
     const sortedParams = Object.keys(id.queryParams)
-      .sort()
+      .sort((a, b) => a.localeCompare(b))
       .map((key) => `${key}:${id.queryParams![key]}`)
       .join(',');
     parts.push(`params:${sortedParams}`);

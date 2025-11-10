@@ -1,10 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { ContributionService, ContributionType } from '@/services/contribution.service';
 import type { Contribution, ContributionListResponse } from '@/types/contribution';
 import { ID } from '@/types/root';
 import { getContributionUrl, parseContribution } from '@/types/contributionTransformer';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { useNavigation, getFeedKey } from '@/contexts/NavigationContext';
+import { useFeedStateRestoration } from './useFeedStateRestoration';
 import { FeedEntry } from '@/types/feed';
 
 interface UseContributionsOptions {
@@ -15,55 +14,17 @@ interface UseContributionsOptions {
 }
 
 export const useContributions = (options: UseContributionsOptions = {}) => {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const { isBackNavigation, getFeedState, clearFeedState } = useNavigation();
-
-  const queryParams = useMemo(() => {
-    const params: Record<string, string> = {};
-    searchParams.forEach((value, key) => {
-      params[key] = value;
-    });
-    return params;
-  }, [searchParams]);
-
-  // Check for restored state
-  const restoredState = useMemo(() => {
-    if (options.contribution_type === 'ARTICLE') {
-      return null;
-    }
-
-    if (!isBackNavigation || !options.author_id) {
-      return null;
-    }
-
-    const feedKey = getFeedKey({
-      pathname,
-      tab: options.activeTab,
-      queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+  const { restoredState, initialEntries, restoredScrollPosition, lastClickedEntryId } =
+    useFeedStateRestoration({
+      activeTab: options.activeTab,
+      shouldRestore: (isBackNavigation) => {
+        if (options.contribution_type === 'ARTICLE') return false;
+        if (!isBackNavigation || !options.author_id) return false;
+        return true;
+      },
     });
 
-    const savedState = getFeedState(feedKey);
-    if (savedState) {
-      clearFeedState(feedKey);
-      return savedState;
-    }
-
-    return null;
-  }, [
-    isBackNavigation,
-    pathname,
-    options.activeTab,
-    queryParams,
-    options.author_id,
-    getFeedState,
-    clearFeedState,
-  ]);
-
-  const initialEntries = restoredState?.entries || [];
   const initialHasRestoredEntries = restoredState !== null;
-  const restoredScrollPosition = restoredState?.scrollPosition ?? null;
-  const lastClickedEntryId = restoredState?.lastClickedEntryId;
 
   const [contributions, setContributions] = useState<Contribution[]>(
     options.initialData?.results || []

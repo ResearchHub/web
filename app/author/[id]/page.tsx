@@ -190,7 +190,7 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
             maxLength={150}
             activeTab={currentTab}
             restoredScrollPosition={restoredPublicationsScrollPosition}
-            lastClickedEntryId={lastClickedPublicationsEntryId}
+            lastClickedEntryId={lastClickedPublicationsEntryId ?? undefined}
           />
         </div>
       );
@@ -235,7 +235,7 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
           showReadMoreCTA={true}
           activeTab={currentTab}
           restoredScrollPosition={restoredContributionsScrollPosition}
-          lastClickedEntryId={lastClickedContributionsEntryId}
+          lastClickedEntryId={lastClickedContributionsEntryId ?? undefined}
         />
       </div>
     );

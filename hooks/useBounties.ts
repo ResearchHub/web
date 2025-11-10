@@ -185,11 +185,11 @@ export const useBounties = () => {
     // Check if this is just a name population (same IDs) or actual selection change
     const currentHubIds = selectedHubs
       .map((h) => String(h.id))
-      .sort()
+      .sort((a, b) => a.localeCompare(b))
       .join(',');
     const newHubIds = hubs
       .map((h) => String(h.id))
-      .sort()
+      .sort((a, b) => a.localeCompare(b))
       .join(',');
     const isOnlyNameUpdate = currentHubIds === newHubIds;
 
@@ -208,7 +208,7 @@ export const useBounties = () => {
       params.set('topics', hubIds);
       previousHubsParamRef.current = hubs
         .map((h) => String(h.id))
-        .sort()
+        .sort((a, b) => a.localeCompare(b))
         .join(',');
     } else {
       params.delete('topics');

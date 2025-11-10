@@ -1,10 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { FeedService } from '@/services/feed.service';
 import { useSession } from 'next-auth/react';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { useNavigation } from '@/contexts/NavigationContext';
-import { getFeedKey } from '@/contexts/NavigationContext';
+import { useFeedStateRestoration } from './useFeedStateRestoration';
 
 export type FeedTab = 'following' | 'latest' | 'popular' | 'for-you';
 export type FundingTab = 'all' | 'open' | 'closed';
@@ -30,37 +28,9 @@ interface UseFeedOptions {
 
 export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions = {}) => {
   const { status } = useSession();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const { isBackNavigation, getFeedState, clearFeedState } = useNavigation();
-
-  const queryParams = useMemo(() => {
-    const params: Record<string, string> = {};
-    searchParams.forEach((value, key) => {
-      params[key] = value;
-    });
-    return params;
-  }, [searchParams]);
-
-  const restoredState = useMemo(() => {
-    if (!isBackNavigation) {
-      return null;
-    }
-
-    const feedKey = getFeedKey({
-      pathname,
-      tab: activeTab,
-      queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
-    });
-
-    const savedState = getFeedState(feedKey);
-    if (savedState) {
-      clearFeedState(feedKey);
-      return savedState;
-    }
-
-    return null;
-  }, [isBackNavigation, pathname, activeTab, queryParams, getFeedState, clearFeedState]);
+  const { restoredState, restoredScrollPosition, lastClickedEntryId } = useFeedStateRestoration({
+    activeTab,
+  });
 
   const initialEntries = restoredState?.entries || options.initialData?.entries || [];
   const initialHasMore = restoredState?.hasMore ?? options.initialData?.hasMore ?? false;
@@ -74,10 +44,6 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
   const [currentTab, setCurrentTab] = useState<FeedTab | FundingTab>(activeTab);
   const [currentOptions, setCurrentOptions] = useState<UseFeedOptions>(options);
 
-  const [restoredScrollPosition, setRestoredScrollPosition] = useState<number | null>(
-    restoredState?.scrollPosition ?? null
-  );
-  const lastClickedEntryId = restoredState?.lastClickedEntryId ?? null;
   useEffect(() => {
     if (status === 'loading') {
       return;
