@@ -34,7 +34,7 @@ export function WorkDocumentTracker({ work, metadata, tab }: WorkDocumentTracker
       workDocumentViewedPayload,
       user
     );
-  }, [user, work, metadata, tab]);
+  }, [work, metadata, tab]);
 
   return null; // This component doesn't render anything
 }
