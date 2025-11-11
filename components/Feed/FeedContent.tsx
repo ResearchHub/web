@@ -12,6 +12,11 @@ import { FeedEntryItem } from './FeedEntryItem';
 import { getFeedKey } from '@/contexts/NavigationContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 
+interface InsertContentItem {
+  index: number;
+  content: ReactNode;
+}
+
 interface FeedContentProps {
   entries: FeedEntry[];
   isLoading: boolean;
@@ -36,6 +41,7 @@ interface FeedContentProps {
   restoredScrollPosition?: number | null;
   page?: number;
   lastClickedEntryId?: string;
+  insertContent?: InsertContentItem[];
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -62,6 +68,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   restoredScrollPosition,
   page,
   lastClickedEntryId,
+  insertContent,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -111,25 +118,34 @@ export const FeedContent: FC<FeedContentProps> = ({
 
         <div className="mt-4">
           {displayEntries.length > 0 &&
-            displayEntries.map((entry, index) => (
-              <React.Fragment key={`${entry.id}-${index}`}>
-                <FeedEntryItem
-                  entry={entry}
-                  index={index}
-                  disableCardLinks={disableCardLinks}
-                  showBountyFooter={showBountyFooter}
-                  hideActions={hideActions}
-                  showBountySupportAndCTAButtons={showBountySupportAndCTAButtons}
-                  showBountyDeadline={showBountyDeadline}
-                  maxLength={maxLength}
-                  showGrantHeaders={showGrantHeaders}
-                  showReadMoreCTA={showReadMoreCTA}
-                  feedView={activeTab}
-                  experimentVariant={experimentVariant}
-                  feedOrdering={ordering}
-                />
-              </React.Fragment>
-            ))}
+            displayEntries.map((entry, index) => {
+              const contentToInsert = insertContent?.find((item) => item.index === index);
+
+              return (
+                <React.Fragment key={`${entry.id}-${index}`}>
+                  <FeedEntryItem
+                    entry={entry}
+                    index={index}
+                    disableCardLinks={disableCardLinks}
+                    showBountyFooter={showBountyFooter}
+                    hideActions={hideActions}
+                    showBountySupportAndCTAButtons={showBountySupportAndCTAButtons}
+                    showBountyDeadline={showBountyDeadline}
+                    maxLength={maxLength}
+                    showGrantHeaders={showGrantHeaders}
+                    showReadMoreCTA={showReadMoreCTA}
+                    feedView={activeTab}
+                    experimentVariant={experimentVariant}
+                    feedOrdering={ordering}
+                  />
+                  {contentToInsert && (
+                    <div key={`insert-content-${index}`} className="mt-12">
+                      {contentToInsert.content}
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
 
           {isLoading && (
             <>

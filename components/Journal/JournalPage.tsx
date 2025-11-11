@@ -85,11 +85,7 @@ export const JournalPage: FC = () => {
         isLoading={isLoading}
       />
 
-      {activeTab === 'about' ? (
-        <JournalAboutTab />
-      ) : (
-        <JournalFeed activeTab={activeTab} isLoading={isLoading} />
-      )}
+      {activeTab === 'about' ? <JournalAboutTab /> : <JournalFeed activeTab={activeTab} />}
     </div>
   );
 };
