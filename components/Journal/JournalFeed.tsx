@@ -1,9 +1,8 @@
 'use client';
 
-import { FC, useMemo, ReactNode } from 'react';
-import { Book, BookOpen, Check, Zap, Eye, Globe, Award } from 'lucide-react';
+import { FC } from 'react';
+import { BookOpen, Zap, Eye, Globe, Award } from 'lucide-react';
 import { FeedContent } from '@/components/Feed/FeedContent';
-import { FeedEntry } from '@/types/feed';
 import Link from 'next/link';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { useJournalFeed } from '@/hooks/useJournalFeed';

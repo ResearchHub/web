@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState, useEffect, useMemo, useLayoutEffect } from 'react';
+import { FC, useMemo, useLayoutEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { JournalFeed } from './JournalFeed';
 import { JournalTabs, TabType } from './JournalTabs';
