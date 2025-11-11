@@ -234,21 +234,18 @@ export const useCommentEditor = ({
     }
   }, [rating, sectionRatings]); // Removed dependencies that could cause loops
 
-  // Add a useEffect to ensure editor is properly initialized
+  // Add a useEffect to focus editor only when explicitly requested
   useEffect(() => {
     if (!editor) return;
 
-    // Force editor to update after mounting to ensure styles are applied
-    const timeoutId = setTimeout(() => {
-      if (autoFocus && !isReadOnly) {
+    // Only focus when explicitly requested via autoFocus prop
+    if (autoFocus && !isReadOnly) {
+      const timeoutId = setTimeout(() => {
         editor.commands.focus('end');
-      } else {
-        editor.commands.focus();
-        editor.commands.blur();
-      }
-    }, 50);
+      }, 50);
 
-    return () => clearTimeout(timeoutId);
+      return () => clearTimeout(timeoutId);
+    }
   }, [editor, autoFocus, isReadOnly]);
 
   return {
