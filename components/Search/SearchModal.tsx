@@ -149,6 +149,14 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onFocus={() => setIsFocused(true)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && query.trim()) {
+                    e.preventDefault();
+                    // Navigate immediately for optimistic feedback
+                    router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+                    onClose();
+                  }
+                }}
               />
               {/* Keyboard shortcut hint */}
               <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:!flex items-center space-x-1 text-xs text-gray-400">

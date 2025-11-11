@@ -95,7 +95,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection title={post.title} />
+            <TitleSection title={post.title} highlightedTitle={post.highlightedTitle} />
 
             {/* Authors list below title */}
             {authors.length > 0 && (
@@ -113,7 +113,11 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
             )}
 
             {/* Truncated Content */}
-            <ContentSection content={post.textPreview} maxLength={maxLength} />
+            <ContentSection
+              content={post.textPreview}
+              highlightedContent={post.highlightedSnippet}
+              maxLength={maxLength}
+            />
           </>
         }
         rightContent={
