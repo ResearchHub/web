@@ -31,6 +31,12 @@ export interface FeedGrantContent {
   textPreview: string;
   slug: string;
   title: string;
+  /** Optional HTML string with <mark> tags highlighting matched search terms in the title */
+  highlightedTitle?: string;
+  /** Optional HTML string with <mark> tags highlighting matched search terms in the content */
+  highlightedSnippet?: string;
+  /** Indicates which field(s) had search matches (e.g., "title", "abstract", "title+abstract") */
+  matchedField?: string;
   previewImage?: string;
   authors: any[];
   topics: any[];
@@ -171,12 +177,13 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection title={grant.title} />
+            <TitleSection title={grant.title} highlightedTitle={grant.highlightedTitle} />
 
             {/* Description */}
             {grant.grant?.description && (
               <ContentSection
                 content={grant.grant.description}
+                highlightedContent={grant.highlightedSnippet}
                 maxLength={maxLength}
                 className="mb-3"
               />

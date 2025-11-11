@@ -308,3 +308,66 @@ export const transformAuthorSuggestions = (raw: any): AuthorSuggestion[] => {
 
   return authorSuggestions;
 };
+
+// OpenSearch API Types
+export interface OpenSearchDocument {
+  id: number;
+  type: 'paper' | 'post';
+  title: string;
+  snippet: string; // with <mark> tags for highlighting
+  matched_field: string; // 'title', 'abstract', etc.
+  authors: string[]; // array of author names
+  created_date: string | null;
+  paper_publish_date: string | null;
+  hot_score: number;
+  score: number; // upvotes
+  _search_score: number; // relevance score
+  hubs: any[]; // hub objects
+  doi: string | null;
+  citations: number;
+  is_open_access: boolean | null;
+  slug: string | null;
+  document_type: string | null; // 'GRANT', etc.
+}
+
+export interface OpenSearchPerson {
+  id: number;
+  full_name: string;
+  profile_image: string;
+  snippet: string | null; // with <mark> tags
+  matched_field: string | null;
+  headline: { title: string | null };
+  institutions: Array<{ id: number; name: string }>;
+  user_reputation: number;
+  user_id: number | null;
+  _search_score: number;
+}
+
+export interface OpenSearchResponse {
+  count: number;
+  documents: OpenSearchDocument[];
+  people: OpenSearchPerson[];
+  aggregations: {
+    years: Array<{ key: string; doc_count: number }>;
+    hubs: Array<{ key: string; doc_count: number }>;
+    content_types: Array<{ key: string; doc_count: number }>;
+  };
+}
+
+// Search Filter Types
+export interface SearchFilters {
+  yearMin?: number;
+  yearMax?: number;
+  citationMin?: number;
+  openAccess?: boolean;
+  contentTypes?: string[];
+  hubs?: number[];
+  authors?: string[];
+}
+
+export type SearchSortOption = 'relevance' | 'newest' | 'hot' | 'upvoted';
+
+export interface SearchPreferences {
+  filters: SearchFilters;
+  sortBy: SearchSortOption;
+}

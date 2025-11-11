@@ -87,6 +87,12 @@ export interface FeedPostContent extends BaseFeedContent {
   textPreview: string;
   slug: string;
   title: string;
+  /** Optional HTML string with <mark> tags highlighting matched search terms in the title */
+  highlightedTitle?: string;
+  /** Optional HTML string with <mark> tags highlighting matched search terms in the content */
+  highlightedSnippet?: string;
+  /** Indicates which field(s) had search matches (e.g., "title", "abstract", "title+abstract") */
+  matchedField?: string;
   previewImage?: string;
   authors: AuthorProfile[];
   topics: Topic[];
@@ -148,6 +154,12 @@ export interface FeedPaperContent extends BaseFeedContent {
   textPreview: string;
   slug: string;
   title: string;
+  /** Optional HTML string with <mark> tags highlighting matched search terms in the title */
+  highlightedTitle?: string;
+  /** Optional HTML string with <mark> tags highlighting matched search terms in the content */
+  highlightedSnippet?: string;
+  /** Indicates which field(s) had search matches (e.g., "title", "abstract", "title+abstract") */
+  matchedField?: string;
   authors: AuthorProfile[];
   topics: Topic[];
   journal: Journal;
@@ -162,6 +174,12 @@ export interface FeedGrantContent extends BaseFeedContent {
   textPreview: string;
   slug: string;
   title: string;
+  /** Optional HTML string with <mark> tags highlighting matched search terms in the title */
+  highlightedTitle?: string;
+  /** Optional HTML string with <mark> tags highlighting matched search terms in the content */
+  highlightedSnippet?: string;
+  /** Indicates which field(s) had search matches (e.g., "title", "abstract", "title+abstract") */
+  matchedField?: string;
   previewImage?: string;
   authors: AuthorProfile[];
   topics: Topic[];
