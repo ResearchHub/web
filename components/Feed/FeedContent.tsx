@@ -8,8 +8,6 @@ import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
 import { FeedTab, FundingTab } from '@/hooks/useFeed';
 import { TabType } from '@/components/Journal/JournalTabs';
-import { FundingCarousel } from '@/components/Fund/FundingCarousel';
-import { BountiesCarousel } from '@/components/Earn/BountiesCarousel';
 import { FeedEntryItem } from './FeedEntryItem';
 import { getFeedKey } from '@/contexts/NavigationContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
@@ -130,8 +128,6 @@ export const FeedContent: FC<FeedContentProps> = ({
                   experimentVariant={experimentVariant}
                   feedOrdering={ordering}
                 />
-                {activeTab === 'popular' && index === 2 && <FundingCarousel />}
-                {activeTab === 'popular' && index === 8 && <BountiesCarousel />}
               </React.Fragment>
             ))}
 
