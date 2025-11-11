@@ -9,6 +9,7 @@ import { cn } from '@/utils/styles';
 import Image from 'next/image';
 import { truncateText } from '@/utils/stringUtils';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { useNavigation } from '@/contexts/NavigationContext';
 
 // Base interfaces for the modular components
 export interface BaseFeedItemProps {
@@ -219,6 +220,19 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   const content = entry.content;
   const author = content.createdBy;
   const isClickable = !!href;
+  const { updateLastClickedEntryId } = useNavigation();
+
+  const entryIdKey = `${entry.contentType}:${entry.id}`;
+
+  const handleClick = () => {
+    if (onFeedItemClick) {
+      onFeedItemClick();
+    }
+
+    if (entry.id) {
+      updateLastClickedEntryId(entryIdKey);
+    }
+  };
 
   return (
     <div className={cn('space-y-3', className)}>
@@ -235,7 +249,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
       )}
 
       {/* Main Content Card */}
-      <CardWrapper href={href} isClickable={isClickable} onClick={onFeedItemClick}>
+      <CardWrapper href={href} isClickable={isClickable} onClick={handleClick} entryId={entryIdKey}>
         <div className="p-4">
           {children}
 

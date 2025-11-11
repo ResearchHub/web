@@ -3,32 +3,41 @@ import { ContributionService, ContributionType } from '@/services/contribution.s
 import type { Contribution, ContributionListResponse } from '@/types/contribution';
 import { ID } from '@/types/root';
 import { getContributionUrl, parseContribution } from '@/types/contributionTransformer';
+import { useFeedStateRestoration } from './useFeedStateRestoration';
+import { FeedEntry } from '@/types/feed';
 
 interface UseContributionsOptions {
   contribution_type?: ContributionType;
   author_id?: ID;
   initialData?: ContributionListResponse;
+  activeTab?: string;
 }
 
 export const useContributions = (options: UseContributionsOptions = {}) => {
+  const { restoredState, initialEntries, restoredScrollPosition, lastClickedEntryId } =
+    useFeedStateRestoration({
+      activeTab: options.activeTab,
+      shouldRestore: (isBackNavigation) => {
+        if (options.contribution_type === 'ARTICLE') return false;
+        if (!isBackNavigation || !options.author_id) return false;
+        return true;
+      },
+    });
+
+  const initialHasRestoredEntries = restoredState !== null;
+
   const [contributions, setContributions] = useState<Contribution[]>(
     options.initialData?.results || []
   );
-  const [isLoading, setIsLoading] = useState(!options.initialData);
+  const [isLoading, setIsLoading] = useState(!initialHasRestoredEntries && !options.initialData);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentResponse, setCurrentResponse] = useState<ContributionListResponse | null>(
     options.initialData || null
   );
   const [error, setError] = useState<Error | null>(null);
 
-  // Load initial contributions
-  useEffect(() => {
-    if (options.initialData) {
-      return;
-    }
-
-    loadContributions();
-  }, [options.contribution_type, options.author_id]);
+  const [restoredFeedEntries, setRestoredFeedEntries] = useState<FeedEntry[]>(initialEntries);
+  const [hasRestoredEntries, setHasRestoredEntries] = useState<boolean>(initialHasRestoredEntries);
 
   const loadContributions = async () => {
     setIsLoading(true);
@@ -40,12 +49,11 @@ export const useContributions = (options: UseContributionsOptions = {}) => {
         author_id: options.author_id,
       });
 
-      // Filter results by checking if they can be parsed and have a valid URL
       const filteredResults = response.results.filter((result) => {
         try {
           const parsed = parseContribution(result);
           if (!parsed) return false;
-          getContributionUrl(parsed); // Just to validate, we don't need the URL
+          getContributionUrl(parsed);
           return true;
         } catch (error) {
           console.error('[Contribution] Could not parse contribution', error);
@@ -62,6 +70,25 @@ export const useContributions = (options: UseContributionsOptions = {}) => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (initialHasRestoredEntries && initialEntries.length > 0 && !hasRestoredEntries) {
+      setHasRestoredEntries(true);
+      setRestoredFeedEntries(initialEntries);
+    }
+  }, [initialHasRestoredEntries, initialEntries.length, hasRestoredEntries]);
+
+  useEffect(() => {
+    if (hasRestoredEntries && restoredFeedEntries.length > 0) {
+      return;
+    }
+
+    if (options.initialData) {
+      return;
+    }
+
+    loadContributions();
+  }, [options.contribution_type, options.author_id, options.initialData]);
 
   const loadMore = async () => {
     if (!currentResponse?.next || isLoading || isLoadingMore) {
@@ -85,9 +112,15 @@ export const useContributions = (options: UseContributionsOptions = {}) => {
   };
 
   useEffect(() => {
+    if (hasRestoredEntries && restoredFeedEntries.length > 0) {
+      return;
+    }
+
     setContributions([]);
     setCurrentResponse(null);
-  }, [options.contribution_type]);
+    setRestoredFeedEntries([]);
+    setHasRestoredEntries(false);
+  }, [options.contribution_type, hasRestoredEntries, restoredFeedEntries.length]);
 
   return {
     contributions,
@@ -97,5 +130,8 @@ export const useContributions = (options: UseContributionsOptions = {}) => {
     loadMore,
     refresh: loadContributions,
     isLoadingMore,
+    restoredFeedEntries: hasRestoredEntries ? restoredFeedEntries : undefined,
+    restoredScrollPosition,
+    lastClickedEntryId,
   };
 };

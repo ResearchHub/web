@@ -1,36 +1,43 @@
 'use client';
 
-import { FC, ReactNode, useEffect, useRef } from 'react';
+import { FC, ReactNode, useEffect } from 'react';
 import React from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { FeedItemSkeleton } from './FeedItemSkeleton';
 import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
-import { FeedTab } from '@/hooks/useFeed'; // Import FeedTab type
+import { FeedTab, FundingTab } from '@/hooks/useFeed';
+import { TabType } from '@/components/Journal/JournalTabs';
 import { FundingCarousel } from '@/components/Fund/FundingCarousel';
 import { BountiesCarousel } from '@/components/Earn/BountiesCarousel';
 import { FeedEntryItem } from './FeedEntryItem';
+import { getFeedKey } from '@/contexts/NavigationContext';
+import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 
 interface FeedContentProps {
-  entries: FeedEntry[]; // Using FeedEntry type instead of RawApiFeedEntry
+  entries: FeedEntry[];
   isLoading: boolean;
   hasMore: boolean;
   loadMore: () => void;
   header?: ReactNode;
   tabs?: ReactNode;
-  filters?: ReactNode; // New prop for source filters
-  disableCardLinks?: boolean; // Optional prop to disable all card links
-  activeTab?: FeedTab; // Add the activeTab prop as optional
-  showBountyFooter?: boolean; // Prop to control bounty item footer visibility
-  hideActions?: boolean; // Prop to control comment item actions visibility
+  filters?: ReactNode;
+  disableCardLinks?: boolean;
+  activeTab?: FeedTab | FundingTab | TabType | string;
+  showBountyFooter?: boolean;
+  hideActions?: boolean;
   isLoadingMore?: boolean;
-  showBountySupportAndCTAButtons?: boolean; // Show container for Support and CTA buttons for bounty items
-  showBountyDeadline?: boolean; // Show deadline in metadata line
-  noEntriesElement?: ReactNode; // Element to render if there are no entries
+  showBountySupportAndCTAButtons?: boolean;
+  showBountyDeadline?: boolean;
+  noEntriesElement?: ReactNode;
   maxLength?: number;
-  showGrantHeaders?: boolean; // Prop to control grant header visibility
-  showReadMoreCTA?: boolean; // Prop to control read more CTA visibility
-  experimentVariant?: string; // A/B test experiment variant
-  ordering?: string; // Feed ordering method
+  showGrantHeaders?: boolean;
+  showReadMoreCTA?: boolean;
+  experimentVariant?: string;
+  ordering?: string;
+  restoredScrollPosition?: number | null;
+  page?: number;
+  lastClickedEntryId?: string;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -42,26 +49,53 @@ export const FeedContent: FC<FeedContentProps> = ({
   tabs,
   filters,
   disableCardLinks = false,
-  activeTab, // Destructure activeTab
-  showBountyFooter = true, // Default to true
+  activeTab,
+  showBountyFooter = true,
   hideActions = false,
   isLoadingMore = false,
-  showBountySupportAndCTAButtons = true, // Show container for Support and CTA buttons
-  showBountyDeadline = true, // Show deadline in metadata line
+  showBountySupportAndCTAButtons = true,
+  showBountyDeadline = true,
   noEntriesElement,
   maxLength,
-  showGrantHeaders = true, // Default to true
+  showGrantHeaders = true,
   showReadMoreCTA = false,
   experimentVariant,
   ordering,
+  restoredScrollPosition,
+  page,
+  lastClickedEntryId,
 }) => {
-  // Set up intersection observer for infinite scrolling (must be called before any conditional returns)
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
     rootMargin: '100px',
   });
 
-  // Trigger load more when the sentinel element is in view
+  // Build query params from URL for feed key
+  const queryParams: Record<string, string> = {};
+  for (const [key, value] of searchParams) {
+    queryParams[key] = value;
+  }
+
+  const feedKey = getFeedKey({
+    pathname,
+    tab: activeTab,
+    queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+  });
+
+  useFeedScrollTracking({
+    feedKey,
+    entries,
+    hasMore,
+    page,
+    restoredScrollPosition,
+    lastClickedEntryId,
+  });
+
+  const displayEntries = entries;
+
   useEffect(() => {
     if (inView && hasMore && !isLoading && !isLoadingMore) {
       loadMore();
@@ -78,10 +112,9 @@ export const FeedContent: FC<FeedContentProps> = ({
         {filters && <div className="py-3">{filters}</div>}
 
         <div className="mt-4">
-          {/* Render existing entries */}
-          {entries.length > 0 &&
-            entries.map((entry, index) => (
-              <React.Fragment key={entry.id}>
+          {displayEntries.length > 0 &&
+            displayEntries.map((entry, index) => (
+              <React.Fragment key={`${entry.id}-${index}`}>
                 <FeedEntryItem
                   entry={entry}
                   index={index}
@@ -102,14 +135,12 @@ export const FeedContent: FC<FeedContentProps> = ({
               </React.Fragment>
             ))}
 
-          {/* Show skeletons when loading (initial or load more) */}
           {isLoading && (
             <>
               {[...Array(3)].map((_, index) => (
-                // Add margin-top if it's not the very first skeleton overall (i.e., if there are entries or previous skeletons)
                 <div
                   key={`skeleton-${index}`}
-                  className={index > 0 || entries.length > 0 ? 'mt-12' : ''}
+                  className={index > 0 || displayEntries.length > 0 ? 'mt-12' : ''}
                 >
                   <FeedItemSkeleton />
                 </div>
@@ -119,7 +150,7 @@ export const FeedContent: FC<FeedContentProps> = ({
 
           {/* Show 'No entries' message only if not loading and entries are empty */}
           {!isLoading &&
-            entries.length === 0 &&
+            displayEntries.length === 0 &&
             (noEntriesElement || (
               <div className="text-center py-8">
                 <p className="text-gray-500">No feed entries found</p>

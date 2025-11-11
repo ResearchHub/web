@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { FeedService } from '@/services/feed.service';
 import { useSession } from 'next-auth/react';
+import { useFeedStateRestoration } from './useFeedStateRestoration';
 
 export type FeedTab = 'following' | 'latest' | 'popular' | 'for-you';
 export type FundingTab = 'all' | 'open' | 'closed';
@@ -27,21 +28,31 @@ interface UseFeedOptions {
 
 export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions = {}) => {
   const { status } = useSession();
-  const [entries, setEntries] = useState<FeedEntry[]>(options.initialData?.entries || []);
-  const [isLoading, setIsLoading] = useState(!options.initialData);
-  const [hasMore, setHasMore] = useState(options.initialData?.hasMore || false);
-  const [page, setPage] = useState(1);
+  const { restoredState, restoredScrollPosition, lastClickedEntryId } = useFeedStateRestoration({
+    activeTab,
+  });
+
+  const initialEntries = restoredState?.entries || options.initialData?.entries || [];
+  const initialHasMore = restoredState?.hasMore ?? options.initialData?.hasMore ?? false;
+  const initialPage = restoredState?.page ?? 1;
+  const hasRestoredEntries = restoredState !== null;
+
+  const [entries, setEntries] = useState<FeedEntry[]>(initialEntries);
+  const [isLoading, setIsLoading] = useState(!hasRestoredEntries && !options.initialData);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [page, setPage] = useState(initialPage);
   const [currentTab, setCurrentTab] = useState<FeedTab | FundingTab>(activeTab);
   const [currentOptions, setCurrentOptions] = useState<UseFeedOptions>(options);
 
-  // Only load the feed when the component mounts or when the session status changes
-  // We no longer reload when activeTab changes, as that will be handled by page navigation
   useEffect(() => {
     if (status === 'loading') {
       return;
     }
 
-    // If we have initial data and it's the first load, don't fetch again
+    if (hasRestoredEntries && entries.length > 0) {
+      return;
+    }
+
     if (
       options.initialData &&
       entries.length === options.initialData.entries.length &&
@@ -50,19 +61,23 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       return;
     }
 
-    // Only load the feed if the tab has changed
     if (currentTab !== activeTab) {
       setCurrentTab(activeTab);
       loadFeed();
     } else if (entries.length === 0) {
-      // Initial load
       loadFeed();
     }
-  }, [status, activeTab]);
+  }, [
+    status,
+    activeTab,
+    hasRestoredEntries,
+    entries.length,
+    page,
+    currentTab,
+    options.initialData,
+  ]);
 
-  // Check if options have changed
   useEffect(() => {
-    // Compare relevant options (excluding initialData which shouldn't trigger a reload)
     const relevantOptionsChanged =
       options.hubSlug !== currentOptions.hubSlug ||
       options.contentType !== currentOptions.contentType ||
@@ -84,9 +99,8 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
 
   const loadFeed = async () => {
     setIsLoading(true);
-    setEntries([]); // Clear entries to show skeleton
+    setEntries([]);
     try {
-      // Only pass feedView for actual feed tabs (popular, following, latest)
       const isHomeFeedTab =
         activeTab === 'popular' || activeTab === 'following' || activeTab === 'latest';
 
@@ -122,7 +136,6 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     setIsLoading(true);
     try {
       const nextPage = page + 1;
-      // Only pass feedView for actual feed tabs (popular, following, latest)
       const isHomeFeedTab =
         activeTab === 'popular' || activeTab === 'following' || activeTab === 'latest';
 
@@ -158,5 +171,8 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     hasMore,
     loadMore,
     refresh: loadFeed,
+    restoredScrollPosition,
+    page,
+    lastClickedEntryId,
   };
 };
