@@ -10,7 +10,7 @@ import Image from 'next/image';
 import { truncateText } from '@/utils/stringUtils';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { useNavigation } from '@/contexts/NavigationContext';
-import { sanitizeHighlightHtml } from '@/utils/htmlSanitizer';
+import { sanitizeHighlightHtml } from '@/components/Search/lib/htmlSanitizer';
 
 // Base interfaces for the modular components
 export interface BaseFeedItemProps {

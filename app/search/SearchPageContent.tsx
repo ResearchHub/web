@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { FeedContent } from '@/components/Feed/FeedContent';
+import { SearchResult } from '@/components/Search/SearchResult';
 import { SearchSortControls } from '@/components/Search/SearchSortControls';
 import { SearchEmptyState } from '@/components/Search/SearchEmptyState';
 import { useSearch } from '@/hooks/useSearch';
@@ -11,6 +11,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { Search as SearchIcon } from 'lucide-react';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
+import { useInView } from 'react-intersection-observer';
 
 export type SearchTab = 'documents';
 
@@ -120,6 +121,18 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     </div>
   );
 
+  // Infinite scroll trigger
+  const { ref: loadMoreRef, inView } = useInView({
+    threshold: 0,
+    rootMargin: '100px',
+  });
+
+  useEffect(() => {
+    if (inView && hasMore && !isLoading) {
+      loadMore();
+    }
+  }, [inView, hasMore, isLoading, loadMore]);
+
   // Show a blank page (no default search UI) if no query
   if (!query.trim()) {
     return (
@@ -193,19 +206,33 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
                 ))}
               </div>
             ) : (
-              <FeedContent
-                entries={entries}
-                isLoading={isLoading}
-                hasMore={hasMore}
-                loadMore={loadMore}
-                activeTab="popular"
-                showBountyFooter={false}
-                hideActions={false}
-                showBountySupportAndCTAButtons={false}
-                showBountyDeadline={false}
-                showGrantHeaders={true}
-                showReadMoreCTA={true}
-              />
+              <>
+                {/* Render search results */}
+                <div className="space-y-6">
+                  {entries.map((searchResult, index) => (
+                    <SearchResult
+                      key={searchResult.entry.id}
+                      searchResult={searchResult}
+                      index={index}
+                      showGrantHeaders={true}
+                      showReadMoreCTA={true}
+                    />
+                  ))}
+                </div>
+
+                {/* Load more trigger */}
+                {hasMore && (
+                  <div ref={loadMoreRef} className="mt-6">
+                    {isLoading && (
+                      <div className="space-y-4">
+                        {[...Array(3)].map((_, i) => (
+                          <FeedItemSkeleton key={`loading-${i}`} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

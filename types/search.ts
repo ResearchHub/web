@@ -309,20 +309,25 @@ export const transformAuthorSuggestions = (raw: any): AuthorSuggestion[] => {
   return authorSuggestions;
 };
 
-// OpenSearch API Types
-export interface OpenSearchDocument {
+// Search API Types - implementation agnostic
+export interface DocumentSearchResult {
   id: number;
   type: 'paper' | 'post';
   title: string;
   snippet: string; // with <mark> tags for highlighting
   matched_field: string; // 'title', 'abstract', etc.
-  authors: string[]; // array of author names
+  authors: Array<{
+    first_name: string;
+    last_name: string;
+    full_name: string;
+  }>; // array of author objects
   created_date: string | null;
   paper_publish_date: string | null;
   hot_score: number;
   score: number; // upvotes
   _search_score: number; // relevance score
   hubs: any[]; // hub objects
+  unified_document_id: number | null;
   doi: string | null;
   citations: number;
   is_open_access: boolean | null;
@@ -330,7 +335,7 @@ export interface OpenSearchDocument {
   document_type: string | null; // 'GRANT', etc.
 }
 
-export interface OpenSearchPerson {
+export interface PersonSearchResult {
   id: number;
   full_name: string;
   profile_image: string;
@@ -343,10 +348,12 @@ export interface OpenSearchPerson {
   _search_score: number;
 }
 
-export interface OpenSearchResponse {
+export interface SearchResponse {
   count: number;
-  documents: OpenSearchDocument[];
-  people: OpenSearchPerson[];
+  next: string | null;
+  previous: string | null;
+  documents: DocumentSearchResult[];
+  people: PersonSearchResult[];
   aggregations: {
     years: Array<{ key: string; doc_count: number }>;
     hubs: Array<{ key: string; doc_count: number }>;
@@ -358,10 +365,7 @@ export interface OpenSearchResponse {
 export interface SearchFilters {
   yearMin?: number;
   yearMax?: number;
-  citationMin?: number;
-  openAccess?: boolean;
   contentTypes?: string[];
-  hubs?: number[];
   authors?: string[];
 }
 

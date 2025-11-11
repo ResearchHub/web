@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { AuthorProfile, FeedEntry } from '@/types/feed';
+import { AuthorProfile, FeedEntry, FeedGrantContent } from '@/types/feed';
 import {
   BaseFeedItem,
   TitleSection,
@@ -23,53 +23,6 @@ import Icon from '@/components/ui/icons/Icon';
 import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
 import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
 
-// Grant-specific content type that extends the feed entry structure
-export interface FeedGrantContent {
-  id: number;
-  contentType: 'GRANT';
-  createdDate: string;
-  textPreview: string;
-  slug: string;
-  title: string;
-  /** Optional HTML string with <mark> tags highlighting matched search terms in the title */
-  highlightedTitle?: string;
-  /** Optional HTML string with <mark> tags highlighting matched search terms in the content */
-  highlightedSnippet?: string;
-  /** Indicates which field(s) had search matches (e.g., "title", "abstract", "title+abstract") */
-  matchedField?: string;
-  previewImage?: string;
-  authors: any[];
-  topics: any[];
-  createdBy: any;
-  bounties?: any[];
-  reviews?: any[];
-  grant: {
-    id: number;
-    amount: {
-      usd: number;
-      rsc: number;
-      formatted: string;
-    };
-    organization: string;
-    description: string;
-    status: 'OPEN' | 'CLOSED';
-    startDate: string;
-    endDate: string;
-    isExpired: boolean;
-    isActive: boolean;
-    currency: string;
-    createdBy: any; // User
-    applicants: AuthorProfile[];
-  };
-  organization?: string;
-  grantAmount?: {
-    amount: number;
-    currency: string;
-    formatted: string;
-  };
-  isExpired?: boolean;
-}
-
 interface FeedItemGrantRefactoredProps {
   entry: FeedEntry;
   href?: string;
@@ -80,6 +33,8 @@ interface FeedItemGrantRefactoredProps {
   maxLength?: number;
   showHeader?: boolean;
   onFeedItemClick?: () => void;
+  highlightedTitle?: string;
+  highlightedSnippet?: string;
 }
 
 /**
@@ -95,6 +50,8 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
   maxLength,
   showHeader = true,
   onFeedItemClick,
+  highlightedTitle,
+  highlightedSnippet,
 }) => {
   const grant = entry.content as FeedGrantContent;
   const router = useRouter();
@@ -107,8 +64,8 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
   const expiringSoon = isExpiringSoon(deadline, 1); // Use 1-day threshold for grants
 
   // Prepare applicants data
-  const applicants = grant.grant?.applicants || [];
-  const applicantAvatars = applicants.map((applicant) => ({
+  const applicants: AuthorProfile[] = grant.grant?.applicants || [];
+  const applicantAvatars = applicants.map((applicant: AuthorProfile) => ({
     src: applicant.profileImage,
     alt:
       applicant.firstName && applicant.lastName
@@ -177,13 +134,13 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection title={grant.title} highlightedTitle={grant.highlightedTitle} />
+            <TitleSection title={grant.title} highlightedTitle={highlightedTitle} />
 
             {/* Description */}
             {grant.grant?.description && (
               <ContentSection
                 content={grant.grant.description}
-                highlightedContent={grant.highlightedSnippet}
+                highlightedContent={highlightedSnippet}
                 maxLength={maxLength}
                 className="mb-3"
               />
