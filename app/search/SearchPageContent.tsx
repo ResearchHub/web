@@ -31,6 +31,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
   const urlSearchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<SearchTab>('documents');
   const [query, setQuery] = useState(searchParams.q || '');
+  const [hasSearched, setHasSearched] = useState(false);
 
   const {
     entries,
@@ -61,7 +62,26 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     // Perform initial search only when component mounts or URL query changes
     if (searchParams.q?.trim()) {
       setQuery(searchParams.q);
+      setHasSearched(true);
       search(searchParams.q, 'documents');
+
+      // Scroll to top when query changes (e.g., from shift+enter in modal)
+      // Use double requestAnimationFrame to ensure DOM is ready after navigation
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          // Try to find the scroll container used by PageLayout
+          // The scroll container has overflow-y-auto and flex-1 classes
+          const scrollContainer = document.querySelector(
+            '.flex-1.flex.flex-col.overflow-y-auto'
+          ) as HTMLElement;
+          if (scrollContainer) {
+            scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            // Fallback to window scroll
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        });
+      });
     }
   }, [searchParams.q, searchParams.tab]);
 
@@ -80,6 +100,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
 
     // Trigger the actual search
     if (searchQuery.trim()) {
+      setHasSearched(true);
       search(searchQuery, activeTab);
     }
 
@@ -91,6 +112,24 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
       newParams.delete('q');
     }
     router.push(`/search?${newParams.toString()}`);
+
+    // Scroll to top after URL update
+    // Use double requestAnimationFrame to ensure DOM is ready after navigation
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        // Try to find the scroll container used by PageLayout
+        // The scroll container has overflow-y-auto and flex-1 classes
+        const scrollContainer = document.querySelector(
+          '.flex-1.flex.flex-col.overflow-y-auto'
+        ) as HTMLElement;
+        if (scrollContainer) {
+          scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          // Fallback to window scroll
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    });
   };
 
   const tabs = [
@@ -140,7 +179,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
   if (!query.trim()) {
     return (
       <PageLayout
-        rightSidebar={false}
+        rightSidebar={true}
         className="tablet:!max-w-full content-md:!max-w-full content-lg:!max-w-full content-xl:!max-w-full"
       >
         {header}
@@ -152,7 +191,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
   if (!isLoading && error && query.trim()) {
     return (
       <PageLayout
-        rightSidebar={false}
+        rightSidebar={true}
         className="tablet:!max-w-full content-md:!max-w-full content-lg:!max-w-full content-xl:!max-w-full"
       >
         {header}
@@ -165,11 +204,11 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     );
   }
 
-  // Show empty state with no results
-  if (!isLoading && !error && entries.length === 0 && query.trim()) {
+  // Show empty state with no results (only after search has completed)
+  if (!isLoading && !error && entries.length === 0 && query.trim() && hasSearched) {
     return (
       <PageLayout
-        rightSidebar={false}
+        rightSidebar={true}
         className="tablet:!max-w-full content-md:!max-w-full content-lg:!max-w-full content-xl:!max-w-full"
       >
         {header}
@@ -188,7 +227,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
 
   return (
     <PageLayout
-      rightSidebar={false}
+      rightSidebar={true}
       className="tablet:!max-w-full content-md:!max-w-full content-lg:!max-w-full content-xl:!max-w-full"
     >
       {header}
@@ -201,14 +240,14 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
           <div className="flex-1 min-w-0">
             {sortControls && <div className="mb-4">{sortControls}</div>}
 
-            {/* Show skeletons while loading initial results */}
+            {/* Show skeletons while loading initial results, or blank if no search has been initiated */}
             {isLoading && entries.length === 0 ? (
               <div className="space-y-4">
                 {[...Array(5)].map((_, i) => (
                   <FeedItemSkeleton key={`skeleton-${i}`} />
                 ))}
               </div>
-            ) : (
+            ) : hasSearched ? (
               <>
                 {/* Render search results */}
                 <div className="space-y-6">
@@ -236,7 +275,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
                   </div>
                 )}
               </>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
