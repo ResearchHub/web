@@ -16,7 +16,7 @@ interface Tab {
 interface JournalTabsProps {
   activeTab: TabType;
   tabs: Tab[];
-  isLoading: boolean;
+  isLoading?: boolean;
   onTabChange: (tab: TabType) => void;
 }
 
@@ -29,7 +29,7 @@ export const JournalTabs: FC<JournalTabsProps> = ({ activeTab, tabs, isLoading, 
   return (
     <div className="mb-6">
       {/* Mobile view - all tabs together */}
-      <div className="block sm:hidden border-b border-gray-200">
+      <div className="block sm:!hidden border-b border-gray-200">
         <div className="relative">
           <Tabs
             tabs={tabs}
@@ -46,7 +46,7 @@ export const JournalTabs: FC<JournalTabsProps> = ({ activeTab, tabs, isLoading, 
       </div>
 
       {/* Desktop view - about as floating button */}
-      <div className="hidden sm:block">
+      <div className="hidden sm:!block">
         <div className="relative">
           <div className="border-b border-gray-200">
             <div className="flex items-end justify-between">
