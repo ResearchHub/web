@@ -158,7 +158,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     ) : null;
 
   const sortControls = query.trim() && (
-    <div className="flex justify-end pr-0">
+    <div className="flex justify-end">
       <SearchSortControls sortBy={sortBy} onSortChange={setSortBy} activeTab={activeTab} />
     </div>
   );
@@ -232,7 +232,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     >
       {header}
 
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         {feedTabs}
 
         <div className={cn('flex gap-6', feedTabs ? 'mt-6' : '')}>
