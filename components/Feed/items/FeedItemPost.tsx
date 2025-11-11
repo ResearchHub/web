@@ -23,6 +23,8 @@ interface FeedItemPostProps {
   showActions?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
+  highlightedTitle?: string;
+  highlightedSnippet?: string;
 }
 
 /**
@@ -35,6 +37,8 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   showActions = true,
   maxLength,
   onFeedItemClick,
+  highlightedTitle,
+  highlightedSnippet,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -95,7 +99,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection title={post.title} highlightedTitle={post.highlightedTitle} />
+            <TitleSection title={post.title} highlightedTitle={highlightedTitle} />
 
             {/* Authors list below title */}
             {authors.length > 0 && (
@@ -115,7 +119,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
             {/* Truncated Content */}
             <ContentSection
               content={post.textPreview}
-              highlightedContent={post.highlightedSnippet}
+              highlightedContent={highlightedSnippet}
               maxLength={maxLength}
             />
           </>

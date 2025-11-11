@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { SearchService } from '@/services/search.service';
-import { FeedEntry } from '@/types/feed';
+import { SearchResult } from '@/types/searchResult';
 import {
-  OpenSearchPerson,
-  OpenSearchResponse,
+  PersonSearchResult,
+  SearchResponse,
   SearchFilters,
   SearchSortOption,
 } from '@/types/search';
@@ -15,13 +15,13 @@ interface UseSearchOptions {
 }
 
 interface UseSearchReturn {
-  entries: FeedEntry[];
-  people: OpenSearchPerson[];
+  entries: SearchResult[];
+  people: PersonSearchResult[];
   isLoading: boolean;
   error: string | null;
   hasMore: boolean;
   loadMore: () => void;
-  aggregations: OpenSearchResponse['aggregations'] | null;
+  aggregations: SearchResponse['aggregations'] | null;
   filters: SearchFilters;
   stagedFilters: SearchFilters;
   sortBy: SearchSortOption;
@@ -36,13 +36,13 @@ interface UseSearchReturn {
 const STORAGE_KEY = 'search-preferences';
 
 export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
-  const [entries, setEntries] = useState<FeedEntry[]>([]);
-  const [people, setPeople] = useState<OpenSearchPerson[]>([]);
+  const [entries, setEntries] = useState<SearchResult[]>([]);
+  const [people, setPeople] = useState<PersonSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
-  const [aggregations, setAggregations] = useState<OpenSearchResponse['aggregations'] | null>(null);
+  const [aggregations, setAggregations] = useState<SearchResponse['aggregations'] | null>(null);
   const [currentQuery, setCurrentQuery] = useState('');
   const [currentTab, setCurrentTab] = useState<'documents' | 'people'>('documents');
 
@@ -222,29 +222,29 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
 
   // Frontend sorting - sort the already-fetched results
   const sortEntries = useCallback(
-    (entriesToSort: FeedEntry[]) => {
+    (entriesToSort: SearchResult[]) => {
       const sorted = [...entriesToSort];
 
       switch (sortBy) {
         case 'newest':
           return sorted.sort((a, b) => {
             // Use content.createdDate for the actual creation date
-            const dateA = new Date(a.content.createdDate || a.timestamp || 0).getTime();
-            const dateB = new Date(b.content.createdDate || b.timestamp || 0).getTime();
+            const dateA = new Date(a.entry.content.createdDate || a.entry.timestamp || 0).getTime();
+            const dateB = new Date(b.entry.content.createdDate || b.entry.timestamp || 0).getTime();
             return dateB - dateA;
           });
 
         case 'hot':
           return sorted.sort((a, b) => {
-            const scoreA = a.hotScoreV2 || a.metrics?.votes || 0;
-            const scoreB = b.hotScoreV2 || b.metrics?.votes || 0;
+            const scoreA = a.entry.hotScoreV2 || a.entry.metrics?.votes || 0;
+            const scoreB = b.entry.hotScoreV2 || b.entry.metrics?.votes || 0;
             return scoreB - scoreA;
           });
 
         case 'upvoted':
           return sorted.sort((a, b) => {
-            const votesA = a.metrics?.votes || 0;
-            const votesB = b.metrics?.votes || 0;
+            const votesA = a.entry.metrics?.votes || 0;
+            const votesB = b.entry.metrics?.votes || 0;
             return votesB - votesA;
           });
 
@@ -258,7 +258,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
   );
 
   const sortPeople = useCallback(
-    (peopleToSort: OpenSearchPerson[]) => {
+    (peopleToSort: PersonSearchResult[]) => {
       const sorted = [...peopleToSort];
 
       switch (sortBy) {

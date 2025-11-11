@@ -4,9 +4,9 @@ import {
   transformSearchSuggestion,
   EntityType,
   AuthorSuggestion,
-  OpenSearchResponse,
-  OpenSearchDocument,
-  OpenSearchPerson,
+  SearchResponse,
+  DocumentSearchResult,
+  PersonSearchResult,
   SearchFilters,
   SearchSortOption,
 } from '@/types/search';
@@ -14,6 +14,7 @@ import { transformAuthorSuggestions } from '@/types/search';
 import { transformTopic } from '@/types/topic';
 import { Institution } from '@/app/paper/create/components/InstitutionAutocomplete';
 import { FeedEntry, transformFeedEntry } from '@/types/feed';
+import { SearchResult } from '@/types/searchResult';
 import { highlightSearchTerms, hasHighlights } from '@/utils/searchHighlight';
 
 export interface InstitutionResponse {
@@ -96,8 +97,8 @@ export class SearchService {
     filters?: SearchFilters;
     sortBy?: SearchSortOption;
   }): Promise<{
-    entries: FeedEntry[];
-    people: OpenSearchPerson[];
+    entries: SearchResult[];
+    people: PersonSearchResult[];
     count: number;
     aggregations: any;
     hasMore: boolean;
@@ -123,21 +124,9 @@ export class SearchService {
       if (params.filters.yearMax !== undefined) {
         searchParams.append('year_max', params.filters.yearMax.toString());
       }
-
-      if (params.filters.citationMin !== undefined) {
-        searchParams.append('citation_min', params.filters.citationMin.toString());
-      }
-
-      if (params.filters.openAccess !== undefined) {
-        searchParams.append('open_access', params.filters.openAccess.toString());
-      }
-
-      if (params.filters.hubs && params.filters.hubs.length > 0) {
-        searchParams.append('hubs', params.filters.hubs.join(','));
-      }
     }
 
-    const response = await ApiClient.get<OpenSearchResponse | { error?: string }>(
+    const response = await ApiClient.get<SearchResponse | { error?: string }>(
       `${this.BASE_PATH}/search/?${searchParams.toString()}`
     );
 
@@ -146,18 +135,16 @@ export class SearchService {
       throw new Error((response as any).error || 'Search failed');
     }
 
-    const resp = response as OpenSearchResponse;
+    const resp = response as SearchResponse;
 
-    // Transform documents to FeedEntry format, passing the query for highlighting
+    // Transform documents to SearchResult format
     const documents = Array.isArray(resp.documents) ? resp.documents : [];
-    const entries: FeedEntry[] = documents.map((doc) =>
-      this.transformDocumentToFeedEntry(doc, params.query)
+    const entries: SearchResult[] = documents.map((doc) =>
+      this.transformSearchResult(doc, params.query)
     );
 
-    // Calculate hasMore based on count and current page
-    const currentPage = params.page || 1;
-    const pageSize = params.pageSize || 20;
-    const hasMore = currentPage * pageSize < (resp?.count || 0);
+    // Use DRF pagination - hasMore based on next URL
+    const hasMore = !!resp.next;
 
     return {
       entries,
@@ -168,7 +155,10 @@ export class SearchService {
     };
   }
 
-  private static transformDocumentToFeedEntry(doc: OpenSearchDocument, query: string): FeedEntry {
+  private static transformSearchResult(doc: DocumentSearchResult, query: string): SearchResult {
+    // First transform to a clean FeedEntry
+    const feedEntry = this.transformDocumentToFeedEntry(doc);
+
     // Strip HTML tags from snippet and title for plain text, handle null values
     const plainSnippet = doc.snippet
       ? doc.snippet.replace(/<mark>/g, '').replace(/<\/mark>/g, '')
@@ -178,6 +168,62 @@ export class SearchService {
     // Check if the snippet contains highlighting
     const snippetHasHighlight = doc.snippet ? hasHighlights(doc.snippet) : false;
     const titleHasHighlight = doc.title ? hasHighlights(doc.title) : false;
+
+    // Initialize highlight fields
+    let highlightedTitle: string | undefined;
+    let highlightedSnippet: string | undefined;
+
+    // If title itself has highlighting, use it
+    if (titleHasHighlight && doc.title) {
+      highlightedTitle = doc.title;
+      // Also highlight the abstract if it doesn't already have highlights
+      if (!snippetHasHighlight && plainSnippet) {
+        highlightedSnippet = highlightSearchTerms(plainSnippet, query);
+      }
+    }
+    // Otherwise if matched_field is title, use snippet for title
+    else if (doc.matched_field === 'title' && snippetHasHighlight && doc.snippet) {
+      highlightedTitle = doc.snippet;
+      // Also try to highlight the abstract
+      if (plainSnippet && plainSnippet !== plainTitle) {
+        highlightedSnippet = highlightSearchTerms(plainSnippet, query);
+      }
+    }
+
+    // If snippet has highlighting and matched_field is not title, use it for content
+    if (snippetHasHighlight && doc.matched_field !== 'title' && doc.snippet) {
+      highlightedSnippet = doc.snippet;
+      // Also try to highlight the title if it doesn't already have highlights
+      if (!titleHasHighlight && plainTitle) {
+        highlightedTitle = highlightSearchTerms(plainTitle, query);
+      }
+    }
+
+    // If we still don't have any highlights, try to highlight based on the query
+    if (!highlightedTitle && plainTitle) {
+      highlightedTitle = highlightSearchTerms(plainTitle, query);
+    }
+    if (!highlightedSnippet && plainSnippet) {
+      highlightedSnippet = highlightSearchTerms(plainSnippet, query);
+    }
+
+    return {
+      entry: feedEntry,
+      highlightedTitle,
+      highlightedSnippet,
+      matchedField: doc.matched_field,
+    };
+  }
+
+  private static transformDocumentToFeedEntry(doc: DocumentSearchResult): FeedEntry {
+    // Strip HTML tags from snippet and title for plain text, handle null values
+    const plainSnippet = doc.snippet
+      ? doc.snippet.replace(/<mark>/g, '').replace(/<\/mark>/g, '')
+      : '';
+    const plainTitle = doc.title ? doc.title.replace(/<mark>/g, '').replace(/<\/mark>/g, '') : '';
+
+    // Use structured author objects from API - no more string splitting!
+    const firstAuthor = doc.authors && doc.authors.length > 0 ? doc.authors[0] : null;
 
     // Create a mock RawApiFeedEntry structure that can be transformed by transformFeedEntry
     const mockRawEntry = {
@@ -189,9 +235,9 @@ export class SearchService {
         abstract: plainSnippet,
         slug: doc.slug || '',
         created_date: doc.created_date || doc.paper_publish_date || new Date().toISOString(),
-        authors: (doc.authors || []).map((name) => ({
-          first_name: name.split(' ')[0] || '',
-          last_name: name.split(' ').slice(1).join(' ') || '',
+        authors: (doc.authors || []).map((author) => ({
+          first_name: author.first_name || '',
+          last_name: author.last_name || '',
           profile_image: '',
         })),
         hub: doc.hubs && doc.hubs.length > 0 ? doc.hubs[0] : null,
@@ -200,15 +246,15 @@ export class SearchService {
         citations: doc.citations || 0,
         score: doc.score || 0,
         hot_score: doc.hot_score || 0,
-        unified_document_id: doc.id.toString(),
+        unified_document_id: doc.unified_document_id?.toString() || doc.id.toString(),
       },
       created_date: doc.created_date || doc.paper_publish_date || new Date().toISOString(),
       action: 'publish',
       action_date: doc.created_date || doc.paper_publish_date || new Date().toISOString(),
       author: {
         id: 0,
-        first_name: doc.authors[0]?.split(' ')[0] || 'Unknown',
-        last_name: doc.authors[0]?.split(' ').slice(1).join(' ') || 'Author',
+        first_name: firstAuthor?.first_name || 'Unknown',
+        last_name: firstAuthor?.last_name || 'Author',
         profile_image: '',
       },
       metrics: {
@@ -217,51 +263,7 @@ export class SearchService {
       },
     };
 
-    const feedEntry = transformFeedEntry(mockRawEntry);
-
-    // Add highlight fields to the transformed content
-    if (feedEntry.content && 'title' in feedEntry.content) {
-      const content = feedEntry.content as any;
-
-      // If title itself has highlighting, use it
-      if (titleHasHighlight && doc.title) {
-        content.highlightedTitle = doc.title;
-        // Also highlight the abstract if it doesn't already have highlights
-        if (!snippetHasHighlight && plainSnippet) {
-          content.highlightedSnippet = highlightSearchTerms(plainSnippet, query);
-        }
-      }
-      // Otherwise if matched_field is title, use snippet for title
-      else if (doc.matched_field === 'title' && snippetHasHighlight && doc.snippet) {
-        content.highlightedTitle = doc.snippet;
-        // Also try to highlight the abstract
-        if (plainSnippet && plainSnippet !== plainTitle) {
-          content.highlightedSnippet = highlightSearchTerms(plainSnippet, query);
-        }
-      }
-
-      // If snippet has highlighting and matched_field is not title, use it for content
-      if (snippetHasHighlight && doc.matched_field !== 'title' && doc.snippet) {
-        content.highlightedSnippet = doc.snippet;
-        // Also try to highlight the title if it doesn't already have highlights
-        if (!titleHasHighlight && plainTitle) {
-          content.highlightedTitle = highlightSearchTerms(plainTitle, query);
-        }
-      }
-
-      // If we still don't have any highlights, try to highlight based on the query
-      if (!content.highlightedTitle && plainTitle) {
-        content.highlightedTitle = highlightSearchTerms(plainTitle, query);
-      }
-      if (!content.highlightedSnippet && plainSnippet) {
-        content.highlightedSnippet = highlightSearchTerms(plainSnippet, query);
-      }
-
-      // Always include the matched field info
-      content.matchedField = doc.matched_field;
-    }
-
-    return feedEntry;
+    return transformFeedEntry(mockRawEntry);
   }
 
   static async suggestPeople(query: string): Promise<AuthorSuggestion[]> {
