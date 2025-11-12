@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState, useEffect, useMemo, useLayoutEffect } from 'react';
+import { FC, useMemo, useLayoutEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { JournalFeed } from './JournalFeed';
 import { JournalTabs, TabType } from './JournalTabs';
@@ -14,7 +14,6 @@ export const JournalPage: FC = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isLoading, setIsLoading] = useState(false);
 
   const activeTab = useMemo(() => {
     const tabParam = searchParams.get('tab') as TabType | null;
@@ -34,18 +33,10 @@ export const JournalPage: FC = () => {
 
   const handleTabChange = (tab: TabType) => {
     if (tab === activeTab) return; // Skip if tab is already active
-    setIsLoading(true);
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', tab);
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
-
-  useEffect(() => {
-    // Simulate loading state when tab changes via URL
-    setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 300); // Shorter delay for URL changes
-    return () => clearTimeout(timer);
-  }, [activeTab]);
 
   const tabs = [
     {
@@ -78,18 +69,9 @@ export const JournalPage: FC = () => {
     <div className="space-y-1">
       {header}
 
-      <JournalTabs
-        activeTab={activeTab}
-        tabs={tabs}
-        onTabChange={handleTabChange}
-        isLoading={isLoading}
-      />
+      <JournalTabs activeTab={activeTab} tabs={tabs} onTabChange={handleTabChange} />
 
-      {activeTab === 'about' ? (
-        <JournalAboutTab />
-      ) : (
-        <JournalFeed activeTab={activeTab} isLoading={isLoading} />
-      )}
+      {activeTab === 'about' ? <JournalAboutTab /> : <JournalFeed activeTab={activeTab} />}
     </div>
   );
 };

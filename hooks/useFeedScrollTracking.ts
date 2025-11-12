@@ -79,14 +79,6 @@ export const useFeedScrollTracking = ({
 
             container.scrollTop = scrollTop;
 
-            clickedElement.classList.add('programmatic-focus');
-
-            const handleBlur = () => {
-              clickedElement.classList.remove('programmatic-focus');
-              clickedElement.removeEventListener('blur', handleBlur);
-            };
-            clickedElement.addEventListener('blur', handleBlur);
-
             clickedElement.focus();
 
             resetBackNavigation();
