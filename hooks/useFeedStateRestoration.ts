@@ -45,8 +45,10 @@ export function useFeedStateRestoration(
       tab: options.activeTab,
       queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
     });
+    console.log('feedKey', feedKey);
 
     const savedState = getFeedState(feedKey);
+    console.log('savedState', savedState);
     if (savedState) {
       clearFeedState(feedKey);
       return savedState;

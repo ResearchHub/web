@@ -5,22 +5,18 @@ import { useFeedStateRestoration } from './useFeedStateRestoration';
 import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
 import { RHJournalService } from '@/services/rh-journal.service';
 
-interface UseJournalFeedOptions {
-  activeTab: string;
-}
+export function useJournalFeed(activeTab: string) {
+  const { restoredState, restoredScrollPosition, lastClickedEntryId } = useFeedStateRestoration({
+    activeTab: activeTab,
+  });
 
-export function useJournalFeed(options: UseJournalFeedOptions) {
-  const { restoredState, initialEntries, restoredScrollPosition, lastClickedEntryId } =
-    useFeedStateRestoration({
-      activeTab: options.activeTab,
-    });
-
-  const initialHasRestoredEntries = restoredState !== null;
+  const initialEntries = restoredState?.entries || [];
+  const initialHasMore = restoredState?.hasMore ?? false;
   const initialPage = restoredState?.page ?? 1;
-
+  const hasRestoredEntries = restoredState !== null;
   // Map active tab to API filter value
   const getPublicationStatus = () => {
-    switch (options.activeTab) {
+    switch (activeTab) {
       case 'in-review':
         return 'PREPRINT' as const;
       case 'published':
@@ -30,19 +26,14 @@ export function useJournalFeed(options: UseJournalFeedOptions) {
     }
   };
 
-  const [feedEntries, setFeedEntries] = useState<FeedEntry[]>(initialEntries);
-  const [isLoading, setIsLoading] = useState(!initialHasRestoredEntries);
-  const [hasMore, setHasMore] = useState(restoredState?.hasMore ?? false);
+  const [entries, setEntries] = useState<FeedEntry[]>(initialEntries);
+  const [isLoading, setIsLoading] = useState(!hasRestoredEntries);
+  const [hasMore, setHasMore] = useState(initialHasMore);
   const [page, setPage] = useState(initialPage);
-  const [error, setError] = useState<Error | null>(null);
-
-  const [restoredFeedEntries, setRestoredFeedEntries] = useState<FeedEntry[]>(initialEntries);
-  const [hasRestoredEntries, setHasRestoredEntries] = useState<boolean>(initialHasRestoredEntries);
 
   const loadJournalPapers = async () => {
     setIsLoading(true);
-    setError(null);
-    setFeedEntries([]);
+    setEntries([]);
 
     try {
       const publicationStatus = getPublicationStatus();
@@ -65,11 +56,10 @@ export function useJournalFeed(options: UseJournalFeedOptions) {
         })
         .filter((entry): entry is FeedEntry => !!entry);
 
-      setFeedEntries(entries);
+      setEntries(entries);
       setHasMore(!!response.next);
       setPage(1);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to fetch journal papers'));
       console.error('Failed to fetch journal papers:', err);
     } finally {
       setIsLoading(false);
@@ -77,35 +67,17 @@ export function useJournalFeed(options: UseJournalFeedOptions) {
   };
 
   useEffect(() => {
-    if (initialHasRestoredEntries && initialEntries.length > 0 && !hasRestoredEntries) {
-      setHasRestoredEntries(true);
-      setRestoredFeedEntries(initialEntries);
-      setFeedEntries(initialEntries);
-    }
-  }, [initialHasRestoredEntries, initialEntries.length, hasRestoredEntries, initialEntries]);
-
-  useEffect(() => {
-    // Reset restored entries state when tab changes
-    if (!initialHasRestoredEntries) {
-      setRestoredFeedEntries([]);
-      setHasRestoredEntries(false);
-    }
-  }, [options.activeTab, initialHasRestoredEntries]);
-
-  useEffect(() => {
-    if (hasRestoredEntries && restoredFeedEntries.length > 0) {
+    if (hasRestoredEntries && entries.length > 0) {
       return;
     }
 
     loadJournalPapers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options.activeTab]);
+  }, [activeTab]);
 
   const loadMore = async () => {
     if (!hasMore || isLoading) return;
 
     setIsLoading(true);
-    setError(null);
 
     try {
       const publicationStatus = getPublicationStatus();
@@ -129,11 +101,10 @@ export function useJournalFeed(options: UseJournalFeedOptions) {
         })
         .filter((entry): entry is FeedEntry => !!entry);
 
-      setFeedEntries((prev) => [...prev, ...newEntries]);
+      setEntries((prev) => [...prev, ...newEntries]);
       setHasMore(!!response.next);
       setPage(nextPage);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to load more journal papers'));
       console.error('Failed to load more journal papers:', err);
     } finally {
       setIsLoading(false);
@@ -141,9 +112,8 @@ export function useJournalFeed(options: UseJournalFeedOptions) {
   };
 
   return {
-    entries: hasRestoredEntries ? restoredFeedEntries : feedEntries,
+    entries,
     isLoading,
-    error,
     hasMore,
     loadMore,
     refresh: loadJournalPapers,

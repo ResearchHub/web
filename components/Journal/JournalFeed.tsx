@@ -148,9 +148,7 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab }) => {
     loadMore,
     restoredScrollPosition,
     lastClickedEntryId,
-  } = useJournalFeed({
-    activeTab,
-  });
+  } = useJournalFeed(activeTab);
 
   const shouldShowBanner =
     activeTab === 'all' && feedEntries.length >= 2 && restoredScrollPosition === null;
