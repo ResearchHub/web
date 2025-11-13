@@ -12,6 +12,8 @@ import { toast } from 'react-hot-toast';
 import { FundraiseService } from '@/services/fundraise.service';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { formatCurrency } from '@/utils/currency';
 import { Fundraise } from '@/types/funding';
 
 interface ContributeToFundraiseModalProps {
@@ -26,10 +28,14 @@ const CurrencyInput = ({
   value,
   onChange,
   error,
+  currencyLabel,
+  helperText,
 }: {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
+  currencyLabel: string;
+  helperText?: string;
 }) => {
   return (
     <div className="relative">
@@ -45,9 +51,10 @@ const CurrencyInput = ({
         className={`w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${error ? 'border-red-500' : ''}`}
         rightElement={
           <div className="flex items-center gap-1 pr-3 text-gray-900">
-            <span className="font-medium">RSC</span>
+            <span className="font-medium">{currencyLabel}</span>
           </div>
         }
+        helperText={helperText}
       />
       {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
     </div>
@@ -59,48 +66,60 @@ const FeeBreakdown = ({
   contributionAmount,
   platformFee,
   totalAmount,
+  showUSD,
+  exchangeRate,
 }: {
   contributionAmount: number;
   platformFee: number;
   totalAmount: number;
-}) => (
-  <div className="bg-gray-50 rounded-lg p-4 space-y-4 border border-gray-200">
-    <div className="flex justify-between items-center">
-      <span className="text-gray-900">Your contribution:</span>
-      <span className="text-gray-900">{contributionAmount.toLocaleString()} RSC</span>
-    </div>
+  showUSD: boolean;
+  exchangeRate: number;
+}) => {
+  const useUsd = showUSD && exchangeRate > 0;
+  const formatAmt = (v: number) => {
+    const s = formatCurrency({ amount: v, showUSD: useUsd, exchangeRate });
+    return useUsd ? `${s} USD` : `${s} RSC`;
+  };
 
-    <div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <span className="text-gray-600">Platform fees (9%)</span>
-          <Tooltip
-            content="Platform fees help support ResearchHub's operations and development"
-            className="max-w-xs"
-          >
-            <div className="text-gray-400 hover:text-gray-500">
-              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-          </Tooltip>
+  return (
+    <div className="bg-gray-50 rounded-lg p-4 space-y-4 border border-gray-200">
+      <div className="flex justify-between items-center">
+        <span className="text-gray-900">Your contribution:</span>
+        <span className="text-gray-900">{formatAmt(contributionAmount)}</span>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            <span className="text-gray-600">Platform fees (9%)</span>
+            <Tooltip
+              content="Platform fees help support ResearchHub's operations and development"
+              className="max-w-xs"
+            >
+              <div className="text-gray-400 hover:text-gray-500">
+                <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+            </Tooltip>
+          </div>
+          <span className="text-gray-600">+ {formatAmt(platformFee)}</span>
         </div>
-        <span className="text-gray-600">+ {platformFee.toLocaleString()} RSC</span>
+      </div>
+
+      <div className="border-t border-gray-200" />
+
+      <div className="flex justify-between items-center">
+        <span className="font-semibold text-gray-900">Total amount:</span>
+        <span className="font-semibold text-gray-900">{formatAmt(totalAmount)}</span>
       </div>
     </div>
-
-    <div className="border-t border-gray-200" />
-
-    <div className="flex justify-between items-center">
-      <span className="font-semibold text-gray-900">Total amount:</span>
-      <span className="font-semibold text-gray-900">{totalAmount.toLocaleString()} RSC</span>
-    </div>
-  </div>
-);
+  );
+};
 
 const ModalHeader = ({
   title,
@@ -140,7 +159,9 @@ export function ContributeToFundraiseModal({
   fundraise,
 }: ContributeToFundraiseModalProps) {
   const { user } = useUser();
-  const [inputAmount, setInputAmount] = useState(100);
+  const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
+  const [inputAmountRsc, setInputAmountRsc] = useState(100);
   const [isContributing, setIsContributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -151,36 +172,59 @@ export function ContributeToFundraiseModal({
   const lockedBalance = user?.lockedBalance || 0;
   const totalAvailableBalance = userBalance + lockedBalance;
 
+  const useUsd = showUSD && exchangeRate > 0;
+
   // Utility functions
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/[^0-9.]/g, '');
     const numValue = parseFloat(rawValue);
 
-    if (!isNaN(numValue)) {
-      setInputAmount(numValue);
-
-      // Validate minimum amount
-      if (numValue < 10) {
-        setAmountError('Minimum contribution amount is 10 RSC');
-      } else {
-        setAmountError(undefined);
-      }
-    } else {
-      setInputAmount(0);
+    if (isNaN(numValue)) {
+      setInputAmountRsc(0);
       setAmountError('Please enter a valid amount');
+      return;
+    }
+
+    // Convert from preferred currency to RSC
+    const rsc = useUsd ? numValue / exchangeRate : numValue;
+    setInputAmountRsc(rsc);
+
+    // Validate minimum amount (10 RSC)
+    if (rsc < 10) {
+      const minUsd = 10 * exchangeRate;
+      setAmountError(
+        useUsd
+          ? `Minimum contribution amount is $${minUsd.toFixed(2)} USD`
+          : 'Minimum contribution amount is 10 RSC'
+      );
+    } else {
+      setAmountError(undefined);
     }
   };
 
   const getFormattedInputValue = () => {
-    if (inputAmount === 0) return '';
-    return inputAmount.toLocaleString();
+    if (inputAmountRsc === 0) return '';
+    const displayValueNum = useUsd ? inputAmountRsc * exchangeRate : inputAmountRsc;
+    return displayValueNum.toLocaleString(undefined, { maximumFractionDigits: 2 });
   };
+
+  const secondaryText =
+    exchangeRate > 0
+      ? useUsd
+        ? `≈ ${formatCurrency({ amount: inputAmountRsc, showUSD: false, exchangeRate })} RSC`
+        : `≈ ${formatCurrency({ amount: inputAmountRsc, showUSD: true, exchangeRate })} USD`
+      : undefined;
 
   const handleContribute = async () => {
     try {
-      // Validate minimum amount before proceeding
-      if (inputAmount < 10) {
-        setError('Minimum contribution amount is 10 RSC');
+      // Validate minimum amount before proceeding (10 RSC)
+      if (inputAmountRsc < 10) {
+        const minUsd = 10 * exchangeRate;
+        setError(
+          useUsd
+            ? `Minimum contribution amount is $${minUsd.toFixed(2)} USD`
+            : 'Minimum contribution amount is 10 RSC'
+        );
         return;
       }
 
@@ -188,8 +232,8 @@ export function ContributeToFundraiseModal({
       setError(null);
 
       // Pass the contribution amount without the platform fee
-      // The API expects the net contribution amount
-      await FundraiseService.contributeToFundraise(fundraise.id, inputAmount);
+      // The API expects the net contribution amount in RSC
+      await FundraiseService.contributeToFundraise(fundraise.id, inputAmountRsc);
 
       toast.success('Your contribution has been successfully added to the fundraise.');
 
@@ -211,8 +255,8 @@ export function ContributeToFundraiseModal({
     }
   };
 
-  const platformFee = Math.round(inputAmount * 0.09 * 100) / 100;
-  const totalAmount = inputAmount + platformFee;
+  const platformFee = Math.round(inputAmountRsc * 0.09 * 100) / 100;
+  const totalAmount = inputAmountRsc + platformFee;
   const insufficientBalance = totalAvailableBalance < totalAmount;
 
   return (
@@ -266,6 +310,8 @@ export function ContributeToFundraiseModal({
                         value={getFormattedInputValue()}
                         onChange={handleAmountChange}
                         error={amountError}
+                        currencyLabel={useUsd ? 'USD' : 'RSC'}
+                        helperText={secondaryText}
                       />
                     </div>
 
@@ -275,9 +321,11 @@ export function ContributeToFundraiseModal({
                         <h3 className="text-sm font-semibold text-gray-900">Fees Breakdown</h3>
                       </div>
                       <FeeBreakdown
-                        contributionAmount={inputAmount}
+                        contributionAmount={inputAmountRsc}
                         platformFee={platformFee}
                         totalAmount={totalAmount}
+                        showUSD={showUSD}
+                        exchangeRate={exchangeRate}
                       />
                     </div>
 
@@ -299,10 +347,10 @@ export function ContributeToFundraiseModal({
                       variant="default"
                       disabled={
                         isContributing ||
-                        !inputAmount ||
+                        !inputAmountRsc ||
                         insufficientBalance ||
                         !!amountError ||
-                        inputAmount < 10
+                        inputAmountRsc < 10
                       }
                       className="w-full h-12 text-base"
                       onClick={handleContribute}
