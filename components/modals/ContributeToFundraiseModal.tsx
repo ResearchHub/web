@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Alert } from '@/components/ui/Alert';
@@ -23,7 +23,6 @@ interface ContributeToFundraiseModalProps {
   fundraise: Fundraise;
 }
 
-// Currency Input Component
 const CurrencyInput = ({
   value,
   onChange,
@@ -61,7 +60,6 @@ const CurrencyInput = ({
   );
 };
 
-// Fee Breakdown Component
 const FeeBreakdown = ({
   contributionAmount,
   platformFee,
@@ -167,14 +165,12 @@ export function ContributeToFundraiseModal({
   const [isSuccess, setIsSuccess] = useState(false);
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
 
-  // Calculate total available balance including locked balance for fundraise contributions
   const userBalance = user?.balance || 0;
   const lockedBalance = user?.lockedBalance || 0;
   const totalAvailableBalance = userBalance + lockedBalance;
 
   const useUsd = showUSD && exchangeRate > 0;
 
-  // Utility functions
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/[^0-9.]/g, '');
     const numValue = parseFloat(rawValue);
@@ -202,6 +198,18 @@ export function ContributeToFundraiseModal({
     }
   };
 
+  // Keep min-amount validation message in sync with currency preference/exchange rate
+  useEffect(() => {
+    if (inputAmountRsc > 0 && inputAmountRsc < 10) {
+      const minUsd = 10 * exchangeRate;
+      setAmountError(
+        useUsd
+          ? `Minimum contribution amount is $${minUsd.toFixed(2)} USD`
+          : 'Minimum contribution amount is 10 RSC'
+      );
+    }
+  }, [useUsd, exchangeRate, inputAmountRsc]);
+
   const getFormattedInputValue = () => {
     if (inputAmountRsc === 0) return '';
     const displayValueNum = useUsd ? inputAmountRsc * exchangeRate : inputAmountRsc;
@@ -221,7 +229,6 @@ export function ContributeToFundraiseModal({
 
   const handleContribute = async () => {
     try {
-      // Validate minimum amount before proceeding (10 RSC)
       if (inputAmountRsc < 10) {
         const minUsd = 10 * exchangeRate;
         setError(
@@ -235,21 +242,16 @@ export function ContributeToFundraiseModal({
       setIsContributing(true);
       setError(null);
 
-      // Pass the contribution amount without the platform fee
-      // The API expects the net contribution amount in RSC
       await FundraiseService.contributeToFundraise(fundraise.id, inputAmountRsc);
 
       toast.success('Your contribution has been successfully added to the fundraise.');
 
-      // Set success flag
       setIsSuccess(true);
 
-      // Call onContributeSuccess if provided
       if (onContributeSuccess) {
         onContributeSuccess();
       }
 
-      // Close the modal
       onClose();
     } catch (error) {
       console.error('Failed to contribute to fundraise:', error);
