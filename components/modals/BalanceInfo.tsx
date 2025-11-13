@@ -34,20 +34,26 @@ export function BalanceInfo({
   const deficitFormatted =
     deficit > 0 ? formatCurrency({ amount: deficit, showUSD: useUsd, exchangeRate }) : undefined;
 
+  const primaryUnit = useUsd ? 'USD' : 'RSC';
+  const primaryWithUnit = `${primary} ${primaryUnit}`;
+
+  const secondaryUnit = useUsd ? 'RSC' : 'USD';
+  const secondaryWithUnit = secondary ? `${secondary} ${secondaryUnit}` : undefined;
+
+  const deficitWithUnit = deficitFormatted ? `${deficitFormatted} ${primaryUnit}` : undefined;
+
   return (
     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
       <div className="flex justify-between items-center">
         <span className="text-sm text-gray-600">Current RSC Balance:</span>
-        <span className="text-sm font-medium">{useUsd ? `${primary} USD` : `${primary} RSC`}</span>
+        <span className="text-sm font-medium">{primaryWithUnit}</span>
       </div>
-      {secondary && (
-        <div className="mt-1 text-xs text-gray-500 text-right">
-          ≈ {useUsd ? `${secondary} RSC` : `${secondary} USD`}
-        </div>
+      {secondaryWithUnit && (
+        <div className="mt-1 text-xs text-gray-500 text-right">≈ {secondaryWithUnit}</div>
       )}
-      {showWarning && deficitFormatted && (
+      {showWarning && deficitWithUnit && (
         <div className="mt-1 text-sm text-orange-600">
-          {`You need ${useUsd ? `${deficitFormatted} USD` : `${deficitFormatted} RSC`} more for this contribution`}
+          {`You need ${deficitWithUnit} more for this contribution`}
         </div>
       )}
     </div>

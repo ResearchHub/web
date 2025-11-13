@@ -179,7 +179,7 @@ export function ContributeToFundraiseModal({
     const rawValue = e.target.value.replace(/[^0-9.]/g, '');
     const numValue = parseFloat(rawValue);
 
-    if (isNaN(numValue)) {
+    if (Number.isNaN(numValue)) {
       setInputAmountRsc(0);
       setAmountError('Please enter a valid amount');
       return;
@@ -208,12 +208,16 @@ export function ContributeToFundraiseModal({
     return displayValueNum.toLocaleString(undefined, { maximumFractionDigits: 2 });
   };
 
-  const secondaryText =
-    exchangeRate > 0
-      ? useUsd
-        ? `≈ ${formatCurrency({ amount: inputAmountRsc, showUSD: false, exchangeRate })} RSC`
-        : `≈ ${formatCurrency({ amount: inputAmountRsc, showUSD: true, exchangeRate })} USD`
-      : undefined;
+  let secondaryText: string | undefined;
+  if (exchangeRate > 0) {
+    const otherFormatted = formatCurrency({
+      amount: inputAmountRsc,
+      showUSD: !useUsd,
+      exchangeRate,
+    });
+    const secondaryUnit = useUsd ? 'RSC' : 'USD';
+    secondaryText = `≈ ${otherFormatted} ${secondaryUnit}`;
+  }
 
   const handleContribute = async () => {
     try {
