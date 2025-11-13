@@ -27,6 +27,8 @@ interface FeedItemPaperProps {
   maxLength?: number;
   onFeedItemClick?: () => void;
   feedView?: string;
+  highlightedTitle?: string;
+  highlightedSnippet?: string;
 }
 
 /**
@@ -40,6 +42,8 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   maxLength,
   onFeedItemClick,
   feedView,
+  highlightedTitle,
+  highlightedSnippet,
 }) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
@@ -175,7 +179,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection title={paper.title} />
+            <TitleSection title={paper.title} highlightedTitle={highlightedTitle} />
 
             {/* Authors */}
             <MetadataSection>
@@ -212,7 +216,11 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               </MetadataSection>
             )}
             {/* Truncated Content */}
-            <ContentSection content={paper.textPreview} maxLength={maxLength} />
+            <ContentSection
+              content={paper.textPreview}
+              highlightedContent={highlightedSnippet}
+              maxLength={maxLength}
+            />
           </>
         }
         rightContent={
