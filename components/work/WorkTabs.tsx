@@ -10,7 +10,6 @@ import {
   MessageCircleQuestion,
 } from 'lucide-react';
 import { Work } from '@/types/work';
-import { WorkMetadata } from '@/services/metadata.service';
 import { useState, useEffect, useMemo } from 'react';
 import Icon from '@/components/ui/icons/Icon';
 import { Tabs } from '@/components/ui/Tabs';
@@ -27,7 +26,9 @@ export type TabType =
 
 interface WorkTabsProps {
   work: Work;
-  metadata: WorkMetadata;
+  bountyComments: number;
+  reviewComments: number;
+  conversationComments: number;
   defaultTab?: TabType;
   contentType?: 'paper' | 'post' | 'fund' | 'grant'; // To customize tab labels based on content type
   onTabChange: (tab: TabType) => void;
@@ -36,7 +37,9 @@ interface WorkTabsProps {
 
 export const WorkTabs = ({
   work,
-  metadata,
+  bountyComments,
+  reviewComments,
+  conversationComments,
   defaultTab = 'paper',
   contentType = 'paper',
   onTabChange,
@@ -173,7 +176,7 @@ export const WorkTabs = ({
                 : 'bg-gray-100 text-gray-600'
             }`}
           >
-            {metadata.metrics.conversationComments || 0}
+            {conversationComments || 0}
           </span>
         </div>
       ),
@@ -205,7 +208,7 @@ export const WorkTabs = ({
                 >
                   {contentType === 'grant'
                     ? work.note?.post?.grant?.applicants?.length || 0
-                    : metadata.metrics.reviewComments || 0}
+                    : reviewComments || 0}
                 </span>
               </div>
             ),
@@ -232,7 +235,7 @@ export const WorkTabs = ({
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {metadata.metrics.bountyComments || 0}
+                  {bountyComments || 0}
                 </span>
               </div>
             ),
@@ -266,7 +269,15 @@ export const WorkTabs = ({
       ];
     }
     return baseTabs;
-  }, [baseTabs, hasResearchHubJournalVersions, activeTab, work.versions?.length]);
+  }, [
+    baseTabs,
+    hasResearchHubJournalVersions,
+    activeTab,
+    work.versions?.length,
+    bountyComments,
+    reviewComments,
+    conversationComments,
+  ]);
 
   return (
     <div className="border-b mb-6">
