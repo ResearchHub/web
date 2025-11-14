@@ -7,25 +7,17 @@ import {
   CreateListRequest,
   UpdateListRequest,
   AddItemRequest,
-  ListStats,
 } from '@/types/user-list';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/utils/apiError';
+import { updateListRemoveItem } from '@/utils/listUtils';
 import { useUser } from '@/contexts/UserContext';
-import {
-  getErrorMessage,
-  updateListWithNewItem,
-  updateListRemoveItem,
-  updateListAppendItems,
-  determineHasMore,
-} from './listHelpers';
 
 const PAGE_SIZE = 20;
 
 export function useUserLists() {
   const { user } = useUser();
   const [lists, setLists] = useState<UserList[]>([]);
-  const [stats, setStats] = useState<ListStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,14 +33,14 @@ export function useUserLists() {
       setIsLoadingMore(true);
     }
     setError(null);
+
     try {
       const data = await ListService.getUserLists({ page: pageNum, pageSize: PAGE_SIZE });
       setLists((prev) => (reset ? data.lists : [...prev, ...data.lists]));
-      if (data.stats && (reset || pageNum === 1)) setStats(data.stats);
       setHasMore(data.hasMore);
       setPage(pageNum);
     } catch (err) {
-      setError(getErrorMessage(err, 'Failed to load lists'));
+      setError(extractApiErrorMessage(err, 'Failed to load lists'));
       console.error(err);
     } finally {
       if (reset) {
@@ -77,7 +69,6 @@ export function useUserLists() {
       fetchLists(1, true);
     } else if (previousUserId !== null && currentUserId === null) {
       setLists([]);
-      setStats(null);
       setError(null);
       setIsLoading(false);
       hasInitialized.current = false;
@@ -91,7 +82,6 @@ export function useUserLists() {
     async (data: CreateListRequest) => {
       try {
         const newList = await ListService.createList(data);
-        setLists((prev) => [...prev, newList]);
         toast.success('List created successfully');
         await fetchLists();
         return newList;
@@ -107,7 +97,6 @@ export function useUserLists() {
     async (listId: number, data: UpdateListRequest) => {
       try {
         const updatedList = await ListService.updateList(listId, data);
-        setLists((prev) => prev.map((list) => (list.id === listId ? updatedList : list)));
         toast.success('List updated successfully');
         await fetchLists();
         return updatedList;
@@ -123,28 +112,24 @@ export function useUserLists() {
     async (listId: number) => {
       try {
         await ListService.deleteList(listId);
-        setLists((prev) => prev.filter((list) => list.id !== listId));
         toast.success('List deleted successfully');
         await fetchLists();
       } catch (err) {
-        toast.error(getErrorMessage(err, 'Failed to delete list'));
+        toast.error(extractApiErrorMessage(err, 'Failed to delete list'));
         throw err;
       }
     },
     [fetchLists]
   );
 
-  const resetAndFetch = useCallback(() => fetchLists(1, true), [fetchLists]);
-
   return {
     lists,
-    stats,
     isLoading,
     isLoadingMore,
     error,
     hasMore,
     loadMore,
-    fetchLists: resetAndFetch,
+    fetchLists: () => fetchLists(1, true),
     createList,
     updateList,
     deleteList,
@@ -170,28 +155,38 @@ export function useUserList(listId: number | null, options?: { onItemMutated?: (
         setIsLoading(false);
         return;
       }
+
       if (reset) {
         setIsLoading(true);
       } else {
         setIsLoadingMore(true);
       }
       setError(null);
+
       try {
-        const data = await ListService.getListById(listId, { page: pageNum, pageSize: PAGE_SIZE });
-        const newItems = data.items || [];
+        const [listData, itemsResponse] = await Promise.all([
+          reset || pageNum === 1 ? ListService.getListById(listId) : Promise.resolve(null),
+          ListService.getListItems(listId, { page: pageNum, pageSize: PAGE_SIZE }),
+        ]);
+
+        const newItems = itemsResponse.results || [];
 
         if (reset || pageNum === 1) {
-          setList(data);
-          setItems(newItems);
+          if (listData) {
+            setList({ ...listData, items: newItems });
+            setItems(newItems);
+          }
         } else {
           setItems((prev) => [...prev, ...newItems]);
-          setList((prev) => updateListAppendItems(prev, data, newItems));
+          setList((prev) =>
+            prev ? { ...prev, items: [...(prev.items || []), ...newItems] } : null
+          );
         }
 
-        setHasMore(determineHasMore(newItems, PAGE_SIZE));
+        setHasMore(!!itemsResponse.next);
         setPage(pageNum);
       } catch (err) {
-        setError(getErrorMessage(err, 'Failed to load list'));
+        setError(extractApiErrorMessage(err, 'Failed to load list'));
         console.error(err);
       } finally {
         if (reset) {
@@ -225,18 +220,16 @@ export function useUserList(listId: number | null, options?: { onItemMutated?: (
     async (data: AddItemRequest) => {
       if (!listId) return;
       try {
-        const newItem = await ListService.addItemToList(listId, data.unified_document);
-        setItems((prev) => [...prev, newItem]);
-        setList((prev) => updateListWithNewItem(prev, newItem));
+        await ListService.addItemToList(listId, data.unified_document);
         toast.success('Item added to list');
+        await fetchList(1, true);
         onItemMutated?.();
-        return newItem;
       } catch (err) {
-        toast.error(getErrorMessage(err, 'Failed to add item'));
+        toast.error(extractApiErrorMessage(err, 'Failed to add item'));
         throw err;
       }
     },
-    [listId, onItemMutated]
+    [listId, onItemMutated, fetchList]
   );
 
   const removeItem = useCallback(
@@ -249,16 +242,18 @@ export function useUserList(listId: number | null, options?: { onItemMutated?: (
         toast.success('Item removed from list');
         onItemMutated?.();
       } catch (err) {
-        toast.error(getErrorMessage(err, 'Failed to remove item'));
+        toast.error(extractApiErrorMessage(err, 'Failed to remove item'));
         throw err;
       }
     },
     [listId, onItemMutated]
   );
 
-  const updateListDetails = useCallback((updatedList: Partial<UserListDetail>) => {
-    setList((prev) => (prev ? { ...prev, ...updatedList } : null));
-  }, []);
+  const updateListDetails = useCallback(
+    (updatedList: Partial<UserListDetail>) =>
+      setList((prev) => (prev ? { ...prev, ...updatedList } : null)),
+    []
+  );
 
   return {
     list,

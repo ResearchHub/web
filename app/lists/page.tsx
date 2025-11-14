@@ -6,7 +6,6 @@ import { useUserListsContext } from '@/contexts/UserListsContext';
 import { useListModals } from '@/hooks/useListModals';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter } from 'next/navigation';
-import { ListsRightSidebar } from '@/app/lists/components/ListsRightSidebar';
 import Link from 'next/link';
 import { Plus, Edit2, Trash2, FolderPlus, Loader2, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -24,7 +23,6 @@ function ListsPageContent() {
   const { user, isLoading: isUserLoading } = useUser();
   const {
     lists,
-    stats,
     isLoading,
     isLoadingMore,
     error,
@@ -94,7 +92,7 @@ function ListsPageContent() {
   // Show loading while checking authentication
   if (isUserLoading) {
     return (
-      <PageLayout rightSidebar={<ListsRightSidebar isLoading={true} />}>
+      <PageLayout>
         <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
@@ -111,7 +109,7 @@ function ListsPageContent() {
 
   if (isLoading) {
     return (
-      <PageLayout rightSidebar={<ListsRightSidebar isLoading={isLoading} />}>
+      <PageLayout>
         <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">
           {/* Banner Section */}
           <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
@@ -149,7 +147,7 @@ function ListsPageContent() {
 
   if (error) {
     return (
-      <PageLayout rightSidebar={<ListsRightSidebar stats={stats} isLoading={isLoading} />}>
+      <PageLayout>
         <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">
           {/* Banner Section */}
           <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
@@ -174,7 +172,7 @@ function ListsPageContent() {
   }
 
   return (
-    <PageLayout rightSidebar={<ListsRightSidebar stats={stats} isLoading={isLoading} />}>
+    <PageLayout>
       <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">
         <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
           <div className="flex flex-col sm:flex-row gap-6">

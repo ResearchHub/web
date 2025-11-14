@@ -2,11 +2,10 @@
 
 import { createContext, useContext, ReactNode } from 'react';
 import { useUserLists } from '@/hooks/useUserLists';
-import { UserList, ListStats, CreateListRequest, UpdateListRequest } from '@/types/user-list';
+import { UserList, CreateListRequest, UpdateListRequest } from '@/types/user-list';
 
 interface UserListsContextType {
   lists: UserList[];
-  stats: ListStats | null;
   isLoading: boolean;
   isLoadingMore: boolean;
   error: string | null;

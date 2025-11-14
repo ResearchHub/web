@@ -5,8 +5,6 @@ export interface UserList {
   created_date: string;
   updated_date: string;
   created_by?: number;
-  top_authors?: TopAuthor[];
-  top_hubs?: TopHub[];
   item_count?: number;
   items_count?: number;
 }
@@ -113,32 +111,6 @@ export interface UserListItem {
 
 export interface UserListDetail extends UserList {
   items: UserListItem[];
-}
-
-export interface TopAuthor {
-  id: number;
-  first_name: string;
-  last_name: string;
-  full_name: string;
-  count: number;
-}
-
-export interface TopHub {
-  id: number;
-  name: string;
-  slug: string;
-}
-
-export interface TopCategory {
-  id: number;
-  name: string;
-  slug: string;
-  itemCount: number;
-}
-
-export interface ListStats {
-  topAuthors: TopAuthor[];
-  topCategories: TopCategory[];
 }
 
 export interface CreateListRequest {

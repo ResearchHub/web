@@ -22,10 +22,10 @@ export function useIsInList(unifiedDocumentId: number | string | null | undefine
     }
 
     setIsLoading(true);
-    ListService.getUserCheck()
+    ListService.getOverview()
       .then((response) => setLists(response.lists || []))
       .catch((error) => {
-        console.error('Failed to fetch user check data:', error);
+        console.error('Failed to fetch overview data:', error);
         setLists([]);
       })
       .finally(() => setIsLoading(false));
@@ -40,10 +40,8 @@ export function useIsInList(unifiedDocumentId: number | string | null | undefine
     );
   }, [lists, docId]);
 
-  const isInList = listIdsContainingItem.size > 0;
-
   return {
-    isInList,
+    isInList: listIdsContainingItem.size > 0,
     isLoading,
     refetch,
     listDetails: lists,
