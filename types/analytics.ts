@@ -18,12 +18,6 @@ interface BaseContext {
   device_type: DeviceType;
 }
 
-interface TopicBasic {
-  id?: string;
-  name?: string;
-  slug?: string;
-}
-
 interface RelatedWork {
   id: string;
   content_type: DocumentType;
