@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
 import { OnboardingModalWrapper } from '@/components/Onboarding/NewUserOnboarding';
 import { cn } from '@/lib/utils';
+import { ScrollContainerProvider } from '@/contexts/ScrollContainerContext';
 // Dynamically import sidebar components
 const LeftSidebar = dynamic(() => import('./LeftSidebar').then((mod) => mod.LeftSidebar), {
   ssr: true,
@@ -200,53 +201,55 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
         className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative"
         style={{ marginTop: '64px' }}
       >
-        {/* Main Content */}
-        <main
-          ref={mainContentRef}
-          className={`flex-1 px-4 tablet:!px-8 py-4 flex justify-center ${
-            rightSidebar ? 'lg:!pr-80 right-sidebar:!pr-80' : ''
-          }`}
-          style={{ maxWidth: '100vw' }}
-        >
-          <div
-            className={cn(
-              'w-full',
-              'max-w-full tablet:!max-w-2xl content-md:!max-w-2xl content-lg:!max-w-3xl content-xl:!max-w-4xl',
-              className
-            )}
-          >
-            {children}
-          </div>
-        </main>
-
-        {/* Right Sidebar (Fixed to viewport edge) */}
-        {rightSidebar && (
-          <aside
-            ref={rightSidebarWrapperRef}
-            className="fixed top-16 right-0 h-[calc(100vh-64px)] overflow-y-auto
-                      lg:!block !hidden right-sidebar:!block w-80 bg-white
-                      z-30"
+        <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
+          {/* Main Content */}
+          <main
+            ref={mainContentRef}
+            className={`flex-1 px-4 tablet:!px-8 py-4 flex justify-center ${
+              rightSidebar ? 'lg:!pr-80 right-sidebar:!pr-80' : ''
+            }`}
+            style={{ maxWidth: '100vw' }}
           >
             <div
-              ref={rightSidebarRef}
-              style={{ transform: `translateY(${sidebarTransform}px)` }}
-              className="transition-transform duration-150 ease-out min-h-full"
+              className={cn(
+                'w-full',
+                'max-w-full tablet:!max-w-2xl content-md:!max-w-2xl content-lg:!max-w-3xl content-xl:!max-w-4xl',
+                className
+              )}
             >
-              {/* Sidebar Content */}
-              <div className="px-4 pt-4 pb-24">
-                <Suspense fallback={<RightSidebarSkeleton />}>
-                  {pathname.startsWith('/paper/create') ? (
-                    <RHJRightSidebar showBanner={false} />
-                  ) : typeof rightSidebar === 'boolean' ? (
-                    <RightSidebar />
-                  ) : (
-                    rightSidebar
-                  )}
-                </Suspense>
-              </div>
+              {children}
             </div>
-          </aside>
-        )}
+          </main>
+
+          {/* Right Sidebar (Fixed to viewport edge) */}
+          {rightSidebar && (
+            <aside
+              ref={rightSidebarWrapperRef}
+              className="fixed top-16 right-0 h-[calc(100vh-64px)] overflow-hidden
+                      lg:!block !hidden right-sidebar:!block w-80 bg-white
+                      z-30"
+            >
+              <div
+                ref={rightSidebarRef}
+                style={{ transform: `translateY(${sidebarTransform}px)` }}
+                className="transition-transform duration-150 ease-out h-full"
+              >
+                {/* Sidebar Content */}
+                <div className="px-4 pt-4">
+                  <Suspense fallback={<RightSidebarSkeleton />}>
+                    {pathname.startsWith('/paper/create') ? (
+                      <RHJRightSidebar showBanner={false} />
+                    ) : typeof rightSidebar === 'boolean' ? (
+                      <RightSidebar />
+                    ) : (
+                      rightSidebar
+                    )}
+                  </Suspense>
+                </div>
+              </div>
+            </aside>
+          )}
+        </ScrollContainerProvider>
       </div>
     </div>
   );

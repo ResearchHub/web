@@ -177,7 +177,7 @@ export default function UserMenu({
 
         <Link
           href="/notifications"
-          className="block sidebar-compact:hidden"
+          className="block sidebar-compact:!hidden"
           onClick={() => setMenuOpenState(false)}
         >
           <div className="px-6 py-2 hover:bg-gray-50">
@@ -190,7 +190,7 @@ export default function UserMenu({
 
         <Link
           href="/researchcoin"
-          className="block sidebar-compact:hidden"
+          className="block sidebar-compact:!hidden"
           onClick={() => setMenuOpenState(false)}
         >
           <div className="px-6 py-2 hover:bg-gray-50">

@@ -114,9 +114,13 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
     hasMore: hasMoreContributions,
     loadMore: loadMoreContributions,
     isLoadingMore: isLoadingMoreContributions,
+    restoredFeedEntries: restoredContributionsEntries,
+    restoredScrollPosition: restoredContributionsScrollPosition,
+    lastClickedEntryId: lastClickedContributionsEntryId,
   } = useContributions({
     contribution_type: contributionType,
     author_id: authorId,
+    activeTab: currentTab,
   });
 
   // Filter out reviews from comments tab
@@ -132,8 +136,12 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
     hasMore: hasMorePublications,
     loadMore: loadMorePublications,
     isLoadingMore: isLoadingMorePublications,
+    restoredFeedEntries: restoredPublicationsEntries,
+    restoredScrollPosition: restoredPublicationsScrollPosition,
+    lastClickedEntryId: lastClickedPublicationsEntryId,
   } = useAuthorPublications({
     authorId,
+    activeTab: currentTab,
   });
 
   const handleTabChange = (tabId: string) => {
@@ -150,27 +158,24 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
         return <div>Error: {publicationsError.message}</div>;
       }
 
-      // Filter out invalid publications
-      const validPublications = publications.filter((publication) => {
-        try {
-          const entry = transformPublicationToFeedEntry(publication);
-          return !!entry; // Return true if transformation was successful
-        } catch (error) {
-          console.error('[Publication] Could not parse publication', error);
-          return false;
-        }
-      });
+      const entries =
+        restoredPublicationsEntries ||
+        publications
+          .filter((publication) => {
+            try {
+              const entry = transformPublicationToFeedEntry(publication);
+              return !!entry;
+            } catch (error) {
+              console.error('[Publication] Could not parse publication', error);
+              return false;
+            }
+          })
+          .map((publication) => transformPublicationToFeedEntry(publication));
 
       return (
         <div>
           <FeedContent
-            entries={
-              isPending
-                ? []
-                : validPublications.map((publication) =>
-                    transformPublicationToFeedEntry(publication)
-                  )
-            }
+            entries={isPending ? [] : entries}
             isLoading={isPending || isPublicationsLoading}
             hasMore={hasMorePublications}
             loadMore={loadMorePublications}
@@ -181,6 +186,9 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
             showBountyDeadline={false}
             noEntriesElement={<SearchEmpty title="No publications found." className="mb-10" />}
             maxLength={150}
+            activeTab={currentTab}
+            restoredScrollPosition={restoredPublicationsScrollPosition}
+            lastClickedEntryId={lastClickedPublicationsEntryId ?? undefined}
           />
         </div>
       );
@@ -190,12 +198,14 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
       return <div>Error: {contributionsError.message}</div>;
     }
 
-    let formattedContributions = contributions.map((contribution) =>
-      transformContributionToFeedEntry({
-        contribution,
-        contributionType,
-      })
-    );
+    const entries =
+      restoredContributionsEntries ||
+      contributions.map((contribution) =>
+        transformContributionToFeedEntry({
+          contribution,
+          contributionType,
+        })
+      );
 
     return (
       <div>
@@ -206,7 +216,7 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
           </div>
         )}
         <FeedContent
-          entries={isPending ? [] : formattedContributions}
+          entries={isPending ? [] : entries}
           isLoading={isPending || isContributionsLoading}
           hasMore={hasMoreContributions}
           loadMore={loadMoreContributions}
@@ -220,6 +230,9 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
           }
           maxLength={150}
           showReadMoreCTA={true}
+          activeTab={currentTab}
+          restoredScrollPosition={restoredContributionsScrollPosition}
+          lastClickedEntryId={lastClickedContributionsEntryId ?? undefined}
         />
       </div>
     );

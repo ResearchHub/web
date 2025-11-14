@@ -10,6 +10,8 @@ import {
 } from '@/services/publication.service';
 import { OpenAlexWork, OpenAlexAuthor, PublicationSearchResponse } from '@/types/publication';
 import { ID } from '@/types/root';
+import { useFeedStateRestoration } from './useFeedStateRestoration';
+import { FeedEntry } from '@/types/feed';
 
 interface UsePublicationsSearchState {
   data: PublicationSearchResponse | null;
@@ -105,33 +107,27 @@ export function useAddPublications(): UseAddPublicationsReturn {
 interface UseAuthorPublicationsOptions {
   authorId: ID;
   initialData?: AuthorPublicationsResponse;
-}
-
-interface UseAuthorPublicationsState {
-  publications: any[];
-  isLoading: boolean;
-  isLoadingMore: boolean;
-  error: Error | null;
-  hasMore: boolean;
+  activeTab?: string; // Add activeTab for feed key generation
 }
 
 export function useAuthorPublications(options: UseAuthorPublicationsOptions) {
+  const { restoredState, initialEntries, restoredScrollPosition, lastClickedEntryId } =
+    useFeedStateRestoration({
+      activeTab: options.activeTab,
+    });
+
+  const initialHasRestoredEntries = restoredState !== null;
+
   const [publications, setPublications] = useState<any[]>(options.initialData?.results || []);
-  const [isLoading, setIsLoading] = useState(!options.initialData);
+  const [isLoading, setIsLoading] = useState(!initialHasRestoredEntries && !options.initialData);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentResponse, setCurrentResponse] = useState<AuthorPublicationsResponse | null>(
     options.initialData || null
   );
   const [error, setError] = useState<Error | null>(null);
 
-  // Load initial publications
-  useEffect(() => {
-    if (options.initialData) {
-      return;
-    }
-
-    loadPublications();
-  }, [options.authorId]);
+  const [restoredFeedEntries, setRestoredFeedEntries] = useState<FeedEntry[]>(initialEntries);
+  const [hasRestoredEntries, setHasRestoredEntries] = useState<boolean>(initialHasRestoredEntries);
 
   const loadPublications = async () => {
     setIsLoading(true);
@@ -151,6 +147,25 @@ export function useAuthorPublications(options: UseAuthorPublicationsOptions) {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (initialHasRestoredEntries && initialEntries.length > 0 && !hasRestoredEntries) {
+      setHasRestoredEntries(true);
+      setRestoredFeedEntries(initialEntries);
+    }
+  }, [initialHasRestoredEntries, initialEntries.length, hasRestoredEntries]);
+
+  useEffect(() => {
+    if (hasRestoredEntries && restoredFeedEntries.length > 0) {
+      return;
+    }
+
+    if (options.initialData) {
+      return;
+    }
+
+    loadPublications();
+  }, [options.authorId, options.initialData]);
 
   const loadMore = async () => {
     if (!currentResponse?.next || isLoading || isLoadingMore) {
@@ -181,5 +196,8 @@ export function useAuthorPublications(options: UseAuthorPublicationsOptions) {
     loadMore,
     refresh: loadPublications,
     isLoadingMore,
+    restoredFeedEntries: hasRestoredEntries ? restoredFeedEntries : undefined,
+    restoredScrollPosition,
+    lastClickedEntryId,
   };
 }

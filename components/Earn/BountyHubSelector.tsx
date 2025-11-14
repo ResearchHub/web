@@ -69,6 +69,38 @@ export function BountyHubSelector({
     })();
   }, []);
 
+  // Populate missing names in selectedHubs when hubs are fetched
+  // This is needed when we restore topics from URL params (only IDs are stored)
+  useEffect(() => {
+    if (allHubs.length === 0) return;
+
+    const hasMissingNames = selectedHubs.some((hub) => !hub.name || hub.name === '');
+    if (hasMissingNames) {
+      const populatedHubs = selectedHubs.map((hub) => {
+        // If hub already has a name, keep it
+        if (hub.name && hub.name !== '') {
+          return hub;
+        }
+        // Otherwise, find matching hub from fetched hubs and populate name/description
+        const matchedHub = allHubs.find((h) => h.id === hub.id);
+        if (matchedHub) {
+          return {
+            ...hub,
+            name: matchedHub.name,
+            description: matchedHub.description,
+          };
+        }
+        // If no match found, return as-is
+        return hub;
+      });
+
+      const anyChanged = populatedHubs.some((hub, index) => hub.name !== selectedHubs[index]?.name);
+      if (anyChanged) {
+        onChange(populatedHubs);
+      }
+    }
+  }, [allHubs, selectedHubs, onChange]);
+
   // utility conversions
   const hubsToOptions = (hubs: Hub[]): MultiSelectOption[] =>
     hubs.map((hub) => ({ value: String(hub.id), label: hub.name }));
