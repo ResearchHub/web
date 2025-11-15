@@ -44,6 +44,7 @@ export interface FeedItemClickedEvent extends UserContext, BaseContext {
   feed_source: FeedSource;
   feed_tab: string;
   related_work?: RelatedWork;
+  recommendation_id?: string | null;
   experiment_name?: string;
   experiment_variant?: string;
   feed_ordering?: string;
@@ -99,6 +100,7 @@ export function buildPayloadForFeedItemClick(
         ? entry.content.unifiedDocumentId
         : entry.relatedWork?.unifiedDocumentId?.toString() || '',
     },
+    recommendation_id: entry.recommendationId,
     // Track experiment data for following feed
     ...(experimentVariant &&
       feedTab === 'following' && {
