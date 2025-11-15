@@ -194,6 +194,7 @@ const transformPaperForAudit = (paperItem: any, flaggedContent: FlaggedContent):
   // Create a minimal FeedEntry for paper
   return {
     id: `audit-paper-${paperItem.id}`,
+    recommendationId: null,
     timestamp: paperItem.createdDate ?? flaggedContent.createdDate,
     action: 'publish',
     contentType: 'PAPER',
@@ -238,6 +239,7 @@ const transformBountyForAudit = (bountyItem: any, flaggedContent: FlaggedContent
   // Create a minimal FeedEntry for bounty
   return {
     id: `audit-bounty-${bountyItem.id}`,
+    recommendationId: null,
     timestamp: bountyItem.createdDate ?? flaggedContent.createdDate,
     action: 'open',
     contentType: 'BOUNTY',
@@ -282,6 +284,7 @@ const transformBountyForAudit = (bountyItem: any, flaggedContent: FlaggedContent
 const transformPostForAudit = (postItem: any, flaggedContent: FlaggedContent): FeedEntry => {
   return {
     id: `audit-post-${postItem.id}`,
+    recommendationId: null,
     timestamp: postItem.createdDate ?? flaggedContent.createdDate,
     action: 'post',
     contentType: 'POST',
@@ -324,6 +327,7 @@ const transformPostForAudit = (postItem: any, flaggedContent: FlaggedContent): F
 const transformGenericForAudit = (item: any, flaggedContent: FlaggedContent): FeedEntry => {
   return {
     id: `audit-generic-${item.id ?? flaggedContent.id}`,
+    recommendationId: null,
     timestamp: item.createdDate ?? flaggedContent.createdDate,
     action: 'contribute',
     contentType: 'POST', // Default to POST for unknown types

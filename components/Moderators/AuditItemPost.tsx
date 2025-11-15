@@ -117,6 +117,7 @@ const transformAuditPostToFeedEntry = (
 
   const feedEntry: FeedEntry = {
     id: `audit-post-${item.id}`,
+    recommendationId: null,
     timestamp: item.created_date ?? entry.createdDate,
     action: 'contribute',
     content: postContent,

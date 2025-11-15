@@ -48,6 +48,7 @@ export interface Contribution {
   created_by: User;
   created_date: string;
   hubs: Hub[];
+  recommendation_id: string | null;
   item: ContributionItem;
 }
 
@@ -137,6 +138,7 @@ export const transformContributionToFeedEntry = ({
   // Base feed entry properties
   const baseFeedEntry: Partial<FeedEntry> = {
     id: contribution.item.id?.toString() || '',
+    recommendationId: contribution.recommendation_id,
     timestamp: created_date,
     action: getActionType(content_type.name),
   };

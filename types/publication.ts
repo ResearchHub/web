@@ -110,6 +110,7 @@ export interface AuthorPublicationsResponse {
   previous: string | null;
   results: Array<{
     id: number;
+    recommendation_id: string | null;
     documents: {
       id: number;
       authors: Array<{
@@ -152,6 +153,7 @@ export const transformPublicationToFeedEntry = (
 
   return {
     id: documents.id.toString(),
+    recommendationId: publication.recommendation_id,
     timestamp: created_date,
     action: 'publish',
     contentType: 'PAPER',

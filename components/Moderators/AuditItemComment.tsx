@@ -159,6 +159,7 @@ const transformAuditCommentToFeedEntry = (entry: FlaggedContent): FeedEntry => {
 
   return {
     id: `audit-comment-${item.id}`,
+    recommendationId: null,
     timestamp: item.created_date ?? entry.createdDate,
     action: 'contribute',
     content: commentContent,
