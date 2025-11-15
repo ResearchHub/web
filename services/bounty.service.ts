@@ -26,6 +26,7 @@ interface ContributeToBountyPayload {
 // Raw bounty response from the API
 interface RawBounty {
   id: number;
+  recommendation_id: string | null;
   created_by: {
     id: number;
     author_profile: {
@@ -217,6 +218,7 @@ export class BountyService {
         // Map the raw bounty to the expected RawApiFeedEntry format
         const feedEntry: RawApiFeedEntry = {
           id: rawBounty.id,
+          recommendation_id: rawBounty.recommendation_id,
           content_type: 'BOUNTY', // Set content_type to 'BOUNTY' for proper transformation
           content_object: {
             id: rawBounty.id,

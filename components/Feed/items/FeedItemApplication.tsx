@@ -50,6 +50,7 @@ export const FeedItemApplication: FC<FeedItemApplicationProps> = ({
   // Convert preregistration to FeedEntry format for FeedItemFundraise
   const preregistrationFeedEntry: FeedEntry = {
     id: preregistration.id.toString(),
+    recommendationId: entry.recommendationId,
     timestamp: createdDate,
     action: 'publish' as const,
     contentType: 'PREREGISTRATION' as const,
