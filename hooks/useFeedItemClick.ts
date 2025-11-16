@@ -13,6 +13,8 @@ interface UseFeedItemClickOptions {
   feedPosition?: number;
   experimentVariant?: string;
   feedOrdering?: string;
+  impression?: string[] | undefined;
+  clearVisibleItems?: () => void;
 }
 
 /**
@@ -26,6 +28,8 @@ export function useFeedItemClick({
   feedPosition,
   experimentVariant,
   feedOrdering,
+  impression,
+  clearVisibleItems,
 }: UseFeedItemClickOptions) {
   const { user } = useUser();
   const { source: feedSource, tab: feedTab } = useFeedSource();
@@ -44,13 +48,30 @@ export function useFeedItemClick({
         deviceType,
         experimentVariant,
         feedOrdering,
+        impression,
       });
 
       AnalyticsService.logEventWithUserProperties(LogEvent.FEED_ITEM_CLICKED, payload, user);
+
+      // Clear impressions after successfully sending analytics event (if provided)
+      if (clearVisibleItems) {
+        clearVisibleItems();
+      }
     } catch (analyticsError) {
       console.warn('Failed to track feed item click analytics:', analyticsError);
     }
-  }, [entry, feedPosition, feedSource, feedTab, deviceType, user, experimentVariant, feedOrdering]);
+  }, [
+    entry,
+    feedPosition,
+    feedSource,
+    feedTab,
+    deviceType,
+    user,
+    experimentVariant,
+    feedOrdering,
+    impression,
+    clearVisibleItems,
+  ]);
 
   return handleFeedItemClick;
 }
