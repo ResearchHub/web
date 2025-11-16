@@ -32,6 +32,17 @@ interface RelatedWork {
 
 export type FeedSource = 'home' | 'earn' | 'fund' | 'journal' | 'topic' | 'author' | 'unknown';
 
+/**
+ * Extracts the unified document ID from a feed entry.
+ * Checks entry.content.unifiedDocumentId first, then falls back to entry.relatedWork?.unifiedDocumentId.
+ *
+ * @param entry - The feed entry to extract the unified document ID from
+ * @returns The unified document ID as a string, or empty string if not found
+ */
+export function getUnifiedDocumentId(entry: FeedEntry): string {
+  return entry.content.unifiedDocumentId || entry.relatedWork?.unifiedDocumentId?.toString() || '';
+}
+
 // 1. Vote Action
 export interface VoteActionEvent extends UserContext, BaseContext {
   vote_type: UserVoteType;
@@ -47,6 +58,7 @@ export interface FeedItemClickedEvent extends UserContext, BaseContext {
   experiment_name?: string;
   experiment_variant?: string;
   feed_ordering?: string;
+  impression?: string[];
 }
 
 // 3. Work Document Viewed
@@ -70,6 +82,7 @@ export function buildPayloadForFeedItemClick(
     deviceType: DeviceType;
     experimentVariant?: string;
     feedOrdering?: string;
+    impression?: string[];
   }
 ): FeedItemClickedEvent {
   const {
@@ -79,6 +92,7 @@ export function buildPayloadForFeedItemClick(
     deviceType,
     experimentVariant,
     feedOrdering,
+    impression,
   } = options;
 
   const payload: FeedItemClickedEvent = {
@@ -95,9 +109,7 @@ export function buildPayloadForFeedItemClick(
         'relatedDocumentContentType' in entry.content && entry.content.relatedDocumentContentType
           ? mapAppContentTypeToApiType(entry.content.relatedDocumentContentType)
           : mapAppFeedContentTypeToApiType(entry.content.contentType),
-      unified_document_id: entry.content.unifiedDocumentId
-        ? entry.content.unifiedDocumentId
-        : entry.relatedWork?.unifiedDocumentId?.toString() || '',
+      unified_document_id: getUnifiedDocumentId(entry),
     },
     // Track experiment data for following feed
     ...(experimentVariant &&
@@ -106,6 +118,8 @@ export function buildPayloadForFeedItemClick(
         experiment_variant: experimentVariant,
         feed_ordering: feedOrdering,
       }),
+    // Include impressions if provided
+    ...(impression && impression.length > 0 && { impression }),
   };
 
   return payload;

@@ -11,6 +11,8 @@ import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
 import { FeedItemGrant } from './items/FeedItemGrant';
 import { useFeedItemClick } from '@/hooks/useFeedItemClick';
+import { useCallback } from 'react';
+import { getUnifiedDocumentId } from '@/types/analytics';
 
 interface FeedEntryItemProps {
   entry: FeedEntry;
@@ -26,6 +28,10 @@ interface FeedEntryItemProps {
   feedView?: string;
   experimentVariant?: string;
   feedOrdering?: string;
+  registerVisibleItem: (unifiedDocumentId: string) => void;
+  unregisterVisibleItem: (unifiedDocumentId: string) => void;
+  getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
+  clearVisibleItems: () => void;
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
@@ -42,11 +48,33 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   feedView,
   experimentVariant,
   feedOrdering,
+  registerVisibleItem,
+  unregisterVisibleItem,
+  getVisibleItems,
+  clearVisibleItems,
 }) => {
+  const unifiedDocumentId = getUnifiedDocumentId(entry);
+
   const { ref, inView } = useInView({
-    threshold: 0.5,
+    threshold: 0,
     rootMargin: '50px',
+    onChange: (inView) => {
+      if (unifiedDocumentId) {
+        if (inView) {
+          registerVisibleItem(unifiedDocumentId);
+        } else {
+          unregisterVisibleItem(unifiedDocumentId);
+        }
+      }
+    },
   });
+
+  const getImpressions = useCallback(() => {
+    if (!unifiedDocumentId) return undefined;
+    const visibleItems = getVisibleItems(unifiedDocumentId);
+
+    return visibleItems.length > 0 ? visibleItems : undefined;
+  }, [unifiedDocumentId, getVisibleItems]);
 
   // Handle feed item click with analytics
   const handleFeedItemClick = useFeedItemClick({
@@ -54,6 +82,8 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
     feedPosition: index + 1,
     experimentVariant,
     feedOrdering,
+    impression: getImpressions(),
+    clearVisibleItems,
   });
 
   if (!entry) {

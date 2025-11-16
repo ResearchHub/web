@@ -11,6 +11,7 @@ import { TabType } from '@/components/Journal/JournalTabs';
 import { FeedEntryItem } from './FeedEntryItem';
 import { getFeedKey } from '@/contexts/NavigationContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
+import { useFeedImpressionTracking } from '@/hooks/useFeedImpressionTracking';
 
 interface InsertContentItem {
   index: number;
@@ -99,6 +100,9 @@ export const FeedContent: FC<FeedContentProps> = ({
     lastClickedEntryId,
   });
 
+  const { registerVisibleItem, unregisterVisibleItem, getVisibleItems, clearVisibleItems } =
+    useFeedImpressionTracking();
+
   const displayEntries = entries;
 
   useEffect(() => {
@@ -137,6 +141,10 @@ export const FeedContent: FC<FeedContentProps> = ({
                     feedView={activeTab}
                     experimentVariant={experimentVariant}
                     feedOrdering={ordering}
+                    registerVisibleItem={registerVisibleItem}
+                    unregisterVisibleItem={unregisterVisibleItem}
+                    getVisibleItems={getVisibleItems}
+                    clearVisibleItems={clearVisibleItems}
                   />
                   {contentToInsert && (
                     <div key={`insert-content-${index}`} className="mt-12">
