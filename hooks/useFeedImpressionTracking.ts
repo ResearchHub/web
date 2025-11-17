@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 
-const MAX_IMPRESSION_ITEMS = 5;
+const MAX_IMPRESSION_ITEMS = 10;
 
 interface UseFeedImpressionTrackingReturn {
   registerVisibleItem: (unifiedDocumentId: string) => void;
@@ -40,13 +40,12 @@ export function useFeedImpressionTracking(): UseFeedImpressionTrackingReturn {
       const itemsArray = Array.from(visibleItems);
 
       // Ensure clicked item is included
-      const itemsSet = new Set(itemsArray);
-      if (clickedUnifiedDocumentId) {
-        itemsSet.add(clickedUnifiedDocumentId);
-      }
+      const filteredItems = itemsArray.filter((id) => id !== clickedUnifiedDocumentId);
 
-      // Convert back to array and limit to MAX_IMPRESSION_ITEMS
-      const result = Array.from(itemsSet).slice(0, MAX_IMPRESSION_ITEMS);
+      const result = clickedUnifiedDocumentId
+        ? [clickedUnifiedDocumentId, ...filteredItems].slice(0, MAX_IMPRESSION_ITEMS)
+        : filteredItems.slice(0, MAX_IMPRESSION_ITEMS);
+
       return result;
     },
     [visibleItems]
