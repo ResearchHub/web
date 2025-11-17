@@ -713,24 +713,19 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           {(!hideReportButton || menuItems.length > 0) && (
             <BaseMenu
               trigger={
-                <div
+                <Button
                   onMouseDown={(e) => {
-                    e.preventDefault();
                     e.stopPropagation();
                   }}
                   onClick={(e) => {
-                    e.preventDefault();
                     e.stopPropagation();
                   }}
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center text-gray-400 hover:text-gray-600"
                 >
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center text-gray-400 hover:text-gray-600"
-                  >
-                    <MoreHorizontal className="w-5 h-5" />
-                  </Button>
-                </div>
+                  <MoreHorizontal className="w-5 h-5" />
+                </Button>
               }
               align="end"
               open={isMenuOpen}
