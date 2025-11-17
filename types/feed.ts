@@ -254,6 +254,7 @@ export interface HotScoreBreakdown {
 
 export interface FeedEntry {
   id: string;
+  recommendationId: string | null;
   timestamp: string;
   action: FeedActionType;
   content: Content;
@@ -271,6 +272,7 @@ export interface FeedEntry {
 
 export interface RawApiFeedEntry {
   id: number;
+  recommendation_id: string | null;
   content_type: string;
   content_object: any;
   created_date: string;
@@ -408,11 +410,13 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     hot_score_v2,
     hot_score_breakdown,
     external_metadata,
+    recommendation_id,
   } = feedEntry;
 
   // Base feed entry properties
   const baseFeedEntry: Partial<FeedEntry> = {
     id: id.toString(),
+    recommendationId: recommendation_id,
     timestamp: action_date,
     action: action.toLowerCase() as FeedActionType,
   };
@@ -1010,6 +1014,7 @@ export const transformCommentToFeedItem = (
   // Create a FeedEntry with the comment content
   return {
     id: `comment-${comment.id}`,
+    recommendationId: null, // TODO: will we have recommendation id for comments?
     timestamp: comment.createdDate,
     action: 'contribute', // Default action for comments
     content: commentContent,
@@ -1067,6 +1072,7 @@ export const transformBountyCommentToFeedItem = (
   // Create a FeedEntry with the bounty content
   return {
     id: `bounty-${comment.id}`,
+    recommendationId: null, // TODO: will we have recommendation id for bounties?
     timestamp: comment.createdDate,
     action: 'open', // Default action for bounties
     content: bountyContent,
