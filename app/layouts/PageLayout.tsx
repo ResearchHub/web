@@ -208,15 +208,7 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
           }`}
           style={{ maxWidth: '100vw' }}
         >
-          <div
-            className={cn(
-              'w-full',
-              'max-w-full tablet:!max-w-2xl content-md:!max-w-2xl content-lg:!max-w-3xl content-xl:!max-w-4xl',
-              className
-            )}
-          >
-            {children}
-          </div>
+          <div className={cn('w-full', 'max-w-[700px]', className)}>{children}</div>
         </main>
 
         {/* Right Sidebar (Fixed to viewport edge) */}

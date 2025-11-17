@@ -6,7 +6,7 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-gray-100 text-gray-800 border border-gray-200',
+        default: 'bg-gray-50 text-gray-800 border border-gray-200 font-semibold',
         primary: 'bg-primary-100 text-primary-800 border border-primary-200',
         success: 'bg-green-100 text-green-800 border border-green-200',
         warning: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
@@ -17,6 +17,7 @@ const badgeVariants = cva(
       size: {
         default: 'text-xs',
         sm: 'text-[10px] px-1.5 py-0.5',
+        md: 'text-xs px-3 py-1.5',
         lg: 'text-sm px-2.5 py-0.5',
         xs: 'text-[9px] px-1.5 py-0.5',
       },

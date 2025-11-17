@@ -8,7 +8,6 @@ import { Progress } from '@/components/ui/Progress';
 import { FeedCardBase } from './FeedCardBase';
 import { ProposalCard as ProposalCardType } from '@/data/mockFeedData';
 import { Button } from '@/components/ui/Button';
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 
 interface ProposalCardProps {
   proposal: ProposalCardType;
@@ -39,21 +38,18 @@ export function ProposalCard({ proposal }: ProposalCardProps) {
 
   return (
     <FeedCardBase
-      upvotes={proposal.upvotes}
-      downvotes={proposal.downvotes}
       comments={proposal.comments}
       bookmarked={proposal.bookmarked}
+      // engagedUsers={proposal.engagedUsers}
     >
       {/* Badges Row */}
-      <div className="flex items-center gap-3 mb-3">
-        <ContentTypeBadge type="funding" size="lg" showTooltip={false} />
-        <Badge variant="default" size="lg">
-          {proposal.category}
-        </Badge>
-        {proposal.subcategory && (
-          <span className="text-sm text-gray-900 ml-1">{proposal.subcategory}</span>
-        )}
-      </div>
+      {proposal.subcategory && (
+        <div className="flex items-center gap-3 mb-3">
+          <Badge variant="default" size="lg">
+            {proposal.subcategory}
+          </Badge>
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex gap-4">

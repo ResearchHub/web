@@ -147,7 +147,7 @@ export const AvatarStack: FC<AvatarStackProps> = ({
 
     return (
       <div className="text-left">
-        <div className="font-medium mb-1">
+        <div className="font-medium mb-1 text-gray-900">
           {extraCountLabel} ({extraCount})
         </div>
         <ul className="space-y-0.5">
@@ -201,7 +201,7 @@ export const AvatarStack: FC<AvatarStackProps> = ({
                 className={`${getRingWidth()} ${ringColorClass} bg-gray-100`}
                 disableTooltip
                 label={`+${extraCount}`}
-                labelClassName="font-bold text-[100%]"
+                labelClassName="font-bold text-xs"
               />
             </Tooltip>
           </div>

@@ -8,7 +8,6 @@ import { FeedCardBase } from './FeedCardBase';
 import { BountyCard as BountyCardType } from '@/data/mockFeedData';
 import { Button } from '@/components/ui/Button';
 import { TrendingUp } from 'lucide-react';
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 
 interface BountyCardProps {
   bounty: BountyCardType;
@@ -61,26 +60,23 @@ export function BountyCard({ bounty }: BountyCardProps) {
 
   return (
     <FeedCardBase
-      upvotes={bounty.upvotes}
-      downvotes={bounty.downvotes}
       comments={bounty.comments}
       bookmarked={bounty.bookmarked}
+      // engagedUsers={bounty.engagedUsers}
     >
       {/* Badges Row */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <ContentTypeBadge type="bounty" size="lg" showTooltip={false} />
-          <Badge variant="default" size="lg">
-            {bounty.category}
-          </Badge>
           {bounty.subcategory && (
-            <span className="text-sm text-gray-900 ml-1">{bounty.subcategory}</span>
+            <Badge variant="default" size="lg">
+              {bounty.subcategory}
+            </Badge>
           )}
         </div>
         {bounty.trendingScore && (
-          <div className="flex items-center gap-1">
-            <span className="text-base">🔥</span>
-            <span className="text-sm font-semibold text-orange-600">{bounty.trendingScore}</span>
+          <div className="inline-flex items-center gap-1 text-green-600 hover:text-green-700 cursor-default transition-colors">
+            <TrendingUp className="w-5 h-5" />
+            <span className="text-sm font-medium">{bounty.trendingScore}</span>
           </div>
         )}
       </div>

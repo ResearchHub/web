@@ -655,7 +655,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     currency={showUSD ? 'USD' : 'RSC'}
                     shorten={true}
                     showExchangeRate={false}
-                    showIcon={true}
+                    showIcon={false}
                     showText={false}
                   />
                 }

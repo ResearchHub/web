@@ -1,11 +1,9 @@
 'use client';
 
-import { Badge } from '@/components/ui/Badge';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { FeedCardBase } from './FeedCardBase';
 import { RFPCard as RFPCardType } from '@/data/mockFeedData';
 import { Button } from '@/components/ui/Button';
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 
 interface RFPCardProps {
   rfp: RFPCardType;
@@ -28,18 +26,10 @@ export function RFPCard({ rfp }: RFPCardProps) {
 
   return (
     <FeedCardBase
-      upvotes={rfp.upvotes}
-      downvotes={rfp.downvotes}
       comments={rfp.comments}
       bookmarked={rfp.bookmarked}
+      // engagedUsers={rfp.engagedUsers}
     >
-      {/* Badges Row */}
-      <div className="flex items-center gap-3 mb-3">
-        <ContentTypeBadge type="grant" size="lg" showTooltip={false} />
-        <Badge variant="default" size="lg">
-          {rfp.category}
-        </Badge>
-      </div>
 
       {/* Title */}
       <h3 className="text-xl font-semibold text-gray-900 mb-2 leading-snug">{rfp.title}</h3>

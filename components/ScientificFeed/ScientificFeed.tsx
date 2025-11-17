@@ -4,17 +4,7 @@ import { useState, useRef } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
 import { cn } from '@/utils/styles';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Edit3,
-  ChevronDown,
-  TrendingUp,
-  Clock,
-  Sparkles,
-  Users,
-  Settings,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, Star, Clock, Settings } from 'lucide-react';
 import { mockFeedData, followingTopics, FeedCard } from '@/data/mockFeedData';
 import { PaperCard } from './PaperCard';
 import { BountyCard } from './BountyCard';
@@ -26,7 +16,15 @@ type FeedView = 'trending' | 'for-you' | 'following';
 type SortOption = 'trending' | 'latest';
 
 export function ScientificFeed() {
-  const [activeTab, setActiveTab] = useState<FeedView>('trending');
+  // Feature flags
+  const showHeroImages = true;
+  const showCategoryAboveTitle = false; // When false, shows trending score in action bar instead of top
+  const categoryBadgeStyle: 'badge' | 'text' = 'badge'; // 'badge' or 'text'
+  const imageLayout: 'above-title' | 'right-column' | 'below-title' = 'right-column';
+  const showUpvoteButton = true; // Set to true to show upvote/downvote buttons
+  const showTrendingScoreInActionBar = false; // If true, shows trending score to the right of Save instead of upvotes
+
+  const [activeTab, setActiveTab] = useState<FeedView>('for-you');
   const [sortBy, setSortBy] = useState<SortOption>('trending');
   const [selectedTopic, setSelectedTopic] = useState<string>('All');
   const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState(false);
@@ -35,19 +33,12 @@ export function ScientificFeed() {
 
   const tabs = [
     {
-      id: 'trending',
-      label: 'Trending',
-      icon: TrendingUp,
-    },
-    {
       id: 'for-you',
       label: 'For You',
-      icon: Sparkles,
     },
     {
       id: 'following',
       label: 'Following',
-      icon: Users,
     },
   ];
 
@@ -81,13 +72,31 @@ export function ScientificFeed() {
       });
     }
 
+    // Secondary sort: ensure all papers render first
+    data.sort((a, b) => {
+      if (a.type === 'paper' && b.type !== 'paper') return -1;
+      if (a.type !== 'paper' && b.type === 'paper') return 1;
+      return 0;
+    });
+
     return data;
   };
 
   const renderCard = (item: FeedCard) => {
     switch (item.type) {
       case 'paper':
-        return <PaperCard key={item.id} paper={item} />;
+        return (
+          <PaperCard
+            key={item.id}
+            paper={item}
+            showHeroImage={showHeroImages}
+            showCategoryAboveTitle={showCategoryAboveTitle}
+            categoryBadgeStyle={categoryBadgeStyle}
+            imageLayout={imageLayout}
+            showUpvoteButton={showUpvoteButton}
+            showTrendingScoreInActionBar={showTrendingScoreInActionBar}
+          />
+        );
       case 'bounty':
         return <BountyCard key={item.id} bounty={item} />;
       case 'proposal':
@@ -100,12 +109,12 @@ export function ScientificFeed() {
   };
 
   const sortOptions = [
-    { value: 'trending', label: 'Trending', icon: TrendingUp },
+    { value: 'trending', label: 'Best', icon: Star },
     { value: 'latest', label: 'Latest', icon: Clock },
   ];
 
-  const currentSortLabel = sortOptions.find((opt) => opt.value === sortBy)?.label || 'Trending';
-  const currentSortIcon = sortOptions.find((opt) => opt.value === sortBy)?.icon || TrendingUp;
+  const currentSortLabel = sortOptions.find((opt) => opt.value === sortBy)?.label || 'Best';
+  const currentSortIcon = sortOptions.find((opt) => opt.value === sortBy)?.icon || Star;
   const CurrentIcon = currentSortIcon;
 
   return (
@@ -120,42 +129,44 @@ export function ScientificFeed() {
               onTabChange={(id) => setActiveTab(id as FeedView)}
             />
           </div>
-          <div className="flex-shrink-0 mb-2">
-            <Dropdown
-              trigger={
-                <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap">
-                  <CurrentIcon className="w-4 h-4" />
-                  {currentSortLabel}
-                  <ChevronDown className="w-4 h-4" />
-                </button>
-              }
-              anchor="bottom end"
-              className="w-40"
-            >
-              {sortOptions.map((option) => {
-                const OptionIcon = option.icon;
-                return (
-                  <DropdownItem
-                    key={option.value}
-                    onClick={() => setSortBy(option.value as SortOption)}
-                    className={cn(
-                      'flex items-center gap-2',
-                      sortBy === option.value && 'bg-gray-100 font-medium'
-                    )}
-                  >
-                    <OptionIcon className="w-4 h-4" />
-                    {option.label}
-                  </DropdownItem>
-                );
-              })}
-            </Dropdown>
-          </div>
+          {activeTab === 'following' && (
+            <div className="flex-shrink-0 mb-0">
+              <Dropdown
+                trigger={
+                  <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors whitespace-nowrap">
+                    <CurrentIcon className="w-3.5 h-3.5" />
+                    {currentSortLabel}
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+                }
+                anchor="bottom end"
+                className="w-32"
+              >
+                {sortOptions.map((option) => {
+                  const OptionIcon = option.icon;
+                  return (
+                    <DropdownItem
+                      key={option.value}
+                      onClick={() => setSortBy(option.value as SortOption)}
+                      className={cn(
+                        'flex items-center gap-1.5 text-xs',
+                        sortBy === option.value && 'bg-gray-100 font-medium'
+                      )}
+                    >
+                      <OptionIcon className="w-3.5 h-3.5" />
+                      {option.label}
+                    </DropdownItem>
+                  );
+                })}
+              </Dropdown>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Following Topics */}
       {activeTab === 'following' && (
-        <div className="mb-6">
+        <div className="mb-6 max-w-[700px] mx-auto overflow-hidden">
           <div className="flex items-center gap-3">
             <div className="relative group flex-1">
               {/* Left scroll button */}
@@ -176,9 +187,9 @@ export function ScientificFeed() {
                 <button
                   onClick={() => setSelectedTopic('All')}
                   className={cn(
-                    'flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors',
+                    'flex-shrink-0 px-4 py-1 rounded-md text-sm font-medium transition-colors',
                     selectedTopic === 'All'
-                      ? 'bg-primary-600 text-white shadow-sm'
+                      ? 'bg-gray-900 text-white shadow-sm'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   )}
                 >
@@ -189,7 +200,7 @@ export function ScientificFeed() {
                     key={topic}
                     onClick={() => setSelectedTopic(topic)}
                     className={cn(
-                      'flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap',
+                      'flex-shrink-0 px-3 py-0 rounded-md text-sm font-medium transition-colors whitespace-nowrap',
                       selectedTopic === topic
                         ? 'bg-primary-600 text-white shadow-sm'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -213,7 +224,7 @@ export function ScientificFeed() {
             {/* Settings/Gear Button */}
             <button
               onClick={() => setIsPreferencesModalOpen(true)}
-              className="flex-shrink-0 p-2.5 rounded-full border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-primary-500 transition-all shadow-sm group"
+              className="flex-shrink-0 p-1.5 mt-[-8px] rounded-full  border-gray-300 bg-white hover:bg-gray-50 hover:border-primary-500 transition-all shadow-sm group"
               aria-label="Topic preferences"
               title="Manage topics"
             >
@@ -224,7 +235,7 @@ export function ScientificFeed() {
       )}
 
       {/* Feed Cards */}
-      <div className="space-y-4">{getSortedFeedData().map((item) => renderCard(item))}</div>
+      <div className="space-y-6">{getSortedFeedData().map((item) => renderCard(item))}</div>
 
       {/* Topic Preferences Modal */}
       <TopicPreferencesModal

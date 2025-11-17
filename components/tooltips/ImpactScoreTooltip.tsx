@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Quote, Newspaper, BarChart3 } from 'lucide-react';
+import { Quote, Newspaper, BarChart3, Star, ArrowUp, MessageCircle } from 'lucide-react';
 
 // Custom X (Twitter) icon component
 const XIcon = ({ className }: { className?: string }) => (
@@ -16,6 +16,10 @@ interface ImpactScoreTooltipProps {
   twitterMentions: number;
   newsMentions: number;
   altmetricScore?: number | null;
+  peerReviewAverage?: number;
+  peerReviewCount?: number;
+  upvotes?: number;
+  comments?: number;
 }
 
 const formatNumber = (num: number | null) => {
@@ -32,6 +36,10 @@ export function ImpactScoreTooltip({
   twitterMentions,
   newsMentions,
   altmetricScore,
+  peerReviewAverage,
+  peerReviewCount,
+  upvotes,
+  comments,
 }: ImpactScoreTooltipProps) {
   return (
     <div className="space-y-3">
@@ -62,14 +70,37 @@ export function ImpactScoreTooltip({
         </div>
       </div>
 
-      {/* Explanatory text */}
-      <p className="text-xs text-gray-600 italic border-t border-gray-200 pt-3">
-        The impact score is calculated based on multiple factors including citations, social media
-        engagement, and news coverage.
-      </p>
-
       {/* Metrics List */}
       <div className="space-y-2 border-t border-gray-200 pt-3">
+        {peerReviewAverage !== undefined && peerReviewCount !== undefined && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Star className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-600">Peer Reviews</span>
+            </div>
+            <span className="text-sm font-semibold text-gray-900">
+              {peerReviewAverage.toFixed(1)}/5 ({peerReviewCount} {peerReviewCount === 1 ? 'review' : 'reviews'})
+            </span>
+          </div>
+        )}
+        {upvotes !== undefined && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ArrowUp className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-600">Upvotes</span>
+            </div>
+            <span className="text-sm font-semibold text-gray-900">{formatNumber(upvotes)}</span>
+          </div>
+        )}
+        {comments !== undefined && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-600">Comments</span>
+            </div>
+            <span className="text-sm font-semibold text-gray-900">{formatNumber(comments)}</span>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Quote className="w-4 h-4 text-gray-400" />
@@ -99,18 +130,13 @@ export function ImpactScoreTooltip({
             </span>
           </div>
         )}
-        {altmetricScore !== null && altmetricScore !== undefined && altmetricScore > 0 && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-gray-400" />
-              <span className="text-sm text-gray-600">Altmetric</span>
-            </div>
-            <span className="text-sm font-semibold text-gray-900">
-              {Math.round(altmetricScore)}
-            </span>
-          </div>
-        )}
       </div>
+
+      {/* Explanatory text */}
+      <p className="text-xs text-gray-600 italic border-t border-gray-200 pt-3">
+        The impact score is calculated based on multiple factors including citations, social media
+        engagement, and news coverage.
+      </p>
     </div>
   );
 }

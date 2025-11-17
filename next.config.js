@@ -94,6 +94,22 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'picsum.photos',
       },
+      {
+        protocol: 'https',
+        hostname: 'wp.technologyreview.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.mdpi.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pub.mdpi-res.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.science.org',
+      },
     ],
     formats: ['image/webp', 'image/avif'],
   },
