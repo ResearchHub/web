@@ -18,7 +18,7 @@ type SortOption = 'trending' | 'latest';
 export function ScientificFeed() {
   // Feature flags
   const showHeroImages = true;
-  const showCategoryAboveTitle = false; // When false, shows trending score in action bar instead of top
+  const showCategoryAboveTitle = true; // When false, shows trending score in action bar instead of top
   const categoryBadgeStyle: 'badge' | 'text' = 'badge'; // 'badge' or 'text'
   const imageLayout: 'above-title' | 'right-column' | 'below-title' = 'right-column';
   const showUpvoteButton = true; // Set to true to show upvote/downvote buttons
