@@ -13,7 +13,6 @@ import Icon from '@/components/ui/icons/Icon';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { useUser } from '@/contexts/UserContext';
 import { ManageTopicsModal } from '@/components/modals/ManageTopicsModal';
-import { getExperimentVariant, Experiment, ExperimentVariant } from '@/utils/experiment';
 
 interface FeedProps {
   defaultTab: FeedTab;
@@ -25,15 +24,11 @@ interface FeedProps {
 }
 
 // Helper function to determine default ordering based on tab
-const getDefaultOrdering = (tab: FeedTab, experimentVariant?: ExperimentVariant): string => {
-  // A/B test for following feed ordering
-  if (tab === 'following' && experimentVariant === ExperimentVariant.B) {
-    return 'latest';
-  }
-
-  if (tab === 'popular' || tab === 'following') return 'hot_score';
+const getDefaultOrdering = (tab: FeedTab): string | undefined => {
+  if (tab === 'popular') return 'hot_score';
+  if (tab === 'following') return 'hot_score_v2';
   if (tab === 'latest') return 'latest';
-  if (tab === 'for-you') return 'latest'; // Default for personalized feed
+  if (tab === 'for-you') return undefined; // No sorting for personalized feed
   return 'hot_score'; // fallback
 };
 
@@ -45,27 +40,18 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   const isAuthenticated = status === 'authenticated';
   const isModerator = !!user?.isModerator;
 
-  // Get experiment variant for following feed ordering
-  const followingFeedExperiment = getExperimentVariant(Experiment.FollowingFeedOrdering, user?.id);
-
   const [activeTab, setActiveTab] = useState<FeedTab>(defaultTab);
   const [isNavigating, setIsNavigating] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<FeedSource>('all');
   const orderingParam = searchParams.get('ordering');
   const filterParam = searchParams.get('filter');
   const userIdParam = searchParams.get('user_id');
-  const [ordering, setOrdering] = useState<string>(
-    orderingParam || getDefaultOrdering(defaultTab, followingFeedExperiment)
+  const [ordering, setOrdering] = useState<string | undefined>(
+    orderingParam || getDefaultOrdering(defaultTab)
   );
   const [isManageTopicsModalOpen, setIsManageTopicsModalOpen] = useState(false);
 
-  const hotScoreVersion =
-    (searchParams.get('hot_score_version') as 'v1' | 'v2') ||
-    (defaultTab === 'following' ? 'v2' : 'v1'); // Always use v2 for following feed (experiment uses v2 for both variants)
   const isDebugMode = searchParams?.get('debug') !== null;
-
-  // For 'for-you' tab, use 'personalized' endpoint
-  const endpoint = defaultTab === 'for-you' ? 'personalized' : undefined;
 
   const {
     entries,
@@ -79,12 +65,10 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   } = useFeed(defaultTab, {
     source: sourceFilter,
     initialData: initialFeedData,
-    hotScoreVersion,
-    includeHotScoreBreakdown: isDebugMode,
+    isDebugMode,
     ordering,
     filter: filterParam || undefined,
     userId: userIdParam || undefined,
-    endpoint,
   });
 
   // Sync the activeTab with the defaultTab when the component mounts or defaultTab changes
@@ -93,10 +77,10 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     // Only update ordering if there's no query param override
     const orderingParam = searchParams.get('ordering');
     if (!orderingParam) {
-      setOrdering(getDefaultOrdering(defaultTab, followingFeedExperiment));
+      setOrdering(getDefaultOrdering(defaultTab));
     }
     setIsNavigating(false);
-  }, [defaultTab, searchParams, followingFeedExperiment]);
+  }, [defaultTab, searchParams]);
 
   const handleTabChange = (tab: string) => {
     // Don't navigate if clicking the already active tab
@@ -109,18 +93,14 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     // Update ordering based on the new tab (unless overridden by query param)
     const orderingParam = searchParams.get('ordering');
     if (!orderingParam) {
-      setOrdering(getDefaultOrdering(tab as FeedTab, followingFeedExperiment));
+      setOrdering(getDefaultOrdering(tab as FeedTab));
     }
     // Set navigating state to true to show loading state
     setIsNavigating(true);
 
-    // Preserve query params (hot_score_version, ordering, and filter)
+    // Preserve query params (ordering and filter)
     // Only preserve if they were explicitly set by the user, not defaults
     const params = new URLSearchParams();
-    const hotScoreParam = searchParams.get('hot_score_version');
-    if (hotScoreParam) {
-      params.set('hot_score_version', hotScoreParam);
-    }
     if (orderingParam) {
       params.set('ordering', orderingParam);
     }
@@ -130,7 +110,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     }
     const queryString = params.toString() ? `?${params.toString()}` : '';
 
-    // Navigate to the appropriate URL
+    // Navigate to the appropriate URL (for-you is the URL-friendly version)
     if (tab === 'popular') {
       router.push(`/${queryString}`);
     } else {
@@ -152,6 +132,14 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
       id: 'popular',
       label: 'Trending',
     },
+    ...(isAuthenticated || isModerator || isDebugMode
+      ? [
+          {
+            id: 'for-you',
+            label: 'For You',
+          },
+        ]
+      : []),
     ...(isAuthenticated
       ? [
           {
@@ -160,18 +148,6 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
           },
         ]
       : []),
-    ...(isModerator || isDebugMode
-      ? [
-          {
-            id: 'for-you',
-            label: 'For You',
-          },
-        ]
-      : []),
-    {
-      id: 'latest',
-      label: 'Latest',
-    },
   ];
 
   const header = (
@@ -232,25 +208,8 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     </div>
   ) : null;
 
-  // Only track experiment if user is on following feed and hasn't manually overridden ordering
-  // When orderingParam is set (e.g., ?ordering=latest), experimentVariant will be undefined
-  // This ensures admin overrides don't contaminate experiment data
-  const isInExperiment = activeTab === 'following' && !orderingParam;
-
   return (
     <PageLayout>
-      {isDebugMode && activeTab === 'following' && (
-        <div className="text-xs text-gray-500 text-center py-2 bg-gray-50 border-y border-gray-200">
-          {orderingParam ? (
-            <>🔧 Manual Override: ordering={orderingParam} (Not in experiment)</>
-          ) : (
-            <>
-              🧪 Experiment Active | Variant: {followingFeedExperiment} | Ordering: {ordering} | Hot
-              Score: v{hotScoreVersion === 'v2' ? '2' : '1'}
-            </>
-          )}
-        </div>
-      )}
       <FeedContent
         entries={entries}
         isLoading={combinedIsLoading}
@@ -259,7 +218,6 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
         header={header}
         tabs={feedTabs}
         activeTab={activeTab}
-        experimentVariant={isInExperiment ? followingFeedExperiment : undefined}
         ordering={ordering}
         restoredScrollPosition={restoredScrollPosition}
         page={page}

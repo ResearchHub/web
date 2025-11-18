@@ -37,7 +37,6 @@ interface FeedContentProps {
   maxLength?: number;
   showGrantHeaders?: boolean;
   showReadMoreCTA?: boolean;
-  experimentVariant?: string;
   ordering?: string;
   restoredScrollPosition?: number | null;
   page?: number;
@@ -64,7 +63,6 @@ export const FeedContent: FC<FeedContentProps> = ({
   maxLength,
   showGrantHeaders = true,
   showReadMoreCTA = false,
-  experimentVariant,
   ordering,
   restoredScrollPosition,
   page,
@@ -139,7 +137,6 @@ export const FeedContent: FC<FeedContentProps> = ({
                     showGrantHeaders={showGrantHeaders}
                     showReadMoreCTA={showReadMoreCTA}
                     feedView={activeTab}
-                    experimentVariant={experimentVariant}
                     feedOrdering={ordering}
                     registerVisibleItem={registerVisibleItem}
                     unregisterVisibleItem={unregisterVisibleItem}

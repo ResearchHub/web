@@ -9,7 +9,6 @@ export class FeedService {
   private static readonly BASE_PATH = '/api/feed';
   private static readonly FUNDING_PATH = '/api/funding_feed';
   private static readonly GRANT_PATH = '/api/grant_feed';
-  private static readonly PERSONALIZED_PATH = '/api/feed/personalized';
 
   static async getFeed(params?: {
     page?: number;
@@ -18,12 +17,11 @@ export class FeedService {
     hubSlug?: string;
     contentType?: string;
     source?: 'all' | 'researchhub';
-    endpoint?: 'feed' | 'funding_feed' | 'grant_feed' | 'personalized';
+    endpoint?: 'feed' | 'funding_feed' | 'grant_feed';
     fundraiseStatus?: 'OPEN' | 'CLOSED';
     grantId?: number;
     createdBy?: number;
     ordering?: string;
-    hotScoreVersion?: 'v1' | 'v2';
     includeHotScoreBreakdown?: boolean;
     filter?: string;
     userId?: string;
@@ -39,18 +37,10 @@ export class FeedService {
     if (params?.grantId) queryParams.append('grant_id', params.grantId.toString());
     if (params?.createdBy) queryParams.append('created_by', params.createdBy.toString());
 
-    // Shim: Use 'sort_by' for feed views (popular, following, latest), 'ordering' for funding/grant feeds
-    // Ticket: https://github.com/ResearchHub/issues/issues/658
     if (params?.ordering) {
-      const isHomeFeedView =
-        params.feedView === 'popular' ||
-        params.feedView === 'following' ||
-        params.feedView === 'latest';
-      const orderingParamName = isHomeFeedView ? 'sort_by' : 'ordering';
-      queryParams.append(orderingParamName, params.ordering);
+      queryParams.append('ordering', params.ordering);
     }
 
-    if (params?.hotScoreVersion) queryParams.append('hot_score_version', params.hotScoreVersion);
     if (params?.includeHotScoreBreakdown) queryParams.append('include_hot_score_breakdown', 'true');
     if (params?.filter) queryParams.append('filter', params.filter);
     if (params?.userId) queryParams.append('user_id', params.userId);
@@ -61,9 +51,7 @@ export class FeedService {
         ? this.FUNDING_PATH
         : params?.endpoint === 'grant_feed'
           ? this.GRANT_PATH
-          : params?.endpoint === 'personalized'
-            ? this.PERSONALIZED_PATH
-            : this.BASE_PATH;
+          : this.BASE_PATH;
     const url = `${basePath}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
 
     try {

@@ -11,7 +11,6 @@ import { useDeviceType } from '@/hooks/useDeviceType';
 interface UseFeedItemClickOptions {
   entry: FeedEntry | null;
   feedPosition?: number;
-  experimentVariant?: string;
   feedOrdering?: string;
   impression?: string[] | undefined;
   clearVisibleItems?: () => void;
@@ -26,7 +25,6 @@ interface UseFeedItemClickOptions {
 export function useFeedItemClick({
   entry,
   feedPosition,
-  experimentVariant,
   feedOrdering,
   impression,
   clearVisibleItems,
@@ -46,7 +44,6 @@ export function useFeedItemClick({
         feedSource,
         feedTab,
         deviceType,
-        experimentVariant,
         feedOrdering,
         impression,
       });
@@ -67,7 +64,6 @@ export function useFeedItemClick({
     feedTab,
     deviceType,
     user,
-    experimentVariant,
     feedOrdering,
     impression,
     clearVisibleItems,
