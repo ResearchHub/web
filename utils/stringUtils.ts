@@ -41,3 +41,5 @@ export const toTitleCase = (str: string): string => {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 };
+
+export const pluralizeSuffix = (count: number): string => (count === 1 ? '' : 's');

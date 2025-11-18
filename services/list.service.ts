@@ -4,10 +4,12 @@ import {
   CreateListRequest,
   UpdateListRequest,
   UserListsResponse,
+  UserCheckResponse,
 } from '@/types/user-list';
 
 export class ListService {
   private static readonly BASE_PATH = '/api/user_list';
+  private static readonly ITEM_BASE_PATH = '/api/user_list_item';
 
   static async getUserLists(page: number = 1): Promise<UserListsResponse> {
     return ApiClient.get<UserListsResponse>(`${this.BASE_PATH}/?page=${page}`);
@@ -21,12 +23,31 @@ export class ListService {
     return ApiClient.patch<UserList>(`${this.BASE_PATH}/${listId}/`, data);
   }
 
-  static async deleteList(listId: number): Promise<void> {
+  private static async handleDelete(path: string): Promise<void> {
     try {
-      await ApiClient.delete(`${this.BASE_PATH}/${listId}/`);
+      await ApiClient.delete(path);
     } catch (err) {
       if (err instanceof SyntaxError) return;
       throw err;
     }
+  }
+
+  static async deleteList(listId: number): Promise<void> {
+    return this.handleDelete(`${this.BASE_PATH}/${listId}/`);
+  }
+
+  static async addItemToList(listId: number, unifiedDocumentId: number): Promise<void> {
+    return ApiClient.post<void>(`${this.ITEM_BASE_PATH}/`, {
+      parent_list: listId,
+      unified_document: unifiedDocumentId,
+    });
+  }
+
+  static async removeItemFromList(itemId: number): Promise<void> {
+    return this.handleDelete(`${this.ITEM_BASE_PATH}/${itemId}/`);
+  }
+
+  static async getOverview(): Promise<UserCheckResponse> {
+    return ApiClient.get<UserCheckResponse>(`${this.BASE_PATH}/overview/`);
   }
 }

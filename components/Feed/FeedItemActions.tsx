@@ -3,7 +3,15 @@
 import { FC, useState, ReactNode, useEffect, useRef } from 'react';
 import React from 'react';
 import { FeedContentType, FeedEntry, Review } from '@/types/feed';
-import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star, ThumbsDown } from 'lucide-react';
+import {
+  MessageCircle,
+  Flag,
+  ArrowUp,
+  MoreHorizontal,
+  Star,
+  ThumbsDown,
+  FolderPlus,
+} from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
@@ -16,6 +24,8 @@ import { ContentType } from '@/types/work';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useRouter } from 'next/navigation';
 import { TipContentModal } from '@/components/modals/TipContentModal';
+import { AddToListModal } from '@/components/modals/AddToListModal';
+import { useIsInList } from '@/hooks/useIsInList';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Bounty } from '@/types/bounty';
 import { Tip } from '@/types/tip';
@@ -225,6 +235,14 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const [tipModalState, setTipModalState] = useState<{ isOpen: boolean; contentId?: number }>({
     isOpen: false,
   });
+
+  const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
+  const {
+    isInList: isDocumentInList,
+    isLoading: isCheckingList,
+    refetch: refetchIsInList,
+    listDetails,
+  } = useIsInList(relatedDocumentUnifiedDocumentId);
 
   // Calculate initial tip amount and avatars from props
   const initialTotalTipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
@@ -549,6 +567,19 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               avatars={commentAvatars}
             />
           )}
+          {relatedDocumentUnifiedDocumentId && (
+            <ActionButton
+              icon={FolderPlus}
+              tooltip="Add to List"
+              label="Add to List"
+              onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
+              showTooltip={showTooltips}
+              isActive={isDocumentInList}
+              className={
+                isDocumentInList ? 'text-green-600 border-green-300 hover:bg-green-50' : ''
+              }
+            />
+          )}
           {showInlineReviews && (
             <ActionButton
               icon={Star}
@@ -769,6 +800,18 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           contentId={tipModalState.contentId}
           feedContentType={feedContentType}
           onTipSuccess={handleTipSuccess}
+        />
+      )}
+
+      {relatedDocumentUnifiedDocumentId && (
+        <AddToListModal
+          isOpen={isAddToListModalOpen}
+          onClose={() => setIsAddToListModalOpen(false)}
+          unifiedDocumentId={parseInt(relatedDocumentUnifiedDocumentId)}
+          listDetails={listDetails}
+          isLoadingListDetails={isCheckingList}
+          refetchListDetails={refetchIsInList}
+          onItemAdded={refetchIsInList}
         />
       )}
     </>

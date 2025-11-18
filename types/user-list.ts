@@ -24,3 +24,18 @@ export interface UserListsResponse {
   previous: string | null;
   results: UserList[];
 }
+
+export interface SimplifiedListItem {
+  list_item_id: number;
+  unified_document_id: number;
+}
+
+export interface SimplifiedUserList {
+  list_id: number;
+  name: string;
+  unified_documents: SimplifiedListItem[];
+}
+
+export interface UserCheckResponse {
+  lists: SimplifiedUserList[];
+}

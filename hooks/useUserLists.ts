@@ -3,10 +3,12 @@ import { ListService } from '@/services/list.service';
 import { UserList, CreateListRequest, UpdateListRequest } from '@/types/user-list';
 import { toast } from 'react-hot-toast';
 import { ApiError } from '@/services/types';
+import { useUserListsContext } from '@/contexts/UserListsContext';
 
 const getError = (err: unknown) => (err instanceof ApiError ? err.message : 'Operation failed');
 
 export function useUserLists() {
+  const { refetchOverview } = useUserListsContext();
   const [state, setState] = useState<{
     lists: UserList[];
     isLoading: boolean;
@@ -59,27 +61,27 @@ export function useUserLists() {
     fetchLists();
   }, [fetchLists]);
 
-  const performAction = useCallback(
-    async (action: () => Promise<unknown>, successMsg: string) => {
+  const withAction = useCallback(
+    async (action: () => Promise<unknown>, msg: string) => {
       try {
         await action();
-        toast.success(successMsg);
-        fetchLists();
+        toast.success(msg);
+        await Promise.all([fetchLists(), refetchOverview()]);
       } catch (err) {
         toast.error(getError(err));
         throw err;
       }
     },
-    [fetchLists]
+    [fetchLists, refetchOverview]
   );
 
   return {
     ...state,
     loadMore: () => state.hasMore && !state.isLoadingMore && fetchLists(state.page + 1, true),
     createList: (data: CreateListRequest) =>
-      performAction(() => ListService.createList(data), 'List created'),
+      withAction(() => ListService.createList(data), 'List created'),
     updateList: (id: number, data: UpdateListRequest) =>
-      performAction(() => ListService.updateList(id, data), 'List updated'),
-    deleteList: (id: number) => performAction(() => ListService.deleteList(id), 'List deleted'),
+      withAction(() => ListService.updateList(id, data), 'List updated'),
+    deleteList: (id: number) => withAction(() => ListService.deleteList(id), 'List deleted'),
   };
 }
