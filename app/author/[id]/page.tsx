@@ -18,6 +18,7 @@ import AuthorProfile from './components/AuthorProfile';
 import { useAuthorPublications } from '@/hooks/usePublications';
 import { transformPublicationToFeedEntry } from '@/types/publication';
 import PinnedFundraise from './components/PinnedFundraise';
+import { OrcidSyncBanner } from '@/components/banners/OrcidSyncBanner';
 
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
@@ -295,6 +296,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
 
   return (
     <>
+      <OrcidSyncBanner />
       <Card className="mt-4 bg-gray-50">
         <AuthorProfile author={user.authorProfile} refetchAuthorInfo={refetchAuthorInfo} />
       </Card>
