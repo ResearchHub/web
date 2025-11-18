@@ -9,6 +9,7 @@ import {
   Search as SearchIcon,
   Shield,
   MessageCircleQuestion,
+  FolderOpen,
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { SearchModal } from '@/components/Search/SearchModal';
@@ -56,6 +57,7 @@ const isRootNavigationPage = (pathname: string): boolean => {
     '/notebook',
     '/browse',
     '/leaderboard',
+    '/lists',
   ];
 
   return rootNavigationPaths.includes(pathname);
@@ -95,6 +97,14 @@ const getPageInfo = (pathname: string): PageInfo | null => {
       title: 'My ResearchCoin',
       subtitle: 'Manage your RSC wallet and transactions',
       icon: <Icon name="rscThin" size={28} />,
+    };
+  }
+
+  if (pathname === '/lists') {
+    return {
+      title: 'Lists',
+      subtitle: 'Organize your saved content',
+      icon: <FolderOpen size={24} className="text-gray-900" />,
     };
   }
 
