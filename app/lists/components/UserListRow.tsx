@@ -5,16 +5,18 @@ import { formatItemCount } from '@/utils/listUtils';
 import { Edit2, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { formatTimeAgo } from '@/utils/date';
+import { generateSlug } from '@/utils/url';
+import { Skeleton } from '@/components/ui/Skeleton';
 
-interface ListItemProps {
+interface UserListRowProps {
   list: UserList;
   onEdit: (list: UserList) => void;
   onDelete: (list: UserList) => void;
 }
 
-export const ListItem = ({ list, onEdit, onDelete }: ListItemProps) => (
+export const UserListRow = ({ list, onEdit, onDelete }: UserListRowProps) => (
   <Link
-    href={`/list/${list.id}/${list.name.toLowerCase().replace(/\s+/g, '-')}`}
+    href={`/list/${list.id}/${generateSlug(list.name)}`}
     className="group grid grid-cols-[1fr_auto] sm:grid-cols-[4fr_2fr_1fr_auto] gap-4 items-center px-4 py-3 rounded-md hover:bg-gray-100 transition-colors border-b border-transparent hover:border-gray-200"
   >
     <div className="flex flex-col min-w-0">
@@ -54,11 +56,11 @@ export const ListItem = ({ list, onEdit, onDelete }: ListItemProps) => (
   </Link>
 );
 
-export const ListItemSkeleton = () => (
+export const UserListRowSkeleton = () => (
   <div className="px-4 py-3 grid grid-cols-[1fr_auto] sm:grid-cols-[4fr_2fr_1fr_auto] gap-4 items-center animate-pulse">
-    <div className="h-5 bg-gray-200 rounded w-1/3" />
-    <div className="hidden sm:block h-4 bg-gray-200 rounded w-1/4" />
-    <div className="hidden sm:block h-4 bg-gray-200 rounded w-10 ml-auto" />
+    <Skeleton className="h-5 w-1/3" />
+    <Skeleton className="hidden sm:block h-4 w-1/4" />
+    <Skeleton className="hidden sm:block h-4 w-10 ml-auto" />
     <div className="w-16" />
   </div>
 );

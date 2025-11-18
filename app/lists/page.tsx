@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserLists } from '@/hooks/useUserLists';
 import { UserList } from '@/types/user-list';
-import { ListItem, ListItemSkeleton } from './components/ListItem';
+import { UserListRow, UserListRowSkeleton } from './components/UserListRow';
 import { ListModal } from '@/components/modals/ListModal';
 import { Plus, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -31,6 +31,7 @@ export default function ListsPage() {
     createList,
     updateList,
     deleteList,
+    totalCount,
   } = useUserLists();
   const [modal, setModal] = useState<ModalState>(INITIAL_MODAL);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -74,7 +75,7 @@ export default function ListsPage() {
               </div>
               <span>{user?.firstName ? `${user.firstName} ${user.lastName}` : 'User'}</span>
               <span className="text-gray-300">•</span>
-              <span>{lists.length} lists</span>
+              <span>{totalCount} lists</span>
             </div>
           </div>
           <div className="w-full sm:w-auto mt-4 sm:mt-0 sm:ml-auto">
@@ -96,7 +97,7 @@ export default function ListsPage() {
           )}
           <div className="space-y-1">
             {isLoading ? (
-              [...Array(5)].map((_, i) => <ListItemSkeleton key={i} />)
+              [...Array(5)].map((_, i) => <UserListRowSkeleton key={i} />)
             ) : lists.length === 0 ? (
               <div className="text-center py-20">
                 <FolderOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -108,7 +109,7 @@ export default function ListsPage() {
             ) : (
               <>
                 {lists.map((list) => (
-                  <ListItem
+                  <UserListRow
                     key={list.id}
                     list={list}
                     onEdit={(l) => openModal('edit', l)}
@@ -118,7 +119,7 @@ export default function ListsPage() {
                 {isLoadingMore && (
                   <div className="space-y-1 pt-1">
                     {[...Array(3)].map((_, i) => (
-                      <ListItemSkeleton key={i} />
+                      <UserListRowSkeleton key={i} />
                     ))}
                   </div>
                 )}

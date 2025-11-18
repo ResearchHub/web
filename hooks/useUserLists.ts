@@ -14,6 +14,7 @@ export function useUserLists() {
     error: string | null;
     page: number;
     hasMore: boolean;
+    totalCount: number;
   }>({
     lists: [],
     isLoading: true,
@@ -21,6 +22,7 @@ export function useUserLists() {
     error: null,
     page: 1,
     hasMore: false,
+    totalCount: 0,
   });
 
   const fetchLists = useCallback(async (page = 1, isLoadMore = false) => {
@@ -32,7 +34,7 @@ export function useUserLists() {
     }));
 
     try {
-      const { results, next } = await ListService.getUserLists(page);
+      const { results, next, count } = await ListService.getUserLists(page);
       setState((prev) => ({
         ...prev,
         lists: isLoadMore ? [...prev.lists, ...results] : results,
@@ -41,6 +43,7 @@ export function useUserLists() {
         error: null,
         page,
         hasMore: !!next,
+        totalCount: count,
       }));
     } catch (err) {
       setState((prev) => ({
