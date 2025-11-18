@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserLists } from '@/hooks/useUserLists';
 import { UserList } from '@/types/user-list';
@@ -9,34 +9,49 @@ import { ListModal } from '@/components/modals/ListModal';
 import { Plus, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
+import { useInView } from 'react-intersection-observer';
 
-type ModalState = {
+interface ModalState {
   isOpen: boolean;
   mode: 'create' | 'edit' | 'delete';
   list: UserList | null;
   name: string;
-};
+}
+
 const INITIAL_MODAL: ModalState = { isOpen: false, mode: 'create', list: null, name: '' };
 
 export default function ListsPage() {
-  const { lists, isLoading, error, createList, updateList, deleteList } = useUserLists();
+  const {
+    lists,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    loadMore,
+    error,
+    createList,
+    updateList,
+    deleteList,
+  } = useUserLists();
   const [modal, setModal] = useState<ModalState>(INITIAL_MODAL);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useUser();
+  const { ref: loadMoreRef, inView } = useInView({ threshold: 0, rootMargin: '100px' });
+
+  useEffect(() => {
+    if (inView && hasMore && !isLoading && !isLoadingMore) loadMore();
+  }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
 
   const openModal = (mode: ModalState['mode'], list: UserList | null = null) =>
     setModal({ isOpen: true, mode, list, name: list?.name || '' });
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    const { mode, list, name } = modal;
     try {
-      const { mode, list, name } = modal;
       if (mode === 'create') await createList({ name: name.trim() });
       else if (mode === 'edit' && list) await updateList(list.id, { name: name.trim() });
       else if (mode === 'delete' && list) await deleteList(list.id);
       setModal(INITIAL_MODAL);
-    } catch (err) {
-      console.error(err);
     } finally {
       setIsSubmitting(false);
     }
@@ -79,7 +94,6 @@ export default function ListsPage() {
               {error}
             </div>
           )}
-
           <div className="space-y-1">
             {isLoading ? (
               [...Array(5)].map((_, i) => <ListItemSkeleton key={i} />)
@@ -92,19 +106,28 @@ export default function ListsPage() {
                 </Button>
               </div>
             ) : (
-              lists.map((list) => (
-                <ListItem
-                  key={list.id}
-                  list={list}
-                  onEdit={(l) => openModal('edit', l)}
-                  onDelete={(l) => openModal('delete', l)}
-                />
-              ))
+              <>
+                {lists.map((list) => (
+                  <ListItem
+                    key={list.id}
+                    list={list}
+                    onEdit={(l) => openModal('edit', l)}
+                    onDelete={(l) => openModal('delete', l)}
+                  />
+                ))}
+                {isLoadingMore && (
+                  <div className="space-y-1 pt-1">
+                    {[...Array(3)].map((_, i) => (
+                      <ListItemSkeleton key={i} />
+                    ))}
+                  </div>
+                )}
+                {!isLoadingMore && hasMore && <div ref={loadMoreRef} className="h-10" />}
+              </>
             )}
           </div>
         </div>
       </div>
-
       <ListModal
         {...modal}
         onClose={() => setModal(INITIAL_MODAL)}

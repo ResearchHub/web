@@ -10,20 +10,45 @@ export function useUserLists() {
   const [state, setState] = useState<{
     lists: UserList[];
     isLoading: boolean;
+    isLoadingMore: boolean;
     error: string | null;
+    page: number;
+    hasMore: boolean;
   }>({
     lists: [],
     isLoading: true,
+    isLoadingMore: false,
     error: null,
+    page: 1,
+    hasMore: false,
   });
 
-  const fetchLists = useCallback(async () => {
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+  const fetchLists = useCallback(async (page = 1, isLoadMore = false) => {
+    setState((prev) => ({
+      ...prev,
+      isLoading: !isLoadMore,
+      isLoadingMore: isLoadMore,
+      error: null,
+    }));
+
     try {
-      const { results } = await ListService.getUserLists();
-      setState({ lists: results || [], isLoading: false, error: null });
+      const { results, next } = await ListService.getUserLists(page);
+      setState((prev) => ({
+        ...prev,
+        lists: isLoadMore ? [...prev.lists, ...results] : results,
+        isLoading: false,
+        isLoadingMore: false,
+        error: null,
+        page,
+        hasMore: !!next,
+      }));
     } catch (err) {
-      setState((prev) => ({ ...prev, isLoading: false, error: getError(err) }));
+      setState((prev) => ({
+        ...prev,
+        isLoading: false,
+        isLoadingMore: false,
+        error: getError(err),
+      }));
     }
   }, []);
 
@@ -47,6 +72,7 @@ export function useUserLists() {
 
   return {
     ...state,
+    loadMore: () => state.hasMore && !state.isLoadingMore && fetchLists(state.page + 1, true),
     createList: (data: CreateListRequest) =>
       performAction(() => ListService.createList(data), 'List created'),
     updateList: (id: number, data: UpdateListRequest) =>
