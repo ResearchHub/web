@@ -19,7 +19,7 @@ export const TopicsSection = ({ topics }: TopicsSectionProps) => {
 
   if (!topics || topics.length === 0) return null;
 
-  const filteredTopics = topics.filter((topic) => String(topic.id) !== '436');
+  const filteredTopics = topics.filter((topic) => topic.slug !== 'biorxiv-community-reviews');
   const displayedTopics = showAllTopics ? filteredTopics : filteredTopics.slice(0, 5);
   const hasMoreTopics = filteredTopics.length > 5;
 
