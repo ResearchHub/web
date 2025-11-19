@@ -542,34 +542,32 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                     },
               ]
             : [],
-          createdBy: author
-            ? transformAuthorProfile(author)
-            : content_object.authors?.[0]
-              ? transformAuthorProfile(content_object.authors[0])
-              : Array.isArray(content_object.raw_authors) && content_object.raw_authors.length > 0
-                ? {
-                    id: 0,
-                    fullName:
-                      `${content_object.raw_authors[0].first_name || ''} ${content_object.raw_authors[0].last_name || ''}`.trim(),
-                    firstName: content_object.raw_authors[0].first_name || '',
-                    lastName: content_object.raw_authors[0].last_name || '',
-                    profileImage: '',
-                    headline: '',
-                    profileUrl: '/author/0',
-                    isClaimed: false,
-                    isVerified: false,
-                  }
-                : {
-                    id: 0,
-                    fullName: 'Unknown Author',
-                    firstName: '',
-                    lastName: '',
-                    profileImage: '',
-                    headline: '',
-                    profileUrl: '/author/0',
-                    isClaimed: false,
-                    isVerified: false,
-                  },
+          createdBy: content_object.authors?.[0]
+            ? transformAuthorProfile(content_object.authors[0])
+            : Array.isArray(content_object.raw_authors) && content_object.raw_authors.length > 0
+              ? {
+                  id: 0,
+                  fullName:
+                    `${content_object.raw_authors[0].first_name || ''} ${content_object.raw_authors[0].last_name || ''}`.trim(),
+                  firstName: content_object.raw_authors[0].first_name || '',
+                  lastName: content_object.raw_authors[0].last_name || '',
+                  profileImage: '',
+                  headline: '',
+                  profileUrl: '/author/0',
+                  isClaimed: false,
+                  isVerified: false,
+                }
+              : {
+                  id: 0,
+                  fullName: 'Unknown Author',
+                  firstName: '',
+                  lastName: '',
+                  profileImage: '',
+                  headline: '',
+                  profileUrl: '/author/0',
+                  isClaimed: false,
+                  isVerified: false,
+                },
           journal: content_object.journal || {
             id: 0,
             name: '',
