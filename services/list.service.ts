@@ -5,7 +5,15 @@ import {
   UpdateListRequest,
   UserListsResponse,
   UserCheckResponse,
+  UserListItem,
 } from '@/types/user-list';
+
+interface ListApiResponse<T> {
+  results: T[];
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
+}
 
 export class ListService {
   private static readonly BASE_PATH = '/api/user_list';
@@ -13,6 +21,20 @@ export class ListService {
 
   static async getUserLists(page: number = 1): Promise<UserListsResponse> {
     return ApiClient.get<UserListsResponse>(`${this.BASE_PATH}/?page=${page}`);
+  }
+
+  static async getListById(listId: number): Promise<UserList> {
+    return ApiClient.get<UserList>(`${this.BASE_PATH}/${listId}/`);
+  }
+
+  static async getListItems(
+    listId: number,
+    params?: { page?: number; pageSize?: number }
+  ): Promise<ListApiResponse<UserListItem>> {
+    const query = new URLSearchParams({ parent_list: listId.toString() });
+    if (params?.page) query.append('page', params.page.toString());
+    if (params?.pageSize) query.append('page_size', params.pageSize.toString());
+    return ApiClient.get<ListApiResponse<UserListItem>>(`${this.ITEM_BASE_PATH}/?${query}`);
   }
 
   static async createList(data: CreateListRequest): Promise<UserList> {

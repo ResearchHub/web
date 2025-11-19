@@ -16,7 +16,7 @@ interface UserListRowProps {
 
 export const UserListRow = ({ list, onEdit, onDelete }: UserListRowProps) => (
   <Link
-    href={`/list/${list.id}/${generateSlug(list.name)}`}
+    href={`/lists/${list.id}/${generateSlug(list.name)}`}
     className="group grid grid-cols-[1fr_auto] sm:grid-cols-[4fr_2fr_1fr_auto] gap-4 items-center px-4 py-3 rounded-md hover:bg-gray-100 transition-colors border-b border-transparent hover:border-gray-200"
   >
     <div className="flex flex-col min-w-0">

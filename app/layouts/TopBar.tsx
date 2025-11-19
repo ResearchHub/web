@@ -100,7 +100,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
-  if (pathname === '/lists') {
+  if (pathname === '/lists' || pathname.startsWith('/lists/')) {
     return {
       title: 'Lists',
       subtitle: 'Organize your saved content',
