@@ -11,6 +11,7 @@ import {
   Share2,
   CheckCircle,
   ThumbsDown,
+  FolderPlus,
 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
@@ -35,6 +36,8 @@ import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useCompleteFundraise } from '@/hooks/useFundraise';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
+import { AddToListModal } from '@/components/modals/AddToListModal';
+import { useIsInList } from '@/hooks/useIsInList';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -56,6 +59,7 @@ export const WorkLineItems = ({
   const [isPublishing, setIsPublishing] = useState(false);
   const [showFundraiseActionModal, setShowFundraiseActionModal] = useState(false);
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | null>(null);
+  const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { vote, isVoting } = useVote({
     votableEntityId: work.id,
@@ -76,6 +80,7 @@ export const WorkLineItems = ({
   const { user } = useUser();
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
   const { showShareModal } = useShareModalContext();
+  const { isInList, refetch: refetchIsInList } = useIsInList(work.unifiedDocumentId);
 
   const {
     data: userVotes,
@@ -341,6 +346,17 @@ export const WorkLineItems = ({
             <Share2 className="h-6 w-6" />
           </button>
 
+          <button
+            onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+              isInList
+                ? 'bg-green-50 text-green-600 hover:bg-green-100'
+                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <FolderPlus className="h-6 w-6" />
+          </button>
+
           {work.contentType !== 'preregistration' && (
             <button
               onClick={() => executeAuthenticatedAction(() => setIsTipModalOpen(true))}
@@ -524,6 +540,18 @@ export const WorkLineItems = ({
         feedContentType={work.contentType === 'paper' ? 'PAPER' : 'POST'}
         onTipSuccess={handleTipSuccess}
       />
+
+      {/* Add to List Modal */}
+      {work.unifiedDocumentId && (
+        <AddToListModal
+          isOpen={isAddToListModalOpen}
+          onClose={() => {
+            setIsAddToListModalOpen(false);
+            refetchIsInList();
+          }}
+          unifiedDocumentId={work.unifiedDocumentId}
+        />
+      )}
 
       {work.contentType === 'paper' && (
         <WorkEditModal
