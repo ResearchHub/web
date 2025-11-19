@@ -205,7 +205,7 @@ export function AddToListModal({
                           }
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900">{list.name}</div>
+                          <div className="font-medium text-gray-900 truncate">{list.name}</div>
                           {inList && (
                             <div className="text-xs text-green-600 font-medium mt-1 flex items-center gap-1 sm:hidden">
                               <Check className="w-3 h-3" />

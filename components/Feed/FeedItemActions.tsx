@@ -567,19 +567,22 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               avatars={commentAvatars}
             />
           )}
-          {relatedDocumentUnifiedDocumentId && (
-            <ActionButton
-              icon={FolderPlus}
-              tooltip="Add to List"
-              label="Add to List"
-              onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
-              showTooltip={showTooltips}
-              isActive={isDocumentInList}
-              className={
-                isDocumentInList ? 'text-green-600 border-green-300 hover:bg-green-50' : ''
-              }
-            />
-          )}
+          {relatedDocumentUnifiedDocumentId &&
+            feedContentType !== 'COMMENT' &&
+            feedContentType !== 'BOUNTY' &&
+            feedContentType !== 'APPLICATION' && (
+              <ActionButton
+                icon={FolderPlus}
+                tooltip="Add to List"
+                label="Add to List"
+                onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
+                showTooltip={showTooltips}
+                isActive={isDocumentInList}
+                className={
+                  isDocumentInList ? 'text-green-600 border-green-300 hover:bg-green-50' : ''
+                }
+              />
+            )}
           {showInlineReviews && (
             <ActionButton
               icon={Star}

@@ -9,7 +9,7 @@ import {
   Search as SearchIcon,
   Shield,
   MessageCircleQuestion,
-  FolderOpen,
+  FolderPlus,
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { SearchModal } from '@/components/Search/SearchModal';
@@ -104,7 +104,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Lists',
       subtitle: 'Organize your saved content',
-      icon: <FolderOpen size={24} className="text-gray-900" />,
+      icon: <FolderPlus size={24} className="text-gray-900" />,
     };
   }
 
