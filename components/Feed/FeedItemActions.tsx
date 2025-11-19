@@ -39,6 +39,7 @@ import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
 import { Topic } from '@/types/topic';
 import { isFeatureEnabled, FeatureFlag } from '@/utils/featureFlags';
+import { useUserListsEnabled } from '@/hooks/useUserListsEnabled';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -227,6 +228,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
+  const userListsEnabled = useUserListsEnabled();
 
   // State for dropdown menu
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -567,7 +569,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               avatars={commentAvatars}
             />
           )}
-          {relatedDocumentUnifiedDocumentId &&
+          {userListsEnabled &&
+            relatedDocumentUnifiedDocumentId &&
             feedContentType !== 'COMMENT' &&
             feedContentType !== 'BOUNTY' &&
             feedContentType !== 'APPLICATION' && (
@@ -806,7 +809,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         />
       )}
 
-      {relatedDocumentUnifiedDocumentId && (
+      {userListsEnabled && relatedDocumentUnifiedDocumentId && (
         <AddToListModal
           isOpen={isAddToListModalOpen}
           onClose={() => setIsAddToListModalOpen(false)}

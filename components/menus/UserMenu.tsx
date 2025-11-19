@@ -1,6 +1,14 @@
 'use client';
 
-import { User as UserIcon, LogOut, BadgeCheck, Bell, Shield, UserPlus } from 'lucide-react';
+import {
+  User as UserIcon,
+  LogOut,
+  BadgeCheck,
+  Bell,
+  Shield,
+  UserPlus,
+  FolderPlus,
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
 import VerificationBanner from '@/components/banners/VerificationBanner';
@@ -16,6 +24,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '@/components/ui/Button';
 import { useVerification } from '@/contexts/VerificationContext';
+import { useUserListsEnabled } from '@/hooks/useUserListsEnabled';
 
 interface UserMenuProps {
   user: User;
@@ -40,6 +49,7 @@ export default function UserMenu({
   const [internalMenuOpen, setInternalMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { openVerificationModal } = useVerification();
+  const userListsEnabled = useUserListsEnabled();
 
   // Use controlled or uncontrolled menu state
   const menuOpenState = isMenuOpen !== undefined ? isMenuOpen : internalMenuOpen;
@@ -202,6 +212,17 @@ export default function UserMenu({
               <div className="flex items-center">
                 <Shield className="h-5 w-5 mr-3 text-gray-500" />
                 <span className="text-base text-gray-700">Moderator Dashboard</span>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {userListsEnabled && (
+          <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
+            <div className="px-6 py-2 hover:bg-gray-50">
+              <div className="flex items-center">
+                <FolderPlus className="h-5 w-5 mr-3 text-gray-500" />
+                <span className="text-base text-gray-700">My Lists</span>
               </div>
             </div>
           </Link>
@@ -382,6 +403,17 @@ export default function UserMenu({
                   <div className="flex items-center">
                     <Shield className="h-4 w-4 mr-3 text-gray-500" />
                     <span className="text-sm text-gray-700">Moderator Dashboard</span>
+                  </div>
+                </div>
+              </Link>
+            )}
+
+            {userListsEnabled && (
+              <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
+                <div className="w-full px-4 py-2 hover:bg-gray-50">
+                  <div className="flex items-center">
+                    <FolderPlus className="h-4 w-4 mr-3 text-gray-500" />
+                    <span className="text-sm text-gray-700">My Lists</span>
                   </div>
                 </div>
               </Link>
