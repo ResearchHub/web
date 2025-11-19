@@ -344,9 +344,11 @@ export const WorkLineItems = ({
           {work.contentType !== 'preregistration' && (
             <button
               onClick={() => executeAuthenticatedAction(() => setIsTipModalOpen(true))}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+              className={`items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 ${
+                insightsButton ? 'hidden mobile:flex' : 'flex'
+              }`}
             >
-              <Icon name="tipRSC" size={20} />
+              <Icon name="tipRSC" size={24} />
               <span className="hidden md:!block">Tip</span>
             </button>
           )}
@@ -363,6 +365,15 @@ export const WorkLineItems = ({
               </button>
             }
           >
+            {work.contentType !== 'preregistration' && insightsButton && (
+              <BaseMenuItem
+                onSelect={() => executeAuthenticatedAction(() => setIsTipModalOpen(true))}
+                className="mobile:hidden"
+              >
+                <Icon name="tipRSC" size={16} className="mr-2" />
+                <span>Tip</span>
+              </BaseMenuItem>
+            )}
             {canEdit && (
               <BaseMenuItem onSelect={handleEdit}>
                 <Edit className="h-4 w-4 mr-2" />
