@@ -70,7 +70,7 @@ export default function ListDetailPage() {
     if (list && slug) {
       const expectedSlug = generateSlug(list.name);
       if (slug !== expectedSlug) {
-        router.replace(`/lists/${list.id}/${expectedSlug}`);
+        router.replace(`/list/${list.id}/${expectedSlug}`);
       }
     }
   }, [list, slug, router]);
@@ -83,7 +83,7 @@ export default function ListDetailPage() {
         const trimmedName = modal.name.trim();
         const updatedList = await updateList(list.id, { name: trimmedName });
         updateListDetails(updatedList);
-        router.replace(`/lists/${list.id}/${generateSlug(trimmedName)}`);
+        router.replace(`/list/${list.id}/${generateSlug(trimmedName)}`);
       } else {
         await deleteList(list.id);
         router.push('/lists');
