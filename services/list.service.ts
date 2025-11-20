@@ -7,7 +7,7 @@ import {
 } from '@/types/user-list';
 
 export class ListService {
-  private static readonly BASE_PATH = '/api/user_list';
+  private static readonly BASE_PATH = '/api/lists';
 
   static async getUserLists(page: number = 1): Promise<UserListsResponse> {
     return ApiClient.get<UserListsResponse>(`${this.BASE_PATH}/?page=${page}`);
