@@ -21,7 +21,6 @@ export interface UserListItem {
   created_by: number;
   updated_by: number | null;
   document: {
-    id: number;
     content_type: string;
     content_object: {
       id: number;
@@ -46,8 +45,6 @@ export interface UserListItem {
       purchases?: any[];
     };
     created_date: string;
-    action_date: string;
-    action: string;
     author: {
       id: number;
       first_name: string;
@@ -64,15 +61,12 @@ export interface UserListItem {
     };
     metrics: {
       votes: number;
-      replies: number;
-      review_metrics: {
+      comments: number;
+      review_metrics?: {
         avg: number;
         count: number;
       };
     };
-    hot_score_v2?: number;
-    hot_score_breakdown?: any;
-    external_metadata?: any;
   };
 }
 
@@ -125,5 +119,15 @@ export interface UserCheckResponse {
 }
 
 export const transformListItemToFeedEntry = createTransformer<UserListItem, FeedEntry>((item) =>
-  transformFeedEntry({ ...item.document, recommendation_id: null } as RawApiFeedEntry)
+  transformFeedEntry({
+    id: item.document.content_object.id,
+    content_type: item.document.content_type,
+    content_object: item.document.content_object,
+    created_date: item.document.created_date,
+    action: 'publish',
+    action_date: item.document.created_date,
+    author: item.document.author,
+    recommendation_id: null,
+    metrics: item.document.metrics,
+  } as RawApiFeedEntry)
 );
