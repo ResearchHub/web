@@ -41,7 +41,7 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await ListService.getUserListsApi(1);
+      const response = await ListService.getUserListsApi({ page: 1 });
       setLists(response.results || []);
     } catch (err) {
       const errorMsg = extractApiErrorMessage(err, 'Failed to load lists');
