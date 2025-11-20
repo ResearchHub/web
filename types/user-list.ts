@@ -1,3 +1,6 @@
+import { createTransformer } from './transformer';
+import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from './feed';
+
 export interface UserList {
   id: number;
   name: string;
@@ -92,6 +95,13 @@ export interface AddItemRequest {
   unified_document: number;
 }
 
+export interface ListApiResponse<T> {
+  results: T[];
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
+}
+
 export interface UserListsResponse {
   count: number;
   next: string | null;
@@ -113,3 +123,7 @@ export interface SimplifiedUserList {
 export interface UserCheckResponse {
   lists: SimplifiedUserList[];
 }
+
+export const transformListItemToFeedEntry = createTransformer<UserListItem, FeedEntry>((item) =>
+  transformFeedEntry({ ...item.document, recommendation_id: null } as RawApiFeedEntry)
+);

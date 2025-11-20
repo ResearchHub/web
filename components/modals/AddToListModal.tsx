@@ -61,7 +61,7 @@ export function AddToListModal({
     try {
       const toAdd = Array.from(selected).filter((id) => !listIds.has(id));
       const results = await Promise.allSettled(
-        toAdd.map((id) => ListService.addItemToList(id, unifiedDocumentId))
+        toAdd.map((id) => ListService.addItemToListApi(id, unifiedDocumentId))
       );
       const failed = results.filter((r) => r.status === 'rejected').length;
       const success = results.length - failed;
