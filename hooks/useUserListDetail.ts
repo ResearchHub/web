@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/services/list.service';
-import { UserListDetail, UserListItem } from '@/types/user-list';
+import { UserList, UserListDetail } from '@/types/user-list';
 import { extractApiErrorMessage } from '@/utils/apiError';
 import { updateListRemoveItem } from '@/utils/listUtils';
 
@@ -14,7 +14,6 @@ interface UseUserListDetailOptions {
 export function useUserListDetail(listId: number | null, options?: UseUserListDetailOptions) {
   const [state, setState] = useState({
     list: null as UserListDetail | null,
-    items: [] as UserListItem[],
     isLoading: true,
     isLoadingMore: false,
     error: null as string | null,
@@ -35,27 +34,37 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
       }));
 
       try {
-        const [listData, itemsResponse] = await Promise.all([
-          reset ? ListService.getListById(listId) : Promise.resolve(null),
-          ListService.getListItems(listId, { page: pageNum, pageSize: PAGE_SIZE }),
-        ]);
+        let listData: UserList | null = null;
+
+        if (reset) {
+          listData = await ListService.getListByIdApi(listId);
+        }
+
+        const itemsResponse = await ListService.getListItemsApi(listId, {
+          page: pageNum,
+          pageSize: PAGE_SIZE,
+        });
 
         const newItems = itemsResponse.results || [];
 
-        setState((prev) => ({
-          ...prev,
-          list:
-            reset && listData
-              ? { ...listData, items: newItems }
-              : prev.list
-                ? { ...prev.list, items: [...prev.list.items, ...newItems] }
-                : null,
-          items: reset ? newItems : [...prev.items, ...newItems],
-          isLoading: false,
-          isLoadingMore: false,
-          hasMore: !!itemsResponse.next,
-          page: pageNum,
-        }));
+        setState((prev) => {
+          let updatedList: UserListDetail | null = null;
+
+          if (reset && listData) {
+            updatedList = { ...listData, items: newItems };
+          } else if (prev.list) {
+            updatedList = { ...prev.list, items: [...prev.list.items, ...newItems] };
+          }
+
+          return {
+            ...prev,
+            list: updatedList,
+            isLoading: false,
+            isLoadingMore: false,
+            hasMore: !!itemsResponse.next,
+            page: pageNum,
+          };
+        });
       } catch (err) {
         setState((prev) => ({
           ...prev,
@@ -80,7 +89,6 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
       else {
         setState({
           list: null,
-          items: [],
           isLoading: false,
           isLoadingMore: false,
           error: null,
@@ -98,7 +106,6 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
         await ListService.removeItemFromList(itemId);
         setState((prev) => ({
           ...prev,
-          items: prev.items.filter((item) => item.id !== itemId),
           list: updateListRemoveItem(prev.list, itemId),
         }));
         toast.success('Item removed');
@@ -119,6 +126,7 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
 
   return {
     ...state,
+    items: state.list?.items || [],
     loadMore,
     removeItem,
     updateListDetails,

@@ -14,7 +14,8 @@ import { FolderPlus, Edit2, Trash2, MoreHorizontal, Loader2 } from 'lucide-react
 import { Button } from '@/components/ui/Button';
 import { ListModal } from '@/components/modals/ListModal';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { formatItemCount, convertListItemsToFeedEntries } from '@/utils/listUtils';
+import { formatItemCount } from '@/utils/listUtils';
+import { transformListItemToFeedEntry } from '@/types/user-list';
 import { generateSlug } from '@/utils/url';
 
 interface ModalState {
@@ -53,7 +54,7 @@ export default function ListDetailPage() {
     setModal({ isOpen: true, mode, name });
 
   const isOwner = user && list && list.created_by === user.id;
-  const feedEntries = useMemo(() => convertListItemsToFeedEntries(items), [items]);
+  const feedEntries = useMemo(() => items.map(transformListItemToFeedEntry), [items]);
   const { ref: loadMoreRef, inView } = useInView({ threshold: 0, rootMargin: '100px' });
 
   useEffect(() => {
