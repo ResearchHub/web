@@ -10,9 +10,8 @@ import {
 } from '@/types/user-list';
 
 export class ListService {
-  private static readonly BASE_PATH = '/api/user_list';
-  private static readonly ITEM_BASE_PATH = '/api/user_list_item';
-
+  private static readonly BASE_PATH = '/api/lists';
+  private static readonly ITEM_BASE_PATH = '/api/list';
   static async getUserListsApi(page: number = 1): Promise<UserListsResponse> {
     return ApiClient.get<UserListsResponse>(`${this.BASE_PATH}/?page=${page}`);
   }
@@ -25,10 +24,13 @@ export class ListService {
     listId: number,
     params?: { page?: number; pageSize?: number }
   ): Promise<ListApiResponse<UserListItem>> {
-    const query = new URLSearchParams({ parent_list: listId.toString() });
+    const query = new URLSearchParams();
     if (params?.page) query.append('page', params.page.toString());
     if (params?.pageSize) query.append('page_size', params.pageSize.toString());
-    return ApiClient.get<ListApiResponse<UserListItem>>(`${this.ITEM_BASE_PATH}/?${query}`);
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+    return ApiClient.get<ListApiResponse<UserListItem>>(
+      `${this.ITEM_BASE_PATH}/${listId}/${queryString}`
+    );
   }
 
   static async createListApi(data: CreateListRequest): Promise<UserList> {
