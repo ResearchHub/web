@@ -34,7 +34,7 @@ export function useUserLists() {
     }));
 
     try {
-      const { results, next, count } = await ListService.getUserLists(page);
+      const { results, next, count } = await ListService.getUserLists({ page });
       setState((prev) => ({
         ...prev,
         lists: isLoadMore ? [...prev.lists, ...results] : results,
