@@ -282,6 +282,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                   'unifiedDocumentId' in content ? content.unifiedDocumentId : undefined
                 }
                 showPeerReviews={showPeerReviews}
+                onFeedItemClick={onFeedItemClick}
               />
             </div>
           )}

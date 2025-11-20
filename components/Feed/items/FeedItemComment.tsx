@@ -189,7 +189,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
         {relatedWork && showRelatedWork && (
           <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-            <RelatedWorkCard size="sm" work={relatedWork} />
+            <RelatedWorkCard size="sm" work={relatedWork} onFeedItemClick={onFeedItemClick} />
           </div>
         )}
 
@@ -218,6 +218,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 awardedBountyAmount={entry.awardedBountyAmount}
                 tips={entry.tips}
                 relatedDocumentTopics={entry.relatedWork?.topics}
+                onFeedItemClick={onFeedItemClick}
               />
             </div>
           </div>
