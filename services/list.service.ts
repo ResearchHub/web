@@ -10,8 +10,15 @@ import {
 export class ListService {
   private static readonly BASE_PATH = '/api/lists';
   private static readonly ITEM_BASE_PATH = '/api/list';
-  static async getUserLists(page: number = 1): Promise<UserListsResponse> {
-    return ApiClient.get<UserListsResponse>(`${this.BASE_PATH}/?page=${page}`);
+  static async getUserLists(params?: {
+    page?: number;
+    pageSize?: number;
+  }): Promise<UserListsResponse> {
+    const query = new URLSearchParams();
+    if (params?.page) query.append('page', params.page.toString());
+    if (params?.pageSize) query.append('page_size', params.pageSize.toString());
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+    return ApiClient.get<UserListsResponse>(`${this.BASE_PATH}/${queryString}`);
   }
 
   static async createList(data: CreateListRequest): Promise<UserList> {
