@@ -7,9 +7,9 @@ import {
 } from '@/types/user-list';
 
 export class ListService {
-  private static readonly BASE_PATH = '/api/lists';
+  private static readonly BASE_PATH = '/api/list';
 
-  static async getUserLists(params?: {
+  static async getUserListsApi(params?: {
     page?: number;
     pageSize?: number;
   }): Promise<UserListsResponse> {
@@ -20,11 +20,11 @@ export class ListService {
     return ApiClient.get<UserListsResponse>(`${this.BASE_PATH}/${queryString}`);
   }
 
-  static async createList(data: CreateListRequest): Promise<UserList> {
+  static async createListApi(data: CreateListRequest): Promise<UserList> {
     return ApiClient.post<UserList>(`${this.BASE_PATH}/`, data);
   }
 
-  static async updateList(listId: number, data: UpdateListRequest): Promise<UserList> {
+  static async updateListApi(listId: number, data: UpdateListRequest): Promise<UserList> {
     return ApiClient.patch<UserList>(`${this.BASE_PATH}/${listId}/`, data);
   }
 

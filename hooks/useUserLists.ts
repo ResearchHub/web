@@ -34,7 +34,7 @@ export function useUserLists() {
     }));
 
     try {
-      const { results, next, count } = await ListService.getUserLists({ page });
+      const { results, next, count } = await ListService.getUserListsApi({ page });
       setState((prev) => ({
         ...prev,
         lists: isLoadMore ? [...prev.lists, ...results] : results,
@@ -77,9 +77,9 @@ export function useUserLists() {
     ...state,
     loadMore: () => state.hasMore && !state.isLoadingMore && fetchLists(state.page + 1, true),
     createList: (data: CreateListRequest) =>
-      performAction(() => ListService.createList(data), 'List created'),
+      performAction(() => ListService.createListApi(data), 'List created'),
     updateList: (id: number, data: UpdateListRequest) =>
-      performAction(() => ListService.updateList(id, data), 'List updated'),
+      performAction(() => ListService.updateListApi(id, data), 'List updated'),
     deleteList: (id: number) => performAction(() => ListService.deleteList(id), 'List deleted'),
   };
 }
