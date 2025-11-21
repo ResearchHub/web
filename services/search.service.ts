@@ -15,7 +15,7 @@ import { transformTopic } from '@/types/topic';
 import { Institution } from '@/app/paper/create/components/InstitutionAutocomplete';
 import { FeedEntry, transformFeedEntry } from '@/types/feed';
 import { SearchResult } from '@/types/searchResult';
-import { highlightSearchTerms, hasHighlights } from '@/utils/searchHighlight';
+import { highlightSearchTerms, hasHighlights } from '@/components/Search/lib/searchHighlight';
 
 export interface InstitutionResponse {
   id: number;

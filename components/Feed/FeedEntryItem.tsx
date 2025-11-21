@@ -174,8 +174,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             showActions={!hideActions}
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
-            highlightedTitle={highlightedTitle}
-            highlightedSnippet={highlightedSnippet}
+            highlights={highlights}
           />
         );
         break;
@@ -201,8 +200,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
             feedView={feedView}
-            highlightedTitle={highlightedTitle}
-            highlightedSnippet={highlightedSnippet}
+            highlights={highlights}
           />
         );
         break;
@@ -249,8 +247,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             maxLength={maxLength}
             showHeader={showGrantHeaders}
             onFeedItemClick={handleFeedItemClick}
-            highlightedTitle={highlightedTitle}
-            highlightedSnippet={highlightedSnippet}
+            highlights={highlights}
           />
         );
         break;

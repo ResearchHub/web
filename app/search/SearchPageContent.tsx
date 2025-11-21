@@ -6,15 +6,12 @@ import { SearchResult } from '@/components/Search/SearchResult';
 import { SearchSortControls } from '@/components/Search/SearchSortControls';
 import { SearchEmptyState } from '@/components/Search/SearchEmptyState';
 import { useSearch } from '@/hooks/useSearch';
-import { Tabs } from '@/components/ui/Tabs';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { Search as SearchIcon } from 'lucide-react';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 import { useInView } from 'react-intersection-observer';
 import { cn } from '@/utils/styles';
-
-export type SearchTab = 'documents';
 
 interface SearchPageContentProps {
   searchParams: {
@@ -29,7 +26,6 @@ interface SearchPageContentProps {
 export function SearchPageContent({ searchParams }: SearchPageContentProps) {
   const router = useRouter();
   const urlSearchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<SearchTab>('documents');
   const [query, setQuery] = useState(searchParams.q || '');
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -54,11 +50,6 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
 
   // Initialize from URL params and perform initial search
   useEffect(() => {
-    const tab = searchParams.tab as SearchTab;
-    if (tab && tab === 'documents') {
-      setActiveTab(tab);
-    }
-
     // Perform initial search only when component mounts or URL query changes
     if (searchParams.q?.trim()) {
       setQuery(searchParams.q);
@@ -83,17 +74,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
         });
       });
     }
-  }, [searchParams.q, searchParams.tab]);
-
-  const handleTabChange = (tabId: string) => {
-    const tab = tabId as SearchTab;
-    setActiveTab(tab);
-
-    // Update URL
-    const newParams = new URLSearchParams(urlSearchParams);
-    newParams.set('tab', tab);
-    router.push(`/search?${newParams.toString()}`);
-  };
+  }, [searchParams.q]);
 
   const handleSearch = (searchQuery: string) => {
     setQuery(searchQuery);
@@ -101,7 +82,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     // Trigger the actual search
     if (searchQuery.trim()) {
       setHasSearched(true);
-      search(searchQuery, activeTab);
+      search(searchQuery, 'documents');
     }
 
     // Update URL
@@ -112,33 +93,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
       newParams.delete('q');
     }
     router.push(`/search?${newParams.toString()}`);
-
-    // Scroll to top after URL update
-    // Use double requestAnimationFrame to ensure DOM is ready after navigation
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        // Try to find the scroll container used by PageLayout
-        // The scroll container has overflow-y-auto and flex-1 classes
-        const scrollContainer = document.querySelector(
-          '.flex-1.flex.flex-col.overflow-y-auto'
-        ) as HTMLElement;
-        if (scrollContainer) {
-          scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-          // Fallback to window scroll
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      });
-    });
   };
-
-  const tabs = [
-    {
-      id: 'documents',
-      label: 'Documents',
-      badge: entries.length > 0 ? entries.length : undefined,
-    },
-  ];
 
   const header = (
     <div className="space-y-4 mb-8">
@@ -151,15 +106,9 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     </div>
   );
 
-  // Hide tabs when there's only one tab (Documents)
-  const feedTabs =
-    tabs.length > 1 ? (
-      <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} variant="primary" />
-    ) : null;
-
   const sortControls = query.trim() && (
     <div className="flex justify-end">
-      <SearchSortControls sortBy={sortBy} onSortChange={setSortBy} activeTab={activeTab} />
+      <SearchSortControls sortBy={sortBy} onSortChange={setSortBy} activeTab="documents" />
     </div>
   );
 
@@ -233,9 +182,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
       {header}
 
       <div className="max-w-4xl mx-auto">
-        {feedTabs}
-
-        <div className={cn('flex gap-6', feedTabs ? 'mt-6' : '')}>
+        <div className="flex gap-6">
           {/* Main content */}
           <div className="flex-1 min-w-0">
             {sortControls && <div className="mb-4">{sortControls}</div>}

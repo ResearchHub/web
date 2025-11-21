@@ -22,6 +22,7 @@ import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/icons/Icon';
 import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
 import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
+import { Highlight } from '@/components/Feed/FeedEntryItem';
 
 interface FeedItemGrantRefactoredProps {
   entry: FeedEntry;
@@ -33,8 +34,7 @@ interface FeedItemGrantRefactoredProps {
   maxLength?: number;
   showHeader?: boolean;
   onFeedItemClick?: () => void;
-  highlightedTitle?: string;
-  highlightedSnippet?: string;
+  highlights?: Highlight[];
 }
 
 /**
@@ -50,11 +50,14 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
   maxLength,
   showHeader = true,
   onFeedItemClick,
-  highlightedTitle,
-  highlightedSnippet,
+  highlights,
 }) => {
   const grant = entry.content as FeedGrantContent;
   const router = useRouter();
+
+  // Extract highlighted fields from highlights prop
+  const highlightedTitle = highlights?.find((h) => h.field === 'title')?.value;
+  const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
   // Check if RFP is active
   const isActive =
