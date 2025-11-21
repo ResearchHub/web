@@ -5,7 +5,7 @@ import {
   EntityType,
   AuthorSuggestion,
   SearchResponse,
-  DocumentSearchResult,
+  ApiDocumentSearchResult,
   PersonSearchResult,
   SearchFilters,
   SearchSortOption,
@@ -27,6 +27,22 @@ export interface InstitutionResponse {
   works_count?: number;
   image_url?: string;
   image_thumbnail_url?: string;
+}
+
+export interface FullSearchParams {
+  query: string;
+  page?: number;
+  pageSize?: number;
+  filters?: SearchFilters;
+  sortBy?: SearchSortOption;
+}
+
+export interface FullSearchResponse {
+  entries: SearchResult[];
+  people: PersonSearchResult[];
+  count: number;
+  aggregations: any;
+  hasMore: boolean;
 }
 
 export const transformInstitution = (response: any): Institution => {
@@ -90,19 +106,7 @@ export class SearchService {
     return response.map(transformSearchSuggestion);
   }
 
-  static async fullSearch(params: {
-    query: string;
-    page?: number;
-    pageSize?: number;
-    filters?: SearchFilters;
-    sortBy?: SearchSortOption;
-  }): Promise<{
-    entries: SearchResult[];
-    people: PersonSearchResult[];
-    count: number;
-    aggregations: any;
-    hasMore: boolean;
-  }> {
+  static async fullSearch(params: FullSearchParams): Promise<FullSearchResponse> {
     const searchParams = new URLSearchParams();
     searchParams.append('q', params.query);
     searchParams.append('page', (params.page || 1).toString());
@@ -143,7 +147,6 @@ export class SearchService {
       this.transformSearchResult(doc, params.query)
     );
 
-    // Use DRF pagination - hasMore based on next URL
     const hasMore = !!resp.next;
 
     return {
@@ -155,7 +158,7 @@ export class SearchService {
     };
   }
 
-  private static transformSearchResult(doc: DocumentSearchResult, query: string): SearchResult {
+  private static transformSearchResult(doc: ApiDocumentSearchResult, query: string): SearchResult {
     // First transform to a clean FeedEntry
     const feedEntry = this.transformDocumentToFeedEntry(doc);
 
@@ -215,7 +218,7 @@ export class SearchService {
     };
   }
 
-  private static transformDocumentToFeedEntry(doc: DocumentSearchResult): FeedEntry {
+  private static transformDocumentToFeedEntry(doc: ApiDocumentSearchResult): FeedEntry {
     // Strip HTML tags from snippet and title for plain text, handle null values
     const plainSnippet = doc.snippet
       ? doc.snippet.replace(/<mark>/g, '').replace(/<\/mark>/g, '')
@@ -228,6 +231,7 @@ export class SearchService {
     // Create a mock RawApiFeedEntry structure that can be transformed by transformFeedEntry
     const mockRawEntry = {
       id: doc.id,
+      recommendation_id: null,
       content_type: doc.type === 'paper' ? 'PAPER' : 'RESEARCHHUBPOST',
       content_object: {
         id: doc.id,
