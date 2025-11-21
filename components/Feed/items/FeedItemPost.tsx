@@ -15,6 +15,7 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Users } from 'lucide-react';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { Highlight } from '@/components/Feed/FeedEntryItem';
 
 interface FeedItemPostProps {
   entry: FeedEntry;
@@ -23,8 +24,7 @@ interface FeedItemPostProps {
   showActions?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
-  highlightedTitle?: string;
-  highlightedSnippet?: string;
+  highlights?: Highlight[];
 }
 
 /**
@@ -37,11 +37,14 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   showActions = true,
   maxLength,
   onFeedItemClick,
-  highlightedTitle,
-  highlightedSnippet,
+  highlights,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
+
+  // Extract highlighted fields from highlights prop
+  const highlightedTitle = highlights?.find((h) => h.field === 'title')?.value;
+  const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
   // Get topics/tags for display
   const topics = post.topics || [];
