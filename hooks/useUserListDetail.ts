@@ -103,7 +103,7 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
     async (itemId: number) => {
       if (!listId) return;
       try {
-        await ListService.removeItemFromList(itemId);
+        await ListService.removeItemFromList(listId, itemId);
         setState((prev) => ({
           ...prev,
           list: updateListRemoveItem(prev.list, itemId),

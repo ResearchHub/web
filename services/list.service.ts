@@ -10,8 +10,8 @@ import {
 } from '@/types/user-list';
 
 export class ListService {
-  private static readonly BASE_PATH = '/api/lists';
-  private static readonly ITEM_BASE_PATH = '/api/list';
+  private static readonly BASE_PATH = '/api/list';
+  private static readonly ITEMS_PATH = '/api/list';
   static async getUserListsApi(params?: {
     page?: number;
     pageSize?: number;
@@ -36,7 +36,7 @@ export class ListService {
     if (params?.pageSize) query.append('page_size', params.pageSize.toString());
     const queryString = query.toString() ? `?${query.toString()}` : '';
     return ApiClient.get<ListApiResponse<UserListItem>>(
-      `${this.ITEM_BASE_PATH}/${listId}/${queryString}`
+      `${this.ITEMS_PATH}/${listId}/item/${queryString}`
     );
   }
 
@@ -62,14 +62,14 @@ export class ListService {
   }
 
   static async addItemToListApi(listId: number, unifiedDocumentId: number): Promise<void> {
-    return ApiClient.post<void>(`${this.ITEM_BASE_PATH}/`, {
+    return ApiClient.post<void>(`${this.ITEMS_PATH}/${listId}/item/`, {
       parent_list: listId,
       unified_document: unifiedDocumentId,
     });
   }
 
-  static async removeItemFromList(itemId: number): Promise<void> {
-    return this.handleDeleteApi(`${this.ITEM_BASE_PATH}/${itemId}/`);
+  static async removeItemFromList(listId: number, itemId: number): Promise<void> {
+    return this.handleDeleteApi(`${this.ITEMS_PATH}/${listId}/item/${itemId}/`);
   }
 
   static async getOverviewApi(): Promise<UserCheckResponse> {
