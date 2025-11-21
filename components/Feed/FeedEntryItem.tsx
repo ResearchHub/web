@@ -14,6 +14,11 @@ import { useFeedItemClick } from '@/hooks/useFeedItemClick';
 import { useCallback } from 'react';
 import { getUnifiedDocumentId } from '@/types/analytics';
 
+export interface Highlight {
+  field: string;
+  value: string;
+}
+
 interface FeedEntryItemProps {
   entry: FeedEntry;
   index: number;
@@ -31,6 +36,7 @@ interface FeedEntryItemProps {
   unregisterVisibleItem: (unifiedDocumentId: string) => void;
   getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
   clearVisibleItems: () => void;
+  highlights?: Highlight[];
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
@@ -50,6 +56,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   unregisterVisibleItem,
   getVisibleItems,
   clearVisibleItems,
+  highlights,
 }) => {
   const unifiedDocumentId = getUnifiedDocumentId(entry);
 
@@ -151,6 +158,10 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
 
   const href = generateHref(entry);
 
+  // Extract highlighted fields from highlights prop
+  const highlightedTitle = highlights?.find((h: any) => h.field === 'title')?.value;
+  const highlightedSnippet = highlights?.find((h: any) => h.field === 'snippet')?.value;
+
   let content = null;
 
   try {
@@ -164,6 +175,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             showActions={!hideActions}
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
+            highlights={highlights}
           />
         );
         break;
@@ -189,6 +201,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
             feedView={feedView}
+            highlights={highlights}
           />
         );
         break;
@@ -235,6 +248,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             maxLength={maxLength}
             showHeader={showGrantHeaders}
             onFeedItemClick={handleFeedItemClick}
+            highlights={highlights}
           />
         );
         break;

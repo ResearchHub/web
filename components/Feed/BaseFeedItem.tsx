@@ -10,6 +10,7 @@ import Image from 'next/image';
 import { truncateText } from '@/utils/stringUtils';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { useNavigation } from '@/contexts/NavigationContext';
+import { sanitizeHighlightHtml } from '@/components/Search/lib/htmlSanitizer';
 
 // Base interfaces for the modular components
 export interface BaseFeedItemProps {
@@ -37,12 +38,14 @@ export interface BadgeSectionProps {
 // Title component interface
 export interface TitleSectionProps {
   title: string;
+  highlightedTitle?: string;
   className?: string;
 }
 
 // Content component interface
 export interface ContentSectionProps {
   content: string;
+  highlightedContent?: string;
   maxLength?: number;
   className?: string;
 }
@@ -114,7 +117,23 @@ export const BadgeSection: FC<BadgeSectionProps> = ({
   );
 };
 
-export const TitleSection: FC<TitleSectionProps> = ({ title, className }) => {
+export const TitleSection: FC<TitleSectionProps> = ({ title, highlightedTitle, className }) => {
+  // If we have highlighted HTML, render it safely
+  if (highlightedTitle) {
+    return (
+      <h2
+        className={cn(
+          'text-md md:!text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors',
+          className
+        )}
+        dangerouslySetInnerHTML={{
+          __html: sanitizeHighlightHtml(highlightedTitle),
+        }}
+      />
+    );
+  }
+
+  // Default: render plain text
   return (
     <h2
       className={cn(
@@ -129,9 +148,24 @@ export const TitleSection: FC<TitleSectionProps> = ({ title, className }) => {
 
 export const ContentSection: FC<ContentSectionProps> = ({
   content,
+  highlightedContent,
   maxLength = 200,
   className,
 }) => {
+  // If we have highlighted HTML, render it (already truncated by backend)
+  if (highlightedContent) {
+    return (
+      <div className={cn('text-sm text-gray-700', className)}>
+        <p
+          dangerouslySetInnerHTML={{
+            __html: sanitizeHighlightHtml(highlightedContent),
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Default: render truncated plain text
   return (
     <div className={cn('text-sm text-gray-700', className)}>
       <p>{truncateText(content, maxLength)}</p>

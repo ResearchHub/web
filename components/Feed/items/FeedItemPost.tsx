@@ -15,6 +15,7 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Users } from 'lucide-react';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { Highlight } from '@/components/Feed/FeedEntryItem';
 
 interface FeedItemPostProps {
   entry: FeedEntry;
@@ -23,6 +24,7 @@ interface FeedItemPostProps {
   showActions?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
+  highlights?: Highlight[];
 }
 
 /**
@@ -35,9 +37,14 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   showActions = true,
   maxLength,
   onFeedItemClick,
+  highlights,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
+
+  // Extract highlighted fields from highlights prop
+  const highlightedTitle = highlights?.find((h) => h.field === 'title')?.value;
+  const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
   // Get topics/tags for display
   const topics = post.topics || [];
@@ -95,7 +102,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection title={post.title} />
+            <TitleSection title={post.title} highlightedTitle={highlightedTitle} />
 
             {/* Authors list below title */}
             {authors.length > 0 && (
@@ -113,7 +120,11 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
             )}
 
             {/* Truncated Content */}
-            <ContentSection content={post.textPreview} maxLength={maxLength} />
+            <ContentSection
+              content={post.textPreview}
+              highlightedContent={highlightedSnippet}
+              maxLength={maxLength}
+            />
           </>
         }
         rightContent={

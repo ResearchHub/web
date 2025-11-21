@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/Badge';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Users, BookText } from 'lucide-react';
+import { Highlight } from '@/components/Feed/FeedEntryItem';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
@@ -27,6 +28,7 @@ interface FeedItemPaperProps {
   maxLength?: number;
   onFeedItemClick?: () => void;
   feedView?: string;
+  highlights?: Highlight[];
 }
 
 /**
@@ -40,9 +42,14 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   maxLength,
   onFeedItemClick,
   feedView,
+  highlights,
 }) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
+
+  // Extract highlighted fields from highlights prop
+  const highlightedTitle = highlights?.find((h) => h.field === 'title')?.value;
+  const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
   // Get topics/tags for display
   const topics = paper.topics || [];
@@ -175,7 +182,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection title={paper.title} />
+            <TitleSection title={paper.title} highlightedTitle={highlightedTitle} />
 
             {/* Authors */}
             <MetadataSection>
@@ -212,7 +219,11 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               </MetadataSection>
             )}
             {/* Truncated Content */}
-            <ContentSection content={paper.textPreview} maxLength={maxLength} />
+            <ContentSection
+              content={paper.textPreview}
+              highlightedContent={highlightedSnippet}
+              maxLength={maxLength}
+            />
           </>
         }
         rightContent={
