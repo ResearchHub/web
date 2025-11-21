@@ -41,7 +41,7 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await ListService.getUserLists({ page: 1 });
+      const response = await ListService.getUserListsApi({ page: 1 });
       setLists(response.results || []);
     } catch (err) {
       const errorMsg = extractApiErrorMessage(err, 'Failed to load lists');
@@ -93,7 +93,7 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
   const createList = useCallback(
     (data: CreateListRequest, refreshLists = true) =>
       withRefresh(
-        () => ListService.createList(data),
+        () => ListService.createListApi(data),
         'List created successfully',
         'Failed to create list',
         refreshLists
@@ -104,7 +104,7 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
   const updateList = useCallback(
     (listId: number, data: UpdateListRequest, refreshLists = true) =>
       withRefresh(
-        () => ListService.updateList(listId, data),
+        () => ListService.updateListApi(listId, data),
         'List updated successfully',
         'Failed to update list',
         refreshLists

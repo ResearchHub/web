@@ -36,7 +36,7 @@ export function useUserLists() {
     }));
 
     try {
-      const { results, next, count } = await ListService.getUserLists({ page });
+      const { results, next, count } = await ListService.getUserListsApi({ page });
       setState((prev) => ({
         ...prev,
         lists: isLoadMore ? [...prev.lists, ...results] : results,
@@ -61,7 +61,7 @@ export function useUserLists() {
     fetchLists();
   }, [fetchLists]);
 
-  const withAction = useCallback(
+  const performAction = useCallback(
     async (action: () => Promise<unknown>, msg: string) => {
       try {
         await action();
@@ -79,9 +79,9 @@ export function useUserLists() {
     ...state,
     loadMore: () => state.hasMore && !state.isLoadingMore && fetchLists(state.page + 1, true),
     createList: (data: CreateListRequest) =>
-      withAction(() => ListService.createList(data), 'List created'),
+      performAction(() => ListService.createListApi(data), 'List created'),
     updateList: (id: number, data: UpdateListRequest) =>
-      withAction(() => ListService.updateList(id, data), 'List updated'),
-    deleteList: (id: number) => withAction(() => ListService.deleteList(id), 'List deleted'),
+      performAction(() => ListService.updateListApi(id, data), 'List updated'),
+    deleteList: (id: number) => performAction(() => ListService.deleteList(id), 'List deleted'),
   };
 }
