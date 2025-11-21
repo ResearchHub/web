@@ -26,14 +26,11 @@ export function SearchSortControls({ sortBy, onSortChange, activeTab }: SearchSo
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm text-gray-600">Sort by:</span>
-      <SortDropdown
-        value={sortBy}
-        onChange={handleChange}
-        options={sortOptions}
-        className="min-w-[140px]"
-      />
-    </div>
+    <SortDropdown
+      value={sortBy}
+      onChange={handleChange}
+      options={sortOptions}
+      className="min-w-[140px]"
+    />
   );
 }

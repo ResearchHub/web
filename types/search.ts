@@ -309,8 +309,7 @@ export const transformAuthorSuggestions = (raw: any): AuthorSuggestion[] => {
   return authorSuggestions;
 };
 
-// Search API Types - implementation agnostic
-export interface DocumentSearchResult {
+export interface ApiDocumentSearchResult {
   id: number;
   type: 'paper' | 'post';
   title: string;
@@ -352,7 +351,7 @@ export interface SearchResponse {
   count: number;
   next: string | null;
   previous: string | null;
-  documents: DocumentSearchResult[];
+  documents: ApiDocumentSearchResult[];
   people: PersonSearchResult[];
   aggregations: {
     years: Array<{ key: string; doc_count: number }>;
