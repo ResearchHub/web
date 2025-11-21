@@ -9,7 +9,6 @@ import {
 
 export class ListService {
   private static readonly BASE_PATH = '/api/list';
-  private static readonly ITEM_BASE_PATH = '/api/list';
 
   static async getUserListsApi(params?: {
     page?: number;
@@ -44,14 +43,14 @@ export class ListService {
   }
 
   static async addItemToList(listId: number, unifiedDocumentId: number): Promise<void> {
-    return ApiClient.post<void>(`${this.ITEM_BASE_PATH}/${listId}/item/`, {
+    return ApiClient.post<void>(`${this.BASE_PATH}/${listId}/item/`, {
       parent_list: listId,
       unified_document: unifiedDocumentId,
     });
   }
 
   static async removeItemFromList(listId: number, itemId: number): Promise<void> {
-    return this.handleDelete(`${this.ITEM_BASE_PATH}/${listId}/item/${itemId}/`);
+    return this.handleDelete(`${this.BASE_PATH}/${listId}/item/${itemId}/`);
   }
 
   static async getOverview(): Promise<UserCheckResponse> {
