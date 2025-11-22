@@ -18,7 +18,7 @@ import { FeedSource } from '@/types/analytics';
  *
  * Special handling:
  * - Root path (/) is treated as 'home' source
- * - trending, following, latest are all treated as 'home' source
+ * - trending, following, latest, for-you are all treated as 'home' source
  * - Topic pages (/topic/slug) don't use the second path segment as tab
  * - Author pages (/author/[id]) don't use the second path segment as tab
  *
@@ -26,6 +26,7 @@ import { FeedSource } from '@/types/analytics';
  * - /trending → source: 'home', tab: 'trending'
  * - /following → source: 'home', tab: 'following'
  * - /latest → source: 'home', tab: 'latest'
+ * - /for-you → source: 'home', tab: 'for-you'
  * - /earn → source: 'earn', tab: 'unknown'
  * - /fund → source: 'fund', tab: 'unknown'
  * - /journal?tab=all → source: 'journal', tab: 'all'
@@ -71,8 +72,8 @@ export function useFeedSource(): FeedSourceInfo {
   // Extract source from first path segment
   const source = pathSegments[0] || 'home';
 
-  // Treat trending, following, latest as home
-  const homeTabs = ['trending', 'following', 'latest'];
+  // Treat trending, following, latest, for-you as home
+  const homeTabs = ['trending', 'following', 'latest', 'for-you'];
   const isHomeTab = homeTabs.includes(source);
   const isTopicTab = source === 'topic';
   const isAuthorTab = source === 'author';
