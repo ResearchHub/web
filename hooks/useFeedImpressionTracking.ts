@@ -8,7 +8,6 @@ interface UseFeedImpressionTrackingReturn {
   registerVisibleItem: (index: number, unifiedDocumentId: string) => void;
   unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
   getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
-  clearVisibleItems: () => void;
 }
 const KEY_SEPARATOR = '|';
 const getKey = (index: number, unifiedDocumentId: string) =>
@@ -57,14 +56,9 @@ export function useFeedImpressionTracking(): UseFeedImpressionTrackingReturn {
     [visibleItems]
   );
 
-  const clearVisibleItems = useCallback(() => {
-    setVisibleItems(new Set());
-  }, []);
-
   return {
     registerVisibleItem,
     unregisterVisibleItem,
     getVisibleItems,
-    clearVisibleItems,
   };
 }

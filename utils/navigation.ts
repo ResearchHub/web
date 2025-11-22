@@ -28,11 +28,9 @@ export const navigateToAuthorProfile = (authorId: number | string | undefined, n
  * @param id The post ID
  * @param slug The post slug
  */
-export function handleFundraiseRedirect(work: Work, id: string, slug: string, tab?: string) {
+export function handleFundraiseRedirect(work: Work, id: string, slug: string) {
   if (work.note?.post?.fundraise) {
-    const basePath = `/fund/${id}/${slug}`;
-    const redirectPath = tab ? `${basePath}/${tab}` : basePath;
-    redirect(redirectPath);
+    redirect(`/fund/${id}/${slug}`);
   }
 }
 
@@ -57,12 +55,10 @@ export function handleQuestionRedirect(work: Work, id: string, slug: string, tab
  * @param id The post ID
  * @param slug The post slug
  */
-export function handleGrantRedirect(work: Work, id: string, slug: string, tab?: string) {
+export function handleGrantRedirect(work: Work, id: string, slug: string) {
   // Grants are represented as contentType 'funding_request' or postType 'GRANT'
   if (work.contentType === 'funding_request' || work.postType === 'GRANT') {
-    const basePath = `/grant/${id}/${slug}`;
-    const redirectPath = tab ? `${basePath}/${tab}` : basePath;
-    redirect(redirectPath);
+    redirect(`/grant/${id}/${slug}`);
   }
 }
 
@@ -78,10 +74,10 @@ export function handlePostRedirect(work: Work, id: string, slug: string, tab?: s
   handleQuestionRedirect(work, id, slug, tab);
 
   // Then check for fundraise redirect
-  handleFundraiseRedirect(work, id, slug, tab);
+  handleFundraiseRedirect(work, id, slug);
 
   // Finally check for grant redirect
-  handleGrantRedirect(work, id, slug, tab);
+  handleGrantRedirect(work, id, slug);
 }
 
 /**

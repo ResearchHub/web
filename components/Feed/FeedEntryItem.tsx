@@ -30,7 +30,6 @@ interface FeedEntryItemProps {
   registerVisibleItem: (index: number, unifiedDocumentId: string) => void;
   unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
   getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
-  clearVisibleItems: () => void;
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
@@ -49,7 +48,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   registerVisibleItem,
   unregisterVisibleItem,
   getVisibleItems,
-  clearVisibleItems,
 }) => {
   const unifiedDocumentId = getUnifiedDocumentId(entry);
 
@@ -80,7 +78,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
     feedPosition: index + 1,
     feedOrdering,
     impression: getImpressions(),
-    clearVisibleItems,
   });
 
   if (!entry) {
