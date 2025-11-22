@@ -27,10 +27,9 @@ interface FeedEntryItemProps {
   showReadMoreCTA?: boolean;
   feedView?: string;
   feedOrdering?: string;
-  registerVisibleItem: (unifiedDocumentId: string) => void;
-  unregisterVisibleItem: (unifiedDocumentId: string) => void;
+  registerVisibleItem: (index: number, unifiedDocumentId: string) => void;
+  unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
   getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
-  clearVisibleItems: () => void;
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
@@ -49,7 +48,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   registerVisibleItem,
   unregisterVisibleItem,
   getVisibleItems,
-  clearVisibleItems,
 }) => {
   const unifiedDocumentId = getUnifiedDocumentId(entry);
 
@@ -59,9 +57,9 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
     onChange: (inView) => {
       if (unifiedDocumentId) {
         if (inView) {
-          registerVisibleItem(unifiedDocumentId);
+          registerVisibleItem(index, unifiedDocumentId);
         } else {
-          unregisterVisibleItem(unifiedDocumentId);
+          unregisterVisibleItem(index, unifiedDocumentId);
         }
       }
     },
@@ -80,7 +78,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
     feedPosition: index + 1,
     feedOrdering,
     impression: getImpressions(),
-    clearVisibleItems,
   });
 
   if (!entry) {

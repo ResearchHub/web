@@ -17,6 +17,7 @@ interface RelatedWorkCardProps {
   onTopicClick?: (topic: Topic) => void;
   size?: 'default' | 'sm' | 'lg' | 'xs';
   fundraiseData?: Fundraise;
+  onFeedItemClick?: () => void;
 }
 
 export const RelatedWorkCard = ({
@@ -25,6 +26,7 @@ export const RelatedWorkCard = ({
   onTopicClick,
   size = 'default',
   fundraiseData,
+  onFeedItemClick,
 }: RelatedWorkCardProps) => {
   const { triggerEvent } = useClickContext();
   const { exchangeRate, isLoading: isLoadingExchangeRate } = useExchangeRate();
@@ -44,6 +46,10 @@ export const RelatedWorkCard = ({
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (onFeedItemClick) {
+      onFeedItemClick();
+    }
 
     if (onClick) {
       onClick();

@@ -15,10 +15,10 @@ interface WorkDocumentTrackerProps {
 }
 
 export function WorkDocumentTracker({ work, metadata, tab }: WorkDocumentTrackerProps) {
-  const { user } = useUser();
+  const { user, isLoading } = useUser();
 
   useEffect(() => {
-    if (!work || !metadata) return;
+    if (!work || !metadata || isLoading) return;
 
     const workDocumentViewedPayload: WorkDocumentViewedEvent = {
       related_work: {
@@ -34,7 +34,7 @@ export function WorkDocumentTracker({ work, metadata, tab }: WorkDocumentTracker
       workDocumentViewedPayload,
       user
     );
-  }, [work, metadata, tab]);
+  }, [work, metadata, tab, user, isLoading]);
 
   return null; // This component doesn't render anything
 }
