@@ -96,13 +96,14 @@ export default function ListsPage() {
             </div>
           )}
           <div className="space-y-1">
-            {isLoading ? (
+            {isLoading && (
               <>
                 {[...Array(5)].map((_, i) => (
                   <UserListRowSkeleton key={'list-skeleton-' + i} />
                 ))}
               </>
-            ) : lists.length === 0 ? (
+            )}
+            {!isLoading && lists.length === 0 && (
               <div className="text-center py-20">
                 <FolderPlus className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                 <p className="text-gray-500 mb-4">No lists created yet</p>
@@ -110,7 +111,8 @@ export default function ListsPage() {
                   Create your first list
                 </Button>
               </div>
-            ) : (
+            )}
+            {!isLoading && lists.length > 0 && (
               <>
                 {lists.map((list) => (
                   <UserListRow
