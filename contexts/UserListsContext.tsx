@@ -8,6 +8,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
 } from 'react';
 import { ListService } from '@/services/list.service';
 import {
@@ -46,6 +47,7 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   const [error, setError] = useState<string | null>(null);
   const [overviewLists, setOverviewLists] = useState<SimplifiedUserList[]>([]);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
+  const previousUserIdRef = useRef<number | null>(null);
 
   const fetchLists = useCallback(async () => {
     setIsLoading(true);
@@ -81,9 +83,12 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   }, [fetchLists, fetchOverview]);
 
   useEffect(() => {
-    if (user) {
+    const currentUserId = user?.id ?? null;
+    const previousUserId = previousUserIdRef.current;
+    if (previousUserId === null && currentUserId !== null) {
       fetchOverview();
     }
+    previousUserIdRef.current = currentUserId;
   }, [user, fetchOverview]);
 
   const withRefresh = useCallback(

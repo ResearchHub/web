@@ -836,18 +836,16 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         />
       )}
 
-      {userListsEnabled && relatedDocumentUnifiedDocumentId && (
-        <div onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
-          <AddToListModal
-            isOpen={isAddToListModalOpen}
-            onClose={handleCloseAddToListModal}
-            unifiedDocumentId={Number.parseInt(relatedDocumentUnifiedDocumentId)}
-            listDetails={listDetails}
-            isLoadingListDetails={isCheckingList}
-            refetchListDetails={refetchIsInList}
-            onItemAdded={refetchIsInList}
-          />
-        </div>
+      {userListsEnabled && relatedDocumentUnifiedDocumentId && isAddToListModalOpen && (
+        <AddToListModal
+          isOpen={isAddToListModalOpen}
+          onClose={handleCloseAddToListModal}
+          unifiedDocumentId={Number.parseInt(relatedDocumentUnifiedDocumentId)}
+          listDetails={listDetails}
+          isLoadingListDetails={isCheckingList}
+          refetchListDetails={refetchIsInList}
+          onItemAdded={refetchIsInList}
+        />
       )}
     </>
   );
