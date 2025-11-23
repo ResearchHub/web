@@ -6,10 +6,10 @@ import { AddToListModal } from '@/components/modals/AddToListModal';
 import { Button } from '@/components/ui/Button';
 
 interface AddToListButtonProps {
-  unifiedDocumentId: number;
-  variant?: 'default' | 'outlined' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  className?: string;
+  readonly unifiedDocumentId: number;
+  readonly variant?: 'default' | 'outlined' | 'ghost';
+  readonly size?: 'sm' | 'md' | 'lg';
+  readonly className?: string;
 }
 
 export function AddToListButton({

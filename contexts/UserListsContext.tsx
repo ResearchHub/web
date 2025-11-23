@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useContext, ReactNode, useState, useCallback, useEffect } from 'react';
+import {
+  createContext,
+  useContext,
+  ReactNode,
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+} from 'react';
 import { ListService } from '@/services/list.service';
 import {
   UserList,
@@ -30,7 +38,7 @@ interface UserListsContextType {
 
 const UserListsContext = createContext<UserListsContextType | undefined>(undefined);
 
-export function UserListsProvider({ children }: { children: ReactNode }) {
+export function UserListsProvider({ children }: { readonly children: ReactNode }) {
   const [lists, setLists] = useState<UserList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -123,24 +131,34 @@ export function UserListsProvider({ children }: { children: ReactNode }) {
     [withRefresh]
   );
 
-  return (
-    <UserListsContext.Provider
-      value={{
-        lists,
-        isLoading,
-        error,
-        fetchLists,
-        createList,
-        updateList,
-        deleteList,
-        overviewLists,
-        isLoadingOverview,
-        refetchOverview: fetchOverview,
-      }}
-    >
-      {children}
-    </UserListsContext.Provider>
+  const value = useMemo(
+    () => ({
+      lists,
+      isLoading,
+      error,
+      fetchLists,
+      createList,
+      updateList,
+      deleteList,
+      overviewLists,
+      isLoadingOverview,
+      refetchOverview: fetchOverview,
+    }),
+    [
+      lists,
+      isLoading,
+      error,
+      fetchLists,
+      createList,
+      updateList,
+      deleteList,
+      overviewLists,
+      isLoadingOverview,
+      fetchOverview,
+    ]
   );
+
+  return <UserListsContext.Provider value={value}>{children}</UserListsContext.Provider>;
 }
 
 export function useUserListsContext() {

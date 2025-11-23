@@ -35,6 +35,10 @@ import { Topic } from '@/types/topic';
 import { isFeatureEnabled, FeatureFlag } from '@/utils/featureFlags';
 import { useUserListsEnabled } from '@/hooks/useUserListsEnabled';
 
+const BookmarkIcon: FC<{ className?: string }> = (props) => (
+  <FontAwesomeIcon icon={faBookmark} {...props} />
+);
+
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
   const [matches, setMatches] = useState(false);
@@ -580,9 +584,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
             feedContentType !== 'APPLICATION' &&
             showPeerReviews && ( // to prevent questions from being added to lists
               <ActionButton
-                icon={(props: { className?: string }) => (
-                  <FontAwesomeIcon icon={faBookmark} {...props} />
-                )}
+                icon={BookmarkIcon}
                 tooltip="Add to List"
                 label="Add to List"
                 count={listIds.size}
@@ -827,7 +829,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         <AddToListModal
           isOpen={isAddToListModalOpen}
           onClose={() => setIsAddToListModalOpen(false)}
-          unifiedDocumentId={parseInt(relatedDocumentUnifiedDocumentId)}
+          unifiedDocumentId={Number.parseInt(relatedDocumentUnifiedDocumentId)}
           listDetails={listDetails}
           isLoadingListDetails={isCheckingList}
           refetchListDetails={refetchIsInList}
