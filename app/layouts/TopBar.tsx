@@ -25,9 +25,9 @@ import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import {
   faHouse as faHouseLight,
   faBookmark as faBookmarkLight,
+  faCommentsQuestion,
+  faGrid3 as faGrid3Light,
 } from '@fortawesome/pro-light-svg-icons';
-import { faCommentsQuestion } from '@fortawesome/pro-light-svg-icons';
-import { faGrid3 as faGrid3Light } from '@fortawesome/pro-light-svg-icons';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { colors } from '@/app/styles/colors';
 import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
