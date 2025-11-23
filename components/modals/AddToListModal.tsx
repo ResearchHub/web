@@ -203,7 +203,7 @@ export function AddToListModal({
 
             {!showCreate && (
               <>
-                <div className="space-y-2 max-h-[60vh] md:!max-h-80 overflow-y-auto">
+                <div className="space-y-2 max-h-[50vh] md:!max-h-72 overflow-y-auto">
                   {sorted.map((list) => {
                     const inList = listIds.has(list.list_id);
                     const checked = selected.has(list.list_id);
@@ -261,6 +261,8 @@ export function AddToListModal({
                     );
                   })}
                 </div>
+
+                <div className="border-t border-gray-200 mt-4 mb-4" />
 
                 <Button
                   onClick={() => setShowCreate(true)}
