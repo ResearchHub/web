@@ -133,6 +133,132 @@ export function AddToListModal({
     </div>
   );
 
+  const renderLoading = () => (
+    <div className="space-y-2">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="flex items-center gap-3 p-3 rounded-lg border border-gray-200">
+          <Skeleton className="h-4 w-4" />
+          <Skeleton className="h-5 w-32 flex-1" />
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderEmpty = () => (
+    <div className="text-center py-8">
+      <p className="text-gray-600 mb-4">You don't have any lists yet.</p>
+      <Button onClick={() => setShowCreate(true)} variant="outlined" className="gap-2">
+        <Plus className="w-4 h-4" />
+        Create Your First List
+      </Button>
+    </div>
+  );
+
+  const renderCreateForm = () => (
+    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 mb-4">
+      <h3 className="text-sm font-medium text-gray-900 mb-3">Create New List</h3>
+      <Input
+        placeholder="List name"
+        value={newName}
+        onChange={(e) => setNewName(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+        autoFocus
+        className="mb-3"
+      />
+      <div className="flex gap-2">
+        <LoadingButton
+          onClick={handleCreate}
+          disabled={!newName.trim()}
+          size="sm"
+          isLoading={isCreating}
+          loadingText="Creating..."
+        >
+          Create
+        </LoadingButton>
+        <Button
+          onClick={() => {
+            setShowCreate(false);
+            setNewName('');
+          }}
+          variant="outlined"
+          size="sm"
+        >
+          Cancel
+        </Button>
+      </div>
+    </div>
+  );
+
+  const renderListItems = () => (
+    <>
+      <div className="space-y-2 max-h-[50vh] md:!max-h-72 overflow-y-auto">
+        {sorted.map((list) => {
+          const inList = listIds.has(list.list_id);
+          const checked = selected.has(list.list_id);
+          const isRemoving = removing === list.list_id;
+          return (
+            <label
+              key={list.list_id}
+              className={`flex items-center gap-3 w-full p-3 rounded-lg border cursor-pointer transition-colors ${
+                checked
+                  ? 'border-rhBlue-500 bg-rhBlue-50'
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <Checkbox
+                checked={checked}
+                onCheckedChange={(c) =>
+                  setSelected((prev) => {
+                    if (c) prev.add(list.list_id);
+                    else prev.delete(list.list_id);
+                    return new Set(prev);
+                  })
+                }
+              />
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-gray-900 truncate">{list.name}</div>
+                {inList && (
+                  <div className="text-xs text-green-600 font-medium mt-1 flex items-center gap-1 sm:!hidden">
+                    <Check className="w-3 h-3" />
+                    Already in list
+                  </div>
+                )}
+              </div>
+              {inList && (
+                <>
+                  <div className="hidden sm:!flex items-center gap-1 text-xs text-green-600 font-medium">
+                    <Check className="w-3 h-3" />
+                    Already in list
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => handleRemove(list.list_id, e)}
+                    disabled={isRemoving}
+                    className="flex-shrink-0 p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                    title="Remove"
+                  >
+                    {isRemoving ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                  </button>
+                </>
+              )}
+            </label>
+          );
+        })}
+      </div>
+
+      <div className="border-t border-gray-200 mt-4 mb-4" />
+
+      <Button onClick={() => setShowCreate(true)} variant="outlined" className="w-full gap-2">
+        <Plus className="w-4 h-4" />
+        Create New List
+      </Button>
+    </>
+  );
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -144,136 +270,13 @@ export function AddToListModal({
     >
       <div className="md:!min-w-[500px] md:!max-w-[500px]">
         <p className="text-sm text-gray-600 mb-6">Select one or more lists to save this item</p>
-        {loading ? (
-          <div className="space-y-2">
-            {[...Array(3)].map((_, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 p-3 rounded-lg border border-gray-200"
-              >
-                <Skeleton className="h-4 w-4" />
-                <Skeleton className="h-5 w-32 flex-1" />
-              </div>
-            ))}
-          </div>
-        ) : !lists.length && !showCreate ? (
-          <div className="text-center py-8">
-            <p className="text-gray-600 mb-4">You don't have any lists yet.</p>
-            <Button onClick={() => setShowCreate(true)} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Create Your First List
-            </Button>
-          </div>
-        ) : (
+
+        {loading && renderLoading()}
+        {!loading && !lists.length && !showCreate && renderEmpty()}
+        {!loading && (lists.length > 0 || showCreate) && (
           <>
-            {showCreate && (
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h3 className="text-sm font-medium text-gray-900 mb-3">Create New List</h3>
-                <Input
-                  placeholder="List name"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-                  autoFocus
-                  className="mb-3"
-                />
-                <div className="flex gap-2">
-                  <LoadingButton
-                    onClick={handleCreate}
-                    disabled={!newName.trim()}
-                    size="sm"
-                    isLoading={isCreating}
-                    loadingText="Creating..."
-                  >
-                    Create
-                  </LoadingButton>
-                  <Button
-                    onClick={() => {
-                      setShowCreate(false);
-                      setNewName('');
-                    }}
-                    variant="outlined"
-                    size="sm"
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {!showCreate && (
-              <>
-                <div className="space-y-2 max-h-[50vh] md:!max-h-72 overflow-y-auto">
-                  {sorted.map((list) => {
-                    const inList = listIds.has(list.list_id);
-                    const checked = selected.has(list.list_id);
-                    const isRemoving = removing === list.list_id;
-                    return (
-                      <label
-                        key={list.list_id}
-                        className={`flex items-center gap-3 w-full p-3 rounded-lg border cursor-pointer transition-colors ${
-                          checked
-                            ? 'border-rhBlue-500 bg-rhBlue-50'
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        <Checkbox
-                          checked={checked}
-                          onCheckedChange={(c) =>
-                            setSelected((prev) => {
-                              if (c) prev.add(list.list_id);
-                              else prev.delete(list.list_id);
-                              return new Set(prev);
-                            })
-                          }
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 truncate">{list.name}</div>
-                          {inList && (
-                            <div className="text-xs text-green-600 font-medium mt-1 flex items-center gap-1 sm:!hidden">
-                              <Check className="w-3 h-3" />
-                              Already in list
-                            </div>
-                          )}
-                        </div>
-                        {inList && (
-                          <>
-                            <div className="hidden sm:!flex items-center gap-1 text-xs text-green-600 font-medium">
-                              <Check className="w-3 h-3" />
-                              Already in list
-                            </div>
-                            <button
-                              type="button"
-                              onClick={(e) => handleRemove(list.list_id, e)}
-                              disabled={isRemoving}
-                              className="flex-shrink-0 p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
-                              title="Remove"
-                            >
-                              {isRemoving ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <Trash2 className="w-4 h-4" />
-                              )}
-                            </button>
-                          </>
-                        )}
-                      </label>
-                    );
-                  })}
-                </div>
-
-                <div className="border-t border-gray-200 mt-4 mb-4" />
-
-                <Button
-                  onClick={() => setShowCreate(true)}
-                  variant="outlined"
-                  className="w-full gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Create New List
-                </Button>
-              </>
-            )}
+            {showCreate && renderCreateForm()}
+            {!showCreate && renderListItems()}
           </>
         )}
       </div>
