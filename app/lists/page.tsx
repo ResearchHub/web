@@ -98,7 +98,7 @@ export default function ListsPage() {
           <div className="space-y-1">
             {isLoading && (
               <>
-                {[...Array(5)].map((_, i) => (
+                {[...new Array(5)].map((_, i) => (
                   <UserListRowSkeleton key={'list-skeleton-' + i} />
                 ))}
               </>
@@ -124,7 +124,7 @@ export default function ListsPage() {
                 ))}
                 {isLoadingMore && (
                   <div className="space-y-1 pt-1">
-                    {[...Array(3)].map((_, i) => (
+                    {[...new Array(3)].map((_, i) => (
                       <UserListRowSkeleton key={'list-skeleton-loadmore-' + i} />
                     ))}
                   </div>
