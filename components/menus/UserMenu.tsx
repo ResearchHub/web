@@ -214,7 +214,7 @@ export default function UserMenu({
             <div className="px-6 py-2 hover:bg-gray-50">
               <div className="flex items-center">
                 <FontAwesomeIcon icon={faBookmark} className="h-5 w-5 mr-3 text-gray-500" />
-                <span className="text-base text-gray-700">My Lists</span>
+                <span className="text-base text-gray-700">Your Lists</span>
               </div>
             </div>
           </Link>
@@ -405,7 +405,7 @@ export default function UserMenu({
                 <div className="w-full px-4 py-2 hover:bg-gray-50">
                   <div className="flex items-center">
                     <FontAwesomeIcon icon={faBookmark} className="h-4 w-4 mr-3 text-gray-500" />
-                    <span className="text-sm text-gray-700">My Lists</span>
+                    <span className="text-sm text-gray-700">Your Lists</span>
                   </div>
                 </div>
               </Link>

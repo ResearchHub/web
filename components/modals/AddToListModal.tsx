@@ -142,7 +142,7 @@ export function AddToListModal({
       padding="p-6"
       footer={footer}
     >
-      <div className="md:min-w-[500px] md:max-w-[500px]">
+      <div className="md:!min-w-[500px] md:!max-w-[500px]">
         <p className="text-sm text-gray-600 mb-6">Select one or more lists to save this item</p>
         {loading ? (
           <div className="space-y-2">
@@ -203,7 +203,7 @@ export function AddToListModal({
 
             {!showCreate && (
               <>
-                <div className="space-y-2 max-h-[60vh] md:max-h-80 overflow-y-auto">
+                <div className="space-y-2 max-h-[60vh] md:!max-h-80 overflow-y-auto">
                   {sorted.map((list) => {
                     const inList = listIds.has(list.list_id);
                     const checked = selected.has(list.list_id);
@@ -230,7 +230,7 @@ export function AddToListModal({
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-gray-900 truncate">{list.name}</div>
                           {inList && (
-                            <div className="text-xs text-green-600 font-medium mt-1 flex items-center gap-1 sm:hidden">
+                            <div className="text-xs text-green-600 font-medium mt-1 flex items-center gap-1 sm:!hidden">
                               <Check className="w-3 h-3" />
                               Already in list
                             </div>
@@ -238,7 +238,7 @@ export function AddToListModal({
                         </div>
                         {inList && (
                           <>
-                            <div className="hidden sm:flex items-center gap-1 text-xs text-green-600 font-medium">
+                            <div className="hidden sm:!flex items-center gap-1 text-xs text-green-600 font-medium">
                               <Check className="w-3 h-3" />
                               Already in list
                             </div>
