@@ -35,11 +35,6 @@ import { Topic } from '@/types/topic';
 import { isFeatureEnabled, FeatureFlag } from '@/utils/featureFlags';
 import { useUserListsEnabled } from '@/hooks/useUserListsEnabled';
 
-// Wrapper for FontAwesome bookmark icon to work with ActionButton
-const BookmarkIcon: FC<{ className?: string }> = ({ className }) => (
-  <FontAwesomeIcon icon={faBookmark} className={className} />
-);
-
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
   const [matches, setMatches] = useState(false);
@@ -242,6 +237,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     isLoading: isCheckingList,
     refetch: refetchIsInList,
     listDetails,
+    listIds,
   } = useIsInList(relatedDocumentUnifiedDocumentId);
 
   // Calculate initial tip amount and avatars from props
@@ -573,9 +569,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
             feedContentType !== 'BOUNTY' &&
             feedContentType !== 'APPLICATION' && (
               <ActionButton
-                icon={BookmarkIcon}
+                icon={(props: { className?: string }) => (
+                  <FontAwesomeIcon icon={faBookmark} {...props} />
+                )}
                 tooltip="Add to List"
                 label="Add to List"
+                count={listIds.size}
                 onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
                 showTooltip={showTooltips}
                 isActive={isDocumentInList}

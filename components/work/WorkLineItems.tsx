@@ -81,7 +81,7 @@ export const WorkLineItems = ({
   const { user } = useUser();
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
   const { showShareModal } = useShareModalContext();
-  const { isInList, refetch: refetchIsInList } = useIsInList(work.unifiedDocumentId);
+  const { isInList, refetch: refetchIsInList, listIds } = useIsInList(work.unifiedDocumentId);
   const userListsEnabled = useUserListsEnabled();
   const {
     data: userVotes,
@@ -357,6 +357,7 @@ export const WorkLineItems = ({
               }`}
             >
               <FontAwesomeIcon icon={faBookmark} className="h-6 w-6" />
+              <span className="text-sm font-medium">{listIds.size}</span>
             </button>
           )}
 
