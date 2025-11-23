@@ -5,7 +5,6 @@ export interface UserList {
   created_date: string;
   updated_date: string;
   item_count?: number;
-  items_count?: number;
 }
 
 export interface CreateListRequest {
