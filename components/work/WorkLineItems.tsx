@@ -347,7 +347,7 @@ export const WorkLineItems = ({
             <Share2 className="h-6 w-6" />
           </button>
 
-          {userListsEnabled && work.unifiedDocumentId && (
+          {userListsEnabled && work.unifiedDocumentId && work.postType !== 'QUESTION' && (
             <button
               onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
               className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
