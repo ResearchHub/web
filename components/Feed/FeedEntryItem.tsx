@@ -26,7 +26,6 @@ interface FeedEntryItemProps {
   showGrantHeaders?: boolean;
   showReadMoreCTA?: boolean;
   feedView?: string;
-  experimentVariant?: string;
   feedOrdering?: string;
   registerVisibleItem: (unifiedDocumentId: string) => void;
   unregisterVisibleItem: (unifiedDocumentId: string) => void;
@@ -46,7 +45,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   showGrantHeaders = true,
   showReadMoreCTA = false,
   feedView,
-  experimentVariant,
   feedOrdering,
   registerVisibleItem,
   unregisterVisibleItem,
@@ -80,7 +78,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   const handleFeedItemClick = useFeedItemClick({
     entry,
     feedPosition: index + 1,
-    experimentVariant,
     feedOrdering,
     impression: getImpressions(),
     clearVisibleItems,

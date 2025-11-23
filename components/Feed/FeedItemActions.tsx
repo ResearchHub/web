@@ -748,6 +748,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
             <BaseMenu
               trigger={
                 <Button
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
                   variant="ghost"
                   size="sm"
                   className="flex items-center text-gray-400 hover:text-gray-600"

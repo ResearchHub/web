@@ -3,6 +3,7 @@
 import { ChevronDown, Tags } from 'lucide-react';
 import { useState } from 'react';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
 
 interface Topic {
   id: string | number;
@@ -19,8 +20,9 @@ export const TopicsSection = ({ topics }: TopicsSectionProps) => {
 
   if (!topics || topics.length === 0) return null;
 
-  const displayedTopics = showAllTopics ? topics : topics.slice(0, 5);
-  const hasMoreTopics = topics.length > 5;
+  const filteredTopics = topics.filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
+  const displayedTopics = showAllTopics ? filteredTopics : filteredTopics.slice(0, 5);
+  const hasMoreTopics = filteredTopics.length > 5;
 
   return (
     <section>

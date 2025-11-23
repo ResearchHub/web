@@ -12,14 +12,13 @@ interface UseFeedOptions {
   hubSlug?: string;
   contentType?: string;
   source?: FeedSource;
-  endpoint?: 'feed' | 'funding_feed' | 'grant_feed' | 'personalized';
+  endpoint?: 'feed' | 'funding_feed' | 'grant_feed';
   fundraiseStatus?: 'OPEN' | 'CLOSED';
   createdBy?: number;
   ordering?: string;
-  hotScoreVersion?: 'v1' | 'v2';
-  includeHotScoreBreakdown?: boolean;
   filter?: string;
   userId?: string;
+  isDebugMode?: boolean;
   initialData?: {
     entries: FeedEntry[];
     hasMore: boolean;
@@ -86,8 +85,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       options.fundraiseStatus !== currentOptions.fundraiseStatus ||
       options.createdBy !== currentOptions.createdBy ||
       options.ordering !== currentOptions.ordering ||
-      options.hotScoreVersion !== currentOptions.hotScoreVersion ||
-      options.includeHotScoreBreakdown !== currentOptions.includeHotScoreBreakdown ||
+      options.isDebugMode !== currentOptions.isDebugMode ||
       options.filter !== currentOptions.filter ||
       options.userId !== currentOptions.userId;
 
@@ -102,12 +100,22 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     setEntries([]);
     try {
       const isHomeFeedTab =
-        activeTab === 'popular' || activeTab === 'following' || activeTab === 'latest';
+        activeTab === 'popular' ||
+        activeTab === 'following' ||
+        activeTab === 'latest' ||
+        activeTab === 'for-you';
+
+      // Map 'for-you' to 'personalized' for the API
+      const feedView = isHomeFeedTab
+        ? activeTab === 'for-you'
+          ? 'personalized'
+          : activeTab
+        : undefined;
 
       const result = await FeedService.getFeed({
         page: 1,
         pageSize: 20,
-        feedView: isHomeFeedTab ? (activeTab as FeedTab) : undefined,
+        feedView,
         hubSlug: options.hubSlug,
         contentType: options.contentType,
         source: options.source,
@@ -115,8 +123,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         fundraiseStatus: options.fundraiseStatus,
         createdBy: options.createdBy,
         ordering: options.ordering,
-        hotScoreVersion: options.hotScoreVersion,
-        includeHotScoreBreakdown: options.includeHotScoreBreakdown,
+        includeHotScoreBreakdown: options.isDebugMode,
         filter: options.filter,
         userId: options.userId,
       });
@@ -137,12 +144,22 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
     try {
       const nextPage = page + 1;
       const isHomeFeedTab =
-        activeTab === 'popular' || activeTab === 'following' || activeTab === 'latest';
+        activeTab === 'popular' ||
+        activeTab === 'following' ||
+        activeTab === 'latest' ||
+        activeTab === 'for-you';
+
+      // Map 'for-you' to 'personalized' for the API
+      const feedView = isHomeFeedTab
+        ? activeTab === 'for-you'
+          ? 'personalized'
+          : activeTab
+        : undefined;
 
       const result = await FeedService.getFeed({
         page: nextPage,
         pageSize: 20,
-        feedView: isHomeFeedTab ? (activeTab as FeedTab) : undefined,
+        feedView,
         hubSlug: options.hubSlug,
         contentType: options.contentType,
         source: options.source,
@@ -150,8 +167,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         fundraiseStatus: options.fundraiseStatus,
         createdBy: options.createdBy,
         ordering: options.ordering,
-        hotScoreVersion: options.hotScoreVersion,
-        includeHotScoreBreakdown: options.includeHotScoreBreakdown,
+        includeHotScoreBreakdown: options.isDebugMode,
         filter: options.filter,
         userId: options.userId,
       });
