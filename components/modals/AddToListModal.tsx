@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { LoadingButton } from '@/components/ui/LoadingButton';
-import { Modal } from '@/components/ui/form/Modal';
+import { BaseModal } from '@/components/ui/BaseModal';
 import { Input } from '@/components/ui/form/Input';
 import { Checkbox } from '@/components/ui/form/Checkbox';
 import { useUserListsContext } from '@/contexts/UserListsContext';
@@ -117,10 +117,33 @@ export function AddToListModal({
   const sorted = [...inLists, ...notInLists];
   const newCount = Array.from(selected).filter((id) => !listIds.has(id)).length;
 
+  const footer = (
+    <div className="flex justify-end gap-3">
+      <Button variant="outlined" onClick={onClose} disabled={isAdding}>
+        Cancel
+      </Button>
+      <LoadingButton
+        onClick={handleAdd}
+        disabled={!newCount}
+        isLoading={isAdding}
+        loadingText="Adding..."
+      >
+        {newCount ? `Add to ${newCount} List${pluralizeSuffix(newCount)}` : 'Add to List'}
+      </LoadingButton>
+    </div>
+  );
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add to List">
-      <div className="space-y-6">
-        <p className="text-sm text-gray-600">Select one or more lists to save this item</p>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Add to List"
+      maxWidth="max-w-2xl"
+      padding="p-6"
+      footer={footer}
+    >
+      <div className="md:min-w-[500px] md:max-w-[500px]">
+        <p className="text-sm text-gray-600 mb-6">Select one or more lists to save this item</p>
         {loading ? (
           <div className="space-y-2">
             {[...Array(3)].map((_, i) => (
@@ -180,7 +203,7 @@ export function AddToListModal({
 
             {!showCreate && (
               <>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
+                <div className="space-y-2 max-h-[60vh] md:max-h-80 overflow-y-auto">
                   {sorted.map((list) => {
                     const inList = listIds.has(list.list_id);
                     const checked = selected.has(list.list_id);
@@ -251,20 +274,7 @@ export function AddToListModal({
             )}
           </>
         )}
-        <div className="flex justify-end gap-3 pt-4">
-          <Button variant="outlined" onClick={onClose} disabled={isAdding}>
-            Cancel
-          </Button>
-          <LoadingButton
-            onClick={handleAdd}
-            disabled={!newCount}
-            isLoading={isAdding}
-            loadingText="Adding..."
-          >
-            {newCount ? `Add to ${newCount} List${pluralizeSuffix(newCount)}` : 'Add to List'}
-          </LoadingButton>
-        </div>
       </div>
-    </Modal>
+    </BaseModal>
   );
 }

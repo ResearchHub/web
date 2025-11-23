@@ -3,15 +3,9 @@
 import { FC, useState, ReactNode, useEffect, useRef } from 'react';
 import React from 'react';
 import { FeedContentType, FeedEntry, Review } from '@/types/feed';
-import {
-  MessageCircle,
-  Flag,
-  ArrowUp,
-  MoreHorizontal,
-  Star,
-  ThumbsDown,
-  FolderPlus,
-} from 'lucide-react';
+import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star, ThumbsDown } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookmark } from '@fortawesome/pro-light-svg-icons';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
@@ -39,6 +33,12 @@ import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
 import { Topic } from '@/types/topic';
 import { isFeatureEnabled, FeatureFlag } from '@/utils/featureFlags';
+import { useUserListsEnabled } from '@/hooks/useUserListsEnabled';
+
+// Wrapper for FontAwesome bookmark icon to work with ActionButton
+const BookmarkIcon: FC<{ className?: string }> = ({ className }) => (
+  <FontAwesomeIcon icon={faBookmark} className={className} />
+);
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -227,7 +227,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
-
+  const userListsEnabled = useUserListsEnabled();
   // State for dropdown menu
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -567,12 +567,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               avatars={commentAvatars}
             />
           )}
-          {relatedDocumentUnifiedDocumentId &&
+          {userListsEnabled &&
+            relatedDocumentUnifiedDocumentId &&
             feedContentType !== 'COMMENT' &&
             feedContentType !== 'BOUNTY' &&
             feedContentType !== 'APPLICATION' && (
               <ActionButton
-                icon={FolderPlus}
+                icon={BookmarkIcon}
                 tooltip="Add to List"
                 label="Add to List"
                 onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
@@ -812,7 +813,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         />
       )}
 
-      {relatedDocumentUnifiedDocumentId && (
+      {userListsEnabled && relatedDocumentUnifiedDocumentId && (
         <AddToListModal
           isOpen={isAddToListModalOpen}
           onClose={() => setIsAddToListModalOpen(false)}
