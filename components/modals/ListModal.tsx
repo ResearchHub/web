@@ -1,3 +1,5 @@
+'use client';
+
 import { Modal } from '@/components/ui/form/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';

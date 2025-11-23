@@ -97,7 +97,11 @@ export default function ListsPage() {
           )}
           <div className="space-y-1">
             {isLoading ? (
-              [...Array(5)].map((_, i) => <UserListRowSkeleton key={i} />)
+              <>
+                {[...Array(5)].map((_, i) => (
+                  <UserListRowSkeleton key={'list-skeleton-' + i} />
+                ))}
+              </>
             ) : lists.length === 0 ? (
               <div className="text-center py-20">
                 <FolderPlus className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -119,7 +123,7 @@ export default function ListsPage() {
                 {isLoadingMore && (
                   <div className="space-y-1 pt-1">
                     {[...Array(3)].map((_, i) => (
-                      <UserListRowSkeleton key={i} />
+                      <UserListRowSkeleton key={'list-skeleton-loadmore-' + i} />
                     ))}
                   </div>
                 )}
