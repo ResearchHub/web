@@ -567,7 +567,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
             relatedDocumentUnifiedDocumentId &&
             feedContentType !== 'COMMENT' &&
             feedContentType !== 'BOUNTY' &&
-            feedContentType !== 'APPLICATION' && (
+            feedContentType !== 'APPLICATION' &&
+            showPeerReviews && ( // to prevent questions from being added to lists
               <ActionButton
                 icon={(props: { className?: string }) => (
                   <FontAwesomeIcon icon={faBookmark} {...props} />

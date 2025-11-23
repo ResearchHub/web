@@ -347,7 +347,7 @@ export const WorkLineItems = ({
             <Share2 className="h-6 w-6" />
           </button>
 
-          {userListsEnabled && (
+          {userListsEnabled && work.unifiedDocumentId && (
             <button
               onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
               className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
@@ -545,7 +545,6 @@ export const WorkLineItems = ({
         onTipSuccess={handleTipSuccess}
       />
 
-      {/* Add to List Modal */}
       {userListsEnabled && work.unifiedDocumentId && (
         <AddToListModal
           isOpen={isAddToListModalOpen}
