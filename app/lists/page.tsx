@@ -6,10 +6,12 @@ import { useUserLists } from '@/hooks/useUserLists';
 import { UserList } from '@/types/user-list';
 import { UserListRow, UserListRowSkeleton } from './components/UserListRow';
 import { ListModal } from '@/components/modals/ListModal';
-import { Plus, FolderPlus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { useInView } from 'react-intersection-observer';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookmark } from '@fortawesome/pro-light-svg-icons';
 
 interface ModalState {
   isOpen: boolean;
@@ -63,7 +65,7 @@ export default function ListsPage() {
       <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-gray-50/50 to-white pb-20">
         <div className="relative px-4 sm:px-8 py-6 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 bg-gradient-to-b from-gray-100/80 to-gray-50/20 border-b border-gray-100">
           <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white shadow-sm rounded-lg flex items-center justify-center shrink-0 mx-auto sm:mx-0">
-            <FolderPlus className="w-8 h-8 sm:w-10 sm:h-10 text-gray-300" strokeWidth={1.5} />
+            <FontAwesomeIcon icon={faBookmark} fontSize={40} color="#D1D5DB" />
           </div>
           <div className="flex flex-col gap-1 flex-1 text-center sm:text-left">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
@@ -105,7 +107,12 @@ export default function ListsPage() {
             )}
             {!isLoading && lists.length === 0 && (
               <div className="text-center py-20">
-                <FolderPlus className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <FontAwesomeIcon
+                  icon={faBookmark}
+                  fontSize={48}
+                  color="#D1D5DB"
+                  className="mx-auto mb-3"
+                />
                 <p className="text-gray-500 mb-4">No lists created yet</p>
                 <Button variant="outlined" onClick={() => openModal('create')}>
                   Create your first list
