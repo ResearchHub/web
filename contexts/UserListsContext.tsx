@@ -18,6 +18,7 @@ import {
 } from '@/types/user-list';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/utils/apiError';
+import { useUser } from '@/contexts/UserContext';
 
 interface UserListsContextType {
   lists: UserList[];
@@ -39,6 +40,7 @@ interface UserListsContextType {
 const UserListsContext = createContext<UserListsContextType | undefined>(undefined);
 
 export function UserListsProvider({ children }: { readonly children: ReactNode }) {
+  const { user } = useUser();
   const [lists, setLists] = useState<UserList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +79,12 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     fetchLists();
     fetchOverview();
   }, [fetchLists, fetchOverview]);
+
+  useEffect(() => {
+    if (user) {
+      fetchOverview();
+    }
+  }, [user, fetchOverview]);
 
   const withRefresh = useCallback(
     async <T,>(

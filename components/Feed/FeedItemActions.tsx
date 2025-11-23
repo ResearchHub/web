@@ -385,6 +385,17 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     });
   };
 
+  const handleOpenAddToListModal = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    executeAuthenticatedAction(() => setIsAddToListModalOpen(true));
+  };
+
+  const handleCloseAddToListModal = () => {
+    setIsAddToListModalOpen(false);
+  };
+
   // Handle successful tip
   const handleTipSuccess = (tippedAmount: number) => {
     if (!user || !user.authorProfile) return;
@@ -588,7 +599,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 tooltip="Add to List"
                 label="Add to List"
                 count={listIds.size}
-                onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
+                onClick={handleOpenAddToListModal}
                 showTooltip={showTooltips}
                 isActive={isDocumentInList}
                 className={
@@ -826,15 +837,17 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       )}
 
       {userListsEnabled && relatedDocumentUnifiedDocumentId && (
-        <AddToListModal
-          isOpen={isAddToListModalOpen}
-          onClose={() => setIsAddToListModalOpen(false)}
-          unifiedDocumentId={Number.parseInt(relatedDocumentUnifiedDocumentId)}
-          listDetails={listDetails}
-          isLoadingListDetails={isCheckingList}
-          refetchListDetails={refetchIsInList}
-          onItemAdded={refetchIsInList}
-        />
+        <div onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+          <AddToListModal
+            isOpen={isAddToListModalOpen}
+            onClose={handleCloseAddToListModal}
+            unifiedDocumentId={Number.parseInt(relatedDocumentUnifiedDocumentId)}
+            listDetails={listDetails}
+            isLoadingListDetails={isCheckingList}
+            refetchListDetails={refetchIsInList}
+            onItemAdded={refetchIsInList}
+          />
+        </div>
       )}
     </>
   );
