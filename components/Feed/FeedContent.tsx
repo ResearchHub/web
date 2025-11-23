@@ -98,7 +98,7 @@ export const FeedContent: FC<FeedContentProps> = ({
     lastClickedEntryId,
   });
 
-  const { registerVisibleItem, unregisterVisibleItem, getVisibleItems, clearVisibleItems } =
+  const { registerVisibleItem, unregisterVisibleItem, getVisibleItems } =
     useFeedImpressionTracking();
 
   const displayEntries = entries;
@@ -141,7 +141,6 @@ export const FeedContent: FC<FeedContentProps> = ({
                     registerVisibleItem={registerVisibleItem}
                     unregisterVisibleItem={unregisterVisibleItem}
                     getVisibleItems={getVisibleItems}
-                    clearVisibleItems={clearVisibleItems}
                   />
                   {contentToInsert && (
                     <div key={`insert-content-${index}`} className="mt-12">

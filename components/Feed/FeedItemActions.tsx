@@ -182,6 +182,7 @@ interface FeedItemActionsProps {
   relatedDocumentTopics?: Topic[];
   relatedDocumentUnifiedDocumentId?: string;
   showPeerReviews?: boolean;
+  onFeedItemClick?: () => void;
 }
 
 // Define interface for avatar items used in local state
@@ -215,6 +216,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   relatedDocumentTopics,
   relatedDocumentUnifiedDocumentId,
   showPeerReviews = true,
+  onFeedItemClick,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser(); // Get current user
@@ -332,12 +334,20 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     });
   };
 
+  const navigateToTab = (tab: string) => {
+    if (onFeedItemClick) {
+      onFeedItemClick();
+    }
+
+    router.push(`${href}/${tab}`);
+  };
+
   const handleComment = (e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation();
     }
     if (href) {
-      router.push(`${href}/conversation`);
+      navigateToTab('conversation');
     } else if (onComment) {
       onComment();
     }
@@ -348,7 +358,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       e.stopPropagation();
     }
     if (href) {
-      router.push(`${href}/reviews`);
+      navigateToTab('reviews');
     }
   };
 
@@ -357,7 +367,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       e.stopPropagation();
     }
     if (href) {
-      router.push(`${href}/bounties`);
+      navigateToTab('bounties');
     }
   };
 

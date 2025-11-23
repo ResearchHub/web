@@ -18,7 +18,7 @@ import { ID } from '@/types/root';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { BountyContribution, BountyType } from '@/types/bounty';
 import { formatCurrency } from '@/utils/currency';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Trophy, Pen, Users, MessageSquareReply } from 'lucide-react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -117,6 +117,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   const bountyEntry = entry.content as FeedBountyContent;
   const bounty = bountyEntry.bounty;
   const params = useParams();
+  const router = useRouter();
 
   // Get currency preference and exchange rate
   const { showUSD } = useCurrencyPreference();
@@ -193,6 +194,10 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
     // Determine which tab to redirect to based on postType
     const targetTab = workPostType === 'QUESTION' ? 'conversation' : 'reviews';
 
+    if (workPostType === 'QUESTION') {
+      workContentType = 'question';
+    }
+
     const workUrl = buildWorkUrl({
       id: workId.toString(),
       contentType: workContentType as any,
@@ -200,7 +205,8 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       tab: targetTab,
     });
     const urlWithFocus = `${workUrl}?focus=true`;
-    window.location.href = urlWithFocus;
+
+    router.push(urlWithFocus);
   };
 
   const handleAwardBounty = (e: React.MouseEvent | undefined) => {
@@ -302,7 +308,12 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
 
         {entry.relatedWork && showRelatedWork && (
           <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-            <RelatedWorkCard size="sm" work={entry.relatedWork} onTopicClick={onTopicClick} />
+            <RelatedWorkCard
+              size="sm"
+              work={entry.relatedWork}
+              onTopicClick={onTopicClick}
+              onFeedItemClick={onFeedItemClick}
+            />
           </div>
         )}
 
@@ -387,6 +398,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
               relatedDocumentUnifiedDocumentId={
                 entry.relatedWork?.unifiedDocumentId?.toString() || undefined
               }
+              onFeedItemClick={onFeedItemClick}
             />
           </div>
         )}
