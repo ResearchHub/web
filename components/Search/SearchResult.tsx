@@ -25,7 +25,7 @@ export const SearchResult: FC<SearchResultProps> = ({
   showReadMoreCTA = true,
 }) => {
   const { entry, highlightedTitle, highlightedSnippet } = searchResult;
-  const { registerVisibleItem, unregisterVisibleItem, getVisibleItems, clearVisibleItems } =
+  const { registerVisibleItem, unregisterVisibleItem, getVisibleItems } =
     useFeedImpressionTracking();
 
   // Only render supported content types (no BOUNTY or COMMENT in search)
@@ -56,7 +56,6 @@ export const SearchResult: FC<SearchResultProps> = ({
       registerVisibleItem={registerVisibleItem}
       unregisterVisibleItem={unregisterVisibleItem}
       getVisibleItems={getVisibleItems}
-      clearVisibleItems={clearVisibleItems}
     />
   );
 };
