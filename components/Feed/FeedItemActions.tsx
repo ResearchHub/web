@@ -20,7 +20,7 @@ import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Bounty } from '@/types/bounty';
 import { Tip } from '@/types/tip';
 import { formatRSC } from '@/utils/number';
-import { extractBountyAvatars } from '@/components/Bounty/lib/bountyUtil';
+import { extractBountyAvatars, isActiveBounty } from '@/components/Bounty/lib/bountyUtil';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useUser } from '@/contexts/UserContext';
@@ -455,16 +455,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     return score.toFixed(1);
   };
 
-  // Check if we have open bounties
-  const hasOpenBounties = bounties && bounties.filter((b) => b.status === 'OPEN').length > 0;
-
-  // Calculate total bounty amount for open bounties
-  const totalBountyAmount = bounties
-    .filter((b) => b.status === 'OPEN')
-    .reduce((total, bounty) => {
-      const amount = parseFloat(bounty.totalAmount || bounty.amount || '0');
-      return total + amount;
-    }, 0);
+  const activeBounties = bounties.filter(isActiveBounty);
+  const hasOpenBounties = activeBounties.length > 0;
+  const totalBountyAmount = activeBounties.reduce((total, bounty) => {
+    const amount = parseFloat(bounty.totalAmount || bounty.amount || '0');
+    return total + amount;
+  }, 0);
 
   // Calculate total earned amount (Tips + Awarded Bounty)
   const totalEarnedAmount = localTotalTipAmount + awardedBountyAmount;

@@ -77,6 +77,7 @@ interface RawBounty {
   }>;
   created_date: string;
   expiration_date: string;
+  review_period_end_date?: string;
   bounty_type: string;
   status: string;
 }
@@ -225,6 +226,7 @@ export class BountyService {
             amount: rawBounty.total_amount,
             status: rawBounty.status,
             expiration_date: rawBounty.expiration_date,
+            review_period_end_date: rawBounty.review_period_end_date,
             bounty_type: rawBounty.bounty_type,
             created_date: rawBounty.created_date,
             unified_document_id: getUnifiedDocumentId(rawBounty),
