@@ -225,6 +225,10 @@ export function AddToListModal({
     }
   };
 
+  const handleToggleList = (listId: number, checked: boolean) => {
+    setSelected((prev) => (checked ? [...prev, listId] : prev.filter((id) => id !== listId)));
+  };
+
   const handleRemove = async (listId: number, e: React.MouseEvent) => {
     e.stopPropagation();
     const list = listDetails.find((l) => l.listId === listId);
@@ -323,11 +327,7 @@ export function AddToListModal({
                       isChecked={selected.includes(list.listId)}
                       isInList={listIds.includes(list.listId)}
                       isRemoving={removing === list.listId}
-                      onToggle={(checked) => {
-                        setSelected((prev) =>
-                          checked ? [...prev, list.listId] : prev.filter((id) => id !== list.listId)
-                        );
-                      }}
+                      onToggle={(checked) => handleToggleList(list.listId, checked)}
                       onRemove={(e) => handleRemove(list.listId, e)}
                     />
                   ))}
