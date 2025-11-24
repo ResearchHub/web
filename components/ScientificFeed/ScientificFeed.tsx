@@ -23,6 +23,8 @@ export function ScientificFeed() {
   const imageLayout: 'above-title' | 'right-column' | 'below-title' = 'right-column';
   const showUpvoteButton = true; // Set to true to show upvote/downvote buttons
   const showTrendingScoreInActionBar = false; // If true, shows trending score to the right of Save instead of upvotes
+  const useAlphaDesign = false; // Feature flag for alpha design variations
+  const useBetaDesign = true; // Feature flag for beta design variations
 
   const [activeTab, setActiveTab] = useState<FeedView>('for-you');
   const [sortBy, setSortBy] = useState<SortOption>('trending');
@@ -95,14 +97,37 @@ export function ScientificFeed() {
             imageLayout={imageLayout}
             showUpvoteButton={showUpvoteButton}
             showTrendingScoreInActionBar={showTrendingScoreInActionBar}
+            useAlphaDesign={useAlphaDesign}
+            useBetaDesign={useBetaDesign}
           />
         );
       case 'bounty':
-        return <BountyCard key={item.id} bounty={item} />;
+        return (
+          <BountyCard
+            key={item.id}
+            bounty={item}
+            useAlphaDesign={useAlphaDesign}
+            useBetaDesign={useBetaDesign}
+          />
+        );
       case 'proposal':
-        return <ProposalCard key={item.id} proposal={item} />;
+        return (
+          <ProposalCard
+            key={item.id}
+            proposal={item}
+            useAlphaDesign={useAlphaDesign}
+            useBetaDesign={useBetaDesign}
+          />
+        );
       case 'rfp':
-        return <RFPCard key={item.id} rfp={item} />;
+        return (
+          <RFPCard
+            key={item.id}
+            rfp={item}
+            useAlphaDesign={useAlphaDesign}
+            useBetaDesign={useBetaDesign}
+          />
+        );
       default:
         return null;
     }

@@ -11,9 +11,11 @@ import { Button } from '@/components/ui/Button';
 
 interface ProposalCardProps {
   proposal: ProposalCardType;
+  useAlphaDesign?: boolean;
+  useBetaDesign?: boolean;
 }
 
-export function ProposalCard({ proposal }: ProposalCardProps) {
+export function ProposalCard({ proposal, useAlphaDesign = false, useBetaDesign = false }: ProposalCardProps) {
   const [showFullAbstract, setShowFullAbstract] = useState(false);
   const percentFunded = Math.round((proposal.raised / proposal.goal) * 100);
 
@@ -40,6 +42,8 @@ export function ProposalCard({ proposal }: ProposalCardProps) {
     <FeedCardBase
       comments={proposal.comments}
       bookmarked={proposal.bookmarked}
+      useAlphaDesign={useAlphaDesign}
+      useBetaDesign={useBetaDesign}
       // engagedUsers={proposal.engagedUsers}
     >
       {/* Badges Row */}

@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/Button';
 
 interface RFPCardProps {
   rfp: RFPCardType;
+  useAlphaDesign?: boolean;
+  useBetaDesign?: boolean;
 }
 
-export function RFPCard({ rfp }: RFPCardProps) {
+export function RFPCard({ rfp, useAlphaDesign = false, useBetaDesign = false }: RFPCardProps) {
   const formatAuthors = (authors: RFPCardType['authors']) => {
     if (authors.length === 0) return '';
     if (authors.length === 1) return `${authors[0].firstName} ${authors[0].lastName}`;
@@ -28,6 +30,8 @@ export function RFPCard({ rfp }: RFPCardProps) {
     <FeedCardBase
       comments={rfp.comments}
       bookmarked={rfp.bookmarked}
+      useAlphaDesign={useAlphaDesign}
+      useBetaDesign={useBetaDesign}
       // engagedUsers={rfp.engagedUsers}
     >
 

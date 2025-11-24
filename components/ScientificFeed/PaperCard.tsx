@@ -19,6 +19,8 @@ interface PaperCardProps {
   imageLayout?: 'above-title' | 'right-column' | 'below-title';
   showUpvoteButton?: boolean;
   showTrendingScoreInActionBar?: boolean;
+  useAlphaDesign?: boolean;
+  useBetaDesign?: boolean;
 }
 
 const getSourceLogo = (source: string) => {
@@ -45,6 +47,8 @@ export function PaperCard({
   imageLayout = 'above-title',
   showUpvoteButton = false,
   showTrendingScoreInActionBar = false,
+  useAlphaDesign = false,
+  useBetaDesign = false,
 }: PaperCardProps) {
   const [showFullAbstract, setShowFullAbstract] = useState(false);
   const sourceLogo = getSourceLogo(paper.source);
@@ -93,6 +97,8 @@ export function PaperCard({
       }
       upvotes={paper.upvotes}
       showUpvoteButton={showUpvoteButton && !showTrendingScoreInActionBar}
+      useAlphaDesign={useAlphaDesign}
+      useBetaDesign={useBetaDesign}
       // engagedUsers={paper.engagedUsers}
     >
       {/* Hero Image - Above Title Layout */}

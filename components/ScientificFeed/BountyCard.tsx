@@ -11,6 +11,8 @@ import { TrendingUp } from 'lucide-react';
 
 interface BountyCardProps {
   bounty: BountyCardType;
+  useAlphaDesign?: boolean;
+  useBetaDesign?: boolean;
 }
 
 const getSourceLogo = (source: string) => {
@@ -29,7 +31,7 @@ const getSourceLogo = (source: string) => {
   }
 };
 
-export function BountyCard({ bounty }: BountyCardProps) {
+export function BountyCard({ bounty, useAlphaDesign = false, useBetaDesign = false }: BountyCardProps) {
   const [showFullAbstract, setShowFullAbstract] = useState(false);
   const sourceLogo = getSourceLogo(bounty.paper.source);
 
@@ -62,6 +64,8 @@ export function BountyCard({ bounty }: BountyCardProps) {
     <FeedCardBase
       comments={bounty.comments}
       bookmarked={bounty.bookmarked}
+      useAlphaDesign={useAlphaDesign}
+      useBetaDesign={useBetaDesign}
       // engagedUsers={bounty.engagedUsers}
     >
       {/* Badges Row */}
