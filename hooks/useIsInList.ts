@@ -1,14 +1,17 @@
 import { useMemo } from 'react';
-import { useUserListsContext } from '@/contexts/UserListsContext';
+import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 
 export function useIsInList(unifiedDocumentId: number | string | null | undefined) {
   const { overviewLists, isLoadingOverview, refetchOverview } = useUserListsContext();
 
-  const docId = !unifiedDocumentId
-    ? null
-    : typeof unifiedDocumentId === 'string'
-      ? parseInt(unifiedDocumentId)
-      : unifiedDocumentId;
+  let docId: number | null = null;
+  if (unifiedDocumentId) {
+    if (typeof unifiedDocumentId === 'string') {
+      docId = Number.parseInt(unifiedDocumentId);
+    } else {
+      docId = unifiedDocumentId;
+    }
+  }
 
   const listIds = useMemo(() => {
     if (!docId) return new Set<number>();

@@ -37,7 +37,6 @@ interface FeedContentProps {
   maxLength?: number;
   showGrantHeaders?: boolean;
   showReadMoreCTA?: boolean;
-  experimentVariant?: string;
   ordering?: string;
   restoredScrollPosition?: number | null;
   page?: number;
@@ -64,7 +63,6 @@ export const FeedContent: FC<FeedContentProps> = ({
   maxLength,
   showGrantHeaders = true,
   showReadMoreCTA = false,
-  experimentVariant,
   ordering,
   restoredScrollPosition,
   page,
@@ -100,7 +98,7 @@ export const FeedContent: FC<FeedContentProps> = ({
     lastClickedEntryId,
   });
 
-  const { registerVisibleItem, unregisterVisibleItem, getVisibleItems, clearVisibleItems } =
+  const { registerVisibleItem, unregisterVisibleItem, getVisibleItems } =
     useFeedImpressionTracking();
 
   const displayEntries = entries;
@@ -139,12 +137,10 @@ export const FeedContent: FC<FeedContentProps> = ({
                     showGrantHeaders={showGrantHeaders}
                     showReadMoreCTA={showReadMoreCTA}
                     feedView={activeTab}
-                    experimentVariant={experimentVariant}
                     feedOrdering={ordering}
                     registerVisibleItem={registerVisibleItem}
                     unregisterVisibleItem={unregisterVisibleItem}
                     getVisibleItems={getVisibleItems}
-                    clearVisibleItems={clearVisibleItems}
                   />
                   {contentToInsert && (
                     <div key={`insert-content-${index}`} className="mt-12">

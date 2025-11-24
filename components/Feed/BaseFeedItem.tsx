@@ -256,49 +256,34 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
           {/* Action Buttons */}
           {showActions && (
             <div className="mt-4 pt-3 border-t border-gray-200">
-              <div
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-                aria-label="Action buttons container"
-              >
-                <FeedItemActions
-                  metrics={entry.metrics}
-                  feedContentType={
-                    content.contentType ? (content.contentType as FeedContentType) : 'COMMENT'
-                  }
-                  votableEntityId={content.id}
-                  relatedDocumentId={
-                    'relatedDocumentId' in content
-                      ? content.relatedDocumentId?.toString()
-                      : content.id.toString()
-                  }
-                  relatedDocumentContentType={
-                    'relatedDocumentContentType' in content
-                      ? content.relatedDocumentContentType
-                      : mapFeedContentTypeToContentType(content.contentType)
-                  }
-                  userVote={entry.userVote}
-                  showTooltips={showTooltips}
-                  href={href}
-                  reviews={content.reviews}
-                  bounties={content.bounties}
-                  relatedDocumentTopics={'topics' in content ? content.topics : undefined}
-                  relatedDocumentUnifiedDocumentId={
-                    'unifiedDocumentId' in content ? content.unifiedDocumentId : undefined
-                  }
-                  showPeerReviews={showPeerReviews}
-                />
-              </div>
+              <FeedItemActions
+                metrics={entry.metrics}
+                feedContentType={
+                  content.contentType ? (content.contentType as FeedContentType) : 'COMMENT'
+                }
+                votableEntityId={content.id}
+                relatedDocumentId={
+                  'relatedDocumentId' in content
+                    ? content.relatedDocumentId?.toString()
+                    : content.id.toString()
+                }
+                relatedDocumentContentType={
+                  'relatedDocumentContentType' in content
+                    ? content.relatedDocumentContentType
+                    : mapFeedContentTypeToContentType(content.contentType)
+                }
+                userVote={entry.userVote}
+                showTooltips={showTooltips}
+                href={href}
+                reviews={content.reviews}
+                bounties={content.bounties}
+                relatedDocumentTopics={'topics' in content ? content.topics : undefined}
+                relatedDocumentUnifiedDocumentId={
+                  'unifiedDocumentId' in content ? content.unifiedDocumentId : undefined
+                }
+                showPeerReviews={showPeerReviews}
+                onFeedItemClick={onFeedItemClick}
+              />
             </div>
           )}
         </div>

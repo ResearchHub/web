@@ -1,7 +1,7 @@
 'use client';
 
-import { Button, ButtonProps } from './Button';
-import { Loader2 } from 'lucide-react';
+import { Button, ButtonProps } from '@/components/ui/Button';
+import { Loader } from '@/components/ui/Loader';
 
 interface LoadingButtonProps extends ButtonProps {
   isLoading?: boolean;
@@ -19,7 +19,7 @@ export const LoadingButton = ({
     <Button disabled={isLoading || disabled} {...props}>
       {isLoading ? (
         <>
-          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          <Loader size="sm" className="mr-2" />
           {loadingText || children}
         </>
       ) : (

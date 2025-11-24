@@ -11,8 +11,9 @@ import {
   Share2,
   CheckCircle,
   ThumbsDown,
-  FolderPlus,
 } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookmark } from '@fortawesome/pro-light-svg-icons';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
@@ -36,9 +37,9 @@ import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useCompleteFundraise } from '@/hooks/useFundraise';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
-import { AddToListModal } from '@/components/modals/AddToListModal';
+import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/hooks/useIsInList';
-
+import { useUserListsEnabled } from '@/hooks/useUserListsEnabled';
 interface WorkLineItemsProps {
   work: Work;
   showClaimButton?: boolean;
@@ -80,8 +81,8 @@ export const WorkLineItems = ({
   const { user } = useUser();
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
   const { showShareModal } = useShareModalContext();
-  const { isInList, refetch: refetchIsInList } = useIsInList(work.unifiedDocumentId);
-
+  const { isInList, refetch: refetchIsInList, listIds } = useIsInList(work.unifiedDocumentId);
+  const userListsEnabled = useUserListsEnabled();
   const {
     data: userVotes,
     isLoading: isLoadingVotes,
@@ -346,16 +347,19 @@ export const WorkLineItems = ({
             <Share2 className="h-6 w-6" />
           </button>
 
-          <button
-            onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-              isInList
-                ? 'bg-green-50 text-green-600 hover:bg-green-100'
-                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <FolderPlus className="h-6 w-6" />
-          </button>
+          {userListsEnabled && work.unifiedDocumentId && work.postType !== 'QUESTION' && (
+            <button
+              onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+                isInList
+                  ? 'bg-green-50 text-green-600 hover:bg-green-100'
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <FontAwesomeIcon icon={faBookmark} className="h-6 w-6" />
+              <span className="text-sm font-medium">{listIds.size}</span>
+            </button>
+          )}
 
           {work.contentType !== 'preregistration' && (
             <button
@@ -541,8 +545,7 @@ export const WorkLineItems = ({
         onTipSuccess={handleTipSuccess}
       />
 
-      {/* Add to List Modal */}
-      {work.unifiedDocumentId && (
+      {userListsEnabled && work.unifiedDocumentId && (
         <AddToListModal
           isOpen={isAddToListModalOpen}
           onClose={() => {

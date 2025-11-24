@@ -1,5 +1,5 @@
-import { createTransformer } from './transformer';
-import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from './feed';
+import { createTransformer } from '@/types/transformer';
+import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
 
 export interface UserList {
   id: number;
@@ -9,7 +9,6 @@ export interface UserList {
   updated_date: string;
   created_by?: number;
   item_count?: number;
-  items_count?: number;
 }
 
 export interface UserListItem {

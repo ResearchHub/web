@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/services/list.service';
-import { UserList, UserListDetail } from '@/types/user-list';
-import { extractApiErrorMessage } from '@/utils/apiError';
-import { updateListRemoveItem } from '@/utils/listUtils';
+import { UserList, UserListDetail } from '@/components/UserList/lib/user-list';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { updateListRemoveItem } from '@/components/UserList/lib/listUtils';
 
 const PAGE_SIZE = 20;
 

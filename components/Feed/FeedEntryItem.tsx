@@ -26,12 +26,10 @@ interface FeedEntryItemProps {
   showGrantHeaders?: boolean;
   showReadMoreCTA?: boolean;
   feedView?: string;
-  experimentVariant?: string;
   feedOrdering?: string;
-  registerVisibleItem: (unifiedDocumentId: string) => void;
-  unregisterVisibleItem: (unifiedDocumentId: string) => void;
+  registerVisibleItem: (index: number, unifiedDocumentId: string) => void;
+  unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
   getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
-  clearVisibleItems: () => void;
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
@@ -46,12 +44,10 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   showGrantHeaders = true,
   showReadMoreCTA = false,
   feedView,
-  experimentVariant,
   feedOrdering,
   registerVisibleItem,
   unregisterVisibleItem,
   getVisibleItems,
-  clearVisibleItems,
 }) => {
   const unifiedDocumentId = getUnifiedDocumentId(entry);
 
@@ -61,9 +57,9 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
     onChange: (inView) => {
       if (unifiedDocumentId) {
         if (inView) {
-          registerVisibleItem(unifiedDocumentId);
+          registerVisibleItem(index, unifiedDocumentId);
         } else {
-          unregisterVisibleItem(unifiedDocumentId);
+          unregisterVisibleItem(index, unifiedDocumentId);
         }
       }
     },
@@ -80,10 +76,8 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   const handleFeedItemClick = useFeedItemClick({
     entry,
     feedPosition: index + 1,
-    experimentVariant,
     feedOrdering,
     impression: getImpressions(),
-    clearVisibleItems,
   });
 
   if (!entry) {

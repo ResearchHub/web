@@ -9,7 +9,6 @@ import {
   Search as SearchIcon,
   Shield,
   MessageCircleQuestion,
-  FolderPlus,
 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { SearchModal } from '@/components/Search/SearchModal';
@@ -23,9 +22,12 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
-import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { faCommentsQuestion } from '@fortawesome/pro-light-svg-icons';
-import { faGrid3 as faGrid3Light } from '@fortawesome/pro-light-svg-icons';
+import {
+  faHouse as faHouseLight,
+  faBookmark as faBookmarkLight,
+  faCommentsQuestion,
+  faGrid3 as faGrid3Light,
+} from '@fortawesome/pro-light-svg-icons';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { colors } from '@/app/styles/colors';
 import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
@@ -102,9 +104,8 @@ const getPageInfo = (pathname: string): PageInfo | null => {
 
   if (pathname === '/lists' || pathname.startsWith('/list/')) {
     return {
-      title: 'Lists',
-      subtitle: 'Organize your saved content',
-      icon: <FolderPlus size={24} className="text-gray-900" />,
+      title: 'Your Lists',
+      icon: <FontAwesomeIcon icon={faBookmarkLight} fontSize={24} color="#000" />,
     };
   }
 

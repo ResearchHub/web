@@ -7,7 +7,7 @@ import {
   UserCheckResponse,
   UserListItem,
   ListApiResponse,
-} from '@/types/user-list';
+} from '@/components/UserList/lib/user-list';
 
 export class ListService {
   private static readonly BASE_PATH = '/api/list';

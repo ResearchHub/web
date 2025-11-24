@@ -1,4 +1,6 @@
-import { Modal } from '@/components/ui/form/Modal';
+'use client';
+
+import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 
@@ -29,36 +31,46 @@ export const ListModal = ({
 }: ListModalProps) => {
   const { title, submit, loading } = CONFIG[mode];
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title}>
-      {mode === 'delete' ? (
-        <p className="text-gray-600 mb-6">
-          Are you sure you want to delete "{name}"? This cannot be undone.
-        </p>
-      ) : (
-        <Input
-          label="List Name"
-          placeholder="Enter list name"
-          value={name}
-          onChange={(e) => onNameChange(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && name.trim() && onSubmit()}
-          autoFocus
-          className="mb-6"
-        />
-      )}
+  const footer = (
+    <div className="flex justify-end gap-3">
+      <Button variant="outlined" onClick={onClose} disabled={isSubmitting}>
+        Cancel
+      </Button>
+      <Button
+        onClick={onSubmit}
+        disabled={(mode !== 'delete' && !name.trim()) || isSubmitting}
+        variant={mode === 'delete' ? 'destructive' : 'default'}
+      >
+        {isSubmitting ? loading : submit}
+      </Button>
+    </div>
+  );
 
-      <div className="flex justify-end gap-3">
-        <Button variant="outlined" onClick={onClose} disabled={isSubmitting}>
-          Cancel
-        </Button>
-        <Button
-          onClick={onSubmit}
-          disabled={(mode !== 'delete' && !name.trim()) || isSubmitting}
-          variant={mode === 'delete' ? 'destructive' : 'default'}
-        >
-          {isSubmitting ? loading : submit}
-        </Button>
+  return (
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      maxWidth="max-w-2xl"
+      padding="p-6"
+      footer={footer}
+    >
+      <div className="md:!min-w-[500px] md:!max-w-[500px]">
+        {mode === 'delete' ? (
+          <p className="text-gray-600">
+            Are you sure you want to delete "{name}"? This cannot be undone.
+          </p>
+        ) : (
+          <Input
+            label="List Name"
+            placeholder="Enter list name"
+            value={name}
+            onChange={(e) => onNameChange(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && name.trim() && onSubmit()}
+            autoFocus
+          />
+        )}
       </div>
-    </Modal>
+    </BaseModal>
   );
 };

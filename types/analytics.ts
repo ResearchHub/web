@@ -50,8 +50,6 @@ export interface FeedItemClickedEvent extends UserContext, BaseContext {
   feed_tab: string;
   related_work?: RelatedWork;
   recommendation_id?: string | null;
-  experiment_name?: string;
-  experiment_variant?: string;
   feed_ordering?: string;
   impression?: string[];
 }
@@ -75,20 +73,11 @@ export function buildPayloadForFeedItemClick(
     feedSource: FeedSource;
     feedTab: string;
     deviceType: DeviceType;
-    experimentVariant?: string;
     feedOrdering?: string;
     impression?: string[];
   }
 ): FeedItemClickedEvent {
-  const {
-    feedPosition = 1,
-    feedSource,
-    feedTab,
-    deviceType,
-    experimentVariant,
-    feedOrdering,
-    impression,
-  } = options;
+  const { feedPosition = 1, feedSource, feedTab, deviceType, feedOrdering, impression } = options;
 
   const payload: FeedItemClickedEvent = {
     device_type: deviceType,
@@ -107,13 +96,8 @@ export function buildPayloadForFeedItemClick(
       unified_document_id: getUnifiedDocumentId(entry),
     },
     recommendation_id: entry.recommendationId,
-    // Track experiment data for following feed
-    ...(experimentVariant &&
-      feedTab === 'following' && {
-        experiment_name: 'following_feed_ordering',
-        experiment_variant: experimentVariant,
-        feed_ordering: feedOrdering,
-      }),
+    // Include feed ordering if provided
+    ...(feedOrdering && { feed_ordering: feedOrdering }),
     // Include impressions if provided
     ...(impression && impression.length > 0 && { impression }),
   };

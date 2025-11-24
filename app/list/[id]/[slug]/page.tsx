@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserListDetail } from '@/hooks/useUserListDetail';
-import { useUserListsContext } from '@/contexts/UserListsContext';
+import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { useUser } from '@/contexts/UserContext';
 import { useFeedImpressionTracking } from '@/hooks/useFeedImpressionTracking';
 import { FeedEntryItem } from '@/components/Feed/FeedEntryItem';
@@ -14,8 +14,7 @@ import { FolderPlus, Edit2, Trash2, MoreHorizontal, Loader2 } from 'lucide-react
 import { Button } from '@/components/ui/Button';
 import { ListModal } from '@/components/modals/ListModal';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { formatItemCount } from '@/utils/listUtils';
-import { transformListItemToFeedEntry } from '@/types/user-list';
+import { formatItemCount, transformListItemToFeedEntry } from '@/components/UserList/lib/listUtils';
 import { generateSlug } from '@/utils/url';
 
 interface ModalState {
@@ -45,7 +44,7 @@ export default function ListDetailPage() {
     updateListDetails,
   } = useUserListDetail(listId, { onItemMutated: fetchLists });
 
-  const { registerVisibleItem, unregisterVisibleItem, getVisibleItems, clearVisibleItems } =
+  const { registerVisibleItem, unregisterVisibleItem, getVisibleItems } =
     useFeedImpressionTracking();
   const [modal, setModal] = useState<ModalState>(INITIAL_MODAL);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -179,7 +178,6 @@ export default function ListDetailPage() {
                     registerVisibleItem={registerVisibleItem}
                     unregisterVisibleItem={unregisterVisibleItem}
                     getVisibleItems={getVisibleItems}
-                    clearVisibleItems={clearVisibleItems}
                   />
                   {isOwner && (
                     <div className="absolute top-16 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">

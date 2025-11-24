@@ -3,15 +3,9 @@
 import { FC, useState, ReactNode, useEffect, useRef } from 'react';
 import React from 'react';
 import { FeedContentType, FeedEntry, Review } from '@/types/feed';
-import {
-  MessageCircle,
-  Flag,
-  ArrowUp,
-  MoreHorizontal,
-  Star,
-  ThumbsDown,
-  FolderPlus,
-} from 'lucide-react';
+import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star, ThumbsDown } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookmark } from '@fortawesome/pro-light-svg-icons';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
@@ -24,7 +18,7 @@ import { ContentType } from '@/types/work';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useRouter } from 'next/navigation';
 import { TipContentModal } from '@/components/modals/TipContentModal';
-import { AddToListModal } from '@/components/modals/AddToListModal';
+import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/hooks/useIsInList';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Bounty } from '@/types/bounty';
@@ -39,6 +33,11 @@ import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
 import { Topic } from '@/types/topic';
 import { isFeatureEnabled, FeatureFlag } from '@/utils/featureFlags';
+import { useUserListsEnabled } from '@/hooks/useUserListsEnabled';
+
+const BookmarkIcon: FC<{ className?: string }> = (props) => (
+  <FontAwesomeIcon icon={faBookmark} {...props} />
+);
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -187,6 +186,7 @@ interface FeedItemActionsProps {
   relatedDocumentTopics?: Topic[];
   relatedDocumentUnifiedDocumentId?: string;
   showPeerReviews?: boolean;
+  onFeedItemClick?: () => void;
 }
 
 // Define interface for avatar items used in local state
@@ -220,6 +220,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   relatedDocumentTopics,
   relatedDocumentUnifiedDocumentId,
   showPeerReviews = true,
+  onFeedItemClick,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser(); // Get current user
@@ -227,7 +228,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
-
+  const userListsEnabled = useUserListsEnabled();
   // State for dropdown menu
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -242,6 +243,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     isLoading: isCheckingList,
     refetch: refetchIsInList,
     listDetails,
+    listIds,
   } = useIsInList(relatedDocumentUnifiedDocumentId);
 
   // Calculate initial tip amount and avatars from props
@@ -336,12 +338,20 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     });
   };
 
+  const navigateToTab = (tab: string) => {
+    if (onFeedItemClick) {
+      onFeedItemClick();
+    }
+
+    router.push(`${href}/${tab}`);
+  };
+
   const handleComment = (e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation();
     }
     if (href) {
-      router.push(`${href}/conversation`);
+      navigateToTab('conversation');
     } else if (onComment) {
       onComment();
     }
@@ -352,7 +362,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       e.stopPropagation();
     }
     if (href) {
-      router.push(`${href}/reviews`);
+      navigateToTab('reviews');
     }
   };
 
@@ -361,7 +371,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       e.stopPropagation();
     }
     if (href) {
-      router.push(`${href}/bounties`);
+      navigateToTab('bounties');
     }
   };
 
@@ -373,6 +383,17 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     executeAuthenticatedAction(() => {
       setTipModalState({ isOpen: true, contentId: votableEntityId });
     });
+  };
+
+  const handleOpenAddToListModal = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    executeAuthenticatedAction(() => setIsAddToListModalOpen(true));
+  };
+
+  const handleCloseAddToListModal = () => {
+    setIsAddToListModalOpen(false);
   };
 
   // Handle successful tip
@@ -567,15 +588,18 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               avatars={commentAvatars}
             />
           )}
-          {relatedDocumentUnifiedDocumentId &&
+          {userListsEnabled &&
+            relatedDocumentUnifiedDocumentId &&
             feedContentType !== 'COMMENT' &&
             feedContentType !== 'BOUNTY' &&
-            feedContentType !== 'APPLICATION' && (
+            feedContentType !== 'APPLICATION' &&
+            showPeerReviews && ( // to prevent questions from being added to lists
               <ActionButton
-                icon={FolderPlus}
+                icon={BookmarkIcon}
                 tooltip="Add to List"
                 label="Add to List"
-                onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
+                count={listIds.size}
+                onClick={handleOpenAddToListModal}
                 showTooltip={showTooltips}
                 isActive={isDocumentInList}
                 className={
@@ -748,6 +772,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
             <BaseMenu
               trigger={
                 <Button
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
                   variant="ghost"
                   size="sm"
                   className="flex items-center text-gray-400 hover:text-gray-600"
@@ -806,11 +836,11 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         />
       )}
 
-      {relatedDocumentUnifiedDocumentId && (
+      {userListsEnabled && relatedDocumentUnifiedDocumentId && isAddToListModalOpen && (
         <AddToListModal
           isOpen={isAddToListModalOpen}
-          onClose={() => setIsAddToListModalOpen(false)}
-          unifiedDocumentId={parseInt(relatedDocumentUnifiedDocumentId)}
+          onClose={handleCloseAddToListModal}
+          unifiedDocumentId={Number.parseInt(relatedDocumentUnifiedDocumentId)}
           listDetails={listDetails}
           isLoadingListDetails={isCheckingList}
           refetchListDetails={refetchIsInList}

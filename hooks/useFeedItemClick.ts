@@ -11,10 +11,8 @@ import { useDeviceType } from '@/hooks/useDeviceType';
 interface UseFeedItemClickOptions {
   entry: FeedEntry | null;
   feedPosition?: number;
-  experimentVariant?: string;
   feedOrdering?: string;
   impression?: string[] | undefined;
-  clearVisibleItems?: () => void;
 }
 
 /**
@@ -26,10 +24,8 @@ interface UseFeedItemClickOptions {
 export function useFeedItemClick({
   entry,
   feedPosition,
-  experimentVariant,
   feedOrdering,
   impression,
-  clearVisibleItems,
 }: UseFeedItemClickOptions) {
   const { user } = useUser();
   const { source: feedSource, tab: feedTab } = useFeedSource();
@@ -46,32 +42,15 @@ export function useFeedItemClick({
         feedSource,
         feedTab,
         deviceType,
-        experimentVariant,
         feedOrdering,
         impression,
       });
 
       AnalyticsService.logEventWithUserProperties(LogEvent.FEED_ITEM_CLICKED, payload, user);
-
-      // Clear impressions after successfully sending analytics event (if provided)
-      if (clearVisibleItems) {
-        clearVisibleItems();
-      }
     } catch (analyticsError) {
       console.warn('Failed to track feed item click analytics:', analyticsError);
     }
-  }, [
-    entry,
-    feedPosition,
-    feedSource,
-    feedTab,
-    deviceType,
-    user,
-    experimentVariant,
-    feedOrdering,
-    impression,
-    clearVisibleItems,
-  ]);
+  }, [entry, feedPosition, feedSource, feedTab, deviceType, user, feedOrdering, impression]);
 
   return handleFeedItemClick;
 }
