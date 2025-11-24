@@ -152,11 +152,9 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           // Clear query if no q param in URL
           setQuery('');
         }
-      } else {
+      } else if (!navigatingToSearchRef.current) {
         // Clear query when opening modal on non-search pages (unless we just navigated)
-        if (!navigatingToSearchRef.current) {
-          setQuery('');
-        }
+        setQuery('');
       }
     }
   }, [isOpen, pathname, searchParams]);
@@ -165,7 +163,8 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
   // Detect OS for keyboard shortcut display
   const isMac =
-    typeof window !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    typeof globalThis.window !== 'undefined' &&
+    navigator.platform.toUpperCase().indexOf('MAC') >= 0;
   const shortcutKey = isMac ? '⌘' : 'Ctrl';
 
   return (
@@ -212,7 +211,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                     if (scrollContainer) {
                       scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
                     } else {
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                      globalThis.window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
 
                     router.push(`/search?debug&q=${encodeURIComponent(query.trim())}`);

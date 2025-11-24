@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SearchResult } from '@/components/Search/SearchResult';
 import { SearchSortControls } from '@/components/Search/SearchSortControls';
@@ -11,15 +11,14 @@ import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { Search as SearchIcon } from 'lucide-react';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 import { useInView } from 'react-intersection-observer';
-import { cn } from '@/utils/styles';
 
 interface SearchPageContentProps {
-  searchParams: {
-    q?: string;
-    tab?: string;
-    sort?: string;
-    page?: string;
-    [key: string]: string | undefined;
+  readonly searchParams: {
+    readonly q?: string;
+    readonly tab?: string;
+    readonly sort?: string;
+    readonly page?: string;
+    readonly [key: string]: string | undefined;
   };
 }
 
@@ -29,24 +28,8 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
   const [query, setQuery] = useState(searchParams.q || '');
   const [hasSearched, setHasSearched] = useState(false);
 
-  const {
-    entries,
-    people,
-    isLoading,
-    error,
-    hasMore,
-    loadMore,
-    aggregations,
-    filters,
-    stagedFilters,
-    sortBy,
-    setFilters,
-    setStagedFilters,
-    applyFilters,
-    hasUnappliedChanges,
-    setSortBy,
-    search,
-  } = useSearch();
+  const { entries, isLoading, error, hasMore, loadMore, stagedFilters, sortBy, setSortBy, search } =
+    useSearch();
 
   // Initialize from URL params and perform initial search
   useEffect(() => {
@@ -124,6 +107,61 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     }
   }, [inView, hasMore, isLoading, loadMore]);
 
+  // Generate stable keys for skeleton loaders
+  const skeletonKeys = useMemo(() => {
+    return Array.from({ length: 5 }, (_, i) => `skeleton-${i}`);
+  }, []);
+
+  const loadingSkeletonKeys = useMemo(() => {
+    return Array.from({ length: 3 }, (_, i) => `loading-${i}`);
+  }, []);
+
+  const renderContent = () => {
+    if (isLoading && entries.length === 0) {
+      return (
+        <div className="space-y-4">
+          {skeletonKeys.map((key) => (
+            <FeedItemSkeleton key={key} />
+          ))}
+        </div>
+      );
+    }
+
+    if (!hasSearched) {
+      return null;
+    }
+
+    return (
+      <>
+        {/* Render search results */}
+        <div className="space-y-6">
+          {entries.map((searchResult, index) => (
+            <SearchResult
+              key={searchResult.entry.id}
+              searchResult={searchResult}
+              index={index}
+              showGrantHeaders={true}
+              showReadMoreCTA={true}
+            />
+          ))}
+        </div>
+
+        {/* Load more trigger */}
+        {hasMore && (
+          <div ref={loadMoreRef} className="mt-6">
+            {isLoading && (
+              <div className="space-y-4">
+                {loadingSkeletonKeys.map((key) => (
+                  <FeedItemSkeleton key={key} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </>
+    );
+  };
+
   // Show a blank page (no default search UI) if no query
   if (!query.trim()) {
     return (
@@ -146,7 +184,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
         {header}
         <div className="max-w-7xl mx-auto">
           <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {error || 'Something went wrong while fetching results. Please try again.'}
+            {error ?? 'Something went wrong while fetching results. Please try again.'}
           </div>
         </div>
       </PageLayout>
@@ -188,41 +226,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
             {sortControls && <div className="mb-4">{sortControls}</div>}
 
             {/* Show skeletons while loading initial results, or blank if no search has been initiated */}
-            {isLoading && entries.length === 0 ? (
-              <div className="space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <FeedItemSkeleton key={`skeleton-${i}`} />
-                ))}
-              </div>
-            ) : hasSearched ? (
-              <>
-                {/* Render search results */}
-                <div className="space-y-6">
-                  {entries.map((searchResult, index) => (
-                    <SearchResult
-                      key={searchResult.entry.id}
-                      searchResult={searchResult}
-                      index={index}
-                      showGrantHeaders={true}
-                      showReadMoreCTA={true}
-                    />
-                  ))}
-                </div>
-
-                {/* Load more trigger */}
-                {hasMore && (
-                  <div ref={loadMoreRef} className="mt-6">
-                    {isLoading && (
-                      <div className="space-y-4">
-                        {[...Array(3)].map((_, i) => (
-                          <FeedItemSkeleton key={`loading-${i}`} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            ) : null}
+            {renderContent()}
           </div>
         </div>
       </div>

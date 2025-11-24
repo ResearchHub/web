@@ -4,9 +4,9 @@ import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
 import { SearchSortOption } from '@/types/search';
 
 interface SearchSortControlsProps {
-  sortBy: SearchSortOption;
-  onSortChange: (sort: SearchSortOption) => void;
-  activeTab: 'documents' | 'people';
+  readonly sortBy: SearchSortOption;
+  readonly onSortChange: (sort: SearchSortOption) => void;
+  readonly activeTab: 'documents' | 'people';
 }
 
 export function SearchSortControls({ sortBy, onSortChange, activeTab }: SearchSortControlsProps) {

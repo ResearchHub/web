@@ -50,9 +50,9 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
 
   // Load preferences from localStorage
   const [filters, setFiltersState] = useState<SearchFilters>(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof globalThis.window !== 'undefined') {
       try {
-        const stored = localStorage.getItem(STORAGE_KEY);
+        const stored = globalThis.window.localStorage.getItem(STORAGE_KEY);
         if (stored) {
           const parsed = JSON.parse(stored);
           return parsed.filters || {};
@@ -68,9 +68,9 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
   const [stagedFilters, setStagedFiltersState] = useState<SearchFilters>(filters);
 
   const [sortBy, setSortByState] = useState<SearchSortOption>(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof globalThis.window !== 'undefined') {
       try {
-        const stored = localStorage.getItem(STORAGE_KEY);
+        const stored = globalThis.window.localStorage.getItem(STORAGE_KEY);
         if (stored) {
           const parsed = JSON.parse(stored);
           return parsed.sortBy || 'relevance';
@@ -87,9 +87,9 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
 
   // Save preferences to localStorage
   const savePreferences = useCallback((newFilters: SearchFilters, newSortBy: SearchSortOption) => {
-    if (typeof window !== 'undefined') {
+    if (typeof globalThis.window !== 'undefined') {
       try {
-        localStorage.setItem(
+        globalThis.window.localStorage.setItem(
           STORAGE_KEY,
           JSON.stringify({
             filters: newFilters,

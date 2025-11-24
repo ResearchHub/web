@@ -158,72 +158,133 @@ export class SearchService {
     };
   }
 
+  private static stripHighlightTags(text: string | null | undefined): string {
+    if (!text) return '';
+    return text.replaceAll('<mark>', '').replaceAll('</mark>', '');
+  }
+
+  private static processTitleHighlights(
+    doc: ApiDocumentSearchResult,
+    plainSnippet: string,
+    query: string
+  ): { highlightedTitle?: string; highlightedSnippet?: string } {
+    const titleHasHighlight = doc.title ? hasHighlights(doc.title) : false;
+    const snippetHasHighlight = doc.snippet ? hasHighlights(doc.snippet) : false;
+
+    if (titleHasHighlight && doc.title) {
+      return {
+        highlightedTitle: doc.title,
+        highlightedSnippet:
+          !snippetHasHighlight && plainSnippet
+            ? highlightSearchTerms(plainSnippet, query)
+            : undefined,
+      };
+    }
+
+    return {};
+  }
+
+  private static processSnippetAsTitle(
+    doc: ApiDocumentSearchResult,
+    plainSnippet: string,
+    plainTitle: string,
+    query: string
+  ): { highlightedTitle?: string; highlightedSnippet?: string } {
+    const snippetHasHighlight = doc.snippet ? hasHighlights(doc.snippet) : false;
+
+    if (doc.matched_field === 'title' && snippetHasHighlight && doc.snippet) {
+      return {
+        highlightedTitle: doc.snippet,
+        highlightedSnippet:
+          plainSnippet && plainSnippet !== plainTitle
+            ? highlightSearchTerms(plainSnippet, query)
+            : undefined,
+      };
+    }
+
+    return {};
+  }
+
+  private static processSnippetHighlights(
+    doc: ApiDocumentSearchResult,
+    plainTitle: string,
+    query: string
+  ): { highlightedTitle?: string; highlightedSnippet?: string } {
+    const snippetHasHighlight = doc.snippet ? hasHighlights(doc.snippet) : false;
+    const titleHasHighlight = doc.title ? hasHighlights(doc.title) : false;
+
+    if (snippetHasHighlight && doc.matched_field !== 'title' && doc.snippet) {
+      return {
+        highlightedSnippet: doc.snippet,
+        highlightedTitle:
+          !titleHasHighlight && plainTitle ? highlightSearchTerms(plainTitle, query) : undefined,
+      };
+    }
+
+    return {};
+  }
+
+  private static applyFallbackHighlights(
+    plainTitle: string,
+    plainSnippet: string,
+    query: string,
+    existingTitle?: string,
+    existingSnippet?: string
+  ): { highlightedTitle?: string; highlightedSnippet?: string } {
+    return {
+      highlightedTitle:
+        existingTitle || (plainTitle ? highlightSearchTerms(plainTitle, query) : undefined),
+      highlightedSnippet:
+        existingSnippet || (plainSnippet ? highlightSearchTerms(plainSnippet, query) : undefined),
+    };
+  }
+
   private static transformSearchResult(doc: ApiDocumentSearchResult, query: string): SearchResult {
     // First transform to a clean FeedEntry
     const feedEntry = this.transformDocumentToFeedEntry(doc);
 
     // Strip HTML tags from snippet and title for plain text, handle null values
-    const plainSnippet = doc.snippet
-      ? doc.snippet.replace(/<mark>/g, '').replace(/<\/mark>/g, '')
-      : '';
-    const plainTitle = doc.title ? doc.title.replace(/<mark>/g, '').replace(/<\/mark>/g, '') : '';
+    const plainSnippet = this.stripHighlightTags(doc.snippet);
+    const plainTitle = this.stripHighlightTags(doc.title);
 
-    // Check if the snippet contains highlighting
-    const snippetHasHighlight = doc.snippet ? hasHighlights(doc.snippet) : false;
-    const titleHasHighlight = doc.title ? hasHighlights(doc.title) : false;
+    // Process highlights in priority order
+    const titleResult = this.processTitleHighlights(doc, plainSnippet, query);
+    const snippetAsTitleResult = titleResult.highlightedTitle
+      ? {}
+      : this.processSnippetAsTitle(doc, plainSnippet, plainTitle, query);
+    const snippetResult =
+      titleResult.highlightedTitle || snippetAsTitleResult.highlightedTitle
+        ? {}
+        : this.processSnippetHighlights(doc, plainTitle, query);
 
-    // Initialize highlight fields
-    let highlightedTitle: string | undefined;
-    let highlightedSnippet: string | undefined;
+    // Combine results
+    const combined = {
+      ...titleResult,
+      ...snippetAsTitleResult,
+      ...snippetResult,
+    };
 
-    // If title itself has highlighting, use it
-    if (titleHasHighlight && doc.title) {
-      highlightedTitle = doc.title;
-      // Also highlight the abstract if it doesn't already have highlights
-      if (!snippetHasHighlight && plainSnippet) {
-        highlightedSnippet = highlightSearchTerms(plainSnippet, query);
-      }
-    }
-    // Otherwise if matched_field is title, use snippet for title
-    else if (doc.matched_field === 'title' && snippetHasHighlight && doc.snippet) {
-      highlightedTitle = doc.snippet;
-      // Also try to highlight the abstract
-      if (plainSnippet && plainSnippet !== plainTitle) {
-        highlightedSnippet = highlightSearchTerms(plainSnippet, query);
-      }
-    }
-
-    // If snippet has highlighting and matched_field is not title, use it for content
-    if (snippetHasHighlight && doc.matched_field !== 'title' && doc.snippet) {
-      highlightedSnippet = doc.snippet;
-      // Also try to highlight the title if it doesn't already have highlights
-      if (!titleHasHighlight && plainTitle) {
-        highlightedTitle = highlightSearchTerms(plainTitle, query);
-      }
-    }
-
-    // If we still don't have any highlights, try to highlight based on the query
-    if (!highlightedTitle && plainTitle) {
-      highlightedTitle = highlightSearchTerms(plainTitle, query);
-    }
-    if (!highlightedSnippet && plainSnippet) {
-      highlightedSnippet = highlightSearchTerms(plainSnippet, query);
-    }
+    // Apply fallback highlights if needed
+    const final = this.applyFallbackHighlights(
+      plainTitle,
+      plainSnippet,
+      query,
+      combined.highlightedTitle,
+      combined.highlightedSnippet
+    );
 
     return {
       entry: feedEntry,
-      highlightedTitle,
-      highlightedSnippet,
+      highlightedTitle: final.highlightedTitle,
+      highlightedSnippet: final.highlightedSnippet,
       matchedField: doc.matched_field,
     };
   }
 
   private static transformDocumentToFeedEntry(doc: ApiDocumentSearchResult): FeedEntry {
     // Strip HTML tags from snippet and title for plain text, handle null values
-    const plainSnippet = doc.snippet
-      ? doc.snippet.replace(/<mark>/g, '').replace(/<\/mark>/g, '')
-      : '';
-    const plainTitle = doc.title ? doc.title.replace(/<mark>/g, '').replace(/<\/mark>/g, '') : '';
+    const plainSnippet = this.stripHighlightTags(doc.snippet);
+    const plainTitle = this.stripHighlightTags(doc.title);
 
     // Use structured author objects from API - no more string splitting!
     const firstAuthor = doc.authors && doc.authors.length > 0 ? doc.authors[0] : null;

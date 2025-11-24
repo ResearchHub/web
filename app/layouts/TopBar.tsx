@@ -18,16 +18,16 @@ import { Button } from '@/components/ui/Button';
 import { useAuthenticatedAction, useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { Icon } from '@/components/ui/icons';
-import { Tooltip } from '@/components/ui/Tooltip';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
-import { faHouse as faHouseLight, faBookmark as faBookmarkLight } from '@fortawesome/pro-light-svg-icons';
-import { faCommentsQuestion } from '@fortawesome/pro-light-svg-icons';
-import { faGrid3 as faGrid3Light } from '@fortawesome/pro-light-svg-icons';
-import { faMagnifyingGlass } from '@fortawesome/pro-light-svg-icons';
+import {
+  faHouse as faHouseLight,
+  faBookmark as faBookmarkLight,
+  faCommentsQuestion,
+  faGrid3 as faGrid3Light,
+  faMagnifyingGlass,
+} from '@fortawesome/pro-light-svg-icons';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
-import { colors } from '@/app/styles/colors';
 import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
 import { toTitleCase } from '@/utils/stringUtils';
 import { Hash } from 'lucide-react';

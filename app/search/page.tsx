@@ -15,13 +15,13 @@ export const metadata: Metadata = {
 };
 
 interface SearchPageProps {
-  searchParams: Promise<{
-    q?: string;
-    tab?: string;
-    sort?: string;
-    page?: string;
-    debug?: string;
-    [key: string]: string | undefined;
+  readonly searchParams: Promise<{
+    readonly q?: string;
+    readonly tab?: string;
+    readonly sort?: string;
+    readonly page?: string;
+    readonly debug?: string;
+    readonly [key: string]: string | undefined;
   }>;
 }
 

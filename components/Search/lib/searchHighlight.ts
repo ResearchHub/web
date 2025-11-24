@@ -14,17 +14,17 @@ export function highlightSearchTerms(text: string, query: string): string {
     .toLowerCase()
     .split(/\s+/)
     .filter((term) => term.length > 2) // Only highlight terms longer than 2 chars
-    .map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')); // Escape regex special chars
+    .map((term) => term.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')); // Escape regex special chars
 
   if (terms.length === 0) {
     return text;
   }
 
   // Create a regex pattern that matches any of the terms (case-insensitive, whole word)
-  const pattern = new RegExp(`\\b(${terms.join('|')})\\w*`, 'gi');
+  const pattern = new RegExp(String.raw`\b(${terms.join('|')})\w*`, 'gi');
 
   // Replace matches with marked versions
-  const highlighted = text.replace(pattern, '<mark>$&</mark>');
+  const highlighted = text.replaceAll(pattern, '<mark>$&</mark>');
 
   return highlighted;
 }
@@ -35,7 +35,7 @@ export function highlightSearchTerms(text: string, query: string): string {
  * @returns Plain text without any HTML tags
  */
 export function stripHighlightTags(highlightedText: string): string {
-  return highlightedText.replace(/<\/?mark>/g, '');
+  return highlightedText.replaceAll(/<\/?mark>/g, '');
 }
 
 /**

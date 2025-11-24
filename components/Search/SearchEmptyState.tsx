@@ -4,11 +4,11 @@ import { Search as SearchIcon } from 'lucide-react';
 import { SearchFilters } from '@/types/search';
 
 interface SearchEmptyStateProps {
-  onSearch: (query: string) => void;
-  query?: string;
-  filters?: SearchFilters;
-  hasFilters?: boolean;
-  onClearFilters?: () => void;
+  readonly onSearch: (query: string) => void;
+  readonly query?: string;
+  readonly filters?: SearchFilters;
+  readonly hasFilters?: boolean;
+  readonly onClearFilters?: () => void;
 }
 
 export function SearchEmptyState({
@@ -19,7 +19,7 @@ export function SearchEmptyState({
   onClearFilters,
 }: SearchEmptyStateProps) {
   // Show "no results" state if there's a query but no results
-  if (query && query.trim()) {
+  if (query?.trim()) {
     return (
       <div className="max-w-4xl mx-auto text-center py-12">
         <div className="mb-8">

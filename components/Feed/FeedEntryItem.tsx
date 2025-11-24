@@ -155,10 +155,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
 
   const href = generateHref(entry);
 
-  // Extract highlighted fields from highlights prop
-  const highlightedTitle = highlights?.find((h: any) => h.field === 'title')?.value;
-  const highlightedSnippet = highlights?.find((h: any) => h.field === 'snippet')?.value;
-
   let content = null;
 
   try {
