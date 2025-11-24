@@ -5,7 +5,7 @@ import {
   UpdateListRequest,
   UserListsResponse,
   UserCheckResponse,
-} from '@/types/user-list';
+} from '@/components/List/lib/user-list';
 
 export class ListService {
   private static readonly BASE_PATH = '/api/list';

@@ -37,7 +37,7 @@ import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useCompleteFundraise } from '@/hooks/useFundraise';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
-import { AddToListModal } from '@/components/modals/AddToListModal';
+import { AddToListModal } from '@/components/List/AddToListModal';
 import { useIsInList } from '@/hooks/useIsInList';
 import { useUserListsEnabled } from '@/hooks/useUserListsEnabled';
 interface WorkLineItemsProps {

@@ -8,7 +8,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
 } from 'react';
 import { ListService } from '@/services/list.service';
 import {
@@ -16,9 +15,9 @@ import {
   CreateListRequest,
   UpdateListRequest,
   SimplifiedUserList,
-} from '@/types/user-list';
+} from '@/components/List/lib/user-list';
 import { toast } from 'react-hot-toast';
-import { extractApiErrorMessage } from '@/utils/apiError';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
 
 interface UserListsContextType {
@@ -47,9 +46,9 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   const [error, setError] = useState<string | null>(null);
   const [overviewLists, setOverviewLists] = useState<SimplifiedUserList[]>([]);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
-  const previousUserIdRef = useRef<number | null>(null);
 
   const fetchLists = useCallback(async () => {
+    if (!user) return;
     setIsLoading(true);
     setError(null);
     try {
@@ -62,9 +61,10 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   const fetchOverview = useCallback(async () => {
+    if (!user) return;
     setIsLoadingOverview(true);
     try {
       const response = await ListService.getOverview();
@@ -75,21 +75,14 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     } finally {
       setIsLoadingOverview(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    fetchLists();
-    fetchOverview();
-  }, [fetchLists, fetchOverview]);
-
-  useEffect(() => {
-    const currentUserId = user?.id ?? null;
-    const previousUserId = previousUserIdRef.current;
-    if (previousUserId === null && currentUserId !== null) {
+    if (user) {
+      fetchLists();
       fetchOverview();
     }
-    previousUserIdRef.current = currentUserId;
-  }, [user, fetchOverview]);
+  }, [user, fetchLists, fetchOverview]);
 
   const withRefresh = useCallback(
     async <T,>(

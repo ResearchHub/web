@@ -1,7 +1,7 @@
 'use client';
 
-import { UserList } from '@/types/user-list';
-import { formatItemCount } from '@/utils/listUtils';
+import { UserList } from '@/components/List/lib/user-list';
+import { formatItemCount } from '@/components/List/lib/listUtils';
 import { Edit2, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { formatTimeAgo } from '@/utils/date';
