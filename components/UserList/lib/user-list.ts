@@ -1,5 +1,19 @@
 import { createTransformer } from '@/types/transformer';
 import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
+export interface ApiSimplifiedListItem {
+  list_item_id: number;
+  unified_document_id: number;
+}
+
+export interface ApiSimplifiedUserList {
+  list_id: number;
+  name: string;
+  unified_documents: ApiSimplifiedListItem[];
+}
+
+export interface ApiUserCheckResponse {
+  lists: ApiSimplifiedUserList[];
+}
 
 export interface UserList {
   id: number;
@@ -102,19 +116,19 @@ export interface UserListsResponse {
   results: UserList[];
 }
 
-export interface SimplifiedListItem {
-  list_item_id: number;
-  unified_document_id: number;
+export interface UserListOverviewItem {
+  listItemId: number;
+  unifiedDocumentId: number;
 }
 
-export interface SimplifiedUserList {
-  list_id: number;
+export interface UserListOverview {
+  listId: number;
   name: string;
-  unified_documents: SimplifiedListItem[];
+  unifiedDocuments: UserListOverviewItem[];
 }
 
-export interface UserCheckResponse {
-  lists: SimplifiedUserList[];
+export interface UserListsOverviewResponse {
+  lists: UserListOverview[];
 }
 
 export const transformListItemToFeedEntry = createTransformer<UserListItem, FeedEntry>((item) =>
@@ -130,3 +144,20 @@ export const transformListItemToFeedEntry = createTransformer<UserListItem, Feed
     metrics: item.document.metrics,
   } as RawApiFeedEntry)
 );
+
+const transformOverviewItem = (raw: ApiSimplifiedListItem): UserListOverviewItem => ({
+  listItemId: raw.list_item_id,
+  unifiedDocumentId: raw.unified_document_id,
+});
+
+const transformOverviewList = (raw: ApiSimplifiedUserList): UserListOverview => ({
+  listId: raw.list_id,
+  name: raw.name,
+  unifiedDocuments: raw.unified_documents.map(transformOverviewItem),
+});
+
+export const transformUserListsOverview = (
+  raw: ApiUserCheckResponse
+): UserListsOverviewResponse => ({
+  lists: raw.lists.map(transformOverviewList),
+});

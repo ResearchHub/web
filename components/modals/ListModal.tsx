@@ -66,7 +66,13 @@ export const ListModal = ({
             placeholder="Enter list name"
             value={name}
             onChange={(e) => onNameChange(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && name.trim() && onSubmit()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && name.trim()) {
+                e.preventDefault();
+                e.stopPropagation();
+                onSubmit();
+              }
+            }}
             autoFocus
           />
         )}

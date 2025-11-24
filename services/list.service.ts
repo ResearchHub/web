@@ -4,9 +4,11 @@ import {
   CreateListRequest,
   UpdateListRequest,
   UserListsResponse,
-  UserCheckResponse,
   UserListItem,
   ListApiResponse,
+  ApiUserCheckResponse,
+  UserListsOverviewResponse,
+  transformUserListsOverview,
 } from '@/components/UserList/lib/user-list';
 
 export class ListService {
@@ -72,7 +74,8 @@ export class ListService {
     return this.handleDeleteApi(`${this.BASE_PATH}/${listId}/item/${itemId}/`);
   }
 
-  static async getOverviewApi(): Promise<UserCheckResponse> {
-    return ApiClient.get<UserCheckResponse>(`${this.BASE_PATH}/overview/`);
+  static async getOverviewApi(): Promise<UserListsOverviewResponse> {
+    const response = await ApiClient.get<ApiUserCheckResponse>(`${this.BASE_PATH}/overview/`);
+    return transformUserListsOverview(response);
   }
 }

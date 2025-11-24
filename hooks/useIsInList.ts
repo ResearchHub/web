@@ -1,31 +1,27 @@
 import { useMemo } from 'react';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
+import { ID } from '@/types/root';
 
-export function useIsInList(unifiedDocumentId: number | string | null | undefined) {
+export function useIsInList(unifiedDocumentId: ID) {
   const { overviewLists, isLoadingOverview, refetchOverview } = useUserListsContext();
 
-  let docId: number | null = null;
-  if (unifiedDocumentId) {
-    if (typeof unifiedDocumentId === 'string') {
-      docId = Number.parseInt(unifiedDocumentId);
-    } else {
-      docId = unifiedDocumentId;
-    }
-  }
+  const docId = useMemo(() => {
+    if (!unifiedDocumentId) return null;
+    return typeof unifiedDocumentId === 'string'
+      ? Number.parseInt(unifiedDocumentId, 10)
+      : unifiedDocumentId;
+  }, [unifiedDocumentId]);
 
   const listIds = useMemo(() => {
-    if (!docId) return new Set<number>();
-    return new Set(
-      overviewLists
-        .filter((list) =>
-          list.unified_documents?.some((item) => item.unified_document_id === docId)
-        )
-        .map((list) => list.list_id)
-    );
+    if (!docId) return [];
+
+    return overviewLists
+      .filter((list) => list.unifiedDocuments?.some((item) => item.unifiedDocumentId === docId))
+      .map((list) => list.listId);
   }, [overviewLists, docId]);
 
   return {
-    isInList: listIds.size > 0,
+    isInList: listIds.length > 0,
     isLoading: isLoadingOverview,
     refetch: refetchOverview,
     listDetails: overviewLists,
