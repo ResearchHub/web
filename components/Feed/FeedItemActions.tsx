@@ -240,9 +240,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
   const {
     isInList: isDocumentInList,
-    isLoading: isCheckingList,
     refetch: refetchIsInList,
-    listDetails,
     listIds,
   } = useIsInList(relatedDocumentUnifiedDocumentId);
 
@@ -598,7 +596,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 icon={BookmarkIcon}
                 tooltip="Add to List"
                 label="Add to List"
-                count={listIds.size}
+                count={listIds.length}
                 onClick={handleOpenAddToListModal}
                 showTooltip={showTooltips}
                 isActive={isDocumentInList}
@@ -841,10 +839,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           isOpen={isAddToListModalOpen}
           onClose={handleCloseAddToListModal}
           unifiedDocumentId={Number.parseInt(relatedDocumentUnifiedDocumentId)}
-          listDetails={listDetails}
-          isLoadingListDetails={isCheckingList}
-          refetchListDetails={refetchIsInList}
-          onItemAdded={refetchIsInList}
+          onListsChanged={refetchIsInList}
         />
       )}
     </>

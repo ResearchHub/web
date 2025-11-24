@@ -14,7 +14,7 @@ import {
   UserList,
   CreateListRequest,
   UpdateListRequest,
-  SimplifiedUserList,
+  UserListOverview,
 } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
@@ -32,7 +32,7 @@ interface UserListsContextType {
     refreshLists?: boolean
   ) => Promise<UserList>;
   deleteList: (listId: number, refreshLists?: boolean) => Promise<void>;
-  overviewLists: SimplifiedUserList[];
+  overviewLists: UserListOverview[];
   isLoadingOverview: boolean;
   refetchOverview: () => Promise<void>;
 }
@@ -44,7 +44,7 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   const [lists, setLists] = useState<UserList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [overviewLists, setOverviewLists] = useState<SimplifiedUserList[]>([]);
+  const [overviewLists, setOverviewLists] = useState<UserListOverview[]>([]);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
 
   const fetchLists = useCallback(async () => {
@@ -63,7 +63,7 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     }
   }, [user]);
 
-  const fetchOverview = useCallback(async () => {
+  const refetchOverview = useCallback(async () => {
     if (!user) return;
     setIsLoadingOverview(true);
     try {
@@ -80,9 +80,9 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   useEffect(() => {
     if (user) {
       fetchLists();
-      fetchOverview();
+      refetchOverview();
     }
-  }, [user, fetchLists, fetchOverview]);
+  }, [user, fetchLists, refetchOverview]);
 
   const withRefresh = useCallback(
     async <T,>(
@@ -94,14 +94,14 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
       try {
         const result = await action();
         toast.success(successMsg);
-        await (refreshLists ? Promise.all([fetchLists(), fetchOverview()]) : fetchOverview());
+        await (refreshLists ? Promise.all([fetchLists(), refetchOverview()]) : refetchOverview());
         return result;
       } catch (err) {
         toast.error(extractApiErrorMessage(err, errorMsg));
         throw err;
       }
     },
-    [fetchLists, fetchOverview]
+    [fetchLists, refetchOverview]
   );
 
   const createList = useCallback(
@@ -148,7 +148,7 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
       deleteList,
       overviewLists,
       isLoadingOverview,
-      refetchOverview: fetchOverview,
+      refetchOverview,
     }),
     [
       lists,
@@ -160,7 +160,7 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
       deleteList,
       overviewLists,
       isLoadingOverview,
-      fetchOverview,
+      refetchOverview,
     ]
   );
 

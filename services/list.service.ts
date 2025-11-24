@@ -4,7 +4,9 @@ import {
   CreateListRequest,
   UpdateListRequest,
   UserListsResponse,
-  UserCheckResponse,
+  ApiUserCheckResponse,
+  UserListsOverviewResponse,
+  transformUserListsOverview,
 } from '@/components/UserList/lib/user-list';
 
 export class ListService {
@@ -53,7 +55,8 @@ export class ListService {
     return this.handleDelete(`${this.BASE_PATH}/${listId}/item/${itemId}/`);
   }
 
-  static async getOverview(): Promise<UserCheckResponse> {
-    return ApiClient.get<UserCheckResponse>(`${this.BASE_PATH}/overview/`);
+  static async getOverview(): Promise<UserListsOverviewResponse> {
+    const response = await ApiClient.get<ApiUserCheckResponse>(`${this.BASE_PATH}/overview/`);
+    return transformUserListsOverview(response);
   }
 }

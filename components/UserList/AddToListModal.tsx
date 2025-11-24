@@ -6,23 +6,22 @@ import { LoadingButton } from '@/components/ui/LoadingButton';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Input } from '@/components/ui/form/Input';
 import { Checkbox } from '@/components/ui/form/Checkbox';
+import { Loader } from '@/components/ui/Loader';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { useIsInList } from '@/hooks/useIsInList';
-import { SimplifiedUserList } from '@/components/UserList/lib/user-list';
-import { Loader2, Plus, Trash2, Check } from 'lucide-react';
+import { UserListOverview } from '@/components/UserList/lib/user-list';
+import { Plus, Trash2, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/services/list.service';
 import { pluralizeSuffix } from '@/utils/stringUtils';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 
 interface AddToListModalProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly unifiedDocumentId: number;
-  readonly onItemAdded?: () => void;
-  readonly listDetails?: SimplifiedUserList[];
-  readonly isLoadingListDetails?: boolean;
-  readonly refetchListDetails?: () => void;
+  readonly onListsChanged?: () => void;
 }
 
 function ListLoadingSkeleton() {
@@ -57,6 +56,7 @@ interface ListCreateFormProps {
   readonly value: string;
   readonly onChange: (value: string) => void;
   readonly onSubmit: () => void;
+  readonly onCancel: () => void;
   readonly isLoading: boolean;
   readonly inputRef?: React.RefObject<HTMLInputElement>;
 }
@@ -65,6 +65,7 @@ function ListCreateForm({
   value,
   onChange,
   onSubmit,
+  onCancel,
   isLoading,
   inputRef,
 }: Readonly<ListCreateFormProps>) {
@@ -76,7 +77,13 @@ function ListCreateForm({
         placeholder="List name"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && onSubmit()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && value.trim()) {
+            e.preventDefault();
+            e.stopPropagation();
+            onSubmit();
+          }
+        }}
         className="mb-3"
       />
       <div className="flex gap-2">
@@ -89,7 +96,7 @@ function ListCreateForm({
         >
           Create
         </LoadingButton>
-        <Button onClick={() => onChange('')} variant="outlined" size="sm">
+        <Button onClick={onCancel} variant="outlined" size="sm">
           Cancel
         </Button>
       </div>
@@ -98,7 +105,7 @@ function ListCreateForm({
 }
 
 interface ListSelectItemProps {
-  readonly list: SimplifiedUserList;
+  readonly list: UserListOverview;
   readonly isChecked: boolean;
   readonly isInList: boolean;
   readonly isRemoving: boolean;
@@ -138,19 +145,17 @@ function ListSelectItem({
             <Check className="w-3 h-3" />
             Already in list
           </div>
-          <button
+          <Button
             type="button"
             onClick={onRemove}
             disabled={isRemoving}
-            className="flex-shrink-0 p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+            variant="ghost"
+            size="icon"
+            className="flex-shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50"
             title="Remove"
           >
-            {isRemoving ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Trash2 className="w-4 h-4" />
-            )}
-          </button>
+            {isRemoving ? <Loader size="sm" /> : <Trash2 className="w-4 h-4" />}
+          </Button>
         </>
       )}
     </label>
@@ -161,39 +166,33 @@ export function AddToListModal({
   isOpen,
   onClose,
   unifiedDocumentId,
-  onItemAdded,
-  listDetails: preFetched,
-  isLoadingListDetails: preFetchedLoading,
-  refetchListDetails: preFetchedRefetch,
+  onListsChanged,
 }: Readonly<AddToListModalProps>) {
   const { listDetails, isLoading, refetch, listIds } = useIsInList(
     isOpen ? unifiedDocumentId : null
   );
-  const { createList, refetchOverview } = useUserListsContext();
+  const { createList } = useUserListsContext();
 
-  const lists = preFetched || listDetails;
-  const loading = preFetchedLoading ?? isLoading;
-  const refresh = preFetchedRefetch || refetch;
-
-  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [selected, setSelected] = useState<number[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [newName, setNewName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [removing, setRemoving] = useState<number | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const createInputRef = useRef<HTMLInputElement>(null);
 
-  const showCreate = newName.length > 0;
-
   useEffect(() => {
-    setSelected(isOpen ? new Set(listIds) : new Set());
+    setSelected(isOpen ? [...listIds] : []);
+    setShowCreateForm(false);
+    setNewName('');
   }, [isOpen, listIds]);
 
   const handleAdd = async () => {
-    if (!selected.size) return;
+    if (!selected.length) return;
     setIsAdding(true);
 
     try {
-      const toAdd = Array.from(selected).filter((id) => !listIds.has(id));
+      const toAdd = selected.filter((id) => !listIds.includes(id));
       const results = await Promise.allSettled(
         toAdd.map((id) => ListService.addItemToList(id, unifiedDocumentId))
       );
@@ -203,9 +202,8 @@ export function AddToListModal({
       if (success) toast.success(`Added to ${success} list${pluralizeSuffix(success)}`);
       if (failed) toast.error(`Failed to add to ${failed} list${pluralizeSuffix(failed)}`);
 
-      onItemAdded?.();
-      refresh();
-      refetchOverview();
+      onListsChanged?.();
+      refetch();
       onClose();
     } finally {
       setIsAdding(false);
@@ -218,6 +216,10 @@ export function AddToListModal({
     try {
       await createList({ name: newName.trim() }, false);
       setNewName('');
+      setShowCreateForm(false);
+    } catch (error) {
+      toast.error(extractApiErrorMessage(error, 'Failed to create list'));
+      console.error('Failed to create list:', error);
     } finally {
       setIsCreating(false);
     }
@@ -225,30 +227,38 @@ export function AddToListModal({
 
   const handleRemove = async (listId: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    const list = lists.find((l) => l.list_id === listId);
-    const item = list?.unified_documents?.find((i) => i.unified_document_id === unifiedDocumentId);
-    if (!item?.list_item_id || !list) return;
+    const list = listDetails.find((l) => l.listId === listId);
+    const item = list?.unifiedDocuments?.find((i) => i.unifiedDocumentId === unifiedDocumentId);
+    if (!item?.listItemId || !list) return;
 
     setRemoving(listId);
     try {
-      await ListService.removeItemFromList(listId, item.list_item_id);
+      await ListService.removeItemFromList(listId, item.listItemId);
       toast.success(`Removed from "${list.name}"`);
-      setSelected((prev) => {
-        prev.delete(listId);
-        return new Set(prev);
-      });
-      onItemAdded?.();
-      refresh();
-      refetchOverview();
+      setSelected((prev) => prev.filter((id) => id !== listId));
+      onListsChanged?.();
+      refetch();
+    } catch (error) {
+      toast.error(extractApiErrorMessage(error, `Failed to remove from "${list.name}"`));
+      console.error('Failed to remove item from list:', error);
     } finally {
       setRemoving(null);
     }
   };
 
-  const inLists = lists.filter((l) => listIds.has(l.list_id));
-  const notInLists = lists.filter((l) => !listIds.has(l.list_id));
+  const { inLists, notInLists } = listDetails.reduce<{
+    inLists: typeof listDetails;
+    notInLists: typeof listDetails;
+  }>(
+    (acc, list) => {
+      if (listIds.includes(list.listId)) acc.inLists.push(list);
+      else acc.notInLists.push(list);
+      return acc;
+    },
+    { inLists: [], notInLists: [] }
+  );
   const sorted = [...inLists, ...notInLists];
-  const newCount = Array.from(selected).filter((id) => !listIds.has(id)).length;
+  const newCount = selected.filter((id) => !listIds.includes(id)).length;
 
   return (
     <BaseModal
@@ -276,47 +286,49 @@ export function AddToListModal({
       <div className="md:!min-w-[500px] md:!max-w-[500px]">
         <p className="text-sm text-gray-600 mb-6">Select one or more lists to save this item</p>
 
-        {loading && <ListLoadingSkeleton />}
+        {isLoading && <ListLoadingSkeleton />}
 
-        {!loading && !lists.length && !showCreate && (
+        {!isLoading && !listDetails.length && !showCreateForm && (
           <ListEmptyState
             onFocus={() => {
-              setNewName(' ');
+              setShowCreateForm(true);
               setTimeout(() => createInputRef.current?.focus(), 0);
             }}
           />
         )}
 
-        {!loading && (lists.length > 0 || showCreate) && (
+        {!isLoading && (listDetails.length > 0 || showCreateForm) && (
           <>
-            {showCreate && (
+            {showCreateForm && (
               <ListCreateForm
                 value={newName}
                 onChange={setNewName}
                 onSubmit={handleCreate}
+                onCancel={() => {
+                  setShowCreateForm(false);
+                  setNewName('');
+                }}
                 isLoading={isCreating}
                 inputRef={createInputRef}
               />
             )}
 
-            {!showCreate && (
+            {!showCreateForm && (
               <>
                 <div className="space-y-2 max-h-[50vh] md:!max-h-72 overflow-y-auto">
                   {sorted.map((list) => (
                     <ListSelectItem
-                      key={list.list_id}
+                      key={list.listId}
                       list={list}
-                      isChecked={selected.has(list.list_id)}
-                      isInList={listIds.has(list.list_id)}
-                      isRemoving={removing === list.list_id}
+                      isChecked={selected.includes(list.listId)}
+                      isInList={listIds.includes(list.listId)}
+                      isRemoving={removing === list.listId}
                       onToggle={(checked) => {
-                        setSelected((prev) => {
-                          if (checked) prev.add(list.list_id);
-                          else prev.delete(list.list_id);
-                          return new Set(prev);
-                        });
+                        setSelected((prev) =>
+                          checked ? [...prev, list.listId] : prev.filter((id) => id !== list.listId)
+                        );
                       }}
-                      onRemove={(e) => handleRemove(list.list_id, e)}
+                      onRemove={(e) => handleRemove(list.listId, e)}
                     />
                   ))}
                 </div>
@@ -325,7 +337,7 @@ export function AddToListModal({
 
                 <Button
                   onClick={() => {
-                    setNewName(' ');
+                    setShowCreateForm(true);
                     setTimeout(() => createInputRef.current?.focus(), 0);
                   }}
                   variant="outlined"

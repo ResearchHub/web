@@ -357,7 +357,7 @@ export const WorkLineItems = ({
               }`}
             >
               <FontAwesomeIcon icon={faBookmark} className="h-6 w-6" />
-              <span className="text-sm font-medium">{listIds.size}</span>
+              <span className="text-sm font-medium">{listIds.length}</span>
             </button>
           )}
 
