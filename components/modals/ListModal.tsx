@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 
 interface ListModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  mode: 'create' | 'edit' | 'delete';
-  name: string;
-  onNameChange: (name: string) => void;
-  onSubmit: () => void;
-  isSubmitting: boolean;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly mode: 'create' | 'edit' | 'delete';
+  readonly name: string;
+  readonly onNameChange: (name: string) => void;
+  readonly onSubmit: () => void;
+  readonly isSubmitting: boolean;
 }
 
 const CONFIG = {

@@ -8,7 +8,7 @@ import { updateListRemoveItem } from '@/components/UserList/lib/listUtils';
 const PAGE_SIZE = 20;
 
 interface UseUserListDetailOptions {
-  onItemMutated?: () => void;
+  readonly onItemMutated?: () => void;
 }
 
 export function useUserListDetail(listId: number | null, options?: UseUserListDetailOptions) {
@@ -103,7 +103,7 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
     async (itemId: number) => {
       if (!listId) return;
       try {
-        await ListService.removeItemFromList(listId, itemId);
+        await ListService.removeItemFromListApi(listId, itemId);
         setState((prev) => ({
           ...prev,
           list: updateListRemoveItem(prev.list, itemId),

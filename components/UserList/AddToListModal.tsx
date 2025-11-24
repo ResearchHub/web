@@ -237,7 +237,7 @@ export function AddToListModal({
 
     setRemoving(listId);
     try {
-      await ListService.removeItemFromList(listId, item.listItemId);
+      await ListService.removeItemFromListApi(listId, item.listItemId);
       toast.success(`Removed from "${list.name}"`);
       setSelected((prev) => prev.filter((id) => id !== listId));
       onListsChanged?.();

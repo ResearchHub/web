@@ -10,17 +10,18 @@ import { useUser } from '@/contexts/UserContext';
 import { useFeedImpressionTracking } from '@/hooks/useFeedImpressionTracking';
 import { FeedEntryItem } from '@/components/Feed/FeedEntryItem';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
-import { FolderPlus, Edit2, Trash2, MoreHorizontal, Loader2 } from 'lucide-react';
+import { FolderPlus, Edit2, Trash2, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Loader } from '@/components/ui/Loader';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { ListModal } from '@/components/modals/ListModal';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { formatItemCount, transformListItemToFeedEntry } from '@/components/UserList/lib/listUtils';
-import { generateSlug } from '@/utils/url';
 
 interface ModalState {
-  isOpen: boolean;
-  mode: 'edit' | 'delete';
-  name: string;
+  readonly isOpen: boolean;
+  readonly mode: 'edit' | 'delete';
+  readonly name: string;
 }
 
 const INITIAL_MODAL: ModalState = { isOpen: false, mode: 'edit', name: '' };
@@ -29,8 +30,7 @@ export default function ListDetailPage() {
   const router = useRouter();
   const params = useParams();
   const { user, isLoading: isUserLoading } = useUser();
-  const listId = params?.id ? parseInt(params.id as string) : null;
-  const slug = params?.slug as string | undefined;
+  const listId = params?.id ? Number.parseInt(params.id as string, 10) : null;
   const { updateList, deleteList, fetchLists } = useUserListsContext();
   const {
     list,
@@ -66,15 +66,6 @@ export default function ListDetailPage() {
     if (inView && hasMore && !isLoading && !isLoadingMore) loadMore();
   }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
 
-  useEffect(() => {
-    if (list && slug) {
-      const expectedSlug = generateSlug(list.name);
-      if (slug !== expectedSlug) {
-        router.replace(`/list/${list.id}/${expectedSlug}`);
-      }
-    }
-  }, [list, slug, router]);
-
   const handleSubmit = async () => {
     if (!list) return;
     setIsSubmitting(true);
@@ -83,12 +74,13 @@ export default function ListDetailPage() {
         const trimmedName = modal.name.trim();
         const updatedList = await updateList(list.id, { name: trimmedName });
         updateListDetails(updatedList);
-        router.replace(`/list/${list.id}/${generateSlug(trimmedName)}`);
       } else {
         await deleteList(list.id);
         router.push('/lists');
       }
       setModal(INITIAL_MODAL);
+    } catch (error) {
+      console.error('Failed to submit list action:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -103,12 +95,12 @@ export default function ListDetailPage() {
           {isLoading ? (
             <>
               <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
-                <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2"></div>
-                <div className="h-5 w-24 bg-gray-200 rounded animate-pulse"></div>
+                <Skeleton className="h-8 w-48 mb-2" />
+                <Skeleton className="h-5 w-24" />
               </div>
               <div className="space-y-12">
-                {[...Array(3)].map((_, i) => (
-                  <FeedItemSkeleton key={i} />
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <FeedItemSkeleton key={'list-item-skeleton-' + i} />
                 ))}
               </div>
             </>
@@ -213,7 +205,7 @@ export default function ListDetailPage() {
           <div ref={loadMoreRef} className="h-10 flex items-center justify-center mt-4">
             {isLoadingMore && (
               <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader size="sm" />
                 <span>Loading more items...</span>
               </div>
             )}

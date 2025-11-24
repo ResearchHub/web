@@ -59,7 +59,7 @@ export class ListService {
     }
   }
 
-  static async deleteList(listId: number): Promise<void> {
+  static async deleteListApi(listId: number): Promise<void> {
     return this.handleDeleteApi(`${this.BASE_PATH}/${listId}/`);
   }
 
@@ -70,7 +70,7 @@ export class ListService {
     });
   }
 
-  static async removeItemFromList(listId: number, itemId: number): Promise<void> {
+  static async removeItemFromListApi(listId: number, itemId: number): Promise<void> {
     return this.handleDeleteApi(`${this.BASE_PATH}/${listId}/item/${itemId}/`);
   }
 

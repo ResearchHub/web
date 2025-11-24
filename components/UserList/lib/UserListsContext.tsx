@@ -129,7 +129,7 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   const deleteList = useCallback(
     (listId: number, refreshLists = true) =>
       withRefresh(
-        () => ListService.deleteList(listId),
+        () => ListService.deleteListApi(listId),
         'List deleted successfully',
         'Failed to delete list',
         refreshLists

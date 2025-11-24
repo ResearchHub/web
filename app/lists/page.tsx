@@ -15,10 +15,10 @@ import { faBookmark } from '@fortawesome/pro-light-svg-icons';
 import { pluralizeSuffix } from '@/utils/stringUtils';
 
 interface ModalState {
-  isOpen: boolean;
-  mode: 'create' | 'edit' | 'delete';
-  list: UserList | null;
-  name: string;
+  readonly isOpen: boolean;
+  readonly mode: 'create' | 'edit' | 'delete';
+  readonly list: UserList | null;
+  readonly name: string;
 }
 
 const INITIAL_MODAL: ModalState = { isOpen: false, mode: 'create', list: null, name: '' };
@@ -56,6 +56,8 @@ export default function ListsPage() {
       else if (mode === 'edit' && list) await updateList(list.id, { name: name.trim() });
       else if (mode === 'delete' && list) await deleteList(list.id);
       setModal(INITIAL_MODAL);
+    } catch (error) {
+      console.error('Failed to submit list action:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -83,32 +85,43 @@ export default function ListsPage() {
               </span>
             </div>
           </div>
-          <div className="w-full sm:!w-auto mt-4 sm:!mt-0 sm:!ml-auto">
-            <Button
-              onClick={() => openModal('create')}
-              variant="outlined"
-              className="w-full sm:!w-auto gap-2"
-            >
-              <Plus className="w-4 h-4" /> Create
-            </Button>
-          </div>
+          {user && (
+            <div className="w-full sm:!w-auto mt-4 sm:!mt-0 sm:!ml-auto">
+              <Button
+                onClick={() => openModal('create')}
+                variant="outlined"
+                className="w-full sm:!w-auto gap-2"
+              >
+                <Plus className="w-4 h-4" /> Create
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="px-4 sm:!px-8 py-4 max-w-7xl mx-auto">
-          {error && (
+          {error && user && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
               {error}
             </div>
           )}
           <div className="space-y-1">
-            {isLoading && (
+            {isLoading && user && (
               <>
                 {Array.from({ length: 5 }).map((_, i) => (
                   <UserListRowSkeleton key={'list-skeleton-' + i} />
                 ))}
               </>
             )}
-            {!isLoading && lists.length === 0 && (
+            {!isLoading && lists.length === 0 && !user && (
+              <div className="text-center py-20">
+                <FontAwesomeIcon
+                  icon={faBookmark}
+                  className="w-12 h-12 text-gray-300 mx-auto mb-3"
+                />
+                <p className="text-gray-500 mb-4">Please login to view your lists</p>
+              </div>
+            )}
+            {!isLoading && lists.length === 0 && user && (
               <div className="text-center py-20">
                 <FontAwesomeIcon
                   icon={faBookmark}
