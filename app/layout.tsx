@@ -29,7 +29,7 @@ import { PreferencesProvider } from '@/contexts/PreferencesContext';
 import { ReferralProvider } from '@/contexts/ReferralContext';
 import { FeatureNotifications } from '@/components/FeatureNotifications';
 import Hotjar from '@/components/Hotjar';
-import { UserListsProvider } from '@/components/List/lib/UserListsContext';
+import { UserListsProvider } from '@/components/UserList/lib/UserListsContext';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',

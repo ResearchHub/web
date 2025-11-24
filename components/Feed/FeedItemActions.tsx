@@ -18,7 +18,7 @@ import { ContentType } from '@/types/work';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useRouter } from 'next/navigation';
 import { TipContentModal } from '@/components/modals/TipContentModal';
-import { AddToListModal } from '@/components/List/AddToListModal';
+import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/hooks/useIsInList';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Bounty } from '@/types/bounty';

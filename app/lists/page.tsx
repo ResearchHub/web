@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserLists } from '@/hooks/useUserLists';
-import { UserList } from '@/components/List/lib/user-list';
+import { UserList } from '@/components/UserList/lib/user-list';
 import { UserListRow, UserListRowSkeleton } from './components/UserListRow';
 import { ListModal } from '@/components/modals/ListModal';
 import { Plus } from 'lucide-react';

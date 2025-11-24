@@ -1,4 +1,4 @@
-import { UserList } from '@/components/List/lib/user-list';
+import { UserList } from '@/components/UserList/lib/user-list';
 import { pluralizeSuffix } from '@/utils/stringUtils';
 
 export const formatItemCount = (list: UserList) => {

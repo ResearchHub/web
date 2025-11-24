@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useUserListsContext } from '@/components/List/lib/UserListsContext';
+import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 
 export function useIsInList(unifiedDocumentId: number | string | null | undefined) {
   const { overviewLists, isLoadingOverview, refetchOverview } = useUserListsContext();

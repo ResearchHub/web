@@ -15,7 +15,7 @@ import {
   CreateListRequest,
   UpdateListRequest,
   SimplifiedUserList,
-} from '@/components/List/lib/user-list';
+} from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
