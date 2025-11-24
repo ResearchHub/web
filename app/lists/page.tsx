@@ -12,6 +12,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useInView } from 'react-intersection-observer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/pro-light-svg-icons';
+import { pluralizeSuffix } from '@/utils/stringUtils';
 
 interface ModalState {
   isOpen: boolean;
@@ -77,7 +78,9 @@ export default function ListsPage() {
               </div>
               <span>{user?.firstName ? `${user.firstName} ${user.lastName}` : 'User'}</span>
               <span className="text-gray-300">•</span>
-              <span>{totalCount} lists</span>
+              <span>
+                {totalCount} list{pluralizeSuffix(totalCount)}
+              </span>
             </div>
           </div>
           <div className="w-full sm:!w-auto mt-4 sm:!mt-0 sm:!ml-auto">
