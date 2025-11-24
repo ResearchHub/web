@@ -1,7 +1,7 @@
 'use client';
 
-import { Button, ButtonProps } from './Button';
-import { Loader } from './Loader';
+import { Button, ButtonProps } from '@/components/ui/Button';
+import { Loader } from '@/components/ui/Loader';
 
 interface LoadingButtonProps extends ButtonProps {
   isLoading?: boolean;

@@ -41,7 +41,7 @@ function ListLoadingSkeleton() {
   );
 }
 
-function ListEmptyState({ onFocus }: { onFocus: () => void }) {
+function ListEmptyState({ onFocus }: { readonly onFocus: () => void }) {
   return (
     <div className="text-center py-8">
       <p className="text-gray-600 mb-4">You don't have any lists yet.</p>
@@ -54,14 +54,20 @@ function ListEmptyState({ onFocus }: { onFocus: () => void }) {
 }
 
 interface ListCreateFormProps {
-  value: string;
-  onChange: (value: string) => void;
-  onSubmit: () => void;
-  isLoading: boolean;
-  inputRef?: React.RefObject<HTMLInputElement>;
+  readonly value: string;
+  readonly onChange: (value: string) => void;
+  readonly onSubmit: () => void;
+  readonly isLoading: boolean;
+  readonly inputRef?: React.RefObject<HTMLInputElement>;
 }
 
-function ListCreateForm({ value, onChange, onSubmit, isLoading, inputRef }: ListCreateFormProps) {
+function ListCreateForm({
+  value,
+  onChange,
+  onSubmit,
+  isLoading,
+  inputRef,
+}: Readonly<ListCreateFormProps>) {
   return (
     <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 mb-4">
       <h3 className="text-sm font-medium text-gray-900 mb-3">Create New List</h3>
@@ -92,12 +98,12 @@ function ListCreateForm({ value, onChange, onSubmit, isLoading, inputRef }: List
 }
 
 interface ListSelectItemProps {
-  list: SimplifiedUserList;
-  isChecked: boolean;
-  isInList: boolean;
-  isRemoving: boolean;
-  onToggle: (checked: boolean) => void;
-  onRemove: (e: React.MouseEvent) => void;
+  readonly list: SimplifiedUserList;
+  readonly isChecked: boolean;
+  readonly isInList: boolean;
+  readonly isRemoving: boolean;
+  readonly onToggle: (checked: boolean) => void;
+  readonly onRemove: (e: React.MouseEvent) => void;
 }
 
 function ListSelectItem({
@@ -107,7 +113,7 @@ function ListSelectItem({
   isRemoving,
   onToggle,
   onRemove,
-}: ListSelectItemProps) {
+}: Readonly<ListSelectItemProps>) {
   return (
     <label
       className={`flex items-center gap-3 w-full p-3 rounded-lg border cursor-pointer transition-colors ${
@@ -159,7 +165,7 @@ export function AddToListModal({
   listDetails: preFetched,
   isLoadingListDetails: preFetchedLoading,
   refetchListDetails: preFetchedRefetch,
-}: AddToListModalProps) {
+}: Readonly<AddToListModalProps>) {
   const { listDetails, isLoading, refetch, listIds } = useIsInList(
     isOpen ? unifiedDocumentId : null
   );
