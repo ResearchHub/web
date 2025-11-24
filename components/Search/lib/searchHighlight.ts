@@ -10,11 +10,13 @@ export function highlightSearchTerms(text: string, query: string): string {
   }
 
   // Split query into individual terms and clean them
+  // Use String.raw to avoid escaping backslashes in regex pattern
+  const regexSpecialCharsPattern = String.raw`[.*+?^$\{\}()|[\]\\]`;
   const terms = query
     .toLowerCase()
     .split(/\s+/)
     .filter((term) => term.length > 2) // Only highlight terms longer than 2 chars
-    .map((term) => term.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')); // Escape regex special chars
+    .map((term) => term.replaceAll(new RegExp(regexSpecialCharsPattern, 'g'), '\\$&')); // Escape regex special chars
 
   if (terms.length === 0) {
     return text;

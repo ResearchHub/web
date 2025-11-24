@@ -50,7 +50,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
 
   // Load preferences from localStorage
   const [filters, setFiltersState] = useState<SearchFilters>(() => {
-    if (typeof globalThis.window !== 'undefined') {
+    if (globalThis.window !== undefined) {
       try {
         const stored = globalThis.window.localStorage.getItem(STORAGE_KEY);
         if (stored) {
@@ -68,7 +68,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
   const [stagedFilters, setStagedFiltersState] = useState<SearchFilters>(filters);
 
   const [sortBy, setSortByState] = useState<SearchSortOption>(() => {
-    if (typeof globalThis.window !== 'undefined') {
+    if (globalThis.window !== undefined) {
       try {
         const stored = globalThis.window.localStorage.getItem(STORAGE_KEY);
         if (stored) {

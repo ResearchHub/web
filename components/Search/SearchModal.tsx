@@ -163,8 +163,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
   // Detect OS for keyboard shortcut display
   const isMac =
-    typeof globalThis.window !== 'undefined' &&
-    navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    globalThis.window !== undefined && navigator.userAgent.toUpperCase().includes('MAC');
   const shortcutKey = isMac ? '⌘' : 'Ctrl';
 
   return (
