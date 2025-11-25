@@ -39,7 +39,7 @@ import { useCompleteFundraise } from '@/hooks/useFundraise';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
-import { useUserListsEnabled } from '@/hooks/useUserListsEnabled';
+import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
 interface WorkLineItemsProps {
   work: Work;
   showClaimButton?: boolean;

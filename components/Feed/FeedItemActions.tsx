@@ -33,7 +33,7 @@ import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
 import { Topic } from '@/types/topic';
 import { isFeatureEnabled, FeatureFlag } from '@/utils/featureFlags';
-import { useUserListsEnabled } from '@/hooks/useUserListsEnabled';
+import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
 
 const BookmarkIcon: FC<{ className?: string }> = (props) => (
   <FontAwesomeIcon icon={faBookmark} {...props} />
