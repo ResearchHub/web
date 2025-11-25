@@ -31,7 +31,7 @@ export default function ListDetailPage() {
   const params = useParams();
   const { user, isLoading: isUserLoading } = useUser();
   const listId = params?.id ? Number.parseInt(params.id as string, 10) : null;
-  const { updateList, deleteList, fetchLists } = useUserListsContext();
+  const { updateList, deleteList } = useUserListsContext();
   const {
     list,
     items,
@@ -42,7 +42,7 @@ export default function ListDetailPage() {
     loadMore,
     removeItem,
     updateListDetails,
-  } = useUserListDetail(listId, { onItemMutated: fetchLists });
+  } = useUserListDetail(listId);
 
   const { registerVisibleItem, unregisterVisibleItem, getVisibleItems } =
     useFeedImpressionTracking();

@@ -7,12 +7,10 @@ import {
 } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
-import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { useUser } from '@/contexts/UserContext';
 
 export function useUserLists() {
   const { user } = useUser();
-  const { refetchOverview } = useUserListsContext();
   const [state, setState] = useState<{
     lists: UserList[];
     isLoading: boolean;
@@ -83,7 +81,7 @@ export function useUserLists() {
       try {
         await action();
         toast.success(successMsg);
-        await Promise.all([fetchLists(), refetchOverview()]);
+        await fetchLists();
       } catch (err) {
         toast.error(extractApiErrorMessage(err, errorMsg));
         throw err;
