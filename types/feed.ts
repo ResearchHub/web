@@ -268,6 +268,11 @@ export interface FeedEntry {
   hotScoreV2?: number;
   hotScoreBreakdown?: HotScoreBreakdown;
   externalMetrics?: ExternalMetrics;
+  searchMetadata?: {
+    highlightedTitle?: string;
+    highlightedSnippet?: string;
+    matchedField?: string;
+  };
 }
 
 export interface RawApiFeedEntry {

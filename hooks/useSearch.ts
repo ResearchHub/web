@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { debounce } from 'lodash';
 import { SearchService } from '@/services/search.service';
-import { SearchResult } from '@/types/searchResult';
+import { FeedEntry } from '@/types/feed';
 import {
   PersonSearchResult,
   SearchResponse,
@@ -16,7 +16,7 @@ interface UseSearchOptions {
 }
 
 interface UseSearchReturn {
-  entries: SearchResult[];
+  entries: FeedEntry[];
   people: PersonSearchResult[];
   isLoading: boolean;
   isLoadingMore: boolean;
@@ -38,7 +38,7 @@ interface UseSearchReturn {
 const STORAGE_KEY = 'search-preferences';
 
 export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
-  const [entries, setEntries] = useState<SearchResult[]>([]);
+  const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [people, setPeople] = useState<PersonSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -246,29 +246,29 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
 
   // Frontend sorting - sort the already-fetched results
   const sortEntries = useCallback(
-    (entriesToSort: SearchResult[]) => {
+    (entriesToSort: FeedEntry[]) => {
       const sorted = [...entriesToSort];
 
       switch (sortBy) {
         case 'newest':
           return sorted.sort((a, b) => {
             // Use content.createdDate for the actual creation date
-            const dateA = new Date(a.entry.content.createdDate || a.entry.timestamp || 0).getTime();
-            const dateB = new Date(b.entry.content.createdDate || b.entry.timestamp || 0).getTime();
+            const dateA = new Date(a.content.createdDate || a.timestamp || 0).getTime();
+            const dateB = new Date(b.content.createdDate || b.timestamp || 0).getTime();
             return dateB - dateA;
           });
 
         case 'hot':
           return sorted.sort((a, b) => {
-            const scoreA = a.entry.hotScoreV2 || a.entry.metrics?.votes || 0;
-            const scoreB = b.entry.hotScoreV2 || b.entry.metrics?.votes || 0;
+            const scoreA = a.hotScoreV2 || a.metrics?.votes || 0;
+            const scoreB = b.hotScoreV2 || b.metrics?.votes || 0;
             return scoreB - scoreA;
           });
 
         case 'upvoted':
           return sorted.sort((a, b) => {
-            const votesA = a.entry.metrics?.votes || 0;
-            const votesB = b.entry.metrics?.votes || 0;
+            const votesA = a.metrics?.votes || 0;
+            const votesB = b.metrics?.votes || 0;
             return votesB - votesA;
           });
 

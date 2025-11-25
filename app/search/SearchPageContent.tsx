@@ -2,15 +2,14 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { SearchResult } from '@/components/Search/SearchResult';
 import { SearchSortControls } from '@/components/Search/SearchSortControls';
 import { SearchEmptyState } from '@/components/Search/SearchEmptyState';
 import { useSearch } from '@/hooks/useSearch';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { Search as SearchIcon } from 'lucide-react';
-import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
-import { useInView } from 'react-intersection-observer';
+import { FeedContent } from '@/components/Feed/FeedContent';
+import { getFeedKey } from '@/contexts/NavigationContext';
 
 interface SearchPageContentProps {
   readonly searchParams: {
@@ -105,72 +104,14 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     </div>
   );
 
-  // Infinite scroll trigger
-  const { ref: loadMoreRef, inView } = useInView({
-    threshold: 0,
-    rootMargin: '100px',
-  });
-
-  useEffect(() => {
-    if (inView && hasMore && !isLoading && !isLoadingMore) {
-      loadMore();
-    }
-  }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
-
-  // Generate stable keys for skeleton loaders
-  const skeletonKeys = useMemo(() => {
-    return Array.from({ length: 5 }, (_, i) => `skeleton-${i}`);
-  }, []);
-
-  const loadingSkeletonKeys = useMemo(() => {
-    return Array.from({ length: 3 }, (_, i) => `loading-${i}`);
-  }, []);
-
-  const renderContent = () => {
-    if (isLoading && entries.length === 0) {
-      return (
-        <div className="space-y-4">
-          {skeletonKeys.map((key) => (
-            <FeedItemSkeleton key={key} />
-          ))}
-        </div>
-      );
-    }
-
-    if (!hasSearched) {
-      return null;
-    }
-
-    return (
-      <>
-        {/* Render search results */}
-        <div className="space-y-6">
-          {entries.map((searchResult, index) => (
-            <SearchResult
-              key={searchResult.entry.id}
-              searchResult={searchResult}
-              index={index}
-              showGrantHeaders={true}
-              showReadMoreCTA={true}
-            />
-          ))}
-        </div>
-
-        {/* Load more trigger */}
-        {!isLoading && hasMore && (
-          <div ref={loadMoreRef} className="mt-6">
-            {isLoadingMore && (
-              <div className="space-y-4">
-                {loadingSkeletonKeys.map((key) => (
-                  <FeedItemSkeleton key={key} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </>
-    );
-  };
+  // Generate search-specific feed key (include query parameter)
+  const searchFeedKey = useMemo(() => {
+    if (!query.trim()) return undefined;
+    return getFeedKey({
+      pathname: '/search',
+      queryParams: { q: query },
+    });
+  }, [query]);
 
   // Show a blank page (no default search UI) if no query
   if (!query.trim()) {
@@ -201,26 +142,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     );
   }
 
-  // Show empty state with no results (only after search has completed)
-  if (!isLoading && !error && entries.length === 0 && query.trim() && hasSearched) {
-    return (
-      <PageLayout
-        rightSidebar={true}
-        className="tablet:!max-w-full content-md:!max-w-full content-lg:!max-w-full content-xl:!max-w-full"
-      >
-        {header}
-        <div className="max-w-7xl mx-auto">
-          <SearchEmptyState
-            onSearch={handleSearch}
-            query={query}
-            filters={stagedFilters}
-            hasFilters={false}
-            onClearFilters={() => {}}
-          />
-        </div>
-      </PageLayout>
-    );
-  }
+  // Empty state is now handled by FeedContent's noEntriesElement prop
 
   return (
     <PageLayout
@@ -235,8 +157,29 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
           <div className="flex-1 min-w-0">
             {sortControls && <div className="mb-4">{sortControls}</div>}
 
-            {/* Show skeletons while loading initial results, or blank if no search has been initiated */}
-            {renderContent()}
+            {/* Use FeedContent for consistent rendering and infinite scroll */}
+            {hasSearched && (
+              <FeedContent
+                entries={entries}
+                isLoading={isLoading}
+                isLoadingMore={isLoadingMore}
+                hasMore={hasMore}
+                loadMore={loadMore}
+                feedKey={searchFeedKey}
+                showGrantHeaders={true}
+                showReadMoreCTA={true}
+                hideActions={true}
+                noEntriesElement={
+                  <SearchEmptyState
+                    onSearch={handleSearch}
+                    query={query}
+                    filters={stagedFilters}
+                    hasFilters={false}
+                    onClearFilters={() => {}}
+                  />
+                }
+              />
+            )}
           </div>
         </div>
       </div>
