@@ -231,7 +231,8 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
     }
   }, [hasMore, currentQuery, page, filters, currentTab, options.pageSize]);
 
-  // Debounced search effect - only re-search when filters change, not sortBy
+  // Debounced search effect - only re-search when filters change, not sortBy or query
+  // Query changes are handled by direct calls to search() from components
   useEffect(() => {
     const debouncedSearch = debounce(() => {
       if (currentQuery.trim()) {
@@ -242,7 +243,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
     debouncedSearch();
 
     return () => debouncedSearch.cancel();
-  }, [currentQuery, currentTab, filters, search]);
+  }, [filters, search]);
 
   // Frontend sorting - sort the already-fetched results
   const sortEntries = useCallback(
