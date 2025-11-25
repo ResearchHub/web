@@ -12,7 +12,6 @@ import { useUserListsContext } from '@/components/UserList/lib/UserListsContext'
 const getError = (err: unknown) => (err instanceof ApiError ? err.message : 'Operation failed');
 
 export function useUserLists() {
-  const { refetchOverview } = useUserListsContext();
   const [state, setState] = useState<{
     lists: UserList[];
     isLoading: boolean;
@@ -70,13 +69,13 @@ export function useUserLists() {
       try {
         await action();
         toast.success(msg);
-        await Promise.all([fetchLists(), refetchOverview()]);
+        await fetchLists();
       } catch (err) {
         toast.error(getError(err));
         throw err;
       }
     },
-    [fetchLists, refetchOverview]
+    [fetchLists]
   );
 
   return {

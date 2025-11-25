@@ -21,7 +21,6 @@ interface AddToListModalProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly unifiedDocumentId: number;
-  readonly onListsChanged?: () => void;
 }
 
 function ListLoadingSkeleton() {
@@ -166,7 +165,6 @@ export function AddToListModal({
   isOpen,
   onClose,
   unifiedDocumentId,
-  onListsChanged,
 }: Readonly<AddToListModalProps>) {
   const { listDetails, isLoading, refetch, listIds } = useIsInList(
     isOpen ? unifiedDocumentId : null
@@ -202,7 +200,6 @@ export function AddToListModal({
       if (success) toast.success(`Added to ${success} list${pluralizeSuffix(success)}`);
       if (failed) toast.error(`Failed to add to ${failed} list${pluralizeSuffix(failed)}`);
 
-      onListsChanged?.();
       refetch();
       onClose();
     } finally {
@@ -241,7 +238,6 @@ export function AddToListModal({
       await ListService.removeItemFromList(listId, item.listItemId);
       toast.success(`Removed from "${list.name}"`);
       setSelected((prev) => prev.filter((id) => id !== listId));
-      onListsChanged?.();
       refetch();
     } catch (error) {
       toast.error(extractApiErrorMessage(error, `Failed to remove from "${list.name}"`));
