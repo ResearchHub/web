@@ -17,7 +17,7 @@ import { AuthSharingService } from '@/services/auth-sharing.service';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { Button } from '@/components/ui/Button';
 import { useVerification } from '@/contexts/VerificationContext';
-import { useUserListsEnabled } from '@/hooks/useUserListsEnabled';
+import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
 
 interface UserMenuProps {
   user: User;

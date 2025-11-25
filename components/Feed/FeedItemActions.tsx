@@ -19,7 +19,7 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useRouter } from 'next/navigation';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
-import { useIsInList } from '@/hooks/useIsInList';
+import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Bounty } from '@/types/bounty';
 import { Tip } from '@/types/tip';
@@ -33,7 +33,7 @@ import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
 import { Topic } from '@/types/topic';
 import { isFeatureEnabled, FeatureFlag } from '@/utils/featureFlags';
-import { useUserListsEnabled } from '@/hooks/useUserListsEnabled';
+import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
 
 const BookmarkIcon: FC<{ className?: string }> = (props) => (
   <FontAwesomeIcon icon={faBookmark} {...props} />

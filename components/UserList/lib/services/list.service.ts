@@ -1,4 +1,4 @@
-import { ApiClient } from './client';
+import { ApiClient } from '@/services/client';
 import {
   UserList,
   CreateListRequest,
