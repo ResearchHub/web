@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserLists } from '@/components/UserList/lib/hooks/useUserLists';
 import { UserList } from '@/components/UserList/lib/user-list';
@@ -24,6 +25,7 @@ interface ModalState {
 const INITIAL_MODAL: ModalState = { isOpen: false, mode: 'create', list: null, name: '' };
 
 export default function ListsPage() {
+  const router = useRouter();
   const {
     lists,
     isLoading,
@@ -38,8 +40,14 @@ export default function ListsPage() {
   } = useUserLists();
   const [modal, setModal] = useState<ModalState>(INITIAL_MODAL);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useUser();
+  const { user, isLoading: isUserLoading } = useUser();
   const { ref: loadMoreRef, inView } = useInView({ threshold: 0, rootMargin: '100px' });
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push(`/auth/signin?redirect=${encodeURIComponent('/lists')}`);
+    }
+  }, [user, isUserLoading, router]);
 
   useEffect(() => {
     if (inView && hasMore && !isLoading && !isLoadingMore) loadMore();
@@ -63,6 +71,8 @@ export default function ListsPage() {
     }
   };
 
+  if (isUserLoading || !user) return null;
+
   return (
     <PageLayout>
       <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-gray-50/50 to-white pb-20">
@@ -85,43 +95,32 @@ export default function ListsPage() {
               </span>
             </div>
           </div>
-          {user && (
-            <div className="w-full sm:!w-auto mt-4 sm:!mt-0 sm:!ml-auto">
-              <Button
-                onClick={() => openModal('create')}
-                variant="outlined"
-                className="w-full sm:!w-auto gap-2"
-              >
-                <Plus className="w-4 h-4" /> Create
-              </Button>
-            </div>
-          )}
+          <div className="w-full sm:!w-auto mt-4 sm:!mt-0 sm:!ml-auto">
+            <Button
+              onClick={() => openModal('create')}
+              variant="outlined"
+              className="w-full sm:!w-auto gap-2"
+            >
+              <Plus className="w-4 h-4" /> Create
+            </Button>
+          </div>
         </div>
 
         <div className="px-4 sm:!px-8 py-4 max-w-7xl mx-auto">
-          {error && user && (
+          {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
               {error}
             </div>
           )}
           <div className="space-y-1">
-            {isLoading && user && (
+            {isLoading && (
               <>
                 {Array.from({ length: 5 }).map((_, i) => (
                   <UserListRowSkeleton key={'list-skeleton-' + i} />
                 ))}
               </>
             )}
-            {!isLoading && lists.length === 0 && !user && (
-              <div className="text-center py-20">
-                <FontAwesomeIcon
-                  icon={faBookmark}
-                  className="w-12 h-12 text-gray-300 mx-auto mb-3"
-                />
-                <p className="text-gray-500 mb-4">Please Login to View Your Lists</p>
-              </div>
-            )}
-            {!isLoading && lists.length === 0 && user && (
+            {!isLoading && lists.length === 0 && (
               <div className="text-center py-20">
                 <FontAwesomeIcon
                   icon={faBookmark}
