@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ListService } from '@/services/list.service';
+import { ListService } from '@/components/UserList/lib/services/list.service';
 import {
   UserList,
   CreateListRequest,

@@ -22,11 +22,11 @@ export const UserListRow = ({ list, onEdit, onDelete }: UserListRowProps) => (
     <div className="flex flex-col min-w-0">
       <span className="font-medium text-gray-900 truncate">{list.name}</span>
       <span className="text-xs text-gray-500 sm:!hidden">
-        {formatItemCount(list)} • {formatTimeAgo(list.updated_date)}
+        {formatItemCount(list)} • {formatTimeAgo(list.updatedDate)}
       </span>
     </div>
     <span className="hidden sm:!block text-sm text-gray-500 truncate">
-      {formatTimeAgo(list.updated_date)}
+      {formatTimeAgo(list.updatedDate)}
     </span>
     <span className="hidden sm:!block text-sm text-gray-500 text-right tabular-nums">
       {formatItemCount(list)}

@@ -15,7 +15,7 @@ export interface ApiUserCheckResponse {
   lists: ApiSimplifiedUserList[];
 }
 
-export interface UserList {
+export interface ApiUserList {
   id: number;
   name: string;
   is_public: boolean;
@@ -23,6 +23,23 @@ export interface UserList {
   updated_date: string;
   created_by?: number;
   item_count?: number;
+}
+
+export interface ApiUserListsResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: ApiUserList[];
+}
+
+export interface UserList {
+  id: number;
+  name: string;
+  isPublic: boolean;
+  createdDate: string;
+  updatedDate: string;
+  createdBy?: number;
+  itemCount?: number;
 }
 
 export interface UserListItem {
@@ -102,13 +119,6 @@ export interface AddItemRequest {
   unified_document: number;
 }
 
-export interface ListApiResponse<T> {
-  results: T[];
-  count?: number;
-  next?: string | null;
-  previous?: string | null;
-}
-
 export interface UserListsResponse {
   count: number;
   next: string | null;
@@ -160,4 +170,21 @@ export const transformUserListsOverview = (
   raw: ApiUserCheckResponse
 ): UserListsOverviewResponse => ({
   lists: raw.lists.map(transformOverviewList),
+});
+
+export const transformUserList = (raw: ApiUserList): UserList => ({
+  id: raw.id,
+  name: raw.name,
+  isPublic: raw.is_public,
+  createdDate: raw.created_date,
+  updatedDate: raw.updated_date,
+  createdBy: raw.created_by,
+  itemCount: raw.item_count,
+});
+
+export const transformUserListsResponse = (raw: ApiUserListsResponse): UserListsResponse => ({
+  count: raw.count,
+  next: raw.next,
+  previous: raw.previous,
+  results: raw.results.map(transformUserList),
 });

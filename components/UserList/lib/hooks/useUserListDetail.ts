@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
-import { ListService } from '@/services/list.service';
+import { ListService } from '@/components/UserList/lib/services/list.service';
 import { UserList, UserListDetail } from '@/components/UserList/lib/user-list';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { updateListRemoveItem } from '@/components/UserList/lib/listUtils';

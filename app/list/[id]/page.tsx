@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { useUserListDetail } from '@/hooks/useUserListDetail';
+import { useUserListDetail } from '@/components/UserList/lib/hooks/useUserListDetail';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { useUser } from '@/contexts/UserContext';
 import { useFeedImpressionTracking } from '@/hooks/useFeedImpressionTracking';
@@ -52,7 +52,7 @@ export default function ListDetailPage() {
   const openModal = (mode: ModalState['mode'], name: string = '') =>
     setModal({ isOpen: true, mode, name });
 
-  const isOwner = user && list && list.created_by === user.id;
+  const isOwner = user && list && list.createdBy === user.id;
   const feedEntries = useMemo(() => items.map(transformListItemToFeedEntry), [items]);
   const { ref: loadMoreRef, inView } = useInView({ threshold: 0, rootMargin: '100px' });
 

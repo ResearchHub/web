@@ -6,7 +6,7 @@ import {
 import { pluralizeSuffix } from '@/utils/stringUtils';
 
 export const formatItemCount = (list: UserList) => {
-  const n = list.item_count ?? 0;
+  const n = list.itemCount ?? 0;
   return `${n} item${pluralizeSuffix(n)}`;
 };
 
@@ -18,7 +18,7 @@ export const updateListRemoveItem = (
   return {
     ...list,
     items: list.items.filter((item) => item.id !== itemId),
-    item_count: (list.item_count ?? 0) - 1,
+    itemCount: (list.itemCount ?? 0) - 1,
   };
 };
 
