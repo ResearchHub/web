@@ -42,7 +42,7 @@ export interface UserList {
   itemCount?: number;
 }
 
-export interface UserListItem {
+export interface UserListItemDTO {
   id: number;
   parent_list: number;
   unified_document: number;
@@ -101,7 +101,7 @@ export interface UserListItem {
 }
 
 export interface UserListDetail extends UserList {
-  items: UserListItem[];
+  items: UserListItemDTO[];
 }
 
 export interface CreateListRequest {
@@ -141,7 +141,7 @@ export interface UserListsOverviewResponse {
   lists: UserListOverview[];
 }
 
-export const transformListItemToFeedEntry = createTransformer<UserListItem, FeedEntry>((item) =>
+export const transformListItemToFeedEntry = createTransformer<UserListItemDTO, FeedEntry>((item) =>
   transformFeedEntry({
     id: item.document.content_object.id,
     content_type: item.document.content_type,

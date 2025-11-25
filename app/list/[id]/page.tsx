@@ -29,7 +29,7 @@ const INITIAL_MODAL: ModalState = { isOpen: false, mode: 'edit', name: '' };
 export default function ListDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const { user, isLoading: isUserLoading } = useUser();
+  const { user } = useUser();
   const listId = params?.id ? Number.parseInt(params.id as string, 10) : null;
   const { updateList, deleteList } = useUserListsContext();
   const {
@@ -57,12 +57,6 @@ export default function ListDetailPage() {
   const { ref: loadMoreRef, inView } = useInView({ threshold: 0, rootMargin: '100px' });
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push(`/auth/signin?redirect=${encodeURIComponent(globalThis.location.pathname)}`);
-    }
-  }, [user, isUserLoading, router]);
-
-  useEffect(() => {
     if (inView && hasMore && !isLoading && !isLoadingMore) loadMore();
   }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
 
@@ -86,9 +80,7 @@ export default function ListDetailPage() {
     }
   };
 
-  if (isUserLoading || !user) return null;
-
-  if (isLoading || error || !list) {
+  if (!list) {
     return (
       <PageLayout>
         <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">

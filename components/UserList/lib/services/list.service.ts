@@ -4,7 +4,7 @@ import {
   CreateListRequest,
   UpdateListRequest,
   UserListsResponse,
-  UserListItem,
+  UserListItemDTO,
   ApiUserList,
   ApiUserListsResponse,
   ApiUserCheckResponse,
@@ -38,7 +38,7 @@ export class ListService {
     listId: number,
     params?: { page?: number; pageSize?: number }
   ): Promise<{
-    results: UserListItem[];
+    results: UserListItemDTO[];
     count?: number;
     next?: string | null;
     previous?: string | null;
@@ -48,7 +48,7 @@ export class ListService {
     if (params?.pageSize) query.append('page_size', params.pageSize.toString());
     const queryString = query.toString() ? `?${query.toString()}` : '';
     return ApiClient.get<{
-      results: UserListItem[];
+      results: UserListItemDTO[];
       count?: number;
       next?: string | null;
       previous?: string | null;

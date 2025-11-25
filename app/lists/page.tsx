@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserLists } from '@/components/UserList/lib/hooks/useUserLists';
 import { UserList } from '@/components/UserList/lib/user-list';
@@ -25,7 +24,6 @@ interface ModalState {
 const INITIAL_MODAL: ModalState = { isOpen: false, mode: 'create', list: null, name: '' };
 
 export default function ListsPage() {
-  const router = useRouter();
   const {
     lists,
     isLoading,
@@ -40,14 +38,8 @@ export default function ListsPage() {
   } = useUserLists();
   const [modal, setModal] = useState<ModalState>(INITIAL_MODAL);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user, isLoading: isUserLoading } = useUser();
+  const { user } = useUser();
   const { ref: loadMoreRef, inView } = useInView({ threshold: 0, rootMargin: '100px' });
-
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push(`/auth/signin?redirect=${encodeURIComponent('/lists')}`);
-    }
-  }, [user, isUserLoading, router]);
 
   useEffect(() => {
     if (inView && hasMore && !isLoading && !isLoadingMore) loadMore();
@@ -70,8 +62,6 @@ export default function ListsPage() {
       setIsSubmitting(false);
     }
   };
-
-  if (isUserLoading || !user) return null;
 
   return (
     <PageLayout>
