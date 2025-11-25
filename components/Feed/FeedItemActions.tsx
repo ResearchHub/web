@@ -238,11 +238,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   });
 
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
-  const {
-    isInList: isDocumentInList,
-    refetch: refetchIsInList,
-    listIds,
-  } = useIsInList(relatedDocumentUnifiedDocumentId);
+  const { isInList: isDocumentInList, listIds } = useIsInList(relatedDocumentUnifiedDocumentId);
 
   // Calculate initial tip amount and avatars from props
   const initialTotalTipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
@@ -839,7 +835,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           isOpen={isAddToListModalOpen}
           onClose={handleCloseAddToListModal}
           unifiedDocumentId={Number.parseInt(relatedDocumentUnifiedDocumentId)}
-          onListsChanged={refetchIsInList}
         />
       )}
     </>

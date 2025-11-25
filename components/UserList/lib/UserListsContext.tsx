@@ -21,10 +21,6 @@ import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
 
 interface UserListsContextType {
-  lists: UserList[];
-  isLoading: boolean;
-  error: string | null;
-  fetchLists: () => Promise<void>;
   createList: (data: CreateListRequest, refreshLists?: boolean) => Promise<UserList>;
   updateList: (
     listId: number,
@@ -41,27 +37,8 @@ const UserListsContext = createContext<UserListsContextType | undefined>(undefin
 
 export function UserListsProvider({ children }: { readonly children: ReactNode }) {
   const { user } = useUser();
-  const [lists, setLists] = useState<UserList[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [overviewLists, setOverviewLists] = useState<UserListOverview[]>([]);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
-
-  const fetchLists = useCallback(async () => {
-    if (!user) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await ListService.getUserListsApi({ page: 1 });
-      setLists(response.results || []);
-    } catch (err) {
-      const errorMsg = extractApiErrorMessage(err, 'Failed to load lists');
-      setError(errorMsg);
-      console.error('Failed to fetch lists:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
 
   const refetchOverview = useCallback(async () => {
     if (!user) return;
@@ -79,10 +56,9 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
 
   useEffect(() => {
     if (user) {
-      fetchLists();
       refetchOverview();
     }
-  }, [user, fetchLists, refetchOverview]);
+  }, [user, refetchOverview]);
 
   const withRefresh = useCallback(
     async <T,>(
@@ -94,14 +70,16 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
       try {
         const result = await action();
         toast.success(successMsg);
-        await (refreshLists ? Promise.all([fetchLists(), refetchOverview()]) : refetchOverview());
+        if (refreshLists) {
+          await refetchOverview();
+        }
         return result;
       } catch (err) {
         toast.error(extractApiErrorMessage(err, errorMsg));
         throw err;
       }
     },
-    [fetchLists, refetchOverview]
+    [refetchOverview]
   );
 
   const createList = useCallback(
@@ -139,10 +117,6 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
 
   const value = useMemo(
     () => ({
-      lists,
-      isLoading,
-      error,
-      fetchLists,
       createList,
       updateList,
       deleteList,
@@ -150,18 +124,7 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
       isLoadingOverview,
       refetchOverview,
     }),
-    [
-      lists,
-      isLoading,
-      error,
-      fetchLists,
-      createList,
-      updateList,
-      deleteList,
-      overviewLists,
-      isLoadingOverview,
-      refetchOverview,
-    ]
+    [createList, updateList, deleteList, overviewLists, isLoadingOverview, refetchOverview]
   );
 
   return <UserListsContext.Provider value={value}>{children}</UserListsContext.Provider>;

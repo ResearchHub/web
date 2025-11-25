@@ -89,7 +89,7 @@ export function useUserLists() {
         throw err;
       }
     },
-    [fetchLists, refetchOverview]
+    [fetchLists]
   );
 
   return {
