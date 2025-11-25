@@ -110,7 +110,7 @@ export class SearchService {
     const searchParams = new URLSearchParams();
     searchParams.append('q', params.query);
     searchParams.append('page', (params.page || 1).toString());
-    searchParams.append('page_size', (params.pageSize || 20).toString());
+    searchParams.append('page_size', (params.pageSize || 40).toString());
 
     // Always use relevance for backend sorting - frontend will handle other sorts
     searchParams.append('sort', 'relevance');

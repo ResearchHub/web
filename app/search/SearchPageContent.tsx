@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SearchResult } from '@/components/Search/SearchResult';
 import { SearchSortControls } from '@/components/Search/SearchSortControls';
@@ -27,6 +27,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
   const urlSearchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.q || '');
   const [hasSearched, setHasSearched] = useState(false);
+  const hasTriggeredLoadRef = useRef(false);
 
   const {
     entries,
@@ -39,7 +40,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     sortBy,
     setSortBy,
     search,
-  } = useSearch();
+  } = useSearch({ pageSize: 40 });
 
   // Initialize from URL params and perform initial search
   useEffect(() => {
@@ -111,8 +112,16 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     rootMargin: '100px',
   });
 
+  // Reset the trigger ref when loading completes
   useEffect(() => {
-    if (inView && hasMore && !isLoading && !isLoadingMore) {
+    if (!isLoadingMore) {
+      hasTriggeredLoadRef.current = false;
+    }
+  }, [isLoadingMore]);
+
+  useEffect(() => {
+    if (inView && hasMore && !isLoading && !isLoadingMore && !hasTriggeredLoadRef.current) {
+      hasTriggeredLoadRef.current = true;
       loadMore();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

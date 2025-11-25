@@ -154,7 +154,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
         const response = await SearchService.fullSearch({
           query,
           page: 1,
-          pageSize: options.pageSize || 20,
+          pageSize: options.pageSize || 40,
           filters,
           sortBy: 'relevance',
         });
@@ -196,7 +196,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
       const response = await SearchService.fullSearch({
         query: currentQuery,
         page: nextPage,
-        pageSize: options.pageSize || 20,
+        pageSize: options.pageSize || 40,
         filters,
         sortBy: 'relevance',
       });
