@@ -22,6 +22,7 @@ import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/icons/Icon';
 import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
 import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
+import { RFPInfo } from '@/components/Grant/GrantInfo';
 
 // Grant-specific content type that extends the feed entry structure
 export interface FeedGrantContent {
@@ -158,12 +159,6 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             ))}
           </>
         }
-        rightContent={
-          <StatusSection
-            status={isActive ? 'open' : 'closed'}
-            statusText={isActive ? 'Open' : 'Closed'}
-          />
-        }
       />
 
       {/* Main content layout + image(desktop) */}
@@ -172,27 +167,6 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
           <>
             {/* Title */}
             <TitleSection title={grant.title} />
-
-            {/* Description */}
-            {grant.grant?.description && (
-              <ContentSection
-                content={grant.grant.description}
-                maxLength={maxLength}
-                className="mb-3"
-              />
-            )}
-
-            {/* Funding Amount */}
-            {(grant.grantAmount || grant.grant?.amount) && (
-              <MetadataSection>
-                <div className="flex flex-wrap items-baseline gap-1 mb-3">
-                  <div className="font-semibold text-2xl text-orange-500 flex items-center gap-1">
-                    <span className="text-sm text-orange-500 self-center">$</span>
-                    {(grant.grant?.amount?.usd || 0).toLocaleString()}
-                  </div>
-                </div>
-              </MetadataSection>
-            )}
 
             {/* Organization */}
             {(grant.organization || grant.grant?.organization) && (
@@ -204,58 +178,13 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
               </MetadataSection>
             )}
 
-            {/* Deadline */}
-            {deadline && isActive && (
-              <MetadataSection>
-                <div className="flex items-center gap-1.5 text-sm mb-3">
-                  <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                  <span className="text-gray-500">
-                    Apply by: {format(new Date(deadline), 'MMM d, yyyy')}
-                  </span>
-                  {expiringSoon && (
-                    <>
-                      <div className="h-4 w-px bg-gray-300" />
-                      <span className="text-amber-600 font-medium">{formatDeadline(deadline)}</span>
-                    </>
-                  )}
-                </div>
-              </MetadataSection>
-            )}
-
-            {/* Applicants */}
-            {applicants.length > 0 && (
-              <MetadataSection>
-                <div className="flex items-center gap-1.5 text-sm mb-3">
-                  <Icon name="createBounty" size={16} color="#6b7280" className="flex-shrink-0" />
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500 font-normal">
-                      {applicants.length} {applicants.length === 1 ? 'Applicant' : 'Applicants'}
-                    </span>
-                    <AvatarStack
-                      items={applicantAvatars}
-                      size="xxs"
-                      maxItems={5}
-                      spacing={-4}
-                      showExtraCount={true}
-                      extraCountLabel="Applicants"
-                      allItems={applicantAvatars}
-                      totalItemsCount={applicants.length}
-                    />
-                  </div>
-                </div>
-              </MetadataSection>
-            )}
-
-            {/* CTA */}
-            {isActive && (
-              <CTASection>
-                <button
-                  onClick={handleApplyClick}
-                  className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-lg font-medium text-sm transition-colors duration-200 flex items-center gap-2"
-                >
-                  Apply
-                </button>
-              </CTASection>
+            {/* Description */}
+            {grant.grant?.description && (
+              <ContentSection
+                content={grant.grant.description}
+                maxLength={maxLength}
+                className="mb-3"
+              />
             )}
           </>
         }
@@ -269,6 +198,10 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
           )
         }
       />
+      {/* RFP Info */}
+      <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+        <RFPInfo grant={grant} className="p-0 border-0 bg-transparent" />
+      </div>
     </BaseFeedItem>
   );
 };

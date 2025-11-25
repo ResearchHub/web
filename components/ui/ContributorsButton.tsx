@@ -158,6 +158,7 @@ interface ContributorsButtonProps {
   disableContribute?: boolean;
   /** Display variant: 'badge' shows count with label in badge, 'count' shows +X badge with total count label */
   variant?: 'badge' | 'count';
+  customOnClick?: () => void;
 }
 
 export function ContributorsButton({
@@ -167,6 +168,7 @@ export function ContributorsButton({
   size = 'xs',
   disableContribute,
   variant = 'badge',
+  customOnClick,
 }: ContributorsButtonProps) {
   const [showModal, setShowModal] = useState(false);
 
@@ -235,10 +237,18 @@ export function ContributorsButton({
     return <LabelBadge count={contributors.length} label={label} size={size} />;
   };
 
+  const handleClick = () => {
+    if (customOnClick) {
+      customOnClick();
+    } else {
+      setShowModal(true);
+    }
+  };
+
   return (
     <>
       <button
-        onClick={() => setShowModal(true)}
+        onClick={handleClick}
         className="flex items-center hover:opacity-80 transition-opacity"
       >
         <AvatarStack

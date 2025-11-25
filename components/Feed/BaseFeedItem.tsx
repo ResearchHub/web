@@ -310,15 +310,13 @@ export const FeedItemLayout: FC<{
 
 export const FeedItemTopSection: FC<{
   leftContent: ReactNode;
-  rightContent?: ReactNode;
   className?: string;
   imageSection?: ReactNode;
-}> = ({ leftContent, rightContent, className, imageSection }) => {
+}> = ({ leftContent, className, imageSection }) => {
   return (
     <>
       <div className={cn('flex items-start justify-between mb-3', className)}>
         <div className="flex flex-wrap gap-2">{leftContent}</div>
-        {rightContent && <div className="flex items-center gap-2">{rightContent}</div>}
       </div>
       {imageSection && (
         <div className="md:!hidden w-full mb-4 rounded-lg overflow-hidden shadow-sm">
