@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SearchResult } from '@/components/Search/SearchResult';
 import { SearchSortControls } from '@/components/Search/SearchSortControls';
@@ -27,7 +27,6 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
   const urlSearchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.q || '');
   const [hasSearched, setHasSearched] = useState(false);
-  const hasTriggeredLoadRef = useRef(false);
 
   const {
     entries,
@@ -112,20 +111,11 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     rootMargin: '100px',
   });
 
-  // Reset the trigger ref when loading completes
   useEffect(() => {
-    if (!isLoadingMore) {
-      hasTriggeredLoadRef.current = false;
-    }
-  }, [isLoadingMore]);
-
-  useEffect(() => {
-    if (inView && hasMore && !isLoading && !isLoadingMore && !hasTriggeredLoadRef.current) {
-      hasTriggeredLoadRef.current = true;
+    if (inView && hasMore && !isLoading && !isLoadingMore) {
       loadMore();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inView, hasMore, isLoading, isLoadingMore]);
+  }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
 
   // Generate stable keys for skeleton loaders
   const skeletonKeys = useMemo(() => {
