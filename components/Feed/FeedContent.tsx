@@ -42,7 +42,6 @@ interface FeedContentProps {
   page?: number;
   lastClickedEntryId?: string;
   insertContent?: InsertContentItem[];
-  feedKey?: string;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -69,7 +68,6 @@ export const FeedContent: FC<FeedContentProps> = ({
   page,
   lastClickedEntryId,
   insertContent,
-  feedKey: providedFeedKey,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -85,14 +83,13 @@ export const FeedContent: FC<FeedContentProps> = ({
     queryParams[key] = value;
   }
 
-  // Use provided feedKey if available, otherwise generate from pathname/tab/queryParams
-  const feedKey =
-    providedFeedKey ||
-    getFeedKey({
-      pathname,
-      tab: activeTab,
-      queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
-    });
+  // Generate feed key from pathname/tab/queryParams
+  // For search pages, explicitly exclude tab portion
+  const feedKey = getFeedKey({
+    pathname,
+    tab: pathname === '/search' ? undefined : activeTab,
+    queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
+  });
 
   useFeedScrollTracking({
     feedKey,

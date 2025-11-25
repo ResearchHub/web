@@ -24,7 +24,15 @@ interface RelatedWork {
   unified_document_id?: string;
 }
 
-export type FeedSource = 'home' | 'earn' | 'fund' | 'journal' | 'topic' | 'author' | 'unknown';
+export type FeedSource =
+  | 'home'
+  | 'earn'
+  | 'fund'
+  | 'journal'
+  | 'topic'
+  | 'author'
+  | 'search'
+  | 'unknown';
 
 /**
  * Extracts the unified document ID from a feed entry.

@@ -9,7 +9,6 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { Search as SearchIcon } from 'lucide-react';
 import { FeedContent } from '@/components/Feed/FeedContent';
-import { getFeedKey } from '@/contexts/NavigationContext';
 
 interface SearchPageContentProps {
   readonly searchParams: {
@@ -104,15 +103,6 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     </div>
   );
 
-  // Generate search-specific feed key (include query parameter)
-  const searchFeedKey = useMemo(() => {
-    if (!query.trim()) return undefined;
-    return getFeedKey({
-      pathname: '/search',
-      queryParams: { q: query },
-    });
-  }, [query]);
-
   // Show a blank page (no default search UI) if no query
   if (!query.trim()) {
     return (
@@ -165,7 +155,6 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
                 isLoadingMore={isLoadingMore}
                 hasMore={hasMore}
                 loadMore={loadMore}
-                feedKey={searchFeedKey}
                 showGrantHeaders={true}
                 showReadMoreCTA={true}
                 hideActions={true}
