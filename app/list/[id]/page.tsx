@@ -58,7 +58,7 @@ export default function ListDetailPage() {
 
   useEffect(() => {
     if (!isUserLoading && !user) {
-      router.push(`/auth/signin?redirect=${encodeURIComponent(window.location.pathname)}`);
+      router.push(`/auth/signin?redirect=${encodeURIComponent(globalThis.location.pathname)}`);
     }
   }, [user, isUserLoading, router]);
 
@@ -172,7 +172,7 @@ export default function ListDetailPage() {
                     getVisibleItems={getVisibleItems}
                   />
                   {isOwner && (
-                    <div className="absolute top-16 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
+                    <div className="absolute top-16 right-4 z-20 opacity-100 sm:!opacity-0 sm:group-hover:!opacity-100 transition-opacity pointer-events-auto">
                       <Button
                         variant="ghost"
                         size="icon"

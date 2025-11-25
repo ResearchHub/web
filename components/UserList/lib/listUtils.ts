@@ -1,8 +1,4 @@
-import {
-  UserList,
-  UserListDetail,
-  transformListItemToFeedEntry as _transformListItemToFeedEntry,
-} from '@/components/UserList/lib/user-list';
+import { UserList, UserListDetail } from '@/components/UserList/lib/user-list';
 import { pluralizeSuffix } from '@/utils/stringUtils';
 
 export const formatItemCount = (list: UserList) => {
@@ -22,5 +18,4 @@ export const updateListRemoveItem = (
   };
 };
 
-// Re-export for convenience
-export const transformListItemToFeedEntry = _transformListItemToFeedEntry;
+export { transformListItemToFeedEntry } from '@/components/UserList/lib/user-list';
