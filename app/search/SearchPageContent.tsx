@@ -157,7 +157,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
         </div>
 
         {/* Load more trigger */}
-        {hasMore && (
+        {!isLoading && hasMore && (
           <div ref={loadMoreRef} className="mt-6">
             {isLoadingMore && (
               <div className="space-y-4">
