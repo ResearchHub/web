@@ -4,10 +4,18 @@ import {
   transformSearchSuggestion,
   EntityType,
   AuthorSuggestion,
+  SearchResponse,
+  ApiDocumentSearchResult,
+  PersonSearchResult,
+  SearchFilters,
+  SearchSortOption,
 } from '@/types/search';
 import { transformAuthorSuggestions } from '@/types/search';
 import { transformTopic } from '@/types/topic';
 import { Institution } from '@/app/paper/create/components/InstitutionAutocomplete';
+import { FeedEntry, transformFeedEntry } from '@/types/feed';
+import { SearchResult } from '@/types/searchResult';
+import { highlightSearchTerms, hasHighlights } from '@/components/Search/lib/searchHighlight';
 
 export interface InstitutionResponse {
   id: number;
@@ -19,6 +27,22 @@ export interface InstitutionResponse {
   works_count?: number;
   image_url?: string;
   image_thumbnail_url?: string;
+}
+
+export interface FullSearchParams {
+  query: string;
+  page?: number;
+  pageSize?: number;
+  filters?: SearchFilters;
+  sortBy?: SearchSortOption;
+}
+
+export interface FullSearchResponse {
+  entries: SearchResult[];
+  people: PersonSearchResult[];
+  count: number;
+  aggregations: any;
+  hasMore: boolean;
 }
 
 export const transformInstitution = (response: any): Institution => {
@@ -80,6 +104,231 @@ export class SearchService {
     );
 
     return response.map(transformSearchSuggestion);
+  }
+
+  static async fullSearch(params: FullSearchParams): Promise<FullSearchResponse> {
+    const searchParams = new URLSearchParams();
+    searchParams.append('q', params.query);
+    searchParams.append('page', (params.page || 1).toString());
+    searchParams.append('page_size', (params.pageSize || 20).toString());
+
+    // Always use relevance for backend sorting - frontend will handle other sorts
+    searchParams.append('sort', 'relevance');
+
+    // Add filters if provided
+    if (params.filters) {
+      if (params.filters.contentTypes && params.filters.contentTypes.length > 0) {
+        searchParams.append('content_types', params.filters.contentTypes.join(','));
+      }
+
+      if (params.filters.yearMin !== undefined) {
+        searchParams.append('year_min', params.filters.yearMin.toString());
+      }
+
+      if (params.filters.yearMax !== undefined) {
+        searchParams.append('year_max', params.filters.yearMax.toString());
+      }
+    }
+
+    const response = await ApiClient.get<SearchResponse | { error?: string }>(
+      `${this.BASE_PATH}/search/?${searchParams.toString()}`
+    );
+
+    // If backend returns an error payload, throw to be handled by caller
+    if ((response as any)?.error) {
+      throw new Error((response as any).error || 'Search failed');
+    }
+
+    const resp = response as SearchResponse;
+
+    // Transform documents to SearchResult format
+    const documents = Array.isArray(resp.documents) ? resp.documents : [];
+    const entries: SearchResult[] = documents.map((doc) =>
+      this.transformSearchResult(doc, params.query)
+    );
+
+    const hasMore = !!resp.next;
+
+    return {
+      entries,
+      people: Array.isArray(resp.people) ? resp.people : [],
+      count: resp.count || 0,
+      aggregations: resp.aggregations,
+      hasMore,
+    };
+  }
+
+  private static stripHighlightTags(text: string | null | undefined): string {
+    if (!text) return '';
+    return text.replaceAll('<mark>', '').replaceAll('</mark>', '');
+  }
+
+  private static processTitleHighlights(
+    doc: ApiDocumentSearchResult,
+    plainSnippet: string,
+    query: string
+  ): { highlightedTitle?: string; highlightedSnippet?: string } {
+    const titleHasHighlight = doc.title ? hasHighlights(doc.title) : false;
+    const snippetHasHighlight = doc.snippet ? hasHighlights(doc.snippet) : false;
+
+    if (titleHasHighlight && doc.title) {
+      return {
+        highlightedTitle: doc.title,
+        highlightedSnippet:
+          !snippetHasHighlight && plainSnippet
+            ? highlightSearchTerms(plainSnippet, query)
+            : undefined,
+      };
+    }
+
+    return {};
+  }
+
+  private static processSnippetAsTitle(
+    doc: ApiDocumentSearchResult,
+    plainSnippet: string,
+    plainTitle: string,
+    query: string
+  ): { highlightedTitle?: string; highlightedSnippet?: string } {
+    const snippetHasHighlight = doc.snippet ? hasHighlights(doc.snippet) : false;
+
+    if (doc.matched_field === 'title' && snippetHasHighlight && doc.snippet) {
+      return {
+        highlightedTitle: doc.snippet,
+        highlightedSnippet:
+          plainSnippet && plainSnippet !== plainTitle
+            ? highlightSearchTerms(plainSnippet, query)
+            : undefined,
+      };
+    }
+
+    return {};
+  }
+
+  private static processSnippetHighlights(
+    doc: ApiDocumentSearchResult,
+    plainTitle: string,
+    query: string
+  ): { highlightedTitle?: string; highlightedSnippet?: string } {
+    const snippetHasHighlight = doc.snippet ? hasHighlights(doc.snippet) : false;
+    const titleHasHighlight = doc.title ? hasHighlights(doc.title) : false;
+
+    if (snippetHasHighlight && doc.matched_field !== 'title' && doc.snippet) {
+      return {
+        highlightedSnippet: doc.snippet,
+        highlightedTitle:
+          !titleHasHighlight && plainTitle ? highlightSearchTerms(plainTitle, query) : undefined,
+      };
+    }
+
+    return {};
+  }
+
+  private static applyFallbackHighlights(
+    plainTitle: string,
+    plainSnippet: string,
+    query: string,
+    existingTitle?: string,
+    existingSnippet?: string
+  ): { highlightedTitle?: string; highlightedSnippet?: string } {
+    return {
+      highlightedTitle:
+        existingTitle || (plainTitle ? highlightSearchTerms(plainTitle, query) : undefined),
+      highlightedSnippet:
+        existingSnippet || (plainSnippet ? highlightSearchTerms(plainSnippet, query) : undefined),
+    };
+  }
+
+  private static transformSearchResult(doc: ApiDocumentSearchResult, query: string): SearchResult {
+    // First transform to a clean FeedEntry
+    const feedEntry = this.transformDocumentToFeedEntry(doc);
+
+    // Strip HTML tags from snippet and title for plain text, handle null values
+    const plainSnippet = this.stripHighlightTags(doc.snippet);
+    const plainTitle = this.stripHighlightTags(doc.title);
+
+    // Process highlights in priority order
+    const titleResult = this.processTitleHighlights(doc, plainSnippet, query);
+    const snippetAsTitleResult = titleResult.highlightedTitle
+      ? {}
+      : this.processSnippetAsTitle(doc, plainSnippet, plainTitle, query);
+    const snippetResult =
+      titleResult.highlightedTitle || snippetAsTitleResult.highlightedTitle
+        ? {}
+        : this.processSnippetHighlights(doc, plainTitle, query);
+
+    // Combine results
+    const combined = {
+      ...titleResult,
+      ...snippetAsTitleResult,
+      ...snippetResult,
+    };
+
+    // Apply fallback highlights if needed
+    const final = this.applyFallbackHighlights(
+      plainTitle,
+      plainSnippet,
+      query,
+      combined.highlightedTitle,
+      combined.highlightedSnippet
+    );
+
+    return {
+      entry: feedEntry,
+      highlightedTitle: final.highlightedTitle,
+      highlightedSnippet: final.highlightedSnippet,
+      matchedField: doc.matched_field,
+    };
+  }
+
+  private static transformDocumentToFeedEntry(doc: ApiDocumentSearchResult): FeedEntry {
+    // Strip HTML tags from snippet and title for plain text, handle null values
+    const plainSnippet = this.stripHighlightTags(doc.snippet);
+    const plainTitle = this.stripHighlightTags(doc.title);
+
+    // Use structured author objects from API - no more string splitting!
+    const firstAuthor = doc.authors && doc.authors.length > 0 ? doc.authors[0] : null;
+
+    // Create a mock RawApiFeedEntry structure that can be transformed by transformFeedEntry
+    const mockRawEntry = {
+      id: doc.id,
+      recommendation_id: null,
+      content_type: doc.type === 'paper' ? 'PAPER' : 'RESEARCHHUBPOST',
+      content_object: {
+        id: doc.id,
+        title: plainTitle,
+        abstract: plainSnippet,
+        slug: doc.slug || '',
+        created_date: doc.created_date || doc.paper_publish_date || new Date().toISOString(),
+        authors: (doc.authors || []).map((author) => ({
+          first_name: author.first_name || '',
+          last_name: author.last_name || '',
+          profile_image: '',
+        })),
+        hub: doc.hubs && doc.hubs.length > 0 ? doc.hubs[0] : null,
+        journal: null,
+        doi: doc.doi,
+        citations: doc.citations || 0,
+        score: doc.score || 0,
+        hot_score: doc.hot_score || 0,
+        unified_document_id: doc.unified_document_id?.toString() || doc.id.toString(),
+      },
+      created_date: doc.created_date || doc.paper_publish_date || new Date().toISOString(),
+      action: 'publish',
+      action_date: doc.created_date || doc.paper_publish_date || new Date().toISOString(),
+      author: {
+        id: 0,
+        first_name: firstAuthor?.first_name || 'Unknown',
+        last_name: firstAuthor?.last_name || 'Author',
+        profile_image: '',
+      },
+      metrics: {
+        votes: doc.score || 0,
+        comments: 0,
+      },
+    };
+
+    return transformFeedEntry(mockRawEntry);
   }
 
   static async suggestPeople(query: string): Promise<AuthorSuggestion[]> {
