@@ -28,8 +28,18 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
   const [query, setQuery] = useState(searchParams.q || '');
   const [hasSearched, setHasSearched] = useState(false);
 
-  const { entries, isLoading, error, hasMore, loadMore, stagedFilters, sortBy, setSortBy, search } =
-    useSearch();
+  const {
+    entries,
+    isLoading,
+    isLoadingMore,
+    error,
+    hasMore,
+    loadMore,
+    stagedFilters,
+    sortBy,
+    setSortBy,
+    search,
+  } = useSearch();
 
   // Initialize from URL params and perform initial search
   useEffect(() => {
@@ -102,10 +112,11 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
   });
 
   useEffect(() => {
-    if (inView && hasMore && !isLoading) {
+    if (inView && hasMore && !isLoading && !isLoadingMore) {
       loadMore();
     }
-  }, [inView, hasMore, isLoading, loadMore]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inView, hasMore, isLoading, isLoadingMore]);
 
   // Generate stable keys for skeleton loaders
   const skeletonKeys = useMemo(() => {
@@ -149,7 +160,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
         {/* Load more trigger */}
         {hasMore && (
           <div ref={loadMoreRef} className="mt-6">
-            {isLoading && (
+            {isLoadingMore && (
               <div className="space-y-4">
                 {loadingSkeletonKeys.map((key) => (
                   <FeedItemSkeleton key={key} />
