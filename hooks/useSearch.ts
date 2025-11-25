@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { debounce } from 'lodash';
 import { SearchService } from '@/services/search.service';
 import { SearchResult } from '@/types/searchResult';
@@ -48,6 +48,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
   const [aggregations, setAggregations] = useState<SearchResponse['aggregations'] | null>(null);
   const [currentQuery, setCurrentQuery] = useState('');
   const [currentTab, setCurrentTab] = useState<'documents' | 'people'>('documents');
+  const isLoadingRef = useRef(false);
 
   // Load preferences from localStorage
   const [filters, setFiltersState] = useState<SearchFilters>(() => {
@@ -140,6 +141,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
         return;
       }
 
+      isLoadingRef.current = false; // Reset the ref for new search
       setIsLoadingMore(false);
       setIsLoading(true);
       setError(null);
@@ -181,8 +183,9 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
   );
 
   const loadMore = useCallback(async () => {
-    if (!hasMore || isLoading || isLoadingMore || !currentQuery.trim()) return;
+    if (!hasMore || isLoadingRef.current || !currentQuery.trim()) return;
 
+    isLoadingRef.current = true;
     setIsLoading(true);
     setIsLoadingMore(true);
     const nextPage = page + 1;
@@ -205,6 +208,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
         setHasMore(false);
         setIsLoading(false);
         setIsLoadingMore(false);
+        isLoadingRef.current = false;
         return;
       }
 
@@ -223,17 +227,9 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
+      isLoadingRef.current = false;
     }
-  }, [
-    hasMore,
-    isLoading,
-    isLoadingMore,
-    currentQuery,
-    page,
-    filters,
-    currentTab,
-    options.pageSize,
-  ]);
+  }, [hasMore, currentQuery, page, filters, currentTab, options.pageSize]);
 
   // Debounced search effect - only re-search when filters change, not sortBy
   useEffect(() => {
