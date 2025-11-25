@@ -19,6 +19,7 @@ interface UseSearchReturn {
   entries: SearchResult[];
   people: PersonSearchResult[];
   isLoading: boolean;
+  isLoadingMore: boolean;
   error: string | null;
   hasMore: boolean;
   loadMore: () => void;
@@ -40,13 +41,14 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
   const [entries, setEntries] = useState<SearchResult[]>([]);
   const [people, setPeople] = useState<PersonSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
   const [aggregations, setAggregations] = useState<SearchResponse['aggregations'] | null>(null);
   const [currentQuery, setCurrentQuery] = useState('');
   const [currentTab, setCurrentTab] = useState<'documents' | 'people'>('documents');
-  const isLoadingMoreRef = useRef(false);
+  const isLoadingRef = useRef(false);
 
   // Load preferences from localStorage
   const [filters, setFiltersState] = useState<SearchFilters>(() => {
@@ -139,7 +141,8 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
         return;
       }
 
-      isLoadingMoreRef.current = false; // Reset the ref for new search
+      isLoadingRef.current = false; // Reset the ref for new search
+      setIsLoadingMore(false);
       setIsLoading(true);
       setError(null);
       setCurrentQuery(query);
@@ -151,7 +154,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
         const response = await SearchService.fullSearch({
           query,
           page: 1,
-          pageSize: options.pageSize || 20,
+          pageSize: options.pageSize || 40,
           filters,
           sortBy: 'relevance',
         });
@@ -180,10 +183,11 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
   );
 
   const loadMore = useCallback(async () => {
-    if (!hasMore || isLoading || !currentQuery.trim() || isLoadingMoreRef.current) return;
+    if (!hasMore || isLoadingRef.current || !currentQuery.trim()) return;
 
-    isLoadingMoreRef.current = true;
+    isLoadingRef.current = true;
     setIsLoading(true);
+    setIsLoadingMore(true);
     const nextPage = page + 1;
 
     try {
@@ -191,7 +195,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
       const response = await SearchService.fullSearch({
         query: currentQuery,
         page: nextPage,
-        pageSize: options.pageSize || 20,
+        pageSize: options.pageSize || 40,
         filters,
         sortBy: 'relevance',
       });
@@ -203,7 +207,8 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
       if (!hasNewResults) {
         setHasMore(false);
         setIsLoading(false);
-        isLoadingMoreRef.current = false;
+        setIsLoadingMore(false);
+        isLoadingRef.current = false;
         return;
       }
 
@@ -221,9 +226,10 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
       setError("We're experiencing issues loading more results. Please try again.");
     } finally {
       setIsLoading(false);
-      isLoadingMoreRef.current = false;
+      setIsLoadingMore(false);
+      isLoadingRef.current = false;
     }
-  }, [hasMore, isLoading, currentQuery, page, filters, currentTab, options.pageSize]);
+  }, [hasMore, currentQuery, page, filters, currentTab, options.pageSize]);
 
   // Debounced search effect - only re-search when filters change, not sortBy
   useEffect(() => {
@@ -304,6 +310,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
     entries: sortedEntries,
     people: sortedPeople,
     isLoading,
+    isLoadingMore,
     error,
     hasMore,
     loadMore,
