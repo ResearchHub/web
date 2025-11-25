@@ -1,18 +1,15 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useInView } from 'react-intersection-observer';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserListDetail } from '@/components/UserList/lib/hooks/useUserListDetail';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { useUser } from '@/contexts/UserContext';
-import { useFeedImpressionTracking } from '@/hooks/useFeedImpressionTracking';
-import { FeedEntryItem } from '@/components/Feed/FeedEntryItem';
+import { FeedContent } from '@/components/Feed/FeedContent';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 import { FolderPlus, Edit2, Trash2, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Loader } from '@/components/ui/Loader';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ListModal } from '@/components/modals/ListModal';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
@@ -44,8 +41,6 @@ export default function ListDetailPage() {
     updateListDetails,
   } = useUserListDetail(listId);
 
-  const { registerVisibleItem, unregisterVisibleItem, getVisibleItems } =
-    useFeedImpressionTracking();
   const [modal, setModal] = useState<ModalState>(INITIAL_MODAL);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -54,11 +49,34 @@ export default function ListDetailPage() {
 
   const isOwner = user && list && list.createdBy === user.id;
   const feedEntries = useMemo(() => items.map(transformListItemToFeedEntry), [items]);
-  const { ref: loadMoreRef, inView } = useInView({ threshold: 0, rootMargin: '100px' });
 
-  useEffect(() => {
-    if (inView && hasMore && !isLoading && !isLoadingMore) loadMore();
-  }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
+  const itemWrapper = useCallback(
+    (item: React.ReactNode, entry: any, index: number) => {
+      const listItem = items[index];
+      return (
+        <div className="relative group">
+          {item}
+          {isOwner && listItem && (
+            <div className="absolute top-16 right-4 z-20 opacity-100 sm:!opacity-0 sm:group-hover:!opacity-100 transition-opacity pointer-events-auto">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  removeItem(listItem.id);
+                }}
+                className="h-8 w-8 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-300 shadow-md rounded-full"
+              >
+                <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-600" />
+              </Button>
+            </div>
+          )}
+        </div>
+      );
+    },
+    [isOwner, items, removeItem]
+  );
 
   const handleSubmit = async () => {
     if (!list) return;
@@ -149,60 +167,21 @@ export default function ListDetailPage() {
           </div>
         </div>
 
-        {items.length > 0 && (
-          <div className="space-y-12">
-            {items.map((listItem, index) => {
-              const entry = feedEntries[index];
-              if (!entry) return null;
-              return (
-                <div key={listItem.id} className="relative group">
-                  <FeedEntryItem
-                    entry={entry}
-                    index={index}
-                    registerVisibleItem={registerVisibleItem}
-                    unregisterVisibleItem={unregisterVisibleItem}
-                    getVisibleItems={getVisibleItems}
-                  />
-                  {isOwner && (
-                    <div className="absolute top-16 right-4 z-20 opacity-100 sm:!opacity-0 sm:group-hover:!opacity-100 transition-opacity pointer-events-auto">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          removeItem(listItem.id);
-                        }}
-                        className="h-8 w-8 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-300 shadow-md rounded-full"
-                      >
-                        <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-600" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {items.length === 0 && (
-          <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-            <FolderPlus className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">This list is empty</h3>
-            <p className="text-gray-600">Start adding items to this list</p>
-          </div>
-        )}
-
-        {hasMore && (
-          <div ref={loadMoreRef} className="h-10 flex items-center justify-center mt-4">
-            {isLoadingMore && (
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Loader size="sm" />
-                <span>Loading more items...</span>
-              </div>
-            )}
-          </div>
-        )}
+        <FeedContent
+          entries={feedEntries}
+          isLoading={isLoading}
+          isLoadingMore={isLoadingMore}
+          hasMore={hasMore}
+          loadMore={loadMore}
+          itemWrapper={itemWrapper}
+          noEntriesElement={
+            <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+              <FolderPlus className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">This list is empty</h3>
+              <p className="text-gray-600">Start adding items to this list</p>
+            </div>
+          }
+        />
       </div>
 
       <ListModal
