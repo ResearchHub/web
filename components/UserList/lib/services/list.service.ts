@@ -4,9 +4,13 @@ import {
   CreateListRequest,
   UpdateListRequest,
   UserListsResponse,
+  ApiUserList,
+  ApiUserListsResponse,
   ApiUserCheckResponse,
   UserListsOverviewResponse,
   transformUserListsOverview,
+  transformUserListsResponse,
+  transformUserList,
 } from '@/components/UserList/lib/user-list';
 
 export class ListService {
@@ -20,15 +24,18 @@ export class ListService {
     if (params?.page) query.append('page', params.page.toString());
     if (params?.pageSize) query.append('page_size', params.pageSize.toString());
     const queryString = query.toString() ? `?${query.toString()}` : '';
-    return ApiClient.get<UserListsResponse>(`${this.BASE_PATH}/${queryString}`);
+    const response = await ApiClient.get<ApiUserListsResponse>(`${this.BASE_PATH}/${queryString}`);
+    return transformUserListsResponse(response);
   }
 
   static async createListApi(data: CreateListRequest): Promise<UserList> {
-    return ApiClient.post<UserList>(`${this.BASE_PATH}/`, data);
+    const response = await ApiClient.post<ApiUserList>(`${this.BASE_PATH}/`, data);
+    return transformUserList(response);
   }
 
   static async updateListApi(listId: number, data: UpdateListRequest): Promise<UserList> {
-    return ApiClient.patch<UserList>(`${this.BASE_PATH}/${listId}/`, data);
+    const response = await ApiClient.patch<ApiUserList>(`${this.BASE_PATH}/${listId}/`, data);
+    return transformUserList(response);
   }
 
   private static async handleDelete(path: string): Promise<void> {
