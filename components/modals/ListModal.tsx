@@ -55,7 +55,7 @@ export const ListModal = ({
       padding="p-6"
       footer={footer}
     >
-      <div className="md:min-w-[500px] md:max-w-[500px]">
+      <div className="md:!min-w-[500px] md:!max-w-[500px]">
         {mode === 'delete' ? (
           <p className="text-gray-600">
             Are you sure you want to delete "{name}"? This cannot be undone.
@@ -66,7 +66,13 @@ export const ListModal = ({
             placeholder="Enter list name"
             value={name}
             onChange={(e) => onNameChange(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && name.trim() && onSubmit()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && name.trim()) {
+                e.preventDefault();
+                e.stopPropagation();
+                onSubmit();
+              }
+            }}
             autoFocus
           />
         )}

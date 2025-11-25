@@ -4,6 +4,8 @@ import { FC, useState, ReactNode, useEffect, useRef } from 'react';
 import React from 'react';
 import { FeedContentType, FeedEntry, Review } from '@/types/feed';
 import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star, ThumbsDown } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookmark } from '@fortawesome/pro-light-svg-icons';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
@@ -16,6 +18,8 @@ import { ContentType } from '@/types/work';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useRouter } from 'next/navigation';
 import { TipContentModal } from '@/components/modals/TipContentModal';
+import { AddToListModal } from '@/components/UserList/AddToListModal';
+import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Bounty } from '@/types/bounty';
 import { Tip } from '@/types/tip';
@@ -29,6 +33,11 @@ import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
 import { Topic } from '@/types/topic';
 import { isFeatureEnabled, FeatureFlag } from '@/utils/featureFlags';
+import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
+
+const BookmarkIcon: FC<{ className?: string }> = (props) => (
+  <FontAwesomeIcon icon={faBookmark} {...props} />
+);
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -219,7 +228,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
-
+  const userListsEnabled = useUserListsEnabled();
   // State for dropdown menu
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -227,6 +236,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const [tipModalState, setTipModalState] = useState<{ isOpen: boolean; contentId?: number }>({
     isOpen: false,
   });
+
+  const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
+  const { isInList: isDocumentInList, listIds } = useIsInList(relatedDocumentUnifiedDocumentId);
 
   // Calculate initial tip amount and avatars from props
   const initialTotalTipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
@@ -365,6 +377,17 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     executeAuthenticatedAction(() => {
       setTipModalState({ isOpen: true, contentId: votableEntityId });
     });
+  };
+
+  const handleOpenAddToListModal = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    executeAuthenticatedAction(() => setIsAddToListModalOpen(true));
+  };
+
+  const handleCloseAddToListModal = () => {
+    setIsAddToListModalOpen(false);
   };
 
   // Handle successful tip
@@ -559,6 +582,25 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               avatars={commentAvatars}
             />
           )}
+          {userListsEnabled &&
+            relatedDocumentUnifiedDocumentId &&
+            feedContentType !== 'COMMENT' &&
+            feedContentType !== 'BOUNTY' &&
+            feedContentType !== 'APPLICATION' &&
+            showPeerReviews && ( // to prevent questions from being added to lists
+              <ActionButton
+                icon={BookmarkIcon}
+                tooltip="Add to List"
+                label="Add to List"
+                count={listIds.length}
+                onClick={handleOpenAddToListModal}
+                showTooltip={showTooltips}
+                isActive={isDocumentInList}
+                className={
+                  isDocumentInList ? 'text-green-600 border-green-300 hover:bg-green-50' : ''
+                }
+              />
+            )}
           {showInlineReviews && (
             <ActionButton
               icon={Star}
@@ -785,6 +827,14 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           contentId={tipModalState.contentId}
           feedContentType={feedContentType}
           onTipSuccess={handleTipSuccess}
+        />
+      )}
+
+      {userListsEnabled && relatedDocumentUnifiedDocumentId && isAddToListModalOpen && (
+        <AddToListModal
+          isOpen={isAddToListModalOpen}
+          onClose={handleCloseAddToListModal}
+          unifiedDocumentId={Number.parseInt(relatedDocumentUnifiedDocumentId)}
         />
       )}
     </>

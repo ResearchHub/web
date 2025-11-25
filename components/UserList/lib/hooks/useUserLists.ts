@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ListService } from '@/services/list.service';
-import { UserList, CreateListRequest, UpdateListRequest } from '@/types/user-list';
+import { ListService } from '@/components/UserList/lib/services/list.service';
+import {
+  UserList,
+  CreateListRequest,
+  UpdateListRequest,
+} from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
 import { ApiError } from '@/services/types';
 
@@ -60,11 +64,11 @@ export function useUserLists() {
   }, [fetchLists]);
 
   const withAction = useCallback(
-    async (action: () => Promise<unknown>, successMsg: string) => {
+    async (action: () => Promise<unknown>, msg: string) => {
       try {
         await action();
-        toast.success(successMsg);
-        fetchLists();
+        toast.success(msg);
+        await fetchLists();
       } catch (err) {
         toast.error(getError(err));
         throw err;
