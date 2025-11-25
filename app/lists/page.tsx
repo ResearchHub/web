@@ -118,7 +118,7 @@ export default function ListsPage() {
                   icon={faBookmark}
                   className="w-12 h-12 text-gray-300 mx-auto mb-3"
                 />
-                <p className="text-gray-500 mb-4">Please login to view your lists</p>
+                <p className="text-gray-500 mb-4">Please Login to View Your Lists</p>
               </div>
             )}
             {!isLoading && lists.length === 0 && user && (

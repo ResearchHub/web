@@ -34,6 +34,7 @@ export function useUserLists() {
       if (!user) {
         setState((prev) => ({
           ...prev,
+          lists: [],
           isLoading: false,
           isLoadingMore: false,
           error: null,
@@ -74,7 +75,7 @@ export function useUserLists() {
 
   useEffect(() => {
     fetchLists();
-  }, [fetchLists]);
+  }, [user, fetchLists]);
 
   const withAction = useCallback(
     async (action: () => Promise<unknown>, successMsg: string, errorMsg: string) => {
