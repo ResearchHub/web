@@ -77,7 +77,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
         }
         leftContent={
           <>
-            <ContentTypeBadge type={post.postType === 'QUESTION' ? 'question' : 'preprint'} />
+            {/* <ContentTypeBadge type={post.postType === 'QUESTION' ? 'question' : 'preprint'} /> */}
             {topics.map((topic) => (
               <TopicAndJournalBadge
                 key={topic.id || topic.slug}

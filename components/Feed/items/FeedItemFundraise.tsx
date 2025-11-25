@@ -11,18 +11,16 @@ import {
   FeedItemLayout,
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
-import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
+import { FundraiseProgress } from '@/components/Fund/FundraiseProgressV2';
 import { Users, Building, Pin } from 'lucide-react';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
   href?: string;
   showTooltips?: boolean;
-  badgeVariant?: 'default' | 'icon-only';
   showActions?: boolean;
   maxLength?: number;
   customActionText?: string;
@@ -31,28 +29,12 @@ interface FeedItemFundraiseProps {
 }
 
 /**
- * Helper function to extract contributors from fundraise data
- */
-const extractContributors = (fundraise: FeedPostContent['fundraise']) => {
-  if (!fundraise || !fundraise.contributors || !fundraise.contributors.topContributors) {
-    return [];
-  }
-
-  return fundraise.contributors.topContributors.map((contributor) => ({
-    profileImage: contributor.authorProfile.profileImage,
-    fullName: contributor.authorProfile.fullName,
-    profileUrl: contributor.authorProfile.profileUrl,
-  }));
-};
-
-/**
  * Component for rendering a fundraise feed item using BaseFeedItem
  */
 export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   entry,
   href,
   showTooltips = true,
-  badgeVariant = 'default',
   showActions = true,
   maxLength,
   customActionText,
@@ -118,8 +100,8 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         }
         leftContent={
           <>
-            <ContentTypeBadge type="funding" />
-            {isNonprofit && <TaxDeductibleBadge variant={badgeVariant} />}
+            {/* <ContentTypeBadge type="funding" /> */}
+            {isNonprofit && <TaxDeductibleBadge />}
             {topics.map((topic) => (
               <TopicAndJournalBadge
                 key={topic.id || topic.slug}
@@ -186,7 +168,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             fundraiseTitle={post.title}
             fundraise={post.fundraise}
             compact={true}
-            showContribute={true}
             className="p-0 border-0 bg-transparent"
           />
         </div>

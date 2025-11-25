@@ -19,10 +19,41 @@ interface LabelBadgeProps {
   size?: number | 'xxs' | 'xs' | 'sm' | 'md' | 'lg';
 }
 
+const getSingularLabel = (label: string) => {
+  return label.replace(/s$/, '');
+};
+
+interface HiddenCountBadgeProps {
+  hiddenCount: number;
+  totalCount: number;
+  label: string;
+}
+
+function HiddenCountBadge({ hiddenCount, totalCount, label }: HiddenCountBadgeProps) {
+  const showHiddenCount = hiddenCount > 0;
+  return (
+    <>
+      {showHiddenCount && (
+        <div
+          className={cn(
+            'h-full rounded-full aspect-square bg-gray-300 -translate-x-1/2',
+            'flex items-center justify-center text-slate-700 ring-2 ring-white'
+          )}
+        >
+          <span className="text-sm font-semibold">{`+${hiddenCount}`}</span>
+        </div>
+      )}
+      <span className={`text-sm lowercase whitespace-nowrap ${showHiddenCount ? '-ml-2' : 'ml-2'}`}>
+        {`${totalCount} ${totalCount === 1 ? getSingularLabel(label) : label}`}
+      </span>
+    </>
+  );
+}
+
 // Extract the label badge as a separate component
 export function LabelBadge({ count, label, size = 'xs' }: LabelBadgeProps) {
   // Use singular form if there's only one
-  const displayLabel = count === 1 ? label.replace(/s$/, '') : label;
+  const displayLabel = count === 1 ? getSingularLabel(label) : label;
 
   // Size-based styles
   const getFontSize = () => {
@@ -123,18 +154,19 @@ interface ContributorsButtonProps {
   }>;
   onContribute?: () => void;
   label?: string;
-  hideLabel?: boolean;
   size?: number | 'xxs' | 'xs' | 'sm' | 'md' | 'lg';
   disableContribute?: boolean;
+  /** Display variant: 'badge' shows count with label in badge, 'count' shows +X badge with total count label */
+  variant?: 'badge' | 'count';
 }
 
 export function ContributorsButton({
   contributors,
   onContribute,
   label = 'Contributors',
-  hideLabel = false,
   size = 'xs',
   disableContribute,
+  variant = 'badge',
 }: ContributorsButtonProps) {
   const [showModal, setShowModal] = useState(false);
 
@@ -186,6 +218,23 @@ export function ContributorsButton({
     }
   };
 
+  const MAX_AVATARS = 3;
+  const hiddenAvatars = Math.max(0, contributors.length - MAX_AVATARS);
+
+  const renderLabel = () => {
+    if (variant === 'count') {
+      return (
+        <HiddenCountBadge
+          hiddenCount={hiddenAvatars}
+          totalCount={contributors.length}
+          label={label}
+        />
+      );
+    }
+
+    return <LabelBadge count={contributors.length} label={label} size={size} />;
+  };
+
   return (
     <>
       <button
@@ -195,11 +244,11 @@ export function ContributorsButton({
         <AvatarStack
           items={avatarItems}
           size={getAvatarSize()}
-          maxItems={3}
+          maxItems={MAX_AVATARS}
           spacing={getSpacing()}
           ringColorClass="ring-white"
         />
-        {!hideLabel && <LabelBadge count={contributors.length} label={label} size={size} />}
+        {renderLabel()}
       </button>
 
       <ContributorModal

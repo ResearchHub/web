@@ -237,7 +237,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   return (
     <div className={cn('space-y-3', className)}>
       {/* Header */}
-      {showHeader && entry.timestamp && (
+      {/* {showHeader && entry.timestamp && (
         <FeedItemHeader
           timestamp={entry.timestamp}
           author={author}
@@ -246,47 +246,47 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
           hotScoreBreakdown={entry.hotScoreBreakdown}
           externalMetrics={entry.externalMetrics}
         />
-      )}
+      )} */}
 
       {/* Main Content Card */}
       <CardWrapper href={href} isClickable={isClickable} onClick={handleClick} entryId={entryIdKey}>
-        <div className="p-4">
-          {children}
-
-          {/* Action Buttons */}
-          {showActions && (
-            <div className="mt-4 pt-3 border-t border-gray-200">
-              <FeedItemActions
-                metrics={entry.metrics}
-                feedContentType={
-                  content.contentType ? (content.contentType as FeedContentType) : 'COMMENT'
-                }
-                votableEntityId={content.id}
-                relatedDocumentId={
-                  'relatedDocumentId' in content
-                    ? content.relatedDocumentId?.toString()
-                    : content.id.toString()
-                }
-                relatedDocumentContentType={
-                  'relatedDocumentContentType' in content
-                    ? content.relatedDocumentContentType
-                    : mapFeedContentTypeToContentType(content.contentType)
-                }
-                userVote={entry.userVote}
-                showTooltips={showTooltips}
-                href={href}
-                reviews={content.reviews}
-                bounties={content.bounties}
-                relatedDocumentTopics={'topics' in content ? content.topics : undefined}
-                relatedDocumentUnifiedDocumentId={
-                  'unifiedDocumentId' in content ? content.unifiedDocumentId : undefined
-                }
-                showPeerReviews={showPeerReviews}
-                onFeedItemClick={onFeedItemClick}
-              />
-            </div>
-          )}
-        </div>
+        <div className="p-4">{children}</div>
+        {/* Action Buttons */}
+        {showActions && (
+          <div
+            className="mt-4 px-4 py-2 border-t border-gray-200 bg-gray-50 cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <FeedItemActions
+              metrics={entry.metrics}
+              feedContentType={
+                content.contentType ? (content.contentType as FeedContentType) : 'COMMENT'
+              }
+              votableEntityId={content.id}
+              relatedDocumentId={
+                'relatedDocumentId' in content
+                  ? content.relatedDocumentId?.toString()
+                  : content.id.toString()
+              }
+              relatedDocumentContentType={
+                'relatedDocumentContentType' in content
+                  ? content.relatedDocumentContentType
+                  : mapFeedContentTypeToContentType(content.contentType)
+              }
+              userVote={entry.userVote}
+              showTooltips={showTooltips}
+              href={href}
+              reviews={content.reviews}
+              bounties={content.bounties}
+              relatedDocumentTopics={'topics' in content ? content.topics : undefined}
+              relatedDocumentUnifiedDocumentId={
+                'unifiedDocumentId' in content ? content.unifiedDocumentId : undefined
+              }
+              showPeerReviews={showPeerReviews}
+              onFeedItemClick={onFeedItemClick}
+            />
+          </div>
+        )}
       </CardWrapper>
     </div>
   );
@@ -316,11 +316,15 @@ export const FeedItemTopSection: FC<{
 }> = ({ leftContent, rightContent, className, imageSection }) => {
   return (
     <>
-      {imageSection && <div className="md:!hidden w-full mb-4">{imageSection}</div>}
       <div className={cn('flex items-start justify-between mb-3', className)}>
         <div className="flex flex-wrap gap-2">{leftContent}</div>
         {rightContent && <div className="flex items-center gap-2">{rightContent}</div>}
       </div>
+      {imageSection && (
+        <div className="md:!hidden w-full mb-4 rounded-lg overflow-hidden shadow-sm">
+          {imageSection}
+        </div>
+      )}
     </>
   );
 };

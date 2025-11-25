@@ -81,7 +81,6 @@ export const FeedItemApplication: FC<FeedItemApplicationProps> = ({
         entry={preregistrationFeedEntry}
         href={href}
         showTooltips={true}
-        badgeVariant="default"
         showActions={true}
         customActionText="applied to RFP"
       />
