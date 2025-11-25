@@ -136,7 +136,6 @@ export const FeedContent: FC<FeedContentProps> = ({
                     maxLength={maxLength}
                     showGrantHeaders={showGrantHeaders}
                     showReadMoreCTA={showReadMoreCTA}
-                    feedView={activeTab}
                     feedOrdering={ordering}
                     registerVisibleItem={registerVisibleItem}
                     unregisterVisibleItem={unregisterVisibleItem}

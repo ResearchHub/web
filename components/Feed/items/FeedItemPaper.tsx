@@ -16,8 +16,9 @@ import {
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Badge } from '@/components/ui/Badge';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Users, BookText } from 'lucide-react';
+import Icon from '@/components/ui/icons/Icon';
+import { formatTimestamp } from '@/utils/date';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
@@ -26,7 +27,6 @@ interface FeedItemPaperProps {
   showActions?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
-  feedView?: string;
 }
 
 /**
@@ -39,10 +39,10 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   showActions = true,
   maxLength,
   onFeedItemClick,
-  feedView,
 }) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
+  console.log('paper', paper);
 
   // Get topics/tags for display
   const topics = paper.topics || [];
@@ -64,6 +64,8 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         return '/logos/chemrxiv.png';
       case 'medrxiv':
         return '/logos/medrxiv.jpg';
+      case 'researchhub-journal':
+        return 'rhJournal2';
       default:
         return null;
     }
@@ -77,11 +79,9 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const actionText = journalName ? `published in ${journalName}` : 'published in a journal';
 
   // Get journal logo if available
-  const journalLogo = paper.journal?.name ? getSourceLogo(paper.journal.name) : null;
+  const journalLogo = paper.journal?.name ? getSourceLogo(paper.journal.slug) : null;
 
-  // Show journal badge on following and for-you feeds
-  const showJournalBadge = journalLogo && (feedView === 'following' || feedView === 'for-you');
-  const showPaperContentType = feedView !== 'following' && feedView !== 'for-you';
+  const isRHJournal = journalLogo === 'rhJournal2';
 
   return (
     <BaseFeedItem
@@ -106,30 +106,8 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         }
         leftContent={
           <>
-            {showJournalBadge ? (
+            {journalLogo ? (
               <>
-                {/* Journal Badge - On following and for-you feeds */}
-                {paper.journal && paper.journal.slug && (
-                  <Link href={`/topic/${paper.journal.slug}`}>
-                    <Badge
-                      variant="default"
-                      className="text-xs bg-white border border-gray-200 hover:bg-gray-50 cursor-pointer px-2 py-1 h-[26px]"
-                    >
-                      {journalLogo ? (
-                        <Image
-                          src={journalLogo}
-                          alt={paper.journal.name}
-                          width={50}
-                          height={14}
-                          className="object-contain"
-                          style={{ maxHeight: '14px' }}
-                        />
-                      ) : (
-                        <span className="text-gray-700">{paper.journal.name}</span>
-                      )}
-                    </Badge>
-                  </Link>
-                )}
                 {/* Category Badge - On following and for-you feeds */}
                 {paper.category && paper.category.slug && (
                   <Link href={`/topic/${paper.category.slug}`}>
@@ -152,10 +130,36 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                     </Badge>
                   </Link>
                 )}
+                {/* Journal Badge - On following and for-you feeds */}
+                {paper.journal && paper.journal.slug && (
+                  <Link href={`/topic/${paper.journal.slug}`}>
+                    <Badge
+                      variant="default"
+                      className="text-xs bg-white border border-gray-200 hover:bg-gray-50 cursor-pointer px-2 py-1 h-[26px]"
+                    >
+                      {isRHJournal ? (
+                        <>
+                          <Icon name="rhJournal2" size={14} className="mr-2" />
+                          <span className="text-gray-700">RH Journal</span>
+                        </>
+                      ) : journalLogo ? (
+                        <Image
+                          src={journalLogo}
+                          alt={paper.journal.name}
+                          width={50}
+                          height={14}
+                          className="object-contain"
+                          style={{ maxHeight: '14px' }}
+                        />
+                      ) : (
+                        <span className="text-gray-700">{paper.journal.name}</span>
+                      )}
+                    </Badge>
+                  </Link>
+                )}
               </>
             ) : (
               <>
-                {showPaperContentType && <ContentTypeBadge type={getPaperBadgeType()} />}
                 {topics.map((topic) => (
                   <TopicAndJournalBadge
                     key={topic.id || topic.slug}
@@ -178,36 +182,30 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
             <TitleSection title={paper.title} />
 
             {/* Authors */}
-            <MetadataSection>
-              <div className="mb-3 flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-gray-500" />
-                <AuthorList
-                  authors={paper.authors.map((author) => ({
-                    name: author.fullName,
-                    verified: author.user?.isVerified,
-                    authorUrl: author.id === 0 ? undefined : author.profileUrl,
-                  }))}
-                  size="sm"
-                  className="text-gray-500 font-normal"
-                  delimiter="•"
-                  showAbbreviatedInMobile={true}
-                />
-              </div>
-            </MetadataSection>
-
-            {/* Journal Link - Hide on following and for-you feeds */}
-            {!showJournalBadge && paper.journal && paper.journal.name && (
+            {paper.authors.length > 0 && (
+              <MetadataSection>
+                <div className="mb-3 flex items-start gap-1.5">
+                  <Users className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
+                  <AuthorList
+                    authors={paper.authors.map((author) => ({
+                      name: author.fullName,
+                      verified: author.user?.isVerified,
+                      authorUrl: author.id === 0 ? undefined : author.profileUrl,
+                    }))}
+                    size="sm"
+                    className="text-gray-500 font-normal"
+                    delimiter="•"
+                    showAbbreviatedInMobile={true}
+                  />
+                </div>
+              </MetadataSection>
+            )}
+            {/* Published Date */}
+            {paper.createdDate && (
               <MetadataSection>
                 <div className="mb-3 text-sm text-gray-500 flex items-center gap-1.5">
                   <BookText className="w-4 h-4 text-gray-500" />
-                  <a
-                    href={paper.journal.slug ? `/topic/${paper.journal.slug}` : '#'}
-                    rel="noopener noreferrer"
-                    className="hover:text-blue-600 underline cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {paper.journal.name}
-                  </a>
+                  <span className="text-gray-500">{formatTimestamp(paper.createdDate)}</span>
                 </div>
               </MetadataSection>
             )}

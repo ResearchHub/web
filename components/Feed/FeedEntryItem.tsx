@@ -25,7 +25,6 @@ interface FeedEntryItemProps {
   maxLength?: number;
   showGrantHeaders?: boolean;
   showReadMoreCTA?: boolean;
-  feedView?: string;
   feedOrdering?: string;
   registerVisibleItem: (index: number, unifiedDocumentId: string) => void;
   unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
@@ -43,7 +42,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   maxLength,
   showGrantHeaders = true,
   showReadMoreCTA = false,
-  feedView,
   feedOrdering,
   registerVisibleItem,
   unregisterVisibleItem,
@@ -185,7 +183,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             showActions={!hideActions}
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
-            feedView={feedView}
           />
         );
         break;

@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, ReactNode } from 'react';
+import { FC, ReactNode, useState } from 'react';
 import { FeedContentType, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
@@ -10,6 +10,8 @@ import Image from 'next/image';
 import { truncateText } from '@/utils/stringUtils';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { useNavigation } from '@/contexts/NavigationContext';
+import { Button } from '@/components/ui/Button';
+import { ChevronDown } from 'lucide-react';
 
 // Base interfaces for the modular components
 export interface BaseFeedItemProps {
@@ -132,9 +134,34 @@ export const ContentSection: FC<ContentSectionProps> = ({
   maxLength = 200,
   className,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const isTextTruncated = content && content.length > maxLength;
+
+  const handleToggleExpand = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
+  };
+
   return (
     <div className={cn('text-sm text-gray-700', className)}>
-      <p>{truncateText(content, maxLength)}</p>
+      <p>{isExpanded ? content : truncateText(content, maxLength)}</p>
+      {isTextTruncated && (
+        <Button
+          variant="link"
+          size="sm"
+          onClick={handleToggleExpand}
+          className="flex items-center gap-0.5 mt-1 text-blue-500 p-0 h-auto text-sm"
+        >
+          {isExpanded ? 'Show less' : 'Read more'}
+          <ChevronDown
+            size={14}
+            className={cn(
+              'transition-transform duration-200',
+              isExpanded && 'transform rotate-180'
+            )}
+          />
+        </Button>
+      )}
     </div>
   );
 };
