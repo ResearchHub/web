@@ -217,6 +217,7 @@ export function AddToListModal({
       await createList({ name: newName.trim() }, false);
       setNewName('');
       setShowCreateForm(false);
+      refetch();
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to create list'));
       console.error('Failed to create list:', error);
