@@ -7,7 +7,6 @@ import {
 } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
 import { ApiError } from '@/services/types';
-import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 
 const getError = (err: unknown) => (err instanceof ApiError ? err.message : 'Operation failed');
 
