@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import {
   UserList,
@@ -11,98 +11,96 @@ import { useUser } from '@/contexts/UserContext';
 
 export function useUserLists() {
   const { user } = useUser();
-  const [state, setState] = useState<{
-    lists: UserList[];
-    isLoading: boolean;
-    isLoadingMore: boolean;
-    error: string | null;
-    page: number;
-    hasMore: boolean;
-    totalCount: number;
-  }>({
-    lists: [],
-    isLoading: true,
-    isLoadingMore: false,
-    error: null,
-    page: 1,
-    hasMore: false,
-    totalCount: 0,
-  });
+  const [lists, setLists] = useState<UserList[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
 
-  const fetchLists = useCallback(
-    async (page = 1, isLoadMore = false) => {
-      if (!user) {
-        setState((prev) => ({
-          ...prev,
-          lists: [],
-          isLoading: false,
-          isLoadingMore: false,
-          error: null,
-        }));
-        return;
-      }
+  const fetchLists = async (pageToFetch = 1, isLoadMore = false) => {
+    if (!user) {
+      setLists([]);
+      setIsLoading(false);
+      setIsLoadingMore(false);
+      setError(null);
+      return;
+    }
 
-      setState((prev) => ({
-        ...prev,
-        isLoading: !isLoadMore,
-        isLoadingMore: isLoadMore,
-        error: null,
-      }));
+    if (isLoadMore) {
+      setIsLoadingMore(true);
+    } else {
+      setIsLoading(true);
+    }
+    setError(null);
 
-      try {
-        const { results, next, count } = await ListService.getUserListsApi({ page });
-        setState((prev) => ({
-          ...prev,
-          lists: isLoadMore ? [...prev.lists, ...results] : results,
-          isLoading: false,
-          isLoadingMore: false,
-          error: null,
-          page,
-          hasMore: !!next,
-          totalCount: count,
-        }));
-      } catch (err) {
-        setState((prev) => ({
-          ...prev,
-          isLoading: false,
-          isLoadingMore: false,
-          error: extractApiErrorMessage(err, 'Failed to load lists'),
-        }));
-      }
-    },
-    [user]
-  );
+    try {
+      const { results, next, count } = await ListService.getUserListsApi({ page: pageToFetch });
+      setLists((previousLists) => (isLoadMore ? [...previousLists, ...results] : results));
+      setCurrentPage(pageToFetch);
+      setHasMore(!!next);
+      setTotalCount(count);
+    } catch (error) {
+      setError(extractApiErrorMessage(error, 'Failed to load lists'));
+      console.error('Failed to load lists:', error);
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
+
+  const loadMore = () => {
+    if (!hasMore || isLoadingMore) return;
+    fetchLists(currentPage + 1, true);
+  };
 
   useEffect(() => {
     fetchLists();
-  }, [user, fetchLists]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
-  const withAction = useCallback(
-    async (action: () => Promise<unknown>, successMsg: string, errorMsg: string) => {
-      try {
-        await action();
-        toast.success(successMsg);
-        await fetchLists();
-      } catch (err) {
-        toast.error(extractApiErrorMessage(err, errorMsg));
-        throw err;
-      }
-    },
-    [fetchLists]
-  );
+  const executeListActionAndRefetch = async (
+    action: () => Promise<unknown>,
+    successMessage: string,
+    errorMessage: string
+  ) => {
+    try {
+      await action();
+      toast.success(successMessage);
+      await fetchLists();
+    } catch (error) {
+      toast.error(extractApiErrorMessage(error, errorMessage));
+      console.error(errorMessage, error);
+      throw error;
+    }
+  };
 
   return {
-    ...state,
-    loadMore: () => state.hasMore && !state.isLoadingMore && fetchLists(state.page + 1, true),
+    lists,
+    isLoading,
+    isLoadingMore,
+    error,
+    hasMore,
+    totalCount,
+    loadMore,
     createList: (data: CreateListRequest) =>
-      withAction(() => ListService.createListApi(data), 'List created', 'Failed to create list'),
+      executeListActionAndRefetch(
+        () => ListService.createListApi(data),
+        'List created',
+        'Failed to create list'
+      ),
     updateList: (id: number, data: UpdateListRequest) =>
-      withAction(
+      executeListActionAndRefetch(
         () => ListService.updateListApi(id, data),
         'List updated',
         'Failed to update list'
       ),
     deleteList: (id: number) =>
-      withAction(() => ListService.deleteListApi(id), 'List deleted', 'Failed to delete list'),
+      executeListActionAndRefetch(
+        () => ListService.deleteListApi(id),
+        'List deleted',
+        'Failed to delete list'
+      ),
   };
 }

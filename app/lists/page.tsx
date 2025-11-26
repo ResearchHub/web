@@ -45,16 +45,23 @@ export default function ListsPage() {
     if (inView && hasMore && !isLoading && !isLoadingMore) loadMore();
   }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
 
-  const openModal = (mode: ModalState['mode'], list: UserList | null = null) =>
-    setModal({ isOpen: true, mode, list, name: list?.name || '' });
+  const openModal = (mode: ModalState['mode'], listToModify: UserList | null = null) =>
+    setModal({ isOpen: true, mode, list: listToModify, name: listToModify?.name || '' });
 
-  const handleSubmit = async () => {
+  const handleModalSubmit = async () => {
     setIsSubmitting(true);
-    const { mode, list, name } = modal;
+    const modalMode = modal.mode;
+    const listToModify = modal.list;
+    const listNameInput = modal.name.trim();
+
     try {
-      if (mode === 'create') await createList({ name: name.trim() });
-      else if (mode === 'edit' && list) await updateList(list.id, { name: name.trim() });
-      else if (mode === 'delete' && list) await deleteList(list.id);
+      if (modalMode === 'create') {
+        await createList({ name: listNameInput });
+      } else if (modalMode === 'edit' && listToModify) {
+        await updateList(listToModify.id, { name: listNameInput });
+      } else if (modalMode === 'delete' && listToModify) {
+        await deleteList(listToModify.id);
+      }
       setModal(INITIAL_MODAL);
     } catch (error) {
       console.error('Failed to submit list action:', error);
@@ -103,20 +110,17 @@ export default function ListsPage() {
             </div>
           )}
           <div className="space-y-1">
-            {isLoading && (
-              <>
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <UserListRowSkeleton key={'list-skeleton-' + i} />
-                ))}
-              </>
-            )}
+            {isLoading &&
+              Array.from({ length: 5 }).map((_, skeletonIndex) => (
+                <UserListRowSkeleton key={'list-skeleton-' + skeletonIndex} />
+              ))}
             {!isLoading && lists.length === 0 && (
               <div className="text-center py-20">
                 <FontAwesomeIcon
                   icon={faBookmark}
                   className="w-12 h-12 text-gray-300 mx-auto mb-3"
                 />
-                <p className="text-gray-500 mb-4">No lists created yet</p>
+                <p className="text-gray-500 mb-4">You haven't created any lists yet</p>
                 <Button variant="outlined" onClick={() => openModal('create')}>
                   Create your first list
                 </Button>
@@ -128,14 +132,14 @@ export default function ListsPage() {
                   <UserListRow
                     key={list.id}
                     list={list}
-                    onEdit={(l) => openModal('edit', l)}
-                    onDelete={(l) => openModal('delete', l)}
+                    onEdit={(listToEdit) => openModal('edit', listToEdit)}
+                    onDelete={(listToDelete) => openModal('delete', listToDelete)}
                   />
                 ))}
                 {isLoadingMore && (
                   <div className="space-y-1 pt-1">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <UserListRowSkeleton key={'list-skeleton-loadmore-' + i} />
+                    {Array.from({ length: 3 }).map((_, skeletonIndex) => (
+                      <UserListRowSkeleton key={'list-skeleton-loadmore-' + skeletonIndex} />
                     ))}
                   </div>
                 )}
@@ -148,8 +152,8 @@ export default function ListsPage() {
       <ListModal
         {...modal}
         onClose={() => setModal(INITIAL_MODAL)}
-        onNameChange={(name) => setModal((p) => ({ ...p, name }))}
-        onSubmit={handleSubmit}
+        onNameChange={(name) => setModal((previousModal) => ({ ...previousModal, name }))}
+        onSubmit={handleModalSubmit}
         isSubmitting={isSubmitting}
       />
     </PageLayout>

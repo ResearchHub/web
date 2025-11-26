@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  ReactNode,
-  useState,
-  useCallback,
-  useEffect,
-  useMemo,
-} from 'react';
+import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import {
   UserList,
@@ -21,13 +13,13 @@ import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
 
 interface UserListsContextType {
-  createList: (data: CreateListRequest, refreshLists?: boolean) => Promise<UserList>;
+  createList: (data: CreateListRequest, shouldRefreshLists?: boolean) => Promise<UserList>;
   updateList: (
     listId: number,
     data: UpdateListRequest,
-    refreshLists?: boolean
+    shouldRefreshLists?: boolean
   ) => Promise<UserList>;
-  deleteList: (listId: number, refreshLists?: boolean) => Promise<void>;
+  deleteList: (listId: number, shouldRefreshLists?: boolean) => Promise<void>;
   overviewLists: UserListOverview[];
   isLoadingOverview: boolean;
   refetchOverview: () => Promise<void>;
@@ -40,92 +32,80 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   const [overviewLists, setOverviewLists] = useState<UserListOverview[]>([]);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
 
-  const refetchOverview = useCallback(async () => {
+  const refetchOverview = async () => {
     if (!user) return;
     setIsLoadingOverview(true);
     try {
       const response = await ListService.getOverviewApi();
       setOverviewLists(response.lists || []);
-    } catch (err) {
-      console.error('Failed to fetch overview:', err);
+    } catch (error) {
+      console.error('Failed to fetch overview:', error);
       setOverviewLists([]);
     } finally {
       setIsLoadingOverview(false);
     }
-  }, [user]);
+  };
 
   useEffect(() => {
     if (user) {
       refetchOverview();
     }
-  }, [user, refetchOverview]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
-  const withRefresh = useCallback(
-    async <T,>(
-      action: () => Promise<T>,
-      successMsg: string,
-      errorMsg: string,
-      refreshLists = true
-    ): Promise<T> => {
-      try {
-        const result = await action();
-        toast.success(successMsg);
-        if (refreshLists) {
-          await refetchOverview();
-        }
-        return result;
-      } catch (err) {
-        toast.error(extractApiErrorMessage(err, errorMsg));
-        throw err;
+  const executeListActionWithToast = async <T,>(
+    action: () => Promise<T>,
+    successMessage: string,
+    errorMessage: string,
+    shouldRefreshLists = true
+  ): Promise<T> => {
+    try {
+      const result = await action();
+      toast.success(successMessage);
+      if (shouldRefreshLists) {
+        await refetchOverview();
       }
-    },
-    [refetchOverview]
-  );
+      return result;
+    } catch (error) {
+      toast.error(extractApiErrorMessage(error, errorMessage));
+      console.error(errorMessage, error);
+      throw error;
+    }
+  };
 
-  const createList = useCallback(
-    (data: CreateListRequest, refreshLists = true) =>
-      withRefresh(
-        () => ListService.createListApi(data),
-        'List created successfully',
-        'Failed to create list',
-        refreshLists
-      ),
-    [withRefresh]
-  );
+  const createList = (data: CreateListRequest, shouldRefreshLists = true) =>
+    executeListActionWithToast(
+      () => ListService.createListApi(data),
+      'List created',
+      'Failed to create list',
+      shouldRefreshLists
+    );
 
-  const updateList = useCallback(
-    (listId: number, data: UpdateListRequest, refreshLists = true) =>
-      withRefresh(
-        () => ListService.updateListApi(listId, data),
-        'List updated successfully',
-        'Failed to update list',
-        refreshLists
-      ),
-    [withRefresh]
-  );
+  const updateList = (listId: number, data: UpdateListRequest, shouldRefreshLists = true) =>
+    executeListActionWithToast(
+      () => ListService.updateListApi(listId, data),
+      'List updated',
+      'Failed to update list',
+      shouldRefreshLists
+    );
 
-  const deleteList = useCallback(
-    (listId: number, refreshLists = true) =>
-      withRefresh(
-        () => ListService.deleteListApi(listId),
-        'List deleted successfully',
-        'Failed to delete list',
-        refreshLists
-      ) as Promise<void>,
-    [withRefresh]
-  );
+  const deleteList = async (listId: number, shouldRefreshLists = true): Promise<void> => {
+    await executeListActionWithToast(
+      () => ListService.deleteListApi(listId),
+      'List deleted',
+      'Failed to delete list',
+      shouldRefreshLists
+    );
+  };
 
-  const value = useMemo(
-    () => ({
-      createList,
-      updateList,
-      deleteList,
-      overviewLists,
-      isLoadingOverview,
-      refetchOverview,
-    }),
-    [createList, updateList, deleteList, overviewLists, isLoadingOverview, refetchOverview]
-  );
+  const value = {
+    createList,
+    updateList,
+    deleteList,
+    overviewLists,
+    isLoadingOverview,
+    refetchOverview,
+  };
 
   return <UserListsContext.Provider value={value}>{children}</UserListsContext.Provider>;
 }

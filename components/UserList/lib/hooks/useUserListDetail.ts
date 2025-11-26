@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import { UserListDetail } from '@/components/UserList/lib/user-list';
@@ -17,9 +17,9 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
-  const [page, setPage] = useState(1);
+  const [currentPageNumber, setCurrentPageNumber] = useState(1);
 
-  const fetchList = useCallback(async () => {
+  const fetchList = async () => {
     if (!listId) return;
 
     setIsLoading(true);
@@ -33,36 +33,40 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
 
       setList({ ...listData, items: itemsResponse.results || [] });
       setHasMore(!!itemsResponse.next);
-      setPage(1);
-    } catch (err) {
-      setError(extractApiErrorMessage(err, 'Failed to load list'));
+      setCurrentPageNumber(1);
+    } catch (error) {
+      setError(extractApiErrorMessage(error, 'Failed to load list'));
+      console.error('Failed to load list:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [listId]);
+  };
 
-  const loadMore = useCallback(async () => {
+  const loadMore = async () => {
     if (!hasMore || isLoading || isLoadingMore || !listId) return;
 
     setIsLoadingMore(true);
 
     try {
       const itemsResponse = await ListService.getListItemsApi(listId, {
-        page: page + 1,
+        page: currentPageNumber + 1,
         pageSize: PAGE_SIZE,
       });
 
-      setList((prev) =>
-        prev ? { ...prev, items: [...prev.items, ...(itemsResponse.results || [])] } : null
+      setList((previousList) =>
+        previousList
+          ? { ...previousList, items: [...previousList.items, ...(itemsResponse.results || [])] }
+          : null
       );
       setHasMore(!!itemsResponse.next);
-      setPage((prev) => prev + 1);
-    } catch (err) {
-      setError(extractApiErrorMessage(err, 'Failed to load more items'));
+      setCurrentPageNumber((previousPageNumber) => previousPageNumber + 1);
+    } catch (error) {
+      setError(extractApiErrorMessage(error, 'Failed to load more items'));
+      console.error('Failed to load more items:', error);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [hasMore, isLoading, isLoadingMore, listId, page]);
+  };
 
   useEffect(() => {
     if (listId) {
@@ -73,28 +77,27 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
       setIsLoadingMore(false);
       setError(null);
       setHasMore(false);
-      setPage(1);
+      setCurrentPageNumber(1);
     }
-  }, [listId, fetchList]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listId]);
 
-  const removeItem = useCallback(
-    async (itemId: number) => {
-      if (!listId) return;
-      try {
-        await ListService.removeItemFromListApi(listId, itemId);
-        setList((prev) => updateListRemoveItem(prev, itemId));
-        toast.success('Item removed');
-        options?.onItemMutated?.();
-      } catch (err) {
-        toast.error(extractApiErrorMessage(err, 'Failed to remove item'));
-      }
-    },
-    [listId, options]
-  );
+  const removeItem = async (itemId: number) => {
+    if (!listId) return;
+    try {
+      await ListService.removeItemFromListApi(listId, itemId);
+      setList((previousList) => updateListRemoveItem(previousList, itemId));
+      toast.success('Item removed');
+      options?.onItemMutated?.();
+    } catch (error) {
+      toast.error(extractApiErrorMessage(error, 'Failed to remove item'));
+      console.error('Failed to remove item:', error);
+    }
+  };
 
-  const updateListDetails = useCallback((updatedList: Partial<UserListDetail>) => {
-    setList((prev) => (prev ? { ...prev, ...updatedList } : null));
-  }, []);
+  const updateListDetails = (updatedListData: Partial<UserListDetail>) => {
+    setList((previousList) => (previousList ? { ...previousList, ...updatedListData } : null));
+  };
 
   return {
     list,

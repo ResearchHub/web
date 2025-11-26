@@ -238,7 +238,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   });
 
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
-  const { isInList: isDocumentInList, listIds } = useIsInList(relatedDocumentUnifiedDocumentId);
+  const { isInList: isDocumentInList, listIdsContainingDocument } = useIsInList(
+    relatedDocumentUnifiedDocumentId
+  );
 
   // Calculate initial tip amount and avatars from props
   const initialTotalTipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
@@ -592,7 +594,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 icon={BookmarkIcon}
                 tooltip="Add to List"
                 label="Add to List"
-                count={listIds.length}
+                count={listIdsContainingDocument.length}
                 onClick={handleOpenAddToListModal}
                 showTooltip={showTooltips}
                 isActive={isDocumentInList}

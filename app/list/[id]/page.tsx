@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserListDetail } from '@/components/UserList/lib/hooks/useUserListDetail';
@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { ListModal } from '@/components/modals/ListModal';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { formatItemCount, transformListItemToFeedEntry } from '@/components/UserList/lib/listUtils';
+import { FeedEntry } from '@/types/feed';
 
 interface ModalState {
   readonly isOpen: boolean;
@@ -48,43 +49,47 @@ export default function ListDetailPage() {
     setModal({ isOpen: true, mode, name });
 
   const isOwner = user && list && list.createdBy === user.id;
-  const feedEntries = useMemo(() => items.map(transformListItemToFeedEntry), [items]);
+  const feedEntries = items.map(transformListItemToFeedEntry);
 
-  const itemWrapper = useCallback(
-    (item: React.ReactNode, entry: any, index: number) => {
-      const listItem = items[index];
-      return (
-        <div className="relative group">
-          {item}
-          {isOwner && listItem && (
-            <div className="absolute top-16 right-4 z-20 opacity-100 sm:!opacity-0 sm:group-hover:!opacity-100 transition-opacity pointer-events-auto">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  removeItem(listItem.id);
-                }}
-                className="h-8 w-8 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-300 shadow-md rounded-full"
-              >
-                <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-600" />
-              </Button>
-            </div>
-          )}
-        </div>
-      );
-    },
-    [isOwner, items, removeItem]
-  );
+  const itemWrapper = (
+    feedItemComponent: React.ReactNode,
+    feedEntry: FeedEntry,
+    itemIndex: number
+  ) => {
+    const listItem = items[itemIndex];
+    return (
+      <div className="relative group">
+        {feedItemComponent}
+        {isOwner && listItem && (
+          <div className="absolute top-16 right-4 z-20 opacity-100 sm:!opacity-0 sm:group-hover:!opacity-100 transition-opacity pointer-events-auto">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                removeItem(listItem.id);
+              }}
+              className="h-8 w-8 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-300 shadow-md rounded-full"
+            >
+              <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-600" />
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  };
 
-  const handleSubmit = async () => {
+  const handleModalSubmit = async () => {
     if (!list) return;
     setIsSubmitting(true);
+
+    const modalMode = modal.mode;
+    const listNameInput = modal.name.trim();
+
     try {
-      if (modal.mode === 'edit') {
-        const trimmedName = modal.name.trim();
-        const updatedList = await updateList(list.id, { name: trimmedName });
+      if (modalMode === 'edit') {
+        const updatedList = await updateList(list.id, { name: listNameInput });
         updateListDetails(updatedList);
       } else {
         await deleteList(list.id);
@@ -153,7 +158,9 @@ export default function ListDetailPage() {
               noEntriesElement={
                 <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
                   <FolderPlus className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">This list is empty</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    This list doesn't have any items yet
+                  </h3>
                   <p className="text-gray-600">Start adding items to this list</p>
                 </div>
               }
@@ -168,8 +175,8 @@ export default function ListDetailPage() {
                   <Skeleton className="h-5 w-24" />
                 </div>
                 <div className="space-y-12">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <FeedItemSkeleton key={'list-item-skeleton-' + i} />
+                  {Array.from({ length: 3 }).map((_, skeletonIndex) => (
+                    <FeedItemSkeleton key={'list-item-skeleton-' + skeletonIndex} />
                   ))}
                 </div>
               </>
@@ -185,8 +192,8 @@ export default function ListDetailPage() {
       <ListModal
         {...modal}
         onClose={() => setModal(INITIAL_MODAL)}
-        onNameChange={(name) => setModal((p) => ({ ...p, name }))}
-        onSubmit={handleSubmit}
+        onNameChange={(name) => setModal((previousModal) => ({ ...previousModal, name }))}
+        onSubmit={handleModalSubmit}
         isSubmitting={isSubmitting}
       />
     </PageLayout>
