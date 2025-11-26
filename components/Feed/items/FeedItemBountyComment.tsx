@@ -392,7 +392,6 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
               showTooltips={showTooltips}
               actionLabels={actionLabels}
               menuItems={menuItems}
-              bounties={[bountyEntry.bounty]}
               onComment={onReply}
               relatedDocumentTopics={entry.relatedWork?.topics}
               relatedDocumentUnifiedDocumentId={

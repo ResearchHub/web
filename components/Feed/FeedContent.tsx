@@ -39,6 +39,7 @@ interface FeedContentProps {
   page?: number;
   lastClickedEntryId?: string;
   insertContent?: InsertContentItem[];
+  shouldRenderBountyAsComment?: boolean;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -62,6 +63,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   page,
   lastClickedEntryId,
   insertContent,
+  shouldRenderBountyAsComment,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -120,6 +122,7 @@ export const FeedContent: FC<FeedContentProps> = ({
               return (
                 <React.Fragment key={`${entry.id}-${index}`}>
                   <FeedEntryItem
+                    shouldRenderBountyAsComment={shouldRenderBountyAsComment}
                     entry={entry}
                     index={index}
                     showBountyFooter={showBountyFooter}

@@ -1101,11 +1101,15 @@ export const createFeedEntryFromWork = (work: Work, originalEntry: FeedEntry): F
   const contentType = work.contentType === 'paper' ? 'PAPER' : 'POST';
   if (!contentType) return null;
 
+  const bountyEntry = originalEntry.content as FeedBountyContent;
+  const originalBounty = bountyEntry.bounty;
+
   // Transform Work to FeedPostContent or FeedPaperContent
   if (contentType === 'POST') {
     const bountyEntry = originalEntry.content as FeedBountyContent;
     const postContent: FeedPostContent = {
       id: work.id,
+      bounties: [originalBounty],
       contentType: work.postType === 'PREREGISTRATION' ? 'PREREGISTRATION' : 'POST',
       createdDate: work.createdDate,
       createdBy: work.authors?.[0]?.authorProfile || bountyEntry.createdBy,
@@ -1134,6 +1138,7 @@ export const createFeedEntryFromWork = (work: Work, originalEntry: FeedEntry): F
     const bountyEntry = originalEntry.content as FeedBountyContent;
     const paperContent: FeedPaperContent = {
       id: work.id,
+      bounties: [originalBounty],
       contentType: 'PAPER',
       createdDate: work.createdDate,
       createdBy: work.authors?.[0]?.authorProfile || bountyEntry.createdBy,

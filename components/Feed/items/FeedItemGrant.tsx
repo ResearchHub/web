@@ -12,9 +12,10 @@ import {
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { Building } from 'lucide-react';
+import { Building, Users } from 'lucide-react';
 import { GrantInfo } from '@/components/Grant/GrantInfo';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
+import { AuthorList } from '@/components/ui/AuthorList';
 
 // Grant-specific content type that extends the feed entry structure
 export interface FeedGrantContent {
@@ -140,6 +141,25 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
                 <div className="flex items-center gap-1.5 text-sm mb-3 text-gray-500">
                   <Building className="w-4 h-4" />
                   <span>{grant.organization || grant.grant?.organization}</span>
+                </div>
+              </MetadataSection>
+            )}
+
+            {/* Authors list */}
+            {grant.authors.length > 0 && (
+              <MetadataSection>
+                <div className="mb-3 flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-gray-500" />
+                  <AuthorList
+                    authors={grant.authors.map((author) => ({
+                      name: author.fullName,
+                      verified: author.user?.isVerified,
+                      authorUrl: author.id === 0 ? undefined : author.profileUrl,
+                    }))}
+                    size="xs"
+                    className="text-gray-500 font-normal text-sm"
+                    delimiter="•"
+                  />
                 </div>
               </MetadataSection>
             )}

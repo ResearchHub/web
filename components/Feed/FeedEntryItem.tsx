@@ -31,6 +31,7 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { buildWorkUrl } from '@/utils/url';
 import { useRouter, useParams } from 'next/navigation';
 import { calculateTotalAwardedAmount } from '@/components/Bounty/lib/bountyUtil';
+import { FeedItemBountyComment } from './items/FeedItemBountyComment';
 
 interface FeedEntryItemProps {
   entry: FeedEntry;
@@ -44,6 +45,7 @@ interface FeedEntryItemProps {
   registerVisibleItem: (index: number, unifiedDocumentId: string) => void;
   unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
   getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
+  shouldRenderBountyAsComment?: boolean;
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
@@ -58,13 +60,13 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   registerVisibleItem,
   unregisterVisibleItem,
   getVisibleItems,
+  shouldRenderBountyAsComment = false,
 }) => {
   const unifiedDocumentId = getUnifiedDocumentId(entry);
   const router = useRouter();
   const params = useParams();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
-  const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
 
   const { ref } = useInView({
     threshold: 0,
@@ -203,14 +205,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
       case 'BOUNTY':
         // Transform bounty entry to Post/Paper with bounty info
         const bountyEntry = entry.content as FeedBountyContent;
-        const bounty = bountyEntry.bounty;
-
-        // Handle opening the contribute modal
-        const handleOpenContributeModal = (e: React.MouseEvent) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setIsContributeModalOpen(true);
-        };
 
         // Handle CTA button click (Add Review/Add Solution)
         const handleSolution = (e: React.MouseEvent) => {
@@ -267,132 +261,48 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
           : null;
         const workContentType =
           entry.relatedWork?.contentType || bountyEntry.relatedDocumentContentType;
-        const isOpen = bounty.status === 'OPEN';
-        const hasSolutions = bounty.solutions && bounty.solutions.length > 0;
 
-        // Format the bounty amount for display in the action text
-        const formattedBountyAmount = bounty.totalAmount
-          ? formatCurrency({
-              amount: parseFloat(bounty.totalAmount),
-              showUSD,
-              exchangeRate,
-              shorten: true,
-            })
-          : '';
-        const bountyActionText = bounty.totalAmount
-          ? `created a bounty for ${formattedBountyAmount} ${showUSD ? '' : 'RSC'}`
-          : 'created a bounty';
-
-        // Determine if current user is bounty author (simplified - would need actual user check)
-        const isBountyAuthor = false; // TODO: Add actual user check
-
-        console.log({ relatedWorkEntry, workContentType, isOpen, hasSolutions, isBountyAuthor });
-
-        content = (
-          <div className="space-y-3">
-            <FeedItemHeader
-              timestamp={bountyEntry.createdDate}
-              author={bountyEntry.createdBy}
-              actionText={bountyActionText}
-              contributors={
-                bounty.contributions?.map((contribution: BountyContribution) => ({
-                  profileImage: contribution.createdBy?.authorProfile?.profileImage,
-                  fullName: contribution.createdBy?.authorProfile?.fullName || 'Anonymous',
-                  profileUrl: contribution.createdBy?.authorProfile?.profileUrl,
-                })) || []
-              }
-              isBounty={true}
-              totalContributorsCount={bounty.contributions?.length || 0}
-              work={entry.relatedWork}
-              hotScoreV2={entry.hotScoreV2}
-              hotScoreBreakdown={entry.hotScoreBreakdown}
-              externalMetrics={entry.externalMetrics}
+        if (shouldRenderBountyAsComment) {
+          content = (
+            <FeedItemBountyComment
+              entry={entry}
+              relatedDocumentId={entry.relatedWork?.id}
+              href={href}
+              showContributeButton={false}
+              showFooter={showBountyFooter}
+              showSupportAndCTAButtons={false}
+              showDeadline={false}
+              maxLength={maxLength}
+              onFeedItemClick={handleFeedItemClick}
             />
-
-            {/* Render Post or Paper based on relatedWork */}
-            {relatedWorkEntry &&
-              (workContentType === 'paper' ? (
-                <FeedItemPaper
-                  entry={relatedWorkEntry}
-                  href={href}
-                  showActions={showBountyFooter}
-                  maxLength={maxLength}
-                  onFeedItemClick={handleFeedItemClick}
-                  showBounty={true}
-                  bounty={bounty}
-                  onSupportClick={handleOpenContributeModal}
-                  onAddSolutionClick={handleSolution}
-                />
-              ) : (
-                <FeedItemPost
-                  entry={relatedWorkEntry}
-                  href={href}
-                  showActions={showBountyFooter}
-                  maxLength={maxLength}
-                  onFeedItemClick={handleFeedItemClick}
-                  showBounty={true}
-                  bounty={bounty}
-                  onSupportClick={handleOpenContributeModal}
-                  onAddSolutionClick={handleSolution}
-                />
-              ))}
-            {/* Bounty Solutions */}
-            {!isOpen && hasSolutions && (
-              <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-                <BountySolutions
-                  solutions={bounty.solutions}
-                  isPeerReviewBounty={bounty.bountyType === 'REVIEW'}
-                  totalAwardedAmount={calculateTotalAwardedAmount(bounty)}
-                  onViewSolution={(solutionId, authorName, awardedAmount) => {
-                    // Handle view solution - could navigate or open modal
-                    console.log('View solution', { solutionId, authorName, awardedAmount });
-                  }}
-                />
-              </div>
-            )}
-            {/* Footer Actions */}
-            {showBountyFooter && (
-              <div
-                className="mt-4 pt-3 border-t border-gray-200"
-                onClick={(e) => e.stopPropagation()}
-                role="presentation"
-                aria-hidden="true"
-                tabIndex={-1}
-              >
-                <FeedItemActions
-                  metrics={entry.metrics}
-                  feedContentType="BOUNTY"
-                  votableEntityId={bountyEntry.comment.id}
-                  relatedDocumentId={bountyEntry.relatedDocumentId?.toString()}
-                  relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
-                  userVote={entry.userVote}
-                  tips={entry.tips}
-                  showTooltips={true}
-                  bounties={[bounty]}
-                  relatedDocumentTopics={entry.relatedWork?.topics}
-                  relatedDocumentUnifiedDocumentId={
-                    entry.relatedWork?.unifiedDocumentId?.toString() || undefined
-                  }
-                  onFeedItemClick={handleFeedItemClick}
-                />
-              </div>
-            )}
-            <ContributeBountyModal
-              isOpen={isContributeModalOpen}
-              onClose={() => setIsContributeModalOpen(false)}
-              onContributeSuccess={() => {
-                // Handle success - could refresh or show notification
-                router.refresh();
-              }}
-              commentId={bountyEntry.comment.id}
-              documentId={bountyEntry.relatedDocumentId || 0}
-              contentType={bountyEntry.relatedDocumentContentType || 'paper'}
-              bountyTitle={'Bounty'}
-              bountyType={bounty.bountyType}
-              expirationDate={bounty.expirationDate}
-            />
-          </div>
-        );
+          );
+        } else {
+          content = (
+            <div className="space-y-3">
+              {/* Render Post or Paper based on relatedWork */}
+              {relatedWorkEntry &&
+                (workContentType === 'paper' ? (
+                  <FeedItemPaper
+                    entry={relatedWorkEntry}
+                    href={href}
+                    showActions={showBountyFooter}
+                    maxLength={maxLength}
+                    onFeedItemClick={handleFeedItemClick}
+                    onAddSolutionClick={handleSolution}
+                  />
+                ) : (
+                  <FeedItemPost
+                    entry={relatedWorkEntry}
+                    href={href}
+                    showActions={showBountyFooter}
+                    maxLength={maxLength}
+                    onFeedItemClick={handleFeedItemClick}
+                    onAddSolutionClick={handleSolution}
+                  />
+                ))}
+            </div>
+          );
+        }
         break;
 
       case 'COMMENT':

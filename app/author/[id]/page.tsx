@@ -187,6 +187,7 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
             activeTab={currentTab}
             restoredScrollPosition={restoredPublicationsScrollPosition}
             lastClickedEntryId={lastClickedPublicationsEntryId ?? undefined}
+            shouldRenderBountyAsComment={true}
           />
         </div>
       );
@@ -229,6 +230,7 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
           activeTab={currentTab}
           restoredScrollPosition={restoredContributionsScrollPosition}
           lastClickedEntryId={lastClickedContributionsEntryId ?? undefined}
+          shouldRenderBountyAsComment={true}
         />
       </div>
     );

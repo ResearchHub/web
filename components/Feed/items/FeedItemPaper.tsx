@@ -34,8 +34,8 @@ interface FeedItemPaperProps {
   showBounty?: boolean;
   bounty?: Bounty;
   relatedWork?: Work;
-  onSupportClick?: (e: React.MouseEvent) => void;
   onAddSolutionClick?: (e: React.MouseEvent) => void;
+  showBountyInfoSummary?: boolean;
 }
 
 /**
@@ -51,8 +51,8 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   showBounty = false,
   bounty,
   relatedWork,
-  onSupportClick,
   onAddSolutionClick,
+  showBountyInfoSummary = true,
 }) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
@@ -100,6 +100,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
       customActionText={actionText}
       maxLength={maxLength}
       onFeedItemClick={onFeedItemClick}
+      showBountyInfoSummary={showBountyInfoSummary}
     >
       {/* Top section with badges and mobile image */}
       <FeedItemTopSection
@@ -193,7 +194,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
             {/* Authors */}
             {paper.authors.length > 0 && (
               <MetadataSection>
-                <div className="mb-3 flex items-start gap-1.5">
+                <div className="flex items-start gap-1.5">
                   <Users className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
                   <AuthorList
                     authors={paper.authors.map((author) => ({
@@ -222,14 +223,12 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
             <ContentSection content={paper.textPreview} maxLength={maxLength} />
 
             {/* BountyInfo */}
-            {showBounty && bounty && onSupportClick && onAddSolutionClick && (
+            {showBounty && bounty && onAddSolutionClick && (
               <div className="mt-4" onClick={(e) => e.stopPropagation()}>
                 <BountyInfo
                   bounty={bounty}
                   relatedWork={relatedWork}
-                  onSupportClick={onSupportClick}
                   onAddSolutionClick={onAddSolutionClick}
-                  className="p-0 border-0 bg-transparent"
                 />
               </div>
             )}

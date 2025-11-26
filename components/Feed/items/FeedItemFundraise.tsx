@@ -15,8 +15,9 @@ import { AuthorList } from '@/components/ui/AuthorList';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgressV2';
-import { Users, Building, Pin } from 'lucide-react';
+import { Users, Building, Pin, BookText } from 'lucide-react';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
+import { formatTimestamp } from '@/utils/date';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -80,6 +81,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       }
       maxLength={maxLength}
       onFeedItemClick={onFeedItemClick}
+      showBountyInfoSummary={false}
     >
       {/* Pin icon in top right corner for pinned fundraises */}
       {isPinnedFundraise && (
@@ -123,7 +125,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             {/* Title */}
             <TitleSection title={post.title} />
 
-            {/* Authors list below title */}
+            {/* Authors list */}
             {authors.length > 0 && (
               <MetadataSection>
                 <div className="mb-3 flex items-center gap-1.5">
@@ -134,6 +136,16 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                     className="text-gray-500 font-normal text-sm"
                     delimiter="•"
                   />
+                </div>
+              </MetadataSection>
+            )}
+
+            {/* Date */}
+            {post.createdDate && (
+              <MetadataSection>
+                <div className="mb-3 text-sm text-gray-500 flex items-center gap-1.5">
+                  <BookText className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-500">{formatTimestamp(post.createdDate)}</span>
                 </div>
               </MetadataSection>
             )}

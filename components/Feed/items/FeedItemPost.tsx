@@ -13,11 +13,12 @@ import {
 } from '@/components/Feed/BaseFeedItem';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { Users } from 'lucide-react';
+import { BookText, Users } from 'lucide-react';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { BountyInfo } from '@/components/Bounty/BountyInfo';
 import { Bounty } from '@/types/bounty';
 import { Work } from '@/types/work';
+import { formatTimestamp, isDeadlineInFuture } from '@/utils/date';
 
 interface FeedItemPostProps {
   entry: FeedEntry;
@@ -26,11 +27,9 @@ interface FeedItemPostProps {
   showActions?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
-  showBounty?: boolean;
-  bounty?: Bounty;
   relatedWork?: Work;
-  onSupportClick?: (e: React.MouseEvent) => void;
   onAddSolutionClick?: (e: React.MouseEvent) => void;
+  showBountyInfoSummary?: boolean;
 }
 
 /**
@@ -43,11 +42,9 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   showActions = true,
   maxLength,
   onFeedItemClick,
-  showBounty = false,
-  bounty,
   relatedWork,
-  onSupportClick,
   onAddSolutionClick,
+  showBountyInfoSummary = true,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -76,6 +73,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
       maxLength={maxLength}
       onFeedItemClick={onFeedItemClick}
       showPeerReviews={post.postType !== 'QUESTION'}
+      showBountyInfoSummary={showBountyInfoSummary}
     >
       {/* Top section with badges and mobile image */}
       <FeedItemTopSection
@@ -118,36 +116,35 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
             {/* Title */}
             <TitleSection title={post.title} />
 
-            {/* Authors list below title */}
-            {authors.length > 0 && (
-              <MetadataSection>
-                <div className="mt-1 mb-3 flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-gray-500" />
-                  <AuthorList
-                    authors={authors}
-                    size="sm"
-                    className="text-gray-500 font-normal text-sm"
-                    delimiter="•"
-                  />
-                </div>
-              </MetadataSection>
-            )}
+            <div>
+              {/* Authors list below title */}
+              {authors.length > 0 && (
+                <MetadataSection>
+                  <div className="mt-1 mb-3 flex items-center gap-1.5">
+                    <Users className="w-4 h-4 text-gray-500" />
+                    <AuthorList
+                      authors={authors}
+                      size="sm"
+                      className="text-gray-500 font-normal text-sm"
+                      delimiter="•"
+                    />
+                  </div>
+                </MetadataSection>
+              )}
+
+              {/* Date */}
+              {post.createdDate && (
+                <MetadataSection>
+                  <div className="mb-3 text-sm text-gray-500 flex items-center gap-1.5">
+                    <BookText className="w-4 h-4 text-gray-500" />
+                    <span className="text-gray-500">{formatTimestamp(post.createdDate)}</span>
+                  </div>
+                </MetadataSection>
+              )}
+            </div>
 
             {/* Truncated Content */}
             <ContentSection content={post.textPreview} maxLength={maxLength} />
-
-            {/* BountyInfo */}
-            {showBounty && bounty && onSupportClick && onAddSolutionClick && (
-              <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-                <BountyInfo
-                  bounty={bounty}
-                  relatedWork={relatedWork}
-                  onSupportClick={onSupportClick}
-                  onAddSolutionClick={onAddSolutionClick}
-                  className="p-0 border-0 bg-transparent"
-                />
-              </div>
-            )}
           </>
         }
         rightContent={

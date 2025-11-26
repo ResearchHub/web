@@ -12,6 +12,9 @@ import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
+import { BountyInfoSummary } from '@/components/Bounty/BountyInfoSummary';
+import { useRouter } from 'next/navigation';
+import { BountyInfo } from '../Bounty/BountyInfo';
 
 // Base interfaces for the modular components
 export interface BaseFeedItemProps {
@@ -26,6 +29,7 @@ export interface BaseFeedItemProps {
   children?: ReactNode;
   onFeedItemClick?: () => void;
   showPeerReviews?: boolean;
+  showBountyInfoSummary?: boolean;
 }
 
 // Badge component interface
@@ -243,11 +247,13 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   children,
   onFeedItemClick,
   showPeerReviews = true,
+  showBountyInfoSummary = true,
 }) => {
   const content = entry.content;
   const author = content.createdBy;
   const isClickable = !!href;
   const { updateLastClickedEntryId } = useNavigation();
+  const router = useRouter();
 
   const entryIdKey = `${entry.contentType}:${entry.id}`;
 
@@ -260,6 +266,20 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
       updateLastClickedEntryId(entryIdKey);
     }
   };
+
+  // Handler for bounty details click
+  const handleBountyDetailsClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (href) {
+      // Navigate to bounties tab
+      router.push(`${href}/bounties`);
+    } else if (onFeedItemClick) {
+      onFeedItemClick();
+    }
+  };
+
+  // Get open bounties from content
+  const openBounties = content.bounties?.filter((bounty) => bounty.status === 'OPEN') || [];
 
   return (
     <div className={cn('space-y-3', className)}>
@@ -274,10 +294,30 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
           externalMetrics={entry.externalMetrics}
         />
       )}
-
       {/* Main Content Card */}
       <CardWrapper href={href} isClickable={isClickable} onClick={handleClick} entryId={entryIdKey}>
-        <div className="p-4">{children}</div>
+        <div className="p-4">
+          {children}
+          {/* BountyInfoSummary */}
+          {showBountyInfoSummary ? (
+            openBounties.length === 1 ? (
+              <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+                <BountyInfo
+                  bounty={openBounties[0]}
+                  relatedWork={entry.relatedWork}
+                  onAddSolutionClick={handleBountyDetailsClick}
+                />
+              </div>
+            ) : openBounties.length > 0 ? (
+              <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+                <BountyInfoSummary
+                  bounties={openBounties}
+                  onDetailsClick={handleBountyDetailsClick}
+                />
+              </div>
+            ) : null
+          ) : null}
+        </div>
         {/* Action Buttons */}
         {showActions && (
           <div
@@ -304,13 +344,13 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               showTooltips={showTooltips}
               href={href}
               reviews={content.reviews}
-              bounties={content.bounties}
               relatedDocumentTopics={'topics' in content ? content.topics : undefined}
               relatedDocumentUnifiedDocumentId={
                 'unifiedDocumentId' in content ? content.unifiedDocumentId : undefined
               }
               showPeerReviews={showPeerReviews}
               onFeedItemClick={onFeedItemClick}
+              bounties={showBountyInfoSummary ? undefined : content.bounties}
             />
           </div>
         )}

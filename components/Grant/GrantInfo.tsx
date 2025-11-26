@@ -100,7 +100,7 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className }) => {
 
           {/* Deadline */}
           <div className="flex-shrink-0 whitespace-nowrap text-left sm:!text-right sm:!order-2 order-1 sm:!block flex justify-between w-full sm:!w-auto items-center">
-            <span className="block text-gray-500 text-base mb-1 inline-block">Deadline</span>
+            <div className="block text-gray-500 text-base mb-1">Deadline</div>
             {getStatusDisplay()}
           </div>
         </div>
