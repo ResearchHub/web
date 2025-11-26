@@ -1031,7 +1031,7 @@ export const transformCommentToFeedItem = (
 };
 
 /**
- * Transforms a Comment with bounties into a FeedEntry that can be used with FeedItemBounty component
+ * Transforms a Comment with bounties into a FeedEntry that can be used with FeedItemBountyComment component
  * @param comment The Comment object with bounties to transform
  * @param contentType The content type of the related document (paper, post, etc.)
  * @param relatedDocument Optional related work (paper or post) to include with the bounty

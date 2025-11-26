@@ -16,6 +16,7 @@ import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgressV2';
 import { Users, Building, Pin } from 'lucide-react';
+import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -100,7 +101,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         }
         leftContent={
           <>
-            {/* <ContentTypeBadge type="funding" /> */}
+            <ContentTypeBadge type="funding" />
             {isNonprofit && <TaxDeductibleBadge />}
             {topics.map((topic) => (
               <TopicAndJournalBadge

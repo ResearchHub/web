@@ -54,7 +54,7 @@ const BountyDetails: FC<{
   );
 };
 
-interface FeedItemBountyProps {
+interface FeedItemBountyCommentProps {
   entry: FeedEntry;
   showSolutions?: boolean;
   showRelatedWork?: boolean;
@@ -89,7 +89,7 @@ interface FeedItemBountyProps {
 /**
  * Main component for rendering a bounty feed item
  */
-export const FeedItemBounty: FC<FeedItemBountyProps> = ({
+export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
   entry,
   relatedDocumentId,
   showSolutions = true,
@@ -182,7 +182,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
     }
 
     if (!workId || !workContentType) {
-      console.error('FeedItemBounty: Unable to determine destination for CTA', {
+      console.error('FeedItemBountyComment: Unable to determine destination for CTA', {
         workId,
         workSlug,
         workContentType,

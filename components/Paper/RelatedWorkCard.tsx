@@ -6,7 +6,6 @@ import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { Topic } from '@/types/topic';
 import { useClickContext } from '@/contexts/ClickContext';
 import { Fundraise } from '@/types/feed';
-import { TrendingUp, Target } from 'lucide-react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatRSC } from '@/utils/number';
 import { usePathname } from 'next/navigation';
