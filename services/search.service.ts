@@ -14,7 +14,6 @@ import { transformAuthorSuggestions } from '@/types/search';
 import { transformTopic } from '@/types/topic';
 import { Institution } from '@/app/paper/create/components/InstitutionAutocomplete';
 import { FeedEntry, transformFeedEntry } from '@/types/feed';
-import { SearchResult } from '@/types/searchResult';
 import { highlightSearchTerms, hasHighlights } from '@/components/Search/lib/searchHighlight';
 
 export interface InstitutionResponse {
@@ -38,7 +37,7 @@ export interface FullSearchParams {
 }
 
 export interface FullSearchResponse {
-  entries: SearchResult[];
+  entries: FeedEntry[];
   people: PersonSearchResult[];
   count: number;
   aggregations: any;
@@ -141,9 +140,9 @@ export class SearchService {
 
     const resp = response as SearchResponse;
 
-    // Transform documents to SearchResult format
+    // Transform documents to FeedEntry format with searchMetadata
     const documents = Array.isArray(resp.documents) ? resp.documents : [];
-    const entries: SearchResult[] = documents.map((doc) =>
+    const entries: FeedEntry[] = documents.map((doc) =>
       this.transformSearchResult(doc, params.query)
     );
 
@@ -239,7 +238,7 @@ export class SearchService {
     };
   }
 
-  private static transformSearchResult(doc: ApiDocumentSearchResult, query: string): SearchResult {
+  private static transformSearchResult(doc: ApiDocumentSearchResult, query: string): FeedEntry {
     // First transform to a clean FeedEntry
     const feedEntry = this.transformDocumentToFeedEntry(doc);
 
@@ -273,11 +272,14 @@ export class SearchService {
       combined.highlightedSnippet
     );
 
+    // Return FeedEntry with searchMetadata
     return {
-      entry: feedEntry,
-      highlightedTitle: final.highlightedTitle,
-      highlightedSnippet: final.highlightedSnippet,
-      matchedField: doc.matched_field,
+      ...feedEntry,
+      searchMetadata: {
+        highlightedTitle: final.highlightedTitle,
+        highlightedSnippet: final.highlightedSnippet,
+        matchedField: doc.matched_field,
+      },
     };
   }
 
