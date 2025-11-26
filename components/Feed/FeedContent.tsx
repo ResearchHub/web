@@ -42,7 +42,7 @@ interface FeedContentProps {
   page?: number;
   lastClickedEntryId?: string;
   insertContent?: InsertContentItem[];
-  itemWrapper?: (item: ReactNode, entry: FeedEntry, index: number) => ReactNode;
+  customizeItem?: (item: ReactNode, entry: FeedEntry, index: number) => ReactNode;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -69,7 +69,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   page,
   lastClickedEntryId,
   insertContent,
-  itemWrapper,
+  customizeItem,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -162,11 +162,13 @@ export const FeedContent: FC<FeedContentProps> = ({
                 />
               );
 
-              const wrappedItem = itemWrapper ? itemWrapper(feedItem, entry, index) : feedItem;
+              const renderedFeedItem = customizeItem
+                ? customizeItem(feedItem, entry, index)
+                : feedItem;
 
               return (
                 <React.Fragment key={`${entry.id}-${index}`}>
-                  {wrappedItem}
+                  {renderedFeedItem}
                   {contentToInsert && (
                     <div key={`insert-content-${index}`} className="mt-12">
                       {contentToInsert.content}
