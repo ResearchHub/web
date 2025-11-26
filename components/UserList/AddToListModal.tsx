@@ -17,6 +17,7 @@ import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import Link from 'next/link';
 
 interface AddToListModalProps {
   readonly isOpen: boolean;
@@ -218,7 +219,16 @@ export function AddToListModal({
     setTogglingListId(listId);
     try {
       await ListService.addItemToListApi(listId, unifiedDocumentId);
-      toast.success(`Added to "${listToAddTo.name}"`);
+      const listUrl = `/list/${listId}`;
+
+      toast.custom((t) => (
+        <div className="bg-white px-6 py-4 shadow-lg rounded-lg border border-gray-200 flex items-center gap-2">
+          <span className="text-gray-900">Item added.</span>
+          <Link href={listUrl} className="text-blue-600 hover:text-blue-700 font-medium">
+            View List
+          </Link>
+        </div>
+      ));
       refetch();
     } catch (error) {
       toast.error(extractApiErrorMessage(error, `Failed to add to "${listToAddTo.name}"`));
@@ -234,18 +244,16 @@ export function AddToListModal({
       (doc) => doc.unifiedDocumentId === unifiedDocumentId
     );
 
-    if (!documentInList?.listItemId || !listToRemoveFrom) return;
+    if (!documentInList?.listItemId) return;
 
     setTogglingListId(listId);
     try {
       await ListService.removeItemFromListApi(listId, documentInList.listItemId);
-      toast.success(`Removed from "${listToRemoveFrom.name}"`);
+      toast.success('Item Removed');
       refetch();
     } catch (error) {
-      toast.error(
-        extractApiErrorMessage(error, `Failed to remove from "${listToRemoveFrom.name}"`)
-      );
-      console.error('Failed to remove item from list:', error);
+      toast.error(extractApiErrorMessage(error, 'Item not removed'));
+      console.error('Item not removed:', error);
     } finally {
       setTogglingListId(null);
     }
