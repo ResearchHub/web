@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/Button';
 import { LoadingButton } from '@/components/ui/LoadingButton';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Input } from '@/components/ui/form/Input';
-import { Checkbox } from '@/components/ui/form/Checkbox';
 import { Loader } from '@/components/ui/Loader';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { UserListOverview } from '@/components/UserList/lib/user-list';
 import { Plus } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookmark } from '@fortawesome/pro-light-svg-icons';
+import { faBookmark as faBookmarkSolid } from '@fortawesome/pro-solid-svg-icons';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -113,24 +115,31 @@ interface ListSelectItemProps {
   readonly list: UserListOverview;
   readonly isChecked: boolean;
   readonly isRemoving: boolean;
-  readonly onToggle: (checked: boolean) => void;
+  readonly onToggle: () => void;
 }
 
 function ListSelectItem({ list, isChecked, isRemoving, onToggle }: Readonly<ListSelectItemProps>) {
   return (
-    <label
-      className={`flex items-center gap-3 w-full p-3 rounded-lg border cursor-pointer transition-colors ${
-        isChecked
-          ? 'border-rhBlue-500 bg-rhBlue-50'
-          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+    <button
+      type="button"
+      onClick={onToggle}
+      disabled={isRemoving}
+      className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors text-left hover:bg-gray-50 ${
+        isRemoving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
       }`}
     >
-      <Checkbox checked={isChecked} onCheckedChange={onToggle} disabled={isRemoving} />
       <div className="flex-1 min-w-0">
         <div className="font-medium text-gray-900 truncate">{list.name}</div>
       </div>
-      {isRemoving && <Loader size="sm" />}
-    </label>
+      {isRemoving ? (
+        <Loader size="sm" />
+      ) : (
+        <FontAwesomeIcon
+          icon={isChecked ? faBookmarkSolid : faBookmark}
+          className={`w-5 h-5 transition-colors ${isChecked ? 'text-gray-900' : 'text-gray-400'}`}
+        />
+      )}
+    </button>
   );
 }
 
@@ -277,17 +286,22 @@ export function AddToListModal({
             {!showCreateForm && (
               <>
                 <div className="space-y-2 max-h-[50vh] md:!max-h-72 overflow-y-auto">
-                  {sortedLists.map((list) => (
-                    <ListSelectItem
-                      key={list.listId}
-                      list={list}
-                      isChecked={listIdsContainingDocument.includes(list.listId)}
-                      isRemoving={togglingListId === list.listId}
-                      onToggle={(isChecked) =>
-                        isChecked ? handleAddToList(list.listId) : handleRemoveFromList(list.listId)
-                      }
-                    />
-                  ))}
+                  {sortedLists.map((list) => {
+                    const isInList = listIdsContainingDocument.includes(list.listId);
+                    return (
+                      <ListSelectItem
+                        key={list.listId}
+                        list={list}
+                        isChecked={isInList}
+                        isRemoving={togglingListId === list.listId}
+                        onToggle={() =>
+                          isInList
+                            ? handleRemoveFromList(list.listId)
+                            : handleAddToList(list.listId)
+                        }
+                      />
+                    );
+                  })}
                 </div>
 
                 <div className="border-t border-gray-200 mt-4 mb-4" />
