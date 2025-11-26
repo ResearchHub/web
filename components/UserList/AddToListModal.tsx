@@ -265,14 +265,14 @@ export function AddToListModal({
     }
   };
 
-  const handleToggleList = (listId: number, isChecked: boolean) => {
-    if (isChecked) {
-      setSelectedListIds((previousSelectedListIds) => [...previousSelectedListIds, listId]);
-    } else {
-      setSelectedListIds((previousSelectedListIds) =>
-        previousSelectedListIds.filter((id) => id !== listId)
-      );
-    }
+  const handleAddToList = (listId: number) => {
+    setSelectedListIds((previousSelectedListIds) => [...previousSelectedListIds, listId]);
+  };
+
+  const handleRemoveFromListSelection = (listId: number) => {
+    setSelectedListIds((previousSelectedListIds) =>
+      previousSelectedListIds.filter((id) => id !== listId)
+    );
   };
 
   const handleRemoveFromList = async (listId: number, event: React.MouseEvent) => {
@@ -364,7 +364,11 @@ export function AddToListModal({
                       isChecked={selectedListIds.includes(list.listId)}
                       isInList={listIdsContainingDocument.includes(list.listId)}
                       isRemoving={removingListId === list.listId}
-                      onToggle={(isChecked) => handleToggleList(list.listId, isChecked)}
+                      onToggle={(isChecked) =>
+                        isChecked
+                          ? handleAddToList(list.listId)
+                          : handleRemoveFromListSelection(list.listId)
+                      }
                       onRemove={(event) => handleRemoveFromList(list.listId, event)}
                     />
                   ))}
