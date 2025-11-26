@@ -96,6 +96,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
       entry={entry}
       href={paperPageUrl}
       showActions={showActions}
+      showHeader={false}
       showTooltips={showTooltips}
       customActionText={actionText}
       maxLength={maxLength}

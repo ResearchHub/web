@@ -114,7 +114,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
         }
         leftContent={
           <>
-            <ContentTypeBadge type="grant" />
+            {showHeader && <ContentTypeBadge type="grant" />}
             {grant.topics?.map((topic) => (
               <TopicAndJournalBadge
                 key={topic.id || topic.slug}

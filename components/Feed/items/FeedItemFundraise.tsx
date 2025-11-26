@@ -24,6 +24,7 @@ interface FeedItemFundraiseProps {
   href?: string;
   showTooltips?: boolean;
   showActions?: boolean;
+  showHeader?: boolean;
   maxLength?: number;
   customActionText?: string;
   isPinnedFundraise?: boolean;
@@ -38,6 +39,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   href,
   showTooltips = true,
   showActions = true,
+  showHeader = true,
   maxLength,
   customActionText,
   isPinnedFundraise = false,
@@ -82,6 +84,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       maxLength={maxLength}
       onFeedItemClick={onFeedItemClick}
       showBountyInfoSummary={false}
+      showHeader={showHeader}
     >
       {/* Pin icon in top right corner for pinned fundraises */}
       {isPinnedFundraise && (
@@ -103,7 +106,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         }
         leftContent={
           <>
-            <ContentTypeBadge type="funding" />
+            {showHeader && <ContentTypeBadge type="funding" />}
             {isNonprofit && <TaxDeductibleBadge />}
             {topics.map((topic) => (
               <TopicAndJournalBadge

@@ -33,6 +33,7 @@ interface FeedContentProps {
   noEntriesElement?: ReactNode;
   maxLength?: number;
   showGrantHeaders?: boolean;
+  showFundraiseHeaders?: boolean;
   showReadMoreCTA?: boolean;
   ordering?: string;
   restoredScrollPosition?: number | null;
@@ -57,6 +58,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   noEntriesElement,
   maxLength,
   showGrantHeaders = true,
+  showFundraiseHeaders = true,
   showReadMoreCTA = false,
   ordering,
   restoredScrollPosition,
@@ -129,6 +131,7 @@ export const FeedContent: FC<FeedContentProps> = ({
                     hideActions={hideActions}
                     maxLength={maxLength}
                     showGrantHeaders={showGrantHeaders}
+                    showFundraiseHeaders={showFundraiseHeaders}
                     showReadMoreCTA={showReadMoreCTA}
                     feedOrdering={ordering}
                     registerVisibleItem={registerVisibleItem}

@@ -37,11 +37,14 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
   const hasRestoredEntries = restoredState !== null;
 
   const [entries, setEntries] = useState<FeedEntry[]>(initialEntries);
-  const [isLoading, setIsLoading] = useState(!hasRestoredEntries && !options.initialData);
+  const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [page, setPage] = useState(initialPage);
   const [currentTab, setCurrentTab] = useState<FeedTab | FundingTab>(activeTab);
   const [currentOptions, setCurrentOptions] = useState<UseFeedOptions>(options);
+  const [hasAttemptedLoad, setHasAttemptedLoad] = useState(
+    initialEntries.length > 0 || initialHasMore
+  );
 
   useEffect(() => {
     if (status === 'loading') {
@@ -62,18 +65,21 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
 
     if (currentTab !== activeTab) {
       setCurrentTab(activeTab);
+      setHasAttemptedLoad(false);
+      setPage(1);
       loadFeed();
-    } else if (entries.length === 0) {
+    } else if (!isLoading && !hasAttemptedLoad && page === 1) {
       loadFeed();
     }
   }, [
     status,
     activeTab,
     hasRestoredEntries,
-    entries.length,
     page,
     currentTab,
     options.initialData,
+    isLoading,
+    hasAttemptedLoad,
   ]);
 
   useEffect(() => {
@@ -89,15 +95,21 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       options.filter !== currentOptions.filter ||
       options.userId !== currentOptions.userId;
 
-    if (relevantOptionsChanged) {
+    const tabIsChanging = currentTab !== activeTab;
+
+    if (relevantOptionsChanged && !tabIsChanging) {
       setCurrentOptions(options);
+      setHasAttemptedLoad(false);
       loadFeed();
+    } else if (relevantOptionsChanged && tabIsChanging) {
+      setCurrentOptions(options);
     }
-  }, [options]);
+  }, [options, currentTab, activeTab]);
 
   const loadFeed = async () => {
     setIsLoading(true);
     setEntries([]);
+
     try {
       const isHomeFeedTab =
         activeTab === 'popular' ||
@@ -105,7 +117,6 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         activeTab === 'latest' ||
         activeTab === 'for-you';
 
-      // Map 'for-you' to 'personalized' for the API
       const feedView = isHomeFeedTab
         ? activeTab === 'for-you'
           ? 'personalized'
@@ -127,11 +138,15 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         filter: options.filter,
         userId: options.userId,
       });
+
       setEntries(result.entries);
       setHasMore(result.hasMore);
       setPage(1);
+      setHasAttemptedLoad(true);
     } catch (error) {
       console.error('Error loading feed:', error);
+      setPage(1);
+      setHasAttemptedLoad(true);
     } finally {
       setIsLoading(false);
     }
@@ -149,7 +164,6 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         activeTab === 'latest' ||
         activeTab === 'for-you';
 
-      // Map 'for-you' to 'personalized' for the API
       const feedView = isHomeFeedTab
         ? activeTab === 'for-you'
           ? 'personalized'

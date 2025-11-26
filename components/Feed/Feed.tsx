@@ -23,13 +23,12 @@ interface FeedProps {
   showSourceFilter?: boolean;
 }
 
-// Helper function to determine default ordering based on tab
 const getDefaultOrdering = (tab: FeedTab): string | undefined => {
   if (tab === 'popular') return 'hot_score';
   if (tab === 'following') return 'hot_score_v2';
   if (tab === 'latest') return 'latest';
-  if (tab === 'for-you') return undefined; // No sorting for personalized feed
-  return 'hot_score'; // fallback
+  if (tab === 'for-you') return undefined;
+  return 'hot_score';
 };
 
 export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFilter = true }) => {
@@ -53,6 +52,15 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
 
   const isDebugMode = searchParams?.get('debug') !== null;
 
+  const feedOptions = {
+    source: sourceFilter,
+    initialData: initialFeedData,
+    isDebugMode,
+    ordering,
+    filter: filterParam || undefined,
+    userId: userIdParam || undefined,
+  };
+
   const {
     entries,
     isLoading,
@@ -62,45 +70,28 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     restoredScrollPosition,
     page,
     lastClickedEntryId,
-  } = useFeed(defaultTab, {
-    source: sourceFilter,
-    initialData: initialFeedData,
-    isDebugMode,
-    ordering,
-    filter: filterParam || undefined,
-    userId: userIdParam || undefined,
-  });
+  } = useFeed(defaultTab, feedOptions);
 
-  // Sync the activeTab with the defaultTab when the component mounts or defaultTab changes
   useEffect(() => {
-    setActiveTab(defaultTab);
-    // Only update ordering if there's no query param override
     const orderingParam = searchParams.get('ordering');
+    const newOrdering = !orderingParam ? getDefaultOrdering(defaultTab) : ordering;
+
+    setActiveTab(defaultTab);
     if (!orderingParam) {
-      setOrdering(getDefaultOrdering(defaultTab));
+      setOrdering(newOrdering);
     }
     setIsNavigating(false);
   }, [defaultTab, searchParams]);
 
   const handleTabChange = (tab: string) => {
-    // Don't navigate if clicking the already active tab
     if (tab === activeTab) {
       return;
     }
 
-    // Immediately update the active tab for visual feedback
-    setActiveTab(tab as FeedTab);
-    // Update ordering based on the new tab (unless overridden by query param)
-    const orderingParam = searchParams.get('ordering');
-    if (!orderingParam) {
-      setOrdering(getDefaultOrdering(tab as FeedTab));
-    }
-    // Set navigating state to true to show loading state
     setIsNavigating(true);
 
-    // Preserve query params (ordering and filter)
-    // Only preserve if they were explicitly set by the user, not defaults
     const params = new URLSearchParams();
+    const orderingParam = searchParams.get('ordering');
     if (orderingParam) {
       params.set('ordering', orderingParam);
     }
@@ -110,9 +101,8 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     }
     const queryString = params.toString() ? `?${params.toString()}` : '';
 
-    // Navigate to the appropriate URL (for-you is the URL-friendly version)
     if (tab === 'popular') {
-      router.push(`/${queryString}`);
+      router.push(`/trending${queryString}`);
     } else {
       router.push(`/${tab}${queryString}`);
     }
@@ -120,13 +110,10 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
 
   const handleSourceFilterChange = (source: FeedSource) => {
     setSourceFilter(source);
-    // The filter will be applied through the useFeed hook with the updated source option
   };
 
-  // Combine the loading states
   const combinedIsLoading = isLoading || isNavigating;
 
-  // Define the tabs for the feed
   const tabs = [
     {
       id: 'popular',
@@ -152,8 +139,6 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
 
   const header = (
     <div className="space-y-4">
-      {/* Banner removed */}
-
       <MainPageHeader
         icon={<Sparkles className="w-6 h-6 text-primary-500" />}
         title="Explore"
@@ -211,6 +196,8 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   return (
     <PageLayout>
       <FeedContent
+        showFundraiseHeaders={false}
+        showGrantHeaders={false}
         entries={entries}
         isLoading={combinedIsLoading}
         hasMore={hasMore}
