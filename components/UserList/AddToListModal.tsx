@@ -17,6 +17,7 @@ import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { sortListsByDocumentMembership } from '@/components/UserList/lib/listUtils';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
 
@@ -167,24 +168,6 @@ function ListSelectItem({ list, isChecked, isRemoving, onToggle }: Readonly<List
       )}
     </button>
   );
-}
-
-function sortListsByDocumentMembership(
-  allLists: UserListOverview[],
-  listIdsContainingDocument: number[]
-): UserListOverview[] {
-  const listsAlreadyContainingDocument: UserListOverview[] = [];
-  const listsNotYetContainingDocument: UserListOverview[] = [];
-
-  for (const list of allLists) {
-    if (listIdsContainingDocument.includes(list.listId)) {
-      listsAlreadyContainingDocument.push(list);
-    } else {
-      listsNotYetContainingDocument.push(list);
-    }
-  }
-
-  return [...listsAlreadyContainingDocument, ...listsNotYetContainingDocument];
 }
 
 export function AddToListModal({
