@@ -267,7 +267,9 @@ export function AddToListModal({
 
   const handleRemoveFromList = async (listId: number) => {
     const listToRemoveFrom = listDetails.find((list) => list.listId === listId);
-    const documentInList = listToRemoveFrom?.unifiedDocuments?.find(
+    if (!listToRemoveFrom) return;
+
+    const documentInList = listToRemoveFrom.unifiedDocuments.find(
       (doc) => doc.unifiedDocumentId === unifiedDocumentId
     );
 
