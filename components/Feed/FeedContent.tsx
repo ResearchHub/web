@@ -158,6 +158,7 @@ export const FeedContent: FC<FeedContentProps> = ({
                   registerVisibleItem={registerVisibleItem}
                   unregisterVisibleItem={unregisterVisibleItem}
                   getVisibleItems={getVisibleItems}
+                  highlights={highlights.length > 0 ? highlights : undefined}
                 />
               );
 
