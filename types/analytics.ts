@@ -2,6 +2,8 @@ import { UserVoteType } from './reaction';
 import { DeviceType } from '@/hooks/useDeviceType';
 import { DocumentType } from '@/services/reaction.service';
 import { FeedEntry } from './feed';
+import { Work } from './work';
+import { TabType } from '@/components/work/WorkTabs';
 import {
   mapAppContentTypeToApiType,
   mapAppFeedContentTypeToApiType,
@@ -24,7 +26,15 @@ interface RelatedWork {
   unified_document_id?: string;
 }
 
-export type FeedSource = 'home' | 'earn' | 'fund' | 'journal' | 'topic' | 'author' | 'unknown';
+export type FeedSource =
+  | 'home'
+  | 'earn'
+  | 'fund'
+  | 'journal'
+  | 'topic'
+  | 'author'
+  | 'search'
+  | 'unknown';
 
 /**
  * Extracts the unified document ID from a feed entry.
@@ -58,6 +68,12 @@ export interface FeedItemClickedEvent extends UserContext, BaseContext {
 export interface WorkDocumentViewedEvent extends UserContext {
   related_work?: RelatedWork;
   tab?: string;
+}
+
+// 4. Document Tab Clicked
+export interface DocumentTabClickedEvent extends UserContext, BaseContext {
+  clicked_tab: TabType;
+  related_work?: RelatedWork;
 }
 
 /**
@@ -100,6 +116,34 @@ export function buildPayloadForFeedItemClick(
     ...(feedOrdering && { feed_ordering: feedOrdering }),
     // Include impressions if provided
     ...(impression && impression.length > 0 && { impression }),
+  };
+
+  return payload;
+}
+
+/**
+ * Builds the payload for a document tab click event
+ * @param work - The work document where the tab was clicked
+ * @param options - Options for building the payload
+ * @returns The DocumentTabClickedEvent payload
+ */
+export function buildPayloadForDocumentTabClick(
+  work: Work,
+  options: {
+    clickedTab: TabType;
+    deviceType: DeviceType;
+  }
+): DocumentTabClickedEvent {
+  const { clickedTab, deviceType } = options;
+
+  const payload: DocumentTabClickedEvent = {
+    device_type: deviceType,
+    clicked_tab: clickedTab,
+    related_work: {
+      id: work.id.toString(),
+      content_type: mapAppContentTypeToApiType(work.contentType),
+      unified_document_id: work.unifiedDocumentId?.toString(),
+    },
   };
 
   return payload;

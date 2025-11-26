@@ -22,6 +22,7 @@ export const LogEvent = {
   VOTE_ACTION: 'vote_action',
   FEED_ITEM_CLICKED: 'feed_item_clicked',
   WORK_DOCUMENT_VIEWED: 'work_document_viewed',
+  DOCUMENT_TAB_CLICKED: 'document_tab_clicked',
 } as const;
 
 export type LogEventValue = (typeof LogEvent)[keyof typeof LogEvent];

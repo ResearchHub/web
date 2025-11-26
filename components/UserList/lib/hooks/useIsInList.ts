@@ -4,11 +4,11 @@ import { ID } from '@/types/root';
 export function useIsInList(unifiedDocumentId: ID) {
   const { overviewLists, isLoadingOverview, refetchOverview } = useUserListsContext();
 
-  const documentIdAsNumber = unifiedDocumentId
-    ? typeof unifiedDocumentId === 'string'
-      ? Number(unifiedDocumentId)
-      : unifiedDocumentId
-    : null;
+  let documentIdAsNumber: number | null = null;
+  if (unifiedDocumentId) {
+    documentIdAsNumber =
+      typeof unifiedDocumentId === 'string' ? Number(unifiedDocumentId) : unifiedDocumentId;
+  }
 
   const listIdsContainingDocument = documentIdAsNumber
     ? overviewLists
