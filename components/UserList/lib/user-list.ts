@@ -116,11 +116,6 @@ export interface UpdateListRequest {
   is_public?: boolean;
 }
 
-export interface AddItemRequest {
-  parent_list: number;
-  unified_document: number;
-}
-
 export interface UserListsResponse {
   count: number;
   next: string | null;

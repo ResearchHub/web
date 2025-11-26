@@ -26,6 +26,17 @@ interface AddToListModalProps {
   readonly unifiedDocumentId: number;
 }
 
+const MOBILE_MODAL_HEIGHT_OFFSET = 200;
+const MOBILE_LIST_MAX_HEIGHT_OFFSET = 205;
+
+const TOAST_MESSAGES = {
+  ITEM_ADDED: 'Item added.',
+  ITEM_REMOVED: 'Item removed',
+  FAILED_TO_CREATE_LIST: 'Failed to create list',
+  FAILED_TO_ADD_TO_LIST: 'Failed to add to list',
+  FAILED_TO_REMOVE_ITEM: 'Failed to remove item',
+};
+
 function ListLoadingSkeleton() {
   return (
     <div className="space-y-2">
@@ -42,14 +53,27 @@ function ListLoadingSkeleton() {
   );
 }
 
+function CreateListButton({
+  onClick,
+  fullWidth = false,
+}: {
+  readonly onClick: () => void;
+  readonly fullWidth?: boolean;
+}) {
+  return (
+    <Button onClick={onClick} className={cn('gap-2', fullWidth && 'w-full')}>
+      <Plus className="w-4 h-4" />
+      Create List
+    </Button>
+  );
+}
+
 function ListEmptyState({ onFocus }: { readonly onFocus: () => void }) {
   return (
-    <div className="text-center flex flex-col items-center justify-center w-full">
+    <div className="text-center w-full">
+      <FontAwesomeIcon icon={faBookmark} className="w-12 h-12 text-gray-300 mb-3" />
       <p className="text-gray-600 mb-4">You don't have any lists yet.</p>
-      <Button onClick={onFocus} className="gap-2">
-        <Plus className="w-4 h-4" />
-        Create Your First List
-      </Button>
+      <CreateListButton onClick={onFocus} />
     </div>
   );
 }
@@ -174,7 +198,7 @@ export function AddToListModal({
   const { createList, addDocumentToList, removeDocumentFromList } = useUserListsContext();
 
   const [newListName, setNewListName] = useState('');
-  const [isCreatingNewList, setIsCreatingNewList] = useState(false);
+  const [isCreatingList, setIsCreatingList] = useState(false);
   const [togglingListId, setTogglingListId] = useState<number | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const createInputRef = useRef<HTMLInputElement>(null);
@@ -210,15 +234,15 @@ export function AddToListModal({
     const trimmedListName = newListName.trim();
     if (trimmedListName.length === 0) return;
 
-    setIsCreatingNewList(true);
+    setIsCreatingList(true);
     try {
       await createList({ name: trimmedListName }, true);
       closeCreateForm();
     } catch (error) {
-      toast.error(extractApiErrorMessage(error, 'Failed to create list'));
+      toast.error(extractApiErrorMessage(error, TOAST_MESSAGES.FAILED_TO_CREATE_LIST));
       console.error('Failed to create list:', error);
     } finally {
-      setIsCreatingNewList(false);
+      setIsCreatingList(false);
     }
   };
 
@@ -232,10 +256,10 @@ export function AddToListModal({
       addDocumentToList(listId, unifiedDocumentId, response.id);
 
       const listUrl = `/list/${listId}`;
-      toast.custom(
+      toast.success(
         (t) => (
-          <div className="bg-white px-6 py-4 shadow-lg rounded-lg border border-gray-200 flex items-center gap-2">
-            <span className="text-gray-900">Item added.</span>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-900">{TOAST_MESSAGES.ITEM_ADDED}</span>
             <Link
               href={listUrl}
               onClick={(e) => {
@@ -251,7 +275,7 @@ export function AddToListModal({
         { duration: 4000 }
       );
     } catch (error) {
-      toast.error(extractApiErrorMessage(error, `Failed to add to "${listToAddTo.name}"`));
+      toast.error(extractApiErrorMessage(error, TOAST_MESSAGES.FAILED_TO_ADD_TO_LIST));
       console.error('Failed to add to list:', error);
     } finally {
       setTogglingListId(null);
@@ -270,10 +294,10 @@ export function AddToListModal({
     try {
       await ListService.removeItemFromListApi(listId, documentInList.listItemId);
       removeDocumentFromList(listId, unifiedDocumentId);
-      toast.success('Item Removed');
+      toast.success(TOAST_MESSAGES.ITEM_REMOVED);
     } catch (error) {
-      toast.error(extractApiErrorMessage(error, 'Item not removed'));
-      console.error('Item not removed:', error);
+      toast.error(extractApiErrorMessage(error, TOAST_MESSAGES.FAILED_TO_REMOVE_ITEM));
+      console.error('Failed to remove item:', error);
     } finally {
       setTogglingListId(null);
     }
@@ -295,7 +319,7 @@ export function AddToListModal({
           !isLoading &&
             listDetails.length === 0 &&
             !showCreateForm &&
-            'min-h-[400px] md:!min-h-[150px] flex items-center'
+            `h-[calc(100vh-${MOBILE_MODAL_HEIGHT_OFFSET}px)] md:!h-auto md:!min-h-[150px] flex items-center justify-center`
         )}
       >
         {isLoading && <ListLoadingSkeleton />}
@@ -312,14 +336,16 @@ export function AddToListModal({
                 onChange={setNewListName}
                 onSubmit={handleCreateList}
                 onCancel={closeCreateForm}
-                isLoading={isCreatingNewList}
+                isLoading={isCreatingList}
                 inputRef={createInputRef}
               />
             )}
 
             {!showCreateForm && (
               <>
-                <div className="space-y-2 max-h-[50vh] md:!max-h-72 overflow-y-auto">
+                <div
+                  className={`space-y-2 overflow-y-auto max-h-[calc(100vh-${MOBILE_LIST_MAX_HEIGHT_OFFSET}px)] pb-4 md:!pb-0 md:!max-h-72`}
+                >
                   {listsToDisplay.map((list) => {
                     const isInList = listIdsContainingDocument.includes(list.listId);
                     const isCurrentlyToggling = togglingListId === list.listId;
@@ -340,12 +366,9 @@ export function AddToListModal({
                   })}
                 </div>
 
-                <div className="border-t border-gray-200 mt-4 mb-4" />
-
-                <Button onClick={openCreateFormAndFocus} className="w-full gap-2">
-                  <Plus className="w-4 h-4" />
-                  Create New List
-                </Button>
+                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-6 md:!relative md:!p-0 md:!border-t-0 md:!mt-4">
+                  <CreateListButton onClick={openCreateFormAndFocus} fullWidth />
+                </div>
               </>
             )}
           </>
