@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
-import { UserList, UserListDetail } from '@/components/UserList/lib/user-list';
+import { UserListDetail } from '@/components/UserList/lib/user-list';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { updateListRemoveItem } from '@/components/UserList/lib/listUtils';
 
@@ -12,89 +12,71 @@ interface UseUserListDetailOptions {
 }
 
 export function useUserListDetail(listId: number | null, options?: UseUserListDetailOptions) {
-  const [state, setState] = useState({
-    list: null as UserListDetail | null,
-    isLoading: true,
-    isLoadingMore: false,
-    error: null as string | null,
-    hasMore: false,
-    page: 1,
-  });
+  const [list, setList] = useState<UserListDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [page, setPage] = useState(1);
   const lastListIdRef = useRef<number | null>(null);
 
-  const fetchList = useCallback(
-    async (pageNum = 1, reset = true) => {
-      if (!listId) return;
+  const fetchList = useCallback(async () => {
+    if (!listId) return;
 
-      setState((prev) => ({
-        ...prev,
-        isLoading: reset,
-        isLoadingMore: !reset,
-        error: null,
-      }));
+    setIsLoading(true);
+    setError(null);
 
-      try {
-        let listData: UserList | null = null;
+    try {
+      const [listData, itemsResponse] = await Promise.all([
+        ListService.getListByIdApi(listId),
+        ListService.getListItemsApi(listId, { page: 1, pageSize: PAGE_SIZE }),
+      ]);
 
-        if (reset) {
-          listData = await ListService.getListByIdApi(listId);
-        }
-
-        const itemsResponse = await ListService.getListItemsApi(listId, {
-          page: pageNum,
-          pageSize: PAGE_SIZE,
-        });
-
-        const newItems = itemsResponse.results || [];
-
-        setState((prev) => {
-          let updatedList: UserListDetail | null = null;
-
-          if (reset && listData) {
-            updatedList = { ...listData, items: newItems };
-          } else if (prev.list) {
-            updatedList = { ...prev.list, items: [...prev.list.items, ...newItems] };
-          }
-
-          return {
-            ...prev,
-            list: updatedList,
-            isLoading: false,
-            isLoadingMore: false,
-            hasMore: !!itemsResponse.next,
-            page: pageNum,
-          };
-        });
-      } catch (err) {
-        setState((prev) => ({
-          ...prev,
-          isLoading: false,
-          isLoadingMore: false,
-          error: extractApiErrorMessage(err, 'Failed to load list'),
-        }));
-      }
-    },
-    [listId]
-  );
+      setList({ ...listData, items: itemsResponse.results || [] });
+      setHasMore(!!itemsResponse.next);
+      setPage(1);
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Failed to load list'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [listId]);
 
   const loadMore = useCallback(async () => {
-    if (!state.hasMore || state.isLoading || state.isLoadingMore || !listId) return;
-    await fetchList(state.page + 1, false);
-  }, [state.hasMore, state.isLoading, state.isLoadingMore, state.page, listId, fetchList]);
+    if (!hasMore || isLoading || isLoadingMore || !listId) return;
+
+    setIsLoadingMore(true);
+
+    try {
+      const itemsResponse = await ListService.getListItemsApi(listId, {
+        page: page + 1,
+        pageSize: PAGE_SIZE,
+      });
+
+      setList((prev) =>
+        prev ? { ...prev, items: [...prev.items, ...(itemsResponse.results || [])] } : null
+      );
+      setHasMore(!!itemsResponse.next);
+      setPage((prev) => prev + 1);
+    } catch (err) {
+      setError(extractApiErrorMessage(err, 'Failed to load more items'));
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [hasMore, isLoading, isLoadingMore, listId, page]);
 
   useEffect(() => {
     if (listId !== lastListIdRef.current) {
       lastListIdRef.current = listId;
-      if (listId) fetchList(1, true);
-      else {
-        setState({
-          list: null,
-          isLoading: false,
-          isLoadingMore: false,
-          error: null,
-          hasMore: false,
-          page: 1,
-        });
+      if (listId) {
+        fetchList();
+      } else {
+        setList(null);
+        setIsLoading(false);
+        setIsLoadingMore(false);
+        setError(null);
+        setHasMore(false);
+        setPage(1);
       }
     }
   }, [listId, fetchList]);
@@ -104,10 +86,7 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
       if (!listId) return;
       try {
         await ListService.removeItemFromListApi(listId, itemId);
-        setState((prev) => ({
-          ...prev,
-          list: updateListRemoveItem(prev.list, itemId),
-        }));
+        setList((prev) => updateListRemoveItem(prev, itemId));
         toast.success('Item removed');
         options?.onItemMutated?.();
       } catch (err) {
@@ -118,15 +97,16 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
   );
 
   const updateListDetails = useCallback((updatedList: Partial<UserListDetail>) => {
-    setState((prev) => ({
-      ...prev,
-      list: prev.list ? { ...prev.list, ...updatedList } : null,
-    }));
+    setList((prev) => (prev ? { ...prev, ...updatedList } : null));
   }, []);
 
   return {
-    ...state,
-    items: state.list?.items || [],
+    list,
+    items: list?.items || [],
+    isLoading,
+    isLoadingMore,
+    error,
+    hasMore,
     loadMore,
     removeItem,
     updateListDetails,
