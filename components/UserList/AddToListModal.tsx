@@ -10,7 +10,7 @@ import { Loader } from '@/components/ui/Loader';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { UserListOverview } from '@/components/UserList/lib/user-list';
-import { Plus, Trash2, Check } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -112,20 +112,11 @@ function ListCreateForm({
 interface ListSelectItemProps {
   readonly list: UserListOverview;
   readonly isChecked: boolean;
-  readonly isInList: boolean;
   readonly isRemoving: boolean;
   readonly onToggle: (checked: boolean) => void;
-  readonly onRemove: (event: React.MouseEvent) => void;
 }
 
-function ListSelectItem({
-  list,
-  isChecked,
-  isInList,
-  isRemoving,
-  onToggle,
-  onRemove,
-}: Readonly<ListSelectItemProps>) {
+function ListSelectItem({ list, isChecked, isRemoving, onToggle }: Readonly<ListSelectItemProps>) {
   return (
     <label
       className={`flex items-center gap-3 w-full p-3 rounded-lg border cursor-pointer transition-colors ${
@@ -134,35 +125,11 @@ function ListSelectItem({
           : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
       }`}
     >
-      <Checkbox checked={isChecked} onCheckedChange={onToggle} />
+      <Checkbox checked={isChecked} onCheckedChange={onToggle} disabled={isRemoving} />
       <div className="flex-1 min-w-0">
         <div className="font-medium text-gray-900 truncate">{list.name}</div>
-        {isInList && (
-          <div className="text-xs text-green-600 font-medium mt-1 flex items-center gap-1 sm:!hidden">
-            <Check className="w-3 h-3" />
-            Already in list
-          </div>
-        )}
       </div>
-      {isInList && (
-        <>
-          <div className="hidden sm:!flex items-center gap-1 text-xs text-green-600 font-medium">
-            <Check className="w-3 h-3" />
-            Already in list
-          </div>
-          <Button
-            type="button"
-            onClick={onRemove}
-            disabled={isRemoving}
-            variant="ghost"
-            size="icon"
-            className="flex-shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-            title="Remove"
-          >
-            {isRemoving ? <Loader size="sm" /> : <Trash2 className="w-4 h-4" />}
-          </Button>
-        </>
-      )}
+      {isRemoving && <Loader size="sm" />}
     </label>
   );
 }
@@ -252,11 +219,7 @@ export function AddToListModal({
     }
   };
 
-  const handleRemoveFromList = async (listId: number, event?: React.MouseEvent) => {
-    if (event) {
-      event.stopPropagation();
-    }
-
+  const handleRemoveFromList = async (listId: number) => {
     const listToRemoveFrom = listDetails.find((list) => list.listId === listId);
     const documentInList = listToRemoveFrom?.unifiedDocuments?.find(
       (doc) => doc.unifiedDocumentId === unifiedDocumentId
@@ -319,12 +282,10 @@ export function AddToListModal({
                       key={list.listId}
                       list={list}
                       isChecked={listIdsContainingDocument.includes(list.listId)}
-                      isInList={listIdsContainingDocument.includes(list.listId)}
                       isRemoving={togglingListId === list.listId}
                       onToggle={(isChecked) =>
                         isChecked ? handleAddToList(list.listId) : handleRemoveFromList(list.listId)
                       }
-                      onRemove={(event) => handleRemoveFromList(list.listId, event)}
                     />
                   ))}
                 </div>
