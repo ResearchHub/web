@@ -262,8 +262,6 @@ export function AddToListModal({
       padding="p-6"
     >
       <div className="md:!min-w-[500px] md:!max-w-[500px]">
-        <p className="text-sm text-gray-600 mb-6">Select one or more lists to save this item</p>
-
         {isLoading && <ListLoadingSkeleton />}
 
         {!isLoading && listDetails.length === 0 && !showCreateForm && (
