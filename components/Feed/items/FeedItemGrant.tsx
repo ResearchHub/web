@@ -165,14 +165,12 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             )}
 
             {/* Description */}
-            {grant.grant?.description ||
-              (grant.textPreview && (
-                <ContentSection
-                  content={grant.grant?.description || grant.textPreview}
-                  maxLength={maxLength}
-                  className="mb-3"
-                />
-              ))}
+            {(grant.grant?.description || grant.textPreview) && (
+              <ContentSection
+                content={grant.grant?.description || grant.textPreview}
+                maxLength={maxLength}
+              />
+            )}
           </>
         }
         rightContent={

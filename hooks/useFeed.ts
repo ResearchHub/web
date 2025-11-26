@@ -37,7 +37,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
   const hasRestoredEntries = restoredState !== null;
 
   const [entries, setEntries] = useState<FeedEntry[]>(initialEntries);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(!hasRestoredEntries && !options.initialData);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [page, setPage] = useState(initialPage);
   const [currentTab, setCurrentTab] = useState<FeedTab | FundingTab>(activeTab);
@@ -68,7 +68,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       setHasAttemptedLoad(false);
       setPage(1);
       loadFeed();
-    } else if (!isLoading && !hasAttemptedLoad && page === 1) {
+    } else if (!hasAttemptedLoad && page === 1) {
       loadFeed();
     }
   }, [
