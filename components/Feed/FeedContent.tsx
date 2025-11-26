@@ -26,13 +26,10 @@ interface FeedContentProps {
   header?: ReactNode;
   tabs?: ReactNode;
   filters?: ReactNode;
-  disableCardLinks?: boolean;
   activeTab?: FeedTab | FundingTab | TabType | string;
   showBountyFooter?: boolean;
   hideActions?: boolean;
   isLoadingMore?: boolean;
-  showBountySupportAndCTAButtons?: boolean;
-  showBountyDeadline?: boolean;
   noEntriesElement?: ReactNode;
   maxLength?: number;
   showGrantHeaders?: boolean;
@@ -52,13 +49,10 @@ export const FeedContent: FC<FeedContentProps> = ({
   header,
   tabs,
   filters,
-  disableCardLinks = false,
   activeTab,
   showBountyFooter = true,
   hideActions = false,
   isLoadingMore = false,
-  showBountySupportAndCTAButtons = true,
-  showBountyDeadline = true,
   noEntriesElement,
   maxLength,
   showGrantHeaders = true,
@@ -128,11 +122,8 @@ export const FeedContent: FC<FeedContentProps> = ({
                   <FeedEntryItem
                     entry={entry}
                     index={index}
-                    disableCardLinks={disableCardLinks}
                     showBountyFooter={showBountyFooter}
                     hideActions={hideActions}
-                    showBountySupportAndCTAButtons={showBountySupportAndCTAButtons}
-                    showBountyDeadline={showBountyDeadline}
                     maxLength={maxLength}
                     showGrantHeaders={showGrantHeaders}
                     showReadMoreCTA={showReadMoreCTA}

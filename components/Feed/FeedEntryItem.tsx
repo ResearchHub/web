@@ -2,8 +2,15 @@
 
 import { FC, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { FeedCommentContent, FeedEntry, FeedBountyContent } from '@/types/feed';
-import { FeedPostContent, FeedPaperContent, FeedGrantContent } from '@/types/feed';
+import {
+  FeedCommentContent,
+  FeedEntry,
+  FeedBountyContent,
+  FeedPostContent,
+  FeedPaperContent,
+  FeedGrantContent,
+  createFeedEntryFromWork,
+} from '@/types/feed';
 import { FeedItemFundraise } from './items/FeedItemFundraise';
 import { FeedItemPaper } from './items/FeedItemPaper';
 import { FeedItemComment } from './items/FeedItemComment';
@@ -28,11 +35,8 @@ import { calculateTotalAwardedAmount } from '@/components/Bounty/lib/bountyUtil'
 interface FeedEntryItemProps {
   entry: FeedEntry;
   index: number;
-  disableCardLinks?: boolean;
   showBountyFooter?: boolean;
   hideActions?: boolean;
-  showBountySupportAndCTAButtons?: boolean;
-  showBountyDeadline?: boolean;
   maxLength?: number;
   showGrantHeaders?: boolean;
   showReadMoreCTA?: boolean;
@@ -45,11 +49,8 @@ interface FeedEntryItemProps {
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   entry,
   index,
-  disableCardLinks = false,
   showBountyFooter = true,
   hideActions = false,
-  showBountySupportAndCTAButtons = true,
-  showBountyDeadline = true,
   maxLength,
   showGrantHeaders = true,
   showReadMoreCTA = false,
@@ -65,7 +66,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   const { exchangeRate } = useExchangeRate();
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
 
-  const { ref, inView } = useInView({
+  const { ref } = useInView({
     threshold: 0,
     rootMargin: '50px',
     onChange: (inView) => {
@@ -104,10 +105,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
 
   // Generate the appropriate href for this entry
   const generateHref = (entry: FeedEntry): string | undefined => {
-    // If links are disabled globally, return undefined
-    if (disableCardLinks) {
-      return undefined;
-    }
     try {
       switch (entry.contentType) {
         case 'POST':
@@ -161,80 +158,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   };
 
   const href = generateHref(entry);
-
-  // Helper function to create FeedEntry from Work (for bounty entries)
-  const createFeedEntryFromWork = (work: Work, originalEntry: FeedEntry): FeedEntry | null => {
-    console.log({ work, originalEntry });
-    if (!work) return null;
-
-    const contentType = work.contentType === 'paper' ? 'PAPER' : 'POST';
-    if (!contentType) return null;
-
-    // Transform Work to FeedPostContent or FeedPaperContent
-    if (contentType === 'POST') {
-      const bountyEntry = originalEntry.content as FeedBountyContent;
-      const postContent: FeedPostContent = {
-        id: work.id,
-        contentType: work.postType === 'PREREGISTRATION' ? 'PREREGISTRATION' : 'POST',
-        createdDate: work.createdDate,
-        createdBy: work.authors?.[0]?.authorProfile || bountyEntry.createdBy,
-        textPreview: work.previewContent || work.abstract || '',
-        slug: work.slug,
-        title: work.title,
-        previewImage: work.image,
-        authors: work.authors?.map((a: { authorProfile: any }) => a.authorProfile) || [],
-        topics: work.topics || [],
-        postType: work.postType,
-      };
-
-      return {
-        id: work.id.toString(),
-        recommendationId: null,
-        timestamp: work.createdDate,
-        action: 'publish',
-        contentType: contentType,
-        content: postContent,
-        relatedWork: undefined,
-        metrics: originalEntry.metrics,
-        userVote: originalEntry.userVote,
-        tips: originalEntry.tips,
-      };
-    } else if (contentType === 'PAPER') {
-      const bountyEntry = originalEntry.content as FeedBountyContent;
-      const paperContent: FeedPaperContent = {
-        id: work.id,
-        contentType: 'PAPER',
-        createdDate: work.createdDate,
-        createdBy: work.authors?.[0]?.authorProfile || bountyEntry.createdBy,
-        textPreview: work.abstract || '',
-        slug: work.slug,
-        title: work.title,
-        authors: work.authors?.map((a: { authorProfile: any }) => a.authorProfile) || [],
-        topics: work.topics || [],
-        journal: work.journal || {
-          id: 0,
-          name: '',
-          slug: '',
-          description: '',
-        },
-      };
-
-      return {
-        id: work.id.toString(),
-        recommendationId: null,
-        timestamp: work.createdDate,
-        action: 'publish',
-        contentType: 'PAPER',
-        content: paperContent,
-        relatedWork: undefined,
-        metrics: originalEntry.metrics,
-        userVote: originalEntry.userVote,
-        tips: originalEntry.tips,
-      };
-    }
-
-    return null;
-  };
 
   let content = null;
 

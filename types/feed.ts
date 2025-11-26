@@ -1088,6 +1088,85 @@ export const transformBountyCommentToFeedItem = (
   };
 };
 
+/**
+ * Creates a FeedEntry from a Work object, typically used for bounty entries
+ * where we need to display the related work (paper or post) as a feed item.
+ * @param work The Work object to transform into a FeedEntry
+ * @param originalEntry The original FeedEntry to extract metadata from (metrics, userVote, tips)
+ * @returns A FeedEntry object with the work as content, or null if the work cannot be transformed
+ */
+export const createFeedEntryFromWork = (work: Work, originalEntry: FeedEntry): FeedEntry | null => {
+  if (!work) return null;
+
+  const contentType = work.contentType === 'paper' ? 'PAPER' : 'POST';
+  if (!contentType) return null;
+
+  // Transform Work to FeedPostContent or FeedPaperContent
+  if (contentType === 'POST') {
+    const bountyEntry = originalEntry.content as FeedBountyContent;
+    const postContent: FeedPostContent = {
+      id: work.id,
+      contentType: work.postType === 'PREREGISTRATION' ? 'PREREGISTRATION' : 'POST',
+      createdDate: work.createdDate,
+      createdBy: work.authors?.[0]?.authorProfile || bountyEntry.createdBy,
+      textPreview: work.previewContent || work.abstract || '',
+      slug: work.slug,
+      title: work.title,
+      previewImage: work.image,
+      authors: work.authors?.map((a: { authorProfile: any }) => a.authorProfile) || [],
+      topics: work.topics || [],
+      postType: work.postType,
+    };
+
+    return {
+      id: work.id.toString(),
+      recommendationId: null,
+      timestamp: work.createdDate,
+      action: 'publish',
+      contentType: contentType,
+      content: postContent,
+      relatedWork: undefined,
+      metrics: originalEntry.metrics,
+      userVote: originalEntry.userVote,
+      tips: originalEntry.tips,
+    };
+  } else if (contentType === 'PAPER') {
+    const bountyEntry = originalEntry.content as FeedBountyContent;
+    const paperContent: FeedPaperContent = {
+      id: work.id,
+      contentType: 'PAPER',
+      createdDate: work.createdDate,
+      createdBy: work.authors?.[0]?.authorProfile || bountyEntry.createdBy,
+      textPreview: work.abstract || '',
+      slug: work.slug,
+      title: work.title,
+      authors: work.authors?.map((a: { authorProfile: any }) => a.authorProfile) || [],
+      topics: work.topics || [],
+      journal: work.journal || {
+        id: 0,
+        name: '',
+        slug: '',
+        description: '',
+      },
+    };
+
+    return {
+      id: work.id.toString(),
+      recommendationId: null,
+      timestamp: work.createdDate,
+      action: 'publish',
+      contentType: 'PAPER',
+      content: paperContent,
+      relatedWork: undefined,
+      metrics: originalEntry.metrics,
+      userVote: originalEntry.userVote,
+      tips: originalEntry.tips,
+    };
+  }
+
+  return null;
+};
+
 export type { AuthorProfile };
 export type { Fundraise };
 

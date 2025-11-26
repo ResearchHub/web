@@ -2,7 +2,7 @@
 
 import { FC, useState, ReactNode, useEffect, useRef } from 'react';
 import React from 'react';
-import { FeedContentType, FeedEntry, Review } from '@/types/feed';
+import { FeedContentType, Review } from '@/types/feed';
 import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star, ThumbsDown } from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
@@ -19,7 +19,6 @@ import { TipContentModal } from '@/components/modals/TipContentModal';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Bounty } from '@/types/bounty';
 import { Tip } from '@/types/tip';
-import { formatRSC } from '@/utils/number';
 import { extractBountyAvatars } from '@/components/Bounty/lib/bountyUtil';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
