@@ -101,27 +101,7 @@ export default function ListDetailPage() {
   return (
     <PageLayout>
       <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">
-        {!list ? (
-          <>
-            {isLoading ? (
-              <>
-                <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
-                  <Skeleton className="h-8 w-48 mb-2" />
-                  <Skeleton className="h-5 w-24" />
-                </div>
-                <div className="space-y-12">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <FeedItemSkeleton key={'list-item-skeleton-' + i} />
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
-                {error || 'List not found'}
-              </div>
-            )}
-          </>
-        ) : (
+        {list ? (
           <>
             <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
               <div className="flex flex-row items-start justify-between gap-4">
@@ -178,6 +158,26 @@ export default function ListDetailPage() {
                 </div>
               }
             />
+          </>
+        ) : (
+          <>
+            {isLoading ? (
+              <>
+                <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
+                  <Skeleton className="h-8 w-48 mb-2" />
+                  <Skeleton className="h-5 w-24" />
+                </div>
+                <div className="space-y-12">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <FeedItemSkeleton key={'list-item-skeleton-' + i} />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
+                {error || 'List not found'}
+              </div>
+            )}
           </>
         )}
       </div>
