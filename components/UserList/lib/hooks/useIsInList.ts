@@ -2,7 +2,7 @@ import { useUserListsContext } from '@/components/UserList/lib/UserListsContext'
 import { ID } from '@/types/root';
 
 export function useIsInList(unifiedDocumentId: ID) {
-  const { overviewLists, isLoadingOverview, refetchOverview } = useUserListsContext();
+  const { overviewLists, isLoadingOverview } = useUserListsContext();
 
   let documentIdAsNumber: number | null = null;
   if (unifiedDocumentId) {
@@ -21,7 +21,6 @@ export function useIsInList(unifiedDocumentId: ID) {
   return {
     isInList: listIdsContainingDocument.length > 0,
     isLoading: isLoadingOverview,
-    refetch: refetchOverview,
     listDetails: overviewLists,
     listIdsContainingDocument,
   };

@@ -81,11 +81,7 @@ export const WorkLineItems = ({
   const { user } = useUser();
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
   const { showShareModal } = useShareModalContext();
-  const {
-    isInList,
-    refetch: refetchIsInList,
-    listIdsContainingDocument,
-  } = useIsInList(work.unifiedDocumentId);
+  const { isInList, listIdsContainingDocument } = useIsInList(work.unifiedDocumentId);
   const userListsEnabled = useUserListsEnabled();
   const {
     data: userVotes,
@@ -552,10 +548,7 @@ export const WorkLineItems = ({
       {userListsEnabled && work.unifiedDocumentId && (
         <AddToListModal
           isOpen={isAddToListModalOpen}
-          onClose={() => {
-            setIsAddToListModalOpen(false);
-            refetchIsInList();
-          }}
+          onClose={() => setIsAddToListModalOpen(false)}
           unifiedDocumentId={work.unifiedDocumentId}
         />
       )}

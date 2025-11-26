@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { useUserLists } from '@/components/UserList/lib/hooks/useUserLists';
+import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { UserList } from '@/components/UserList/lib/user-list';
 import { UserListRow, UserListRowSkeleton } from './components/UserListRow';
 import { ListModal } from '@/components/modals/ListModal';
@@ -22,28 +22,29 @@ interface ModalState {
 }
 
 const INITIAL_MODAL: ModalState = { isOpen: false, mode: 'create', list: null, name: '' };
+const INFINITE_SCROLL_CONFIG = { threshold: 0, rootMargin: '100px' };
 
 export default function ListsPage() {
   const {
     lists,
-    isLoading,
-    isLoadingMore,
-    hasMore,
-    loadMore,
-    error,
+    isLoadingLists,
+    isLoadingMoreLists,
+    hasMoreLists,
+    loadMoreLists,
+    errorLoadingLists,
     createList,
     updateList,
     deleteList,
-    totalCount,
-  } = useUserLists();
+    totalListsCount,
+  } = useUserListsContext();
   const [modal, setModal] = useState<ModalState>(INITIAL_MODAL);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useUser();
-  const { ref: loadMoreRef, inView } = useInView({ threshold: 0, rootMargin: '100px' });
+  const { ref: loadMoreRef, inView } = useInView(INFINITE_SCROLL_CONFIG);
 
   useEffect(() => {
-    if (inView && hasMore && !isLoading && !isLoadingMore) loadMore();
-  }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
+    if (inView && hasMoreLists && !isLoadingLists && !isLoadingMoreLists) loadMoreLists();
+  }, [inView, hasMoreLists, isLoadingLists, isLoadingMoreLists, loadMoreLists]);
 
   const openModal = (mode: ModalState['mode'], listToModify: UserList | null = null) =>
     setModal({ isOpen: true, mode, list: listToModify, name: listToModify?.name || '' });
@@ -88,7 +89,7 @@ export default function ListsPage() {
               <span>{user?.firstName ? `${user.firstName} ${user.lastName}` : 'User'}</span>
               <span className="text-gray-300">•</span>
               <span>
-                {totalCount} list{pluralizeSuffix(totalCount)}
+                {totalListsCount} list{pluralizeSuffix(totalListsCount)}
               </span>
             </div>
           </div>
@@ -104,17 +105,17 @@ export default function ListsPage() {
         </div>
 
         <div className="px-4 sm:!px-8 py-4 max-w-7xl mx-auto">
-          {error && (
+          {errorLoadingLists && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-              {error}
+              {errorLoadingLists}
             </div>
           )}
           <div className="space-y-1">
-            {isLoading &&
+            {isLoadingLists &&
               Array.from({ length: 5 }).map((_, skeletonIndex) => (
                 <UserListRowSkeleton key={'list-skeleton-' + skeletonIndex} />
               ))}
-            {!isLoading && lists.length === 0 && (
+            {!isLoadingLists && lists.length === 0 && (
               <div className="text-center py-20">
                 <FontAwesomeIcon
                   icon={faBookmark}
@@ -126,7 +127,7 @@ export default function ListsPage() {
                 </Button>
               </div>
             )}
-            {!isLoading && lists.length > 0 && (
+            {!isLoadingLists && lists.length > 0 && (
               <>
                 {lists.map((list) => (
                   <UserListRow
@@ -136,14 +137,14 @@ export default function ListsPage() {
                     onDelete={(listToDelete) => openModal('delete', listToDelete)}
                   />
                 ))}
-                {isLoadingMore && (
+                {isLoadingMoreLists && (
                   <div className="space-y-1 pt-1">
                     {Array.from({ length: 3 }).map((_, skeletonIndex) => (
                       <UserListRowSkeleton key={'list-skeleton-loadmore-' + skeletonIndex} />
                     ))}
                   </div>
                 )}
-                {!isLoadingMore && hasMore && <div ref={loadMoreRef} className="h-10" />}
+                {!isLoadingMoreLists && hasMoreLists && <div ref={loadMoreRef} className="h-10" />}
               </>
             )}
           </div>

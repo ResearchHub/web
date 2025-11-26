@@ -13,6 +13,13 @@ import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
 
 interface UserListsContextType {
+  lists: UserList[];
+  isLoadingLists: boolean;
+  isLoadingMoreLists: boolean;
+  hasMoreLists: boolean;
+  totalListsCount: number;
+  errorLoadingLists: string | null;
+  loadMoreLists: () => void;
   createList: (data: CreateListRequest, shouldRefreshLists?: boolean) => Promise<UserList>;
   updateList: (
     listId: number,
@@ -20,6 +27,8 @@ interface UserListsContextType {
     shouldRefreshLists?: boolean
   ) => Promise<UserList>;
   deleteList: (listId: number, shouldRefreshLists?: boolean) => Promise<void>;
+  addDocumentToList: (listId: number, unifiedDocumentId: number, listItemId: number) => void;
+  removeDocumentFromList: (listId: number, unifiedDocumentId: number) => void;
   overviewLists: UserListOverview[];
   isLoadingOverview: boolean;
   refetchOverview: () => Promise<void>;
@@ -31,6 +40,13 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   const { user } = useUser();
   const [overviewLists, setOverviewLists] = useState<UserListOverview[]>([]);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
+  const [lists, setLists] = useState<UserList[]>([]);
+  const [isLoadingLists, setIsLoadingLists] = useState(true);
+  const [isLoadingMoreLists, setIsLoadingMoreLists] = useState(false);
+  const [errorLoadingLists, setErrorLoadingLists] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreLists, setHasMoreLists] = useState(false);
+  const [totalListsCount, setTotalListsCount] = useState(0);
 
   const refetchOverview = async () => {
     if (!user) return;
@@ -46,9 +62,46 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     }
   };
 
+  const fetchLists = async (pageToFetch = 1, isLoadMore = false) => {
+    if (!user) {
+      setLists([]);
+      setIsLoadingLists(false);
+      setIsLoadingMoreLists(false);
+      setErrorLoadingLists(null);
+      return;
+    }
+
+    if (isLoadMore) {
+      setIsLoadingMoreLists(true);
+    } else {
+      setIsLoadingLists(true);
+    }
+    setErrorLoadingLists(null);
+
+    try {
+      const { results, next, count } = await ListService.getUserListsApi({ page: pageToFetch });
+      setLists((previousLists) => (isLoadMore ? [...previousLists, ...results] : results));
+      setCurrentPage(pageToFetch);
+      setHasMoreLists(!!next);
+      setTotalListsCount(count);
+    } catch (error) {
+      setErrorLoadingLists(extractApiErrorMessage(error, 'Failed to load lists'));
+      console.error('Failed to load lists:', error);
+    } finally {
+      setIsLoadingLists(false);
+      setIsLoadingMoreLists(false);
+    }
+  };
+
+  const loadMoreLists = () => {
+    if (!hasMoreLists || isLoadingMoreLists) return;
+    fetchLists(currentPage + 1, true);
+  };
+
   useEffect(() => {
     if (user) {
       refetchOverview();
+      fetchLists();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -63,7 +116,7 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
       const result = await action();
       toast.success(successMessage);
       if (shouldRefreshLists) {
-        await refetchOverview();
+        await Promise.all([refetchOverview(), fetchLists()]);
       }
       return result;
     } catch (error) {
@@ -98,10 +151,50 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     );
   };
 
+  const addDocumentToList = (listId: number, unifiedDocumentId: number, listItemId: number) => {
+    setOverviewLists((lists) =>
+      lists.map((list) =>
+        list.listId === listId
+          ? {
+              ...list,
+              unifiedDocuments: [
+                ...(list.unifiedDocuments || []),
+                { unifiedDocumentId, listItemId },
+              ],
+            }
+          : list
+      )
+    );
+  };
+
+  const removeDocumentFromList = (listId: number, unifiedDocumentId: number) => {
+    setOverviewLists((lists) =>
+      lists.map((list) =>
+        list.listId === listId
+          ? {
+              ...list,
+              unifiedDocuments: (list.unifiedDocuments || []).filter(
+                (doc) => doc.unifiedDocumentId !== unifiedDocumentId
+              ),
+            }
+          : list
+      )
+    );
+  };
+
   const value = {
+    lists,
+    isLoadingLists,
+    isLoadingMoreLists,
+    hasMoreLists,
+    totalListsCount,
+    errorLoadingLists,
+    loadMoreLists,
     createList,
     updateList,
     deleteList,
+    addDocumentToList,
+    removeDocumentFromList,
     overviewLists,
     isLoadingOverview,
     refetchOverview,

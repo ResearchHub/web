@@ -167,16 +167,17 @@ export function AddToListModal({
   onClose,
   unifiedDocumentId,
 }: Readonly<AddToListModalProps>) {
-  const { listDetails, isLoading, refetch, listIdsContainingDocument } = useIsInList(
+  const { listDetails, isLoading, listIdsContainingDocument } = useIsInList(
     isOpen ? unifiedDocumentId : null
   );
-  const { createList } = useUserListsContext();
+  const { createList, addDocumentToList, removeDocumentFromList } = useUserListsContext();
 
   const [newListName, setNewListName] = useState('');
   const [isCreatingNewList, setIsCreatingNewList] = useState(false);
   const [togglingListId, setTogglingListId] = useState<number | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const createInputRef = useRef<HTMLInputElement>(null);
+  const [sortedLists, setSortedLists] = useState<UserListOverview[]>([]);
 
   const openCreateFormAndFocus = () => {
     setShowCreateForm(true);
@@ -195,15 +196,23 @@ export function AddToListModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isLoading && listDetails.length > 0) {
+      setSortedLists(sortListsByDocumentMembership(listDetails, listIdsContainingDocument));
+    } else if (listDetails.length === 0) {
+      setSortedLists([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]);
+
   const handleCreateList = async () => {
     const trimmedListName = newListName.trim();
     if (trimmedListName.length === 0) return;
 
     setIsCreatingNewList(true);
     try {
-      await createList({ name: trimmedListName }, false);
+      await createList({ name: trimmedListName }, true);
       closeCreateForm();
-      refetch();
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to create list'));
       console.error('Failed to create list:', error);
@@ -218,18 +227,28 @@ export function AddToListModal({
 
     setTogglingListId(listId);
     try {
-      await ListService.addItemToListApi(listId, unifiedDocumentId);
-      const listUrl = `/list/${listId}`;
+      const response = await ListService.addItemToListApi(listId, unifiedDocumentId);
+      addDocumentToList(listId, unifiedDocumentId, response.id);
 
-      toast.custom((t) => (
-        <div className="bg-white px-6 py-4 shadow-lg rounded-lg border border-gray-200 flex items-center gap-2">
-          <span className="text-gray-900">Item added.</span>
-          <Link href={listUrl} className="text-blue-600 hover:text-blue-700 font-medium">
-            View List
-          </Link>
-        </div>
-      ));
-      refetch();
+      const listUrl = `/list/${listId}`;
+      toast.custom(
+        (t) => (
+          <div className="bg-white px-6 py-4 shadow-lg rounded-lg border border-gray-200 flex items-center gap-2">
+            <span className="text-gray-900">Item added.</span>
+            <Link
+              href={listUrl}
+              onClick={(e) => {
+                e.stopPropagation();
+                toast.dismiss(t.id);
+              }}
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
+              View List
+            </Link>
+          </div>
+        ),
+        { duration: 4000 }
+      );
     } catch (error) {
       toast.error(extractApiErrorMessage(error, `Failed to add to "${listToAddTo.name}"`));
       console.error('Failed to add to list:', error);
@@ -249,8 +268,8 @@ export function AddToListModal({
     setTogglingListId(listId);
     try {
       await ListService.removeItemFromListApi(listId, documentInList.listItemId);
+      removeDocumentFromList(listId, unifiedDocumentId);
       toast.success('Item Removed');
-      refetch();
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Item not removed'));
       console.error('Item not removed:', error);
@@ -259,7 +278,7 @@ export function AddToListModal({
     }
   };
 
-  const sortedLists = sortListsByDocumentMembership(listDetails, listIdsContainingDocument);
+  const listsToDisplay = sortedLists.length > 0 ? sortedLists : listDetails;
 
   return (
     <BaseModal
@@ -292,14 +311,16 @@ export function AddToListModal({
             {!showCreateForm && (
               <>
                 <div className="space-y-2 max-h-[50vh] md:!max-h-72 overflow-y-auto">
-                  {sortedLists.map((list) => {
+                  {listsToDisplay.map((list) => {
                     const isInList = listIdsContainingDocument.includes(list.listId);
+                    const isCurrentlyToggling = togglingListId === list.listId;
+
                     return (
                       <ListSelectItem
                         key={list.listId}
                         list={list}
                         isChecked={isInList}
-                        isRemoving={togglingListId === list.listId}
+                        isRemoving={isCurrentlyToggling}
                         onToggle={() =>
                           isInList
                             ? handleRemoveFromList(list.listId)

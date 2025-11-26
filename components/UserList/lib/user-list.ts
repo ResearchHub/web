@@ -42,6 +42,55 @@ export interface UserList {
   itemCount?: number;
 }
 
+export interface UserListItemDocument {
+  content_type: string;
+  content_object: {
+    id: number;
+    created_date: string;
+    hub?: {
+      id: number;
+      name: string;
+      slug: string;
+    };
+    category?: string | null;
+    subcategory?: string | null;
+    reviews?: any[];
+    slug: string;
+    unified_document_id: number;
+    renderable_text?: string;
+    title: string;
+    type: string;
+    fundraise?: any;
+    grant?: any;
+    image_url?: string | null;
+    bounties?: any[];
+    purchases?: any[];
+  };
+  created_date: string;
+  author: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    profile_image: string | null;
+    headline: string | null;
+    user: {
+      id: number;
+      first_name: string;
+      last_name: string;
+      email: string;
+      is_verified: boolean;
+    };
+  };
+  metrics: {
+    votes: number;
+    comments: number;
+    review_metrics?: {
+      avg: number;
+      count: number;
+    };
+  };
+}
+
 export interface UserListItemDTO {
   id: number;
   parent_list: number;
@@ -50,54 +99,7 @@ export interface UserListItemDTO {
   updated_date: string;
   created_by: number;
   updated_by: number | null;
-  document: {
-    content_type: string;
-    content_object: {
-      id: number;
-      created_date: string;
-      hub?: {
-        id: number;
-        name: string;
-        slug: string;
-      };
-      category?: string | null;
-      subcategory?: string | null;
-      reviews?: any[];
-      slug: string;
-      unified_document_id: number;
-      renderable_text?: string;
-      title: string;
-      type: string;
-      fundraise?: any;
-      grant?: any;
-      image_url?: string | null;
-      bounties?: any[];
-      purchases?: any[];
-    };
-    created_date: string;
-    author: {
-      id: number;
-      first_name: string;
-      last_name: string;
-      profile_image: string | null;
-      headline: string | null;
-      user: {
-        id: number;
-        first_name: string;
-        last_name: string;
-        email: string;
-        is_verified: boolean;
-      };
-    };
-    metrics: {
-      votes: number;
-      comments: number;
-      review_metrics?: {
-        avg: number;
-        count: number;
-      };
-    };
-  };
+  document: UserListItemDocument;
 }
 
 export interface UserListDetail extends UserList {
