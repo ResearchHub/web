@@ -51,11 +51,7 @@ export default function ListDetailPage() {
   const isOwner = user && list && list.createdBy === user.id;
   const feedEntries = items.map(transformListItemToFeedEntry);
 
-  const customizeItem = (
-    feedItemComponent: React.ReactNode,
-    feedEntry: FeedEntry,
-    itemIndex: number
-  ) => {
+  const wrapped = (feedItemComponent: React.ReactNode, feedEntry: FeedEntry, itemIndex: number) => {
     const listItem = items[itemIndex];
     return (
       <div className="relative group">
@@ -154,7 +150,7 @@ export default function ListDetailPage() {
               isLoadingMore={isLoadingMore}
               hasMore={hasMore}
               loadMore={loadMore}
-              customizeItem={customizeItem}
+              wrapped={wrapped}
               noEntriesElement={
                 <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
                   <FolderPlus className="w-12 h-12 text-gray-400 mx-auto mb-4" />
