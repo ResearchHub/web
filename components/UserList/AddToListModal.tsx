@@ -18,6 +18,7 @@ import { ListService } from '@/components/UserList/lib/services/list.service';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import Link from 'next/link';
+import { cn } from '@/utils/styles';
 
 interface AddToListModalProps {
   readonly isOpen: boolean;
@@ -43,9 +44,9 @@ function ListLoadingSkeleton() {
 
 function ListEmptyState({ onFocus }: { readonly onFocus: () => void }) {
   return (
-    <div className="text-center py-8">
+    <div className="text-center flex flex-col items-center justify-center w-full">
       <p className="text-gray-600 mb-4">You don't have any lists yet.</p>
-      <Button onClick={onFocus} variant="outlined" className="gap-2">
+      <Button onClick={onFocus} className="gap-2">
         <Plus className="w-4 h-4" />
         Create Your First List
       </Button>
@@ -288,7 +289,15 @@ export function AddToListModal({
       maxWidth="max-w-2xl"
       padding="p-6"
     >
-      <div className="md:!min-w-[500px] md:!max-w-[500px]">
+      <div
+        className={cn(
+          'md:!min-w-[500px] md:!max-w-[500px]',
+          !isLoading &&
+            listDetails.length === 0 &&
+            !showCreateForm &&
+            'min-h-[400px] md:!min-h-[150px] flex items-center'
+        )}
+      >
         {isLoading && <ListLoadingSkeleton />}
 
         {!isLoading && listDetails.length === 0 && !showCreateForm && (
@@ -333,11 +342,7 @@ export function AddToListModal({
 
                 <div className="border-t border-gray-200 mt-4 mb-4" />
 
-                <Button
-                  onClick={openCreateFormAndFocus}
-                  variant="outlined"
-                  className="w-full gap-2"
-                >
+                <Button onClick={openCreateFormAndFocus} className="w-full gap-2">
                   <Plus className="w-4 h-4" />
                   Create New List
                 </Button>
