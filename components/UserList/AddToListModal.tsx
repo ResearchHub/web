@@ -257,7 +257,7 @@ export function AddToListModal({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Add to List"
+      title="Save to…"
       maxWidth="max-w-2xl"
       padding="p-6"
     >
