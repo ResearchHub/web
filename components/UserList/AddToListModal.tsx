@@ -13,7 +13,6 @@ import { UserListOverview } from '@/components/UserList/lib/user-list';
 import { Plus, Trash2, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
-import { pluralizeSuffix } from '@/utils/stringUtils';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 
@@ -196,11 +195,9 @@ export function AddToListModal({
   );
   const { createList } = useUserListsContext();
 
-  const [selectedListIds, setSelectedListIds] = useState<number[]>([]);
-  const [isAdding, setIsAdding] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [isCreatingNewList, setIsCreatingNewList] = useState(false);
-  const [removingListId, setRemovingListId] = useState<number | null>(null);
+  const [togglingListId, setTogglingListId] = useState<number | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const createInputRef = useRef<HTMLInputElement>(null);
 
@@ -216,37 +213,10 @@ export function AddToListModal({
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedListIds(listIdsContainingDocument);
       closeCreateForm();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
-
-  const handleAddToSelectedLists = async () => {
-    if (selectedListIds.length === 0) return;
-    setIsAdding(true);
-
-    try {
-      const listIdsToAdd = selectedListIds.filter((id) => !listIdsContainingDocument.includes(id));
-      const additionResults = await Promise.allSettled(
-        listIdsToAdd.map((id) => ListService.addItemToListApi(id, unifiedDocumentId))
-      );
-      const failedCount = additionResults.filter((result) => result.status === 'rejected').length;
-      const successCount = additionResults.length - failedCount;
-
-      if (successCount > 0) {
-        toast.success(`Added to ${successCount} list${pluralizeSuffix(successCount)}`);
-      }
-      if (failedCount > 0) {
-        toast.error(`Failed to add to ${failedCount} list${pluralizeSuffix(failedCount)}`);
-      }
-
-      refetch();
-      onClose();
-    } finally {
-      setIsAdding(false);
-    }
-  };
 
   const handleCreateList = async () => {
     const trimmedListName = newListName.trim();
@@ -265,18 +235,28 @@ export function AddToListModal({
     }
   };
 
-  const handleAddToList = (listId: number) => {
-    setSelectedListIds((previousSelectedListIds) => [...previousSelectedListIds, listId]);
+  const handleAddToList = async (listId: number) => {
+    const listToAddTo = listDetails.find((list) => list.listId === listId);
+    if (!listToAddTo) return;
+
+    setTogglingListId(listId);
+    try {
+      await ListService.addItemToListApi(listId, unifiedDocumentId);
+      toast.success(`Added to "${listToAddTo.name}"`);
+      refetch();
+    } catch (error) {
+      toast.error(extractApiErrorMessage(error, `Failed to add to "${listToAddTo.name}"`));
+      console.error('Failed to add to list:', error);
+    } finally {
+      setTogglingListId(null);
+    }
   };
 
-  const handleRemoveFromListSelection = (listId: number) => {
-    setSelectedListIds((previousSelectedListIds) =>
-      previousSelectedListIds.filter((id) => id !== listId)
-    );
-  };
+  const handleRemoveFromList = async (listId: number, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
 
-  const handleRemoveFromList = async (listId: number, event: React.MouseEvent) => {
-    event.stopPropagation();
     const listToRemoveFrom = listDetails.find((list) => list.listId === listId);
     const documentInList = listToRemoveFrom?.unifiedDocuments?.find(
       (doc) => doc.unifiedDocumentId === unifiedDocumentId
@@ -284,13 +264,10 @@ export function AddToListModal({
 
     if (!documentInList?.listItemId || !listToRemoveFrom) return;
 
-    setRemovingListId(listId);
+    setTogglingListId(listId);
     try {
       await ListService.removeItemFromListApi(listId, documentInList.listItemId);
       toast.success(`Removed from "${listToRemoveFrom.name}"`);
-      setSelectedListIds((previousSelectedListIds) =>
-        previousSelectedListIds.filter((id) => id !== listId)
-      );
       refetch();
     } catch (error) {
       toast.error(
@@ -298,14 +275,11 @@ export function AddToListModal({
       );
       console.error('Failed to remove item from list:', error);
     } finally {
-      setRemovingListId(null);
+      setTogglingListId(null);
     }
   };
 
   const sortedLists = sortListsByDocumentMembership(listDetails, listIdsContainingDocument);
-  const numberOfNewListsToAddTo = selectedListIds.filter(
-    (id) => !listIdsContainingDocument.includes(id)
-  ).length;
 
   return (
     <BaseModal
@@ -314,23 +288,6 @@ export function AddToListModal({
       title="Add to List"
       maxWidth="max-w-2xl"
       padding="p-6"
-      footer={
-        <div className="flex justify-end gap-3">
-          <Button variant="outlined" onClick={onClose} disabled={isAdding}>
-            Cancel
-          </Button>
-          <LoadingButton
-            onClick={handleAddToSelectedLists}
-            disabled={numberOfNewListsToAddTo === 0}
-            isLoading={isAdding}
-            loadingText="Adding..."
-          >
-            {numberOfNewListsToAddTo > 0
-              ? `Add to ${numberOfNewListsToAddTo} List${pluralizeSuffix(numberOfNewListsToAddTo)}`
-              : 'Add to List'}
-          </LoadingButton>
-        </div>
-      }
     >
       <div className="md:!min-w-[500px] md:!max-w-[500px]">
         <p className="text-sm text-gray-600 mb-6">Select one or more lists to save this item</p>
@@ -361,13 +318,11 @@ export function AddToListModal({
                     <ListSelectItem
                       key={list.listId}
                       list={list}
-                      isChecked={selectedListIds.includes(list.listId)}
+                      isChecked={listIdsContainingDocument.includes(list.listId)}
                       isInList={listIdsContainingDocument.includes(list.listId)}
-                      isRemoving={removingListId === list.listId}
+                      isRemoving={togglingListId === list.listId}
                       onToggle={(isChecked) =>
-                        isChecked
-                          ? handleAddToList(list.listId)
-                          : handleRemoveFromListSelection(list.listId)
+                        isChecked ? handleAddToList(list.listId) : handleRemoveFromList(list.listId)
                       }
                       onRemove={(event) => handleRemoveFromList(list.listId, event)}
                     />
