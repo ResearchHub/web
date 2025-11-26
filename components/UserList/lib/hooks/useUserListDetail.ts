@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import { UserListDetail } from '@/components/UserList/lib/user-list';
@@ -18,7 +18,6 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
-  const lastListIdRef = useRef<number | null>(null);
 
   const fetchList = useCallback(async () => {
     if (!listId) return;
@@ -66,18 +65,15 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
   }, [hasMore, isLoading, isLoadingMore, listId, page]);
 
   useEffect(() => {
-    if (listId !== lastListIdRef.current) {
-      lastListIdRef.current = listId;
-      if (listId) {
-        fetchList();
-      } else {
-        setList(null);
-        setIsLoading(false);
-        setIsLoadingMore(false);
-        setError(null);
-        setHasMore(false);
-        setPage(1);
-      }
+    if (listId) {
+      fetchList();
+    } else {
+      setList(null);
+      setIsLoading(false);
+      setIsLoadingMore(false);
+      setError(null);
+      setHasMore(false);
+      setPage(1);
     }
   }, [listId, fetchList]);
 
