@@ -22,7 +22,7 @@ export function useIsInList(unifiedDocumentId: ID) {
   return {
     isInList: listIdsContainingDocument.length > 0,
     isLoading: isLoadingOverview,
-    listDetails: overviewLists,
+    overviewLists,
     listIdsContainingDocument,
   };
 }

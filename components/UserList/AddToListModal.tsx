@@ -175,7 +175,7 @@ export function AddToListModal({
   onClose,
   unifiedDocumentId,
 }: Readonly<AddToListModalProps>) {
-  const { listDetails, isLoading, listIdsContainingDocument } = useIsInList(
+  const { overviewLists, isLoading, listIdsContainingDocument } = useIsInList(
     isOpen ? unifiedDocumentId : null
   );
   const { createList, addDocumentToList, removeDocumentFromList } = useUserListsContext();
@@ -205,9 +205,9 @@ export function AddToListModal({
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isLoading && listDetails.length > 0) {
-      setSortedLists(sortListsByDocumentMembership(listDetails, listIdsContainingDocument));
-    } else if (listDetails.length === 0) {
+    if (!isLoading && overviewLists.length > 0) {
+      setSortedLists(sortListsByDocumentMembership(overviewLists, listIdsContainingDocument));
+    } else if (overviewLists.length === 0) {
       setSortedLists([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -230,7 +230,7 @@ export function AddToListModal({
   };
 
   const handleAddToList = async (listId: number) => {
-    const listToAddTo = listDetails.find((list) => list.listId === listId);
+    const listToAddTo = overviewLists.find((list) => list.listId === listId);
     if (!listToAddTo) return;
 
     setTogglingListId(listId);
@@ -266,7 +266,7 @@ export function AddToListModal({
   };
 
   const handleRemoveFromList = async (listId: number) => {
-    const listToRemoveFrom = listDetails.find((list) => list.listId === listId);
+    const listToRemoveFrom = overviewLists.find((list) => list.listId === listId);
     if (!listToRemoveFrom) return;
 
     const documentInList = listToRemoveFrom.unifiedDocuments.find(
@@ -288,7 +288,7 @@ export function AddToListModal({
     }
   };
 
-  const listsToDisplay = sortedLists.length > 0 ? sortedLists : listDetails;
+  const listsToDisplay = sortedLists.length > 0 ? sortedLists : overviewLists;
 
   return (
     <BaseModal
@@ -302,18 +302,18 @@ export function AddToListModal({
         className={cn(
           'md:!min-w-[500px] md:!max-w-[500px]',
           !isLoading &&
-            listDetails.length === 0 &&
+            overviewLists.length === 0 &&
             !showCreateForm &&
             `h-[calc(100vh-${MOBILE_MODAL_HEIGHT_OFFSET}px)] md:!h-auto md:!min-h-[150px] flex items-center justify-center`
         )}
       >
         {isLoading && <ListLoadingSkeleton />}
 
-        {!isLoading && listDetails.length === 0 && !showCreateForm && (
+        {!isLoading && overviewLists.length === 0 && !showCreateForm && (
           <ListEmptyState onFocus={openCreateFormAndFocus} />
         )}
 
-        {!isLoading && (listDetails.length > 0 || showCreateForm) && (
+        {!isLoading && (overviewLists.length > 0 || showCreateForm) && (
           <>
             {showCreateForm && (
               <ListCreateForm
