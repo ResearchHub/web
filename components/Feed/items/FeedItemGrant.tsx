@@ -8,21 +8,13 @@ import {
   ContentSection,
   ImageSection,
   MetadataSection,
-  CTASection,
-  StatusSection,
   FeedItemLayout,
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { AvatarStack } from '@/components/ui/AvatarStack';
-import { Building, Calendar } from 'lucide-react';
-import { format } from 'date-fns';
-import { useRouter } from 'next/navigation';
-import Icon from '@/components/ui/icons/Icon';
-import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
-import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
-import { RFPInfo } from '@/components/Grant/GrantInfo';
+import { Building } from 'lucide-react';
+import { GrantInfo } from '@/components/Grant/GrantInfo';
+import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 
 // Grant-specific content type that extends the feed entry structure
 export interface FeedGrantContent {
@@ -92,32 +84,6 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
   onFeedItemClick,
 }) => {
   const grant = entry.content as FeedGrantContent;
-  const router = useRouter();
-
-  // Check if RFP is active
-  const isActive =
-    grant.grant?.status === 'OPEN' &&
-    (grant.grant?.endDate ? isDeadlineInFuture(grant.grant?.endDate) : true);
-  const deadline = grant.grant?.endDate;
-  const expiringSoon = isExpiringSoon(deadline, 1); // Use 1-day threshold for grants
-
-  // Prepare applicants data
-  const applicants = grant.grant?.applicants || [];
-  const applicantAvatars = applicants.map((applicant) => ({
-    src: applicant.profileImage,
-    alt:
-      applicant.firstName && applicant.lastName
-        ? `${applicant.firstName} ${applicant.lastName}`
-        : applicant.firstName || 'Applicant',
-    fallback: applicant.firstName ? applicant.firstName.charAt(0) : 'A',
-  }));
-
-  // Handle apply button click
-  const handleApplyClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    router.push(`/grant/${grant.id}/${grant.slug}`);
-  };
 
   // Use provided href or create default grant page URL
   const grantPageUrl = href || `/grant/${grant.id}/${grant.slug}`;
@@ -147,7 +113,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
         }
         leftContent={
           <>
-            {/* <ContentTypeBadge type="grant" /> */}
+            <ContentTypeBadge type="grant" />
             {grant.topics?.map((topic) => (
               <TopicAndJournalBadge
                 key={topic.id || topic.slug}
@@ -179,13 +145,14 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             )}
 
             {/* Description */}
-            {grant.grant?.description && (
-              <ContentSection
-                content={grant.grant.description}
-                maxLength={maxLength}
-                className="mb-3"
-              />
-            )}
+            {grant.grant?.description ||
+              (grant.textPreview && (
+                <ContentSection
+                  content={grant.grant?.description || grant.textPreview}
+                  maxLength={maxLength}
+                  className="mb-3"
+                />
+              ))}
           </>
         }
         rightContent={
@@ -198,9 +165,9 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
           )
         }
       />
-      {/* RFP Info */}
+      {/* Grant Info */}
       <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-        <RFPInfo grant={grant} className="p-0 border-0 bg-transparent" />
+        <GrantInfo grant={grant} className="p-0 border-0 bg-transparent" />
       </div>
     </BaseFeedItem>
   );

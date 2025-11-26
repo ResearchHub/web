@@ -148,7 +148,7 @@ export const RelatedWorkCard = ({
   return (
     <div
       // TODO: Add left border with dark gray thick and do not round top left and bottom right corners
-      className={`bg-gray-50 rounded-lg border border-l-2 border-l-gray-600 border-gray-200 rounded-tl-none rounded-bl-none p-4 ${onClick ? 'cursor-pointer hover:bg-gray-100' : ''}`}
+      className={`bg-gray-50 rounded-lg border !border-l-2 !border-l-gray-600 border-gray-200 !rounded-tl-none !rounded-bl-none p-4 ${onClick ? 'cursor-pointer hover:bg-gray-100' : ''}`}
       onClick={handleClick}
     >
       {/* Badge and Topics */}

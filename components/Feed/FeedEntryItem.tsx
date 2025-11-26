@@ -1,18 +1,29 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { FeedCommentContent, FeedEntry } from '@/types/feed';
+import { FeedCommentContent, FeedEntry, FeedBountyContent } from '@/types/feed';
 import { FeedPostContent, FeedPaperContent, FeedGrantContent } from '@/types/feed';
 import { FeedItemFundraise } from './items/FeedItemFundraise';
 import { FeedItemPaper } from './items/FeedItemPaper';
-import { FeedItemBounty } from './items/FeedItemBounty';
 import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
 import { FeedItemGrant } from './items/FeedItemGrant';
+import { FeedItemHeader } from './FeedItemHeader';
+import { FeedItemActions } from './FeedItemActions';
+import { BountySolutions } from '@/components/Bounty/BountySolutions';
+import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
 import { useFeedItemClick } from '@/hooks/useFeedItemClick';
 import { useCallback } from 'react';
 import { getUnifiedDocumentId } from '@/types/analytics';
+import { Work } from '@/types/work';
+import { BountyContribution } from '@/types/bounty';
+import { formatCurrency } from '@/utils/currency';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { buildWorkUrl } from '@/utils/url';
+import { useRouter, useParams } from 'next/navigation';
+import { calculateTotalAwardedAmount } from '@/components/Bounty/lib/bountyUtil';
 
 interface FeedEntryItemProps {
   entry: FeedEntry;
@@ -48,6 +59,11 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   getVisibleItems,
 }) => {
   const unifiedDocumentId = getUnifiedDocumentId(entry);
+  const router = useRouter();
+  const params = useParams();
+  const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
+  const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
 
   const { ref, inView } = useInView({
     threshold: 0,
@@ -146,6 +162,80 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
 
   const href = generateHref(entry);
 
+  // Helper function to create FeedEntry from Work (for bounty entries)
+  const createFeedEntryFromWork = (work: Work, originalEntry: FeedEntry): FeedEntry | null => {
+    console.log({ work, originalEntry });
+    if (!work) return null;
+
+    const contentType = work.contentType === 'paper' ? 'PAPER' : 'POST';
+    if (!contentType) return null;
+
+    // Transform Work to FeedPostContent or FeedPaperContent
+    if (contentType === 'POST') {
+      const bountyEntry = originalEntry.content as FeedBountyContent;
+      const postContent: FeedPostContent = {
+        id: work.id,
+        contentType: work.postType === 'PREREGISTRATION' ? 'PREREGISTRATION' : 'POST',
+        createdDate: work.createdDate,
+        createdBy: work.authors?.[0]?.authorProfile || bountyEntry.createdBy,
+        textPreview: work.previewContent || work.abstract || '',
+        slug: work.slug,
+        title: work.title,
+        previewImage: work.image,
+        authors: work.authors?.map((a: { authorProfile: any }) => a.authorProfile) || [],
+        topics: work.topics || [],
+        postType: work.postType,
+      };
+
+      return {
+        id: work.id.toString(),
+        recommendationId: null,
+        timestamp: work.createdDate,
+        action: 'publish',
+        contentType: contentType,
+        content: postContent,
+        relatedWork: undefined,
+        metrics: originalEntry.metrics,
+        userVote: originalEntry.userVote,
+        tips: originalEntry.tips,
+      };
+    } else if (contentType === 'PAPER') {
+      const bountyEntry = originalEntry.content as FeedBountyContent;
+      const paperContent: FeedPaperContent = {
+        id: work.id,
+        contentType: 'PAPER',
+        createdDate: work.createdDate,
+        createdBy: work.authors?.[0]?.authorProfile || bountyEntry.createdBy,
+        textPreview: work.abstract || '',
+        slug: work.slug,
+        title: work.title,
+        authors: work.authors?.map((a: { authorProfile: any }) => a.authorProfile) || [],
+        topics: work.topics || [],
+        journal: work.journal || {
+          id: 0,
+          name: '',
+          slug: '',
+          description: '',
+        },
+      };
+
+      return {
+        id: work.id.toString(),
+        recommendationId: null,
+        timestamp: work.createdDate,
+        action: 'publish',
+        contentType: 'PAPER',
+        content: paperContent,
+        relatedWork: undefined,
+        metrics: originalEntry.metrics,
+        userVote: originalEntry.userVote,
+        tips: originalEntry.tips,
+      };
+    }
+
+    return null;
+  };
+
   let content = null;
 
   try {
@@ -188,19 +278,197 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
         break;
 
       case 'BOUNTY':
-        // Use the new FeedItemBounty component
+        // Transform bounty entry to Post/Paper with bounty info
+        const bountyEntry = entry.content as FeedBountyContent;
+        const bounty = bountyEntry.bounty;
+
+        // Handle opening the contribute modal
+        const handleOpenContributeModal = (e: React.MouseEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsContributeModalOpen(true);
+        };
+
+        // Handle CTA button click (Add Review/Add Solution)
+        const handleSolution = (e: React.MouseEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          let workId: string | number | undefined;
+          let workSlug: string | undefined;
+          let workContentType: string | undefined;
+          let workPostType: string | undefined;
+
+          if (entry.relatedWork) {
+            workId = entry.relatedWork.id;
+            workSlug = entry.relatedWork.slug;
+            workContentType = entry.relatedWork.contentType;
+            workPostType = entry.relatedWork.postType;
+          } else {
+            const { id: paramId, slug: paramSlug } = params;
+            workId = paramId as string | number | undefined;
+            workSlug = paramSlug as string | undefined;
+            workContentType = bountyEntry.relatedDocumentContentType;
+          }
+
+          if (!workId || !workContentType) {
+            console.error('FeedEntryItem: Unable to determine destination for CTA', {
+              workId,
+              workSlug,
+              workContentType,
+              entry,
+            });
+            return;
+          }
+
+          const targetTab = workPostType === 'QUESTION' ? 'conversation' : 'reviews';
+
+          if (workPostType === 'QUESTION') {
+            workContentType = 'question';
+          }
+
+          const workUrl = buildWorkUrl({
+            id: workId.toString(),
+            contentType: workContentType as any,
+            slug: workSlug,
+            tab: targetTab,
+          });
+          const urlWithFocus = `${workUrl}?focus=true`;
+
+          router.push(urlWithFocus);
+        };
+
+        // Determine which component to render based on relatedWork
+        const relatedWorkEntry = entry.relatedWork
+          ? createFeedEntryFromWork(entry.relatedWork, entry)
+          : null;
+        const workContentType =
+          entry.relatedWork?.contentType || bountyEntry.relatedDocumentContentType;
+        const isOpen = bounty.status === 'OPEN';
+        const hasSolutions = bounty.solutions && bounty.solutions.length > 0;
+
+        // Format the bounty amount for display in the action text
+        const formattedBountyAmount = bounty.totalAmount
+          ? formatCurrency({
+              amount: parseFloat(bounty.totalAmount),
+              showUSD,
+              exchangeRate,
+              shorten: true,
+            })
+          : '';
+        const bountyActionText = bounty.totalAmount
+          ? `created a bounty for ${formattedBountyAmount} ${showUSD ? '' : 'RSC'}`
+          : 'created a bounty';
+
+        // Determine if current user is bounty author (simplified - would need actual user check)
+        const isBountyAuthor = false; // TODO: Add actual user check
+
+        console.log({ relatedWorkEntry, workContentType, isOpen, hasSolutions, isBountyAuthor });
+
         content = (
-          <FeedItemBounty
-            entry={entry}
-            relatedDocumentId={entry.relatedWork?.id}
-            href={href}
-            showContributeButton={false}
-            showFooter={showBountyFooter}
-            showSupportAndCTAButtons={showBountySupportAndCTAButtons}
-            showDeadline={showBountyDeadline}
-            maxLength={maxLength}
-            onFeedItemClick={handleFeedItemClick}
-          />
+          <div className="space-y-3">
+            <FeedItemHeader
+              timestamp={bountyEntry.createdDate}
+              author={bountyEntry.createdBy}
+              actionText={bountyActionText}
+              contributors={
+                bounty.contributions?.map((contribution: BountyContribution) => ({
+                  profileImage: contribution.createdBy?.authorProfile?.profileImage,
+                  fullName: contribution.createdBy?.authorProfile?.fullName || 'Anonymous',
+                  profileUrl: contribution.createdBy?.authorProfile?.profileUrl,
+                })) || []
+              }
+              isBounty={true}
+              totalContributorsCount={bounty.contributions?.length || 0}
+              work={entry.relatedWork}
+              hotScoreV2={entry.hotScoreV2}
+              hotScoreBreakdown={entry.hotScoreBreakdown}
+              externalMetrics={entry.externalMetrics}
+            />
+
+            {/* Render Post or Paper based on relatedWork */}
+            {relatedWorkEntry &&
+              (workContentType === 'paper' ? (
+                <FeedItemPaper
+                  entry={relatedWorkEntry}
+                  href={href}
+                  showActions={showBountyFooter}
+                  maxLength={maxLength}
+                  onFeedItemClick={handleFeedItemClick}
+                  showBounty={true}
+                  bounty={bounty}
+                  onSupportClick={handleOpenContributeModal}
+                  onAddSolutionClick={handleSolution}
+                />
+              ) : (
+                <FeedItemPost
+                  entry={relatedWorkEntry}
+                  href={href}
+                  showActions={showBountyFooter}
+                  maxLength={maxLength}
+                  onFeedItemClick={handleFeedItemClick}
+                  showBounty={true}
+                  bounty={bounty}
+                  onSupportClick={handleOpenContributeModal}
+                  onAddSolutionClick={handleSolution}
+                />
+              ))}
+            {/* Bounty Solutions */}
+            {!isOpen && hasSolutions && (
+              <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+                <BountySolutions
+                  solutions={bounty.solutions}
+                  isPeerReviewBounty={bounty.bountyType === 'REVIEW'}
+                  totalAwardedAmount={calculateTotalAwardedAmount(bounty)}
+                  onViewSolution={(solutionId, authorName, awardedAmount) => {
+                    // Handle view solution - could navigate or open modal
+                    console.log('View solution', { solutionId, authorName, awardedAmount });
+                  }}
+                />
+              </div>
+            )}
+            {/* Footer Actions */}
+            {showBountyFooter && (
+              <div
+                className="mt-4 pt-3 border-t border-gray-200"
+                onClick={(e) => e.stopPropagation()}
+                role="presentation"
+                aria-hidden="true"
+                tabIndex={-1}
+              >
+                <FeedItemActions
+                  metrics={entry.metrics}
+                  feedContentType="BOUNTY"
+                  votableEntityId={bountyEntry.comment.id}
+                  relatedDocumentId={bountyEntry.relatedDocumentId?.toString()}
+                  relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
+                  userVote={entry.userVote}
+                  tips={entry.tips}
+                  showTooltips={true}
+                  bounties={[bounty]}
+                  relatedDocumentTopics={entry.relatedWork?.topics}
+                  relatedDocumentUnifiedDocumentId={
+                    entry.relatedWork?.unifiedDocumentId?.toString() || undefined
+                  }
+                  onFeedItemClick={handleFeedItemClick}
+                />
+              </div>
+            )}
+            <ContributeBountyModal
+              isOpen={isContributeModalOpen}
+              onClose={() => setIsContributeModalOpen(false)}
+              onContributeSuccess={() => {
+                // Handle success - could refresh or show notification
+                router.refresh();
+              }}
+              commentId={bountyEntry.comment.id}
+              documentId={bountyEntry.relatedDocumentId || 0}
+              contentType={bountyEntry.relatedDocumentContentType || 'paper'}
+              bountyTitle={'Bounty'}
+              bountyType={bounty.bountyType}
+              expirationDate={bounty.expirationDate}
+            />
+          </div>
         );
         break;
 
@@ -236,18 +504,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
       default:
         throw new Error(`Unsupported content type: ${entry.contentType}`);
     }
-  } catch (error) {
-    console.error('Error rendering feed entry:', error);
-    content = (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <h3 className="text-lg font-medium">Error Rendering Entry - {entry.id}</h3>
-        <p className="text-gray-600 mt-2">There was an error rendering this entry.</p>
-        <pre className="text-xs mt-2 bg-gray-100 p-2 rounded overflow-auto">
-          {JSON.stringify(error, null, 2)}
-        </pre>
-      </div>
-    );
-  }
+  } catch (error) {}
 
   return (
     <div ref={ref} className={spacingClass}>

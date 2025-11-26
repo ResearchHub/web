@@ -264,7 +264,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   return (
     <div className={cn('space-y-3', className)}>
       {/* Header */}
-      {/* {showHeader && entry.timestamp && (
+      {showHeader && entry.timestamp && (
         <FeedItemHeader
           timestamp={entry.timestamp}
           author={author}
@@ -273,7 +273,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
           hotScoreBreakdown={entry.hotScoreBreakdown}
           externalMetrics={entry.externalMetrics}
         />
-      )} */}
+      )}
 
       {/* Main Content Card */}
       <CardWrapper href={href} isClickable={isClickable} onClick={handleClick} entryId={entryIdKey}>

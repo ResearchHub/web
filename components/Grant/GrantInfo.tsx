@@ -4,21 +4,19 @@ import { FC } from 'react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Button } from '@/components/ui/Button';
-import { Clock } from 'lucide-react';
-import { formatDate, formatDeadline, formatExactTime, isDeadlineInFuture } from '@/utils/date';
+import { formatDate, isDeadlineInFuture } from '@/utils/date';
 import { FeedGrantContent } from '@/types/feed';
 import { useRouter } from 'next/navigation';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { colors } from '@/app/styles/colors';
 import { cn } from '@/utils/styles';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
-interface RFPInfoProps {
+interface GrantInfoProps {
   grant: FeedGrantContent;
   className?: string;
 }
 
-export const RFPInfo: FC<RFPInfoProps> = ({ grant, className }) => {
+export const GrantInfo: FC<GrantInfoProps> = ({ grant, className }) => {
   const router = useRouter();
   const { showUSD } = useCurrencyPreference();
 

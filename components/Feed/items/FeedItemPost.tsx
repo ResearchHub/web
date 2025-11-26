@@ -15,6 +15,9 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Users } from 'lucide-react';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { BountyInfo } from '@/components/Bounty/BountyInfo';
+import { Bounty } from '@/types/bounty';
+import { Work } from '@/types/work';
 
 interface FeedItemPostProps {
   entry: FeedEntry;
@@ -23,6 +26,11 @@ interface FeedItemPostProps {
   showActions?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
+  showBounty?: boolean;
+  bounty?: Bounty;
+  relatedWork?: Work;
+  onSupportClick?: (e: React.MouseEvent) => void;
+  onAddSolutionClick?: (e: React.MouseEvent) => void;
 }
 
 /**
@@ -35,6 +43,11 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   showActions = true,
   maxLength,
   onFeedItemClick,
+  showBounty = false,
+  bounty,
+  relatedWork,
+  onSupportClick,
+  onAddSolutionClick,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -77,7 +90,15 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
         }
         leftContent={
           <>
-            {/* <ContentTypeBadge type={post.postType === 'QUESTION' ? 'question' : 'preprint'} /> */}
+            <ContentTypeBadge
+              type={
+                post.postType === 'QUESTION'
+                  ? 'question'
+                  : post.contentType === 'PREREGISTRATION'
+                    ? 'funding'
+                    : 'article'
+              }
+            />
             {topics.map((topic) => (
               <TopicAndJournalBadge
                 key={topic.id || topic.slug}
@@ -114,6 +135,19 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
 
             {/* Truncated Content */}
             <ContentSection content={post.textPreview} maxLength={maxLength} />
+
+            {/* BountyInfo */}
+            {showBounty && bounty && onSupportClick && onAddSolutionClick && (
+              <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+                <BountyInfo
+                  bounty={bounty}
+                  relatedWork={relatedWork}
+                  onSupportClick={onSupportClick}
+                  onAddSolutionClick={onAddSolutionClick}
+                  className="p-0 border-0 bg-transparent"
+                />
+              </div>
+            )}
           </>
         }
         rightContent={

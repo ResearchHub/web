@@ -19,6 +19,10 @@ import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { Users, BookText } from 'lucide-react';
 import Icon from '@/components/ui/icons/Icon';
 import { formatTimestamp } from '@/utils/date';
+import { BountyInfo } from '@/components/Bounty/BountyInfo';
+import { Bounty } from '@/types/bounty';
+import { Work } from '@/types/work';
+import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
@@ -27,6 +31,11 @@ interface FeedItemPaperProps {
   showActions?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
+  showBounty?: boolean;
+  bounty?: Bounty;
+  relatedWork?: Work;
+  onSupportClick?: (e: React.MouseEvent) => void;
+  onAddSolutionClick?: (e: React.MouseEvent) => void;
 }
 
 /**
@@ -39,18 +48,17 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   showActions = true,
   maxLength,
   onFeedItemClick,
+  showBounty = false,
+  bounty,
+  relatedWork,
+  onSupportClick,
+  onAddSolutionClick,
 }) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
-  console.log('paper', paper);
 
   // Get topics/tags for display
   const topics = paper.topics || [];
-
-  // Determine the badge type based on the paper's status
-  const getPaperBadgeType = () => {
-    return 'paper' as const;
-  };
 
   // Helper function to get source logo
   const getSourceLogo = (source: string) => {
@@ -160,6 +168,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               </>
             ) : (
               <>
+                <ContentTypeBadge type="paper" />
                 {topics.map((topic) => (
                   <TopicAndJournalBadge
                     key={topic.id || topic.slug}
@@ -211,6 +220,19 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
             )}
             {/* Truncated Content */}
             <ContentSection content={paper.textPreview} maxLength={maxLength} />
+
+            {/* BountyInfo */}
+            {showBounty && bounty && onSupportClick && onAddSolutionClick && (
+              <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+                <BountyInfo
+                  bounty={bounty}
+                  relatedWork={relatedWork}
+                  onSupportClick={onSupportClick}
+                  onAddSolutionClick={onAddSolutionClick}
+                  className="p-0 border-0 bg-transparent"
+                />
+              </div>
+            )}
           </>
         }
         rightContent={

@@ -33,7 +33,6 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   onContribute,
   className,
 }) => {
-  console.log('fundraise', fundraise);
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
   const { showUSD } = useCurrencyPreference();
   const { showShareModal } = useShareModalContext();
