@@ -140,12 +140,19 @@ function ListCreateForm({
 
 interface ListSelectItemProps {
   readonly list: UserListOverview;
-  readonly isChecked: boolean;
+  readonly listIdsContainingDocument: number[];
   readonly isRemoving: boolean;
   readonly onToggle: () => void;
 }
 
-function ListSelectItem({ list, isChecked, isRemoving, onToggle }: Readonly<ListSelectItemProps>) {
+function ListSelectItem({
+  list,
+  listIdsContainingDocument,
+  isRemoving,
+  onToggle,
+}: Readonly<ListSelectItemProps>) {
+  const isInList = listIdsContainingDocument.includes(list.listId);
+
   return (
     <button
       type="button"
@@ -162,8 +169,8 @@ function ListSelectItem({ list, isChecked, isRemoving, onToggle }: Readonly<List
         <Loader size="sm" />
       ) : (
         <FontAwesomeIcon
-          icon={isChecked ? faBookmarkSolid : faBookmark}
-          className={`w-5 h-5 transition-colors ${isChecked ? 'text-gray-900' : 'text-gray-400'}`}
+          icon={isInList ? faBookmarkSolid : faBookmark}
+          className={`w-5 h-5 transition-colors ${isInList ? 'text-gray-900' : 'text-gray-400'}`}
         />
       )}
     </button>
@@ -339,7 +346,7 @@ export function AddToListModal({
                       <ListSelectItem
                         key={list.listId}
                         list={list}
-                        isChecked={isInList}
+                        listIdsContainingDocument={listIdsContainingDocument}
                         isRemoving={isCurrentlyToggling}
                         onToggle={() =>
                           isInList
