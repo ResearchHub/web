@@ -15,6 +15,10 @@ import { useState, useEffect, useMemo } from 'react';
 import Icon from '@/components/ui/icons/Icon';
 import { Tabs } from '@/components/ui/Tabs';
 import { usePathname } from 'next/navigation';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { buildPayloadForDocumentTabClick } from '@/types/analytics';
+import { useUser } from '@/contexts/UserContext';
+import { useDeviceType } from '@/hooks/useDeviceType';
 
 export type TabType =
   | 'paper'
@@ -43,6 +47,8 @@ export const WorkTabs = ({
   updatesCount = 0,
 }: WorkTabsProps) => {
   const pathname = usePathname();
+  const { user } = useUser();
+  const deviceType = useDeviceType();
 
   // Check if any version is part of the ResearchHub journal
   const hasResearchHubJournalVersions = useMemo(() => {
@@ -79,6 +85,17 @@ export const WorkTabs = ({
 
     setActiveTab(tab);
     onTabChange(tab);
+
+    // Track tab click analytics
+    try {
+      const payload = buildPayloadForDocumentTabClick(work, {
+        clickedTab: tab,
+        deviceType,
+      });
+      AnalyticsService.logEventWithUserProperties(LogEvent.DOCUMENT_TAB_CLICKED, payload, user);
+    } catch (error) {
+      console.warn('Failed to track document tab click analytics:', error);
+    }
 
     // Update the URL without triggering a navigation
     if (typeof window !== 'undefined') {
