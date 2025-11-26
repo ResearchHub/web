@@ -27,7 +27,7 @@ export default function ListDetailPage() {
   const router = useRouter();
   const params = useParams();
   const { user } = useUser();
-  const listId = params?.id ? Number.parseInt(params.id as string, 10) : null;
+  const listId = params?.id ? Number(params.id) : null;
   const { updateList, deleteList } = useUserListsContext();
   const {
     list,
