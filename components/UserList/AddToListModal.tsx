@@ -5,23 +5,38 @@ import { Button } from '@/components/ui/Button';
 import { LoadingButton } from '@/components/ui/LoadingButton';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Input } from '@/components/ui/form/Input';
-import { Checkbox } from '@/components/ui/form/Checkbox';
 import { Loader } from '@/components/ui/Loader';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { UserListOverview } from '@/components/UserList/lib/user-list';
-import { Plus, Trash2, Check } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookmark } from '@fortawesome/pro-light-svg-icons';
+import { faBookmark as faBookmarkSolid } from '@fortawesome/pro-solid-svg-icons';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
-import { pluralizeSuffix } from '@/utils/stringUtils';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { sortListsByDocumentMembership } from '@/components/UserList/lib/listUtils';
+import Link from 'next/link';
+import { cn } from '@/utils/styles';
 
 interface AddToListModalProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly unifiedDocumentId: number;
 }
+
+const MOBILE_MODAL_HEIGHT_OFFSET = 200;
+const MOBILE_LIST_MAX_HEIGHT_OFFSET = 205;
+
+const TOAST_MESSAGES = {
+  ITEM_ADDED: 'Item added.',
+  ITEM_REMOVED: 'Item removed',
+  FAILED_TO_CREATE_LIST: 'Failed to create list',
+  FAILED_TO_ADD_TO_LIST: 'Failed to add to list',
+  FAILED_TO_REMOVE_ITEM: 'Failed to remove item',
+};
 
 function ListLoadingSkeleton() {
   return (
@@ -39,14 +54,27 @@ function ListLoadingSkeleton() {
   );
 }
 
+function CreateListButton({
+  onClick,
+  fullWidth = false,
+}: {
+  readonly onClick: () => void;
+  readonly fullWidth?: boolean;
+}) {
+  return (
+    <Button onClick={onClick} className={cn('gap-2', fullWidth && 'w-full')}>
+      <Plus className="w-4 h-4" />
+      Create List
+    </Button>
+  );
+}
+
 function ListEmptyState({ onFocus }: { readonly onFocus: () => void }) {
   return (
-    <div className="text-center py-8">
+    <div className="text-center w-full">
+      <FontAwesomeIcon icon={faBookmark} className="w-12 h-12 text-gray-300 mb-3" />
       <p className="text-gray-600 mb-4">You don't have any lists yet.</p>
-      <Button onClick={onFocus} variant="outlined" className="gap-2">
-        <Plus className="w-4 h-4" />
-        Create Your First List
-      </Button>
+      <CreateListButton onClick={onFocus} />
     </div>
   );
 }
@@ -112,78 +140,41 @@ function ListCreateForm({
 
 interface ListSelectItemProps {
   readonly list: UserListOverview;
-  readonly isChecked: boolean;
-  readonly isInList: boolean;
+  readonly listIdsContainingDocument: number[];
   readonly isRemoving: boolean;
-  readonly onToggle: (checked: boolean) => void;
-  readonly onRemove: (event: React.MouseEvent) => void;
+  readonly onToggle: () => void;
 }
 
 function ListSelectItem({
   list,
-  isChecked,
-  isInList,
+  listIdsContainingDocument,
   isRemoving,
   onToggle,
-  onRemove,
 }: Readonly<ListSelectItemProps>) {
+  const isInList = listIdsContainingDocument.includes(list.listId);
+
   return (
-    <label
-      className={`flex items-center gap-3 w-full p-3 rounded-lg border cursor-pointer transition-colors ${
-        isChecked
-          ? 'border-rhBlue-500 bg-rhBlue-50'
-          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+    <button
+      type="button"
+      onClick={onToggle}
+      disabled={isRemoving}
+      className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors text-left hover:bg-gray-50 ${
+        isRemoving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
       }`}
     >
-      <Checkbox checked={isChecked} onCheckedChange={onToggle} />
       <div className="flex-1 min-w-0">
         <div className="font-medium text-gray-900 truncate">{list.name}</div>
-        {isInList && (
-          <div className="text-xs text-green-600 font-medium mt-1 flex items-center gap-1 sm:!hidden">
-            <Check className="w-3 h-3" />
-            Already in list
-          </div>
-        )}
       </div>
-      {isInList && (
-        <>
-          <div className="hidden sm:!flex items-center gap-1 text-xs text-green-600 font-medium">
-            <Check className="w-3 h-3" />
-            Already in list
-          </div>
-          <Button
-            type="button"
-            onClick={onRemove}
-            disabled={isRemoving}
-            variant="ghost"
-            size="icon"
-            className="flex-shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-            title="Remove"
-          >
-            {isRemoving ? <Loader size="sm" /> : <Trash2 className="w-4 h-4" />}
-          </Button>
-        </>
+      {isRemoving ? (
+        <Loader size="sm" />
+      ) : (
+        <FontAwesomeIcon
+          icon={isInList ? faBookmarkSolid : faBookmark}
+          className={`w-5 h-5 transition-colors ${isInList ? 'text-gray-900' : 'text-gray-400'}`}
+        />
       )}
-    </label>
+    </button>
   );
-}
-
-function sortListsByDocumentMembership(
-  allLists: UserListOverview[],
-  listIdsContainingDocument: number[]
-): UserListOverview[] {
-  const listsAlreadyContainingDocument: UserListOverview[] = [];
-  const listsNotYetContainingDocument: UserListOverview[] = [];
-
-  for (const list of allLists) {
-    if (listIdsContainingDocument.includes(list.listId)) {
-      listsAlreadyContainingDocument.push(list);
-    } else {
-      listsNotYetContainingDocument.push(list);
-    }
-  }
-
-  return [...listsAlreadyContainingDocument, ...listsNotYetContainingDocument];
 }
 
 export function AddToListModal({
@@ -191,18 +182,17 @@ export function AddToListModal({
   onClose,
   unifiedDocumentId,
 }: Readonly<AddToListModalProps>) {
-  const { listDetails, isLoading, refetch, listIdsContainingDocument } = useIsInList(
+  const { overviewLists, isLoading, listIdsContainingDocument } = useIsInList(
     isOpen ? unifiedDocumentId : null
   );
-  const { createList } = useUserListsContext();
+  const { createList, addDocumentToList, removeDocumentFromList } = useUserListsContext();
 
-  const [selectedListIds, setSelectedListIds] = useState<number[]>([]);
-  const [isAdding, setIsAdding] = useState(false);
   const [newListName, setNewListName] = useState('');
-  const [isCreatingNewList, setIsCreatingNewList] = useState(false);
-  const [removingListId, setRemovingListId] = useState<number | null>(null);
+  const [isCreatingList, setIsCreatingList] = useState(false);
+  const [togglingListId, setTogglingListId] = useState<number | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const createInputRef = useRef<HTMLInputElement>(null);
+  const [sortedLists, setSortedLists] = useState<UserListOverview[]>([]);
 
   const openCreateFormAndFocus = () => {
     setShowCreateForm(true);
@@ -216,132 +206,121 @@ export function AddToListModal({
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedListIds(listIdsContainingDocument);
       closeCreateForm();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  const handleAddToSelectedLists = async () => {
-    if (selectedListIds.length === 0) return;
-    setIsAdding(true);
-
-    try {
-      const listIdsToAdd = selectedListIds.filter((id) => !listIdsContainingDocument.includes(id));
-      const additionResults = await Promise.allSettled(
-        listIdsToAdd.map((id) => ListService.addItemToListApi(id, unifiedDocumentId))
-      );
-      const failedCount = additionResults.filter((result) => result.status === 'rejected').length;
-      const successCount = additionResults.length - failedCount;
-
-      if (successCount > 0) {
-        toast.success(`Added to ${successCount} list${pluralizeSuffix(successCount)}`);
-      }
-      if (failedCount > 0) {
-        toast.error(`Failed to add to ${failedCount} list${pluralizeSuffix(failedCount)}`);
-      }
-
-      refetch();
-      onClose();
-    } finally {
-      setIsAdding(false);
+  useEffect(() => {
+    if (!isLoading && overviewLists.length > 0) {
+      setSortedLists(sortListsByDocumentMembership(overviewLists, listIdsContainingDocument));
+    } else if (overviewLists.length === 0) {
+      setSortedLists([]);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]);
 
   const handleCreateList = async () => {
     const trimmedListName = newListName.trim();
     if (trimmedListName.length === 0) return;
 
-    setIsCreatingNewList(true);
+    setIsCreatingList(true);
     try {
-      await createList({ name: trimmedListName }, false);
+      await createList({ name: trimmedListName }, true);
       closeCreateForm();
-      refetch();
     } catch (error) {
-      toast.error(extractApiErrorMessage(error, 'Failed to create list'));
+      toast.error(extractApiErrorMessage(error, TOAST_MESSAGES.FAILED_TO_CREATE_LIST));
       console.error('Failed to create list:', error);
     } finally {
-      setIsCreatingNewList(false);
+      setIsCreatingList(false);
     }
   };
 
-  const handleAddToList = (listId: number) => {
-    setSelectedListIds((previousSelectedListIds) => [...previousSelectedListIds, listId]);
+  const handleAddToList = async (listId: number) => {
+    const listToAddTo = overviewLists.find((list) => list.listId === listId);
+    if (!listToAddTo) return;
+
+    setTogglingListId(listId);
+    try {
+      const response = await ListService.addItemToListApi(listId, unifiedDocumentId);
+      addDocumentToList(listId, unifiedDocumentId, response.id);
+
+      const listUrl = `/list/${listId}`;
+      toast.success(
+        (t) => (
+          <div className="flex items-center gap-2">
+            <span className="text-gray-900">{TOAST_MESSAGES.ITEM_ADDED}</span>
+            <Link
+              href={listUrl}
+              onClick={(e) => {
+                e.stopPropagation();
+                toast.dismiss(t.id);
+              }}
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
+              View List
+            </Link>
+          </div>
+        ),
+        { duration: 4000 }
+      );
+    } catch (error) {
+      toast.error(extractApiErrorMessage(error, TOAST_MESSAGES.FAILED_TO_ADD_TO_LIST));
+      console.error('Failed to add to list:', error);
+    } finally {
+      setTogglingListId(null);
+    }
   };
 
-  const handleRemoveFromListSelection = (listId: number) => {
-    setSelectedListIds((previousSelectedListIds) =>
-      previousSelectedListIds.filter((id) => id !== listId)
-    );
-  };
+  const handleRemoveFromList = async (listId: number) => {
+    const listToRemoveFrom = overviewLists.find((list) => list.listId === listId);
+    if (!listToRemoveFrom) return;
 
-  const handleRemoveFromList = async (listId: number, event: React.MouseEvent) => {
-    event.stopPropagation();
-    const listToRemoveFrom = listDetails.find((list) => list.listId === listId);
-    const documentInList = listToRemoveFrom?.unifiedDocuments?.find(
+    const documentInList = listToRemoveFrom.unifiedDocuments.find(
       (doc) => doc.unifiedDocumentId === unifiedDocumentId
     );
 
-    if (!documentInList?.listItemId || !listToRemoveFrom) return;
+    if (!documentInList?.listItemId) return;
 
-    setRemovingListId(listId);
+    setTogglingListId(listId);
     try {
       await ListService.removeItemFromListApi(listId, documentInList.listItemId);
-      toast.success(`Removed from "${listToRemoveFrom.name}"`);
-      setSelectedListIds((previousSelectedListIds) =>
-        previousSelectedListIds.filter((id) => id !== listId)
-      );
-      refetch();
+      removeDocumentFromList(listId, unifiedDocumentId);
+      toast.success(TOAST_MESSAGES.ITEM_REMOVED);
     } catch (error) {
-      toast.error(
-        extractApiErrorMessage(error, `Failed to remove from "${listToRemoveFrom.name}"`)
-      );
-      console.error('Failed to remove item from list:', error);
+      toast.error(extractApiErrorMessage(error, TOAST_MESSAGES.FAILED_TO_REMOVE_ITEM));
+      console.error('Failed to remove item:', error);
     } finally {
-      setRemovingListId(null);
+      setTogglingListId(null);
     }
   };
 
-  const sortedLists = sortListsByDocumentMembership(listDetails, listIdsContainingDocument);
-  const numberOfNewListsToAddTo = selectedListIds.filter(
-    (id) => !listIdsContainingDocument.includes(id)
-  ).length;
+  const listsToDisplay = sortedLists.length > 0 ? sortedLists : overviewLists;
 
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Add to List"
+      title="Save to…"
       maxWidth="max-w-2xl"
       padding="p-6"
-      footer={
-        <div className="flex justify-end gap-3">
-          <Button variant="outlined" onClick={onClose} disabled={isAdding}>
-            Cancel
-          </Button>
-          <LoadingButton
-            onClick={handleAddToSelectedLists}
-            disabled={numberOfNewListsToAddTo === 0}
-            isLoading={isAdding}
-            loadingText="Adding..."
-          >
-            {numberOfNewListsToAddTo > 0
-              ? `Add to ${numberOfNewListsToAddTo} List${pluralizeSuffix(numberOfNewListsToAddTo)}`
-              : 'Add to List'}
-          </LoadingButton>
-        </div>
-      }
     >
-      <div className="md:!min-w-[500px] md:!max-w-[500px]">
-        <p className="text-sm text-gray-600 mb-6">Select one or more lists to save this item</p>
-
+      <div
+        className={cn(
+          'md:!min-w-[500px] md:!max-w-[500px]',
+          !isLoading &&
+            overviewLists.length === 0 &&
+            !showCreateForm &&
+            `h-[calc(100vh-${MOBILE_MODAL_HEIGHT_OFFSET}px)] md:!h-auto md:!min-h-[150px] flex items-center justify-center`
+        )}
+      >
         {isLoading && <ListLoadingSkeleton />}
 
-        {!isLoading && listDetails.length === 0 && !showCreateForm && (
+        {!isLoading && overviewLists.length === 0 && !showCreateForm && (
           <ListEmptyState onFocus={openCreateFormAndFocus} />
         )}
 
-        {!isLoading && (listDetails.length > 0 || showCreateForm) && (
+        {!isLoading && (overviewLists.length > 0 || showCreateForm) && (
           <>
             {showCreateForm && (
               <ListCreateForm
@@ -349,41 +328,39 @@ export function AddToListModal({
                 onChange={setNewListName}
                 onSubmit={handleCreateList}
                 onCancel={closeCreateForm}
-                isLoading={isCreatingNewList}
+                isLoading={isCreatingList}
                 inputRef={createInputRef}
               />
             )}
 
             {!showCreateForm && (
               <>
-                <div className="space-y-2 max-h-[50vh] md:!max-h-72 overflow-y-auto">
-                  {sortedLists.map((list) => (
-                    <ListSelectItem
-                      key={list.listId}
-                      list={list}
-                      isChecked={selectedListIds.includes(list.listId)}
-                      isInList={listIdsContainingDocument.includes(list.listId)}
-                      isRemoving={removingListId === list.listId}
-                      onToggle={(isChecked) =>
-                        isChecked
-                          ? handleAddToList(list.listId)
-                          : handleRemoveFromListSelection(list.listId)
-                      }
-                      onRemove={(event) => handleRemoveFromList(list.listId, event)}
-                    />
-                  ))}
+                <div
+                  className={`space-y-2 overflow-y-auto max-h-[calc(100vh-${MOBILE_LIST_MAX_HEIGHT_OFFSET}px)] pb-4 md:!pb-0 md:!max-h-72`}
+                >
+                  {listsToDisplay.map((list) => {
+                    const isInList = listIdsContainingDocument.includes(list.listId);
+                    const isCurrentlyToggling = togglingListId === list.listId;
+
+                    return (
+                      <ListSelectItem
+                        key={list.listId}
+                        list={list}
+                        listIdsContainingDocument={listIdsContainingDocument}
+                        isRemoving={isCurrentlyToggling}
+                        onToggle={() =>
+                          isInList
+                            ? handleRemoveFromList(list.listId)
+                            : handleAddToList(list.listId)
+                        }
+                      />
+                    );
+                  })}
                 </div>
 
-                <div className="border-t border-gray-200 mt-4 mb-4" />
-
-                <Button
-                  onClick={openCreateFormAndFocus}
-                  variant="outlined"
-                  className="w-full gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Create New List
-                </Button>
+                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-6 md:!relative md:!p-0 md:!border-t-0 md:!mt-4">
+                  <CreateListButton onClick={openCreateFormAndFocus} fullWidth />
+                </div>
               </>
             )}
           </>

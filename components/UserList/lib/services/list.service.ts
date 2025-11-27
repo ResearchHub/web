@@ -78,8 +78,11 @@ export class ListService {
     return this.handleDeleteApi(`${this.BASE_PATH}/${listId}/`);
   }
 
-  static async addItemToListApi(listId: number, unifiedDocumentId: number): Promise<void> {
-    return ApiClient.post<void>(`${this.BASE_PATH}/${listId}/item/`, {
+  static async addItemToListApi(
+    listId: number,
+    unifiedDocumentId: number
+  ): Promise<{ id: number }> {
+    return ApiClient.post<{ id: number }>(`${this.BASE_PATH}/${listId}/item/`, {
       parent_list: listId,
       unified_document: unifiedDocumentId,
     });

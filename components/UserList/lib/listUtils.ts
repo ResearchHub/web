@@ -1,4 +1,4 @@
-import { UserList, UserListDetail } from '@/components/UserList/lib/user-list';
+import { UserList, UserListDetail, UserListOverview } from '@/components/UserList/lib/user-list';
 import { pluralizeSuffix } from '@/utils/stringUtils';
 
 export const formatItemCount = (list: UserList) => {
@@ -16,6 +16,24 @@ export const updateListRemoveItem = (
     items: list.items.filter((item) => item.id !== itemId),
     itemCount: (list.itemCount ?? 0) - 1,
   };
+};
+
+export const sortListsByDocumentMembership = (
+  allLists: UserListOverview[],
+  listIdsContainingDocument: number[]
+): UserListOverview[] => {
+  const listsAlreadyContainingDocument: UserListOverview[] = [];
+  const listsNotYetContainingDocument: UserListOverview[] = [];
+
+  for (const list of allLists) {
+    if (listIdsContainingDocument.includes(list.listId)) {
+      listsAlreadyContainingDocument.push(list);
+    } else {
+      listsNotYetContainingDocument.push(list);
+    }
+  }
+
+  return [...listsAlreadyContainingDocument, ...listsNotYetContainingDocument];
 };
 
 export { transformListItemToFeedEntry } from '@/components/UserList/lib/user-list';
