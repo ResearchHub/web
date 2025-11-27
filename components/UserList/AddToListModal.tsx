@@ -26,9 +26,9 @@ interface AddToListModalProps {
 function ListLoadingSkeleton() {
   return (
     <div className="space-y-2">
-      {Array.from({ length: 3 }).map((_, i) => (
+      {Array.from({ length: 3 }).map((_, skeletonIndex) => (
         <div
-          key={'list-skeleton-load-' + i}
+          key={'list-skeleton-load-' + skeletonIndex}
           className="flex items-center gap-3 p-3 rounded-lg border border-gray-200"
         >
           <Skeleton className="h-4 w-4" />
@@ -68,6 +68,19 @@ function ListCreateForm({
   isLoading,
   inputRef,
 }: Readonly<ListCreateFormProps>) {
+  function handleEnterKeyPress(event: React.KeyboardEvent<HTMLInputElement>) {
+    const isEnterKey = event.key === 'Enter';
+    const hasValue = value.trim().length > 0;
+
+    if (isEnterKey && hasValue) {
+      event.preventDefault();
+      event.stopPropagation();
+      onSubmit();
+    }
+  }
+
+  const isSubmitDisabled = value.trim().length === 0;
+
   return (
     <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 mb-4">
       <h3 className="text-sm font-medium text-gray-900 mb-3">Create New List</h3>
@@ -75,20 +88,14 @@ function ListCreateForm({
         ref={inputRef}
         placeholder="List name"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && value.trim()) {
-            e.preventDefault();
-            e.stopPropagation();
-            onSubmit();
-          }
-        }}
+        onChange={(event) => onChange(event.target.value)}
+        onKeyDown={handleEnterKeyPress}
         className="mb-3"
       />
       <div className="flex gap-2">
         <LoadingButton
           onClick={onSubmit}
-          disabled={!value.trim()}
+          disabled={isSubmitDisabled}
           size="sm"
           isLoading={isLoading}
           loadingText="Creating..."
@@ -109,7 +116,7 @@ interface ListSelectItemProps {
   readonly isInList: boolean;
   readonly isRemoving: boolean;
   readonly onToggle: (checked: boolean) => void;
-  readonly onRemove: (e: React.MouseEvent) => void;
+  readonly onRemove: (event: React.MouseEvent) => void;
 }
 
 function ListSelectItem({
@@ -161,44 +168,78 @@ function ListSelectItem({
   );
 }
 
+function sortListsByDocumentMembership(
+  allLists: UserListOverview[],
+  listIdsContainingDocument: number[]
+): UserListOverview[] {
+  const listsAlreadyContainingDocument: UserListOverview[] = [];
+  const listsNotYetContainingDocument: UserListOverview[] = [];
+
+  for (const list of allLists) {
+    if (listIdsContainingDocument.includes(list.listId)) {
+      listsAlreadyContainingDocument.push(list);
+    } else {
+      listsNotYetContainingDocument.push(list);
+    }
+  }
+
+  return [...listsAlreadyContainingDocument, ...listsNotYetContainingDocument];
+}
+
 export function AddToListModal({
   isOpen,
   onClose,
   unifiedDocumentId,
 }: Readonly<AddToListModalProps>) {
-  const { listDetails, isLoading, refetch, listIds } = useIsInList(
+  const { listDetails, isLoading, refetch, listIdsContainingDocument } = useIsInList(
     isOpen ? unifiedDocumentId : null
   );
   const { createList } = useUserListsContext();
 
-  const [selected, setSelected] = useState<number[]>([]);
+  const [selectedListIds, setSelectedListIds] = useState<number[]>([]);
   const [isAdding, setIsAdding] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
-  const [removing, setRemoving] = useState<number | null>(null);
+  const [newListName, setNewListName] = useState('');
+  const [isCreatingNewList, setIsCreatingNewList] = useState(false);
+  const [removingListId, setRemovingListId] = useState<number | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const createInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setSelected(isOpen ? [...listIds] : []);
-    setShowCreateForm(false);
-    setNewName('');
-  }, [isOpen, listIds]);
+  const openCreateFormAndFocus = () => {
+    setShowCreateForm(true);
+    setTimeout(() => createInputRef.current?.focus(), 0);
+  };
 
-  const handleAdd = async () => {
-    if (!selected.length) return;
+  const closeCreateForm = () => {
+    setShowCreateForm(false);
+    setNewListName('');
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedListIds(listIdsContainingDocument);
+      closeCreateForm();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  const handleAddToSelectedLists = async () => {
+    if (selectedListIds.length === 0) return;
     setIsAdding(true);
 
     try {
-      const toAdd = selected.filter((id) => !listIds.includes(id));
-      const results = await Promise.allSettled(
-        toAdd.map((id) => ListService.addItemToList(id, unifiedDocumentId))
+      const listIdsToAdd = selectedListIds.filter((id) => !listIdsContainingDocument.includes(id));
+      const additionResults = await Promise.allSettled(
+        listIdsToAdd.map((id) => ListService.addItemToListApi(id, unifiedDocumentId))
       );
-      const failed = results.filter((r) => r.status === 'rejected').length;
-      const success = results.length - failed;
+      const failedCount = additionResults.filter((result) => result.status === 'rejected').length;
+      const successCount = additionResults.length - failedCount;
 
-      if (success) toast.success(`Added to ${success} list${pluralizeSuffix(success)}`);
-      if (failed) toast.error(`Failed to add to ${failed} list${pluralizeSuffix(failed)}`);
+      if (successCount > 0) {
+        toast.success(`Added to ${successCount} list${pluralizeSuffix(successCount)}`);
+      }
+      if (failedCount > 0) {
+        toast.error(`Failed to add to ${failedCount} list${pluralizeSuffix(failedCount)}`);
+      }
 
       refetch();
       onClose();
@@ -207,59 +248,64 @@ export function AddToListModal({
     }
   };
 
-  const handleCreate = async () => {
-    if (!newName.trim()) return;
-    setIsCreating(true);
+  const handleCreateList = async () => {
+    const trimmedListName = newListName.trim();
+    if (trimmedListName.length === 0) return;
+
+    setIsCreatingNewList(true);
     try {
-      await createList({ name: newName.trim() }, false);
-      setNewName('');
-      setShowCreateForm(false);
+      await createList({ name: trimmedListName }, false);
+      closeCreateForm();
       refetch();
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to create list'));
       console.error('Failed to create list:', error);
     } finally {
-      setIsCreating(false);
+      setIsCreatingNewList(false);
     }
   };
 
-  const handleToggleList = (listId: number, checked: boolean) => {
-    setSelected((prev) => (checked ? [...prev, listId] : prev.filter((id) => id !== listId)));
+  const handleAddToList = (listId: number) => {
+    setSelectedListIds((previousSelectedListIds) => [...previousSelectedListIds, listId]);
   };
 
-  const handleRemove = async (listId: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const list = listDetails.find((l) => l.listId === listId);
-    const item = list?.unifiedDocuments?.find((i) => i.unifiedDocumentId === unifiedDocumentId);
-    if (!item?.listItemId || !list) return;
+  const handleRemoveFromListSelection = (listId: number) => {
+    setSelectedListIds((previousSelectedListIds) =>
+      previousSelectedListIds.filter((id) => id !== listId)
+    );
+  };
 
-    setRemoving(listId);
+  const handleRemoveFromList = async (listId: number, event: React.MouseEvent) => {
+    event.stopPropagation();
+    const listToRemoveFrom = listDetails.find((list) => list.listId === listId);
+    const documentInList = listToRemoveFrom?.unifiedDocuments?.find(
+      (doc) => doc.unifiedDocumentId === unifiedDocumentId
+    );
+
+    if (!documentInList?.listItemId || !listToRemoveFrom) return;
+
+    setRemovingListId(listId);
     try {
-      await ListService.removeItemFromList(listId, item.listItemId);
-      toast.success(`Removed from "${list.name}"`);
-      setSelected((prev) => prev.filter((id) => id !== listId));
+      await ListService.removeItemFromListApi(listId, documentInList.listItemId);
+      toast.success(`Removed from "${listToRemoveFrom.name}"`);
+      setSelectedListIds((previousSelectedListIds) =>
+        previousSelectedListIds.filter((id) => id !== listId)
+      );
       refetch();
     } catch (error) {
-      toast.error(extractApiErrorMessage(error, `Failed to remove from "${list.name}"`));
+      toast.error(
+        extractApiErrorMessage(error, `Failed to remove from "${listToRemoveFrom.name}"`)
+      );
       console.error('Failed to remove item from list:', error);
     } finally {
-      setRemoving(null);
+      setRemovingListId(null);
     }
   };
 
-  const { inLists, notInLists } = listDetails.reduce<{
-    inLists: typeof listDetails;
-    notInLists: typeof listDetails;
-  }>(
-    (acc, list) => {
-      if (listIds.includes(list.listId)) acc.inLists.push(list);
-      else acc.notInLists.push(list);
-      return acc;
-    },
-    { inLists: [], notInLists: [] }
-  );
-  const sorted = [...inLists, ...notInLists];
-  const newCount = selected.filter((id) => !listIds.includes(id)).length;
+  const sortedLists = sortListsByDocumentMembership(listDetails, listIdsContainingDocument);
+  const numberOfNewListsToAddTo = selectedListIds.filter(
+    (id) => !listIdsContainingDocument.includes(id)
+  ).length;
 
   return (
     <BaseModal
@@ -274,12 +320,14 @@ export function AddToListModal({
             Cancel
           </Button>
           <LoadingButton
-            onClick={handleAdd}
-            disabled={!newCount}
+            onClick={handleAddToSelectedLists}
+            disabled={numberOfNewListsToAddTo === 0}
             isLoading={isAdding}
             loadingText="Adding..."
           >
-            {newCount ? `Add to ${newCount} List${pluralizeSuffix(newCount)}` : 'Add to List'}
+            {numberOfNewListsToAddTo > 0
+              ? `Add to ${numberOfNewListsToAddTo} List${pluralizeSuffix(numberOfNewListsToAddTo)}`
+              : 'Add to List'}
           </LoadingButton>
         </div>
       }
@@ -289,27 +337,19 @@ export function AddToListModal({
 
         {isLoading && <ListLoadingSkeleton />}
 
-        {!isLoading && !listDetails.length && !showCreateForm && (
-          <ListEmptyState
-            onFocus={() => {
-              setShowCreateForm(true);
-              setTimeout(() => createInputRef.current?.focus(), 0);
-            }}
-          />
+        {!isLoading && listDetails.length === 0 && !showCreateForm && (
+          <ListEmptyState onFocus={openCreateFormAndFocus} />
         )}
 
         {!isLoading && (listDetails.length > 0 || showCreateForm) && (
           <>
             {showCreateForm && (
               <ListCreateForm
-                value={newName}
-                onChange={setNewName}
-                onSubmit={handleCreate}
-                onCancel={() => {
-                  setShowCreateForm(false);
-                  setNewName('');
-                }}
-                isLoading={isCreating}
+                value={newListName}
+                onChange={setNewListName}
+                onSubmit={handleCreateList}
+                onCancel={closeCreateForm}
+                isLoading={isCreatingNewList}
                 inputRef={createInputRef}
               />
             )}
@@ -317,15 +357,19 @@ export function AddToListModal({
             {!showCreateForm && (
               <>
                 <div className="space-y-2 max-h-[50vh] md:!max-h-72 overflow-y-auto">
-                  {sorted.map((list) => (
+                  {sortedLists.map((list) => (
                     <ListSelectItem
                       key={list.listId}
                       list={list}
-                      isChecked={selected.includes(list.listId)}
-                      isInList={listIds.includes(list.listId)}
-                      isRemoving={removing === list.listId}
-                      onToggle={(checked) => handleToggleList(list.listId, checked)}
-                      onRemove={(e) => handleRemove(list.listId, e)}
+                      isChecked={selectedListIds.includes(list.listId)}
+                      isInList={listIdsContainingDocument.includes(list.listId)}
+                      isRemoving={removingListId === list.listId}
+                      onToggle={(isChecked) =>
+                        isChecked
+                          ? handleAddToList(list.listId)
+                          : handleRemoveFromListSelection(list.listId)
+                      }
+                      onRemove={(event) => handleRemoveFromList(list.listId, event)}
                     />
                   ))}
                 </div>
@@ -333,10 +377,7 @@ export function AddToListModal({
                 <div className="border-t border-gray-200 mt-4 mb-4" />
 
                 <Button
-                  onClick={() => {
-                    setShowCreateForm(true);
-                    setTimeout(() => createInputRef.current?.focus(), 0);
-                  }}
+                  onClick={openCreateFormAndFocus}
                   variant="outlined"
                   className="w-full gap-2"
                 >

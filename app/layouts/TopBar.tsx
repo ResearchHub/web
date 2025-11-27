@@ -109,7 +109,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
-  if (pathname === '/lists') {
+  if (pathname === '/lists' || pathname.startsWith('/list/')) {
     return {
       title: 'Your Lists',
       icon: <FontAwesomeIcon icon={faBookmarkLight} fontSize={24} color="#000" />,

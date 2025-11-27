@@ -9,9 +9,9 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
 
 interface UserListRowProps {
-  list: UserList;
-  onEdit: (list: UserList) => void;
-  onDelete: (list: UserList) => void;
+  readonly list: UserList;
+  readonly onEdit: (list: UserList) => void;
+  readonly onDelete: (list: UserList) => void;
 }
 
 export const UserListRow = ({ list, onEdit, onDelete }: UserListRowProps) => (

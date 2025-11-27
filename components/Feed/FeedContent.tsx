@@ -42,6 +42,7 @@ interface FeedContentProps {
   page?: number;
   lastClickedEntryId?: string;
   insertContent?: InsertContentItem[];
+  wrapped?: (item: ReactNode, entry: FeedEntry, index: number) => ReactNode;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -68,6 +69,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   page,
   lastClickedEntryId,
   insertContent,
+  wrapped,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -139,26 +141,32 @@ export const FeedContent: FC<FeedContentProps> = ({
                 }
               }
 
+              const feedItem = (
+                <FeedEntryItem
+                  entry={entry}
+                  index={index}
+                  disableCardLinks={disableCardLinks}
+                  showBountyFooter={showBountyFooter}
+                  hideActions={hideActions}
+                  showBountySupportAndCTAButtons={showBountySupportAndCTAButtons}
+                  showBountyDeadline={showBountyDeadline}
+                  maxLength={maxLength}
+                  showGrantHeaders={showGrantHeaders}
+                  showReadMoreCTA={showReadMoreCTA}
+                  feedView={activeTab}
+                  feedOrdering={ordering}
+                  registerVisibleItem={registerVisibleItem}
+                  unregisterVisibleItem={unregisterVisibleItem}
+                  getVisibleItems={getVisibleItems}
+                  highlights={highlights.length > 0 ? highlights : undefined}
+                />
+              );
+
+              const effectiveFeedItem = wrapped ? wrapped(feedItem, entry, index) : feedItem;
+
               return (
                 <React.Fragment key={`${entry.id}-${index}`}>
-                  <FeedEntryItem
-                    entry={entry}
-                    index={index}
-                    disableCardLinks={disableCardLinks}
-                    showBountyFooter={showBountyFooter}
-                    hideActions={hideActions}
-                    showBountySupportAndCTAButtons={showBountySupportAndCTAButtons}
-                    showBountyDeadline={showBountyDeadline}
-                    maxLength={maxLength}
-                    showGrantHeaders={showGrantHeaders}
-                    showReadMoreCTA={showReadMoreCTA}
-                    feedView={activeTab}
-                    feedOrdering={ordering}
-                    registerVisibleItem={registerVisibleItem}
-                    unregisterVisibleItem={unregisterVisibleItem}
-                    getVisibleItems={getVisibleItems}
-                    highlights={highlights.length > 0 ? highlights : undefined}
-                  />
+                  {effectiveFeedItem}
                   {contentToInsert && (
                     <div key={`insert-content-${index}`} className="mt-12">
                       {contentToInsert.content}
