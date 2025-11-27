@@ -291,7 +291,7 @@ export const transformAuthorSuggestion = (raw: any): AuthorSuggestion => {
 
 export const transformAuthorSuggestions = (raw: any): AuthorSuggestion[] => {
   const authorSuggestions: AuthorSuggestion[] = [];
-  const suggestions = raw.suggestion_phrases__completion;
+  const suggestions = raw.suggestion_phrases__completion || raw.suggestion_phrases || [];
 
   if (Array.isArray(suggestions)) {
     suggestions.forEach((suggestion: any) => {
