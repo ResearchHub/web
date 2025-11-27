@@ -1,23 +1,23 @@
-import { useMemo } from 'react';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { ID } from '@/types/root';
 
 export function useIsInList(unifiedDocumentId: ID) {
   const { overviewLists, isLoadingOverview } = useUserListsContext();
 
-  const documentIdAsNumber = useMemo(() => {
-    if (!unifiedDocumentId) return null;
-    return typeof unifiedDocumentId === 'string' ? Number(unifiedDocumentId) : unifiedDocumentId;
-  }, [unifiedDocumentId]);
+  if (!unifiedDocumentId) {
+    return {
+      isInList: false,
+      isLoading: isLoadingOverview,
+      overviewLists,
+      listIdsContainingDocument: [],
+    };
+  }
 
-  const listIdsContainingDocument = useMemo(() => {
-    if (!documentIdAsNumber) return [];
-    return overviewLists
-      .filter((list) =>
-        list.unifiedDocuments?.some((doc) => doc.unifiedDocumentId === documentIdAsNumber)
-      )
-      .map((list) => list.listId);
-  }, [overviewLists, documentIdAsNumber]);
+  const listIdsContainingDocument = overviewLists
+    .filter((list) =>
+      list.unifiedDocuments?.some((doc) => doc.unifiedDocumentId == unifiedDocumentId)
+    )
+    .map((list) => list.listId);
 
   return {
     isInList: listIdsContainingDocument.length > 0,

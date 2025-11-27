@@ -1,5 +1,6 @@
 import { createTransformer } from '@/types/transformer';
 import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
+import { ID } from '@/types/root';
 export interface ApiSimplifiedListItem {
   list_item_id: number;
   unified_document_id: number;
@@ -125,7 +126,7 @@ export interface UserListsResponse {
 
 export interface UserListOverviewItem {
   listItemId: number;
-  unifiedDocumentId: number;
+  unifiedDocumentId: ID;
 }
 
 export interface UserListOverview {
