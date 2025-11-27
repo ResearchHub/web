@@ -152,34 +152,33 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   };
 
   const addDocumentToList = (listId: number, unifiedDocumentId: number, listItemId: number) => {
-    setOverviewLists((lists) =>
-      lists.map((list) =>
-        list.listId === listId
-          ? {
-              ...list,
-              unifiedDocuments: [
-                ...(list.unifiedDocuments || []),
-                { unifiedDocumentId, listItemId },
-              ],
-            }
-          : list
-      )
-    );
+    const checkAddDocument = (list: UserListOverview) => {
+      if (list.listId !== listId) return list;
+
+      return {
+        ...list,
+        unifiedDocuments: [...(list.unifiedDocuments || []), { unifiedDocumentId, listItemId }],
+      };
+    };
+
+    setOverviewLists((lists) => lists.map(checkAddDocument));
   };
 
   const removeDocumentFromList = (listId: number, unifiedDocumentId: number) => {
-    setOverviewLists((lists) =>
-      lists.map((list) =>
-        list.listId === listId
-          ? {
-              ...list,
-              unifiedDocuments: (list.unifiedDocuments || []).filter(
-                (doc) => doc.unifiedDocumentId !== unifiedDocumentId
-              ),
-            }
-          : list
-      )
-    );
+    const checkRemoveDocument = (list: UserListOverview) => {
+      if (list.listId !== listId) return list;
+
+      const filteredDocuments = (list.unifiedDocuments || []).filter(
+        (doc) => doc.unifiedDocumentId !== unifiedDocumentId
+      );
+
+      return {
+        ...list,
+        unifiedDocuments: filteredDocuments,
+      };
+    };
+
+    setOverviewLists((lists) => lists.map(checkRemoveDocument));
   };
 
   const value = {
