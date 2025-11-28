@@ -11,7 +11,6 @@ import { cn } from '@/utils/styles';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { Icon } from '../ui/icons';
-import { AvatarStack } from '@/components/ui/AvatarStack';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useRouter } from 'next/navigation';
@@ -71,23 +70,23 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
     switch (fundraise.status) {
       case 'COMPLETED':
         return (
-          <span className={`${compact ? 'text-lg' : 'text-sm'} text-green-500 font-semibold`}>
+          <div className={`${compact ? 'text-base' : 'text-sm'} text-green-500 font-semibold`}>
             <span className="hidden mobile:!inline">Fundraise </span>Completed
-          </span>
+          </div>
         );
       case 'CLOSED':
         return (
-          <span className={`${compact ? 'text-lg' : 'text-sm'} text-gray-500 font-semibold`}>
+          <div className={`${compact ? 'text-base' : 'text-sm'} text-gray-500 font-semibold`}>
             <span className="hidden mobile:!inline">Fundraise </span>Closed
-          </span>
+          </div>
         );
       case 'OPEN':
         return isEnded ? (
-          <span className={`${compact ? 'text-lg' : 'text-sm'} text-gray-500 font-semibold`}>
+          <div className={`${compact ? 'text-base' : 'text-sm'} text-gray-500 font-semibold`}>
             Ended
-          </span>
+          </div>
         ) : deadlineText ? (
-          <div className="flex items-center gap-1.5 text-gray-700 font-semibold">
+          <div className="flex items-center gap-1 text-gray-700 font-semibold">
             <Tooltip
               content={formatExactTime(fundraise.endDate!)}
               position="top"
@@ -96,7 +95,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
             >
               <Clock className={`${compact ? 'h-4 w-4' : 'h-4 w-4'} cursor-help`} />
             </Tooltip>
-            <span className={`${compact ? 'text-lg' : 'text-sm'}`}>{deadlineText}</span>
+            <span className={`${compact ? 'text-base' : 'text-sm'}`}>{deadlineText}</span>
           </div>
         ) : null;
       default:
@@ -139,16 +138,16 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   };
 
   const defaultContainerClasses = compact
-    ? 'p-3  bg-white rounded-lg border border-gray-200'
+    ? 'p-2.5 bg-white rounded-lg border border-gray-200'
     : 'p-4 bg-white rounded-lg border border-gray-200';
 
   return (
-    <div className="bg-primary-50 rounded-lg p-4 border border-primary-100 cursor-default">
+    <div className="bg-primary-50 rounded-lg p-3 border border-primary-100 cursor-default">
       {compact ? (
         <div className={cn(defaultContainerClasses, className)}>
-          <div className="flex flex-row flex-wrap items-center justify-between mb-3">
+          <div className="flex flex-row flex-wrap items-start justify-between mb-2">
             <div className="text-left sm:!order-1 order-2 flex sm:!block justify-between w-full sm:!w-auto items-center">
-              <span className="text-gray-500 text-base">Amount Raised</span>
+              <span className="text-gray-500 text-sm mb-0.5 inline-block">Amount Raised</span>
               <div className="flex items-center flex-wrap min-w-0 truncate font-semibold">
                 <CurrencyBadge
                   amount={Math.round(fundraise.amountRaised.rsc)}
@@ -163,7 +162,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   iconSize={24}
                   shorten
                 />
-                <span className="font-semibold text-gray-700 mx-0.5 text-lg px-1">/</span>
+                <span className="font-semibold text-gray-700 mx-0.5 text-base px-1">/</span>
                 <CurrencyBadge
                   amount={Math.round(fundraise.goalAmount.rsc)}
                   variant="text"
@@ -181,40 +180,41 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
             </div>
 
             <div className="flex-shrink-0 whitespace-nowrap text-left sm:!text-right sm:!order-2 order-1 sm:!block flex justify-between w-full sm:!w-auto items-center">
-              <span className="block text-gray-500 text-base">Deadline</span>
+              {isActive && (
+                <span className="block text-gray-500 text-sm mb-0.5 inline-block mb-2">
+                  Deadline
+                </span>
+              )}
               {getStatusDisplay()}
             </div>
           </div>
 
-          <div className="mb-3">
+          <div className="mb-2">
             <Progress value={progressPercentage} variant={getProgressVariant()} size="xs" />
           </div>
 
-          <div className="flex items-center justify-between gap-3">
-            {contributors.length > 0 && (
-              <div className={cn('flex justify-center mobile:!justify-end')}>
-                <ContributorsButton
-                  contributors={contributors}
-                  onContribute={handleContributeClick}
-                  label="Supporters"
-                  size="md"
-                  disableContribute={!isActive}
-                  variant="count"
-                />
-              </div>
-            )}
+          {isActive && (
+            <div className="flex items-center justify-between gap-2">
+              {contributors.length > 0 && (
+                <div className={cn('flex justify-center mobile:!justify-end')}>
+                  <span className="text-sm text-gray-700">
+                    {contributors.length} {contributors.length === 1 ? 'Supporter' : 'Supporters'}
+                  </span>
+                </div>
+              )}
 
-            {contributors.length === 0 && <div className="flex-shrink-0"></div>}
+              {contributors.length === 0 && <div className="flex-shrink-0"></div>}
 
-            <Button
-              variant="default"
-              size="md"
-              disabled={!isActive}
-              onClick={handleContributeClick}
-            >
-              Fund
-            </Button>
-          </div>
+              <Button
+                variant="default"
+                size="md"
+                disabled={!isActive}
+                onClick={handleContributeClick}
+              >
+                Fund
+              </Button>
+            </div>
+          )}
         </div>
       ) : (
         <div className={cn(defaultContainerClasses, className)}>

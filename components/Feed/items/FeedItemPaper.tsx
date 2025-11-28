@@ -19,8 +19,6 @@ import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { Users, BookText } from 'lucide-react';
 import Icon from '@/components/ui/icons/Icon';
 import { formatTimestamp } from '@/utils/date';
-import { BountyInfo } from '@/components/Bounty/BountyInfo';
-import { Bounty } from '@/types/bounty';
 import { Work } from '@/types/work';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
@@ -32,10 +30,6 @@ interface FeedItemPaperProps {
   showActions?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
-  showBounty?: boolean;
-  bounty?: Bounty;
-  relatedWork?: Work;
-  onAddSolutionClick?: (e: React.MouseEvent) => void;
   showBountyInfoSummary?: boolean;
   highlights?: Highlight[];
 }
@@ -50,10 +44,6 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   showActions = true,
   maxLength,
   onFeedItemClick,
-  showBounty = false,
-  bounty,
-  relatedWork,
-  onAddSolutionClick,
   showBountyInfoSummary = true,
   highlights,
 }) => {
@@ -231,17 +221,6 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               highlightedContent={highlightedSnippet}
               maxLength={maxLength}
             />
-
-            {/* BountyInfo */}
-            {showBounty && bounty && onAddSolutionClick && (
-              <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-                <BountyInfo
-                  bounty={bounty}
-                  relatedWork={relatedWork}
-                  onAddSolutionClick={onAddSolutionClick}
-                />
-              </div>
-            )}
           </>
         }
         rightContent={

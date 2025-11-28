@@ -15,10 +15,7 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { BookText, Users } from 'lucide-react';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { BountyInfo } from '@/components/Bounty/BountyInfo';
-import { Bounty } from '@/types/bounty';
-import { Work } from '@/types/work';
-import { formatTimestamp, isDeadlineInFuture } from '@/utils/date';
+import { formatTimestamp } from '@/utils/date';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
 
 interface FeedItemPostProps {
@@ -28,8 +25,6 @@ interface FeedItemPostProps {
   showActions?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
-  relatedWork?: Work;
-  onAddSolutionClick?: (e: React.MouseEvent) => void;
   showBountyInfoSummary?: boolean;
   highlights?: Highlight[];
 }
@@ -44,8 +39,6 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   showActions = true,
   maxLength,
   onFeedItemClick,
-  relatedWork,
-  onAddSolutionClick,
   showBountyInfoSummary = true,
   highlights,
 }) => {

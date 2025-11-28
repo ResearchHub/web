@@ -302,11 +302,11 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   // Handler for bounty details click
   const handleBountyDetailsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (href) {
-      // Navigate to bounties tab
-      router.push(`${href}/bounties`);
-    } else if (onFeedItemClick) {
+    if (onFeedItemClick) {
       onFeedItemClick();
+    }
+    if (href) {
+      router.push(href);
     }
   };
 

@@ -203,57 +203,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
         break;
 
       case 'BOUNTY':
-        // Transform bounty entry to Post/Paper with bounty info
         const bountyEntry = entry.content as FeedBountyContent;
-
-        // Handle CTA button click (Add Review/Add Solution)
-        const handleSolution = (e: React.MouseEvent) => {
-          e.preventDefault();
-          e.stopPropagation();
-
-          let workId: string | number | undefined;
-          let workSlug: string | undefined;
-          let workContentType: string | undefined;
-          let workPostType: string | undefined;
-
-          if (entry.relatedWork) {
-            workId = entry.relatedWork.id;
-            workSlug = entry.relatedWork.slug;
-            workContentType = entry.relatedWork.contentType;
-            workPostType = entry.relatedWork.postType;
-          } else {
-            const { id: paramId, slug: paramSlug } = params;
-            workId = paramId as string | number | undefined;
-            workSlug = paramSlug as string | undefined;
-            workContentType = bountyEntry.relatedDocumentContentType;
-          }
-
-          if (!workId || !workContentType) {
-            console.error('FeedEntryItem: Unable to determine destination for CTA', {
-              workId,
-              workSlug,
-              workContentType,
-              entry,
-            });
-            return;
-          }
-
-          const targetTab = workPostType === 'QUESTION' ? 'conversation' : 'reviews';
-
-          if (workPostType === 'QUESTION') {
-            workContentType = 'question';
-          }
-
-          const workUrl = buildWorkUrl({
-            id: workId.toString(),
-            contentType: workContentType as any,
-            slug: workSlug,
-            tab: targetTab,
-          });
-          const urlWithFocus = `${workUrl}?focus=true`;
-
-          router.push(urlWithFocus);
-        };
 
         // Determine which component to render based on relatedWork
         const relatedWorkEntry = entry.relatedWork
@@ -288,7 +238,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
                     showActions={showBountyFooter}
                     maxLength={maxLength}
                     onFeedItemClick={handleFeedItemClick}
-                    onAddSolutionClick={handleSolution}
                     highlights={highlights}
                   />
                 ) : (
@@ -298,7 +247,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
                     showActions={showBountyFooter}
                     maxLength={maxLength}
                     onFeedItemClick={handleFeedItemClick}
-                    onAddSolutionClick={handleSolution}
                     highlights={highlights}
                   />
                 ))}

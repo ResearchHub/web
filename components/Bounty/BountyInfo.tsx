@@ -2,16 +2,13 @@
 
 import { FC } from 'react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
-import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Button } from '@/components/ui/Button';
-import { formatDate, formatDeadline, isDeadlineInFuture } from '@/utils/date';
+import { formatDate, isDeadlineInFuture } from '@/utils/date';
 import { Bounty, BountyContribution } from '@/types/bounty';
 import { Work } from '@/types/work';
 import { colors } from '@/app/styles/colors';
 import { cn } from '@/utils/styles';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { MessageSquareReply } from 'lucide-react';
 
 interface BountyInfoProps {
   bounty: Bounty;
@@ -35,7 +32,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
     (bounty.expirationDate ? isDeadlineInFuture(bounty.expirationDate) : true);
   const deadline = bounty.expirationDate ? formatDate(bounty.expirationDate) : undefined;
 
-  // Prepare contributors data for ContributorsButton
+  // Prepare contributors data for count display
   const contributors =
     bounty.contributions?.map((contribution: BountyContribution) => ({
       profile: {
@@ -52,12 +49,12 @@ export const BountyInfo: FC<BountyInfoProps> = ({
   // Get status display for deadline
   const getStatusDisplay = () => {
     if (!isActive) {
-      return <div className="text-lg text-gray-500 font-semibold">Closed</div>;
+      return <div className="text-base text-gray-500 font-semibold">Closed</div>;
     }
     if (deadline) {
       return (
-        <div className="flex items-center gap-1.5 text-gray-700 font-semibold">
-          <span className="text-lg">{deadline}</span>
+        <div className="flex items-center gap-1 text-gray-700 font-semibold">
+          <span className="text-base">{deadline}</span>
         </div>
       );
     }
@@ -86,15 +83,21 @@ export const BountyInfo: FC<BountyInfoProps> = ({
   // Get total amount in RSC
   const totalAmount = bounty.totalAmount ? parseFloat(bounty.totalAmount) : 0;
 
+  // Get contributor count text
+  const getContributorText = () => {
+    const count = contributors.length;
+    return `${count} ${count === 1 ? 'Contributor' : 'Contributors'}`;
+  };
+
   return (
-    <div className="bg-primary-50 rounded-lg p-4 border border-primary-100 cursor-default">
+    <div className="bg-primary-50 rounded-lg p-3 border border-primary-100 cursor-default">
       {/* Top Section: Total Amount and Deadline */}
       <div
-        className={`flex flex-row flex-wrap items-start justify-between ${isStateUnknown ? 'mb-0' : 'mb-3'}`}
+        className={`flex flex-row flex-wrap items-start justify-between ${isStateUnknown ? 'mb-0' : 'mb-2'}`}
       >
         {/* Total Amount */}
         <div className="text-left sm:!order-1 order-2 flex sm:!block justify-between w-full sm:!w-auto items-center">
-          <span className="text-gray-500 text-base mb-1 inline-block">{bountyTitle}</span>
+          <span className="text-gray-500 text-sm mb-0.5 inline-block">{bountyTitle}</span>
           <div className="flex items-center flex-wrap min-w-0 truncate font-semibold">
             <CurrencyBadge
               amount={Math.round(totalAmount)}
@@ -115,7 +118,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
         {/* Deadline */}
         {!isStateUnknown ? (
           <div className="flex-shrink-0 whitespace-nowrap text-left sm:!text-right sm:!order-2 order-1 sm:!block flex justify-between w-full sm:!w-auto items-center">
-            <span className="block text-gray-500 text-base mb-1 inline-block">Deadline</span>
+            <span className="block text-gray-500 text-sm mb-0.5 inline-block">Deadline</span>
             {getStatusDisplay()}
           </div>
         ) : (
@@ -129,19 +132,11 @@ export const BountyInfo: FC<BountyInfoProps> = ({
 
       {/* Bottom Section: Contributors and CTA Buttons */}
       {!isStateUnknown && (
-        <div className="flex items-center justify-between gap-3 border-t border-primary-200 pt-3">
+        <div className="flex items-center justify-between gap-2 border-t border-primary-200 pt-2">
           {/* Contributors */}
           {contributors.length > 0 && (
             <div className={cn('flex justify-center mobile:!justify-end')}>
-              <ContributorsButton
-                contributors={contributors}
-                onContribute={() => {}}
-                label="Contributors"
-                size="md"
-                disableContribute={false}
-                variant="count"
-                customOnClick={() => {}}
-              />
+              <span className="text-sm text-gray-700">{getContributorText()}</span>
             </div>
           )}
 
