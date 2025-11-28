@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 
 interface ListModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  mode: 'create' | 'edit' | 'delete';
-  name: string;
-  onNameChange: (name: string) => void;
-  onSubmit: () => void;
-  isSubmitting: boolean;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly mode: 'create' | 'edit' | 'delete';
+  readonly name: string;
+  readonly onNameChange: (name: string) => void;
+  readonly onSubmit: () => void;
+  readonly isSubmitting: boolean;
 }
 
 const CONFIG = {
@@ -55,7 +55,7 @@ export const ListModal = ({
       padding="p-6"
       footer={footer}
     >
-      <div className="md:min-w-[500px] md:max-w-[500px]">
+      <div className="md:!min-w-[500px] md:!max-w-[500px]">
         {mode === 'delete' ? (
           <p className="text-gray-600">
             Are you sure you want to delete "{name}"? This cannot be undone.
@@ -66,7 +66,13 @@ export const ListModal = ({
             placeholder="Enter list name"
             value={name}
             onChange={(e) => onNameChange(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && name.trim() && onSubmit()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && name.trim()) {
+                e.preventDefault();
+                e.stopPropagation();
+                onSubmit();
+              }
+            }}
             autoFocus
           />
         )}

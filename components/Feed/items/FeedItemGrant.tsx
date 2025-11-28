@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { AuthorProfile, FeedEntry } from '@/types/feed';
+import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import {
   BaseFeedItem,
   TitleSection,
@@ -17,46 +17,7 @@ import { GrantInfo } from '@/components/Grant/GrantInfo';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 
-// Grant-specific content type that extends the feed entry structure
-export interface FeedGrantContent {
-  id: number;
-  contentType: 'GRANT';
-  createdDate: string;
-  textPreview: string;
-  slug: string;
-  title: string;
-  previewImage?: string;
-  authors: any[];
-  topics: any[];
-  createdBy: any;
-  bounties?: any[];
-  reviews?: any[];
-  grant: {
-    id: number;
-    amount: {
-      usd: number;
-      rsc: number;
-      formatted: string;
-    };
-    organization: string;
-    description: string;
-    status: 'OPEN' | 'CLOSED';
-    startDate: string;
-    endDate: string;
-    isExpired: boolean;
-    isActive: boolean;
-    currency: string;
-    createdBy: any; // User
-    applicants: AuthorProfile[];
-  };
-  organization?: string;
-  grantAmount?: {
-    amount: number;
-    currency: string;
-    formatted: string;
-  };
-  isExpired?: boolean;
-}
+import { Highlight } from '@/components/Feed/FeedEntryItem';
 
 interface FeedItemGrantRefactoredProps {
   entry: FeedEntry;
@@ -68,6 +29,7 @@ interface FeedItemGrantRefactoredProps {
   maxLength?: number;
   showHeader?: boolean;
   onFeedItemClick?: () => void;
+  highlights?: Highlight[];
 }
 
 /**
@@ -83,8 +45,13 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
   maxLength,
   showHeader = true,
   onFeedItemClick,
+  highlights,
 }) => {
   const grant = entry.content as FeedGrantContent;
+
+  // Extract highlighted fields from highlights prop
+  const highlightedTitle = highlights?.find((h) => h.field === 'title')?.value;
+  const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
   // Use provided href or create default grant page URL
   const grantPageUrl = href || `/grant/${grant.id}/${grant.slug}`;
@@ -133,7 +100,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection title={grant.title} />
+            <TitleSection title={grant.title} highlightedTitle={highlightedTitle} />
 
             {/* Organization */}
             {(grant.organization || grant.grant?.organization) && (
@@ -167,8 +134,10 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             {/* Description */}
             {(grant.grant?.description || grant.textPreview) && (
               <ContentSection
-                content={grant.grant?.description || grant.textPreview}
+                content={grant.grant.description}
+                highlightedContent={highlightedSnippet}
                 maxLength={maxLength}
+                className="mb-3"
               />
             )}
           </>

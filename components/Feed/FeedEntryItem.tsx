@@ -16,22 +16,17 @@ import { FeedItemPaper } from './items/FeedItemPaper';
 import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
 import { FeedItemGrant } from './items/FeedItemGrant';
-import { FeedItemHeader } from './FeedItemHeader';
-import { FeedItemActions } from './FeedItemActions';
-import { BountySolutions } from '@/components/Bounty/BountySolutions';
-import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
 import { useFeedItemClick } from '@/hooks/useFeedItemClick';
 import { useCallback } from 'react';
 import { getUnifiedDocumentId } from '@/types/analytics';
-import { Work } from '@/types/work';
-import { BountyContribution } from '@/types/bounty';
-import { formatCurrency } from '@/utils/currency';
-import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { buildWorkUrl } from '@/utils/url';
 import { useRouter, useParams } from 'next/navigation';
-import { calculateTotalAwardedAmount } from '@/components/Bounty/lib/bountyUtil';
 import { FeedItemBountyComment } from './items/FeedItemBountyComment';
+
+export interface Highlight {
+  field: string;
+  value: string;
+}
 
 interface FeedEntryItemProps {
   entry: FeedEntry;
@@ -47,6 +42,7 @@ interface FeedEntryItemProps {
   unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
   getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
   shouldRenderBountyAsComment?: boolean;
+  highlights?: Highlight[];
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
@@ -63,12 +59,11 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   unregisterVisibleItem,
   getVisibleItems,
   shouldRenderBountyAsComment = false,
+  highlights,
 }) => {
   const unifiedDocumentId = getUnifiedDocumentId(entry);
   const router = useRouter();
   const params = useParams();
-  const { showUSD } = useCurrencyPreference();
-  const { exchangeRate } = useExchangeRate();
 
   const { ref } = useInView({
     threshold: 0,
@@ -176,6 +171,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             showActions={!hideActions}
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
+            highlights={highlights}
           />
         );
         break;
@@ -201,6 +197,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             showActions={!hideActions}
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
+            highlights={highlights}
           />
         );
         break;
@@ -292,6 +289,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
                     maxLength={maxLength}
                     onFeedItemClick={handleFeedItemClick}
                     onAddSolutionClick={handleSolution}
+                    highlights={highlights}
                   />
                 ) : (
                   <FeedItemPost
@@ -301,6 +299,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
                     maxLength={maxLength}
                     onFeedItemClick={handleFeedItemClick}
                     onAddSolutionClick={handleSolution}
+                    highlights={highlights}
                   />
                 ))}
             </div>
@@ -333,6 +332,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             maxLength={maxLength}
             showHeader={showGrantHeaders}
             onFeedItemClick={handleFeedItemClick}
+            highlights={highlights}
           />
         );
         break;

@@ -23,6 +23,7 @@ import { BountyInfo } from '@/components/Bounty/BountyInfo';
 import { Bounty } from '@/types/bounty';
 import { Work } from '@/types/work';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
+import { Highlight } from '@/components/Feed/FeedEntryItem';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
@@ -36,6 +37,7 @@ interface FeedItemPaperProps {
   relatedWork?: Work;
   onAddSolutionClick?: (e: React.MouseEvent) => void;
   showBountyInfoSummary?: boolean;
+  highlights?: Highlight[];
 }
 
 /**
@@ -53,9 +55,14 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   relatedWork,
   onAddSolutionClick,
   showBountyInfoSummary = true,
+  highlights,
 }) => {
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
+
+  // Extract highlighted fields from highlights prop
+  const highlightedTitle = highlights?.find((h) => h.field === 'title')?.value;
+  const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
   // Get topics/tags for display
   const topics = paper.topics || [];
@@ -190,7 +197,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection title={paper.title} />
+            <TitleSection title={paper.title} highlightedTitle={highlightedTitle} />
 
             {/* Authors */}
             {paper.authors.length > 0 && (
@@ -221,7 +228,11 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               </MetadataSection>
             )}
             {/* Truncated Content */}
-            <ContentSection content={paper.textPreview} maxLength={maxLength} />
+            <ContentSection
+              content={paper.textPreview}
+              highlightedContent={highlightedSnippet}
+              maxLength={maxLength}
+            />
 
             {/* BountyInfo */}
             {showBounty && bounty && onAddSolutionClick && (

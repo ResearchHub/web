@@ -8,7 +8,7 @@ import { useInView } from 'react-intersection-observer';
 import { FeedEntry } from '@/types/feed';
 import { FeedTab, FundingTab } from '@/hooks/useFeed';
 import { TabType } from '@/components/Journal/JournalTabs';
-import { FeedEntryItem } from './FeedEntryItem';
+import { FeedEntryItem, Highlight } from './FeedEntryItem';
 import { getFeedKey } from '@/contexts/NavigationContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { useFeedImpressionTracking } from '@/hooks/useFeedImpressionTracking';
@@ -41,6 +41,7 @@ interface FeedContentProps {
   lastClickedEntryId?: string;
   insertContent?: InsertContentItem[];
   shouldRenderBountyAsComment?: boolean;
+  wrapped?: (item: ReactNode, entry: FeedEntry, index: number) => ReactNode;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -66,6 +67,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   lastClickedEntryId,
   insertContent,
   shouldRenderBountyAsComment,
+  wrapped,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -81,9 +83,11 @@ export const FeedContent: FC<FeedContentProps> = ({
     queryParams[key] = value;
   }
 
+  // Generate feed key from pathname/tab/queryParams
+  // For search pages, explicitly exclude tab portion
   const feedKey = getFeedKey({
     pathname,
-    tab: activeTab,
+    tab: pathname === '/search' ? undefined : activeTab,
     queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
   });
 
@@ -121,23 +125,44 @@ export const FeedContent: FC<FeedContentProps> = ({
             displayEntries.map((entry, index) => {
               const contentToInsert = insertContent?.find((item) => item.index === index);
 
+              // Extract highlights from searchMetadata if present
+              const highlights: Highlight[] = [];
+              if (entry.searchMetadata) {
+                if (entry.searchMetadata.highlightedTitle) {
+                  highlights.push({ field: 'title', value: entry.searchMetadata.highlightedTitle });
+                }
+                if (entry.searchMetadata.highlightedSnippet) {
+                  highlights.push({
+                    field: 'snippet',
+                    value: entry.searchMetadata.highlightedSnippet,
+                  });
+                }
+              }
+
+              const feedItem = (
+                <FeedEntryItem
+                  highlights={highlights}
+                  shouldRenderBountyAsComment={shouldRenderBountyAsComment}
+                  entry={entry}
+                  index={index}
+                  showBountyFooter={showBountyFooter}
+                  hideActions={hideActions}
+                  maxLength={maxLength}
+                  showGrantHeaders={showGrantHeaders}
+                  showFundraiseHeaders={showFundraiseHeaders}
+                  showReadMoreCTA={showReadMoreCTA}
+                  feedOrdering={ordering}
+                  registerVisibleItem={registerVisibleItem}
+                  unregisterVisibleItem={unregisterVisibleItem}
+                  getVisibleItems={getVisibleItems}
+                />
+              );
+
+              const effectiveFeedItem = wrapped ? wrapped(feedItem, entry, index) : feedItem;
+
               return (
                 <React.Fragment key={`${entry.id}-${index}`}>
-                  <FeedEntryItem
-                    shouldRenderBountyAsComment={shouldRenderBountyAsComment}
-                    entry={entry}
-                    index={index}
-                    showBountyFooter={showBountyFooter}
-                    hideActions={hideActions}
-                    maxLength={maxLength}
-                    showGrantHeaders={showGrantHeaders}
-                    showFundraiseHeaders={showFundraiseHeaders}
-                    showReadMoreCTA={showReadMoreCTA}
-                    feedOrdering={ordering}
-                    registerVisibleItem={registerVisibleItem}
-                    unregisterVisibleItem={unregisterVisibleItem}
-                    getVisibleItems={getVisibleItems}
-                  />
+                  {effectiveFeedItem}
                   {contentToInsert && (
                     <div key={`insert-content-${index}`} className="mt-12">
                       {contentToInsert.content}

@@ -12,6 +12,8 @@ import {
   CheckCircle,
   ThumbsDown,
 } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookmark } from '@fortawesome/pro-light-svg-icons';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
@@ -35,7 +37,9 @@ import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useCompleteFundraise } from '@/hooks/useFundraise';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
-
+import { AddToListModal } from '@/components/UserList/AddToListModal';
+import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
+import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
 interface WorkLineItemsProps {
   work: Work;
   showClaimButton?: boolean;
@@ -56,6 +60,7 @@ export const WorkLineItems = ({
   const [isPublishing, setIsPublishing] = useState(false);
   const [showFundraiseActionModal, setShowFundraiseActionModal] = useState(false);
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | null>(null);
+  const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { vote, isVoting } = useVote({
     votableEntityId: work.id,
@@ -76,7 +81,8 @@ export const WorkLineItems = ({
   const { user } = useUser();
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
   const { showShareModal } = useShareModalContext();
-
+  const { isInList, listIdsContainingDocument } = useIsInList(work.unifiedDocumentId);
+  const userListsEnabled = useUserListsEnabled();
   const {
     data: userVotes,
     isLoading: isLoadingVotes,
@@ -341,6 +347,20 @@ export const WorkLineItems = ({
             <Share2 className="h-6 w-6" />
           </button>
 
+          {userListsEnabled && work.unifiedDocumentId && work.postType !== 'QUESTION' && (
+            <button
+              onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+                isInList
+                  ? 'bg-green-50 text-green-600 hover:bg-green-100'
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <FontAwesomeIcon icon={faBookmark} className="h-6 w-6" />
+              <span className="text-sm font-medium">{listIdsContainingDocument.length}</span>
+            </button>
+          )}
+
           {work.contentType !== 'preregistration' && (
             <button
               onClick={() => executeAuthenticatedAction(() => setIsTipModalOpen(true))}
@@ -524,6 +544,14 @@ export const WorkLineItems = ({
         feedContentType={work.contentType === 'paper' ? 'PAPER' : 'POST'}
         onTipSuccess={handleTipSuccess}
       />
+
+      {userListsEnabled && work.unifiedDocumentId && (
+        <AddToListModal
+          isOpen={isAddToListModalOpen}
+          onClose={() => setIsAddToListModalOpen(false)}
+          unifiedDocumentId={work.unifiedDocumentId}
+        />
+      )}
 
       {work.contentType === 'paper' && (
         <WorkEditModal

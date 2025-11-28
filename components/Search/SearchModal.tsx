@@ -5,7 +5,7 @@ import { Search as SearchIcon, X, Command } from 'lucide-react';
 import { SearchSuggestions } from './SearchSuggestions';
 import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { SearchSuggestion } from '@/types/search';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 
 interface SearchModalProps {
@@ -19,6 +19,19 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const hasPrefetchedRef = useRef(false);
+  const navigatingToSearchRef = useRef(false);
+
+  const prefetchSearchRoute = () => {
+    if (!hasPrefetchedRef.current) {
+      try {
+        router.prefetch('/search');
+        hasPrefetchedRef.current = true;
+      } catch {}
+    }
+  };
 
   // Get search suggestions
   const { loading, suggestions } = useSearchSuggestions({
@@ -36,10 +49,13 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
-      // Focus the input when modal opens
+      // Focus the input when modal opens and select all text
       setTimeout(() => {
         inputRef.current?.focus();
+        inputRef.current?.select();
       }, 100);
+      // Prefetch search route to speed up navigation
+      prefetchSearchRoute();
     }
 
     return () => {
@@ -112,18 +128,42 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     }
   };
 
-  // Reset query when modal closes
+  // Reset query when modal closes (but preserve if navigating to search page)
   useEffect(() => {
     if (!isOpen) {
-      setQuery('');
+      // Only clear query if we're not navigating to search page
+      if (!navigatingToSearchRef.current) {
+        setQuery('');
+      }
+      // Reset the flag for next time
+      navigatingToSearchRef.current = false;
     }
   }, [isOpen]);
+
+  // Restore query from URL when modal opens on search page
+  useEffect(() => {
+    if (isOpen) {
+      if (pathname === '/search') {
+        // Always sync with URL when opening modal on search page
+        const urlQuery = searchParams.get('q');
+        if (urlQuery) {
+          setQuery(urlQuery);
+        } else {
+          // Clear query if no q param in URL
+          setQuery('');
+        }
+      } else if (!navigatingToSearchRef.current) {
+        // Clear query when opening modal on non-search pages (unless we just navigated)
+        setQuery('');
+      }
+    }
+  }, [isOpen, pathname, searchParams]);
 
   if (!isOpen) return null;
 
   // Detect OS for keyboard shortcut display
   const isMac =
-    typeof window !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    globalThis.window !== undefined && navigator.userAgent.toUpperCase().includes('MAC');
   const shortcutKey = isMac ? '⌘' : 'Ctrl';
 
   return (
@@ -148,7 +188,35 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 className="h-12 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-8 md:!pr-24 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                onFocus={() => setIsFocused(true)}
+                onClick={(e) => {
+                  // Select all text when clicking on the input
+                  (e.target as HTMLInputElement).select();
+                }}
+                onFocus={() => {
+                  setIsFocused(true);
+                  prefetchSearchRoute();
+                  // Select all text when input receives focus
+                  inputRef.current?.select();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.shiftKey && query.trim()) {
+                    e.preventDefault();
+                    navigatingToSearchRef.current = true;
+
+                    // Scroll to top immediately before navigation
+                    const scrollContainer = document.querySelector(
+                      '.flex-1.flex.flex-col.overflow-y-auto'
+                    ) as HTMLElement;
+                    if (scrollContainer) {
+                      scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                      globalThis.window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+
+                    router.push(`/search?debug&q=${encodeURIComponent(query.trim())}`);
+                    onClose();
+                  }
+                }}
               />
               {/* Keyboard shortcut hint */}
               <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:!flex items-center space-x-1 text-xs text-gray-400">

@@ -7,7 +7,7 @@ import { FeedSource } from '@/types/analytics';
  * Custom hook that extracts feed source and tab information from the current URL.
  *
  * This hook analyzes the URL pathname and search parameters to determine:
- * 1. The feed source (home, earn, fund, journal, topic, author, or unknown)
+ * 1. The feed source (home, earn, fund, journal, topic, author, search, or unknown)
  * 2. The specific tab or section within that source
  *
  * Tab extraction follows this priority order:
@@ -21,6 +21,7 @@ import { FeedSource } from '@/types/analytics';
  * - trending, following, latest, for-you are all treated as 'home' source
  * - Topic pages (/topic/slug) don't use the second path segment as tab
  * - Author pages (/author/[id]) don't use the second path segment as tab
+ * - Search pages (/search) use 'search' as tab (no extraction needed)
  *
  * URL Structure Examples:
  * - /trending → source: 'home', tab: 'trending'
@@ -33,6 +34,7 @@ import { FeedSource } from '@/types/analytics';
  * - /topic/ai?tab=popular → source: 'topic', tab: 'popular'
  * - /fund/needs-funding → source: 'fund', tab: 'needs-funding'
  * - /author/153397?tab=contributions → source: 'author', tab: 'contributions'
+ * - /search?q=ai → source: 'search', tab: 'search'
  */
 
 export interface FeedSourceInfo {
@@ -46,7 +48,15 @@ export interface FeedSourceInfo {
  * @returns true if the source is a valid FeedSource, false otherwise
  */
 function isValidFeedSource(source: string): source is FeedSource {
-  const validSources: FeedSource[] = ['home', 'earn', 'fund', 'journal', 'topic', 'author'];
+  const validSources: FeedSource[] = [
+    'home',
+    'earn',
+    'fund',
+    'journal',
+    'topic',
+    'author',
+    'search',
+  ];
   return validSources.includes(source as FeedSource);
 }
 
@@ -77,10 +87,11 @@ export function useFeedSource(): FeedSourceInfo {
   const isHomeTab = homeTabs.includes(source);
   const isTopicTab = source === 'topic';
   const isAuthorTab = source === 'author';
+  const isSearchTab = source === 'search';
 
   const feedSource = isHomeTab ? 'home' : toFeedSource(source);
 
-  // Extract tab: 1) query param, 2) second path segment, 3) home tab, 4) unknown
+  // Extract tab: 1) query param, 2) second path segment, 3) home tab, 4) search (constant), 5) unknown
   let tab: string;
 
   const queryTab = searchParams.get('tab');
@@ -88,6 +99,9 @@ export function useFeedSource(): FeedSourceInfo {
 
   if (queryTab) {
     tab = queryTab;
+  } else if (isSearchTab) {
+    // For search, use constant 'search' as tab (no extraction needed)
+    tab = 'search';
   } else if (pathTab && !isTopicTab && !isAuthorTab) {
     tab = pathTab;
   } else if (isHomeTab) {

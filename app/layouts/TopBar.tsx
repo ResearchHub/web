@@ -13,23 +13,21 @@ import {
 import { useUser } from '@/contexts/UserContext';
 import { SearchModal } from '@/components/Search/SearchModal';
 import UserMenu from '@/components/menus/UserMenu';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { useAuthenticatedAction, useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { Icon } from '@/components/ui/icons';
-import { Tooltip } from '@/components/ui/Tooltip';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import {
   faHouse as faHouseLight,
   faBookmark as faBookmarkLight,
   faCommentsQuestion,
   faGrid3 as faGrid3Light,
+  faMagnifyingGlass,
 } from '@fortawesome/pro-light-svg-icons';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
-import { colors } from '@/app/styles/colors';
 import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
 import { toTitleCase } from '@/utils/stringUtils';
 import { Hash } from 'lucide-react';
@@ -85,6 +83,15 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
+  // Search page
+  if (pathname === '/search') {
+    return {
+      title: 'Search',
+      subtitle: 'Find papers, grants, authors, and peer reviews',
+      icon: <FontAwesomeIcon icon={faMagnifyingGlass} fontSize={24} color="#000" />,
+    };
+  }
+
   // Specific routes with titles
   if (pathname === '/notifications') {
     return {
@@ -102,7 +109,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
-  if (pathname === '/lists') {
+  if (pathname === '/lists' || pathname.startsWith('/list/')) {
     return {
       title: 'Your Lists',
       icon: <FontAwesomeIcon icon={faBookmarkLight} fontSize={24} color="#000" />,
@@ -319,12 +326,16 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { unreadCount } = useNotifications();
   const goBack = useSmartBack();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [shortcutText, setShortcutText] = useState('Ctrl+K');
   const { showAuthModal } = useAuthModalContext();
+
+  // Get current search query from URL if on search page
+  const currentSearchQuery = pathname === '/search' ? searchParams.get('q') : null;
 
   const pageInfo = getPageInfo(pathname);
 
@@ -375,6 +386,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   };
 
   const renderSearchbarButton = () => {
+    const displayText = currentSearchQuery || 'Search...';
+    const displayTextTablet = currentSearchQuery || 'Search ResearchHub...';
+
     return (
       <div className="relative">
         <button
@@ -382,9 +396,11 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           className="flex items-center w-full md:!w-80 max-w-md mx-auto h-10 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full transition-colors text-left group"
         >
           <SearchIcon className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
-          <span className="text-gray-500 text-sm flex-1">
-            <span className="tablet:!hidden">Search...</span>
-            <span className="hidden tablet:!inline">Search ResearchHub...</span>
+          <span
+            className={`text-sm flex-1 truncate ${currentSearchQuery ? 'text-gray-900' : 'text-gray-500'}`}
+          >
+            <span className="tablet:!hidden">{displayText}</span>
+            <span className="hidden tablet:!inline">{displayTextTablet}</span>
           </span>
           <div className="hidden md:!flex items-center space-x-1 ml-2 flex-shrink-0">
             <span className="text-xs text-gray-400 bg-gray-200 px-2 py-1 rounded font-medium">

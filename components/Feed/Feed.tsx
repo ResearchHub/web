@@ -24,11 +24,11 @@ interface FeedProps {
 }
 
 const getDefaultOrdering = (tab: FeedTab): string | undefined => {
-  if (tab === 'popular') return 'hot_score';
+  if (tab === 'popular') return undefined; // No ordering for trending feed
   if (tab === 'following') return 'hot_score_v2';
   if (tab === 'latest') return 'latest';
-  if (tab === 'for-you') return undefined;
-  return 'hot_score';
+  if (tab === 'for-you') return undefined; // No sorting for personalized feed
+  return undefined; // fallback
 };
 
 export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFilter = true }) => {

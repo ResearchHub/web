@@ -19,6 +19,7 @@ import { BountyInfo } from '@/components/Bounty/BountyInfo';
 import { Bounty } from '@/types/bounty';
 import { Work } from '@/types/work';
 import { formatTimestamp, isDeadlineInFuture } from '@/utils/date';
+import { Highlight } from '@/components/Feed/FeedEntryItem';
 
 interface FeedItemPostProps {
   entry: FeedEntry;
@@ -30,6 +31,7 @@ interface FeedItemPostProps {
   relatedWork?: Work;
   onAddSolutionClick?: (e: React.MouseEvent) => void;
   showBountyInfoSummary?: boolean;
+  highlights?: Highlight[];
 }
 
 /**
@@ -45,9 +47,14 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   relatedWork,
   onAddSolutionClick,
   showBountyInfoSummary = true,
+  highlights,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
+
+  // Extract highlighted fields from highlights prop
+  const highlightedTitle = highlights?.find((h) => h.field === 'title')?.value;
+  const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
   // Get topics/tags for display
   const topics = post.topics || [];
@@ -114,7 +121,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection title={post.title} />
+            <TitleSection title={post.title} highlightedTitle={highlightedTitle} />
 
             <div>
               {/* Authors list below title */}
@@ -144,7 +151,11 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
             </div>
 
             {/* Truncated Content */}
-            <ContentSection content={post.textPreview} maxLength={maxLength} />
+            <ContentSection
+              content={post.textPreview}
+              highlightedContent={highlightedSnippet}
+              maxLength={maxLength}
+            />
           </>
         }
         rightContent={
