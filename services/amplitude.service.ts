@@ -14,7 +14,10 @@ class AmplitudeService {
       return;
     }
 
-    amplitude.init(apiKey, { defaultTracking: false });
+    amplitude.init(apiKey, {
+      defaultTracking: false,
+      serverUrl: process.env.NEXT_PUBLIC_AMPLITUDE_SERVER_URL,
+    });
     this.isInitialized = true;
   }
 
