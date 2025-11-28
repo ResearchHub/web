@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState, ReactNode, useEffect, useRef } from 'react';
+import { FC, useState, ReactNode, useEffect } from 'react';
 import React from 'react';
 import { FeedContentType, Review } from '@/types/feed';
 import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star, ThumbsDown } from 'lucide-react';
@@ -17,18 +17,13 @@ import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { ContentType } from '@/types/work';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useRouter } from 'next/navigation';
-import { TipContentModal } from '@/components/modals/TipContentModal';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
-import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Bounty } from '@/types/bounty';
-import { Tip } from '@/types/tip';
-import { extractBountyAvatars } from '@/components/Bounty/lib/bountyUtil';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useUser } from '@/contexts/UserContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import { dedupeAvatars } from '@/utils/avatarUtil';
 import { cn } from '@/utils/styles';
 import { Topic } from '@/types/topic';
 import { isFeatureEnabled, FeatureFlag } from '@/utils/featureFlags';
@@ -88,12 +83,6 @@ interface ActionButtonProps {
   className?: string;
   showLabel?: boolean;
   showTooltip?: boolean;
-  avatars?: {
-    src: string;
-    alt: string;
-    tooltip?: string;
-    authorId?: number;
-  }[];
 }
 
 // Export ActionButton so it can be used in other components
@@ -108,7 +97,6 @@ export const ActionButton: FC<ActionButtonProps> = ({
   className = '',
   showLabel = false,
   showTooltip = true,
-  avatars = [],
 }) => (
   <Button
     variant="ghost"
@@ -137,17 +125,6 @@ export const ActionButton: FC<ActionButtonProps> = ({
     ) : count !== undefined ? (
       <span className="text-xs md:!text-sm font-medium">{count}</span>
     ) : null}
-
-    {avatars.length > 0 && (
-      <AvatarStack
-        items={avatars}
-        size="xxs"
-        maxItems={3}
-        spacing={-4}
-        className="ml-1"
-        showExtraCount={true}
-      />
-    )}
   </Button>
 );
 
@@ -180,7 +157,6 @@ interface FeedItemActionsProps {
   href?: string; // URL to use for navigation
   reviews?: Review[]; // New property for reviews
   bounties?: Bounty[]; // Updated to use imported Bounty type
-  tips?: Tip[]; // Added tips prop
   awardedBountyAmount?: number; // Add awarded bounty amount
   relatedDocumentTopics?: Topic[];
   relatedDocumentUnifiedDocumentId?: string;
@@ -214,15 +190,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   href,
   reviews = [],
   bounties = [],
-  tips = [],
-  awardedBountyAmount = 0, // Destructure awardedBountyAmount with default value
   relatedDocumentTopics,
   relatedDocumentUnifiedDocumentId,
   showPeerReviews = true,
   onFeedItemClick,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
-  const { user } = useUser(); // Get current user
   const { showUSD } = useCurrencyPreference();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
@@ -231,56 +204,10 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   // State for dropdown menu
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // State for Tip Modal
-  const [tipModalState, setTipModalState] = useState<{ isOpen: boolean; contentId?: number }>({
-    isOpen: false,
-  });
-
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
   const { isInList: isDocumentInList, listIdsContainingDocument } = useIsInList(
     relatedDocumentUnifiedDocumentId
   );
-
-  // Calculate initial tip amount and avatars from props
-  const initialTotalTipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
-  const initialTipAvatars: AvatarItem[] = tips.map((tip) => ({
-    src: tip.user?.authorProfile?.profileImage || '/images/default-avatar.png',
-    alt: tip.user?.fullName || 'User',
-    tooltip: tip.user?.fullName,
-    authorId: tip.user?.authorProfile?.id,
-  }));
-
-  // Local state for tips
-  const [localTotalTipAmount, setLocalTotalTipAmount] = useState(initialTotalTipAmount);
-  const [localTipAvatars, setLocalTipAvatars] = useState<AvatarItem[]>(
-    dedupeAvatars(initialTipAvatars)
-  );
-
-  // Use ref to track previous tips and prevent unnecessary updates
-  const previousTipsRef = useRef<Tip[]>([]);
-
-  // Effect to update local state if props change
-  useEffect(() => {
-    // Check if tips have actually changed in a meaningful way
-    const tipsChanged = tips.length !== previousTipsRef.current.length;
-
-    // Only update if there are meaningful changes
-    if (tipsChanged) {
-      const newTotalTipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
-      const newTipAvatars: AvatarItem[] = tips.map((tip) => ({
-        src: tip.user?.authorProfile?.profileImage || '/images/default-avatar.png',
-        alt: tip.user?.fullName || 'User',
-        tooltip: tip.user?.fullName,
-        authorId: tip.user?.authorProfile?.id,
-      }));
-      setLocalTotalTipAmount(newTotalTipAmount);
-      // Dedupe avatars when updating from props
-      setLocalTipAvatars(dedupeAvatars(newTipAvatars));
-
-      // Update the ref with current tips
-      previousTipsRef.current = [...tips];
-    }
-  }, [tips]); // We can safely use tips here now because we're handling changes properly
 
   const { vote, isVoting } = useVote({
     votableEntityId,
@@ -370,16 +297,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     }
   };
 
-  // Handle opening the tip modal
-  const handleOpenTipModal = (e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-    }
-    executeAuthenticatedAction(() => {
-      setTipModalState({ isOpen: true, contentId: votableEntityId });
-    });
-  };
-
   const handleOpenAddToListModal = (e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation();
@@ -389,30 +306,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   const handleCloseAddToListModal = () => {
     setIsAddToListModalOpen(false);
-  };
-
-  // Handle successful tip
-  const handleTipSuccess = (tippedAmount: number) => {
-    if (!user || !user.authorProfile) return;
-
-    setLocalTotalTipAmount((prevAmount) => prevAmount + tippedAmount);
-
-    const userAlreadyTipped = localTipAvatars.some(
-      (avatar) => avatar.authorId === user.authorProfile?.id
-    );
-
-    if (!userAlreadyTipped) {
-      const newUserAvatar: AvatarItem = {
-        src: user.authorProfile.profileImage || '/images/default-avatar.png',
-        alt: user.fullName || 'User',
-        tooltip: user.fullName,
-        authorId: user.authorProfile.id,
-      };
-      // No need to dedupe here as we explicitly check userAlreadyTipped
-      setLocalTipAvatars((prevAvatars) => [...prevAvatars, newUserAvatar]);
-    }
-
-    setTipModalState({ isOpen: false });
   };
 
   const handleReport = (e?: React.MouseEvent) => {
@@ -468,11 +361,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     tooltip: review.author.fullName,
     authorId: review.author.id,
   }));
-  const dedupedReviewAvatars = dedupeAvatars(rawReviewAvatars);
-
-  // Get and dedupe bounty avatars using the utility function
-  const rawBountyAvatars = extractBountyAvatars(bounties);
-  const dedupedBountyAvatars = dedupeAvatars(rawBountyAvatars);
 
   // Format score to show with one decimal place
   const formatScore = (score: number): string => {
@@ -490,36 +378,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       return total + amount;
     }, 0);
 
-  // Calculate total earned amount (Tips + Awarded Bounty)
-  const totalEarnedAmount = localTotalTipAmount + awardedBountyAmount;
-
   // Use media queries to determine screen size
   const isMobile = useMediaQuery('(max-width: 480px)');
   const isTabletOrSmaller = useMediaQuery('(max-width: 768px)');
-
-  // Prepare Tip menu item for smaller screens
-  const tipMenuItem = {
-    icon: (props: any) => (
-      <Icon
-        name="tipRSC"
-        {...props}
-        size={16} // Slightly smaller icon for menu
-        color={totalEarnedAmount > 0 ? '#16A34A' : undefined}
-      />
-    ),
-    label:
-      totalEarnedAmount > 0
-        ? `Tip / Earned +` // The amount will be handled by count prop
-        : showUSD
-          ? 'Tip USD'
-          : 'Tip RSC',
-    tooltip: showUSD ? 'Tip USD' : 'Tip RSC',
-    onClick: (e?: React.MouseEvent) => {
-      setIsMenuOpen(false); // Close dropdown before opening tip modal
-      handleOpenTipModal(e);
-    },
-    className: totalEarnedAmount > 0 ? 'text-green-600' : '',
-  };
 
   // Prepare Not Interested menu item (only for dismissible content)
   const notInterestedMenuItem = {
@@ -541,11 +402,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     isFeatureEnabled(FeatureFlag.NotInterested);
 
   // Combine menu items, conditionally adding the tip item and not interested item
-  const combinedMenuItems = [
-    ...menuItems,
-    ...(isTabletOrSmaller ? [tipMenuItem] : []),
-    ...(isDismissible ? [notInterestedMenuItem] : []),
-  ];
+  const combinedMenuItems = [...menuItems, ...(isDismissible ? [notInterestedMenuItem] : [])];
 
   // Add separator if needed before Report
   const showSeparator =
@@ -556,7 +413,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const showInlineReviews =
     showPeerReviews && reviews.length > 0 && (!isMobile || (isMobile && !hasOpenBounties));
   const showInlineBounties = hasOpenBounties && (!isMobile || isMobile); // Show bounties on mobile if they exist
-  const showInlineTip = !isTabletOrSmaller;
 
   return (
     <>
@@ -580,7 +436,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               onClick={handleComment}
               showLabel={Boolean(actionLabels?.comment)}
               showTooltip={showTooltips}
-              avatars={commentAvatars}
             />
           )}
           {userListsEnabled &&
@@ -610,7 +465,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               label="Peer Review"
               showTooltip={showTooltips}
               onClick={handleReviewClick}
-              avatars={dedupedReviewAvatars}
             />
           )}
           {showInlineBounties &&
@@ -621,14 +475,10 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     <div
                       className={cn(
                         'p-2 rounded-md flex items-center justify-center',
-                        hasOpenBounties ? 'bg-orange-100' : 'bg-gray-100'
+                        'bg-gray-100'
                       )}
                     >
-                      <Icon
-                        name="earn1"
-                        size={24}
-                        color={hasOpenBounties ? '#F97316' : '#374151'}
-                      />
+                      <Icon name="earn1" size={24} />
                     </div>
                     <div>
                       <div className="font-medium mb-1">ResearchCoin Earning Opportunity</div>
@@ -656,14 +506,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 width="w-[380px]"
               >
                 <ActionButton
-                  icon={(props: any) => (
-                    <Icon
-                      name="earn1"
-                      {...props}
-                      size={18}
-                      color={hasOpenBounties ? '#F97316' : undefined}
-                    />
-                  )}
+                  icon={(props: any) => <Icon name="earn1" {...props} size={18} />}
                   tooltip=""
                   label="Bounties"
                   count={
@@ -671,6 +514,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                       amount={totalBountyAmount}
                       variant="text"
                       size="xs"
+                      textColor="text-gray-900"
+                      iconColor="#111827"
                       currency={showUSD ? 'USD' : 'RSC'}
                       shorten={true}
                       showExchangeRate={false}
@@ -680,24 +525,11 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                   }
                   showTooltip={false}
                   onClick={handleBountyClick}
-                  avatars={dedupedBountyAvatars}
-                  className={
-                    hasOpenBounties
-                      ? 'text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700 mr-0'
-                      : ''
-                  }
                 />
               </Tooltip>
             ) : (
               <ActionButton
-                icon={(props: any) => (
-                  <Icon
-                    name="earn1"
-                    {...props}
-                    size={18}
-                    color={hasOpenBounties ? '#F97316' : undefined}
-                  />
-                )}
+                icon={(props: any) => <Icon name="earn1" {...props} size={18} />}
                 tooltip="Bounties"
                 label="Bounties"
                 count={
@@ -714,49 +546,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 }
                 showTooltip={false}
                 onClick={handleBountyClick}
-                avatars={dedupedBountyAvatars}
-                className={
-                  hasOpenBounties
-                    ? 'text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700'
-                    : ''
-                }
               />
             ))}
-          {showInlineTip && (
-            <ActionButton
-              icon={(props: any) => (
-                <Icon
-                  name="tipRSC"
-                  {...props}
-                  size={16}
-                  color={totalEarnedAmount > 0 ? '#16A34A' : undefined}
-                />
-              )}
-              tooltip={showUSD ? 'Tip USD' : 'Tip RSC'}
-              label="Tip"
-              onClick={handleOpenTipModal}
-              showTooltip={showTooltips}
-              {...(totalEarnedAmount > 0 && {
-                count: (
-                  <span className="flex items-center gap-0.5">
-                    +
-                    <CurrencyBadge
-                      amount={totalEarnedAmount}
-                      variant="text"
-                      size="xs"
-                      currency={showUSD ? 'USD' : 'RSC'}
-                      shorten={true}
-                      showExchangeRate={false}
-                      showIcon={true}
-                      showText={false}
-                    />
-                  </span>
-                ),
-                className: 'text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700',
-                avatars: localTipAvatars,
-              })}
-            />
-          )}
           {children}
         </div>
 
@@ -818,16 +609,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           documentId={contentToFlag.documentId}
           workType={contentToFlag.contentType}
           commentId={contentToFlag.commentId}
-        />
-      )}
-
-      {tipModalState.isOpen && tipModalState.contentId && (
-        <TipContentModal
-          isOpen={tipModalState.isOpen}
-          onClose={() => setTipModalState({ isOpen: false })}
-          contentId={tipModalState.contentId}
-          feedContentType={feedContentType}
-          onTipSuccess={handleTipSuccess}
         />
       )}
 

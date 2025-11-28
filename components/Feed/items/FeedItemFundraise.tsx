@@ -111,10 +111,8 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             {topics.map((topic) => (
               <TopicAndJournalBadge
                 key={topic.id || topic.slug}
-                type="topic"
                 name={topic.name}
                 slug={topic.slug}
-                imageUrl={topic.imageUrl}
               />
             ))}
           </>

@@ -85,10 +85,8 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             {grant.topics?.map((topic) => (
               <TopicAndJournalBadge
                 key={topic.id || topic.slug}
-                type="topic"
                 name={topic.name}
                 slug={topic.slug}
-                imageUrl={topic.imageUrl}
               />
             ))}
           </>
@@ -134,7 +132,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             {/* Description */}
             {(grant.grant?.description || grant.textPreview) && (
               <ContentSection
-                content={grant.grant.description}
+                content={grant.grant?.description || grant.textPreview}
                 highlightedContent={highlightedSnippet}
                 maxLength={maxLength}
                 className="mb-3"

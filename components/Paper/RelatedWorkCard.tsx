@@ -174,11 +174,9 @@ export const RelatedWorkCard = ({
               }}
             >
               <TopicAndJournalBadge
-                type="topic"
                 name={topic.name}
                 slug={topic.slug}
                 disableLink={!!hasCustomHandler || shouldUseClickContext}
-                imageUrl={topic.imageUrl}
               />
             </div>
           );

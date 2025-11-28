@@ -388,7 +388,6 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
               relatedDocumentId={bountyEntry.relatedDocumentId?.toString()}
               relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
               userVote={entry.userVote}
-              tips={entry.tips}
               showTooltips={showTooltips}
               actionLabels={actionLabels}
               menuItems={menuItems}

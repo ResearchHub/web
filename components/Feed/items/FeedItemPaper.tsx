@@ -130,7 +130,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                   <Link href={`/topic/${paper.category.slug}`}>
                     <Badge
                       variant="default"
-                      className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 cursor-pointer font-medium px-2 py-1"
+                      className="text-xs text-gray-700 hover:bg-gray-200 cursor-pointer px-2 py-1"
                     >
                       {paper.category.name}
                     </Badge>
@@ -181,10 +181,8 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                 {topics.map((topic) => (
                   <TopicAndJournalBadge
                     key={topic.id || topic.slug}
-                    type="topic"
                     name={topic.name}
                     slug={topic.slug}
-                    imageUrl={topic.imageUrl}
                   />
                 ))}
               </>

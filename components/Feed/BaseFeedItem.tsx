@@ -111,10 +111,8 @@ export const BadgeSection: FC<BadgeSectionProps> = ({
           tabIndex={onClick ? 0 : undefined}
         >
           <TopicAndJournalBadge
-            type="topic"
             name={topic.name}
             slug={topic.slug ?? topic.name}
-            imageUrl={topic.imageUrl}
             disableLink={!topic.slug}
           />
         </div>

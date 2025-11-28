@@ -76,13 +76,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       <div className="flex items-center gap-2 mb-1">
         {hubDetails && (
           <div className="inline-block">
-            <TopicAndJournalBadge
-              type="topic"
-              name={hubDetails.name}
-              slug={hubDetails.slug}
-              imageUrl={hubDetails.imageUrl}
-              size="sm"
-            />
+            <TopicAndJournalBadge name={hubDetails.name} slug={hubDetails.slug} size="sm" />
           </div>
         )}
         {rscAmount && (
