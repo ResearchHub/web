@@ -4,6 +4,7 @@ import { ListService } from '@/components/UserList/lib/services/list.service';
 import { UserListDetail } from '@/components/UserList/lib/user-list';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { updateListRemoveItem } from '@/components/UserList/lib/listUtils';
+import { ID } from '@/types/root';
 
 const PAGE_SIZE = 20;
 
@@ -11,7 +12,7 @@ interface UseUserListDetailOptions {
   readonly onItemMutated?: () => void;
 }
 
-export function useUserListDetail(listId: number | null, options?: UseUserListDetailOptions) {
+export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
   const [list, setList] = useState<UserListDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -20,15 +21,15 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
 
   const fetchList = async () => {
-    if (!listId) return;
+    if (!id) return;
 
     setIsLoading(true);
     setError(null);
 
     try {
       const [listData, itemsResponse] = await Promise.all([
-        ListService.getListByIdApi(listId),
-        ListService.getListItemsApi(listId, { page: 1, pageSize: PAGE_SIZE }),
+        ListService.getListByIdApi(id),
+        ListService.getListItemsApi(id, { page: 1, pageSize: PAGE_SIZE }),
       ]);
 
       setList({ ...listData, items: itemsResponse.results || [] });
@@ -43,12 +44,12 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
   };
 
   const loadMore = async () => {
-    if (!hasMore || isLoading || isLoadingMore || !listId) return;
+    if (!hasMore || isLoading || isLoadingMore || !list) return;
 
     setIsLoadingMore(true);
 
     try {
-      const itemsResponse = await ListService.getListItemsApi(listId, {
+      const itemsResponse = await ListService.getListItemsApi(list.id, {
         page: currentPageNumber + 1,
         pageSize: PAGE_SIZE,
       });
@@ -69,7 +70,7 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
   };
 
   useEffect(() => {
-    if (listId) {
+    if (id) {
       fetchList();
     } else {
       setList(null);
@@ -80,12 +81,12 @@ export function useUserListDetail(listId: number | null, options?: UseUserListDe
       setCurrentPageNumber(1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listId]);
+  }, [id]);
 
   const removeItem = async (itemId: number) => {
-    if (!listId) return;
+    if (!list) return;
     try {
-      await ListService.removeItemFromListApi(listId, itemId);
+      await ListService.removeItemFromListApi(list.id, itemId);
       setList((previousList) => updateListRemoveItem(previousList, itemId));
       toast.success('Item removed');
       options?.onItemMutated?.();

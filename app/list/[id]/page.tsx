@@ -18,6 +18,7 @@ import { ListModal } from '@/components/modals/ListModal';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { formatItemCount, transformListItemToFeedEntry } from '@/components/UserList/lib/listUtils';
 import { FeedEntry } from '@/types/feed';
+import { ID } from '@/types/root';
 
 interface ModalState {
   readonly isOpen: boolean;
@@ -31,9 +32,9 @@ export default function ListDetailPage() {
   const router = useRouter();
   const params = useParams();
   const { user } = useUser();
-  const listId = params?.id ? Number(params.id) : null;
+  const id = params?.id as ID;
 
-  if (listId === null || isNaN(listId)) {
+  if (!id) {
     notFound();
   }
 
@@ -48,16 +49,16 @@ export default function ListDetailPage() {
     loadMore,
     removeItem,
     updateListDetails,
-  } = useUserListDetail(listId);
+  } = useUserListDetail(id);
 
   const [modal, setModal] = useState<ModalState>(INITIAL_MODAL);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !list && error) {
+    if (error) {
       notFound();
     }
-  }, [isLoading, list, error]);
+  }, [error]);
 
   const openModal = (mode: ModalState['mode'], name: string = '') =>
     setModal({ isOpen: true, mode, name });
