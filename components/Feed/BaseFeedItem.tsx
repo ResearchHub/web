@@ -371,7 +371,11 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
           {/* BountyInfoSummary */}
           {showBountyInfoSummary ? (
             openBounties.length === 1 ? (
-              <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="mt-4"
+                onMouseDown={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+              >
                 <BountyInfo
                   bounty={openBounties[0]}
                   relatedWork={entry.relatedWork}
@@ -379,7 +383,11 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                 />
               </div>
             ) : openBounties.length > 0 ? (
-              <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="mt-4"
+                onMouseDown={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+              >
                 <BountyInfoSummary
                   bounties={openBounties}
                   onDetailsClick={handleBountyDetailsClick}
@@ -392,7 +400,8 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
         {showActions && (
           <div
             className="mt-4 px-4 py-2 border-t border-gray-200 bg-gray-50 cursor-default"
-            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             <FeedItemActions
               metrics={entry.metrics}

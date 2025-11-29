@@ -94,7 +94,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
               width="w-48"
               wrapperClassName="items-center"
             >
-              <Clock className={`${compact ? 'h-4 w-4' : 'h-4 w-4'} cursor-help`} />
+              <Clock className={`${compact ? 'h-5 w-5' : 'h-4 w-4'} cursor-help`} />
             </Tooltip>
             <span className={`${compact ? 'text-base' : 'text-sm'}`}>{deadlineText}</span>
           </div>

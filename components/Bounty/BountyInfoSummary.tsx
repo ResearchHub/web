@@ -29,11 +29,6 @@ export const BountyInfoSummary: FC<BountyInfoSummaryProps> = ({
     [bounties]
   );
 
-  // If no open bounties, don't render anything
-  if (openBounties.length === 0) {
-    return null;
-  }
-
   // Accumulate total amount from all open bounties
   const totalAmount = useMemo(() => {
     return openBounties.reduce((total, bounty) => {
@@ -41,6 +36,11 @@ export const BountyInfoSummary: FC<BountyInfoSummaryProps> = ({
       return total + amount;
     }, 0);
   }, [openBounties]);
+
+  // If no open bounties, don't render anything
+  if (openBounties.length === 0) {
+    return null;
+  }
 
   return (
     <div

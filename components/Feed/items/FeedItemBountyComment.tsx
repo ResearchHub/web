@@ -295,7 +295,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
         showActions={false}
         onFeedItemClick={onFeedItemClick}
       >
-        <div onClick={(e) => e.stopPropagation()}>
+        <div onMouseDown={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
           <BountyMetadataLine
             amount={parseFloat(bounty.totalAmount)}
             expirationDate={bounty.expirationDate}
@@ -307,7 +307,11 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
         </div>
 
         {entry.relatedWork && showRelatedWork && (
-          <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="mt-4"
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
             <RelatedWorkCard
               size="sm"
               work={entry.relatedWork}
@@ -325,7 +329,11 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
         />
 
         {!isOpen && hasSolutions && showSolutions && (
-          <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="mt-4"
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
             <BountySolutions
               solutions={bounty.solutions}
               isPeerReviewBounty={bounty.bountyType === 'REVIEW'}
@@ -338,7 +346,8 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
         {showSupportAndCTAButtons && (
           <div
             className="mt-4 flex items-center gap-2 flex-wrap mobile:flex-wrap flex-nowrap"
-            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
             role="presentation"
             aria-hidden="true"
             tabIndex={-1}
@@ -376,7 +385,8 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
         {showFooter && !shouldHideActions && (
           <div
             className="mt-4 pt-3 border-t border-gray-200"
-            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
             role="presentation"
             aria-hidden="true"
             tabIndex={-1}

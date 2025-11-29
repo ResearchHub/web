@@ -153,7 +153,11 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
         }
       />
       {/* Grant Info */}
-      <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="mt-4"
+        onMouseDown={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
         <GrantInfo grant={grant} onFeedItemClick={onFeedItemClick} />
       </div>
     </BaseFeedItem>
