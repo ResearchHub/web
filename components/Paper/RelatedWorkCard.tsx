@@ -5,6 +5,7 @@ import { truncateText } from '@/utils/stringUtils';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { Topic } from '@/types/topic';
 import { useClickContext } from '@/contexts/ClickContext';
+import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
 import { Fundraise } from '@/types/feed';
 import { TrendingUp, Target } from 'lucide-react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -154,36 +155,39 @@ export const RelatedWorkCard = ({
       {/* Badge and Topics */}
       <div className="flex flex-wrap gap-2 mb-3">
         <ContentTypeBadge size={size} type={getBadgeType()} />
-        {(work.topics || []).slice(0, 2).map((topic) => {
-          // Check if we have custom handlers or if we're on the earn page
-          const hasCustomHandler = onTopicClick;
-          const isEarnPage = pathname === '/earn';
-          const shouldUseClickContext = isEarnPage && !hasCustomHandler;
+        {(work.topics || [])
+          .filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug))
+          .slice(0, 2)
+          .map((topic) => {
+            // Check if we have custom handlers or if we're on the earn page
+            const hasCustomHandler = onTopicClick;
+            const isEarnPage = pathname === '/earn';
+            const shouldUseClickContext = isEarnPage && !hasCustomHandler;
 
-          return (
-            <div
-              key={topic.id || topic.slug}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onTopicClick) {
-                  onTopicClick(topic);
-                } else if (shouldUseClickContext) {
-                  // On earn page without custom handlers, use ClickContext for filtering
-                  triggerEvent({ type: 'topic', payload: topic });
-                }
-                // Otherwise, let the TopicAndJournalBadge handle navigation
-              }}
-            >
-              <TopicAndJournalBadge
-                type="topic"
-                name={topic.name}
-                slug={topic.slug}
-                disableLink={!!hasCustomHandler || shouldUseClickContext}
-                imageUrl={topic.imageUrl}
-              />
-            </div>
-          );
-        })}
+            return (
+              <div
+                key={topic.id || topic.slug}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onTopicClick) {
+                    onTopicClick(topic);
+                  } else if (shouldUseClickContext) {
+                    // On earn page without custom handlers, use ClickContext for filtering
+                    triggerEvent({ type: 'topic', payload: topic });
+                  }
+                  // Otherwise, let the TopicAndJournalBadge handle navigation
+                }}
+              >
+                <TopicAndJournalBadge
+                  type="topic"
+                  name={topic.name}
+                  slug={topic.slug}
+                  disableLink={!!hasCustomHandler || shouldUseClickContext}
+                  imageUrl={topic.imageUrl}
+                />
+              </div>
+            );
+          })}
       </div>
 
       {/* Paper title */}
