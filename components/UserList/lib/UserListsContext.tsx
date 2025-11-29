@@ -11,6 +11,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
+import { ID } from '@/types/root';
 
 interface UserListsContextType {
   lists: UserList[];
@@ -21,14 +22,10 @@ interface UserListsContextType {
   errorLoadingLists: string | null;
   loadMoreLists: () => void;
   createList: (data: CreateListRequest, shouldRefreshLists?: boolean) => Promise<UserList>;
-  updateList: (
-    listId: number,
-    data: UpdateListRequest,
-    shouldRefreshLists?: boolean
-  ) => Promise<UserList>;
-  deleteList: (listId: number, shouldRefreshLists?: boolean) => Promise<void>;
-  addDocumentToList: (listId: number, unifiedDocumentId: number, listItemId: number) => void;
-  removeDocumentFromList: (listId: number, unifiedDocumentId: number) => void;
+  updateList: (id: ID, data: UpdateListRequest, shouldRefreshLists?: boolean) => Promise<UserList>;
+  deleteList: (id: ID, shouldRefreshLists?: boolean) => Promise<void>;
+  addDocumentToList: (id: ID, unifiedDocumentId: ID, listItemId: ID) => void;
+  removeDocumentFromList: (id: ID, unifiedDocumentId: ID) => void;
   overviewLists: UserListOverview[];
   isLoadingOverview: boolean;
   refetchOverview: () => Promise<void>;
@@ -134,26 +131,26 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
       shouldRefreshLists
     );
 
-  const updateList = (listId: number, data: UpdateListRequest, shouldRefreshLists = true) =>
+  const updateList = (id: ID, data: UpdateListRequest, shouldRefreshLists = true) =>
     executeListActionWithToast(
-      () => ListService.updateListApi(listId, data),
+      () => ListService.updateListApi(id, data),
       'List updated',
       'Failed to update list',
       shouldRefreshLists
     );
 
-  const deleteList = async (listId: number, shouldRefreshLists = true): Promise<void> => {
+  const deleteList = async (id: ID, shouldRefreshLists = true): Promise<void> => {
     await executeListActionWithToast(
-      () => ListService.deleteListApi(listId),
+      () => ListService.deleteListApi(id),
       'List deleted',
       'Failed to delete list',
       shouldRefreshLists
     );
   };
 
-  const addDocumentToList = (listId: number, unifiedDocumentId: number, listItemId: number) => {
+  const addDocumentToList = (id: ID, unifiedDocumentId: ID, listItemId: ID) => {
     const checkAddDocument = (list: UserListOverview) => {
-      if (list.listId !== listId) return list;
+      if (list.id !== id) return list;
 
       return {
         ...list,
@@ -164,9 +161,9 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     setOverviewLists((lists) => lists.map(checkAddDocument));
   };
 
-  const removeDocumentFromList = (listId: number, unifiedDocumentId: number) => {
+  const removeDocumentFromList = (id: ID, unifiedDocumentId: ID) => {
     const checkRemoveDocument = (list: UserListOverview) => {
-      if (list.listId !== listId) return list;
+      if (list.id !== id) return list;
 
       const filteredDocuments = (list.unifiedDocuments || []).filter(
         (doc) => doc.unifiedDocumentId !== unifiedDocumentId

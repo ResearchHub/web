@@ -108,11 +108,13 @@ export default function ListsPage() {
   return (
     <PageLayout>
       <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-gray-50/50 to-white pb-20">
-        <ListsPageHeader
-          user={user}
-          totalCount={totalListsCount}
-          onCreateClick={() => openModal('create')}
-        />
+        {!isLoadingLists && (
+          <ListsPageHeader
+            user={user}
+            totalCount={totalListsCount}
+            onCreateClick={() => openModal('create')}
+          />
+        )}
 
         <div className="px-4 sm:!px-8 py-4 max-w-7xl mx-auto">
           {errorLoadingLists && (
@@ -121,7 +123,7 @@ export default function ListsPage() {
             </div>
           )}
           <div>
-            <UserListTableHeader />
+            {!isLoadingLists && lists.length > 0 && <UserListTableHeader />}
             <div className="space-y-1">
               {isLoadingLists &&
                 Array.from({ length: 5 }).map((_, skeletonIndex) => (

@@ -125,12 +125,12 @@ export interface UserListsResponse {
 }
 
 export interface UserListOverviewItem {
-  listItemId: number;
+  listItemId: ID;
   unifiedDocumentId: ID;
 }
 
 export interface UserListOverview {
-  listId: number;
+  id: ID;
   name: string;
   unifiedDocuments: UserListOverviewItem[];
 }
@@ -159,7 +159,7 @@ const transformOverviewItem = (raw: ApiSimplifiedListItem): UserListOverviewItem
 });
 
 const transformOverviewList = (raw: ApiSimplifiedUserList): UserListOverview => ({
-  listId: raw.list_id,
+  id: raw.list_id,
   name: raw.name,
   unifiedDocuments: raw.unified_documents.map(transformOverviewItem),
 });
