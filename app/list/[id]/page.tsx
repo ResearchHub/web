@@ -34,10 +34,6 @@ export default function ListDetailPage() {
   const { user } = useUser();
   const id = params?.id as ID;
 
-  if (!id) {
-    notFound();
-  }
-
   const { updateList, deleteList } = useUserListsContext();
   const {
     list,
