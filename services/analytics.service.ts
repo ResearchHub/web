@@ -49,7 +49,9 @@ class AnalyticsService {
     if (!this.isInitialized.amplitude) {
       try {
         // First time initialization
+
         amplitude.init(apiKey, paddedUserId || undefined, {
+          serverUrl: process.env.NEXT_PUBLIC_AMPLITUDE_SERVER_URL,
           autocapture: {
             pageViews: true,
             sessions: true,

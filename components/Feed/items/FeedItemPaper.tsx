@@ -22,6 +22,7 @@ import { formatTimestamp } from '@/utils/date';
 import { Work } from '@/types/work';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
+import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
@@ -55,7 +56,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
   // Get topics/tags for display
-  const topics = paper.topics || [];
+  const topics = (paper.topics || []).filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
 
   // Helper function to get source logo
   const getSourceLogo = (source: string) => {

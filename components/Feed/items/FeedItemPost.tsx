@@ -17,6 +17,7 @@ import { BookText, Users } from 'lucide-react';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { formatTimestamp } from '@/utils/date';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
+import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
 
 interface FeedItemPostProps {
   entry: FeedEntry;
@@ -52,7 +53,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
   // Get topics/tags for display
-  const topics = post.topics || [];
+  const topics = (post.topics || []).filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
 
   // Convert authors to the format expected by AuthorList
   const authors =
