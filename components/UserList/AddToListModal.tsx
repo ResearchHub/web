@@ -27,9 +27,6 @@ interface AddToListModalProps {
   readonly unifiedDocumentId: number;
 }
 
-const MOBILE_MODAL_HEIGHT_OFFSET = 200;
-const MOBILE_LIST_MAX_HEIGHT_OFFSET = 205;
-
 const TOAST_MESSAGES = {
   ITEM_ADDED: 'Item added.',
   ITEM_REMOVED: 'Item removed',
@@ -296,6 +293,7 @@ export function AddToListModal({
   };
 
   const listsToDisplay = sortedLists.length > 0 ? sortedLists : overviewLists;
+  const showFooter = !isLoading && overviewLists.length > 0 && !showCreateForm;
 
   return (
     <BaseModal
@@ -304,6 +302,9 @@ export function AddToListModal({
       title="Save to…"
       maxWidth="max-w-2xl"
       padding="p-6"
+      footer={
+        showFooter ? <CreateListButton onClick={openCreateFormAndFocus} fullWidth /> : undefined
+      }
     >
       <div
         className={cn(
@@ -311,7 +312,7 @@ export function AddToListModal({
           !isLoading &&
             overviewLists.length === 0 &&
             !showCreateForm &&
-            `h-[calc(100vh-${MOBILE_MODAL_HEIGHT_OFFSET}px)] md:!h-auto md:!min-h-[150px] flex items-center justify-center`
+            'flex items-center justify-center min-h-[150px]'
         )}
       >
         {isLoading && <ListLoadingSkeleton />}
@@ -334,34 +335,24 @@ export function AddToListModal({
             )}
 
             {!showCreateForm && (
-              <>
-                <div
-                  className={`space-y-2 overflow-y-auto max-h-[calc(100vh-${MOBILE_LIST_MAX_HEIGHT_OFFSET}px)] pb-4 md:!pb-0 md:!max-h-72`}
-                >
-                  {listsToDisplay.map((list) => {
-                    const isInList = listIdsContainingDocument.includes(list.listId);
-                    const isCurrentlyToggling = togglingListId === list.listId;
+              <div className="space-y-2 md:!max-h-96 overflow-y-auto">
+                {listsToDisplay.map((list) => {
+                  const isInList = listIdsContainingDocument.includes(list.listId);
+                  const isCurrentlyToggling = togglingListId === list.listId;
 
-                    return (
-                      <ListSelectItem
-                        key={list.listId}
-                        list={list}
-                        listIdsContainingDocument={listIdsContainingDocument}
-                        isRemoving={isCurrentlyToggling}
-                        onToggle={() =>
-                          isInList
-                            ? handleRemoveFromList(list.listId)
-                            : handleAddToList(list.listId)
-                        }
-                      />
-                    );
-                  })}
-                </div>
-
-                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-6 md:!relative md:!p-0 md:!border-t-0 md:!mt-4">
-                  <CreateListButton onClick={openCreateFormAndFocus} fullWidth />
-                </div>
-              </>
+                  return (
+                    <ListSelectItem
+                      key={list.listId}
+                      list={list}
+                      listIdsContainingDocument={listIdsContainingDocument}
+                      isRemoving={isCurrentlyToggling}
+                      onToggle={() =>
+                        isInList ? handleRemoveFromList(list.listId) : handleAddToList(list.listId)
+                      }
+                    />
+                  );
+                })}
+              </div>
             )}
           </>
         )}

@@ -3,5 +3,11 @@
 import { Toaster } from 'react-hot-toast';
 
 export default function ToasterProvider() {
-  return <Toaster />;
+  return (
+    <Toaster
+      containerStyle={{
+        zIndex: 99999,
+      }}
+    />
+  );
 }
