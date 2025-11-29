@@ -302,6 +302,7 @@ export function AddToListModal({
       title="Save to…"
       maxWidth="max-w-2xl"
       padding="p-6"
+      className="!h-[100dvh] md:!h-auto"
       footer={
         showFooter ? <CreateListButton onClick={openCreateFormAndFocus} fullWidth /> : undefined
       }
