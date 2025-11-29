@@ -19,6 +19,7 @@ import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Users, BookText } from 'lucide-react';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
+import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
@@ -52,7 +53,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
   // Get topics/tags for display
-  const topics = paper.topics || [];
+  const topics = (paper.topics || []).filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
 
   // Determine the badge type based on the paper's status
   const getPaperBadgeType = () => {
