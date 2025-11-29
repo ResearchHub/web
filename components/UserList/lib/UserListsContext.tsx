@@ -178,9 +178,8 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
       lists.map((list) => {
         if (list.id !== id) return list;
 
-        const filteredDocuments = (list.unifiedDocuments || []).filter(
-          (doc) => doc.unifiedDocumentId !== unifiedDocumentId
-        );
+        const filteredDocuments =
+          list.unifiedDocuments?.filter((doc) => doc.unifiedDocumentId !== unifiedDocumentId) ?? [];
 
         return {
           ...list,
