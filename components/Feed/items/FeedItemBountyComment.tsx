@@ -31,7 +31,7 @@ import { BaseFeedItem, TitleSection } from '@/components/Feed/BaseFeedItem';
 /**
  * Internal component for rendering bounty details
  */
-const BountyDetails: FC<{
+export const BountyDetails: FC<{
   content: any;
   contentFormat: ContentFormat | undefined;
   bountyType: BountyType;

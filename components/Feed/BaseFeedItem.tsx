@@ -306,7 +306,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
       onFeedItemClick();
     }
     if (href) {
-      router.push(href);
+      router.push(`${href}/bounties`);
     }
   };
 

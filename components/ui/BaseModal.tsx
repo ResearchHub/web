@@ -101,7 +101,7 @@ export const BaseModal: FC<BaseModalProps> = ({
                   // No rounded corners on mobile, rounded on md+ (unless full screen)
                   isFullScreen ? '' : 'md:!rounded-2xl',
                   // Only apply max width on md and up (unless full screen)
-                  isFullScreen ? '' : `md:${maxWidth}`,
+                  isFullScreen ? '' : `${maxWidth}`,
                   // Custom className overrides
                   className
                 )}

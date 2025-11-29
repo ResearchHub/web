@@ -1,30 +1,104 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
+import { BaseModal } from '@/components/ui/BaseModal';
 import { formatDate, isDeadlineInFuture } from '@/utils/date';
-import { Bounty, BountyContribution } from '@/types/bounty';
+import { Bounty, BountyContribution, BountyType, BountyWithComment } from '@/types/bounty';
 import { Work } from '@/types/work';
 import { colors } from '@/app/styles/colors';
 import { cn } from '@/utils/styles';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { ContentFormat } from '@/types/comment';
+import { BountyDetails } from '@/components/Feed/items/FeedItemBountyComment';
+
+interface BountyDetailsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  content: any;
+  contentFormat?: ContentFormat;
+  bountyType: BountyType;
+  totalAmount: number;
+  showUSD: boolean;
+  onAddSolutionClick: (e: React.MouseEvent) => void;
+  buttonText: string;
+  isActive: boolean;
+}
+
+const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  content,
+  contentFormat,
+  bountyType,
+  totalAmount,
+  showUSD,
+  onAddSolutionClick,
+  buttonText,
+  isActive,
+}) => {
+  const handleCTAClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAddSolutionClick(e);
+    onClose();
+  };
+
+  const footer = (
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center gap-2">
+        <span className="text-gray-600 text-sm font-medium">Total Amount:</span>
+        <CurrencyBadge
+          amount={Math.round(totalAmount)}
+          variant="text"
+          size="lg"
+          showText={true}
+          currency={showUSD ? 'USD' : 'RSC'}
+          className="p-0 gap-0"
+          textColor="text-gray-900"
+          showExchangeRate={false}
+          iconColor={colors.gray[700]}
+          iconSize={20}
+          shorten
+        />
+      </div>
+      {isActive && (
+        <Button variant="default" size="md" onClick={handleCTAClick}>
+          {buttonText}
+        </Button>
+      )}
+    </div>
+  );
+
+  return (
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      padding="p-6"
+      maxWidth="max-w-xl"
+      className="md:!min-w-[600px]"
+      footer={footer}
+    >
+      <BountyDetails content={content} contentFormat={contentFormat} bountyType={bountyType} />
+    </BaseModal>
+  );
+};
 
 interface BountyInfoProps {
-  bounty: Bounty;
+  bounty: BountyWithComment;
   relatedWork?: Work;
   onAddSolutionClick: (e: React.MouseEvent) => void;
   isAuthor?: boolean;
-  className?: string;
 }
 
-export const BountyInfo: FC<BountyInfoProps> = ({
-  bounty,
-  relatedWork,
-  onAddSolutionClick,
-  className,
-}) => {
+export const BountyInfo: FC<BountyInfoProps> = ({ bounty, relatedWork, onAddSolutionClick }) => {
+  const bountyCommentContent = bounty?.comment?.content;
+  const bountyCommentContentFormat = bounty?.comment?.contentFormat;
   const { showUSD } = useCurrencyPreference();
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   // Check if bounty is active
   const isActive =
@@ -89,6 +163,16 @@ export const BountyInfo: FC<BountyInfoProps> = ({
     return `${count} ${count === 1 ? 'Contributor' : 'Contributors'}`;
   };
 
+  // Handler for details button click
+  const handleDetailsClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (bountyCommentContent) {
+      setIsDetailsModalOpen(true);
+    } else {
+      onAddSolutionClick(e);
+    }
+  };
+
   return (
     <div className="bg-primary-50 rounded-lg p-3 border border-primary-100 cursor-default">
       {/* Top Section: Total Amount and Deadline */}
@@ -123,7 +207,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
           </div>
         ) : (
           <div className="sm:!order-2 order-1 self-center">
-            <Button variant="outlined" size="md" onClick={onAddSolutionClick}>
+            <Button variant="outlined" size="md" onClick={handleDetailsClick}>
               Details
             </Button>
           </div>
@@ -144,7 +228,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
 
           {/* CTA Buttons */}
           <div className="flex items-center gap-2">
-            <Button variant="outlined" size="md" onClick={onAddSolutionClick}>
+            <Button variant="outlined" size="md" onClick={handleDetailsClick}>
               Details
             </Button>
             {isActive && (
@@ -159,6 +243,23 @@ export const BountyInfo: FC<BountyInfoProps> = ({
             )}
           </div>
         </div>
+      )}
+
+      {/* Bounty Details Modal */}
+      {bountyCommentContent && (
+        <BountyDetailsModal
+          isOpen={isDetailsModalOpen}
+          onClose={() => setIsDetailsModalOpen(false)}
+          title={'Bounty Details'}
+          content={bountyCommentContent}
+          contentFormat={bountyCommentContentFormat}
+          bountyType={bounty.bountyType as BountyType}
+          totalAmount={totalAmount}
+          showUSD={showUSD}
+          onAddSolutionClick={onAddSolutionClick}
+          buttonText={getAddButtonText()}
+          isActive={isActive}
+        />
       )}
     </div>
   );

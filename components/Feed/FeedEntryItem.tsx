@@ -234,7 +234,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
                 (workContentType === 'paper' ? (
                   <FeedItemPaper
                     entry={relatedWorkEntry}
-                    href={href}
+                    href={generateHref(relatedWorkEntry)}
                     showActions={showBountyFooter}
                     maxLength={maxLength}
                     onFeedItemClick={handleFeedItemClick}
@@ -243,7 +243,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
                 ) : (
                   <FeedItemPost
                     entry={relatedWorkEntry}
-                    href={href}
+                    href={generateHref(relatedWorkEntry)}
                     showActions={showBountyFooter}
                     maxLength={maxLength}
                     onFeedItemClick={handleFeedItemClick}

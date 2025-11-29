@@ -3,7 +3,7 @@ import { ContentMetrics } from './metrics';
 import { Topic, transformTopic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
 import { Work, transformPaper, transformPost, FundingRequest, ContentType } from './work';
-import { Bounty, transformBounty } from './bounty';
+import { Bounty, BountyWithComment, transformBounty } from './bounty';
 import { Comment, CommentType, ContentFormat, transformComment } from './comment';
 import { Fundraise, transformFundraise } from './funding';
 import { Journal } from './journal';
@@ -74,7 +74,7 @@ export interface BaseFeedContent {
   contentType: string;
   createdDate: string;
   createdBy: AuthorProfile;
-  bounties?: Bounty[];
+  bounties?: BountyWithComment[];
   reviews?: Review[];
   unifiedDocumentId?: string;
 }
@@ -1108,13 +1108,16 @@ export const createFeedEntryFromWork = (work: Work, originalEntry: FeedEntry): F
 
   const bountyEntry = originalEntry.content as FeedBountyContent;
   const originalBounty = bountyEntry.bounty;
+  const bountyWithComment: BountyWithComment = {
+    ...originalBounty,
+    comment: bountyEntry.comment,
+  };
 
   // Transform Work to FeedPostContent or FeedPaperContent
   if (contentType === 'POST') {
-    const bountyEntry = originalEntry.content as FeedBountyContent;
     const postContent: FeedPostContent = {
       id: work.id,
-      bounties: [originalBounty],
+      bounties: [bountyWithComment],
       contentType: work.postType === 'PREREGISTRATION' ? 'PREREGISTRATION' : 'POST',
       createdDate: work.createdDate,
       createdBy: work.authors?.[0]?.authorProfile || bountyEntry.createdBy,
@@ -1140,10 +1143,9 @@ export const createFeedEntryFromWork = (work: Work, originalEntry: FeedEntry): F
       tips: originalEntry.tips,
     };
   } else if (contentType === 'PAPER') {
-    const bountyEntry = originalEntry.content as FeedBountyContent;
     const paperContent: FeedPaperContent = {
       id: work.id,
-      bounties: [originalBounty],
+      bounties: [bountyWithComment],
       contentType: 'PAPER',
       createdDate: work.createdDate,
       createdBy: work.authors?.[0]?.authorProfile || bountyEntry.createdBy,

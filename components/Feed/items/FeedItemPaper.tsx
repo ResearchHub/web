@@ -115,28 +115,6 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
           <>
             {journalLogo ? (
               <>
-                {/* Category Badge - On following and for-you feeds */}
-                {paper.category && paper.category.slug && (
-                  <Link href={`/topic/${paper.category.slug}`}>
-                    <Badge
-                      variant="default"
-                      className="text-xs text-gray-700 hover:bg-gray-200 cursor-pointer px-2 py-1"
-                    >
-                      {paper.category.name}
-                    </Badge>
-                  </Link>
-                )}
-                {/* Subcategory Badge - On following and for-you feeds */}
-                {paper.subcategory && paper.subcategory.slug && (
-                  <Link href={`/topic/${paper.subcategory.slug}`}>
-                    <Badge
-                      variant="default"
-                      className="text-xs bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer px-2 py-1"
-                    >
-                      {paper.subcategory.name}
-                    </Badge>
-                  </Link>
-                )}
                 {/* Journal Badge - On following and for-you feeds */}
                 {paper.journal && paper.journal.slug && (
                   <Link href={`/topic/${paper.journal.slug}`}>
@@ -161,6 +139,28 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                       ) : (
                         <span className="text-gray-700">{paper.journal.name}</span>
                       )}
+                    </Badge>
+                  </Link>
+                )}
+                {/* Category Badge - On following and for-you feeds */}
+                {paper.category && paper.category.slug && (
+                  <Link href={`/topic/${paper.category.slug}`}>
+                    <Badge
+                      variant="default"
+                      className="text-xs text-gray-700 hover:bg-gray-200 cursor-pointer px-2 py-1"
+                    >
+                      {paper.category.name}
+                    </Badge>
+                  </Link>
+                )}
+                {/* Subcategory Badge - On following and for-you feeds */}
+                {paper.subcategory && paper.subcategory.slug && (
+                  <Link href={`/topic/${paper.subcategory.slug}`}>
+                    <Badge
+                      variant="default"
+                      className="text-xs bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer px-2 py-1"
+                    >
+                      {paper.subcategory.name}
                     </Badge>
                   </Link>
                 )}
