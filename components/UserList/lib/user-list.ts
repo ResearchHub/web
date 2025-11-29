@@ -40,7 +40,7 @@ export interface UserList {
   createdDate: string;
   updatedDate: string;
   createdBy?: number;
-  itemCount?: number;
+  itemCount: number;
 }
 
 export interface UserListItemDocument {
@@ -177,7 +177,7 @@ export const transformUserList = (raw: ApiUserList): UserList => ({
   createdDate: raw.created_date,
   updatedDate: raw.updated_date,
   createdBy: raw.created_by,
-  itemCount: raw.item_count,
+  itemCount: raw.item_count ?? 0,
 });
 
 export const transformUserListsResponse = (raw: ApiUserListsResponse): UserListsResponse => ({
