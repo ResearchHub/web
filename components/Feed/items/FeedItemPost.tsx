@@ -118,24 +118,15 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
               {/* Authors list below title */}
               {authors.length > 0 && (
                 <MetadataSection>
-                  <div className="mt-1 mb-3 flex items-center gap-1.5">
+                  <div className="flex items-start gap-1.5">
                     <Users className="w-4 h-4 text-gray-500" />
                     <AuthorList
                       authors={authors}
                       size="sm"
                       className="text-gray-500 font-normal text-sm"
                       delimiter="•"
+                      timestamp={post.createdDate ? formatTimestamp(post.createdDate) : undefined}
                     />
-                  </div>
-                </MetadataSection>
-              )}
-
-              {/* Date */}
-              {post.createdDate && (
-                <MetadataSection>
-                  <div className="mb-3 text-sm text-gray-500 flex items-center gap-1.5">
-                    <BookText className="w-4 h-4 text-gray-500" />
-                    <span className="text-gray-500">{formatTimestamp(post.createdDate)}</span>
                   </div>
                 </MetadataSection>
               )}

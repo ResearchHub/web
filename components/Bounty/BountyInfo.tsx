@@ -9,6 +9,8 @@ import { Bounty, BountyContribution, BountyType, BountyWithComment } from '@/typ
 import { Work } from '@/types/work';
 import { colors } from '@/app/styles/colors';
 import { cn } from '@/utils/styles';
+import { StatusCard } from '@/components/ui/StatusCard';
+import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { ContentFormat } from '@/types/comment';
 import { BountyDetails } from '@/components/Feed/items/FeedItemBountyComment';
@@ -157,12 +159,6 @@ export const BountyInfo: FC<BountyInfoProps> = ({ bounty, relatedWork, onAddSolu
   // Get total amount in RSC
   const totalAmount = bounty.totalAmount ? parseFloat(bounty.totalAmount) : 0;
 
-  // Get contributor count text
-  const getContributorText = () => {
-    const count = contributors.length;
-    return `${count} ${count === 1 ? 'Contributor' : 'Contributors'}`;
-  };
-
   // Handler for details button click
   const handleDetailsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -174,76 +170,93 @@ export const BountyInfo: FC<BountyInfoProps> = ({ bounty, relatedWork, onAddSolu
   };
 
   return (
-    <div className="bg-primary-50 rounded-lg p-3 border border-primary-100 cursor-default">
-      {/* Top Section: Total Amount and Deadline */}
-      <div
-        className={`flex flex-row flex-wrap items-start justify-between ${isStateUnknown ? 'mb-0' : 'mb-2'}`}
-      >
-        {/* Total Amount */}
-        <div className="text-left sm:!order-1 order-2 flex sm:!block justify-between w-full sm:!w-auto items-center">
-          <span className="text-gray-500 text-sm mb-0.5 inline-block">{bountyTitle}</span>
-          <div className="flex items-center flex-wrap min-w-0 truncate font-semibold">
-            <CurrencyBadge
-              amount={Math.round(totalAmount)}
-              variant="text"
-              size="xl"
-              showText={true}
-              currency={showUSD ? 'USD' : 'RSC'}
-              className="p-0 gap-0"
-              textColor="text-gray-700"
-              showExchangeRate={false}
-              iconColor={colors.gray[700]}
-              iconSize={24}
-              shorten
-            />
+    <>
+      <StatusCard variant={isActive ? 'active' : 'inactive'}>
+        {/* Top Section: Total Amount and Deadline */}
+        <div
+          className={`flex flex-row flex-wrap items-start justify-between ${isStateUnknown ? 'mb-0' : 'mb-2'}`}
+        >
+          {/* Total Amount */}
+          <div className="text-left sm:!order-1 order-2 flex sm:!block justify-between w-full sm:!w-auto items-center">
+            <span className="text-gray-500 text-sm mb-0.5 inline-block">{bountyTitle}</span>
+            <div className="flex items-center flex-wrap min-w-0 truncate font-semibold">
+              <CurrencyBadge
+                amount={Math.round(totalAmount)}
+                variant="text"
+                size="xl"
+                showText={true}
+                currency={showUSD ? 'USD' : 'RSC'}
+                className="p-0 gap-0"
+                textColor="text-gray-700"
+                showExchangeRate={false}
+                iconColor={colors.gray[700]}
+                iconSize={24}
+                shorten
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Deadline */}
-        {!isStateUnknown ? (
-          <div className="flex-shrink-0 whitespace-nowrap text-left sm:!text-right sm:!order-2 order-1 sm:!block flex justify-between w-full sm:!w-auto items-center">
-            <span className="block text-gray-500 text-sm mb-0.5 inline-block">Deadline</span>
-            {getStatusDisplay()}
-          </div>
-        ) : (
-          <div className="sm:!order-2 order-1 self-center">
-            <Button variant="outlined" size="md" onClick={handleDetailsClick}>
-              Details
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* Bottom Section: Contributors and CTA Buttons */}
-      {!isStateUnknown && (
-        <div className="flex items-center justify-between gap-2 border-t border-primary-200 pt-2">
-          {/* Contributors */}
-          {contributors.length > 0 && (
-            <div className={cn('flex justify-center mobile:!justify-end')}>
-              <span className="text-sm text-gray-700">{getContributorText()}</span>
+          {/* Deadline */}
+          {!isStateUnknown ? (
+            <div className="flex-shrink-0 whitespace-nowrap text-left sm:!text-right sm:!order-2 order-1 sm:!block flex justify-between w-full sm:!w-auto items-center">
+              {isActive && (
+                <span className="block text-gray-500 text-sm mb-0.5 inline-block">Deadline</span>
+              )}
+              {getStatusDisplay()}
+            </div>
+          ) : (
+            <div className="sm:!order-2 order-1 self-center">
+              <Button variant="outlined" size="md" onClick={handleDetailsClick}>
+                Details
+              </Button>
             </div>
           )}
-
-          {contributors.length === 0 && <div className="flex-shrink-0"></div>}
-
-          {/* CTA Buttons */}
-          <div className="flex items-center gap-2">
-            <Button variant="outlined" size="md" onClick={handleDetailsClick}>
-              Details
-            </Button>
-            {isActive && (
-              <Button
-                variant="default"
-                size="md"
-                onClick={onAddSolutionClick}
-                className="flex items-center gap-2"
-              >
-                {getAddButtonText()}
-              </Button>
-            )}
-          </div>
         </div>
-      )}
+
+        {/* Bottom Section: Contributors and CTA Buttons */}
+        {!isStateUnknown && (
+          <div
+            className={cn(
+              'flex items-center justify-between gap-2 border-t pt-2',
+              isActive ? 'border-primary-200' : 'border-gray-200'
+            )}
+          >
+            {/* Contributors */}
+            {contributors.length > 0 && (
+              <div className={cn('flex justify-center mobile:!justify-end')}>
+                <ContributorsButton
+                  contributors={contributors}
+                  onContribute={() => {}}
+                  label="Contributors"
+                  size="md"
+                  disableContribute={!isActive}
+                  variant="count"
+                  customOnClick={() => {}}
+                />
+              </div>
+            )}
+
+            {contributors.length === 0 && <div className="flex-shrink-0"></div>}
+
+            {/* CTA Buttons */}
+            <div className="flex items-center gap-2">
+              <Button variant="outlined" size="md" onClick={handleDetailsClick}>
+                Details
+              </Button>
+              {isActive && (
+                <Button
+                  variant="default"
+                  size="md"
+                  onClick={onAddSolutionClick}
+                  className="flex items-center gap-2"
+                >
+                  {getAddButtonText()}
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </StatusCard>
 
       {/* Bounty Details Modal */}
       {bountyCommentContent && (
@@ -261,6 +274,6 @@ export const BountyInfo: FC<BountyInfoProps> = ({ bounty, relatedWork, onAddSolu
           isActive={isActive}
         />
       )}
-    </div>
+    </>
   );
 };

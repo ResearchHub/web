@@ -18,6 +18,7 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 
 import { Highlight } from '@/components/Feed/FeedEntryItem';
+import { formatTimestamp } from '@/utils/date';
 
 interface FeedItemGrantRefactoredProps {
   entry: FeedEntry;
@@ -103,7 +104,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             {/* Organization */}
             {(grant.organization || grant.grant?.organization) && (
               <MetadataSection>
-                <div className="flex items-center gap-1.5 text-sm mb-3 text-gray-500">
+                <div className="flex items-center gap-1.5 text-gray-500">
                   <Building className="w-4 h-4" />
                   <span>{grant.organization || grant.grant?.organization}</span>
                 </div>
@@ -113,7 +114,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             {/* Authors list */}
             {grant.authors.length > 0 && (
               <MetadataSection>
-                <div className="mb-3 flex items-center gap-1.5">
+                <div className="flex items-start gap-1.5">
                   <Users className="w-4 h-4 text-gray-500" />
                   <AuthorList
                     authors={grant.authors.map((author) => ({
@@ -121,9 +122,10 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
                       verified: author.user?.isVerified,
                       authorUrl: author.id === 0 ? undefined : author.profileUrl,
                     }))}
-                    size="xs"
+                    size="sm"
                     className="text-gray-500 font-normal text-sm"
                     delimiter="•"
+                    timestamp={grant.createdDate ? formatTimestamp(grant.createdDate) : undefined}
                   />
                 </div>
               </MetadataSection>
@@ -152,11 +154,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
       />
       {/* Grant Info */}
       <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-        <GrantInfo
-          grant={grant}
-          className="p-0 border-0 bg-transparent"
-          onFeedItemClick={onFeedItemClick}
-        />
+        <GrantInfo grant={grant} onFeedItemClick={onFeedItemClick} />
       </div>
     </BaseFeedItem>
   );

@@ -236,7 +236,7 @@ export const ImageSection: FC<ImageSectionProps> = ({
 };
 
 export const MetadataSection: FC<MetadataSectionProps> = ({ children, className }) => {
-  return <div className={cn('mb-3', className)}>{children}</div>;
+  return <div className={cn('mb-2', className)}>{children}</div>;
 };
 
 export const CTASection: FC<CTASectionProps> = ({ children, className }) => {

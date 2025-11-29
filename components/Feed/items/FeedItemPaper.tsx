@@ -202,16 +202,8 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                     className="text-gray-500 font-normal"
                     delimiter="•"
                     showAbbreviatedInMobile={true}
+                    timestamp={paper.createdDate ? formatTimestamp(paper.createdDate) : undefined}
                   />
-                </div>
-              </MetadataSection>
-            )}
-            {/* Published Date */}
-            {paper.createdDate && (
-              <MetadataSection>
-                <div className="mb-3 text-sm text-gray-500 flex items-center gap-1.5">
-                  <BookText className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-500">{formatTimestamp(paper.createdDate)}</span>
                 </div>
               </MetadataSection>
             )}

@@ -133,20 +133,11 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                   <Users className="w-4 h-4 text-gray-500" />
                   <AuthorList
                     authors={authors}
-                    size="xs"
+                    size="sm"
                     className="text-gray-500 font-normal text-sm"
                     delimiter="•"
+                    timestamp={post.createdDate ? formatTimestamp(post.createdDate) : undefined}
                   />
-                </div>
-              </MetadataSection>
-            )}
-
-            {/* Date */}
-            {post.createdDate && (
-              <MetadataSection>
-                <div className="mb-3 text-sm text-gray-500 flex items-center gap-1.5">
-                  <BookText className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-500">{formatTimestamp(post.createdDate)}</span>
                 </div>
               </MetadataSection>
             )}
@@ -182,7 +173,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             fundraiseTitle={post.title}
             fundraise={post.fundraise}
             compact={true}
-            className="p-0 border-0 bg-transparent"
           />
         </div>
       )}

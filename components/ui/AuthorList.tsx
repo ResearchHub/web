@@ -170,7 +170,7 @@ export const AuthorList = ({
                 setShowAll(false);
               }}
               className={cn(
-                'flex items-center gap-0.5 ml-2 text-blue-500 p-0 h-auto',
+                'flex items-center gap-0.5 ml-2 text-blue-500 p-0 h-auto whitespace-nowrap',
                 getTextSize()
               )}
             >
@@ -236,19 +236,40 @@ export const AuthorList = ({
           {/* Mobile-only abbreviated view - Using flex-nowrap to prevent line breaks */}
           <div className="md:!hidden flex flex-nowrap items-center overflow-hidden">
             {renderMobileAbbreviatedAuthors()}
+            {timestamp && (
+              <>
+                <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
+                <span className={cn('text-gray-500 whitespace-nowrap', getTextSize())}>
+                  {timestamp}
+                </span>
+              </>
+            )}
           </div>
           {/* Desktop-only full view */}
-          <div className="hidden md:!flex md:!flex-wrap md:!items-center">{renderAuthors()}</div>
+          <div className="hidden md:!flex md:!flex-wrap md:!items-center">
+            {renderAuthors()}
+            {timestamp && (
+              <>
+                <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
+                <span className={cn('text-gray-500 whitespace-nowrap', getTextSize())}>
+                  {timestamp}
+                </span>
+              </>
+            )}
+          </div>
         </>
       ) : (
-        renderAuthors()
-      )}
-
-      {timestamp && (
-        <>
-          <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
-          <span className={`text-gray-500 ${getTextSize()}`}>{timestamp}</span>
-        </>
+        <span className="flex flex-wrap items-center">
+          {renderAuthors()}
+          {timestamp && (
+            <>
+              <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
+              <span className={cn('text-gray-500 whitespace-nowrap', getTextSize())}>
+                {timestamp}
+              </span>
+            </>
+          )}
+        </span>
       )}
     </div>
   );
