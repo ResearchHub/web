@@ -158,7 +158,16 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
       };
     };
 
+    const updateAddListItemCount = (list: UserList) => {
+      if (list.id !== id) return list;
+      return {
+        ...list,
+        itemCount: (list.itemCount ?? 0) + 1,
+      };
+    };
+
     setOverviewLists((lists) => lists.map(checkAddDocument));
+    setLists((lists) => lists.map(updateAddListItemCount));
   };
 
   const removeDocumentFromList = (id: ID, unifiedDocumentId: ID) => {
@@ -175,7 +184,16 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
       };
     };
 
+    const updateRemoveListItemCount = (list: UserList) => {
+      if (list.id !== id) return list;
+      return {
+        ...list,
+        itemCount: Math.max((list.itemCount ?? 0) - 1, 0),
+      };
+    };
+
     setOverviewLists((lists) => lists.map(checkRemoveDocument));
+    setLists((lists) => lists.map(updateRemoveListItemCount));
   };
 
   const value = {
