@@ -9,7 +9,7 @@ export function useIsInList(unifiedDocumentId: ID) {
       isInList: false,
       isLoading: isLoadingOverview,
       overviewLists,
-      listIdsContainingDocument: [],
+      listIdsContainingDocument: [] as ID[],
     };
   }
 
@@ -17,7 +17,7 @@ export function useIsInList(unifiedDocumentId: ID) {
     .filter((list) =>
       list.unifiedDocuments?.some((doc) => doc.unifiedDocumentId == unifiedDocumentId)
     )
-    .map((list) => list.listId);
+    .map((list) => list.id);
 
   return {
     isInList: listIdsContainingDocument.length > 0,

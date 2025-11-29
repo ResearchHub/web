@@ -20,11 +20,12 @@ import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { sortListsByDocumentMembership } from '@/components/UserList/lib/listUtils';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
+import { ID } from '@/types/root';
 
 interface AddToListModalProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
-  readonly unifiedDocumentId: number;
+  readonly unifiedDocumentId: ID;
 }
 
 const MOBILE_MODAL_HEIGHT_OFFSET = 200;
@@ -140,7 +141,7 @@ function ListCreateForm({
 
 interface ListSelectItemProps {
   readonly list: UserListOverview;
-  readonly listIdsContainingDocument: number[];
+  readonly listIdsContainingDocument: ID[];
   readonly isRemoving: boolean;
   readonly onToggle: () => void;
 }
@@ -151,7 +152,7 @@ function ListSelectItem({
   isRemoving,
   onToggle,
 }: Readonly<ListSelectItemProps>) {
-  const isInList = listIdsContainingDocument.includes(list.listId);
+  const isInList = listIdsContainingDocument.includes(list.id);
 
   return (
     <button
@@ -189,7 +190,7 @@ export function AddToListModal({
 
   const [newListName, setNewListName] = useState('');
   const [isCreatingList, setIsCreatingList] = useState(false);
-  const [togglingListId, setTogglingListId] = useState<number | null>(null);
+  const [togglingListId, setTogglingListId] = useState<ID | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const createInputRef = useRef<HTMLInputElement>(null);
   const [sortedLists, setSortedLists] = useState<UserListOverview[]>([]);
@@ -236,16 +237,16 @@ export function AddToListModal({
     }
   };
 
-  const handleAddToList = async (listId: number) => {
-    const listToAddTo = overviewLists.find((list) => list.listId === listId);
+  const handleAddToList = async (id: ID) => {
+    const listToAddTo = overviewLists.find((list) => list.id === id);
     if (!listToAddTo) return;
 
-    setTogglingListId(listId);
+    setTogglingListId(id);
     try {
-      const response = await ListService.addItemToListApi(listId, unifiedDocumentId);
-      addDocumentToList(listId, unifiedDocumentId, response.id);
+      const response = await ListService.addItemToListApi(id, unifiedDocumentId);
+      addDocumentToList(id, unifiedDocumentId, response.id);
 
-      const listUrl = `/list/${listId}`;
+      const listUrl = `/list/${id}`;
       toast.success(
         (t) => (
           <div className="flex items-center gap-2">
@@ -272,8 +273,8 @@ export function AddToListModal({
     }
   };
 
-  const handleRemoveFromList = async (listId: number) => {
-    const listToRemoveFrom = overviewLists.find((list) => list.listId === listId);
+  const handleRemoveFromList = async (id: ID) => {
+    const listToRemoveFrom = overviewLists.find((list) => list.id === id);
     if (!listToRemoveFrom) return;
 
     const documentInList = listToRemoveFrom.unifiedDocuments.find(
@@ -282,10 +283,10 @@ export function AddToListModal({
 
     if (!documentInList?.listItemId) return;
 
-    setTogglingListId(listId);
+    setTogglingListId(id);
     try {
-      await ListService.removeItemFromListApi(listId, documentInList.listItemId);
-      removeDocumentFromList(listId, unifiedDocumentId);
+      await ListService.removeItemFromListApi(id, documentInList.listItemId);
+      removeDocumentFromList(id, unifiedDocumentId);
       toast.success(TOAST_MESSAGES.ITEM_REMOVED);
     } catch (error) {
       toast.error(extractApiErrorMessage(error, TOAST_MESSAGES.FAILED_TO_REMOVE_ITEM));
@@ -339,19 +340,17 @@ export function AddToListModal({
                   className={`space-y-2 overflow-y-auto max-h-[calc(100vh-${MOBILE_LIST_MAX_HEIGHT_OFFSET}px)] pb-4 md:!pb-0 md:!max-h-72`}
                 >
                   {listsToDisplay.map((list) => {
-                    const isInList = listIdsContainingDocument.includes(list.listId);
-                    const isCurrentlyToggling = togglingListId === list.listId;
+                    const isInList = listIdsContainingDocument.includes(list.id);
+                    const isCurrentlyToggling = togglingListId === list.id;
 
                     return (
                       <ListSelectItem
-                        key={list.listId}
+                        key={list.id}
                         list={list}
                         listIdsContainingDocument={listIdsContainingDocument}
                         isRemoving={isCurrentlyToggling}
                         onToggle={() =>
-                          isInList
-                            ? handleRemoveFromList(list.listId)
-                            : handleAddToList(list.listId)
+                          isInList ? handleRemoveFromList(list.id) : handleAddToList(list.id)
                         }
                       />
                     );
