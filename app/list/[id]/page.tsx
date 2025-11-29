@@ -1,14 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserListDetail } from '@/components/UserList/lib/hooks/useUserListDetail';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { useUser } from '@/contexts/UserContext';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
-import { FolderPlus, Edit2, Trash2, MoreHorizontal } from 'lucide-react';
+import { Edit2, Trash2, MoreHorizontal } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookmark } from '@fortawesome/pro-light-svg-icons';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ListModal } from '@/components/modals/ListModal';
@@ -29,6 +32,11 @@ export default function ListDetailPage() {
   const params = useParams();
   const { user } = useUser();
   const listId = params?.id ? Number(params.id) : null;
+
+  if (listId === null || isNaN(listId)) {
+    notFound();
+  }
+
   const { updateList, deleteList } = useUserListsContext();
   const {
     list,
@@ -44,6 +52,12 @@ export default function ListDetailPage() {
 
   const [modal, setModal] = useState<ModalState>(INITIAL_MODAL);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && !list && error) {
+      notFound();
+    }
+  }, [isLoading, list, error]);
 
   const openModal = (mode: ModalState['mode'], name: string = '') =>
     setModal({ isOpen: true, mode, name });
@@ -153,18 +167,18 @@ export default function ListDetailPage() {
               wrapped={wrapped}
               noEntriesElement={
                 <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-                  <FolderPlus className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    This list doesn't have any items yet
-                  </h3>
-                  <p className="text-gray-600">Start adding items to this list</p>
+                  <FontAwesomeIcon
+                    icon={faBookmark}
+                    className="w-12 h-12 text-gray-300 mx-auto mb-4"
+                  />
+                  <p className="text-gray-600">No items in this list</p>
                 </div>
               }
             />
           </>
         ) : (
           <>
-            {isLoading ? (
+            {isLoading && (
               <>
                 <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
                   <Skeleton className="h-8 w-48 mb-2" />
@@ -176,10 +190,6 @@ export default function ListDetailPage() {
                   ))}
                 </div>
               </>
-            ) : (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
-                {error || 'List not found'}
-              </div>
             )}
           </>
         )}
