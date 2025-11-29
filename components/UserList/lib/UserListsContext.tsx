@@ -148,34 +148,58 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     );
   };
 
+  const incrementItemCount = (listId: ID) => {
+    setLists((lists) =>
+      lists.map((list) => {
+        if (list.id !== listId) return list;
+        return {
+          ...list,
+          itemCount: list.itemCount + 1,
+        };
+      })
+    );
+  };
+
+  const decrementItemCount = (listId: ID) => {
+    setLists((lists) =>
+      lists.map((list) => {
+        if (list.id !== listId) return list;
+        return {
+          ...list,
+          itemCount: Math.max(list.itemCount - 1, 0),
+        };
+      })
+    );
+  };
+
   const addDocumentToList = (id: ID, unifiedDocumentId: ID, listItemId: ID) => {
-    const checkAddDocument = (list: UserListOverview) => {
-      if (list.id !== id) return list;
-
-      return {
-        ...list,
-        unifiedDocuments: [...(list.unifiedDocuments || []), { unifiedDocumentId, listItemId }],
-      };
-    };
-
-    setOverviewLists((lists) => lists.map(checkAddDocument));
+    setOverviewLists((lists) =>
+      lists.map((list) => {
+        if (list.id !== id) return list;
+        return {
+          ...list,
+          unifiedDocuments: [...(list.unifiedDocuments || []), { unifiedDocumentId, listItemId }],
+        };
+      })
+    );
+    incrementItemCount(id);
   };
 
   const removeDocumentFromList = (id: ID, unifiedDocumentId: ID) => {
-    const checkRemoveDocument = (list: UserListOverview) => {
-      if (list.id !== id) return list;
+    setOverviewLists((lists) =>
+      lists.map((list) => {
+        if (list.id !== id) return list;
 
-      const filteredDocuments = (list.unifiedDocuments || []).filter(
-        (doc) => doc.unifiedDocumentId !== unifiedDocumentId
-      );
+        const filteredDocuments =
+          list.unifiedDocuments?.filter((doc) => doc.unifiedDocumentId !== unifiedDocumentId) ?? [];
 
-      return {
-        ...list,
-        unifiedDocuments: filteredDocuments,
-      };
-    };
-
-    setOverviewLists((lists) => lists.map(checkRemoveDocument));
+        return {
+          ...list,
+          unifiedDocuments: filteredDocuments,
+        };
+      })
+    );
+    decrementItemCount(id);
   };
 
   const value = {
