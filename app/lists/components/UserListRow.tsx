@@ -38,44 +38,41 @@ export const UserListRow = ({ list, onEdit, onDelete }: UserListRowProps) => {
       </span>
       <span className="hidden sm:!block text-sm text-gray-500">{formatItemCount(list)}</span>
       <div className="flex items-center justify-end opacity-100 sm:!opacity-0 sm:group-hover:!opacity-100 transition-opacity">
-        <div
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
+        <BaseMenu
+          trigger={
+            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-600">
+              <MoreHorizontal className="w-5 h-5" />
+            </Button>
+          }
+          align="end"
+          open={isMenuOpen}
+          onOpenChange={setIsMenuOpen}
         >
-          <BaseMenu
-            trigger={
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-600">
-                <MoreHorizontal className="w-5 h-5" />
-              </Button>
-            }
-            align="end"
-            open={isMenuOpen}
-            onOpenChange={setIsMenuOpen}
+          <BaseMenuItem
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsMenuOpen(false);
+              onEdit(list);
+            }}
+            className="flex items-center gap-2"
           >
-            <BaseMenuItem
-              onClick={(e) => {
-                setIsMenuOpen(false);
-                onEdit(list);
-              }}
-              className="flex items-center gap-2"
-            >
-              <Edit2 className="w-4 h-4" />
-              <span>Edit</span>
-            </BaseMenuItem>
-            <BaseMenuItem
-              onClick={(e) => {
-                setIsMenuOpen(false);
-                onDelete(list);
-              }}
-              className="flex items-center gap-2 text-red-600 hover:!text-red-600"
-            >
-              <Trash2 className="w-4 h-4" />
-              <span>Delete</span>
-            </BaseMenuItem>
-          </BaseMenu>
-        </div>
+            <Edit2 className="w-4 h-4" />
+            <span>Edit</span>
+          </BaseMenuItem>
+          <BaseMenuItem
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsMenuOpen(false);
+              onDelete(list);
+            }}
+            className="flex items-center gap-2 text-red-600 hover:!text-red-600"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Delete</span>
+          </BaseMenuItem>
+        </BaseMenu>
       </div>
     </Link>
   );

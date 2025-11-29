@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { notFound } from 'next/navigation';
+import { useRouter, useParams, notFound } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserListDetail } from '@/components/UserList/lib/hooks/useUserListDetail';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
