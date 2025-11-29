@@ -3,8 +3,7 @@
 import { FC, useMemo } from 'react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
-import { Bounty, BountyContribution } from '@/types/bounty';
-import { Work } from '@/types/work';
+import { Bounty } from '@/types/bounty';
 import { colors } from '@/app/styles/colors';
 import { cn } from '@/utils/styles';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -13,7 +12,6 @@ interface BountyInfoSummaryProps {
   bounties: Bounty[];
   onDetailsClick: (e: React.MouseEvent) => void;
   className?: string;
-  relatedWork?: Work;
 }
 
 export const BountyInfoSummary: FC<BountyInfoSummaryProps> = ({
@@ -32,7 +30,7 @@ export const BountyInfoSummary: FC<BountyInfoSummaryProps> = ({
   // Accumulate total amount from all open bounties
   const totalAmount = useMemo(() => {
     return openBounties.reduce((total, bounty) => {
-      const amount = parseFloat(bounty.totalAmount || bounty.amount || '0');
+      const amount = Number.parseFloat(bounty.totalAmount || bounty.amount || '0');
       return total + amount;
     }, 0);
   }, [openBounties]);

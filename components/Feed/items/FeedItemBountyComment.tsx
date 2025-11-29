@@ -138,14 +138,15 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
   // Format the bounty amount for display in the action text
   const formattedBountyAmount = bounty.totalAmount
     ? formatCurrency({
-        amount: parseFloat(bounty.totalAmount),
+        amount: Number.parseFloat(bounty.totalAmount),
         showUSD,
         exchangeRate,
         shorten: true,
       })
     : '';
+  const currencySuffix = showUSD ? '' : 'RSC';
   const bountyActionText = bounty.totalAmount
-    ? `created a bounty for ${formattedBountyAmount} ${showUSD ? '' : 'RSC'}`
+    ? `created a bounty for ${formattedBountyAmount} ${currencySuffix}`
     : 'created a bounty';
 
   // Handle opening the contribute modal
@@ -264,8 +265,8 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
     });
   }
 
-  const shouldHideActions =
-    hideActions || Boolean((entry.raw as any)?.content_object?.comment?.is_removed);
+  const isCommentRemoved = entry.raw?.content_object?.comment?.is_removed ?? false;
+  const shouldHideActions = hideActions || Boolean(isCommentRemoved);
 
   return (
     <div className="space-y-3">
@@ -297,7 +298,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
       >
         <div onMouseDown={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
           <BountyMetadataLine
-            amount={parseFloat(bounty.totalAmount)}
+            amount={Number.parseFloat(bounty.totalAmount)}
             expirationDate={bounty.expirationDate}
             isOpen={isOpen}
             expiringSoon={expiringSoon}
@@ -360,11 +361,16 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
                 onClick={handleSolution}
               >
                 <MessageSquareReply size={16} />
-                {entry.relatedWork?.postType === 'QUESTION'
-                  ? 'Add answer'
-                  : bounty.bountyType === 'REVIEW'
-                    ? 'Add Review'
-                    : 'Add Solution'}
+                {(() => {
+                  if (entry.relatedWork?.postType === 'QUESTION') {
+                    return 'Add answer';
+                  }
+                  if (bounty.bountyType === 'REVIEW') {
+                    return 'Add Review';
+                  }
+
+                  return 'Add Solution';
+                })()}
               </Button>
             )}
             {awardButton}

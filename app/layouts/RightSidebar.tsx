@@ -12,9 +12,7 @@ import { Icon } from '@/components/ui/icons/Icon';
 import { Progress } from '@/components/ui/Progress';
 import type { FeedEntry } from '@/types/feed';
 import Link from 'next/link';
-import { useFeed } from '@/hooks/useFeed';
 import { ArrowRightIcon } from 'lucide-react';
-import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { LeaderboardSkeleton } from '@/components/Leaderboard/LeaderboardOverview';
 
 const LeaderboardOverview = dynamic(

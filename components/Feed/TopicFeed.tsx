@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, useState, useEffect } from 'react';
-import { useParams, useRouter, usePathname, notFound } from 'next/navigation';
+import { useParams, useRouter, notFound } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useFeed, FeedTab } from '@/hooks/useFeed';
 import { useHub } from '@/hooks/useHub';

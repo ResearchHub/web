@@ -5,7 +5,7 @@ import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { formatDate, isDeadlineInFuture } from '@/utils/date';
-import { Bounty, BountyContribution, BountyType, BountyWithComment } from '@/types/bounty';
+import { BountyContribution, BountyType, BountyWithComment } from '@/types/bounty';
 import { Work } from '@/types/work';
 import { colors } from '@/app/styles/colors';
 import { cn } from '@/utils/styles';
@@ -93,7 +93,6 @@ interface BountyInfoProps {
   bounty: BountyWithComment;
   relatedWork?: Work;
   onAddSolutionClick: (e: React.MouseEvent) => void;
-  isAuthor?: boolean;
 }
 
 export const BountyInfo: FC<BountyInfoProps> = ({ bounty, relatedWork, onAddSolutionClick }) => {
@@ -118,7 +117,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({ bounty, relatedWork, onAddSolu
       },
       amount:
         typeof contribution.amount === 'string'
-          ? parseFloat(contribution.amount) || 0
+          ? Number.parseFloat(contribution.amount) || 0
           : contribution.amount || 0,
     })) || [];
 
@@ -157,7 +156,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({ bounty, relatedWork, onAddSolu
   };
 
   // Get total amount in RSC
-  const totalAmount = bounty.totalAmount ? parseFloat(bounty.totalAmount) : 0;
+  const totalAmount = bounty.totalAmount ? Number.parseFloat(bounty.totalAmount) : 0;
 
   // Handler for details button click
   const handleDetailsClick = (e: React.MouseEvent) => {
@@ -197,18 +196,18 @@ export const BountyInfo: FC<BountyInfoProps> = ({ bounty, relatedWork, onAddSolu
           </div>
 
           {/* Deadline */}
-          {!isStateUnknown ? (
+          {isStateUnknown ? (
+            <div className="sm:!order-2 order-1 self-center">
+              <Button variant="outlined" size="md" onClick={handleDetailsClick}>
+                Details
+              </Button>
+            </div>
+          ) : (
             <div className="flex-shrink-0 whitespace-nowrap text-left sm:!text-right sm:!order-2 order-1 sm:!block flex justify-between w-full sm:!w-auto items-center">
               {isActive && (
                 <span className="block text-gray-500 text-sm mb-0.5 inline-block">Deadline</span>
               )}
               {getStatusDisplay()}
-            </div>
-          ) : (
-            <div className="sm:!order-2 order-1 self-center">
-              <Button variant="outlined" size="md" onClick={handleDetailsClick}>
-                Details
-              </Button>
             </div>
           )}
         </div>

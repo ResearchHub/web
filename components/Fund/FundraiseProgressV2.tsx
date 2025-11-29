@@ -82,14 +82,20 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
           </div>
         );
       case 'OPEN':
-        return isEnded ? (
-          <div className={`${compact ? 'text-base' : 'text-sm'} text-gray-500 font-semibold`}>
-            Ended
-          </div>
-        ) : deadlineText ? (
+        if (isEnded) {
+          return (
+            <div className={`${compact ? 'text-base' : 'text-sm'} text-gray-500 font-semibold`}>
+              Ended
+            </div>
+          );
+        }
+        if (!deadlineText || !fundraise.endDate) {
+          return null;
+        }
+        return (
           <div className="flex items-center gap-1 text-gray-700 font-semibold">
             <Tooltip
-              content={formatExactTime(fundraise.endDate!)}
+              content={formatExactTime(fundraise.endDate)}
               position="top"
               width="w-48"
               wrapperClassName="items-center"
@@ -98,7 +104,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
             </Tooltip>
             <span className={`${compact ? 'text-base' : 'text-sm'}`}>{deadlineText}</span>
           </div>
-        ) : null;
+        );
       default:
         return null;
     }

@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import { useInView } from 'react-intersection-observer';
 import {
   FeedCommentContent,
@@ -19,8 +19,6 @@ import { FeedItemGrant } from './items/FeedItemGrant';
 import { useFeedItemClick } from '@/hooks/useFeedItemClick';
 import { useCallback } from 'react';
 import { getUnifiedDocumentId } from '@/types/analytics';
-import { buildWorkUrl } from '@/utils/url';
-import { useRouter, useParams } from 'next/navigation';
 import { FeedItemBountyComment } from './items/FeedItemBountyComment';
 
 export interface Highlight {
@@ -64,8 +62,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   highlights,
 }) => {
   const unifiedDocumentId = getUnifiedDocumentId(entry);
-  const router = useRouter();
-  const params = useParams();
 
   const { ref } = useInView({
     threshold: 0,
@@ -108,19 +104,22 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   const generateHref = (entry: FeedEntry): string | undefined => {
     try {
       switch (entry.contentType) {
-        case 'POST':
+        case 'POST': {
           const postContent = entry.content as FeedPostContent;
           // Check if this is a question based on postType
           if (postContent.postType === 'QUESTION') {
             return `/question/${postContent.id}/${postContent.slug}`;
           }
           return `/post/${postContent.id}/${postContent.slug}`;
-        case 'PREREGISTRATION':
+        }
+        case 'PREREGISTRATION': {
           const fundContent = entry.content as FeedPostContent;
           return `/fund/${fundContent.id}/${fundContent.slug}`;
-        case 'PAPER':
+        }
+        case 'PAPER': {
           const paperContent = entry.content as FeedPaperContent;
           return `/paper/${paperContent.id}/${paperContent.slug}`;
+        }
 
         case 'BOUNTY':
           if (entry.relatedWork?.contentType === 'paper') {
@@ -132,7 +131,8 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             }
             return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/bounties`;
           }
-        case 'COMMENT':
+          break;
+        case 'COMMENT': {
           const comment = entry.content as FeedCommentContent;
           // For comments, we might want to link to the parent content with the comment ID as a hash
           if (entry.relatedWork?.contentType === 'paper') {
@@ -144,10 +144,13 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             }
             return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
           }
+          break;
+        }
 
-        case 'GRANT':
+        case 'GRANT': {
           const grantContent = entry.content as FeedGrantContent;
           return `/grant/${grantContent.id}/${grantContent.slug}`;
+        }
 
         default:
           return undefined;
@@ -205,7 +208,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
         );
         break;
 
-      case 'BOUNTY':
+      case 'BOUNTY': {
         const bountyEntry = entry.content as FeedBountyContent;
 
         // Determine which component to render based on relatedWork
@@ -258,6 +261,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
           );
         }
         break;
+      }
 
       case 'COMMENT':
         // Use FeedItemComment for comment entries

@@ -16,10 +16,9 @@ import {
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Badge } from '@/components/ui/Badge';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { Users, BookText } from 'lucide-react';
+import { Users } from 'lucide-react';
 import Icon from '@/components/ui/icons/Icon';
 import { formatTimestamp } from '@/utils/date';
-import { Work } from '@/types/work';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
 import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';

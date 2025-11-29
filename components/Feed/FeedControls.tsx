@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
-import { ChevronDown, TrendingUp, Clock, Calendar, Settings, Sparkles } from 'lucide-react';
+import { ChevronDown, TrendingUp, Clock, Settings, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/styles';
 
 interface FeedControlsProps {

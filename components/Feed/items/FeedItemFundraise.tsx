@@ -15,7 +15,7 @@ import { AuthorList } from '@/components/ui/AuthorList';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgressV2';
-import { Users, Building, Pin, BookText } from 'lucide-react';
+import { Users, Building, Pin } from 'lucide-react';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { formatTimestamp } from '@/utils/date';
 

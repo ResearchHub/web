@@ -22,7 +22,6 @@ import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { Bounty } from '@/types/bounty';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { useUser } from '@/contexts/UserContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { cn } from '@/utils/styles';
 import { Topic } from '@/types/topic';
@@ -32,6 +31,8 @@ import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserList
 const BookmarkIcon: FC<{ className?: string }> = (props) => (
   <FontAwesomeIcon icon={faBookmark} {...props} />
 );
+
+const BountyIcon: FC<{ size?: number }> = (props) => <Icon name="earn1" {...props} size={18} />;
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -345,23 +346,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     });
   };
 
-  // Get comment avatars if any (assuming no duplicates possible or handled elsewhere)
-  const commentAvatars: AvatarItem[] =
-    metrics?.commentAuthors?.map((author) => ({
-      src: author.profileImage || '/images/default-avatar.png',
-      alt: author.fullName || 'User',
-      tooltip: author.fullName,
-      authorId: author.id,
-    })) || [];
-
-  // Get and dedupe review avatars
-  const rawReviewAvatars: AvatarItem[] = reviews.map((review) => ({
-    src: review.author.profileImage || '/images/default-avatar.png',
-    alt: review.author.fullName || 'Reviewer',
-    tooltip: review.author.fullName,
-    authorId: review.author.id,
-  }));
-
   // Format score to show with one decimal place
   const formatScore = (score: number): string => {
     return score.toFixed(1);
@@ -506,7 +490,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 width="w-[380px]"
               >
                 <ActionButton
-                  icon={(props: any) => <Icon name="earn1" {...props} size={18} />}
+                  icon={BountyIcon}
                   tooltip=""
                   label="Bounties"
                   count={
@@ -529,7 +513,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               </Tooltip>
             ) : (
               <ActionButton
-                icon={(props: any) => <Icon name="earn1" {...props} size={18} />}
+                icon={BountyIcon}
                 tooltip="Bounties"
                 label="Bounties"
                 count={
