@@ -148,13 +148,25 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     );
   };
 
-  const updateListItemCount = (listId: ID, delta: number) => {
+  const incrementItemCount = (listId: ID) => {
     setLists((lists) =>
       lists.map((list) => {
         if (list.id !== listId) return list;
         return {
           ...list,
-          itemCount: Math.max(list.itemCount + delta, 0),
+          itemCount: list.itemCount + 1,
+        };
+      })
+    );
+  };
+
+  const decrementItemCount = (listId: ID) => {
+    setLists((lists) =>
+      lists.map((list) => {
+        if (list.id !== listId) return list;
+        return {
+          ...list,
+          itemCount: Math.max(list.itemCount - 1, 0),
         };
       })
     );
@@ -170,7 +182,7 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
         };
       })
     );
-    updateListItemCount(id, 1);
+    incrementItemCount(id);
   };
 
   const removeDocumentFromList = (id: ID, unifiedDocumentId: ID) => {
@@ -187,7 +199,7 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
         };
       })
     );
-    updateListItemCount(id, -1);
+    decrementItemCount(id);
   };
 
   const value = {
