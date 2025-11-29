@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { UserList } from '@/components/UserList/lib/user-list';
-import { UserListRow, UserListRowSkeleton } from './components/UserListRow';
+import { UserListRow, UserListRowSkeleton, UserListTableHeader } from './components/UserListRow';
 import { ListModal } from '@/components/modals/ListModal';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -50,7 +50,7 @@ function ListsPageHeader({ user, totalCount, onCreateClick }: ListsPageHeaderPro
         </div>
       </div>
       <div className="w-full sm:!w-auto mt-4 sm:!mt-0 sm:!ml-auto">
-        <Button onClick={onCreateClick} variant="outlined" className="w-full sm:!w-auto gap-2">
+        <Button onClick={onCreateClick} className="w-full sm:!w-auto gap-2">
           <Plus className="w-4 h-4" /> Create
         </Button>
       </div>
@@ -120,43 +120,46 @@ export default function ListsPage() {
               {errorLoadingLists}
             </div>
           )}
-          <div className="space-y-1">
-            {isLoadingLists &&
-              Array.from({ length: 5 }).map((_, skeletonIndex) => (
-                <UserListRowSkeleton key={'list-skeleton-' + skeletonIndex} />
-              ))}
-            {!isLoadingLists && lists.length === 0 && (
-              <div className="text-center py-20">
-                <FontAwesomeIcon
-                  icon={faBookmark}
-                  className="w-12 h-12 text-gray-300 mx-auto mb-3"
-                />
-                <p className="text-gray-500 mb-4">You haven't created any lists yet</p>
-                <Button variant="outlined" onClick={() => openModal('create')}>
-                  Create your first list
-                </Button>
-              </div>
-            )}
-            {!isLoadingLists && lists.length > 0 && (
-              <>
-                {lists.map((list) => (
-                  <UserListRow
-                    key={list.id}
-                    list={list}
-                    onEdit={(listToEdit) => openModal('edit', listToEdit)}
-                    onDelete={(listToDelete) => openModal('delete', listToDelete)}
-                  />
+          <div>
+            <UserListTableHeader />
+            <div className="space-y-1">
+              {isLoadingLists &&
+                Array.from({ length: 5 }).map((_, skeletonIndex) => (
+                  <UserListRowSkeleton key={'list-skeleton-' + skeletonIndex} />
                 ))}
-                {isLoadingMoreLists && (
-                  <div className="space-y-1 pt-1">
-                    {Array.from({ length: 3 }).map((_, skeletonIndex) => (
-                      <UserListRowSkeleton key={'list-skeleton-loadmore-' + skeletonIndex} />
-                    ))}
-                  </div>
-                )}
-                {!isLoadingMoreLists && hasMoreLists && <div ref={loadMoreRef} className="h-10" />}
-              </>
-            )}
+              {!isLoadingLists && lists.length === 0 && (
+                <div className="text-center py-20">
+                  <FontAwesomeIcon
+                    icon={faBookmark}
+                    className="w-12 h-12 text-gray-300 mx-auto mb-3"
+                  />
+                  <p className="text-gray-500 mb-4">You haven't created any lists yet</p>
+                  <Button onClick={() => openModal('create')}>Create your first list</Button>
+                </div>
+              )}
+              {!isLoadingLists && lists.length > 0 && (
+                <>
+                  {lists.map((list) => (
+                    <UserListRow
+                      key={list.id}
+                      list={list}
+                      onEdit={(listToEdit) => openModal('edit', listToEdit)}
+                      onDelete={(listToDelete) => openModal('delete', listToDelete)}
+                    />
+                  ))}
+                  {isLoadingMoreLists && (
+                    <div className="space-y-1 pt-1">
+                      {Array.from({ length: 3 }).map((_, skeletonIndex) => (
+                        <UserListRowSkeleton key={'list-skeleton-loadmore-' + skeletonIndex} />
+                      ))}
+                    </div>
+                  )}
+                  {!isLoadingMoreLists && hasMoreLists && (
+                    <div ref={loadMoreRef} className="h-10" />
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
