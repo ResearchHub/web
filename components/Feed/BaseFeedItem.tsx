@@ -1,7 +1,12 @@
 'use client';
 
 import { FC, ReactNode, useState } from 'react';
-import { FeedContentType, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
+import {
+  FeedContentType,
+  FeedEntry,
+  FeedPostContent,
+  mapFeedContentTypeToContentType,
+} from '@/types/feed';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CardWrapper } from './CardWrapper';
@@ -310,6 +315,39 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
     }
   };
 
+  // Handler for Add Solution/Review - redirects to Review/Conversation page and focuses field
+  const handleAddSolutionClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!href) {
+      return;
+    }
+
+    if (onFeedItemClick) {
+      onFeedItemClick();
+    }
+
+    try {
+      // Determine which tab to redirect to based on postType
+      const feedContentType = entry.contentType;
+      const targetTab =
+        feedContentType === 'POST'
+          ? (entry.content as FeedPostContent).postType === 'QUESTION'
+            ? 'conversation'
+            : 'reviews'
+          : 'reviews';
+
+      const urlWithTab = `${href}/${targetTab}`;
+      const urlWithFocus = `${urlWithTab}?focus=true`;
+
+      router.push(urlWithFocus);
+    } catch (error) {
+      // Fallback to just redirecting to href if there's an error
+      router.push(href);
+    }
+  };
+
   // Get open bounties from content
   const openBounties = content.bounties?.filter((bounty) => bounty.status === 'OPEN') || [];
 
@@ -337,7 +375,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                 <BountyInfo
                   bounty={openBounties[0]}
                   relatedWork={entry.relatedWork}
-                  onAddSolutionClick={handleBountyDetailsClick}
+                  onAddSolutionClick={handleAddSolutionClick}
                 />
               </div>
             ) : openBounties.length > 0 ? (

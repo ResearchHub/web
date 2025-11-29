@@ -27,6 +27,7 @@ interface FeedItemPostProps {
   onFeedItemClick?: () => void;
   showBountyInfoSummary?: boolean;
   highlights?: Highlight[];
+  showHeader?: boolean;
 }
 
 /**
@@ -37,6 +38,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   href,
   showTooltips = true,
   showActions = true,
+  showHeader = true,
   maxLength,
   onFeedItemClick,
   showBountyInfoSummary = true,
@@ -68,6 +70,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
       entry={entry}
       href={postPageUrl}
       showActions={showActions}
+      showHeader={showHeader}
       showTooltips={showTooltips}
       customActionText={post.postType === 'QUESTION' ? 'asked a question' : 'published an article'}
       maxLength={maxLength}

@@ -36,6 +36,7 @@ interface FeedEntryItemProps {
   maxLength?: number;
   showGrantHeaders?: boolean;
   showFundraiseHeaders?: boolean;
+  showPostHeaders?: boolean;
   showReadMoreCTA?: boolean;
   feedOrdering?: string;
   registerVisibleItem: (index: number, unifiedDocumentId: string) => void;
@@ -53,6 +54,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   maxLength,
   showGrantHeaders = true,
   showFundraiseHeaders = true,
+  showPostHeaders = true,
   showReadMoreCTA = false,
   feedOrdering,
   registerVisibleItem,
@@ -167,6 +169,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
         content = (
           <FeedItemPost
             entry={entry}
+            showHeader={showPostHeaders}
             href={href}
             showActions={!hideActions}
             maxLength={maxLength}
@@ -243,6 +246,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
                 ) : (
                   <FeedItemPost
                     entry={relatedWorkEntry}
+                    showHeader={showPostHeaders}
                     href={generateHref(relatedWorkEntry)}
                     showActions={showBountyFooter}
                     maxLength={maxLength}

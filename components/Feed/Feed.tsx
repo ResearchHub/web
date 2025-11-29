@@ -198,6 +198,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
       <FeedContent
         showFundraiseHeaders={false}
         showGrantHeaders={false}
+        showPostHeaders={false}
         entries={entries}
         isLoading={combinedIsLoading}
         hasMore={hasMore}

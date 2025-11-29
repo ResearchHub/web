@@ -34,6 +34,7 @@ interface FeedContentProps {
   maxLength?: number;
   showGrantHeaders?: boolean;
   showFundraiseHeaders?: boolean;
+  showPostHeaders?: boolean;
   showReadMoreCTA?: boolean;
   ordering?: string;
   restoredScrollPosition?: number | null;
@@ -60,6 +61,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   maxLength,
   showGrantHeaders = true,
   showFundraiseHeaders = true,
+  showPostHeaders = true,
   showReadMoreCTA = false,
   ordering,
   restoredScrollPosition,
@@ -141,6 +143,7 @@ export const FeedContent: FC<FeedContentProps> = ({
 
               const feedItem = (
                 <FeedEntryItem
+                  showPostHeaders={showPostHeaders}
                   highlights={highlights}
                   shouldRenderBountyAsComment={shouldRenderBountyAsComment}
                   entry={entry}
