@@ -9,7 +9,7 @@ import { Loader } from '@/components/ui/Loader';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { UserListOverview } from '@/components/UserList/lib/user-list';
-import { Plus } from 'lucide-react';
+import { Plus, ArrowLeft } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/pro-light-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/pro-solid-svg-icons';
@@ -90,10 +90,8 @@ function ListCreateForm({
   value,
   onChange,
   onSubmit,
-  onCancel,
-  isLoading,
   inputRef,
-}: Readonly<ListCreateFormProps>) {
+}: Readonly<Omit<ListCreateFormProps, 'isLoading' | 'onCancel'>>) {
   function handleEnterKeyPress(event: React.KeyboardEvent<HTMLInputElement>) {
     const isEnterKey = event.key === 'Enter';
     const hasValue = value.trim().length > 0;
@@ -105,34 +103,14 @@ function ListCreateForm({
     }
   }
 
-  const isSubmitDisabled = value.trim().length === 0;
-
   return (
-    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 mb-4">
-      <h3 className="text-sm font-medium text-gray-900 mb-3">Create New List</h3>
-      <Input
-        ref={inputRef}
-        placeholder="List name"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        onKeyDown={handleEnterKeyPress}
-        className="mb-3"
-      />
-      <div className="flex gap-2">
-        <LoadingButton
-          onClick={onSubmit}
-          disabled={isSubmitDisabled}
-          size="sm"
-          isLoading={isLoading}
-          loadingText="Creating..."
-        >
-          Create
-        </LoadingButton>
-        <Button onClick={onCancel} variant="outlined" size="sm">
-          Cancel
-        </Button>
-      </div>
-    </div>
+    <Input
+      ref={inputRef}
+      placeholder="List name"
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      onKeyDown={handleEnterKeyPress}
+    />
   );
 }
 
@@ -312,19 +290,48 @@ export function AddToListModal({
   };
 
   const listsToDisplay = sortedLists.length > 0 ? sortedLists : overviewLists;
-  const showFooter = !isLoading && overviewLists.length > 0 && !showCreateForm;
+
+  const modalTitle = showCreateForm ? 'Create List' : 'Save to…';
+
+  const headerAction = showCreateForm ? (
+    <button
+      onClick={closeCreateForm}
+      className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 -ml-2"
+    >
+      <ArrowLeft className="w-4 h-4" />
+    </button>
+  ) : undefined;
+
+  const footer = () => {
+    if (showCreateForm) {
+      return (
+        <LoadingButton
+          onClick={handleCreateList}
+          disabled={newListName.trim().length === 0}
+          isLoading={isCreatingList}
+          loadingText="Creating..."
+          className="w-full"
+        >
+          Create
+        </LoadingButton>
+      );
+    }
+    if (!isLoading && overviewLists.length > 0) {
+      return <CreateListButton onClick={openCreateFormAndFocus} fullWidth />;
+    }
+    return undefined;
+  };
 
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Save to…"
+      title={modalTitle}
+      headerAction={headerAction}
       maxWidth="max-w-2xl"
       padding="p-6"
       className="!h-[100dvh] md:!h-auto"
-      footer={
-        showFooter ? <CreateListButton onClick={openCreateFormAndFocus} fullWidth /> : undefined
-      }
+      footer={footer()}
     >
       <div
         className={cn(
@@ -348,8 +355,6 @@ export function AddToListModal({
                 value={newListName}
                 onChange={setNewListName}
                 onSubmit={handleCreateList}
-                onCancel={closeCreateForm}
-                isLoading={isCreatingList}
                 inputRef={createInputRef}
               />
             )}
