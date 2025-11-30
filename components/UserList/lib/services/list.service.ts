@@ -4,7 +4,7 @@ import {
   CreateListRequest,
   UpdateListRequest,
   UserListsResponse,
-  UserListItemDTO,
+  UserListItem,
   ApiUserListItemDTO,
   ApiUserList,
   ApiUserListsResponse,
@@ -41,7 +41,7 @@ export class ListService {
     id: ID,
     params?: { page?: number; pageSize?: number }
   ): Promise<{
-    results: UserListItemDTO[];
+    results: UserListItem[];
     count?: number;
     next?: string | null;
     previous?: string | null;
