@@ -333,20 +333,6 @@ export const WorkLineItems = ({
             <span>{voteCount}</span>
           </button>
 
-          <button
-            onClick={() =>
-              showShareModal({
-                url: window.location.href,
-                docTitle: work.title,
-                action: 'USER_SHARED_DOCUMENT',
-                shouldShowConfetti: false,
-              })
-            }
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
-          >
-            <Share2 className="h-6 w-6" />
-          </button>
-
           {userListsEnabled && work.unifiedDocumentId && work.postType !== 'QUESTION' && (
             <button
               onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
@@ -361,15 +347,19 @@ export const WorkLineItems = ({
             </button>
           )}
 
-          {work.contentType !== 'preregistration' && (
-            <button
-              onClick={() => executeAuthenticatedAction(() => setIsTipModalOpen(true))}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
-            >
-              <Icon name="tipRSC" size={20} />
-              <span className="hidden md:!block">Tip</span>
-            </button>
-          )}
+          <button
+            onClick={() =>
+              showShareModal({
+                url: window.location.href,
+                docTitle: work.title,
+                action: 'USER_SHARED_DOCUMENT',
+                shouldShowConfetti: false,
+              })
+            }
+            className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+          >
+            <Share2 className="h-6 w-6" />
+          </button>
 
           {/* Render insights button if provided */}
           {insightsButton}

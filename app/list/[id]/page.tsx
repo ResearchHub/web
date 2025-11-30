@@ -74,7 +74,7 @@ export default function ListDetailPage() {
               onClick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                removeItem(listItem.id);
+                removeItem(listItem.id, listItem.unified_document);
               }}
               className="h-8 w-8 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-300 shadow-md rounded-full"
             >

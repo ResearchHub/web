@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createElement } from 'react';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import { UserListDetail } from '@/components/UserList/lib/user-list';
@@ -83,16 +83,51 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const removeItem = async (itemId: number) => {
+  const removeItem = async (itemId: number, unifiedDocumentId: number) => {
     if (!list) return;
     try {
       await ListService.removeItemFromListApi(list.id, itemId);
       setList((previousList) => updateListRemoveItem(previousList, itemId));
-      toast.success('Item removed');
+
+      toast.success(
+        (t) =>
+          createElement(
+            'div',
+            { className: 'flex items-center gap-2' },
+            createElement('span', { className: 'text-gray-900' }, 'Item removed'),
+            createElement(
+              'button',
+              {
+                onClick: async (e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  toast.dismiss(t.id);
+                  await addItem(unifiedDocumentId);
+                },
+                className: 'text-blue-600 hover:text-blue-700 font-medium',
+              },
+              'Undo'
+            )
+          ),
+        { duration: 4000 }
+      );
+
       options?.onItemMutated?.();
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to remove item'));
       console.error('Failed to remove item:', error);
+    }
+  };
+
+  const addItem = async (unifiedDocumentId: number) => {
+    if (!list) return;
+    try {
+      await ListService.addItemToListApi(list.id, unifiedDocumentId);
+      await fetchList();
+      toast.success('Item added');
+      options?.onItemMutated?.();
+    } catch (error) {
+      toast.error(extractApiErrorMessage(error, 'Failed to add item'));
+      console.error('Failed to add item:', error);
     }
   };
 
@@ -109,6 +144,7 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
     hasMore,
     loadMore,
     removeItem,
+    addItem,
     updateListDetails,
   };
 }
