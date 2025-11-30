@@ -284,7 +284,25 @@ export function AddToListModal({
     try {
       await ListService.removeItemFromListApi(id, documentInList.listItemId);
       removeDocumentFromList(id, unifiedDocumentId);
-      toast.success(TOAST_MESSAGES.ITEM_REMOVED);
+
+      toast.success(
+        (t) => (
+          <div className="flex items-center gap-2">
+            <span className="text-gray-900">{TOAST_MESSAGES.ITEM_REMOVED}</span>
+            <button
+              onClick={async (e) => {
+                e.stopPropagation();
+                toast.dismiss(t.id);
+                await handleAddToList(id);
+              }}
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Undo
+            </button>
+          </div>
+        ),
+        { duration: 4000 }
+      );
     } catch (error) {
       toast.error(extractApiErrorMessage(error, TOAST_MESSAGES.FAILED_TO_REMOVE_ITEM));
       console.error('Failed to remove item:', error);

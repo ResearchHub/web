@@ -89,7 +89,7 @@ export const UserListRowSkeleton = () => (
 );
 
 export const UserListTableHeader = () => (
-  <div className="hidden sm:!grid grid-cols-[3fr_2fr_2fr_1fr_auto] gap-4 items-center px-4 py-3 bg-gray-50 text-sm font-medium text-gray-700 border-b border-gray-200">
+  <div className="hidden sm:!grid grid-cols-[3fr_2fr_2fr_1fr_auto] gap-4 items-center px-4 py-3 text-sm font-medium text-gray-700 border-b border-gray-200">
     <span>Name</span>
     <span>Created Date</span>
     <span>Last Updated</span>
