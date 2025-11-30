@@ -53,6 +53,7 @@ export const ListModal = ({
       title={title}
       maxWidth="max-w-2xl"
       padding="p-6"
+      className="!h-[100dvh] md:!h-auto"
       footer={footer}
     >
       <div className="md:!min-w-[500px] md:!max-w-[500px]">

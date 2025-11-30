@@ -1,8 +1,9 @@
 import { UserList, UserListDetail, UserListOverview } from '@/components/UserList/lib/user-list';
 import { pluralizeSuffix } from '@/utils/stringUtils';
+import { ID } from '@/types/root';
 
 export const formatItemCount = (list: UserList) => {
-  const n = list.itemCount ?? 0;
+  const n = list.itemCount;
   return `${n} item${pluralizeSuffix(n)}`;
 };
 
@@ -14,19 +15,19 @@ export const updateListRemoveItem = (
   return {
     ...list,
     items: list.items.filter((item) => item.id !== itemId),
-    itemCount: (list.itemCount ?? 0) - 1,
+    itemCount: Math.max(list.itemCount - 1, 0),
   };
 };
 
 export const sortListsByDocumentMembership = (
   allLists: UserListOverview[],
-  listIdsContainingDocument: number[]
+  listIdsContainingDocument: ID[]
 ): UserListOverview[] => {
   const listsAlreadyContainingDocument: UserListOverview[] = [];
   const listsNotYetContainingDocument: UserListOverview[] = [];
 
   for (const list of allLists) {
-    if (listIdsContainingDocument.includes(list.listId)) {
+    if (listIdsContainingDocument.includes(list.id)) {
       listsAlreadyContainingDocument.push(list);
     } else {
       listsNotYetContainingDocument.push(list);

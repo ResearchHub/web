@@ -11,6 +11,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
+import { ID } from '@/types/root';
 
 interface UserListsContextType {
   lists: UserList[];
@@ -21,14 +22,10 @@ interface UserListsContextType {
   errorLoadingLists: string | null;
   loadMoreLists: () => void;
   createList: (data: CreateListRequest, shouldRefreshLists?: boolean) => Promise<UserList>;
-  updateList: (
-    listId: number,
-    data: UpdateListRequest,
-    shouldRefreshLists?: boolean
-  ) => Promise<UserList>;
-  deleteList: (listId: number, shouldRefreshLists?: boolean) => Promise<void>;
-  addDocumentToList: (listId: number, unifiedDocumentId: number, listItemId: number) => void;
-  removeDocumentFromList: (listId: number, unifiedDocumentId: number) => void;
+  updateList: (id: ID, data: UpdateListRequest, shouldRefreshLists?: boolean) => Promise<UserList>;
+  deleteList: (id: ID, shouldRefreshLists?: boolean) => Promise<void>;
+  addDocumentToList: (id: ID, unifiedDocumentId: ID, listItemId: ID) => void;
+  removeDocumentFromList: (id: ID, unifiedDocumentId: ID) => void;
   overviewLists: UserListOverview[];
   isLoadingOverview: boolean;
   refetchOverview: () => Promise<void>;
@@ -134,51 +131,75 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
       shouldRefreshLists
     );
 
-  const updateList = (listId: number, data: UpdateListRequest, shouldRefreshLists = true) =>
+  const updateList = (id: ID, data: UpdateListRequest, shouldRefreshLists = true) =>
     executeListActionWithToast(
-      () => ListService.updateListApi(listId, data),
+      () => ListService.updateListApi(id, data),
       'List updated',
       'Failed to update list',
       shouldRefreshLists
     );
 
-  const deleteList = async (listId: number, shouldRefreshLists = true): Promise<void> => {
+  const deleteList = async (id: ID, shouldRefreshLists = true): Promise<void> => {
     await executeListActionWithToast(
-      () => ListService.deleteListApi(listId),
+      () => ListService.deleteListApi(id),
       'List deleted',
       'Failed to delete list',
       shouldRefreshLists
     );
   };
 
-  const addDocumentToList = (listId: number, unifiedDocumentId: number, listItemId: number) => {
-    const checkAddDocument = (list: UserListOverview) => {
-      if (list.listId !== listId) return list;
-
-      return {
-        ...list,
-        unifiedDocuments: [...(list.unifiedDocuments || []), { unifiedDocumentId, listItemId }],
-      };
-    };
-
-    setOverviewLists((lists) => lists.map(checkAddDocument));
+  const incrementItemCount = (listId: ID) => {
+    setLists((lists) =>
+      lists.map((list) => {
+        if (list.id !== listId) return list;
+        return {
+          ...list,
+          itemCount: list.itemCount + 1,
+        };
+      })
+    );
   };
 
-  const removeDocumentFromList = (listId: number, unifiedDocumentId: number) => {
-    const checkRemoveDocument = (list: UserListOverview) => {
-      if (list.listId !== listId) return list;
+  const decrementItemCount = (listId: ID) => {
+    setLists((lists) =>
+      lists.map((list) => {
+        if (list.id !== listId) return list;
+        return {
+          ...list,
+          itemCount: Math.max(list.itemCount - 1, 0),
+        };
+      })
+    );
+  };
 
-      const filteredDocuments = (list.unifiedDocuments || []).filter(
-        (doc) => doc.unifiedDocumentId !== unifiedDocumentId
-      );
+  const addDocumentToList = (id: ID, unifiedDocumentId: ID, listItemId: ID) => {
+    setOverviewLists((lists) =>
+      lists.map((list) => {
+        if (list.id !== id) return list;
+        return {
+          ...list,
+          unifiedDocuments: [...(list.unifiedDocuments || []), { unifiedDocumentId, listItemId }],
+        };
+      })
+    );
+    incrementItemCount(id);
+  };
 
-      return {
-        ...list,
-        unifiedDocuments: filteredDocuments,
-      };
-    };
+  const removeDocumentFromList = (id: ID, unifiedDocumentId: ID) => {
+    setOverviewLists((lists) =>
+      lists.map((list) => {
+        if (list.id !== id) return list;
 
-    setOverviewLists((lists) => lists.map(checkRemoveDocument));
+        const filteredDocuments =
+          list.unifiedDocuments?.filter((doc) => doc.unifiedDocumentId !== unifiedDocumentId) ?? [];
+
+        return {
+          ...list,
+          unifiedDocuments: filteredDocuments,
+        };
+      })
+    );
+    decrementItemCount(id);
   };
 
   const value = {
