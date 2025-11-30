@@ -2,12 +2,12 @@ import { createTransformer } from '@/types/transformer';
 import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
 import { ID } from '@/types/root';
 export interface ApiSimplifiedListItem {
-  list_item_id: number;
-  unified_document_id: number;
+  list_item_id: ID;
+  unified_document_id: ID;
 }
 
 export interface ApiSimplifiedUserList {
-  list_id: number;
+  list_id: ID;
   name: string;
   unified_documents: ApiSimplifiedListItem[];
 }
@@ -17,7 +17,7 @@ export interface ApiUserCheckResponse {
 }
 
 export interface ApiUserList {
-  id: number;
+  id: ID;
   name: string;
   is_public: boolean;
   created_date: string;
@@ -34,7 +34,7 @@ export interface ApiUserListsResponse {
 }
 
 export interface UserList {
-  id: number;
+  id: ID;
   name: string;
   isPublic: boolean;
   createdDate: string;
@@ -46,10 +46,10 @@ export interface UserList {
 export interface UserListItemDocument {
   contentType: string;
   contentObject: {
-    id: number;
+    id: ID;
     createdDate: string;
     hub?: {
-      id: number;
+      id: ID;
       name: string;
       slug: string;
     };
@@ -57,7 +57,7 @@ export interface UserListItemDocument {
     subcategory?: string | null;
     reviews?: any[];
     slug: string;
-    unifiedDocumentId: number;
+    unifiedDocumentId: ID;
     renderableText?: string;
     title: string;
     type: string;
@@ -69,13 +69,13 @@ export interface UserListItemDocument {
   };
   createdDate: string;
   author: {
-    id: number;
+    id: ID;
     firstName: string;
     lastName: string;
     profileImage: string | null;
     headline: string | null;
     user: {
-      id: number;
+      id: ID;
       firstName: string;
       lastName: string;
       email: string;
@@ -93,9 +93,9 @@ export interface UserListItemDocument {
 }
 
 export interface ApiUserListItemDTO {
-  id: number;
-  parent_list: number;
-  unified_document: number;
+  id: ID;
+  parent_list: ID;
+  unified_document: ID;
   created_date: string;
   updated_date: string;
   created_by: number;
@@ -104,9 +104,9 @@ export interface ApiUserListItemDTO {
 }
 
 export interface UserListItem {
-  id: number;
-  parentList: number;
-  unifiedDocument: number;
+  id: ID;
+  parentList: ID;
+  unifiedDocument: ID;
   createdDate: string;
   updatedDate: string;
   createdBy: number;

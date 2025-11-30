@@ -9,7 +9,7 @@ export const formatItemCount = (list: UserList) => {
 
 export const updateListRemoveItem = (
   list: UserListDetail | null,
-  itemId: number
+  itemId: ID
 ): UserListDetail | null => {
   if (!list) return null;
   return {

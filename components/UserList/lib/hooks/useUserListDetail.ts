@@ -83,7 +83,7 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const removeItem = async (itemId: number, unifiedDocumentId: number) => {
+  const removeItem = async (itemId: ID, unifiedDocumentId: ID) => {
     if (!list) return;
     try {
       await ListService.removeItemFromListApi(list.id, itemId);
@@ -118,7 +118,7 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
     }
   };
 
-  const addItem = async (unifiedDocumentId: number) => {
+  const addItem = async (unifiedDocumentId: ID) => {
     if (!list) return;
     try {
       await ListService.addItemToListApi(list.id, unifiedDocumentId);
