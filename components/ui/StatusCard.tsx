@@ -4,8 +4,7 @@ import { FC, ReactNode } from 'react';
 import { cn } from '@/utils/styles';
 
 interface StatusCardProps {
-  /** Variant determines the color scheme: 'active' for blue, 'inactive' for gray */
-  variant?: 'active' | 'inactive';
+  variant?: 'active' | 'inactive' | 'orange';
   /** Additional className for the outer container */
   className?: string;
   /** Content to render inside the card */
@@ -17,16 +16,20 @@ interface StatusCardProps {
  * Used in FundraiseProgress, GrantInfo, and BountyInfo components
  */
 export const StatusCard: FC<StatusCardProps> = ({ variant = 'active', className, children }) => {
-  const isActive = variant === 'active';
+  const getVariantStyles = () => {
+    switch (variant) {
+      case 'active':
+        return 'bg-primary-50 border-primary-100';
+      case 'orange':
+        return 'bg-orange-50 border-orange-100';
+      case 'inactive':
+      default:
+        return 'bg-gray-50 border-gray-200';
+    }
+  };
 
   return (
-    <div
-      className={cn(
-        'rounded-lg p-3 border cursor-default',
-        isActive ? 'bg-primary-50 border-primary-100' : 'bg-gray-50 border-gray-200',
-        className
-      )}
-    >
+    <div className={cn('rounded-lg p-3 border cursor-default', getVariantStyles(), className)}>
       {children}
     </div>
   );

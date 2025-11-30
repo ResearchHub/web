@@ -101,6 +101,7 @@ export default function EarnPage() {
         restoredScrollPosition={restoredScrollPosition}
         page={page}
         lastClickedEntryId={lastClickedEntryId ?? undefined}
+        showBountyInfo={true}
       />
     </PageLayout>
   );

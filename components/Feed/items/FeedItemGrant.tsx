@@ -14,7 +14,6 @@ import {
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { Building, Users } from 'lucide-react';
 import { GrantInfo } from '@/components/Grant/GrantInfo';
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 
 import { Highlight } from '@/components/Feed/FeedEntryItem';
@@ -82,7 +81,6 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
         }
         leftContent={
           <>
-            {showHeader && <ContentTypeBadge type="grant" />}
             {grant.topics?.map((topic) => (
               <TopicAndJournalBadge
                 key={topic.id || topic.slug}
@@ -101,21 +99,10 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             {/* Title */}
             <TitleSection title={grant.title} highlightedTitle={highlightedTitle} />
 
-            {/* Organization */}
-            {(grant.organization || grant.grant?.organization) && (
-              <MetadataSection>
-                <div className="flex items-center gap-1.5 text-gray-500">
-                  <Building className="w-4 h-4" />
-                  <span>{grant.organization || grant.grant?.organization}</span>
-                </div>
-              </MetadataSection>
-            )}
-
             {/* Authors list */}
             {grant.authors.length > 0 && (
               <MetadataSection>
                 <div className="flex items-start gap-1.5">
-                  <Users className="w-4 h-4 text-gray-500" />
                   <AuthorList
                     authors={grant.authors.map((author) => ({
                       name: author.fullName,
@@ -127,6 +114,16 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
                     delimiter="•"
                     timestamp={grant.createdDate ? formatTimestamp(grant.createdDate) : undefined}
                   />
+                </div>
+              </MetadataSection>
+            )}
+
+            {/* Organization */}
+            {(grant.organization || grant.grant?.organization) && (
+              <MetadataSection>
+                <div className="flex items-center gap-1.5 text-gray-500">
+                  <Building className="w-4 h-4" />
+                  <span>{grant.organization || grant.grant?.organization}</span>
                 </div>
               </MetadataSection>
             )}

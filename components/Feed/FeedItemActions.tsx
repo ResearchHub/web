@@ -107,7 +107,7 @@ export const ActionButton: FC<ActionButtonProps> = ({
       // Responsive padding
       'py-0.5 px-2 md:!py-1 md:!px-3',
       isActive ? 'text-green-600 border-green-300' : 'text-gray-900',
-      'hover:text-gray-900 hover:bg-gray-50',
+      'bg-white hover:text-gray-900 hover:bg-gray-100',
       className
     )}
     tooltip={showTooltip ? tooltip : undefined}

@@ -43,6 +43,7 @@ interface FeedContentProps {
   insertContent?: InsertContentItem[];
   shouldRenderBountyAsComment?: boolean;
   wrapped?: (item: ReactNode, entry: FeedEntry, index: number) => ReactNode;
+  showBountyInfo?: boolean;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -70,6 +71,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   insertContent,
   shouldRenderBountyAsComment,
   wrapped,
+  showBountyInfo = false,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -144,6 +146,7 @@ export const FeedContent: FC<FeedContentProps> = ({
               const feedItem = (
                 <FeedEntryItem
                   showPostHeaders={showPostHeaders}
+                  showBountyInfo={showBountyInfo}
                   highlights={highlights}
                   shouldRenderBountyAsComment={shouldRenderBountyAsComment}
                   entry={entry}

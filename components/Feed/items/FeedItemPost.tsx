@@ -11,7 +11,6 @@ import {
   FeedItemLayout,
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Users } from 'lucide-react';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
@@ -26,9 +25,9 @@ interface FeedItemPostProps {
   showActions?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
-  showBountyInfoSummary?: boolean;
   highlights?: Highlight[];
   showHeader?: boolean;
+  showBountyInfo?: boolean;
 }
 
 /**
@@ -42,8 +41,8 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   showHeader = true,
   maxLength,
   onFeedItemClick,
-  showBountyInfoSummary = true,
   highlights,
+  showBountyInfo,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -77,7 +76,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
       maxLength={maxLength}
       onFeedItemClick={onFeedItemClick}
       showPeerReviews={post.postType !== 'QUESTION'}
-      showBountyInfoSummary={showBountyInfoSummary}
+      showBountyInfo={showBountyInfo}
     >
       {/* Top section with badges and mobile image */}
       <FeedItemTopSection
@@ -90,26 +89,9 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
             />
           )
         }
-        leftContent={
-          <>
-            <ContentTypeBadge
-              type={
-                post.postType === 'QUESTION'
-                  ? 'question'
-                  : post.contentType === 'PREREGISTRATION'
-                    ? 'funding'
-                    : 'article'
-              }
-            />
-            {topics.map((topic) => (
-              <TopicAndJournalBadge
-                key={topic.id || topic.slug}
-                name={topic.name}
-                slug={topic.slug}
-              />
-            ))}
-          </>
-        }
+        leftContent={topics.map((topic) => (
+          <TopicAndJournalBadge key={topic.id || topic.slug} name={topic.name} slug={topic.slug} />
+        ))}
       />
       {/* Main content layout with desktop image */}
       <FeedItemLayout
@@ -123,7 +105,6 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
               {authors.length > 0 && (
                 <MetadataSection>
                   <div className="flex items-start gap-1.5">
-                    <Users className="w-4 h-4 text-gray-500" />
                     <AuthorList
                       authors={authors}
                       size="sm"

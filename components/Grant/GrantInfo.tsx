@@ -3,7 +3,7 @@
 import { FC } from 'react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
-import { ContributorsButton } from '@/components/ui/ContributorsButton';
+import { AvatarStack } from '@/components/ui/AvatarStack';
 import { formatDate, isDeadlineInFuture } from '@/utils/date';
 import { FeedGrantContent } from '@/types/feed';
 import { useRouter } from 'next/navigation';
@@ -46,11 +46,11 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
   // Get status display for deadline
   const getStatusDisplay = () => {
     if (!isActive) {
-      return <div className="text-base text-gray-500 font-semibold">Closed</div>;
+      return <div className="text-sm text-gray-500 font-bold">Closed</div>;
     }
     if (deadline) {
       return (
-        <div className="flex items-center gap-1 text-gray-700 font-semibold">
+        <div className="flex items-center gap-1 text-gray-700 font-bold">
           <span className="text-base">{deadline}</span>
         </div>
       );
@@ -99,6 +99,7 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
               currency={showUSD ? 'USD' : 'RSC'}
               className="p-0 gap-0"
               textColor="text-gray-700"
+              fontWeight="font-bold"
               showExchangeRate={false}
               iconColor={colors.gray[700]}
               iconSize={24}
@@ -123,13 +124,23 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
       >
         {/* Applicants */}
         {applicants.length > 0 && (
-          <div className={cn('flex justify-center mobile:!justify-end')}>
-            <ContributorsButton
-              contributors={applicants}
-              label="Applicants"
-              size="md"
-              variant="count"
-              customOnClick={handleApplicantsClick}
+          <div
+            className="cursor-pointer flex-shrink-0 flex items-center"
+            onClick={handleApplicantsClick}
+          >
+            <AvatarStack
+              items={applicants.map((applicant) => ({
+                src: applicant.profile.profileImage || '',
+                alt: applicant.profile.fullName,
+                tooltip: applicant.profile.fullName,
+                authorId: applicant.profile.id,
+              }))}
+              size="xs"
+              maxItems={3}
+              spacing={-6}
+              showExtraCount={applicants.length > 3}
+              totalItemsCount={applicants.length}
+              extraCountLabel="Applicants"
             />
           </div>
         )}
@@ -140,7 +151,7 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
         <div className="flex items-center gap-2">
           <Button
             variant="default"
-            size="md"
+            size="sm"
             onClick={handleDetailsClick}
             className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
           >
@@ -149,7 +160,7 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
           {isActive && (
             <Button
               variant="default"
-              size="md"
+              size="sm"
               onClick={handleApplyClick}
               className="bg-primary-600 hover:bg-primary-700 text-white"
             >

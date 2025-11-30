@@ -10,10 +10,11 @@ import { Work } from '@/types/work';
 import { colors } from '@/app/styles/colors';
 import { cn } from '@/utils/styles';
 import { StatusCard } from '@/components/ui/StatusCard';
-import { ContributorsButton } from '@/components/ui/ContributorsButton';
+import { AvatarStack } from '@/components/ui/AvatarStack';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { ContentFormat } from '@/types/comment';
 import { BountyDetails } from '@/components/Feed/items/FeedItemBountyComment';
+import { MessageSquareReply } from 'lucide-react';
 
 interface BountyDetailsModalProps {
   isOpen: boolean;
@@ -93,9 +94,15 @@ interface BountyInfoProps {
   bounty: BountyWithComment;
   relatedWork?: Work;
   onAddSolutionClick: (e: React.MouseEvent) => void;
+  className?: string;
 }
 
-export const BountyInfo: FC<BountyInfoProps> = ({ bounty, relatedWork, onAddSolutionClick }) => {
+export const BountyInfo: FC<BountyInfoProps> = ({
+  bounty,
+  relatedWork,
+  onAddSolutionClick,
+  className,
+}) => {
   const bountyCommentContent = bounty?.comment?.content;
   const bountyCommentContentFormat = bounty?.comment?.contentFormat;
   const { showUSD } = useCurrencyPreference();
@@ -124,11 +131,11 @@ export const BountyInfo: FC<BountyInfoProps> = ({ bounty, relatedWork, onAddSolu
   // Get status display for deadline
   const getStatusDisplay = () => {
     if (!isActive) {
-      return <div className="text-base text-gray-500 font-semibold">Closed</div>;
+      return <div className="text-sm text-gray-500 font-bold">Closed</div>;
     }
     if (deadline) {
       return (
-        <div className="flex items-center gap-1 text-gray-700 font-semibold">
+        <div className="flex items-center gap-1 text-gray-700 font-bold">
           <span className="text-base">{deadline}</span>
         </div>
       );
@@ -146,10 +153,10 @@ export const BountyInfo: FC<BountyInfoProps> = ({ bounty, relatedWork, onAddSolu
   // Get button text for Add Solution/Review
   const getAddButtonText = () => {
     if (relatedWork?.postType === 'QUESTION') {
-      return 'Answer';
+      return 'Add Answer';
     }
     if (bounty.bountyType === 'REVIEW') {
-      return 'Review';
+      return 'Add Review';
     }
 
     return 'Add Solution';
@@ -170,7 +177,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({ bounty, relatedWork, onAddSolu
 
   return (
     <>
-      <StatusCard variant={isActive ? 'active' : 'inactive'}>
+      <StatusCard variant={isActive ? 'orange' : 'inactive'} className={className}>
         {/* Top Section: Total Amount and Deadline */}
         <div
           className={`flex flex-row flex-wrap items-start justify-between ${isStateUnknown ? 'mb-0' : 'mb-2'}`}
@@ -187,6 +194,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({ bounty, relatedWork, onAddSolu
                 currency={showUSD ? 'USD' : 'RSC'}
                 className="p-0 gap-0"
                 textColor="text-gray-700"
+                fontWeight="font-bold"
                 showExchangeRate={false}
                 iconColor={colors.gray[700]}
                 iconSize={24}
@@ -198,7 +206,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({ bounty, relatedWork, onAddSolu
           {/* Deadline */}
           {isStateUnknown ? (
             <div className="sm:!order-2 order-1 self-center">
-              <Button variant="outlined" size="md" onClick={handleDetailsClick}>
+              <Button variant="outlined" size="sm" onClick={handleDetailsClick}>
                 Details
               </Button>
             </div>
@@ -217,20 +225,25 @@ export const BountyInfo: FC<BountyInfoProps> = ({ bounty, relatedWork, onAddSolu
           <div
             className={cn(
               'flex items-center justify-between gap-2 border-t pt-2',
-              isActive ? 'border-primary-200' : 'border-gray-200'
+              isActive ? 'border-orange-300' : 'border-gray-200'
             )}
           >
             {/* Contributors */}
             {contributors.length > 0 && (
-              <div className={cn('flex justify-center mobile:!justify-end')}>
-                <ContributorsButton
-                  contributors={contributors}
-                  onContribute={() => {}}
-                  label="Contributors"
-                  size="md"
-                  disableContribute={!isActive}
-                  variant="count"
-                  customOnClick={() => {}}
+              <div className="cursor-pointer flex-shrink-0 flex items-center">
+                <AvatarStack
+                  items={contributors.map((contributor) => ({
+                    src: contributor.profile.profileImage || '',
+                    alt: contributor.profile.fullName,
+                    tooltip: contributor.profile.fullName,
+                    authorId: contributor.profile.id,
+                  }))}
+                  size="xs"
+                  maxItems={3}
+                  spacing={-6}
+                  showExtraCount={contributors.length > 3}
+                  totalItemsCount={contributors.length}
+                  extraCountLabel="Contributors"
                 />
               </div>
             )}
@@ -239,16 +252,17 @@ export const BountyInfo: FC<BountyInfoProps> = ({ bounty, relatedWork, onAddSolu
 
             {/* CTA Buttons */}
             <div className="flex items-center gap-2">
-              <Button variant="outlined" size="md" onClick={handleDetailsClick}>
+              <Button variant="outlined" size="sm" onClick={handleDetailsClick}>
                 Details
               </Button>
               {isActive && (
                 <Button
                   variant="default"
-                  size="md"
+                  size="sm"
                   onClick={onAddSolutionClick}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 bg-orange-400 hover:bg-orange-500 text-white"
                 >
+                  <MessageSquareReply size={16} />
                   {getAddButtonText()}
                 </Button>
               )}

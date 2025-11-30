@@ -35,7 +35,7 @@ export interface BaseFeedItemProps {
   children?: ReactNode;
   onFeedItemClick?: () => void;
   showPeerReviews?: boolean;
-  showBountyInfoSummary?: boolean;
+  showBountyInfo?: boolean;
 }
 
 // Badge component interface
@@ -184,14 +184,14 @@ export const ContentSection: FC<ContentSectionProps> = ({
 
   // Default: render truncated plain text
   return (
-    <div className={cn('text-sm text-gray-700', className)}>
+    <div className={cn('text-sm text-gray-900 hidden md:!block leading-relaxed', className)}>
       <p>{isExpanded ? content : truncateText(content, maxLength)}</p>
       {isTextTruncated && (
         <Button
           variant="link"
           size="sm"
           onClick={handleToggleExpand}
-          className="flex items-center gap-0.5 mt-1 text-blue-500 p-0 h-auto text-sm"
+          className="flex items-center gap-0.5 mt-1 text-blue-500 p-0 h-auto text-sm font-medium"
         >
           {isExpanded ? 'Show less' : 'Read more'}
           <ChevronDown
@@ -284,7 +284,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   children,
   onFeedItemClick,
   showPeerReviews = true,
-  showBountyInfoSummary = true,
+  showBountyInfo,
 }) => {
   const content = entry.content;
   const author = content.createdBy;
@@ -369,7 +369,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
         <div className="p-4">
           {children}
           {/* BountyInfoSummary */}
-          {showBountyInfoSummary ? (
+          {showBountyInfo ? (
             openBounties.length === 1 ? (
               <div
                 className="mt-4"
@@ -380,6 +380,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                   bounty={openBounties[0]}
                   relatedWork={entry.relatedWork}
                   onAddSolutionClick={handleAddSolutionClick}
+                  className="bg-orange-50 border-orange-200"
                 />
               </div>
             ) : openBounties.length > 0 ? (
@@ -429,7 +430,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               }
               showPeerReviews={showPeerReviews}
               onFeedItemClick={onFeedItemClick}
-              bounties={showBountyInfoSummary ? undefined : content.bounties}
+              bounties={showBountyInfo ? undefined : content.bounties}
             />
           </div>
         )}

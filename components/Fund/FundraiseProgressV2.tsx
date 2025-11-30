@@ -2,6 +2,7 @@
 
 import { FC, useState } from 'react';
 import { Progress } from '@/components/ui/Progress';
+import { AvatarStack } from '@/components/ui/AvatarStack';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Clock } from 'lucide-react';
 import { formatDeadline, formatExactTime, isDeadlineInFuture } from '@/utils/date';
@@ -24,6 +25,7 @@ interface FundraiseProgressProps {
   compact?: boolean;
   onContribute?: () => void;
   className?: string;
+  onDetailsClick?: () => void;
 }
 
 export const FundraiseProgress: FC<FundraiseProgressProps> = ({
@@ -32,6 +34,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   compact = false,
   onContribute,
   className,
+  onDetailsClick,
 }) => {
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
   const { showUSD } = useCurrencyPreference();
@@ -71,29 +74,25 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
     switch (fundraise.status) {
       case 'COMPLETED':
         return (
-          <div className={`${compact ? 'text-base' : 'text-sm'} text-green-500 font-semibold`}>
+          <div className={`text-sm text-green-500 font-semibold`}>
             <span className="hidden mobile:!inline">Fundraise </span>Completed
           </div>
         );
       case 'CLOSED':
         return (
-          <div className={`${compact ? 'text-base' : 'text-sm'} text-gray-500 font-semibold`}>
+          <div className={`text-sm text-gray-500 font-bold`}>
             <span className="hidden mobile:!inline">Fundraise </span>Closed
           </div>
         );
       case 'OPEN':
         if (isEnded) {
-          return (
-            <div className={`${compact ? 'text-base' : 'text-sm'} text-gray-500 font-semibold`}>
-              Ended
-            </div>
-          );
+          return <div className={`text-sm text-gray-500 font-bold`}>Ended</div>;
         }
         if (!deadlineText || !fundraise.endDate) {
           return null;
         }
         return (
-          <div className="flex items-center gap-1 text-gray-700 font-semibold">
+          <div className="flex items-center gap-1 text-gray-700 font-bold">
             <Tooltip
               content={formatExactTime(fundraise.endDate)}
               position="top"
@@ -159,8 +158,9 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     size="xl"
                     showText={false}
                     currency={showUSD ? 'USD' : 'RSC'}
-                    className="px-0 gap-0"
+                    className="p-0 gap-0"
                     textColor="text-gray-700"
+                    fontWeight="font-bold"
                     showExchangeRate={false}
                     iconColor={colors.gray[700]}
                     iconSize={24}
@@ -174,7 +174,8 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     showText={true}
                     currency={showUSD ? 'USD' : 'RSC'}
                     textColor="text-gray-700"
-                    className="px-0 gap-0"
+                    fontWeight="font-bold"
+                    className="p-0 gap-0"
                     showExchangeRate={false}
                     iconColor={colors.gray[700]}
                     iconSize={24}
@@ -185,9 +186,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
 
               <div className="flex-shrink-0 whitespace-nowrap text-left sm:!text-right sm:!order-2 order-1 sm:!block flex justify-between w-full sm:!w-auto items-center">
                 {isActive && (
-                  <span className="block text-gray-500 text-sm mb-0.5 inline-block mb-2">
-                    Deadline
-                  </span>
+                  <span className="block text-gray-500 text-sm mb-0.5 inline-block">Deadline</span>
                 )}
                 {getStatusDisplay()}
               </div>
@@ -197,35 +196,50 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
               <Progress value={progressPercentage} variant={getProgressVariant()} size="xs" />
             </div>
 
-            {(isActive || (!isActive && contributors.length > 0)) && (
-              <div className="flex items-center justify-between gap-2">
-                {contributors.length > 0 && (
-                  <div className={cn('flex justify-center mobile:!justify-end')}>
-                    <ContributorsButton
-                      contributors={contributors}
-                      onContribute={handleContributeClick}
-                      label={`Supporters`}
-                      size="md"
-                      disableContribute={!isActive}
-                      variant="count"
-                    />
-                  </div>
-                )}
+            <div className="flex items-center justify-between gap-2">
+              {contributors.length > 0 && (
+                <div className="cursor-pointer flex-shrink-0 flex items-center">
+                  <AvatarStack
+                    items={contributors.map((contributor) => ({
+                      src: contributor.profile.profileImage || '',
+                      alt: contributor.profile.fullName,
+                      tooltip: contributor.profile.fullName,
+                      authorId: contributor.profile.id,
+                    }))}
+                    size="xs"
+                    maxItems={3}
+                    spacing={-6}
+                    showExtraCount={contributors.length > 3}
+                    totalItemsCount={contributors.length}
+                    extraCountLabel="Supporters"
+                  />
+                </div>
+              )}
 
-                {contributors.length === 0 && <div className="flex-shrink-0"></div>}
+              {contributors.length === 0 && <div className="flex-shrink-0"></div>}
 
-                {isActive && (
-                  <Button
-                    variant="default"
-                    size="md"
-                    disabled={!isActive}
-                    onClick={handleContributeClick}
-                  >
-                    Fund
-                  </Button>
-                )}
-              </div>
-            )}
+              {isActive ? (
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled={!isActive}
+                  onClick={handleContributeClick}
+                >
+                  Fund
+                </Button>
+              ) : onDetailsClick ? (
+                <Button
+                  variant="outlined"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDetailsClick();
+                  }}
+                >
+                  Details
+                </Button>
+              ) : null}
+            </div>
           </div>
         ) : (
           <div className={cn(className)}>
@@ -258,16 +272,29 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
             </div>
 
             <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between gap-4 mobile:!gap-0">
-              <Button
-                variant="contribute"
-                size="md"
-                disabled={!isActive}
-                className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-all duration-200 border-0"
-                onClick={handleContributeClick}
-              >
-                <Icon name="giveRSC" size={20} color="white" />
-                Fund this research
-              </Button>
+              {isActive ? (
+                <Button
+                  variant="contribute"
+                  size="md"
+                  disabled={!isActive}
+                  className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-all duration-200 border-0"
+                  onClick={handleContributeClick}
+                >
+                  <Icon name="giveRSC" size={20} color="white" />
+                  Fund this research
+                </Button>
+              ) : onDetailsClick ? (
+                <Button
+                  variant="outlined"
+                  size="md"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDetailsClick();
+                  }}
+                >
+                  Details
+                </Button>
+              ) : null}
 
               {contributors.length > 0 && (
                 <div className={cn('flex justify-center mobile:!justify-end')}>
@@ -277,7 +304,6 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     label={`Supporters`}
                     size="md"
                     disableContribute={!isActive}
-                    variant="count"
                   />
                 </div>
               )}

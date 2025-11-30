@@ -16,8 +16,8 @@ import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgressV2';
 import { Users, Building, Pin } from 'lucide-react';
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { formatTimestamp } from '@/utils/date';
+import { useRouter } from 'next/navigation';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -45,6 +45,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   isPinnedFundraise = false,
   onFeedItemClick,
 }) => {
+  const router = useRouter();
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
 
@@ -72,6 +73,13 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   // Image URL
   const imageUrl = post.previewImage ?? undefined;
 
+  const handleFundDetailsClick = () => {
+    if (onFeedItemClick) {
+      onFeedItemClick();
+    }
+    router.push(fundingPageUrl);
+  };
+
   return (
     <BaseFeedItem
       entry={entry}
@@ -83,7 +91,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       }
       maxLength={maxLength}
       onFeedItemClick={onFeedItemClick}
-      showBountyInfoSummary={false}
+      showBountyInfo={false}
       showHeader={showHeader}
     >
       {/* Pin icon in top right corner for pinned fundraises */}
@@ -106,7 +114,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         }
         leftContent={
           <>
-            {showHeader && <ContentTypeBadge type="funding" />}
             {isNonprofit && <TaxDeductibleBadge />}
             {topics.map((topic) => (
               <TopicAndJournalBadge
@@ -130,7 +137,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             {authors.length > 0 && (
               <MetadataSection>
                 <div className="mb-3 flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-gray-500" />
                   <AuthorList
                     authors={authors}
                     size="sm"
@@ -173,6 +179,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             fundraiseTitle={post.title}
             fundraise={post.fundraise}
             compact={true}
+            onDetailsClick={handleFundDetailsClick}
           />
         </div>
       )}

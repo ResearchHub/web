@@ -42,9 +42,11 @@ interface FeedEntryItemProps {
   getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
   shouldRenderBountyAsComment?: boolean;
   highlights?: Highlight[];
+  showBountyInfo?: boolean;
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
+  showBountyInfo,
   entry,
   index,
   showBountyFooter = true,
@@ -178,6 +180,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
             highlights={highlights}
+            showBountyInfo={showBountyInfo}
           />
         );
         break;
@@ -204,6 +207,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
             highlights={highlights}
+            showBountyInfo={showBountyInfo}
           />
         );
         break;
@@ -245,6 +249,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
                     maxLength={maxLength}
                     onFeedItemClick={handleFeedItemClick}
                     highlights={highlights}
+                    showBountyInfo={showBountyInfo}
                   />
                 ) : (
                   <FeedItemPost
@@ -255,6 +260,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
                     maxLength={maxLength}
                     onFeedItemClick={handleFeedItemClick}
                     highlights={highlights}
+                    showBountyInfo={showBountyInfo}
                   />
                 ))}
             </div>
