@@ -3,13 +3,12 @@
 import { FC, useState, ReactNode, useEffect } from 'react';
 import React from 'react';
 import { FeedContentType, Review } from '@/types/feed';
-import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star, ThumbsDown } from 'lucide-react';
+import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/pro-light-svg-icons';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
-import { useInterest } from '@/hooks/useInterest';
 import { UserVoteType } from '@/types/reaction';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useFlagModal } from '@/hooks/useFlagging';
@@ -25,7 +24,6 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { cn } from '@/utils/styles';
 import { Topic } from '@/types/topic';
-import { isFeatureEnabled, FeatureFlag } from '@/utils/featureFlags';
 import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
 
 const BookmarkIcon: FC<{ className?: string }> = (props) => (
@@ -228,11 +226,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     relatedDocumentTopics: relatedDocumentTopics,
   });
 
-  const { markNotInterested, isProcessing: isMarkingNotInterested } = useInterest({
-    entityId: votableEntityId,
-    feedContentType: feedContentType,
-  });
-
   // Use the flag modal hook
   const { isOpen, contentToFlag, openFlagModal, closeFlagModal } = useFlagModal();
 
@@ -366,32 +359,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const isMobile = useMediaQuery('(max-width: 480px)');
   const isTabletOrSmaller = useMediaQuery('(max-width: 768px)');
 
-  // Prepare Not Interested menu item (only for dismissible content)
-  const notInterestedMenuItem = {
-    icon: (props: any) => <ThumbsDown {...props} size={16} />,
-    label: 'Not Interested',
-    tooltip: 'Mark as not interested',
-    disabled: isMarkingNotInterested,
-    onClick: (e?: React.MouseEvent) => {
-      setIsMenuOpen(false);
-      executeAuthenticatedAction(markNotInterested);
-    },
-    className: '',
-  };
-
-  // Check if content is dismissible (not comments or bounties) and feature is enabled
-  const isDismissible =
-    feedContentType !== 'COMMENT' &&
-    feedContentType !== 'BOUNTY' &&
-    isFeatureEnabled(FeatureFlag.NotInterested);
-
-  // Combine menu items, conditionally adding the tip item and not interested item
-  const combinedMenuItems = [...menuItems, ...(isDismissible ? [notInterestedMenuItem] : [])];
-
   // Add separator if needed before Report
-  const showSeparator =
-    (!hideReportButton && combinedMenuItems.length > 0 && !isTabletOrSmaller) || // Original condition
-    (!hideReportButton && combinedMenuItems.length > 1 && isTabletOrSmaller); // Adjusted for tip in menu
+  const showSeparator = !hideReportButton && menuItems.length > 0 && !isTabletOrSmaller;
 
   // Determine which buttons to show inline based on screen size
   const showInlineReviews =
@@ -559,7 +528,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               open={isMenuOpen}
               onOpenChange={setIsMenuOpen}
             >
-              {combinedMenuItems.map((item, index) => (
+              {menuItems.map((item, index) => (
                 <BaseMenuItem
                   key={`menu-item-${index}`}
                   onClick={(e) => {
