@@ -92,7 +92,7 @@ export interface UserListItemDocument {
   };
 }
 
-export interface UserListItemDTO {
+export interface ApiUserListItemDTO {
   id: number;
   parent_list: number;
   unified_document: number;
@@ -100,6 +100,17 @@ export interface UserListItemDTO {
   updated_date: string;
   created_by: number;
   updated_by: number | null;
+  document: UserListItemDocument;
+}
+
+export interface UserListItemDTO {
+  id: number;
+  parentList: number;
+  unifiedDocument: number;
+  createdDate: string;
+  updatedDate: string;
+  createdBy: number;
+  updatedBy: number | null;
   document: UserListItemDocument;
 }
 
@@ -178,6 +189,17 @@ export const transformUserList = (raw: ApiUserList): UserList => ({
   updatedDate: raw.updated_date,
   createdBy: raw.created_by,
   itemCount: raw.item_count ?? 0,
+});
+
+export const transformUserListItem = (raw: ApiUserListItemDTO): UserListItemDTO => ({
+  id: raw.id,
+  parentList: raw.parent_list,
+  unifiedDocument: raw.unified_document,
+  createdDate: raw.created_date,
+  updatedDate: raw.updated_date,
+  createdBy: raw.created_by,
+  updatedBy: raw.updated_by,
+  document: raw.document,
 });
 
 export const transformUserListsResponse = (raw: ApiUserListsResponse): UserListsResponse => ({
