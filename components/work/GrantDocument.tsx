@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { WorkLineItems } from './WorkLineItems';
@@ -13,6 +13,7 @@ import { PostBlockEditor } from './PostBlockEditor';
 import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
 import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
 import { NotInterestedButton } from '@/components/ui/NotInterestedButton';
+import { useWorkMetadata } from '@/hooks/useWorkMetadata';
 
 interface GrantDocumentProps {
   work: Work;
@@ -28,6 +29,9 @@ export const GrantDocument = ({
   defaultTab = 'paper',
 }: GrantDocumentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
+
+  const { bountyComments, reviewComments, conversationComments, handleCommentCreated } =
+    useWorkMetadata(metadata);
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -72,6 +76,7 @@ export const GrantDocument = ({
               commentType="GENERIC_COMMENT"
               key={`comment-feed-${work.id}`}
               work={work}
+              onCommentCreated={handleCommentCreated}
             />
           </div>
         );
@@ -158,7 +163,9 @@ export const GrantDocument = ({
       {/* Tabs */}
       <WorkTabs
         work={work}
-        metadata={metadata}
+        bountyComments={bountyComments}
+        reviewComments={reviewComments}
+        conversationComments={conversationComments}
         defaultTab={defaultTab}
         contentType="grant"
         onTabChange={handleTabChange}
