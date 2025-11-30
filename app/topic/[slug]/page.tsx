@@ -1,107 +1,15 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { useState, useEffect, useMemo, useLayoutEffect } from 'react';
-import { useParams, useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { PageLayout } from '@/app/layouts/PageLayout';
-import { useFeed, FeedTab } from '@/hooks/useFeed';
-import { useHub } from '@/hooks/useHub';
-import { Hash } from 'lucide-react';
-import { FeedContent } from '@/components/Feed/FeedContent';
-import { FeedTabs } from '@/components/Feed/FeedTabs';
+interface Props {
+  params: Promise<{
+    slug: string;
+  }>;
+}
 
-const DEFAULT_TAB: FeedTab = 'popular';
+export default async function TopicFeedPage({ params }: Props) {
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
 
-export default function TopicFeedPage() {
-  const params = useParams();
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const slug = params?.slug;
-  const decodedSlug = typeof slug === 'string' ? decodeURIComponent(slug) : null;
-  const { hub, isLoading: isHubLoading, error: hubError } = useHub(decodedSlug);
-
-  // Get active tab from URL params
-  const activeTab = useMemo(() => {
-    const tabParam = searchParams.get('tab') as FeedTab | null;
-    return tabParam && ['popular', 'latest'].includes(tabParam) ? tabParam : DEFAULT_TAB;
-  }, [searchParams]);
-
-  // Set default tab in URL if not present
-  useLayoutEffect(() => {
-    if (!searchParams.get('tab')) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set('tab', DEFAULT_TAB);
-      window.history.replaceState({}, '', `${pathname}?${params.toString()}`);
-      router.refresh();
-    }
-  }, [pathname, router]);
-
-  // Handle tab changes
-  const handleTabChange = (tab: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', tab);
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  };
-
-  const {
-    entries,
-    isLoading: isFeedLoading,
-    hasMore,
-    loadMore,
-    restoredScrollPosition,
-    page,
-    lastClickedEntryId,
-  } = useFeed(activeTab, {
-    hubSlug: decodedSlug || '',
-  });
-
-  const topicTabs = [
-    {
-      id: 'popular',
-      label: 'Popular',
-    },
-    {
-      id: 'latest',
-      label: 'Latest',
-    },
-  ];
-
-  // Check for error state ONLY if not loading
-  if (!isHubLoading && (hubError || !hub)) {
-    return (
-      <PageLayout>
-        <div className="pt-4 pb-7">
-          <h1 className="text-xl text-gray-600">Topic not found</h1>
-        </div>
-      </PageLayout>
-    );
-  }
-
-  // Combine loading states
-  const isLoading = isHubLoading || isFeedLoading;
-
-  const tabs = (
-    <FeedTabs
-      activeTab={activeTab}
-      tabs={topicTabs}
-      onTabChange={handleTabChange}
-      isLoading={isFeedLoading}
-    />
-  );
-
-  return (
-    <PageLayout>
-      <FeedContent
-        entries={entries}
-        isLoading={isLoading}
-        hasMore={hasMore}
-        loadMore={loadMore}
-        tabs={tabs}
-        activeTab={activeTab}
-        restoredScrollPosition={restoredScrollPosition}
-        page={page}
-        lastClickedEntryId={lastClickedEntryId ?? undefined}
-      />
-    </PageLayout>
-  );
+  // Redirect to popular tab by default
+  redirect(`/topic/${slug}/popular`);
 }

@@ -216,7 +216,6 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 showTooltips={showTooltips}
                 menuItems={menuItems}
                 awardedBountyAmount={entry.awardedBountyAmount}
-                tips={entry.tips}
                 relatedDocumentTopics={entry.relatedWork?.topics}
                 onFeedItemClick={onFeedItemClick}
               />

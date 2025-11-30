@@ -15,6 +15,7 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Users } from 'lucide-react';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { formatTimestamp } from '@/utils/date';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
 import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
 
@@ -25,7 +26,9 @@ interface FeedItemPostProps {
   showActions?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
+  showBountyInfoSummary?: boolean;
   highlights?: Highlight[];
+  showHeader?: boolean;
 }
 
 /**
@@ -36,8 +39,10 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   href,
   showTooltips = true,
   showActions = true,
+  showHeader = true,
   maxLength,
   onFeedItemClick,
+  showBountyInfoSummary = true,
   highlights,
 }) => {
   // Extract the post from the entry's content
@@ -66,11 +71,13 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
       entry={entry}
       href={postPageUrl}
       showActions={showActions}
+      showHeader={showHeader}
       showTooltips={showTooltips}
       customActionText={post.postType === 'QUESTION' ? 'asked a question' : 'published an article'}
       maxLength={maxLength}
       onFeedItemClick={onFeedItemClick}
       showPeerReviews={post.postType !== 'QUESTION'}
+      showBountyInfoSummary={showBountyInfoSummary}
     >
       {/* Top section with badges and mobile image */}
       <FeedItemTopSection
@@ -85,14 +92,20 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
         }
         leftContent={
           <>
-            <ContentTypeBadge type={post.postType === 'QUESTION' ? 'question' : 'preprint'} />
+            <ContentTypeBadge
+              type={
+                post.postType === 'QUESTION'
+                  ? 'question'
+                  : post.contentType === 'PREREGISTRATION'
+                    ? 'funding'
+                    : 'article'
+              }
+            />
             {topics.map((topic) => (
               <TopicAndJournalBadge
                 key={topic.id || topic.slug}
-                type="topic"
                 name={topic.name}
                 slug={topic.slug}
-                imageUrl={topic.imageUrl}
               />
             ))}
           </>
@@ -105,20 +118,23 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
             {/* Title */}
             <TitleSection title={post.title} highlightedTitle={highlightedTitle} />
 
-            {/* Authors list below title */}
-            {authors.length > 0 && (
-              <MetadataSection>
-                <div className="mt-1 mb-3 flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-gray-500" />
-                  <AuthorList
-                    authors={authors}
-                    size="sm"
-                    className="text-gray-500 font-normal text-sm"
-                    delimiter="•"
-                  />
-                </div>
-              </MetadataSection>
-            )}
+            <div>
+              {/* Authors list below title */}
+              {authors.length > 0 && (
+                <MetadataSection>
+                  <div className="flex items-start gap-1.5">
+                    <Users className="w-4 h-4 text-gray-500" />
+                    <AuthorList
+                      authors={authors}
+                      size="sm"
+                      className="text-gray-500 font-normal text-sm"
+                      delimiter="•"
+                      timestamp={post.createdDate ? formatTimestamp(post.createdDate) : undefined}
+                    />
+                  </div>
+                </MetadataSection>
+              )}
+            </div>
 
             {/* Truncated Content */}
             <ContentSection

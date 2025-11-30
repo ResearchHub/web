@@ -90,7 +90,6 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
 
   // Determine avatar size based on the size prop
   const avatarSize = size === 'xs' ? 'xs' : size === 'md' ? 'md' : 'sm';
-  const avatarStackSize = avatarSize === 'xs' ? 'xxs' : avatarSize === 'md' ? 'md' : 'sm';
 
   // Handle multiple authors if provided
   let displayAuthor = author;

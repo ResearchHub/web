@@ -265,7 +265,6 @@ export class BountyService {
                       abstract: transformedDoc?.document.abstract,
                       // Required fields for transformPost / transformWork
                       content_type: 'post',
-                      created_date: rawBounty.created_date,
                       // Indicate PREREGISTRATION via type and unified_document
                       type: rawBounty.unified_document.document_type,
                       unified_document: {

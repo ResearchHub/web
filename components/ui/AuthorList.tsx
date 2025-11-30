@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, Fragment } from 'react';
-import { Plus, Minus, BadgeCheck } from 'lucide-react';
+import { Minus, Plus } from 'lucide-react';
 import { cn } from 'utils/styles';
 import { VerifiedBadge } from './VerifiedBadge';
+import { Button } from './Button';
 import Link from 'next/link';
 
 export interface Author {
@@ -160,17 +161,22 @@ export const AuthorList = ({
             </Fragment>
           ))}
           {showAll && filteredAuthors.length > 3 && (
-            <button
+            <Button
+              variant="link"
+              size="sm"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setShowAll(false);
               }}
-              className="flex items-center text-blue-500 hover:text-blue-600 ml-2"
+              className={cn(
+                'flex items-center gap-0.5 ml-2 text-blue-500 p-0 h-auto whitespace-nowrap',
+                getTextSize()
+              )}
             >
               <Minus className="w-3.5 h-3.5 mr-1" />
-              <span className={getTextSize()}>Show less</span>
-            </button>
+              <span>Show less</span>
+            </Button>
           )}
         </>
       );
@@ -182,17 +188,19 @@ export const AuthorList = ({
         <AuthorItem author={filteredAuthors[0]} showDot={false} size={size} className={className} />
         <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
         <AuthorItem author={filteredAuthors[1]} showDot={false} size={size} className={className} />
-        <button
+        <Button
+          variant="link"
+          size="sm"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             setShowAll(true);
           }}
-          className="flex items-center text-blue-500 hover:text-blue-600 mx-1"
+          className={cn('flex items-center gap-0.5 mx-1 text-blue-500 p-0 h-auto', getTextSize())}
         >
           <Plus className="w-3.5 h-3.5 mr-1" />
-          <span className={getTextSize()}>{filteredAuthors.length - 3} more</span>
-        </button>
+          <span>{filteredAuthors.length - 3} more</span>
+        </Button>
         <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
         <AuthorItem
           author={filteredAuthors[filteredAuthors.length - 1]}
@@ -228,19 +236,40 @@ export const AuthorList = ({
           {/* Mobile-only abbreviated view - Using flex-nowrap to prevent line breaks */}
           <div className="md:!hidden flex flex-nowrap items-center overflow-hidden">
             {renderMobileAbbreviatedAuthors()}
+            {timestamp && (
+              <>
+                <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
+                <span className={cn('text-gray-500 whitespace-nowrap', getTextSize())}>
+                  {timestamp}
+                </span>
+              </>
+            )}
           </div>
           {/* Desktop-only full view */}
-          <div className="hidden md:!flex md:!flex-wrap md:!items-center">{renderAuthors()}</div>
+          <div className="hidden md:!flex md:!flex-wrap md:!items-center">
+            {renderAuthors()}
+            {timestamp && (
+              <>
+                <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
+                <span className={cn('text-gray-500 whitespace-nowrap', getTextSize())}>
+                  {timestamp}
+                </span>
+              </>
+            )}
+          </div>
         </>
       ) : (
-        renderAuthors()
-      )}
-
-      {timestamp && (
-        <>
-          <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
-          <span className={`text-gray-500 ${getTextSize()}`}>{timestamp}</span>
-        </>
+        <span className="flex flex-wrap items-center">
+          {renderAuthors()}
+          {timestamp && (
+            <>
+              <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
+              <span className={cn('text-gray-500 whitespace-nowrap', getTextSize())}>
+                {timestamp}
+              </span>
+            </>
+          )}
+        </span>
       )}
     </div>
   );

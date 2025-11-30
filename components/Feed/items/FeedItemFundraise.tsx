@@ -11,39 +11,25 @@ import {
   FeedItemLayout,
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
-import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
+import { FundraiseProgress } from '@/components/Fund/FundraiseProgressV2';
 import { Users, Building, Pin } from 'lucide-react';
+import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
+import { formatTimestamp } from '@/utils/date';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
   href?: string;
   showTooltips?: boolean;
-  badgeVariant?: 'default' | 'icon-only';
   showActions?: boolean;
+  showHeader?: boolean;
   maxLength?: number;
   customActionText?: string;
   isPinnedFundraise?: boolean;
   onFeedItemClick?: () => void;
 }
-
-/**
- * Helper function to extract contributors from fundraise data
- */
-const extractContributors = (fundraise: FeedPostContent['fundraise']) => {
-  if (!fundraise || !fundraise.contributors || !fundraise.contributors.topContributors) {
-    return [];
-  }
-
-  return fundraise.contributors.topContributors.map((contributor) => ({
-    profileImage: contributor.authorProfile.profileImage,
-    fullName: contributor.authorProfile.fullName,
-    profileUrl: contributor.authorProfile.profileUrl,
-  }));
-};
 
 /**
  * Component for rendering a fundraise feed item using BaseFeedItem
@@ -52,8 +38,8 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   entry,
   href,
   showTooltips = true,
-  badgeVariant = 'default',
   showActions = true,
+  showHeader = true,
   maxLength,
   customActionText,
   isPinnedFundraise = false,
@@ -97,6 +83,8 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       }
       maxLength={maxLength}
       onFeedItemClick={onFeedItemClick}
+      showBountyInfoSummary={false}
+      showHeader={showHeader}
     >
       {/* Pin icon in top right corner for pinned fundraises */}
       {isPinnedFundraise && (
@@ -118,15 +106,13 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         }
         leftContent={
           <>
-            <ContentTypeBadge type="funding" />
-            {isNonprofit && <TaxDeductibleBadge variant={badgeVariant} />}
+            {showHeader && <ContentTypeBadge type="funding" />}
+            {isNonprofit && <TaxDeductibleBadge />}
             {topics.map((topic) => (
               <TopicAndJournalBadge
                 key={topic.id || topic.slug}
-                type="topic"
                 name={topic.name}
                 slug={topic.slug}
-                imageUrl={topic.imageUrl}
               />
             ))}
           </>
@@ -140,16 +126,17 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             {/* Title */}
             <TitleSection title={post.title} />
 
-            {/* Authors list below title */}
+            {/* Authors list */}
             {authors.length > 0 && (
               <MetadataSection>
                 <div className="mb-3 flex items-center gap-1.5">
                   <Users className="w-4 h-4 text-gray-500" />
                   <AuthorList
                     authors={authors}
-                    size="xs"
+                    size="sm"
                     className="text-gray-500 font-normal text-sm"
                     delimiter="•"
+                    timestamp={post.createdDate ? formatTimestamp(post.createdDate) : undefined}
                   />
                 </div>
               </MetadataSection>
@@ -186,8 +173,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             fundraiseTitle={post.title}
             fundraise={post.fundraise}
             compact={true}
-            showContribute={true}
-            className="p-0 border-0 bg-transparent"
           />
         </div>
       )}

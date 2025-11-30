@@ -26,22 +26,22 @@ interface FeedContentProps {
   header?: ReactNode;
   tabs?: ReactNode;
   filters?: ReactNode;
-  disableCardLinks?: boolean;
   activeTab?: FeedTab | FundingTab | TabType | string;
   showBountyFooter?: boolean;
   hideActions?: boolean;
   isLoadingMore?: boolean;
-  showBountySupportAndCTAButtons?: boolean;
-  showBountyDeadline?: boolean;
   noEntriesElement?: ReactNode;
   maxLength?: number;
   showGrantHeaders?: boolean;
+  showFundraiseHeaders?: boolean;
+  showPostHeaders?: boolean;
   showReadMoreCTA?: boolean;
   ordering?: string;
   restoredScrollPosition?: number | null;
   page?: number;
   lastClickedEntryId?: string;
   insertContent?: InsertContentItem[];
+  shouldRenderBountyAsComment?: boolean;
   wrapped?: (item: ReactNode, entry: FeedEntry, index: number) => ReactNode;
 }
 
@@ -53,22 +53,22 @@ export const FeedContent: FC<FeedContentProps> = ({
   header,
   tabs,
   filters,
-  disableCardLinks = false,
   activeTab,
   showBountyFooter = true,
   hideActions = false,
   isLoadingMore = false,
-  showBountySupportAndCTAButtons = true,
-  showBountyDeadline = true,
   noEntriesElement,
   maxLength,
   showGrantHeaders = true,
+  showFundraiseHeaders = true,
+  showPostHeaders = true,
   showReadMoreCTA = false,
   ordering,
   restoredScrollPosition,
   page,
   lastClickedEntryId,
   insertContent,
+  shouldRenderBountyAsComment,
   wrapped,
 }) => {
   const pathname = usePathname();
@@ -143,22 +143,21 @@ export const FeedContent: FC<FeedContentProps> = ({
 
               const feedItem = (
                 <FeedEntryItem
+                  showPostHeaders={showPostHeaders}
+                  highlights={highlights}
+                  shouldRenderBountyAsComment={shouldRenderBountyAsComment}
                   entry={entry}
                   index={index}
-                  disableCardLinks={disableCardLinks}
                   showBountyFooter={showBountyFooter}
                   hideActions={hideActions}
-                  showBountySupportAndCTAButtons={showBountySupportAndCTAButtons}
-                  showBountyDeadline={showBountyDeadline}
                   maxLength={maxLength}
                   showGrantHeaders={showGrantHeaders}
+                  showFundraiseHeaders={showFundraiseHeaders}
                   showReadMoreCTA={showReadMoreCTA}
-                  feedView={activeTab}
                   feedOrdering={ordering}
                   registerVisibleItem={registerVisibleItem}
                   unregisterVisibleItem={unregisterVisibleItem}
                   getVisibleItems={getVisibleItems}
-                  highlights={highlights.length > 0 ? highlights : undefined}
                 />
               );
 

@@ -229,7 +229,6 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
                 entry={entry}
                 href={href}
                 showTooltips={true}
-                badgeVariant="default"
                 showActions={true}
                 customActionText="applied to RFP"
               />
