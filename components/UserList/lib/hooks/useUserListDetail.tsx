@@ -1,4 +1,4 @@
-import { useState, useEffect, createElement } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import { UserListDetail } from '@/components/UserList/lib/user-list';
@@ -90,24 +90,21 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
       setList((previousList) => updateListRemoveItem(previousList, itemId));
 
       toast.success(
-        (t) =>
-          createElement(
-            'div',
-            { className: 'flex items-center gap-2' },
-            createElement('span', { className: 'text-gray-900' }, 'Item removed'),
-            createElement(
-              'button',
-              {
-                onClick: async (e: React.MouseEvent) => {
-                  e.stopPropagation();
-                  toast.dismiss(t.id);
-                  await addItem(unifiedDocumentId);
-                },
-                className: 'text-blue-600 hover:text-blue-700 font-medium',
-              },
-              'Undo'
-            )
-          ),
+        (t) => (
+          <div className="flex items-center gap-2">
+            <span className="text-gray-900">Item removed</span>
+            <button
+              onClick={async (e) => {
+                e.stopPropagation();
+                toast.dismiss(t.id);
+                await addItem(unifiedDocumentId);
+              }}
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Undo
+            </button>
+          </div>
+        ),
         { duration: 4000 }
       );
 
