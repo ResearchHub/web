@@ -231,7 +231,15 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
               const firstPage = await pdfDoc.getPage(1);
               const viewport = firstPage.getViewport({ scale: 1 });
               const containerWidth = containerRef.current?.clientWidth || viewport.width;
-              const fitScale = containerWidth / viewport.width;
+              let fitScale = containerWidth / viewport.width;
+
+              // On mobile (narrow screens), enforce a minimum scale so text
+              // remains readable. Users can scroll horizontally if needed.
+              const isMobile = containerWidth < 640;
+              const MIN_MOBILE_SCALE = 1.0;
+              if (isMobile && fitScale < MIN_MOBILE_SCALE) {
+                fitScale = MIN_MOBILE_SCALE;
+              }
 
               // Only apply if it differs meaningfully from the default to avoid
               // triggering an unnecessary re-render when it's already a good
@@ -357,7 +365,10 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
       </div>
 
       {/* PDF pages container */}
-      <div ref={containerRef} className="pdf-pages-wrapper flex flex-col items-center" />
+      <div
+        ref={containerRef}
+        className="pdf-pages-wrapper flex flex-col items-center overflow-x-auto"
+      />
     </div>
   );
 };
