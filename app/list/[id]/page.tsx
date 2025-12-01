@@ -16,7 +16,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { ListModal } from '@/components/modals/ListModal';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { formatItemCount, transformListItemToFeedEntry } from '@/components/UserList/lib/listUtils';
-import dayjs from 'dayjs';
+import { formatTimeAgo } from '@/utils/date';
 import { FeedEntry } from '@/types/feed';
 import { ID } from '@/types/root';
 import { idMatch } from '@/services/lib/serviceUtils';
@@ -120,9 +120,13 @@ export default function ListDetailPage() {
               <div className="flex flex-row items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <h1 className="text-2xl font-bold text-gray-900 mb-1 truncate">{list.name}</h1>
-                  <p className="text-gray-600">{formatItemCount(list)}</p>
-                  <p className="text-sm text-gray-500">
-                    Created {dayjs(list.createdDate).format('MM/DD/YYYY')}
+                  <p className="text-gray-600">
+                    {formatItemCount(list)}
+                    <span className="hidden sm:inline"> • </span>
+                    <br className="sm:hidden" />
+                    <span className="text-sm sm:text-base">
+                      Created {formatTimeAgo(list.createdDate)}
+                    </span>
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">

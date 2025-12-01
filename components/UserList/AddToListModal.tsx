@@ -9,7 +9,7 @@ import { Loader } from '@/components/ui/Loader';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { UserListOverview } from '@/components/UserList/lib/user-list';
-import { Plus, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Plus, ArrowLeft } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
@@ -138,17 +138,8 @@ function ListSelectItem({
         isRemoving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
       }`}
     >
-      <div className="flex-1 min-w-0 flex items-center gap-2">
+      <div className="flex-1 min-w-0">
         <span className="font-medium text-gray-900 truncate">{list.name}</span>
-        <Link
-          href={`/list/${list.id}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="text-gray-400 hover:text-gray-600 flex-shrink-0"
-        >
-          <ExternalLink className="w-3 h-3" />
-        </Link>
       </div>
       {isRemoving ? (
         <Loader size="sm" />
