@@ -1,0 +1,139 @@
+'use client';
+
+import { FC } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Badge } from '@/components/ui/Badge';
+import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import Icon from '@/components/ui/icons/Icon';
+import { Topic } from '@/types/topic';
+import { Journal } from '@/types/journal';
+import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
+
+interface FeedItemBadgesProps {
+  journal?: Journal;
+  category?: Topic;
+  subcategory?: Topic;
+  topics?: Topic[];
+}
+
+// Helper function to get source logo
+const getSourceLogo = (source: string): string | null => {
+  const sourceLower = source.toLowerCase();
+  switch (sourceLower) {
+    case 'arxiv':
+      return '/logos/arxiv.png';
+    case 'biorxiv':
+      return '/logos/biorxiv.png';
+    case 'chemrxiv':
+      return '/logos/chemrxiv.png';
+    case 'medrxiv':
+      return '/logos/medrxiv.jpg';
+    case 'researchhub-journal':
+      return 'rhJournal2';
+    default:
+      return null;
+  }
+};
+
+// Helper function to render badge with source logo
+const renderSourceLogoBadge = (slug: string, name: string) => {
+  const logo = getSourceLogo(slug);
+  const isRHJournal = logo === 'rhJournal2';
+  const href = isRHJournal ? '/journal' : `/topic/${slug}`;
+
+  return (
+    <Link href={href}>
+      <Badge
+        variant="default"
+        className="text-xs bg-white border border-gray-200 hover:bg-gray-50 cursor-pointer px-2 py-1 h-[26px]"
+      >
+        {isRHJournal ? (
+          <>
+            <Icon name="rhJournal2" size={14} className="mr-2" />
+            <span className="text-gray-700">RH Journal</span>
+          </>
+        ) : logo ? (
+          <Image
+            src={logo}
+            alt={name}
+            width={50}
+            height={14}
+            className="object-contain"
+            style={{ maxHeight: '14px' }}
+          />
+        ) : (
+          <span className="text-gray-700">{name}</span>
+        )}
+      </Badge>
+    </Link>
+  );
+};
+
+/**
+ * Reusable component for rendering badges in feed items
+ * Handles journal, category, subcategory, and topics badges
+ */
+export const FeedItemBadges: FC<FeedItemBadgesProps> = ({
+  journal,
+  category,
+  subcategory,
+  topics = [],
+}) => {
+  // Filter out excluded topics
+  const filteredTopics = topics.filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
+
+  // Get journal logo if available
+  const journalLogo = journal?.name ? getSourceLogo(journal.slug) : null;
+
+  // If we have journal/category/subcategory, show those badges
+  if (journalLogo || category?.slug || subcategory?.slug) {
+    return (
+      <>
+        {/* Journal Badge */}
+        {journal && journal.slug && journal.name && (
+          <>{renderSourceLogoBadge(journal.slug, journal.name)}</>
+        )}
+        {/* Category Badge */}
+        {category && category.slug && (
+          <Link href={`/topic/${category.slug}`}>
+            <Badge
+              variant="default"
+              className="text-xs text-gray-700 hover:bg-gray-200 cursor-pointer px-2 py-1"
+            >
+              {category.name}
+            </Badge>
+          </Link>
+        )}
+        {/* Subcategory Badge */}
+        {subcategory && subcategory.slug && (
+          <Link href={`/topic/${subcategory.slug}`}>
+            <Badge
+              variant="default"
+              className="text-xs bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer px-2 py-1"
+            >
+              {subcategory.name}
+            </Badge>
+          </Link>
+        )}
+      </>
+    );
+  }
+
+  // Otherwise, show topics
+  return (
+    <>
+      {filteredTopics.map((topic) => {
+        const topicLogo = topic.slug ? getSourceLogo(topic.slug) : null;
+        if (topicLogo) {
+          return (
+            <div key={topic.id || topic.slug}>{renderSourceLogoBadge(topic.slug, topic.name)}</div>
+          );
+        }
+        return (
+          <TopicAndJournalBadge key={topic.id || topic.slug} name={topic.name} slug={topic.slug} />
+        );
+      })}
+    </>
+  );
+};

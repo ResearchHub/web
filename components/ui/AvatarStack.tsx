@@ -5,6 +5,7 @@ import { Avatar } from './Avatar';
 import { Tooltip } from './Tooltip';
 import { cn } from '@/utils/styles';
 import { AuthorTooltip } from './AuthorTooltip';
+import { getSingularLabel } from '@/utils/stringUtils';
 
 interface AvatarStackProps {
   items: {
@@ -37,6 +38,8 @@ interface AvatarStackProps {
   }[];
   /** Label for the extra count tooltip */
   extraCountLabel?: string;
+  /** When true, shows the label text after avatars */
+  showLabel?: boolean;
 }
 
 export const AvatarStack: FC<AvatarStackProps> = ({
@@ -52,6 +55,7 @@ export const AvatarStack: FC<AvatarStackProps> = ({
   totalItemsCount,
   allItems,
   extraCountLabel = 'Others',
+  showLabel = true,
 }) => {
   // Determine how many items to display
   const displayItems = items.slice(0, maxItems);
@@ -63,22 +67,6 @@ export const AvatarStack: FC<AvatarStackProps> = ({
 
   // Get the list of extra items for tooltip
   const extraItems = allItems ? allItems.slice(maxItems) : items.slice(maxItems);
-
-  // Size mapping for the Avatar component
-  const getAvatarSize = (avatarSize: string) => {
-    switch (avatarSize) {
-      case 'xxxs':
-        return { width: '12px', height: '12px' };
-      case 'xxs':
-        return { width: '16px', height: '16px' };
-      case 'xs':
-        return { width: '24px', height: '24px' };
-      case 'md':
-        return { width: '40px', height: '40px' };
-      default:
-        return { width: '32px', height: '32px' }; // 'sm'
-    }
-  };
 
   // Get font size for the extra count based on avatar size
   const getExtraCountFontSize = () => {
@@ -171,8 +159,16 @@ export const AvatarStack: FC<AvatarStackProps> = ({
     );
   };
 
+  const getLabelText = () => {
+    if (!extraCountLabel || totalCount === 0) return null;
+    const label = totalCount === 1 ? getSingularLabel(extraCountLabel) : extraCountLabel;
+    return `${totalCount} ${label}`;
+  };
+
+  const labelText = getLabelText();
+
   return (
-    <div className={cn('inline-flex items-center', className)}>
+    <div className={cn('inline-flex items-center gap-2', className)}>
       <div className="inline-flex">
         {displayItems.map((item, index) => (
           <div key={`${item.alt}-${index}`} className="flex">
@@ -207,6 +203,12 @@ export const AvatarStack: FC<AvatarStackProps> = ({
           </div>
         )}
       </div>
+      {/* Label text after avatars */}
+      {showLabel && labelText && (
+        <span className="text-sm text-gray-600 whitespace-nowrap cursor-default lowercase">
+          {labelText}
+        </span>
+      )}
     </div>
   );
 };

@@ -10,16 +10,15 @@ import {
   Octagon,
   Share2,
   CheckCircle,
-  ThumbsDown,
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark } from '@fortawesome/pro-light-svg-icons';
+import { faBookmark } from '@fortawesome/free-regular-svg-icons';
+import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useVote } from '@/hooks/useVote';
 import { useUserVotes } from '@/hooks/useUserVotes';
-import { useInterest } from '@/hooks/useInterest';
 import { useCloseFundraise } from '@/hooks/useFundraise';
 import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
@@ -36,7 +35,6 @@ import { WorkMetadata } from '@/services/metadata.service';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useCompleteFundraise } from '@/hooks/useFundraise';
-import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
@@ -55,7 +53,6 @@ export const WorkLineItems = ({
   metadata,
   onEditClick,
 }: WorkLineItemsProps) => {
-  const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showFundraiseActionModal, setShowFundraiseActionModal] = useState(false);
@@ -70,10 +67,6 @@ export const WorkLineItems = ({
     relatedDocumentContentType: work.contentType,
   });
 
-  const { markNotInterested, isProcessing: isMarkingNotInterested } = useInterest({
-    entityId: work.id,
-    workContentType: work.contentType,
-  });
   const [voteCount, setVoteCount] = useState(work.metrics?.votes || 0);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
   const router = useRouter();
@@ -81,7 +74,7 @@ export const WorkLineItems = ({
   const { user } = useUser();
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
   const { showShareModal } = useShareModalContext();
-  const { isInList, listIdsContainingDocument } = useIsInList(work.unifiedDocumentId);
+  const { isInList } = useIsInList(work.unifiedDocumentId);
   const userListsEnabled = useUserListsEnabled();
   const {
     data: userVotes,
@@ -336,14 +329,13 @@ export const WorkLineItems = ({
           {userListsEnabled && work.unifiedDocumentId && work.postType !== 'QUESTION' && (
             <button
               onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+              className={`flex items-center px-4 py-2.5 rounded-lg ${
                 isInList
                   ? 'bg-green-50 text-green-600 hover:bg-green-100'
                   : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <FontAwesomeIcon icon={faBookmark} className="h-6 w-6" />
-              <span className="text-sm font-medium">{listIdsContainingDocument.length}</span>
+              <FontAwesomeIcon icon={isInList ? faBookmarkSolid : faBookmark} className="h-5 w-5" />
             </button>
           )}
 
@@ -383,15 +375,6 @@ export const WorkLineItems = ({
               <BaseMenuItem onSelect={() => executeAuthenticatedAction(handleAddVersion)}>
                 <FileUp className="h-4 w-4 mr-2" />
                 <span>Upload New Version</span>
-              </BaseMenuItem>
-            )}
-            {isFeatureEnabled(FeatureFlag.NotInterested) && (
-              <BaseMenuItem
-                disabled={isMarkingNotInterested}
-                onSelect={() => executeAuthenticatedAction(markNotInterested)}
-              >
-                <ThumbsDown className="h-4 w-4 mr-2" />
-                <span>Not Interested</span>
               </BaseMenuItem>
             )}
             {!isPublished && isModerator && work.contentType !== 'preregistration' && (
@@ -497,7 +480,18 @@ export const WorkLineItems = ({
           <div className="flex items-start">
             <span className="font-medium text-gray-900 w-28">Journal</span>
             <div className="flex-1">
-              <span>{work.journal.name}</span>
+              {['arxiv', 'biorxiv', 'medrxiv', 'chemrxiv'].includes(
+                work.journal.name?.toLowerCase()
+              ) ? (
+                <a
+                  href={`/topic/${work.journal.name.toLowerCase()}`}
+                  className="text-primary-600 hover:text-primary-700 hover:underline"
+                >
+                  {work.journal.name}
+                </a>
+              ) : (
+                <span>{work.journal.name}</span>
+              )}
             </div>
           </div>
         )}

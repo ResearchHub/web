@@ -12,6 +12,7 @@ import {
   FlaskConicalOff,
   History,
   Plus,
+  X,
 } from 'lucide-react';
 import { Work, DocumentVersion } from '@/types/work';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
@@ -33,7 +34,6 @@ import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
-import { NotInterestedButton } from '@/components/ui/NotInterestedButton';
 
 interface WorkDocumentProps {
   work: Work;
@@ -127,7 +127,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
               return (
                 pdfFormat?.url &&
                 !pdfUnavailable && (
-                  <div className="bg-white rounded-lg shadow-sm border mb-6 relative">
+                  <div className="bg-white rounded-lg shadow-sm border mb-6 relative overflow-x-auto">
                     {work.pdfCopyrightAllowsDisplay ? (
                       <DocumentViewer
                         url={pdfFormat.internalUrl || pdfFormat.url}
@@ -262,11 +262,10 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
         metadata={metadata}
         insightsButton={
           <button
-            className="lg:!hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+            className="lg:!hidden flex items-center px-4 py-2.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
             onClick={() => setShowMobileMetrics(true)}
           >
-            <BarChart2 className="h-4 w-4" />
-            <span>Insights</span>
+            <BarChart2 className="h-5 w-5" />
           </button>
         }
       />
@@ -283,14 +282,9 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
       {/* Tab Content */}
       <div className="mt-6">{renderTabContent}</div>
 
-      {/* Not Interested Button */}
-      <div className="mt-8 flex justify-center">
-        <NotInterestedButton entityId={work.id} contentType={work.contentType} />
-      </div>
-
       {/* Mobile sidebar overlay */}
       <div
-        className={`fixed inset-0 bg-black/50 z-30 z-50 lg:hidden ${
+        className={`fixed inset-0 bg-black/50 z-[70] lg:hidden ${
           showMobileMetrics ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={() => setShowMobileMetrics(false)}
@@ -301,7 +295,18 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
           }`}
           onClick={(e) => e.stopPropagation()}
         >
-          <WorkRightSidebar metadata={metadata} work={work} />
+          <div className="h-full overflow-y-auto relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowMobileMetrics(false)}
+              aria-label="Close sidebar"
+              className="absolute -top-2 right-0 z-10"
+            >
+              <X className="w-4 h-4 text-gray-600" />
+            </Button>
+            <WorkRightSidebar metadata={metadata} work={work} />
+          </div>
         </div>
       </div>
     </div>

@@ -3,7 +3,6 @@
  */
 
 export enum FeatureFlag {
-  NotInterested = 'notInterested',
   LegacyNoteBanner = 'legacyNoteBanner',
 }
 
@@ -73,9 +72,6 @@ export function isProduction(): boolean {
  * Centralize all feature flag logic here.
  */
 export const FeatureFlags: Record<FeatureFlag, () => boolean> = {
-  [FeatureFlag.NotInterested]: () => {
-    return getLocalStorageFlag(FeatureFlag.NotInterested) ?? false;
-  },
   [FeatureFlag.LegacyNoteBanner]: () => true,
 };
 

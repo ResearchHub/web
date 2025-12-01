@@ -33,14 +33,7 @@ export const TopicsSection = ({ topics }: TopicsSectionProps) => {
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
           {displayedTopics.map((topic) => (
-            <TopicAndJournalBadge
-              key={topic.id}
-              type="topic"
-              name={topic.name}
-              slug={topic.slug}
-              size="md"
-              variant="secondary"
-            />
+            <TopicAndJournalBadge key={topic.id} name={topic.name} slug={topic.slug} size="md" />
           ))}
         </div>
         {hasMoreTopics && (

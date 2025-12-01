@@ -182,13 +182,12 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
             showBountyFooter={false}
             hideActions={true}
             isLoadingMore={isLoadingMorePublications}
-            showBountySupportAndCTAButtons={false}
-            showBountyDeadline={false}
             noEntriesElement={<SearchEmpty title="No publications found." className="mb-10" />}
             maxLength={150}
             activeTab={currentTab}
             restoredScrollPosition={restoredPublicationsScrollPosition}
             lastClickedEntryId={lastClickedPublicationsEntryId ?? undefined}
+            shouldRenderBountyAsComment={true}
           />
         </div>
       );
@@ -223,8 +222,6 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
           showBountyFooter={false}
           hideActions={true}
           isLoadingMore={isLoadingMoreContributions}
-          showBountySupportAndCTAButtons={false}
-          showBountyDeadline={false}
           noEntriesElement={
             <SearchEmpty title="No author activity found in this section." className="mb-10" />
           }
@@ -233,6 +230,7 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
           activeTab={currentTab}
           restoredScrollPosition={restoredContributionsScrollPosition}
           lastClickedEntryId={lastClickedContributionsEntryId ?? undefined}
+          shouldRenderBountyAsComment={true}
         />
       </div>
     );

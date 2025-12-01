@@ -1,3 +1,4 @@
+import { CommentType, ContentFormat } from './comment';
 import { BaseTransformer } from './transformer';
 import { User, transformUser } from './user';
 
@@ -36,6 +37,15 @@ export interface Bounty {
   contributions: BountyContribution[];
   totalAmount: string;
   raw: any;
+}
+
+export interface BountyWithComment extends Bounty {
+  comment: {
+    content: any;
+    contentFormat: ContentFormat;
+    commentType: CommentType;
+    id: number;
+  };
 }
 
 export const transformSolution = (raw: any): BountySolution => {

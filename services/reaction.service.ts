@@ -15,11 +15,9 @@ import {
   transformFlag,
   transformVote,
   transformVotes,
-  transformNotInterested,
   Vote,
   VoteTypeString,
   Flag,
-  NotInterested,
   UserVoteType,
   VotableContentType,
 } from '@/types/reaction';
@@ -162,19 +160,5 @@ export class ReactionService {
     const response = await ApiClient.post(url, payload);
 
     return transformFlag(response);
-  }
-
-  static async markNotInterested({
-    documentType,
-    documentId,
-  }: MarkNotInterestedOptions): Promise<NotInterested> {
-    if (!documentType || !documentId) {
-      throw new Error('Document type and ID are required');
-    }
-
-    const url = `${this.BASE_PATH}/${documentType}/${documentId}/mark_not_interested/`;
-    const response = await ApiClient.post<any>(url);
-
-    return transformNotInterested(response);
   }
 }

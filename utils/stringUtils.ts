@@ -43,3 +43,13 @@ export const toTitleCase = (str: string): string => {
 };
 
 export const pluralizeSuffix = (count: number): string => (count === 1 ? '' : 's');
+
+/**
+ * Converts a plural label to its singular form by removing the trailing 's'
+ * @param label The plural label (e.g., "Supporters", "Contributors")
+ * @returns The singular form (e.g., "Supporter", "Contributor")
+ */
+export const getSingularLabel = (label: string): string => {
+  if (!label) return '';
+  return label.replace(/s$/, '');
+};

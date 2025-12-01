@@ -71,6 +71,8 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
         hasMore={hasMore}
         loadMore={loadMore}
         showGrantHeaders={false}
+        showFundraiseHeaders={false}
+        showPostHeaders={false}
         restoredScrollPosition={restoredScrollPosition}
         page={page}
         activeTab="all"

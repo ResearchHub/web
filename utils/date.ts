@@ -173,3 +173,12 @@ export function specificTimeSince(dateInput: string | Date): string {
 export const formatExactTime = (deadline: string): string => {
   return dayjs(deadline).format('MMM D, YYYY [at] h:mm A');
 };
+
+/**
+ * Formats a date timestamp into a human-readable string
+ * @param datetime ISO timestamp string
+ * @returns Formatted date string (e.g. "Dec 15, 2024")
+ */
+export const formatDate = (datetime: string, format: string = 'MMM D, YYYY'): string => {
+  return dayjs(datetime).format(format);
+};

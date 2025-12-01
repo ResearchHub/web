@@ -12,7 +12,7 @@ import Icon from './icons/Icon';
 interface CurrencyBadgeProps {
   amount: number;
   className?: string;
-  size?: 'xxs' | 'xs' | 'sm' | 'md';
+  size?: 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'inline' | 'badge' | 'contribute' | 'text' | 'award' | 'received' | 'disabled';
   /** Whether to show currency text (e.g. "RSC" or "USD") after the amount */
   showText?: boolean;
@@ -30,6 +30,8 @@ interface CurrencyBadgeProps {
   textColor?: string;
   /** Custom text color for the currency label (if different from amount) */
   currencyLabelColor?: string;
+  /** Custom font weight class (e.g., 'font-bold', 'font-semibold', 'font-normal') */
+  fontWeight?: string;
   /** Whether to shorten large numbers (e.g., 17,500 → 17.5K) */
   shorten?: boolean;
   /** Currency to display. Defaults to RSC. */
@@ -38,6 +40,8 @@ interface CurrencyBadgeProps {
   hideUSDText?: boolean;
   /** Custom icon size in pixels. Overrides the default size calculation. */
   iconSize?: number;
+  /** Custom icon color (hex string) for RSC icon. Overrides default orange color. */
+  iconColor?: string;
 }
 
 export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
@@ -53,10 +57,12 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
   tooltipPosition = 'top',
   textColor,
   currencyLabelColor,
+  fontWeight,
   shorten,
   currency = 'RSC',
   hideUSDText = true,
   iconSize,
+  iconColor,
 }) => {
   const { exchangeRate, isLoading } = useExchangeRate();
   const isUSD = currency === 'USD';
@@ -71,6 +77,8 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
     xs: 'text-xs gap-0.5 py-0.5 px-1.5',
     sm: 'text-xs gap-1 py-0.5 px-2',
     md: 'text-sm gap-1 py-1 px-2.5',
+    lg: 'text-base gap-1 py-1.5 px-3',
+    xl: 'text-lg gap-1 py-2 px-4',
   };
 
   // Define orange theme colors
@@ -119,6 +127,8 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
     xs: isUSD ? 12 : 14,
     sm: isUSD ? 14 : 16, // $ might appear smaller, adjust base size if needed
     md: isUSD ? 16 : 18,
+    lg: isUSD ? 18 : 20,
+    xl: isUSD ? 20 : 22,
   };
 
   // Use custom iconSize if provided, otherwise use the calculated size
@@ -207,7 +217,8 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
           (isUSD ? (
             <span
               className={cn(
-                'font-semibold mr-0.5',
+                fontWeight || 'font-semibold',
+                'mr-0.5',
                 size === 'xxs'
                   ? 'text-[10px]'
                   : size === 'xs'
@@ -222,14 +233,19 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
               $
             </span>
           ) : (
-            <ResearchCoinIcon size={effectiveIconSize} className="mr-1" outlined />
+            <ResearchCoinIcon
+              size={effectiveIconSize}
+              className="mr-1"
+              outlined
+              color={iconColor || undefined}
+            />
           ))}
         {inverted ? (
           <div className="flex items-center">
             <span
               className={cn(
                 isUSD ? textColor || colors.textDark : colors.textDark,
-                'font-semibold'
+                fontWeight || 'font-semibold'
               )}
             >
               {displayAmount}
@@ -245,7 +261,12 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
           </div>
         ) : (
           <div className="flex items-center">
-            <span className={cn(isUSD ? textColor || colors.text : colors.text, 'font-semibold')}>
+            <span
+              className={cn(
+                isUSD ? textColor || colors.text : colors.text,
+                fontWeight || 'font-semibold'
+              )}
+            >
               {displayAmount}
             </span>
             {shouldShowCurrencyText && (
@@ -289,7 +310,8 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
         (isUSD ? (
           <span
             className={cn(
-              'font-semibold mr-0.5', // Reduced spacing for closer positioning
+              fontWeight || 'font-semibold',
+              'mr-0.5', // Reduced spacing for closer positioning
               variant === 'award'
                 ? colors.awardText
                 : variant === 'received'
@@ -313,27 +335,33 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
           <ResearchCoinIcon
             size={effectiveIconSize}
             variant={variant === 'received' ? 'green' : variant === 'disabled' ? 'solid' : 'orange'}
-            color={variant === 'disabled' ? colors.disabledIconColor : undefined}
+            color={iconColor || (variant === 'disabled' ? colors.disabledIconColor : undefined)}
             outlined
           />
         ))}
       {variant === 'award' ? (
         <div className="flex items-center">
-          <span className={cn(colors.awardText, 'font-semibold')}>+ {displayAmount}</span>
+          <span className={cn(colors.awardText, fontWeight || 'font-semibold')}>
+            + {displayAmount}
+          </span>
           {shouldShowCurrencyText && (
             <span className={cn(colors.awardText, 'ml-1')}>{isUSD ? currencyText : 'Awarded'}</span>
           )}
         </div>
       ) : variant === 'received' ? (
         <div className="flex items-center">
-          <span className={cn(colors.receivedText, 'font-semibold')}>+ {displayAmount}</span>
+          <span className={cn(colors.receivedText, fontWeight || 'font-semibold')}>
+            + {displayAmount}
+          </span>
           {shouldShowCurrencyText && (
             <span className={cn(colors.receivedText, 'ml-1')}>{currencyText}</span>
           )}
         </div>
       ) : variant === 'disabled' ? (
         <div className="flex items-center">
-          <span className={cn(colors.disabledText, 'font-semibold')}>{displayAmount}</span>
+          <span className={cn(colors.disabledText, fontWeight || 'font-semibold')}>
+            {displayAmount}
+          </span>
           {shouldShowCurrencyText && (
             <span className={cn(colors.disabledText, 'ml-1')}>{currencyText}</span>
           )}
@@ -341,7 +369,10 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
       ) : inverted ? (
         <div className="flex items-center">
           <span
-            className={cn(isUSD ? textColor || colors.textDark : colors.textDark, 'font-semibold')}
+            className={cn(
+              isUSD ? textColor || colors.textDark : colors.textDark,
+              fontWeight || 'font-semibold'
+            )}
           >
             {displayAmount}
           </span>
@@ -356,7 +387,12 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
         </div>
       ) : (
         <div className="flex items-center">
-          <span className={cn(isUSD ? textColor || colors.text : colors.text, 'font-semibold')}>
+          <span
+            className={cn(
+              isUSD ? textColor || colors.text : colors.text,
+              fontWeight || 'font-semibold'
+            )}
+          >
             {displayAmount}
           </span>
           {shouldShowCurrencyText && (

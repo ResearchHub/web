@@ -7,7 +7,6 @@ import { Topic } from '@/types/topic';
 import { useClickContext } from '@/contexts/ClickContext';
 import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
 import { Fundraise } from '@/types/feed';
-import { TrendingUp, Target } from 'lucide-react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatRSC } from '@/utils/number';
 import { usePathname } from 'next/navigation';
@@ -149,7 +148,7 @@ export const RelatedWorkCard = ({
   return (
     <div
       // TODO: Add left border with dark gray thick and do not round top left and bottom right corners
-      className={`bg-gray-50 rounded-lg border border-l-2 border-l-gray-600 border-gray-200 rounded-tl-none rounded-bl-none p-4 ${onClick ? 'cursor-pointer hover:bg-gray-100' : ''}`}
+      className={`bg-gray-50 rounded-lg border !border-l-2 !border-l-gray-600 border-gray-200 !rounded-tl-none !rounded-bl-none p-4 ${onClick ? 'cursor-pointer hover:bg-gray-100' : ''}`}
       onClick={handleClick}
     >
       {/* Badge and Topics */}
@@ -179,11 +178,9 @@ export const RelatedWorkCard = ({
                 }}
               >
                 <TopicAndJournalBadge
-                  type="topic"
                   name={topic.name}
                   slug={topic.slug}
                   disableLink={!!hasCustomHandler || shouldUseClickContext}
-                  imageUrl={topic.imageUrl}
                 />
               </div>
             );

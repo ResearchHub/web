@@ -23,13 +23,17 @@ export const JournalPage: FC = () => {
   }, [searchParams]);
 
   useLayoutEffect(() => {
+    console.log('JournalPage useEffect');
     if (!searchParams.get('tab')) {
+      console.log('JournalPage useEffect: no tab');
       const params = new URLSearchParams(searchParams.toString());
+      console.log('JournalPage useEffect: params', params);
       params.set('tab', DEFAULT_TAB);
+      console.log('JournalPage useEffect: params after set', params);
       window.history.replaceState({}, '', `${pathname}?${params.toString()}`);
-      router.refresh();
+      // router.refresh();
     }
-  }, [pathname, router]);
+  }, [pathname, router, searchParams]);
 
   const handleTabChange = (tab: TabType) => {
     if (tab === activeTab) return; // Skip if tab is already active

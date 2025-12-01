@@ -2,17 +2,24 @@
 
 import { FC } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { FeedCommentContent, FeedEntry } from '@/types/feed';
-import { FeedPostContent, FeedPaperContent, FeedGrantContent } from '@/types/feed';
+import {
+  FeedCommentContent,
+  FeedEntry,
+  FeedBountyContent,
+  FeedPostContent,
+  FeedPaperContent,
+  FeedGrantContent,
+  createFeedEntryFromWork,
+} from '@/types/feed';
 import { FeedItemFundraise } from './items/FeedItemFundraise';
 import { FeedItemPaper } from './items/FeedItemPaper';
-import { FeedItemBounty } from './items/FeedItemBounty';
 import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
 import { FeedItemGrant } from './items/FeedItemGrant';
 import { useFeedItemClick } from '@/hooks/useFeedItemClick';
 import { useCallback } from 'react';
 import { getUnifiedDocumentId } from '@/types/analytics';
+import { FeedItemBountyComment } from './items/FeedItemBountyComment';
 
 export interface Highlight {
   field: string;
@@ -22,43 +29,43 @@ export interface Highlight {
 interface FeedEntryItemProps {
   entry: FeedEntry;
   index: number;
-  disableCardLinks?: boolean;
   showBountyFooter?: boolean;
   hideActions?: boolean;
-  showBountySupportAndCTAButtons?: boolean;
-  showBountyDeadline?: boolean;
   maxLength?: number;
   showGrantHeaders?: boolean;
+  showFundraiseHeaders?: boolean;
+  showPostHeaders?: boolean;
   showReadMoreCTA?: boolean;
-  feedView?: string;
   feedOrdering?: string;
   registerVisibleItem: (index: number, unifiedDocumentId: string) => void;
   unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
   getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
+  shouldRenderBountyAsComment?: boolean;
   highlights?: Highlight[];
+  showBountyInfo?: boolean;
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
+  showBountyInfo,
   entry,
   index,
-  disableCardLinks = false,
   showBountyFooter = true,
   hideActions = false,
-  showBountySupportAndCTAButtons = true,
-  showBountyDeadline = true,
   maxLength,
   showGrantHeaders = true,
+  showFundraiseHeaders = true,
+  showPostHeaders = true,
   showReadMoreCTA = false,
-  feedView,
   feedOrdering,
   registerVisibleItem,
   unregisterVisibleItem,
   getVisibleItems,
+  shouldRenderBountyAsComment = false,
   highlights,
 }) => {
   const unifiedDocumentId = getUnifiedDocumentId(entry);
 
-  const { ref, inView } = useInView({
+  const { ref } = useInView({
     threshold: 0,
     rootMargin: '50px',
     onChange: (inView) => {
@@ -93,29 +100,28 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   }
 
   // Apply appropriate spacing based on position
-  const spacingClass = index !== 0 ? 'mt-12' : '';
+  const spacingClass = index !== 0 ? 'mt-8' : '';
 
   // Generate the appropriate href for this entry
   const generateHref = (entry: FeedEntry): string | undefined => {
-    // If links are disabled globally, return undefined
-    if (disableCardLinks) {
-      return undefined;
-    }
     try {
       switch (entry.contentType) {
-        case 'POST':
+        case 'POST': {
           const postContent = entry.content as FeedPostContent;
           // Check if this is a question based on postType
           if (postContent.postType === 'QUESTION') {
             return `/question/${postContent.id}/${postContent.slug}`;
           }
           return `/post/${postContent.id}/${postContent.slug}`;
-        case 'PREREGISTRATION':
+        }
+        case 'PREREGISTRATION': {
           const fundContent = entry.content as FeedPostContent;
           return `/fund/${fundContent.id}/${fundContent.slug}`;
-        case 'PAPER':
+        }
+        case 'PAPER': {
           const paperContent = entry.content as FeedPaperContent;
           return `/paper/${paperContent.id}/${paperContent.slug}`;
+        }
 
         case 'BOUNTY':
           if (entry.relatedWork?.contentType === 'paper') {
@@ -127,7 +133,8 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             }
             return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/bounties`;
           }
-        case 'COMMENT':
+          break;
+        case 'COMMENT': {
           const comment = entry.content as FeedCommentContent;
           // For comments, we might want to link to the parent content with the comment ID as a hash
           if (entry.relatedWork?.contentType === 'paper') {
@@ -139,10 +146,13 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             }
             return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
           }
+          break;
+        }
 
-        case 'GRANT':
+        case 'GRANT': {
           const grantContent = entry.content as FeedGrantContent;
           return `/grant/${grantContent.id}/${grantContent.slug}`;
+        }
 
         default:
           return undefined;
@@ -164,11 +174,13 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
         content = (
           <FeedItemPost
             entry={entry}
+            showHeader={showPostHeaders}
             href={href}
             showActions={!hideActions}
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
             highlights={highlights}
+            showBountyInfo={showBountyInfo}
           />
         );
         break;
@@ -181,6 +193,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             showActions={!hideActions}
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
+            showHeader={showFundraiseHeaders}
           />
         );
         break;
@@ -193,28 +206,68 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             showActions={!hideActions}
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
-            feedView={feedView}
             highlights={highlights}
+            showBountyInfo={showBountyInfo}
           />
         );
         break;
 
-      case 'BOUNTY':
-        // Use the new FeedItemBounty component
-        content = (
-          <FeedItemBounty
-            entry={entry}
-            relatedDocumentId={entry.relatedWork?.id}
-            href={href}
-            showContributeButton={false}
-            showFooter={showBountyFooter}
-            showSupportAndCTAButtons={showBountySupportAndCTAButtons}
-            showDeadline={showBountyDeadline}
-            maxLength={maxLength}
-            onFeedItemClick={handleFeedItemClick}
-          />
-        );
+      case 'BOUNTY': {
+        const bountyEntry = entry.content as FeedBountyContent;
+
+        // Determine which component to render based on relatedWork
+        const relatedWorkEntry = entry.relatedWork
+          ? createFeedEntryFromWork(entry.relatedWork, entry)
+          : null;
+        const workContentType =
+          entry.relatedWork?.contentType || bountyEntry.relatedDocumentContentType;
+
+        if (shouldRenderBountyAsComment) {
+          content = (
+            <FeedItemBountyComment
+              entry={entry}
+              relatedDocumentId={entry.relatedWork?.id}
+              href={href}
+              showContributeButton={false}
+              showFooter={showBountyFooter}
+              showSupportAndCTAButtons={false}
+              showDeadline={false}
+              maxLength={maxLength}
+              onFeedItemClick={handleFeedItemClick}
+            />
+          );
+        } else {
+          content = (
+            <div className="space-y-3">
+              {/* Render Post or Paper based on relatedWork */}
+              {relatedWorkEntry &&
+                (workContentType === 'paper' ? (
+                  <FeedItemPaper
+                    entry={relatedWorkEntry}
+                    href={generateHref(relatedWorkEntry)}
+                    showActions={showBountyFooter}
+                    maxLength={maxLength}
+                    onFeedItemClick={handleFeedItemClick}
+                    highlights={highlights}
+                    showBountyInfo={showBountyInfo}
+                  />
+                ) : (
+                  <FeedItemPost
+                    entry={relatedWorkEntry}
+                    showHeader={showPostHeaders}
+                    href={generateHref(relatedWorkEntry)}
+                    showActions={showBountyFooter}
+                    maxLength={maxLength}
+                    onFeedItemClick={handleFeedItemClick}
+                    highlights={highlights}
+                    showBountyInfo={showBountyInfo}
+                  />
+                ))}
+            </div>
+          );
+        }
         break;
+      }
 
       case 'COMMENT':
         // Use FeedItemComment for comment entries
@@ -249,18 +302,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
       default:
         throw new Error(`Unsupported content type: ${entry.contentType}`);
     }
-  } catch (error) {
-    console.error('Error rendering feed entry:', error);
-    content = (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <h3 className="text-lg font-medium">Error Rendering Entry - {entry.id}</h3>
-        <p className="text-gray-600 mt-2">There was an error rendering this entry.</p>
-        <pre className="text-xs mt-2 bg-gray-100 p-2 rounded overflow-auto">
-          {JSON.stringify(error, null, 2)}
-        </pre>
-      </div>
-    );
-  }
+  } catch (error) {}
 
   return (
     <div ref={ref} className={spacingClass}>

@@ -63,11 +63,26 @@ export function FlagContentModal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black !bg-opacity-25" />
+          <div
+            className="fixed inset-0 bg-black !bg-opacity-25"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          />
         </TransitionChild>
 
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+        <div
+          className="fixed inset-0 overflow-y-auto"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <div
+            className="flex min-h-full items-center justify-center p-4 text-center"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
             <TransitionChild
               as={Fragment}
               enter="ease-out duration-300"
@@ -81,6 +96,9 @@ export function FlagContentModal({
                 className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all"
                 onKeyDownCapture={(e) => {
                   // Prevent parent-level key handlers (e.g., space/enter blockers) from interfering with text input
+                  e.stopPropagation();
+                }}
+                onClick={(e) => {
                   e.stopPropagation();
                 }}
               >
