@@ -100,7 +100,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   }
 
   // Apply appropriate spacing based on position
-  const spacingClass = index !== 0 ? 'mt-12' : '';
+  const spacingClass = index !== 0 ? 'mt-8' : '';
 
   // Generate the appropriate href for this entry
   const generateHref = (entry: FeedEntry): string | undefined => {

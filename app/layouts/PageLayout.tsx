@@ -213,7 +213,7 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
             <div
               className={cn(
                 'w-full',
-                'max-w-full tablet:!max-w-2xl content-md:!max-w-2xl content-lg:!max-w-2xl content-xl:!max-w-2xl',
+                'max-w-full tablet:!max-w-[720px] content-md:!max-w-[720px] content-lg:!max-w-[720px] content-xl:!max-w-[720px]',
                 className
               )}
             >

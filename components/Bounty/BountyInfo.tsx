@@ -244,6 +244,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
                   showExtraCount={contributors.length > 3}
                   totalItemsCount={contributors.length}
                   extraCountLabel="Contributors"
+                  showLabel={false}
                 />
               </div>
             )}

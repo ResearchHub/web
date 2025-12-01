@@ -85,12 +85,7 @@ export const AuthorList = ({
             </Fragment>
           ))}
           {showEtAl && (
-            <>
-              <span className={cn('mx-1 flex-shrink-0', getTextSize(), delimiterClassName)}>
-                {delimiter}
-              </span>
-              <span className={cn(getTextSize(), 'text-gray-500 flex-shrink-0')}>et al.</span>
-            </>
+            <span className={cn('ml-1 flex-shrink-0', getTextSize(), 'text-gray-500')}>et al.</span>
           )}
         </>
       );
@@ -149,10 +144,7 @@ export const AuthorList = ({
               size={size}
               className={className}
             />
-            <span className={cn('mx-1 flex-shrink-0', getTextSize(), delimiterClassName)}>
-              {delimiter}
-            </span>
-            <span className={cn(getTextSize(), 'text-gray-500 flex-shrink-0')}>et al.</span>
+            <span className={cn('ml-1 flex-shrink-0', getTextSize(), 'text-gray-500')}>et al.</span>
           </>
         );
       }
@@ -251,10 +243,7 @@ export const AuthorList = ({
     return (
       <>
         <AuthorItem author={filteredAuthors[0]} showDot={false} size={size} className={className} />
-        <span className={cn('mx-1 flex-shrink-0', getTextSize(), delimiterClassName)}>
-          {delimiter}
-        </span>
-        <span className={cn(getTextSize(), 'text-gray-500 flex-shrink-0')}>et al.</span>
+        <span className={cn('ml-1 flex-shrink-0', getTextSize(), 'text-gray-500')}>et al.</span>
       </>
     );
   };
@@ -268,8 +257,14 @@ export const AuthorList = ({
             {renderMobileAbbreviatedAuthors()}
             {timestamp && (
               <>
-                <span className={cn('mx-1 flex-shrink-0', getTextSize(), delimiterClassName)}>
-                  {delimiter}
+                <span
+                  className={cn(
+                    'mx-1 flex-shrink-0 text-gray-500',
+                    getTextSize(),
+                    delimiterClassName
+                  )}
+                >
+                  |
                 </span>
                 <span
                   className={cn('text-gray-500 whitespace-nowrap flex-shrink-0', getTextSize())}
@@ -284,8 +279,14 @@ export const AuthorList = ({
             {renderAuthors()}
             {timestamp && (
               <>
-                <span className={cn('mx-1 flex-shrink-0', getTextSize(), delimiterClassName)}>
-                  {delimiter}
+                <span
+                  className={cn(
+                    'mx-1 flex-shrink-0 text-gray-500',
+                    getTextSize(),
+                    delimiterClassName
+                  )}
+                >
+                  |
                 </span>
                 <span
                   className={cn('text-gray-500 whitespace-nowrap flex-shrink-0', getTextSize())}
@@ -301,8 +302,14 @@ export const AuthorList = ({
           {renderAuthors()}
           {timestamp && (
             <>
-              <span className={cn('mx-1 flex-shrink-0', getTextSize(), delimiterClassName)}>
-                {delimiter}
+              <span
+                className={cn(
+                  'mx-1 flex-shrink-0 text-gray-500',
+                  getTextSize(),
+                  delimiterClassName
+                )}
+              >
+                |
               </span>
               <span className={cn('text-gray-500 whitespace-nowrap flex-shrink-0', getTextSize())}>
                 {timestamp}

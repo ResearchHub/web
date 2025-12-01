@@ -1,9 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { FeedPaperContent, FeedEntry } from '@/types/feed';
+import { FeedPaperContent, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
 import {
   BaseFeedItem,
   TitleSection,
@@ -13,14 +11,11 @@ import {
   FeedItemLayout,
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
+import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
+import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { Badge } from '@/components/ui/Badge';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { Users } from 'lucide-react';
-import Icon from '@/components/ui/icons/Icon';
 import { formatTimestamp } from '@/utils/date';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
-import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
@@ -53,62 +48,6 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const highlightedTitle = highlights?.find((h) => h.field === 'title')?.value;
   const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
-  // Get topics/tags for display
-  const topics = (paper.topics || []).filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
-
-  // Helper function to get source logo
-  const getSourceLogo = (source: string) => {
-    const sourceLower = source.toLowerCase();
-    switch (sourceLower) {
-      case 'arxiv':
-        return '/logos/arxiv.png';
-      case 'biorxiv':
-        return '/logos/biorxiv.png';
-      case 'chemrxiv':
-        return '/logos/chemrxiv.png';
-      case 'medrxiv':
-        return '/logos/medrxiv.jpg';
-      case 'researchhub-journal':
-        return 'rhJournal2';
-      default:
-        return null;
-    }
-  };
-
-  // Helper function to render badge with source logo
-  const renderSourceLogoBadge = (slug: string, name: string) => {
-    const logo = getSourceLogo(slug);
-    const isRHJournal = logo === 'rhJournal2';
-    const href = isRHJournal ? '/journal' : `/topic/${slug}`;
-
-    return (
-      <Link href={href}>
-        <Badge
-          variant="default"
-          className="text-xs bg-white border border-gray-200 hover:bg-gray-50 cursor-pointer px-2 py-1 h-[26px]"
-        >
-          {isRHJournal ? (
-            <>
-              <Icon name="rhJournal2" size={14} className="mr-2" />
-              <span className="text-gray-700">RH Journal</span>
-            </>
-          ) : logo ? (
-            <Image
-              src={logo}
-              alt={name}
-              width={50}
-              height={14}
-              className="object-contain"
-              style={{ maxHeight: '14px' }}
-            />
-          ) : (
-            <span className="text-gray-700">{name}</span>
-          )}
-        </Badge>
-      </Link>
-    );
-  };
-
   // Use provided href or create default paper page URL
   const paperPageUrl = href || `/paper/${paper.id}/${paper.slug}`;
 
@@ -116,8 +55,12 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const journalName = paper.journal?.name;
   const actionText = journalName ? `published in ${journalName}` : 'published in a journal';
 
-  // Get journal logo if available
-  const journalLogo = paper.journal?.name ? getSourceLogo(paper.journal.slug) : null;
+  // Extract props for FeedItemMenuButton (same as BaseFeedItem uses for FeedItemActions)
+  const feedContentType = paper.contentType || 'PAPER';
+  const votableEntityId = paper.id;
+  const relatedDocumentId =
+    'relatedDocumentId' in paper ? paper.relatedDocumentId?.toString() : paper.id.toString();
+  const relatedDocumentContentType = mapFeedContentTypeToContentType(paper.contentType);
 
   return (
     <BaseFeedItem
@@ -130,6 +73,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
       maxLength={maxLength}
       onFeedItemClick={onFeedItemClick}
       showBountyInfo={showBountyInfo}
+      hideReportButton={true}
     >
       {/* Top section with badges and mobile image */}
       <FeedItemTopSection
@@ -142,60 +86,21 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
             />
           )
         }
+        rightContent={
+          <FeedItemMenuButton
+            feedContentType={feedContentType}
+            votableEntityId={votableEntityId}
+            relatedDocumentId={relatedDocumentId}
+            relatedDocumentContentType={relatedDocumentContentType}
+          />
+        }
         leftContent={
-          <>
-            {journalLogo ? (
-              <>
-                {/* Journal Badge - On following and for-you feeds */}
-                {paper.journal &&
-                  paper.journal.slug &&
-                  paper.journal.name &&
-                  renderSourceLogoBadge(paper.journal.slug, paper.journal.name)}
-                {/* Category Badge - On following and for-you feeds */}
-                {paper.category && paper.category.slug && (
-                  <Link href={`/topic/${paper.category.slug}`}>
-                    <Badge
-                      variant="default"
-                      className="text-xs text-gray-700 hover:bg-gray-200 cursor-pointer px-2 py-1"
-                    >
-                      {paper.category.name}
-                    </Badge>
-                  </Link>
-                )}
-                {/* Subcategory Badge - On following and for-you feeds */}
-                {paper.subcategory && paper.subcategory.slug && (
-                  <Link href={`/topic/${paper.subcategory.slug}`}>
-                    <Badge
-                      variant="default"
-                      className="text-xs bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer px-2 py-1"
-                    >
-                      {paper.subcategory.name}
-                    </Badge>
-                  </Link>
-                )}
-              </>
-            ) : (
-              <>
-                {topics.map((topic) => {
-                  const topicLogo = topic.slug ? getSourceLogo(topic.slug) : null;
-                  if (topicLogo) {
-                    return (
-                      <div key={topic.id || topic.slug}>
-                        {renderSourceLogoBadge(topic.slug, topic.name)}
-                      </div>
-                    );
-                  }
-                  return (
-                    <TopicAndJournalBadge
-                      key={topic.id || topic.slug}
-                      name={topic.name}
-                      slug={topic.slug}
-                    />
-                  );
-                })}
-              </>
-            )}
-          </>
+          <FeedItemBadges
+            journal={paper.journal}
+            category={paper.category}
+            subcategory={paper.subcategory}
+            topics={paper.topics}
+          />
         }
       />
       {/* Main content layout with desktop image */}

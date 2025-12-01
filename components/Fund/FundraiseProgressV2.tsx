@@ -212,6 +212,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     showExtraCount={contributors.length > 3}
                     totalItemsCount={contributors.length}
                     extraCountLabel="Supporters"
+                    showLabel={false}
                   />
                 </div>
               )}

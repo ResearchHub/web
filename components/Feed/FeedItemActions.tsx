@@ -396,7 +396,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
             feedContentType !== 'COMMENT' &&
             feedContentType !== 'BOUNTY' &&
             feedContentType !== 'APPLICATION' &&
-            showPeerReviews && ( // to prevent questions from being added to lists
+            showPeerReviews &&
+            !hideReportButton && ( // Show inline when report button is visible (3-dots menu is here)
               <ActionButton
                 icon={BookmarkIcon}
                 tooltip="Add to List"
@@ -506,6 +507,28 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
         <div className="flex-grow flex justify-end items-center gap-3">
           {rightSideActionButton}
+
+          {/* Show "Add to List" button in right section when hideReportButton is true */}
+          {hideReportButton &&
+            userListsEnabled &&
+            relatedDocumentUnifiedDocumentId &&
+            feedContentType !== 'COMMENT' &&
+            feedContentType !== 'BOUNTY' &&
+            feedContentType !== 'APPLICATION' &&
+            showPeerReviews && (
+              <ActionButton
+                icon={BookmarkIcon}
+                tooltip="Add to List"
+                label="Add to List"
+                count={listIdsContainingDocument.length}
+                onClick={handleOpenAddToListModal}
+                showTooltip={showTooltips}
+                isActive={isDocumentInList}
+                className={
+                  isDocumentInList ? 'text-green-600 border-green-300 hover:bg-green-50' : ''
+                }
+              />
+            )}
 
           {(!hideReportButton || menuItems.length > 0) && (
             <BaseMenu

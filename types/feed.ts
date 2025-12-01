@@ -90,6 +90,8 @@ export interface FeedPostContent extends BaseFeedContent {
   previewImage?: string;
   authors: AuthorProfile[];
   topics: Topic[];
+  category?: Topic;
+  subcategory?: Topic;
   institution?: string;
 }
 
@@ -165,6 +167,8 @@ export interface FeedGrantContent extends BaseFeedContent {
   previewImage?: string;
   authors: AuthorProfile[];
   topics: Topic[];
+  category?: Topic;
+  subcategory?: Topic;
   grant: {
     id: number;
     amount: {
@@ -754,6 +758,10 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                 : [transformAuthorProfile(author)],
             topics: [Array.isArray(content_object.hub) || content_object.hub].map(transformTopic),
             createdBy: transformAuthorProfile(author),
+            category: content_object.category ? transformTopic(content_object.category) : undefined,
+            subcategory: content_object.subcategory
+              ? transformTopic(content_object.subcategory)
+              : undefined,
             bounties: content_object.bounties
               ? content_object.bounties.map((bounty: any) =>
                   transformBounty(bounty, { ignoreBaseAmount: true })
@@ -825,6 +833,10 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                 ]
               : [],
             createdBy: transformAuthorProfile(author),
+            category: content_object.category ? transformTopic(content_object.category) : undefined,
+            subcategory: content_object.subcategory
+              ? transformTopic(content_object.subcategory)
+              : undefined,
             bounties: content_object.bounties
               ? content_object.bounties.map((bounty: any) =>
                   transformBounty(bounty, { ignoreBaseAmount: true })

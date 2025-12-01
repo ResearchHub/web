@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { FeedEntry, FeedGrantContent } from '@/types/feed';
+import { FeedEntry, FeedGrantContent, mapFeedContentTypeToContentType } from '@/types/feed';
 import {
   BaseFeedItem,
   TitleSection,
@@ -11,7 +11,8 @@ import {
   FeedItemLayout,
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
+import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { Building, Users } from 'lucide-react';
 import { GrantInfo } from '@/components/Grant/GrantInfo';
 import { AuthorList } from '@/components/ui/AuthorList';
@@ -56,6 +57,17 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
   // Use provided href or create default grant page URL
   const grantPageUrl = href || `/grant/${grant.id}/${grant.slug}`;
 
+  // Extract props for FeedItemMenuButton (same as BaseFeedItem uses for FeedItemActions)
+  const feedContentType = grant.contentType || 'GRANT';
+  const votableEntityId = grant.id;
+  const relatedDocumentId =
+    'relatedDocumentId' in grant ? grant.relatedDocumentId?.toString() : grant.id.toString();
+  const relatedDocumentContentType =
+    // 'relatedDocumentContentType' in grant
+    // ? grant.relatedDocumentContentType
+    // :
+    mapFeedContentTypeToContentType(grant.contentType);
+
   return (
     <BaseFeedItem
       entry={entry}
@@ -67,6 +79,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
       maxLength={maxLength}
       showHeader={showHeader}
       onFeedItemClick={onFeedItemClick}
+      hideReportButton={true}
     >
       {/* Top section with badges and status + image(mobile) */}
       <FeedItemTopSection
@@ -79,16 +92,20 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             />
           )
         }
+        rightContent={
+          <FeedItemMenuButton
+            feedContentType={feedContentType}
+            votableEntityId={votableEntityId}
+            relatedDocumentId={relatedDocumentId}
+            relatedDocumentContentType={relatedDocumentContentType}
+          />
+        }
         leftContent={
-          <>
-            {grant.topics?.map((topic) => (
-              <TopicAndJournalBadge
-                key={topic.id || topic.slug}
-                name={topic.name}
-                slug={topic.slug}
-              />
-            ))}
-          </>
+          <FeedItemBadges
+            topics={grant.topics}
+            category={grant.category}
+            subcategory={grant.subcategory}
+          />
         }
       />
 

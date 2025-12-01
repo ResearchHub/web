@@ -141,6 +141,7 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
               showExtraCount={applicants.length > 3}
               totalItemsCount={applicants.length}
               extraCountLabel="Applicants"
+              showLabel={false}
             />
           </div>
         )}

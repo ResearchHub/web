@@ -36,6 +36,7 @@ export interface BaseFeedItemProps {
   onFeedItemClick?: () => void;
   showPeerReviews?: boolean;
   showBountyInfo?: boolean;
+  hideReportButton?: boolean;
 }
 
 // Badge component interface
@@ -285,6 +286,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   onFeedItemClick,
   showPeerReviews = true,
   showBountyInfo,
+  hideReportButton = false,
 }) => {
   const content = entry.content;
   const author = content.createdBy;
@@ -400,7 +402,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
         {/* Action Buttons */}
         {showActions && (
           <div
-            className="mt-4 px-4 py-2 border-t border-gray-200 bg-gray-50 cursor-default"
+            className="px-4 py-2 border-t border-gray-200 bg-gray-50 cursor-default"
             onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
           >
@@ -431,6 +433,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               showPeerReviews={showPeerReviews}
               onFeedItemClick={onFeedItemClick}
               bounties={showBountyInfo ? undefined : content.bounties}
+              hideReportButton={hideReportButton}
             />
           </div>
         )}
@@ -459,11 +462,13 @@ export const FeedItemTopSection: FC<{
   leftContent: ReactNode;
   className?: string;
   imageSection?: ReactNode;
-}> = ({ leftContent, className, imageSection }) => {
+  rightContent?: ReactNode;
+}> = ({ leftContent, className, imageSection, rightContent }) => {
   return (
     <>
       <div className={cn('flex items-start justify-between mb-3', className)}>
         <div className="flex flex-wrap gap-2">{leftContent}</div>
+        {rightContent && <div className="flex-shrink-0">{rightContent}</div>}
       </div>
       {imageSection && (
         <div className="md:!hidden w-full mb-4 rounded-lg overflow-hidden shadow-sm">

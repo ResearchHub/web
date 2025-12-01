@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { FeedPostContent, FeedEntry } from '@/types/feed';
+import { FeedPostContent, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
 import {
   BaseFeedItem,
   TitleSection,
@@ -11,8 +11,9 @@ import {
   FeedItemLayout,
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
+import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
+import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgressV2';
 import { Users, Building, Pin } from 'lucide-react';
@@ -80,6 +81,17 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
     router.push(fundingPageUrl);
   };
 
+  // Extract props for FeedItemMenuButton (same as BaseFeedItem uses for FeedItemActions)
+  const feedContentType = post.contentType || 'PREREGISTRATION';
+  const votableEntityId = post.id;
+  const relatedDocumentId =
+    'relatedDocumentId' in post ? post.relatedDocumentId?.toString() : post.id.toString();
+  const relatedDocumentContentType =
+    // 'relatedDocumentContentType' in post
+    // ? post.relatedDocumentContentType
+    // :
+    mapFeedContentTypeToContentType(post.contentType);
+
   return (
     <BaseFeedItem
       entry={entry}
@@ -93,6 +105,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       onFeedItemClick={onFeedItemClick}
       showBountyInfo={false}
       showHeader={showHeader}
+      hideReportButton={true}
     >
       {/* Pin icon in top right corner for pinned fundraises */}
       {isPinnedFundraise && (
@@ -112,16 +125,22 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             />
           )
         }
+        rightContent={
+          <FeedItemMenuButton
+            feedContentType={feedContentType}
+            votableEntityId={votableEntityId}
+            relatedDocumentId={relatedDocumentId}
+            relatedDocumentContentType={relatedDocumentContentType}
+          />
+        }
         leftContent={
           <>
             {isNonprofit && <TaxDeductibleBadge />}
-            {topics.map((topic) => (
-              <TopicAndJournalBadge
-                key={topic.id || topic.slug}
-                name={topic.name}
-                slug={topic.slug}
-              />
-            ))}
+            <FeedItemBadges
+              topics={topics}
+              category={post.category}
+              subcategory={post.subcategory}
+            />
           </>
         }
       />
