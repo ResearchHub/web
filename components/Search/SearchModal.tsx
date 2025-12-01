@@ -188,10 +188,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 className="h-12 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-8 md:!pr-24 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                onClick={(e) => {
-                  // Select all text when clicking on the input
-                  (e.target as HTMLInputElement).select();
-                }}
                 onFocus={() => {
                   setIsFocused(true);
                   prefetchSearchRoute();
