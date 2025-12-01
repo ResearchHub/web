@@ -170,7 +170,7 @@ export const FeedContent: FC<FeedContentProps> = ({
                 <React.Fragment key={`${entry.id}-${index}`}>
                   {effectiveFeedItem}
                   {contentToInsert && (
-                    <div key={`insert-content-${index}`} className="mt-6">
+                    <div key={`insert-content-${index}`} className="mt-8">
                       {contentToInsert.content}
                     </div>
                   )}
@@ -183,7 +183,7 @@ export const FeedContent: FC<FeedContentProps> = ({
               {[...Array(3)].map((_, index) => (
                 <div
                   key={`skeleton-${index}`}
-                  className={index > 0 || displayEntries.length > 0 ? 'mt-6' : ''}
+                  className={index > 0 || displayEntries.length > 0 ? 'mt-8' : ''}
                 >
                   <FeedItemSkeleton />
                 </div>
