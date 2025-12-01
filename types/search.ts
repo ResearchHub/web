@@ -5,6 +5,7 @@ import { AuthorProfile } from './authorProfile';
 import { ID } from './root';
 import { transformTopic } from './topic';
 import { ContentType } from './work';
+import { RawApiFeedEntry } from './feed';
 
 export type SuggestionSource = 'api' | 'recent' | 'researchhub' | 'openalex';
 export type EntityType = 'user' | 'paper' | 'author' | 'post' | 'hub';
@@ -332,6 +333,19 @@ export interface ApiDocumentSearchResult {
   is_open_access: boolean | null;
   slug: string | null;
   document_type: string | null; // 'GRANT', etc.
+  // Feed-related fields (now available from search endpoint)
+  recommendation_id?: string | null;
+  content_type?: string;
+  content_object?: any; // Full content object structure matching feed items
+  action?: string;
+  action_date?: string;
+  is_nonprofit?: boolean;
+  hot_score_v2?: number;
+  hot_score_breakdown?: RawApiFeedEntry['hot_score_breakdown'];
+  external_metadata?: RawApiFeedEntry['external_metadata'];
+  user_vote?: RawApiFeedEntry['user_vote'];
+  metrics?: RawApiFeedEntry['metrics'];
+  author?: RawApiFeedEntry['author'];
 }
 
 export interface PersonSearchResult {

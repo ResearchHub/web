@@ -157,7 +157,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
                 loadMore={loadMore}
                 showGrantHeaders={true}
                 showReadMoreCTA={true}
-                hideActions={true}
+                hideActions={false}
                 noEntriesElement={
                   <SearchEmptyState
                     onSearch={handleSearch}

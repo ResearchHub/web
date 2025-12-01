@@ -13,7 +13,7 @@ import {
 import { transformAuthorSuggestions } from '@/types/search';
 import { transformTopic } from '@/types/topic';
 import { Institution } from '@/app/paper/create/components/InstitutionAutocomplete';
-import { FeedEntry, transformFeedEntry } from '@/types/feed';
+import { FeedEntry, transformFeedEntry, RawApiFeedEntry, getUnifiedDocumentId } from '@/types/feed';
 import { highlightSearchTerms, hasHighlights } from '@/components/Search/lib/searchHighlight';
 
 export interface InstitutionResponse {
@@ -283,6 +283,95 @@ export class SearchService {
     };
   }
 
+  /**
+   * Maps search authors to content_object author format
+   */
+  private static mapSearchAuthorsToContentAuthors(
+    authors: ApiDocumentSearchResult['authors']
+  ): Array<{ first_name: string; last_name: string; profile_image: string }> {
+    return (authors || []).map((author) => ({
+      first_name: author.first_name || '',
+      last_name: author.last_name || '',
+      profile_image: '',
+    }));
+  }
+
+  /**
+   * Gets the earliest available date from multiple sources
+   */
+  private static getEarliestDate(...dates: (string | null | undefined)[]): string {
+    const validDates = dates.filter((d): d is string => !!d);
+    return validDates[0] || new Date().toISOString();
+  }
+
+  /**
+   * Builds a fallback content_object from search document fields
+   */
+  private static buildFallbackContentObject(
+    doc: ApiDocumentSearchResult,
+    plainTitle: string,
+    plainSnippet: string
+  ): any {
+    return {
+      id: doc.id,
+      title: plainTitle,
+      abstract: plainSnippet,
+      slug: doc.slug || '',
+      created_date: this.getEarliestDate(doc.created_date, doc.paper_publish_date),
+      authors: this.mapSearchAuthorsToContentAuthors(doc.authors),
+      hub: doc.hubs && doc.hubs.length > 0 ? doc.hubs[0] : null,
+      journal: null,
+      doi: doc.doi,
+      citations: doc.citations || 0,
+      score: doc.score || 0,
+      hot_score: doc.hot_score || 0,
+      unified_document_id: doc.unified_document_id?.toString() || doc.id.toString(),
+    };
+  }
+
+  /**
+   * Merges content_object from search with fallback fields to ensure completeness
+   */
+  private static mergeContentObject(
+    contentObject: any,
+    doc: ApiDocumentSearchResult,
+    plainTitle: string,
+    plainSnippet: string
+  ): any {
+    const fallback = this.buildFallbackContentObject(doc, plainTitle, plainSnippet);
+    const unifiedDocId =
+      getUnifiedDocumentId(contentObject) ||
+      doc.unified_document_id?.toString() ||
+      doc.id.toString();
+
+    return {
+      ...contentObject,
+      // Ensure critical fields are present, but don't override if already in content_object
+      id: contentObject.id ?? doc.id,
+      title: contentObject.title ?? plainTitle,
+      abstract: contentObject.abstract ?? plainSnippet,
+      slug: contentObject.slug ?? doc.slug ?? '',
+      created_date:
+        contentObject.created_date ??
+        this.getEarliestDate(doc.created_date, doc.paper_publish_date),
+      // Preserve authors from content_object if available, otherwise use fallback
+      authors:
+        contentObject.authors && contentObject.authors.length > 0
+          ? contentObject.authors
+          : this.mapSearchAuthorsToContentAuthors(doc.authors),
+      // Preserve hub/topics from content_object, fallback to doc.hubs
+      hub: contentObject.hub ?? (doc.hubs && doc.hubs.length > 0 ? doc.hubs[0] : null),
+      // Preserve journal if available
+      journal: contentObject.journal ?? null,
+      // Preserve other fields with fallbacks
+      doi: contentObject.doi ?? doc.doi,
+      citations: contentObject.citations ?? doc.citations ?? 0,
+      score: contentObject.score ?? doc.score ?? 0,
+      hot_score: contentObject.hot_score ?? doc.hot_score ?? 0,
+      unified_document_id: unifiedDocId,
+    };
+  }
+
   private static transformDocumentToFeedEntry(doc: ApiDocumentSearchResult): FeedEntry {
     // Strip HTML tags from snippet and title for plain text, handle null values
     const plainSnippet = this.stripHighlightTags(doc.snippet);
@@ -291,46 +380,59 @@ export class SearchService {
     // Use structured author objects from API - no more string splitting!
     const firstAuthor = doc.authors && doc.authors.length > 0 ? doc.authors[0] : null;
 
-    // Create a mock RawApiFeedEntry structure that can be transformed by transformFeedEntry
-    const mockRawEntry = {
-      id: doc.id,
-      recommendation_id: null,
-      content_type: doc.type === 'paper' ? 'PAPER' : 'RESEARCHHUBPOST',
-      content_object: {
-        id: doc.id,
-        title: plainTitle,
-        abstract: plainSnippet,
-        slug: doc.slug || '',
-        created_date: doc.created_date || doc.paper_publish_date || new Date().toISOString(),
-        authors: (doc.authors || []).map((author) => ({
-          first_name: author.first_name || '',
-          last_name: author.last_name || '',
-          profile_image: '',
-        })),
-        hub: doc.hubs && doc.hubs.length > 0 ? doc.hubs[0] : null,
-        journal: null,
-        doi: doc.doi,
-        citations: doc.citations || 0,
-        score: doc.score || 0,
-        hot_score: doc.hot_score || 0,
-        unified_document_id: doc.unified_document_id?.toString() || doc.id.toString(),
-      },
-      created_date: doc.created_date || doc.paper_publish_date || new Date().toISOString(),
-      action: 'publish',
-      action_date: doc.created_date || doc.paper_publish_date || new Date().toISOString(),
-      author: {
-        id: 0,
-        first_name: firstAuthor?.first_name || 'Unknown',
-        last_name: firstAuthor?.last_name || 'Author',
-        profile_image: '',
-      },
-      metrics: {
-        votes: doc.score || 0,
-        comments: 0,
-      },
+    // Determine content_type - prefer from doc, otherwise derive from type
+    const content_type = doc.content_type || (doc.type === 'paper' ? 'PAPER' : 'RESEARCHHUBPOST');
+
+    // Build content_object: merge if provided, otherwise use fallback
+    const content_object = doc.content_object
+      ? this.mergeContentObject(doc.content_object, doc, plainTitle, plainSnippet)
+      : this.buildFallbackContentObject(doc, plainTitle, plainSnippet);
+
+    // Use author from doc if available (full feed structure), otherwise create fallback
+    const author = doc.author || {
+      id: 0,
+      first_name: firstAuthor?.first_name || 'Unknown',
+      last_name: firstAuthor?.last_name || 'Author',
+      profile_image: '',
     };
 
-    return transformFeedEntry(mockRawEntry);
+    // Use metrics from doc if available (full feed structure), otherwise create fallback
+    const metrics = doc.metrics || {
+      votes: doc.score || 0,
+      comments: 0,
+    };
+
+    // Determine dates - prefer from doc, otherwise use fallback chain
+    const action_date = this.getEarliestDate(
+      doc.action_date,
+      doc.created_date,
+      doc.paper_publish_date
+    );
+    const created_date = doc.created_date || action_date;
+
+    // Determine action - prefer from doc, otherwise default to 'publish'
+    const action = doc.action || 'publish';
+
+    // Construct RawApiFeedEntry using feed fields directly when available
+    // This ensures all feed-related fields are preserved through the transformation
+    const rawEntry: RawApiFeedEntry = {
+      id: doc.id,
+      recommendation_id: doc.recommendation_id ?? null,
+      content_type,
+      content_object,
+      created_date,
+      action,
+      action_date,
+      is_nonprofit: doc.is_nonprofit,
+      hot_score_v2: doc.hot_score_v2,
+      hot_score_breakdown: doc.hot_score_breakdown,
+      external_metadata: doc.external_metadata,
+      user_vote: doc.user_vote,
+      metrics,
+      author,
+    };
+
+    return transformFeedEntry(rawEntry);
   }
 
   static async suggestPeople(query: string): Promise<AuthorSuggestion[]> {
