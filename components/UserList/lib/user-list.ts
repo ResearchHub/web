@@ -2,12 +2,12 @@ import { createTransformer } from '@/types/transformer';
 import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
 import { ID } from '@/types/root';
 export interface ApiSimplifiedListItem {
-  list_item_id: number;
-  unified_document_id: number;
+  list_item_id: ID;
+  unified_document_id: ID;
 }
 
 export interface ApiSimplifiedUserList {
-  list_id: number;
+  list_id: ID;
   name: string;
   unified_documents: ApiSimplifiedListItem[];
 }
@@ -17,7 +17,7 @@ export interface ApiUserCheckResponse {
 }
 
 export interface ApiUserList {
-  id: number;
+  id: ID;
   name: string;
   is_public: boolean;
   created_date: string;
@@ -34,7 +34,7 @@ export interface ApiUserListsResponse {
 }
 
 export interface UserList {
-  id: number;
+  id: ID;
   name: string;
   isPublic: boolean;
   createdDate: string;
@@ -43,68 +43,30 @@ export interface UserList {
   itemCount: number;
 }
 
-export interface UserListItemDocument {
-  content_type: string;
-  content_object: {
-    id: number;
-    created_date: string;
-    hub?: {
-      id: number;
-      name: string;
-      slug: string;
-    };
-    category?: string | null;
-    subcategory?: string | null;
-    reviews?: any[];
-    slug: string;
-    unified_document_id: number;
-    renderable_text?: string;
-    title: string;
-    type: string;
-    fundraise?: any;
-    grant?: any;
-    image_url?: string | null;
-    bounties?: any[];
-    purchases?: any[];
-  };
-  created_date: string;
-  author: {
-    id: number;
-    first_name: string;
-    last_name: string;
-    profile_image: string | null;
-    headline: string | null;
-    user: {
-      id: number;
-      first_name: string;
-      last_name: string;
-      email: string;
-      is_verified: boolean;
-    };
-  };
-  metrics: {
-    votes: number;
-    comments: number;
-    review_metrics?: {
-      avg: number;
-      count: number;
-    };
-  };
-}
-
-export interface UserListItemDTO {
-  id: number;
-  parent_list: number;
-  unified_document: number;
+export interface ApiUserListItemDTO {
+  id: ID;
+  parent_list: ID;
+  unified_document: ID;
   created_date: string;
   updated_date: string;
   created_by: number;
   updated_by: number | null;
-  document: UserListItemDocument;
+  document: any;
+}
+
+export interface UserListItem {
+  id: ID;
+  parentList: ID;
+  unifiedDocument: ID;
+  createdDate: string;
+  updatedDate: string;
+  createdBy: number;
+  updatedBy: number | null;
+  document: RawApiFeedEntry;
 }
 
 export interface UserListDetail extends UserList {
-  items: UserListItemDTO[];
+  items: UserListItem[];
 }
 
 export interface CreateListRequest {
@@ -139,18 +101,8 @@ export interface UserListsOverviewResponse {
   lists: UserListOverview[];
 }
 
-export const transformListItemToFeedEntry = createTransformer<UserListItemDTO, FeedEntry>((item) =>
-  transformFeedEntry({
-    id: item.document.content_object.id,
-    content_type: item.document.content_type,
-    content_object: item.document.content_object,
-    created_date: item.document.created_date,
-    action: 'publish',
-    action_date: item.document.created_date,
-    author: item.document.author,
-    recommendation_id: null,
-    metrics: item.document.metrics,
-  } as RawApiFeedEntry)
+export const transformListItemToFeedEntry = createTransformer<UserListItem, FeedEntry>((item) =>
+  transformFeedEntry(item.document)
 );
 
 const transformOverviewItem = (raw: ApiSimplifiedListItem): UserListOverviewItem => ({
@@ -178,6 +130,23 @@ export const transformUserList = (raw: ApiUserList): UserList => ({
   updatedDate: raw.updated_date,
   createdBy: raw.created_by,
   itemCount: raw.item_count ?? 0,
+});
+
+export const transformUserListItem = (raw: ApiUserListItemDTO): UserListItem => ({
+  id: raw.id,
+  parentList: raw.parent_list,
+  unifiedDocument: raw.unified_document,
+  createdDate: raw.created_date,
+  updatedDate: raw.updated_date,
+  createdBy: raw.created_by,
+  updatedBy: raw.updated_by,
+  document: {
+    ...raw.document,
+    id: raw.document?.id ?? raw.document?.content_object?.id ?? raw.unified_document,
+    action: raw.document?.action ?? 'publish',
+    action_date: raw.document?.action_date ?? raw.document?.created_date ?? raw.created_date,
+    content_type: raw.document?.content_type ?? 'paper',
+  },
 });
 
 export const transformUserListsResponse = (raw: ApiUserListsResponse): UserListsResponse => ({

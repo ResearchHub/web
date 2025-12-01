@@ -83,16 +83,48 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const removeItem = async (itemId: number) => {
+  const removeItem = async (itemId: ID, unifiedDocumentId: ID) => {
     if (!list) return;
     try {
       await ListService.removeItemFromListApi(list.id, itemId);
       setList((previousList) => updateListRemoveItem(previousList, itemId));
-      toast.success('Item removed');
+
+      toast.success(
+        (t) => (
+          <div className="flex items-center gap-2">
+            <span className="text-gray-900">Item removed</span>
+            <button
+              onClick={async (e) => {
+                e.stopPropagation();
+                toast.dismiss(t.id);
+                await addItem(unifiedDocumentId);
+              }}
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Undo
+            </button>
+          </div>
+        ),
+        { duration: 4000 }
+      );
+
       options?.onItemMutated?.();
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to remove item'));
       console.error('Failed to remove item:', error);
+    }
+  };
+
+  const addItem = async (unifiedDocumentId: ID) => {
+    if (!list) return;
+    try {
+      await ListService.addItemToListApi(list.id, unifiedDocumentId);
+      await fetchList();
+      toast.success('Item added');
+      options?.onItemMutated?.();
+    } catch (error) {
+      toast.error(extractApiErrorMessage(error, 'Failed to add item'));
+      console.error('Failed to add item:', error);
     }
   };
 
@@ -109,6 +141,7 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
     hasMore,
     loadMore,
     removeItem,
+    addItem,
     updateListDetails,
   };
 }
