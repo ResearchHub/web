@@ -13,6 +13,12 @@ import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
 import { ID } from '@/types/root';
 
+export interface ListItemChange {
+  listId: ID;
+  documentId: ID;
+  at: number;
+}
+
 interface UserListsContextType {
   lists: UserList[];
   isLoadingLists: boolean;
@@ -26,6 +32,8 @@ interface UserListsContextType {
   deleteList: (id: ID, shouldRefreshLists?: boolean) => Promise<void>;
   addDocumentToList: (id: ID, unifiedDocumentId: ID, listItemId: ID) => void;
   removeDocumentFromList: (id: ID, unifiedDocumentId: ID) => void;
+  lastAddedItem: ListItemChange | null;
+  lastRemovedItem: ListItemChange | null;
   overviewLists: UserListOverview[];
   isLoadingOverview: boolean;
   refetchOverview: () => Promise<void>;
@@ -37,6 +45,8 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   const { user } = useUser();
   const [overviewLists, setOverviewLists] = useState<UserListOverview[]>([]);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
+  const [lastAddedItem, setLastAddedItem] = useState<ListItemChange | null>(null);
+  const [lastRemovedItem, setLastRemovedItem] = useState<ListItemChange | null>(null);
   const [lists, setLists] = useState<UserList[]>([]);
   const [isLoadingLists, setIsLoadingLists] = useState(true);
   const [isLoadingMoreLists, setIsLoadingMoreLists] = useState(false);
@@ -187,6 +197,7 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
           : list
       )
     );
+    setLastAddedItem({ listId: id, documentId: unifiedDocumentId, at: Date.now() });
     incrementItemCount(id);
   };
 
@@ -204,6 +215,7 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
           : list
       )
     );
+    setLastRemovedItem({ listId: id, documentId: unifiedDocumentId, at: Date.now() });
     decrementItemCount(id);
   };
 
@@ -220,6 +232,8 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     deleteList,
     addDocumentToList,
     removeDocumentFromList,
+    lastAddedItem,
+    lastRemovedItem,
     overviewLists,
     isLoadingOverview,
     refetchOverview,

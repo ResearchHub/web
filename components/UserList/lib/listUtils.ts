@@ -20,6 +20,16 @@ export const updateListRemoveItem = (
   };
 };
 
+export const removeItemByDocumentId = (
+  list: UserListDetail | null,
+  unifiedDocumentId: ID
+): UserListDetail | null => {
+  if (!list) return null;
+  const filtered = list.items.filter((item) => !idMatch(item.unifiedDocument, unifiedDocumentId));
+  if (filtered.length === list.items.length) return list;
+  return { ...list, items: filtered, itemCount: Math.max(list.itemCount - 1, 0) };
+};
+
 export const sortListsByDocumentMembership = (
   allLists: UserListOverview[],
   listIdsContainingDocument: ID[]
