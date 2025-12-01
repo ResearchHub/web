@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { useInView } from 'react-intersection-observer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark } from '@fortawesome/pro-light-svg-icons';
+import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { pluralizeSuffix } from '@/utils/stringUtils';
 
 interface ModalState {

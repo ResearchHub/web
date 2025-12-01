@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import { UserListDetail } from '@/components/UserList/lib/user-list';
-import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
-import { updateListRemoveItem } from '@/components/UserList/lib/listUtils';
+import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
+import { updateListRemoveItem, removeItemByDocumentId } from '@/components/UserList/lib/listUtils';
+import { useUserListsContext, ListItemChange } from '@/components/UserList/lib/UserListsContext';
 import { ID } from '@/types/root';
 
 const PAGE_SIZE = 20;
@@ -13,6 +14,8 @@ interface UseUserListDetailOptions {
 }
 
 export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
+  const { addDocumentToList, removeDocumentFromList, lastAddedItem, lastRemovedItem } =
+    useUserListsContext();
   const [list, setList] = useState<UserListDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -83,11 +86,29 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  const lastHandled = useRef({ added: 0, removed: 0 });
+
+  const setChangeFromFeedOnListItems = (change: ListItemChange | null, type: 'added' | 'removed') =>
+    change && change.at > lastHandled.current[type] && idMatch(change.listId, id);
+
+  useEffect(() => {
+    if (setChangeFromFeedOnListItems(lastAddedItem, 'added')) {
+      lastHandled.current.added = lastAddedItem!.at;
+      fetchList();
+    }
+    if (setChangeFromFeedOnListItems(lastRemovedItem, 'removed')) {
+      lastHandled.current.removed = lastRemovedItem!.at;
+      setList((previousList) => removeItemByDocumentId(previousList, lastRemovedItem!.documentId));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastAddedItem, lastRemovedItem, id]);
+
   const removeItem = async (itemId: ID, unifiedDocumentId: ID) => {
     if (!list) return;
     try {
       await ListService.removeItemFromListApi(list.id, itemId);
       setList((previousList) => updateListRemoveItem(previousList, itemId));
+      removeDocumentFromList(list.id, unifiedDocumentId);
 
       toast.success(
         (t) => (
@@ -107,8 +128,6 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
         ),
         { duration: 4000 }
       );
-
-      options?.onItemMutated?.();
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to remove item'));
       console.error('Failed to remove item:', error);
@@ -118,10 +137,11 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
   const addItem = async (unifiedDocumentId: ID) => {
     if (!list) return;
     try {
-      await ListService.addItemToListApi(list.id, unifiedDocumentId);
+      const response = await ListService.addItemToListApi(list.id, unifiedDocumentId);
       await fetchList();
+      lastHandled.current.added = Date.now();
+      addDocumentToList(list.id, unifiedDocumentId, response.id);
       toast.success('Item added');
-      options?.onItemMutated?.();
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to add item'));
       console.error('Failed to add item:', error);

@@ -5,7 +5,8 @@ import React from 'react';
 import { FeedContentType, FeedEntry, Review } from '@/types/feed';
 import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star, ThumbsDown } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark } from '@fortawesome/pro-light-svg-icons';
+import { faBookmark } from '@fortawesome/free-regular-svg-icons';
+import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
@@ -35,8 +36,16 @@ import { Topic } from '@/types/topic';
 import { isFeatureEnabled, FeatureFlag } from '@/utils/featureFlags';
 import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
 
-const BookmarkIcon: FC<{ className?: string }> = (props) => (
-  <FontAwesomeIcon icon={faBookmark} {...props} />
+const BookmarkIcon: FC<{ className?: string; isActive?: boolean }> = ({
+  isActive,
+  className,
+  ...props
+}) => (
+  <FontAwesomeIcon
+    icon={isActive ? faBookmarkSolid : faBookmark}
+    className={cn(className, '!w-3.5 !h-3.5 md:!w-4 md:!h-4')}
+    {...props}
+  />
 );
 
 // Basic media query hook (can be moved to a utility file later)
@@ -132,6 +141,7 @@ export const ActionButton: FC<ActionButtonProps> = ({
         'w-4 h-4 md:!w-5 md:!h-5',
         isActive ? 'text-green-600' : ''
       )}
+      isActive={isActive}
     />
     {showLabel ? (
       <span className="text-xs md:!text-sm font-medium">{label}</span>

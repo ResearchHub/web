@@ -13,7 +13,8 @@ import {
   ThumbsDown,
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark } from '@fortawesome/pro-light-svg-icons';
+import { faBookmark } from '@fortawesome/free-regular-svg-icons';
+import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
@@ -342,7 +343,11 @@ export const WorkLineItems = ({
                   : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <FontAwesomeIcon icon={faBookmark} className="h-6 w-6" />
+              <FontAwesomeIcon
+                icon={isInList ? faBookmarkSolid : faBookmark}
+                className="h-3.
+              5 w-3.5"
+              />
               <span className="text-sm font-medium">{listIdsContainingDocument.length}</span>
             </button>
           )}
