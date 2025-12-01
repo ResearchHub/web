@@ -142,6 +142,8 @@ function ListSelectItem({
         <span className="font-medium text-gray-900 truncate">{list.name}</span>
         <Link
           href={`/list/${list.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
           className="text-gray-400 hover:text-gray-600 flex-shrink-0"
         >
