@@ -377,6 +377,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                 className="mt-4"
                 onMouseDown={(e) => e.stopPropagation()}
                 onKeyDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
               >
                 <BountyInfo
                   bounty={openBounties[0]}
@@ -390,6 +391,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                 className="mt-4"
                 onMouseDown={(e) => e.stopPropagation()}
                 onKeyDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
               >
                 <BountyInfoSummary
                   bounties={openBounties}
@@ -405,6 +407,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
             className="px-4 py-2 border-t border-gray-200 bg-gray-50 cursor-default"
             onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <FeedItemActions
               metrics={entry.metrics}
