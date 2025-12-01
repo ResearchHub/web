@@ -122,9 +122,9 @@ export default function ListDetailPage() {
                   <h1 className="text-2xl font-bold text-gray-900 mb-1 truncate">{list.name}</h1>
                   <p className="text-gray-600">
                     {formatItemCount(list)}
-                    <span className="hidden sm:inline"> • </span>
-                    <br className="sm:hidden" />
-                    <span className="text-sm sm:text-base">
+                    <span className="hidden sm:!inline"> • </span>
+                    <br className="sm:!hidden" />
+                    <span className="text-sm sm:!text-base">
                       Created {formatTimeAgo(list.createdDate)}
                     </span>
                   </p>
