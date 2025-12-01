@@ -146,7 +146,7 @@ function ListSelectItem({
       ) : (
         <FontAwesomeIcon
           icon={isInList ? faBookmarkSolid : faBookmark}
-          className={`w-5 h-5 transition-colors ${isInList ? 'text-gray-900' : 'text-gray-400'}`}
+          className={`w-5 h-5 transition-colors ${isInList ? 'text-green-600' : 'text-gray-400'}`}
         />
       )}
     </button>

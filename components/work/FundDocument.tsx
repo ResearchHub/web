@@ -230,11 +230,10 @@ export const FundDocument = ({
         showClaimButton={false}
         insightsButton={
           <button
-            className="lg:!hidden flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+            className="lg:!hidden flex items-center px-4 py-2.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
             onClick={() => setShowMobileMetrics(true)}
           >
-            <BarChart2 className="h-4 w-4" />
-            <span>Insights</span>
+            <BarChart2 className="h-5 w-5" />
           </button>
         }
       />
@@ -286,7 +285,7 @@ export const FundDocument = ({
         <div
           className={`fixed inset-0 bg-black ${
             overlayVisible ? 'opacity-50' : 'opacity-0'
-          } z-20 lg:!hidden transition-opacity duration-300 ease-in-out`}
+          } z-[70] lg:!hidden transition-opacity duration-300 ease-in-out`}
           onClick={() => setShowMobileMetrics(false)}
         />
       )}
@@ -294,7 +293,7 @@ export const FundDocument = ({
       <div
         className={`
           fixed top-[64px] right-0 w-[280px] sm:!w-80 h-[calc(100vh-64px)] bg-white shadow-xl p-4
-          z-50 lg:hidden
+          z-[70] lg:hidden
           transition-transform duration-300 ease-in-out
           ${showMobileMetrics ? 'translate-x-0' : 'translate-x-full'}
         `}

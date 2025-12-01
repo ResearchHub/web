@@ -5,7 +5,8 @@ import React from 'react';
 import { FeedContentType, Review } from '@/types/feed';
 import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark } from '@fortawesome/pro-light-svg-icons';
+import { faBookmark } from '@fortawesome/free-regular-svg-icons';
+import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
@@ -25,10 +26,6 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { cn } from '@/utils/styles';
 import { Topic } from '@/types/topic';
 import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
-
-const BookmarkIcon: FC<{ className?: string }> = (props) => (
-  <FontAwesomeIcon icon={faBookmark} {...props} />
-);
 
 const BountyIcon: FC<{ size?: number }> = (props) => <Icon name="earn1" {...props} size={18} />;
 
@@ -391,26 +388,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               showTooltip={showTooltips}
             />
           )}
-          {userListsEnabled &&
-            relatedDocumentUnifiedDocumentId &&
-            feedContentType !== 'COMMENT' &&
-            feedContentType !== 'BOUNTY' &&
-            feedContentType !== 'APPLICATION' &&
-            showPeerReviews &&
-            !hideReportButton && ( // Show inline when report button is visible (3-dots menu is here)
-              <ActionButton
-                icon={BookmarkIcon}
-                tooltip="Add to List"
-                label="Add to List"
-                count={listIdsContainingDocument.length}
-                onClick={handleOpenAddToListModal}
-                showTooltip={showTooltips}
-                isActive={isDocumentInList}
-                className={
-                  isDocumentInList ? 'text-green-600 border-green-300 hover:bg-green-50' : ''
-                }
-              />
-            )}
           {showInlineReviews && (
             <ActionButton
               icon={Star}
@@ -509,25 +486,29 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           {rightSideActionButton}
 
           {/* Show "Add to List" button in right section when hideReportButton is true */}
-          {hideReportButton &&
-            userListsEnabled &&
+          {userListsEnabled &&
             relatedDocumentUnifiedDocumentId &&
             feedContentType !== 'COMMENT' &&
             feedContentType !== 'BOUNTY' &&
             feedContentType !== 'APPLICATION' &&
             showPeerReviews && (
-              <ActionButton
-                icon={BookmarkIcon}
-                tooltip="Add to List"
-                label="Add to List"
-                count={listIdsContainingDocument.length}
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  'p-1.5 transition-colors hover:bg-gray-0',
+                  isDocumentInList
+                    ? 'text-green-600 hover:text-green-600'
+                    : 'text-gray-900 hover:text-gray-600'
+                )}
+                tooltip={showTooltips && !isDocumentInList ? 'Save' : undefined}
                 onClick={handleOpenAddToListModal}
-                showTooltip={showTooltips}
-                isActive={isDocumentInList}
-                className={
-                  isDocumentInList ? 'text-green-600 border-green-300 hover:bg-green-50' : ''
-                }
-              />
+              >
+                <FontAwesomeIcon
+                  icon={isDocumentInList ? faBookmarkSolid : faBookmark}
+                  className="w-5 h-5"
+                />
+              </Button>
             )}
 
           {(!hideReportButton || menuItems.length > 0) && (

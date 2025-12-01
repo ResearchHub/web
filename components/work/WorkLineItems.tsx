@@ -12,7 +12,8 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark } from '@fortawesome/pro-light-svg-icons';
+import { faBookmark } from '@fortawesome/free-regular-svg-icons';
+import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { Work } from '@/types/work';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
@@ -73,7 +74,7 @@ export const WorkLineItems = ({
   const { user } = useUser();
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
   const { showShareModal } = useShareModalContext();
-  const { isInList, listIdsContainingDocument } = useIsInList(work.unifiedDocumentId);
+  const { isInList } = useIsInList(work.unifiedDocumentId);
   const userListsEnabled = useUserListsEnabled();
   const {
     data: userVotes,
@@ -328,14 +329,13 @@ export const WorkLineItems = ({
           {userListsEnabled && work.unifiedDocumentId && work.postType !== 'QUESTION' && (
             <button
               onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+              className={`flex items-center px-4 py-2.5 rounded-lg ${
                 isInList
                   ? 'bg-green-50 text-green-600 hover:bg-green-100'
                   : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <FontAwesomeIcon icon={faBookmark} className="h-6 w-6" />
-              <span className="text-sm font-medium">{listIdsContainingDocument.length}</span>
+              <FontAwesomeIcon icon={isInList ? faBookmarkSolid : faBookmark} className="h-5 w-5" />
             </button>
           )}
 
