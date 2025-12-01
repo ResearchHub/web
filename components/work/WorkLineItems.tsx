@@ -480,7 +480,18 @@ export const WorkLineItems = ({
           <div className="flex items-start">
             <span className="font-medium text-gray-900 w-28">Journal</span>
             <div className="flex-1">
-              <span>{work.journal.name}</span>
+              {['arxiv', 'biorxiv', 'medrxiv', 'chemrxiv'].includes(
+                work.journal.name?.toLowerCase()
+              ) ? (
+                <a
+                  href={`/topic/${work.journal.name.toLowerCase()}`}
+                  className="text-primary-600 hover:text-primary-700 hover:underline"
+                >
+                  {work.journal.name}
+                </a>
+              ) : (
+                <span>{work.journal.name}</span>
+              )}
             </div>
           </div>
         )}
