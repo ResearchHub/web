@@ -43,55 +43,6 @@ export interface UserList {
   itemCount: number;
 }
 
-export interface UserListItemDocument {
-  contentType: string;
-  contentObject: {
-    id: ID;
-    createdDate: string;
-    hub?: {
-      id: ID;
-      name: string;
-      slug: string;
-    };
-    category?: string | null;
-    subcategory?: string | null;
-    reviews?: any[];
-    slug: string;
-    unifiedDocumentId: ID;
-    renderableText?: string;
-    title: string;
-    type: string;
-    fundraise?: any;
-    grant?: any;
-    imageUrl?: string | null;
-    bounties?: any[];
-    purchases?: any[];
-  };
-  createdDate: string;
-  author: {
-    id: ID;
-    firstName: string;
-    lastName: string;
-    profileImage: string | null;
-    headline: string | null;
-    user: {
-      id: ID;
-      firstName: string;
-      lastName: string;
-      email: string;
-      isVerified: boolean;
-    };
-  };
-  metrics: {
-    votes: number;
-    comments: number;
-    reviewMetrics?: {
-      avg: number;
-      count: number;
-    };
-  };
-}
-
 export interface ApiUserListItemDTO {
   id: ID;
   parent_list: ID;
@@ -111,7 +62,7 @@ export interface UserListItem {
   updatedDate: string;
   createdBy: number;
   updatedBy: number | null;
-  document: UserListItemDocument;
+  document: RawApiFeedEntry;
 }
 
 export interface UserListDetail extends UserList {
@@ -151,37 +102,7 @@ export interface UserListsOverviewResponse {
 }
 
 export const transformListItemToFeedEntry = createTransformer<UserListItem, FeedEntry>((item) =>
-  transformFeedEntry({
-    id: item.document.contentObject.id,
-    content_type: item.document.contentType,
-    content_object: {
-      ...item.document.contentObject,
-      created_date: item.document.contentObject.createdDate,
-      unified_document_id: item.document.contentObject.unifiedDocumentId,
-      renderable_text: item.document.contentObject.renderableText,
-      image_url: item.document.contentObject.imageUrl,
-    },
-    created_date: item.document.createdDate,
-    action: 'publish',
-    action_date: item.document.createdDate,
-    author: {
-      ...item.document.author,
-      first_name: item.document.author.firstName,
-      last_name: item.document.author.lastName,
-      profile_image: item.document.author.profileImage,
-      user: {
-        ...item.document.author.user,
-        first_name: item.document.author.user.firstName,
-        last_name: item.document.author.user.lastName,
-        is_verified: item.document.author.user.isVerified,
-      },
-    },
-    recommendation_id: null,
-    metrics: {
-      ...item.document.metrics,
-      review_metrics: item.document.metrics.reviewMetrics,
-    },
-  } as RawApiFeedEntry)
+  transformFeedEntry(item.document)
 );
 
 const transformOverviewItem = (raw: ApiSimplifiedListItem): UserListOverviewItem => ({
@@ -211,48 +132,6 @@ export const transformUserList = (raw: ApiUserList): UserList => ({
   itemCount: raw.item_count ?? 0,
 });
 
-const transformUserListItemDocument = (raw: any): UserListItemDocument => ({
-  contentType: raw.content_type,
-  contentObject: {
-    id: raw.content_object.id,
-    createdDate: raw.content_object.created_date,
-    hub: raw.content_object.hub,
-    category: raw.content_object.category,
-    subcategory: raw.content_object.subcategory,
-    reviews: raw.content_object.reviews,
-    slug: raw.content_object.slug,
-    unifiedDocumentId: raw.content_object.unified_document_id,
-    renderableText: raw.content_object.renderable_text,
-    title: raw.content_object.title,
-    type: raw.content_object.type,
-    fundraise: raw.content_object.fundraise,
-    grant: raw.content_object.grant,
-    imageUrl: raw.content_object.image_url,
-    bounties: raw.content_object.bounties,
-    purchases: raw.content_object.purchases,
-  },
-  createdDate: raw.created_date,
-  author: {
-    id: raw.author.id,
-    firstName: raw.author.first_name,
-    lastName: raw.author.last_name,
-    profileImage: raw.author.profile_image,
-    headline: raw.author.headline,
-    user: {
-      id: raw.author.user.id,
-      firstName: raw.author.user.first_name,
-      lastName: raw.author.user.last_name,
-      email: raw.author.user.email,
-      isVerified: raw.author.user.is_verified,
-    },
-  },
-  metrics: {
-    votes: raw.metrics.votes,
-    comments: raw.metrics.comments,
-    reviewMetrics: raw.metrics.review_metrics,
-  },
-});
-
 export const transformUserListItem = (raw: ApiUserListItemDTO): UserListItem => ({
   id: raw.id,
   parentList: raw.parent_list,
@@ -261,7 +140,13 @@ export const transformUserListItem = (raw: ApiUserListItemDTO): UserListItem => 
   updatedDate: raw.updated_date,
   createdBy: raw.created_by,
   updatedBy: raw.updated_by,
-  document: transformUserListItemDocument(raw.document),
+  document: {
+    ...raw.document,
+    id: raw.document?.id ?? raw.document?.content_object?.id ?? raw.unified_document,
+    action: raw.document?.action ?? 'publish',
+    action_date: raw.document?.action_date ?? raw.document?.created_date ?? raw.created_date,
+    content_type: raw.document?.content_type ?? 'paper',
+  },
 });
 
 export const transformUserListsResponse = (raw: ApiUserListsResponse): UserListsResponse => ({
