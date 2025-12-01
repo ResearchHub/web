@@ -15,6 +15,7 @@ import { transformTopic } from '@/types/topic';
 import { Institution } from '@/app/paper/create/components/InstitutionAutocomplete';
 import { FeedEntry, transformFeedEntry } from '@/types/feed';
 import { highlightSearchTerms, hasHighlights } from '@/components/Search/lib/searchHighlight';
+import { stripHtml } from '@/utils/stringUtils';
 
 export interface InstitutionResponse {
   id: number;
@@ -272,15 +273,77 @@ export class SearchService {
       combined.highlightedSnippet
     );
 
+    // Extend highlighted snippet with full abstract if available and longer
+    // Priority: doc.abstract (new field) > textPreview
+    let extendedSnippet = final.highlightedSnippet;
+    if (final.highlightedSnippet) {
+      // Get the full abstract - prefer doc.abstract (new field), then textPreview
+      const fullAbstract =
+        doc.abstract || ('textPreview' in feedEntry.content ? feedEntry.content.textPreview : null);
+
+      if (fullAbstract && fullAbstract.length > plainSnippet.length) {
+        // Strip HTML from highlighted snippet to get plain text
+        const highlightedPlainText = stripHtml(final.highlightedSnippet);
+        const highlightedLength = highlightedPlainText.length;
+
+        // Try to find where the snippet appears in the full abstract
+        const abstractLower = fullAbstract.toLowerCase();
+        const snippetLower = highlightedPlainText.toLowerCase();
+        const snippetIndex = abstractLower.indexOf(snippetLower);
+
+        if (snippetIndex !== -1 && highlightedLength < fullAbstract.length) {
+          // Found the snippet in abstract, extend it
+          const endOfSnippet = snippetIndex + highlightedLength;
+          const remainingAbstract = fullAbstract.slice(endOfSnippet).trim();
+
+          if (remainingAbstract && remainingAbstract.length > 0) {
+            // Extend up to a reasonable length (e.g., 500 chars total for search results)
+            const maxExtendedLength = 500;
+            const remainingLength = maxExtendedLength - highlightedLength;
+
+            if (remainingLength > 0) {
+              // Truncate remaining abstract and add highlights for search terms
+              const additionalText = remainingAbstract.slice(0, remainingLength);
+              const highlightedAdditional = highlightSearchTerms(additionalText, query);
+
+              // Combine the original highlighted snippet with the extended portion
+              extendedSnippet = final.highlightedSnippet + ' ' + highlightedAdditional;
+            }
+          }
+        }
+      }
+    }
+
     // Return FeedEntry with searchMetadata
     return {
       ...feedEntry,
       searchMetadata: {
         highlightedTitle: final.highlightedTitle,
-        highlightedSnippet: final.highlightedSnippet,
+        highlightedSnippet: extendedSnippet,
         matchedField: doc.matched_field,
       },
     };
+  }
+
+  /**
+   * Maps search authors to feed entry author format
+   */
+  private static mapSearchAuthorsToContentAuthors(
+    authors: ApiDocumentSearchResult['authors']
+  ): Array<{ first_name: string; last_name: string; profile_image: string }> {
+    return (authors || []).map((author) => ({
+      first_name: author.first_name || '',
+      last_name: author.last_name || '',
+      profile_image: '',
+    }));
+  }
+
+  /**
+   * Gets the earliest available date from multiple sources
+   */
+  private static getEarliestDate(...dates: (string | null | undefined)[]): string {
+    const validDates = dates.filter((d): d is string => !!d);
+    return validDates[0] || new Date().toISOString();
   }
 
   private static transformDocumentToFeedEntry(doc: ApiDocumentSearchResult): FeedEntry {
@@ -299,7 +362,8 @@ export class SearchService {
       content_object: {
         id: doc.id,
         title: plainTitle,
-        abstract: plainSnippet,
+        // Use doc.abstract (new field) if available, otherwise fall back to plainSnippet
+        abstract: doc.abstract || plainSnippet,
         slug: doc.slug || '',
         created_date: doc.created_date || doc.paper_publish_date || new Date().toISOString(),
         authors: (doc.authors || []).map((author) => ({

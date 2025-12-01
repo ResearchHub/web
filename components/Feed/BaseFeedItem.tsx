@@ -7,7 +7,7 @@ import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CardWrapper } from './CardWrapper';
 import { cn } from '@/utils/styles';
 import Image from 'next/image';
-import { truncateText } from '@/utils/stringUtils';
+import { truncateText, stripHtml } from '@/utils/stringUtils';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { sanitizeHighlightHtml } from '@/components/Search/lib/htmlSanitizer';
@@ -152,13 +152,55 @@ export const ContentSection: FC<ContentSectionProps> = ({
   maxLength = 200,
   className,
 }) => {
-  // If we have highlighted HTML, render it (already truncated by backend)
+  // If we have highlighted HTML, check if we need to extend it with more content
   if (highlightedContent) {
+    // Get plain text version of highlighted content (without HTML tags)
+    const highlightedPlainText = stripHtml(highlightedContent);
+    const highlightedLength = highlightedPlainText.length;
+
+    // If highlighted content is shorter than maxLength and we have more content available,
+    // try to extend it with more plain text from the full content
+    let finalContent = highlightedContent;
+    if (highlightedLength < maxLength && content && content.length > highlightedLength) {
+      // Try to find where the highlighted snippet appears in the full content
+      // This handles cases where the snippet might be from the middle of the abstract
+      const contentLower = content.toLowerCase();
+      const highlightedLower = highlightedPlainText.toLowerCase();
+      const snippetIndex = contentLower.indexOf(highlightedLower);
+
+      if (snippetIndex !== -1) {
+        // Found the snippet in content, extend from the end of the snippet
+        const endOfSnippet = snippetIndex + highlightedLength;
+        const remainingContent = content.slice(endOfSnippet).trim();
+        const remainingLength = maxLength - highlightedLength;
+
+        if (remainingContent && remainingContent.length > 0) {
+          const additionalText = truncateText(remainingContent, remainingLength);
+          if (additionalText.length > 0) {
+            finalContent = highlightedContent + ' ' + additionalText;
+          }
+        }
+      } else {
+        // Snippet not found in content (might be a different excerpt or formatted differently)
+        // Try to append more from content, but be conservative to avoid duplication
+        const remainingLength = maxLength - highlightedLength;
+        if (remainingLength > 20 && content.length > highlightedLength) {
+          // Only extend if we have meaningful space left and content is longer
+          // Start from a safe position to avoid overlap
+          const startPos = Math.min(highlightedLength, content.length - remainingLength);
+          const additionalText = truncateText(content.slice(startPos), remainingLength);
+          if (additionalText.length > 0) {
+            finalContent = highlightedContent + ' ' + additionalText;
+          }
+        }
+      }
+    }
+
     return (
       <div className={cn('text-sm text-gray-700', className)}>
         <p
           dangerouslySetInnerHTML={{
-            __html: sanitizeHighlightHtml(highlightedContent),
+            __html: sanitizeHighlightHtml(finalContent),
           }}
         />
       </div>
