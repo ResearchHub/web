@@ -1,4 +1,5 @@
 import { ApiClient } from '@/services/client';
+import { isJsonParseError } from '@/services/lib/serviceUtils';
 import {
   UserList,
   CreateListRequest,
@@ -77,7 +78,7 @@ export class ListService {
     try {
       await ApiClient.delete(path);
     } catch (err) {
-      if (err instanceof SyntaxError) return;
+      if (isJsonParseError(err)) return;
       throw err;
     }
   }

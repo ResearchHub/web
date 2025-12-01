@@ -4,6 +4,7 @@ import { ListService } from '@/components/UserList/lib/services/list.service';
 import { UserListDetail } from '@/components/UserList/lib/user-list';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { updateListRemoveItem } from '@/components/UserList/lib/listUtils';
+import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { ID } from '@/types/root';
 
 const PAGE_SIZE = 20;
@@ -13,6 +14,7 @@ interface UseUserListDetailOptions {
 }
 
 export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
+  const { addDocumentToList, removeDocumentFromList } = useUserListsContext();
   const [list, setList] = useState<UserListDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -88,6 +90,7 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
     try {
       await ListService.removeItemFromListApi(list.id, itemId);
       setList((previousList) => updateListRemoveItem(previousList, itemId));
+      removeDocumentFromList(list.id, unifiedDocumentId);
 
       toast.success(
         (t) => (
@@ -107,8 +110,6 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
         ),
         { duration: 4000 }
       );
-
-      options?.onItemMutated?.();
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to remove item'));
       console.error('Failed to remove item:', error);
@@ -118,10 +119,10 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
   const addItem = async (unifiedDocumentId: ID) => {
     if (!list) return;
     try {
-      await ListService.addItemToListApi(list.id, unifiedDocumentId);
+      const response = await ListService.addItemToListApi(list.id, unifiedDocumentId);
       await fetchList();
+      addDocumentToList(list.id, unifiedDocumentId, response.id);
       toast.success('Item added');
-      options?.onItemMutated?.();
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to add item'));
       console.error('Failed to add item:', error);

@@ -10,14 +10,16 @@ import { FeedContent } from '@/components/Feed/FeedContent';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 import { Edit2, Trash2, MoreHorizontal } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark } from '@fortawesome/pro-light-svg-icons';
+import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ListModal } from '@/components/modals/ListModal';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { formatItemCount, transformListItemToFeedEntry } from '@/components/UserList/lib/listUtils';
+import dayjs from 'dayjs';
 import { FeedEntry } from '@/types/feed';
 import { ID } from '@/types/root';
+import { idMatch } from '@/services/lib/serviceUtils';
 
 interface ModalState {
   readonly isOpen: boolean;
@@ -58,7 +60,7 @@ export default function ListDetailPage() {
   const openModal = (mode: ModalState['mode'], name: string = '') =>
     setModal({ isOpen: true, mode, name });
 
-  const isOwner = user && list && list.createdBy === user.id;
+  const isOwner = user && list && idMatch(list.createdBy, user.id);
   const feedEntries = items.map(transformListItemToFeedEntry);
 
   const wrapped = (feedItemComponent: React.ReactNode, feedEntry: FeedEntry, itemIndex: number) => {
@@ -119,6 +121,9 @@ export default function ListDetailPage() {
                 <div className="flex-1 min-w-0">
                   <h1 className="text-2xl font-bold text-gray-900 mb-1 truncate">{list.name}</h1>
                   <p className="text-gray-600">{formatItemCount(list)}</p>
+                  <p className="text-sm text-gray-500">
+                    Created {dayjs(list.createdDate).format('MM/DD/YYYY')}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {isOwner && (
@@ -139,7 +144,7 @@ export default function ListDetailPage() {
                         className="flex items-center gap-2"
                       >
                         <Edit2 className="w-4 h-4" />
-                        <span>Edit</span>
+                        <span>Rename</span>
                       </BaseMenuItem>
                       <BaseMenuItem
                         onClick={() => openModal('delete', list.name)}

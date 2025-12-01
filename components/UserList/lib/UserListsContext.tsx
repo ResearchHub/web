@@ -9,7 +9,7 @@ import {
   UserListOverview,
 } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
-import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
 import { ID } from '@/types/root';
 
@@ -148,56 +148,61 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     );
   };
 
+  const updateListAndSort = (listsToUpdate: UserList[], listId: ID, updates: Partial<UserList>) =>
+    listsToUpdate
+      .map((list) =>
+        idMatch(list.id, listId)
+          ? { ...list, ...updates, updatedDate: new Date().toISOString() }
+          : list
+      )
+      .sort((a, b) => new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime());
+
   const incrementItemCount = (listId: ID) => {
-    setLists((lists) =>
-      lists.map((list) => {
-        if (list.id !== listId) return list;
-        return {
-          ...list,
-          itemCount: list.itemCount + 1,
-        };
-      })
-    );
+    setLists((lists) => {
+      const list = lists.find((l) => idMatch(l.id, listId));
+      return updateListAndSort(lists, listId, { itemCount: (list?.itemCount ?? 0) + 1 });
+    });
   };
 
   const decrementItemCount = (listId: ID) => {
-    setLists((lists) =>
-      lists.map((list) => {
-        if (list.id !== listId) return list;
-        return {
-          ...list,
-          itemCount: Math.max(list.itemCount - 1, 0),
-        };
-      })
-    );
+    setLists((lists) => {
+      const list = lists.find((l) => idMatch(l.id, listId));
+      return updateListAndSort(lists, listId, {
+        itemCount: Math.max((list?.itemCount ?? 0) - 1, 0),
+      });
+    });
   };
 
   const addDocumentToList = (id: ID, unifiedDocumentId: ID, listItemId: ID) => {
     setOverviewLists((lists) =>
-      lists.map((list) => {
-        if (list.id !== id) return list;
-        return {
-          ...list,
-          unifiedDocuments: [...(list.unifiedDocuments || []), { unifiedDocumentId, listItemId }],
-        };
-      })
+      lists.map((list) =>
+        idMatch(list.id, id)
+          ? {
+              ...list,
+              unifiedDocuments: [
+                ...(list.unifiedDocuments || []),
+                { unifiedDocumentId, listItemId },
+              ],
+            }
+          : list
+      )
     );
     incrementItemCount(id);
   };
 
   const removeDocumentFromList = (id: ID, unifiedDocumentId: ID) => {
     setOverviewLists((lists) =>
-      lists.map((list) => {
-        if (list.id !== id) return list;
-
-        const filteredDocuments =
-          list.unifiedDocuments?.filter((doc) => doc.unifiedDocumentId !== unifiedDocumentId) ?? [];
-
-        return {
-          ...list,
-          unifiedDocuments: filteredDocuments,
-        };
-      })
+      lists.map((list) =>
+        idMatch(list.id, id)
+          ? {
+              ...list,
+              unifiedDocuments:
+                list.unifiedDocuments?.filter(
+                  (doc) => !idMatch(doc.unifiedDocumentId, unifiedDocumentId)
+                ) ?? [],
+            }
+          : list
+      )
     );
     decrementItemCount(id);
   };
