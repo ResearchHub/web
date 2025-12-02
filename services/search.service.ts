@@ -17,6 +17,9 @@ import { FeedEntry, transformFeedEntry } from '@/types/feed';
 import { highlightSearchTerms, hasHighlights } from '@/components/Search/lib/searchHighlight';
 import { stripHtml } from '@/utils/stringUtils';
 
+// Constants for search result snippet extension
+const SEARCH_RESULT_MAX_LENGTH = 300; // Maximum length for extended search result snippets
+
 export interface InstitutionResponse {
   id: number;
   display_name: string;
@@ -240,7 +243,40 @@ export class SearchService {
   }
 
   /**
-   * Extends highlighted snippet with additional abstract content if available
+   * Finds the index of a snippet in content using word boundary-aware matching.
+   * Returns -1 if not found or if match is not at a word boundary.
+   *
+   * A word boundary means:
+   * - Start: beginning of string OR preceded by a non-word character
+   * - End: end of string OR followed by a non-word character
+   */
+  private static findSnippetIndexWithWordBoundary(content: string, snippet: string): number {
+    const contentLower = content.toLowerCase();
+    const snippetLower = snippet.toLowerCase();
+    let index = contentLower.indexOf(snippetLower);
+
+    // If not found, return -1
+    if (index < 0) {
+      return -1;
+    }
+
+    // Check if match starts at word boundary (start of string OR preceded by non-word char)
+    const charBefore = index > 0 ? contentLower[index - 1] : null;
+    const isWordBoundaryBefore = charBefore === null || !/\w/.test(charBefore);
+
+    // Check if match ends at word boundary (end of string OR followed by non-word char)
+    const endIndex = index + snippetLower.length;
+    const charAfter = endIndex < contentLower.length ? contentLower[endIndex] : null;
+    const isWordBoundaryAfter = charAfter === null || !/\w/.test(charAfter);
+
+    // Return index only if both boundaries are valid
+    return isWordBoundaryBefore && isWordBoundaryAfter ? index : -1;
+  }
+
+  /**
+   * Extends highlighted snippet with additional abstract content.
+   * Always extends up to SEARCH_RESULT_MAX_LENGTH when abstract is available.
+   * Uses word boundary-aware matching to find the snippet position in the abstract.
    */
   private static extendHighlightedSnippet(
     highlightedSnippet: string,
@@ -251,27 +287,36 @@ export class SearchService {
     const highlightedPlainText = stripHtml(highlightedSnippet);
     const highlightedLength = highlightedPlainText.length;
 
-    // Try to find where the snippet appears in the full abstract
-    const abstractLower = fullAbstract.toLowerCase();
-    const snippetLower = highlightedPlainText.toLowerCase();
-    const snippetIndex = abstractLower.indexOf(snippetLower);
-
-    // If snippet not found or already full length, return original
-    if (snippetIndex < 0 || highlightedLength >= fullAbstract.length) {
+    // If snippet is already at or exceeds max length, return as-is
+    if (highlightedLength >= SEARCH_RESULT_MAX_LENGTH) {
       return highlightedSnippet;
     }
 
-    // Found the snippet in abstract, extend it
-    const endOfSnippet = snippetIndex + highlightedLength;
-    const remainingAbstract = fullAbstract.slice(endOfSnippet).trim();
+    // Try to find where the snippet appears in the full abstract using word boundary matching
+    const snippetIndex = this.findSnippetIndexWithWordBoundary(fullAbstract, highlightedPlainText);
+
+    let remainingAbstract: string;
+    if (snippetIndex >= 0) {
+      // Found the snippet in abstract, extend from that position
+      const endOfSnippet = snippetIndex + highlightedLength;
+      remainingAbstract = fullAbstract.slice(endOfSnippet).trim();
+    } else {
+      // Snippet not found in abstract, use abstract from start (but prefer snippet if it's longer)
+      // This handles cases where backend snippet doesn't match abstract exactly
+      if (highlightedLength > 0 && highlightedLength >= fullAbstract.length * 0.5) {
+        // If snippet is substantial and not found, just return it
+        return highlightedSnippet;
+      }
+      // Otherwise, use abstract from beginning
+      remainingAbstract = fullAbstract.trim();
+    }
 
     if (!remainingAbstract || remainingAbstract.length === 0) {
       return highlightedSnippet;
     }
 
-    // Extend up to a reasonable length (e.g., 500 chars total for search results)
-    const maxExtendedLength = 500;
-    const remainingLength = maxExtendedLength - highlightedLength;
+    // Extend up to SEARCH_RESULT_MAX_LENGTH chars total for search results
+    const remainingLength = SEARCH_RESULT_MAX_LENGTH - highlightedLength;
 
     if (remainingLength <= 0) {
       return highlightedSnippet;
@@ -318,20 +363,28 @@ export class SearchService {
       combined.highlightedSnippet
     );
 
-    // Extend highlighted snippet with full abstract if available and longer
-    let extendedSnippet = final.highlightedSnippet;
-    if (final.highlightedSnippet) {
-      // Get the full abstract - prefer doc.abstract (new field), then textPreview
-      const fullAbstract =
-        doc.abstract || ('textPreview' in feedEntry.content ? feedEntry.content.textPreview : null);
+    // Always extend snippet with full abstract if available
+    // Get the full abstract - prefer doc.abstract (new field), then textPreview
+    const fullAbstract =
+      doc.abstract || ('textPreview' in feedEntry.content ? feedEntry.content.textPreview : null);
 
-      if (fullAbstract && fullAbstract.length > plainSnippet.length) {
+    let extendedSnippet = final.highlightedSnippet;
+
+    // If we have an abstract, always extend the snippet
+    if (fullAbstract) {
+      if (final.highlightedSnippet) {
+        // Extend existing highlighted snippet with abstract content
         extendedSnippet = this.extendHighlightedSnippet(
           final.highlightedSnippet,
           plainSnippet,
           fullAbstract,
           query
         );
+      } else {
+        // No highlighted snippet exists, create one from abstract with highlights
+        // Use first portion of abstract up to SEARCH_RESULT_MAX_LENGTH
+        const abstractPreview = fullAbstract.slice(0, SEARCH_RESULT_MAX_LENGTH);
+        extendedSnippet = highlightSearchTerms(abstractPreview, query);
       }
     }
 
@@ -344,27 +397,6 @@ export class SearchService {
         matchedField: doc.matched_field,
       },
     };
-  }
-
-  /**
-   * Maps search authors to feed entry author format
-   */
-  private static mapSearchAuthorsToContentAuthors(
-    authors: ApiDocumentSearchResult['authors']
-  ): Array<{ first_name: string; last_name: string; profile_image: string }> {
-    return (authors || []).map((author) => ({
-      first_name: author.first_name || '',
-      last_name: author.last_name || '',
-      profile_image: '',
-    }));
-  }
-
-  /**
-   * Gets the earliest available date from multiple sources
-   */
-  private static getEarliestDate(...dates: (string | null | undefined)[]): string {
-    const validDate = dates.find((d): d is string => !!d);
-    return validDate || new Date().toISOString();
   }
 
   private static transformDocumentToFeedEntry(doc: ApiDocumentSearchResult): FeedEntry {

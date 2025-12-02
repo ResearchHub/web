@@ -7,7 +7,7 @@ import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CardWrapper } from './CardWrapper';
 import { cn } from '@/utils/styles';
 import Image from 'next/image';
-import { truncateText, stripHtml } from '@/utils/stringUtils';
+import { stripHtml, truncateText } from '@/utils/stringUtils';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { sanitizeHighlightHtml } from '@/components/Search/lib/htmlSanitizer';
@@ -146,65 +146,15 @@ export const TitleSection: FC<TitleSectionProps> = ({ title, highlightedTitle, c
   );
 };
 
-// Helper function to extend highlighted content when snippet is found in content
-const extendContentFromSnippet = (
-  highlightedContent: string,
-  highlightedPlainText: string,
-  highlightedLength: number,
-  content: string,
-  snippetIndex: number,
-  maxLength: number
-): string => {
-  const endOfSnippet = snippetIndex + highlightedLength;
-  const remainingContent = content.slice(endOfSnippet).trim();
-  const remainingLength = maxLength - highlightedLength;
-
-  if (!remainingContent || remainingContent.length === 0) {
-    return highlightedContent;
-  }
-
-  const additionalText = truncateText(remainingContent, remainingLength);
-  return additionalText.length > 0 ? highlightedContent + ' ' + additionalText : highlightedContent;
-};
-
-// Helper function to extend content when snippet is not found (fallback)
-const extendContentFallback = (
-  highlightedContent: string,
-  highlightedLength: number,
-  content: string,
-  maxLength: number
-): string => {
-  const remainingLength = maxLength - highlightedLength;
-  if (remainingLength <= 20 || content.length <= highlightedLength) {
-    return highlightedContent;
-  }
-
-  const startPos = Math.min(highlightedLength, content.length - remainingLength);
-  const additionalText = truncateText(content.slice(startPos), remainingLength);
-  return additionalText.length > 0 ? highlightedContent + ' ' + additionalText : highlightedContent;
-};
-
 export const ContentSection: FC<ContentSectionProps> = ({
   content,
   highlightedContent,
-  maxLength = 200,
   className,
+  maxLength = 200,
 }) => {
-  // If we have highlighted HTML, check if we need to extend it with more content
-  if (!highlightedContent) {
-    return (
-      <div className={cn('text-sm text-gray-700', className)}>
-        <p>{truncateText(content, maxLength)}</p>
-      </div>
-    );
-  }
-
-  // Get plain text version of highlighted content (without HTML tags)
-  const highlightedPlainText = stripHtml(highlightedContent);
-  const highlightedLength = highlightedPlainText.length;
-
-  // If highlighted content is already long enough or no content available, return as-is
-  if (highlightedLength >= maxLength || !content || content.length <= highlightedLength) {
+  // If we have highlighted HTML (from search service), render it as-is
+  // The search service is responsible for extending snippets to appropriate length
+  if (highlightedContent) {
     return (
       <div className={cn('text-sm text-gray-700', className)}>
         <p
@@ -216,33 +166,14 @@ export const ContentSection: FC<ContentSectionProps> = ({
     );
   }
 
-  // Try to find where the highlighted snippet appears in the full content
-  const contentLower = content.toLowerCase();
-  const highlightedLower = highlightedPlainText.toLowerCase();
-  const snippetIndex = contentLower.indexOf(highlightedLower);
-
-  // Extend content based on whether snippet was found
-  const finalContent =
-    snippetIndex >= 0
-      ? extendContentFromSnippet(
-          highlightedContent,
-          highlightedPlainText,
-          highlightedLength,
-          content,
-          snippetIndex,
-          maxLength
-        )
-      : extendContentFallback(highlightedContent, highlightedLength, content, maxLength);
-
-  return (
-    <div className={cn('text-sm text-gray-700', className)}>
-      <p
-        dangerouslySetInnerHTML={{
-          __html: sanitizeHighlightHtml(finalContent),
-        }}
-      />
-    </div>
-  );
+  // Default: render truncated plain text for non-search results
+  if (content) {
+    return (
+      <div className={cn('text-sm text-gray-700', className)}>
+        <p>{truncateText(content, maxLength)}</p>
+      </div>
+    );
+  }
 };
 
 export const ImageSection: FC<ImageSectionProps> = ({
