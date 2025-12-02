@@ -70,7 +70,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
   });
 
   // Staged filters (not yet applied)
-  const [stagedFilters, setStagedFiltersState] = useState<SearchFilters>(filters);
+  const [stagedFilters, setStagedFiltersState] = useState<SearchFilters>(() => filters);
 
   // Always default to 'relevance' - no longer stored in localStorage
   const [sortBy, setSortByState] = useState<SearchSortOption>('relevance');
