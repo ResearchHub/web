@@ -169,12 +169,12 @@ export const LeaderboardOverview = () => {
           <div className="min-w-0 flex-shrink overflow-hidden relative">
             {authorId ? (
               <AuthorTooltip authorId={authorId}>
-                <span className="text-sm font-medium text-gray-900 block whitespace-nowrap overflow-hidden">
+                <span className="text-sm font-medium text-gray-900 block overflow-hidden">
                   {displayName}
                 </span>
               </AuthorTooltip>
             ) : (
-              <span className="text-sm font-medium text-gray-900 block whitespace-nowrap overflow-hidden">
+              <span className="text-sm font-medium text-gray-900 block overflow-hidden">
                 {displayName}
               </span>
             )}
