@@ -56,6 +56,14 @@ const NextStepsPanel = dynamic(
   }
 );
 
+const PersonalizeFeedBanner = dynamic(
+  () => import('./components/PersonalizeFeedBanner').then((mod) => mod.PersonalizeFeedBanner),
+  {
+    ssr: false,
+    loading: () => null,
+  }
+);
+
 // Sample journal contributors for social proof (similar to JournalFeed)
 const journalContributors = [
   {
@@ -165,6 +173,9 @@ const FundingSpotlightSkeleton = () => (
 // Main RightSidebar Component - memoized to prevent re-renders when parent components change
 const SidebarComponent = () => (
   <div className="space-y-4">
+    {/* Personalize Feed Banner */}
+    <PersonalizeFeedBanner />
+
     {/* Next Steps Panel for new users */}
     {/* <NextStepsPanel /> */}
 

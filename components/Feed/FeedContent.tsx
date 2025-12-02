@@ -26,6 +26,7 @@ interface FeedContentProps {
   header?: ReactNode;
   tabs?: ReactNode;
   filters?: ReactNode;
+  banner?: ReactNode;
   activeTab?: FeedTab | FundingTab | TabType | string;
   showBountyFooter?: boolean;
   hideActions?: boolean;
@@ -54,6 +55,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   header,
   tabs,
   filters,
+  banner,
   activeTab,
   showBountyFooter = true,
   hideActions = false,
@@ -123,6 +125,8 @@ export const FeedContent: FC<FeedContentProps> = ({
         {tabs && <div className="border-b">{tabs}</div>}
 
         {filters && <div className="py-3">{filters}</div>}
+
+        {banner && <div className="pt-3 pb-0">{banner}</div>}
 
         <div className="mt-4">
           {displayEntries.length > 0 &&

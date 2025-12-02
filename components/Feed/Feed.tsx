@@ -6,6 +6,7 @@ import { Sparkles, Globe } from 'lucide-react';
 import { useFeed, FeedTab, FeedSource } from '@/hooks/useFeed';
 import { FeedContent } from './FeedContent';
 import { FeedTabs } from './FeedTabs';
+import { ForYouFeedBanner } from './ForYouFeedBanner';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FeedEntry } from '@/types/feed';
@@ -147,7 +148,11 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     </div>
   );
 
-  const feedTabs = (
+  // Hide tabs for logged out users on main feed routes
+  const shouldShowTabs =
+    isAuthenticated || !['popular', 'for-you', 'following'].includes(defaultTab);
+
+  const feedTabs = shouldShowTabs ? (
     <FeedTabs
       activeTab={activeTab}
       tabs={tabs}
@@ -156,7 +161,10 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
       showGearIcon={activeTab === 'following'}
       onGearClick={() => setIsManageTopicsModalOpen(true)}
     />
-  );
+  ) : null;
+
+  // Show ForYouFeedBanner when on "for-you" tab
+  const banner = activeTab === 'for-you' ? <ForYouFeedBanner /> : undefined;
 
   const sourceFilters = showSourceFilter ? (
     <div className="flex justify-end">
@@ -205,6 +213,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
         loadMore={loadMore}
         header={header}
         tabs={feedTabs}
+        banner={banner}
         activeTab={activeTab}
         ordering={ordering}
         restoredScrollPosition={restoredScrollPosition}
