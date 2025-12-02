@@ -262,7 +262,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                   router.push(`/search?q=${encodeURIComponent(query.trim())}`);
                   onClose();
                 }}
-                className="w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                className="w-full text-center text-sm text-primary-600 hover:text-primary-700 hover:bg-gray-50 font-medium transition-colors rounded-md py-2"
               >
                 See all results
               </button>

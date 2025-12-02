@@ -22,6 +22,7 @@ interface UseSearchReturn {
   isLoadingMore: boolean;
   error: string | null;
   hasMore: boolean;
+  count: number;
   loadMore: () => void;
   aggregations: SearchResponse['aggregations'] | null;
   filters: SearchFilters;
@@ -44,6 +45,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [count, setCount] = useState(0);
   const [page, setPage] = useState(1);
   const [aggregations, setAggregations] = useState<SearchResponse['aggregations'] | null>(null);
   const [currentQuery, setCurrentQuery] = useState('');
@@ -67,35 +69,22 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
   });
 
   // Staged filters (not yet applied)
-  const [stagedFilters, setStagedFiltersState] = useState<SearchFilters>(filters);
+  const [stagedFilters, setStagedFiltersState] = useState<SearchFilters>(() => filters);
 
-  const [sortBy, setSortByState] = useState<SearchSortOption>(() => {
-    if (globalThis.window !== undefined) {
-      try {
-        const stored = globalThis.window.localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          return parsed.sortBy || 'relevance';
-        }
-      } catch (error) {
-        console.warn('Failed to load search preferences:', error);
-      }
-    }
-    return 'relevance';
-  });
+  // Always default to 'relevance' - no longer stored in localStorage
+  const [sortBy, setSortByState] = useState<SearchSortOption>('relevance');
 
   // Check if there are unapplied changes
   const hasUnappliedChanges = JSON.stringify(filters) !== JSON.stringify(stagedFilters);
 
-  // Save preferences to localStorage
-  const savePreferences = useCallback((newFilters: SearchFilters, newSortBy: SearchSortOption) => {
+  // Save filters to localStorage (sortBy is no longer persisted)
+  const savePreferences = useCallback((newFilters: SearchFilters) => {
     if (typeof globalThis.window !== 'undefined') {
       try {
         globalThis.window.localStorage.setItem(
           STORAGE_KEY,
           JSON.stringify({
             filters: newFilters,
-            sortBy: newSortBy,
           })
         );
       } catch (error) {
@@ -108,9 +97,9 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
     (newFilters: SearchFilters) => {
       setFiltersState(newFilters);
       setStagedFiltersState(newFilters);
-      savePreferences(newFilters, sortBy);
+      savePreferences(newFilters);
     },
-    [sortBy, savePreferences]
+    [savePreferences]
   );
 
   const setStagedFilters = useCallback((newFilters: SearchFilters) => {
@@ -119,16 +108,13 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
 
   const applyFilters = useCallback(() => {
     setFiltersState(stagedFilters);
-    savePreferences(stagedFilters, sortBy);
-  }, [stagedFilters, sortBy, savePreferences]);
+    savePreferences(stagedFilters);
+  }, [stagedFilters, savePreferences]);
 
-  const setSortBy = useCallback(
-    (newSortBy: SearchSortOption) => {
-      setSortByState(newSortBy);
-      savePreferences(filters, newSortBy);
-    },
-    [filters, savePreferences]
-  );
+  const setSortBy = useCallback((newSortBy: SearchSortOption) => {
+    setSortByState(newSortBy);
+    // No longer saving sortBy to localStorage
+  }, []);
 
   const search = useCallback(
     async (query: string, tab: 'documents' | 'people') => {
@@ -137,6 +123,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
         setPeople([]);
         setAggregations(null);
         setHasMore(false);
+        setCount(0);
         setError(null);
         return;
       }
@@ -167,6 +154,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
 
         setAggregations(response.aggregations);
         setHasMore(response.hasMore);
+        setCount(response.count || 0);
         setError(null);
       } catch (error) {
         console.error('Search error:', error);
@@ -174,6 +162,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
         setPeople([]);
         setAggregations(null);
         setHasMore(false);
+        setCount(0);
         setError("We're experiencing issues with search right now. Please try again shortly.");
       } finally {
         setIsLoading(false);
@@ -314,6 +303,7 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
     isLoadingMore,
     error,
     hasMore,
+    count,
     loadMore,
     aggregations,
     filters,
