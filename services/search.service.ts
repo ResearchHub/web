@@ -274,8 +274,24 @@ export class SearchService {
   }
 
   /**
+   * Truncates HTML content to a maximum plain text length while preserving HTML structure.
+   * If truncation occurs, re-applies search term highlighting to the truncated text.
+   */
+  private static truncateHtmlToMaxLength(html: string, maxLength: number, query: string): string {
+    const plainText = stripHtml(html);
+    if (plainText.length <= maxLength) {
+      return html;
+    }
+
+    // Truncate plain text and re-highlight with search terms
+    const truncatedPlainText = plainText.slice(0, maxLength).trim();
+    return highlightSearchTerms(truncatedPlainText, query);
+  }
+
+  /**
    * Extends highlighted snippet with additional abstract content.
    * Always extends up to SEARCH_RESULT_MAX_LENGTH when abstract is available.
+   * Truncates snippets that exceed SEARCH_RESULT_MAX_LENGTH to ensure consistency.
    * Uses word boundary-aware matching to find the snippet position in the abstract.
    */
   private static extendHighlightedSnippet(
@@ -287,7 +303,12 @@ export class SearchService {
     const highlightedPlainText = stripHtml(highlightedSnippet);
     const highlightedLength = highlightedPlainText.length;
 
-    // If snippet is already at or exceeds max length, return as-is
+    // If snippet exceeds max length, truncate it first
+    if (highlightedLength > SEARCH_RESULT_MAX_LENGTH) {
+      return this.truncateHtmlToMaxLength(highlightedSnippet, SEARCH_RESULT_MAX_LENGTH, query);
+    }
+
+    // If snippet is already at max length, return as-is
     if (highlightedLength >= SEARCH_RESULT_MAX_LENGTH) {
       return highlightedSnippet;
     }
@@ -304,7 +325,10 @@ export class SearchService {
       // Snippet not found in abstract, use abstract from start (but prefer snippet if it's longer)
       // This handles cases where backend snippet doesn't match abstract exactly
       if (highlightedLength > 0 && highlightedLength >= fullAbstract.length * 0.5) {
-        // If snippet is substantial and not found, just return it
+        // If snippet is substantial and not found, return it (but ensure it doesn't exceed max length)
+        if (highlightedLength > SEARCH_RESULT_MAX_LENGTH) {
+          return this.truncateHtmlToMaxLength(highlightedSnippet, SEARCH_RESULT_MAX_LENGTH, query);
+        }
         return highlightedSnippet;
       }
       // Otherwise, use abstract from beginning
@@ -326,7 +350,15 @@ export class SearchService {
     const additionalText = remainingAbstract.slice(0, remainingLength);
     const highlightedAdditional = highlightSearchTerms(additionalText, query);
 
-    return highlightedSnippet + ' ' + highlightedAdditional;
+    const extendedSnippet = highlightedSnippet + ' ' + highlightedAdditional;
+
+    // Ensure final result doesn't exceed max length (in case HTML tags added extra length)
+    const extendedPlainText = stripHtml(extendedSnippet);
+    if (extendedPlainText.length > SEARCH_RESULT_MAX_LENGTH) {
+      return this.truncateHtmlToMaxLength(extendedSnippet, SEARCH_RESULT_MAX_LENGTH, query);
+    }
+
+    return extendedSnippet;
   }
 
   private static transformSearchResult(doc: ApiDocumentSearchResult, query: string): FeedEntry {

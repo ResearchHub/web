@@ -199,7 +199,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                   inputRef.current?.select();
                 }}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && e.shiftKey && query.trim()) {
+                  if (e.key === 'Enter' && query.trim()) {
                     e.preventDefault();
                     navigatingToSearchRef.current = true;
 
@@ -213,7 +213,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                       globalThis.window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
 
-                    router.push(`/search?debug&q=${encodeURIComponent(query.trim())}`);
+                    router.push(`/search?q=${encodeURIComponent(query.trim())}`);
                     onClose();
                   }
                 }}
@@ -263,7 +263,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
               <button
                 onClick={() => {
                   navigatingToSearchRef.current = true;
-                  router.push(`/search?debug&q=${encodeURIComponent(query.trim())}`);
+                  router.push(`/search?q=${encodeURIComponent(query.trim())}`);
                   onClose();
                 }}
                 className="w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
