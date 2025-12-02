@@ -139,7 +139,7 @@ const JournalSpotlight = () => {
             authors={authors}
             size="xs"
             delimiter=", "
-            className="text-gray-500 font-normal"
+            className="text-gray-500 font-normal [text-wrap:wrap]"
           />
         </div>
 
