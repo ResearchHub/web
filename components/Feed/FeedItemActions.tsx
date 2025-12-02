@@ -26,8 +26,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { cn } from '@/utils/styles';
 import { Topic } from '@/types/topic';
 import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
-
-const BountyIcon: FC<{ size?: number }> = (props) => <Icon name="earn1" {...props} size={18} />;
+import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -69,7 +68,7 @@ export interface ExtendedContentMetrics {
 }
 
 interface ActionButtonProps {
-  icon: any;
+  icon?: any;
   count?: number | string | ReactNode;
   label: string;
   tooltip?: string;
@@ -79,6 +78,7 @@ interface ActionButtonProps {
   className?: string;
   showLabel?: boolean;
   showTooltip?: boolean;
+  hideIcon?: boolean;
 }
 
 // Export ActionButton so it can be used in other components
@@ -93,6 +93,7 @@ export const ActionButton: FC<ActionButtonProps> = ({
   className = '',
   showLabel = false,
   showTooltip = true,
+  hideIcon = false,
 }) => (
   <Button
     variant="ghost"
@@ -109,13 +110,15 @@ export const ActionButton: FC<ActionButtonProps> = ({
     onClick={onClick}
     disabled={isDisabled}
   >
-    <Icon
-      className={cn(
-        // Responsive icon size
-        'w-4 h-4 md:!w-5 md:!h-5',
-        isActive ? 'text-green-600' : ''
-      )}
-    />
+    {!hideIcon && Icon && (
+      <Icon
+        className={cn(
+          // Responsive icon size
+          'w-4 h-4 md:!w-5 md:!h-5',
+          isActive ? 'text-green-600' : ''
+        )}
+      />
+    )}
     {showLabel ? (
       <span className="text-xs md:!text-sm font-medium">{label}</span>
     ) : count !== undefined ? (
@@ -388,16 +391,40 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               showTooltip={showTooltips}
             />
           )}
-          {showInlineReviews && (
-            <ActionButton
-              icon={Star}
-              count={metrics?.reviewScore !== 0 ? formatScore(metrics?.reviewScore || 0) : '3.0'}
-              tooltip="Peer Review"
-              label="Peer Review"
-              showTooltip={showTooltips}
-              onClick={handleReviewClick}
-            />
-          )}
+          {showInlineReviews &&
+            (showTooltips && reviews.length > 0 ? (
+              <Tooltip
+                content={
+                  <PeerReviewTooltip
+                    reviews={reviews}
+                    averageScore={metrics?.reviewScore || 0}
+                    href={href}
+                  />
+                }
+                position="top"
+                width="w-[320px]"
+              >
+                <ActionButton
+                  icon={Star}
+                  count={
+                    metrics?.reviewScore !== 0 ? formatScore(metrics?.reviewScore || 0) : '3.0'
+                  }
+                  tooltip=""
+                  label="Peer Review"
+                  showTooltip={false}
+                  onClick={handleReviewClick}
+                />
+              </Tooltip>
+            ) : (
+              <ActionButton
+                icon={Star}
+                count={metrics?.reviewScore !== 0 ? formatScore(metrics?.reviewScore || 0) : '3.0'}
+                tooltip="Peer Review"
+                label="Peer Review"
+                showTooltip={showTooltips}
+                onClick={handleReviewClick}
+              />
+            ))}
           {showInlineBounties &&
             (showTooltips ? (
               <Tooltip
@@ -437,16 +464,18 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 width="w-[380px]"
               >
                 <ActionButton
-                  icon={BountyIcon}
+                  hideIcon={true}
                   tooltip=""
                   label="Bounties"
+                  className="!border-orange-500 !text-orange-500 hover:!border-orange-500 hover:!text-orange-600"
                   count={
                     <CurrencyBadge
                       amount={totalBountyAmount}
                       variant="text"
                       size="xs"
-                      textColor="text-gray-900"
-                      iconColor="#111827"
+                      textColor="text-orange-500"
+                      iconColor="#f97316"
+                      iconSize={18}
                       currency={showUSD ? 'USD' : 'RSC'}
                       shorten={true}
                       showExchangeRate={false}
@@ -460,14 +489,18 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               </Tooltip>
             ) : (
               <ActionButton
-                icon={BountyIcon}
+                hideIcon={true}
                 tooltip="Bounties"
                 label="Bounties"
+                className="!border-orange-500 !text-orange-500 hover:!border-orange-500 hover:!text-orange-600"
                 count={
                   <CurrencyBadge
                     amount={totalBountyAmount}
                     variant="text"
                     size="xs"
+                    textColor="text-orange-500"
+                    iconColor="#f97316"
+                    iconSize={18}
                     currency={showUSD ? 'USD' : 'RSC'}
                     shorten={true}
                     showExchangeRate={false}
