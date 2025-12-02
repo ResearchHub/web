@@ -102,7 +102,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     <div className="flex justify-between items-center mb-4">
       <div className="text-sm text-gray-600 min-w-0">
         {!isLoading && count > 0 ? (
-          <>{`{ ${count.toLocaleString()} } ${count === 1 ? 'result found.' : 'results found.'}`}</>
+          <>{`${count.toLocaleString()} ${count === 1 ? 'result found.' : 'results found.'}`}</>
         ) : (
           <span className="invisible">No results found.</span>
         )}
