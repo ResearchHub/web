@@ -2,6 +2,7 @@
 
 import { memo } from 'react';
 import dynamic from 'next/dynamic';
+import { usePathname } from 'next/navigation';
 import { Avatar } from '@/components/ui/Avatar';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
@@ -171,22 +172,27 @@ const FundingSpotlightSkeleton = () => (
 );
 
 // Main RightSidebar Component - memoized to prevent re-renders when parent components change
-const SidebarComponent = () => (
-  <div className="space-y-4">
-    {/* Personalize Feed Banner */}
-    <PersonalizeFeedBanner />
+const SidebarComponent = () => {
+  const pathname = usePathname();
+  const isFollowingPage = pathname === '/following';
 
-    {/* Next Steps Panel for new users */}
-    {/* <NextStepsPanel /> */}
+  return (
+    <div className="space-y-4">
+      {/* Personalize Feed Banner - show logged-in variant on /following page */}
+      <PersonalizeFeedBanner variant={isFollowingPage ? 'logged-in' : 'logged-out'} />
 
-    <div className="bg-white rounded-lg p-2">
-      {/* Dynamic Leaderboard Section */}
-      <LeaderboardOverview />
+      {/* Next Steps Panel for new users */}
+      {/* <NextStepsPanel /> */}
+
+      <div className="bg-white rounded-lg p-2">
+        {/* Dynamic Leaderboard Section */}
+        <LeaderboardOverview />
+      </div>
+
+      {/* Follow recommendations removed */}
     </div>
-
-    {/* Follow recommendations removed */}
-  </div>
-);
+  );
+};
 
 export const RightSidebar = memo(SidebarComponent);
 RightSidebar.displayName = 'RightSidebar';
