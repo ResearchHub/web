@@ -31,11 +31,13 @@ export function isWithin24Hours(timestamp: string): boolean {
 
 /**
  * Formats a timestamp based on how recent it is
- * If within 24 hours: shows relative time (e.g. "2h ago")
+ * If within 24 hours: shows relative time (e.g. "2h ago") unless useTimeAgo is false
  * If older: shows date (e.g. "Dec 15, 2024")
+ * @param timestamp ISO timestamp string
+ * @param useTimeAgo Optional boolean to use relative time for recent timestamps (default: true)
  */
-export function formatTimestamp(timestamp: string): string {
-  if (isWithin24Hours(timestamp)) {
+export function formatTimestamp(timestamp: string, useTimeAgo: boolean = true): string {
+  if (useTimeAgo && isWithin24Hours(timestamp)) {
     return formatTimeAgo(timestamp);
   }
   return dayjs(timestamp).format('MMM D, YYYY');

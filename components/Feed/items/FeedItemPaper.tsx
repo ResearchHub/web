@@ -159,7 +159,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                   <>
                     <span className="mx-3 text-gray-500">•</span>
                     <span className="text-gray-600 whitespace-nowrap text-sm">
-                      {formatTimestamp(paper.createdDate)}
+                      {formatTimestamp(paper.createdDate, false)}
                     </span>
                   </>
                 )}
