@@ -1,15 +1,7 @@
-import { redirect } from 'next/navigation';
+import { TopicFeed } from '@/components/Feed/TopicFeed';
+import { FeedTab } from '@/hooks/useFeed';
 
-interface Props {
-  params: Promise<{
-    slug: string;
-  }>;
-}
-
-export default async function TopicFeedPage({ params }: Props) {
-  const resolvedParams = await params;
-  const slug = resolvedParams.slug;
-
-  // Redirect to popular tab by default
-  redirect(`/topic/${slug}/popular`);
+export default function TopicFeedPage() {
+  const defaultTab: FeedTab = 'popular';
+  return <TopicFeed defaultTab={defaultTab} />;
 }

@@ -12,6 +12,13 @@ interface TopicFeedProps {
   defaultTab: FeedTab;
 }
 
+// Get the default ordering for topic feed tabs
+const getTopicOrdering = (tab: FeedTab): string | undefined => {
+  if (tab === 'popular') return 'hot_score_v2';
+  if (tab === 'latest') return 'latest';
+  return undefined;
+};
+
 export const TopicFeed: FC<TopicFeedProps> = ({ defaultTab }) => {
   const params = useParams();
   const router = useRouter();
@@ -32,6 +39,7 @@ export const TopicFeed: FC<TopicFeedProps> = ({ defaultTab }) => {
     lastClickedEntryId,
   } = useFeed(defaultTab, {
     hubSlug: decodedSlug || '',
+    ordering: getTopicOrdering(defaultTab),
   });
 
   useEffect(() => {

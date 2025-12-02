@@ -9,6 +9,7 @@ import Icon from '@/components/ui/icons/Icon';
 import { Topic } from '@/types/topic';
 import { Journal } from '@/types/journal';
 import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
+import { getSourceLogo } from '@/utils/preprintUtil';
 
 interface FeedItemBadgesProps {
   journal?: Journal;
@@ -16,25 +17,6 @@ interface FeedItemBadgesProps {
   subcategory?: Topic;
   topics?: Topic[];
 }
-
-// Helper function to get source logo
-const getSourceLogo = (source: string): string | null => {
-  const sourceLower = source.toLowerCase();
-  switch (sourceLower) {
-    case 'arxiv':
-      return '/logos/arxiv.png';
-    case 'biorxiv':
-      return '/logos/biorxiv.png';
-    case 'chemrxiv':
-      return '/logos/chemrxiv.png';
-    case 'medrxiv':
-      return '/logos/medrxiv.jpg';
-    case 'researchhub-journal':
-      return 'rhJournal2';
-    default:
-      return null;
-  }
-};
 
 // Helper function to render badge with source logo
 const renderSourceLogoBadge = (slug: string, name: string) => {

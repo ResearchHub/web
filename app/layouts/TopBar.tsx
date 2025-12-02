@@ -19,6 +19,7 @@ import { useAuthenticatedAction, useAuthModalContext } from '@/contexts/AuthModa
 import { useNotifications } from '@/contexts/NotificationContext';
 import { Icon } from '@/components/ui/icons';
 import Link from 'next/link';
+import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHouse as faHouseLight,
@@ -31,6 +32,7 @@ import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
 import { toTitleCase } from '@/utils/stringUtils';
 import { Hash } from 'lucide-react';
+import { getSourceLogo, getPreprintDisplayName } from '@/utils/preprintUtil';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -247,6 +249,27 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     // Extract topic slug from URL
     const topicSlug = pathname.split('/topic/')[1]?.split('/')[0];
     if (topicSlug) {
+      // Check if it's a preprint server
+      const preprintLogo = getSourceLogo(topicSlug);
+
+      if (preprintLogo && preprintLogo !== 'rhJournal2') {
+        // Use preprint server logo only (no title)
+        return {
+          title: '',
+          subtitle: 'Explore research from this preprint server',
+          icon: (
+            <Image
+              src={preprintLogo}
+              alt={getPreprintDisplayName(topicSlug)}
+              width={80}
+              height={24}
+              className="object-contain"
+              style={{ maxHeight: '24px' }}
+            />
+          ),
+        };
+      }
+
       // Get emoji for the topic
       const emoji = getTopicEmoji(topicSlug);
       // Convert slug to title case (replace hyphens with spaces)
@@ -440,10 +463,11 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             {/* Mobile page title - next to hamburger/back button */}
             {pageInfo && (
               <div className="flex tablet:!hidden items-center">
-                {/* Only show icon on homepage */}
+                {/* Show icon on homepage or when there's no title (preprint servers) */}
                 {pageInfo.icon &&
-                  ['/', '/following', '/latest', '/trending', '/for-you'].includes(pathname) && (
-                    <div className="mr-2">{pageInfo.icon}</div>
+                  (['/', '/following', '/latest', '/trending', '/for-you'].includes(pathname) ||
+                    !pageInfo.title) && (
+                    <div className={pageInfo.title ? 'mr-2' : ''}>{pageInfo.icon}</div>
                   )}
                 {pageInfo.title && (
                   <h1 className="text-lg font-bold text-gray-900 leading-tight">
