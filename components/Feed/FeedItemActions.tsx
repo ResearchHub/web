@@ -27,6 +27,7 @@ import { cn } from '@/utils/styles';
 import { Topic } from '@/types/topic';
 import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
+import { BountyTooltip } from '@/components/tooltips/BountyTooltip';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -413,6 +414,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                   label="Peer Review"
                   showTooltip={false}
                   onClick={handleReviewClick}
+                  className="hover:!bg-amber-50 hover:!text-amber-600 hover:!border-amber-300"
                 />
               </Tooltip>
             ) : (
@@ -423,51 +425,23 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 label="Peer Review"
                 showTooltip={showTooltips}
                 onClick={handleReviewClick}
+                className="hover:!bg-amber-50 hover:!text-amber-600 hover:!border-amber-300"
               />
             ))}
           {showInlineBounties &&
             (showTooltips ? (
               <Tooltip
                 content={
-                  <div className="flex items-start gap-3 text-left">
-                    <div
-                      className={cn(
-                        'p-2 rounded-md flex items-center justify-center',
-                        'bg-gray-100'
-                      )}
-                    >
-                      <Icon name="earn1" size={24} />
-                    </div>
-                    <div>
-                      <div className="font-medium mb-1">ResearchCoin Earning Opportunity</div>
-                      <div>
-                        Complete tasks during the bounty period for an opportunity to earn{''}
-                        <span
-                          className={cn('inline-flex items-center', !showUSD && 'translate-y-0.5')}
-                        >
-                          <CurrencyBadge
-                            amount={totalBountyAmount}
-                            variant="text"
-                            size="xs"
-                            currency={showUSD ? 'USD' : 'RSC'}
-                            shorten={true}
-                            showExchangeRate={false}
-                            showIcon={true}
-                            showText={false}
-                          />
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  <BountyTooltip totalAmount={totalBountyAmount} href={href} showUSD={showUSD} />
                 }
                 position="top"
-                width="w-[380px]"
+                width="w-[320px]"
               >
                 <ActionButton
                   hideIcon={true}
                   tooltip=""
                   label="Bounties"
-                  className="!border-orange-500 !text-orange-500 hover:!border-orange-500 hover:!text-orange-600"
+                  className="!border-orange-500 !text-orange-500 hover:!border-orange-500 hover:!text-orange-600 hover:!bg-orange-50"
                   count={
                     <CurrencyBadge
                       amount={totalBountyAmount}
@@ -492,7 +466,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 hideIcon={true}
                 tooltip="Bounties"
                 label="Bounties"
-                className="!border-orange-500 !text-orange-500 hover:!border-orange-500 hover:!text-orange-600"
+                className="!border-orange-500 !text-orange-500 hover:!border-orange-500 hover:!text-orange-600 hover:!bg-orange-50"
                 count={
                   <CurrencyBadge
                     amount={totalBountyAmount}

@@ -65,6 +65,12 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
     'relatedDocumentId' in paper ? paper.relatedDocumentId?.toString() : paper.id.toString();
   const relatedDocumentContentType = mapFeedContentTypeToContentType(paper.contentType);
 
+  // Only show journal badge for specific preprint servers
+  const ALLOWED_JOURNALS = ['biorxiv', 'arxiv', 'medrxiv', 'chemrxiv'];
+  const journalSlugLower = paper.journal?.slug?.toLowerCase() || '';
+  const shouldShowJournal = ALLOWED_JOURNALS.some((j) => journalSlugLower.includes(j));
+  const filteredJournal = shouldShowJournal ? paper.journal : undefined;
+
   return (
     <BaseFeedItem
       entry={entry}
@@ -124,7 +130,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         }
         leftContent={
           <FeedItemBadges
-            journal={paper.journal}
+            journal={filteredJournal}
             category={paper.category}
             subcategory={paper.subcategory}
             topics={paper.topics}
