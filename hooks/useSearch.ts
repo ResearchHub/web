@@ -51,7 +51,6 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
   const [currentQuery, setCurrentQuery] = useState('');
   const [currentTab, setCurrentTab] = useState<'documents' | 'people'>('documents');
   const isLoadingRef = useRef(false);
-  const previousQueryRef = useRef<string>('');
 
   // Load preferences from localStorage
   const [filters, setFiltersState] = useState<SearchFilters>(() => {
@@ -126,21 +125,13 @@ export function useSearch(options: UseSearchOptions = {}): UseSearchReturn {
         setHasMore(false);
         setCount(0);
         setError(null);
-        previousQueryRef.current = '';
         return;
-      }
-
-      // Reset sortBy to 'relevance' on each new search query
-      const isNewQuery = query !== previousQueryRef.current;
-      if (isNewQuery) {
-        setSortByState('relevance');
       }
 
       isLoadingRef.current = false; // Reset the ref for new search
       setIsLoadingMore(false);
       setIsLoading(true);
       setError(null);
-      previousQueryRef.current = query;
       setCurrentQuery(query);
       setCurrentTab(tab);
       setPage(1);
