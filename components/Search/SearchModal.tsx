@@ -256,6 +256,22 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
               </div>
             )}
           </div>
+
+          {/* See all results footer - always visible */}
+          {query.trim() && (
+            <div className="border-t border-gray-200 p-4 bg-white">
+              <button
+                onClick={() => {
+                  navigatingToSearchRef.current = true;
+                  router.push(`/search?debug&q=${encodeURIComponent(query.trim())}`);
+                  onClose();
+                }}
+                className="w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+              >
+                See all results
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

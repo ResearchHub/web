@@ -174,6 +174,7 @@ export const ContentSection: FC<ContentSectionProps> = ({
       </div>
     );
   }
+  return null;
 };
 
 export const ImageSection: FC<ImageSectionProps> = ({
