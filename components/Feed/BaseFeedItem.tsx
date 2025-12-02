@@ -7,7 +7,7 @@ import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CardWrapper } from './CardWrapper';
 import { cn } from '@/utils/styles';
 import Image from 'next/image';
-import { truncateText } from '@/utils/stringUtils';
+import { stripHtml, truncateText } from '@/utils/stringUtils';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { sanitizeHighlightHtml } from '@/components/Search/lib/htmlSanitizer';
@@ -149,10 +149,11 @@ export const TitleSection: FC<TitleSectionProps> = ({ title, highlightedTitle, c
 export const ContentSection: FC<ContentSectionProps> = ({
   content,
   highlightedContent,
-  maxLength = 200,
   className,
+  maxLength = 200,
 }) => {
-  // If we have highlighted HTML, render it (already truncated by backend)
+  // If we have highlighted HTML (from search service), render it as-is
+  // The search service is responsible for extending snippets to appropriate length
   if (highlightedContent) {
     return (
       <div className={cn('text-sm text-gray-700', className)}>
@@ -165,12 +166,15 @@ export const ContentSection: FC<ContentSectionProps> = ({
     );
   }
 
-  // Default: render truncated plain text
-  return (
-    <div className={cn('text-sm text-gray-700', className)}>
-      <p>{truncateText(content, maxLength)}</p>
-    </div>
-  );
+  // Default: render truncated plain text for non-search results
+  if (content) {
+    return (
+      <div className={cn('text-sm text-gray-700', className)}>
+        <p>{truncateText(content, maxLength)}</p>
+      </div>
+    );
+  }
+  return null;
 };
 
 export const ImageSection: FC<ImageSectionProps> = ({
