@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Clock, ArrowUp, Coins, UserCheck, MessageCircle, Target } from 'lucide-react';
+import { Clock, ArrowUp, Coins, Star, MessageCircle, Eye } from 'lucide-react';
 import { HotScoreBreakdown } from '@/types/feed';
+import Icon from '@/components/ui/icons/Icon';
 
 // Custom Github icon component
 const GithubIcon = ({ className }: { className?: string }) => (
@@ -18,24 +19,30 @@ const BlueskyIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-interface HotScoreTooltipProps {
-  hotScore: number;
+// Wrapper for the custom Icon component to match the expected interface
+const EarnIcon = ({ className }: { className?: string }) => (
+  <Icon name="earn1" size={16} color="#9ca3af" className={className} />
+);
+
+interface PopularityScoreTooltipProps {
+  score: number;
   breakdown?: HotScoreBreakdown;
 }
 
 // Signal configuration with display names and icons
-// Keys must match the API response: recency, upvote, tip, peer_review, comment, bounty, github, bluesky
+// Keys must match the API response: recency, upvote, tip, peer_review, comment, bounty, github, bluesky, page_views
 const SIGNAL_CONFIG: {
   key: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
   { key: 'recency', label: 'Recency', icon: Clock },
+  { key: 'page_views', label: 'Page Views', icon: Eye },
   { key: 'upvote', label: 'Upvotes', icon: ArrowUp },
   { key: 'tip', label: 'Tips', icon: Coins },
-  { key: 'peer_review', label: 'Peer Reviews', icon: UserCheck },
+  { key: 'peer_review', label: 'Peer Reviews', icon: Star },
   { key: 'comment', label: 'Comments', icon: MessageCircle },
-  { key: 'bounty', label: 'Bounty', icon: Target },
+  { key: 'bounty', label: 'Bounty', icon: EarnIcon },
   { key: 'github', label: 'Github', icon: GithubIcon },
   { key: 'bluesky', label: 'Bluesky', icon: BlueskyIcon },
 ];
@@ -53,33 +60,38 @@ const formatNumber = (num: number | null | undefined) => {
   return Math.round(num).toString();
 };
 
-export function HotScoreTooltip({ hotScore, breakdown }: HotScoreTooltipProps) {
+export function PopularityScoreTooltip({ score, breakdown }: PopularityScoreTooltipProps) {
   const signals = breakdown?.signals || {};
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
   return (
-    <div className="space-y-3">
-      {/* Hot Score - Centered Large Number */}
+    <div className="space-y-3" onClick={handleClick}>
+      {/* Popularity Score - Centered Large Number */}
       <div className="text-center py-2">
-        <p className="text-sm text-gray-500 mb-1">Hot Score</p>
-        <span className="text-4xl font-bold text-blue-600">{Math.round(hotScore)}</span>
+        <p className="text-sm text-gray-500 mb-1">Popularity Score</p>
+        <span className="text-4xl font-bold text-blue-600">{Math.round(score)}</span>
       </div>
 
       {/* Explanatory text */}
       <p className="text-xs text-gray-600 italic border-t border-gray-200 pt-3">
-        The hot score is calculated based on multiple engagement signals including recency, votes,
-        tips, and social activity.
+        The popularity score is calculated based on multiple engagement signals including recency,
+        views, votes, tips, and social activity.
       </p>
 
       {/* Signals List */}
       <div className="space-y-2 border-t border-gray-200 pt-3">
-        {SIGNAL_CONFIG.map(({ key, label, icon: Icon }) => {
+        {SIGNAL_CONFIG.map(({ key, label, icon: SignalIcon }) => {
           const signal = signals[key];
           const rawValue = signal?.raw ?? 0;
 
           return (
             <div key={key} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Icon className="w-4 h-4 text-gray-400" />
+                <SignalIcon className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-600">{label}</span>
               </div>
               <span className="text-sm font-semibold text-gray-900">{formatNumber(rawValue)}</span>
@@ -90,3 +102,6 @@ export function HotScoreTooltip({ hotScore, breakdown }: HotScoreTooltipProps) {
     </div>
   );
 }
+
+/** @deprecated Use PopularityScoreTooltip instead */
+export const HotScoreTooltip = PopularityScoreTooltip;

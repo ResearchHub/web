@@ -16,7 +16,7 @@ import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
 import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { HotScoreTooltip } from '@/components/tooltips/HotScoreTooltip';
+import { PopularityScoreTooltip } from '@/components/tooltips/HotScoreTooltip';
 import { formatTimestamp } from '@/utils/date';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
 
@@ -94,8 +94,8 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
             {entry.hotScoreV2 !== undefined && entry.hotScoreV2 > 0 && (
               <Tooltip
                 content={
-                  <HotScoreTooltip
-                    hotScore={entry.hotScoreV2}
+                  <PopularityScoreTooltip
+                    score={entry.hotScoreV2}
                     breakdown={entry.hotScoreBreakdown}
                   />
                 }
@@ -105,7 +105,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                 <div className="flex items-center gap-1 text-blue-600 cursor-help hover:text-blue-700 transition-colors">
                   <Image
                     src="/icons/flaskVector.svg"
-                    alt="Hot Score"
+                    alt="Popularity Score"
                     width={16}
                     height={16}
                     className="w-4 h-4"
