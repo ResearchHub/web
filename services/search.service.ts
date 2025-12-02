@@ -239,6 +239,51 @@ export class SearchService {
     };
   }
 
+  /**
+   * Extends highlighted snippet with additional abstract content if available
+   */
+  private static extendHighlightedSnippet(
+    highlightedSnippet: string,
+    plainSnippet: string,
+    fullAbstract: string,
+    query: string
+  ): string {
+    const highlightedPlainText = stripHtml(highlightedSnippet);
+    const highlightedLength = highlightedPlainText.length;
+
+    // Try to find where the snippet appears in the full abstract
+    const abstractLower = fullAbstract.toLowerCase();
+    const snippetLower = highlightedPlainText.toLowerCase();
+    const snippetIndex = abstractLower.indexOf(snippetLower);
+
+    // If snippet not found or already full length, return original
+    if (snippetIndex < 0 || highlightedLength >= fullAbstract.length) {
+      return highlightedSnippet;
+    }
+
+    // Found the snippet in abstract, extend it
+    const endOfSnippet = snippetIndex + highlightedLength;
+    const remainingAbstract = fullAbstract.slice(endOfSnippet).trim();
+
+    if (!remainingAbstract || remainingAbstract.length === 0) {
+      return highlightedSnippet;
+    }
+
+    // Extend up to a reasonable length (e.g., 500 chars total for search results)
+    const maxExtendedLength = 500;
+    const remainingLength = maxExtendedLength - highlightedLength;
+
+    if (remainingLength <= 0) {
+      return highlightedSnippet;
+    }
+
+    // Truncate remaining abstract and add highlights for search terms
+    const additionalText = remainingAbstract.slice(0, remainingLength);
+    const highlightedAdditional = highlightSearchTerms(additionalText, query);
+
+    return highlightedSnippet + ' ' + highlightedAdditional;
+  }
+
   private static transformSearchResult(doc: ApiDocumentSearchResult, query: string): FeedEntry {
     // First transform to a clean FeedEntry
     const feedEntry = this.transformDocumentToFeedEntry(doc);
@@ -274,7 +319,6 @@ export class SearchService {
     );
 
     // Extend highlighted snippet with full abstract if available and longer
-    // Priority: doc.abstract (new field) > textPreview
     let extendedSnippet = final.highlightedSnippet;
     if (final.highlightedSnippet) {
       // Get the full abstract - prefer doc.abstract (new field), then textPreview
@@ -282,35 +326,12 @@ export class SearchService {
         doc.abstract || ('textPreview' in feedEntry.content ? feedEntry.content.textPreview : null);
 
       if (fullAbstract && fullAbstract.length > plainSnippet.length) {
-        // Strip HTML from highlighted snippet to get plain text
-        const highlightedPlainText = stripHtml(final.highlightedSnippet);
-        const highlightedLength = highlightedPlainText.length;
-
-        // Try to find where the snippet appears in the full abstract
-        const abstractLower = fullAbstract.toLowerCase();
-        const snippetLower = highlightedPlainText.toLowerCase();
-        const snippetIndex = abstractLower.indexOf(snippetLower);
-
-        if (snippetIndex !== -1 && highlightedLength < fullAbstract.length) {
-          // Found the snippet in abstract, extend it
-          const endOfSnippet = snippetIndex + highlightedLength;
-          const remainingAbstract = fullAbstract.slice(endOfSnippet).trim();
-
-          if (remainingAbstract && remainingAbstract.length > 0) {
-            // Extend up to a reasonable length (e.g., 500 chars total for search results)
-            const maxExtendedLength = 500;
-            const remainingLength = maxExtendedLength - highlightedLength;
-
-            if (remainingLength > 0) {
-              // Truncate remaining abstract and add highlights for search terms
-              const additionalText = remainingAbstract.slice(0, remainingLength);
-              const highlightedAdditional = highlightSearchTerms(additionalText, query);
-
-              // Combine the original highlighted snippet with the extended portion
-              extendedSnippet = final.highlightedSnippet + ' ' + highlightedAdditional;
-            }
-          }
-        }
+        extendedSnippet = this.extendHighlightedSnippet(
+          final.highlightedSnippet,
+          plainSnippet,
+          fullAbstract,
+          query
+        );
       }
     }
 
@@ -342,8 +363,8 @@ export class SearchService {
    * Gets the earliest available date from multiple sources
    */
   private static getEarliestDate(...dates: (string | null | undefined)[]): string {
-    const validDates = dates.filter((d): d is string => !!d);
-    return validDates[0] || new Date().toISOString();
+    const validDate = dates.find((d): d is string => !!d);
+    return validDate || new Date().toISOString();
   }
 
   private static transformDocumentToFeedEntry(doc: ApiDocumentSearchResult): FeedEntry {
