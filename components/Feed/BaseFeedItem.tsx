@@ -133,7 +133,7 @@ export const TitleSection: FC<TitleSectionProps> = ({ title, highlightedTitle, c
     return (
       <h2
         className={cn(
-          'text-md md:!text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors',
+          'text-md md:!text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors',
           className
         )}
         dangerouslySetInnerHTML={{
@@ -147,7 +147,7 @@ export const TitleSection: FC<TitleSectionProps> = ({ title, highlightedTitle, c
   return (
     <h2
       className={cn(
-        'text-md md:!text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors',
+        'text-md md:!text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors',
         className
       )}
     >

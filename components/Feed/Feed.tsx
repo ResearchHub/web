@@ -2,16 +2,15 @@
 
 import { FC, useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { Sparkles, Globe } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import { useFeed, FeedTab, FeedSource } from '@/hooks/useFeed';
 import { FeedContent } from './FeedContent';
-import { FeedTabs } from './FeedTabs';
+import { FeedTabs, FeedSortOption } from './FeedTabs';
 import { ForYouFeedBanner } from './ForYouFeedBanner';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FeedEntry } from '@/types/feed';
 import Icon from '@/components/ui/icons/Icon';
-import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { useUser } from '@/contexts/UserContext';
 import { ManageTopicsModal } from '@/components/modals/ManageTopicsModal';
 
@@ -91,21 +90,10 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
 
     setIsNavigating(true);
 
-    const params = new URLSearchParams();
-    const orderingParam = searchParams.get('ordering');
-    if (orderingParam) {
-      params.set('ordering', orderingParam);
-    }
-    const filterParam = searchParams.get('filter');
-    if (filterParam) {
-      params.set('filter', filterParam);
-    }
-    const queryString = params.toString() ? `?${params.toString()}` : '';
-
     if (tab === 'popular') {
-      router.push(`/trending${queryString}`);
+      router.push('/trending');
     } else {
-      router.push(`/${tab}${queryString}`);
+      router.push(`/${tab}`);
     }
   };
 
@@ -113,13 +101,17 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     setSourceFilter(source);
   };
 
+  const handleSortChange = (sort: FeedSortOption) => {
+    setOrdering(sort);
+    // Update URL with new ordering
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('ordering', sort);
+    router.push(`/${activeTab}?${params.toString()}`);
+  };
+
   const combinedIsLoading = isLoading || isNavigating;
 
   const tabs = [
-    {
-      id: 'popular',
-      label: 'Trending',
-    },
     ...(isAuthenticated || isModerator || isDebugMode
       ? [
           {
@@ -136,16 +128,16 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
           },
         ]
       : []),
+    {
+      id: 'popular',
+      label: 'Popular',
+    },
   ];
 
   const header = (
-    <div className="space-y-4">
-      <MainPageHeader
-        icon={<Sparkles className="w-6 h-6 text-primary-500" />}
-        title="Explore"
-        subtitle="Discover trending research, earning, and funding opportunities"
-      />
-    </div>
+    <p className="text-gray-900 text-lg tablet:!hidden py-4">
+      Explore cutting-edge research from leading preprint servers.
+    </p>
   );
 
   // Hide tabs for logged out users on main feed routes
@@ -160,6 +152,9 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
       isLoading={combinedIsLoading}
       showGearIcon={activeTab === 'following'}
       onGearClick={() => setIsManageTopicsModalOpen(true)}
+      showSorting={activeTab === 'following'}
+      sortOption={(ordering as FeedSortOption) || 'hot_score_v2'}
+      onSortChange={handleSortChange}
     />
   ) : null;
 

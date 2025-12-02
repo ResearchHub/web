@@ -69,7 +69,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (['/', '/following', '/latest', '/trending', '/for-you'].includes(pathname)) {
     return {
       title: 'Explore',
-      subtitle: 'Discover trending research, earning, and funding opportunities',
+      subtitle: 'Explore cutting-edge research from leading preprint servers.',
       icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
     };
   }
@@ -425,7 +425,35 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               </button>
             </div>
 
-            {/* Back button - show when we have page info but not for root navigation pages */}
+            {/* Mobile back button - show when not on root navigation pages */}
+            {pageInfo && !isRootNavigationPage(pathname) && (
+              <div className="block tablet:!hidden mr-1">
+                <button
+                  onClick={goBack}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <ArrowLeft className="h-5 w-5 text-gray-600" />
+                </button>
+              </div>
+            )}
+
+            {/* Mobile page title - next to hamburger/back button */}
+            {pageInfo && (
+              <div className="flex tablet:!hidden items-center">
+                {/* Only show icon on homepage */}
+                {pageInfo.icon &&
+                  ['/', '/following', '/latest', '/trending', '/for-you'].includes(pathname) && (
+                    <div className="mr-2">{pageInfo.icon}</div>
+                  )}
+                {pageInfo.title && (
+                  <h1 className="text-lg font-bold text-gray-900 leading-tight">
+                    {pageInfo.title}
+                  </h1>
+                )}
+              </div>
+            )}
+
+            {/* Desktop back button - show when we have page info but not for root navigation pages */}
             {pageInfo && !isRootNavigationPage(pathname) && (
               <div className="hidden tablet:!block mr-3">
                 <button
@@ -448,18 +476,13 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                     </h1>
                   )}
                   {pageInfo.subtitle && (
-                    <p className="hidden wide:!block text-sm text-gray-700 leading-tight mt-0.5">
+                    <p className="hidden wide:!block text-md text-gray-600 leading-tight mt-0.5">
                       {pageInfo.subtitle}
                     </p>
                   )}
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Center - Search input (mobile only) */}
-          <div className="flex-1 flex justify-center px-4 tablet:!hidden">
-            <div className="w-full">{renderSearchbarButton()}</div>
           </div>
 
           {/* Right side - User controls */}
@@ -527,7 +550,15 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             </div>
 
             {/* Mobile user controls */}
-            <div className="flex tablet:!hidden">
+            <div className="flex tablet:!hidden items-center space-x-1">
+              {/* Mobile search icon */}
+              <button
+                onClick={() => setIsSearchModalOpen(true)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <SearchIcon className="h-6 w-6 text-gray-600" />
+              </button>
+
               {isLoading ? (
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse"></div>

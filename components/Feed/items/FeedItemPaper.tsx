@@ -1,6 +1,7 @@
 'use client';
 
 import { FC } from 'react';
+import Image from 'next/image';
 import { FeedPaperContent, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
 import {
   BaseFeedItem,
@@ -14,6 +15,8 @@ import {
 import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
 import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { HotScoreTooltip } from '@/components/tooltips/HotScoreTooltip';
 import { formatTimestamp } from '@/utils/date';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
 
@@ -87,12 +90,37 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
           )
         }
         rightContent={
-          <FeedItemMenuButton
-            feedContentType={feedContentType}
-            votableEntityId={votableEntityId}
-            relatedDocumentId={relatedDocumentId}
-            relatedDocumentContentType={relatedDocumentContentType}
-          />
+          <div className="flex items-center gap-2">
+            {entry.hotScoreV2 !== undefined && entry.hotScoreV2 > 0 && (
+              <Tooltip
+                content={
+                  <HotScoreTooltip
+                    hotScore={entry.hotScoreV2}
+                    breakdown={entry.hotScoreBreakdown}
+                  />
+                }
+                width="w-72"
+                position="bottom"
+              >
+                <div className="flex items-center gap-1 text-blue-600 cursor-help hover:text-blue-700 transition-colors">
+                  <Image
+                    src="/icons/flaskVector.svg"
+                    alt="Hot Score"
+                    width={16}
+                    height={16}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm font-medium">{Math.round(entry.hotScoreV2)}</span>
+                </div>
+              </Tooltip>
+            )}
+            <FeedItemMenuButton
+              feedContentType={feedContentType}
+              votableEntityId={votableEntityId}
+              relatedDocumentId={relatedDocumentId}
+              relatedDocumentContentType={relatedDocumentContentType}
+            />
+          </div>
         }
         leftContent={
           <FeedItemBadges
@@ -110,32 +138,40 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
             {/* Title */}
             <TitleSection title={paper.title} highlightedTitle={highlightedTitle} />
 
-            {/* Authors */}
-            {paper.authors.length > 0 && (
-              <MetadataSection>
-                <div className="flex items-start gap-1.5">
+            {/* Authors and Date */}
+            <MetadataSection className="mb-1">
+              <div className="flex items-center flex-wrap text-base">
+                {paper.authors.length > 0 && (
                   <AuthorList
                     authors={paper.authors.map((author) => ({
                       name: author.fullName,
                       verified: author.user?.isVerified,
                       authorUrl: author.id === 0 ? undefined : author.profileUrl,
                     }))}
-                    size="sm"
-                    className="text-gray-500 font-normal"
-                    delimiter="•"
+                    size="base"
+                    className="text-gray-500 font-normal text-sm"
+                    delimiter=","
                     showAbbreviatedInMobile={true}
                     hideExpandButton={true}
-                    timestamp={paper.createdDate ? formatTimestamp(paper.createdDate) : undefined}
                   />
-                </div>
-              </MetadataSection>
-            )}
-            {/* Truncated Content */}
-            <ContentSection
-              content={paper.textPreview}
-              highlightedContent={highlightedSnippet}
-              maxLength={maxLength}
-            />
+                )}
+                {paper.createdDate && (
+                  <>
+                    <span className="mx-3 text-gray-500">•</span>
+                    <span className="text-gray-600 whitespace-nowrap text-sm">
+                      {formatTimestamp(paper.createdDate)}
+                    </span>
+                  </>
+                )}
+              </div>
+            </MetadataSection>
+            <div className="text-gray-800 text-sm mt-3">
+              <ContentSection
+                content={paper.textPreview}
+                highlightedContent={highlightedSnippet}
+                maxLength={maxLength}
+              />
+            </div>
           </>
         }
         rightContent={

@@ -78,13 +78,6 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
   hotScoreBreakdown,
   externalMetrics,
 }) => {
-  // Check for debug mode
-  const searchParams = useSearchParams();
-  const isDebugMode = searchParams?.get('debug') !== null;
-
-  // State for hot score breakdown modal
-  const [isHotScoreModalOpen, setIsHotScoreModalOpen] = useState(false);
-
   // Format date consistently
   const formattedDate = timestamp instanceof Date ? timestamp : new Date(timestamp);
 
@@ -192,58 +185,6 @@ export const FeedItemHeader: FC<FeedItemHeaderProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Impact Score Badge */}
-      {impactScore !== null && impactScore !== undefined && impactScore > 0 && (
-        <Tooltip
-          content={
-            <ImpactScoreTooltip
-              impactScore={impactScore}
-              citations={citations}
-              twitterMentions={twitterMentions}
-              newsMentions={newsMentions}
-              altmetricScore={altmetricScore}
-            />
-          }
-          width="w-72"
-          position="top"
-        >
-          <div className="inline-flex items-center gap-1 text-green-600 hover:text-green-700 cursor-help">
-            <TrendingUp className="w-6 h-6" />
-            <span className="text-md font-medium">{Math.round(impactScore)}</span>
-          </div>
-        </Tooltip>
-      )}
-
-      {/* Debug: Hot Score V2 Badge */}
-      {isDebugMode && hotScoreV2 !== null && hotScoreV2 !== undefined && (
-        <>
-          {hotScoreBreakdown ? (
-            <>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsHotScoreModalOpen(true);
-                }}
-                className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-700 cursor-pointer transition-colors"
-                aria-label="View hot score breakdown"
-              >
-                <span className="text-md font-medium">🔥 {Math.round(hotScoreV2)}</span>
-              </button>
-              <HotScoreBreakdownModal
-                isOpen={isHotScoreModalOpen}
-                onClose={() => setIsHotScoreModalOpen(false)}
-                breakdown={hotScoreBreakdown}
-                hotScore={hotScoreV2}
-              />
-            </>
-          ) : (
-            <div className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-700">
-              <span className="text-md font-medium">🔥 {Math.round(hotScoreV2)}</span>
-            </div>
-          )}
-        </>
-      )}
     </div>
   );
 };
