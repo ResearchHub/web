@@ -21,6 +21,13 @@ const TopBar = dynamic(() => import('./TopBar').then((mod) => mod.TopBar), {
   ssr: true,
 });
 
+const MobileBottomNav = dynamic(
+  () => import('./MobileBottomNav').then((mod) => mod.MobileBottomNav),
+  {
+    ssr: false,
+  }
+);
+
 // Simple loading skeletons remain the same...
 const TopBarSkeleton = () => (
   <div className="h-16 w-full border-b border-gray-200 bg-gray-50 animate-pulse"></div>
@@ -205,7 +212,7 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
           {/* Main Content */}
           <main
             ref={mainContentRef}
-            className={`flex-1 px-4 tablet:!px-8 py-4 flex justify-center ${
+            className={`flex-1 px-4 tablet:!px-8 py-4 pb-20 tablet:!pb-4 flex justify-center ${
               rightSidebar ? 'lg:!pr-80 right-sidebar:!pr-80' : ''
             }`}
             style={{ maxWidth: '100vw' }}
@@ -251,6 +258,9 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
           )}
         </ScrollContainerProvider>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav />
     </div>
   );
 }
