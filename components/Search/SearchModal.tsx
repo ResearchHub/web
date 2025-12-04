@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Search as SearchIcon, X, Command } from 'lucide-react';
+import { Search as SearchIcon, X, Command, ArrowLeft } from 'lucide-react';
 import { SearchSuggestions } from './SearchSuggestions';
 import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { SearchSuggestion } from '@/types/search';
@@ -178,18 +178,16 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           ref={modalRef}
           className="relative w-full h-screen pb-16 tablet:!h-auto tablet:!pb-0 tablet:!max-w-2xl transform rounded-none tablet:!rounded-lg bg-white shadow-xl transition-all overflow-hidden flex flex-col"
         >
-          {/* Mobile Header with Close Button */}
-          <div className="flex tablet:!hidden items-center justify-between border-b border-gray-200 px-4 py-3">
-            <h2 className="text-lg font-semibold text-gray-900">Search</h2>
-            <Button
+          {/* Mobile Header with Back Button */}
+          <div className="flex tablet:!hidden items-center border-b border-gray-200 px-2 py-3">
+            <button
               onClick={onClose}
-              variant="ghost"
-              size="icon"
-              className="text-gray-400 hover:text-gray-500"
-              aria-label="Close"
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Close search"
             >
-              <X className="h-5 w-5" />
-            </Button>
+              <ArrowLeft className="h-5 w-5 text-gray-600" />
+            </button>
+            <h2 className="text-lg font-semibold text-gray-900">Search</h2>
           </div>
 
           {/* Search Input */}
