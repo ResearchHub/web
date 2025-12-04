@@ -41,6 +41,8 @@ import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
+import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
+import { DEFAULT_LIST_NAME } from '@/components/UserList/lib/user-list';
 interface WorkLineItemsProps {
   work: Work;
   showClaimButton?: boolean;
@@ -84,6 +86,8 @@ export const WorkLineItems = ({
   const { showShareModal } = useShareModalContext();
   const { isInList, listIdsContainingDocument } = useIsInList(work.unifiedDocumentId);
   const userListsEnabled = useUserListsEnabled();
+  const { addToDefaultList } = useUserListsContext();
+  const [isTogglingDefaultList, setIsTogglingDefaultList] = useState(false);
   const {
     data: userVotes,
     isLoading: isLoadingVotes,
@@ -336,17 +340,50 @@ export const WorkLineItems = ({
 
           {userListsEnabled && work.unifiedDocumentId && work.postType !== 'QUESTION' && (
             <button
-              onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
+              onClick={() =>
+                executeAuthenticatedAction(async () => {
+                  if (!work.unifiedDocumentId) return;
+                  if (isInList) {
+                    setIsAddToListModalOpen(true);
+                    return;
+                  }
+                  setIsTogglingDefaultList(true);
+                  try {
+                    await addToDefaultList(Number(work.unifiedDocumentId));
+                    toast.success(
+                      (t) => (
+                        <div className="flex items-center gap-3">
+                          <span>Added to {DEFAULT_LIST_NAME}</span>
+                          <button
+                            onClick={() => {
+                              toast.dismiss(t.id);
+                              setIsAddToListModalOpen(true);
+                            }}
+                            className="text-blue-500 hover:text-blue-600 font-medium"
+                          >
+                            Add to List
+                          </button>
+                        </div>
+                      ),
+                      { duration: 4000 }
+                    );
+                  } catch (error) {
+                    toast.error('Something went wrong');
+                  } finally {
+                    setIsTogglingDefaultList(false);
+                  }
+                })
+              }
+              disabled={isTogglingDefaultList}
               className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
                 isInList
                   ? 'bg-green-50 text-green-600 hover:bg-green-100'
                   : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-              }`}
+              } ${isTogglingDefaultList ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <FontAwesomeIcon
                 icon={isInList ? faBookmarkSolid : faBookmark}
-                className="h-3.
-              5 w-3.5"
+                className="h-3.5 w-3.5"
               />
               <span className="text-sm font-medium">{listIdsContainingDocument.length}</span>
             </button>

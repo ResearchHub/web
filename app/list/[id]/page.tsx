@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { ListModal } from '@/components/modals/ListModal';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { formatItemCount, transformListItemToFeedEntry } from '@/components/UserList/lib/listUtils';
+import { DEFAULT_LIST_NAME } from '@/components/UserList/lib/user-list';
 import { formatTimeAgo } from '@/utils/date';
 import { FeedEntry } from '@/types/feed';
 import { ID } from '@/types/root';
@@ -61,6 +62,7 @@ export default function ListDetailPage() {
     setModal({ isOpen: true, mode, name });
 
   const isOwner = user && list && idMatch(list.createdBy, user.id);
+  const isDefaultList = list?.name === DEFAULT_LIST_NAME;
   const feedEntries = items.map(transformListItemToFeedEntry);
 
   const wrapped = (feedItemComponent: React.ReactNode, feedEntry: FeedEntry, itemIndex: number) => {
@@ -122,15 +124,19 @@ export default function ListDetailPage() {
                   <h1 className="text-2xl font-bold text-gray-900 mb-1 truncate">{list.name}</h1>
                   <p className="text-gray-600">
                     {formatItemCount(list)}
-                    <span className="hidden sm:!inline"> • </span>
-                    <br className="sm:!hidden" />
-                    <span className="text-sm sm:!text-base">
-                      Created {formatTimeAgo(list.createdDate)}
-                    </span>
+                    {!isDefaultList && (
+                      <>
+                        <span className="hidden sm:!inline"> • </span>
+                        <br className="sm:!hidden" />
+                        <span className="text-sm sm:!text-base">
+                          Created {formatTimeAgo(list.createdDate)}
+                        </span>
+                      </>
+                    )}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  {isOwner && (
+                  {isOwner && !isDefaultList && (
                     <BaseMenu
                       trigger={
                         <Button

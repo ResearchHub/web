@@ -7,6 +7,7 @@ import {
   CreateListRequest,
   UpdateListRequest,
   UserListOverview,
+  DEFAULT_LIST_NAME,
 } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
@@ -17,6 +18,11 @@ export interface ListItemChange {
   listId: ID;
   documentId: ID;
   at: number;
+}
+
+interface AddToDefaultListResult {
+  listItemId: ID;
+  listId: ID;
 }
 
 interface UserListsContextType {
@@ -32,6 +38,7 @@ interface UserListsContextType {
   deleteList: (id: ID, shouldRefreshLists?: boolean) => Promise<void>;
   addDocumentToList: (id: ID, unifiedDocumentId: ID, listItemId: ID) => void;
   removeDocumentFromList: (id: ID, unifiedDocumentId: ID) => void;
+  addToDefaultList: (unifiedDocumentId: ID) => Promise<AddToDefaultListResult>;
   lastAddedItem: ListItemChange | null;
   lastRemovedItem: ListItemChange | null;
   overviewLists: UserListOverview[];
@@ -219,6 +226,39 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     decrementItemCount(id);
   };
 
+  const addToDefaultList = async (unifiedDocumentId: ID): Promise<AddToDefaultListResult> => {
+    const response = await ListService.addToDefaultListApi(unifiedDocumentId);
+    const defaultList = overviewLists.find((list) => list.isDefaultList);
+
+    if (defaultList) {
+      addDocumentToList(defaultList.id, unifiedDocumentId, response.id);
+    } else {
+      setOverviewLists((prev) => [
+        ...prev,
+        {
+          id: response.listId,
+          name: DEFAULT_LIST_NAME,
+          isDefaultList: true,
+          unifiedDocuments: [{ unifiedDocumentId, listItemId: response.id }],
+        },
+      ]);
+      setLists((prev) => [
+        ...prev,
+        {
+          id: response.listId,
+          name: DEFAULT_LIST_NAME,
+          isPublic: false,
+          createdDate: new Date().toISOString(),
+          updatedDate: new Date().toISOString(),
+          itemCount: 1,
+        },
+      ]);
+      setLastAddedItem({ listId: response.listId, documentId: unifiedDocumentId, at: Date.now() });
+    }
+
+    return { listItemId: response.id, listId: response.listId };
+  };
+
   const value = {
     lists,
     isLoadingLists,
@@ -232,6 +272,7 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     deleteList,
     addDocumentToList,
     removeDocumentFromList,
+    addToDefaultList,
     lastAddedItem,
     lastRemovedItem,
     overviewLists,

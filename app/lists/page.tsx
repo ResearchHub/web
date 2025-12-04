@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
-import { UserList } from '@/components/UserList/lib/user-list';
+import { UserList, DEFAULT_LIST_NAME } from '@/components/UserList/lib/user-list';
 import { UserListRow, UserListRowSkeleton, UserListTableHeader } from './components/UserListRow';
 import { ListModal } from '@/components/modals/ListModal';
 import { Plus } from 'lucide-react';
@@ -143,14 +143,20 @@ export default function ListsPage() {
               )}
               {!isLoadingLists && lists.length > 0 && (
                 <>
-                  {lists.map((list) => (
-                    <UserListRow
-                      key={list.id}
-                      list={list}
-                      onEdit={(listToEdit) => openModal('edit', listToEdit)}
-                      onDelete={(listToDelete) => openModal('delete', listToDelete)}
-                    />
-                  ))}
+                  {[...lists]
+                    .sort((a, b) => {
+                      if (a.name === DEFAULT_LIST_NAME) return -1;
+                      if (b.name === DEFAULT_LIST_NAME) return 1;
+                      return 0;
+                    })
+                    .map((list) => (
+                      <UserListRow
+                        key={list.id}
+                        list={list}
+                        onEdit={(listToEdit) => openModal('edit', listToEdit)}
+                        onDelete={(listToDelete) => openModal('delete', listToDelete)}
+                      />
+                    ))}
                   {isLoadingMoreLists && (
                     <div className="space-y-1 pt-1">
                       {Array.from({ length: 3 }).map((_, skeletonIndex) => (

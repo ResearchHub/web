@@ -102,4 +102,10 @@ export class ListService {
     const response = await ApiClient.get<ApiUserCheckResponse>(`${this.BASE_PATH}/overview/`);
     return transformUserListsOverview(response);
   }
+
+  static async addToDefaultListApi(unifiedDocumentId: ID): Promise<{ id: ID; listId: ID }> {
+    return ApiClient.post<{ id: ID; listId: ID }>(`${this.BASE_PATH}/default/item/`, {
+      unified_document: unifiedDocumentId,
+    });
+  }
 }

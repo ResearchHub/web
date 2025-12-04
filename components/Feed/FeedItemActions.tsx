@@ -21,6 +21,9 @@ import { useRouter } from 'next/navigation';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
+import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
+import { DEFAULT_LIST_NAME } from '@/components/UserList/lib/user-list';
+import { toast } from 'react-hot-toast';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Bounty } from '@/types/bounty';
 import { Tip } from '@/types/tip';
@@ -197,6 +200,7 @@ interface FeedItemActionsProps {
   relatedDocumentUnifiedDocumentId?: string;
   showPeerReviews?: boolean;
   onFeedItemClick?: () => void;
+  isOnListPage?: boolean;
 }
 
 // Define interface for avatar items used in local state
@@ -231,14 +235,16 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   relatedDocumentUnifiedDocumentId,
   showPeerReviews = true,
   onFeedItemClick,
+  isOnListPage = false,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
-  const { user } = useUser(); // Get current user
+  const { user } = useUser();
   const { showUSD } = useCurrencyPreference();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
   const userListsEnabled = useUserListsEnabled();
+  const { addToDefaultList } = useUserListsContext();
   // State for dropdown menu
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -248,6 +254,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   });
 
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
+  const [isTogglingDefaultList, setIsTogglingDefaultList] = useState(false);
   const { isInList: isDocumentInList, listIdsContainingDocument } = useIsInList(
     relatedDocumentUnifiedDocumentId
   );
@@ -391,11 +398,42 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     });
   };
 
-  const handleOpenAddToListModal = (e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-    }
-    executeAuthenticatedAction(() => setIsAddToListModalOpen(true));
+  const handleBookmarkClick = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!relatedDocumentUnifiedDocumentId) return;
+
+    executeAuthenticatedAction(async () => {
+      if (isOnListPage || isDocumentInList) {
+        setIsAddToListModalOpen(true);
+        return;
+      }
+
+      setIsTogglingDefaultList(true);
+      try {
+        await addToDefaultList(Number(relatedDocumentUnifiedDocumentId));
+        toast.success(
+          (t) => (
+            <div className="flex items-center gap-3">
+              <span>Added to {DEFAULT_LIST_NAME}</span>
+              <button
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  setIsAddToListModalOpen(true);
+                }}
+                className="text-blue-500 hover:text-blue-600 font-medium"
+              >
+                Add to List
+              </button>
+            </div>
+          ),
+          { duration: 4000 }
+        );
+      } catch (error) {
+        toast.error('Something went wrong');
+      } finally {
+        setIsTogglingDefaultList(false);
+      }
+    });
   };
 
   const handleCloseAddToListModal = () => {
@@ -602,12 +640,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
             showPeerReviews && ( // to prevent questions from being added to lists
               <ActionButton
                 icon={BookmarkIcon}
-                tooltip="Add to List"
-                label="Add to List"
+                tooltip={isDocumentInList ? 'Manage Lists' : `Add to ${DEFAULT_LIST_NAME}`}
+                label="Bookmark"
                 count={listIdsContainingDocument.length}
-                onClick={handleOpenAddToListModal}
+                onClick={handleBookmarkClick}
                 showTooltip={showTooltips}
                 isActive={isDocumentInList}
+                isDisabled={isTogglingDefaultList}
                 className={
                   isDocumentInList ? 'text-green-600 border-green-300 hover:bg-green-50' : ''
                 }
