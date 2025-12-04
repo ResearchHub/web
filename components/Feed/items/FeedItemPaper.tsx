@@ -2,6 +2,7 @@
 
 import { FC } from 'react';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import { FeedPaperContent, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
 import {
   BaseFeedItem,
@@ -44,6 +45,9 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   highlights,
   showBountyInfo,
 }) => {
+  const searchParams = useSearchParams();
+  const isDebugMode = searchParams.has('debug');
+
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
 
@@ -97,7 +101,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         }
         rightContent={
           <div className="flex items-center gap-2">
-            {entry.hotScoreV2 !== undefined && entry.hotScoreV2 > 0 && (
+            {isDebugMode && entry.hotScoreV2 !== undefined && entry.hotScoreV2 > 0 && (
               <Tooltip
                 content={
                   <PopularityScoreTooltip

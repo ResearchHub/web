@@ -7,6 +7,7 @@ import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { SearchSuggestion } from '@/types/search';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { navigateToAuthorProfile } from '@/utils/navigation';
+import { Button } from '@/components/ui/Button';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -63,7 +64,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     };
   }, [isOpen, onClose]);
 
-  // Handle click outside modal
+  // Handle click outside modal (only on desktop)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
@@ -168,15 +169,29 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50" />
+      {/* Backdrop - hidden on mobile */}
+      <div className="fixed inset-0 bg-black/50 hidden tablet:!block" />
 
       {/* Modal */}
-      <div className="flex min-h-full items-start justify-center p-4 pt-16">
+      <div className="flex min-h-full items-start justify-center p-0 tablet:!p-4 tablet:!pt-16">
         <div
           ref={modalRef}
-          className="relative w-full max-w-2xl transform rounded-lg bg-white shadow-xl transition-all overflow-hidden"
+          className="relative w-full h-screen pb-16 tablet:!h-auto tablet:!pb-0 tablet:!max-w-2xl transform rounded-none tablet:!rounded-lg bg-white shadow-xl transition-all overflow-hidden flex flex-col"
         >
+          {/* Mobile Header with Close Button */}
+          <div className="flex tablet:!hidden items-center justify-between border-b border-gray-200 px-4 py-3">
+            <h2 className="text-lg font-semibold text-gray-900">Search</h2>
+            <Button
+              onClick={onClose}
+              variant="ghost"
+              size="icon"
+              className="text-gray-400 hover:text-gray-500"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+
           {/* Search Input */}
           <div className="border-b border-gray-200 p-4">
             <div className="relative">
@@ -239,7 +254,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           </div>
 
           {/* Search Results */}
-          <div className="max-h-96 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto tablet:!max-h-96 tablet:!flex-none">
             {query.trim() || suggestions.length > 0 ? (
               <SearchSuggestions
                 query={query}

@@ -40,9 +40,9 @@ export class FeedService {
     if (params?.ordering) {
       queryParams.append('ordering', params.ordering);
     }
-
-    // Always include hot score breakdown by default
-    queryParams.append('include_hot_score_breakdown', 'true');
+    if (params?.includeHotScoreBreakdown) {
+      queryParams.append('include_hot_score_breakdown', 'true');
+    }
     if (params?.filter) queryParams.append('filter', params.filter);
     if (params?.userId) queryParams.append('user_id', params.userId);
 
