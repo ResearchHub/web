@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Menu,
   User,
   ArrowLeft,
   ChartNoAxesColumnIncreasing,
@@ -439,15 +438,8 @@ export function TopBar({ onMenuClick }: TopBarProps) {
     <>
       <div className="h-[64px] border-b border-gray-200 bg-white">
         <div className="h-full flex items-center justify-between px-4 lg:px-8">
-          {/* Left side - Mobile hamburger + Back button + Page title */}
+          {/* Left side - Back button + Page title */}
           <div className="flex items-center">
-            {/* Mobile hamburger menu */}
-            <div className="block tablet:!hidden mr-2">
-              <button onClick={onMenuClick} className="p-2 rounded-lg hover:bg-gray-100">
-                <Menu className="h-6 w-6 text-gray-600" />
-              </button>
-            </div>
-
             {/* Mobile back button - show when not on root navigation pages */}
             {pageInfo && !isRootNavigationPage(pathname) && (
               <div className="block tablet:!hidden mr-1">

@@ -157,13 +157,14 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                     size="base"
                     className="text-gray-500 font-normal text-sm"
                     delimiter=","
+                    delimiterClassName="ml-0"
                     showAbbreviatedInMobile={true}
                     hideExpandButton={true}
                   />
                 )}
                 {paper.createdDate && (
                   <>
-                    <span className="mx-3 text-gray-500">•</span>
+                    <span className="mx-2 text-gray-500">•</span>
                     <span className="text-gray-600 whitespace-nowrap text-sm">
                       {formatTimestamp(paper.createdDate, false)}
                     </span>

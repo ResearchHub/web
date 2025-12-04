@@ -78,14 +78,16 @@ export const AuthorList = ({
             <Fragment key={author?.name + index}>
               <AuthorItem author={author} showDot={false} size={size} className={className} />
               {index < authorsToShow.length - 1 && (
-                <span className={cn('mx-1 flex-shrink-0', getTextSize(), delimiterClassName)}>
+                <span
+                  className={cn('mx-1 flex-shrink-0', getTextSize(), className, delimiterClassName)}
+                >
                   {delimiter}
                 </span>
               )}
             </Fragment>
           ))}
           {showEtAl && (
-            <span className={cn('ml-1 flex-shrink-0', getTextSize(), 'text-gray-500')}>et al.</span>
+            <span className={cn('ml-1 flex-shrink-0', getTextSize(), className)}>et al.</span>
           )}
         </>
       );
@@ -113,7 +115,9 @@ export const AuthorList = ({
               size={size}
               className={className}
             />
-            <span className={cn('mx-1 flex-shrink-0', getTextSize(), delimiterClassName)}>
+            <span
+              className={cn('mx-1 flex-shrink-0', getTextSize(), className, delimiterClassName)}
+            >
               {delimiter}
             </span>
             <AuthorItem
@@ -135,7 +139,9 @@ export const AuthorList = ({
               size={size}
               className={className}
             />
-            <span className={cn('mx-1 flex-shrink-0', getTextSize(), delimiterClassName)}>
+            <span
+              className={cn('mx-1 flex-shrink-0', getTextSize(), className, delimiterClassName)}
+            >
               {delimiter}
             </span>
             <AuthorItem
@@ -144,7 +150,7 @@ export const AuthorList = ({
               size={size}
               className={className}
             />
-            <span className={cn('ml-1 flex-shrink-0', getTextSize(), 'text-gray-500')}>et al.</span>
+            <span className={cn('ml-1 flex-shrink-0', getTextSize(), className)}>et al.</span>
           </>
         );
       }
@@ -158,12 +164,16 @@ export const AuthorList = ({
             <Fragment key={author?.name + index}>
               <AuthorItem author={author} showDot={false} size={size} className={className} />
               {index < filteredAuthors.length - 2 && (
-                <span className={cn('mx-1 flex-shrink-0', getTextSize(), delimiterClassName)}>
+                <span
+                  className={cn('mx-1 flex-shrink-0', getTextSize(), className, delimiterClassName)}
+                >
                   {delimiter}
                 </span>
               )}
               {index === filteredAuthors.length - 2 && (
-                <span className={cn('mx-1 flex-shrink-0', getTextSize(), delimiterClassName)}>
+                <span
+                  className={cn('mx-1 flex-shrink-0', getTextSize(), className, delimiterClassName)}
+                >
                   {delimiter}
                 </span>
               )}
@@ -196,7 +206,9 @@ export const AuthorList = ({
     return (
       <>
         <AuthorItem author={filteredAuthors[0]} showDot={false} size={size} className={className} />
-        <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
+        <span className={cn('mx-1', getTextSize(), className, delimiterClassName)}>
+          {delimiter}
+        </span>
         <AuthorItem author={filteredAuthors[1]} showDot={false} size={size} className={className} />
         {hideExpandButton ? (
           <span className={cn(getTextSize(), 'text-gray-500 mx-1')}>...</span>
@@ -218,7 +230,9 @@ export const AuthorList = ({
               <Plus className="w-3.5 h-3.5 mr-1" />
               <span>{filteredAuthors.length - 3} more</span>
             </Button>
-            <span className={cn('mx-1', getTextSize(), delimiterClassName)}>{delimiter}</span>
+            <span className={cn('mx-1', getTextSize(), className, delimiterClassName)}>
+              {delimiter}
+            </span>
           </>
         )}
 
@@ -243,7 +257,7 @@ export const AuthorList = ({
     return (
       <>
         <AuthorItem author={filteredAuthors[0]} showDot={false} size={size} className={className} />
-        <span className={cn('ml-1 flex-shrink-0', getTextSize(), 'text-gray-500')}>et al.</span>
+        <span className={cn('ml-1 flex-shrink-0', getTextSize(), className)}>et al.</span>
       </>
     );
   };

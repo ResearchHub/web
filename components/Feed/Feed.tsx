@@ -135,7 +135,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   ];
 
   const header = (
-    <p className="text-gray-900 text-lg tablet:!hidden py-4">
+    <p className="text-gray-900 text-lg tablet:!hidden py-4 pt-1">
       Explore cutting-edge research from leading preprint servers.
     </p>
   );
