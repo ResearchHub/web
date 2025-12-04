@@ -285,6 +285,32 @@ const RenderNode: React.FC<RenderNodeProps> = ({
   // For truncation, we need to track how much text we've rendered
   let textLengthSoFar = currentLength;
 
+  /**
+   * Helper function to render children with truncation support
+   * Returns either truncated children or maps over content directly
+   */
+  const renderChildrenConditionally = (
+    truncatedChildren: ReactNode[],
+    content: any[] | undefined
+  ): ReactNode[] => {
+    if (truncate) {
+      return truncatedChildren;
+    }
+    return (
+      content?.map((child: any, i: number) => (
+        <RenderNode
+          key={i}
+          node={child}
+          debug={debug}
+          renderSectionHeader={renderSectionHeader}
+          truncate={truncate}
+          maxLength={maxLength}
+          currentLength={textLengthSoFar}
+        />
+      )) || []
+    );
+  };
+
   // If we've already exceeded the max length and truncation is enabled, don't render more
   if (truncate && textLengthSoFar >= maxLength) {
     if (debug)
@@ -369,21 +395,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
     });
 
     return (
-      <p className="tiptap-paragraph my-2">
-        {truncate
-          ? children
-          : node.content?.map((child: any, i: number) => (
-              <RenderNode
-                key={i}
-                node={child}
-                debug={debug}
-                renderSectionHeader={renderSectionHeader}
-                truncate={truncate}
-                maxLength={maxLength}
-                currentLength={textLengthSoFar}
-              />
-            ))}
-      </p>
+      <p className="tiptap-paragraph my-2">{renderChildrenConditionally(children, node.content)}</p>
     );
   }
 
@@ -400,19 +412,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
     return (
       <HeadingTag className={`tiptap-heading tiptap-h${node.attrs?.level || 1} my-4`}>
-        {truncate
-          ? children
-          : node.content?.map((child: any, i: number) => (
-              <RenderNode
-                key={i}
-                node={child}
-                debug={debug}
-                renderSectionHeader={renderSectionHeader}
-                truncate={truncate}
-                maxLength={maxLength}
-                currentLength={textLengthSoFar}
-              />
-            ))}
+        {renderChildrenConditionally(children, node.content)}
       </HeadingTag>
     );
   }
@@ -429,19 +429,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
     return (
       <blockquote className="tiptap-blockquote border-l-4 border-gray-300 pl-4 italic text-gray-600 my-4">
-        {truncate
-          ? children
-          : node.content?.map((child: any, i: number) => (
-              <RenderNode
-                key={i}
-                node={child}
-                debug={debug}
-                renderSectionHeader={renderSectionHeader}
-                truncate={truncate}
-                maxLength={maxLength}
-                currentLength={textLengthSoFar}
-              />
-            ))}
+        {renderChildrenConditionally(children, node.content)}
       </blockquote>
     );
   }
@@ -469,76 +457,68 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
   // Handle ordered list
   if (node.type === 'orderedList') {
+    const { children } = renderChildrenWithTruncation(node.content, {
+      debug,
+      renderSectionHeader,
+      truncate,
+      maxLength,
+      currentLength: textLengthSoFar,
+    });
+
     return (
       <ol className="tiptap-ordered-list list-decimal pl-5 my-4" start={node.attrs?.start || 1}>
-        {node.content?.map((child: any, i: number) => (
-          <RenderNode
-            key={i}
-            node={child}
-            debug={debug}
-            renderSectionHeader={renderSectionHeader}
-            truncate={truncate}
-            maxLength={maxLength}
-            currentLength={textLengthSoFar}
-          />
-        ))}
+        {renderChildrenConditionally(children, node.content)}
       </ol>
     );
   }
 
   // Handle ordered_list (compatibility with ProseMirror schema naming)
   if (node.type === 'ordered_list') {
+    const { children } = renderChildrenWithTruncation(node.content, {
+      debug,
+      renderSectionHeader,
+      truncate,
+      maxLength,
+      currentLength: textLengthSoFar,
+    });
+
     return (
       <ol className="tiptap-ordered-list list-decimal pl-5 my-4" start={node.attrs?.start || 1}>
-        {node.content?.map((child: any, i: number) => (
-          <RenderNode
-            key={i}
-            node={child}
-            debug={debug}
-            renderSectionHeader={renderSectionHeader}
-            truncate={truncate}
-            maxLength={maxLength}
-            currentLength={textLengthSoFar}
-          />
-        ))}
+        {renderChildrenConditionally(children, node.content)}
       </ol>
     );
   }
 
   // Handle bullet list
   if (node.type === 'bulletList') {
+    const { children } = renderChildrenWithTruncation(node.content, {
+      debug,
+      renderSectionHeader,
+      truncate,
+      maxLength,
+      currentLength: textLengthSoFar,
+    });
+
     return (
       <ul className="tiptap-bullet-list list-disc pl-5 my-4">
-        {node.content?.map((child: any, i: number) => (
-          <RenderNode
-            key={i}
-            node={child}
-            debug={debug}
-            renderSectionHeader={renderSectionHeader}
-            truncate={truncate}
-            maxLength={maxLength}
-            currentLength={textLengthSoFar}
-          />
-        ))}
+        {renderChildrenConditionally(children, node.content)}
       </ul>
     );
   }
 
   // Handle bullet_list (compatibility with ProseMirror schema naming)
   if (node.type === 'bullet_list') {
+    const { children } = renderChildrenWithTruncation(node.content, {
+      debug,
+      renderSectionHeader,
+      truncate,
+      maxLength,
+      currentLength: textLengthSoFar,
+    });
+
     return (
       <ul className="tiptap-bullet-list list-disc pl-5 my-4">
-        {node.content?.map((child: any, i: number) => (
-          <RenderNode
-            key={i}
-            node={child}
-            debug={debug}
-            renderSectionHeader={renderSectionHeader}
-            truncate={truncate}
-            maxLength={maxLength}
-            currentLength={textLengthSoFar}
-          />
-        ))}
+        {renderChildrenConditionally(children, node.content)}
       </ul>
     );
   }
@@ -554,21 +534,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
     });
 
     return (
-      <li className="tiptap-list-item">
-        {truncate
-          ? children
-          : node.content?.map((child: any, i: number) => (
-              <RenderNode
-                key={i}
-                node={child}
-                debug={debug}
-                renderSectionHeader={renderSectionHeader}
-                truncate={truncate}
-                maxLength={maxLength}
-                currentLength={textLengthSoFar}
-              />
-            ))}
-      </li>
+      <li className="tiptap-list-item">{renderChildrenConditionally(children, node.content)}</li>
     );
   }
 
