@@ -285,11 +285,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
   // For truncation, we need to track how much text we've rendered
   let textLengthSoFar = currentLength;
 
-  /**
-   * Helper function to render children with truncation support
-   * Returns either truncated children or maps over content directly
-   */
-  const renderChildrenConditionally = (
+  const getRenderedChildren = (
     truncatedChildren: ReactNode[],
     content: any[] | undefined
   ): ReactNode[] => {
@@ -394,9 +390,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
       currentLength: textLengthSoFar,
     });
 
-    return (
-      <p className="tiptap-paragraph my-2">{renderChildrenConditionally(children, node.content)}</p>
-    );
+    return <p className="tiptap-paragraph my-2">{getRenderedChildren(children, node.content)}</p>;
   }
 
   // Handle heading nodes
@@ -412,7 +406,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
     return (
       <HeadingTag className={`tiptap-heading tiptap-h${node.attrs?.level || 1} my-4`}>
-        {renderChildrenConditionally(children, node.content)}
+        {getRenderedChildren(children, node.content)}
       </HeadingTag>
     );
   }
@@ -429,7 +423,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
     return (
       <blockquote className="tiptap-blockquote border-l-4 border-gray-300 pl-4 italic text-gray-600 my-4">
-        {renderChildrenConditionally(children, node.content)}
+        {getRenderedChildren(children, node.content)}
       </blockquote>
     );
   }
@@ -467,7 +461,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
     return (
       <ol className="tiptap-ordered-list list-decimal pl-5 my-4" start={node.attrs?.start || 1}>
-        {renderChildrenConditionally(children, node.content)}
+        {getRenderedChildren(children, node.content)}
       </ol>
     );
   }
@@ -484,7 +478,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
     return (
       <ol className="tiptap-ordered-list list-decimal pl-5 my-4" start={node.attrs?.start || 1}>
-        {renderChildrenConditionally(children, node.content)}
+        {getRenderedChildren(children, node.content)}
       </ol>
     );
   }
@@ -501,7 +495,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
     return (
       <ul className="tiptap-bullet-list list-disc pl-5 my-4">
-        {renderChildrenConditionally(children, node.content)}
+        {getRenderedChildren(children, node.content)}
       </ul>
     );
   }
@@ -518,7 +512,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
     return (
       <ul className="tiptap-bullet-list list-disc pl-5 my-4">
-        {renderChildrenConditionally(children, node.content)}
+        {getRenderedChildren(children, node.content)}
       </ul>
     );
   }
@@ -533,9 +527,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
       currentLength: textLengthSoFar,
     });
 
-    return (
-      <li className="tiptap-list-item">{renderChildrenConditionally(children, node.content)}</li>
-    );
+    return <li className="tiptap-list-item">{getRenderedChildren(children, node.content)}</li>;
   }
 
   // Handle image
