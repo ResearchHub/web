@@ -11,7 +11,7 @@ export interface ApiSimplifiedListItem {
 export interface ApiSimplifiedUserList {
   list_id: ID;
   name: string;
-  is_default_list: boolean;
+  is_default: boolean;
   unified_documents: ApiSimplifiedListItem[];
 }
 
@@ -97,7 +97,7 @@ export interface UserListOverviewItem {
 export interface UserListOverview {
   id: ID;
   name: string;
-  isDefaultList: boolean;
+  isDefault: boolean;
   unifiedDocuments: UserListOverviewItem[];
 }
 
@@ -117,7 +117,7 @@ const transformOverviewItem = (raw: ApiSimplifiedListItem): UserListOverviewItem
 const transformOverviewList = (raw: ApiSimplifiedUserList): UserListOverview => ({
   id: raw.list_id,
   name: raw.name ?? DEFAULT_LIST_NAME,
-  isDefaultList: raw.is_default_list,
+  isDefault: raw.is_default,
   unifiedDocuments: raw.unified_documents.map(transformOverviewItem),
 });
 

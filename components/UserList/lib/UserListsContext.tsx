@@ -228,31 +228,12 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
 
   const addToDefaultList = async (unifiedDocumentId: ID): Promise<AddToDefaultListResult> => {
     const response = await ListService.addToDefaultListApi(unifiedDocumentId);
-    const defaultList = overviewLists.find((list) => list.isDefaultList);
+    const defaultList = overviewLists.find((list) => list.isDefault);
 
     if (defaultList) {
       addDocumentToList(defaultList.id, unifiedDocumentId, response.id);
     } else {
-      setOverviewLists((prev) => [
-        ...prev,
-        {
-          id: response.listId,
-          name: DEFAULT_LIST_NAME,
-          isDefaultList: true,
-          unifiedDocuments: [{ unifiedDocumentId, listItemId: response.id }],
-        },
-      ]);
-      setLists((prev) => [
-        ...prev,
-        {
-          id: response.listId,
-          name: DEFAULT_LIST_NAME,
-          isPublic: false,
-          createdDate: new Date().toISOString(),
-          updatedDate: new Date().toISOString(),
-          itemCount: 1,
-        },
-      ]);
+      await Promise.all([refetchOverview(), fetchLists()]);
       setLastAddedItem({ listId: response.listId, documentId: unifiedDocumentId, at: Date.now() });
     }
 
