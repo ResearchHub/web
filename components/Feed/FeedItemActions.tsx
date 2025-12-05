@@ -19,6 +19,9 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useRouter } from 'next/navigation';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
+import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
+import { DEFAULT_LIST_NAME } from '@/components/UserList/lib/user-list';
+import { toast } from 'react-hot-toast';
 import { Bounty } from '@/types/bounty';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -201,10 +204,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
   const userListsEnabled = useUserListsEnabled();
+  const { addToDefaultList } = useUserListsContext();
   // State for dropdown menu
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
+  const [isTogglingDefaultList, setIsTogglingDefaultList] = useState(false);
   const { isInList: isDocumentInList, listIdsContainingDocument } = useIsInList(
     relatedDocumentUnifiedDocumentId
   );
@@ -292,11 +297,42 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     }
   };
 
-  const handleOpenAddToListModal = (e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-    }
-    executeAuthenticatedAction(() => setIsAddToListModalOpen(true));
+  const handleBookmarkClick = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!relatedDocumentUnifiedDocumentId) return;
+
+    executeAuthenticatedAction(async () => {
+      if (isDocumentInList) {
+        setIsAddToListModalOpen(true);
+        return;
+      }
+
+      setIsTogglingDefaultList(true);
+      try {
+        await addToDefaultList(Number(relatedDocumentUnifiedDocumentId));
+        toast.success(
+          (t) => (
+            <div className="flex items-center gap-3">
+              <span>Added to {DEFAULT_LIST_NAME}</span>
+              <button
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  setIsAddToListModalOpen(true);
+                }}
+                className="text-blue-500 hover:text-blue-600 font-medium"
+              >
+                Add to List
+              </button>
+            </div>
+          ),
+          { duration: 4000 }
+        );
+      } catch (error) {
+        toast.error('Something went wrong');
+      } finally {
+        setIsTogglingDefaultList(false);
+      }
+    });
   };
 
   const handleCloseAddToListModal = () => {
@@ -509,8 +545,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     ? 'text-green-600 hover:text-green-600'
                     : 'text-gray-900 hover:text-gray-600'
                 )}
-                tooltip={showTooltips && !isDocumentInList ? 'Save' : undefined}
-                onClick={handleOpenAddToListModal}
+                tooltip={isDocumentInList ? 'Manage Lists' : `Add to ${DEFAULT_LIST_NAME}`}
+                onClick={handleBookmarkClick}
+                disabled={isTogglingDefaultList}
               >
                 <FontAwesomeIcon
                   icon={isDocumentInList ? faBookmarkSolid : faBookmark}

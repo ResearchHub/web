@@ -11,12 +11,12 @@ import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { UserListOverview } from '@/components/UserList/lib/user-list';
 import { Plus, ArrowLeft } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark } from '@fortawesome/pro-light-svg-icons';
-import { faBookmark as faBookmarkSolid } from '@fortawesome/pro-solid-svg-icons';
+import { faBookmark } from '@fortawesome/free-regular-svg-icons';
+import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
 import { sortListsByDocumentMembership } from '@/components/UserList/lib/listUtils';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
@@ -139,14 +139,14 @@ function ListSelectItem({
       }`}
     >
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-gray-900 truncate">{list.name}</div>
+        <span className="font-medium text-gray-900 truncate">{list.name}</span>
       </div>
       {isRemoving ? (
         <Loader size="sm" />
       ) : (
         <FontAwesomeIcon
           icon={isInList ? faBookmarkSolid : faBookmark}
-          className={`w-5 h-5 transition-colors ${isInList ? 'text-green-600' : 'text-gray-400'}`}
+          className={`w-5 h-5 transition-colors ${isInList ? 'text-gray-900' : 'text-gray-400'}`}
         />
       )}
     </button>
@@ -188,13 +188,13 @@ export function AddToListModal({
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isLoading && overviewLists.length > 0) {
+    if (isOpen && !isLoading && overviewLists.length > 0) {
       setSortedLists(sortListsByDocumentMembership(overviewLists, listIdsContainingDocument));
-    } else if (overviewLists.length === 0) {
+    } else if (!isOpen) {
       setSortedLists([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]);
+  }, [isOpen, isLoading]);
 
   const handleCreateList = async () => {
     const trimmedListName = newListName.trim();
@@ -213,7 +213,7 @@ export function AddToListModal({
   };
 
   const handleAddToList = async (id: ID) => {
-    const listToAddTo = overviewLists.find((list) => list.id === id);
+    const listToAddTo = overviewLists.find((list) => idMatch(list.id, id));
     if (!listToAddTo) return;
 
     setTogglingListId(id);
@@ -249,7 +249,7 @@ export function AddToListModal({
   };
 
   const handleRemoveFromList = async (id: ID) => {
-    const listToRemoveFrom = overviewLists.find((list) => list.id === id);
+    const listToRemoveFrom = overviewLists.find((list) => idMatch(list.id, id));
     if (!listToRemoveFrom) return;
 
     const documentInList = listToRemoveFrom.unifiedDocuments.find(
@@ -363,7 +363,7 @@ export function AddToListModal({
               <div className="space-y-2 md:!max-h-96 overflow-y-auto">
                 {listsToDisplay.map((list) => {
                   const isInList = listIdsContainingDocument.includes(list.id);
-                  const isCurrentlyToggling = togglingListId === list.id;
+                  const isCurrentlyToggling = idMatch(togglingListId, list.id);
 
                   return (
                     <ListSelectItem

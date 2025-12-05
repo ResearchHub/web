@@ -9,9 +9,20 @@ import {
   UserListOverview,
 } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
-import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
 import { ID } from '@/types/root';
+
+export interface ListItemChange {
+  listId: ID;
+  documentId: ID;
+  at: number;
+}
+
+interface AddToDefaultListResult {
+  listItemId: ID;
+  listId: ID;
+}
 
 interface UserListsContextType {
   lists: UserList[];
@@ -26,6 +37,9 @@ interface UserListsContextType {
   deleteList: (id: ID, shouldRefreshLists?: boolean) => Promise<void>;
   addDocumentToList: (id: ID, unifiedDocumentId: ID, listItemId: ID) => void;
   removeDocumentFromList: (id: ID, unifiedDocumentId: ID) => void;
+  addToDefaultList: (unifiedDocumentId: ID) => Promise<AddToDefaultListResult>;
+  lastAddedItem: ListItemChange | null;
+  lastRemovedItem: ListItemChange | null;
   overviewLists: UserListOverview[];
   isLoadingOverview: boolean;
   refetchOverview: () => Promise<void>;
@@ -37,6 +51,8 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   const { user } = useUser();
   const [overviewLists, setOverviewLists] = useState<UserListOverview[]>([]);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
+  const [lastAddedItem, setLastAddedItem] = useState<ListItemChange | null>(null);
+  const [lastRemovedItem, setLastRemovedItem] = useState<ListItemChange | null>(null);
   const [lists, setLists] = useState<UserList[]>([]);
   const [isLoadingLists, setIsLoadingLists] = useState(true);
   const [isLoadingMoreLists, setIsLoadingMoreLists] = useState(false);
@@ -148,58 +164,79 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     );
   };
 
+  const updateListAndSort = (listsToUpdate: UserList[], listId: ID, updates: Partial<UserList>) =>
+    listsToUpdate
+      .map((list) =>
+        idMatch(list.id, listId)
+          ? { ...list, ...updates, updatedDate: new Date().toISOString() }
+          : list
+      )
+      .sort((a, b) => new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime());
+
   const incrementItemCount = (listId: ID) => {
-    setLists((lists) =>
-      lists.map((list) => {
-        if (list.id !== listId) return list;
-        return {
-          ...list,
-          itemCount: list.itemCount + 1,
-        };
-      })
-    );
+    setLists((lists) => {
+      const list = lists.find((l) => idMatch(l.id, listId));
+      return updateListAndSort(lists, listId, { itemCount: (list?.itemCount ?? 0) + 1 });
+    });
   };
 
   const decrementItemCount = (listId: ID) => {
-    setLists((lists) =>
-      lists.map((list) => {
-        if (list.id !== listId) return list;
-        return {
-          ...list,
-          itemCount: Math.max(list.itemCount - 1, 0),
-        };
-      })
-    );
+    setLists((lists) => {
+      const list = lists.find((l) => idMatch(l.id, listId));
+      return updateListAndSort(lists, listId, {
+        itemCount: Math.max((list?.itemCount ?? 0) - 1, 0),
+      });
+    });
   };
 
   const addDocumentToList = (id: ID, unifiedDocumentId: ID, listItemId: ID) => {
     setOverviewLists((lists) =>
-      lists.map((list) => {
-        if (list.id !== id) return list;
-        return {
-          ...list,
-          unifiedDocuments: [...(list.unifiedDocuments || []), { unifiedDocumentId, listItemId }],
-        };
-      })
+      lists.map((list) =>
+        idMatch(list.id, id)
+          ? {
+              ...list,
+              unifiedDocuments: [
+                ...(list.unifiedDocuments || []),
+                { unifiedDocumentId, listItemId },
+              ],
+            }
+          : list
+      )
     );
+    setLastAddedItem({ listId: id, documentId: unifiedDocumentId, at: Date.now() });
     incrementItemCount(id);
   };
 
   const removeDocumentFromList = (id: ID, unifiedDocumentId: ID) => {
     setOverviewLists((lists) =>
-      lists.map((list) => {
-        if (list.id !== id) return list;
-
-        const filteredDocuments =
-          list.unifiedDocuments?.filter((doc) => doc.unifiedDocumentId !== unifiedDocumentId) ?? [];
-
-        return {
-          ...list,
-          unifiedDocuments: filteredDocuments,
-        };
-      })
+      lists.map((list) =>
+        idMatch(list.id, id)
+          ? {
+              ...list,
+              unifiedDocuments:
+                list.unifiedDocuments?.filter(
+                  (doc) => !idMatch(doc.unifiedDocumentId, unifiedDocumentId)
+                ) ?? [],
+            }
+          : list
+      )
     );
+    setLastRemovedItem({ listId: id, documentId: unifiedDocumentId, at: Date.now() });
     decrementItemCount(id);
+  };
+
+  const addToDefaultList = async (unifiedDocumentId: ID): Promise<AddToDefaultListResult> => {
+    const response = await ListService.addToDefaultListApi(unifiedDocumentId);
+    const defaultList = overviewLists.find((list) => list.isDefault);
+
+    if (defaultList) {
+      addDocumentToList(defaultList.id, unifiedDocumentId, response.id);
+    } else {
+      await Promise.all([refetchOverview(), fetchLists()]);
+      setLastAddedItem({ listId: response.listId, documentId: unifiedDocumentId, at: Date.now() });
+    }
+
+    return { listItemId: response.id, listId: response.listId };
   };
 
   const value = {
@@ -215,6 +252,9 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     deleteList,
     addDocumentToList,
     removeDocumentFromList,
+    addToDefaultList,
+    lastAddedItem,
+    lastRemovedItem,
     overviewLists,
     isLoadingOverview,
     refetchOverview,

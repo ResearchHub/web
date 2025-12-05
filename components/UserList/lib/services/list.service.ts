@@ -1,4 +1,5 @@
 import { ApiClient } from '@/services/client';
+import { isJsonParseError } from '@/services/lib/serviceUtils';
 import {
   UserList,
   CreateListRequest,
@@ -77,7 +78,7 @@ export class ListService {
     try {
       await ApiClient.delete(path);
     } catch (err) {
-      if (err instanceof SyntaxError) return;
+      if (isJsonParseError(err)) return;
       throw err;
     }
   }
@@ -100,5 +101,11 @@ export class ListService {
   static async getOverviewApi(): Promise<UserListsOverviewResponse> {
     const response = await ApiClient.get<ApiUserCheckResponse>(`${this.BASE_PATH}/overview/`);
     return transformUserListsOverview(response);
+  }
+
+  static async addToDefaultListApi(unifiedDocumentId: ID): Promise<{ id: ID; listId: ID }> {
+    return ApiClient.post<{ id: ID; listId: ID }>(`${this.BASE_PATH}/default/item/`, {
+      unified_document: unifiedDocumentId,
+    });
   }
 }

@@ -1,6 +1,8 @@
 import { createTransformer } from '@/types/transformer';
 import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
 import { ID } from '@/types/root';
+
+export const DEFAULT_LIST_NAME = 'Your Favorites';
 export interface ApiSimplifiedListItem {
   list_item_id: ID;
   unified_document_id: ID;
@@ -9,6 +11,7 @@ export interface ApiSimplifiedListItem {
 export interface ApiSimplifiedUserList {
   list_id: ID;
   name: string;
+  is_default: boolean;
   unified_documents: ApiSimplifiedListItem[];
 }
 
@@ -94,6 +97,7 @@ export interface UserListOverviewItem {
 export interface UserListOverview {
   id: ID;
   name: string;
+  isDefault: boolean;
   unifiedDocuments: UserListOverviewItem[];
 }
 
@@ -112,7 +116,8 @@ const transformOverviewItem = (raw: ApiSimplifiedListItem): UserListOverviewItem
 
 const transformOverviewList = (raw: ApiSimplifiedUserList): UserListOverview => ({
   id: raw.list_id,
-  name: raw.name,
+  name: raw.name ?? DEFAULT_LIST_NAME,
+  isDefault: raw.is_default,
   unifiedDocuments: raw.unified_documents.map(transformOverviewItem),
 });
 
@@ -124,7 +129,7 @@ export const transformUserListsOverview = (
 
 export const transformUserList = (raw: ApiUserList): UserList => ({
   id: raw.id,
-  name: raw.name,
+  name: raw.name ?? DEFAULT_LIST_NAME,
   isPublic: raw.is_public,
   createdDate: raw.created_date,
   updatedDate: raw.updated_date,
