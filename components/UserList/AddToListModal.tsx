@@ -130,13 +130,14 @@ function ListSelectItem({
   const isInList = listIdsContainingDocument.includes(list.id);
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
       onClick={onToggle}
       disabled={isRemoving}
-      className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors text-left hover:bg-gray-50 ${
-        isRemoving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-      }`}
+      className={cn(
+        'flex items-center gap-3 w-full !p-3 rounded-lg transition-colors text-left hover:bg-gray-50 !h-auto justify-start !text-base !font-normal',
+        isRemoving && 'opacity-50 cursor-not-allowed'
+      )}
     >
       <div className="flex-1 min-w-0">
         <span className="font-medium text-gray-900 truncate">{list.name}</span>
@@ -149,7 +150,7 @@ function ListSelectItem({
           className={`w-5 h-5 transition-colors ${isInList ? 'text-gray-900' : 'text-gray-400'}`}
         />
       )}
-    </button>
+    </Button>
   );
 }
 
@@ -267,16 +268,17 @@ export function AddToListModal({
         (t) => (
           <div className="flex items-center gap-2">
             <span className="text-gray-900">{TOAST_MESSAGES.ITEM_REMOVED}</span>
-            <button
+            <Button
+              variant="link"
               onClick={async (e) => {
                 e.stopPropagation();
                 toast.dismiss(t.id);
                 await handleAddToList(id);
               }}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="!p-0 !h-auto !text-base text-blue-600 hover:text-blue-700 hover:no-underline font-medium"
             >
               Undo
-            </button>
+            </Button>
           </div>
         ),
         { duration: 4000 }
@@ -294,12 +296,13 @@ export function AddToListModal({
   const modalTitle = showCreateForm ? 'Create List' : 'Save to…';
 
   const headerAction = showCreateForm ? (
-    <button
+    <Button
+      variant="ghost"
       onClick={closeCreateForm}
-      className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 -ml-2"
+      className="flex items-center gap-1 !p-0 !h-auto text-sm text-gray-600 hover:text-gray-900 hover:bg-transparent -ml-2"
     >
       <ArrowLeft className="w-4 h-4" />
-    </button>
+    </Button>
   ) : undefined;
 
   const footer = () => {

@@ -13,6 +13,7 @@ import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
 import { ID } from '@/types/root';
+import { Button } from '@/components/ui/Button';
 
 interface AddToListToastProps {
   toastId: string;
@@ -22,15 +23,16 @@ interface AddToListToastProps {
 export const AddToListToast: FC<AddToListToastProps> = ({ toastId, onAddToListClick }) => (
   <div className="flex items-center gap-3">
     <span>Added to {DEFAULT_LIST_NAME}</span>
-    <button
+    <Button
+      variant="link"
       onClick={() => {
         toast.dismiss(toastId);
         onAddToListClick();
       }}
-      className="text-blue-500 hover:text-blue-600 font-medium"
+      className="!p-0 !h-auto !text-base text-blue-600 hover:text-blue-700 hover:no-underline font-medium"
     >
       Add to List
-    </button>
+    </Button>
   </div>
 );
 

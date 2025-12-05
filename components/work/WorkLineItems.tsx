@@ -39,6 +39,8 @@ import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
 import { useAddToListHandler } from '@/components/UserList/lib/UserListsContext';
+import { Button } from '@/components/ui/Button';
+import { cn } from '@/utils/styles';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -337,20 +339,23 @@ export const WorkLineItems = ({
           </button>
 
           {userListsEnabled && work.unifiedDocumentId && work.postType !== 'QUESTION' && (
-            <button
+            <Button
+              variant="ghost"
               onClick={handleAddToList}
               disabled={isTogglingDefaultList}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+              className={cn(
+                'flex items-center justify-center !px-4 !min-w-0 rounded-lg',
                 isInList
                   ? 'bg-green-50 text-green-600 hover:bg-green-100'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-              } ${isTogglingDefaultList ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100',
+                isTogglingDefaultList && 'opacity-50 cursor-not-allowed'
+              )}
             >
               <FontAwesomeIcon
                 icon={isInList ? faBookmarkSolid : faBookmark}
                 className="h-3.5 w-3.5"
               />
-            </button>
+            </Button>
           )}
 
           <button

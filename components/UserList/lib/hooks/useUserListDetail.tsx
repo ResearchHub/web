@@ -6,6 +6,7 @@ import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
 import { updateListRemoveItem, removeItemByDocumentId } from '@/components/UserList/lib/listUtils';
 import { useUserListsContext, ListItemChange } from '@/components/UserList/lib/UserListsContext';
 import { ID } from '@/types/root';
+import { Button } from '@/components/ui/Button';
 
 const PAGE_SIZE = 20;
 
@@ -114,16 +115,17 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
         (t) => (
           <div className="flex items-center gap-2">
             <span className="text-gray-900">Item removed</span>
-            <button
+            <Button
+              variant="link"
               onClick={async (e) => {
                 e.stopPropagation();
                 toast.dismiss(t.id);
                 await addItem(unifiedDocumentId);
               }}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="!p-0 !h-auto !text-base text-blue-600 hover:text-blue-700 hover:no-underline font-medium"
             >
               Undo
-            </button>
+            </Button>
           </div>
         ),
         { duration: 4000 }
