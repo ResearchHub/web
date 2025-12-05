@@ -194,6 +194,8 @@ export function AddToListModal({
     } else if (!isOpen) {
       setSortedLists([]);
     }
+    // Note: overviewLists and listIdsContainingDocument are intentionally omitted from deps.
+    // We only want to sort once when the modal opens and loading completes, not on every list update.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, isLoading]);
 
