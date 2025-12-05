@@ -470,7 +470,7 @@ export const FeedItemTopSection: FC<{
   return (
     <>
       <div className={cn('flex items-start justify-between mb-3', className)}>
-        <div className="flex flex-wrap gap-2">{leftContent}</div>
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-1 mr-2">{leftContent}</div>
         {rightContent && <div className="flex-shrink-0">{rightContent}</div>}
       </div>
       {imageSection && (

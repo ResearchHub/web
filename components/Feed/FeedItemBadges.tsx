@@ -25,7 +25,7 @@ const renderSourceLogoBadge = (slug: string, name: string) => {
   const href = isRHJournal ? '/journal' : `/topic/${slug}`;
 
   return (
-    <Link href={href}>
+    <Link href={href} className="flex-shrink-0">
       <Badge
         variant="default"
         className="text-xs font-medium bg-white border border-gray-200 hover:bg-gray-50 cursor-pointer px-2 py-1 h-[26px]"
@@ -74,7 +74,7 @@ export const FeedItemBadges: FC<FeedItemBadgesProps> = ({
   const getMobilePriorityBadge = () => {
     if (subcategory?.slug) {
       return (
-        <Link href={`/topic/${subcategory.slug}`}>
+        <Link href={`/topic/${subcategory.slug}`} className="flex-shrink-0">
           <Badge
             variant="default"
             className="text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 cursor-pointer px-2 py-1"
@@ -86,7 +86,7 @@ export const FeedItemBadges: FC<FeedItemBadgesProps> = ({
     }
     if (category?.slug) {
       return (
-        <Link href={`/topic/${category.slug}`}>
+        <Link href={`/topic/${category.slug}`} className="flex-shrink-0">
           <Badge
             variant="default"
             className="text-xs font-medium text-gray-800 hover:bg-gray-200 cursor-pointer px-2 py-1"
@@ -123,7 +123,7 @@ export const FeedItemBadges: FC<FeedItemBadgesProps> = ({
         <div className="hidden tablet:!contents">
           {/* Category Badge */}
           {category && category.slug && (
-            <Link href={`/topic/${category.slug}`}>
+            <Link href={`/topic/${category.slug}`} className="flex-shrink-0">
               <Badge
                 variant="default"
                 className="text-xs font-medium text-gray-800 hover:bg-gray-200 cursor-pointer px-2 py-1"
@@ -134,7 +134,7 @@ export const FeedItemBadges: FC<FeedItemBadgesProps> = ({
           )}
           {/* Subcategory Badge */}
           {subcategory && subcategory.slug && (
-            <Link href={`/topic/${subcategory.slug}`}>
+            <Link href={`/topic/${subcategory.slug}`} className="flex-shrink-0">
               <Badge
                 variant="default"
                 className="text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 cursor-pointer px-2 py-1"
@@ -165,7 +165,7 @@ export const FeedItemBadges: FC<FeedItemBadgesProps> = ({
           const topicLogo = topic.slug ? getSourceLogo(topic.slug) : null;
           if (topicLogo) {
             return (
-              <div key={topic.id || topic.slug}>
+              <div key={topic.id || topic.slug} className="flex-shrink-0">
                 {renderSourceLogoBadge(topic.slug, topic.name)}
               </div>
             );

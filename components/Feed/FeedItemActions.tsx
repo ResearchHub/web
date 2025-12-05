@@ -370,7 +370,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   return (
     <>
       <div className="flex items-center justify-between w-full">
-        <div className="flex items-center space-x-3 md:space-x-4">
+        <div className="flex items-center space-x-3 md:space-x-4 flex-nowrap overflow-x-auto">
           <ActionButton
             icon={ArrowUp}
             count={localVoteCount}

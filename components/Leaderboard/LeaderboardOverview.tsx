@@ -199,6 +199,7 @@ export const LeaderboardOverview = () => {
             shorten={true}
             showIcon={true}
             showText={showUSD}
+            textColor="text-orange-500"
             className="justify-end"
           />
         </div>

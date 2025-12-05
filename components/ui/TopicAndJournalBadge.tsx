@@ -45,5 +45,11 @@ export const TopicAndJournalBadge = ({
     </Badge>
   );
 
-  return disableLink ? badge : <Link href={href}>{badge}</Link>;
+  return disableLink ? (
+    badge
+  ) : (
+    <Link href={href} className="flex-shrink-0">
+      {badge}
+    </Link>
+  );
 };
