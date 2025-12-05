@@ -96,16 +96,16 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
     change && change.at > lastHandled.current[type] && idMatch(change.listId, id);
 
   useEffect(() => {
-    if (shouldProcessChange(lastAddedItem, 'added')) {
+    if (shouldProcessChange(lastAddedItem, 'added') && !isLoading) {
       lastHandled.current.added = lastAddedItem!.at;
-      fetchList();
+      void fetchList();
     }
     if (shouldProcessChange(lastRemovedItem, 'removed')) {
       lastHandled.current.removed = lastRemovedItem!.at;
       setList((prev) => removeItemByDocumentId(prev, lastRemovedItem!.documentId));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastAddedItem, lastRemovedItem, id]);
+  }, [lastAddedItem, lastRemovedItem, id, isLoading]);
 
   const removeItem = async (itemId: ID, unifiedDocumentId: ID) => {
     if (!list) return;

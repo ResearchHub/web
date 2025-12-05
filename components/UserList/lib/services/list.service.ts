@@ -29,7 +29,7 @@ export class ListService {
     if (params?.page) query.append('page', params.page.toString());
     if (params?.pageSize) query.append('page_size', params.pageSize.toString());
     const queryString = query.toString() ? `?${query.toString()}` : '';
-    const response = await ApiClient.get<ApiUserListsResponse>(`${this.BASE_PATH}${queryString}`);
+    const response = await ApiClient.get<ApiUserListsResponse>(`${this.BASE_PATH}/${queryString}`);
     return transformUserListsResponse(response);
   }
 
@@ -56,7 +56,7 @@ export class ListService {
       count?: number;
       next?: string | null;
       previous?: string | null;
-    }>(`${this.BASE_PATH}/${id}/item${queryString}`);
+    }>(`${this.BASE_PATH}/${id}/item/${queryString}`);
 
     return {
       ...response,
