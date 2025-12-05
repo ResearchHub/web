@@ -1,17 +1,38 @@
 'use client';
 
-import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import { createContext, useContext, ReactNode, useState, useEffect, FC } from 'react';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import {
   UserList,
   CreateListRequest,
   UpdateListRequest,
   UserListOverview,
+  DEFAULT_LIST_NAME,
 } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
 import { ID } from '@/types/root';
+
+interface AddToListToastProps {
+  toastId: string;
+  onAddToListClick: () => void;
+}
+
+export const AddToListToast: FC<AddToListToastProps> = ({ toastId, onAddToListClick }) => (
+  <div className="flex items-center gap-3">
+    <span>Added to {DEFAULT_LIST_NAME}</span>
+    <button
+      onClick={() => {
+        toast.dismiss(toastId);
+        onAddToListClick();
+      }}
+      className="text-blue-500 hover:text-blue-600 font-medium"
+    >
+      Add to List
+    </button>
+  </div>
+);
 
 export interface ListItemChange {
   listId: ID;

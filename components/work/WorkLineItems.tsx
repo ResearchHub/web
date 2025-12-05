@@ -38,8 +38,8 @@ import { useCompleteFundraise } from '@/hooks/useFundraise';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
-import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
-import { DEFAULT_LIST_NAME } from '@/components/UserList/lib/user-list';
+import { useUserListsContext, AddToListToast } from '@/components/UserList/lib/UserListsContext';
+
 interface WorkLineItemsProps {
   work: Work;
   showClaimButton?: boolean;
@@ -343,25 +343,12 @@ export const WorkLineItems = ({
                   try {
                     await addToDefaultList(Number(work.unifiedDocumentId));
 
-                    const handleAddToListClick = (toastId: string) => {
-                      toast.dismiss(toastId);
-                      setIsAddToListModalOpen(true);
-                    };
-
-                    toast.success(
-                      (t) => (
-                        <div className="flex items-center gap-3">
-                          <span>Added to {DEFAULT_LIST_NAME}</span>
-                          <button
-                            onClick={() => handleAddToListClick(t.id)}
-                            className="text-blue-500 hover:text-blue-600 font-medium"
-                          >
-                            Add to List
-                          </button>
-                        </div>
-                      ),
-                      { duration: 4000 }
-                    );
+                    toast.success((t) => (
+                      <AddToListToast
+                        toastId={t.id}
+                        onAddToListClick={() => setIsAddToListModalOpen(true)}
+                      />
+                    ));
                   } catch (error) {
                     console.error('Error setting Default List:', error);
                     toast.error('Error setting Default List');

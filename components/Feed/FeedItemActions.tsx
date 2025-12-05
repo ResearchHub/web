@@ -19,8 +19,7 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useRouter } from 'next/navigation';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
-import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
-import { DEFAULT_LIST_NAME } from '@/components/UserList/lib/user-list';
+import { useUserListsContext, AddToListToast } from '@/components/UserList/lib/UserListsContext';
 import { toast } from 'react-hot-toast';
 import { Bounty } from '@/types/bounty';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
@@ -297,13 +296,17 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     }
   };
 
+  const openAddToListModal = () => {
+    setIsAddToListModalOpen(true);
+  };
+
   const handleBookmarkClick = async (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (!relatedDocumentUnifiedDocumentId) return;
 
     executeAuthenticatedAction(async () => {
       if (isDocumentInList) {
-        setIsAddToListModalOpen(true);
+        openAddToListModal();
         return;
       }
 
@@ -311,26 +314,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       try {
         await addToDefaultList(Number(relatedDocumentUnifiedDocumentId));
 
-        // Show success toast with action button
-        const handleAddToListClick = (toastId: string) => {
-          toast.dismiss(toastId);
-          setIsAddToListModalOpen(true);
-        };
-
-        toast.success(
-          (t) => (
-            <div className="flex items-center gap-3">
-              <span>Added to {DEFAULT_LIST_NAME}</span>
-              <button
-                onClick={() => handleAddToListClick(t.id)}
-                className="text-blue-500 hover:text-blue-600 font-medium"
-              >
-                Add to List
-              </button>
-            </div>
-          ),
-          { duration: 4000 }
-        );
+        toast.success((t) => (
+          <AddToListToast toastId={t.id} onAddToListClick={openAddToListModal} />
+        ));
       } catch (error) {
         console.error('Error setting Default List:', error);
         toast.error('Error setting Default List');
