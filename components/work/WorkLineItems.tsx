@@ -38,7 +38,7 @@ import { useCompleteFundraise } from '@/hooks/useFundraise';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
-import { useUserListsContext, AddToListToast } from '@/components/UserList/lib/UserListsContext';
+import { useAddToListHandler } from '@/components/UserList/lib/UserListsContext';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -78,8 +78,14 @@ export const WorkLineItems = ({
   const { showShareModal } = useShareModalContext();
   const { isInList } = useIsInList(work.unifiedDocumentId);
   const userListsEnabled = useUserListsEnabled();
-  const { addToDefaultList } = useUserListsContext();
-  const [isTogglingDefaultList, setIsTogglingDefaultList] = useState(false);
+
+  const { isTogglingDefaultList, handleAddToList } = useAddToListHandler({
+    unifiedDocumentId: work.unifiedDocumentId,
+    isInList,
+    onOpenModal: () => setIsAddToListModalOpen(true),
+    executeAuthenticatedAction,
+  });
+
   const {
     data: userVotes,
     isLoading: isLoadingVotes,
@@ -332,31 +338,7 @@ export const WorkLineItems = ({
 
           {userListsEnabled && work.unifiedDocumentId && work.postType !== 'QUESTION' && (
             <button
-              onClick={() => {
-                executeAuthenticatedAction(async () => {
-                  if (!work.unifiedDocumentId) return;
-                  if (isInList) {
-                    setIsAddToListModalOpen(true);
-                    return;
-                  }
-                  setIsTogglingDefaultList(true);
-                  try {
-                    await addToDefaultList(Number(work.unifiedDocumentId));
-
-                    toast.success((t) => (
-                      <AddToListToast
-                        toastId={t.id}
-                        onAddToListClick={() => setIsAddToListModalOpen(true)}
-                      />
-                    ));
-                  } catch (error) {
-                    console.error('Error setting Default List:', error);
-                    toast.error('Error setting Default List');
-                  } finally {
-                    setIsTogglingDefaultList(false);
-                  }
-                });
-              }}
+              onClick={handleAddToList}
               disabled={isTogglingDefaultList}
               className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
                 isInList

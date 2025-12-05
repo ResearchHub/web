@@ -291,3 +291,45 @@ export function useUserListsContext() {
   }
   return context;
 }
+
+interface UseAddToListHandlerProps {
+  unifiedDocumentId: string | number | null | undefined;
+  isInList: boolean;
+  onOpenModal: () => void;
+  executeAuthenticatedAction: (action: () => void | Promise<void>) => void;
+}
+
+export function useAddToListHandler({
+  unifiedDocumentId,
+  isInList,
+  onOpenModal,
+  executeAuthenticatedAction,
+}: UseAddToListHandlerProps) {
+  const { addToDefaultList } = useUserListsContext();
+  const [isTogglingDefaultList, setIsTogglingDefaultList] = useState(false);
+
+  const handleAddToList = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!unifiedDocumentId) return;
+
+    executeAuthenticatedAction(async () => {
+      if (isInList) {
+        onOpenModal();
+        return;
+      }
+
+      setIsTogglingDefaultList(true);
+      try {
+        await addToDefaultList(Number(unifiedDocumentId));
+        toast.success((t) => <AddToListToast toastId={t.id} onAddToListClick={onOpenModal} />);
+      } catch (error) {
+        console.error('Error setting Default List:', error);
+        toast.error('Error setting Default List');
+      } finally {
+        setIsTogglingDefaultList(false);
+      }
+    });
+  };
+
+  return { isTogglingDefaultList, handleAddToList };
+}

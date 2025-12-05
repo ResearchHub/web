@@ -19,8 +19,7 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useRouter } from 'next/navigation';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
-import { useUserListsContext, AddToListToast } from '@/components/UserList/lib/UserListsContext';
-import { toast } from 'react-hot-toast';
+import { useAddToListHandler } from '@/components/UserList/lib/UserListsContext';
 import { Bounty } from '@/types/bounty';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -203,15 +202,20 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
   const userListsEnabled = useUserListsEnabled();
-  const { addToDefaultList } = useUserListsContext();
   // State for dropdown menu
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
-  const [isTogglingDefaultList, setIsTogglingDefaultList] = useState(false);
   const { isInList: isDocumentInList, listIdsContainingDocument } = useIsInList(
     relatedDocumentUnifiedDocumentId
   );
+
+  const { isTogglingDefaultList, handleAddToList: handleAddToList } = useAddToListHandler({
+    unifiedDocumentId: relatedDocumentUnifiedDocumentId,
+    isInList: isDocumentInList,
+    onOpenModal: () => setIsAddToListModalOpen(true),
+    executeAuthenticatedAction,
+  });
 
   const { vote, isVoting } = useVote({
     votableEntityId,
@@ -294,36 +298,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     if (href) {
       navigateToTab('bounties');
     }
-  };
-
-  const openAddToListModal = () => {
-    setIsAddToListModalOpen(true);
-  };
-
-  const handleBookmarkClick = async (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    if (!relatedDocumentUnifiedDocumentId) return;
-
-    executeAuthenticatedAction(async () => {
-      if (isDocumentInList) {
-        openAddToListModal();
-        return;
-      }
-
-      setIsTogglingDefaultList(true);
-      try {
-        await addToDefaultList(Number(relatedDocumentUnifiedDocumentId));
-
-        toast.success((t) => (
-          <AddToListToast toastId={t.id} onAddToListClick={openAddToListModal} />
-        ));
-      } catch (error) {
-        console.error('Error setting Default List:', error);
-        toast.error('Error setting Default List');
-      } finally {
-        setIsTogglingDefaultList(false);
-      }
-    });
   };
 
   const handleCloseAddToListModal = () => {
@@ -537,7 +511,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     : 'text-gray-900 hover:text-gray-600'
                 )}
                 tooltip={'Lists'}
-                onClick={handleBookmarkClick}
+                onClick={handleAddToList}
                 disabled={isTogglingDefaultList}
               >
                 <FontAwesomeIcon
