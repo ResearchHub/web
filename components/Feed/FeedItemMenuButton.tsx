@@ -1,7 +1,9 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useState, useContext } from 'react';
 import { MoreHorizontal, Flag } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
@@ -9,6 +11,8 @@ import { useFlagModal } from '@/hooks/useFlagging';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { FeedContentType } from '@/types/feed';
 import { ContentType } from '@/types/work';
+import { ListDetailContext } from '@/components/UserList/lib/user-list';
+import { toast } from 'react-hot-toast';
 
 interface FeedItemMenuButtonProps {
   feedContentType: FeedContentType;
@@ -16,6 +20,7 @@ interface FeedItemMenuButtonProps {
   relatedDocumentId?: string;
   votableEntityId: number;
   actionLabel?: string;
+  relatedDocumentUnifiedDocumentId?: string;
 }
 
 export const FeedItemMenuButton: FC<FeedItemMenuButtonProps> = ({
@@ -24,10 +29,32 @@ export const FeedItemMenuButton: FC<FeedItemMenuButtonProps> = ({
   relatedDocumentId,
   relatedDocumentContentType,
   actionLabel = 'Report',
+  relatedDocumentUnifiedDocumentId,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isOpen, contentToFlag, openFlagModal, closeFlagModal } = useFlagModal();
+
+  const listDetailContext = useContext(ListDetailContext);
+
+  const handleRemoveFromList = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+
+    if (!listDetailContext || !relatedDocumentUnifiedDocumentId) {
+      return;
+    }
+
+    setIsMenuOpen(false);
+
+    try {
+      await listDetailContext.onRemoveItem(Number.parseInt(relatedDocumentUnifiedDocumentId));
+    } catch (error) {
+      console.error('Error removing from list:', error);
+      toast.error('Failed to remove item from list');
+    }
+  };
 
   const handleReport = (e?: React.MouseEvent) => {
     if (e) {
@@ -90,6 +117,16 @@ export const FeedItemMenuButton: FC<FeedItemMenuButtonProps> = ({
         open={isMenuOpen}
         onOpenChange={setIsMenuOpen}
       >
+        {listDetailContext && relatedDocumentUnifiedDocumentId && (
+          <>
+            <BaseMenuItem onClick={handleRemoveFromList} className="flex items-center gap-2">
+              <FontAwesomeIcon icon={faBookmark} className="w-4 h-4" />
+              <span>Remove</span>
+            </BaseMenuItem>
+            <div className="h-px my-1 bg-gray-200" />
+          </>
+        )}
+
         <BaseMenuItem onClick={handleReport} className="flex items-center gap-2">
           <Flag className="w-4 h-4" />
           <span>{actionLabel}</span>

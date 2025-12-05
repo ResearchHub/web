@@ -1,8 +1,17 @@
 import { createTransformer } from '@/types/transformer';
 import { FeedEntry, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
 import { ID } from '@/types/root';
+import { createContext } from 'react';
 
 export const DEFAULT_LIST_NAME = 'Your Favorites';
+
+export interface ListDetailContext {
+  listId: number;
+  onRemoveItem: (unifiedDocumentId: number) => Promise<void>;
+}
+
+export const ListDetailContext = createContext<ListDetailContext | null>(null);
+
 export interface ApiSimplifiedListItem {
   list_item_id: ID;
   unified_document_id: ID;

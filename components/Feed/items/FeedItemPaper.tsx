@@ -129,6 +129,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               votableEntityId={votableEntityId}
               relatedDocumentId={relatedDocumentId}
               relatedDocumentContentType={relatedDocumentContentType}
+              relatedDocumentUnifiedDocumentId={paper.unifiedDocumentId}
             />
           </div>
         }

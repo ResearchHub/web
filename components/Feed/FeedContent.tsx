@@ -43,7 +43,6 @@ interface FeedContentProps {
   lastClickedEntryId?: string;
   insertContent?: InsertContentItem[];
   shouldRenderBountyAsComment?: boolean;
-  wrapped?: (item: ReactNode, entry: FeedEntry, index: number) => ReactNode;
   showBountyInfo?: boolean;
 }
 
@@ -72,7 +71,6 @@ export const FeedContent: FC<FeedContentProps> = ({
   lastClickedEntryId,
   insertContent,
   shouldRenderBountyAsComment,
-  wrapped,
   showBountyInfo = false,
 }) => {
   const pathname = usePathname();
@@ -168,11 +166,9 @@ export const FeedContent: FC<FeedContentProps> = ({
                 />
               );
 
-              const effectiveFeedItem = wrapped ? wrapped(feedItem, entry, index) : feedItem;
-
               return (
                 <React.Fragment key={`${entry.id}-${index}`}>
-                  {effectiveFeedItem}
+                  {feedItem}
                   {contentToInsert && (
                     <div key={`insert-content-${index}`} className="mt-8">
                       {contentToInsert.content}
