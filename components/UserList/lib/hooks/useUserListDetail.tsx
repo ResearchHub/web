@@ -87,19 +87,22 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Tracks timestamps of last processed changes to prevent duplicate handling.
+  // 1. Updates shouldn't trigger re-renders
+  // 2. Synchronous updates prevent race conditions
   const lastHandled = useRef({ added: 0, removed: 0 });
 
-  const setChangeFromFeedOnListItems = (change: ListItemChange | null, type: 'added' | 'removed') =>
+  const shouldProcessChange = (change: ListItemChange | null, type: 'added' | 'removed') =>
     change && change.at > lastHandled.current[type] && idMatch(change.listId, id);
 
   useEffect(() => {
-    if (setChangeFromFeedOnListItems(lastAddedItem, 'added')) {
+    if (shouldProcessChange(lastAddedItem, 'added')) {
       lastHandled.current.added = lastAddedItem!.at;
       fetchList();
     }
-    if (setChangeFromFeedOnListItems(lastRemovedItem, 'removed')) {
+    if (shouldProcessChange(lastRemovedItem, 'removed')) {
       lastHandled.current.removed = lastRemovedItem!.at;
-      setList((previousList) => removeItemByDocumentId(previousList, lastRemovedItem!.documentId));
+      setList((prev) => removeItemByDocumentId(prev, lastRemovedItem!.documentId));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastAddedItem, lastRemovedItem, id]);
