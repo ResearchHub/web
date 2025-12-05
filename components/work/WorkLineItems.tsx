@@ -332,7 +332,7 @@ export const WorkLineItems = ({
 
           {userListsEnabled && work.unifiedDocumentId && work.postType !== 'QUESTION' && (
             <button
-              onClick={() =>
+              onClick={() => {
                 executeAuthenticatedAction(async () => {
                   if (!work.unifiedDocumentId) return;
                   if (isInList) {
@@ -342,15 +342,18 @@ export const WorkLineItems = ({
                   setIsTogglingDefaultList(true);
                   try {
                     await addToDefaultList(Number(work.unifiedDocumentId));
+
+                    const handleAddToListClick = (toastId: string) => {
+                      toast.dismiss(toastId);
+                      setIsAddToListModalOpen(true);
+                    };
+
                     toast.success(
                       (t) => (
                         <div className="flex items-center gap-3">
                           <span>Added to {DEFAULT_LIST_NAME}</span>
                           <button
-                            onClick={() => {
-                              toast.dismiss(t.id);
-                              setIsAddToListModalOpen(true);
-                            }}
+                            onClick={() => handleAddToListClick(t.id)}
                             className="text-blue-500 hover:text-blue-600 font-medium"
                           >
                             Add to List
@@ -360,12 +363,13 @@ export const WorkLineItems = ({
                       { duration: 4000 }
                     );
                   } catch (error) {
-                    toast.error('Something went wrong');
+                    console.error('Error setting Default List:', error);
+                    toast.error('Error setting Default List');
                   } finally {
                     setIsTogglingDefaultList(false);
                   }
-                })
-              }
+                });
+              }}
               disabled={isTogglingDefaultList}
               className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
                 isInList

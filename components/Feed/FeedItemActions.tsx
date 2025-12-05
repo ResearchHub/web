@@ -310,15 +310,19 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
       setIsTogglingDefaultList(true);
       try {
         await addToDefaultList(Number(relatedDocumentUnifiedDocumentId));
+
+        // Show success toast with action button
+        const handleAddToListClick = (toastId: string) => {
+          toast.dismiss(toastId);
+          setIsAddToListModalOpen(true);
+        };
+
         toast.success(
           (t) => (
             <div className="flex items-center gap-3">
               <span>Added to {DEFAULT_LIST_NAME}</span>
               <button
-                onClick={() => {
-                  toast.dismiss(t.id);
-                  setIsAddToListModalOpen(true);
-                }}
+                onClick={() => handleAddToListClick(t.id)}
                 className="text-blue-500 hover:text-blue-600 font-medium"
               >
                 Add to List
@@ -328,7 +332,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           { duration: 4000 }
         );
       } catch (error) {
-        toast.error('Something went wrong');
+        console.error('Error setting Default List:', error);
+        toast.error('Error setting Default List');
       } finally {
         setIsTogglingDefaultList(false);
       }
