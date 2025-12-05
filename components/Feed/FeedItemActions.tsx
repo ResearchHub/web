@@ -210,7 +210,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     relatedDocumentUnifiedDocumentId
   );
 
-  const { isTogglingDefaultList, handleAddToList: handleAddToList } = useAddToListHandler({
+  const { isTogglingDefaultList, handleAddToList } = useAddToListHandler({
     unifiedDocumentId: relatedDocumentUnifiedDocumentId,
     isInList: isDocumentInList,
     onOpenModal: () => setIsAddToListModalOpen(true),
