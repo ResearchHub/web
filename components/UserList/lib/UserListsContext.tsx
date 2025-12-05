@@ -323,8 +323,7 @@ export function useAddToListHandler({
         await addToDefaultList(Number(unifiedDocumentId));
         toast.success((t) => <AddToListToast toastId={t.id} onAddToListClick={onOpenModal} />);
       } catch (error) {
-        console.error('Error setting Default List:', error);
-        toast.error('Error setting Default List');
+        toast.error(extractApiErrorMessage(error, 'Failed to add to list'));
       } finally {
         setIsTogglingDefaultList(false);
       }

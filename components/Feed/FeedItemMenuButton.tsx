@@ -13,6 +13,7 @@ import { FeedContentType } from '@/types/feed';
 import { ContentType } from '@/types/work';
 import { ListDetailContext } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 
 interface FeedItemMenuButtonProps {
   feedContentType: FeedContentType;
@@ -51,8 +52,7 @@ export const FeedItemMenuButton: FC<FeedItemMenuButtonProps> = ({
     try {
       await listDetailContext.onRemoveItem(Number.parseInt(relatedDocumentUnifiedDocumentId));
     } catch (error) {
-      console.error('Error removing from list:', error);
-      toast.error('Failed to remove item from list');
+      toast.error(extractApiErrorMessage(error, 'Failed to remove from list'));
     }
   };
 
