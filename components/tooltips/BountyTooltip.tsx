@@ -29,7 +29,7 @@ export function BountyTooltip({ totalAmount, href, showUSD = false }: BountyTool
             size="lg"
             textColor="text-orange-600"
             iconColor="#f97316"
-            iconSize={22}
+            iconSize={20}
             fontWeight="font-bold"
             currency={showUSD ? 'USD' : 'RSC'}
             shorten={true}
@@ -41,20 +41,20 @@ export function BountyTooltip({ totalAmount, href, showUSD = false }: BountyTool
       </div>
 
       {/* Explanation */}
-      <p className="text-sm text-gray-700">Earn ResearchCoin (RSC) by peer reviewing this paper</p>
+      <p className="text-sm text-gray-700">Earn ResearchCoin (RSC) by peer reviewing this paper.</p>
 
       {/* CTA */}
       <div className="pt-2 border-t border-gray-200 text-center">
         {href ? (
           <Link
-            href={`${href}/reviews`}
+            href={`${href}/bounties`}
             className="text-sm text-primary-600 hover:text-primary-700 cursor-pointer font-medium"
           >
-            Review now
+            View bounty
           </Link>
         ) : (
           <p className="text-sm text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
-            Review now
+            View bounty
           </p>
         )}
       </div>

@@ -8,6 +8,7 @@ import { Tooltip } from './Tooltip';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatRSC } from '@/utils/number';
 import Icon from './icons/Icon';
+import { DollarSign } from 'lucide-react';
 
 interface CurrencyBadgeProps {
   amount: number;
@@ -201,6 +202,11 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
     return content;
   };
 
+  // Determine if we should inherit colors from parent (for hover effects)
+  const shouldInheritColor = textColor === 'inherit' || iconColor === 'inherit';
+  const effectiveTextColor = textColor === 'inherit' ? undefined : textColor;
+  const effectiveIconColor = iconColor === 'inherit' ? 'currentColor' : iconColor;
+
   // Use simple div for text and inline variants
   if (variant === 'inline' || variant === 'text') {
     return wrapWithTooltip(
@@ -209,52 +215,45 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
           'flex items-center',
           variant === 'inline' ? 'px-2 py-1' : '',
           sizeClasses[size],
-          isUSD ? textColor || 'text-black' : '', // Example: Different base color for USD text variant
+          isUSD && !shouldInheritColor ? effectiveTextColor || 'text-black' : '',
           className
         )}
       >
         {showIcon &&
           (isUSD ? (
-            <span
-              className={cn(
-                fontWeight || 'font-semibold',
-                'mr-0.5',
-                size === 'xxs'
-                  ? 'text-[10px]'
-                  : size === 'xs'
-                    ? 'text-xs'
-                    : size === 'sm'
-                      ? 'text-sm'
-                      : 'text-base', // md and larger
-                textColor || (inverted ? colors.textDark : colors.text)
-              )}
-              style={{ lineHeight: effectiveIconSize + 'px' }} // Align $ better with text
-            >
-              $
-            </span>
+            <DollarSign size={effectiveIconSize} className="mr-0.5" strokeWidth={2} />
           ) : (
             <ResearchCoinIcon
               size={effectiveIconSize}
               className="mr-1"
               outlined
-              color={iconColor || undefined}
+              color={effectiveIconColor || undefined}
             />
           ))}
         {inverted ? (
           <div className="flex items-center">
             <span
               className={cn(
-                isUSD ? textColor || colors.textDark : colors.textDark,
-                fontWeight || 'font-semibold'
+                !shouldInheritColor &&
+                  (isUSD ? effectiveTextColor || colors.textDark : colors.textDark),
+                fontWeight || 'font-medium'
               )}
             >
               {displayAmount}
             </span>
             {shouldShowCurrencyText && (
-              <span className={cn(colors.rscLabel, 'ml-1')}>{currencyText}</span>
+              <span className={cn(!shouldInheritColor && colors.rscLabel, 'ml-1')}>
+                {currencyText}
+              </span>
             )}
             {label && (
-              <span className={cn(isUSD ? textColor || colors.textDark : colors.textDark, 'ml-1')}>
+              <span
+                className={cn(
+                  !shouldInheritColor &&
+                    (isUSD ? effectiveTextColor || colors.textDark : colors.textDark),
+                  'ml-1'
+                )}
+              >
                 {label}
               </span>
             )}
@@ -263,17 +262,25 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
           <div className="flex items-center">
             <span
               className={cn(
-                isUSD ? textColor || colors.text : colors.text,
-                fontWeight || 'font-semibold'
+                !shouldInheritColor && (isUSD ? effectiveTextColor || colors.text : colors.text),
+                fontWeight || 'font-medium'
               )}
             >
               {displayAmount}
             </span>
             {shouldShowCurrencyText && (
-              <span className={cn(colors.rscLabel, 'ml-1')}>{currencyText}</span>
+              <span className={cn(!shouldInheritColor && colors.rscLabel, 'ml-1')}>
+                {currencyText}
+              </span>
             )}
             {label && (
-              <span className={cn(isUSD ? textColor || colors.textDark : colors.textDark, 'ml-1')}>
+              <span
+                className={cn(
+                  !shouldInheritColor &&
+                    (isUSD ? effectiveTextColor || colors.textDark : colors.textDark),
+                  'ml-1'
+                )}
+              >
                 {label}
               </span>
             )}

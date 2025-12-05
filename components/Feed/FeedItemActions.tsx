@@ -364,14 +364,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const showSeparator = !hideReportButton && menuItems.length > 0 && !isTabletOrSmaller;
 
   // Determine which buttons to show inline based on screen size
-  const showInlineReviews =
-    showPeerReviews && reviews.length > 0 && (!isMobile || (isMobile && !hasOpenBounties));
-  const showInlineBounties = hasOpenBounties && (!isMobile || isMobile); // Show bounties on mobile if they exist
+  const showInlineReviews = showPeerReviews && reviews.length > 0;
+  const showInlineBounties = hasOpenBounties;
 
   return (
     <>
       <div className="flex items-center justify-between w-full">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3 md:space-x-4">
           <ActionButton
             icon={ArrowUp}
             count={localVoteCount}
@@ -441,14 +440,15 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                   hideIcon={true}
                   tooltip=""
                   label="Bounties"
-                  className="!border-orange-500 !text-orange-500 hover:!border-orange-500 hover:!text-orange-600 hover:!bg-orange-50"
+                  className="hover:!border-orange-500 hover:!text-orange-600 hover:!bg-orange-50"
                   count={
                     <CurrencyBadge
                       amount={totalBountyAmount}
                       variant="text"
                       size="xs"
-                      textColor="text-orange-500"
-                      iconColor="#f97316"
+                      className="!text-xs md:!text-sm px-0"
+                      textColor="inherit"
+                      iconColor="inherit"
                       iconSize={18}
                       currency={showUSD ? 'USD' : 'RSC'}
                       shorten={true}
@@ -466,14 +466,15 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 hideIcon={true}
                 tooltip="Bounties"
                 label="Bounties"
-                className="!border-orange-500 !text-orange-500 hover:!border-orange-500 hover:!text-orange-600 hover:!bg-orange-50"
+                className="hover:!border-orange-500 hover:!text-orange-600 hover:!bg-orange-50"
                 count={
                   <CurrencyBadge
                     amount={totalBountyAmount}
                     variant="text"
                     size="xs"
-                    textColor="text-orange-500"
-                    iconColor="#f97316"
+                    className="!text-xs md:!text-sm"
+                    textColor="inherit"
+                    iconColor="inherit"
                     iconSize={18}
                     currency={showUSD ? 'USD' : 'RSC'}
                     shorten={true}
