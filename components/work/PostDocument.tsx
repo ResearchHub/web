@@ -132,14 +132,17 @@ export const PostDocument = ({
 
   return (
     <div>
-      <EarningOpportunityBanner work={work} metadata={metadata} />
+      {/* Show on mobile only - desktop shows in right sidebar */}
+      <div className="lg:hidden">
+        <EarningOpportunityBanner work={work} metadata={metadata} />
+      </div>
       {/* Title & Actions */}
       {work.type === 'preprint' && (
         <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
           Preprint
         </div>
       )}
-      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
+      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-0" />
       <WorkLineItems work={work} metadata={metadata} onEditClick={handleEditToggle} />
 
       {/* Tabs */}

@@ -17,11 +17,11 @@ export const formatCurrency = ({
     const usdAmount = amount * exchangeRate;
     if (shorten && usdAmount >= 1000) {
       if (usdAmount >= 1000000) {
-        return `$${(usdAmount / 1000000).toFixed(1)}M`;
+        return `$${Math.round(usdAmount / 1000000)}M`;
       }
-      return `$${(usdAmount / 1000).toFixed(1)}K`;
+      return `$${Math.round(usdAmount / 1000)}K`;
     }
-    return `$${usdAmount.toFixed(2)}`;
+    return `$${Math.round(usdAmount).toLocaleString()}`;
   }
 
   return formatRSC({ amount, shorten });

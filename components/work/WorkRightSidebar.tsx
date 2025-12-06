@@ -4,6 +4,7 @@ import { Work } from '@/types/work';
 import type { WorkMetadata } from '@/services/metadata.service';
 import { HaveYouPublishedBanner } from '@/components/banners/HaveYouPublishedBanner';
 import { PublishInJournalBanner } from '@/components/banners/PublishInJournalBanner';
+import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 import { SupportersSection } from './components/SupportersSection';
 import { TopicsSection } from './components/TopicsSection';
 import { DOISection } from './components/DOISection';
@@ -25,6 +26,7 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
 
   return (
     <div className="space-y-8">
+      <EarningOpportunityBanner work={work} metadata={metadata} />
       {hasResearchHubJournalVersions && (
         <VersionsSection versions={work.versions || []} currentPaperId={work.id} slug={work.slug} />
       )}

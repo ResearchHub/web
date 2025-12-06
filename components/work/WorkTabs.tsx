@@ -3,7 +3,7 @@
 import {
   FileText,
   Star,
-  MessagesSquare,
+  MessageCircle,
   History,
   Users,
   Bell,
@@ -12,13 +12,17 @@ import {
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useState, useEffect, useMemo } from 'react';
-import Icon from '@/components/ui/icons/Icon';
 import { Tabs } from '@/components/ui/Tabs';
 import { usePathname } from 'next/navigation';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { buildPayloadForDocumentTabClick } from '@/types/analytics';
 import { useUser } from '@/contexts/UserContext';
 import { useDeviceType } from '@/hooks/useDeviceType';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import Icon from '@/components/ui/icons/Icon';
+import { calculateOpenBountiesAmount } from '@/components/Bounty/lib/bountyUtil';
+import { formatCurrency } from '@/utils/currency';
 
 export type TabType =
   | 'paper'
@@ -49,6 +53,25 @@ export const WorkTabs = ({
   const pathname = usePathname();
   const { user } = useUser();
   const deviceType = useDeviceType();
+  const { showUSD } = useCurrencyPreference();
+  const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
+
+  // Format score to show with one decimal place (same as FeedItemActions)
+  const formatScore = (score: number): string => {
+    return score.toFixed(1);
+  };
+
+  // Calculate total bounty amount for open bounties using utility function
+  const totalBountyAmount = useMemo(() => {
+    return calculateOpenBountiesAmount(metadata.bounties || []);
+  }, [metadata.bounties]);
+
+  // Check if we can display the bounty amount (exchange rate loaded if USD preferred)
+  const canDisplayBountyAmount =
+    !showUSD || (showUSD && !isExchangeRateLoading && exchangeRate > 0);
+
+  // Check if we have open bounties
+  const hasOpenBounties = totalBountyAmount > 0;
 
   // Check if any version is part of the ResearchHub journal
   const hasResearchHubJournalVersions = useMemo(() => {
@@ -181,7 +204,7 @@ export const WorkTabs = ({
       id: 'conversation',
       label: (
         <div className="flex items-center">
-          <MessagesSquare className="h-4 w-4 mr-2" />
+          <MessageCircle className="h-4 w-4 mr-2" />
           <span>{work.postType === 'QUESTION' ? 'Answers' : 'Conversation'}</span>
           <span
             className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
@@ -204,26 +227,38 @@ export const WorkTabs = ({
             label: (
               <div className="flex items-center">
                 {contentType === 'grant' ? (
-                  <Users className="h-4 w-4 mr-2" />
+                  <>
+                    <Users className="h-4 w-4 mr-2" />
+                    <span>Applications</span>
+                    <span
+                      className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                        activeTab === 'applications'
+                          ? 'bg-primary-100 text-primary-600'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      {work.note?.post?.grant?.applicants?.length || 0}
+                    </span>
+                  </>
                 ) : (
-                  <Star className="h-4 w-4 mr-2" />
+                  <>
+                    <Star
+                      className={`h-4 w-4 mr-2 ${
+                        activeTab === 'reviews' ? 'text-primary-500' : 'text-gray-500'
+                      }`}
+                    />
+                    <span>Reviews</span>
+                    <span
+                      className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                        activeTab === 'reviews'
+                          ? 'bg-primary-100 text-primary-600'
+                          : 'bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      {metadata.metrics.reviewScore ? formatScore(metadata.metrics.reviewScore) : 0}
+                    </span>
+                  </>
                 )}
-                <span>{contentType === 'grant' ? 'Applications' : 'Reviews'}</span>
-                <span
-                  className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                    (
-                      contentType === 'grant'
-                        ? activeTab === 'applications'
-                        : activeTab === 'reviews'
-                    )
-                      ? 'bg-primary-100 text-primary-600'
-                      : 'bg-gray-100 text-gray-600'
-                  }`}
-                >
-                  {contentType === 'grant'
-                    ? work.note?.post?.grant?.applicants?.length || 0
-                    : metadata.metrics.reviewComments || 0}
-                </span>
               </div>
             ),
           },
@@ -237,7 +272,7 @@ export const WorkTabs = ({
             label: (
               <div className="flex items-center">
                 <Icon
-                  name="earn1"
+                  name={activeTab === 'bounties' ? 'solidEarn' : 'earn1'}
                   size={16}
                   color={activeTab === 'bounties' ? '#3971ff' : '#6B7280'}
                 />
@@ -249,7 +284,14 @@ export const WorkTabs = ({
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {metadata.metrics.bountyComments || 0}
+                  {hasOpenBounties && canDisplayBountyAmount
+                    ? formatCurrency({
+                        amount: totalBountyAmount,
+                        showUSD,
+                        exchangeRate,
+                        shorten: true,
+                      })
+                    : 0}
                 </span>
               </div>
             ),

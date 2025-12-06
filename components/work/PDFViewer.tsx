@@ -35,11 +35,12 @@ interface PDFViewerProps {
 
 /**
  * Lightweight PDF viewer built with PDF.js that supports
- * 1. Rendering pages sequentially
- * 2. Zooming in/out
- * 3. Clickable annotation links
- * 4. Selectable and highlightable text via text layer
- * 5. High-DPI crisp rendering using devicePixelRatio scaling
+ * 1. Progressive page rendering (pages appear as they load)
+ * 2. Lazy loading with Intersection Observer (off-screen pages load on scroll)
+ * 3. Zooming in/out
+ * 4. Clickable annotation links
+ * 5. Selectable and highlightable text via text layer
+ * 6. High-DPI crisp rendering using devicePixelRatio scaling
  */
 const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -50,12 +51,17 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
   const [isRendering, setIsRendering] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Limit how many pages are rendered in parallel to avoid main-thread
-  // starvation yet still utilize CPU cores better than purely sequential
-  // rendering. Tune this constant based on typical device capabilities –
-  // 4 provides a good balance for modern laptops/desktops while still
-  // keeping memory usage reasonable.
-  const MAX_CONCURRENT_PAGE_RENDER = 4;
+  // Track which pages have been rendered to avoid duplicate work
+  const renderedPagesRef = useRef<Set<number>>(new Set());
+  // Track page placeholder elements for lazy loading
+  const pagePlaceholdersRef = useRef<Map<number, HTMLDivElement>>(new Map());
+  // Intersection observer for lazy loading
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  // Track if onReady has been called
+  const onReadyCalledRef = useRef(false);
+
+  // How many pages to render immediately (before lazy loading kicks in)
+  const INITIAL_PAGES_TO_RENDER = 3;
 
   // Inject text layer styles once
   useEffect(() => {
@@ -66,11 +72,7 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
     document.head.appendChild(style);
   }, []);
 
-  // Track whether we've already pointed PDF.js to its worker. Mutating the
-  // pdfjs-dist *module namespace* directly (e.g. `pdfjsLib._workerConfigured`)
-  // isn't allowed in ESM — it leads to "Attempted import error" messages in
-  // Next.js. Instead we keep the flag in a local variable that lives for the
-  // lifetime of the module instance (one per browser tab).
+  // Track whether we've already pointed PDF.js to its worker.
   const WORKER_CONFIGURED_FLAG = useRef(false);
 
   useEffect(() => {
@@ -80,132 +82,223 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
     WORKER_CONFIGURED_FLAG.current = true;
   }, []);
 
-  // Track a shared destroy promise across viewer instances to avoid triggering
-  // pdfjs race conditions where a new `getDocument` is called while a previous
-  // one's `destroy()` is still in-flight (see pdf.js issue #16777).
+  // Track a shared destroy promise across viewer instances
   let pdfDestroyInFlight: Promise<void> | null = null;
 
-  // Utility to render a single page
-  const renderPage = useCallback(async (page: any, scaleFactor: number) => {
-    const viewport = page.getViewport({ scale: scaleFactor });
-    const pageContainer = document.createElement('div');
-    pageContainer.className = 'relative mb-6 last:mb-0 flex justify-center';
-    pageContainer.style.width = `${viewport.width}px`;
+  // Render a single page into its placeholder - optimized for speed
+  const renderPageIntoPlaceholder = useCallback(
+    async (pageNumber: number, placeholder: HTMLDivElement, scaleFactor: number) => {
+      const pdf = pdfRef.current;
+      if (!pdf || renderedPagesRef.current.has(pageNumber)) return;
 
-    // Canvas for main raster layer
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    if (!context) return;
+      // Mark as rendered immediately to prevent duplicate renders
+      renderedPagesRef.current.add(pageNumber);
 
-    const outputScale = window.devicePixelRatio || 1;
-    canvas.width = viewport.width * outputScale;
-    canvas.height = viewport.height * outputScale;
-    canvas.style.width = `${viewport.width}px`;
-    canvas.style.height = `${viewport.height}px`;
+      try {
+        const page = await pdf.getPage(pageNumber);
+        const viewport = page.getViewport({ scale: scaleFactor });
 
-    // Prepare render task with scaling transform for HiDPI
-    const renderContext = {
-      canvasContext: context,
-      viewport,
-      transform: outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : undefined,
-    } as any;
+        // Clear placeholder content (remove skeleton)
+        placeholder.innerHTML = '';
+        placeholder.style.height = 'auto';
+        placeholder.style.minHeight = 'auto';
 
-    pageContainer.appendChild(canvas);
+        // Create page container
+        const pageContainer = document.createElement('div');
+        pageContainer.className = 'relative flex justify-center';
+        pageContainer.style.width = `${viewport.width}px`;
 
-    // Text layer div
-    const textLayerDiv = document.createElement('div');
-    textLayerDiv.className = 'textLayer';
-    // Required by pdf.js 4+: ensures correct positioning when the viewport is
-    // scaled. Without this the text layer is slightly mis-aligned.
-    textLayerDiv.style.setProperty('--scale-factor', String(scaleFactor));
-    pageContainer.appendChild(textLayerDiv);
+        // Canvas for main raster layer
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        if (!context) return;
 
-    if (containerRef.current) {
-      containerRef.current.appendChild(pageContainer);
-    }
+        const outputScale = window.devicePixelRatio || 1;
+        canvas.width = viewport.width * outputScale;
+        canvas.height = viewport.height * outputScale;
+        canvas.style.width = `${viewport.width}px`;
+        canvas.style.height = `${viewport.height}px`;
 
-    // Render the main layer
-    await page.render(renderContext).promise;
+        const renderContext = {
+          canvasContext: context,
+          viewport,
+          transform: outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : undefined,
+        } as any;
 
-    // Render the selectable text layer
-    const textContent = await page.getTextContent();
-    // Dynamically import TextLayer to avoid type resolution issues in TS
-    const { TextLayer } = (await import('pdfjs-dist/build/pdf.mjs')) as any;
-    const textLayer = new TextLayer({
-      container: textLayerDiv as HTMLDivElement,
-      textContentSource: textContent,
-      viewport,
-    });
-    await textLayer.render();
+        pageContainer.appendChild(canvas);
+        placeholder.appendChild(pageContainer);
 
-    // Handle link annotations to make them clickable
-    const annotations = await page.getAnnotations();
-    annotations.forEach((annot: any) => {
-      if (annot.subtype === 'Link' && !!annot.url) {
-        const linkEl = document.createElement('a');
-        linkEl.href = annot.url;
-        linkEl.target = '_blank';
-        linkEl.rel = 'noopener noreferrer';
-        linkEl.style.position = 'absolute';
-        const rect = (pdfjsLib as any).Util.normalizeRect(annot.rect);
-        const [x1, y1, x2, y2] = viewport.convertToViewportRectangle(rect);
-        const left = Math.min(x1, x2);
-        const top = Math.min(y1, y2);
-        const width = Math.abs(x1 - x2);
-        const height = Math.abs(y1 - y2);
-        linkEl.style.left = `${left}px`;
-        linkEl.style.top = `${top}px`;
-        linkEl.style.width = `${width}px`;
-        linkEl.style.height = `${height}px`;
-        linkEl.style.cursor = 'pointer';
-        linkEl.style.background = 'rgba(0,0,0,0)';
-        pageContainer.appendChild(linkEl);
+        // Render canvas first - this is the visual priority
+        await page.render(renderContext).promise;
+
+        // Call onReady after first page renders (user can see content!)
+        if (!onReadyCalledRef.current) {
+          onReadyCalledRef.current = true;
+          onReady?.();
+        }
+
+        // Defer text layer and annotations to not block the visual render
+        // Use requestIdleCallback if available, otherwise setTimeout
+        const deferWork = (callback: () => void) => {
+          if ('requestIdleCallback' in window) {
+            (window as any).requestIdleCallback(callback, { timeout: 1000 });
+          } else {
+            setTimeout(callback, 50);
+          }
+        };
+
+        deferWork(async () => {
+          try {
+            // Text layer div
+            const textLayerDiv = document.createElement('div');
+            textLayerDiv.className = 'textLayer';
+            textLayerDiv.style.setProperty('--scale-factor', String(scaleFactor));
+            pageContainer.appendChild(textLayerDiv);
+
+            // Render the selectable text layer
+            const textContent = await page.getTextContent();
+            const { TextLayer } = (await import('pdfjs-dist/build/pdf.mjs')) as any;
+            const textLayer = new TextLayer({
+              container: textLayerDiv as HTMLDivElement,
+              textContentSource: textContent,
+              viewport,
+            });
+            await textLayer.render();
+
+            // Handle link annotations
+            const annotations = await page.getAnnotations();
+            annotations.forEach((annot: any) => {
+              if (annot.subtype === 'Link' && !!annot.url) {
+                const linkEl = document.createElement('a');
+                linkEl.href = annot.url;
+                linkEl.target = '_blank';
+                linkEl.rel = 'noopener noreferrer';
+                linkEl.style.position = 'absolute';
+                const rect = (pdfjsLib as any).Util.normalizeRect(annot.rect);
+                const [x1, y1, x2, y2] = viewport.convertToViewportRectangle(rect);
+                const left = Math.min(x1, x2);
+                const top = Math.min(y1, y2);
+                const width = Math.abs(x1 - x2);
+                const height = Math.abs(y1 - y2);
+                linkEl.style.left = `${left}px`;
+                linkEl.style.top = `${top}px`;
+                linkEl.style.width = `${width}px`;
+                linkEl.style.height = `${height}px`;
+                linkEl.style.cursor = 'pointer';
+                linkEl.style.background = 'rgba(0,0,0,0)';
+                pageContainer.appendChild(linkEl);
+              }
+            });
+          } catch {
+            /* text layer is non-critical, ignore errors */
+          }
+        });
+      } catch (err) {
+        // Page render failed, allow retry
+        renderedPagesRef.current.delete(pageNumber);
+        console.error(`Failed to render page ${pageNumber}:`, err);
       }
-    });
-  }, []);
+    },
+    [onReady]
+  );
 
-  // Render or re-render the entire document
-  const renderDocument = useCallback(async () => {
-    const pdf = pdfRef.current;
-    const container = containerRef.current;
-    if (!pdf || !container) return;
+  // Create placeholders for all pages and set up lazy loading
+  const setupDocument = useCallback(
+    async (pdf: any, scaleFactor: number) => {
+      const container = containerRef.current;
+      if (!container) return;
 
-    setIsRendering(true);
-    container.innerHTML = '';
+      setIsRendering(true);
+      container.innerHTML = '';
+      renderedPagesRef.current.clear();
+      pagePlaceholdersRef.current.clear();
+      onReadyCalledRef.current = false;
 
-    const totalPages = pdf.numPages;
-    const inFlight: Promise<void>[] = [];
-
-    for (let pageNumber = 1; pageNumber <= totalPages; pageNumber++) {
-      // Kick off page retrieval + rendering immediately
-      const pagePromise = pdf.getPage(pageNumber).then((page: any) => renderPage(page, scale));
-
-      inFlight.push(pagePromise);
-
-      // When we reach the concurrency limit, wait for all current tasks
-      // before continuing. This throttles work while still allowing the
-      // browser to parallelize expensive rasterization operations across
-      // multiple threads/cores.
-      if (inFlight.length >= MAX_CONCURRENT_PAGE_RENDER) {
-        await Promise.all(inFlight);
-        inFlight.length = 0; // reset array without reallocating
+      // Disconnect existing observer
+      if (observerRef.current) {
+        observerRef.current.disconnect();
       }
-    }
 
-    // Await any leftover pages that didn't fill the final batch.
-    if (inFlight.length) {
-      await Promise.all(inFlight);
-    }
-    setIsRendering(false);
-    onReady?.();
-  }, [scale, onReady, renderPage]);
+      const totalPages = pdf.numPages;
+
+      // Get first page to estimate dimensions for placeholders
+      const firstPage = await pdf.getPage(1);
+      const defaultViewport = firstPage.getViewport({ scale: scaleFactor });
+      const estimatedHeight = defaultViewport.height;
+      const estimatedWidth = defaultViewport.width;
+
+      // Create placeholders for ALL pages immediately (lightweight)
+      for (let pageNumber = 1; pageNumber <= totalPages; pageNumber++) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'relative mb-6 last:mb-0 flex justify-center items-center';
+        placeholder.style.minHeight = `${estimatedHeight}px`;
+        placeholder.style.width = `${estimatedWidth}px`;
+        placeholder.dataset.pageNumber = String(pageNumber);
+
+        // Add a subtle skeleton loader
+        const skeleton = document.createElement('div');
+        skeleton.className = 'absolute inset-0 bg-gray-100 animate-pulse rounded';
+        placeholder.appendChild(skeleton);
+
+        container.appendChild(placeholder);
+        pagePlaceholdersRef.current.set(pageNumber, placeholder);
+      }
+
+      // Render initial pages immediately (no waiting for intersection)
+      const initialRenderPromises: Promise<void>[] = [];
+      for (let i = 1; i <= Math.min(INITIAL_PAGES_TO_RENDER, totalPages); i++) {
+        const placeholder = pagePlaceholdersRef.current.get(i);
+        if (placeholder) {
+          initialRenderPromises.push(renderPageIntoPlaceholder(i, placeholder, scaleFactor));
+        }
+      }
+
+      // Wait for initial pages to render before hiding main loader
+      await Promise.all(initialRenderPromises);
+      setIsRendering(false);
+
+      // Set up Intersection Observer for lazy loading remaining pages
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const pageNumber = parseInt(
+                (entry.target as HTMLElement).dataset.pageNumber || '0',
+                10
+              );
+              if (pageNumber > 0 && !renderedPagesRef.current.has(pageNumber)) {
+                const placeholder = pagePlaceholdersRef.current.get(pageNumber);
+                if (placeholder) {
+                  renderPageIntoPlaceholder(pageNumber, placeholder, scaleFactor);
+                }
+              }
+            }
+          });
+        },
+        {
+          root: null, // viewport
+          rootMargin: '200px 0px', // Start loading 200px before visible
+          threshold: 0,
+        }
+      );
+
+      // Observe all placeholders (except already rendered initial pages)
+      for (let pageNumber = INITIAL_PAGES_TO_RENDER + 1; pageNumber <= totalPages; pageNumber++) {
+        const placeholder = pagePlaceholdersRef.current.get(pageNumber);
+        if (placeholder) {
+          observerRef.current.observe(placeholder);
+        }
+      }
+    },
+    [renderPageIntoPlaceholder]
+  );
 
   // Load document when URL changes
   useEffect(() => {
     let destroyed = false;
 
     (async () => {
-      // Wait for any previous destroy() to finish (hot-reload or tab change).
+      // Wait for any previous destroy() to finish
       if (pdfDestroyInFlight) {
         try {
           await pdfDestroyInFlight;
@@ -224,8 +317,7 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
           pdfRef.current = pdfDoc;
 
           // Auto-fit: compute a scale factor so the first page fills the
-          // available width of the container. This gives a nicer default view
-          // than a hard-coded 100 %.
+          // available width of the container.
           (async () => {
             try {
               const firstPage = await pdfDoc.getPage(1);
@@ -233,27 +325,25 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
               const containerWidth = containerRef.current?.clientWidth || viewport.width;
               let fitScale = containerWidth / viewport.width;
 
-              // On mobile (narrow screens), enforce a minimum scale so text
-              // remains readable. Users can scroll horizontally if needed.
+              // On mobile, enforce a minimum scale so text remains readable
               const isMobile = containerWidth < 640;
               const MIN_MOBILE_SCALE = 1.0;
               if (isMobile && fitScale < MIN_MOBILE_SCALE) {
                 fitScale = MIN_MOBILE_SCALE;
               }
 
-              // Only apply if it differs meaningfully from the default to avoid
-              // triggering an unnecessary re-render when it's already a good
-              // fit (e.g. small pages).
-              if (Math.abs(fitScale - 1) > 0.01) {
-                setScale(parseFloat(fitScale.toFixed(2))); // keep nice rounding
-                return; // renderDocument will be invoked by the scale change
+              const newScale = parseFloat(fitScale.toFixed(2));
+              if (Math.abs(newScale - scale) > 0.01) {
+                setScale(newScale);
+                // setupDocument will be called by the scale change effect
+                return;
               }
             } catch {
               /* fall back to default scale */
             }
 
-            // Fallback: render at the current (default) scale.
-            renderDocument();
+            // Fallback: setup at the current scale
+            setupDocument(pdfDoc, scale);
           })();
         })
         .catch((err: any) => {
@@ -265,6 +355,13 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
 
     return () => {
       destroyed = true;
+
+      // Disconnect observer
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+
       // Clean up rendered document
       if (pdfRef.current) {
         pdfRef.current.destroy();
@@ -283,9 +380,9 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
   // Re-render when scale changes
   useEffect(() => {
     if (pdfRef.current) {
-      renderDocument();
+      setupDocument(pdfRef.current, scale);
     }
-  }, [scale, renderDocument]);
+  }, [scale, setupDocument]);
 
   // Zoom handlers
   const zoomIn = () => setScale((prev) => Math.min(prev + 0.25, 3));

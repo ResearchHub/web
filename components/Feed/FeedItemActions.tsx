@@ -29,6 +29,7 @@ import { Topic } from '@/types/topic';
 import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { BountyTooltip } from '@/components/tooltips/BountyTooltip';
+import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -202,6 +203,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
   const userListsEnabled = useUserListsEnabled();
+  const isTouchDevice = useIsTouchDevice();
   // State for dropdown menu
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -413,7 +415,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                   tooltip=""
                   label="Peer Review"
                   showTooltip={false}
-                  onClick={handleReviewClick}
+                  onClick={!isTouchDevice ? handleReviewClick : undefined}
                   className="hover:!bg-amber-50 hover:!text-amber-600 hover:!border-amber-300"
                 />
               </Tooltip>
@@ -459,7 +461,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     />
                   }
                   showTooltip={false}
-                  onClick={handleBountyClick}
+                  onClick={!isTouchDevice ? handleBountyClick : undefined}
                 />
               </Tooltip>
             ) : (
