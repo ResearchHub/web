@@ -1,9 +1,7 @@
 'use client';
 
 import { FC, useState, useContext } from 'react';
-import { MoreHorizontal, Flag } from 'lucide-react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark } from '@fortawesome/free-regular-svg-icons';
+import { MoreHorizontal, Flag, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
@@ -119,9 +117,12 @@ export const FeedItemMenuButton: FC<FeedItemMenuButtonProps> = ({
       >
         {listDetailContext && relatedDocumentUnifiedDocumentId && (
           <>
-            <BaseMenuItem onClick={handleRemoveFromList} className="flex items-center gap-2">
-              <FontAwesomeIcon icon={faBookmark} className="w-4 h-4" />
-              <span>Remove</span>
+            <BaseMenuItem
+              onClick={handleRemoveFromList}
+              className="flex items-center gap-2 text-gray-600"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Remove from list</span>
             </BaseMenuItem>
             <div className="h-px my-1 bg-gray-200" />
           </>
