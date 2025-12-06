@@ -100,6 +100,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
             votableEntityId={votableEntityId}
             relatedDocumentId={relatedDocumentId}
             relatedDocumentContentType={relatedDocumentContentType}
+            relatedDocumentUnifiedDocumentId={post.unifiedDocumentId}
           />
         }
         leftContent={

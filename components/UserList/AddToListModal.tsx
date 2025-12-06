@@ -11,12 +11,12 @@ import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { UserListOverview } from '@/components/UserList/lib/user-list';
 import { Plus, ArrowLeft } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark } from '@fortawesome/pro-light-svg-icons';
-import { faBookmark as faBookmarkSolid } from '@fortawesome/pro-solid-svg-icons';
+import { faBookmark } from '@fortawesome/free-regular-svg-icons';
+import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
 import { sortListsByDocumentMembership } from '@/components/UserList/lib/listUtils';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
@@ -130,26 +130,27 @@ function ListSelectItem({
   const isInList = listIdsContainingDocument.includes(list.id);
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
       onClick={onToggle}
       disabled={isRemoving}
-      className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors text-left hover:bg-gray-50 ${
-        isRemoving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-      }`}
+      className={cn(
+        'flex items-center gap-3 w-full !p-3 rounded-lg transition-colors text-left hover:bg-gray-50 !h-auto justify-start !text-base !font-normal',
+        isRemoving && 'opacity-50 cursor-not-allowed'
+      )}
     >
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-gray-900 truncate">{list.name}</div>
+        <span className="font-medium text-gray-900 truncate">{list.name}</span>
       </div>
       {isRemoving ? (
         <Loader size="sm" />
       ) : (
         <FontAwesomeIcon
           icon={isInList ? faBookmarkSolid : faBookmark}
-          className={`w-5 h-5 transition-colors ${isInList ? 'text-green-600' : 'text-gray-400'}`}
+          className={`w-5 h-5 transition-colors ${isInList ? 'text-gray-900' : 'text-gray-400'}`}
         />
       )}
-    </button>
+    </Button>
   );
 }
 
@@ -188,13 +189,15 @@ export function AddToListModal({
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isLoading && overviewLists.length > 0) {
+    if (isOpen && !isLoading && overviewLists.length > 0) {
       setSortedLists(sortListsByDocumentMembership(overviewLists, listIdsContainingDocument));
-    } else if (overviewLists.length === 0) {
+    } else if (!isOpen) {
       setSortedLists([]);
     }
+    // Note: overviewLists and listIdsContainingDocument are intentionally omitted from deps.
+    // We only want to sort once when the modal opens and loading completes, not on every list update.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]);
+  }, [isOpen, isLoading]);
 
   const handleCreateList = async () => {
     const trimmedListName = newListName.trim();
@@ -213,7 +216,7 @@ export function AddToListModal({
   };
 
   const handleAddToList = async (id: ID) => {
-    const listToAddTo = overviewLists.find((list) => list.id === id);
+    const listToAddTo = overviewLists.find((list) => idMatch(list.id, id));
     if (!listToAddTo) return;
 
     setTogglingListId(id);
@@ -249,7 +252,7 @@ export function AddToListModal({
   };
 
   const handleRemoveFromList = async (id: ID) => {
-    const listToRemoveFrom = overviewLists.find((list) => list.id === id);
+    const listToRemoveFrom = overviewLists.find((list) => idMatch(list.id, id));
     if (!listToRemoveFrom) return;
 
     const documentInList = listToRemoveFrom.unifiedDocuments.find(
@@ -267,16 +270,17 @@ export function AddToListModal({
         (t) => (
           <div className="flex items-center gap-2">
             <span className="text-gray-900">{TOAST_MESSAGES.ITEM_REMOVED}</span>
-            <button
+            <Button
+              variant="link"
               onClick={async (e) => {
                 e.stopPropagation();
                 toast.dismiss(t.id);
                 await handleAddToList(id);
               }}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="!p-0 !h-auto !text-base text-blue-600 hover:text-blue-700 hover:no-underline font-medium"
             >
               Undo
-            </button>
+            </Button>
           </div>
         ),
         { duration: 4000 }
@@ -294,12 +298,13 @@ export function AddToListModal({
   const modalTitle = showCreateForm ? 'Create List' : 'Save to…';
 
   const headerAction = showCreateForm ? (
-    <button
+    <Button
+      variant="ghost"
       onClick={closeCreateForm}
-      className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 -ml-2"
+      className="flex items-center gap-1 !p-0 !h-auto text-sm text-gray-600 hover:text-gray-900 hover:bg-transparent -ml-2"
     >
       <ArrowLeft className="w-4 h-4" />
-    </button>
+    </Button>
   ) : undefined;
 
   const footer = () => {
@@ -363,7 +368,7 @@ export function AddToListModal({
               <div className="space-y-2 md:!max-h-96 overflow-y-auto">
                 {listsToDisplay.map((list) => {
                   const isInList = listIdsContainingDocument.includes(list.id);
-                  const isCurrentlyToggling = togglingListId === list.id;
+                  const isCurrentlyToggling = idMatch(togglingListId, list.id);
 
                   return (
                     <ListSelectItem

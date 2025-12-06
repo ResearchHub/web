@@ -19,6 +19,7 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useRouter } from 'next/navigation';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
+import { useAddToListHandler } from '@/components/UserList/lib/UserListsContext';
 import { Bounty } from '@/types/bounty';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -211,6 +212,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     relatedDocumentUnifiedDocumentId
   );
 
+  const { isTogglingDefaultList, handleAddToList } = useAddToListHandler({
+    unifiedDocumentId: relatedDocumentUnifiedDocumentId,
+    isInList: isDocumentInList,
+    onOpenModal: () => setIsAddToListModalOpen(true),
+    executeAuthenticatedAction,
+  });
+
   const { vote, isVoting } = useVote({
     votableEntityId,
     feedContentType,
@@ -292,13 +300,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     if (href) {
       navigateToTab('bounties');
     }
-  };
-
-  const handleOpenAddToListModal = (e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-    }
-    executeAuthenticatedAction(() => setIsAddToListModalOpen(true));
   };
 
   const handleCloseAddToListModal = () => {
@@ -511,8 +512,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     ? 'text-green-600 hover:text-green-600'
                     : 'text-gray-900 hover:text-gray-600'
                 )}
-                tooltip={showTooltips && !isDocumentInList ? 'Save' : undefined}
-                onClick={handleOpenAddToListModal}
+                tooltip={'Lists'}
+                onClick={handleAddToList}
+                disabled={isTogglingDefaultList}
               >
                 <FontAwesomeIcon
                   icon={isDocumentInList ? faBookmarkSolid : faBookmark}

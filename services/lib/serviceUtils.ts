@@ -1,4 +1,11 @@
 import { ApiError } from '@/services/types/api';
+import { ID } from '@/types/root';
+
+export const isJsonParseError = (err: unknown): boolean =>
+  err instanceof SyntaxError || (err instanceof Error && err.name === 'SyntaxError');
+
+// eslint-disable-next-line eqeqeq
+export const idMatch = (a: ID, b: ID) => a == b;
 
 export function extractApiErrorMessage(error: unknown, defaultMessage: string): string {
   if (error instanceof ApiError) {

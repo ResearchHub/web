@@ -98,6 +98,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             votableEntityId={votableEntityId}
             relatedDocumentId={relatedDocumentId}
             relatedDocumentContentType={relatedDocumentContentType}
+            relatedDocumentUnifiedDocumentId={grant.unifiedDocumentId}
           />
         }
         leftContent={

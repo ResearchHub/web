@@ -16,7 +16,7 @@ interface ListModalProps {
 
 const CONFIG = {
   create: { title: 'Create List', submit: 'Create', loading: 'Creating...' },
-  edit: { title: 'Edit List', submit: 'Save', loading: 'Saving...' },
+  edit: { title: 'Rename List', submit: 'Save', loading: 'Saving...' },
   delete: { title: 'Delete List', submit: 'Delete', loading: 'Deleting...' },
 };
 

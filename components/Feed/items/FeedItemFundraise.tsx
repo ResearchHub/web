@@ -131,6 +131,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             votableEntityId={votableEntityId}
             relatedDocumentId={relatedDocumentId}
             relatedDocumentContentType={relatedDocumentContentType}
+            relatedDocumentUnifiedDocumentId={post.unifiedDocumentId}
           />
         }
         leftContent={
