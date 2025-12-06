@@ -256,11 +256,10 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
               </div>
             </aside>
           )}
+          {/* Mobile Bottom Navigation */}
+          <MobileBottomNav />
         </ScrollContainerProvider>
       </div>
-
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
@@ -15,6 +15,7 @@ import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 
 interface NavItem {
   label: string;
@@ -65,10 +66,34 @@ const isPathActive = (path: string, currentPath: string): boolean => {
 
 export const MobileBottomNav: React.FC = () => {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isScrollingDown, setIsScrollingDown] = useState(false);
+  const lastScrollY = useRef(0);
   const router = useRouter();
   const pathname = usePathname() || '';
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD, toggleCurrency } = useCurrencyPreference();
+  const scrollContainerRef = useScrollContainer();
+
+  // Track scroll direction using the scroll container from context
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef?.current;
+
+    const handleScroll = () => {
+      const currentScrollY = scrollContainer ? scrollContainer.scrollTop : window.scrollY;
+      const scrollThreshold = 10; // Minimum scroll amount to trigger change
+
+      if (Math.abs(currentScrollY - lastScrollY.current) < scrollThreshold) {
+        return;
+      }
+
+      setIsScrollingDown(currentScrollY > lastScrollY.current && currentScrollY > 50);
+      lastScrollY.current = currentScrollY;
+    };
+
+    const target = scrollContainer || window;
+    target.addEventListener('scroll', handleScroll, { passive: true });
+    return () => target.removeEventListener('scroll', handleScroll);
+  }, [scrollContainerRef]);
 
   const handleNavClick = (item: NavItem) => {
     if (item.isMore) {
@@ -93,7 +118,7 @@ export const MobileBottomNav: React.FC = () => {
   };
 
   const renderIcon = (item: NavItem, isActive: boolean) => {
-    const iconColor = isActive ? '#3971ff' : '#6b7280';
+    const iconColor = isActive ? '#3971ff' : '#000000';
     const iconSize = 24;
 
     switch (item.iconKey) {
@@ -168,7 +193,14 @@ export const MobileBottomNav: React.FC = () => {
   return (
     <>
       {/* Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] tablet:!hidden">
+      <nav
+        className={`fixed bottom-0 left-0 right-0 z-[100] border-t border-gray-200 tablet:!hidden transition-all duration-300 ease-in-out ${
+          isScrollingDown
+            ? 'opacity-40 shadow-none'
+            : 'opacity-100 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]'
+        }`}
+        style={{ backgroundColor: isScrollingDown ? 'rgba(255, 255, 255, 0.3)' : 'white' }}
+      >
         <div className="flex items-center justify-around h-16 px-2 pb-safe">
           {mainNavItems.map((item) => {
             const isActive = item.isMore
@@ -188,7 +220,7 @@ export const MobileBottomNav: React.FC = () => {
                 </div>
                 <span
                   className={`text-[11px] mt-1 font-medium ${
-                    isActive ? 'text-primary-600' : 'text-gray-500'
+                    isActive ? 'text-primary-600' : 'text-black'
                   }`}
                 >
                   {item.label}
