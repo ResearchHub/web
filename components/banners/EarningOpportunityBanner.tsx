@@ -1,6 +1,7 @@
 'use client';
 
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
 import { calculateOpenBountiesAmount } from '@/components/Bounty/lib/bountyUtil';
@@ -22,12 +23,16 @@ export const EarningOpportunityBanner = ({
   onViewBounties,
 }: EarningOpportunityBannerProps) => {
   const { showUSD } = useCurrencyPreference();
+  const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
   const router = useRouter();
 
   // Don't show banner if no open bounties
   if (!metadata.bounties || metadata.openBounties === 0) {
     return null;
   }
+
+  // Check if we can display the bounty amount (exchange rate loaded if USD preferred)
+  const canDisplayAmount = !showUSD || (showUSD && !isExchangeRateLoading && exchangeRate > 0);
 
   const handleViewBounties = () => {
     if (onViewBounties) {
@@ -53,18 +58,22 @@ export const EarningOpportunityBanner = ({
       <div className="p-4">
         <div className="flex items-center gap-1 flex-wrap">
           <span className="text-base font-semibold text-orange-600">Earn</span>
-          <DollarSign className="w-4 h-4 text-orange-600 -mr-[6px]" strokeWidth={2.5} />
-          <CurrencyBadge
-            amount={calculateOpenBountiesAmount(metadata.bounties)}
-            variant="text"
-            size="sm"
-            currency={showUSD ? 'USD' : 'RSC'}
-            showExchangeRate={false}
-            showText={true}
-            showIcon={false}
-            textColor="text-orange-600"
-            className="font-semibold p-0 text-base inline-flex"
-          />
+          {canDisplayAmount && (
+            <>
+              <DollarSign className="w-4 h-4 text-orange-600 -mr-[6px]" strokeWidth={2.5} />
+              <CurrencyBadge
+                amount={calculateOpenBountiesAmount(metadata.bounties)}
+                variant="text"
+                size="sm"
+                currency={showUSD ? 'USD' : 'RSC'}
+                showExchangeRate={false}
+                showText={true}
+                showIcon={false}
+                textColor="text-orange-600"
+                className="font-semibold p-0 text-base inline-flex"
+              />
+            </>
+          )}
         </div>
         <p className="mt-1.5 text-sm text-gray-600 leading-snug">
           Earn ResearchCoin by peer reviewing this paper.

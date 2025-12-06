@@ -258,7 +258,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
       </div>
       {/* Title & Actions */}
       {work.type === 'preprint' && <ContentTypeBadge type="preprint" size="lg" />}
-      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
+      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-0" />
 
       <WorkLineItems
         work={work}

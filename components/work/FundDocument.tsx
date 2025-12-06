@@ -225,7 +225,7 @@ export const FundDocument = ({
           Preprint
         </div>
       )}
-      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
+      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-0" />
 
       <WorkLineItems
         work={work}
