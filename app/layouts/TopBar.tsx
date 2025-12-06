@@ -415,7 +415,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
       <div className="relative">
         <button
           onClick={() => setIsSearchModalOpen(true)}
-          className="flex items-center w-full md:!w-80 max-w-md mx-auto h-10 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full transition-colors text-left group"
+          className="flex items-center w-full md:!w-80 max-w-md mx-auto h-10 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors text-left group"
         >
           <SearchIcon className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
           <span
