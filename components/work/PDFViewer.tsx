@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import * as pdfjsLib from 'pdfjs-dist/webpack';
 // Note: TextLayer is not typed in the shipped pdfjs-dist types yet, so we load it dynamically.
-import { Minus, Plus, Maximize2, Minimize2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, Minimize2, Download } from 'lucide-react';
+import { handleDownload } from '@/utils/download';
 
 // Minimal CSS for PDF.js text layer to enable selectable text and proper layout
 const TEXT_LAYER_STYLE = `
@@ -50,6 +51,7 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
   const [scale, setScale] = useState(1);
   const [isRendering, setIsRendering] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
 
   // Track which pages have been rendered to avoid duplicate work
   const renderedPagesRef = useRef<Set<number>>(new Set());
@@ -59,6 +61,10 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
   const observerRef = useRef<IntersectionObserver | null>(null);
   // Track if onReady has been called
   const onReadyCalledRef = useRef(false);
+  // Store the base scale (for normal view) so we can restore it when exiting fullscreen
+  const baseScaleRef = useRef<number>(1);
+  // Store the PDF's native page width for scale calculations
+  const nativePageWidthRef = useRef<number>(612); // default US Letter width in points
 
   // How many pages to render immediately (before lazy loading kicks in)
   const INITIAL_PAGES_TO_RENDER = 3;
@@ -322,6 +328,9 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
             try {
               const firstPage = await pdfDoc.getPage(1);
               const viewport = firstPage.getViewport({ scale: 1 });
+              // Store native page width for fullscreen scale calculations
+              nativePageWidthRef.current = viewport.width;
+
               const containerWidth = containerRef.current?.clientWidth || viewport.width;
               let fitScale = containerWidth / viewport.width;
 
@@ -333,6 +342,9 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
               }
 
               const newScale = parseFloat(fitScale.toFixed(2));
+              // Store as base scale for restoration when exiting fullscreen
+              baseScaleRef.current = newScale;
+
               if (Math.abs(newScale - scale) > 0.01) {
                 setScale(newScale);
                 // setupDocument will be called by the scale change effect
@@ -388,83 +400,154 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
   const zoomIn = () => setScale((prev) => Math.min(prev + 0.25, 3));
   const zoomOut = () => setScale((prev) => Math.max(prev - 0.25, 0.5));
 
-  // Fullscreen change handler
+  // Toggle fullscreen overlay mode with auto-scaling
+  const toggleFullscreen = useCallback(() => {
+    setIsFullscreen((prev) => {
+      const enteringFullscreen = !prev;
+
+      if (enteringFullscreen) {
+        // Calculate scale to fit the full viewport width (with some padding for scrollbar)
+        const viewportWidth = window.innerWidth - 40; // 40px for potential scrollbar
+        const nativeWidth = nativePageWidthRef.current;
+        let fullscreenScale = viewportWidth / nativeWidth;
+
+        // Cap at a reasonable max scale to avoid overly huge pages
+        fullscreenScale = Math.min(fullscreenScale, 2.5);
+        fullscreenScale = parseFloat(fullscreenScale.toFixed(2));
+
+        // Only update if meaningfully different
+        if (Math.abs(fullscreenScale - scale) > 0.01) {
+          setScale(fullscreenScale);
+        }
+      } else {
+        // Restore the base scale when exiting fullscreen
+        if (Math.abs(baseScaleRef.current - scale) > 0.01) {
+          setScale(baseScaleRef.current);
+        }
+      }
+
+      return enteringFullscreen;
+    });
+  }, [scale]);
+
+  // Handle Escape key to exit fullscreen and lock body scroll when fullscreen
   useEffect(() => {
-    const handleFsChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+    if (!isFullscreen) return;
+
+    // Lock body scroll
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsFullscreen(false);
+      }
     };
-    document.addEventListener('fullscreenchange', handleFsChange);
-    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isFullscreen]);
+
+  // Track scroll position to show shadow when scrolled
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrolled = window.scrollY > 10;
+      setHasScrolled(scrolled);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    // Check initial scroll position
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const toggleFullscreen = () => {
-    const elem = rootRef.current;
-    if (!elem) return;
-    if (!document.fullscreenElement) {
-      elem.requestFullscreen().catch(() => {
-        /* ignore */
-      });
-    } else {
-      document.exitFullscreen().catch(() => {
-        /* ignore */
-      });
-    }
+  // Download handler
+  const onDownload = () => {
+    handleDownload(url, 'document.pdf');
   };
 
   return (
     <div
       ref={rootRef}
-      className={`${isFullscreen ? 'fixed inset-0 z-50 bg-white overflow-y-auto' : 'relative'} w-full`}
+      className={`${
+        isFullscreen ? 'fixed inset-0 z-50 bg-white overflow-y-auto' : 'relative'
+      } w-full`}
       style={
         isFullscreen
           ? { display: 'flex', flexDirection: 'column', alignItems: 'center' }
           : undefined
       }
     >
-      {/* Zoom controls */}
+      {/* Sticky toolbar */}
       <div
-        className="absolute top-2 right-2 bg-gradient-to-b from-white to-gray-100 backdrop-blur-md rounded-md border border-gray-300 shadow-xl p-0.5 flex items-center z-20 select-none"
-        style={{
-          boxShadow:
-            '0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 white, inset 0 -2px 0 rgba(0,0,0,0.05)',
-        }}
+        className={`sticky top-0 z-30 w-full bg-white transition-shadow duration-200 ${
+          hasScrolled ? 'shadow-md' : 'border-b border-gray-200'
+        }`}
       >
-        {/* Fullscreen toggle */}
-        <button
-          onClick={toggleFullscreen}
-          className="p-2 hover:bg-gray-100 rounded-l disabled:opacity-50"
-          aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
-        >
-          {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-        </button>
+        <div className="flex items-center justify-center py-1.5 px-4 gap-0.5">
+          {/* Zoom controls */}
+          <button
+            onClick={zoomOut}
+            className="p-1.5 hover:bg-gray-100 rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            disabled={scale <= 0.5 || isRendering}
+            aria-label="Zoom out"
+            title="Zoom out"
+          >
+            <ZoomOut className="h-4 w-4 text-gray-500" />
+          </button>
+          <span className="px-2 text-sm font-medium tabular-nums text-gray-600 min-w-[3rem] text-center">
+            {Math.round(scale * 100)}%
+          </span>
+          <button
+            onClick={zoomIn}
+            className="p-1.5 hover:bg-gray-100 rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            disabled={scale >= 3 || isRendering}
+            aria-label="Zoom in"
+            title="Zoom in"
+          >
+            <ZoomIn className="h-4 w-4 text-gray-500" />
+          </button>
 
-        {/* Zoom out */}
-        <button
-          onClick={zoomOut}
-          className="p-2 hover:bg-gray-100 disabled:opacity-50"
-          disabled={scale <= 0.5 || isRendering}
-          aria-label="Zoom out"
-        >
-          <Minus className="h-4 w-4" />
-        </button>
-        <span className="px-3 text-sm font-medium tabular-nums w-14 text-center">
-          {Math.round(scale * 100)}%
-        </span>
-        {/* Zoom in */}
-        <button
-          onClick={zoomIn}
-          className="p-2 hover:bg-gray-100 rounded-r disabled:opacity-50"
-          disabled={scale >= 3 || isRendering}
-          aria-label="Zoom in"
-        >
-          <Plus className="h-4 w-4" />
-        </button>
+          {/* Divider */}
+          <div className="h-5 w-px bg-gray-300 mx-2" />
+
+          {/* Fullscreen toggle */}
+          <button
+            onClick={toggleFullscreen}
+            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+            aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+            title={isFullscreen ? 'Exit (Esc)' : 'Full screen'}
+          >
+            {isFullscreen ? (
+              <Minimize2 className="h-4 w-4 text-gray-500" />
+            ) : (
+              <Maximize2 className="h-4 w-4 text-gray-500" />
+            )}
+          </button>
+
+          {/* Divider */}
+          <div className="h-5 w-px bg-gray-300 mx-2" />
+
+          {/* Download button */}
+          <button
+            onClick={onDownload}
+            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+            aria-label="Download PDF"
+            title="Download PDF"
+          >
+            <Download className="h-4 w-4 text-gray-500" />
+          </button>
+        </div>
       </div>
 
       {/* PDF pages container */}
       <div
         ref={containerRef}
-        className="pdf-pages-wrapper flex flex-col items-center overflow-x-auto"
+        className="pdf-pages-wrapper flex flex-col items-center overflow-x-auto pt-4"
       />
     </div>
   );

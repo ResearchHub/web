@@ -127,7 +127,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
               return (
                 pdfFormat?.url &&
                 !pdfUnavailable && (
-                  <div className="bg-white rounded-lg shadow-sm border mb-6 relative overflow-x-auto">
+                  <div className="bg-white rounded-lg shadow-sm border mb-6 relative">
                     {work.pdfCopyrightAllowsDisplay ? (
                       <DocumentViewer
                         url={pdfFormat.internalUrl || pdfFormat.url}
