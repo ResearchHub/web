@@ -117,14 +117,10 @@ export const FeedItemMenuButton: FC<FeedItemMenuButtonProps> = ({
       >
         {listDetailContext && relatedDocumentUnifiedDocumentId && (
           <>
-            <BaseMenuItem
-              onClick={handleRemoveFromList}
-              className="flex items-center gap-2 text-gray-600"
-            >
+            <BaseMenuItem onClick={handleRemoveFromList} className="flex items-center gap-2">
               <Trash2 className="w-4 h-4" />
               <span>Remove from list</span>
             </BaseMenuItem>
-            <div className="h-px my-1 bg-gray-200" />
           </>
         )}
 
