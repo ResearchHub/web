@@ -187,6 +187,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             >
               <ArrowLeft className="h-5 w-5 text-gray-600" />
             </button>
+            <SearchIcon className="h-5 w-5 text-gray-600 mr-2" />
             <h2 className="text-lg font-semibold text-gray-900">Search</h2>
           </div>
 

@@ -133,7 +133,7 @@ export const PostDocument = ({
   return (
     <div>
       {/* Show on mobile only - desktop shows in right sidebar */}
-      <div className="lg:hidden">
+      <div className="lg:hidden mb-3">
         <EarningOpportunityBanner work={work} metadata={metadata} />
       </div>
       {/* Title & Actions */}

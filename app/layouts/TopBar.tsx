@@ -455,12 +455,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             {/* Mobile page title - next to hamburger/back button */}
             {pageInfo && (
               <div className="flex tablet:!hidden items-center">
-                {/* Show icon on homepage or when there's no title (preprint servers) */}
-                {pageInfo.icon &&
-                  (['/', '/following', '/latest', '/trending', '/for-you'].includes(pathname) ||
-                    !pageInfo.title) && (
-                    <div className={pageInfo.title ? 'mr-2' : ''}>{pageInfo.icon}</div>
-                  )}
+                {pageInfo.icon && (
+                  <div className={pageInfo.title ? 'mr-2' : ''}>{pageInfo.icon}</div>
+                )}
                 {pageInfo.title && (
                   <h1 className="text-lg font-bold text-gray-900 leading-tight">
                     {pageInfo.title}
