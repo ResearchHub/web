@@ -215,7 +215,10 @@ export const FundDocument = ({
 
   return (
     <div>
-      <EarningOpportunityBanner work={work} metadata={metadata} />
+      {/* Show on mobile only - desktop shows in right sidebar */}
+      <div className="lg:hidden">
+        <EarningOpportunityBanner work={work} metadata={metadata} />
+      </div>
       {/* Title & Actions */}
       {work.type === 'preprint' && (
         <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
