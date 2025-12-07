@@ -196,7 +196,7 @@ export const MobileBottomNav: React.FC = () => {
       <nav
         className={`fixed bottom-0 left-0 right-0 z-[100] border-t border-gray-200 tablet:!hidden transition-all duration-300 ease-in-out ${
           isScrollingDown
-            ? 'opacity-40 shadow-none'
+            ? 'opacity-20 shadow-none'
             : 'opacity-100 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]'
         }`}
         style={{ backgroundColor: isScrollingDown ? 'rgba(255, 255, 255, 0.3)' : 'white' }}

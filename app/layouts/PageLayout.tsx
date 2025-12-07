@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode, useState, Suspense, useEffect, useRef } from 'react';
+import { useMobileNavScroll } from '@/hooks/useMobileNavScroll';
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
@@ -70,6 +71,11 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
   const [sidebarTransform, setSidebarTransform] = useState(0);
   const animationFrameId = useRef<number | null>(null);
   const pathname = usePathname();
+
+  // Mobile top nav scroll hide/show
+  const { isHidden: isMobileTopNavHidden } = useMobileNavScroll({
+    scrollContainerRef,
+  });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -159,8 +165,10 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
 
       {/* Fixed TopBar starting from LeftSidebar edge */}
       <div
-        className="fixed top-0 right-0 z-[60] tablet:!z-50 bg-white
-                      left-0 tablet:!left-72 tablet:sidebar-compact:!left-72 tablet:max-sidebar-compact:!left-[70px]"
+        className={`fixed top-0 right-0 z-[60] tablet:!z-50 tablet:!bg-white
+                      left-0 tablet:!left-72 tablet:sidebar-compact:!left-72 tablet:max-sidebar-compact:!left-[70px]
+                      transition-transform duration-300 ease-in-out tablet:!transform-none
+                      ${isMobileTopNavHidden && !isLeftSidebarOpen ? '-translate-y-full' : 'translate-y-0'}`}
       >
         <Suspense fallback={<TopBarSkeleton />}>
           <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
@@ -205,8 +213,9 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
       {/* Center Content Area (Scrolling) */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative"
-        style={{ marginTop: '64px' }}
+        className={`flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative
+                    transition-[margin-top] duration-300 ease-in-out
+                    ${isMobileTopNavHidden && !isLeftSidebarOpen ? 'mt-0 tablet:!mt-16' : 'mt-16'}`}
       >
         <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
           {/* Main Content */}
