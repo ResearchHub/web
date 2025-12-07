@@ -5,6 +5,7 @@ import * as pdfjsLib from 'pdfjs-dist/webpack';
 // Note: TextLayer is not typed in the shipped pdfjs-dist types yet, so we load it dynamically.
 import { ZoomIn, ZoomOut, Maximize2, Minimize2, Download } from 'lucide-react';
 import { handleDownload } from '@/utils/download';
+import { usePinchZoom } from '@/hooks/usePinchZoom';
 
 // Minimal CSS for PDF.js text layer to enable selectable text and proper layout
 const TEXT_LAYER_STYLE = `
@@ -52,6 +53,22 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
   const [isRendering, setIsRendering] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
+
+  // Pinch-to-zoom support for touch devices and trackpads
+  // Returns gestureScale for smooth CSS transform during pinch,
+  // and only triggers re-render on gesture end (debounced)
+  const {
+    ref: pinchZoomRef,
+    gestureScale,
+    isGesturing,
+  } = usePinchZoom<HTMLDivElement>({
+    scale,
+    onScaleChange: setScale,
+    minScale: 0.5,
+    maxScale: 3,
+    sensitivity: 1.2, // Slightly increased sensitivity for natural feel
+    debounceMs: 200, // Wait 200ms after gesture ends before re-rendering
+  });
 
   // Track which pages have been rendered to avoid duplicate work
   const renderedPagesRef = useRef<Set<number>>(new Set());
@@ -544,11 +561,31 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
         </div>
       </div>
 
-      {/* PDF pages container */}
+      {/* Horizontal scroll wrapper for zoomed content on mobile */}
       <div
-        ref={containerRef}
-        className="pdf-pages-wrapper flex flex-col items-center overflow-x-auto pt-4"
-      />
+        ref={pinchZoomRef}
+        className="w-full pt-4"
+        style={{
+          overflowX: 'auto',
+          overflowY: 'visible',
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
+        {/* PDF pages container - uses inline-flex to shrink-wrap content width */}
+        {/* During pinch gesture, CSS transform provides instant visual feedback */}
+        {/* Re-render only happens after gesture ends (debounced) for smooth UX */}
+        <div
+          ref={containerRef}
+          className="pdf-pages-wrapper inline-flex flex-col items-center min-w-full"
+          style={{
+            // Apply CSS transform during gesture for smooth visual feedback
+            // This is GPU-accelerated and doesn't trigger PDF re-render
+            // When gesture ends, transform snaps off right as PDF re-renders (coordinated timing)
+            transform: isGesturing ? `scale(${gestureScale})` : undefined,
+            transformOrigin: 'center top',
+          }}
+        />
+      </div>
     </div>
   );
 };
