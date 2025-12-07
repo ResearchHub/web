@@ -55,44 +55,82 @@ export const EarningOpportunityBanner = ({
       aria-label="Earning opportunity banner"
       onClick={handleViewBounties}
     >
-      <div className="p-4">
-        <div className="flex items-center gap-1 flex-wrap">
-          <span className="text-base font-semibold text-orange-600">Earn</span>
-          {canDisplayAmount && (
-            <>
-              <DollarSign className="w-4 h-4 text-orange-600 -mr-[6px]" strokeWidth={2.5} />
-              <CurrencyBadge
-                amount={calculateOpenBountiesAmount(metadata.bounties)}
-                variant="text"
-                size="sm"
-                currency={showUSD ? 'USD' : 'RSC'}
-                showExchangeRate={false}
-                showText={true}
-                showIcon={false}
-                textColor="text-orange-600"
-                className="font-semibold p-0 text-base inline-flex"
-              />
-            </>
-          )}
+      <div className="p-3 tablet:p-4">
+        {/* Mobile layout - compact single row */}
+        <div className="flex tablet:hidden items-center justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1 flex-wrap">
+              <span className="text-sm font-semibold text-orange-600">Earn</span>
+              {canDisplayAmount && (
+                <>
+                  <DollarSign className="w-3.5 h-3.5 text-orange-600 -mr-[5px]" strokeWidth={2.5} />
+                  <CurrencyBadge
+                    amount={calculateOpenBountiesAmount(metadata.bounties)}
+                    variant="text"
+                    size="sm"
+                    currency={showUSD ? 'USD' : 'RSC'}
+                    showExchangeRate={false}
+                    showText={true}
+                    showIcon={false}
+                    textColor="text-orange-600"
+                    fontWeight="font-semibold"
+                    className="p-0 text-sm inline-flex"
+                  />
+                </>
+              )}
+              <span className="text-sm text-orange-600">for peer review.</span>
+            </div>
+          </div>
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewBounties();
+            }}
+            size="sm"
+            className="flex-shrink-0 bg-orange-500 hover:bg-orange-600 text-white font-medium shadow-sm group-hover:shadow transition-all duration-200 text-xs px-3"
+            aria-label={`View ${metadata.openBounties} available ${metadata.openBounties === 1 ? 'bounty' : 'bounties'}`}
+          >
+            View
+          </Button>
         </div>
-        <p className="mt-1.5 text-sm text-gray-600 leading-snug">
-          Earn ResearchCoin by peer reviewing this paper.
-        </p>
-        <Button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleViewBounties();
-          }}
-          size="sm"
-          className="w-full mt-3 bg-orange-500 hover:bg-orange-600 text-white font-medium shadow-sm group-hover:shadow transition-all duration-200"
-          aria-label={`View ${metadata.openBounties} available ${metadata.openBounties === 1 ? 'bounty' : 'bounties'}`}
-        >
-          View Bounties
-          <span
-            className="inline-block transition-transform group-hover:translate-x-0.5 ml-1"
-            aria-hidden="true"
-          ></span>
-        </Button>
+
+        {/* Tablet+ layout - stacked with full-width button */}
+        <div className="hidden tablet:block">
+          <div className="flex items-center gap-1 flex-wrap">
+            <span className="text-base font-semibold text-orange-600">Earn</span>
+            {canDisplayAmount && (
+              <>
+                <DollarSign className="w-4 h-4 text-orange-600 -mr-[6px]" strokeWidth={2.5} />
+                <CurrencyBadge
+                  amount={calculateOpenBountiesAmount(metadata.bounties)}
+                  variant="text"
+                  size="sm"
+                  currency={showUSD ? 'USD' : 'RSC'}
+                  showExchangeRate={false}
+                  showText={true}
+                  showIcon={false}
+                  textColor="text-orange-600"
+                  fontWeight="font-semibold"
+                  className="p-0 text-base inline-flex"
+                />
+              </>
+            )}
+          </div>
+          <p className="mt-1.5 text-sm text-orange-600 leading-snug">
+            Earn ResearchCoin by peer reviewing this paper.
+          </p>
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewBounties();
+            }}
+            size="sm"
+            className="w-full mt-3 bg-orange-500 hover:bg-orange-600 text-white font-medium shadow-sm group-hover:shadow transition-all duration-200"
+            aria-label={`View ${metadata.openBounties} available ${metadata.openBounties === 1 ? 'bounty' : 'bounties'}`}
+          >
+            View Bounties
+          </Button>
+        </div>
       </div>
     </div>
   );
