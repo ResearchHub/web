@@ -4,6 +4,16 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { AuthService } from '@/services/auth.service';
 import { AuthSharingService } from '@/services/auth-sharing.service';
 
+export class NextAuthError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string
+  ) {
+    super(message);
+    this.name = 'NextAuthError';
+  }
+}
+
 // Debug flag - set to true to enable detailed authentication logging
 const DEBUG_AUTH = true;
 
@@ -77,7 +87,7 @@ export const authOptions: NextAuthOptions = {
     error: '/auth/error',
   },
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account, profile, email, credentials }) {
       if (account?.type === 'oauth') {
         try {
           // Log OAuth token state for debugging
@@ -141,23 +151,52 @@ export const authOptions: NextAuthOptions = {
 
           return true;
         } catch (error) {
-          // Log detailed error information
+          const errorType = error instanceof Error ? error.message : 'AuthenticationFailed';
           console.error('[Auth] Google OAuth error', {
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: errorType,
             errorType: error instanceof Error ? error.constructor.name : typeof error,
             stack: error instanceof Error ? error.stack : undefined,
             timestamp: new Date().toISOString(),
           });
 
-          // Preserve specific error messages for better debugging
-          if (error instanceof Error) {
-            throw new Error(error.message);
+          // Return false for OAuthAccountNotLinked to trigger consistent error flow
+          // This ensures the error is properly handled by the redirect callback
+          if (errorType === 'OAuthAccountNotLinked') {
+            return false;
           }
-          throw new Error('AuthenticationFailed');
+
+          throw new NextAuthError(errorType, 'OAUTH_ERROR');
         }
       }
 
       return true;
+    },
+
+    async redirect({ url, baseUrl }) {
+      if (url.includes('/auth/error')) {
+        const urlObj = new URL(url, baseUrl);
+        const error = urlObj.searchParams.get('error');
+
+        // Map various OAuth error codes to OAuthAccountNotLinked
+        // This handles environment-specific error code variations
+        if (
+          error &&
+          (error === 'OAuthSignin' ||
+            error === 'OAuthCallback' ||
+            error === 'AccessDenied' ||
+            error === 'Callback' ||
+            error === 'OAuthCreateAccount' ||
+            error === 'AuthenticationFailed')
+        ) {
+          urlObj.searchParams.set('error', 'OAuthAccountNotLinked');
+        }
+
+        return urlObj.toString();
+      }
+
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
     },
 
     async jwt({ token, user, account }) {
