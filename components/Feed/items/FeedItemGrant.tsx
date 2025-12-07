@@ -5,15 +5,15 @@ import { FeedEntry, FeedGrantContent, mapFeedContentTypeToContentType } from '@/
 import {
   BaseFeedItem,
   TitleSection,
-  ContentSection,
   ImageSection,
   MetadataSection,
   FeedItemLayout,
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
+import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
 import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
 import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
-import { Building, Users } from 'lucide-react';
+import { Building } from 'lucide-react';
 import { GrantInfo } from '@/components/Grant/GrantInfo';
 import { AuthorList } from '@/components/ui/AuthorList';
 
@@ -145,12 +145,13 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
               </MetadataSection>
             )}
 
-            {/* Description */}
+            {/* Description Section - handles both desktop and mobile */}
             {(grant.grant?.description || grant.textPreview) && (
-              <ContentSection
-                content={grant.grant?.description || grant.textPreview}
+              <FeedItemAbstractSection
+                content={grant.grant?.description || grant.textPreview || ''}
                 highlightedContent={highlightedSnippet}
                 maxLength={maxLength}
+                mobileLabel="Read description"
                 className="mb-3"
               />
             )}

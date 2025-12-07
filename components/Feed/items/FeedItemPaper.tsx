@@ -7,12 +7,12 @@ import { FeedPaperContent, FeedEntry, mapFeedContentTypeToContentType } from '@/
 import {
   BaseFeedItem,
   TitleSection,
-  ContentSection,
   ImageSection,
   MetadataSection,
   FeedItemLayout,
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
+import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
 import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
 import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
@@ -176,13 +176,13 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                 )}
               </div>
             </MetadataSection>
-            <div className="text-gray-800 text-sm mt-3">
-              <ContentSection
-                content={paper.textPreview}
-                highlightedContent={highlightedSnippet}
-                maxLength={maxLength}
-              />
-            </div>
+
+            <FeedItemAbstractSection
+              content={paper.textPreview}
+              highlightedContent={highlightedSnippet}
+              maxLength={maxLength}
+              className="mt-3"
+            />
           </>
         }
         rightContent={

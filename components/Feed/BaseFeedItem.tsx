@@ -249,6 +249,12 @@ export const CTASection: FC<CTASectionProps> = ({ children, className }) => {
   return <div className={cn('flex items-center gap-3', className)}>{children}</div>;
 };
 
+// Re-export FeedItemAbstractSection for backwards compatibility
+export {
+  FeedItemAbstractSection,
+  type FeedItemAbstractSectionProps,
+} from './FeedItemAbstractSection';
+
 export const StatusSection: FC<StatusSectionProps> = ({ status, statusText, className }) => {
   if (!status) return null;
 

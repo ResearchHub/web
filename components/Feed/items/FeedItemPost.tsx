@@ -5,16 +5,15 @@ import { FeedPostContent, FeedEntry, mapFeedContentTypeToContentType } from '@/t
 import {
   BaseFeedItem,
   TitleSection,
-  ContentSection,
   ImageSection,
   MetadataSection,
   FeedItemLayout,
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
+import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
 import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
 import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { Users } from 'lucide-react';
 import { formatTimestamp } from '@/utils/date';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
 
@@ -134,11 +133,12 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
               )}
             </div>
 
-            {/* Truncated Content */}
-            <ContentSection
+            {/* Content Section - handles both desktop and mobile */}
+            <FeedItemAbstractSection
               content={post.textPreview}
               highlightedContent={highlightedSnippet}
               maxLength={maxLength}
+              mobileLabel="Read more"
             />
           </>
         }
