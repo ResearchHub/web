@@ -17,6 +17,21 @@ const formatDate = (dateString: string): string => {
 export const ChangelogEntry: React.FC<ChangelogEntryProps> = ({ work, content }) => {
   const formattedDate = formatDate(work.createdDate);
 
+  const renderContent = () => {
+    if (work.previewContent) {
+      return <PostBlockEditor content={work.previewContent} editable={false} />;
+    }
+    if (content) {
+      return (
+        <div
+          className="prose prose-lg max-w-none text-gray-700 bg-white rounded-lg shadow-sm border p-6 mb-6"
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
+      );
+    }
+    return <p className="text-gray-500">No content available</p>;
+  };
+
   return (
     <article className="mb-16 pt-16 border-t border-gray-200 first:border-t-0 first:pt-0">
       {/* Mobile: Date above content */}
@@ -31,18 +46,7 @@ export const ChangelogEntry: React.FC<ChangelogEntryProps> = ({ work, content })
         </div>
 
         {/* Content */}
-        <div className="flex-1">
-          {work.previewContent ? (
-            <PostBlockEditor content={work.previewContent} editable={false} />
-          ) : content ? (
-            <div
-              className="prose prose-lg max-w-none text-gray-700 bg-white rounded-lg shadow-sm border p-6 mb-6"
-              dangerouslySetInnerHTML={{ __html: content }}
-            />
-          ) : (
-            <p className="text-gray-500">No content available</p>
-          )}
-        </div>
+        <div className="flex-1">{renderContent()}</div>
       </div>
     </article>
   );

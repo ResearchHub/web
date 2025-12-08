@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { LeftSidebar as MainLeftSidebar } from '../layouts/LeftSidebar';
 import { TopBar } from '../layouts/TopBar';
 
-export default function ChangelogLayout({ children }: { children: React.ReactNode }) {
+export default function ChangelogLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [overlayVisible, setOverlayVisible] = useState(false);
@@ -29,11 +29,13 @@ export default function ChangelogLayout({ children }: { children: React.ReactNod
 
       {/* Mobile overlay */}
       {showOverlay && (
-        <div
+        <button
+          type="button"
           className={`fixed inset-0 bg-black ${
             overlayVisible ? 'opacity-50' : 'opacity-0'
-          } z-40 tablet:!hidden transition-opacity duration-300 ease-in-out`}
+          } z-40 tablet:!hidden transition-opacity duration-300 ease-in-out cursor-default`}
           onClick={() => setIsLeftSidebarOpen(false)}
+          aria-label="Close sidebar"
         />
       )}
 
