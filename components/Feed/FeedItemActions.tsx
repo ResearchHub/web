@@ -19,7 +19,7 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useRouter } from 'next/navigation';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
-import { useAddToListHandler } from '@/components/UserList/lib/UserListsContext';
+import { useAddToList } from '@/components/UserList/lib/UserListsContext';
 import { Bounty } from '@/types/bounty';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -212,11 +212,10 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     relatedDocumentUnifiedDocumentId
   );
 
-  const { isTogglingDefaultList, handleAddToList } = useAddToListHandler({
+  const { isTogglingDefaultList, handleAddToList } = useAddToList({
     unifiedDocumentId: relatedDocumentUnifiedDocumentId,
     isInList: isDocumentInList,
     onOpenModal: () => setIsAddToListModalOpen(true),
-    executeAuthenticatedAction,
   });
 
   const { vote, isVoting } = useVote({

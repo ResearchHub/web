@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, ReactNode, useState, useEffect, FC } from 'react';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import {
   UserList,
@@ -294,19 +295,14 @@ export function useUserListsContext() {
   return context;
 }
 
-interface UseAddToListHandlerProps {
+interface UseAddToListProps {
   unifiedDocumentId: string | number | null | undefined;
   isInList: boolean;
   onOpenModal: () => void;
-  executeAuthenticatedAction: (action: () => void | Promise<void>) => void;
 }
 
-export function useAddToListHandler({
-  unifiedDocumentId,
-  isInList,
-  onOpenModal,
-  executeAuthenticatedAction,
-}: UseAddToListHandlerProps) {
+export function useAddToList({ unifiedDocumentId, isInList, onOpenModal }: UseAddToListProps) {
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { addToDefaultList } = useUserListsContext();
   const [isTogglingDefaultList, setIsTogglingDefaultList] = useState(false);
 

@@ -38,7 +38,7 @@ import { useCompleteFundraise } from '@/hooks/useFundraise';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
-import { useAddToListHandler } from '@/components/UserList/lib/UserListsContext';
+import { useAddToList } from '@/components/UserList/lib/UserListsContext';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 
@@ -81,11 +81,10 @@ export const WorkLineItems = ({
   const { isInList } = useIsInList(work.unifiedDocumentId);
   const userListsEnabled = useUserListsEnabled();
 
-  const { isTogglingDefaultList, handleAddToList } = useAddToListHandler({
+  const { isTogglingDefaultList, handleAddToList } = useAddToList({
     unifiedDocumentId: work.unifiedDocumentId,
     isInList,
     onOpenModal: () => setIsAddToListModalOpen(true),
-    executeAuthenticatedAction,
   });
 
   const {

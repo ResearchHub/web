@@ -32,6 +32,7 @@ export interface ApiUserList {
   id: ID;
   name: string;
   is_public: boolean;
+  is_default: boolean;
   created_date: string;
   updated_date: string;
   created_by?: number;
@@ -49,6 +50,7 @@ export interface UserList {
   id: ID;
   name: string;
   isPublic: boolean;
+  isDefault: boolean;
   createdDate: string;
   updatedDate: string;
   createdBy?: number;
@@ -140,6 +142,7 @@ export const transformUserList = (raw: ApiUserList): UserList => ({
   id: raw.id,
   name: raw.name ?? DEFAULT_LIST_NAME,
   isPublic: raw.is_public,
+  isDefault: raw.is_default,
   createdDate: raw.created_date,
   updatedDate: raw.updated_date,
   createdBy: raw.created_by,

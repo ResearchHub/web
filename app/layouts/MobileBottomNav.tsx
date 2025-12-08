@@ -7,6 +7,8 @@ import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
 import { faEllipsis, faGrid3 as faGrid3Light } from '@fortawesome/pro-light-svg-icons';
 import { faGrid3 as faGrid3Solid } from '@fortawesome/pro-solid-svg-icons';
+import { faBookmark as faBookmarkSolid } from '@fortawesome/pro-solid-svg-icons';
+import { faBookmark as faBookmarkLight } from '@fortawesome/pro-light-svg-icons';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { ChartNoAxesColumnIncreasing } from 'lucide-react';
 import { Icon } from '@/components/ui/icons';
@@ -37,6 +39,7 @@ const moreNavItems: NavItem[] = [
   { label: 'RH Journal', href: '/journal', iconKey: 'journal' },
   { label: 'Browse', href: '/browse', iconKey: 'browse' },
   { label: 'Notebook', href: '/notebook', iconKey: 'notebook', requiresAuth: true },
+  { label: 'Lists', href: '/lists', iconKey: 'lists', requiresAuth: true },
   { label: 'Leaderboard', href: '/leaderboard', iconKey: 'leaderboard' },
 ];
 
@@ -59,6 +62,9 @@ const isPathActive = (path: string, currentPath: string): boolean => {
   }
   if (path === '/journal') {
     return currentPath.startsWith('/journal');
+  }
+  if (path === '/lists') {
+    return currentPath === '/lists' || currentPath.startsWith('/list/');
   }
   return path === currentPath;
 };
@@ -155,6 +161,14 @@ export const MobileBottomNav: React.FC = () => {
             size={iconSize}
             color={iconColor}
             strokeWidth={isActive ? 2.5 : 2}
+          />
+        );
+      case 'lists':
+        return (
+          <FontAwesomeIcon
+            icon={isActive ? faBookmarkSolid : faBookmarkLight}
+            fontSize={iconSize}
+            color={iconColor}
           />
         );
       default:
