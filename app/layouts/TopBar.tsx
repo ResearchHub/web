@@ -32,6 +32,7 @@ import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
 import { toTitleCase } from '@/utils/stringUtils';
 import { Hash } from 'lucide-react';
 import { getSourceLogo, getPreprintDisplayName } from '@/utils/preprintUtil';
+import { Logo } from '@/components/ui/Logo';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -440,6 +441,13 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         <div className="h-full flex items-center justify-between px-4 lg:px-8">
           {/* Left side - Back button + Page title */}
           <div className="flex items-center">
+            {/* Mobile logo - leftmost position */}
+            <Link href="/" className="block tablet:!hidden mr-2">
+              <div className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center">
+                <Logo noText size={36} className="mt-[-4px]" />
+              </div>
+            </Link>
+
             {/* Mobile back button - show when not on root navigation pages */}
             {pageInfo && !isRootNavigationPage(pathname) && (
               <div className="block tablet:!hidden mr-1">
@@ -455,9 +463,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             {/* Mobile page title - next to hamburger/back button */}
             {pageInfo && (
               <div className="flex tablet:!hidden items-center">
-                {pageInfo.icon && (
-                  <div className={pageInfo.title ? 'mr-2' : ''}>{pageInfo.icon}</div>
-                )}
                 {pageInfo.title && (
                   <h1 className="text-lg font-bold text-gray-900 leading-tight">
                     {pageInfo.title}

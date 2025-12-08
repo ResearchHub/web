@@ -21,8 +21,8 @@ export const Logo = ({ className, noText = false, size, variant = 'default' }: L
   })();
 
   const logoSrc = (() => {
-    if (noText && variant === 'white') {
-      return '/beaker_white.png';
+    if (noText) {
+      return variant === 'white' ? '/beaker_white.png' : '/RSC.webp';
     }
     return variant === 'white' ? '/icons/white_logo.png' : '/logo_blue.png';
   })();
