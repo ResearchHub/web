@@ -73,7 +73,7 @@ export const FooterLinks: React.FC = () => {
       <div className="flex flex-wrap gap-3 text-gray-500">
         <a
           href="/changelog"
-          className={`flex items-center gap-1 ${!hasSeenChangelog ? 'text-orange-500 hover:text-orange-600' : 'hover:text-gray-700'}`}
+          className={`flex items-center gap-1 ${hasSeenChangelog ? 'hover:text-gray-700' : 'text-orange-500 hover:text-orange-600'}`}
           onClick={handleChangelogClick}
         >
           {!hasSeenChangelog && (
