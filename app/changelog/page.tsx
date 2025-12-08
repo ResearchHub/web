@@ -4,6 +4,7 @@ import { ChangelogEntry } from '@/components/changelog/ChangelogEntry';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { SITE_CONFIG } from '@/lib/metadata';
+import { PageLayout } from '@/app/layouts/PageLayout';
 
 export const metadata: Metadata = {
   title: 'Changelog | ResearchHub',
@@ -67,19 +68,21 @@ export default async function ChangelogPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Changelog</h1>
-        <p className="text-lg text-gray-600">
-          Stay updated with the latest ResearchHub product updates and improvements.
-        </p>
-      </div>
+    <PageLayout rightSidebar={false}>
+      <div className="py-8">
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Changelog</h1>
+          <p className="text-lg text-gray-600">
+            Stay updated with the latest ResearchHub product updates and improvements.
+          </p>
+        </div>
 
-      <div className="space-y-0">
-        {validPosts.map(({ work, content }) => (
-          <ChangelogEntry key={work.id} work={work} content={content} />
-        ))}
+        <div className="space-y-0">
+          {validPosts.map(({ work, content }) => (
+            <ChangelogEntry key={work.id} work={work} content={content} />
+          ))}
+        </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }
