@@ -9,9 +9,16 @@ interface BountyTooltipProps {
   totalAmount: number;
   href?: string;
   showUSD?: boolean;
+  /** If true, the amount is already in the target currency and should not be converted */
+  skipConversion?: boolean;
 }
 
-export function BountyTooltip({ totalAmount, href, showUSD = false }: BountyTooltipProps) {
+export function BountyTooltip({
+  totalAmount,
+  href,
+  showUSD = false,
+  skipConversion = false,
+}: BountyTooltipProps) {
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
@@ -36,6 +43,7 @@ export function BountyTooltip({ totalAmount, href, showUSD = false }: BountyTool
             showExchangeRate={false}
             showIcon={true}
             showText={false}
+            skipConversion={skipConversion}
           />
         </span>
       </div>

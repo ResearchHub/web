@@ -1,10 +1,11 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
-import { calculateOpenBountiesAmount } from '@/components/Bounty/lib/bountyUtil';
+import { getOpenBounties, getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import { buildWorkUrl } from '@/utils/url';
 import { useRouter } from 'next/navigation';
 import { Work } from '@/types/work';
@@ -30,6 +31,13 @@ export const EarningOpportunityBanner = ({
   if (!metadata.bounties || metadata.openBounties === 0) {
     return null;
   }
+
+  // Calculate display amount (handles Foundation bounties with flat $150 USD)
+  const openBounties = useMemo(() => getOpenBounties(metadata.bounties || []), [metadata.bounties]);
+  const { amount: displayAmount } = useMemo(
+    () => getTotalBountyDisplayAmount(openBounties, exchangeRate, showUSD),
+    [openBounties, exchangeRate, showUSD]
+  );
 
   // Check if we can display the bounty amount (exchange rate loaded if USD preferred)
   const canDisplayAmount = !showUSD || (showUSD && !isExchangeRateLoading && exchangeRate > 0);
@@ -65,7 +73,7 @@ export const EarningOpportunityBanner = ({
                 <>
                   <DollarSign className="w-3.5 h-3.5 text-orange-600 -mr-[5px]" strokeWidth={2.5} />
                   <CurrencyBadge
-                    amount={calculateOpenBountiesAmount(metadata.bounties)}
+                    amount={displayAmount}
                     variant="text"
                     size="sm"
                     currency={showUSD ? 'USD' : 'RSC'}
@@ -75,6 +83,7 @@ export const EarningOpportunityBanner = ({
                     textColor="text-orange-600"
                     fontWeight="font-semibold"
                     className="p-0 text-sm inline-flex"
+                    skipConversion={showUSD}
                   />
                 </>
               )}
@@ -102,7 +111,7 @@ export const EarningOpportunityBanner = ({
               <>
                 <DollarSign className="w-4 h-4 text-orange-600 -mr-[6px]" strokeWidth={2.5} />
                 <CurrencyBadge
-                  amount={calculateOpenBountiesAmount(metadata.bounties)}
+                  amount={displayAmount}
                   variant="text"
                   size="sm"
                   currency={showUSD ? 'USD' : 'RSC'}
@@ -112,6 +121,7 @@ export const EarningOpportunityBanner = ({
                   textColor="text-orange-600"
                   fontWeight="font-semibold"
                   className="p-0 text-base inline-flex"
+                  skipConversion={showUSD}
                 />
               </>
             )}

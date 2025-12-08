@@ -43,6 +43,11 @@ interface CurrencyBadgeProps {
   iconSize?: number;
   /** Custom icon color (hex string) for RSC icon. Overrides default orange color. */
   iconColor?: string;
+  /**
+   * If true, the amount is already in the target currency and should not be converted.
+   * Useful when the caller has pre-calculated the amount (e.g., Foundation bounty flat fee).
+   */
+  skipConversion?: boolean;
 }
 
 export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
@@ -64,13 +69,15 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
   hideUSDText = true,
   iconSize,
   iconColor,
+  skipConversion = false,
 }) => {
   const { exchangeRate, isLoading } = useExchangeRate();
   const isUSD = currency === 'USD';
 
   // Convert amount based on desired currency display
-  // If currency is USD but amount is in RSC, convert it
-  const displayValue = isUSD && exchangeRate > 0 ? Math.round(amount * exchangeRate) : amount;
+  // If currency is USD but amount is in RSC, convert it (unless skipConversion is true)
+  const displayValue =
+    isUSD && exchangeRate > 0 && !skipConversion ? Math.round(amount * exchangeRate) : amount;
 
   // Custom size classes that override Badge's default sizes
   const sizeClasses = {

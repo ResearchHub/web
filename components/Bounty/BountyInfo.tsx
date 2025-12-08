@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useState, useMemo } from 'react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
@@ -12,9 +12,11 @@ import { cn } from '@/utils/styles';
 import { StatusCard } from '@/components/ui/StatusCard';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { ContentFormat } from '@/types/comment';
 import { BountyDetails } from '@/components/Feed/items/FeedItemBountyComment';
 import { MessageSquareReply } from 'lucide-react';
+import { getBountyDisplayAmount } from './lib/bountyUtil';
 
 interface BountyDetailsModalProps {
   isOpen: boolean;
@@ -23,7 +25,7 @@ interface BountyDetailsModalProps {
   content: any;
   contentFormat?: ContentFormat;
   bountyType: BountyType;
-  totalAmount: number;
+  displayAmount: number;
   showUSD: boolean;
   onAddSolutionClick: (e: React.MouseEvent) => void;
   buttonText: string;
@@ -37,7 +39,7 @@ const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
   content,
   contentFormat,
   bountyType,
-  totalAmount,
+  displayAmount,
   showUSD,
   onAddSolutionClick,
   buttonText,
@@ -54,7 +56,7 @@ const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
       <div className="flex items-center gap-2">
         <span className="text-gray-600 text-sm font-medium">Total Amount:</span>
         <CurrencyBadge
-          amount={Math.round(totalAmount)}
+          amount={Math.round(displayAmount)}
           variant="text"
           size="lg"
           showText={true}
@@ -65,6 +67,7 @@ const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
           iconColor={colors.gray[700]}
           iconSize={20}
           shorten
+          skipConversion={showUSD}
         />
       </div>
       {isActive && (
@@ -106,6 +109,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
   const bountyCommentContent = bounty?.comment?.content;
   const bountyCommentContentFormat = bounty?.comment?.contentFormat;
   const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   // Check if bounty is active
@@ -162,8 +166,11 @@ export const BountyInfo: FC<BountyInfoProps> = ({
     return 'Add Solution';
   };
 
-  // Get total amount in RSC
-  const totalAmount = bounty.totalAmount ? Number.parseFloat(bounty.totalAmount) : 0;
+  // Get display amount (handles Foundation bounties with flat $150 USD)
+  const { amount: displayAmount } = useMemo(
+    () => getBountyDisplayAmount(bounty, exchangeRate, showUSD),
+    [bounty, exchangeRate, showUSD]
+  );
 
   // Handler for details button click
   const handleDetailsClick = (e: React.MouseEvent) => {
@@ -187,7 +194,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
             <span className="text-gray-500 text-sm mb-0.5 inline-block">{bountyTitle}</span>
             <div className="flex items-center flex-wrap min-w-0 truncate font-semibold">
               <CurrencyBadge
-                amount={Math.round(totalAmount)}
+                amount={Math.round(displayAmount)}
                 variant="text"
                 size="xl"
                 showText={true}
@@ -199,6 +206,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
                 iconColor={colors.gray[700]}
                 iconSize={24}
                 shorten
+                skipConversion={showUSD}
               />
             </div>
           </div>
@@ -281,7 +289,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
           content={bountyCommentContent}
           contentFormat={bountyCommentContentFormat}
           bountyType={bounty.bountyType as BountyType}
-          totalAmount={totalAmount}
+          displayAmount={displayAmount}
           showUSD={showUSD}
           onAddSolutionClick={onAddSolutionClick}
           buttonText={getAddButtonText()}

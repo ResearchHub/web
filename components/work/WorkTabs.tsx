@@ -21,7 +21,7 @@ import { useDeviceType } from '@/hooks/useDeviceType';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import Icon from '@/components/ui/icons/Icon';
-import { calculateOpenBountiesAmount } from '@/components/Bounty/lib/bountyUtil';
+import { getOpenBounties, getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import { formatCurrency } from '@/utils/currency';
 
 export type TabType =
@@ -61,17 +61,19 @@ export const WorkTabs = ({
     return score.toFixed(1);
   };
 
-  // Calculate total bounty amount for open bounties using utility function
-  const totalBountyAmount = useMemo(() => {
-    return calculateOpenBountiesAmount(metadata.bounties || []);
-  }, [metadata.bounties]);
+  // Calculate total bounty amount for open bounties (handles Foundation bounties with flat $150 USD)
+  const openBounties = useMemo(() => getOpenBounties(metadata.bounties || []), [metadata.bounties]);
+  const { amount: totalBountyAmount } = useMemo(
+    () => getTotalBountyDisplayAmount(openBounties, exchangeRate, showUSD),
+    [openBounties, exchangeRate, showUSD]
+  );
 
   // Check if we can display the bounty amount (exchange rate loaded if USD preferred)
   const canDisplayBountyAmount =
     !showUSD || (showUSD && !isExchangeRateLoading && exchangeRate > 0);
 
   // Check if we have open bounties
-  const hasOpenBounties = totalBountyAmount > 0;
+  const hasOpenBounties = openBounties.length > 0;
 
   // Check if any version is part of the ResearchHub journal
   const hasResearchHubJournalVersions = useMemo(() => {
@@ -290,6 +292,7 @@ export const WorkTabs = ({
                         showUSD,
                         exchangeRate,
                         shorten: true,
+                        skipConversion: showUSD,
                       })
                     : 0}
                 </span>

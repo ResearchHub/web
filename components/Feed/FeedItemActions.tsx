@@ -23,7 +23,9 @@ import { Bounty } from '@/types/bounty';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { cn } from '@/utils/styles';
+import { getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import { Topic } from '@/types/topic';
 import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
@@ -198,6 +200,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
@@ -348,15 +351,15 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   };
 
   // Check if we have open bounties
-  const hasOpenBounties = bounties && bounties.filter((b) => b.status === 'OPEN').length > 0;
+  const openBounties = bounties ? bounties.filter((b) => b.status === 'OPEN') : [];
+  const hasOpenBounties = openBounties.length > 0;
 
-  // Calculate total bounty amount for open bounties
-  const totalBountyAmount = bounties
-    .filter((b) => b.status === 'OPEN')
-    .reduce((total, bounty) => {
-      const amount = parseFloat(bounty.totalAmount || bounty.amount || '0');
-      return total + amount;
-    }, 0);
+  // Calculate total bounty amount for open bounties (handles Foundation bounties with flat $150 USD)
+  const { amount: totalBountyAmount } = getTotalBountyDisplayAmount(
+    openBounties,
+    exchangeRate,
+    showUSD
+  );
 
   // Use media queries to determine screen size
   const isMobile = useMediaQuery('(max-width: 480px)');
@@ -433,7 +436,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
             (showTooltips ? (
               <Tooltip
                 content={
-                  <BountyTooltip totalAmount={totalBountyAmount} href={href} showUSD={showUSD} />
+                  <BountyTooltip
+                    totalAmount={totalBountyAmount}
+                    href={href}
+                    showUSD={showUSD}
+                    skipConversion={showUSD}
+                  />
                 }
                 position="top"
                 width="w-[320px]"
@@ -457,6 +465,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                       showExchangeRate={false}
                       showIcon={true}
                       showText={false}
+                      skipConversion={showUSD}
                     />
                   }
                   showTooltip={false}
@@ -483,6 +492,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     showExchangeRate={false}
                     showIcon={true}
                     showText={false}
+                    skipConversion={showUSD}
                   />
                 }
                 showTooltip={false}

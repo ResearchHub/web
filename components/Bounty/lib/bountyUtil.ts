@@ -1,4 +1,5 @@
 import { Bounty, BountyType } from '@/types/bounty';
+import { FOUNDATION_USER_ID, FOUNDATION_BOUNTY_FLAT_USD } from '@/config/constants';
 
 /**
  * Checks if a bounty is open and not a contribution
@@ -439,4 +440,125 @@ export const extractBountyAvatars = (
     (avatar, index, self) =>
       avatar.authorId && index === self.findIndex((a) => a.authorId === avatar.authorId)
   );
+};
+
+/**
+ * Checks if a bounty was created by the ResearchHub Foundation account.
+ * Handles multiple data structures since bounties can come from different sources:
+ * - BountyService: raw.created_by.user.id
+ * - FeedService.transformRawBounty: raw.author.user.id
+ * - Direct API: raw.created_by.id
+ *
+ * @param bounty The bounty to check
+ * @returns True if the bounty was created by the Foundation account
+ */
+export const isFoundationBounty = (bounty: Bounty): boolean => {
+  if (!FOUNDATION_USER_ID) return false;
+
+  // Try multiple paths to find the user ID since bounties come from different sources
+  const creatorUserId =
+    // From BountyService (via transformFeedEntry): raw.created_by.user.id
+    bounty.raw?.created_by?.user?.id ??
+    // From FeedService.transformRawBounty: raw.author.user.id
+    bounty.raw?.author?.user?.id ??
+    // Direct from API (if created_by is the user object directly): raw.created_by.id
+    bounty.raw?.created_by?.id ??
+    // Fallback to createdBy.id (though this might be author_profile.id in some cases)
+    bounty.createdBy?.id;
+
+  return creatorUserId === FOUNDATION_USER_ID;
+};
+
+/**
+ * Calculates the display amount for a bounty in USD.
+ * For Foundation bounties, returns a flat $150 USD.
+ * For other bounties, converts RSC to USD using the exchange rate.
+ *
+ * @param bounty The bounty to calculate the display amount for
+ * @param exchangeRate The current RSC to USD exchange rate
+ * @returns The display amount in USD
+ */
+export const calculateBountyDisplayAmountUSD = (bounty: Bounty, exchangeRate: number): number => {
+  if (isFoundationBounty(bounty)) {
+    return FOUNDATION_BOUNTY_FLAT_USD;
+  }
+
+  const rscAmount = parseFloat(bounty.totalAmount || bounty.amount || '0');
+  return Math.round(rscAmount * exchangeRate);
+};
+
+export const calculateTotalBountyDisplayAmountUSD = (
+  bounties: Bounty[],
+  exchangeRate: number
+): number => {
+  return bounties.reduce((total, bounty) => {
+    return total + calculateBountyDisplayAmountUSD(bounty, exchangeRate);
+  }, 0);
+};
+
+/**
+ * Calculates the display amount for a bounty, returning either USD or RSC based on preference.
+ * For Foundation bounties displayed in USD, returns a flat $150.
+ *
+ * @param bounty The bounty to calculate the display amount for
+ * @param exchangeRate The current RSC to USD exchange rate
+ * @param showUSD Whether to display in USD (true) or RSC (false)
+ * @returns Object containing the display amount and whether it's a Foundation bounty
+ */
+export const getBountyDisplayAmount = (
+  bounty: Bounty,
+  exchangeRate: number,
+  showUSD: boolean
+): { amount: number; isFoundation: boolean } => {
+  const isFoundation = isFoundationBounty(bounty);
+  const rscAmount = parseFloat(bounty.totalAmount || bounty.amount || '0');
+
+  if (isFoundation) {
+    if (showUSD) {
+      // Show flat $150 USD for Foundation bounties
+      return { amount: FOUNDATION_BOUNTY_FLAT_USD, isFoundation: true };
+    }
+    // Show RSC equivalent of $150 USD for Foundation bounties
+    // exchangeRate is USD per RSC, so RSC = USD / exchangeRate
+    const rscEquivalent = exchangeRate > 0 ? FOUNDATION_BOUNTY_FLAT_USD / exchangeRate : rscAmount;
+    return { amount: Math.round(rscEquivalent), isFoundation: true };
+  }
+
+  if (showUSD) {
+    return { amount: Math.round(rscAmount * exchangeRate), isFoundation: false };
+  }
+
+  // For RSC display of non-Foundation bounties, show the actual RSC amount
+  return { amount: Math.round(rscAmount), isFoundation: false };
+};
+
+/**
+ * Calculates the total display amount for multiple bounties.
+ * Foundation bounties contribute:
+ * - $150 USD when showUSD is true
+ * - RSC equivalent of $150 USD when showUSD is false
+ *
+ * @param bounties Array of bounties to calculate total for
+ * @param exchangeRate The current RSC to USD exchange rate
+ * @param showUSD Whether to display in USD (true) or RSC (false)
+ * @returns Object containing the total display amount and count of Foundation bounties
+ */
+export const getTotalBountyDisplayAmount = (
+  bounties: Bounty[],
+  exchangeRate: number,
+  showUSD: boolean
+): { amount: number; foundationBountyCount: number } => {
+  let foundationBountyCount = 0;
+
+  const amount = bounties.reduce((total, bounty) => {
+    const { amount: bountyAmount, isFoundation } = getBountyDisplayAmount(
+      bounty,
+      exchangeRate,
+      showUSD
+    );
+    if (isFoundation) foundationBountyCount++;
+    return total + bountyAmount;
+  }, 0);
+
+  return { amount, foundationBountyCount };
 };

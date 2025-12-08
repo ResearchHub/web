@@ -7,6 +7,8 @@ import { Bounty } from '@/types/bounty';
 import { colors } from '@/app/styles/colors';
 import { cn } from '@/utils/styles';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { getTotalBountyDisplayAmount } from './lib/bountyUtil';
 
 interface BountyInfoSummaryProps {
   bounties: Bounty[];
@@ -20,6 +22,7 @@ export const BountyInfoSummary: FC<BountyInfoSummaryProps> = ({
   className,
 }) => {
   const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
 
   // Filter to only open bounties
   const openBounties = useMemo(
@@ -27,13 +30,11 @@ export const BountyInfoSummary: FC<BountyInfoSummaryProps> = ({
     [bounties]
   );
 
-  // Accumulate total amount from all open bounties
-  const totalAmount = useMemo(() => {
-    return openBounties.reduce((total, bounty) => {
-      const amount = Number.parseFloat(bounty.totalAmount || bounty.amount || '0');
-      return total + amount;
-    }, 0);
-  }, [openBounties]);
+  // Calculate display amount (handles Foundation bounties with flat $150 USD)
+  const { amount: totalAmount } = useMemo(
+    () => getTotalBountyDisplayAmount(openBounties, exchangeRate, showUSD),
+    [openBounties, exchangeRate, showUSD]
+  );
 
   // If no open bounties, don't render anything
   if (openBounties.length === 0) {
@@ -66,6 +67,7 @@ export const BountyInfoSummary: FC<BountyInfoSummaryProps> = ({
                 iconColor={colors.gray[700]}
                 iconSize={24}
                 shorten
+                skipConversion={showUSD}
               />
             </div>
           </div>

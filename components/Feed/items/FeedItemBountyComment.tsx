@@ -12,6 +12,7 @@ import {
   isExpiringSoon,
   calculateTotalAwardedAmount,
   isOpenBounty,
+  getBountyDisplayAmount,
 } from '@/components/Bounty/lib/bountyUtil';
 import { ContentFormat } from '@/types/comment';
 import { ID } from '@/types/root';
@@ -135,13 +136,17 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
   const solutionsCount = bounty.solutions ? bounty.solutions.length : 0;
   const hasSolutions = solutionsCount > 0;
 
+  // Calculate display amount (handles Foundation bounties with flat $150 USD)
+  const { amount: displayBountyAmount } = getBountyDisplayAmount(bounty, exchangeRate, showUSD);
+
   // Format the bounty amount for display in the action text
   const formattedBountyAmount = bounty.totalAmount
     ? formatCurrency({
-        amount: Number.parseFloat(bounty.totalAmount),
+        amount: showUSD ? displayBountyAmount : Number.parseFloat(bounty.totalAmount),
         showUSD,
         exchangeRate,
         shorten: true,
+        skipConversion: showUSD, // Skip conversion since we've already calculated the display amount
       })
     : '';
   const currencySuffix = showUSD ? '' : 'RSC';
@@ -298,12 +303,13 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
       >
         <div onMouseDown={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
           <BountyMetadataLine
-            amount={Number.parseFloat(bounty.totalAmount)}
+            amount={displayBountyAmount}
             expirationDate={bounty.expirationDate}
             isOpen={isOpen}
             expiringSoon={expiringSoon}
             solutionsCount={solutionsCount}
             showDeadline={showDeadline}
+            skipConversion={showUSD}
           />
         </div>
 
