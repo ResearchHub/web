@@ -213,9 +213,7 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
       {/* Center Content Area (Scrolling) */}
       <div
         ref={scrollContainerRef}
-        className={`flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative
-                    transition-[margin-top] duration-300 ease-in-out
-                    ${isMobileTopNavHidden && !isLeftSidebarOpen ? 'mt-0 tablet:!mt-16' : 'mt-16'}`}
+        className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative pt-16"
       >
         <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
           {/* Main Content */}

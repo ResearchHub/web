@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useLayoutEffect } from 'react';
 import * as pdfjsLib from 'pdfjs-dist/webpack';
 // Note: TextLayer is not typed in the shipped pdfjs-dist types yet, so we load it dynamically.
 import { ZoomIn, ZoomOut, Maximize2, Minimize2, Download } from 'lucide-react';
@@ -53,6 +53,8 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
   const [isRendering, setIsRendering] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
+  const toolbarRef = useRef<HTMLDivElement | null>(null);
+  const [toolbarHeight, setToolbarHeight] = useState(0);
 
   // Track scroll position and pinch point for zoom position preservation
   const lastScaleRef = useRef(1);
@@ -534,6 +536,18 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useLayoutEffect(() => {
+    const measureToolbar = () => {
+      if (toolbarRef.current) {
+        setToolbarHeight(toolbarRef.current.offsetHeight);
+      }
+    };
+
+    measureToolbar();
+    window.addEventListener('resize', measureToolbar);
+    return () => window.removeEventListener('resize', measureToolbar);
+  }, [isFullscreen, scale]);
+
   // Download handler
   const onDownload = () => {
     handleDownload(url, 'document.pdf');
@@ -553,8 +567,9 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
     >
       {/* Sticky toolbar */}
       <div
-        className={`sticky top-0 z-30 w-full bg-white transition-shadow duration-200 ${
-          hasScrolled ? 'shadow-md' : 'border-b border-gray-200'
+        ref={toolbarRef}
+        className={`fixed top-0 inset-x-0 z-40 w-full bg-white transition-shadow duration-200 ease-in-out ${
+          hasScrolled ? 'shadow-md border-b border-gray-200' : 'border-b border-gray-200'
         }`}
       >
         <div className="flex items-center justify-center py-1.5 px-4 gap-0.5">
@@ -612,6 +627,7 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
           </button>
         </div>
       </div>
+      {toolbarHeight > 0 && <div style={{ height: toolbarHeight }} />}
 
       {/* Horizontal scroll wrapper for zoomed content on mobile */}
       <div
