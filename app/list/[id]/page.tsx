@@ -151,7 +151,7 @@ export default function ListDetailPage() {
                         className="flex items-center gap-2 text-red-600"
                       >
                         <Trash2 className="w-4 h-4" />
-                        <span>Delete</span>
+                        <span>Remove List</span>
                       </BaseMenuItem>
                     </BaseMenu>
                   )}
