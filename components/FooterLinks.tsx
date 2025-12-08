@@ -55,6 +55,9 @@ export const FooterLinks: React.FC = () => {
         </div>
       </div>
       <div className="flex flex-wrap gap-3 text-gray-500">
+        <a href="/changelog" className="hover:text-gray-700">
+          Changelog
+        </a>
         <a href="https://www.researchhub.com/about/tos" className="hover:text-gray-700">
           Terms
         </a>
