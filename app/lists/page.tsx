@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { useInView } from 'react-intersection-observer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark } from '@fortawesome/pro-light-svg-icons';
+import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { pluralizeSuffix } from '@/utils/stringUtils';
 
 interface ModalState {
@@ -143,14 +143,20 @@ export default function ListsPage() {
               )}
               {!isLoadingLists && lists.length > 0 && (
                 <>
-                  {lists.map((list) => (
-                    <UserListRow
-                      key={list.id}
-                      list={list}
-                      onEdit={(listToEdit) => openModal('edit', listToEdit)}
-                      onDelete={(listToDelete) => openModal('delete', listToDelete)}
-                    />
-                  ))}
+                  {[...lists]
+                    .sort((a, b) => {
+                      if (a.isDefault) return -1;
+                      if (b.isDefault) return 1;
+                      return 0;
+                    })
+                    .map((list) => (
+                      <UserListRow
+                        key={list.id}
+                        list={list}
+                        onEdit={(listToEdit) => openModal('edit', listToEdit)}
+                        onDelete={(listToDelete) => openModal('delete', listToDelete)}
+                      />
+                    ))}
                   {isLoadingMoreLists && (
                     <div className="space-y-1 pt-1">
                       {Array.from({ length: 3 }).map((_, skeletonIndex) => (

@@ -16,8 +16,8 @@ interface ListModalProps {
 
 const CONFIG = {
   create: { title: 'Create List', submit: 'Create', loading: 'Creating...' },
-  edit: { title: 'Edit List', submit: 'Save', loading: 'Saving...' },
-  delete: { title: 'Delete List', submit: 'Delete', loading: 'Deleting...' },
+  edit: { title: 'Rename List', submit: 'Save', loading: 'Saving...' },
+  delete: { title: 'Remove List', submit: 'Remove', loading: 'Removing...' },
 };
 
 export const ListModal = ({
@@ -59,7 +59,7 @@ export const ListModal = ({
       <div className="md:!min-w-[500px] md:!max-w-[500px]">
         {mode === 'delete' ? (
           <p className="text-gray-600">
-            Are you sure you want to delete "{name}"? This cannot be undone.
+            Are you sure you want to remove "{name}"? This cannot be undone.
           </p>
         ) : (
           <Input

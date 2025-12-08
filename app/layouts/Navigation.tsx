@@ -11,6 +11,8 @@ import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
 import { faGrid3 as faGrid3Solid } from '@fortawesome/pro-solid-svg-icons';
 import { faGrid3 as faGrid3Light } from '@fortawesome/pro-light-svg-icons';
+import { faBookmark as faBookmarkSolid } from '@fortawesome/pro-solid-svg-icons';
+import { faBookmark as faBookmarkLight } from '@fortawesome/pro-light-svg-icons';
 import { ChartNoAxesColumnIncreasing } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 
@@ -125,6 +127,13 @@ export const Navigation: React.FC<NavigationProps> = ({
       requiresAuth: true,
     },
     {
+      label: 'Lists',
+      href: '/lists',
+      isFontAwesome: true,
+      description: 'View and manage your saved lists',
+      requiresAuth: true,
+    },
+    {
       label: 'Leaderboard',
       href: '/leaderboard',
       description: 'View the ResearchHub Leaderboard',
@@ -170,6 +179,11 @@ export const Navigation: React.FC<NavigationProps> = ({
     // Special case for browse page
     if (path === '/browse') {
       return currentPath.startsWith('/browse');
+    }
+
+    // Special case for lists page - match /lists and /list/[id]
+    if (path === '/lists') {
+      return currentPath === '/lists' || currentPath.startsWith('/list/');
     }
 
     // Default case - exact match
@@ -238,6 +252,12 @@ export const Navigation: React.FC<NavigationProps> = ({
             <FontAwesomeIcon
               icon={isActive ? faGrid3Solid : faGrid3Light}
               fontSize={24}
+              color={iconColor}
+            />
+          ) : item.href === '/lists' ? (
+            <FontAwesomeIcon
+              icon={isActive ? faBookmarkSolid : faBookmarkLight}
+              fontSize={20}
               color={iconColor}
             />
           ) : isHomeIcon ? (

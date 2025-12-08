@@ -38,6 +38,10 @@ import { useCompleteFundraise } from '@/hooks/useFundraise';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
+import { useAddToList } from '@/components/UserList/lib/UserListsContext';
+import { Button } from '@/components/ui/Button';
+import { cn } from '@/utils/styles';
+
 interface WorkLineItemsProps {
   work: Work;
   showClaimButton?: boolean;
@@ -76,6 +80,13 @@ export const WorkLineItems = ({
   const { showShareModal } = useShareModalContext();
   const { isInList } = useIsInList(work.unifiedDocumentId);
   const userListsEnabled = useUserListsEnabled();
+
+  const { isTogglingDefaultList, handleAddToList } = useAddToList({
+    unifiedDocumentId: work.unifiedDocumentId,
+    isInList,
+    onOpenModal: () => setIsAddToListModalOpen(true),
+  });
+
   const {
     data: userVotes,
     isLoading: isLoadingVotes,
@@ -327,16 +338,23 @@ export const WorkLineItems = ({
           </button>
 
           {userListsEnabled && work.unifiedDocumentId && work.postType !== 'QUESTION' && (
-            <button
-              onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
-              className={`flex items-center px-4 py-2.5 rounded-lg ${
+            <Button
+              variant="ghost"
+              onClick={handleAddToList}
+              disabled={isTogglingDefaultList}
+              className={cn(
+                'flex items-center justify-center !px-4 !min-w-0 rounded-lg',
                 isInList
                   ? 'bg-green-50 text-green-600 hover:bg-green-100'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-              }`}
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100',
+                isTogglingDefaultList && 'opacity-50 cursor-not-allowed'
+              )}
             >
-              <FontAwesomeIcon icon={isInList ? faBookmarkSolid : faBookmark} className="h-5 w-5" />
-            </button>
+              <FontAwesomeIcon
+                icon={isInList ? faBookmarkSolid : faBookmark}
+                className="h-3.5 w-3.5"
+              />
+            </Button>
           )}
 
           <button
