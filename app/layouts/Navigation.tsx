@@ -7,12 +7,16 @@ import { Button } from '@/components/Editor/components/ui/Button';
 import Icon from '@/components/ui/icons/Icon';
 import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
-import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { faGrid3 as faGrid3Solid } from '@fortawesome/pro-solid-svg-icons';
-import { faGrid3 as faGrid3Light } from '@fortawesome/pro-light-svg-icons';
-import { faBookmark as faBookmarkSolid } from '@fortawesome/pro-solid-svg-icons';
-import { faBookmark as faBookmarkLight } from '@fortawesome/pro-light-svg-icons';
+import {
+  faHouse as faHouseSolid,
+  faGrid3 as faGrid3Solid,
+  faBookmark as faBookmarkSolid,
+} from '@fortawesome/pro-solid-svg-icons';
+import {
+  faHouse as faHouseLight,
+  faGrid3 as faGrid3Light,
+  faBookmark as faBookmarkLight,
+} from '@fortawesome/pro-light-svg-icons';
 import { ChartNoAxesColumnIncreasing } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 

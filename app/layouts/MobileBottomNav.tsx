@@ -3,12 +3,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
-import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { faEllipsis, faGrid3 as faGrid3Light } from '@fortawesome/pro-light-svg-icons';
-import { faGrid3 as faGrid3Solid } from '@fortawesome/pro-solid-svg-icons';
-import { faBookmark as faBookmarkSolid } from '@fortawesome/pro-solid-svg-icons';
-import { faBookmark as faBookmarkLight } from '@fortawesome/pro-light-svg-icons';
+import {
+  faHouse as faHouseSolid,
+  faGrid3 as faGrid3Solid,
+  faBookmark as faBookmarkSolid,
+} from '@fortawesome/pro-solid-svg-icons';
+import {
+  faHouse as faHouseLight,
+  faGrid3 as faGrid3Light,
+  faBookmark as faBookmarkLight,
+  faEllipsis,
+} from '@fortawesome/pro-light-svg-icons';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { ChartNoAxesColumnIncreasing } from 'lucide-react';
 import { Icon } from '@/components/ui/icons';
