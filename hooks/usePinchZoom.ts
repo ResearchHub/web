@@ -9,56 +9,53 @@ interface PinchZoomOptions {
   maxScale?: number;
   /** Current scale value */
   scale: number;
-  /** Callback when scale changes (called on gesture end, debounced) */
+  /** Callback when scale changes (called incrementally during gesture) */
   onScaleChange: (scale: number) => void;
   /** Whether pinch zoom is enabled */
   enabled?: boolean;
-  /** Sensitivity multiplier for zoom speed (default: 1) */
-  sensitivity?: number;
-  /** Debounce delay in ms before triggering re-render (default: 150) */
-  debounceMs?: number;
+  /** Step size for incremental zoom (default: 0.01 = 1%) */
+  stepSize?: number;
 }
 
 interface PinchState {
   isPinching: boolean;
-  initialDistance: number;
-  initialScale: number;
+  lastDistance: number;
+  centerX: number;
+  centerY: number;
 }
 
 interface UsePinchZoomReturn<T extends HTMLElement> {
   /** Ref to attach to the zoomable element */
   ref: React.MutableRefObject<T | null>;
-  /** Current gesture scale ratio (1 = no transform, use for CSS transform during gesture) */
-  gestureScale: number;
   /** Whether a gesture is currently in progress */
   isGesturing: boolean;
+  /** Transform origin point (x, y in pixels) */
+  transformOrigin: { x: number; y: number } | null;
 }
 
 /**
  * Hook to handle pinch-to-zoom gestures on touch devices and trackpads.
- * Returns a ref to attach to the target element, plus gesture state for smooth CSS transforms.
+ * Returns a ref to attach to the target element, plus gesture state.
  *
  * Features:
- * - Smooth pinch with CSS transform during gesture (no re-renders)
- * - Debounced final scale update on gesture end (triggers re-render once)
+ * - Incremental zoom updates (no debounce, immediate response)
+ * - Tracks pinch center point for proper transform origin
  * - Trackpad pinch support (via wheel events with ctrlKey)
- * - Configurable min/max scale limits
+ * - Configurable min/max scale limits and step size
  *
  * @example
  * ```tsx
  * const [scale, setScale] = useState(1);
- * const { ref, gestureScale, isGesturing } = usePinchZoom({
+ * const { ref, isGesturing, transformOrigin } = usePinchZoom({
  *   scale,
  *   onScaleChange: setScale,
  *   minScale: 0.5,
  *   maxScale: 3,
+ *   stepSize: 0.01, // 1% increments
  * });
  *
  * return (
- *   <div ref={ref} style={{
- *     transform: isGesturing ? `scale(${gestureScale})` : undefined,
- *     transformOrigin: 'center top',
- *   }}>
+ *   <div ref={ref}>
  *     Content
  *   </div>
  * );
@@ -70,29 +67,26 @@ export function usePinchZoom<T extends HTMLElement = HTMLElement>({
   scale,
   onScaleChange,
   enabled = true,
-  sensitivity = 1,
-  debounceMs = 150,
+  stepSize = 0.01, // 1% increments by default
 }: PinchZoomOptions): UsePinchZoomReturn<T> {
   const elementRef = useRef<T | null>(null);
 
-  // Gesture state - used for CSS transform during gesture
-  const [gestureScale, setGestureScale] = useState(1);
   const [isGesturing, setIsGesturing] = useState(false);
+  const [transformOrigin, setTransformOrigin] = useState<{ x: number; y: number } | null>(null);
 
   const pinchStateRef = useRef<PinchState>({
     isPinching: false,
-    initialDistance: 0,
-    initialScale: scale,
+    lastDistance: 0,
+    centerX: 0,
+    centerY: 0,
   });
 
-  // Ref to track animation frame for throttling visual updates
-  const rafRef = useRef<number | null>(null);
-  // Ref for debounce timer
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   // Track the current scale in a ref (avoids stale closures)
   const scaleRef = useRef(scale);
-  // Track the pending final scale
+  // Track pending scale update
   const pendingScaleRef = useRef<number | null>(null);
+  // RAF for throttling updates
+  const rafRef = useRef<number | null>(null);
 
   // Update ref when scale prop changes
   useEffect(() => {
@@ -106,6 +100,14 @@ export function usePinchZoom<T extends HTMLElement = HTMLElement>({
     return Math.hypot(dx, dy);
   }, []);
 
+  // Calculate center point between two touches
+  const getCenter = useCallback((touch1: Touch, touch2: Touch): { x: number; y: number } => {
+    return {
+      x: (touch1.clientX + touch2.clientX) / 2,
+      y: (touch1.clientY + touch2.clientY) / 2,
+    };
+  }, []);
+
   // Clamp scale within bounds
   const clampScale = useCallback(
     (value: number): number => {
@@ -113,33 +115,6 @@ export function usePinchZoom<T extends HTMLElement = HTMLElement>({
     },
     [minScale, maxScale]
   );
-
-  // Commit the pending scale change (debounced)
-  const commitScale = useCallback(() => {
-    if (pendingScaleRef.current !== null) {
-      const finalScale = pendingScaleRef.current;
-      pendingScaleRef.current = null;
-
-      // Trigger the actual re-render
-      onScaleChange(finalScale);
-
-      // Reset gesture state after a short delay to allow PDF to re-render
-      // This prevents the visual flash where transform disappears before PDF catches up
-      // Using 50ms which is enough for the browser to start the re-render
-      setTimeout(() => {
-        setGestureScale(1);
-        setIsGesturing(false);
-      }, 50);
-    }
-  }, [onScaleChange]);
-
-  // Schedule a debounced scale commit
-  const scheduleCommit = useCallback(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-    debounceTimerRef.current = setTimeout(commitScale, debounceMs);
-  }, [commitScale, debounceMs]);
 
   // Handle touch start
   const handleTouchStart = useCallback(
@@ -149,22 +124,35 @@ export function usePinchZoom<T extends HTMLElement = HTMLElement>({
       // Prevent default to stop browser zoom
       e.preventDefault();
 
-      // Cancel any pending commit
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-        debounceTimerRef.current = null;
-      }
-
       const distance = getDistance(e.touches[0], e.touches[1]);
-      pinchStateRef.current = {
-        isPinching: true,
-        initialDistance: distance,
-        initialScale: pendingScaleRef.current ?? scaleRef.current,
-      };
+      const center = getCenter(e.touches[0], e.touches[1]);
+
+      // Get element bounds to convert to relative coordinates
+      const element = elementRef.current;
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        pinchStateRef.current = {
+          isPinching: true,
+          lastDistance: distance,
+          centerX: center.x - rect.left,
+          centerY: center.y - rect.top,
+        };
+
+        setTransformOrigin({ x: center.x - rect.left, y: center.y - rect.top });
+      } else {
+        pinchStateRef.current = {
+          isPinching: true,
+          lastDistance: distance,
+          centerX: center.x,
+          centerY: center.y,
+        };
+
+        setTransformOrigin({ x: center.x, y: center.y });
+      }
 
       setIsGesturing(true);
     },
-    [getDistance]
+    [getDistance, getCenter]
   );
 
   // Handle touch move (pinch gesture)
@@ -176,30 +164,52 @@ export function usePinchZoom<T extends HTMLElement = HTMLElement>({
       e.preventDefault();
 
       const currentDistance = getDistance(e.touches[0], e.touches[1]);
-      const { initialDistance, initialScale } = pinchStateRef.current;
+      const { lastDistance } = pinchStateRef.current;
 
-      // Calculate scale ratio with sensitivity
-      const ratio = currentDistance / initialDistance;
-      const scaleDelta = (ratio - 1) * sensitivity;
-      const newScale = clampScale(initialScale * (1 + scaleDelta));
+      // Calculate distance change
+      const distanceChange = currentDistance - lastDistance;
+
+      // Only update if there's significant change (avoid jitter)
+      if (Math.abs(distanceChange) < 1) return;
+
+      // Determine direction: positive = zoom in, negative = zoom out
+      const direction = distanceChange > 0 ? 1 : -1;
+
+      // Calculate new scale with step size (1% increments)
+      const newScale = clampScale(scaleRef.current + direction * stepSize);
 
       // Store pending scale
-      pendingScaleRef.current = parseFloat(newScale.toFixed(2));
+      pendingScaleRef.current = newScale;
 
-      // Update visual gesture scale (ratio relative to current rendered scale)
-      // This is used for CSS transform
-      const visualRatio = newScale / scaleRef.current;
+      // Update last distance for next comparison
+      pinchStateRef.current.lastDistance = currentDistance;
 
-      // Throttle visual updates using requestAnimationFrame
+      // Update pinch center point
+      const center = getCenter(e.touches[0], e.touches[1]);
+      const element = elementRef.current;
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        pinchStateRef.current.centerX = center.x - rect.left;
+        pinchStateRef.current.centerY = center.y - rect.top;
+        setTransformOrigin({ x: center.x - rect.left, y: center.y - rect.top });
+      }
+
+      // Throttle scale updates with RAF (smooth but not debounced)
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
       }
 
       rafRef.current = requestAnimationFrame(() => {
-        setGestureScale(visualRatio);
+        if (
+          pendingScaleRef.current !== null &&
+          Math.abs(pendingScaleRef.current - scaleRef.current) > 0.001
+        ) {
+          onScaleChange(parseFloat(pendingScaleRef.current.toFixed(3)));
+          pendingScaleRef.current = null;
+        }
       });
     },
-    [getDistance, clampScale, sensitivity]
+    [getDistance, getCenter, clampScale, stepSize, onScaleChange]
   );
 
   // Handle touch end
@@ -209,22 +219,26 @@ export function usePinchZoom<T extends HTMLElement = HTMLElement>({
       if (e.touches.length < 2 && pinchStateRef.current.isPinching) {
         pinchStateRef.current.isPinching = false;
 
-        // Clean up animation frame
+        // Cancel any pending RAF
         if (rafRef.current) {
           cancelAnimationFrame(rafRef.current);
           rafRef.current = null;
         }
 
-        // Schedule debounced commit
-        if (pendingScaleRef.current !== null) {
-          scheduleCommit();
-        } else {
-          setIsGesturing(false);
-          setGestureScale(1);
+        // Flush any pending scale update immediately
+        if (
+          pendingScaleRef.current !== null &&
+          Math.abs(pendingScaleRef.current - scaleRef.current) > 0.001
+        ) {
+          onScaleChange(parseFloat(pendingScaleRef.current.toFixed(3)));
+          pendingScaleRef.current = null;
         }
+
+        setIsGesturing(false);
+        setTransformOrigin(null);
       }
     },
-    [scheduleCommit]
+    [onScaleChange]
   );
 
   // Handle wheel events for trackpad pinch (ctrlKey + wheel = pinch gesture)
@@ -236,42 +250,43 @@ export function usePinchZoom<T extends HTMLElement = HTMLElement>({
       // Prevent browser zoom
       e.preventDefault();
 
-      // Cancel any pending commit to accumulate gesture
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-        debounceTimerRef.current = null;
-      }
-
       // Start gesturing if not already
       if (!isGesturing) {
         setIsGesturing(true);
+
+        // Set transform origin to mouse position
+        const element = elementRef.current;
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          setTransformOrigin({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+        }
       }
 
-      // Calculate new scale based on wheel delta
-      const baseScale = pendingScaleRef.current ?? scaleRef.current;
-      const zoomFactor = 0.01 * sensitivity;
-      const delta = -e.deltaY * zoomFactor;
-      const newScale = clampScale(baseScale * (1 + delta));
+      // Determine direction from deltaY: negative = zoom in, positive = zoom out
+      const direction = e.deltaY < 0 ? 1 : -1;
+
+      // Calculate new scale with step size
+      const newScale = clampScale(scaleRef.current + direction * stepSize);
 
       // Store pending scale
-      pendingScaleRef.current = parseFloat(newScale.toFixed(2));
+      pendingScaleRef.current = newScale;
 
-      // Update visual gesture scale
-      const visualRatio = newScale / scaleRef.current;
-
-      // Throttle visual updates
+      // Throttle scale updates with RAF
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
       }
 
       rafRef.current = requestAnimationFrame(() => {
-        setGestureScale(visualRatio);
+        if (
+          pendingScaleRef.current !== null &&
+          Math.abs(pendingScaleRef.current - scaleRef.current) > 0.001
+        ) {
+          onScaleChange(parseFloat(pendingScaleRef.current.toFixed(3)));
+          pendingScaleRef.current = null;
+        }
       });
-
-      // Schedule debounced commit (wheel events are continuous, so debounce)
-      scheduleCommit();
     },
-    [clampScale, sensitivity, isGesturing, scheduleCommit]
+    [clampScale, stepSize, onScaleChange, isGesturing]
   );
 
   // Set up touch event listeners
@@ -303,21 +318,55 @@ export function usePinchZoom<T extends HTMLElement = HTMLElement>({
 
     return () => {
       element.removeEventListener('wheel', handleWheel);
-
-      // Clean up timers
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
     };
   }, [enabled, handleWheel]);
 
+  // Reset gesture state when wheel gesture ends (after a delay without wheel events)
+  useEffect(() => {
+    if (!isGesturing) return;
+
+    let timeoutId: NodeJS.Timeout;
+
+    const resetGesture = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+
+      timeoutId = setTimeout(() => {
+        // Flush any pending scale update
+        if (rafRef.current) {
+          cancelAnimationFrame(rafRef.current);
+          rafRef.current = null;
+        }
+
+        if (
+          pendingScaleRef.current !== null &&
+          Math.abs(pendingScaleRef.current - scaleRef.current) > 0.001
+        ) {
+          onScaleChange(parseFloat(pendingScaleRef.current.toFixed(3)));
+          pendingScaleRef.current = null;
+        }
+
+        setIsGesturing(false);
+        setTransformOrigin(null);
+      }, 100); // Reset after 100ms of no activity
+    };
+
+    const element = elementRef.current;
+    if (element) {
+      const wheelHandler = () => resetGesture();
+      element.addEventListener('wheel', wheelHandler);
+      resetGesture(); // Start initial timer
+
+      return () => {
+        if (timeoutId) clearTimeout(timeoutId);
+        element.removeEventListener('wheel', wheelHandler);
+      };
+    }
+  }, [isGesturing, onScaleChange]);
+
   return {
     ref: elementRef,
-    gestureScale,
     isGesturing,
+    transformOrigin,
   };
 }
 

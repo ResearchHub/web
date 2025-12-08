@@ -54,20 +54,34 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
 
+  // Track scroll position and pinch point for zoom position preservation
+  const lastScaleRef = useRef(1);
+  const pinchPointRef = useRef<{ x: number; y: number } | null>(null);
+
   // Pinch-to-zoom support for touch devices and trackpads
-  // Returns gestureScale for smooth CSS transform during pinch,
-  // and only triggers re-render on gesture end (debounced)
+  // Updates scale incrementally in real-time (2% steps)
+  // Tracks pinch center point for proper zoom positioning
   const {
     ref: pinchZoomRef,
-    gestureScale,
     isGesturing,
+    transformOrigin,
   } = usePinchZoom<HTMLDivElement>({
     scale,
-    onScaleChange: setScale,
+    onScaleChange: (newScale) => {
+      // Store pinch point before scale changes (for scroll adjustment)
+      if (transformOrigin && pinchZoomRef.current) {
+        const container = pinchZoomRef.current;
+        pinchPointRef.current = {
+          x: container.scrollLeft + transformOrigin.x,
+          y: container.scrollTop + transformOrigin.y,
+        };
+      }
+      lastScaleRef.current = scale;
+      setScale(newScale);
+    },
     minScale: 0.5,
     maxScale: 3,
-    sensitivity: 1.2, // Slightly increased sensitivity for natural feel
-    debounceMs: 200, // Wait 200ms after gesture ends before re-rendering
+    stepSize: 0.06, // 2% increments for faster zoom
   });
 
   // Track which pages have been rendered to avoid duplicate work
@@ -78,6 +92,8 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
   const observerRef = useRef<IntersectionObserver | null>(null);
   // Track if onReady has been called
   const onReadyCalledRef = useRef(false);
+  // Track if the current PDF document has been initially rendered
+  const documentInitiallyRenderedRef = useRef(false);
   // Store the base scale (for normal view) so we can restore it when exiting fullscreen
   const baseScaleRef = useRef<number>(1);
   // Store the PDF's native page width for scale calculations
@@ -231,7 +247,12 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
       const container = containerRef.current;
       if (!container) return;
 
-      setIsRendering(true);
+      // Only show loader on initial document load, not on zoom changes
+      const isInitialLoad = !documentInitiallyRenderedRef.current;
+      if (isInitialLoad) {
+        setIsRendering(true);
+      }
+
       container.innerHTML = '';
       renderedPagesRef.current.clear();
       pagePlaceholdersRef.current.clear();
@@ -280,6 +301,9 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
       await Promise.all(initialRenderPromises);
       setIsRendering(false);
 
+      // Mark document as initially rendered (subsequent scale changes won't show loader)
+      documentInitiallyRenderedRef.current = true;
+
       // Set up Intersection Observer for lazy loading remaining pages
       observerRef.current = new IntersectionObserver(
         (entries) => {
@@ -319,6 +343,9 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
   // Load document when URL changes
   useEffect(() => {
     let destroyed = false;
+
+    // Reset initial render flag for new document
+    documentInitiallyRenderedRef.current = false;
 
     (async () => {
       // Wait for any previous destroy() to finish
@@ -412,6 +439,31 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
       setupDocument(pdfRef.current, scale);
     }
   }, [scale, setupDocument]);
+
+  // Adjust scroll position after scale changes to maintain visual position
+  useEffect(() => {
+    if (!pinchPointRef.current || !transformOrigin || !pinchZoomRef.current) return;
+
+    const container = pinchZoomRef.current;
+    const lastScale = lastScaleRef.current;
+    const scaleRatio = scale / lastScale;
+
+    // Calculate new scroll position to keep the pinch point visually stable
+    // The pinch point in the document scales up, so we need to adjust scroll
+    const newScrollX = pinchPointRef.current.x * scaleRatio - transformOrigin.x;
+    const newScrollY = pinchPointRef.current.y * scaleRatio - transformOrigin.y;
+
+    // Use requestAnimationFrame to ensure the DOM has updated
+    requestAnimationFrame(() => {
+      container.scrollLeft = newScrollX;
+      container.scrollTop = newScrollY;
+    });
+
+    // Clear pinch point after adjustment
+    if (!isGesturing) {
+      pinchPointRef.current = null;
+    }
+  }, [scale, transformOrigin, isGesturing, pinchZoomRef]);
 
   // Zoom handlers
   const zoomIn = () => setScale((prev) => Math.min(prev + 0.25, 3));
@@ -572,18 +624,10 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
         }}
       >
         {/* PDF pages container - uses inline-flex to shrink-wrap content width */}
-        {/* During pinch gesture, CSS transform provides instant visual feedback */}
-        {/* Re-render only happens after gesture ends (debounced) for smooth UX */}
+        {/* Scale updates incrementally during pinch for smooth, predictable zoom */}
         <div
           ref={containerRef}
           className="pdf-pages-wrapper inline-flex flex-col items-center min-w-full"
-          style={{
-            // Apply CSS transform during gesture for smooth visual feedback
-            // This is GPU-accelerated and doesn't trigger PDF re-render
-            // When gesture ends, transform snaps off right as PDF re-renders (coordinated timing)
-            transform: isGesturing ? `scale(${gestureScale})` : undefined,
-            transformOrigin: 'center top',
-          }}
         />
       </div>
     </div>
