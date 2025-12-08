@@ -4,7 +4,12 @@ import { useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { UserList } from '@/components/UserList/lib/user-list';
-import { UserListRow, UserListRowSkeleton, UserListTableHeader } from './components/UserListRow';
+import {
+  UserListRow,
+  UserListRowSkeleton,
+  UserListTableHeader,
+  ListsPageHeaderSkeleton,
+} from './components/UserListRow';
 import { ListModal } from '@/components/modals/ListModal';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -107,7 +112,9 @@ export default function ListsPage() {
   return (
     <PageLayout>
       <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-gray-50/50 to-white pb-20">
-        {!isLoadingLists && (
+        {isLoadingLists ? (
+          <ListsPageHeaderSkeleton />
+        ) : (
           <ListsPageHeader
             user={user}
             totalCount={totalListsCount}
