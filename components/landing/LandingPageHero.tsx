@@ -16,7 +16,7 @@ export function LandingPageHero() {
   };
 
   const handleExplore = () => {
-    router.push('/trending');
+    router.push('/popular');
   };
 
   return (

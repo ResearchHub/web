@@ -91,7 +91,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     setIsNavigating(true);
 
     if (tab === 'popular') {
-      router.push('/trending');
+      router.push('/popular');
     } else {
       router.push(`/${tab}`);
     }

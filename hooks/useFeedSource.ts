@@ -14,7 +14,7 @@ import { FeedSource } from '@/types/analytics';
  * 1. Query parameter 'tab' (e.g., ?tab=active)
  * 2. Third path segment for topic pages (e.g., /topic/ai/popular → tab: 'popular')
  * 3. Second path segment (e.g., /earn/grants)
- * 4. For home tabs, the source itself (e.g., /trending → tab: 'trending')
+ * 4. For home tabs, the source itself (e.g., /popular → tab: 'popular')
  * 5. Default to 'unknown'
  *
  * Special handling:
@@ -25,7 +25,7 @@ import { FeedSource } from '@/types/analytics';
  * - Search pages (/search) use 'search' as tab (no extraction needed)
  *
  * URL Structure Examples:
- * - /trending → source: 'home', tab: 'trending'
+ * - /popular → source: 'home', tab: 'popular'
  * - /following → source: 'home', tab: 'following'
  * - /latest → source: 'home', tab: 'latest'
  * - /for-you → source: 'home', tab: 'for-you'

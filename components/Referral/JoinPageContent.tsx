@@ -25,7 +25,7 @@ export function JoinPageContent() {
   // Redirect authenticated users to trending page
   useEffect(() => {
     if (!isLoading && user) {
-      router.replace('/trending');
+      router.replace('/popular');
     }
   }, [user, isLoading, router]);
 

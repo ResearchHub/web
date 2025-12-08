@@ -12,6 +12,7 @@ import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
 import { faGrid3 as faGrid3Solid } from '@fortawesome/pro-solid-svg-icons';
 import { faGrid3 as faGrid3Light } from '@fortawesome/pro-light-svg-icons';
 import { ChartNoAxesColumnIncreasing } from 'lucide-react';
+import { useUser } from '@/contexts/UserContext';
 
 // Define icon mapping for navigation items with both light and solid variants
 interface NavIcon {
@@ -72,6 +73,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
+  const { user } = useUser();
 
   const handleNavigate = useCallback(
     (href: string) => {
@@ -80,10 +82,13 @@ export const Navigation: React.FC<NavigationProps> = ({
     [router]
   );
 
+  // Home href depends on auth state: logged in -> /for-you, logged out -> /popular
+  const homeHref = user ? '/for-you' : '/popular';
+
   const navigationItems: NavigationItem[] = [
     {
       label: 'Home',
-      href: '/trending',
+      href: homeHref,
       iconKey: 'home',
       isFontAwesome: true,
       description: 'Navigate to the home page',
@@ -141,8 +146,8 @@ export const Navigation: React.FC<NavigationProps> = ({
 
   const isPathActive = (path: string) => {
     // Special case for home page
-    if (path === '/trending') {
-      return ['/trending', '/for-you', '/latest', '/following'].includes(currentPath);
+    if (path === '/for-you' || path === '/popular') {
+      return ['/popular', '/for-you', '/latest', '/following'].includes(currentPath);
     }
 
     // Special case for fund page - match specific fund routes

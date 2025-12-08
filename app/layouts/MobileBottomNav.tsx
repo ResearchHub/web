@@ -16,6 +16,7 @@ import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
+import { useUser } from '@/contexts/UserContext';
 
 interface NavItem {
   label: string;
@@ -23,15 +24,8 @@ interface NavItem {
   iconKey?: string;
   isMore?: boolean;
   requiresAuth?: boolean;
+  isDynamicHome?: boolean;
 }
-
-const mainNavItems: NavItem[] = [
-  { label: 'Home', href: '/trending', iconKey: 'home' },
-  { label: 'Earn', href: '/earn', iconKey: 'earn' },
-  { label: 'Fund', href: '/fund/grants', iconKey: 'fund' },
-  { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
-  { label: 'More', isMore: true, iconKey: 'more' },
-];
 
 // Additional navigation items not in the bottom bar
 const moreNavItems: NavItem[] = [
@@ -43,8 +37,8 @@ const moreNavItems: NavItem[] = [
 
 // Check if a path is active
 const isPathActive = (path: string, currentPath: string): boolean => {
-  if (path === '/trending') {
-    return ['/trending', '/for-you', '/latest', '/following', '/'].includes(currentPath);
+  if (path === '/for-you' || path === '/popular') {
+    return ['/popular', '/for-you', '/latest', '/following', '/'].includes(currentPath);
   }
   if (path === '/fund/grants') {
     return ['/fund/grants', '/fund/needs-funding', '/fund/previously-funded'].includes(currentPath);
@@ -73,6 +67,18 @@ export const MobileBottomNav: React.FC = () => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD, toggleCurrency } = useCurrencyPreference();
   const scrollContainerRef = useScrollContainer();
+  const { user } = useUser();
+
+  // Home href depends on auth state: logged in -> /for-you, logged out -> /popular
+  const homeHref = user ? '/for-you' : '/popular';
+
+  const mainNavItems: NavItem[] = [
+    { label: 'Home', href: homeHref, iconKey: 'home', isDynamicHome: true },
+    { label: 'Earn', href: '/earn', iconKey: 'earn' },
+    { label: 'Fund', href: '/fund/grants', iconKey: 'fund' },
+    { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
+    { label: 'More', isMore: true, iconKey: 'more' },
+  ];
 
   // Track scroll direction using the scroll container from context
   useEffect(() => {

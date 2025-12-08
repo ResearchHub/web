@@ -50,7 +50,7 @@ const isRootNavigationPage = (pathname: string): boolean => {
     '/',
     '/following',
     '/latest',
-    '/trending', // Home variants
+    '/popular', // Home variants
     '/for-you',
     '/earn',
     '/fund/grants',
@@ -68,9 +68,9 @@ const isRootNavigationPage = (pathname: string): boolean => {
 // Function to get page info based on current route
 const getPageInfo = (pathname: string): PageInfo | null => {
   // Homepage variants
-  if (['/', '/following', '/latest', '/trending', '/for-you'].includes(pathname)) {
+  if (['/', '/following', '/latest', '/popular', '/for-you'].includes(pathname)) {
     return {
-      title: 'Explore',
+      title: 'Home',
       subtitle: 'Explore cutting-edge research from leading preprint servers.',
       icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
     };
