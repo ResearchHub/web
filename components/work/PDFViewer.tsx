@@ -83,7 +83,7 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
     },
     minScale: 0.5,
     maxScale: 3,
-    stepSize: 0.06, // 2% increments for faster zoom
+    stepSize: 0.04, // 2% increments for faster zoom
   });
 
   // Track which pages have been rendered to avoid duplicate work

@@ -19,7 +19,9 @@ interface PinchZoomOptions {
 
 interface PinchState {
   isPinching: boolean;
-  lastDistance: number;
+  initialDistance: number;
+  initialScale: number;
+  lastAppliedDistance: number;
   centerX: number;
   centerY: number;
 }
@@ -76,7 +78,9 @@ export function usePinchZoom<T extends HTMLElement = HTMLElement>({
 
   const pinchStateRef = useRef<PinchState>({
     isPinching: false,
-    lastDistance: 0,
+    initialDistance: 0,
+    initialScale: 1,
+    lastAppliedDistance: 0,
     centerX: 0,
     centerY: 0,
   });
@@ -133,7 +137,9 @@ export function usePinchZoom<T extends HTMLElement = HTMLElement>({
         const rect = element.getBoundingClientRect();
         pinchStateRef.current = {
           isPinching: true,
-          lastDistance: distance,
+          initialDistance: distance,
+          initialScale: scaleRef.current,
+          lastAppliedDistance: distance,
           centerX: center.x - rect.left,
           centerY: center.y - rect.top,
         };
@@ -142,7 +148,9 @@ export function usePinchZoom<T extends HTMLElement = HTMLElement>({
       } else {
         pinchStateRef.current = {
           isPinching: true,
-          lastDistance: distance,
+          initialDistance: distance,
+          initialScale: scaleRef.current,
+          lastAppliedDistance: distance,
           centerX: center.x,
           centerY: center.y,
         };
@@ -164,25 +172,28 @@ export function usePinchZoom<T extends HTMLElement = HTMLElement>({
       e.preventDefault();
 
       const currentDistance = getDistance(e.touches[0], e.touches[1]);
-      const { lastDistance } = pinchStateRef.current;
+      const { lastAppliedDistance } = pinchStateRef.current;
 
-      // Calculate distance change
-      const distanceChange = currentDistance - lastDistance;
+      // Calculate accumulated distance change since last scale update
+      const distanceChange = currentDistance - lastAppliedDistance;
 
       // Only update if there's significant change (avoid jitter)
-      if (Math.abs(distanceChange) < 1) return;
+      if (Math.abs(distanceChange) < 2) return;
 
       // Determine direction: positive = zoom in, negative = zoom out
       const direction = distanceChange > 0 ? 1 : -1;
 
-      // Calculate new scale with step size (1% increments)
+      // Calculate new scale with step size
       const newScale = clampScale(scaleRef.current + direction * stepSize);
+
+      // Only proceed if scale actually changed
+      if (Math.abs(newScale - scaleRef.current) < 0.001) return;
+
+      // Update last applied distance now that we're committing to a scale change
+      pinchStateRef.current.lastAppliedDistance = currentDistance;
 
       // Store pending scale
       pendingScaleRef.current = newScale;
-
-      // Update last distance for next comparison
-      pinchStateRef.current.lastDistance = currentDistance;
 
       // Update pinch center point
       const center = getCenter(e.touches[0], e.touches[1]);
