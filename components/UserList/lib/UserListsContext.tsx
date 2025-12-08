@@ -182,8 +182,8 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   const deleteList = async (id: ID, shouldRefreshLists = true): Promise<void> => {
     await executeListActionWithToast(
       () => ListService.deleteListApi(id),
-      'List deleted',
-      'Failed to delete list',
+      'List removed',
+      'Failed to removed list',
       shouldRefreshLists
     );
   };
