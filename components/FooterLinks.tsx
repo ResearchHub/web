@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 
-const CHANGELOG_VERSION = 'v1.0.1';
+const CHANGELOG_VERSION = 'v1.0.3';
 const CHANGELOG_STORAGE_KEY = `rh-changelog-seen-${CHANGELOG_VERSION}`;
 
 export const FooterLinks: React.FC = () => {
