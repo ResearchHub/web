@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback, useLayoutEffect } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import * as pdfjsLib from 'pdfjs-dist/webpack';
 // Note: TextLayer is not typed in the shipped pdfjs-dist types yet, so we load it dynamically.
-import { ZoomIn, ZoomOut, Maximize2, Minimize2, Download } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, Minimize2, Download, ExternalLink } from 'lucide-react';
 import { handleDownload } from '@/utils/download';
 import { usePinchZoom } from '@/hooks/usePinchZoom';
 
@@ -35,6 +35,31 @@ interface PDFViewerProps {
   onError?: (error: any) => void;
 }
 
+// Toolbar sub-components for DRY markup
+const ToolbarButton = ({
+  onClick,
+  disabled,
+  title,
+  children,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  title: string;
+  children: React.ReactNode;
+}) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    className="p-1.5 hover:bg-gray-100 rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+    aria-label={title}
+    title={title}
+  >
+    {children}
+  </button>
+);
+
+const ToolbarDivider = () => <div className="h-5 w-px bg-gray-300 mx-2" />;
+
 /**
  * Lightweight PDF viewer built with PDF.js that supports
  * 1. Progressive page rendering (pages appear as they load)
@@ -52,9 +77,9 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
   const [scale, setScale] = useState(1);
   const [isRendering, setIsRendering] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [hasScrolled, setHasScrolled] = useState(false);
-  const toolbarRef = useRef<HTMLDivElement | null>(null);
-  const [toolbarHeight, setToolbarHeight] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  // When PDF container reaches viewport top, toolbar becomes fixed (mobile only)
+  const [shouldFixToolbar, setShouldFixToolbar] = useState(false);
 
   // Track scroll position and pinch point for zoom position preservation
   const lastScaleRef = useRef(1);
@@ -522,35 +547,56 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
     };
   }, [isFullscreen]);
 
-  // Track scroll position to show shadow when scrolled
+  // Detect mobile viewport (matches tablet breakpoint used in TopBar)
   useEffect(() => {
-    const handleScroll = () => {
-      const scrolled = window.scrollY > 10;
-      setHasScrolled(scrolled);
+    const checkMobile = () => {
+      // 768px is the tablet breakpoint where TopBar behavior changes
+      setIsMobile(window.innerWidth < 768);
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    // Check initial scroll position
-    handleScroll();
-
-    return () => window.removeEventListener('scroll', handleScroll);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  useLayoutEffect(() => {
-    const measureToolbar = () => {
-      if (toolbarRef.current) {
-        setToolbarHeight(toolbarRef.current.offsetHeight);
+  // Track PDF container position for fixed toolbar (mobile only)
+  useEffect(() => {
+    // Skip on desktop or fullscreen - use sticky positioning instead
+    if (!isMobile || isFullscreen) {
+      setShouldFixToolbar(false);
+      return;
+    }
+
+    let rafId: number;
+    let lastTop: number | null = null;
+
+    const checkPosition = () => {
+      if (!rootRef.current) return;
+
+      const rect = rootRef.current.getBoundingClientRect();
+      // Only update state if position changed (avoid unnecessary re-renders)
+      if (lastTop !== rect.top) {
+        lastTop = rect.top;
+        setShouldFixToolbar(rect.top <= 0);
       }
     };
 
-    measureToolbar();
-    window.addEventListener('resize', measureToolbar);
-    return () => window.removeEventListener('resize', measureToolbar);
-  }, [isFullscreen, scale]);
+    const rafLoop = () => {
+      checkPosition();
+      rafId = requestAnimationFrame(rafLoop);
+    };
 
-  // Download handler
-  const onDownload = () => {
-    handleDownload(url, 'document.pdf');
+    rafId = requestAnimationFrame(rafLoop);
+    return () => cancelAnimationFrame(rafId);
+  }, [isMobile, isFullscreen]);
+
+  // Download/Open handler - opens in new tab on mobile, downloads on desktop
+  const onDownloadOrOpen = () => {
+    if (isMobile) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      handleDownload(url, 'document.pdf');
+    }
   };
 
   return (
@@ -565,45 +611,27 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
           : undefined
       }
     >
-      {/* Sticky toolbar */}
+      {/* Toolbar - sticky on desktop, fixed at viewport top on mobile when scrolled */}
       <div
-        ref={toolbarRef}
-        className={`fixed top-0 inset-x-0 z-40 w-full bg-white transition-shadow duration-200 ease-in-out ${
-          hasScrolled ? 'shadow-md border-b border-gray-200' : 'border-b border-gray-200'
-        }`}
+        className={`${
+          shouldFixToolbar ? 'fixed inset-x-0 top-0 z-50 shadow-md' : 'sticky top-0 z-40'
+        } w-full bg-white border-b border-gray-200`}
       >
         <div className="flex items-center justify-center py-1.5 px-4 gap-0.5">
-          {/* Zoom controls */}
-          <button
-            onClick={zoomOut}
-            className="p-1.5 hover:bg-gray-100 rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            disabled={scale <= 0.5 || isRendering}
-            aria-label="Zoom out"
-            title="Zoom out"
-          >
+          <ToolbarButton onClick={zoomOut} disabled={scale <= 0.5 || isRendering} title="Zoom out">
             <ZoomOut className="h-4 w-4 text-gray-500" />
-          </button>
+          </ToolbarButton>
           <span className="px-2 text-sm font-medium tabular-nums text-gray-600 min-w-[3rem] text-center">
             {Math.round(scale * 100)}%
           </span>
-          <button
-            onClick={zoomIn}
-            className="p-1.5 hover:bg-gray-100 rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            disabled={scale >= 3 || isRendering}
-            aria-label="Zoom in"
-            title="Zoom in"
-          >
+          <ToolbarButton onClick={zoomIn} disabled={scale >= 3 || isRendering} title="Zoom in">
             <ZoomIn className="h-4 w-4 text-gray-500" />
-          </button>
+          </ToolbarButton>
 
-          {/* Divider */}
-          <div className="h-5 w-px bg-gray-300 mx-2" />
+          <ToolbarDivider />
 
-          {/* Fullscreen toggle */}
-          <button
+          <ToolbarButton
             onClick={toggleFullscreen}
-            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-            aria-label={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
             title={isFullscreen ? 'Exit (Esc)' : 'Full screen'}
           >
             {isFullscreen ? (
@@ -611,23 +639,25 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
             ) : (
               <Maximize2 className="h-4 w-4 text-gray-500" />
             )}
-          </button>
+          </ToolbarButton>
 
-          {/* Divider */}
-          <div className="h-5 w-px bg-gray-300 mx-2" />
+          <ToolbarDivider />
 
-          {/* Download button */}
-          <button
-            onClick={onDownload}
-            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-            aria-label="Download PDF"
-            title="Download PDF"
+          <ToolbarButton
+            onClick={onDownloadOrOpen}
+            title={isMobile ? 'Open in new tab' : 'Download PDF'}
           >
-            <Download className="h-4 w-4 text-gray-500" />
-          </button>
+            {isMobile ? (
+              <ExternalLink className="h-4 w-4 text-gray-500" />
+            ) : (
+              <Download className="h-4 w-4 text-gray-500" />
+            )}
+          </ToolbarButton>
         </div>
       </div>
-      {toolbarHeight > 0 && <div style={{ height: toolbarHeight }} />}
+
+      {/* Spacer when toolbar is fixed to prevent content jump */}
+      {shouldFixToolbar && <div className="h-[37px]" />}
 
       {/* Horizontal scroll wrapper for zoomed content on mobile */}
       <div
