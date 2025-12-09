@@ -25,6 +25,7 @@ import toast from 'react-hot-toast';
 import { Accordion, AccordionItem } from '@/components/ui/Accordion';
 import { faUpload, faGraduationCap, faShareNodes, faUser } from '@fortawesome/pro-light-svg-icons';
 import Icon from '@/components/ui/icons/Icon';
+import { useConnectOrcid } from '@/components/Orcid/lib/hooks/useConnectOrcid';
 
 interface ProfileInformationFormProps {
   onSubmit: (data: ProfileInformationFormValues) => void;
@@ -52,20 +53,22 @@ export function ProfileInformationForm({
       icon: <FontAwesomeIcon icon={faGoogle} className="h-6 w-6 text-[#4285F4]" />,
       label: 'Google Scholar Profile URL',
     },
-    orcid_id: {
-      icon: <FontAwesomeIcon icon={faOrcid} className="h-6 w-6 text-[#A6CE39]" />,
-      label: 'ORCID URL',
-    },
-
     twitter: {
       icon: <FontAwesomeIcon icon={faXTwitter} className="h-6 w-6 text-[#000]" />,
       label: 'X (Twitter) Profile URL',
+    },
+    orcid_id: {
+      icon: <FontAwesomeIcon icon={faOrcid} className="h-6 w-6 text-[#A6CE39]" />,
+      label: 'ORCID URL',
     },
   } as const;
 
   const { user } = useUser();
 
   const authorProfile = user?.authorProfile;
+  const orcidConnected = authorProfile?.orcidConnected ?? false;
+
+  const { connect: connectOrcid, isConnecting: isConnectingOrcid } = useConnectOrcid();
 
   const methods = useForm<ProfileInformationFormValues>({
     resolver: zodResolver(getProfileInformationSchema({ fields })),
@@ -249,6 +252,8 @@ export function ProfileInformationForm({
           <div className="space-y-3">
             {(Object.keys(socialLinkMeta) as Array<keyof typeof socialLinkMeta>).map((key) => {
               const meta = socialLinkMeta[key];
+              const isOrcid = key === 'orcid_id';
+
               return (
                 <div key={key} className="flex items-center gap-3">
                   <SocialIcon
@@ -258,15 +263,27 @@ export function ProfileInformationForm({
                     size="sm"
                     className="text-gray-500"
                   />
-                  <Input
-                    id={key}
-                    name={key}
-                    value={socialLinks[key] || ''}
-                    onChange={handleSocialLinkChange}
-                    error={errors[key]?.message}
-                    placeholder={meta.label}
-                    className="flex-grow"
-                  />
+                  {isOrcid && !orcidConnected ? (
+                    <Button
+                      onClick={connectOrcid}
+                      disabled={isConnectingOrcid}
+                      size="default"
+                      className="flex-grow justify-center bg-[#A6CE39] text-white hover:bg-[#95BC33] focus-visible:ring-[#A6CE39]"
+                    >
+                      {isConnectingOrcid ? 'Connecting…' : 'Connect ORCID'}
+                    </Button>
+                  ) : (
+                    <Input
+                      id={key}
+                      name={key}
+                      value={socialLinks[key] || ''}
+                      onChange={handleSocialLinkChange}
+                      error={errors[key]?.message}
+                      placeholder={meta.label}
+                      className="flex-grow"
+                      disabled={isOrcid}
+                    />
+                  )}
                 </div>
               );
             })}
