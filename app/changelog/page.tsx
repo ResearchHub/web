@@ -51,7 +51,7 @@ async function fetchPostWithContent(postId: string): Promise<PostWithContent | n
 
 export default async function ChangelogPage() {
   // Post IDs for changelog entries
-  const postIds = ['451', '451'];
+  const postIds = ['4594'];
 
   const postsWithContent = await Promise.all(postIds.map((id) => fetchPostWithContent(id)));
 
