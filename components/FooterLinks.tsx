@@ -1,11 +1,27 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { RadiatingDot } from '@/components/ui/RadiatingDot';
+
+const CHANGELOG_VERSION = 'v1.0.1';
+const CHANGELOG_STORAGE_KEY = `rh-changelog-seen-${CHANGELOG_VERSION}`;
 
 export const FooterLinks: React.FC = () => {
   const { showUSD, toggleCurrency } = useCurrencyPreference();
+  const [hasSeenChangelog, setHasSeenChangelog] = useState(true);
+
+  useEffect(() => {
+    const hasSeen = localStorage.getItem(CHANGELOG_STORAGE_KEY);
+    setHasSeenChangelog(!!hasSeen);
+  }, []);
+
+  const handleChangelogClick = () => {
+    localStorage.setItem(CHANGELOG_STORAGE_KEY, 'true');
+    setHasSeenChangelog(true);
+  };
 
   return (
     <div className="px-4 py-6 border-t text-sm">
@@ -55,6 +71,22 @@ export const FooterLinks: React.FC = () => {
         </div>
       </div>
       <div className="flex flex-wrap gap-3 text-gray-500">
+        <a
+          href="/changelog"
+          className={`flex items-center gap-1 ${hasSeenChangelog ? 'hover:text-gray-700' : 'text-orange-500 hover:text-orange-600'}`}
+          onClick={handleChangelogClick}
+        >
+          {!hasSeenChangelog && (
+            <RadiatingDot
+              size={12}
+              dotSize={6}
+              color="bg-orange-500"
+              radiateColor="bg-orange-400"
+              ringColor="border-orange-200"
+            />
+          )}
+          Changelog
+        </a>
         <a href="https://www.researchhub.com/about/tos" className="hover:text-gray-700">
           Terms
         </a>
