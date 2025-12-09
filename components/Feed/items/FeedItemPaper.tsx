@@ -67,7 +67,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const relatedDocumentId =
     'relatedDocumentId' in paper ? paper.relatedDocumentId?.toString() : paper.id.toString();
   const relatedDocumentContentType = mapFeedContentTypeToContentType(paper.contentType);
-  console.log('paper', paper);
+
   // Only show journal badge for specific preprint servers
   const ALLOWED_JOURNALS = ['biorxiv', 'arxiv', 'medrxiv', 'chemrxiv'];
   const journalSlugLower = paper.journal?.slug?.toLowerCase() || '';

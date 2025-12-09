@@ -3,6 +3,7 @@
 import { FC, useState, useMemo } from 'react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
+import { BaseModal } from '@/components/ui/BaseModal';
 import { formatDate, isDeadlineInFuture } from '@/utils/date';
 import { Bounty, BountyType } from '@/types/bounty';
 import { Work } from '@/types/work';
@@ -12,7 +13,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { ContentFormat } from '@/types/comment';
 import { BountyDetails } from '@/components/Feed/items/FeedItemBountyComment';
-import { Calendar, Forward, ArrowLeft, X } from 'lucide-react';
+import { Clock, Forward, ArrowLeft } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleInfo } from '@fortawesome/pro-light-svg-icons';
 import { getBountyDisplayAmount } from './lib/bountyUtil';
@@ -52,105 +53,76 @@ const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
     onClose();
   };
 
-  if (!isOpen) return null;
+  const footerContent = isActive ? (
+    <Button
+      variant="default"
+      size="lg"
+      onClick={handleCTAClick}
+      className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+    >
+      <Forward size={18} />
+      <span>{buttonText}</span>
+    </Button>
+  ) : undefined;
+
+  // Mobile: back arrow + icon, Desktop: just icon
+  const headerAction = (
+    <div className="flex items-center">
+      {/* Back arrow - mobile only */}
+      <div className="md:!hidden -ml-2">
+        <Button onClick={onClose} variant="ghost" size="icon" aria-label="Go back">
+          <ArrowLeft className="h-5 w-5 text-gray-600" />
+        </Button>
+      </div>
+      <FontAwesomeIcon icon={faCircleInfo} className="h-5 w-5 text-orange-500" />
+    </div>
+  );
 
   return (
-    <div className="fixed inset-0 z-[150] overflow-y-auto">
-      {/* Backdrop - hidden on mobile */}
-      <div className="fixed inset-0 z-[150] bg-black/50 hidden md:!block" onClick={onClose} />
-
-      {/* Modal */}
-      <div className="flex min-h-full items-start justify-center p-0 md:!p-4 md:!pt-16">
-        <div className="relative w-full h-screen md:!h-auto md:!max-w-xl transform rounded-none md:!rounded-lg bg-white shadow-xl transition-all overflow-hidden flex flex-col">
-          {/* Mobile Header with Back Button */}
-          <div className="flex md:!hidden items-center border-b border-gray-200 px-2 py-3">
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              aria-label="Close"
-            >
-              <ArrowLeft className="h-5 w-5 text-gray-600" />
-            </button>
-            <FontAwesomeIcon icon={faCircleInfo} className="h-5 w-5 text-orange-500 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-          </div>
-
-          {/* Desktop Header */}
-          <div className="hidden md:!flex items-center justify-between border-b border-gray-200 px-6 py-4">
-            <div className="flex items-center gap-2">
-              <FontAwesomeIcon icon={faCircleInfo} className="h-5 w-5 text-orange-500" />
-              <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-              aria-label="Close"
-            >
-              <X className="h-5 w-5 text-gray-500" />
-            </button>
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
-            {/* Summary info */}
-            <div className="flex items-center justify-between gap-4 mb-4 pb-4 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500 text-sm">Amount:</span>
-                <CurrencyBadge
-                  amount={Math.round(displayAmount)}
-                  variant="text"
-                  size="lg"
-                  showText={true}
-                  currency={showUSD ? 'USD' : 'RSC'}
-                  className="p-0 gap-0"
-                  textColor="text-gray-900"
-                  fontWeight="font-bold"
-                  showExchangeRate={false}
-                  iconColor={colors.gray[700]}
-                  iconSize={20}
-                  shorten
-                  skipConversion={showUSD}
-                />
-              </div>
-              {deadline && (
-                <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                  <Calendar size={14} />
-                  <span>{deadline}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Bounty details content */}
-            {content ? (
-              <BountyDetails
-                content={content}
-                contentFormat={contentFormat}
-                bountyType={bountyType}
-              />
-            ) : (
-              <p className="text-gray-500 text-sm">
-                No additional details provided for this bounty.
-              </p>
-            )}
-          </div>
-
-          {/* Footer with CTA */}
-          {isActive && (
-            <div className="border-t border-gray-200 px-6 py-4">
-              <Button
-                variant="default"
-                size="lg"
-                onClick={handleCTAClick}
-                className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
-              >
-                <Forward size={18} />
-                <span>{buttonText}</span>
-              </Button>
-            </div>
-          )}
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      maxWidth="max-w-xl"
+      headerAction={headerAction}
+      footer={footerContent}
+      className="md:!min-w-[500px] md:!min-h-[400px]"
+    >
+      {/* Summary info */}
+      <div className="flex items-center justify-between gap-4 mb-4 pb-4 border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <span className="text-gray-500 text-sm">Amount:</span>
+          <CurrencyBadge
+            amount={Math.round(displayAmount)}
+            variant="text"
+            size="lg"
+            showText={true}
+            currency={showUSD ? 'USD' : 'RSC'}
+            className="p-0 gap-0"
+            textColor="text-gray-900"
+            fontWeight="font-bold"
+            showExchangeRate={false}
+            iconColor={colors.gray[700]}
+            iconSize={20}
+            shorten
+            skipConversion={showUSD}
+          />
         </div>
+        {deadline && (
+          <div className="flex items-center gap-1.5 text-sm text-gray-500">
+            <Clock size={14} />
+            <span>Ends {deadline}</span>
+          </div>
+        )}
       </div>
-    </div>
+
+      {/* Bounty details content */}
+      {content ? (
+        <BountyDetails content={content} contentFormat={contentFormat} bountyType={bountyType} />
+      ) : (
+        <p className="text-gray-500 text-sm">No additional details provided for this bounty.</p>
+      )}
+    </BaseModal>
   );
 };
 
@@ -224,7 +196,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
             {/* Label badge - hidden on mobile */}
             <span
               className={cn(
-                'hidden sm:inline-block text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap',
+                'hidden sm:!inline-block text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap',
                 isActive ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-600'
               )}
             >
@@ -251,12 +223,12 @@ export const BountyInfo: FC<BountyInfoProps> = ({
           {deadline && (
             <div
               className={cn(
-                'hidden sm:flex items-center gap-1 text-xs',
+                'hidden sm:!flex items-center gap-1 text-xs',
                 isActive ? 'text-gray-600' : 'text-gray-500'
               )}
             >
-              <Calendar size={12} className="flex-shrink-0" />
-              <span className="whitespace-nowrap">{deadline}</span>
+              <Clock size={12} className="flex-shrink-0" />
+              <span className="whitespace-nowrap">Ends {deadline}</span>
             </div>
           )}
 

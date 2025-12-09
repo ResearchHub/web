@@ -117,10 +117,13 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const shortcutKey = isMac ? '⌘' : 'Ctrl';
 
   const headerAction = (
-    <div className="flex items-center md:!hidden -ml-2">
-      <Button onClick={onClose} variant="ghost" size="icon" aria-label="Go back">
-        <ArrowLeft className="h-5 w-5 text-gray-600" />
-      </Button>
+    <div className="flex items-center">
+      {/* Back arrow - mobile only */}
+      <div className="md:!hidden -ml-2">
+        <Button onClick={onClose} variant="ghost" size="icon" aria-label="Go back">
+          <ArrowLeft className="h-5 w-5 text-gray-600" />
+        </Button>
+      </div>
       <SearchIcon className="h-5 w-5 text-gray-600" />
     </div>
   );
@@ -134,8 +137,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
       padding="p-0"
       headerAction={headerAction}
       initialFocus={inputRef}
-      showCloseButton={false}
-      className="md:[&>div:first-child]:!hidden"
+      showCloseButton={true}
     >
       {/* Search Input */}
       <div className="border-b border-gray-200 p-4">

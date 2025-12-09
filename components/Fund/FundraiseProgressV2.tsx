@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/Progress';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Clock } from 'lucide-react';
-import { formatDeadline, formatExactTime, isDeadlineInFuture } from '@/utils/date';
+import { formatDeadline, formatExactTime, isDeadlineInFuture, formatDate } from '@/utils/date';
 import type { Fundraise } from '@/types/funding';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
@@ -69,55 +69,29 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
       amount: contributor.totalContribution,
     })) || [];
 
-  // Get status display for the top right when no contributors
-  const getStatusDisplay = (isCompact = false) => {
+  // Get status display for the non-compact view
+  const getStatusDisplay = () => {
     switch (fundraise.status) {
       case 'COMPLETED':
-        return isCompact ? (
-          <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
-            Completed
-          </span>
-        ) : (
-          <div className={`text-sm text-green-500 font-semibold`}>
+        return (
+          <div className="text-sm text-green-500 font-semibold">
             <span className="hidden mobile:!inline">Fundraise </span>Completed
           </div>
         );
       case 'CLOSED':
-        return isCompact ? (
-          <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
-            Closed
-          </span>
-        ) : (
-          <div className={`text-sm text-gray-500 font-bold`}>
+        return (
+          <div className="text-sm text-gray-500 font-bold">
             <span className="hidden mobile:!inline">Fundraise </span>Closed
           </div>
         );
       case 'OPEN':
         if (isEnded) {
-          return isCompact ? (
-            <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
-              Ended
-            </span>
-          ) : (
-            <div className={`text-sm text-gray-500 font-bold`}>Ended</div>
-          );
+          return <div className="text-sm text-gray-500 font-bold">Ended</div>;
         }
         if (!deadlineText || !fundraise.endDate) {
           return null;
         }
-        return isCompact ? (
-          <Tooltip
-            content={formatExactTime(fundraise.endDate)}
-            position="top"
-            width="w-48"
-            wrapperClassName="items-center"
-          >
-            <div className="hidden sm:flex items-center gap-1 text-xs text-gray-600 cursor-help">
-              <Clock className="h-3 w-3" />
-              <span className="whitespace-nowrap">{deadlineText}</span>
-            </div>
-          </Tooltip>
-        ) : (
+        return (
           <div className="flex items-center gap-1 text-gray-700 font-bold">
             <Tooltip
               content={formatExactTime(fundraise.endDate)}
@@ -191,7 +165,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     showExchangeRate={false}
                     iconColor={isActive ? colors.primary[600] : colors.gray[500]}
                     iconSize={18}
-                    shorten
+                    shorten={false}
                   />
                   <span className="text-xs text-gray-500 mx-0.5">/</span>
                   <CurrencyBadge
@@ -206,16 +180,43 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     showExchangeRate={false}
                     iconColor={colors.gray[400]}
                     iconSize={16}
-                    shorten
+                    shorten={false}
                   />
                 </div>
 
-                {/* Status / Deadline */}
-                {getStatusDisplay(true)}
+                {/* Deadline - hidden on mobile */}
+                {fundraise.endDate && isActive && (
+                  <div className="hidden sm:!flex items-center gap-1.5 text-xs text-gray-500">
+                    <Clock size={14} className="text-gray-400" />
+                    <span className="whitespace-nowrap">Ends {formatDate(fundraise.endDate)}</span>
+                  </div>
+                )}
+
+                {/* Status badges */}
+                {fundraise.status === 'COMPLETED' && (
+                  <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                    Completed
+                  </span>
+                )}
+                {fundraise.status === 'CLOSED' && (
+                  <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+                    Closed
+                  </span>
+                )}
+                {fundraise.status === 'OPEN' && isEnded && (
+                  <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+                    Ended
+                  </span>
+                )}
+                {isActive && (
+                  <span className="text-xs font-medium text-primary-700 bg-primary-100 px-2 py-0.5 rounded-full">
+                    Open
+                  </span>
+                )}
 
                 {/* Contributors inline (hidden on mobile) */}
                 {contributors.length > 0 && (
-                  <div className="cursor-pointer hidden sm:flex items-center">
+                  <div className="cursor-pointer hidden sm:!flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 transition-colors">
                     <AvatarStack
                       items={contributors.map((contributor) => ({
                         src: contributor.profile.profileImage || '',
@@ -226,11 +227,14 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                       size="xs"
                       maxItems={3}
                       spacing={-6}
-                      showExtraCount={contributors.length > 3}
+                      showExtraCount={false}
                       totalItemsCount={contributors.length}
-                      extraCountLabel="Supporters"
+                      extraCountLabel="Funders"
                       showLabel={false}
                     />
+                    <span className="text-xs text-gray-600 whitespace-nowrap">
+                      {contributors.length} {contributors.length === 1 ? 'Funder' : 'Funders'}
+                    </span>
                   </div>
                 )}
               </div>
@@ -290,7 +294,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   />
                   <span className="text-gray-500 text-base mobile:!text-lg">goal</span>
                 </div>
-                <div className="mobile:!flex-shrink-0">{getStatusDisplay(false)}</div>
+                <div className="mobile:!flex-shrink-0">{getStatusDisplay()}</div>
               </div>
               <Progress value={progressPercentage} variant={getProgressVariant()} className="h-3" />
             </div>
@@ -321,7 +325,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
               ) : null}
 
               {contributors.length > 0 && (
-                <div className={cn('flex justify-center mobile:!justify-end')}>
+                <div className="flex justify-center mobile:!justify-end">
                   <ContributorsButton
                     contributors={contributors}
                     onContribute={handleContributeClick}
