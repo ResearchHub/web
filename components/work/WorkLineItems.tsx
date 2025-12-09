@@ -440,7 +440,7 @@ export const WorkLineItems = ({
             work.note?.post?.grant?.organization ||
             (work.note?.post?.grant?.contacts && work.note.post.grant.contacts.length > 0) ? (
               <div className="flex items-start">
-                <span className="font-medium text-gray-900 w-28">
+                <span className="hidden tablet:block font-medium text-gray-900 w-28">
                   Funder{work.note?.post?.grant?.organization ? '' : '(s)'}
                 </span>
                 <div className="flex-1">
@@ -472,7 +472,7 @@ export const WorkLineItems = ({
           ) : (
             // NON-GRANT: Authors section
             <div className="flex items-start">
-              <span className="font-medium text-gray-900 w-28">Authors</span>
+              <span className="hidden tablet:block font-medium text-gray-900 w-28">Authors</span>
               <div className="flex-1">
                 <AuthorList
                   authors={work.authors.map((authorship) => ({
@@ -493,31 +493,10 @@ export const WorkLineItems = ({
           )}
         </div>
 
-        {/* Journal */}
-        {work.journal && (
-          <div className="flex items-start">
-            <span className="font-medium text-gray-900 w-28">Journal</span>
-            <div className="flex-1">
-              {['arxiv', 'biorxiv', 'medrxiv', 'chemrxiv'].includes(
-                work.journal.name?.toLowerCase()
-              ) ? (
-                <a
-                  href={`/topic/${work.journal.name.toLowerCase()}`}
-                  className="text-primary-600 hover:text-primary-700 hover:underline"
-                >
-                  {work.journal.name}
-                </a>
-              ) : (
-                <span>{work.journal.name}</span>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Published Date */}
         {work.publishedDate && (
           <div className="flex items-start">
-            <span className="font-medium text-gray-900 w-28">Published</span>
+            <span className="hidden tablet:block font-medium text-gray-900 w-28">Published</span>
             <div className="flex-1">
               <span>
                 {new Date(work.publishedDate).toLocaleDateString('en-US', {

@@ -12,7 +12,7 @@ import {
   faHouse as faHouseLight,
   faGrid3 as faGrid3Light,
   faBookmark as faBookmarkLight,
-  faEllipsis,
+  faBars,
 } from '@fortawesome/pro-light-svg-icons';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { ChartNoAxesColumnIncreasing } from 'lucide-react';
@@ -166,7 +166,7 @@ export const MobileBottomNav: React.FC = () => {
       case 'wallet':
         return <ResearchCoinIcon outlined={!isActive} className="h-6 w-6" color={iconColor} />;
       case 'more':
-        return <FontAwesomeIcon icon={faEllipsis} fontSize={iconSize} color={iconColor} />;
+        return <FontAwesomeIcon icon={faBars} fontSize={iconSize} color={iconColor} />;
       case 'journal':
         return (
           <Icon
