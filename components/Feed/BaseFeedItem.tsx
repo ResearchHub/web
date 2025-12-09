@@ -12,7 +12,7 @@ import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CardWrapper } from './CardWrapper';
 import { cn } from '@/utils/styles';
 import Image from 'next/image';
-import { truncateText } from '@/utils/stringUtils';
+import { stripHtml, truncateText } from '@/utils/stringUtils';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { Button } from '@/components/ui/Button';
@@ -159,8 +159,8 @@ export const TitleSection: FC<TitleSectionProps> = ({ title, highlightedTitle, c
 export const ContentSection: FC<ContentSectionProps> = ({
   content,
   highlightedContent,
-  maxLength = 200,
   className,
+  maxLength = 200,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const isTextTruncated = content && content.length > maxLength;

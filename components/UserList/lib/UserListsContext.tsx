@@ -48,6 +48,12 @@ interface AddToDefaultListResult {
   listId: ID;
 }
 
+export interface ListItemChange {
+  listId: ID;
+  documentId: ID;
+  at: number;
+}
+
 interface UserListsContextType {
   lists: UserList[];
   isLoadingLists: boolean;

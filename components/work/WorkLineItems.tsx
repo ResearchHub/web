@@ -78,9 +78,8 @@ export const WorkLineItems = ({
   const { user } = useUser();
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
   const { showShareModal } = useShareModalContext();
-  const { isInList } = useIsInList(work.unifiedDocumentId);
   const userListsEnabled = useUserListsEnabled();
-
+  const { isInList, listIdsContainingDocument } = useIsInList(work.unifiedDocumentId);
   const { isTogglingDefaultList, handleAddToList } = useAddToList({
     unifiedDocumentId: work.unifiedDocumentId,
     isInList,
@@ -352,7 +351,8 @@ export const WorkLineItems = ({
             >
               <FontAwesomeIcon
                 icon={isInList ? faBookmarkSolid : faBookmark}
-                className="h-3.5 w-3.5"
+                className="h-3.
+              5 w-3.5"
               />
             </Button>
           )}

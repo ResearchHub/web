@@ -20,18 +20,12 @@ interface SearchPageProps {
     readonly tab?: string;
     readonly sort?: string;
     readonly page?: string;
-    readonly debug?: string;
     readonly [key: string]: string | undefined;
   }>;
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
-
-  // Block access without debug flag (check if parameter exists, not its value)
-  if (params.debug === undefined) {
-    redirect('/');
-  }
 
   return <SearchPageContent searchParams={params} />;
 }
