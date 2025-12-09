@@ -67,7 +67,7 @@ export const EarningOpportunityBanner = ({
         {/* Mobile layout - compact single row */}
         <div className="flex tablet:hidden items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1 flex-wrap">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-sm font-semibold text-orange-600">Earn</span>
               {canDisplayAmount && (
                 <>
@@ -87,7 +87,9 @@ export const EarningOpportunityBanner = ({
                   />
                 </>
               )}
-              <span className="text-sm text-orange-600">for peer review.</span>
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap bg-orange-100 text-orange-700">
+                Peer Review
+              </span>
             </div>
           </div>
           <Button
@@ -105,29 +107,34 @@ export const EarningOpportunityBanner = ({
 
         {/* Tablet+ layout - stacked with full-width button */}
         <div className="hidden tablet:block">
-          <div className="flex items-center gap-1 flex-wrap">
-            <span className="text-base font-semibold text-orange-600">Earn</span>
-            {canDisplayAmount && (
-              <>
-                <DollarSign className="w-4 h-4 text-orange-600 -mr-[6px]" strokeWidth={2.5} />
-                <CurrencyBadge
-                  amount={displayAmount}
-                  variant="text"
-                  size="sm"
-                  currency={showUSD ? 'USD' : 'RSC'}
-                  showExchangeRate={false}
-                  showText={true}
-                  showIcon={false}
-                  textColor="text-orange-600"
-                  fontWeight="font-semibold"
-                  className="p-0 text-base inline-flex"
-                  skipConversion={showUSD}
-                />
-              </>
-            )}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1 flex-wrap">
+              <span className="text-base font-semibold text-orange-600">Earn</span>
+              {canDisplayAmount && (
+                <>
+                  <DollarSign className="w-4 h-4 text-orange-600 -mr-[6px]" strokeWidth={2.5} />
+                  <CurrencyBadge
+                    amount={displayAmount}
+                    variant="text"
+                    size="sm"
+                    currency={showUSD ? 'USD' : 'RSC'}
+                    showExchangeRate={false}
+                    showText={true}
+                    showIcon={false}
+                    textColor="text-orange-600"
+                    fontWeight="font-semibold"
+                    className="p-0 text-base inline-flex"
+                    skipConversion={showUSD}
+                  />
+                </>
+              )}
+            </div>
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap bg-orange-100 text-orange-700">
+              Peer Review
+            </span>
           </div>
-          <p className="mt-1.5 text-sm text-orange-600 leading-snug">
-            Earn ResearchCoin by peer reviewing this paper.
+          <p className="mt-1.5 text-sm text-orange-600/80 leading-snug">
+            Submit a peer review to earn ResearchCoin.
           </p>
           <Button
             onClick={(e) => {

@@ -29,6 +29,9 @@ export const isPreprintServer = (slug: string): boolean => {
   return getSourceLogo(slug) !== null;
 };
 
+// Alias for getSourceLogo (for consistency with other naming conventions)
+export const get_document_metadata = getSourceLogo;
+
 // Get display name for preprint servers
 export const getPreprintDisplayName = (slug: string): string => {
   const sourceLower = slug.toLowerCase();
