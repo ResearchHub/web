@@ -165,9 +165,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
     // Special case for fund page - match specific fund routes
     if (path === '/fund/grants') {
-      return ['/fund/grants', '/fund/needs-funding', '/fund/previously-funded'].includes(
-        currentPath
-      );
+      return ['/fund/grants', '/fund/needs-funding'].includes(currentPath);
     }
 
     // Special case for notebook page - match any route that starts with /notebook

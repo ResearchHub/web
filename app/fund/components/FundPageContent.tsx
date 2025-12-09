@@ -37,6 +37,11 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
+  // When "completed" is selected, fetch closed fundraises with newest ordering
+  const isCompleted = sortBy === 'completed';
+  const effectiveFundraiseStatus = isCompleted ? 'CLOSED' : config.fundraiseStatus;
+  const effectiveOrdering = isCompleted ? 'newest' : sortBy || undefined;
+
   const {
     entries,
     isLoading,
@@ -48,8 +53,8 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   } = useFeed('all', {
     contentType: config.contentType,
     endpoint: config.endpoint,
-    fundraiseStatus: config.fundraiseStatus,
-    ordering: sortBy || undefined,
+    fundraiseStatus: effectiveFundraiseStatus,
+    ordering: effectiveOrdering,
   });
 
   return (

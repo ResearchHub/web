@@ -49,7 +49,7 @@ const isPathActive = (path: string, currentPath: string): boolean => {
     return ['/popular', '/for-you', '/latest', '/following', '/'].includes(currentPath);
   }
   if (path === '/fund/grants') {
-    return ['/fund/grants', '/fund/needs-funding', '/fund/previously-funded'].includes(currentPath);
+    return ['/fund/grants', '/fund/needs-funding'].includes(currentPath);
   }
   if (path === '/notebook') {
     return currentPath.startsWith('/notebook');
