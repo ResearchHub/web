@@ -80,11 +80,19 @@ export default function EarnPage() {
   );
 
   const renderHeader = () => (
-    <MainPageHeader
-      icon={<Icon name="earn1" size={26} color="#3971ff" />}
-      title="Earn ResearchCoin"
-      subtitle="Earn ResearchCoin by completing scientific bounties"
-    />
+    <>
+      {/* Only show subtitle on mobile since TopBar shows the title */}
+      <p className="text-gray-900 text-lg tablet:!hidden py-4 pt-1">
+        Earn ResearchCoin by completing scientific bounties
+      </p>
+      <div className="hidden tablet:!block">
+        <MainPageHeader
+          icon={<Icon name="earn1" size={26} color="#3971ff" />}
+          title="Earn ResearchCoin"
+          subtitle="Earn ResearchCoin by completing scientific bounties"
+        />
+      </div>
+    </>
   );
 
   const header = <div className="-mb-8">{renderHeader()}</div>;

@@ -59,11 +59,15 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
 
   return (
     <PageLayout rightSidebar={config.sidebar}>
-      <MainPageHeader
-        icon={<Icon name="solidHand" size={26} color="#3971ff" />}
-        title={config.title}
-        subtitle={config.subtitle}
-      />
+      {/* Only show subtitle on mobile since TopBar shows the title */}
+      <p className="text-gray-900 text-lg tablet:!hidden py-4 pt-1">{config.subtitle}</p>
+      <div className="hidden tablet:!block">
+        <MainPageHeader
+          icon={<Icon name="solidHand" size={26} color="#3971ff" />}
+          title={config.title}
+          subtitle={config.subtitle}
+        />
+      </div>
       <MarketplaceTabs
         activeTab={marketplaceTab}
         onTabChange={() => {}}

@@ -67,7 +67,7 @@ export const createTabConfig = (
     fundraiseStatus: undefined,
   },
   'needs-funding': {
-    title: 'Proposals',
+    title: 'Research Proposals',
     subtitle: 'Fund breakthrough research shaping tomorrow',
     contentType: 'PREREGISTRATION',
     endpoint: 'funding_feed',
