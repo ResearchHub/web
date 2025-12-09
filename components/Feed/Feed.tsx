@@ -13,6 +13,7 @@ import { FeedEntry } from '@/types/feed';
 import Icon from '@/components/ui/icons/Icon';
 import { useUser } from '@/contexts/UserContext';
 import { ManageTopicsModal } from '@/components/modals/ManageTopicsModal';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 interface FeedProps {
   defaultTab: FeedTab;
@@ -36,6 +37,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useUser();
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
   const isAuthenticated = status === 'authenticated';
   const isModerator = !!user?.isModerator;
 
@@ -88,6 +90,16 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
       return;
     }
 
+    // Protected tabs require authentication
+    const protectedTabs = ['following', 'for-you'];
+    if (protectedTabs.includes(tab) && !isAuthenticated) {
+      executeAuthenticatedAction(() => {
+        setIsNavigating(true);
+        router.push(`/${tab}`);
+      });
+      return;
+    }
+
     setIsNavigating(true);
 
     if (tab === 'popular') {
@@ -111,28 +123,38 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
 
   const combinedIsLoading = isLoading || isNavigating;
 
-  const tabs = [
-    ...(isAuthenticated || isModerator || isDebugMode
-      ? [
-          {
-            id: 'for-you',
-            label: 'For You',
-          },
-        ]
-      : []),
-    ...(isAuthenticated
-      ? [
-          {
-            id: 'following',
-            label: 'Following',
-          },
-        ]
-      : []),
-    {
-      id: 'popular',
-      label: 'Popular',
-    },
-  ];
+  // Tab ordering differs based on authentication state:
+  // - Logged in: For You, Following, Popular
+  // - Logged out: Popular, For You, Following
+  const tabs = isAuthenticated
+    ? [
+        {
+          id: 'for-you',
+          label: 'For You',
+        },
+        {
+          id: 'following',
+          label: 'Following',
+        },
+        {
+          id: 'popular',
+          label: 'Popular',
+        },
+      ]
+    : [
+        {
+          id: 'popular',
+          label: 'Popular',
+        },
+        {
+          id: 'for-you',
+          label: 'For You',
+        },
+        {
+          id: 'following',
+          label: 'Following',
+        },
+      ];
 
   const header = (
     <p className="text-gray-900 text-lg tablet:!hidden py-4 pt-1">
@@ -140,23 +162,19 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     </p>
   );
 
-  // Hide tabs for logged out users on main feed routes
-  const shouldShowTabs =
-    isAuthenticated || !['popular', 'for-you', 'following'].includes(defaultTab);
-
-  const feedTabs = shouldShowTabs ? (
+  const feedTabs = (
     <FeedTabs
       activeTab={activeTab}
       tabs={tabs}
       onTabChange={handleTabChange}
       isLoading={combinedIsLoading}
-      showGearIcon={activeTab === 'following'}
+      showGearIcon={activeTab === 'following' && isAuthenticated}
       onGearClick={() => setIsManageTopicsModalOpen(true)}
-      showSorting={activeTab === 'following'}
+      showSorting={activeTab === 'following' && isAuthenticated}
       sortOption={(ordering as FeedSortOption) || 'hot_score_v2'}
       onSortChange={handleSortChange}
     />
-  ) : null;
+  );
 
   // Show ForYouFeedBanner when on "for-you" tab
   const banner = activeTab === 'for-you' ? <ForYouFeedBanner /> : undefined;
