@@ -43,21 +43,6 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
       amount: 0,
     })) || [];
 
-  // Get status display for deadline
-  const getStatusDisplay = () => {
-    if (!isActive) {
-      return <div className="text-sm text-gray-500 font-bold">Closed</div>;
-    }
-    if (deadline) {
-      return (
-        <div className="flex items-center gap-1 text-gray-700 font-bold">
-          <span className="text-base">{deadline}</span>
-        </div>
-      );
-    }
-    return null;
-  };
-
   const handleApplicantsClick = () => {
     if (onFeedItemClick) {
       onFeedItemClick();
@@ -85,87 +70,89 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
 
   return (
     <StatusCard variant={isActive ? 'active' : 'inactive'} className={className}>
-      {/* Top Section: Funding Amount and Deadline */}
-      <div className="flex flex-row flex-wrap items-start justify-between mb-2">
-        {/* Funding Amount */}
-        <div className="text-left sm:!order-1 order-2 flex sm:!block justify-between w-full sm:!w-auto items-center">
-          <span className="text-gray-500 text-sm mb-0.5 inline-block">Funding Amount</span>
-          <div className="flex items-center flex-wrap min-w-0 truncate font-semibold">
+      <div className="flex items-center justify-between gap-3">
+        {/* Left: Grant badge + Amount + Deadline */}
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                'text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap hidden sm:block',
+                isActive ? 'bg-primary-100 text-primary-700' : 'bg-gray-200 text-gray-600'
+              )}
+            >
+              Grant
+            </span>
             <CurrencyBadge
               amount={Math.round(budgetAmount)}
               variant="text"
-              size="xl"
+              size="md"
               showText={true}
               currency={showUSD ? 'USD' : 'RSC'}
               className="p-0 gap-0"
-              textColor="text-gray-700"
+              textColor={isActive ? 'text-primary-700' : 'text-gray-600'}
               fontWeight="font-bold"
               showExchangeRate={false}
-              iconColor={colors.gray[700]}
-              iconSize={24}
+              iconColor={isActive ? colors.primary[600] : colors.gray[500]}
+              iconSize={18}
               shorten
             />
           </div>
+
+          {deadline && isActive && (
+            <div className="hidden sm:flex items-center gap-1 text-xs text-gray-600">
+              <span className="whitespace-nowrap">{deadline}</span>
+            </div>
+          )}
+
+          {!isActive && (
+            <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+              Closed
+            </span>
+          )}
+
+          {/* Applicants inline */}
+          {applicants.length > 0 && (
+            <div
+              className="cursor-pointer hidden sm:flex items-center"
+              onClick={handleApplicantsClick}
+            >
+              <AvatarStack
+                items={applicants.map((applicant) => ({
+                  src: applicant.profile.profileImage || '',
+                  alt: applicant.profile.fullName,
+                  tooltip: applicant.profile.fullName,
+                  authorId: applicant.profile.id,
+                }))}
+                size="xs"
+                maxItems={3}
+                spacing={-6}
+                showExtraCount={applicants.length > 3}
+                totalItemsCount={applicants.length}
+                extraCountLabel="Applicants"
+                showLabel={false}
+              />
+            </div>
+          )}
         </div>
 
-        {/* Deadline */}
-        <div className="flex-shrink-0 whitespace-nowrap text-left sm:!text-right sm:!order-2 order-1 sm:!block flex justify-between w-full sm:!w-auto items-center">
-          {isActive && <div className="block text-gray-500 text-sm mb-0.5">Deadline</div>}
-          {getStatusDisplay()}
-        </div>
-      </div>
-
-      {/* Bottom Section: Applicants and CTA Buttons */}
-      <div
-        className={cn(
-          'flex items-center justify-between gap-2 border-t pt-2',
-          isActive ? 'border-primary-200' : 'border-gray-200'
-        )}
-      >
-        {/* Applicants */}
-        {applicants.length > 0 && (
-          <div
-            className="cursor-pointer flex-shrink-0 flex items-center"
-            onClick={handleApplicantsClick}
-          >
-            <AvatarStack
-              items={applicants.map((applicant) => ({
-                src: applicant.profile.profileImage || '',
-                alt: applicant.profile.fullName,
-                tooltip: applicant.profile.fullName,
-                authorId: applicant.profile.id,
-              }))}
-              size="xs"
-              maxItems={3}
-              spacing={-6}
-              showExtraCount={applicants.length > 3}
-              totalItemsCount={applicants.length}
-              extraCountLabel="Applicants"
-              showLabel={false}
-            />
-          </div>
-        )}
-
-        {applicants.length === 0 && <div className="flex-shrink-0"></div>}
-
-        {/* CTA Buttons */}
-        <div className="flex items-center gap-2">
+        {/* Right: CTA Buttons */}
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Button
-            variant="default"
+            variant="outlined"
             size="sm"
             onClick={handleDetailsClick}
-            className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+            className="!py-1.5 !px-2.5 text-gray-600 hover:text-gray-800"
           >
-            Details
+            <span className="text-xs font-medium">Details</span>
           </Button>
           {isActive && (
             <Button
               variant="default"
               size="sm"
               onClick={handleApplyClick}
-              className="bg-primary-600 hover:bg-primary-700 text-white"
+              className="bg-primary-600 hover:bg-primary-700 text-white !py-1.5 !px-2.5"
             >
-              Apply
+              <span className="text-xs font-medium">Apply</span>
             </Button>
           )}
         </div>

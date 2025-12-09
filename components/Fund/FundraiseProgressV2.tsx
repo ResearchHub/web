@@ -70,28 +70,54 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
     })) || [];
 
   // Get status display for the top right when no contributors
-  const getStatusDisplay = () => {
+  const getStatusDisplay = (isCompact = false) => {
     switch (fundraise.status) {
       case 'COMPLETED':
-        return (
+        return isCompact ? (
+          <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+            Completed
+          </span>
+        ) : (
           <div className={`text-sm text-green-500 font-semibold`}>
             <span className="hidden mobile:!inline">Fundraise </span>Completed
           </div>
         );
       case 'CLOSED':
-        return (
+        return isCompact ? (
+          <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+            Closed
+          </span>
+        ) : (
           <div className={`text-sm text-gray-500 font-bold`}>
             <span className="hidden mobile:!inline">Fundraise </span>Closed
           </div>
         );
       case 'OPEN':
         if (isEnded) {
-          return <div className={`text-sm text-gray-500 font-bold`}>Ended</div>;
+          return isCompact ? (
+            <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+              Ended
+            </span>
+          ) : (
+            <div className={`text-sm text-gray-500 font-bold`}>Ended</div>
+          );
         }
         if (!deadlineText || !fundraise.endDate) {
           return null;
         }
-        return (
+        return isCompact ? (
+          <Tooltip
+            content={formatExactTime(fundraise.endDate)}
+            position="top"
+            width="w-48"
+            wrapperClassName="items-center"
+          >
+            <div className="hidden sm:flex items-center gap-1 text-xs text-gray-600 cursor-help">
+              <Clock className="h-3 w-3" />
+              <span className="whitespace-nowrap">{deadlineText}</span>
+            </div>
+          </Tooltip>
+        ) : (
           <div className="flex items-center gap-1 text-gray-700 font-bold">
             <Tooltip
               content={formatExactTime(fundraise.endDate)}
@@ -99,9 +125,9 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
               width="w-48"
               wrapperClassName="items-center"
             >
-              <Clock className={`${compact ? 'h-5 w-5' : 'h-4 w-4'} cursor-help`} />
+              <Clock className="h-4 w-4 cursor-help" />
             </Tooltip>
-            <span className={`${compact ? 'text-base' : 'text-sm'}`}>{deadlineText}</span>
+            <span className="text-sm">{deadlineText}</span>
           </div>
         );
       default:
@@ -148,99 +174,96 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
       <StatusCard variant={isActive ? 'active' : 'inactive'}>
         {compact ? (
           <div className={cn(className)}>
-            <div className="flex flex-row flex-wrap items-start justify-between mb-2">
-              <div className="text-left sm:!order-1 order-2 flex sm:!block justify-between w-full sm:!w-auto items-center">
-                <span className="text-gray-500 text-sm mb-0.5 inline-block">Amount Raised</span>
-                <div className="flex items-center flex-wrap min-w-0 truncate font-semibold">
+            {/* Main row: Amount + Status + Contributors + Buttons */}
+            <div className="flex items-center justify-between gap-3 mb-1.5">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                {/* Amount raised / goal */}
+                <div className="flex items-center gap-0.5">
                   <CurrencyBadge
                     amount={Math.round(fundraise.amountRaised.rsc)}
                     variant="text"
-                    size="xl"
+                    size="md"
                     showText={false}
                     currency={showUSD ? 'USD' : 'RSC'}
                     className="p-0 gap-0"
-                    textColor="text-gray-700"
+                    textColor={isActive ? 'text-primary-700' : 'text-gray-600'}
                     fontWeight="font-bold"
                     showExchangeRate={false}
-                    iconColor={colors.gray[700]}
-                    iconSize={24}
+                    iconColor={isActive ? colors.primary[600] : colors.gray[500]}
+                    iconSize={18}
                     shorten
                   />
-                  <span className="font-semibold text-gray-700 mx-0.5 text-base px-1">/</span>
+                  <span className="text-xs text-gray-500 mx-0.5">/</span>
                   <CurrencyBadge
                     amount={Math.round(fundraise.goalAmount.rsc)}
                     variant="text"
-                    size="xl"
+                    size="md"
                     showText={true}
                     currency={showUSD ? 'USD' : 'RSC'}
-                    textColor="text-gray-700"
-                    fontWeight="font-bold"
+                    textColor="text-gray-500"
+                    fontWeight="font-medium"
                     className="p-0 gap-0"
                     showExchangeRate={false}
-                    iconColor={colors.gray[700]}
-                    iconSize={24}
+                    iconColor={colors.gray[400]}
+                    iconSize={16}
                     shorten
                   />
                 </div>
-              </div>
 
-              <div className="flex-shrink-0 whitespace-nowrap text-left sm:!text-right sm:!order-2 order-1 sm:!block flex justify-between w-full sm:!w-auto items-center">
-                {isActive && (
-                  <span className="block text-gray-500 text-sm mb-0.5 inline-block">Deadline</span>
+                {/* Status / Deadline */}
+                {getStatusDisplay(true)}
+
+                {/* Contributors inline (hidden on mobile) */}
+                {contributors.length > 0 && (
+                  <div className="cursor-pointer hidden sm:flex items-center">
+                    <AvatarStack
+                      items={contributors.map((contributor) => ({
+                        src: contributor.profile.profileImage || '',
+                        alt: contributor.profile.fullName,
+                        tooltip: contributor.profile.fullName,
+                        authorId: contributor.profile.id,
+                      }))}
+                      size="xs"
+                      maxItems={3}
+                      spacing={-6}
+                      showExtraCount={contributors.length > 3}
+                      totalItemsCount={contributors.length}
+                      extraCountLabel="Supporters"
+                      showLabel={false}
+                    />
+                  </div>
                 )}
-                {getStatusDisplay()}
+              </div>
+
+              {/* CTA Buttons */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {isActive ? (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleContributeClick}
+                    className="bg-primary-600 hover:bg-primary-700 text-white !py-1.5 !px-2.5"
+                  >
+                    <span className="text-xs font-medium">Fund</span>
+                  </Button>
+                ) : onDetailsClick ? (
+                  <Button
+                    variant="outlined"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDetailsClick();
+                    }}
+                    className="!py-1.5 !px-2.5 text-gray-600 hover:text-gray-800"
+                  >
+                    <span className="text-xs font-medium">Details</span>
+                  </Button>
+                ) : null}
               </div>
             </div>
 
-            <div className="mb-2">
-              <Progress value={progressPercentage} variant={getProgressVariant()} size="xs" />
-            </div>
-
-            <div className="flex items-center justify-between gap-2">
-              {contributors.length > 0 && (
-                <div className="cursor-pointer flex-shrink-0 flex items-center">
-                  <AvatarStack
-                    items={contributors.map((contributor) => ({
-                      src: contributor.profile.profileImage || '',
-                      alt: contributor.profile.fullName,
-                      tooltip: contributor.profile.fullName,
-                      authorId: contributor.profile.id,
-                    }))}
-                    size="xs"
-                    maxItems={3}
-                    spacing={-6}
-                    showExtraCount={contributors.length > 3}
-                    totalItemsCount={contributors.length}
-                    extraCountLabel="Supporters"
-                    showLabel={false}
-                  />
-                </div>
-              )}
-
-              {contributors.length === 0 && <div className="flex-shrink-0"></div>}
-
-              {isActive ? (
-                <Button
-                  variant="default"
-                  size="sm"
-                  disabled={!isActive}
-                  onClick={handleContributeClick}
-                >
-                  Fund
-                </Button>
-              ) : onDetailsClick ? (
-                <Button
-                  variant="outlined"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDetailsClick();
-                  }}
-                >
-                  Details
-                </Button>
-              ) : null}
-            </div>
+            {/* Progress bar */}
+            <Progress value={progressPercentage} variant={getProgressVariant()} size="xs" />
           </div>
         ) : (
           <div className={cn(className)}>
@@ -267,7 +290,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   />
                   <span className="text-gray-500 text-base mobile:!text-lg">goal</span>
                 </div>
-                <div className="mobile:!flex-shrink-0">{getStatusDisplay()}</div>
+                <div className="mobile:!flex-shrink-0">{getStatusDisplay(false)}</div>
               </div>
               <Progress value={progressPercentage} variant={getProgressVariant()} className="h-3" />
             </div>
