@@ -443,11 +443,69 @@ export const extractBountyAvatars = (
 };
 
 /**
+ * Hacky shim to ensure we are rendering $150 USD for Foundation bounties.
+ * Extracts the user ID of the bounty creator from various possible data structures.
+ * Different code paths store the user ID in different locations:
+ * 1. BountyService (earn page): raw.created_by is an author object with user nested
+ *    - raw.created_by.id = author_profile.id (NOT what we want)
+ *    - raw.created_by.user.id = user ID (what we want)
+ *
+ * 2. Paper/Post bounties from feed API: raw.created_by is direct from API
+ *    - raw.created_by.id = user ID (what we want)
+ *    - raw.created_by.author_profile.id = author_profile.id
+ *
+ * 3. FeedService.transformRawBounty: raw.author structure
+ *    - raw.author.user.id = user ID (what we want)
+ *
+ * 4. Paper bounties with contributions: creator is in first contribution
+ *    - contributions[0].createdBy.id = user ID (what we want)
+ *    - contributions[0].raw.user.id = user ID (what we want)
+ */
+const getCreatorUserId = (bounty: Bounty): number | undefined => {
+  const raw = bounty.raw;
+
+  // Check for nested user object (BountyService path)
+  // If created_by.user exists, then created_by.id is author_profile.id, not user ID
+  if (raw?.created_by?.user?.id !== undefined) {
+    return raw.created_by.user.id;
+  }
+
+  // Check for author.user (FeedService.transformRawBounty path)
+  if (raw?.author?.user?.id !== undefined) {
+    return raw.author.user.id;
+  }
+
+  // For paper/post bounties: created_by.id IS the user ID when author_profile is nested
+  // This is the direct API structure where created_by represents the user
+  if (raw?.created_by?.id !== undefined && raw.created_by.id !== 0) {
+    return raw.created_by.id;
+  }
+
+  // For paper bounties where creator is in contributions array
+  // The first contribution's creator is typically the bounty creator
+  if (bounty.contributions && bounty.contributions.length > 0) {
+    const firstContribution = bounty.contributions[0];
+    // Check contribution's raw.user.id first (most reliable)
+    if (firstContribution.raw?.user?.id !== undefined) {
+      return firstContribution.raw.user.id;
+    }
+    // Fallback to transformed createdBy.id
+    if (firstContribution.createdBy?.id !== undefined && firstContribution.createdBy.id !== 0) {
+      return firstContribution.createdBy.id;
+    }
+  }
+
+  // Fallback to transformed createdBy (may be author_profile.id in some cases)
+  // Skip if id is 0 (unknown)
+  if (bounty.createdBy?.id !== undefined && bounty.createdBy.id !== 0) {
+    return bounty.createdBy.id;
+  }
+
+  return undefined;
+};
+
+/**
  * Checks if a bounty was created by the ResearchHub Foundation account.
- * Handles multiple data structures since bounties can come from different sources:
- * - BountyService: raw.created_by.user.id
- * - FeedService.transformRawBounty: raw.author.user.id
- * - Direct API: raw.created_by.id
  *
  * @param bounty The bounty to check
  * @returns True if the bounty was created by the Foundation account
@@ -455,17 +513,7 @@ export const extractBountyAvatars = (
 export const isFoundationBounty = (bounty: Bounty): boolean => {
   if (!FOUNDATION_USER_ID) return false;
 
-  // Try multiple paths to find the user ID since bounties come from different sources
-  const creatorUserId =
-    // From BountyService (via transformFeedEntry): raw.created_by.user.id
-    bounty.raw?.created_by?.user?.id ??
-    // From FeedService.transformRawBounty: raw.author.user.id
-    bounty.raw?.author?.user?.id ??
-    // Direct from API (if created_by is the user object directly): raw.created_by.id
-    bounty.raw?.created_by?.id ??
-    // Fallback to createdBy.id (though this might be author_profile.id in some cases)
-    bounty.createdBy?.id;
-
+  const creatorUserId = getCreatorUserId(bounty);
   return creatorUserId === FOUNDATION_USER_ID;
 };
 
