@@ -66,87 +66,12 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
   const [overlayVisible, setOverlayVisible] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const rightSidebarRef = useRef<HTMLDivElement>(null);
-  const rightSidebarWrapperRef = useRef<HTMLDivElement>(null);
-  const [sidebarTransform, setSidebarTransform] = useState(0);
-  const animationFrameId = useRef<number | null>(null);
   const pathname = usePathname();
 
   // Mobile top nav scroll hide/show
   const { isHidden: isMobileTopNavHidden } = useMobileNavScroll({
     scrollContainerRef,
   });
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (
-        !scrollContainerRef.current ||
-        !rightSidebarRef.current ||
-        !rightSidebarWrapperRef.current
-      )
-        return;
-
-      // Cancel any pending animation frame to avoid unnecessary updates
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
-
-      animationFrameId.current = requestAnimationFrame(() => {
-        if (
-          !scrollContainerRef.current ||
-          !rightSidebarRef.current ||
-          !rightSidebarWrapperRef.current
-        )
-          return;
-
-        const scrollContainer = scrollContainerRef.current;
-        const sidebar = rightSidebarRef.current;
-
-        const sidebarHeight = sidebar.scrollHeight;
-        const viewportHeight = window.innerHeight; // Use viewport height
-        const scrollTop = scrollContainer.scrollTop;
-
-        // Max distance sidebar needs to move up
-        const maxScroll = Math.max(0, sidebarHeight - viewportHeight);
-
-        // Define the scroll distance in main content after which sidebar should be fully scrolled
-        // Adjust the multiplier (e.g., 1, 1.5, 2) to control how fast the sidebar reaches the bottom.
-        // A smaller multiplier means it reaches the bottom faster.
-        const triggerDistance = viewportHeight * 1.5;
-
-        // Calculate how far into the trigger distance the user has scrolled
-        const scrollRatio = triggerDistance > 0 ? scrollTop / triggerDistance : 0;
-
-        // Clamp the ratio between 0 and 1
-        const clampedScrollRatio = Math.min(1, Math.max(0, scrollRatio));
-
-        // Calculate the new transform based on the clamped ratio
-        let newTransform = -clampedScrollRatio * maxScroll;
-
-        // Ensure transform doesn't exceed bounds (redundant due to clamping, but safe)
-        newTransform = Math.max(newTransform, -maxScroll);
-        newTransform = Math.min(newTransform, 0);
-
-        setSidebarTransform(newTransform);
-        animationFrameId.current = null; // Clear the ref after execution
-      });
-    };
-
-    const scrollContainer = scrollContainerRef.current;
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll);
-      // Initial calculation in case content is already scrolled or fits
-      handleScroll();
-
-      return () => {
-        scrollContainer.removeEventListener('scroll', handleScroll);
-        // Cancel any pending animation frame on cleanup
-        if (animationFrameId.current) {
-          cancelAnimationFrame(animationFrameId.current);
-        }
-      };
-    }
-  }, []); // Removed sidebarTransform from dependencies as it caused potential loops
 
   useEffect(() => {
     if (isLeftSidebarOpen) {
@@ -238,28 +163,21 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
           {/* Right Sidebar (Fixed to viewport edge) */}
           {rightSidebar && (
             <aside
-              ref={rightSidebarWrapperRef}
-              className="fixed top-16 right-0 h-[calc(100vh-64px)] overflow-hidden
+              className="fixed top-16 right-0 h-[calc(100vh-64px)] overflow-y-auto
                       lg:!block !hidden right-sidebar:!block w-80 bg-white
                       z-30"
             >
-              <div
-                ref={rightSidebarRef}
-                style={{ transform: `translateY(${sidebarTransform}px)` }}
-                className="transition-transform duration-150 ease-out h-full"
-              >
-                {/* Sidebar Content */}
-                <div className="px-4 pt-4">
-                  <Suspense fallback={<RightSidebarSkeleton />}>
-                    {pathname.startsWith('/paper/create') ? (
-                      <RHJRightSidebar showBanner={false} />
-                    ) : typeof rightSidebar === 'boolean' ? (
-                      <RightSidebar />
-                    ) : (
-                      rightSidebar
-                    )}
-                  </Suspense>
-                </div>
+              {/* Sidebar Content */}
+              <div className="px-4 pt-4 pb-4">
+                <Suspense fallback={<RightSidebarSkeleton />}>
+                  {pathname.startsWith('/paper/create') ? (
+                    <RHJRightSidebar showBanner={false} />
+                  ) : typeof rightSidebar === 'boolean' ? (
+                    <RightSidebar />
+                  ) : (
+                    rightSidebar
+                  )}
+                </Suspense>
               </div>
             </aside>
           )}
