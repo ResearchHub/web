@@ -63,9 +63,9 @@ export const EarningOpportunityBanner = ({
       aria-label="Earning opportunity banner"
       onClick={handleViewBounties}
     >
-      <div className="p-3 tablet:p-4">
+      <div className="p-3 tablet:!p-4">
         {/* Mobile layout - compact single row */}
-        <div className="flex tablet:hidden items-center justify-between gap-3">
+        <div className="flex tablet:!hidden items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-sm font-semibold text-orange-600">Earn</span>
@@ -106,7 +106,7 @@ export const EarningOpportunityBanner = ({
         </div>
 
         {/* Tablet+ layout - stacked with full-width button */}
-        <div className="hidden tablet:block">
+        <div className="hidden tablet:!block">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1 flex-wrap">
               <span className="text-base font-semibold text-orange-600">Earn</span>
