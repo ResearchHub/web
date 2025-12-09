@@ -13,7 +13,6 @@ import {
 import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
 import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
 import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
-import { Building } from 'lucide-react';
 import { GrantInfo } from '@/components/Grant/GrantInfo';
 import { AuthorList } from '@/components/ui/AuthorList';
 
@@ -117,34 +116,40 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             {/* Title */}
             <TitleSection title={grant.title} highlightedTitle={highlightedTitle} />
 
-            {/* Authors list */}
-            {grant.authors.length > 0 && (
-              <MetadataSection>
-                <div className="flex items-start gap-1.5">
-                  <AuthorList
-                    authors={grant.authors.map((author) => ({
-                      name: author.fullName,
-                      verified: author.user?.isVerified,
-                      authorUrl: author.id === 0 ? undefined : author.profileUrl,
-                    }))}
-                    size="sm"
-                    className="text-gray-500 font-normal text-sm"
-                    delimiter="•"
-                    timestamp={grant.createdDate ? formatTimestamp(grant.createdDate) : undefined}
-                  />
-                </div>
-              </MetadataSection>
-            )}
-
-            {/* Organization */}
-            {(grant.organization || grant.grant?.organization) && (
-              <MetadataSection>
-                <div className="flex items-center gap-1.5 text-gray-500">
-                  <Building className="w-4 h-4" />
-                  <span>{grant.organization || grant.grant?.organization}</span>
-                </div>
-              </MetadataSection>
-            )}
+            {/* Organization or Authors list */}
+            <MetadataSection className="mb-1">
+              <div className="flex items-center flex-wrap text-base">
+                {grant.organization || grant.grant?.organization ? (
+                  <span className="text-gray-500 font-normal text-sm">
+                    {grant.organization || grant.grant?.organization}
+                  </span>
+                ) : (
+                  grant.authors.length > 0 && (
+                    <AuthorList
+                      authors={grant.authors.map((author) => ({
+                        name: author.fullName,
+                        verified: author.user?.isVerified,
+                        authorUrl: author.id === 0 ? undefined : author.profileUrl,
+                      }))}
+                      size="base"
+                      className="text-gray-500 font-normal text-sm"
+                      delimiter=","
+                      delimiterClassName="ml-0"
+                      showAbbreviatedInMobile={true}
+                      hideExpandButton={true}
+                    />
+                  )
+                )}
+                {grant.createdDate && (
+                  <>
+                    <span className="mx-2 text-gray-500">•</span>
+                    <span className="text-gray-600 whitespace-nowrap text-sm">
+                      {formatTimestamp(grant.createdDate, false)}
+                    </span>
+                  </>
+                )}
+              </div>
+            </MetadataSection>
 
             {/* Description Section - handles both desktop and mobile */}
             {(grant.grant?.description || grant.textPreview) && (

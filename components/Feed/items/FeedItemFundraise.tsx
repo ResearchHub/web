@@ -154,19 +154,29 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             <TitleSection title={post.title} />
 
             {/* Authors list */}
-            {authors.length > 0 && (
-              <MetadataSection>
-                <div className="mb-3 flex items-center gap-1.5">
+            <MetadataSection className="mb-1">
+              <div className="flex items-center flex-wrap text-base">
+                {authors.length > 0 && (
                   <AuthorList
                     authors={authors}
-                    size="sm"
+                    size="base"
                     className="text-gray-500 font-normal text-sm"
-                    delimiter="•"
-                    timestamp={post.createdDate ? formatTimestamp(post.createdDate) : undefined}
+                    delimiter=","
+                    delimiterClassName="ml-0"
+                    showAbbreviatedInMobile={true}
+                    hideExpandButton={true}
                   />
-                </div>
-              </MetadataSection>
-            )}
+                )}
+                {post.createdDate && (
+                  <>
+                    <span className="mx-2 text-gray-500">•</span>
+                    <span className="text-gray-600 whitespace-nowrap text-sm">
+                      {formatTimestamp(post.createdDate, false)}
+                    </span>
+                  </>
+                )}
+              </div>
+            </MetadataSection>
 
             {/* Institution */}
             {post.institution && (
