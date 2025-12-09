@@ -75,6 +75,36 @@ interface RawBounty {
     slug: string;
     is_used_for_rep: boolean;
   }>;
+  // Top-level category, subcategory, and journal from API
+  category?: {
+    id: number;
+    name: string;
+    slug: string;
+  };
+  subcategory?: {
+    id: number;
+    name: string;
+    slug: string;
+  };
+  journal?: {
+    id: number;
+    name: string;
+    slug: string;
+    image?: string | null;
+  };
+  // Metrics and user vote from API
+  metrics?: {
+    votes: number;
+    replies?: number;
+  };
+  user_vote?: {
+    id: number;
+    content_type: number;
+    created_by: number;
+    created_date: string;
+    vote_type: number;
+    item: number;
+  };
   created_date: string;
   expiration_date: string;
   bounty_type: string;
@@ -214,96 +244,103 @@ export class BountyService {
     try {
       const response = await ApiClient.get<FetchBountiesResponse>(url);
       // Transform the raw bounties into the format expected by transformFeedEntry
+      // We transform as PAPER/POST entries with bounties attached, so category/subcategory/journal
+      // are properly handled by the PAPER/POST transformation path
       const transformedEntries = response.results.map((rawBounty) => {
-        // Map the raw bounty to the expected RawApiFeedEntry format
-        const feedEntry: RawApiFeedEntry = {
+        const transformedDoc = transformUnifiedDocument(rawBounty.unified_document);
+        const isPaper = rawBounty.unified_document?.document_type === 'PAPER';
+
+        // Create the bounty object to attach to the paper/post
+        const bountyData = {
           id: rawBounty.id,
-          recommendation_id: rawBounty.recommendation_id,
-          content_type: 'BOUNTY', // Set content_type to 'BOUNTY' for proper transformation
-          content_object: {
-            id: rawBounty.id,
-            amount: rawBounty.total_amount,
-            status: rawBounty.status,
-            expiration_date: rawBounty.expiration_date,
-            bounty_type: rawBounty.bounty_type,
-            created_date: rawBounty.created_date,
-            unified_document_id: getUnifiedDocumentId(rawBounty),
-            // Map the comment data if available
-            comment: rawBounty.item
-              ? {
-                  id: rawBounty.item.id,
-                  comment_content_json: rawBounty.item.comment_content_json,
-                  comment_content_type: rawBounty.item.comment_content_type,
-                  comment_type: rawBounty.item.comment_type,
-                }
-              : undefined,
-            // Transform the unified document if available
-            paper:
-              rawBounty.unified_document && rawBounty.unified_document.document_type === 'PAPER'
-                ? (() => {
-                    const transformedDoc = transformUnifiedDocument(rawBounty.unified_document);
-                    return {
-                      id: transformedDoc?.document.id,
-                      title: transformedDoc?.document.title,
-                      abstract: transformedDoc?.document.abstract,
-                      slug: transformedDoc?.document.slug,
-                      authors: transformedDoc?.document.authors,
-                      hub:
-                        rawBounty.hubs && rawBounty.hubs.length > 0 ? rawBounty.hubs[0] : undefined,
-                    };
-                  })()
-                : undefined,
-            // Map the post data if available
-            post:
-              rawBounty.unified_document && rawBounty.unified_document.document_type !== 'PAPER'
-                ? (() => {
-                    const transformedDoc = transformUnifiedDocument(rawBounty.unified_document);
-                    return {
-                      id: transformedDoc?.document.id,
-                      title: transformedDoc?.document.title,
-                      slug: transformedDoc?.document.slug,
-                      abstract: transformedDoc?.document.abstract,
-                      // Required fields for transformPost / transformWork
-                      content_type: 'post',
-                      // Indicate PREREGISTRATION via type and unified_document
-                      type: rawBounty.unified_document.document_type,
-                      unified_document: {
-                        document_type: rawBounty.unified_document.document_type,
-                      },
-                      // Provide authors and hubs for richer transformation
-                      authors: transformedDoc?.document.authors,
-                      hubs: rawBounty.hubs,
-                      hub:
-                        rawBounty.hubs && rawBounty.hubs.length > 0 ? rawBounty.hubs[0] : undefined,
-                    };
-                  })()
-                : undefined,
-            // Include hubs
-            hubs: rawBounty.hubs,
-          },
+          amount: rawBounty.total_amount,
+          status: rawBounty.status,
+          expiration_date: rawBounty.expiration_date,
+          bounty_type: rawBounty.bounty_type,
           created_date: rawBounty.created_date,
-          action: 'open', // Default action for bounties
-          action_date: rawBounty.created_date,
-          // Map the author data
-          author: {
+          created_by: {
             id: rawBounty.created_by.author_profile.id,
             first_name: rawBounty.created_by.author_profile.first_name,
             last_name: rawBounty.created_by.author_profile.last_name,
             profile_image: rawBounty.created_by.author_profile.profile_image,
-            description: '',
             user: {
               id: rawBounty.created_by.id,
-              first_name: rawBounty.created_by.author_profile.first_name,
-              last_name: rawBounty.created_by.author_profile.last_name,
-              email: '',
               is_verified: rawBounty.created_by.author_profile.is_verified,
             },
           },
-          // Include metrics if available
-          metrics: {
-            votes: 0, // Default to 0 if not available
-            comments: 0, // Default to 0 if not available
+          unified_document_id: getUnifiedDocumentId(rawBounty),
+          // Include comment data for the bounty
+          comment: rawBounty.item
+            ? {
+                id: rawBounty.item.id,
+                comment_content_json: rawBounty.item.comment_content_json,
+                comment_content_type: rawBounty.item.comment_content_type,
+                comment_type: rawBounty.item.comment_type,
+              }
+            : undefined,
+        };
+
+        // Map the raw bounty to PAPER or RESEARCHHUBPOST format so transformFeedEntry
+        // properly handles category, subcategory, and journal
+        const documentId = transformedDoc?.document.id
+          ? Number(transformedDoc.document.id)
+          : rawBounty.id;
+        const feedEntry: RawApiFeedEntry = {
+          id: documentId,
+          recommendation_id: rawBounty.recommendation_id,
+          content_type: isPaper ? 'PAPER' : 'RESEARCHHUBPOST',
+          content_object: {
+            id: documentId,
+            title: transformedDoc?.document.title || '',
+            abstract: transformedDoc?.document.abstract || '',
+            slug: transformedDoc?.document.slug || '',
+            authors: transformedDoc?.document.authors || [],
+            created_date: rawBounty.created_date,
+            unified_document_id: getUnifiedDocumentId(rawBounty),
+            // Include hub for topics
+            hub: rawBounty.hubs && rawBounty.hubs.length > 0 ? rawBounty.hubs[0] : undefined,
+            hubs: rawBounty.hubs,
+            // Top-level category, subcategory, journal from API - used by PAPER/POST transformation
+            category: rawBounty.category,
+            subcategory: rawBounty.subcategory,
+            journal: rawBounty.journal,
+            // Attach the bounty to the paper/post
+            bounties: [bountyData],
+            // For non-paper types, include type info
+            ...(isPaper
+              ? {}
+              : {
+                  type: rawBounty.unified_document?.document_type,
+                  renderable_text: transformedDoc?.document.abstract || '',
+                }),
           },
+          created_date: rawBounty.created_date,
+          action: 'publish',
+          action_date: rawBounty.created_date,
+          // Map the author data (use first paper author if available, otherwise bounty creator)
+          author:
+            transformedDoc?.document.authors?.[0] ||
+            ({
+              id: rawBounty.created_by.author_profile.id,
+              first_name: rawBounty.created_by.author_profile.first_name,
+              last_name: rawBounty.created_by.author_profile.last_name,
+              profile_image: rawBounty.created_by.author_profile.profile_image,
+              description: '',
+              user: {
+                id: rawBounty.created_by.id,
+                first_name: rawBounty.created_by.author_profile.first_name,
+                last_name: rawBounty.created_by.author_profile.last_name,
+                email: '',
+                is_verified: rawBounty.created_by.author_profile.is_verified,
+              },
+            } as any),
+          // Include metrics from the API response
+          metrics: {
+            votes: rawBounty.metrics?.votes || 0,
+            comments: rawBounty.metrics?.replies || 0,
+          },
+          // Include user_vote from the API response
+          user_vote: rawBounty.user_vote,
         };
 
         return transformFeedEntry(feedEntry);

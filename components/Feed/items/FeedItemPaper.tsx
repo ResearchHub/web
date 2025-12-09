@@ -50,7 +50,6 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
 
   // Extract the paper from the entry's content
   const paper = entry.content as FeedPaperContent;
-
   // Extract highlighted fields from highlights prop
   const highlightedTitle = highlights?.find((h) => h.field === 'title')?.value;
   const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
@@ -68,7 +67,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const relatedDocumentId =
     'relatedDocumentId' in paper ? paper.relatedDocumentId?.toString() : paper.id.toString();
   const relatedDocumentContentType = mapFeedContentTypeToContentType(paper.contentType);
-
+  console.log('paper', paper);
   // Only show journal badge for specific preprint servers
   const ALLOWED_JOURNALS = ['biorxiv', 'arxiv', 'medrxiv', 'chemrxiv'];
   const journalSlugLower = paper.journal?.slug?.toLowerCase() || '';
