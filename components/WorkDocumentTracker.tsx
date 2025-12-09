@@ -22,9 +22,9 @@ export function WorkDocumentTracker({ work, metadata, tab }: WorkDocumentTracker
 
     const workDocumentViewedPayload: WorkDocumentViewedEvent = {
       related_work: {
-        id: work.id.toString(),
+        id: work.id,
         content_type: mapAppContentTypeToApiType(work.contentType),
-        unified_document_id: work.unifiedDocumentId?.toString(),
+        unified_document_id: work.unifiedDocumentId,
       },
       tab,
     };

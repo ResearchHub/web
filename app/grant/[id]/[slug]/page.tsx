@@ -56,7 +56,7 @@ export default async function GrantPage({ params }: Props) {
   const id = resolvedParams.id;
 
   const work = await getGrant(id);
-  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
+  const metadata = await MetadataService.get(work.unifiedDocumentId);
 
   const content = await getWorkHTMLContent(work);
 

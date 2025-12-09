@@ -7,12 +7,13 @@ import { buildPayloadForFeedItemClick } from '@/types/analytics';
 import { useUser } from '@/contexts/UserContext';
 import { useFeedSource } from '@/hooks/useFeedSource';
 import { useDeviceType } from '@/hooks/useDeviceType';
+import { ID } from '@/types/root';
 
 interface UseFeedItemClickOptions {
   entry: FeedEntry | null;
   feedPosition?: number;
   feedOrdering?: string;
-  impression?: string[] | undefined;
+  impression?: ID[];
 }
 
 /**

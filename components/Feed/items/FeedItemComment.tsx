@@ -206,9 +206,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 feedContentType="COMMENT"
                 votableEntityId={comment.id}
                 relatedDocumentId={commentEntry.relatedDocumentId?.toString()}
-                relatedDocumentUnifiedDocumentId={
-                  entry.relatedWork?.unifiedDocumentId?.toString() || undefined
-                }
+                relatedDocumentUnifiedDocumentId={entry.relatedWork?.unifiedDocumentId}
                 relatedDocumentContentType={commentEntry.relatedDocumentContentType}
                 userVote={entry.userVote}
                 actionLabels={actionLabels}

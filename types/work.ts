@@ -9,6 +9,7 @@ import { ProxyService } from '../services/proxy.service';
 import { stripHtml } from '../utils/stringUtils';
 import { transformUser, TransformedUser } from './user';
 import { transformTip, Tip } from './tip';
+import { ID } from './root';
 
 export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration' | 'funding_request';
 
@@ -96,7 +97,7 @@ export interface Work {
   image?: string;
   previewContent?: string;
   contentUrl?: string;
-  unifiedDocumentId?: number | null;
+  unifiedDocumentId?: ID;
   postType?: string;
   fundraise?: any;
   tips?: Tip[];

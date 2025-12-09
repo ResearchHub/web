@@ -415,9 +415,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
               menuItems={menuItems}
               onComment={onReply}
               relatedDocumentTopics={entry.relatedWork?.topics}
-              relatedDocumentUnifiedDocumentId={
-                entry.relatedWork?.unifiedDocumentId?.toString() || undefined
-              }
+              relatedDocumentUnifiedDocumentId={entry.relatedWork?.unifiedDocumentId}
               onFeedItemClick={onFeedItemClick}
             />
           </div>

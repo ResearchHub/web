@@ -20,6 +20,7 @@ import { useFeedItemClick } from '@/hooks/useFeedItemClick';
 import { useCallback } from 'react';
 import { getUnifiedDocumentId } from '@/types/analytics';
 import { FeedItemBountyComment } from './items/FeedItemBountyComment';
+import { ID } from '@/types/root';
 
 export interface Highlight {
   field: string;
@@ -37,9 +38,9 @@ interface FeedEntryItemProps {
   showPostHeaders?: boolean;
   showReadMoreCTA?: boolean;
   feedOrdering?: string;
-  registerVisibleItem: (index: number, unifiedDocumentId: string) => void;
-  unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
-  getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
+  registerVisibleItem: (index: number, unifiedDocumentId: ID) => void;
+  unregisterVisibleItem: (index: number, unifiedDocumentId: ID) => void;
+  getVisibleItems: (clickedUnifiedDocumentId: ID) => ID[];
   shouldRenderBountyAsComment?: boolean;
   highlights?: Highlight[];
   showBountyInfo?: boolean;

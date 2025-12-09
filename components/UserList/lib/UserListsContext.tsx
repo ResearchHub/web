@@ -11,7 +11,7 @@ import {
   DEFAULT_LIST_NAME,
 } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
-import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
 import { ID } from '@/types/root';
 import { Button } from '@/components/ui/Button';
@@ -191,22 +191,20 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   const updateListAndSort = (listsToUpdate: UserList[], listId: ID, updates: Partial<UserList>) =>
     listsToUpdate
       .map((list) =>
-        idMatch(list.id, listId)
-          ? { ...list, ...updates, updatedDate: new Date().toISOString() }
-          : list
+        list.id == listId ? { ...list, ...updates, updatedDate: new Date().toISOString() } : list
       )
       .sort((a, b) => new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime());
 
   const incrementItemCount = (listId: ID) => {
     setLists((lists) => {
-      const list = lists.find((l) => idMatch(l.id, listId));
+      const list = lists.find((l) => l.id == listId);
       return updateListAndSort(lists, listId, { itemCount: (list?.itemCount ?? 0) + 1 });
     });
   };
 
   const decrementItemCount = (listId: ID) => {
     setLists((lists) => {
-      const list = lists.find((l) => idMatch(l.id, listId));
+      const list = lists.find((l) => l.id == listId);
       return updateListAndSort(lists, listId, {
         itemCount: Math.max((list?.itemCount ?? 0) - 1, 0),
       });
@@ -216,7 +214,7 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   const addDocumentToList = (id: ID, unifiedDocumentId: ID, listItemId: ID) => {
     setOverviewLists((lists) =>
       lists.map((list) =>
-        idMatch(list.id, id)
+        list.id == id
           ? {
               ...list,
               unifiedDocuments: [
@@ -234,12 +232,12 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   const removeDocumentFromList = (id: ID, unifiedDocumentId: ID) => {
     setOverviewLists((lists) =>
       lists.map((list) =>
-        idMatch(list.id, id)
+        list.id == id
           ? {
               ...list,
               unifiedDocuments:
                 list.unifiedDocuments?.filter(
-                  (doc) => !idMatch(doc.unifiedDocumentId, unifiedDocumentId)
+                  (doc) => doc.unifiedDocumentId != unifiedDocumentId
                 ) ?? [],
             }
           : list
@@ -296,7 +294,7 @@ export function useUserListsContext() {
 }
 
 interface UseAddToListProps {
-  unifiedDocumentId: string | number | null | undefined;
+  unifiedDocumentId: ID;
   isInList: boolean;
   onOpenModal: () => void;
 }
@@ -318,7 +316,7 @@ export function useAddToList({ unifiedDocumentId, isInList, onOpenModal }: UseAd
 
       setIsTogglingDefaultList(true);
       try {
-        await addToDefaultList(Number(unifiedDocumentId));
+        await addToDefaultList(unifiedDocumentId);
         toast.success((t) => <AddToListToast toastId={t.id} onAddToListClick={onOpenModal} />);
       } catch (error) {
         toast.error(extractApiErrorMessage(error, 'Failed to add to list'));

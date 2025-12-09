@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import { UserListDetail } from '@/components/UserList/lib/user-list';
-import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { updateListRemoveItem, removeItemByDocumentId } from '@/components/UserList/lib/listUtils';
 import { useUserListsContext, ListItemChange } from '@/components/UserList/lib/UserListsContext';
 import { ID } from '@/types/root';
@@ -93,7 +93,7 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
   const lastHandled = useRef({ added: 0, removed: 0 });
 
   const shouldProcessChange = (change: ListItemChange | null, type: 'added' | 'removed') =>
-    change && change.at > lastHandled.current[type] && idMatch(change.listId, id);
+    change && change.at > lastHandled.current[type] && change.listId == id;
 
   useEffect(() => {
     if (shouldProcessChange(lastAddedItem, 'added') && !isLoading) {

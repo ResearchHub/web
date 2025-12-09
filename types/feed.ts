@@ -11,6 +11,7 @@ import { UserVoteType } from './reaction';
 import { User } from './user';
 import { stripHtml } from '@/utils/stringUtils';
 import { Tip } from './tip';
+import { ID } from './root';
 
 export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
 
@@ -76,7 +77,7 @@ export interface BaseFeedContent {
   createdBy: AuthorProfile;
   bounties?: BountyWithComment[];
   reviews?: Review[];
-  unifiedDocumentId?: string;
+  unifiedDocumentId?: ID;
 }
 
 // Update all feed content types to extend the base
@@ -373,30 +374,8 @@ export interface FeedApiResponse {
   results: RawApiFeedEntry[];
 }
 
-/**
- * Safely extracts the unified document ID from a content object.
- *
- * Tries in this order:
- * 1. content_object.unified_document_id
- * 2. content_object.unified_document.id
- *
- * Returns undefined if neither is available or if any intermediate property is null/undefined.
- *
- * @param content_object - The content object from the API response
- * @returns The unified document ID as a string, or undefined if not available
- */
-export function getUnifiedDocumentId(content_object: any): string | undefined {
-  // First try: direct unified_document_id property
-  if (content_object?.unified_document_id != null) {
-    return content_object.unified_document_id.toString();
-  }
-
-  // Second try: extract from unified_document.id
-  if (content_object?.unified_document?.id != null) {
-    return content_object.unified_document.id.toString();
-  }
-
-  return undefined;
+export function getUnifiedDocumentId(content_object: any): ID {
+  return content_object?.unified_document_id ?? content_object?.unified_document?.id;
 }
 
 export type TransformedContent = Content & BaseTransformed;

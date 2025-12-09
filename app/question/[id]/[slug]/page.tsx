@@ -64,7 +64,7 @@ export default async function QuestionPage({ params }: Props) {
   // handleFundraiseRedirect(post, resolvedParams.id, resolvedParams.slug);
 
   // Then fetch metadata using unifiedDocumentId
-  const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '');
+  const metadata = await MetadataService.get(post.unifiedDocumentId);
 
   // Fetch content if available
   const content = await getPostContent(post);

@@ -21,6 +21,7 @@ import { CommentEmptyState } from './CommentEmptyState';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
 import { comment } from 'postcss';
 import { useShareModalContext } from '@/contexts/ShareContext';
+import { ID } from '@/types/root';
 
 interface CommentFeedProps {
   documentId: number;
@@ -31,7 +32,7 @@ interface CommentFeedProps {
   renderCommentActions?: boolean;
   hideEditor?: boolean;
   debug?: boolean;
-  unifiedDocumentId: number | null;
+  unifiedDocumentId: ID;
   work?: Work;
   workAuthors?: Work['authors'];
 }

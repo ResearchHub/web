@@ -63,7 +63,7 @@ export default async function FundBountiesPage({ params }: Props) {
 
   // Fetch all required data in parallel
   const [metadata, content, authorUpdates] = await Promise.all([
-    MetadataService.get(work.unifiedDocumentId?.toString() || ''),
+    MetadataService.get(work.unifiedDocumentId),
     getWorkHTMLContent(work),
     CommentService.fetchAuthorUpdates({
       documentId: work.id,

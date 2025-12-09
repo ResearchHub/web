@@ -1,6 +1,5 @@
 import { UserList, UserListDetail, UserListOverview } from '@/components/UserList/lib/user-list';
 import { pluralizeSuffix } from '@/utils/stringUtils';
-import { idMatch } from '@/services/lib/serviceUtils';
 import { ID } from '@/types/root';
 
 export const formatItemCount = (list: UserList) => {
@@ -15,7 +14,7 @@ export const updateListRemoveItem = (
   if (!list) return null;
   return {
     ...list,
-    items: list.items.filter((item) => !idMatch(item.id, itemId)),
+    items: list.items.filter((item) => item.id != itemId),
     itemCount: Math.max(list.itemCount - 1, 0),
   };
 };
@@ -25,7 +24,7 @@ export const removeItemByDocumentId = (
   unifiedDocumentId: ID
 ): UserListDetail | null => {
   if (!list) return null;
-  const filtered = list.items.filter((item) => !idMatch(item.unifiedDocument, unifiedDocumentId));
+  const filtered = list.items.filter((item) => item.unifiedDocument != unifiedDocumentId);
   if (filtered.length === list.items.length) return list;
   return { ...list, items: filtered, itemCount: Math.max(list.itemCount - 1, 0) };
 };
@@ -38,7 +37,7 @@ export const sortListsByDocumentMembership = (
   const listsNotYetContainingDocument: UserListOverview[] = [];
 
   for (const list of allLists) {
-    if (listIdsContainingDocument.some((id) => idMatch(id, list.id))) {
+    if (listIdsContainingDocument.some((id) => id == list.id)) {
       listsAlreadyContainingDocument.push(list);
     } else {
       listsNotYetContainingDocument.push(list);

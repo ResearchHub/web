@@ -158,7 +158,7 @@ export const transformPublicationToFeedEntry = (
     action: 'publish',
     contentType: 'PAPER',
     content: {
-      unifiedDocumentId: publication.id.toString(),
+      unifiedDocumentId: publication.id,
       id: documents.id,
       contentType: 'PAPER',
       createdDate: created_date,

@@ -60,7 +60,7 @@ export default async function PostReviewsPage({ params }: Props) {
   // Handle all post redirects (questions redirect to conversation since they don't have reviews)
   handlePostRedirect(post, resolvedParams.id, resolvedParams.slug, 'conversation');
 
-  const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '');
+  const metadata = await MetadataService.get(post.unifiedDocumentId);
   const content = await getPostContent(post);
 
   if (!post) {

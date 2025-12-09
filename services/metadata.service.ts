@@ -6,6 +6,7 @@ import { ContentMetrics } from '@/types/metrics';
 import { Fundraise, transformFundraise } from '@/types/funding';
 import { Bounty, transformBounty } from '@/types/bounty';
 import { countOpenBounties, countClosedBounties } from '@/components/Bounty/lib/bountyUtil';
+import { ID } from '@/types/root';
 
 export interface WorkMetadata {
   id: number;
@@ -58,7 +59,7 @@ function transformWorkMetadata(response: any): WorkMetadata {
 export class MetadataService {
   private static readonly BASE_PATH = '/api/researchhub_unified_document';
 
-  static async get(unifiedDocumentId: string): Promise<WorkMetadata> {
+  static async get(unifiedDocumentId: ID): Promise<WorkMetadata> {
     const response = await ApiClient.get<any>(
       `${this.BASE_PATH}/${unifiedDocumentId}/get_document_metadata/`
     );

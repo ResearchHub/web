@@ -8,6 +8,7 @@ import {
   mapAppContentTypeToApiType,
   mapAppFeedContentTypeToApiType,
 } from '@/utils/contentTypeMapping';
+import { ID } from './root';
 
 interface UserContext {
   user_id?: string;
@@ -21,9 +22,9 @@ interface BaseContext {
 }
 
 interface RelatedWork {
-  id: string;
+  id: ID;
   content_type: DocumentType;
-  unified_document_id?: string;
+  unified_document_id?: ID;
 }
 
 export type FeedSource =
@@ -36,15 +37,8 @@ export type FeedSource =
   | 'search'
   | 'unknown';
 
-/**
- * Extracts the unified document ID from a feed entry.
- * Checks entry.content.unifiedDocumentId first, then falls back to entry.relatedWork?.unifiedDocumentId.
- *
- * @param entry - The feed entry to extract the unified document ID from
- * @returns The unified document ID as a string, or empty string if not found
- */
-export function getUnifiedDocumentId(entry: FeedEntry): string {
-  return entry.content.unifiedDocumentId || entry.relatedWork?.unifiedDocumentId?.toString() || '';
+export function getUnifiedDocumentId(entry: FeedEntry): ID {
+  return entry.content.unifiedDocumentId || entry.relatedWork?.unifiedDocumentId;
 }
 
 // 1. Vote Action
@@ -61,7 +55,7 @@ export interface FeedItemClickedEvent extends UserContext, BaseContext {
   related_work?: RelatedWork;
   recommendation_id?: string | null;
   feed_ordering?: string;
-  impression?: string[];
+  impression?: ID[];
 }
 
 // 3. Work Document Viewed
@@ -90,7 +84,7 @@ export function buildPayloadForFeedItemClick(
     feedTab: string;
     deviceType: DeviceType;
     feedOrdering?: string;
-    impression?: string[];
+    impression?: ID[];
   }
 ): FeedItemClickedEvent {
   const { feedPosition = 1, feedSource, feedTab, deviceType, feedOrdering, impression } = options;
@@ -103,8 +97,8 @@ export function buildPayloadForFeedItemClick(
     related_work: {
       id:
         'relatedDocumentId' in entry.content && entry.content.relatedDocumentId
-          ? entry.content.relatedDocumentId.toString()
-          : entry.content.id?.toString() || '',
+          ? entry.content.relatedDocumentId
+          : entry.content.id,
       content_type:
         'relatedDocumentContentType' in entry.content && entry.content.relatedDocumentContentType
           ? mapAppContentTypeToApiType(entry.content.relatedDocumentContentType)
@@ -112,9 +106,7 @@ export function buildPayloadForFeedItemClick(
       unified_document_id: getUnifiedDocumentId(entry),
     },
     recommendation_id: entry.recommendationId,
-    // Include feed ordering if provided
     ...(feedOrdering && { feed_ordering: feedOrdering }),
-    // Include impressions if provided
     ...(impression && impression.length > 0 && { impression }),
   };
 
@@ -140,9 +132,9 @@ export function buildPayloadForDocumentTabClick(
     device_type: deviceType,
     clicked_tab: clickedTab,
     related_work: {
-      id: work.id.toString(),
+      id: work.id,
       content_type: mapAppContentTypeToApiType(work.contentType),
-      unified_document_id: work.unifiedDocumentId?.toString(),
+      unified_document_id: work.unifiedDocumentId,
     },
   };
 

@@ -6,8 +6,8 @@ import { createContext } from 'react';
 export const DEFAULT_LIST_NAME = 'Your Favorites';
 
 export interface ListDetailContext {
-  listId: number;
-  onRemoveItem: (unifiedDocumentId: number) => Promise<void>;
+  listId: ID;
+  onRemoveItem: (unifiedDocumentId: ID) => Promise<void>;
 }
 
 export const ListDetailContext = createContext<ListDetailContext | null>(null);

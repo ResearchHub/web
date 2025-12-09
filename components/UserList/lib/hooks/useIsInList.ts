@@ -1,5 +1,4 @@
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
-import { idMatch } from '@/services/lib/serviceUtils';
 import { ID } from '@/types/root';
 
 export function useIsInList(unifiedDocumentId: ID) {
@@ -16,7 +15,7 @@ export function useIsInList(unifiedDocumentId: ID) {
 
   const listIdsContainingDocument = overviewLists
     .filter((list) =>
-      list.unifiedDocuments?.some((doc) => idMatch(doc.unifiedDocumentId, unifiedDocumentId))
+      list.unifiedDocuments?.some((doc) => doc.unifiedDocumentId == unifiedDocumentId)
     )
     .map((list) => list.id);
 

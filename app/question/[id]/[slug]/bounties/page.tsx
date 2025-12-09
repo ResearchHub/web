@@ -60,7 +60,7 @@ export default async function QuestionBountiesPage({ params }: Props) {
   // Handle fundraise redirection
   handleFundraiseRedirect(post, resolvedParams.id, resolvedParams.slug);
 
-  const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '');
+  const metadata = await MetadataService.get(post.unifiedDocumentId);
 
   const content = await getPostContent(post);
 

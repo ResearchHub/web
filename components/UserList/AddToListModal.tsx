@@ -16,7 +16,7 @@ import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { sortListsByDocumentMembership } from '@/components/UserList/lib/listUtils';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
@@ -216,7 +216,7 @@ export function AddToListModal({
   };
 
   const handleAddToList = async (id: ID) => {
-    const listToAddTo = overviewLists.find((list) => idMatch(list.id, id));
+    const listToAddTo = overviewLists.find((list) => list.id == id);
     if (!listToAddTo) return;
 
     setTogglingListId(id);
@@ -252,7 +252,7 @@ export function AddToListModal({
   };
 
   const handleRemoveFromList = async (id: ID) => {
-    const listToRemoveFrom = overviewLists.find((list) => idMatch(list.id, id));
+    const listToRemoveFrom = overviewLists.find((list) => list.id == id);
     if (!listToRemoveFrom) return;
 
     const documentInList = listToRemoveFrom.unifiedDocuments.find(
@@ -368,7 +368,7 @@ export function AddToListModal({
               <div className="space-y-2 md:!max-h-96 overflow-y-auto">
                 {listsToDisplay.map((list) => {
                   const isInList = listIdsContainingDocument.includes(list.id);
-                  const isCurrentlyToggling = idMatch(togglingListId, list.id);
+                  const isCurrentlyToggling = togglingListId == list.id;
 
                   return (
                     <ListSelectItem

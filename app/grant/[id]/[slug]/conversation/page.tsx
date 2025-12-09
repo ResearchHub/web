@@ -60,7 +60,7 @@ export default async function GrantApplicationsPage({ params }: Props) {
   const work = await getGrant(id);
 
   // Then fetch metadata using unifiedDocumentId
-  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
+  const metadata = await MetadataService.get(work.unifiedDocumentId);
 
   // Only fetch content after we have the work object with contentUrl
   const content = await getWorkHTMLContent(work);

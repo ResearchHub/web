@@ -12,13 +12,14 @@ import { VoteActionEvent } from '@/types/analytics';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { useDeviceType } from '@/hooks/useDeviceType';
 import { mapAppContentTypeToApiType } from '@/utils/contentTypeMapping';
+import { ID } from '@/types/root';
 
 interface UseVoteOptions {
   votableEntityId: number;
   feedContentType?: FeedContentType;
-  relatedDocumentId?: string;
+  relatedDocumentId?: ID;
   relatedDocumentContentType?: ContentType;
-  relatedDocumentUnifiedDocumentId?: string;
+  relatedDocumentUnifiedDocumentId?: ID;
   relatedDocumentTopics?: Topic[];
   onVoteSuccess?: (updatedItem: any, voteType: UserVoteType) => void;
   onVoteError?: (error: any) => void;
@@ -122,9 +123,9 @@ export function useVote({
           related_work:
             relatedDocumentId && relatedDocumentContentType
               ? {
-                  id: relatedDocumentId.toString(),
+                  id: relatedDocumentId,
                   content_type: mapAppContentTypeToApiType(relatedDocumentContentType),
-                  unified_document_id: relatedDocumentUnifiedDocumentId?.toString(),
+                  unified_document_id: relatedDocumentUnifiedDocumentId,
                 }
               : undefined,
         };

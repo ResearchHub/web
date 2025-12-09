@@ -18,7 +18,7 @@ export default async function Page({ params }: Props) {
   let metadata: WorkMetadata | undefined = undefined;
   if (paper.unifiedDocumentId) {
     try {
-      metadata = await MetadataService.get(paper.unifiedDocumentId.toString());
+      metadata = await MetadataService.get(paper.unifiedDocumentId);
     } catch (e) {
       console.error('Failed to fetch metadata for paper', e);
     }

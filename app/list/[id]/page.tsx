@@ -20,7 +20,6 @@ import { ListDetailContext } from '@/components/UserList/lib/user-list';
 import { formatTimeAgo } from '@/utils/date';
 import { FeedEntry } from '@/types/feed';
 import { ID } from '@/types/root';
-import { idMatch } from '@/services/lib/serviceUtils';
 
 interface ModalState {
   readonly isOpen: boolean;
@@ -61,11 +60,11 @@ export default function ListDetailPage() {
   const openModal = (mode: ModalState['mode'], name: string = '') =>
     setModal({ isOpen: true, mode, name });
 
-  const isOwner = user && list && idMatch(list.createdBy, user.id);
+  const isOwner = user && list && list.createdBy == user.id;
   const isDefaultList = list?.isDefault;
   const feedEntries = items.map(transformListItemToFeedEntry);
 
-  const handleRemoveItem = async (unifiedDocumentId: number) => {
+  const handleRemoveItem = async (unifiedDocumentId: ID) => {
     const foundListItem = items.find((item) => item.unifiedDocument === unifiedDocumentId);
     if (foundListItem) {
       await removeItem(foundListItem.id, unifiedDocumentId);
@@ -75,7 +74,7 @@ export default function ListDetailPage() {
   const listDetailContextValue =
     isOwner && list
       ? {
-          listId: Number(list.id),
+          listId: list.id,
           onRemoveItem: handleRemoveItem,
         }
       : null;

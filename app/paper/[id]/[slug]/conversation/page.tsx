@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function WorkConversationPage({ params }: Props) {
   const resolvedParams = await params;
   const work = await getWork(resolvedParams.id);
-  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
+  const metadata = await MetadataService.get(work.unifiedDocumentId);
 
   if (!work) {
     notFound();

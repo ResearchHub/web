@@ -25,7 +25,7 @@ async function getWorkData(id: string): Promise<{ work: Work; metadata: any }> {
   try {
     const work = await PaperService.get(id);
     if (!work) notFound();
-    const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
+    const metadata = await MetadataService.get(work.unifiedDocumentId);
     return { work, metadata };
   } catch (error) {
     console.error('Failed to fetch work data:', error);

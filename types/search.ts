@@ -325,8 +325,8 @@ export interface ApiDocumentSearchResult {
   hot_score: number;
   score: number; // upvotes
   _search_score: number; // relevance score
-  hubs: any[]; // hub objects
-  unified_document_id: number | null;
+  hubs: any[];
+  unified_document_id: ID;
   doi: string | null;
   citations: number;
   is_open_access: boolean | null;

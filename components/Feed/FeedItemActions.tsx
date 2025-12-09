@@ -32,6 +32,7 @@ import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserList
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { BountyTooltip } from '@/components/tooltips/BountyTooltip';
 import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
+import { ID } from '@/types/root';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -163,7 +164,7 @@ interface FeedItemActionsProps {
   bounties?: Bounty[]; // Updated to use imported Bounty type
   awardedBountyAmount?: number; // Add awarded bounty amount
   relatedDocumentTopics?: Topic[];
-  relatedDocumentUnifiedDocumentId?: string;
+  relatedDocumentUnifiedDocumentId?: ID;
   showPeerReviews?: boolean;
   onFeedItemClick?: () => void;
 }
@@ -594,7 +595,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         <AddToListModal
           isOpen={isAddToListModalOpen}
           onClose={handleCloseAddToListModal}
-          unifiedDocumentId={Number.parseInt(relatedDocumentUnifiedDocumentId)}
+          unifiedDocumentId={relatedDocumentUnifiedDocumentId}
         />
       )}
     </>

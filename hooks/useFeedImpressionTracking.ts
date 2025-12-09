@@ -1,16 +1,17 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { ID } from '@/types/root';
 
 const MAX_IMPRESSION_ITEMS = 10;
 
 interface UseFeedImpressionTrackingReturn {
-  registerVisibleItem: (index: number, unifiedDocumentId: string) => void;
-  unregisterVisibleItem: (index: number, unifiedDocumentId: string) => void;
-  getVisibleItems: (clickedUnifiedDocumentId: string) => string[];
+  registerVisibleItem: (index: number, unifiedDocumentId: ID) => void;
+  unregisterVisibleItem: (index: number, unifiedDocumentId: ID) => void;
+  getVisibleItems: (clickedUnifiedDocumentId: ID) => ID[];
 }
 const KEY_SEPARATOR = '|';
-const getKey = (index: number, unifiedDocumentId: string) =>
+const getKey = (index: number, unifiedDocumentId: ID) =>
   `${index}${KEY_SEPARATOR}${unifiedDocumentId}`;
 
 /**
@@ -19,7 +20,7 @@ const getKey = (index: number, unifiedDocumentId: string) =>
 export function useFeedImpressionTracking(): UseFeedImpressionTrackingReturn {
   const [visibleItems, setVisibleItems] = useState<Set<string>>(new Set());
 
-  const registerVisibleItem = useCallback((index: number, unifiedDocumentId: string) => {
+  const registerVisibleItem = useCallback((index: number, unifiedDocumentId: ID) => {
     if (!unifiedDocumentId) return;
     setVisibleItems((prev) => {
       const next = new Set(prev);
@@ -28,7 +29,7 @@ export function useFeedImpressionTracking(): UseFeedImpressionTrackingReturn {
     });
   }, []);
 
-  const unregisterVisibleItem = useCallback((index: number, unifiedDocumentId: string) => {
+  const unregisterVisibleItem = useCallback((index: number, unifiedDocumentId: ID) => {
     if (!unifiedDocumentId) return;
     setVisibleItems((prev) => {
       const next = new Set(prev);
@@ -38,11 +39,10 @@ export function useFeedImpressionTracking(): UseFeedImpressionTrackingReturn {
   }, []);
 
   const getVisibleItems = useCallback(
-    (clickedUnifiedDocumentId: string): string[] => {
+    (clickedUnifiedDocumentId: ID): ID[] => {
       const itemsArray = Array.from(visibleItems);
       const itemsArrayUnifiedDocumentIds = itemsArray.map((item) => item.split(KEY_SEPARATOR)[1]);
 
-      // Ensure clicked item is included
       const filteredItems = itemsArrayUnifiedDocumentIds.filter(
         (id) => id !== clickedUnifiedDocumentId
       );
