@@ -68,13 +68,19 @@ export function useSearchSuggestions({
   // Fetch API suggestions when query changes
   useEffect(() => {
     let mounted = true;
-    const fetchSuggestions = async () => {
-      if (!query || query.length < minQueryLength) {
-        setApiSuggestions([]);
-        return;
-      }
 
-      setLoading(true);
+    // If query doesn't meet minimum length, clear results and don't search
+    if (!query || query.length < minQueryLength) {
+      setApiSuggestions([]);
+      setLoading(false);
+      return;
+    }
+
+    // Set loading immediately when query changes (before debounce)
+    // This prevents the brief "No results found" flash
+    setLoading(true);
+
+    const fetchSuggestions = async () => {
       try {
         const suggestions = await SearchService.getSuggestions(query, indices);
         if (mounted) {

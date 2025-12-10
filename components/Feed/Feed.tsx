@@ -2,17 +2,18 @@
 
 import { FC, useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { Sparkles, Globe } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import { useFeed, FeedTab, FeedSource } from '@/hooks/useFeed';
 import { FeedContent } from './FeedContent';
-import { FeedTabs } from './FeedTabs';
+import { FeedTabs, FeedSortOption } from './FeedTabs';
+import { ForYouFeedBanner } from './ForYouFeedBanner';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FeedEntry } from '@/types/feed';
 import Icon from '@/components/ui/icons/Icon';
-import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { useUser } from '@/contexts/UserContext';
 import { ManageTopicsModal } from '@/components/modals/ManageTopicsModal';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 interface FeedProps {
   defaultTab: FeedTab;
@@ -23,7 +24,6 @@ interface FeedProps {
   showSourceFilter?: boolean;
 }
 
-// Helper function to determine default ordering based on tab
 const getDefaultOrdering = (tab: FeedTab): string | undefined => {
   if (tab === 'popular') return undefined; // No ordering for trending feed
   if (tab === 'following') return 'hot_score_v2';
@@ -37,6 +37,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useUser();
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
   const isAuthenticated = status === 'authenticated';
   const isModerator = !!user?.isModerator;
 
@@ -53,6 +54,15 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
 
   const isDebugMode = searchParams?.get('debug') !== null;
 
+  const feedOptions = {
+    source: sourceFilter,
+    initialData: initialFeedData,
+    isDebugMode,
+    ordering,
+    filter: filterParam || undefined,
+    userId: userIdParam || undefined,
+  };
+
   const {
     entries,
     isLoading,
@@ -62,104 +72,94 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     restoredScrollPosition,
     page,
     lastClickedEntryId,
-  } = useFeed(defaultTab, {
-    source: sourceFilter,
-    initialData: initialFeedData,
-    isDebugMode,
-    ordering,
-    filter: filterParam || undefined,
-    userId: userIdParam || undefined,
-  });
+  } = useFeed(defaultTab, feedOptions);
 
-  // Sync the activeTab with the defaultTab when the component mounts or defaultTab changes
   useEffect(() => {
-    setActiveTab(defaultTab);
-    // Only update ordering if there's no query param override
     const orderingParam = searchParams.get('ordering');
+    const newOrdering = !orderingParam ? getDefaultOrdering(defaultTab) : ordering;
+
+    setActiveTab(defaultTab);
     if (!orderingParam) {
-      setOrdering(getDefaultOrdering(defaultTab));
+      setOrdering(newOrdering);
     }
     setIsNavigating(false);
   }, [defaultTab, searchParams]);
 
   const handleTabChange = (tab: string) => {
-    // Don't navigate if clicking the already active tab
     if (tab === activeTab) {
       return;
     }
 
-    // Immediately update the active tab for visual feedback
-    setActiveTab(tab as FeedTab);
-    // Update ordering based on the new tab (unless overridden by query param)
-    const orderingParam = searchParams.get('ordering');
-    if (!orderingParam) {
-      setOrdering(getDefaultOrdering(tab as FeedTab));
+    // Protected tabs require authentication
+    const protectedTabs = ['following', 'for-you'];
+    if (protectedTabs.includes(tab) && !isAuthenticated) {
+      executeAuthenticatedAction(() => {
+        setIsNavigating(true);
+        router.push(`/${tab}`);
+      });
+      return;
     }
-    // Set navigating state to true to show loading state
+
     setIsNavigating(true);
 
-    // Preserve query params (ordering and filter)
-    // Only preserve if they were explicitly set by the user, not defaults
-    const params = new URLSearchParams();
-    if (orderingParam) {
-      params.set('ordering', orderingParam);
-    }
-    const filterParam = searchParams.get('filter');
-    if (filterParam) {
-      params.set('filter', filterParam);
-    }
-    const queryString = params.toString() ? `?${params.toString()}` : '';
-
-    // Navigate to the appropriate URL (for-you is the URL-friendly version)
     if (tab === 'popular') {
-      router.push(`/${queryString}`);
+      router.push('/popular');
     } else {
-      router.push(`/${tab}${queryString}`);
+      router.push(`/${tab}`);
     }
   };
 
   const handleSourceFilterChange = (source: FeedSource) => {
     setSourceFilter(source);
-    // The filter will be applied through the useFeed hook with the updated source option
   };
 
-  // Combine the loading states
+  const handleSortChange = (sort: FeedSortOption) => {
+    setOrdering(sort);
+    // Update URL with new ordering
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('ordering', sort);
+    router.push(`/${activeTab}?${params.toString()}`);
+  };
+
   const combinedIsLoading = isLoading || isNavigating;
 
-  // Define the tabs for the feed
-  const tabs = [
-    {
-      id: 'popular',
-      label: 'Trending',
-    },
-    ...(isAuthenticated || isModerator || isDebugMode
-      ? [
-          {
-            id: 'for-you',
-            label: 'For You',
-          },
-        ]
-      : []),
-    ...(isAuthenticated
-      ? [
-          {
-            id: 'following',
-            label: 'Following',
-          },
-        ]
-      : []),
-  ];
+  // Tab ordering differs based on authentication state:
+  // - Logged in: For You, Following, Popular
+  // - Logged out: Popular, For You, Following
+  const tabs = isAuthenticated
+    ? [
+        {
+          id: 'for-you',
+          label: 'For You',
+        },
+        {
+          id: 'following',
+          label: 'Following',
+        },
+        {
+          id: 'popular',
+          label: 'Popular',
+        },
+      ]
+    : [
+        {
+          id: 'popular',
+          label: 'Popular',
+        },
+        {
+          id: 'for-you',
+          label: 'For You',
+        },
+        {
+          id: 'following',
+          label: 'Following',
+        },
+      ];
 
   const header = (
-    <div className="space-y-4">
-      {/* Banner removed */}
-
-      <MainPageHeader
-        icon={<Sparkles className="w-6 h-6 text-primary-500" />}
-        title="Explore"
-        subtitle="Discover trending research, earning, and funding opportunities"
-      />
-    </div>
+    <p className="text-gray-900 text-lg tablet:!hidden py-4 pt-1">
+      Explore cutting-edge research from leading preprint servers.
+    </p>
   );
 
   const feedTabs = (
@@ -168,10 +168,16 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
       tabs={tabs}
       onTabChange={handleTabChange}
       isLoading={combinedIsLoading}
-      showGearIcon={activeTab === 'following'}
+      showGearIcon={activeTab === 'following' && isAuthenticated}
       onGearClick={() => setIsManageTopicsModalOpen(true)}
+      showSorting={activeTab === 'following' && isAuthenticated}
+      sortOption={(ordering as FeedSortOption) || 'hot_score_v2'}
+      onSortChange={handleSortChange}
     />
   );
+
+  // Show ForYouFeedBanner when on "for-you" tab
+  const banner = activeTab === 'for-you' ? <ForYouFeedBanner /> : undefined;
 
   const sourceFilters = showSourceFilter ? (
     <div className="flex justify-end">
@@ -211,12 +217,16 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   return (
     <PageLayout>
       <FeedContent
+        showFundraiseHeaders={false}
+        showGrantHeaders={false}
+        showPostHeaders={false}
         entries={entries}
         isLoading={combinedIsLoading}
         hasMore={hasMore}
         loadMore={loadMore}
         header={header}
         tabs={feedTabs}
+        banner={banner}
         activeTab={activeTab}
         ordering={ordering}
         restoredScrollPosition={restoredScrollPosition}

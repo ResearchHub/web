@@ -13,6 +13,8 @@ import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { formatRSC } from '@/utils/number';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { Star, ChevronRight } from 'lucide-react';
+import { Icon } from '@/components/ui/icons/Icon';
 
 const LeaderboardListSkeleton = () => (
   <div className="space-y-3 animate-pulse">
@@ -35,14 +37,21 @@ export const LeaderboardSkeleton = () => (
   <>
     {/* Top Peer Reviewers Section Skeleton */}
     <div>
-      <div className="flex justify-between items-baseline mb-3">
-        <div>
-          <h2 className="font-semibold text-gray-900">Top Peer Reviewers</h2>
-          <p className="text-xs text-gray-500">This Week</p>
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex items-start gap-2">
+          <Star className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
+          <div>
+            <h2 className="font-semibold text-gray-900">Top Peer Reviewers</h2>
+            <p className="text-xs text-gray-500">This Week</p>
+          </div>
         </div>
-        <div className="text-xs text-gray-500">View All</div>
+        <div className="text-xs text-gray-700 flex items-center gap-0.5 mt-1">
+          View All
+          <ChevronRight className="w-3 h-3" />
+        </div>
       </div>
       <LeaderboardListSkeleton />
+      <div className="mt-4 h-9 bg-gray-100 rounded-md w-full animate-pulse" />
     </div>
 
     {/* Divider */}
@@ -50,12 +59,18 @@ export const LeaderboardSkeleton = () => (
 
     {/* Top Funders Section Skeleton */}
     <div>
-      <div className="flex justify-between items-baseline mb-3">
-        <div>
-          <h2 className="font-semibold text-gray-900">Top Funders</h2>
-          <p className="text-xs text-gray-500">This Month</p>
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex items-start gap-2">
+          <Icon name="fund" size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <h2 className="font-semibold text-gray-900">Top Funders</h2>
+            <p className="text-xs text-gray-500">This Month</p>
+          </div>
         </div>
-        <div className="text-xs text-gray-500">View All</div>
+        <div className="text-xs text-gray-700 flex items-center gap-0.5 mt-1">
+          View All
+          <ChevronRight className="w-3 h-3" />
+        </div>
       </div>
       <LeaderboardListSkeleton />
     </div>
@@ -154,12 +169,12 @@ export const LeaderboardOverview = () => {
           <div className="min-w-0 flex-shrink overflow-hidden relative">
             {authorId ? (
               <AuthorTooltip authorId={authorId}>
-                <span className="text-sm font-medium text-gray-900 block whitespace-nowrap overflow-hidden">
+                <span className="text-sm font-medium text-gray-900 block overflow-hidden">
                   {displayName}
                 </span>
               </AuthorTooltip>
             ) : (
-              <span className="text-sm font-medium text-gray-900 block whitespace-nowrap overflow-hidden">
+              <span className="text-sm font-medium text-gray-900 block overflow-hidden">
                 {displayName}
               </span>
             )}
@@ -184,6 +199,7 @@ export const LeaderboardOverview = () => {
             shorten={true}
             showIcon={true}
             showText={showUSD}
+            textColor="text-orange-500"
             className="justify-end"
           />
         </div>
@@ -195,13 +211,20 @@ export const LeaderboardOverview = () => {
     <>
       {/* Top Peer Reviewers Section */}
       <div>
-        <div className="flex justify-between items-baseline mb-3">
-          <div>
-            <h2 className="font-semibold text-gray-900">Top Peer Reviewers</h2>
-            <p className="text-xs text-gray-500">This Week</p>
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex items-start gap-2">
+            <Star className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <h2 className="font-semibold text-gray-900">Top Peer Reviewers</h2>
+              <p className="text-xs text-gray-500">This Week</p>
+            </div>
           </div>
-          <Link href="/leaderboard?tab=reviewers" className="text-xs text-gray-500 hover:underline">
+          <Link
+            href="/leaderboard?tab=reviewers"
+            className="text-xs text-gray-700 hover:underline flex items-center gap-0.5 mt-1"
+          >
             View All
+            <ChevronRight className="w-3 h-3" />
           </Link>
         </div>
         {isLoading ? (
@@ -215,6 +238,13 @@ export const LeaderboardOverview = () => {
         ) : (
           <p className="text-sm text-gray-500 mt-4 text-center">No reviewers found this week.</p>
         )}
+        {/* Secondary CTA for preprints needing review */}
+        <Link
+          href="/earn"
+          className="mt-4 block w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium py-2 px-3 rounded-md border border-primary-200 hover:bg-primary-50 transition-colors"
+        >
+          View preprints needing review
+        </Link>
       </div>
 
       {/* Divider */}
@@ -222,13 +252,20 @@ export const LeaderboardOverview = () => {
 
       {/* Top Funders Section */}
       <div>
-        <div className="flex justify-between items-baseline mb-3">
-          <div>
-            <h2 className="font-semibold text-gray-900">Top Funders</h2>
-            <p className="text-xs text-gray-500">This Month</p>
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex items-start gap-2">
+            <Icon name="fund" size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h2 className="font-semibold text-gray-900">Top Funders</h2>
+              <p className="text-xs text-gray-500">This Month</p>
+            </div>
           </div>
-          <Link href="/leaderboard?tab=funders" className="text-xs text-gray-500 hover:underline">
+          <Link
+            href="/leaderboard?tab=funders"
+            className="text-xs text-gray-700 hover:underline flex items-center gap-0.5 mt-1"
+          >
             View All
+            <ChevronRight className="w-3 h-3" />
           </Link>
         </div>
         {isLoading ? (

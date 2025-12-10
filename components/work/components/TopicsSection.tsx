@@ -1,7 +1,7 @@
 'use client';
 
 import { ChevronDown, Tags } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
 
@@ -13,16 +13,31 @@ interface Topic {
 
 interface TopicsSectionProps {
   topics: Topic[];
+  category?: Topic;
+  subcategory?: Topic;
 }
 
-export const TopicsSection = ({ topics }: TopicsSectionProps) => {
+export const TopicsSection = ({ topics, category, subcategory }: TopicsSectionProps) => {
   const [showAllTopics, setShowAllTopics] = useState(false);
 
-  if (!topics || topics.length === 0) return null;
+  // Sort topics: category first, then subcategory, then the rest
+  const sortedTopics = useMemo(() => {
+    const filteredTopics = topics.filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
 
-  const filteredTopics = topics.filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
-  const displayedTopics = showAllTopics ? filteredTopics : filteredTopics.slice(0, 5);
-  const hasMoreTopics = filteredTopics.length > 5;
+    // Create a priority map for sorting
+    const getPriority = (topic: Topic): number => {
+      if (category && topic.id === category.id) return 0;
+      if (subcategory && topic.id === subcategory.id) return 1;
+      return 2;
+    };
+
+    return [...filteredTopics].sort((a, b) => getPriority(a) - getPriority(b));
+  }, [topics, category, subcategory]);
+
+  if (sortedTopics.length === 0) return null;
+
+  const displayedTopics = showAllTopics ? sortedTopics : sortedTopics.slice(0, 5);
+  const hasMoreTopics = sortedTopics.length > 5;
 
   return (
     <section>
@@ -33,14 +48,7 @@ export const TopicsSection = ({ topics }: TopicsSectionProps) => {
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
           {displayedTopics.map((topic) => (
-            <TopicAndJournalBadge
-              key={topic.id}
-              type="topic"
-              name={topic.name}
-              slug={topic.slug}
-              size="md"
-              variant="secondary"
-            />
+            <TopicAndJournalBadge key={topic.id} name={topic.name} slug={topic.slug} size="md" />
           ))}
         </div>
         {hasMoreTopics && (

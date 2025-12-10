@@ -4,7 +4,12 @@ import { useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { UserList } from '@/components/UserList/lib/user-list';
-import { UserListRow, UserListRowSkeleton, UserListTableHeader } from './components/UserListRow';
+import {
+  UserListRow,
+  UserListRowSkeleton,
+  UserListTableHeader,
+  ListsPageHeaderSkeleton,
+} from './components/UserListRow';
 import { ListModal } from '@/components/modals/ListModal';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -106,8 +111,10 @@ export default function ListsPage() {
 
   return (
     <PageLayout>
-      <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-gray-50/50 to-white pb-20">
-        {!isLoadingLists && (
+      <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-gray-50/50 to-white pb-20 py-4">
+        {isLoadingLists ? (
+          <ListsPageHeaderSkeleton />
+        ) : (
           <ListsPageHeader
             user={user}
             totalCount={totalListsCount}
@@ -143,14 +150,20 @@ export default function ListsPage() {
               )}
               {!isLoadingLists && lists.length > 0 && (
                 <>
-                  {lists.map((list) => (
-                    <UserListRow
-                      key={list.id}
-                      list={list}
-                      onEdit={(listToEdit) => openModal('edit', listToEdit)}
-                      onDelete={(listToDelete) => openModal('delete', listToDelete)}
-                    />
-                  ))}
+                  {[...lists]
+                    .sort((a, b) => {
+                      if (a.isDefault) return -1;
+                      if (b.isDefault) return 1;
+                      return 0;
+                    })
+                    .map((list) => (
+                      <UserListRow
+                        key={list.id}
+                        list={list}
+                        onEdit={(listToEdit) => openModal('edit', listToEdit)}
+                        onDelete={(listToDelete) => openModal('delete', listToDelete)}
+                      />
+                    ))}
                   {isLoadingMoreLists && (
                     <div className="space-y-1 pt-1">
                       {Array.from({ length: 3 }).map((_, skeletonIndex) => (

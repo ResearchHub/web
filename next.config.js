@@ -17,6 +17,11 @@ const nextConfig = {
       destination: '/topic/:slug',
       permanent: true,
     },
+    {
+      source: '/trending',
+      destination: '/popular',
+      permanent: true,
+    },
   ],
   headers: async () => [
     {

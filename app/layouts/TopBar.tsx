@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Menu,
   User,
   ArrowLeft,
   ChartNoAxesColumnIncreasing,
@@ -19,6 +18,7 @@ import { useAuthenticatedAction, useAuthModalContext } from '@/contexts/AuthModa
 import { useNotifications } from '@/contexts/NotificationContext';
 import { Icon } from '@/components/ui/icons';
 import Link from 'next/link';
+import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHouse as faHouseLight,
@@ -31,6 +31,8 @@ import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
 import { toTitleCase } from '@/utils/stringUtils';
 import { Hash } from 'lucide-react';
+import { getSourceLogo, getPreprintDisplayName } from '@/utils/preprintUtil';
+import { Logo } from '@/components/ui/Logo';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -48,7 +50,7 @@ const isRootNavigationPage = (pathname: string): boolean => {
     '/',
     '/following',
     '/latest',
-    '/trending', // Home variants
+    '/popular', // Home variants
     '/for-you',
     '/earn',
     '/fund/grants',
@@ -66,10 +68,10 @@ const isRootNavigationPage = (pathname: string): boolean => {
 // Function to get page info based on current route
 const getPageInfo = (pathname: string): PageInfo | null => {
   // Homepage variants
-  if (['/', '/following', '/latest', '/trending', '/for-you'].includes(pathname)) {
+  if (['/', '/following', '/latest', '/popular', '/for-you'].includes(pathname)) {
     return {
-      title: 'Explore',
-      subtitle: 'Discover trending research, earning, and funding opportunities',
+      title: 'Home',
+      subtitle: 'Explore cutting-edge research from leading preprint servers.',
       icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
     };
   }
@@ -103,8 +105,8 @@ const getPageInfo = (pathname: string): PageInfo | null => {
 
   if (pathname === '/researchcoin') {
     return {
-      title: 'My ResearchCoin',
-      subtitle: 'Manage your RSC wallet and transactions',
+      title: 'My Wallet',
+      subtitle: 'Manage your wallet and view transactions',
       icon: <Icon name="rscThin" size={28} />,
     };
   }
@@ -142,7 +144,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
 
   if (pathname.startsWith('/earn')) {
     return {
-      title: 'Earn',
+      title: 'Earn ResearchCoin',
       subtitle: 'Earn RSC for completing peer reviews',
       icon: <Icon name="earn1" size={24} className="text-gray-900" />,
     };
@@ -183,7 +185,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   // Specific funding routes
   if (pathname === '/fund/needs-funding') {
     return {
-      title: 'Research proposals',
+      title: 'Research Proposals',
       subtitle: 'Support research projects seeking funding',
       icon: <Icon name="createBounty" size={24} className="text-gray-900" />,
     };
@@ -192,7 +194,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   // Grant routes
   if (pathname.startsWith('/fund/grants')) {
     return {
-      title: 'Funding opportunities',
+      title: 'Request for Proposals',
       subtitle: 'Explore available funding opportunities',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
@@ -247,6 +249,27 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     // Extract topic slug from URL
     const topicSlug = pathname.split('/topic/')[1]?.split('/')[0];
     if (topicSlug) {
+      // Check if it's a preprint server
+      const preprintLogo = getSourceLogo(topicSlug);
+
+      if (preprintLogo && preprintLogo !== 'rhJournal2') {
+        // Use preprint server logo only (no title)
+        return {
+          title: '',
+          subtitle: 'Explore research from this preprint server',
+          icon: (
+            <Image
+              src={preprintLogo}
+              alt={getPreprintDisplayName(topicSlug)}
+              width={80}
+              height={24}
+              className="object-contain"
+              style={{ maxHeight: '24px' }}
+            />
+          ),
+        };
+      }
+
       // Get emoji for the topic
       const emoji = getTopicEmoji(topicSlug);
       // Convert slug to title case (replace hyphens with spaces)
@@ -393,7 +416,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
       <div className="relative">
         <button
           onClick={() => setIsSearchModalOpen(true)}
-          className="flex items-center w-full md:!w-80 max-w-md mx-auto h-10 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full transition-colors text-left group"
+          className="flex items-center w-full md:!w-80 max-w-md mx-auto h-10 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors text-left group"
         >
           <SearchIcon className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
           <span
@@ -416,16 +439,39 @@ export function TopBar({ onMenuClick }: TopBarProps) {
     <>
       <div className="h-[64px] border-b border-gray-200 bg-white">
         <div className="h-full flex items-center justify-between px-4 lg:px-8">
-          {/* Left side - Mobile hamburger + Back button + Page title */}
+          {/* Left side - Back button + Page title */}
           <div className="flex items-center">
-            {/* Mobile hamburger menu */}
-            <div className="block tablet:!hidden mr-2">
-              <button onClick={onMenuClick} className="p-2 rounded-lg hover:bg-gray-100">
-                <Menu className="h-6 w-6 text-gray-600" />
-              </button>
-            </div>
+            {/* Mobile logo - leftmost position */}
+            <Link href="/" className="block tablet:!hidden mr-2">
+              <div className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center">
+                <Logo noText size={36} className="mt-[-4px]" />
+              </div>
+            </Link>
 
-            {/* Back button - show when we have page info but not for root navigation pages */}
+            {/* Mobile back button - show when not on root navigation pages */}
+            {pageInfo && !isRootNavigationPage(pathname) && (
+              <div className="block tablet:!hidden mr-1">
+                <button
+                  onClick={goBack}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <ArrowLeft className="h-5 w-5 text-gray-600" />
+                </button>
+              </div>
+            )}
+
+            {/* Mobile page title - next to hamburger/back button */}
+            {pageInfo && (
+              <div className="flex tablet:!hidden items-center">
+                {pageInfo.title && (
+                  <h1 className="text-lg font-bold text-gray-900 leading-tight">
+                    {pageInfo.title}
+                  </h1>
+                )}
+              </div>
+            )}
+
+            {/* Desktop back button - show when we have page info but not for root navigation pages */}
             {pageInfo && !isRootNavigationPage(pathname) && (
               <div className="hidden tablet:!block mr-3">
                 <button
@@ -448,18 +494,13 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                     </h1>
                   )}
                   {pageInfo.subtitle && (
-                    <p className="hidden wide:!block text-sm text-gray-700 leading-tight mt-0.5">
+                    <p className="hidden wide:!block text-md text-gray-600 leading-tight mt-0.5">
                       {pageInfo.subtitle}
                     </p>
                   )}
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Center - Search input (mobile only) */}
-          <div className="flex-1 flex justify-center px-4 tablet:!hidden">
-            <div className="w-full">{renderSearchbarButton()}</div>
           </div>
 
           {/* Right side - User controls */}
@@ -527,7 +568,15 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             </div>
 
             {/* Mobile user controls */}
-            <div className="flex tablet:!hidden">
+            <div className="flex tablet:!hidden items-center space-x-1">
+              {/* Mobile search icon */}
+              <button
+                onClick={() => setIsSearchModalOpen(true)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <SearchIcon className="h-6 w-6 text-gray-600" />
+              </button>
+
               {isLoading ? (
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse"></div>

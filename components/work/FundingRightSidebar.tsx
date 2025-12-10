@@ -9,6 +9,7 @@ import { NonprofitSection } from './components/NonprofitSection';
 import { FundersSection } from './components/FundersSection';
 import { ApplicantsSection } from './components/ApplicantsSection';
 import { UpdatesSection } from './components/UpdatesSection';
+import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 
 interface FundingRightSidebarProps {
   work: Work;
@@ -23,6 +24,7 @@ export const FundingRightSidebar = ({
 }: FundingRightSidebarProps) => {
   return (
     <div className="space-y-12">
+      <EarningOpportunityBanner work={work} metadata={metadata} />
       {metadata.fundraising && <FundraiseSection fundraise={metadata.fundraising} />}
       {metadata.fundraising && <NonprofitSection fundraiseId={metadata.fundraising.id} />}
       {metadata.fundraising &&

@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { ListModal } from '@/components/modals/ListModal';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { formatItemCount, transformListItemToFeedEntry } from '@/components/UserList/lib/listUtils';
+import { ListDetailContext } from '@/components/UserList/lib/user-list';
 import { formatTimeAgo } from '@/utils/date';
 import { FeedEntry } from '@/types/feed';
 import { ID } from '@/types/root';
@@ -61,32 +62,23 @@ export default function ListDetailPage() {
     setModal({ isOpen: true, mode, name });
 
   const isOwner = user && list && idMatch(list.createdBy, user.id);
+  const isDefaultList = list?.isDefault;
   const feedEntries = items.map(transformListItemToFeedEntry);
 
-  const wrapped = (feedItemComponent: React.ReactNode, feedEntry: FeedEntry, itemIndex: number) => {
-    const listItem = items[itemIndex];
-    return (
-      <div className="relative group">
-        {feedItemComponent}
-        {isOwner && listItem && (
-          <div className="absolute top-16 right-4 z-20 opacity-100 sm:!opacity-0 sm:group-hover:!opacity-100 transition-opacity pointer-events-auto">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                removeItem(listItem.id, listItem.unifiedDocument);
-              }}
-              className="h-8 w-8 bg-white hover:bg-red-50 border border-gray-200 hover:border-red-300 shadow-md rounded-full"
-            >
-              <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-600" />
-            </Button>
-          </div>
-        )}
-      </div>
-    );
+  const handleRemoveItem = async (unifiedDocumentId: number) => {
+    const foundListItem = items.find((item) => item.unifiedDocument === unifiedDocumentId);
+    if (foundListItem) {
+      await removeItem(foundListItem.id, unifiedDocumentId);
+    }
   };
+
+  const listDetailContextValue =
+    isOwner && list
+      ? {
+          listId: Number(list.id),
+          onRemoveItem: handleRemoveItem,
+        }
+      : null;
 
   const handleModalSubmit = async () => {
     if (!list) return;
@@ -113,7 +105,7 @@ export default function ListDetailPage() {
 
   return (
     <PageLayout>
-      <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">
+      <div className="py-4">
         {list ? (
           <>
             <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
@@ -122,15 +114,19 @@ export default function ListDetailPage() {
                   <h1 className="text-2xl font-bold text-gray-900 mb-1 truncate">{list.name}</h1>
                   <p className="text-gray-600">
                     {formatItemCount(list)}
-                    <span className="hidden sm:!inline"> • </span>
-                    <br className="sm:!hidden" />
-                    <span className="text-sm sm:!text-base">
-                      Created {formatTimeAgo(list.createdDate)}
-                    </span>
+                    {!isDefaultList && (
+                      <>
+                        <span className="hidden sm:!inline"> • </span>
+                        <br className="sm:!hidden" />
+                        <span className="text-sm sm:!text-base">
+                          Created {formatTimeAgo(list.createdDate)}
+                        </span>
+                      </>
+                    )}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  {isOwner && (
+                  {isOwner && !isDefaultList && (
                     <BaseMenu
                       trigger={
                         <Button
@@ -155,7 +151,7 @@ export default function ListDetailPage() {
                         className="flex items-center gap-2 text-red-600"
                       >
                         <Trash2 className="w-4 h-4" />
-                        <span>Delete</span>
+                        <span>Remove List</span>
                       </BaseMenuItem>
                     </BaseMenu>
                   )}
@@ -163,23 +159,24 @@ export default function ListDetailPage() {
               </div>
             </div>
 
-            <FeedContent
-              entries={feedEntries}
-              isLoading={isLoading}
-              isLoadingMore={isLoadingMore}
-              hasMore={hasMore}
-              loadMore={loadMore}
-              wrapped={wrapped}
-              noEntriesElement={
-                <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-                  <FontAwesomeIcon
-                    icon={faBookmark}
-                    className="w-12 h-12 text-gray-300 mx-auto mb-4"
-                  />
-                  <p className="text-gray-600">No items in this list</p>
-                </div>
-              }
-            />
+            <ListDetailContext.Provider value={listDetailContextValue}>
+              <FeedContent
+                entries={feedEntries}
+                isLoading={isLoading}
+                isLoadingMore={isLoadingMore}
+                hasMore={hasMore}
+                loadMore={loadMore}
+                noEntriesElement={
+                  <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+                    <FontAwesomeIcon
+                      icon={faBookmark}
+                      className="w-12 h-12 text-gray-300 mx-auto mb-4"
+                    />
+                    <p className="text-gray-600">No items in this list</p>
+                  </div>
+                }
+              />
+            </ListDetailContext.Provider>
           </>
         ) : (
           <>

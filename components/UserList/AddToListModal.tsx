@@ -130,13 +130,14 @@ function ListSelectItem({
   const isInList = listIdsContainingDocument.includes(list.id);
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
       onClick={onToggle}
       disabled={isRemoving}
-      className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors text-left hover:bg-gray-50 ${
-        isRemoving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-      }`}
+      className={cn(
+        'flex items-center gap-3 w-full !p-3 rounded-lg transition-colors text-left hover:bg-gray-50 !h-auto justify-start !text-base !font-normal',
+        isRemoving && 'opacity-50 cursor-not-allowed'
+      )}
     >
       <div className="flex-1 min-w-0">
         <span className="font-medium text-gray-900 truncate">{list.name}</span>
@@ -146,10 +147,10 @@ function ListSelectItem({
       ) : (
         <FontAwesomeIcon
           icon={isInList ? faBookmarkSolid : faBookmark}
-          className={`w-5 h-5 transition-colors ${isInList ? 'text-gray-900' : 'text-gray-400'}`}
+          className={`w-5 h-5 transition-colors ${isInList ? 'text-green-600' : 'text-gray-400'}`}
         />
       )}
-    </button>
+    </Button>
   );
 }
 
@@ -193,6 +194,8 @@ export function AddToListModal({
     } else if (!isOpen) {
       setSortedLists([]);
     }
+    // Note: overviewLists and listIdsContainingDocument are intentionally omitted from deps.
+    // We only want to sort once when the modal opens and loading completes, not on every list update.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, isLoading]);
 
@@ -267,16 +270,17 @@ export function AddToListModal({
         (t) => (
           <div className="flex items-center gap-2">
             <span className="text-gray-900">{TOAST_MESSAGES.ITEM_REMOVED}</span>
-            <button
+            <Button
+              variant="link"
               onClick={async (e) => {
                 e.stopPropagation();
                 toast.dismiss(t.id);
                 await handleAddToList(id);
               }}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="!p-0 !h-auto !text-base text-blue-600 hover:text-blue-700 hover:no-underline font-medium"
             >
               Undo
-            </button>
+            </Button>
           </div>
         ),
         { duration: 4000 }
@@ -294,12 +298,13 @@ export function AddToListModal({
   const modalTitle = showCreateForm ? 'Create List' : 'Save to…';
 
   const headerAction = showCreateForm ? (
-    <button
+    <Button
+      variant="ghost"
       onClick={closeCreateForm}
-      className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 -ml-2"
+      className="flex items-center gap-1 !p-0 !h-auto text-sm text-gray-600 hover:text-gray-900 hover:bg-transparent -ml-2"
     >
       <ArrowLeft className="w-4 h-4" />
-    </button>
+    </Button>
   ) : undefined;
 
   const footer = () => {
@@ -317,7 +322,18 @@ export function AddToListModal({
       );
     }
     if (!isLoading && overviewLists.length > 0) {
-      return <CreateListButton onClick={openCreateFormAndFocus} fullWidth />;
+      return (
+        <div className="flex flex-col w-full gap-2">
+          <CreateListButton onClick={openCreateFormAndFocus} fullWidth />
+          <Link
+            href="/lists"
+            onClick={onClose}
+            className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors hover:bg-gray-100 text-primary-700 h-10 px-4 py-2 w-full"
+          >
+            Manage your lists
+          </Link>
+        </div>
+      );
     }
     return undefined;
   };

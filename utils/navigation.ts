@@ -111,7 +111,7 @@ export function handleMissingSlugRedirect(work: Work, id: string, currentPath: s
  */
 export function handleTrendingRedirect(isUserLoggedIn: boolean, searchParams?: URLSearchParams) {
   if (isUserLoggedIn) {
-    let redirectUrl = '/trending';
+    let redirectUrl = '/for-you';
 
     // Preserve search parameters if provided
     if (searchParams && searchParams.toString()) {

@@ -6,6 +6,7 @@ import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
 import { updateListRemoveItem, removeItemByDocumentId } from '@/components/UserList/lib/listUtils';
 import { useUserListsContext, ListItemChange } from '@/components/UserList/lib/UserListsContext';
 import { ID } from '@/types/root';
+import { Button } from '@/components/ui/Button';
 
 const PAGE_SIZE = 20;
 
@@ -86,22 +87,25 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Tracks timestamps of last processed changes to prevent duplicate handling.
+  // 1. Updates shouldn't trigger re-renders
+  // 2. Synchronous updates prevent race conditions
   const lastHandled = useRef({ added: 0, removed: 0 });
 
-  const setChangeFromFeedOnListItems = (change: ListItemChange | null, type: 'added' | 'removed') =>
+  const shouldProcessChange = (change: ListItemChange | null, type: 'added' | 'removed') =>
     change && change.at > lastHandled.current[type] && idMatch(change.listId, id);
 
   useEffect(() => {
-    if (setChangeFromFeedOnListItems(lastAddedItem, 'added')) {
+    if (shouldProcessChange(lastAddedItem, 'added') && !isLoading) {
       lastHandled.current.added = lastAddedItem!.at;
-      fetchList();
+      void fetchList();
     }
-    if (setChangeFromFeedOnListItems(lastRemovedItem, 'removed')) {
+    if (shouldProcessChange(lastRemovedItem, 'removed')) {
       lastHandled.current.removed = lastRemovedItem!.at;
-      setList((previousList) => removeItemByDocumentId(previousList, lastRemovedItem!.documentId));
+      setList((prev) => removeItemByDocumentId(prev, lastRemovedItem!.documentId));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastAddedItem, lastRemovedItem, id]);
+  }, [lastAddedItem, lastRemovedItem, id, isLoading]);
 
   const removeItem = async (itemId: ID, unifiedDocumentId: ID) => {
     if (!list) return;
@@ -114,16 +118,17 @@ export function useUserListDetail(id: ID, options?: UseUserListDetailOptions) {
         (t) => (
           <div className="flex items-center gap-2">
             <span className="text-gray-900">Item removed</span>
-            <button
+            <Button
+              variant="link"
               onClick={async (e) => {
                 e.stopPropagation();
                 toast.dismiss(t.id);
                 await addItem(unifiedDocumentId);
               }}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="!p-0 !h-auto !text-base text-blue-600 hover:text-blue-700 hover:no-underline font-medium"
             >
               Undo
-            </button>
+            </Button>
           </div>
         ),
         { duration: 4000 }
