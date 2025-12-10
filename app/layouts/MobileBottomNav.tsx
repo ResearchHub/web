@@ -164,7 +164,14 @@ export const MobileBottomNav: React.FC = () => {
           />
         );
       case 'wallet':
-        return <ResearchCoinIcon outlined={!isActive} className="h-6 w-6" color={iconColor} />;
+        return (
+          <ResearchCoinIcon
+            outlined={!isActive}
+            variant={isActive ? 'solid' : 'orange'}
+            className="h-6 w-6"
+            color={iconColor}
+          />
+        );
       case 'more':
         return <FontAwesomeIcon icon={faBars} fontSize={iconSize} color={iconColor} />;
       case 'journal':

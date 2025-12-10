@@ -105,8 +105,8 @@ const getPageInfo = (pathname: string): PageInfo | null => {
 
   if (pathname === '/researchcoin') {
     return {
-      title: 'My ResearchCoin',
-      subtitle: 'Manage your RSC wallet and transactions',
+      title: 'My Wallet',
+      subtitle: 'Manage your wallet and view transactions',
       icon: <Icon name="rscThin" size={28} />,
     };
   }
