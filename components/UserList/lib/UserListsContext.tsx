@@ -32,7 +32,7 @@ export const AddToListToast: FC<AddToListToastProps> = ({ toastId, onAddToListCl
       }}
       className="!p-0 !h-auto !text-base text-blue-600 hover:text-blue-700 hover:no-underline font-medium"
     >
-      Add to List
+      Manage
     </Button>
   </div>
 );

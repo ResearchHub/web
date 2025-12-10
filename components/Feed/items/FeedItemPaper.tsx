@@ -168,7 +168,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                 )}
                 {paper.createdDate && (
                   <>
-                    <span className="mx-2 text-gray-500">•</span>
+                    {paper.authors.length > 0 && <span className="mx-2 text-gray-500">•</span>}
                     <span className="text-gray-600 whitespace-nowrap text-sm">
                       {formatTimestamp(paper.createdDate, false)}
                     </span>

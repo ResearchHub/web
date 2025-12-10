@@ -147,7 +147,7 @@ function ListSelectItem({
       ) : (
         <FontAwesomeIcon
           icon={isInList ? faBookmarkSolid : faBookmark}
-          className={`w-5 h-5 transition-colors ${isInList ? 'text-gray-900' : 'text-gray-400'}`}
+          className={`w-5 h-5 transition-colors ${isInList ? 'text-green-600' : 'text-gray-400'}`}
         />
       )}
     </Button>
@@ -322,7 +322,18 @@ export function AddToListModal({
       );
     }
     if (!isLoading && overviewLists.length > 0) {
-      return <CreateListButton onClick={openCreateFormAndFocus} fullWidth />;
+      return (
+        <div className="flex flex-col w-full gap-2">
+          <CreateListButton onClick={openCreateFormAndFocus} fullWidth />
+          <Link
+            href="/lists"
+            onClick={onClose}
+            className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors hover:bg-gray-100 text-primary-700 h-10 px-4 py-2 w-full"
+          >
+            Manage your lists
+          </Link>
+        </div>
+      );
     }
     return undefined;
   };

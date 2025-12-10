@@ -521,7 +521,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     ? 'text-green-600 hover:text-green-600'
                     : 'text-gray-900 hover:text-gray-600'
                 )}
-                tooltip={'Lists'}
+                tooltip={'Save'}
                 onClick={handleAddToList}
                 disabled={isTogglingDefaultList}
               >

@@ -259,7 +259,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           ) : item.href === '/lists' ? (
             <FontAwesomeIcon
               icon={isActive ? faBookmarkSolid : faBookmarkLight}
-              fontSize={20}
+              fontSize={24}
               color={iconColor}
             />
           ) : isHomeIcon ? (

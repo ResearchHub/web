@@ -105,7 +105,7 @@ export default function ListDetailPage() {
 
   return (
     <PageLayout>
-      <div className="px-4 sm:px-0 py-6 sm:py-8 max-w-4xl mx-auto">
+      <div className="py-4">
         {list ? (
           <>
             <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6">
