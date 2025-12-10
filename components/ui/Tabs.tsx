@@ -1,8 +1,6 @@
 import { cn } from '@/utils/styles';
-import { LucideIcon, MoreHorizontal } from 'lucide-react';
-import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
-import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { debounce } from 'lodash';
+import { ChevronLeft, ChevronRight, LucideIcon } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 interface Tab {
   id: string;
@@ -30,160 +28,52 @@ export const Tabs: React.FC<TabsProps> = ({
   variant = 'primary',
   disabled = false,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Record<string, HTMLElement | null>>({});
-  const moreButtonRef = useRef<HTMLButtonElement | null>(null);
-  const tabMeasurements = useRef<
-    Record<string, { width: number; marginLeft: number; marginRight: number }>
-  >({});
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
-  const [overflowIds, setOverflowIds] = useState<string[]>([]);
+  const checkScrollability = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
-  const calculateOverflow = useCallback(() => {
-    if (!containerRef.current) {
-      return;
-    }
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    setCanScrollLeft(scrollLeft > 0);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+  }, []);
 
-    const containerWidth = containerRef.current.clientWidth;
-
-    // Estimate More button width (conservative estimate)
-    const estimatedMoreBtnWidth = 40;
-
-    // First, measure all tabs if we have refs available
-    const availableRefs = tabs.filter((tab) => tabRefs.current[tab.id]);
-
-    if (availableRefs.length > 0) {
-      // Update measurements for available tabs
-      availableRefs.forEach((tab) => {
-        const ref = tabRefs.current[tab.id];
-        if (ref) {
-          const styles = window.getComputedStyle(ref);
-          const width = ref.getBoundingClientRect().width;
-          const marginLeft = parseFloat(styles.marginLeft) || 0;
-          const marginRight = parseFloat(styles.marginRight) || 0;
-
-          tabMeasurements.current[tab.id] = { width, marginLeft, marginRight };
-        }
-      });
-    }
-
-    // Use stored measurements for calculation, fallback to refs if available
-    let visibleWidth = 0;
-    const currentVisibleIds: string[] = [];
-    const currentOverflowIds: string[] = [];
-
-    for (const tab of tabs) {
-      let itemWidth = 0;
-
-      // Try to get measurement from stored data first
-      if (tabMeasurements.current[tab.id]) {
-        const measurement = tabMeasurements.current[tab.id];
-        itemWidth = measurement.width + measurement.marginLeft + measurement.marginRight;
-      } else {
-        // Fallback to ref measurement if available
-        const ref = tabRefs.current[tab.id];
-        if (ref) {
-          const styles = window.getComputedStyle(ref);
-          const width = ref.getBoundingClientRect().width;
-          const marginLeft = parseFloat(styles.marginLeft) || 0;
-          const marginRight = parseFloat(styles.marginRight) || 0;
-          itemWidth = width + marginLeft + marginRight;
-
-          // Store the measurement for future use
-          tabMeasurements.current[tab.id] = { width, marginLeft, marginRight };
-        } else {
-          continue;
-        }
-      }
-
-      // Check if adding this tab would exceed the available width
-      if (visibleWidth + itemWidth <= containerWidth - estimatedMoreBtnWidth) {
-        visibleWidth += itemWidth;
-        currentVisibleIds.push(tab.id);
-      } else {
-        // This tab and all subsequent tabs go into overflow
-        currentOverflowIds.push(tab.id);
-      }
-    }
-
-    // If we have overflow tabs, ensure the active tab is visible if possible
-    if (currentOverflowIds.length > 0) {
-      // Add remaining tabs to overflow
-      const firstOverflowIndex = tabs.findIndex((t) => t.id === currentOverflowIds[0]);
-      const subsequentIds = tabs.slice(firstOverflowIndex + 1).map((t) => t.id);
-      const finalOverflowIds = [...new Set([...currentOverflowIds, ...subsequentIds])];
-
-      // If active tab is in overflow, try to make it visible
-      if (finalOverflowIds.includes(activeTab)) {
-        const activeMeasurement = tabMeasurements.current[activeTab];
-        if (activeMeasurement) {
-          const activeTabWidth =
-            activeMeasurement.width + activeMeasurement.marginLeft + activeMeasurement.marginRight;
-
-          // Try to fit the active tab by removing tabs from the end of visible list
-          let adjustedVisibleIds = [...currentVisibleIds];
-          let adjustedVisibleWidth = visibleWidth;
-
-          // Remove tabs from the end until we can fit the active tab
-          while (adjustedVisibleIds.length > 0) {
-            const lastVisibleTab = adjustedVisibleIds[adjustedVisibleIds.length - 1];
-            const lastTabMeasurement = tabMeasurements.current[lastVisibleTab];
-
-            if (lastTabMeasurement) {
-              const lastTabWidth =
-                lastTabMeasurement.width +
-                lastTabMeasurement.marginLeft +
-                lastTabMeasurement.marginRight;
-
-              // Check if removing this tab and adding the active tab would fit
-              const newWidth = adjustedVisibleWidth - lastTabWidth + activeTabWidth;
-              if (newWidth <= containerWidth - estimatedMoreBtnWidth) {
-                // Success! Remove the last tab and add the active tab
-                adjustedVisibleIds.pop();
-                adjustedVisibleIds.push(activeTab);
-                const newOverflowIds = tabs
-                  .filter((t) => !adjustedVisibleIds.includes(t.id))
-                  .map((t) => t.id);
-                setOverflowIds(newOverflowIds);
-                return;
-              }
-
-              // Remove this tab and continue
-              adjustedVisibleIds.pop();
-              adjustedVisibleWidth -= lastTabWidth;
-            } else {
-              break;
-            }
-          }
-        }
-      }
-
-      setOverflowIds(finalOverflowIds);
-    } else {
-      // No overflow detected
-      setOverflowIds([]);
-    }
-  }, [tabs, activeTab]);
-
-  const debouncedCalculateOverflow = useRef(debounce(calculateOverflow, 100)).current;
-
-  useLayoutEffect(() => {
-    // Run calculation immediately on layout effect
-    calculateOverflow();
-  }, [tabs, activeTab, calculateOverflow]);
-
+  // Check scrollability on mount and when tabs change
   useEffect(() => {
-    // Effect for resize handling
-    if (typeof window === 'undefined') return;
+    checkScrollability();
+    // Also check after a short delay to account for rendering
+    const timeout = setTimeout(checkScrollability, 100);
+    return () => clearTimeout(timeout);
+  }, [tabs, checkScrollability]);
 
-    const handleResize = () => debouncedCalculateOverflow();
-    window.addEventListener('resize', handleResize);
+  // Scroll active tab into view when it changes
+  useEffect(() => {
+    const activeTabRef = tabRefs.current[activeTab];
+    if (activeTabRef && scrollContainerRef.current) {
+      activeTabRef.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      });
+      // Check scrollability after scroll animation
+      setTimeout(checkScrollability, 300);
+    }
+  }, [activeTab, checkScrollability]);
 
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      debouncedCalculateOverflow.cancel();
-    };
-  }, [debouncedCalculateOverflow]);
+  const scroll = (direction: 'left' | 'right') => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const scrollAmount = container.clientWidth * 0.6;
+    container.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth',
+    });
+  };
 
   const getTabStyles = (tab: Tab, isSeparatorElement: boolean = false) => {
     const isActive = activeTab === tab.id;
@@ -212,7 +102,7 @@ export const Tabs: React.FC<TabsProps> = ({
   };
 
   const wrapperStyles = cn(
-    'flex items-center w-full overflow-hidden flex-nowrap relative',
+    'w-full',
     variant === 'pill' && 'rounded-lg bg-gray-100 p-1',
     disabled && 'opacity-50',
     className
@@ -264,70 +154,71 @@ export const Tabs: React.FC<TabsProps> = ({
     );
   };
 
-  // Filter tabs based on the calculated state
-  const visibleTabs = tabs.filter((t) => !overflowIds.includes(t.id));
-  const overflowTabs = tabs.filter((t) => overflowIds.includes(t.id));
+  const gradientBg =
+    variant === 'primary'
+      ? 'linear-gradient(to right, transparent, white 40%)'
+      : 'linear-gradient(to right, transparent, #f3f4f6 40%)';
+
+  const gradientBgLeft =
+    variant === 'primary'
+      ? 'linear-gradient(to left, transparent, white 40%)'
+      : 'linear-gradient(to left, transparent, #f3f4f6 40%)';
 
   return (
-    <div className={wrapperStyles} ref={containerRef}>
-      {/* Container for visible tabs */}
+    <div className={cn(wrapperStyles, 'relative')}>
+      {/* Left scroll indicator */}
       <div
         className={cn(
-          'flex items-center flex-nowrap h-full overflow-hidden',
-          variant === 'pill' ? 'space-x-1' : '',
-          variant === 'primary' ? 'space-x-6' : ''
+          'absolute left-0 top-0 bottom-0 z-10 flex items-center pl-0 pr-2 transition-opacity duration-200',
+          canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
         )}
+        style={{ background: gradientBgLeft }}
       >
-        {visibleTabs.map(renderTabButton)}
+        <button
+          onClick={() => scroll('left')}
+          className={cn(
+            'p-1 rounded-full hover:bg-gray-200/80 transition-colors',
+            'text-gray-500 hover:text-gray-700'
+          )}
+          aria-label="Scroll left"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
       </div>
 
-      {/* Absolute positioned container for the More button */}
       <div
+        ref={scrollContainerRef}
+        onScroll={checkScrollability}
         className={cn(
-          'absolute right-0 top-0 bottom-0 flex items-center pr-1',
-          variant === 'primary' ? 'bg-white' : 'bg-gray-100',
-          overflowTabs.length === 0 ? 'invisible' : 'visible'
+          'flex items-center flex-nowrap h-full overflow-x-auto scrollbar-none',
+          variant === 'pill' ? 'space-x-1' : 'space-x-6'
         )}
         style={{
-          background:
-            variant === 'primary'
-              ? 'linear-gradient(to right, transparent, white 20%, white)'
-              : 'linear-gradient(to right, transparent, #f3f4f6 20%, #f3f4f6)',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
         }}
       >
-        <BaseMenu
-          align="end"
-          trigger={
-            <button
-              ref={moreButtonRef}
-              className={cn(
-                'p-1.5 flex items-center justify-center rounded-md flex-shrink-0',
-                'border border-gray-300',
-                'hover:bg-gray-50',
-                activeTab &&
-                  overflowIds.includes(activeTab) &&
-                  'bg-primary-100 text-primary-600 border-primary-200',
-                overflowTabs.length > 0 ? 'text-gray-700' : 'text-transparent pointer-events-none'
-              )}
-              aria-label="More tabs"
-              tabIndex={overflowTabs.length === 0 ? -1 : 0}
-            >
-              <MoreHorizontal className="w-5 h-5" />
-            </button>
-          }
+        {tabs.map(renderTabButton)}
+      </div>
+
+      {/* Right scroll indicator */}
+      <div
+        className={cn(
+          'absolute right-0 top-0 bottom-0 z-10 flex items-center pr-0 pl-2 transition-opacity duration-200',
+          canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        )}
+        style={{ background: gradientBg }}
+      >
+        <button
+          onClick={() => scroll('right')}
+          className={cn(
+            'p-1 rounded-full hover:bg-gray-200/80 transition-colors',
+            'text-gray-500 hover:text-gray-700'
+          )}
+          aria-label="Scroll right"
         >
-          {overflowTabs.map((tab) => (
-            <BaseMenuItem
-              key={tab.id}
-              onSelect={() => {
-                onTabChange(tab.id);
-              }}
-              className={cn(activeTab === tab.id && 'bg-primary-50 font-medium')}
-            >
-              {tab.label}
-            </BaseMenuItem>
-          ))}
-        </BaseMenu>
+          <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

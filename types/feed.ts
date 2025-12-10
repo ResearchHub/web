@@ -3,7 +3,7 @@ import { ContentMetrics } from './metrics';
 import { Topic, transformTopic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
 import { Work, transformPaper, transformPost, FundingRequest, ContentType } from './work';
-import { Bounty, transformBounty } from './bounty';
+import { Bounty, BountyWithComment, transformBounty } from './bounty';
 import { Comment, CommentType, ContentFormat, transformComment } from './comment';
 import { Fundraise, transformFundraise } from './funding';
 import { Journal } from './journal';
@@ -74,7 +74,7 @@ export interface BaseFeedContent {
   contentType: string;
   createdDate: string;
   createdBy: AuthorProfile;
-  bounties?: Bounty[];
+  bounties?: BountyWithComment[];
   reviews?: Review[];
   unifiedDocumentId?: string;
 }
@@ -90,6 +90,8 @@ export interface FeedPostContent extends BaseFeedContent {
   previewImage?: string;
   authors: AuthorProfile[];
   topics: Topic[];
+  category?: Topic;
+  subcategory?: Topic;
   institution?: string;
 }
 
@@ -165,6 +167,8 @@ export interface FeedGrantContent extends BaseFeedContent {
   previewImage?: string;
   authors: AuthorProfile[];
   topics: Topic[];
+  category?: Topic;
+  subcategory?: Topic;
   grant: {
     id: number;
     amount: {
@@ -754,6 +758,10 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                 : [transformAuthorProfile(author)],
             topics: [Array.isArray(content_object.hub) || content_object.hub].map(transformTopic),
             createdBy: transformAuthorProfile(author),
+            category: content_object.category ? transformTopic(content_object.category) : undefined,
+            subcategory: content_object.subcategory
+              ? transformTopic(content_object.subcategory)
+              : undefined,
             bounties: content_object.bounties
               ? content_object.bounties.map((bounty: any) =>
                   transformBounty(bounty, { ignoreBaseAmount: true })
@@ -825,6 +833,10 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                 ]
               : [],
             createdBy: transformAuthorProfile(author),
+            category: content_object.category ? transformTopic(content_object.category) : undefined,
+            subcategory: content_object.subcategory
+              ? transformTopic(content_object.subcategory)
+              : undefined,
             bounties: content_object.bounties
               ? content_object.bounties.map((bounty: any) =>
                   transformBounty(bounty, { ignoreBaseAmount: true })
@@ -1036,7 +1048,7 @@ export const transformCommentToFeedItem = (
 };
 
 /**
- * Transforms a Comment with bounties into a FeedEntry that can be used with FeedItemBounty component
+ * Transforms a Comment with bounties into a FeedEntry that can be used with FeedItemBountyComment component
  * @param comment The Comment object with bounties to transform
  * @param contentType The content type of the related document (paper, post, etc.)
  * @param relatedDocument Optional related work (paper or post) to include with the bounty
@@ -1091,6 +1103,92 @@ export const transformBountyCommentToFeedItem = (
     tips: comment.tips,
     awardedBountyAmount: comment.awardedBountyAmount,
   };
+};
+
+/**
+ * Creates a FeedEntry from a Work object, typically used for bounty entries
+ * where we need to display the related work (paper or post) as a feed item.
+ * @param work The Work object to transform into a FeedEntry
+ * @param originalEntry The original FeedEntry to extract metadata from (metrics, userVote, tips)
+ * @returns A FeedEntry object with the work as content, or null if the work cannot be transformed
+ */
+export const createFeedEntryFromWork = (work: Work, originalEntry: FeedEntry): FeedEntry | null => {
+  if (!work) return null;
+
+  const contentType = work.contentType === 'paper' ? 'PAPER' : 'POST';
+  if (!contentType) return null;
+
+  const bountyEntry = originalEntry.content as FeedBountyContent;
+  const originalBounty = bountyEntry.bounty;
+  const bountyWithComment: BountyWithComment = {
+    ...originalBounty,
+    comment: bountyEntry.comment,
+  };
+
+  // Transform Work to FeedPostContent or FeedPaperContent
+  if (contentType === 'POST') {
+    const postContent: FeedPostContent = {
+      id: work.id,
+      bounties: [bountyWithComment],
+      contentType: work.postType === 'PREREGISTRATION' ? 'PREREGISTRATION' : 'POST',
+      createdDate: work.createdDate,
+      createdBy: work.authors?.[0]?.authorProfile || bountyEntry.createdBy,
+      textPreview: work.previewContent || work.abstract || '',
+      slug: work.slug,
+      title: work.title,
+      previewImage: work.image,
+      authors: work.authors?.map((a: { authorProfile: any }) => a.authorProfile) || [],
+      topics: work.topics || [],
+      postType: work.postType,
+    };
+
+    return {
+      id: work.id.toString(),
+      recommendationId: null,
+      timestamp: work.createdDate,
+      action: 'publish',
+      contentType: contentType,
+      content: postContent,
+      relatedWork: undefined,
+      metrics: originalEntry.metrics,
+      userVote: originalEntry.userVote,
+      tips: originalEntry.tips,
+    };
+  } else if (contentType === 'PAPER') {
+    const paperContent: FeedPaperContent = {
+      id: work.id,
+      bounties: [bountyWithComment],
+      contentType: 'PAPER',
+      createdDate: work.createdDate,
+      createdBy: work.authors?.[0]?.authorProfile || bountyEntry.createdBy,
+      textPreview: work.abstract || '',
+      slug: work.slug,
+      title: work.title,
+      authors: work.authors?.map((a: { authorProfile: any }) => a.authorProfile) || [],
+      topics: work.topics || [],
+      journal: work.journal || {
+        id: 0,
+        name: '',
+        slug: '',
+        description: '',
+      },
+    };
+
+    return {
+      id: work.id.toString(),
+      recommendationId: null,
+      timestamp: work.createdDate,
+      action: 'publish',
+      contentType: 'PAPER',
+      content: paperContent,
+      relatedWork: undefined,
+      metrics: originalEntry.metrics,
+      userVote: originalEntry.userVote,
+      tips: originalEntry.tips,
+    };
+  }
+
+  return null;
 };
 
 export type { AuthorProfile };

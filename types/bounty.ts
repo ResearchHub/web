@@ -1,3 +1,4 @@
+import { CommentType, ContentFormat } from './comment';
 import { BaseTransformer } from './transformer';
 import { User, transformUser } from './user';
 
@@ -25,6 +26,13 @@ export interface BountyContribution {
   raw: any;
 }
 
+export interface BountyComment {
+  content: any;
+  contentFormat: ContentFormat;
+  commentType: CommentType;
+  id: number;
+}
+
 export interface Bounty {
   id: number;
   amount: string;
@@ -35,7 +43,12 @@ export interface Bounty {
   solutions: BountySolution[];
   contributions: BountyContribution[];
   totalAmount: string;
+  comment?: BountyComment; // Optional comment field
   raw: any;
+}
+
+export interface BountyWithComment extends Bounty {
+  comment: BountyComment; // Required comment field
 }
 
 export const transformSolution = (raw: any): BountySolution => {
@@ -157,6 +170,30 @@ export const groupBountiesWithContributions = (bounties: any[]): Bounty[] => {
   return result;
 };
 
+/**
+ * Transforms raw comment data into BountyComment format
+ */
+const transformBountyComment = (rawComment: any): BountyComment | undefined => {
+  if (!rawComment) return undefined;
+
+  // Parse the comment content JSON if it's a string
+  let content = rawComment.comment_content_json;
+  if (typeof content === 'string') {
+    try {
+      content = JSON.parse(content);
+    } catch {
+      // Keep as string if parsing fails
+    }
+  }
+
+  return {
+    id: rawComment.id || 0,
+    content,
+    contentFormat: rawComment.comment_content_type || 'TIPTAP',
+    commentType: rawComment.comment_type || 'GENERIC_COMMENT',
+  };
+};
+
 export const transformBounty = (raw: any, options?: { ignoreBaseAmount?: boolean }): Bounty => {
   if (!raw) {
     console.warn('Received null or undefined bounty data');
@@ -192,6 +229,9 @@ export const transformBounty = (raw: any, options?: { ignoreBaseAmount?: boolean
     );
     const totalAmount = (baseAmount + contributionsTotal).toString();
 
+    // Transform the comment if it exists
+    const comment = transformBountyComment(raw.comment);
+
     return {
       id: raw.id || 0,
       amount: raw.amount || '0',
@@ -202,6 +242,7 @@ export const transformBounty = (raw: any, options?: { ignoreBaseAmount?: boolean
       solutions: Array.isArray(raw.solutions) ? raw.solutions.map(transformSolution) : [],
       contributions,
       totalAmount,
+      comment,
       raw,
     };
   } catch (error) {

@@ -25,7 +25,7 @@ export default function ModerationLayout({ children }: ModerationLayoutProps) {
   // Redirect non-moderators to trending page
   useEffect(() => {
     if (!isLoading && !isModerator) {
-      router.push('/trending');
+      router.push('/popular');
     }
   }, [isLoading, isModerator, router]);
 

@@ -98,7 +98,9 @@ const transformUnifiedDocumentToWork = ({ raw, hubs }: { raw: any; hubs: Hub[] }
       ? 'paper'
       : raw.unified_document?.document_type === 'PREREGISTRATION'
         ? 'preregistration'
-        : 'post';
+        : raw.unified_document?.document_type === 'GRANT'
+          ? 'funding_request'
+          : 'post';
   const relatedDocument =
     contentType === 'paper' ? raw.unified_document?.documents : raw.unified_document?.documents[0];
 
@@ -228,10 +230,8 @@ export const transformContributionToFeedEntry = ({
     case 'researchhubpost':
     case 'researchhubunifieddocument':
       // Handle post content
-      contentType =
-        item.unified_document?.document_type === 'PREREGISTRATION'
-          ? 'PREREGISTRATION'
-          : contentType;
+      contentType = item.unified_document?.document_type === 'GRANT' ? 'GRANT' : contentType;
+
       content = {
         id: item.id,
         contentType,

@@ -2,6 +2,7 @@
 
 import { memo } from 'react';
 import dynamic from 'next/dynamic';
+import { usePathname } from 'next/navigation';
 import { Avatar } from '@/components/ui/Avatar';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
@@ -12,9 +13,7 @@ import { Icon } from '@/components/ui/icons/Icon';
 import { Progress } from '@/components/ui/Progress';
 import type { FeedEntry } from '@/types/feed';
 import Link from 'next/link';
-import { useFeed } from '@/hooks/useFeed';
 import { ArrowRightIcon } from 'lucide-react';
-import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { LeaderboardSkeleton } from '@/components/Leaderboard/LeaderboardOverview';
 
 const LeaderboardOverview = dynamic(
@@ -55,6 +54,14 @@ const NextStepsPanel = dynamic(
   {
     ssr: false,
     loading: () => null, // No loading state needed, component handles its own visibility
+  }
+);
+
+const PersonalizeFeedBanner = dynamic(
+  () => import('./components/PersonalizeFeedBanner').then((mod) => mod.PersonalizeFeedBanner),
+  {
+    ssr: false,
+    loading: () => null,
   }
 );
 
@@ -132,7 +139,7 @@ const JournalSpotlight = () => {
             authors={authors}
             size="xs"
             delimiter=", "
-            className="text-gray-500 font-normal"
+            className="text-gray-500 font-normal [text-wrap:inherit]"
           />
         </div>
 
@@ -164,112 +171,28 @@ const FundingSpotlightSkeleton = () => (
   </div>
 );
 
-// Funding Spotlight - Refactored to use useFeed
-const FundingSpotlight = () => {
-  // Use the useFeed hook to fetch the first open funding item
-  const { entries, isLoading } = useFeed('all' as any, {
-    // 'all' is a placeholder, endpoint/status matter
-    endpoint: 'funding_feed',
-    fundraiseStatus: 'OPEN',
-  });
-
-  // Get the first funding item from the entries array
-  const fundingItem = entries?.[0];
-
-  // Determine content type and safely access content properties
-  const content = fundingItem?.content as any;
-
-  const title = content?.title || 'Funding Opportunity';
-  const slug = content?.slug;
-  const id = content?.id;
-
-  // Create the funding URL using the same format as in FeedItemFundraise
-  const fundingUrl = id && slug ? `/fund/${id}/${slug}` : '/fund';
-
-  // Improved author handling for content and fundraise
-  const authors: Author[] = [];
-
-  // Add any additional authors from the content
-  if (content?.authors && Array.isArray(content.authors)) {
-    content.authors.forEach((author: any) => {
-      if (author.fullName || (author.firstName && author.lastName)) {
-        authors.push({
-          name: author.fullName || `${author.firstName || ''} ${author.lastName || ''}`.trim(),
-          verified: author.user?.isVerified,
-          authorUrl: author.profileUrl,
-        });
-      }
-    });
-  }
+// Main RightSidebar Component - memoized to prevent re-renders when parent components change
+const SidebarComponent = () => {
+  const pathname = usePathname();
+  const isFollowingPage = pathname === '/following';
 
   return (
-    <Link href={fundingUrl} className="block">
-      <div className="relative bg-white rounded-lg mb-4 border border-gray-200 p-4 hover:bg-gray-50 transition-colors duration-150 cursor-pointer">
-        <h2 className="absolute top-[-1px] left-[-1px] z-10 bg-primary-50 text-primary-600 rounded-lg py-2 px-4 text-sm font-medium flex items-center">
-          <Icon name="fund" size={16} className="mr-1.5" color="#3971ff" />
-          Funding Spotlight
-        </h2>
-        <div className="pt-8">
-          {isLoading ? (
-            <FundingSpotlightSkeleton />
-          ) : fundingItem && content ? (
-            <div className="space-y-3">
-              <h3 className="font-bold text-md text-gray-900 leading-tight">{title}</h3>
+    <div className="space-y-4">
+      {/* Personalize Feed Banner - show logged-in variant on /following page */}
+      <PersonalizeFeedBanner variant={isFollowingPage ? 'logged-in' : 'logged-out'} />
 
-              {/* Authors list with improved rendering */}
-              {authors.length > 0 && (
-                <AuthorList
-                  authors={authors}
-                  size="xs"
-                  delimiter=", "
-                  className="text-gray-500 font-normal"
-                />
-              )}
+      {/* Next Steps Panel for new users */}
+      {/* <NextStepsPanel /> */}
 
-              {/* Fundraise progress bar - now with minimal variant */}
-              {content?.fundraise && (
-                <div onClick={(e) => e.stopPropagation()}>
-                  <FundraiseProgress
-                    fundraise={content.fundraise}
-                    fundraiseTitle={title}
-                    variant="minimal"
-                    className="mt-2"
-                  />
-                </div>
-              )}
-
-              {/* Changed from button to text link */}
-              <div className="text-center pt-2">
-                <span className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium">
-                  Need money for your research?
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-gray-100 p-3 rounded-md text-sm text-gray-600 text-center">
-              No open funding opportunities currently featured.
-            </div>
-          )}
-        </div>
+      <div className="bg-white rounded-lg p-2">
+        {/* Dynamic Leaderboard Section */}
+        <LeaderboardOverview />
       </div>
-    </Link>
+
+      {/* Follow recommendations removed */}
+    </div>
   );
 };
-
-// Main RightSidebar Component - memoized to prevent re-renders when parent components change
-const SidebarComponent = () => (
-  <div className="space-y-4">
-    {/* Next Steps Panel for new users */}
-    {/* <NextStepsPanel /> */}
-
-    <div className="bg-white rounded-lg p-2">
-      {/* Dynamic Leaderboard Section */}
-      <LeaderboardOverview />
-    </div>
-
-    {/* Follow recommendations removed */}
-  </div>
-);
 
 export const RightSidebar = memo(SidebarComponent);
 RightSidebar.displayName = 'RightSidebar';

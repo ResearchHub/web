@@ -13,6 +13,11 @@ interface BountyMetadataLineProps {
   className?: string;
   solutionsCount?: number;
   showDeadline?: boolean;
+  /**
+   * If true, the amount is already in the target currency and should not be converted.
+   * Useful when the caller has pre-calculated the amount (e.g., Foundation bounty flat fee).
+   */
+  skipConversion?: boolean;
 }
 
 export const BountyMetadataLine = ({
@@ -22,6 +27,7 @@ export const BountyMetadataLine = ({
   expiringSoon,
   className = '',
   showDeadline = true,
+  skipConversion = false,
 }: BountyMetadataLineProps) => {
   const { showUSD } = useCurrencyPreference();
 
@@ -44,6 +50,7 @@ export const BountyMetadataLine = ({
             size="sm"
             variant={isOpen ? 'badge' : 'disabled'}
             currency={showUSD ? 'USD' : 'RSC'}
+            skipConversion={skipConversion}
           />
         </div>
 

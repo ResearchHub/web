@@ -114,12 +114,12 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
           <div className="mt-4">
             <Button
               onClick={handleTipClick}
-              variant="ghost"
+              variant="outlined"
               size="sm"
-              className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center justify-center gap-2 text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors"
             >
-              <Icon name="tipRSC" size={16} />
-              <span className="text-sm">Add your support</span>
+              <Icon name="tipRSC" size={18} />
+              <span>Add your support</span>
             </Button>
           </div>
         </>

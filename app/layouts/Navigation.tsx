@@ -7,11 +7,18 @@ import { Button } from '@/components/Editor/components/ui/Button';
 import Icon from '@/components/ui/icons/Icon';
 import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
-import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { faGrid3 as faGrid3Solid } from '@fortawesome/pro-solid-svg-icons';
-import { faGrid3 as faGrid3Light } from '@fortawesome/pro-light-svg-icons';
+import {
+  faHouse as faHouseSolid,
+  faGrid3 as faGrid3Solid,
+  faBookmark as faBookmarkSolid,
+} from '@fortawesome/pro-solid-svg-icons';
+import {
+  faHouse as faHouseLight,
+  faGrid3 as faGrid3Light,
+  faBookmark as faBookmarkLight,
+} from '@fortawesome/pro-light-svg-icons';
 import { ChartNoAxesColumnIncreasing } from 'lucide-react';
+import { useUser } from '@/contexts/UserContext';
 
 // Define icon mapping for navigation items with both light and solid variants
 interface NavIcon {
@@ -72,6 +79,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
+  const { user } = useUser();
 
   const handleNavigate = useCallback(
     (href: string) => {
@@ -80,10 +88,13 @@ export const Navigation: React.FC<NavigationProps> = ({
     [router]
   );
 
+  // Home href depends on auth state: logged in -> /for-you, logged out -> /popular
+  const homeHref = user ? '/for-you' : '/popular';
+
   const navigationItems: NavigationItem[] = [
     {
       label: 'Home',
-      href: '/trending',
+      href: homeHref,
       iconKey: 'home',
       isFontAwesome: true,
       description: 'Navigate to the home page',
@@ -120,6 +131,13 @@ export const Navigation: React.FC<NavigationProps> = ({
       requiresAuth: true,
     },
     {
+      label: 'Lists',
+      href: '/lists',
+      isFontAwesome: true,
+      description: 'View and manage your saved lists',
+      requiresAuth: true,
+    },
+    {
       label: 'Leaderboard',
       href: '/leaderboard',
       description: 'View the ResearchHub Leaderboard',
@@ -141,15 +159,13 @@ export const Navigation: React.FC<NavigationProps> = ({
 
   const isPathActive = (path: string) => {
     // Special case for home page
-    if (path === '/trending') {
-      return ['/trending', '/for-you', '/latest', '/following'].includes(currentPath);
+    if (path === '/for-you' || path === '/popular') {
+      return ['/popular', '/for-you', '/latest', '/following'].includes(currentPath);
     }
 
     // Special case for fund page - match specific fund routes
     if (path === '/fund/grants') {
-      return ['/fund/grants', '/fund/needs-funding', '/fund/previously-funded'].includes(
-        currentPath
-      );
+      return ['/fund/grants', '/fund/needs-funding'].includes(currentPath);
     }
 
     // Special case for notebook page - match any route that starts with /notebook
@@ -165,6 +181,11 @@ export const Navigation: React.FC<NavigationProps> = ({
     // Special case for browse page
     if (path === '/browse') {
       return currentPath.startsWith('/browse');
+    }
+
+    // Special case for lists page - match /lists and /list/[id]
+    if (path === '/lists') {
+      return currentPath === '/lists' || currentPath.startsWith('/list/');
     }
 
     // Default case - exact match
@@ -232,6 +253,12 @@ export const Navigation: React.FC<NavigationProps> = ({
           ) : item.href === '/browse' ? (
             <FontAwesomeIcon
               icon={isActive ? faGrid3Solid : faGrid3Light}
+              fontSize={24}
+              color={iconColor}
+            />
+          ) : item.href === '/lists' ? (
+            <FontAwesomeIcon
+              icon={isActive ? faBookmarkSolid : faBookmarkLight}
               fontSize={24}
               color={iconColor}
             />

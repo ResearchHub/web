@@ -12,9 +12,7 @@ import { useSession } from 'next-auth/react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { formatBalance } from '@/components/ResearchCoin/lib/types';
-import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { usePendingDeposits } from '@/hooks/usePendingDeposits';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useUser } from '@/contexts/UserContext';
 import { useVerification } from '@/contexts/VerificationContext';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
@@ -84,18 +82,10 @@ export default function ResearchCoinPage() {
   return (
     <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
       <div className="w-full">
-        {/* Mobile header */}
-        <MainPageHeader
-          title={showUSD ? 'My USD Wallet' : 'My ResearchCoin'}
-          subtitle={
-            showUSD
-              ? 'Manage your USD wallet and transactions'
-              : 'Manage your RSC wallet and transactions'
-          }
-          icon={<ResearchCoinIcon outlined size={24} color="#000" />}
-        />
-
-        <div className="py-6">
+        <div className="">
+          <p className="text-gray-900 text-lg tablet:!hidden py-4 pt-1">
+            Manage your wallet and view transactions.
+          </p>
           <div className="flex">
             <div className="flex-1">
               {/* Verification Banner */}

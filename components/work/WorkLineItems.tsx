@@ -10,7 +10,6 @@ import {
   Octagon,
   Share2,
   CheckCircle,
-  ThumbsDown,
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
@@ -20,7 +19,6 @@ import { AuthorList } from '@/components/ui/AuthorList';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useVote } from '@/hooks/useVote';
 import { useUserVotes } from '@/hooks/useUserVotes';
-import { useInterest } from '@/hooks/useInterest';
 import { useCloseFundraise } from '@/hooks/useFundraise';
 import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
@@ -37,10 +35,13 @@ import { WorkMetadata } from '@/services/metadata.service';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useCompleteFundraise } from '@/hooks/useFundraise';
-import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
+import { useAddToList } from '@/components/UserList/lib/UserListsContext';
+import { Button } from '@/components/ui/Button';
+import { cn } from '@/utils/styles';
+
 interface WorkLineItemsProps {
   work: Work;
   showClaimButton?: boolean;
@@ -56,7 +57,6 @@ export const WorkLineItems = ({
   metadata,
   onEditClick,
 }: WorkLineItemsProps) => {
-  const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showFundraiseActionModal, setShowFundraiseActionModal] = useState(false);
@@ -71,10 +71,6 @@ export const WorkLineItems = ({
     relatedDocumentContentType: work.contentType,
   });
 
-  const { markNotInterested, isProcessing: isMarkingNotInterested } = useInterest({
-    entityId: work.id,
-    workContentType: work.contentType,
-  });
   const [voteCount, setVoteCount] = useState(work.metrics?.votes || 0);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
   const router = useRouter();
@@ -82,8 +78,14 @@ export const WorkLineItems = ({
   const { user } = useUser();
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
   const { showShareModal } = useShareModalContext();
-  const { isInList, listIdsContainingDocument } = useIsInList(work.unifiedDocumentId);
   const userListsEnabled = useUserListsEnabled();
+  const { isInList, listIdsContainingDocument } = useIsInList(work.unifiedDocumentId);
+  const { isTogglingDefaultList, handleAddToList } = useAddToList({
+    unifiedDocumentId: work.unifiedDocumentId,
+    isInList,
+    onOpenModal: () => setIsAddToListModalOpen(true),
+  });
+
   const {
     data: userVotes,
     isLoading: isLoadingVotes,
@@ -335,21 +337,24 @@ export const WorkLineItems = ({
           </button>
 
           {userListsEnabled && work.unifiedDocumentId && work.postType !== 'QUESTION' && (
-            <button
-              onClick={() => executeAuthenticatedAction(() => setIsAddToListModalOpen(true))}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+            <Button
+              variant="ghost"
+              onClick={handleAddToList}
+              disabled={isTogglingDefaultList}
+              className={cn(
+                'flex items-center justify-center !px-4 !min-w-0 rounded-lg',
                 isInList
                   ? 'bg-green-50 text-green-600 hover:bg-green-100'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-              }`}
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100',
+                isTogglingDefaultList && 'opacity-50 cursor-not-allowed'
+              )}
             >
               <FontAwesomeIcon
                 icon={isInList ? faBookmarkSolid : faBookmark}
                 className="h-3.
               5 w-3.5"
               />
-              <span className="text-sm font-medium">{listIdsContainingDocument.length}</span>
-            </button>
+            </Button>
           )}
 
           <button
@@ -388,15 +393,6 @@ export const WorkLineItems = ({
               <BaseMenuItem onSelect={() => executeAuthenticatedAction(handleAddVersion)}>
                 <FileUp className="h-4 w-4 mr-2" />
                 <span>Upload New Version</span>
-              </BaseMenuItem>
-            )}
-            {isFeatureEnabled(FeatureFlag.NotInterested) && (
-              <BaseMenuItem
-                disabled={isMarkingNotInterested}
-                onSelect={() => executeAuthenticatedAction(markNotInterested)}
-              >
-                <ThumbsDown className="h-4 w-4 mr-2" />
-                <span>Not Interested</span>
               </BaseMenuItem>
             )}
             {!isPublished && isModerator && work.contentType !== 'preregistration' && (
@@ -444,7 +440,7 @@ export const WorkLineItems = ({
             work.note?.post?.grant?.organization ||
             (work.note?.post?.grant?.contacts && work.note.post.grant.contacts.length > 0) ? (
               <div className="flex items-start">
-                <span className="font-medium text-gray-900 w-28">
+                <span className="!hidden tablet:!block font-medium text-gray-900 w-28">
                   Funder{work.note?.post?.grant?.organization ? '' : '(s)'}
                 </span>
                 <div className="flex-1">
@@ -476,7 +472,7 @@ export const WorkLineItems = ({
           ) : (
             // NON-GRANT: Authors section
             <div className="flex items-start">
-              <span className="font-medium text-gray-900 w-28">Authors</span>
+              <span className="!hidden tablet:!block font-medium text-gray-900 w-28">Authors</span>
               <div className="flex-1">
                 <AuthorList
                   authors={work.authors.map((authorship) => ({
@@ -497,20 +493,10 @@ export const WorkLineItems = ({
           )}
         </div>
 
-        {/* Journal */}
-        {work.journal && (
-          <div className="flex items-start">
-            <span className="font-medium text-gray-900 w-28">Journal</span>
-            <div className="flex-1">
-              <span>{work.journal.name}</span>
-            </div>
-          </div>
-        )}
-
         {/* Published Date */}
         {work.publishedDate && (
           <div className="flex items-start">
-            <span className="font-medium text-gray-900 w-28">Published</span>
+            <span className="!hidden tablet:!block font-medium text-gray-900 w-28">Published</span>
             <div className="flex-1">
               <span>
                 {new Date(work.publishedDate).toLocaleDateString('en-US', {

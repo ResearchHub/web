@@ -1,22 +1,21 @@
 'use client';
 
 import { FC } from 'react';
-import { FeedPostContent, FeedEntry } from '@/types/feed';
+import { FeedPostContent, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
 import {
   BaseFeedItem,
   TitleSection,
-  ContentSection,
   ImageSection,
   MetadataSection,
   FeedItemLayout,
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
+import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
+import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
+import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { Users } from 'lucide-react';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { formatTimestamp } from '@/utils/date';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
-import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
 
 interface FeedItemPostProps {
   entry: FeedEntry;
@@ -26,6 +25,8 @@ interface FeedItemPostProps {
   maxLength?: number;
   onFeedItemClick?: () => void;
   highlights?: Highlight[];
+  showHeader?: boolean;
+  showBountyInfo?: boolean;
 }
 
 /**
@@ -36,9 +37,11 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   href,
   showTooltips = true,
   showActions = true,
+  showHeader = true,
   maxLength,
   onFeedItemClick,
   highlights,
+  showBountyInfo,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -46,9 +49,6 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   // Extract highlighted fields from highlights prop
   const highlightedTitle = highlights?.find((h) => h.field === 'title')?.value;
   const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
-
-  // Get topics/tags for display
-  const topics = (post.topics || []).filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
 
   // Convert authors to the format expected by AuthorList
   const authors =
@@ -61,16 +61,26 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   // Use provided href or create default post page URL
   const postPageUrl = href || `/post/${post.id}/${post.slug}`;
 
+  // Extract props for FeedItemMenuButton (same as BaseFeedItem uses for FeedItemActions)
+  const feedContentType = post.contentType || 'POST';
+  const votableEntityId = post.id;
+  const relatedDocumentId =
+    'relatedDocumentId' in post ? post.relatedDocumentId?.toString() : post.id.toString();
+  const relatedDocumentContentType = mapFeedContentTypeToContentType(post.contentType);
+
   return (
     <BaseFeedItem
       entry={entry}
       href={postPageUrl}
       showActions={showActions}
+      showHeader={showHeader}
       showTooltips={showTooltips}
       customActionText={post.postType === 'QUESTION' ? 'asked a question' : 'published an article'}
       maxLength={maxLength}
       onFeedItemClick={onFeedItemClick}
       showPeerReviews={post.postType !== 'QUESTION'}
+      showBountyInfo={showBountyInfo}
+      hideReportButton={true}
     >
       {/* Top section with badges and mobile image */}
       <FeedItemTopSection
@@ -83,19 +93,21 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
             />
           )
         }
+        rightContent={
+          <FeedItemMenuButton
+            feedContentType={feedContentType}
+            votableEntityId={votableEntityId}
+            relatedDocumentId={relatedDocumentId}
+            relatedDocumentContentType={relatedDocumentContentType}
+            relatedDocumentUnifiedDocumentId={post.unifiedDocumentId}
+          />
+        }
         leftContent={
-          <>
-            <ContentTypeBadge type={post.postType === 'QUESTION' ? 'question' : 'preprint'} />
-            {topics.map((topic) => (
-              <TopicAndJournalBadge
-                key={topic.id || topic.slug}
-                type="topic"
-                name={topic.name}
-                slug={topic.slug}
-                imageUrl={topic.imageUrl}
-              />
-            ))}
-          </>
+          <FeedItemBadges
+            topics={post.topics}
+            category={post.category}
+            subcategory={post.subcategory}
+          />
         }
       />
       {/* Main content layout with desktop image */}
@@ -105,26 +117,29 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
             {/* Title */}
             <TitleSection title={post.title} highlightedTitle={highlightedTitle} />
 
-            {/* Authors list below title */}
-            {authors.length > 0 && (
-              <MetadataSection>
-                <div className="mt-1 mb-3 flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-gray-500" />
-                  <AuthorList
-                    authors={authors}
-                    size="sm"
-                    className="text-gray-500 font-normal text-sm"
-                    delimiter="•"
-                  />
-                </div>
-              </MetadataSection>
-            )}
+            <div>
+              {/* Authors list below title */}
+              {authors.length > 0 && (
+                <MetadataSection>
+                  <div className="flex items-start gap-1.5">
+                    <AuthorList
+                      authors={authors}
+                      size="sm"
+                      className="text-gray-500 font-normal text-sm"
+                      delimiter="•"
+                      timestamp={post.createdDate ? formatTimestamp(post.createdDate) : undefined}
+                    />
+                  </div>
+                </MetadataSection>
+              )}
+            </div>
 
-            {/* Truncated Content */}
-            <ContentSection
+            {/* Content Section - handles both desktop and mobile */}
+            <FeedItemAbstractSection
               content={post.textPreview}
               highlightedContent={highlightedSnippet}
               maxLength={maxLength}
+              mobileLabel="Read more"
             />
           </>
         }

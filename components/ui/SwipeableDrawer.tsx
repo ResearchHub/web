@@ -163,20 +163,18 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
         </div>
 
         {showCloseButton && (
-          <div className="flex justify-end p-4">
-            <button
-              onClick={onClose}
-              className="p-1 rounded-full hover:bg-gray-100"
-              aria-label="Close drawer"
-              type="button"
-            >
-              <CloseIcon className="h-6 w-6 text-gray-500" />
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="absolute top-[18px] right-3 p-1.5 rounded-full hover:bg-gray-100"
+            aria-label="Close drawer"
+            type="button"
+          >
+            <CloseIcon className="h-6 w-6 text-gray-500" />
+          </button>
         )}
         <div
-          className="drawer-content p-4 overflow-y-auto"
-          style={{ maxHeight: `calc(${height} - 60px)` }}
+          className="drawer-content p-4 pt-2 overflow-y-auto"
+          style={{ maxHeight: `calc(${height} - 40px)` }}
         >
           {children}
         </div>

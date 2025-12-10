@@ -1,17 +1,52 @@
 'use client';
 
-import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import { createContext, useContext, ReactNode, useState, useEffect, FC } from 'react';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import {
   UserList,
   CreateListRequest,
   UpdateListRequest,
   UserListOverview,
+  DEFAULT_LIST_NAME,
 } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
 import { ID } from '@/types/root';
+import { Button } from '@/components/ui/Button';
+
+interface AddToListToastProps {
+  toastId: string;
+  onAddToListClick: () => void;
+}
+
+export const AddToListToast: FC<AddToListToastProps> = ({ toastId, onAddToListClick }) => (
+  <div className="flex items-center gap-3">
+    <span>Added to {DEFAULT_LIST_NAME}</span>
+    <Button
+      variant="link"
+      onClick={() => {
+        toast.dismiss(toastId);
+        onAddToListClick();
+      }}
+      className="!p-0 !h-auto !text-base text-blue-600 hover:text-blue-700 hover:no-underline font-medium"
+    >
+      Manage
+    </Button>
+  </div>
+);
+
+export interface ListItemChange {
+  listId: ID;
+  documentId: ID;
+  at: number;
+}
+
+interface AddToDefaultListResult {
+  listItemId: ID;
+  listId: ID;
+}
 
 export interface ListItemChange {
   listId: ID;
@@ -32,6 +67,7 @@ interface UserListsContextType {
   deleteList: (id: ID, shouldRefreshLists?: boolean) => Promise<void>;
   addDocumentToList: (id: ID, unifiedDocumentId: ID, listItemId: ID) => void;
   removeDocumentFromList: (id: ID, unifiedDocumentId: ID) => void;
+  addToDefaultList: (unifiedDocumentId: ID) => Promise<AddToDefaultListResult>;
   lastAddedItem: ListItemChange | null;
   lastRemovedItem: ListItemChange | null;
   overviewLists: UserListOverview[];
@@ -152,8 +188,8 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   const deleteList = async (id: ID, shouldRefreshLists = true): Promise<void> => {
     await executeListActionWithToast(
       () => ListService.deleteListApi(id),
-      'List deleted',
-      'Failed to delete list',
+      'List removed',
+      'Failed to removed list',
       shouldRefreshLists
     );
   };
@@ -219,6 +255,20 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     decrementItemCount(id);
   };
 
+  const addToDefaultList = async (unifiedDocumentId: ID): Promise<AddToDefaultListResult> => {
+    const response = await ListService.addToDefaultListApi(unifiedDocumentId);
+    const defaultList = overviewLists.find((list) => list.isDefault);
+
+    if (defaultList) {
+      addDocumentToList(defaultList.id, unifiedDocumentId, response.id);
+    } else {
+      await Promise.all([refetchOverview(), fetchLists()]);
+      setLastAddedItem({ listId: response.listId, documentId: unifiedDocumentId, at: Date.now() });
+    }
+
+    return { listItemId: response.id, listId: response.listId };
+  };
+
   const value = {
     lists,
     isLoadingLists,
@@ -232,6 +282,7 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     deleteList,
     addDocumentToList,
     removeDocumentFromList,
+    addToDefaultList,
     lastAddedItem,
     lastRemovedItem,
     overviewLists,
@@ -248,4 +299,40 @@ export function useUserListsContext() {
     throw new Error('useUserListsContext must be used within a UserListsProvider');
   }
   return context;
+}
+
+interface UseAddToListProps {
+  unifiedDocumentId: string | number | null | undefined;
+  isInList: boolean;
+  onOpenModal: () => void;
+}
+
+export function useAddToList({ unifiedDocumentId, isInList, onOpenModal }: UseAddToListProps) {
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const { addToDefaultList } = useUserListsContext();
+  const [isTogglingDefaultList, setIsTogglingDefaultList] = useState(false);
+
+  const handleAddToList = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!unifiedDocumentId) return;
+
+    executeAuthenticatedAction(async () => {
+      if (isInList) {
+        onOpenModal();
+        return;
+      }
+
+      setIsTogglingDefaultList(true);
+      try {
+        await addToDefaultList(Number(unifiedDocumentId));
+        toast.success((t) => <AddToListToast toastId={t.id} onAddToListClick={onOpenModal} />);
+      } catch (error) {
+        toast.error(extractApiErrorMessage(error, 'Failed to add to list'));
+      } finally {
+        setIsTogglingDefaultList(false);
+      }
+    });
+  };
+
+  return { isTogglingDefaultList, handleAddToList };
 }

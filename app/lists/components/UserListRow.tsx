@@ -19,6 +19,13 @@ interface UserListRowProps {
 export const UserListRow = ({ list, onEdit, onDelete }: UserListRowProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const handleMenuAction = (action: (list: UserList) => void) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsMenuOpen(false);
+    action(list);
+  };
+
   return (
     <Link
       href={`/list/${list.id}`}
@@ -34,42 +41,31 @@ export const UserListRow = ({ list, onEdit, onDelete }: UserListRowProps) => {
         {formatTimeAgo(list.updatedDate)}
       </span>
       <span className="hidden sm:!block text-sm text-gray-500">{formatItemCount(list)}</span>
-      <div className="flex items-center justify-end opacity-100 sm:!opacity-0 sm:group-hover:!opacity-100 transition-opacity">
-        <BaseMenu
-          trigger={
-            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-600">
-              <MoreHorizontal className="w-5 h-5" />
-            </Button>
-          }
-          align="end"
-          open={isMenuOpen}
-          onOpenChange={setIsMenuOpen}
-        >
-          <BaseMenuItem
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsMenuOpen(false);
-              onEdit(list);
-            }}
-            className="flex items-center gap-2"
+      <div className="flex items-center justify-end opacity-100 sm:!opacity-0 sm:group-hover:!opacity-100 transition-opacity w-10">
+        {!list.isDefault && (
+          <BaseMenu
+            trigger={
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-gray-600">
+                <MoreHorizontal className="w-5 h-5" />
+              </Button>
+            }
+            align="end"
+            open={isMenuOpen}
+            onOpenChange={setIsMenuOpen}
           >
-            <Edit2 className="w-4 h-4" />
-            <span>Rename</span>
-          </BaseMenuItem>
-          <BaseMenuItem
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsMenuOpen(false);
-              onDelete(list);
-            }}
-            className="flex items-center gap-2 text-red-600 hover:!text-red-600"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span>Delete</span>
-          </BaseMenuItem>
-        </BaseMenu>
+            <BaseMenuItem onClick={handleMenuAction(onEdit)} className="flex items-center gap-2">
+              <Edit2 className="w-4 h-4" />
+              <span>Rename</span>
+            </BaseMenuItem>
+            <BaseMenuItem
+              onClick={handleMenuAction(onDelete)}
+              className="flex items-center gap-2 text-red-600 hover:!text-red-600"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Remove List</span>
+            </BaseMenuItem>
+          </BaseMenu>
+        )}
       </div>
     </Link>
   );
@@ -77,10 +73,27 @@ export const UserListRow = ({ list, onEdit, onDelete }: UserListRowProps) => {
 
 export const UserListRowSkeleton = () => (
   <div className="px-4 py-3 grid grid-cols-[1fr_auto] sm:!grid-cols-[3fr_2fr_1fr_auto] gap-4 items-center animate-pulse">
-    <Skeleton className="h-5 w-1/3" />
-    <Skeleton className="hidden sm:!block h-4 w-1/4" />
+    <div className="flex flex-col gap-1.5">
+      <Skeleton className="h-5 w-3/4 sm:!w-2/3" />
+      <Skeleton className="h-3 w-1/2 sm:!hidden" />
+    </div>
+    <Skeleton className="hidden sm:!block h-4 w-24" />
     <Skeleton className="hidden sm:!block h-4 w-16" />
     <div className="w-10" />
+  </div>
+);
+
+export const ListsPageHeaderSkeleton = () => (
+  <div className="relative px-4 sm:!px-8 py-6 flex flex-col sm:!flex-row sm:!items-center gap-4 sm:!gap-6 bg-gradient-to-b from-gray-100/80 to-gray-50/20 border-b border-gray-100 rounded-lg animate-pulse">
+    <div className="flex flex-col gap-2 flex-1 items-center sm:!items-start">
+      <Skeleton className="h-8 w-40 sm:!w-48" />
+      <div className="flex items-center gap-2">
+        <Skeleton className="w-5 h-5 rounded-full" />
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-16" />
+      </div>
+    </div>
+    <Skeleton className="h-10 w-full sm:!w-32" />
   </div>
 );
 

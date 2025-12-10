@@ -4,12 +4,14 @@ import { Work } from '@/types/work';
 import type { WorkMetadata } from '@/services/metadata.service';
 import { HaveYouPublishedBanner } from '@/components/banners/HaveYouPublishedBanner';
 import { PublishInJournalBanner } from '@/components/banners/PublishInJournalBanner';
+import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 import { SupportersSection } from './components/SupportersSection';
 import { TopicsSection } from './components/TopicsSection';
 import { DOISection } from './components/DOISection';
 import { LicenseSection } from './components/LicenseSection';
 import { FormatsSection } from './components/FormatsSection';
 import { VersionsSection } from './components/VersionsSection';
+import { JournalSection } from './components/JournalSection';
 import { useMemo } from 'react';
 
 interface WorkRightSidebarProps {
@@ -25,11 +27,17 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
 
   return (
     <div className="space-y-8">
+      <EarningOpportunityBanner work={work} metadata={metadata} />
       {hasResearchHubJournalVersions && (
         <VersionsSection versions={work.versions || []} currentPaperId={work.id} slug={work.slug} />
       )}
       <SupportersSection tips={work.tips || []} documentId={work.id} />
-      <TopicsSection topics={metadata.topics || []} />
+      {work.journal && <JournalSection journal={work.journal} />}
+      <TopicsSection
+        topics={metadata.topics || []}
+        category={work.category}
+        subcategory={work.subcategory}
+      />
       {work.doi && <DOISection doi={work.doi} />}
       {work.postType !== 'QUESTION' && <LicenseSection license={work.license} />}
       <FormatsSection formats={work.formats} />

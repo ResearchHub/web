@@ -26,23 +26,24 @@ interface FeedContentProps {
   header?: ReactNode;
   tabs?: ReactNode;
   filters?: ReactNode;
-  disableCardLinks?: boolean;
+  banner?: ReactNode;
   activeTab?: FeedTab | FundingTab | TabType | string;
   showBountyFooter?: boolean;
   hideActions?: boolean;
   isLoadingMore?: boolean;
-  showBountySupportAndCTAButtons?: boolean;
-  showBountyDeadline?: boolean;
   noEntriesElement?: ReactNode;
   maxLength?: number;
   showGrantHeaders?: boolean;
+  showFundraiseHeaders?: boolean;
+  showPostHeaders?: boolean;
   showReadMoreCTA?: boolean;
   ordering?: string;
   restoredScrollPosition?: number | null;
   page?: number;
   lastClickedEntryId?: string;
   insertContent?: InsertContentItem[];
-  wrapped?: (item: ReactNode, entry: FeedEntry, index: number) => ReactNode;
+  shouldRenderBountyAsComment?: boolean;
+  showBountyInfo?: boolean;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -53,23 +54,24 @@ export const FeedContent: FC<FeedContentProps> = ({
   header,
   tabs,
   filters,
-  disableCardLinks = false,
+  banner,
   activeTab,
   showBountyFooter = true,
   hideActions = false,
   isLoadingMore = false,
-  showBountySupportAndCTAButtons = true,
-  showBountyDeadline = true,
   noEntriesElement,
   maxLength,
   showGrantHeaders = true,
+  showFundraiseHeaders = true,
+  showPostHeaders = true,
   showReadMoreCTA = false,
   ordering,
   restoredScrollPosition,
   page,
   lastClickedEntryId,
   insertContent,
-  wrapped,
+  shouldRenderBountyAsComment,
+  showBountyInfo = false,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -122,6 +124,8 @@ export const FeedContent: FC<FeedContentProps> = ({
 
         {filters && <div className="py-3">{filters}</div>}
 
+        {banner && <div className="pt-3 pb-0">{banner}</div>}
+
         <div className="mt-4">
           {displayEntries.length > 0 &&
             displayEntries.map((entry, index) => {
@@ -143,32 +147,30 @@ export const FeedContent: FC<FeedContentProps> = ({
 
               const feedItem = (
                 <FeedEntryItem
+                  showPostHeaders={showPostHeaders}
+                  showBountyInfo={showBountyInfo}
+                  highlights={highlights}
+                  shouldRenderBountyAsComment={shouldRenderBountyAsComment}
                   entry={entry}
                   index={index}
-                  disableCardLinks={disableCardLinks}
                   showBountyFooter={showBountyFooter}
                   hideActions={hideActions}
-                  showBountySupportAndCTAButtons={showBountySupportAndCTAButtons}
-                  showBountyDeadline={showBountyDeadline}
                   maxLength={maxLength}
                   showGrantHeaders={showGrantHeaders}
+                  showFundraiseHeaders={showFundraiseHeaders}
                   showReadMoreCTA={showReadMoreCTA}
-                  feedView={activeTab}
                   feedOrdering={ordering}
                   registerVisibleItem={registerVisibleItem}
                   unregisterVisibleItem={unregisterVisibleItem}
                   getVisibleItems={getVisibleItems}
-                  highlights={highlights.length > 0 ? highlights : undefined}
                 />
               );
 
-              const effectiveFeedItem = wrapped ? wrapped(feedItem, entry, index) : feedItem;
-
               return (
                 <React.Fragment key={`${entry.id}-${index}`}>
-                  {effectiveFeedItem}
+                  {feedItem}
                   {contentToInsert && (
-                    <div key={`insert-content-${index}`} className="mt-12">
+                    <div key={`insert-content-${index}`} className="mt-8">
                       {contentToInsert.content}
                     </div>
                   )}
@@ -181,7 +183,7 @@ export const FeedContent: FC<FeedContentProps> = ({
               {[...Array(3)].map((_, index) => (
                 <div
                   key={`skeleton-${index}`}
-                  className={index > 0 || displayEntries.length > 0 ? 'mt-12' : ''}
+                  className={index > 0 || displayEntries.length > 0 ? 'mt-8' : ''}
                 >
                   <FeedItemSkeleton />
                 </div>
