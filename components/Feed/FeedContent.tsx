@@ -30,7 +30,6 @@ interface FeedContentProps {
   activeTab?: FeedTab | FundingTab | TabType | string;
   showBountyFooter?: boolean;
   hideActions?: boolean;
-  showOnlyBookmark?: boolean;
   isLoadingMore?: boolean;
   noEntriesElement?: ReactNode;
   maxLength?: number;
@@ -59,7 +58,6 @@ export const FeedContent: FC<FeedContentProps> = ({
   activeTab,
   showBountyFooter = true,
   hideActions = false,
-  showOnlyBookmark = false,
   isLoadingMore = false,
   noEntriesElement,
   maxLength,
@@ -157,7 +155,6 @@ export const FeedContent: FC<FeedContentProps> = ({
                   index={index}
                   showBountyFooter={showBountyFooter}
                   hideActions={hideActions}
-                  showOnlyBookmark={showOnlyBookmark}
                   maxLength={maxLength}
                   showGrantHeaders={showGrantHeaders}
                   showFundraiseHeaders={showFundraiseHeaders}

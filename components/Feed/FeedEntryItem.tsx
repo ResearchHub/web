@@ -31,7 +31,6 @@ interface FeedEntryItemProps {
   index: number;
   showBountyFooter?: boolean;
   hideActions?: boolean;
-  showOnlyBookmark?: boolean;
   maxLength?: number;
   showGrantHeaders?: boolean;
   showFundraiseHeaders?: boolean;
@@ -52,7 +51,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   index,
   showBountyFooter = true,
   hideActions = false,
-  showOnlyBookmark = false,
   maxLength,
   showGrantHeaders = true,
   showFundraiseHeaders = true,
@@ -206,7 +204,6 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             entry={entry}
             href={href}
             showActions={!hideActions}
-            showOnlyBookmark={showOnlyBookmark}
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
             highlights={highlights}

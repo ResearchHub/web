@@ -32,6 +32,7 @@ import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserList
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { BountyTooltip } from '@/components/tooltips/BountyTooltip';
 import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
+import { useFeedView } from '@/contexts/FeedViewContext';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -166,7 +167,6 @@ interface FeedItemActionsProps {
   relatedDocumentUnifiedDocumentId?: string;
   showPeerReviews?: boolean;
   onFeedItemClick?: () => void;
-  showOnlyBookmark?: boolean; // Show only the bookmark button (for search results)
 }
 
 // Define interface for avatar items used in local state
@@ -199,9 +199,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   relatedDocumentUnifiedDocumentId,
   showPeerReviews = true,
   onFeedItemClick,
-  showOnlyBookmark = false,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const feedView = useFeedView();
+
+  // UI decisions based on feed view context
+  const showOnlyBookmark = feedView === 'search';
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);

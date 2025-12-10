@@ -9,6 +9,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { Search as SearchIcon } from 'lucide-react';
 import { FeedContent } from '@/components/Feed/FeedContent';
+import { FeedViewProvider } from '@/contexts/FeedViewContext';
 
 interface SearchPageContentProps {
   readonly searchParams: {
@@ -157,26 +158,27 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
 
             {/* Use FeedContent for consistent rendering and infinite scroll */}
             {hasSearched && (
-              <FeedContent
-                entries={entries}
-                isLoading={isLoading}
-                isLoadingMore={isLoadingMore}
-                hasMore={hasMore}
-                loadMore={loadMore}
-                showGrantHeaders={true}
-                showReadMoreCTA={true}
-                hideActions={false}
-                showOnlyBookmark={true}
-                noEntriesElement={
-                  <SearchEmptyState
-                    onSearch={handleSearch}
-                    query={query}
-                    filters={stagedFilters}
-                    hasFilters={false}
-                    onClearFilters={() => {}}
-                  />
-                }
-              />
+              <FeedViewProvider value="search">
+                <FeedContent
+                  entries={entries}
+                  isLoading={isLoading}
+                  isLoadingMore={isLoadingMore}
+                  hasMore={hasMore}
+                  loadMore={loadMore}
+                  showGrantHeaders={true}
+                  showReadMoreCTA={true}
+                  hideActions={false}
+                  noEntriesElement={
+                    <SearchEmptyState
+                      onSearch={handleSearch}
+                      query={query}
+                      filters={stagedFilters}
+                      hasFilters={false}
+                      onClearFilters={() => {}}
+                    />
+                  }
+                />
+              </FeedViewProvider>
             )}
           </div>
         </div>
