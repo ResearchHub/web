@@ -41,15 +41,42 @@ export const FeedItemAbstractSection: FC<FeedItemAbstractSectionProps> = ({
 
   // If we have highlighted HTML, render it (search results)
   if (highlightedContent) {
+    // Check if full content is longer than highlighted snippet (worth expanding)
+    const hasMoreContent =
+      content && content.length > highlightedContent.replace(/<[^>]*>/g, '').length + 50;
+
     return (
       <div className={className}>
-        {/* Desktop: Show content directly */}
+        {/* Desktop: Show content with expand/collapse */}
         <div className="hidden md:!block text-sm text-gray-700 leading-relaxed">
-          <p
-            dangerouslySetInnerHTML={{
-              __html: sanitizeHighlightHtml(highlightedContent),
-            }}
-          />
+          {isDesktopExpanded ? (
+            // Show full plain text content when expanded
+            <p>{content}</p>
+          ) : (
+            // Show highlighted snippet when collapsed
+            <p
+              dangerouslySetInnerHTML={{
+                __html: sanitizeHighlightHtml(highlightedContent),
+              }}
+            />
+          )}
+          {hasMoreContent && (
+            <Button
+              variant="link"
+              size="sm"
+              onClick={handleDesktopToggle}
+              className="flex items-center gap-0.5 mt-1 text-blue-500 p-0 h-auto text-sm font-medium"
+            >
+              {isDesktopExpanded ? 'Show less' : 'Read more'}
+              <ChevronDown
+                size={14}
+                className={cn(
+                  'transition-transform duration-200',
+                  isDesktopExpanded && 'transform rotate-180'
+                )}
+              />
+            </Button>
+          )}
         </div>
 
         {/* Mobile: Show toggle CTA */}
@@ -71,11 +98,7 @@ export const FeedItemAbstractSection: FC<FeedItemAbstractSectionProps> = ({
           </Button>
           {isMobileExpanded && (
             <div className="mt-2 text-sm text-gray-700 leading-relaxed">
-              <p
-                dangerouslySetInnerHTML={{
-                  __html: sanitizeHighlightHtml(highlightedContent),
-                }}
-              />
+              <p>{content}</p>
             </div>
           )}
         </div>

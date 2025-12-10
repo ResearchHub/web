@@ -18,7 +18,7 @@ import { highlightSearchTerms, hasHighlights } from '@/components/Search/lib/sea
 import { stripHtml } from '@/utils/stringUtils';
 
 // Constants for search result snippet extension
-const SEARCH_RESULT_MAX_LENGTH = 300; // Maximum length for extended search result snippets
+const SEARCH_RESULT_MAX_LENGTH = 500; // Maximum length for extended search result snippets
 
 export interface InstitutionResponse {
   id: number;
