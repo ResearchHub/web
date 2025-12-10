@@ -2,7 +2,7 @@
 
 import { FC, useState } from 'react';
 import { cn } from '@/utils/styles';
-import { truncateText } from '@/utils/stringUtils';
+import { truncateText, stripHtml } from '@/utils/stringUtils';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
 import { sanitizeHighlightHtml } from '@/components/Search/lib/htmlSanitizer';
@@ -15,6 +15,40 @@ export interface FeedItemAbstractSectionProps {
   mobileLabel?: string;
 }
 
+// Reusable expand/collapse button component
+const ExpandButton: FC<{
+  isExpanded: boolean;
+  onClick: (e: React.MouseEvent) => void;
+  variant?: 'desktop' | 'mobile';
+  mobileLabel?: string;
+}> = ({ isExpanded, onClick, variant = 'desktop', mobileLabel = 'Read abstract' }) => {
+  const isDesktop = variant === 'desktop';
+
+  return (
+    <Button
+      variant="link"
+      size="sm"
+      onClick={onClick}
+      className={cn(
+        'flex items-center p-0 h-auto text-sm font-medium',
+        isDesktop ? 'gap-0.5 mt-1 text-blue-500' : 'gap-1 text-blue-600 hover:text-blue-700'
+      )}
+    >
+      {isDesktop
+        ? isExpanded
+          ? 'Show less'
+          : 'Read more'
+        : isExpanded
+          ? 'Hide abstract'
+          : mobileLabel}
+      <ChevronDown
+        size={14}
+        className={cn('transition-transform duration-200', isExpanded && 'transform rotate-180')}
+      />
+    </Button>
+  );
+};
+
 export const FeedItemAbstractSection: FC<FeedItemAbstractSectionProps> = ({
   content,
   highlightedContent,
@@ -24,8 +58,6 @@ export const FeedItemAbstractSection: FC<FeedItemAbstractSectionProps> = ({
 }) => {
   const [isDesktopExpanded, setIsDesktopExpanded] = useState(false);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
-
-  const isTextTruncated = content && content.length > maxLength;
 
   const handleDesktopToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -39,118 +71,56 @@ export const FeedItemAbstractSection: FC<FeedItemAbstractSectionProps> = ({
 
   if (!content) return null;
 
-  // If we have highlighted HTML, render it (search results)
-  if (highlightedContent) {
-    // Check if full content is longer than highlighted snippet (worth expanding)
-    const hasMoreContent =
-      content && content.length > highlightedContent.replace(/<[^>]*>/g, '').length + 50;
+  // Determine if content is truncatable
+  const isTextTruncated = content.length > maxLength;
 
-    return (
-      <div className={className}>
-        {/* Desktop: Show content with expand/collapse */}
-        <div className="hidden md:!block text-sm text-gray-700 leading-relaxed">
-          {isDesktopExpanded ? (
-            // Show full plain text content when expanded
-            <p>{content}</p>
-          ) : (
-            // Show highlighted snippet when collapsed
-            <p
-              dangerouslySetInnerHTML={{
-                __html: sanitizeHighlightHtml(highlightedContent),
-              }}
-            />
-          )}
-          {hasMoreContent && (
-            <Button
-              variant="link"
-              size="sm"
-              onClick={handleDesktopToggle}
-              className="flex items-center gap-0.5 mt-1 text-blue-500 p-0 h-auto text-sm font-medium"
-            >
-              {isDesktopExpanded ? 'Show less' : 'Read more'}
-              <ChevronDown
-                size={14}
-                className={cn(
-                  'transition-transform duration-200',
-                  isDesktopExpanded && 'transform rotate-180'
-                )}
-              />
-            </Button>
-          )}
-        </div>
+  // For highlighted content, check if full content is meaningfully longer
+  const hasMoreContent = highlightedContent
+    ? content.length > stripHtml(highlightedContent).length + 50
+    : isTextTruncated;
 
-        {/* Mobile: Show toggle CTA */}
-        <div className="md:!hidden">
-          <Button
-            variant="link"
-            size="sm"
-            onClick={handleMobileToggle}
-            className="flex items-center gap-1 text-blue-600 p-0 h-auto text-sm font-medium hover:text-blue-700"
-          >
-            {isMobileExpanded ? 'Hide abstract' : mobileLabel}
-            <ChevronDown
-              size={14}
-              className={cn(
-                'transition-transform duration-200',
-                isMobileExpanded && 'transform rotate-180'
-              )}
-            />
-          </Button>
-          {isMobileExpanded && (
-            <div className="mt-2 text-sm text-gray-700 leading-relaxed">
-              <p>{content}</p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
+  // Text color varies based on whether we have highlighted content
+  const textColorClass = highlightedContent ? 'text-gray-700' : 'text-gray-900';
 
-  // Default: render plain text with truncation
+  // Get the display content for collapsed state
+  const getCollapsedContent = () => {
+    if (highlightedContent) {
+      return (
+        <p
+          dangerouslySetInnerHTML={{
+            __html: sanitizeHighlightHtml(highlightedContent),
+          }}
+        />
+      );
+    }
+    return <p>{truncateText(content, maxLength)}</p>;
+  };
+
   return (
     <div className={className}>
       {/* Desktop: Show content with expand/collapse */}
-      <div className="hidden md:!block text-sm text-gray-900 leading-relaxed">
-        <p>{isDesktopExpanded ? content : truncateText(content, maxLength)}</p>
-        {isTextTruncated && (
-          <Button
-            variant="link"
-            size="sm"
+      <div className={cn('hidden md:!block text-sm leading-relaxed', textColorClass)}>
+        {isDesktopExpanded ? <p>{content}</p> : getCollapsedContent()}
+        {hasMoreContent && (
+          <ExpandButton
+            isExpanded={isDesktopExpanded}
             onClick={handleDesktopToggle}
-            className="flex items-center gap-0.5 mt-1 text-blue-500 p-0 h-auto text-sm font-medium"
-          >
-            {isDesktopExpanded ? 'Show less' : 'Read more'}
-            <ChevronDown
-              size={14}
-              className={cn(
-                'transition-transform duration-200',
-                isDesktopExpanded && 'transform rotate-180'
-              )}
-            />
-          </Button>
+            variant="desktop"
+          />
         )}
       </div>
 
       {/* Mobile: Show toggle CTA */}
       <div className="md:!hidden">
-        <Button
-          variant="link"
-          size="sm"
+        <ExpandButton
+          isExpanded={isMobileExpanded}
           onClick={handleMobileToggle}
-          className="flex items-center gap-1 text-blue-600 p-0 h-auto text-sm font-medium hover:text-blue-700"
-        >
-          {isMobileExpanded ? 'Hide abstract' : mobileLabel}
-          <ChevronDown
-            size={14}
-            className={cn(
-              'transition-transform duration-200',
-              isMobileExpanded && 'transform rotate-180'
-            )}
-          />
-        </Button>
+          variant="mobile"
+          mobileLabel={mobileLabel}
+        />
         {isMobileExpanded && (
-          <div className="mt-2 text-sm text-gray-900 leading-relaxed">
-            <p>{truncateText(content, maxLength)}</p>
+          <div className={cn('mt-2 text-sm leading-relaxed', textColorClass)}>
+            <p>{highlightedContent ? content : truncateText(content, maxLength)}</p>
           </div>
         )}
       </div>
