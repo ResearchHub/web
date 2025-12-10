@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, ReactNode } from 'react';
+import { FC, ReactNode, useState } from 'react';
 import {
   FeedContentType,
   FeedEntry,
@@ -19,6 +19,8 @@ import { BountyInfoSummary } from '@/components/Bounty/BountyInfoSummary';
 import { useRouter } from 'next/navigation';
 import { BountyInfo } from '../Bounty/BountyInfo';
 import { sanitizeHighlightHtml } from '@/components/Search/lib/htmlSanitizer';
+import { Button } from '@/components/ui/Button';
+import { ChevronDown } from 'lucide-react';
 
 // Base interfaces for the modular components
 export interface BaseFeedItemProps {
@@ -161,6 +163,14 @@ export const ContentSection: FC<ContentSectionProps> = ({
   className,
   maxLength = 200,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const isTextTruncated = content && content.length > maxLength;
+
+  const handleToggleExpand = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
+  };
+
   // If we have highlighted HTML (from search service), render it as-is
   // The search service is responsible for extending snippets to appropriate length
   if (highlightedContent) {
@@ -175,11 +185,28 @@ export const ContentSection: FC<ContentSectionProps> = ({
     );
   }
 
-  // Default: render truncated plain text for non-search results
+  // Default: render truncated plain text with expand/collapse for non-search results
   if (content) {
     return (
-      <div className={cn('text-sm text-gray-700', className)}>
-        <p>{truncateText(content, maxLength)}</p>
+      <div className={cn('text-sm text-gray-900 hidden md:!block leading-relaxed', className)}>
+        <p>{isExpanded ? content : truncateText(content, maxLength)}</p>
+        {isTextTruncated && (
+          <Button
+            variant="link"
+            size="sm"
+            onClick={handleToggleExpand}
+            className="flex items-center gap-0.5 mt-1 text-blue-500 p-0 h-auto text-sm font-medium"
+          >
+            {isExpanded ? 'Show less' : 'Read more'}
+            <ChevronDown
+              size={14}
+              className={cn(
+                'transition-transform duration-200',
+                isExpanded && 'transform rotate-180'
+              )}
+            />
+          </Button>
+        )}
       </div>
     );
   }
