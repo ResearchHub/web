@@ -11,7 +11,7 @@ export function useConnectOrcid() {
     try {
       await connectOrcidAccount();
     } catch (error) {
-      toast.error(extractApiErrorMessage(error, 'Failed to connect ORCID account'));
+      toast.error(extractApiErrorMessage(error, 'Failed to connect ORCID.'));
       setIsConnecting(false);
     }
   }, []);

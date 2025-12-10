@@ -230,10 +230,12 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
             />
             <SocialIcon
               icon={<FontAwesomeIcon icon={faOrcid} className="h-6 w-6" />}
-              href={author.orcidId}
+              href={author.orcidConnected ? author.orcidId : null}
               label="ORCID"
               className={
-                author.orcidId ? '[&>svg]:text-[#A6CE39] [&>svg]:hover:text-[#82A629] px-0' : 'px-0'
+                author.orcidConnected
+                  ? '[&>svg]:text-[#A6CE39] [&>svg]:hover:text-[#82A629] px-0'
+                  : 'px-0'
               }
             />
             <SocialIcon
