@@ -15,6 +15,14 @@ export interface FeedItemAbstractSectionProps {
   mobileLabel?: string;
 }
 
+// Helper to get button label without nested ternary
+const getButtonLabel = (isDesktop: boolean, isExpanded: boolean, mobileLabel: string): string => {
+  if (isDesktop) {
+    return isExpanded ? 'Show less' : 'Read more';
+  }
+  return isExpanded ? 'Hide abstract' : mobileLabel;
+};
+
 // Reusable expand/collapse button component
 const ExpandButton: FC<{
   isExpanded: boolean;
@@ -34,13 +42,7 @@ const ExpandButton: FC<{
         isDesktop ? 'gap-0.5 mt-1 text-blue-500' : 'gap-1 text-blue-600 hover:text-blue-700'
       )}
     >
-      {isDesktop
-        ? isExpanded
-          ? 'Show less'
-          : 'Read more'
-        : isExpanded
-          ? 'Hide abstract'
-          : mobileLabel}
+      {getButtonLabel(isDesktop, isExpanded, mobileLabel)}
       <ChevronDown
         size={14}
         className={cn('transition-transform duration-200', isExpanded && 'transform rotate-180')}

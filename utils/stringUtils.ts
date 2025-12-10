@@ -25,8 +25,7 @@ export const stripHtml = (html: string): string => {
   let result = '';
   let inTag = false;
 
-  for (let i = 0; i < html.length; i++) {
-    const char = html[i];
+  for (const char of html) {
     if (char === '<') {
       inTag = true;
     } else if (char === '>') {
@@ -38,11 +37,11 @@ export const stripHtml = (html: string): string => {
 
   // Clean up whitespace and HTML entities
   return result
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
+    .replaceAll('&nbsp;', ' ')
+    .replaceAll('&amp;', '&')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
     .replace(/\s+/g, ' ')
     .trim();
 };

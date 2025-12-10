@@ -12,7 +12,7 @@ import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CardWrapper } from './CardWrapper';
 import { cn } from '@/utils/styles';
 import Image from 'next/image';
-import { stripHtml, truncateText } from '@/utils/stringUtils';
+import { truncateText } from '@/utils/stringUtils';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { BountyInfoSummary } from '@/components/Bounty/BountyInfoSummary';

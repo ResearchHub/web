@@ -361,6 +361,40 @@ export class SearchService {
     return extendedSnippet;
   }
 
+  /**
+   * Transform journal data from API response (handles both string and object formats)
+   */
+  private static transformJournal(
+    journal:
+      | string
+      | { id?: number; name?: string; slug?: string; image_url?: string }
+      | null
+      | undefined
+  ): { id: number; name: string; slug: string | null; imageUrl: string | null } | null {
+    if (!journal) {
+      return null;
+    }
+
+    // Legacy format: journal is just a string name
+    if (typeof journal === 'string') {
+      return {
+        id: 0,
+        name: journal,
+        slug: journal.toLowerCase().replaceAll(/\s+/g, '-'),
+        imageUrl: null,
+      };
+    }
+
+    // New format: journal is an object
+    const slugFromName = journal.name?.toLowerCase().replaceAll(/\s+/g, '-') || null;
+    return {
+      id: journal.id || 0,
+      name: journal.name || '',
+      slug: journal.slug || slugFromName,
+      imageUrl: journal.image_url || null,
+    };
+  }
+
   private static transformSearchResult(doc: ApiDocumentSearchResult, query: string): FeedEntry {
     // First transform to a clean FeedEntry
     const feedEntry = this.transformDocumentToFeedEntry(doc);
@@ -461,26 +495,7 @@ export class SearchService {
         category: doc.hubs?.[0] || null,
         subcategory: doc.hubs?.[1] || null,
         // Handle journal as either a string (legacy) or object (new format)
-        journal: doc.journal
-          ? typeof doc.journal === 'string'
-            ? {
-                // Legacy format: journal is just a string name
-                id: 0,
-                name: doc.journal,
-                slug: doc.journal.toLowerCase().replace(/\s+/g, '-'),
-                imageUrl: null,
-              }
-            : {
-                // New format: journal is an object
-                id: doc.journal?.id || 0,
-                name: doc.journal?.name || '',
-                slug:
-                  doc.journal?.slug ||
-                  doc.journal?.name?.toLowerCase().replace(/\s+/g, '-') ||
-                  null,
-                imageUrl: doc.journal?.image_url || null,
-              }
-          : null,
+        journal: this.transformJournal(doc.journal),
         doi: doc.doi,
         citations: doc.citations || 0,
         score: doc.score || 0,
