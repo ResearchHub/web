@@ -166,6 +166,7 @@ interface FeedItemActionsProps {
   relatedDocumentUnifiedDocumentId?: string;
   showPeerReviews?: boolean;
   onFeedItemClick?: () => void;
+  showOnlyBookmark?: boolean; // Show only the bookmark button (for search results)
 }
 
 // Define interface for avatar items used in local state
@@ -198,6 +199,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   relatedDocumentUnifiedDocumentId,
   showPeerReviews = true,
   onFeedItemClick,
+  showOnlyBookmark = false,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD } = useCurrencyPreference();
@@ -372,6 +374,49 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const showInlineReviews = showPeerReviews && reviews.length > 0;
   const showInlineBounties = hasOpenBounties;
 
+  // Check if bookmark button should be shown
+  const canShowBookmark =
+    userListsEnabled &&
+    relatedDocumentUnifiedDocumentId &&
+    feedContentType !== 'COMMENT' &&
+    feedContentType !== 'BOUNTY' &&
+    feedContentType !== 'APPLICATION';
+
+  // Reusable bookmark button element
+  const bookmarkButton = canShowBookmark && (
+    <Button
+      variant="ghost"
+      size="sm"
+      className={cn(
+        'p-1.5 transition-colors hover:bg-gray-0',
+        isDocumentInList
+          ? 'text-green-600 hover:text-green-600'
+          : 'text-gray-900 hover:text-gray-600'
+      )}
+      tooltip={'Save'}
+      onClick={handleAddToList}
+      disabled={isTogglingDefaultList}
+    >
+      <FontAwesomeIcon icon={isDocumentInList ? faBookmarkSolid : faBookmark} className="w-5 h-5" />
+    </Button>
+  );
+
+  // If showOnlyBookmark, render a minimal version with just the bookmark button
+  if (showOnlyBookmark) {
+    return (
+      <>
+        <div className="flex items-center justify-end w-full">{bookmarkButton}</div>
+        {userListsEnabled && relatedDocumentUnifiedDocumentId && isAddToListModalOpen && (
+          <AddToListModal
+            isOpen={isAddToListModalOpen}
+            onClose={handleCloseAddToListModal}
+            unifiedDocumentId={Number.parseInt(relatedDocumentUnifiedDocumentId)}
+          />
+        )}
+      </>
+    );
+  }
+
   return (
     <>
       <div className="flex items-center justify-between w-full">
@@ -505,32 +550,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         <div className="flex-grow flex justify-end items-center gap-3">
           {rightSideActionButton}
 
-          {/* Show "Add to List" button in right section when hideReportButton is true */}
-          {userListsEnabled &&
-            relatedDocumentUnifiedDocumentId &&
-            feedContentType !== 'COMMENT' &&
-            feedContentType !== 'BOUNTY' &&
-            feedContentType !== 'APPLICATION' &&
-            showPeerReviews && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  'p-1.5 transition-colors hover:bg-gray-0',
-                  isDocumentInList
-                    ? 'text-green-600 hover:text-green-600'
-                    : 'text-gray-900 hover:text-gray-600'
-                )}
-                tooltip={'Save'}
-                onClick={handleAddToList}
-                disabled={isTogglingDefaultList}
-              >
-                <FontAwesomeIcon
-                  icon={isDocumentInList ? faBookmarkSolid : faBookmark}
-                  className="w-5 h-5"
-                />
-              </Button>
-            )}
+          {/* Show "Add to List" button in right section */}
+          {showPeerReviews && bookmarkButton}
 
           {(!hideReportButton || menuItems.length > 0) && (
             <BaseMenu

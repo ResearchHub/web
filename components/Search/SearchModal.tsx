@@ -160,10 +160,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
               inputRef.current?.select();
             }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && e.shiftKey && query.trim()) {
+              if (e.key === 'Enter' && query.trim()) {
                 e.preventDefault();
                 navigatingToSearchRef.current = true;
-                router.push(`/search?debug&q=${encodeURIComponent(query.trim())}`);
+                router.push(`/search?q=${encodeURIComponent(query.trim())}`);
                 onClose();
               }
             }}

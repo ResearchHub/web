@@ -456,8 +456,31 @@ export class SearchService {
           last_name: author.last_name || '',
           profile_image: '',
         })),
-        hub: doc.hubs && doc.hubs.length > 0 ? doc.hubs[0] : null,
-        journal: null,
+        hub: doc.hubs?.[0] || null,
+        // Pass category and subcategory from first two hubs for badge display
+        category: doc.hubs?.[0] || null,
+        subcategory: doc.hubs?.[1] || null,
+        // Handle journal as either a string (legacy) or object (new format)
+        journal: doc.journal
+          ? typeof doc.journal === 'string'
+            ? {
+                // Legacy format: journal is just a string name
+                id: 0,
+                name: doc.journal,
+                slug: doc.journal.toLowerCase().replace(/\s+/g, '-'),
+                imageUrl: null,
+              }
+            : {
+                // New format: journal is an object
+                id: doc.journal?.id || 0,
+                name: doc.journal?.name || '',
+                slug:
+                  doc.journal?.slug ||
+                  doc.journal?.name?.toLowerCase().replace(/\s+/g, '-') ||
+                  null,
+                imageUrl: doc.journal?.image_url || null,
+              }
+          : null,
         doi: doc.doi,
         citations: doc.citations || 0,
         score: doc.score || 0,

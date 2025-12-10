@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, ReactNode, useState } from 'react';
+import { FC, ReactNode } from 'react';
 import {
   FeedContentType,
   FeedEntry,
@@ -15,8 +15,6 @@ import Image from 'next/image';
 import { stripHtml, truncateText } from '@/utils/stringUtils';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { useNavigation } from '@/contexts/NavigationContext';
-import { Button } from '@/components/ui/Button';
-import { ChevronDown } from 'lucide-react';
 import { BountyInfoSummary } from '@/components/Bounty/BountyInfoSummary';
 import { useRouter } from 'next/navigation';
 import { BountyInfo } from '../Bounty/BountyInfo';
@@ -28,6 +26,7 @@ export interface BaseFeedItemProps {
   href?: string;
   className?: string;
   showActions?: boolean;
+  showOnlyBookmark?: boolean;
   showTooltips?: boolean;
   maxLength?: number;
   showHeader?: boolean;
@@ -162,15 +161,8 @@ export const ContentSection: FC<ContentSectionProps> = ({
   className,
   maxLength = 200,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const isTextTruncated = content && content.length > maxLength;
-
-  const handleToggleExpand = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsExpanded(!isExpanded);
-  };
-
-  // If we have highlighted HTML, render it (already truncated by backend)
+  // If we have highlighted HTML (from search service), render it as-is
+  // The search service is responsible for extending snippets to appropriate length
   if (highlightedContent) {
     return (
       <div className={cn('text-sm text-gray-700', className)}>
@@ -183,29 +175,15 @@ export const ContentSection: FC<ContentSectionProps> = ({
     );
   }
 
-  // Default: render truncated plain text
-  return (
-    <div className={cn('text-sm text-gray-900 hidden md:!block leading-relaxed', className)}>
-      <p>{isExpanded ? content : truncateText(content, maxLength)}</p>
-      {isTextTruncated && (
-        <Button
-          variant="link"
-          size="sm"
-          onClick={handleToggleExpand}
-          className="flex items-center gap-0.5 mt-1 text-blue-500 p-0 h-auto text-sm font-medium"
-        >
-          {isExpanded ? 'Show less' : 'Read more'}
-          <ChevronDown
-            size={14}
-            className={cn(
-              'transition-transform duration-200',
-              isExpanded && 'transform rotate-180'
-            )}
-          />
-        </Button>
-      )}
-    </div>
-  );
+  // Default: render truncated plain text for non-search results
+  if (content) {
+    return (
+      <div className={cn('text-sm text-gray-700', className)}>
+        <p>{truncateText(content, maxLength)}</p>
+      </div>
+    );
+  }
+  return null;
 };
 
 export const ImageSection: FC<ImageSectionProps> = ({
@@ -284,6 +262,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   href,
   className,
   showActions = true,
+  showOnlyBookmark = false,
   showTooltips = true,
   maxLength,
   showHeader = true,
@@ -443,6 +422,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               onFeedItemClick={onFeedItemClick}
               bounties={showBountyInfo ? undefined : content.bounties}
               hideReportButton={hideReportButton}
+              showOnlyBookmark={showOnlyBookmark}
             />
           </div>
         )}
