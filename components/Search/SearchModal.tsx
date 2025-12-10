@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Search as SearchIcon, X, ArrowLeft } from 'lucide-react';
+import { Search as SearchIcon, X, ArrowLeft, ArrowRight } from 'lucide-react';
 import { SearchSuggestions } from './SearchSuggestions';
 import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { SearchSuggestion } from '@/types/search';
@@ -138,6 +138,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
       headerAction={headerAction}
       initialFocus={inputRef}
       showCloseButton={true}
+      className="md:!w-[600px] md:!min-h-[500px]"
     >
       {/* Search Input */}
       <div className="border-b border-gray-200 p-4">
@@ -188,7 +189,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
       </div>
 
       {/* Search Results */}
-      <div className="flex-1 overflow-y-auto md:!max-h-96 md:!flex-none">
+      <div className="flex-1 overflow-y-auto md:!max-h-96 md:!min-h-[300px] md:!flex-none">
         {query.trim() || suggestions.length > 0 ? (
           <SearchSuggestions
             query={query}
@@ -205,6 +206,24 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           </div>
         )}
       </div>
+
+      {/* Show All Results Button - appears when user has typed a search query */}
+      {query.trim().length >= 2 && !loading && (
+        <div className="border-t border-gray-200 py-4 bg-white">
+          <Button
+            variant="ghost"
+            className="w-full justify-center text-primary-700 hover:text-primary-900 hover:bg-gray-100"
+            onClick={() => {
+              navigatingToSearchRef.current = true;
+              router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+              onClose();
+            }}
+          >
+            <span>Show all results</span>
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+        </div>
+      )}
     </BaseModal>
   );
 }
