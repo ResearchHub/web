@@ -9,6 +9,7 @@ import { processOrcidCallback } from '@/components/Orcid/lib/services/orcid.serv
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import { Button } from '@/components/ui/Button';
 import { PageLayout } from '@/app/layouts/PageLayout';
+import { useUser } from '@/contexts/UserContext';
 import toast from 'react-hot-toast';
 
 type CallbackStatus = 'idle' | 'processing' | 'error';
@@ -16,6 +17,7 @@ type CallbackStatus = 'idle' | 'processing' | 'error';
 export default function OrcidCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { refreshUser } = useUser();
   const [status, setStatus] = useState<CallbackStatus>('idle');
   const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +41,7 @@ export default function OrcidCallbackPage() {
         const response = await processOrcidCallback(code, oauthState);
 
         if (response.success && response.authorId) {
+          await refreshUser();
           toast.success('ORCID account connected.');
           router.replace(`/author/${response.authorId}`);
         } else {

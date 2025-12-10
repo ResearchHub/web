@@ -293,7 +293,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
 
   const isOwnProfile =
     currentUser?.authorProfile?.id && user.authorProfile.id === currentUser.authorProfile.id;
-  const orcidConnected = user.authorProfile.orcidConnected ?? false;
+  const orcidConnected = currentUser?.authorProfile?.orcidConnected ?? false;
 
   return (
     <>
