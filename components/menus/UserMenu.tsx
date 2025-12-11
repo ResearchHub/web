@@ -1,9 +1,18 @@
 'use client';
 
-import { User as UserIcon, LogOut, BadgeCheck, Bell, Shield, UserPlus } from 'lucide-react';
+import {
+  User as UserIcon,
+  LogOut,
+  BadgeCheck,
+  Bell,
+  Shield,
+  UserPlus,
+  RefreshCw,
+} from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
+import { useSyncOrcid } from '@/components/Orcid/lib/hooks/useSyncOrcid';
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
 import VerificationBanner from '@/components/banners/VerificationBanner';
@@ -43,6 +52,8 @@ export default function UserMenu({
   const [isMobile, setIsMobile] = useState(false);
   const { openVerificationModal } = useVerification();
   const userListsEnabled = useUserListsEnabled();
+  const { sync: syncOrcid, isSyncing: isSyncingOrcid } = useSyncOrcid();
+  const orcidConnected = user.authorProfile?.orcidConnected ?? false;
   // Use controlled or uncontrolled menu state
   const menuOpenState = isMenuOpen !== undefined ? isMenuOpen : internalMenuOpen;
   const setMenuOpenState = (open: boolean) => {
@@ -218,6 +229,35 @@ export default function UserMenu({
               </div>
             </div>
           </Link>
+        )}
+
+        {orcidConnected && (
+          <div
+            className="px-6 py-2 hover:bg-gray-50 cursor-pointer"
+            onClick={() => {
+              syncOrcid();
+              setMenuOpenState(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                syncOrcid();
+                setMenuOpenState(false);
+              }
+            }}
+            tabIndex={0}
+            role="button"
+            aria-label="Sync Authorship"
+          >
+            <div className="flex items-center">
+              <RefreshCw
+                className={`h-5 w-5 mr-3 text-gray-500 ${isSyncingOrcid ? 'animate-spin' : ''}`}
+              />
+              <span className="text-base text-gray-700">
+                {isSyncingOrcid ? 'Syncing…' : 'Sync Authorship'}
+              </span>
+            </div>
+          </div>
         )}
 
         {!user.isVerified && (
@@ -409,6 +449,25 @@ export default function UserMenu({
                   </div>
                 </div>
               </Link>
+            )}
+
+            {orcidConnected && (
+              <BaseMenuItem
+                onClick={() => {
+                  syncOrcid();
+                  setMenuOpenState(false);
+                }}
+                className="w-full px-4 py-2"
+              >
+                <div className="flex items-center">
+                  <RefreshCw
+                    className={`h-4 w-4 mr-3 text-gray-500 ${isSyncingOrcid ? 'animate-spin' : ''}`}
+                  />
+                  <span className="text-sm text-gray-700">
+                    {isSyncingOrcid ? 'Syncing…' : 'Sync Authorship'}
+                  </span>
+                </div>
+              </BaseMenuItem>
             )}
 
             {!user.isVerified && (

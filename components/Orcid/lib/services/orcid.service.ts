@@ -30,3 +30,7 @@ export async function processOrcidCallback(
   });
   return transformOrcidCallbackResponse(response);
 }
+
+export async function syncOrcidAuthorship(): Promise<void> {
+  await ApiClient.post('/api/orcid/fetch/');
+}

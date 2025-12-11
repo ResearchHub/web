@@ -54,7 +54,7 @@ export default function OrcidCallbackPage() {
     };
 
     handleCallback();
-  }, [status, searchParams, router]);
+  }, [status, searchParams, router, refreshUser]);
 
   return (
     <PageLayout rightSidebar={false}>
