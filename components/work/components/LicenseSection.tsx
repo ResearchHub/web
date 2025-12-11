@@ -12,9 +12,11 @@ export const LicenseSection = ({ license }: LicenseSectionProps) => {
   const { icons, label, url, description } = parseLicense(license);
   const isMobile = useIsMobile();
 
-  if (icons.length === 0 || !url) {
+  if (!license) {
     return null;
   }
+
+  const isKnownLicense = icons.length > 0 && url;
 
   const tooltipContent =
     !isMobile && description ? (
@@ -70,7 +72,7 @@ export const LicenseSection = ({ license }: LicenseSectionProps) => {
           {label}
         </span>
         <a
-          href={url}
+          href={url!}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center hover:text-gray-600 transition-colors"
@@ -90,12 +92,16 @@ export const LicenseSection = ({ license }: LicenseSectionProps) => {
         <h2 className="text-base font-semibold text-gray-900">License</h2>
       </div>
       <div className="flex items-center space-x-2">
-        {isMobile ? (
-          badgeContent
+        {isKnownLicense ? (
+          isMobile ? (
+            badgeContent
+          ) : (
+            <Tooltip content={tooltipContent} position="top" width="w-72">
+              {badgeContent}
+            </Tooltip>
+          )
         ) : (
-          <Tooltip content={tooltipContent} position="top" width="w-72">
-            {badgeContent}
-          </Tooltip>
+          <span className="text-sm text-gray-600">{license}</span>
         )}
       </div>
     </section>
