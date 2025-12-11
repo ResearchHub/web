@@ -29,8 +29,8 @@ export const LicenseSection = ({ license }: LicenseSectionProps) => {
           <div>
             <div className="text-xs font-medium text-gray-700 mb-1">Allows:</div>
             <ul className="text-xs text-gray-600 space-y-0.5">
-              {description.allows.map((item, index) => (
-                <li key={index} className="flex items-start">
+              {description.allows.map((item) => (
+                <li key={item} className="flex items-start">
                   <span className="text-green-600 mr-1.5 flex-shrink-0">✓</span>
                   <span>{item}</span>
                 </li>
@@ -42,8 +42,8 @@ export const LicenseSection = ({ license }: LicenseSectionProps) => {
           <div>
             <div className="text-xs font-medium text-gray-700 mb-1">Disallows:</div>
             <ul className="text-xs text-gray-600 space-y-0.5">
-              {description.disallows.map((item, index) => (
-                <li key={index} className="flex items-start">
+              {description.disallows.map((item) => (
+                <li key={item} className="flex items-start">
                   <span className="text-red-600 mr-1.5 flex-shrink-0">✗</span>
                   <span>{item}</span>
                 </li>
@@ -59,7 +59,7 @@ export const LicenseSection = ({ license }: LicenseSectionProps) => {
       <div className="flex items-center px-2.5 py-1.5 gap-1">
         {icons.map((icon, index) => (
           <FontAwesomeIcon
-            key={index}
+            key={icon.iconName}
             icon={icon}
             className={`${index === 0 ? 'text-xl' : 'text-lg'} text-gray-800`}
           />
