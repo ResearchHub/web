@@ -17,15 +17,17 @@ export const JournalSection = ({ journal }: JournalSectionProps) => {
 
   const logo = getSourceLogo(journal.slug);
   const isRHJournal = logo === 'rhJournal2';
-  // Use formatted display name for preprint servers (e.g., "arxiv" -> "arXiv")
+  const slugLower = journal.slug.toLowerCase();
+  const isPreprintServer = ['arxiv', 'biorxiv', 'chemrxiv', 'medrxiv'].includes(slugLower);
   const displayName = logo ? getPreprintDisplayName(journal.slug) : journal.name;
   const href = isRHJournal ? '/journal' : `/topic/${journal.slug}`;
+  const sectionTitle = isPreprintServer ? 'Preprint Server' : 'Journal';
 
   return (
     <section>
       <div className="flex items-center space-x-2 mb-4">
         <BookOpen className="h-5 w-5 text-gray-500" />
-        <h2 className="text-base font-semibold text-gray-900">Journal</h2>
+        <h2 className="text-base font-semibold text-gray-900">{sectionTitle}</h2>
       </div>
       <Link href={href} className="inline-block">
         <Badge
