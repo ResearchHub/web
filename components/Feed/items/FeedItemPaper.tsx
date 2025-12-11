@@ -74,6 +74,8 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const shouldShowJournal = ALLOWED_JOURNALS.some((j) => journalSlugLower.includes(j));
   const filteredJournal = shouldShowJournal ? paper.journal : undefined;
 
+  const imageUrl = paper.previewImage || paper.journal?.imageUrl;
+
   return (
     <BaseFeedItem
       entry={entry}
@@ -186,10 +188,10 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
           </>
         }
         rightContent={
-          paper.journal?.imageUrl && (
+          imageUrl && (
             <ImageSection
-              imageUrl={paper.journal.imageUrl}
-              alt={paper.journal.name || 'Journal cover'}
+              imageUrl={imageUrl}
+              alt={paper.title || 'Paper image'}
               aspectRatio="4/3"
             />
           )
