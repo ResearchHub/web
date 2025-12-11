@@ -68,21 +68,19 @@ export const LicenseSection = ({ license }: LicenseSectionProps) => {
           />
         ))}
       </div>
-      <div className="px-3 py-1.5 flex items-center gap-2 border-l border-gray-200">
+      <Link
+        href={url!}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="px-3 py-1.5 flex items-center gap-2 border-l border-gray-200 cursor-pointer hover:text-gray-600 transition-colors"
+        aria-label={`View ${description?.title || 'Creative Commons license'} details`}
+        onClick={(e) => e.stopPropagation()}
+      >
         <span className="text-gray-800 text-xs font-semibold uppercase tracking-wide whitespace-nowrap">
           {label}
         </span>
-        <Link
-          href={url!}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center hover:text-gray-600 transition-colors"
-          aria-label={`View ${description?.title || 'Creative Commons license'} details`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0" />
-        </Link>
-      </div>
+        <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0" />
+      </Link>
     </div>
   );
 
