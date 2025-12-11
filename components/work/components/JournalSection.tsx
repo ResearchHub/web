@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Badge } from '@/components/ui/Badge';
 import { getSourceLogo, getPreprintDisplayName } from '@/utils/preprintUtil';
+import { SOURCES } from '@/components/Feed/filters/constants';
 import type { Journal } from '@/types/journal';
 
 interface JournalSectionProps {
@@ -17,8 +18,7 @@ export const JournalSection = ({ journal }: JournalSectionProps) => {
 
   const logo = getSourceLogo(journal.slug);
   const isRHJournal = logo === 'rhJournal2';
-  const slugLower = journal.slug.toLowerCase();
-  const isPreprintServer = ['arxiv', 'biorxiv', 'chemrxiv', 'medrxiv'].includes(slugLower);
+  const isPreprintServer = SOURCES.some((s) => s.value === journal.slug.toLowerCase());
   const displayName = logo ? getPreprintDisplayName(journal.slug) : journal.name;
   const href = isRHJournal ? '/journal' : `/topic/${journal.slug}`;
   const sectionTitle = isPreprintServer ? 'Preprint Server' : 'Journal';
