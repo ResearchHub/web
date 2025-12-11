@@ -1,5 +1,6 @@
 import { Scale, ExternalLink } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import Link from 'next/link';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { parseLicense } from '../lib/creativeCommonsUtils';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -71,7 +72,7 @@ export const LicenseSection = ({ license }: LicenseSectionProps) => {
         <span className="text-gray-800 text-xs font-semibold uppercase tracking-wide whitespace-nowrap">
           {label}
         </span>
-        <a
+        <Link
           href={url!}
           target="_blank"
           rel="noopener noreferrer"
@@ -80,7 +81,7 @@ export const LicenseSection = ({ license }: LicenseSectionProps) => {
           onClick={(e) => e.stopPropagation()}
         >
           <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0" />
-        </a>
+        </Link>
       </div>
     </div>
   );
