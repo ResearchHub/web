@@ -85,14 +85,16 @@ export const LicenseSection = ({ license }: LicenseSectionProps) => {
     </div>
   );
 
+  const badgeWithTooltip = isMobile ? (
+    badgeContent
+  ) : (
+    <Tooltip content={tooltipContent} position="top" width="w-72">
+      {badgeContent}
+    </Tooltip>
+  );
+
   const licenseBadge = isKnownLicense ? (
-    isMobile ? (
-      badgeContent
-    ) : (
-      <Tooltip content={tooltipContent} position="top" width="w-72">
-        {badgeContent}
-      </Tooltip>
-    )
+    badgeWithTooltip
   ) : (
     <span className="text-sm text-gray-600">{license}</span>
   );
