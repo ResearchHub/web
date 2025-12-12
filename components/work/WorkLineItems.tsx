@@ -37,7 +37,6 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useCompleteFundraise } from '@/hooks/useFundraise';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
-import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
 import { useAddToList } from '@/components/UserList/lib/UserListsContext';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
@@ -78,7 +77,6 @@ export const WorkLineItems = ({
   const { user } = useUser();
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
   const { showShareModal } = useShareModalContext();
-  const userListsEnabled = useUserListsEnabled();
   const { isInList, listIdsContainingDocument } = useIsInList(work.unifiedDocumentId);
   const { isTogglingDefaultList, handleAddToList } = useAddToList({
     unifiedDocumentId: work.unifiedDocumentId,
@@ -336,7 +334,7 @@ export const WorkLineItems = ({
             <span>{voteCount}</span>
           </button>
 
-          {userListsEnabled && work.unifiedDocumentId && work.postType !== 'QUESTION' && (
+          {work.unifiedDocumentId && work.postType !== 'QUESTION' && (
             <Button
               variant="ghost"
               onClick={handleAddToList}
@@ -526,7 +524,7 @@ export const WorkLineItems = ({
         onTipSuccess={handleTipSuccess}
       />
 
-      {userListsEnabled && work.unifiedDocumentId && (
+      {work.unifiedDocumentId && (
         <AddToListModal
           isOpen={isAddToListModalOpen}
           onClose={() => setIsAddToListModalOpen(false)}

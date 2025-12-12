@@ -28,7 +28,6 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { cn } from '@/utils/styles';
 import { getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import { Topic } from '@/types/topic';
-import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { BountyTooltip } from '@/components/tooltips/BountyTooltip';
 import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
@@ -210,7 +209,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
-  const userListsEnabled = useUserListsEnabled();
   const isTouchDevice = useIsTouchDevice();
   // State for dropdown menu
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -614,7 +612,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         />
       )}
 
-      {userListsEnabled && relatedDocumentUnifiedDocumentId && isAddToListModalOpen && (
+      {relatedDocumentUnifiedDocumentId && isAddToListModalOpen && (
         <AddToListModal
           isOpen={isAddToListModalOpen}
           onClose={handleCloseAddToListModal}
