@@ -14,23 +14,23 @@ export function useDismissableFeature(featureName: string): {
   const { user, isLoading: isUserLoading } = useUser();
   const { getFeatureStatus, setFeatureStatus } = useDismissedFeaturesContext();
 
-  // Get cached status (checks in-memory cache, then localStorage)
+  // Get cached status (checks in-memory cache pre-populated from localStorage)
   const cachedStatus = getFeatureStatus(featureName);
 
-  // Determine initial state synchronously:
-  // - If cached (from context or localStorage): use cached value, status = 'checked'
-  // - If not cached but user is loading: status = 'unchecked' (wait for user)
-  // - If not cached and no user (logged out): not dismissed, status = 'checked'
-  // - If not cached and has user (logged in): status = 'unchecked' (need API check)
-  const getInitialStatus = (): DismissStatus => {
+  // Initialize state with lazy initializers to avoid closure issues
+  const [isDismissed, setIsDismissed] = useState<boolean>(() => cachedStatus?.isDismissed ?? false);
+
+  const [status, setStatus] = useState<DismissStatus>(() => {
+    // Determine initial state synchronously:
+    // - If cached: use cached value, status = 'checked'
+    // - If not cached but user is loading: status = 'unchecked' (wait for user)
+    // - If not cached and no user (logged out): not dismissed, status = 'checked'
+    // - If not cached and has user (logged in): status = 'unchecked' (need API check)
     if (cachedStatus) return 'checked';
     if (isUserLoading) return 'unchecked';
-    if (!user) return 'checked'; // Logged out, localStorage already checked
-    return 'unchecked'; // Logged in, need API check
-  };
-
-  const [isDismissed, setIsDismissed] = useState<boolean>(cachedStatus?.isDismissed ?? false);
-  const [status, setStatus] = useState<DismissStatus>(getInitialStatus);
+    if (!user) return 'checked';
+    return 'unchecked';
+  });
 
   // Dismiss handler - updates context (which handles localStorage) + backend
   const dismissFeature = useCallback(() => {
@@ -49,10 +49,9 @@ export function useDismissableFeature(featureName: string): {
   }, [featureName, user?.id, setFeatureStatus]);
 
   useEffect(() => {
-    // If already in context cache, sync state and return
-    const cached = getFeatureStatus(featureName);
-    if (cached) {
-      setIsDismissed(cached.isDismissed);
+    // If already in cache (pre-populated from localStorage), sync state and return
+    if (cachedStatus) {
+      setIsDismissed(cachedStatus.isDismissed);
       setStatus('checked');
       return;
     }
@@ -62,34 +61,29 @@ export function useDismissableFeature(featureName: string): {
       return;
     }
 
-    // For logged-out users, we've already checked localStorage via getFeatureStatus
-    // Cache the result and mark as checked
+    // For logged-out users, cache as not dismissed and mark as checked
     if (!user) {
       setFeatureStatus(featureName, false);
       setStatus('checked');
       return;
     }
 
-    // For logged-in users, check backend API (only if not already checking)
-    if (status === 'checking') {
-      return;
-    }
-
+    // For logged-in users, check backend API
     setStatus('checking');
 
     SiteService.getFeatureStatus(featureName)
       .then((res) => {
         setIsDismissed(res.clicked);
         setFeatureStatus(featureName, res.clicked);
+        setStatus('checked');
       })
       .catch((error) => {
         console.error(`Failed to get status for feature ${featureName}:`, error);
         setFeatureStatus(featureName, false);
-      })
-      .finally(() => {
+        setIsDismissed(false);
         setStatus('checked');
       });
-  }, [isUserLoading, user, featureName, status, getFeatureStatus, setFeatureStatus]);
+  }, [isUserLoading, user, featureName, cachedStatus, setFeatureStatus]);
 
   return {
     isDismissed,
@@ -159,12 +153,13 @@ export function useDismissableFeatures(featureNames: string[]): {
       const featureNamesList = memoizedFeatureNames.split(',').filter(Boolean);
       const featuresToCheckBackend: string[] = [];
 
-      // Initialize features from context/localStorage
+      // Initialize features from cache (pre-populated from localStorage)
       const initialFeatures: Record<
         string,
         { isDismissed: boolean; dismissStatus: DismissStatus }
       > = {};
 
+      // Batch context reads
       featureNamesList.forEach((featureName) => {
         const cached = getFeatureStatus(featureName);
         if (cached) {
@@ -200,7 +195,7 @@ export function useDismissableFeatures(featureNames: string[]): {
 
           const backendResults = await Promise.all(backendPromises);
 
-          // Update features with backend results
+          // Batch update features and context
           setFeatures((prev) => {
             const updated = { ...prev };
             backendResults.forEach(({ featureName, clicked }) => {
@@ -208,35 +203,47 @@ export function useDismissableFeatures(featureNames: string[]): {
                 isDismissed: clicked,
                 dismissStatus: 'checked',
               };
-              // Update context (which handles localStorage)
-              setFeatureStatus(featureName, clicked);
             });
             return updated;
+          });
+
+          // Batch context updates outside of state update
+          backendResults.forEach(({ featureName, clicked }) => {
+            setFeatureStatus(featureName, clicked);
           });
         } catch (error) {
           console.error('Failed to load features from backend:', error);
         }
       } else {
-        // Mark unchecked features as checked with not dismissed
-        setFeatures((prev) => {
-          const updated = { ...prev };
-          featureNamesList.forEach((featureName) => {
-            if (updated[featureName]?.dismissStatus === 'unchecked') {
+        // For logged-out users, mark unchecked features as checked with not dismissed
+        const featuresToCache = featureNamesList.filter(
+          (name) => initialFeatures[name]?.dismissStatus === 'unchecked'
+        );
+
+        if (featuresToCache.length > 0) {
+          setFeatures((prev) => {
+            const updated = { ...prev };
+            featuresToCache.forEach((featureName) => {
               updated[featureName] = {
                 isDismissed: false,
                 dismissStatus: 'checked',
               };
-              setFeatureStatus(featureName, false);
-            }
+            });
+            return updated;
           });
-          return updated;
-        });
+
+          // Batch context updates outside of state update
+          featuresToCache.forEach((featureName) => {
+            setFeatureStatus(featureName, false);
+          });
+        }
       }
 
       setIsLoading(false);
     };
 
     loadFeatures();
+    // getFeatureStatus and setFeatureStatus are stable from context
   }, [userLoading, user, memoizedFeatureNames, getFeatureStatus, setFeatureStatus]);
 
   const featuresWithMethods = Object.keys(features).reduce(

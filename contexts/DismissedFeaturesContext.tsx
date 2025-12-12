@@ -1,6 +1,13 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useLayoutEffect,
+  ReactNode,
+} from 'react';
 
 interface CachedFeatureStatus {
   isDismissed: boolean;
@@ -9,8 +16,9 @@ interface CachedFeatureStatus {
 
 interface DismissedFeaturesContextValue {
   /**
-   * Get feature status - checks in-memory cache first, then localStorage.
-   * Returns undefined if not found in either.
+   * Get feature status - checks in-memory cache only.
+   * Cache is pre-populated from localStorage on mount via useLayoutEffect.
+   * Returns undefined if not found in cache.
    */
   getFeatureStatus: (featureName: string) => CachedFeatureStatus | undefined;
   /**
@@ -34,37 +42,41 @@ interface DismissedFeaturesProviderProps {
 export function DismissedFeaturesProvider({ children }: DismissedFeaturesProviderProps) {
   const [cache, setCache] = useState<Record<string, CachedFeatureStatus>>({});
 
+  // Pre-populate cache from localStorage before first render
+  useLayoutEffect(() => {
+    if (typeof window !== 'undefined') {
+      const initialCache: Record<string, CachedFeatureStatus> = {};
+
+      try {
+        // Scan localStorage for all feature_*_dismissed keys
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key?.startsWith('feature_') && key.endsWith('_dismissed')) {
+            const value = localStorage.getItem(key);
+            if (value === 'true') {
+              // Extract feature name from key: feature_<name>_dismissed -> <name>
+              const featureName = key.slice(8, -10); // Remove 'feature_' and '_dismissed'
+              initialCache[featureName] = {
+                isDismissed: true,
+                checkedAt: Date.now(),
+              };
+            }
+          }
+        }
+
+        if (Object.keys(initialCache).length > 0) {
+          setCache(initialCache);
+        }
+      } catch (error) {
+        console.error('Failed to pre-populate cache from localStorage:', error);
+      }
+    }
+  }, []); // Run once on mount
+
+  // Simplified to pure cache read - no localStorage access during render
   const getFeatureStatus = useCallback(
     (featureName: string): CachedFeatureStatus | undefined => {
-      // 1. Check in-memory cache first (fastest)
-      if (cache[featureName]) {
-        return cache[featureName];
-      }
-
-      // 2. Check localStorage and cache the result
-      if (typeof window !== 'undefined') {
-        try {
-          const localStorageValue = window.localStorage.getItem(getLocalStorageKey(featureName));
-          if (localStorageValue === 'true') {
-            // Found in localStorage - cache it and return
-            const status: CachedFeatureStatus = {
-              isDismissed: true,
-              checkedAt: Date.now(),
-            };
-            // Update cache (side effect, but safe for this use case)
-            setCache((prev) => ({
-              ...prev,
-              [featureName]: status,
-            }));
-            return status;
-          }
-        } catch (error) {
-          console.error('Failed to read from localStorage:', error);
-        }
-      }
-
-      // 3. Not found in cache or localStorage
-      return undefined;
+      return cache[featureName];
     },
     [cache]
   );
