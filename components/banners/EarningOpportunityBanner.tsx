@@ -1,14 +1,16 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
-import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
-import { calculateOpenBountiesAmount } from '@/components/Bounty/lib/bountyUtil';
+import { getOpenBounties, getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import { buildWorkUrl } from '@/utils/url';
 import { useRouter } from 'next/navigation';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
+import { DollarSign } from 'lucide-react';
 
 interface EarningOpportunityBannerProps {
   work: Work;
@@ -22,12 +24,23 @@ export const EarningOpportunityBanner = ({
   onViewBounties,
 }: EarningOpportunityBannerProps) => {
   const { showUSD } = useCurrencyPreference();
+  const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
   const router = useRouter();
 
   // Don't show banner if no open bounties
   if (!metadata.bounties || metadata.openBounties === 0) {
     return null;
   }
+
+  // Calculate display amount (handles Foundation bounties with flat $150 USD)
+  const openBounties = useMemo(() => getOpenBounties(metadata.bounties || []), [metadata.bounties]);
+  const { amount: displayAmount } = useMemo(
+    () => getTotalBountyDisplayAmount(openBounties, exchangeRate, showUSD),
+    [openBounties, exchangeRate, showUSD]
+  );
+
+  // Check if we can display the bounty amount (exchange rate loaded if USD preferred)
+  const canDisplayAmount = !showUSD || (showUSD && !isExchangeRateLoading && exchangeRate > 0);
 
   const handleViewBounties = () => {
     if (onViewBounties) {
@@ -44,56 +57,96 @@ export const EarningOpportunityBanner = ({
   };
 
   return (
-    <div className="mb-6">
-      <div
-        className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-shadow duration-200"
-        role="banner"
-        aria-label="Earning opportunity banner"
-      >
-        <div className="p-4">
-          <div className="flex flex-col min-[650px]:!flex-row gap-4 min-[650px]:!items-center min-[650px]:!justify-between">
-            <div className="flex items-start gap-3 min-[650px]:!flex-1">
-              <div className="bg-orange-100/70 p-2.5 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Icon name="solidEarn" size={24} color="#f68401" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-sm font-medium text-orange-700">
-                  <span className="flex flex-wrap items-baseline gap-x-1">
-                    <CurrencyBadge
-                      amount={calculateOpenBountiesAmount(metadata.bounties)}
-                      variant="text"
-                      size="sm"
-                      currency={showUSD ? 'USD' : 'RSC'}
-                      showExchangeRate={false}
-                      showText={true}
-                      showIcon={showUSD}
-                      textColor="text-orange-700"
-                      className="font-medium p-0 text-sm inline-flex"
-                    />
-                    <span className="whitespace-nowrap">earning opportunity</span>
-                  </span>
-                </h2>
-                <p className="mt-1 text-sm text-orange-600">
-                  Earn ResearchCoin by completing{' '}
-                  <span className="whitespace-nowrap">bounties on this paper.</span>
-                </p>
-              </div>
-            </div>
-            <Button
-              onClick={handleViewBounties}
-              size="default"
-              className="bg-orange-400 hover:bg-orange-500 text-white focus-visible:ring-orange-400 whitespace-nowrap group w-full min-[650px]:!w-auto flex-shrink-0"
-              aria-label={`View ${metadata.openBounties} available ${metadata.openBounties === 1 ? 'bounty' : 'bounties'}`}
-            >
-              View Bounties
-              <span
-                className="inline-block transition-transform group-hover:translate-x-1 ml-1"
-                aria-hidden="true"
-              >
-                →
+    <div
+      className="bg-gradient-to-br bg-yellow-50 rounded-xl border border-orange-200/60 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group"
+      role="banner"
+      aria-label="Earning opportunity banner"
+      onClick={handleViewBounties}
+    >
+      <div className="p-3 tablet:!p-4">
+        {/* Mobile layout - compact single row */}
+        <div className="flex tablet:!hidden items-center justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-sm font-semibold text-orange-600">Earn</span>
+              {canDisplayAmount && (
+                <>
+                  <DollarSign className="w-3.5 h-3.5 text-orange-600 -mr-[5px]" strokeWidth={2.5} />
+                  <CurrencyBadge
+                    amount={displayAmount}
+                    variant="text"
+                    size="sm"
+                    currency={showUSD ? 'USD' : 'RSC'}
+                    showExchangeRate={false}
+                    showText={true}
+                    showIcon={false}
+                    textColor="text-orange-600"
+                    fontWeight="font-semibold"
+                    className="p-0 text-sm inline-flex"
+                    skipConversion={showUSD}
+                  />
+                </>
+              )}
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap bg-orange-100 text-orange-700">
+                Peer Review
               </span>
-            </Button>
+            </div>
           </div>
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewBounties();
+            }}
+            size="sm"
+            className="flex-shrink-0 bg-orange-500 hover:bg-orange-600 text-white font-medium shadow-sm group-hover:shadow transition-all duration-200 text-xs px-3"
+            aria-label={`View ${metadata.openBounties} available ${metadata.openBounties === 1 ? 'bounty' : 'bounties'}`}
+          >
+            View
+          </Button>
+        </div>
+
+        {/* Tablet+ layout - stacked with full-width button */}
+        <div className="hidden tablet:!block">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1 flex-wrap">
+              <span className="text-base font-semibold text-orange-600">Earn</span>
+              {canDisplayAmount && (
+                <>
+                  <DollarSign className="w-4 h-4 text-orange-600 -mr-[6px]" strokeWidth={2.5} />
+                  <CurrencyBadge
+                    amount={displayAmount}
+                    variant="text"
+                    size="sm"
+                    currency={showUSD ? 'USD' : 'RSC'}
+                    showExchangeRate={false}
+                    showText={true}
+                    showIcon={false}
+                    textColor="text-orange-600"
+                    fontWeight="font-semibold"
+                    className="p-0 text-base inline-flex"
+                    skipConversion={showUSD}
+                  />
+                </>
+              )}
+            </div>
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap bg-orange-100 text-orange-700">
+              Peer Review
+            </span>
+          </div>
+          <p className="mt-1.5 text-sm text-orange-600/80 leading-snug">
+            Submit a peer review to earn ResearchCoin.
+          </p>
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewBounties();
+            }}
+            size="sm"
+            className="w-full mt-3 bg-orange-500 hover:bg-orange-600 text-white font-medium shadow-sm group-hover:shadow transition-all duration-200"
+            aria-label={`View ${metadata.openBounties} available ${metadata.openBounties === 1 ? 'bounty' : 'bounties'}`}
+          >
+            View Bounties
+          </Button>
         </div>
       </div>
     </div>

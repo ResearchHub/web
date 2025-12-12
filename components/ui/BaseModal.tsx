@@ -74,13 +74,28 @@ export const BaseModal: FC<BaseModalProps> = ({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/15" />
+          <div
+            className="fixed inset-0 bg-black/15"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          />
         </Transition.Child>
 
         {/* Modal Container */}
-        <div className="fixed inset-0 overflow-y-auto">
+        <div
+          className="fixed inset-0 overflow-y-auto"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
           {/* Centering Flex Container - Apply padding on md screens and up */}
-          <div className="flex min-h-full items-center justify-center p-0 md:!p-4 text-center">
+          <div
+            className="flex min-h-full items-center justify-center p-0 md:!p-4 text-center"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -101,13 +116,16 @@ export const BaseModal: FC<BaseModalProps> = ({
                   // No rounded corners on mobile, rounded on md+ (unless full screen)
                   isFullScreen ? '' : 'md:!rounded-2xl',
                   // Only apply max width on md and up (unless full screen)
-                  isFullScreen ? '' : `md:${maxWidth}`,
+                  isFullScreen ? '' : `${maxWidth}`,
                   // Custom className overrides
                   className
                 )}
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
                 }}
               >
                 {(showCloseButton || title) && (

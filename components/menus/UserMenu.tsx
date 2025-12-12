@@ -2,7 +2,7 @@
 
 import { User as UserIcon, LogOut, BadgeCheck, Bell, Shield, UserPlus } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark } from '@fortawesome/pro-light-svg-icons';
+import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
@@ -17,7 +17,6 @@ import { AuthSharingService } from '@/services/auth-sharing.service';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { Button } from '@/components/ui/Button';
 import { useVerification } from '@/contexts/VerificationContext';
-import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
 
 interface UserMenuProps {
   user: User;
@@ -42,7 +41,6 @@ export default function UserMenu({
   const [internalMenuOpen, setInternalMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { openVerificationModal } = useVerification();
-  const userListsEnabled = useUserListsEnabled();
   // Use controlled or uncontrolled menu state
   const menuOpenState = isMenuOpen !== undefined ? isMenuOpen : internalMenuOpen;
   const setMenuOpenState = (open: boolean) => {
@@ -113,26 +111,26 @@ export default function UserMenu({
             showProfileCompletion
             profileCompletionPercent={percent}
           />
-          <div className="ml-3">
-            <p className="text-base font-medium text-gray-900 flex items-center gap-1">
+          <div className="ml-3 flex-1">
+            <p className="text-base font-medium text-gray-900 flex items-center gap-1 leading-tight">
               {user.authorProfile?.fullName ?? user.fullName}
               {user.isVerified && <VerifiedBadge size="sm" />}
-              <Button
-                onClick={() => {
-                  navigateToAuthorProfile(user.authorProfile?.id, false);
-                  setMenuOpenState(false);
-                }}
-                className="ml-1 p-1 rounded hover:bg-gray-100 transition"
-                title="Edit Profile"
-                variant="ghost"
-                size="icon"
-              >
-                <FontAwesomeIcon icon={faPen} className="h-4 w-4 text-gray-500" />
-              </Button>
             </p>
-            <p className="text-lg text-gray-500">{user.email}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
           </div>
         </div>
+        <Button
+          onClick={() => {
+            navigateToAuthorProfile(user.authorProfile?.id, false);
+            setMenuOpenState(false);
+          }}
+          variant="outlined"
+          size="sm"
+          className="w-full mt-3"
+        >
+          <FontAwesomeIcon icon={faPen} className="h-3 w-3 mr-2" />
+          Edit Profile
+        </Button>
       </div>
 
       {/* Menu items */}
@@ -209,16 +207,14 @@ export default function UserMenu({
           </Link>
         )}
 
-        {userListsEnabled && (
-          <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
-            <div className="px-6 py-2 hover:bg-gray-50">
-              <div className="flex items-center">
-                <FontAwesomeIcon icon={faBookmark} className="h-5 w-5 mr-3 text-gray-500" />
-                <span className="text-base text-gray-700">Your Lists</span>
-              </div>
+        <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
+          <div className="px-6 py-2 hover:bg-gray-50">
+            <div className="flex items-center">
+              <FontAwesomeIcon icon={faBookmark} className="h-5 w-5 mr-3 text-gray-500" />
+              <span className="text-base text-gray-700">Your Lists</span>
             </div>
-          </Link>
-        )}
+          </div>
+        </Link>
 
         {!user.isVerified && (
           <div
@@ -313,26 +309,26 @@ export default function UserMenu({
                 showProfileCompletion
                 profileCompletionPercent={percent}
               />
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
+              <div className="ml-3 flex-1">
+                <p className="text-sm font-medium text-gray-900 flex items-center gap-1 leading-tight">
                   {user.authorProfile?.fullName ?? user.fullName}
                   {user.isVerified && <VerifiedBadge size="sm" />}
-                  <Button
-                    onClick={() => {
-                      navigateToAuthorProfile(user.authorProfile?.id, false);
-                      setMenuOpenState(false);
-                    }}
-                    className="ml-1 p-1 rounded hover:bg-gray-100 transition max-h-6"
-                    title="Edit Profile"
-                    variant="ghost"
-                    size="sm"
-                  >
-                    <FontAwesomeIcon icon={faPen} className="h-4 w-4 text-gray-500" />
-                  </Button>
                 </p>
-                <p className="text-xs text-gray-500">{user.email}</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">{user.email}</p>
               </div>
             </div>
+            <Button
+              onClick={() => {
+                navigateToAuthorProfile(user.authorProfile?.id, false);
+                setMenuOpenState(false);
+              }}
+              variant="outlined"
+              size="sm"
+              className="w-full mt-3"
+            >
+              <FontAwesomeIcon icon={faPen} className="h-3 w-3 mr-2" />
+              Edit Profile
+            </Button>
           </div>
 
           {/* Menu items */}
@@ -400,16 +396,14 @@ export default function UserMenu({
               </Link>
             )}
 
-            {userListsEnabled && (
-              <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
-                <div className="w-full px-4 py-2 hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <FontAwesomeIcon icon={faBookmark} className="h-4 w-4 mr-3 text-gray-500" />
-                    <span className="text-sm text-gray-700">Your Lists</span>
-                  </div>
+            <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
+              <div className="w-full px-4 py-2 hover:bg-gray-50">
+                <div className="flex items-center">
+                  <FontAwesomeIcon icon={faBookmark} className="h-4 w-4 mr-3 text-gray-500" />
+                  <span className="text-sm text-gray-700">Your Lists</span>
                 </div>
-              </Link>
-            )}
+              </div>
+            </Link>
 
             {!user.isVerified && (
               <BaseMenuItem onClick={openVerificationModal} className="w-full px-4 py-2">

@@ -1,7 +1,7 @@
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { ContentMetrics } from './metrics';
 import { Journal } from './journal';
-import { Topic } from './topic';
+import { Topic, transformTopic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
 import { Hub } from './hub';
 import { NoteWithContent, transformNoteWithContent } from './note';
@@ -81,6 +81,8 @@ export interface Work {
   abstract: string;
   doi?: string;
   journal?: Journal;
+  category?: Topic;
+  subcategory?: Topic;
   topics: Topic[];
   formats: FormatType[];
   license?: string;
@@ -132,7 +134,7 @@ export const transformJournal = (raw: any): TransformedJournal | undefined => {
     return createTransformer<any, Journal>((raw) => ({
       id: raw.external_source_id || 0,
       name: raw.external_source || '',
-      slug: raw.external_source_slug || '',
+      slug: raw.external_source_slug || raw.external_source?.toLowerCase() || '',
       imageUrl: raw.external_source_image || '',
     }))(raw);
   }
@@ -142,7 +144,7 @@ export const transformJournal = (raw: any): TransformedJournal | undefined => {
     return createTransformer<any, Journal>((raw) => ({
       id: raw.journal.id || 0,
       name: raw.journal.name || '',
-      slug: raw.journal.slug || '',
+      slug: raw.journal.slug || raw.journal.name?.toLowerCase() || '',
       imageUrl: raw.journal.image || '',
     }))(raw);
   }
@@ -278,4 +280,7 @@ export const transformPost = createTransformer<any, Work>((raw) => ({
 export const transformPaper = createTransformer<any, Work>((raw) => ({
   ...transformWork(raw),
   contentType: 'paper',
+  journal: transformJournal(raw),
+  category: raw.category ? transformTopic(raw.category) : undefined,
+  subcategory: raw.subcategory ? transformTopic(raw.subcategory) : undefined,
 }));

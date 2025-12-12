@@ -32,6 +32,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     isLoadingMore,
     error,
     hasMore,
+    count,
     loadMore,
     stagedFilters,
     sortBy,
@@ -97,8 +98,15 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
     </div>
   );
 
-  const sortControls = query.trim() && (
-    <div className="flex justify-end">
+  const resultsHeader = query.trim() && (
+    <div className="flex justify-between items-center mb-4">
+      <div className="text-sm text-gray-600 min-w-0">
+        {!isLoading && count > 0 ? (
+          <>{`${count.toLocaleString()} ${count === 1 ? 'result found.' : 'results found.'}`}</>
+        ) : (
+          <span className="invisible">No results found.</span>
+        )}
+      </div>
       <SearchSortControls sortBy={sortBy} onSortChange={setSortBy} activeTab="documents" />
     </div>
   );
@@ -145,7 +153,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
         <div className="flex gap-6">
           {/* Main content */}
           <div className="flex-1 min-w-0">
-            {sortControls && <div className="mb-4">{sortControls}</div>}
+            {resultsHeader}
 
             {/* Use FeedContent for consistent rendering and infinite scroll */}
             {hasSearched && (

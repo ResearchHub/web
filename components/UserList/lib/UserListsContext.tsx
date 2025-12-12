@@ -1,17 +1,58 @@
 'use client';
 
-import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import { createContext, useContext, ReactNode, useState, useEffect, FC } from 'react';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import {
   UserList,
   CreateListRequest,
   UpdateListRequest,
   UserListOverview,
+  DEFAULT_LIST_NAME,
 } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
-import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
 import { useUser } from '@/contexts/UserContext';
 import { ID } from '@/types/root';
+import { Button } from '@/components/ui/Button';
+
+interface AddToListToastProps {
+  toastId: string;
+  onAddToListClick: () => void;
+}
+
+export const AddToListToast: FC<AddToListToastProps> = ({ toastId, onAddToListClick }) => (
+  <div className="flex items-center gap-3">
+    <span>Added to {DEFAULT_LIST_NAME}</span>
+    <Button
+      variant="link"
+      onClick={() => {
+        toast.dismiss(toastId);
+        onAddToListClick();
+      }}
+      className="!p-0 !h-auto !text-base text-blue-600 hover:text-blue-700 hover:no-underline font-medium"
+    >
+      Manage
+    </Button>
+  </div>
+);
+
+export interface ListItemChange {
+  listId: ID;
+  documentId: ID;
+  at: number;
+}
+
+interface AddToDefaultListResult {
+  listItemId: ID;
+  listId: ID;
+}
+
+export interface ListItemChange {
+  listId: ID;
+  documentId: ID;
+  at: number;
+}
 
 interface UserListsContextType {
   lists: UserList[];
@@ -26,6 +67,9 @@ interface UserListsContextType {
   deleteList: (id: ID, shouldRefreshLists?: boolean) => Promise<void>;
   addDocumentToList: (id: ID, unifiedDocumentId: ID, listItemId: ID) => void;
   removeDocumentFromList: (id: ID, unifiedDocumentId: ID) => void;
+  addToDefaultList: (unifiedDocumentId: ID) => Promise<AddToDefaultListResult>;
+  lastAddedItem: ListItemChange | null;
+  lastRemovedItem: ListItemChange | null;
   overviewLists: UserListOverview[];
   isLoadingOverview: boolean;
   refetchOverview: () => Promise<void>;
@@ -37,6 +81,8 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   const { user } = useUser();
   const [overviewLists, setOverviewLists] = useState<UserListOverview[]>([]);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
+  const [lastAddedItem, setLastAddedItem] = useState<ListItemChange | null>(null);
+  const [lastRemovedItem, setLastRemovedItem] = useState<ListItemChange | null>(null);
   const [lists, setLists] = useState<UserList[]>([]);
   const [isLoadingLists, setIsLoadingLists] = useState(true);
   const [isLoadingMoreLists, setIsLoadingMoreLists] = useState(false);
@@ -142,64 +188,85 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
   const deleteList = async (id: ID, shouldRefreshLists = true): Promise<void> => {
     await executeListActionWithToast(
       () => ListService.deleteListApi(id),
-      'List deleted',
-      'Failed to delete list',
+      'List removed',
+      'Failed to removed list',
       shouldRefreshLists
     );
   };
 
+  const updateListAndSort = (listsToUpdate: UserList[], listId: ID, updates: Partial<UserList>) =>
+    listsToUpdate
+      .map((list) =>
+        idMatch(list.id, listId)
+          ? { ...list, ...updates, updatedDate: new Date().toISOString() }
+          : list
+      )
+      .sort((a, b) => new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime());
+
   const incrementItemCount = (listId: ID) => {
-    setLists((lists) =>
-      lists.map((list) => {
-        if (list.id !== listId) return list;
-        return {
-          ...list,
-          itemCount: list.itemCount + 1,
-        };
-      })
-    );
+    setLists((lists) => {
+      const list = lists.find((l) => idMatch(l.id, listId));
+      return updateListAndSort(lists, listId, { itemCount: (list?.itemCount ?? 0) + 1 });
+    });
   };
 
   const decrementItemCount = (listId: ID) => {
-    setLists((lists) =>
-      lists.map((list) => {
-        if (list.id !== listId) return list;
-        return {
-          ...list,
-          itemCount: Math.max(list.itemCount - 1, 0),
-        };
-      })
-    );
+    setLists((lists) => {
+      const list = lists.find((l) => idMatch(l.id, listId));
+      return updateListAndSort(lists, listId, {
+        itemCount: Math.max((list?.itemCount ?? 0) - 1, 0),
+      });
+    });
   };
 
   const addDocumentToList = (id: ID, unifiedDocumentId: ID, listItemId: ID) => {
     setOverviewLists((lists) =>
-      lists.map((list) => {
-        if (list.id !== id) return list;
-        return {
-          ...list,
-          unifiedDocuments: [...(list.unifiedDocuments || []), { unifiedDocumentId, listItemId }],
-        };
-      })
+      lists.map((list) =>
+        idMatch(list.id, id)
+          ? {
+              ...list,
+              unifiedDocuments: [
+                ...(list.unifiedDocuments || []),
+                { unifiedDocumentId, listItemId },
+              ],
+            }
+          : list
+      )
     );
+    setLastAddedItem({ listId: id, documentId: unifiedDocumentId, at: Date.now() });
     incrementItemCount(id);
   };
 
   const removeDocumentFromList = (id: ID, unifiedDocumentId: ID) => {
     setOverviewLists((lists) =>
-      lists.map((list) => {
-        if (list.id !== id) return list;
-
-        const filteredDocuments =
-          list.unifiedDocuments?.filter((doc) => doc.unifiedDocumentId !== unifiedDocumentId) ?? [];
-
-        return {
-          ...list,
-          unifiedDocuments: filteredDocuments,
-        };
-      })
+      lists.map((list) =>
+        idMatch(list.id, id)
+          ? {
+              ...list,
+              unifiedDocuments:
+                list.unifiedDocuments?.filter(
+                  (doc) => !idMatch(doc.unifiedDocumentId, unifiedDocumentId)
+                ) ?? [],
+            }
+          : list
+      )
     );
+    setLastRemovedItem({ listId: id, documentId: unifiedDocumentId, at: Date.now() });
     decrementItemCount(id);
+  };
+
+  const addToDefaultList = async (unifiedDocumentId: ID): Promise<AddToDefaultListResult> => {
+    const response = await ListService.addToDefaultListApi(unifiedDocumentId);
+    const defaultList = overviewLists.find((list) => list.isDefault);
+
+    if (defaultList) {
+      addDocumentToList(defaultList.id, unifiedDocumentId, response.id);
+    } else {
+      await Promise.all([refetchOverview(), fetchLists()]);
+      setLastAddedItem({ listId: response.listId, documentId: unifiedDocumentId, at: Date.now() });
+    }
+
+    return { listItemId: response.id, listId: response.listId };
   };
 
   const value = {
@@ -215,6 +282,9 @@ export function UserListsProvider({ children }: { readonly children: ReactNode }
     deleteList,
     addDocumentToList,
     removeDocumentFromList,
+    addToDefaultList,
+    lastAddedItem,
+    lastRemovedItem,
     overviewLists,
     isLoadingOverview,
     refetchOverview,
@@ -229,4 +299,40 @@ export function useUserListsContext() {
     throw new Error('useUserListsContext must be used within a UserListsProvider');
   }
   return context;
+}
+
+interface UseAddToListProps {
+  unifiedDocumentId: string | number | null | undefined;
+  isInList: boolean;
+  onOpenModal: () => void;
+}
+
+export function useAddToList({ unifiedDocumentId, isInList, onOpenModal }: UseAddToListProps) {
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const { addToDefaultList } = useUserListsContext();
+  const [isTogglingDefaultList, setIsTogglingDefaultList] = useState(false);
+
+  const handleAddToList = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!unifiedDocumentId) return;
+
+    executeAuthenticatedAction(async () => {
+      if (isInList) {
+        onOpenModal();
+        return;
+      }
+
+      setIsTogglingDefaultList(true);
+      try {
+        await addToDefaultList(Number(unifiedDocumentId));
+        toast.success((t) => <AddToListToast toastId={t.id} onAddToListClick={onOpenModal} />);
+      } catch (error) {
+        toast.error(extractApiErrorMessage(error, 'Failed to add to list'));
+      } finally {
+        setIsTogglingDefaultList(false);
+      }
+    });
+  };
+
+  return { isTogglingDefaultList, handleAddToList };
 }

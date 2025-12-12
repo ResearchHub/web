@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { FeedPostContent, FeedEntry } from '@/types/feed';
+import { FeedPostContent, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
 import {
   BaseFeedItem,
   TitleSection,
@@ -11,39 +11,26 @@ import {
   FeedItemLayout,
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
+import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
+import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
-import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
+import { FundraiseProgress } from '@/components/Fund/FundraiseProgressV2';
 import { Users, Building, Pin } from 'lucide-react';
+import { formatTimestamp } from '@/utils/date';
+import { useRouter } from 'next/navigation';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
   href?: string;
   showTooltips?: boolean;
-  badgeVariant?: 'default' | 'icon-only';
   showActions?: boolean;
+  showHeader?: boolean;
   maxLength?: number;
   customActionText?: string;
   isPinnedFundraise?: boolean;
   onFeedItemClick?: () => void;
 }
-
-/**
- * Helper function to extract contributors from fundraise data
- */
-const extractContributors = (fundraise: FeedPostContent['fundraise']) => {
-  if (!fundraise || !fundraise.contributors || !fundraise.contributors.topContributors) {
-    return [];
-  }
-
-  return fundraise.contributors.topContributors.map((contributor) => ({
-    profileImage: contributor.authorProfile.profileImage,
-    fullName: contributor.authorProfile.fullName,
-    profileUrl: contributor.authorProfile.profileUrl,
-  }));
-};
 
 /**
  * Component for rendering a fundraise feed item using BaseFeedItem
@@ -52,13 +39,14 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   entry,
   href,
   showTooltips = true,
-  badgeVariant = 'default',
   showActions = true,
+  showHeader = true,
   maxLength,
   customActionText,
   isPinnedFundraise = false,
   onFeedItemClick,
 }) => {
+  const router = useRouter();
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
 
@@ -86,6 +74,24 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   // Image URL
   const imageUrl = post.previewImage ?? undefined;
 
+  const handleFundDetailsClick = () => {
+    if (onFeedItemClick) {
+      onFeedItemClick();
+    }
+    router.push(fundingPageUrl);
+  };
+
+  // Extract props for FeedItemMenuButton (same as BaseFeedItem uses for FeedItemActions)
+  const feedContentType = post.contentType || 'PREREGISTRATION';
+  const votableEntityId = post.id;
+  const relatedDocumentId =
+    'relatedDocumentId' in post ? post.relatedDocumentId?.toString() : post.id.toString();
+  const relatedDocumentContentType =
+    // 'relatedDocumentContentType' in post
+    // ? post.relatedDocumentContentType
+    // :
+    mapFeedContentTypeToContentType(post.contentType);
+
   return (
     <BaseFeedItem
       entry={entry}
@@ -97,6 +103,9 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       }
       maxLength={maxLength}
       onFeedItemClick={onFeedItemClick}
+      showBountyInfo={false}
+      showHeader={showHeader}
+      hideReportButton={true}
     >
       {/* Pin icon in top right corner for pinned fundraises */}
       {isPinnedFundraise && (
@@ -116,19 +125,23 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             />
           )
         }
+        rightContent={
+          <FeedItemMenuButton
+            feedContentType={feedContentType}
+            votableEntityId={votableEntityId}
+            relatedDocumentId={relatedDocumentId}
+            relatedDocumentContentType={relatedDocumentContentType}
+            relatedDocumentUnifiedDocumentId={post.unifiedDocumentId}
+          />
+        }
         leftContent={
           <>
-            <ContentTypeBadge type="funding" />
-            {isNonprofit && <TaxDeductibleBadge variant={badgeVariant} />}
-            {topics.map((topic) => (
-              <TopicAndJournalBadge
-                key={topic.id || topic.slug}
-                type="topic"
-                name={topic.name}
-                slug={topic.slug}
-                imageUrl={topic.imageUrl}
-              />
-            ))}
+            {isNonprofit && <TaxDeductibleBadge />}
+            <FeedItemBadges
+              topics={topics}
+              category={post.category}
+              subcategory={post.subcategory}
+            />
           </>
         }
       />
@@ -140,20 +153,30 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             {/* Title */}
             <TitleSection title={post.title} />
 
-            {/* Authors list below title */}
-            {authors.length > 0 && (
-              <MetadataSection>
-                <div className="mb-3 flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-gray-500" />
+            {/* Authors list */}
+            <MetadataSection className="mb-1">
+              <div className="flex items-center flex-wrap text-base">
+                {authors.length > 0 && (
                   <AuthorList
                     authors={authors}
-                    size="xs"
+                    size="base"
                     className="text-gray-500 font-normal text-sm"
-                    delimiter="•"
+                    delimiter=","
+                    delimiterClassName="ml-0"
+                    showAbbreviatedInMobile={true}
+                    hideExpandButton={true}
                   />
-                </div>
-              </MetadataSection>
-            )}
+                )}
+                {post.createdDate && (
+                  <>
+                    <span className="mx-2 text-gray-500">•</span>
+                    <span className="text-gray-600 whitespace-nowrap text-sm">
+                      {formatTimestamp(post.createdDate, false)}
+                    </span>
+                  </>
+                )}
+              </div>
+            </MetadataSection>
 
             {/* Institution */}
             {post.institution && (
@@ -186,8 +209,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             fundraiseTitle={post.title}
             fundraise={post.fundraise}
             compact={true}
-            showContribute={true}
-            className="p-0 border-0 bg-transparent"
+            onDetailsClick={handleFundDetailsClick}
           />
         </div>
       )}

@@ -10,7 +10,6 @@ import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 import { QuestionEditModal } from '@/components/modals/QuestionEditModal';
-import { NotInterestedButton } from '@/components/ui/NotInterestedButton';
 import TipTapRenderer from '@/components/Comment/lib/TipTapRenderer';
 import { htmlToTipTapJSON } from '@/components/Comment/lib/htmlToTipTap';
 
@@ -133,14 +132,17 @@ export const PostDocument = ({
 
   return (
     <div>
-      <EarningOpportunityBanner work={work} metadata={metadata} />
+      {/* Show on mobile only - desktop shows in right sidebar */}
+      <div className="lg:hidden mb-3">
+        <EarningOpportunityBanner work={work} metadata={metadata} />
+      </div>
       {/* Title & Actions */}
       {work.type === 'preprint' && (
         <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
           Preprint
         </div>
       )}
-      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
+      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-0" />
       <WorkLineItems work={work} metadata={metadata} onEditClick={handleEditToggle} />
 
       {/* Tabs */}
@@ -154,11 +156,6 @@ export const PostDocument = ({
 
       {/* Tab Content */}
       {renderTabContent}
-
-      {/* Not Interested Button */}
-      <div className="mt-8 flex justify-center">
-        <NotInterestedButton entityId={work.id} contentType={work.contentType} />
-      </div>
 
       {/* Question Edit Modal */}
       <QuestionEditModal

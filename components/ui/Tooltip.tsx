@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/utils/styles';
+import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
 
 interface TooltipProps {
   children: React.ReactNode;
@@ -122,6 +123,7 @@ export function Tooltip({
   const triggerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isTouchDevice = useIsTouchDevice();
 
   const showTooltip = () => {
     if (timeoutRef.current) {
@@ -168,6 +170,30 @@ export function Tooltip({
     setIsVisible(false);
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    if (!isTouchDevice) return;
+
+    e.stopPropagation();
+    if (triggerRef.current) {
+      setTriggerRect(triggerRef.current.getBoundingClientRect());
+    }
+    setIsVisible((prev) => !prev);
+  };
+
+  // Close tooltip when clicking outside on touch devices
+  useEffect(() => {
+    if (!isTouchDevice || !isVisible) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (triggerRef.current && !triggerRef.current.contains(e.target as Node)) {
+        setIsVisible(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [isTouchDevice, isVisible]);
+
   // Clean up timeout on unmount
   useEffect(() => {
     return () => {
@@ -184,10 +210,11 @@ export function Tooltip({
     <>
       <div
         ref={triggerRef}
-        onMouseEnter={showTooltip}
-        onMouseLeave={hideTooltip}
-        onFocus={showTooltip}
-        onBlur={hideTooltip}
+        onMouseEnter={!isTouchDevice ? showTooltip : undefined}
+        onMouseLeave={!isTouchDevice ? hideTooltip : undefined}
+        onFocus={!isTouchDevice ? showTooltip : undefined}
+        onBlur={!isTouchDevice ? hideTooltip : undefined}
+        onClick={handleClick}
         className={cn('inline-flex h-full', wrapperClassName)}
       >
         {children}

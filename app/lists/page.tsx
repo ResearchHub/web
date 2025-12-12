@@ -4,14 +4,19 @@ import { useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { UserList } from '@/components/UserList/lib/user-list';
-import { UserListRow, UserListRowSkeleton, UserListTableHeader } from './components/UserListRow';
+import {
+  UserListRow,
+  UserListRowSkeleton,
+  UserListTableHeader,
+  ListsPageHeaderSkeleton,
+} from './components/UserListRow';
 import { ListModal } from '@/components/modals/ListModal';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { useInView } from 'react-intersection-observer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark } from '@fortawesome/pro-light-svg-icons';
+import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { pluralizeSuffix } from '@/utils/stringUtils';
 
 interface ModalState {
@@ -32,10 +37,7 @@ interface ListsPageHeaderProps {
 
 function ListsPageHeader({ user, totalCount, onCreateClick }: ListsPageHeaderProps) {
   return (
-    <div className="relative px-4 sm:!px-8 py-6 flex flex-col sm:!flex-row sm:!items-center gap-4 sm:!gap-6 bg-gradient-to-b from-gray-100/80 to-gray-50/20 border-b border-gray-100">
-      <div className="w-16 h-16 sm:!w-20 sm:!h-20 bg-white shadow-sm rounded-lg flex items-center justify-center shrink-0 mx-auto sm:!mx-0">
-        <FontAwesomeIcon icon={faBookmark} className="w-10 h-10 text-gray-300" />
-      </div>
+    <div className="relative px-4 sm:!px-8 py-6 flex flex-col sm:!flex-row sm:!items-center gap-4 sm:!gap-6 bg-gradient-to-b from-gray-100/80 to-gray-50/20 border-b border-gray-100 rounded-lg">
       <div className="flex flex-col gap-1 flex-1 text-center sm:!text-left">
         <h1 className="text-2xl md:!text-3xl font-bold text-gray-900 tracking-tight">Your Lists</h1>
         <div className="flex items-center justify-center sm:!justify-start gap-2 text-sm text-gray-600">
@@ -49,11 +51,13 @@ function ListsPageHeader({ user, totalCount, onCreateClick }: ListsPageHeaderPro
           </span>
         </div>
       </div>
-      <div className="w-full sm:!w-auto mt-4 sm:!mt-0 sm:!ml-auto">
-        <Button onClick={onCreateClick} className="w-full sm:!w-auto gap-2">
-          <Plus className="w-4 h-4" /> Create
-        </Button>
-      </div>
+      {totalCount > 0 && (
+        <div className="w-full sm:!w-auto mt-4 sm:!mt-0 sm:!ml-auto">
+          <Button onClick={onCreateClick} className="w-full sm:!w-auto gap-2">
+            <Plus className="w-4 h-4" /> Create List
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -107,8 +111,10 @@ export default function ListsPage() {
 
   return (
     <PageLayout>
-      <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-gray-50/50 to-white pb-20">
-        {!isLoadingLists && (
+      <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-gray-50/50 to-white pb-20 py-4">
+        {isLoadingLists ? (
+          <ListsPageHeaderSkeleton />
+        ) : (
           <ListsPageHeader
             user={user}
             totalCount={totalListsCount}
@@ -135,20 +141,29 @@ export default function ListsPage() {
                     icon={faBookmark}
                     className="w-12 h-12 text-gray-300 mx-auto mb-3"
                   />
-                  <p className="text-gray-500 mb-4">You haven't created any lists yet</p>
-                  <Button onClick={() => openModal('create')}>Create your first list</Button>
+                  <p className="text-gray-500 mb-4">You haven't created any lists yet.</p>
+                  <Button onClick={() => openModal('create')} className="sm:!w-auto gap-2">
+                    <Plus className="w-4 h-4" />
+                    Create List
+                  </Button>
                 </div>
               )}
               {!isLoadingLists && lists.length > 0 && (
                 <>
-                  {lists.map((list) => (
-                    <UserListRow
-                      key={list.id}
-                      list={list}
-                      onEdit={(listToEdit) => openModal('edit', listToEdit)}
-                      onDelete={(listToDelete) => openModal('delete', listToDelete)}
-                    />
-                  ))}
+                  {[...lists]
+                    .sort((a, b) => {
+                      if (a.isDefault) return -1;
+                      if (b.isDefault) return 1;
+                      return 0;
+                    })
+                    .map((list) => (
+                      <UserListRow
+                        key={list.id}
+                        list={list}
+                        onEdit={(listToEdit) => openModal('edit', listToEdit)}
+                        onDelete={(listToDelete) => openModal('delete', listToDelete)}
+                      />
+                    ))}
                   {isLoadingMoreLists && (
                     <div className="space-y-1 pt-1">
                       {Array.from({ length: 3 }).map((_, skeletonIndex) => (

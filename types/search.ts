@@ -314,6 +314,7 @@ export interface ApiDocumentSearchResult {
   type: 'paper' | 'post';
   title: string;
   snippet: string; // with <mark> tags for highlighting
+  abstract?: string; // Full abstract text (new field from backend)
   matched_field: string; // 'title', 'abstract', etc.
   authors: Array<{
     first_name: string;

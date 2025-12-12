@@ -61,7 +61,7 @@ export const useBlockEditor = ({
       editable,
       immediatelyRender: false,
       shouldRerenderOnTransaction: false,
-      autofocus: true,
+      autofocus: editable,
       extensions: [
         ...ExtensionKit({
           provider,

@@ -15,7 +15,7 @@ import { AwardBountyModal } from '@/components/Comment/AwardBountyModal';
 import { getDisplayBounty, isOpenBounty } from '@/components/Bounty/lib/bountyUtil';
 import { FeedItemComment } from '@/components/Feed/items/FeedItemComment';
 import { transformCommentToFeedItem, transformBountyCommentToFeedItem } from '@/types/feed';
-import { FeedItemBounty } from '@/components/Feed/items/FeedItemBounty';
+import { FeedItemBountyComment } from '@/components/Feed/items/FeedItemBountyComment';
 import { SolutionModal } from '@/components/Comment/SolutionModal';
 import { ID } from '@/types/root';
 import { useUser } from '@/contexts/UserContext';
@@ -207,18 +207,15 @@ export const CommentItem = ({
       );
     }
 
-    // For bounty comments, use FeedItemBounty
     if (isBountyComment && comment.bounties) {
       try {
-        // Transform the comment to a feed entry for FeedItemBounty
         const feedEntry = transformBountyCommentToFeedItem(comment, contentType, work);
 
-        // Create a custom href for the FeedItemBounty to prevent navigation
         const customHref = undefined; // Setting to undefined to prevent navigation
 
         return (
           <div className="space-y-4">
-            <FeedItemBounty
+            <FeedItemBountyComment
               entry={feedEntry}
               showSolutions={true}
               showRelatedWork={false}

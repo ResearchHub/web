@@ -9,14 +9,14 @@ import { Loader } from '@/components/ui/Loader';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { UserListOverview } from '@/components/UserList/lib/user-list';
-import { Plus } from 'lucide-react';
+import { Plus, ArrowLeft } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark } from '@fortawesome/pro-light-svg-icons';
-import { faBookmark as faBookmarkSolid } from '@fortawesome/pro-solid-svg-icons';
+import { faBookmark } from '@fortawesome/free-regular-svg-icons';
+import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-hot-toast';
 import { ListService } from '@/components/UserList/lib/services/list.service';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { extractApiErrorMessage, idMatch } from '@/services/lib/serviceUtils';
 import { sortListsByDocumentMembership } from '@/components/UserList/lib/listUtils';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
@@ -90,10 +90,8 @@ function ListCreateForm({
   value,
   onChange,
   onSubmit,
-  onCancel,
-  isLoading,
   inputRef,
-}: Readonly<ListCreateFormProps>) {
+}: Readonly<Omit<ListCreateFormProps, 'isLoading' | 'onCancel'>>) {
   function handleEnterKeyPress(event: React.KeyboardEvent<HTMLInputElement>) {
     const isEnterKey = event.key === 'Enter';
     const hasValue = value.trim().length > 0;
@@ -105,34 +103,14 @@ function ListCreateForm({
     }
   }
 
-  const isSubmitDisabled = value.trim().length === 0;
-
   return (
-    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 mb-4">
-      <h3 className="text-sm font-medium text-gray-900 mb-3">Create New List</h3>
-      <Input
-        ref={inputRef}
-        placeholder="List name"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        onKeyDown={handleEnterKeyPress}
-        className="mb-3"
-      />
-      <div className="flex gap-2">
-        <LoadingButton
-          onClick={onSubmit}
-          disabled={isSubmitDisabled}
-          size="sm"
-          isLoading={isLoading}
-          loadingText="Creating..."
-        >
-          Create
-        </LoadingButton>
-        <Button onClick={onCancel} variant="outlined" size="sm">
-          Cancel
-        </Button>
-      </div>
-    </div>
+    <Input
+      ref={inputRef}
+      placeholder="List name"
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      onKeyDown={handleEnterKeyPress}
+    />
   );
 }
 
@@ -152,26 +130,27 @@ function ListSelectItem({
   const isInList = listIdsContainingDocument.includes(list.id);
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
       onClick={onToggle}
       disabled={isRemoving}
-      className={`flex items-center gap-3 w-full p-3 rounded-lg transition-colors text-left hover:bg-gray-50 ${
-        isRemoving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-      }`}
+      className={cn(
+        'flex items-center gap-3 w-full !p-3 rounded-lg transition-colors text-left hover:bg-gray-50 !h-auto justify-start !text-base !font-normal',
+        isRemoving && 'opacity-50 cursor-not-allowed'
+      )}
     >
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-gray-900 truncate">{list.name}</div>
+        <span className="font-medium text-gray-900 truncate">{list.name}</span>
       </div>
       {isRemoving ? (
         <Loader size="sm" />
       ) : (
         <FontAwesomeIcon
           icon={isInList ? faBookmarkSolid : faBookmark}
-          className={`w-5 h-5 transition-colors ${isInList ? 'text-gray-900' : 'text-gray-400'}`}
+          className={`w-5 h-5 transition-colors ${isInList ? 'text-green-600' : 'text-gray-400'}`}
         />
       )}
-    </button>
+    </Button>
   );
 }
 
@@ -210,13 +189,15 @@ export function AddToListModal({
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isLoading && overviewLists.length > 0) {
+    if (isOpen && !isLoading && overviewLists.length > 0) {
       setSortedLists(sortListsByDocumentMembership(overviewLists, listIdsContainingDocument));
-    } else if (overviewLists.length === 0) {
+    } else if (!isOpen) {
       setSortedLists([]);
     }
+    // Note: overviewLists and listIdsContainingDocument are intentionally omitted from deps.
+    // We only want to sort once when the modal opens and loading completes, not on every list update.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]);
+  }, [isOpen, isLoading]);
 
   const handleCreateList = async () => {
     const trimmedListName = newListName.trim();
@@ -235,7 +216,7 @@ export function AddToListModal({
   };
 
   const handleAddToList = async (id: ID) => {
-    const listToAddTo = overviewLists.find((list) => list.id === id);
+    const listToAddTo = overviewLists.find((list) => idMatch(list.id, id));
     if (!listToAddTo) return;
 
     setTogglingListId(id);
@@ -271,7 +252,7 @@ export function AddToListModal({
   };
 
   const handleRemoveFromList = async (id: ID) => {
-    const listToRemoveFrom = overviewLists.find((list) => list.id === id);
+    const listToRemoveFrom = overviewLists.find((list) => idMatch(list.id, id));
     if (!listToRemoveFrom) return;
 
     const documentInList = listToRemoveFrom.unifiedDocuments.find(
@@ -284,7 +265,26 @@ export function AddToListModal({
     try {
       await ListService.removeItemFromListApi(id, documentInList.listItemId);
       removeDocumentFromList(id, unifiedDocumentId);
-      toast.success(TOAST_MESSAGES.ITEM_REMOVED);
+
+      toast.success(
+        (t) => (
+          <div className="flex items-center gap-2">
+            <span className="text-gray-900">{TOAST_MESSAGES.ITEM_REMOVED}</span>
+            <Button
+              variant="link"
+              onClick={async (e) => {
+                e.stopPropagation();
+                toast.dismiss(t.id);
+                await handleAddToList(id);
+              }}
+              className="!p-0 !h-auto !text-base text-blue-600 hover:text-blue-700 hover:no-underline font-medium"
+            >
+              Undo
+            </Button>
+          </div>
+        ),
+        { duration: 4000 }
+      );
     } catch (error) {
       toast.error(extractApiErrorMessage(error, TOAST_MESSAGES.FAILED_TO_REMOVE_ITEM));
       console.error('Failed to remove item:', error);
@@ -294,19 +294,60 @@ export function AddToListModal({
   };
 
   const listsToDisplay = sortedLists.length > 0 ? sortedLists : overviewLists;
-  const showFooter = !isLoading && overviewLists.length > 0 && !showCreateForm;
+
+  const modalTitle = showCreateForm ? 'Create List' : 'Save to…';
+
+  const headerAction = showCreateForm ? (
+    <Button
+      variant="ghost"
+      onClick={closeCreateForm}
+      className="flex items-center gap-1 !p-0 !h-auto text-sm text-gray-600 hover:text-gray-900 hover:bg-transparent -ml-2"
+    >
+      <ArrowLeft className="w-4 h-4" />
+    </Button>
+  ) : undefined;
+
+  const footer = () => {
+    if (showCreateForm) {
+      return (
+        <LoadingButton
+          onClick={handleCreateList}
+          disabled={newListName.trim().length === 0}
+          isLoading={isCreatingList}
+          loadingText="Creating..."
+          className="w-full"
+        >
+          Create
+        </LoadingButton>
+      );
+    }
+    if (!isLoading && overviewLists.length > 0) {
+      return (
+        <div className="flex flex-col w-full gap-2">
+          <CreateListButton onClick={openCreateFormAndFocus} fullWidth />
+          <Link
+            href="/lists"
+            onClick={onClose}
+            className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors hover:bg-gray-100 text-primary-700 h-10 px-4 py-2 w-full"
+          >
+            Manage your lists
+          </Link>
+        </div>
+      );
+    }
+    return undefined;
+  };
 
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Save to…"
+      title={modalTitle}
+      headerAction={headerAction}
       maxWidth="max-w-2xl"
       padding="p-6"
       className="!h-[100dvh] md:!h-auto"
-      footer={
-        showFooter ? <CreateListButton onClick={openCreateFormAndFocus} fullWidth /> : undefined
-      }
+      footer={footer()}
     >
       <div
         className={cn(
@@ -330,8 +371,6 @@ export function AddToListModal({
                 value={newListName}
                 onChange={setNewListName}
                 onSubmit={handleCreateList}
-                onCancel={closeCreateForm}
-                isLoading={isCreatingList}
                 inputRef={createInputRef}
               />
             )}
@@ -340,7 +379,7 @@ export function AddToListModal({
               <div className="space-y-2 md:!max-h-96 overflow-y-auto">
                 {listsToDisplay.map((list) => {
                   const isInList = listIdsContainingDocument.includes(list.id);
-                  const isCurrentlyToggling = togglingListId === list.id;
+                  const isCurrentlyToggling = idMatch(togglingListId, list.id);
 
                   return (
                     <ListSelectItem

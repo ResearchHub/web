@@ -15,6 +15,10 @@ import { transformTopic } from '@/types/topic';
 import { Institution } from '@/app/paper/create/components/InstitutionAutocomplete';
 import { FeedEntry, transformFeedEntry } from '@/types/feed';
 import { highlightSearchTerms, hasHighlights } from '@/components/Search/lib/searchHighlight';
+import { stripHtml } from '@/utils/stringUtils';
+
+// Constants for search result snippet extension
+const SEARCH_RESULT_MAX_LENGTH = 300; // Maximum length for extended search result snippets
 
 export interface InstitutionResponse {
   id: number;
@@ -238,6 +242,125 @@ export class SearchService {
     };
   }
 
+  /**
+   * Finds the index of a snippet in content using word boundary-aware matching.
+   * Returns -1 if not found or if match is not at a word boundary.
+   *
+   * A word boundary means:
+   * - Start: beginning of string OR preceded by a non-word character
+   * - End: end of string OR followed by a non-word character
+   */
+  private static findSnippetIndexWithWordBoundary(content: string, snippet: string): number {
+    const contentLower = content.toLowerCase();
+    const snippetLower = snippet.toLowerCase();
+    let index = contentLower.indexOf(snippetLower);
+
+    // If not found, return -1
+    if (index < 0) {
+      return -1;
+    }
+
+    // Check if match starts at word boundary (start of string OR preceded by non-word char)
+    const charBefore = index > 0 ? contentLower[index - 1] : null;
+    const isWordBoundaryBefore = charBefore === null || !/\w/.test(charBefore);
+
+    // Check if match ends at word boundary (end of string OR followed by non-word char)
+    const endIndex = index + snippetLower.length;
+    const charAfter = endIndex < contentLower.length ? contentLower[endIndex] : null;
+    const isWordBoundaryAfter = charAfter === null || !/\w/.test(charAfter);
+
+    // Return index only if both boundaries are valid
+    return isWordBoundaryBefore && isWordBoundaryAfter ? index : -1;
+  }
+
+  /**
+   * Truncates HTML content to a maximum plain text length while preserving HTML structure.
+   * If truncation occurs, re-applies search term highlighting to the truncated text.
+   */
+  private static truncateHtmlToMaxLength(html: string, maxLength: number, query: string): string {
+    const plainText = stripHtml(html);
+    if (plainText.length <= maxLength) {
+      return html;
+    }
+
+    // Truncate plain text and re-highlight with search terms
+    const truncatedPlainText = plainText.slice(0, maxLength).trim();
+    return highlightSearchTerms(truncatedPlainText, query);
+  }
+
+  /**
+   * Extends highlighted snippet with additional abstract content.
+   * Always extends up to SEARCH_RESULT_MAX_LENGTH when abstract is available.
+   * Truncates snippets that exceed SEARCH_RESULT_MAX_LENGTH to ensure consistency.
+   * Uses word boundary-aware matching to find the snippet position in the abstract.
+   */
+  private static extendHighlightedSnippet(
+    highlightedSnippet: string,
+    plainSnippet: string,
+    fullAbstract: string,
+    query: string
+  ): string {
+    const highlightedPlainText = stripHtml(highlightedSnippet);
+    const highlightedLength = highlightedPlainText.length;
+
+    // If snippet exceeds max length, truncate it first
+    if (highlightedLength > SEARCH_RESULT_MAX_LENGTH) {
+      return this.truncateHtmlToMaxLength(highlightedSnippet, SEARCH_RESULT_MAX_LENGTH, query);
+    }
+
+    // If snippet is already at max length, return as-is
+    if (highlightedLength >= SEARCH_RESULT_MAX_LENGTH) {
+      return highlightedSnippet;
+    }
+
+    // Try to find where the snippet appears in the full abstract using word boundary matching
+    const snippetIndex = this.findSnippetIndexWithWordBoundary(fullAbstract, highlightedPlainText);
+
+    let remainingAbstract: string;
+    if (snippetIndex >= 0) {
+      // Found the snippet in abstract, extend from that position
+      const endOfSnippet = snippetIndex + highlightedLength;
+      remainingAbstract = fullAbstract.slice(endOfSnippet).trim();
+    } else {
+      // Snippet not found in abstract, use abstract from start (but prefer snippet if it's longer)
+      // This handles cases where backend snippet doesn't match abstract exactly
+      if (highlightedLength > 0 && highlightedLength >= fullAbstract.length * 0.5) {
+        // If snippet is substantial and not found, return it (but ensure it doesn't exceed max length)
+        if (highlightedLength > SEARCH_RESULT_MAX_LENGTH) {
+          return this.truncateHtmlToMaxLength(highlightedSnippet, SEARCH_RESULT_MAX_LENGTH, query);
+        }
+        return highlightedSnippet;
+      }
+      // Otherwise, use abstract from beginning
+      remainingAbstract = fullAbstract.trim();
+    }
+
+    if (!remainingAbstract || remainingAbstract.length === 0) {
+      return highlightedSnippet;
+    }
+
+    // Extend up to SEARCH_RESULT_MAX_LENGTH chars total for search results
+    const remainingLength = SEARCH_RESULT_MAX_LENGTH - highlightedLength;
+
+    if (remainingLength <= 0) {
+      return highlightedSnippet;
+    }
+
+    // Truncate remaining abstract and add highlights for search terms
+    const additionalText = remainingAbstract.slice(0, remainingLength);
+    const highlightedAdditional = highlightSearchTerms(additionalText, query);
+
+    const extendedSnippet = highlightedSnippet + ' ' + highlightedAdditional;
+
+    // Ensure final result doesn't exceed max length (in case HTML tags added extra length)
+    const extendedPlainText = stripHtml(extendedSnippet);
+    if (extendedPlainText.length > SEARCH_RESULT_MAX_LENGTH) {
+      return this.truncateHtmlToMaxLength(extendedSnippet, SEARCH_RESULT_MAX_LENGTH, query);
+    }
+
+    return extendedSnippet;
+  }
+
   private static transformSearchResult(doc: ApiDocumentSearchResult, query: string): FeedEntry {
     // First transform to a clean FeedEntry
     const feedEntry = this.transformDocumentToFeedEntry(doc);
@@ -272,12 +395,37 @@ export class SearchService {
       combined.highlightedSnippet
     );
 
+    // Always extend snippet with full abstract if available
+    // Get the full abstract - prefer doc.abstract (new field), then textPreview
+    const fullAbstract =
+      doc.abstract || ('textPreview' in feedEntry.content ? feedEntry.content.textPreview : null);
+
+    let extendedSnippet = final.highlightedSnippet;
+
+    // If we have an abstract, always extend the snippet
+    if (fullAbstract) {
+      if (final.highlightedSnippet) {
+        // Extend existing highlighted snippet with abstract content
+        extendedSnippet = this.extendHighlightedSnippet(
+          final.highlightedSnippet,
+          plainSnippet,
+          fullAbstract,
+          query
+        );
+      } else {
+        // No highlighted snippet exists, create one from abstract with highlights
+        // Use first portion of abstract up to SEARCH_RESULT_MAX_LENGTH
+        const abstractPreview = fullAbstract.slice(0, SEARCH_RESULT_MAX_LENGTH);
+        extendedSnippet = highlightSearchTerms(abstractPreview, query);
+      }
+    }
+
     // Return FeedEntry with searchMetadata
     return {
       ...feedEntry,
       searchMetadata: {
         highlightedTitle: final.highlightedTitle,
-        highlightedSnippet: final.highlightedSnippet,
+        highlightedSnippet: extendedSnippet,
         matchedField: doc.matched_field,
       },
     };
@@ -299,7 +447,8 @@ export class SearchService {
       content_object: {
         id: doc.id,
         title: plainTitle,
-        abstract: plainSnippet,
+        // Use doc.abstract (new field) if available, otherwise fall back to plainSnippet
+        abstract: doc.abstract || plainSnippet,
         slug: doc.slug || '',
         created_date: doc.created_date || doc.paper_publish_date || new Date().toISOString(),
         authors: (doc.authors || []).map((author) => ({

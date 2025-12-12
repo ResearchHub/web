@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Search as SearchIcon, X, Command } from 'lucide-react';
+import { Search as SearchIcon, X, ArrowLeft, ArrowRight } from 'lucide-react';
 import { SearchSuggestions } from './SearchSuggestions';
 import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { SearchSuggestion } from '@/types/search';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { navigateToAuthorProfile } from '@/utils/navigation';
+import { BaseModal } from '@/components/ui/BaseModal';
+import { Button } from '@/components/ui/Button';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -14,7 +16,6 @@ interface SearchModalProps {
 }
 
 export function SearchModal({ isOpen, onClose }: SearchModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(true);
@@ -39,58 +40,15 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     includeLocalSuggestions: true,
   });
 
-  // Handle escape key press
+  // Focus the input when modal opens
   useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      // Focus the input when modal opens and select all text
       setTimeout(() => {
         inputRef.current?.focus();
         inputRef.current?.select();
       }, 100);
-      // Prefetch search route to speed up navigation
       prefetchSearchRoute();
     }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [isOpen, onClose]);
-
-  // Handle click outside modal
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
-
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
   }, [isOpen]);
 
   // Handle suggestion selection
@@ -131,11 +89,9 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   // Reset query when modal closes (but preserve if navigating to search page)
   useEffect(() => {
     if (!isOpen) {
-      // Only clear query if we're not navigating to search page
       if (!navigatingToSearchRef.current) {
         setQuery('');
       }
-      // Reset the flag for next time
       navigatingToSearchRef.current = false;
     }
   }, [isOpen]);
@@ -144,120 +100,130 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   useEffect(() => {
     if (isOpen) {
       if (pathname === '/search') {
-        // Always sync with URL when opening modal on search page
         const urlQuery = searchParams.get('q');
         if (urlQuery) {
           setQuery(urlQuery);
         } else {
-          // Clear query if no q param in URL
           setQuery('');
         }
       } else if (!navigatingToSearchRef.current) {
-        // Clear query when opening modal on non-search pages (unless we just navigated)
         setQuery('');
       }
     }
   }, [isOpen, pathname, searchParams]);
 
-  if (!isOpen) return null;
-
   // Detect OS for keyboard shortcut display
-  const isMac =
-    globalThis.window !== undefined && navigator.userAgent.toUpperCase().includes('MAC');
+  const isMac = typeof window !== 'undefined' && navigator.userAgent.toUpperCase().includes('MAC');
   const shortcutKey = isMac ? '⌘' : 'Ctrl';
 
+  const headerAction = (
+    <div className="flex items-center">
+      {/* Back arrow - mobile only */}
+      <div className="md:!hidden -ml-2">
+        <Button onClick={onClose} variant="ghost" size="icon" aria-label="Go back">
+          <ArrowLeft className="h-5 w-5 text-gray-600" />
+        </Button>
+      </div>
+      <SearchIcon className="h-5 w-5 text-gray-600" />
+    </div>
+  );
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50" />
-
-      {/* Modal */}
-      <div className="flex min-h-full items-start justify-center p-4 pt-16">
-        <div
-          ref={modalRef}
-          className="relative w-full max-w-2xl transform rounded-lg bg-white shadow-xl transition-all overflow-hidden"
-        >
-          {/* Search Input */}
-          <div className="border-b border-gray-200 p-4">
-            <div className="relative">
-              <SearchIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-              <input
-                ref={inputRef}
-                type="text"
-                placeholder="Search papers, topics, authors..."
-                className="h-12 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-8 md:!pr-24 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onClick={(e) => {
-                  // Select all text when clicking on the input
-                  (e.target as HTMLInputElement).select();
-                }}
-                onFocus={() => {
-                  setIsFocused(true);
-                  prefetchSearchRoute();
-                  // Select all text when input receives focus
-                  inputRef.current?.select();
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && e.shiftKey && query.trim()) {
-                    e.preventDefault();
-                    navigatingToSearchRef.current = true;
-
-                    // Scroll to top immediately before navigation
-                    const scrollContainer = document.querySelector(
-                      '.flex-1.flex.flex-col.overflow-y-auto'
-                    ) as HTMLElement;
-                    if (scrollContainer) {
-                      scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
-                    } else {
-                      globalThis.window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-
-                    router.push(`/search?debug&q=${encodeURIComponent(query.trim())}`);
-                    onClose();
-                  }
-                }}
-              />
-              {/* Keyboard shortcut hint */}
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:!flex items-center space-x-1 text-xs text-gray-400">
-                <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded">
-                  {shortcutKey}
-                </kbd>
-                <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded">
-                  K
-                </kbd>
-              </div>
-              {query && (
-                <button
-                  onClick={() => setQuery('')}
-                  className="absolute right-2 md:!right-20 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100"
-                >
-                  <X className="h-4 w-4 text-gray-400" />
-                </button>
-              )}
-            </div>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Search"
+      maxWidth="max-w-2xl"
+      padding="p-0"
+      headerAction={headerAction}
+      initialFocus={inputRef}
+      showCloseButton={true}
+      className="md:!w-[600px] md:!min-h-[500px]"
+    >
+      {/* Search Input */}
+      <div className="border-b border-gray-200 p-4">
+        <div className="relative">
+          <SearchIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Search papers, topics, authors..."
+            className="h-12 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-8 md:!pr-24 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onClick={(e) => {
+              (e.target as HTMLInputElement).select();
+            }}
+            onFocus={() => {
+              setIsFocused(true);
+              prefetchSearchRoute();
+              inputRef.current?.select();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && e.shiftKey && query.trim()) {
+                e.preventDefault();
+                navigatingToSearchRef.current = true;
+                router.push(`/search?debug&q=${encodeURIComponent(query.trim())}`);
+                onClose();
+              }
+            }}
+          />
+          {/* Keyboard shortcut hint - desktop only */}
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:!flex items-center space-x-1 text-xs text-gray-400">
+            <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded">
+              {shortcutKey}
+            </kbd>
+            <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded">
+              K
+            </kbd>
           </div>
-
-          {/* Search Results */}
-          <div className="max-h-96 overflow-y-auto">
-            {query.trim() || suggestions.length > 0 ? (
-              <SearchSuggestions
-                query={query}
-                isFocused={isFocused}
-                onSelect={handleSelect}
-                displayMode="inline"
-                showSuggestionsOnFocus={true}
-              />
-            ) : (
-              <div className="p-8 text-center text-gray-500">
-                <SearchIcon className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                <p className="text-lg font-medium mb-2">Search ResearchHub</p>
-                <p className="text-sm">Find papers, topics, authors, and more</p>
-              </div>
-            )}
-          </div>
+          {query && (
+            <button
+              onClick={() => setQuery('')}
+              className="absolute right-2 md:!right-20 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100"
+            >
+              <X className="h-4 w-4 text-gray-400" />
+            </button>
+          )}
         </div>
       </div>
-    </div>
+
+      {/* Search Results */}
+      <div className="flex-1 overflow-y-auto md:!max-h-96 md:!min-h-[300px] md:!flex-none">
+        {query.trim() || suggestions.length > 0 ? (
+          <SearchSuggestions
+            query={query}
+            isFocused={isFocused}
+            onSelect={handleSelect}
+            displayMode="inline"
+            showSuggestionsOnFocus={true}
+          />
+        ) : (
+          <div className="p-8 text-center text-gray-500">
+            <SearchIcon className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+            <p className="text-lg font-medium mb-2">Search ResearchHub</p>
+            <p className="text-sm">Find papers, topics, authors, and more</p>
+          </div>
+        )}
+      </div>
+
+      {/* Show All Results Button - appears when user has typed a search query */}
+      {query.trim().length >= 2 && !loading && (
+        <div className="border-t border-gray-200 py-4 bg-white">
+          <Button
+            variant="ghost"
+            className="w-full justify-center text-primary-700 hover:text-primary-900 hover:bg-gray-100"
+            onClick={() => {
+              navigatingToSearchRef.current = true;
+              router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+              onClose();
+            }}
+          >
+            <span>Show all results</span>
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+        </div>
+      )}
+    </BaseModal>
   );
 }

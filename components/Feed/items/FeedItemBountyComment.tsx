@@ -12,6 +12,7 @@ import {
   isExpiringSoon,
   calculateTotalAwardedAmount,
   isOpenBounty,
+  getBountyDisplayAmount,
 } from '@/components/Bounty/lib/bountyUtil';
 import { ContentFormat } from '@/types/comment';
 import { ID } from '@/types/root';
@@ -31,7 +32,7 @@ import { BaseFeedItem, TitleSection } from '@/components/Feed/BaseFeedItem';
 /**
  * Internal component for rendering bounty details
  */
-const BountyDetails: FC<{
+export const BountyDetails: FC<{
   content: any;
   contentFormat: ContentFormat | undefined;
   bountyType: BountyType;
@@ -54,7 +55,7 @@ const BountyDetails: FC<{
   );
 };
 
-interface FeedItemBountyProps {
+interface FeedItemBountyCommentProps {
   entry: FeedEntry;
   showSolutions?: boolean;
   showRelatedWork?: boolean;
@@ -89,7 +90,7 @@ interface FeedItemBountyProps {
 /**
  * Main component for rendering a bounty feed item
  */
-export const FeedItemBounty: FC<FeedItemBountyProps> = ({
+export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
   entry,
   relatedDocumentId,
   showSolutions = true,
@@ -135,17 +136,22 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   const solutionsCount = bounty.solutions ? bounty.solutions.length : 0;
   const hasSolutions = solutionsCount > 0;
 
+  // Calculate display amount (handles Foundation bounties with flat $150 USD)
+  const { amount: displayBountyAmount } = getBountyDisplayAmount(bounty, exchangeRate, showUSD);
+
   // Format the bounty amount for display in the action text
   const formattedBountyAmount = bounty.totalAmount
     ? formatCurrency({
-        amount: parseFloat(bounty.totalAmount),
+        amount: showUSD ? displayBountyAmount : Number.parseFloat(bounty.totalAmount),
         showUSD,
         exchangeRate,
         shorten: true,
+        skipConversion: showUSD, // Skip conversion since we've already calculated the display amount
       })
     : '';
+  const currencySuffix = showUSD ? '' : 'RSC';
   const bountyActionText = bounty.totalAmount
-    ? `created a bounty for ${formattedBountyAmount} ${showUSD ? '' : 'RSC'}`
+    ? `created a bounty for ${formattedBountyAmount} ${currencySuffix}`
     : 'created a bounty';
 
   // Handle opening the contribute modal
@@ -182,7 +188,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
     }
 
     if (!workId || !workContentType) {
-      console.error('FeedItemBounty: Unable to determine destination for CTA', {
+      console.error('FeedItemBountyComment: Unable to determine destination for CTA', {
         workId,
         workSlug,
         workContentType,
@@ -264,8 +270,8 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
     });
   }
 
-  const shouldHideActions =
-    hideActions || Boolean((entry.raw as any)?.content_object?.comment?.is_removed);
+  const isCommentRemoved = entry.raw?.content_object?.comment?.is_removed ?? false;
+  const shouldHideActions = hideActions || Boolean(isCommentRemoved);
 
   return (
     <div className="space-y-3">
@@ -295,19 +301,24 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         showActions={false}
         onFeedItemClick={onFeedItemClick}
       >
-        <div onClick={(e) => e.stopPropagation()}>
+        <div onMouseDown={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
           <BountyMetadataLine
-            amount={parseFloat(bounty.totalAmount)}
+            amount={displayBountyAmount}
             expirationDate={bounty.expirationDate}
             isOpen={isOpen}
             expiringSoon={expiringSoon}
             solutionsCount={solutionsCount}
             showDeadline={showDeadline}
+            skipConversion={showUSD}
           />
         </div>
 
         {entry.relatedWork && showRelatedWork && (
-          <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="mt-4"
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
             <RelatedWorkCard
               size="sm"
               work={entry.relatedWork}
@@ -325,7 +336,11 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         />
 
         {!isOpen && hasSolutions && showSolutions && (
-          <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="mt-4"
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
             <BountySolutions
               solutions={bounty.solutions}
               isPeerReviewBounty={bounty.bountyType === 'REVIEW'}
@@ -338,7 +353,8 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         {showSupportAndCTAButtons && (
           <div
             className="mt-4 flex items-center gap-2 flex-wrap mobile:flex-wrap flex-nowrap"
-            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
             role="presentation"
             aria-hidden="true"
             tabIndex={-1}
@@ -351,11 +367,16 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
                 onClick={handleSolution}
               >
                 <MessageSquareReply size={16} />
-                {entry.relatedWork?.postType === 'QUESTION'
-                  ? 'Add answer'
-                  : bounty.bountyType === 'REVIEW'
-                    ? 'Add Review'
-                    : 'Add Solution'}
+                {(() => {
+                  if (entry.relatedWork?.postType === 'QUESTION') {
+                    return 'Add answer';
+                  }
+                  if (bounty.bountyType === 'REVIEW') {
+                    return 'Add Review';
+                  }
+
+                  return 'Add Solution';
+                })()}
               </Button>
             )}
             {awardButton}
@@ -376,7 +397,8 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         {showFooter && !shouldHideActions && (
           <div
             className="mt-4 pt-3 border-t border-gray-200"
-            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
             role="presentation"
             aria-hidden="true"
             tabIndex={-1}
@@ -388,11 +410,9 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
               relatedDocumentId={bountyEntry.relatedDocumentId?.toString()}
               relatedDocumentContentType={bountyEntry.relatedDocumentContentType}
               userVote={entry.userVote}
-              tips={entry.tips}
               showTooltips={showTooltips}
               actionLabels={actionLabels}
               menuItems={menuItems}
-              bounties={[bountyEntry.bounty]}
               onComment={onReply}
               relatedDocumentTopics={entry.relatedWork?.topics}
               relatedDocumentUnifiedDocumentId={

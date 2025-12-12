@@ -1,28 +1,23 @@
 'use client';
 
 import { FC } from 'react';
-import { AuthorProfile, FeedEntry, FeedGrantContent } from '@/types/feed';
+import { FeedEntry, FeedGrantContent, mapFeedContentTypeToContentType } from '@/types/feed';
 import {
   BaseFeedItem,
   TitleSection,
-  ContentSection,
   ImageSection,
   MetadataSection,
-  CTASection,
-  StatusSection,
   FeedItemLayout,
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { AvatarStack } from '@/components/ui/AvatarStack';
-import { Building, Calendar } from 'lucide-react';
-import { format } from 'date-fns';
-import { useRouter } from 'next/navigation';
-import Icon from '@/components/ui/icons/Icon';
-import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
-import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
+import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
+import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
+import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
+import { GrantInfo } from '@/components/Grant/GrantInfo';
+import { AuthorList } from '@/components/ui/AuthorList';
+
 import { Highlight } from '@/components/Feed/FeedEntryItem';
+import { formatTimestamp } from '@/utils/date';
 
 interface FeedItemGrantRefactoredProps {
   entry: FeedEntry;
@@ -53,39 +48,24 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
   highlights,
 }) => {
   const grant = entry.content as FeedGrantContent;
-  const router = useRouter();
 
   // Extract highlighted fields from highlights prop
   const highlightedTitle = highlights?.find((h) => h.field === 'title')?.value;
   const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
-  // Check if RFP is active
-  const isActive =
-    grant.grant?.status === 'OPEN' &&
-    (grant.grant?.endDate ? isDeadlineInFuture(grant.grant?.endDate) : true);
-  const deadline = grant.grant?.endDate;
-  const expiringSoon = isExpiringSoon(deadline, 1); // Use 1-day threshold for grants
-
-  // Prepare applicants data
-  const applicants: AuthorProfile[] = grant.grant?.applicants || [];
-  const applicantAvatars = applicants.map((applicant: AuthorProfile) => ({
-    src: applicant.profileImage,
-    alt:
-      applicant.firstName && applicant.lastName
-        ? `${applicant.firstName} ${applicant.lastName}`
-        : applicant.firstName || 'Applicant',
-    fallback: applicant.firstName ? applicant.firstName.charAt(0) : 'A',
-  }));
-
-  // Handle apply button click
-  const handleApplyClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    router.push(`/grant/${grant.id}/${grant.slug}`);
-  };
-
   // Use provided href or create default grant page URL
   const grantPageUrl = href || `/grant/${grant.id}/${grant.slug}`;
+
+  // Extract props for FeedItemMenuButton (same as BaseFeedItem uses for FeedItemActions)
+  const feedContentType = grant.contentType || 'GRANT';
+  const votableEntityId = grant.id;
+  const relatedDocumentId =
+    'relatedDocumentId' in grant ? grant.relatedDocumentId?.toString() : grant.id.toString();
+  const relatedDocumentContentType =
+    // 'relatedDocumentContentType' in grant
+    // ? grant.relatedDocumentContentType
+    // :
+    mapFeedContentTypeToContentType(grant.contentType);
 
   return (
     <BaseFeedItem
@@ -98,6 +78,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
       maxLength={maxLength}
       showHeader={showHeader}
       onFeedItemClick={onFeedItemClick}
+      hideReportButton={true}
     >
       {/* Top section with badges and status + image(mobile) */}
       <FeedItemTopSection
@@ -110,24 +91,20 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             />
           )
         }
-        leftContent={
-          <>
-            <ContentTypeBadge type="grant" />
-            {grant.topics?.map((topic) => (
-              <TopicAndJournalBadge
-                key={topic.id || topic.slug}
-                type="topic"
-                name={topic.name}
-                slug={topic.slug}
-                imageUrl={topic.imageUrl}
-              />
-            ))}
-          </>
-        }
         rightContent={
-          <StatusSection
-            status={isActive ? 'open' : 'closed'}
-            statusText={isActive ? 'Open' : 'Closed'}
+          <FeedItemMenuButton
+            feedContentType={feedContentType}
+            votableEntityId={votableEntityId}
+            relatedDocumentId={relatedDocumentId}
+            relatedDocumentContentType={relatedDocumentContentType}
+            relatedDocumentUnifiedDocumentId={grant.unifiedDocumentId}
+          />
+        }
+        leftContent={
+          <FeedItemBadges
+            topics={grant.topics}
+            category={grant.category}
+            subcategory={grant.subcategory}
           />
         }
       />
@@ -139,90 +116,50 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             {/* Title */}
             <TitleSection title={grant.title} highlightedTitle={highlightedTitle} />
 
-            {/* Description */}
-            {grant.grant?.description && (
-              <ContentSection
-                content={grant.grant.description}
+            {/* Organization or Authors list */}
+            <MetadataSection className="mb-1">
+              <div className="flex items-center flex-wrap text-base">
+                {grant.organization || grant.grant?.organization ? (
+                  <span className="text-gray-500 font-normal text-sm">
+                    {grant.organization || grant.grant?.organization}
+                  </span>
+                ) : (
+                  grant.authors.length > 0 && (
+                    <AuthorList
+                      authors={grant.authors.map((author) => ({
+                        name: author.fullName,
+                        verified: author.user?.isVerified,
+                        authorUrl: author.id === 0 ? undefined : author.profileUrl,
+                      }))}
+                      size="base"
+                      className="text-gray-500 font-normal text-sm"
+                      delimiter=","
+                      delimiterClassName="ml-0"
+                      showAbbreviatedInMobile={true}
+                      hideExpandButton={true}
+                    />
+                  )
+                )}
+                {grant.createdDate && (
+                  <>
+                    <span className="mx-2 text-gray-500">•</span>
+                    <span className="text-gray-600 whitespace-nowrap text-sm">
+                      {formatTimestamp(grant.createdDate, false)}
+                    </span>
+                  </>
+                )}
+              </div>
+            </MetadataSection>
+
+            {/* Description Section - handles both desktop and mobile */}
+            {(grant.grant?.description || grant.textPreview) && (
+              <FeedItemAbstractSection
+                content={grant.grant?.description || grant.textPreview || ''}
                 highlightedContent={highlightedSnippet}
                 maxLength={maxLength}
+                mobileLabel="Read description"
                 className="mb-3"
               />
-            )}
-
-            {/* Funding Amount */}
-            {(grant.grantAmount || grant.grant?.amount) && (
-              <MetadataSection>
-                <div className="flex flex-wrap items-baseline gap-1 mb-3">
-                  <div className="font-semibold text-2xl text-orange-500 flex items-center gap-1">
-                    <span className="text-sm text-orange-500 self-center">$</span>
-                    {(grant.grant?.amount?.usd || 0).toLocaleString()}
-                  </div>
-                </div>
-              </MetadataSection>
-            )}
-
-            {/* Organization */}
-            {(grant.organization || grant.grant?.organization) && (
-              <MetadataSection>
-                <div className="flex items-center gap-1.5 text-sm mb-3 text-gray-500">
-                  <Building className="w-4 h-4" />
-                  <span>{grant.organization || grant.grant?.organization}</span>
-                </div>
-              </MetadataSection>
-            )}
-
-            {/* Deadline */}
-            {deadline && isActive && (
-              <MetadataSection>
-                <div className="flex items-center gap-1.5 text-sm mb-3">
-                  <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                  <span className="text-gray-500">
-                    Apply by: {format(new Date(deadline), 'MMM d, yyyy')}
-                  </span>
-                  {expiringSoon && (
-                    <>
-                      <div className="h-4 w-px bg-gray-300" />
-                      <span className="text-amber-600 font-medium">{formatDeadline(deadline)}</span>
-                    </>
-                  )}
-                </div>
-              </MetadataSection>
-            )}
-
-            {/* Applicants */}
-            {applicants.length > 0 && (
-              <MetadataSection>
-                <div className="flex items-center gap-1.5 text-sm mb-3">
-                  <Icon name="createBounty" size={16} color="#6b7280" className="flex-shrink-0" />
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500 font-normal">
-                      {applicants.length} {applicants.length === 1 ? 'Applicant' : 'Applicants'}
-                    </span>
-                    <AvatarStack
-                      items={applicantAvatars}
-                      size="xxs"
-                      maxItems={5}
-                      spacing={-4}
-                      showExtraCount={true}
-                      extraCountLabel="Applicants"
-                      allItems={applicantAvatars}
-                      totalItemsCount={applicants.length}
-                    />
-                  </div>
-                </div>
-              </MetadataSection>
-            )}
-
-            {/* CTA */}
-            {isActive && (
-              <CTASection>
-                <button
-                  onClick={handleApplyClick}
-                  className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-lg font-medium text-sm transition-colors duration-200 flex items-center gap-2"
-                >
-                  Apply
-                </button>
-              </CTASection>
             )}
           </>
         }
@@ -236,6 +173,15 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
           )
         }
       />
+      {/* Grant Info */}
+      <div
+        className="mt-4"
+        onMouseDown={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <GrantInfo grant={grant} onFeedItemClick={onFeedItemClick} />
+      </div>
     </BaseFeedItem>
   );
 };
