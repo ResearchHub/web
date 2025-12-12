@@ -1,4 +1,5 @@
 import { ApiClient } from '@/services/client';
+import { ID } from '@/types/root';
 
 export async function connectOrcidAccount(): Promise<void> {
   const { auth_url } = await ApiClient.post<{ auth_url: string }>('/api/orcid/connect/');
@@ -7,12 +8,12 @@ export async function connectOrcidAccount(): Promise<void> {
 
 interface ApiOrcidCallbackResponse {
   readonly success: boolean;
-  readonly author_id?: number;
+  readonly author_id?: ID;
 }
 
 export interface OrcidCallbackResponse {
   readonly success: boolean;
-  readonly authorId?: number;
+  readonly authorId?: ID;
 }
 
 const transformOrcidCallbackResponse = (raw: ApiOrcidCallbackResponse): OrcidCallbackResponse => ({
