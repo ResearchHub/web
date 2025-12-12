@@ -40,7 +40,7 @@ export default function OrcidCallbackPage() {
       try {
         const response = await processOrcidCallback(code, oauthState);
 
-        if (response.success && response.authorId) {
+        if (response.success && response.authorId != null) {
           await refreshUser();
           toast.success('ORCID account connected.');
           router.replace(`/author/${response.authorId}`);
