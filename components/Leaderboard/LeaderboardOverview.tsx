@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { LeaderboardService } from '@/services/leaderboard.service';
+import { useEffect } from 'react';
 import { TopReviewer, TopFunder } from '@/types/leaderboard';
 import { Avatar } from '@/components/ui/Avatar';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
@@ -10,9 +9,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
-import { formatRSC } from '@/utils/number';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useLeaderboard } from '@/contexts/LeaderboardContext';
 import { Star, ChevronRight } from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
 
@@ -78,31 +77,15 @@ export const LeaderboardSkeleton = () => (
 );
 
 export const LeaderboardOverview = () => {
-  const [reviewers, setReviewers] = useState<TopReviewer[]>([]);
-  const [funders, setFunders] = useState<TopFunder[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, isLoading, error, fetchData } = useLeaderboard();
   const { showUSD } = useCurrencyPreference();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const data = await LeaderboardService.fetchLeaderboardOverview();
-        // Limit to top 5 for display
-        setReviewers(data.reviewers.slice(0, 5));
-        setFunders(data.funders.slice(0, 5));
-      } catch (err) {
-        console.error('Failed to fetch leaderboard overview:', err);
-        setError('Failed to load leaderboard data.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const reviewers = data?.reviewers || [];
+  const funders = data?.funders || [];
 
+  useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   // Helper to render rank with icon
   const renderRank = (rank: number) => {
