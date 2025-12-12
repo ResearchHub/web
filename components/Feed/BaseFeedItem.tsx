@@ -28,6 +28,7 @@ export interface BaseFeedItemProps {
   href?: string;
   className?: string;
   showActions?: boolean;
+  showOnlyBookmark?: boolean;
   showTooltips?: boolean;
   maxLength?: number;
   showHeader?: boolean;
@@ -288,6 +289,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   href,
   className,
   showActions = true,
+  showOnlyBookmark = false,
   showTooltips = true,
   maxLength,
   showHeader = true,
@@ -447,6 +449,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               onFeedItemClick={onFeedItemClick}
               bounties={showBountyInfo ? undefined : content.bounties}
               hideReportButton={hideReportButton}
+              showOnlyBookmark={showOnlyBookmark}
             />
           </div>
         )}

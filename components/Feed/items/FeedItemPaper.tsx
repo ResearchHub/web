@@ -26,6 +26,7 @@ interface FeedItemPaperProps {
   href?: string;
   showTooltips?: boolean;
   showActions?: boolean;
+  showOnlyBookmark?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
   highlights?: Highlight[];
@@ -40,6 +41,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   href,
   showTooltips = true,
   showActions = true,
+  showOnlyBookmark = false,
   maxLength,
   onFeedItemClick,
   highlights,
@@ -79,6 +81,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
       entry={entry}
       href={paperPageUrl}
       showActions={showActions}
+      showOnlyBookmark={showOnlyBookmark}
       showHeader={false}
       showTooltips={showTooltips}
       customActionText={actionText}

@@ -166,6 +166,7 @@ interface FeedItemActionsProps {
   relatedDocumentUnifiedDocumentId?: string;
   showPeerReviews?: boolean;
   onFeedItemClick?: () => void;
+  showOnlyBookmark?: boolean; // Show only the bookmark button (for search results)
 }
 
 // Define interface for avatar items used in local state
@@ -198,12 +199,14 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   relatedDocumentUnifiedDocumentId,
   showPeerReviews = true,
   onFeedItemClick,
+  showOnlyBookmark = false,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const feedView = useFeedView();
 
-  // UI decisions based on feed view context
-  const showOnlyBookmark = feedView === 'search';
+  // UI decisions based on feed view context or explicit prop
+  // Use prop if provided, otherwise fall back to context-based decision
+  const shouldShowOnlyBookmark = showOnlyBookmark || feedView === 'search';
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
@@ -377,7 +380,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   // Check if bookmark button should be shown
   const canShowBookmark =
-    userListsEnabled &&
     relatedDocumentUnifiedDocumentId &&
     feedContentType !== 'COMMENT' &&
     feedContentType !== 'BOUNTY' &&
@@ -403,11 +405,11 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   );
 
   // If showOnlyBookmark, render a minimal version with just the bookmark button
-  if (showOnlyBookmark) {
+  if (shouldShowOnlyBookmark) {
     return (
       <>
         <div className="flex items-center justify-end w-full">{bookmarkButton}</div>
-        {userListsEnabled && relatedDocumentUnifiedDocumentId && isAddToListModalOpen && (
+        {relatedDocumentUnifiedDocumentId && isAddToListModalOpen && (
           <AddToListModal
             isOpen={isAddToListModalOpen}
             onClose={handleCloseAddToListModal}
