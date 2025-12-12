@@ -333,6 +333,16 @@ export interface ApiDocumentSearchResult {
   is_open_access: boolean | null;
   slug: string | null;
   document_type: string | null; // 'GRANT', etc.
+  journal?:
+    | string // Legacy format: just the journal name
+    | {
+        // New format: full journal object
+        id: number;
+        name: string;
+        slug?: string;
+        image_url?: string;
+      }
+    | null;
 }
 
 export interface PersonSearchResult {

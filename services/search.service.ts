@@ -18,7 +18,7 @@ import { highlightSearchTerms, hasHighlights } from '@/components/Search/lib/sea
 import { stripHtml } from '@/utils/stringUtils';
 
 // Constants for search result snippet extension
-const SEARCH_RESULT_MAX_LENGTH = 300; // Maximum length for extended search result snippets
+const SEARCH_RESULT_MAX_LENGTH = 500; // Maximum length for extended search result snippets
 
 export interface InstitutionResponse {
   id: number;
@@ -361,6 +361,40 @@ export class SearchService {
     return extendedSnippet;
   }
 
+  /**
+   * Transform journal data from API response (handles both string and object formats)
+   */
+  private static transformJournal(
+    journal:
+      | string
+      | { id?: number; name?: string; slug?: string; image_url?: string }
+      | null
+      | undefined
+  ): { id: number; name: string; slug: string | null; imageUrl: string | null } | null {
+    if (!journal) {
+      return null;
+    }
+
+    // Legacy format: journal is just a string name
+    if (typeof journal === 'string') {
+      return {
+        id: 0,
+        name: journal,
+        slug: journal.toLowerCase().replaceAll(/\s+/g, '-'),
+        imageUrl: null,
+      };
+    }
+
+    // New format: journal is an object
+    const slugFromName = journal.name?.toLowerCase().replaceAll(/\s+/g, '-') || null;
+    return {
+      id: journal.id || 0,
+      name: journal.name || '',
+      slug: journal.slug || slugFromName,
+      imageUrl: journal.image_url || null,
+    };
+  }
+
   private static transformSearchResult(doc: ApiDocumentSearchResult, query: string): FeedEntry {
     // First transform to a clean FeedEntry
     const feedEntry = this.transformDocumentToFeedEntry(doc);
@@ -456,8 +490,12 @@ export class SearchService {
           last_name: author.last_name || '',
           profile_image: '',
         })),
-        hub: doc.hubs && doc.hubs.length > 0 ? doc.hubs[0] : null,
-        journal: null,
+        hub: doc.hubs?.[0] || null,
+        // Pass category and subcategory from first two hubs for badge display
+        category: doc.hubs?.[0] || null,
+        subcategory: doc.hubs?.[1] || null,
+        // Handle journal as either a string (legacy) or object (new format)
+        journal: this.transformJournal(doc.journal),
         doi: doc.doi,
         citations: doc.citations || 0,
         score: doc.score || 0,
