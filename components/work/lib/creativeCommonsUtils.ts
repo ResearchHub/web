@@ -23,17 +23,7 @@ export interface LicenseInfo {
   description: LicenseDescription | null;
 }
 
-// Helper function to extract version from license string
-const extractVersion = (license: string): string | null => {
-  const versionMatch = license.match(/-(\d+\.\d+)$/);
-  return versionMatch ? versionMatch[1] : null;
-};
-
-// Helper function to build CC license URL with version support
-const buildCCLicenseUrl = (basePath: string, version: string | null): string => {
-  const v = version || '4.0';
-  return `https://creativecommons.org/licenses/${basePath}/${v}/`;
-};
+const CC0_VARIANTS = new Set(['cc0', 'cc-zero', 'cc0-1.0', 'cc0-ng']);
 
 const LICENSE_URLS: Record<string, string> = {
   // CC0 variants
@@ -178,26 +168,50 @@ const getNonCCLicenseLabel = (license: string): string => {
   return labelMap[normalized] || license;
 };
 
+// Helper to build CC license icons and label from normalized license string
+const buildCCLicenseInfo = (
+  normalizedLicense: string
+): { icons: IconDefinition[]; label: string | null } => {
+  const icons: IconDefinition[] = [faCreativeCommons];
+  const labelParts: string[] = [];
+
+  const componentMap: Array<{ key: string; icon: IconDefinition; label: string }> = [
+    { key: 'by', icon: faCreativeCommonsBy, label: 'BY' },
+    { key: 'nc', icon: faCreativeCommonsNc, label: 'NC' },
+    { key: 'nd', icon: faCreativeCommonsNd, label: 'ND' },
+    { key: 'sa', icon: faCreativeCommonsSa, label: 'SA' },
+  ];
+
+  for (const { key, icon, label } of componentMap) {
+    if (normalizedLicense.includes(key)) {
+      icons.push(icon);
+      labelParts.push(label);
+    }
+  }
+
+  return {
+    icons,
+    label: labelParts.length > 0 ? `CC-${labelParts.join('-')}` : null,
+  };
+};
+
+const DEFAULT_LICENSE_INFO: LicenseInfo = {
+  type: 'text-only',
+  icons: [],
+  label: null,
+  url: null,
+  description: null,
+};
+
 export const parseLicense = (license?: string): LicenseInfo => {
   if (!license) {
-    return {
-      type: 'text-only',
-      icons: [],
-      label: null,
-      url: null,
-      description: null,
-    };
+    return DEFAULT_LICENSE_INFO;
   }
 
   const normalizedLicense = license.toLowerCase().trim();
 
   // Handle CC0 variants
-  if (
-    normalizedLicense === 'cc0' ||
-    normalizedLicense === 'cc-zero' ||
-    normalizedLicense === 'cc0-1.0' ||
-    normalizedLicense === 'cc0-ng'
-  ) {
+  if (CC0_VARIANTS.has(normalizedLicense)) {
     return {
       type: 'cc-icons',
       icons: [faCreativeCommons, faCreativeCommonsZero],
@@ -209,41 +223,16 @@ export const parseLicense = (license?: string): LicenseInfo => {
 
   // Handle CC licenses (with icons)
   if (normalizedLicense.startsWith('cc-')) {
-    const icons: IconDefinition[] = [faCreativeCommons];
-    const labelParts: string[] = [];
-
-    if (normalizedLicense.includes('by')) {
-      icons.push(faCreativeCommonsBy);
-      labelParts.push('BY');
-    }
-
-    if (normalizedLicense.includes('nc')) {
-      icons.push(faCreativeCommonsNc);
-      labelParts.push('NC');
-    }
-
-    if (normalizedLicense.includes('nd')) {
-      icons.push(faCreativeCommonsNd);
-      labelParts.push('ND');
-    }
-
-    if (normalizedLicense.includes('sa')) {
-      icons.push(faCreativeCommonsSa);
-      labelParts.push('SA');
-    }
-
-    const fullLabel = labelParts.length > 0 ? `CC-${labelParts.join('-')}` : null;
+    const { icons, label } = buildCCLicenseInfo(normalizedLicense);
     const url = LICENSE_URLS[normalizedLicense] || null;
-    const description = LICENSE_DESCRIPTIONS[normalizedLicense] || null;
 
-    // If we have icons and a URL, it's a CC license with icons
     if (icons.length > 1 && url) {
       return {
         type: 'cc-icons',
         icons,
-        label: fullLabel,
+        label,
         url,
-        description,
+        description: LICENSE_DESCRIPTIONS[normalizedLicense] || null,
       };
     }
   }
