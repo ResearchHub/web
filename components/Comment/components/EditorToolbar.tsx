@@ -308,7 +308,7 @@ export const EditorToolbar = ({
     <div
       ref={toolbarRef}
       className={cn(
-        'flex items-center border-b border-gray-200 px-2 py-1 overflow-x-auto',
+        'flex items-center border-b border-gray-200 px-2 py-1 overflow-x-auto scrollbar-hide',
         compactToolbar ? 'gap-1' : 'gap-2'
       )}
     >
