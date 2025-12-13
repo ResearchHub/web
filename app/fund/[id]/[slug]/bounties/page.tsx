@@ -72,11 +72,7 @@ export default async function FundBountiesPage({ params }: Props) {
   ]);
 
   return (
-    <PageLayout
-      rightSidebar={
-        <FundingRightSidebar work={work} metadata={metadata} authorUpdates={authorUpdates} />
-      }
-    >
+    <PageLayout rightSidebar={<FundingRightSidebar work={work} metadata={metadata} />}>
       <Suspense>
         <FundDocument work={work} metadata={metadata} content={content} defaultTab="bounties" />
         <SearchHistoryTracker work={work} />

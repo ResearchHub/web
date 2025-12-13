@@ -72,11 +72,7 @@ export default async function FundReviewsPage({ params }: Props) {
   ]);
 
   return (
-    <PageLayout
-      rightSidebar={
-        <FundingRightSidebar work={work} metadata={metadata} authorUpdates={authorUpdates} />
-      }
-    >
+    <PageLayout rightSidebar={<FundingRightSidebar work={work} metadata={metadata} />}>
       <Suspense>
         <FundDocument work={work} metadata={metadata} content={content} defaultTab="reviews" />
         <SearchHistoryTracker work={work} />
