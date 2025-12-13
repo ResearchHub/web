@@ -19,19 +19,43 @@ interface TopicsSectionProps {
 export const TopicsSection = ({ topics }: TopicsSectionProps) => {
   const [showAllTopics, setShowAllTopics] = useState(false);
 
-  // Filter and sort topics: category namespace first, subcategory second, then the rest
+  // Sort topics: lowest-id category first, lowest-id subcategory second, then the rest
   const sortedTopics = useMemo(() => {
     const filtered = topics.filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
 
-    const getNamespacePriority = (namespace?: string): number => {
-      if (namespace === 'category') return 0;
-      if (namespace === 'subcategory') return 1;
-      return 2;
-    };
-
-    return [...filtered].sort(
-      (a, b) => getNamespacePriority(a.namespace) - getNamespacePriority(b.namespace)
+    // Find the category and subcategory with the lowest ids
+    const categories = filtered.filter((t) => t.namespace === 'category');
+    const subcategories = filtered.filter((t) => t.namespace === 'subcategory');
+    const others = filtered.filter(
+      (t) => t.namespace !== 'category' && t.namespace !== 'subcategory'
     );
+
+    // Sort each group by id to get the lowest
+    categories.sort((a, b) => Number(a.id) - Number(b.id));
+    subcategories.sort((a, b) => Number(a.id) - Number(b.id));
+
+    const result: Topic[] = [];
+
+    // Add the lowest-id category first
+    if (categories.length > 0) {
+      result.push(categories[0]);
+    }
+
+    // Add the lowest-id subcategory second
+    if (subcategories.length > 0) {
+      result.push(subcategories[0]);
+    }
+
+    // Add remaining categories (excluding the first one already added)
+    result.push(...categories.slice(1));
+
+    // Add remaining subcategories (excluding the first one already added)
+    result.push(...subcategories.slice(1));
+
+    // Add all other topics
+    result.push(...others);
+
+    return result;
   }, [topics]);
 
   if (sortedTopics.length === 0) return null;
