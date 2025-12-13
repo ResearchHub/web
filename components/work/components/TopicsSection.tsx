@@ -9,30 +9,30 @@ interface Topic {
   id: string | number;
   name: string;
   slug: string;
+  namespace?: 'journal' | 'topic' | 'category' | 'subcategory';
 }
 
 interface TopicsSectionProps {
   topics: Topic[];
-  category?: Topic;
-  subcategory?: Topic;
 }
 
-export const TopicsSection = ({ topics, category, subcategory }: TopicsSectionProps) => {
+export const TopicsSection = ({ topics }: TopicsSectionProps) => {
   const [showAllTopics, setShowAllTopics] = useState(false);
 
-  // Sort topics: category first, then subcategory, then the rest
+  // Filter and sort topics: category namespace first, subcategory second, then the rest
   const sortedTopics = useMemo(() => {
-    const filteredTopics = topics.filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
+    const filtered = topics.filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
 
-    // Create a priority map for sorting
-    const getPriority = (topic: Topic): number => {
-      if (category && topic.id === category.id) return 0;
-      if (subcategory && topic.id === subcategory.id) return 1;
+    const getNamespacePriority = (namespace?: string): number => {
+      if (namespace === 'category') return 0;
+      if (namespace === 'subcategory') return 1;
       return 2;
     };
 
-    return [...filteredTopics].sort((a, b) => getPriority(a) - getPriority(b));
-  }, [topics, category, subcategory]);
+    return [...filtered].sort(
+      (a, b) => getNamespacePriority(a.namespace) - getNamespacePriority(b.namespace)
+    );
+  }, [topics]);
 
   if (sortedTopics.length === 0) return null;
 
