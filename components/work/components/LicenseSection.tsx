@@ -2,7 +2,7 @@ import { Scale, ExternalLink } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Link from 'next/link';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { parseLicense } from '../lib/creativeCommonsUtils';
+import { parseLicense } from '../lib/licenseUtils';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface LicenseSectionProps {
