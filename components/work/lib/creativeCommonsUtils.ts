@@ -16,21 +16,59 @@ export interface LicenseDescription {
 }
 
 export interface LicenseInfo {
+  type: 'cc-icons' | 'text-with-link' | 'text-only';
   icons: IconDefinition[];
   label: string | null;
   url: string | null;
   description: LicenseDescription | null;
 }
 
+// Helper function to extract version from license string
+const extractVersion = (license: string): string | null => {
+  const versionMatch = license.match(/-(\d+\.\d+)$/);
+  return versionMatch ? versionMatch[1] : null;
+};
+
+// Helper function to build CC license URL with version support
+const buildCCLicenseUrl = (basePath: string, version: string | null): string => {
+  const v = version || '4.0';
+  return `https://creativecommons.org/licenses/${basePath}/${v}/`;
+};
+
 const LICENSE_URLS: Record<string, string> = {
-  'cc-by': 'https://creativecommons.org/licenses/by/4.0/',
-  'cc-by-nc': 'https://creativecommons.org/licenses/by-nc/4.0/',
-  'cc-by-nd': 'https://creativecommons.org/licenses/by-nd/4.0/',
-  'cc-by-sa': 'https://creativecommons.org/licenses/by-sa/4.0/',
-  'cc-by-nc-sa': 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
-  'cc-by-nc-nd': 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
+  // CC0 variants
   cc0: 'https://creativecommons.org/publicdomain/zero/1.0/',
   'cc-zero': 'https://creativecommons.org/publicdomain/zero/1.0/',
+  'cc0-1.0': 'https://creativecommons.org/publicdomain/zero/1.0/',
+  'cc0-ng': 'https://creativecommons.org/publicdomain/zero/1.0/',
+  // CC BY variants
+  'cc-by': 'https://creativecommons.org/licenses/by/4.0/',
+  'cc-by-3.0': 'https://creativecommons.org/licenses/by/3.0/',
+  'cc-by-4.0': 'https://creativecommons.org/licenses/by/4.0/',
+  // CC BY-NC variants
+  'cc-by-nc': 'https://creativecommons.org/licenses/by-nc/4.0/',
+  'cc-by-nc-4.0': 'https://creativecommons.org/licenses/by-nc/4.0/',
+  // CC BY-ND variants
+  'cc-by-nd': 'https://creativecommons.org/licenses/by-nd/4.0/',
+  // CC BY-SA variants
+  'cc-by-sa': 'https://creativecommons.org/licenses/by-sa/4.0/',
+  'cc-by-sa-4.0': 'https://creativecommons.org/licenses/by-sa/4.0/',
+  // CC BY-NC-SA variants
+  'cc-by-nc-sa': 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
+  'cc-by-nc-sa-3.0': 'https://creativecommons.org/licenses/by-nc-sa/3.0/',
+  'cc-by-nc-sa-4.0': 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
+  // CC BY-NC-ND variants
+  'cc-by-nc-nd': 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
+  'cc-by-nc-nd-4.0': 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
+  // Non-CC licenses with links
+  'arxiv-nonexclusive-distrib-1.0': 'https://arxiv.org/licenses/nonexclusive-distrib/1.0/',
+  'arxiv.org perpetual, non-exclusive license':
+    'https://arxiv.org/licenses/nonexclusive-distrib/1.0/',
+  gpl: 'https://www.gnu.org/licenses/gpl-3.0.html',
+  'gpl-v3': 'https://www.gnu.org/licenses/gpl-3.0.html',
+  mit: 'https://opensource.org/licenses/MIT',
+  pd: 'https://creativecommons.org/publicdomain/mark/1.0/',
+  'public-domain': 'https://creativecommons.org/publicdomain/mark/1.0/',
 };
 
 const CC0_DESCRIPTION: LicenseDescription = {
@@ -47,7 +85,25 @@ const LICENSE_DESCRIPTIONS: Record<string, LicenseDescription> = {
     allows: ['Share', 'Adapt', 'Commercial use'],
     disallows: [],
   },
+  'cc-by-3.0': {
+    title: 'Creative Commons Attribution 3.0 International License',
+    shortTitle: 'CC BY 3.0',
+    allows: ['Share', 'Adapt', 'Commercial use'],
+    disallows: [],
+  },
+  'cc-by-4.0': {
+    title: 'Creative Commons Attribution 4.0 International License',
+    shortTitle: 'CC BY 4.0',
+    allows: ['Share', 'Adapt', 'Commercial use'],
+    disallows: [],
+  },
   'cc-by-nc': {
+    title: 'Creative Commons Attribution-Non-Commercial 4.0 International License',
+    shortTitle: 'CC BY-NC 4.0',
+    allows: ['Share', 'Adapt'],
+    disallows: ['Commercial use'],
+  },
+  'cc-by-nc-4.0': {
     title: 'Creative Commons Attribution-Non-Commercial 4.0 International License',
     shortTitle: 'CC BY-NC 4.0',
     allows: ['Share', 'Adapt'],
@@ -65,7 +121,25 @@ const LICENSE_DESCRIPTIONS: Record<string, LicenseDescription> = {
     allows: ['Share', 'Adapt', 'Commercial use'],
     disallows: [],
   },
+  'cc-by-sa-4.0': {
+    title: 'Creative Commons Attribution-Share Alike 4.0 International License',
+    shortTitle: 'CC BY-SA 4.0',
+    allows: ['Share', 'Adapt', 'Commercial use'],
+    disallows: [],
+  },
   'cc-by-nc-sa': {
+    title: 'Creative Commons Attribution-Non-Commercial-Share Alike 4.0 International License',
+    shortTitle: 'CC BY-NC-SA 4.0',
+    allows: ['Share', 'Adapt'],
+    disallows: ['Commercial use'],
+  },
+  'cc-by-nc-sa-3.0': {
+    title: 'Creative Commons Attribution-Non-Commercial-Share Alike 3.0 International License',
+    shortTitle: 'CC BY-NC-SA 3.0',
+    allows: ['Share', 'Adapt'],
+    disallows: ['Commercial use'],
+  },
+  'cc-by-nc-sa-4.0': {
     title: 'Creative Commons Attribution-Non-Commercial-Share Alike 4.0 International License',
     shortTitle: 'CC BY-NC-SA 4.0',
     allows: ['Share', 'Adapt'],
@@ -77,53 +151,121 @@ const LICENSE_DESCRIPTIONS: Record<string, LicenseDescription> = {
     allows: ['Share'],
     disallows: ['Commercial use', 'Adapt or remix'],
   },
+  'cc-by-nc-nd-4.0': {
+    title: 'Creative Commons Attribution-Non-Commercial-No Derivatives 4.0 International License',
+    shortTitle: 'CC BY-NC-ND 4.0',
+    allows: ['Share'],
+    disallows: ['Commercial use', 'Adapt or remix'],
+  },
   cc0: CC0_DESCRIPTION,
   'cc-zero': CC0_DESCRIPTION,
+  'cc0-1.0': CC0_DESCRIPTION,
+  'cc0-ng': CC0_DESCRIPTION,
+};
+
+// Helper function to get display label for non-CC licenses
+const getNonCCLicenseLabel = (license: string): string => {
+  const normalized = license.toLowerCase().trim();
+  const labelMap: Record<string, string> = {
+    'arxiv-nonexclusive-distrib-1.0': 'arXiv License 1.0',
+    'arxiv.org perpetual, non-exclusive license': 'arXiv License',
+    gpl: 'GPL v3',
+    'gpl-v3': 'GPL v3',
+    mit: 'MIT License',
+    pd: 'Public Domain',
+    'public-domain': 'Public Domain',
+  };
+  return labelMap[normalized] || license;
 };
 
 export const parseLicense = (license?: string): LicenseInfo => {
   if (!license) {
-    return { icons: [], label: null, url: null, description: null };
+    return {
+      type: 'text-only',
+      icons: [],
+      label: null,
+      url: null,
+      description: null,
+    };
   }
 
   const normalizedLicense = license.toLowerCase().trim();
 
-  if (normalizedLicense === 'cc0' || normalizedLicense === 'cc-zero') {
+  // Handle CC0 variants
+  if (
+    normalizedLicense === 'cc0' ||
+    normalizedLicense === 'cc-zero' ||
+    normalizedLicense === 'cc0-1.0' ||
+    normalizedLicense === 'cc0-ng'
+  ) {
     return {
+      type: 'cc-icons',
       icons: [faCreativeCommons, faCreativeCommonsZero],
       label: 'CC-ZERO',
-      url: LICENSE_URLS['cc0'],
-      description: LICENSE_DESCRIPTIONS['cc0'],
+      url: LICENSE_URLS[normalizedLicense] || LICENSE_URLS['cc0'],
+      description: LICENSE_DESCRIPTIONS[normalizedLicense] || LICENSE_DESCRIPTIONS['cc0'],
     };
   }
 
-  const icons: IconDefinition[] = [faCreativeCommons];
-  const labelParts: string[] = [];
+  // Handle CC licenses (with icons)
+  if (normalizedLicense.startsWith('cc-')) {
+    const icons: IconDefinition[] = [faCreativeCommons];
+    const labelParts: string[] = [];
 
-  if (normalizedLicense.includes('by')) {
-    icons.push(faCreativeCommonsBy);
-    labelParts.push('BY');
+    if (normalizedLicense.includes('by')) {
+      icons.push(faCreativeCommonsBy);
+      labelParts.push('BY');
+    }
+
+    if (normalizedLicense.includes('nc')) {
+      icons.push(faCreativeCommonsNc);
+      labelParts.push('NC');
+    }
+
+    if (normalizedLicense.includes('nd')) {
+      icons.push(faCreativeCommonsNd);
+      labelParts.push('ND');
+    }
+
+    if (normalizedLicense.includes('sa')) {
+      icons.push(faCreativeCommonsSa);
+      labelParts.push('SA');
+    }
+
+    const fullLabel = labelParts.length > 0 ? `CC-${labelParts.join('-')}` : null;
+    const url = LICENSE_URLS[normalizedLicense] || null;
+    const description = LICENSE_DESCRIPTIONS[normalizedLicense] || null;
+
+    // If we have icons and a URL, it's a CC license with icons
+    if (icons.length > 1 && url) {
+      return {
+        type: 'cc-icons',
+        icons,
+        label: fullLabel,
+        url,
+        description,
+      };
+    }
   }
 
-  if (normalizedLicense.includes('nc')) {
-    icons.push(faCreativeCommonsNc);
-    labelParts.push('NC');
+  // Handle non-CC licenses with links (plain text style)
+  const nonCCUrl = LICENSE_URLS[normalizedLicense];
+  if (nonCCUrl) {
+    return {
+      type: 'text-with-link',
+      icons: [],
+      label: getNonCCLicenseLabel(license),
+      url: nonCCUrl,
+      description: null,
+    };
   }
 
-  if (normalizedLicense.includes('nd')) {
-    icons.push(faCreativeCommonsNd);
-    labelParts.push('ND');
-  }
-
-  if (normalizedLicense.includes('sa')) {
-    icons.push(faCreativeCommonsSa);
-    labelParts.push('SA');
-  }
-
-  const fullLabel = labelParts.length > 0 ? `CC-${labelParts.join('-')}` : null;
-
-  const url = LICENSE_URLS[normalizedLicense] || null;
-  const description = LICENSE_DESCRIPTIONS[normalizedLicense] || null;
-
-  return { icons, label: fullLabel, url, description };
+  // Default: unknown licenses, render as plain text
+  return {
+    type: 'text-only',
+    icons: [],
+    label: license,
+    url: null,
+    description: null,
+  };
 };
