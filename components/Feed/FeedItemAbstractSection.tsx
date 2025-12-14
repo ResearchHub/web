@@ -127,7 +127,7 @@ export const FeedItemAbstractSection: FC<FeedItemAbstractSectionProps> = ({
         </Button>
         {isMobileExpanded && (
           <div className="mt-2 text-sm text-gray-900 leading-relaxed">
-            <p>{truncateText(content, maxLength)}</p>
+            <p>{content}</p>
           </div>
         )}
       </div>
