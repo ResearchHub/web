@@ -114,7 +114,7 @@ const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
         {deadline && (
           <div className="flex items-center gap-1.5 text-sm text-gray-500">
             <Clock size={14} />
-            <DeadlineExactTimeTooltip deadlineIso={deadlineIso} highZIndex={true}>
+            <DeadlineExactTimeTooltip deadlineIso={deadlineIso}>
               <span>Ends {deadline}</span>
             </DeadlineExactTimeTooltip>
           </div>
