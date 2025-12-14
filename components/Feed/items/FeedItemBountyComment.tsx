@@ -18,7 +18,6 @@ import { ContentFormat } from '@/types/comment';
 import { ID } from '@/types/root';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { BountyContribution, BountyType } from '@/types/bounty';
-import { formatCurrency } from '@/utils/currency';
 import { useParams, useRouter } from 'next/navigation';
 import { Trophy, Pen, Users, MessageSquareReply } from 'lucide-react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -139,20 +138,8 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
   // Calculate display amount (handles Foundation bounties with flat $150 USD)
   const { amount: displayBountyAmount } = getBountyDisplayAmount(bounty, exchangeRate, showUSD);
 
-  // Format the bounty amount for display in the action text
-  const formattedBountyAmount = bounty.totalAmount
-    ? formatCurrency({
-        amount: showUSD ? displayBountyAmount : Number.parseFloat(bounty.totalAmount),
-        showUSD,
-        exchangeRate,
-        shorten: true,
-        skipConversion: showUSD, // Skip conversion since we've already calculated the display amount
-      })
-    : '';
-  const currencySuffix = showUSD ? '' : 'RSC';
-  const bountyActionText = bounty.totalAmount
-    ? `created a bounty for ${formattedBountyAmount} ${currencySuffix}`
-    : 'created a bounty';
+  // Always use generic action text without amount
+  const bountyActionText = 'created a bounty';
 
   // Handle opening the contribute modal
   const handleOpenContributeModal = (e: React.MouseEvent | undefined) => {
