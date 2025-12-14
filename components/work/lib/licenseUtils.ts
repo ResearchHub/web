@@ -81,7 +81,7 @@ const parseCCLicense = (normalized: string): ParsedCC | null => {
     return { modifiers: [], version: '1.0' };
   }
 
-  const ccMatch = normalized.match(/^cc-(.+?)(?:-(\d+\.\d+))?$/);
+  const ccMatch = /^cc-(.+?)(?:-(\d+\.\d+))?$/.exec(normalized);
   if (!ccMatch) return null;
 
   const modifierStr = ccMatch[1];
