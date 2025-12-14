@@ -4,7 +4,8 @@ import { FC, useState, useMemo } from 'react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
-import { formatDate, isDeadlineInFuture } from '@/utils/date';
+import { formatDate, formatDeadline, isDeadlineInFuture } from '@/utils/date';
+import { isExpiringSoon } from './lib/bountyUtil';
 import { Bounty, BountyType } from '@/types/bounty';
 import { Work } from '@/types/work';
 import { colors } from '@/app/styles/colors';
@@ -17,7 +18,6 @@ import { Clock, Forward, ArrowLeft } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleInfo } from '@fortawesome/pro-light-svg-icons';
 import { getBountyDisplayAmount } from './lib/bountyUtil';
-import { DeadlineExactTimeTooltip } from '@/components/ui/DeadlineExactTimeTooltip';
 
 interface BountyDetailsModalProps {
   isOpen: boolean;
@@ -28,8 +28,7 @@ interface BountyDetailsModalProps {
   bountyType: BountyType;
   displayAmount: number;
   showUSD: boolean;
-  deadline?: string;
-  deadlineIso?: string;
+  deadlineLabel?: string;
   onAddSolutionClick: (e: React.MouseEvent) => void;
   buttonText: string;
   isActive: boolean;
@@ -44,8 +43,7 @@ const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
   bountyType,
   displayAmount,
   showUSD,
-  deadline,
-  deadlineIso,
+  deadlineLabel,
   onAddSolutionClick,
   buttonText,
   isActive,
@@ -111,12 +109,10 @@ const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
             skipConversion={showUSD}
           />
         </div>
-        {deadline && (
+        {deadlineLabel && (
           <div className="flex items-center gap-1.5 text-sm text-gray-500">
             <Clock size={14} />
-            <DeadlineExactTimeTooltip deadlineIso={deadlineIso}>
-              <span>Ends {deadline}</span>
-            </DeadlineExactTimeTooltip>
+            <span>{deadlineLabel}</span>
           </div>
         )}
       </div>
@@ -154,7 +150,19 @@ export const BountyInfo: FC<BountyInfoProps> = ({
   const isActive =
     bounty.status === 'OPEN' &&
     (bounty.expirationDate ? isDeadlineInFuture(bounty.expirationDate) : true);
-  const deadline = bounty.expirationDate ? formatDate(bounty.expirationDate) : undefined;
+
+  // Compute deadline label: use hours format if <24h, else use date format
+  const deadlineLabel = useMemo(() => {
+    if (!bounty.expirationDate) return undefined;
+
+    // If <24h remaining, use formatDeadline which returns "Ends in Xh" or "Ends in Xm"
+    if (isExpiringSoon(bounty.expirationDate, 1)) {
+      return formatDeadline(bounty.expirationDate);
+    }
+
+    // Otherwise, use date format with "Ends" prefix
+    return `Ends ${formatDate(bounty.expirationDate)}`;
+  }, [bounty.expirationDate]);
 
   // Get bounty label text
   const bountyLabel = bounty.bountyType === 'REVIEW' ? 'Peer Review' : 'Bounty';
@@ -225,7 +233,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
           </div>
 
           {/* Deadline - hidden on very small screens */}
-          {deadline && (
+          {deadlineLabel && (
             <div
               className={cn(
                 'hidden sm:!flex items-center gap-1 text-xs',
@@ -233,9 +241,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
               )}
             >
               <Clock size={12} className="flex-shrink-0" />
-              <DeadlineExactTimeTooltip deadlineIso={bounty.expirationDate}>
-                <span className="whitespace-nowrap">Ends {deadline}</span>
-              </DeadlineExactTimeTooltip>
+              <span className="whitespace-nowrap">{deadlineLabel}</span>
             </div>
           )}
 
@@ -281,8 +287,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
         bountyType={bounty.bountyType as BountyType}
         displayAmount={displayAmount}
         showUSD={showUSD}
-        deadline={deadline}
-        deadlineIso={bounty.expirationDate}
+        deadlineLabel={deadlineLabel}
         onAddSolutionClick={onAddSolutionClick}
         buttonText={getAddButtonText()}
         isActive={isActive}

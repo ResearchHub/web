@@ -4,7 +4,6 @@ import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Check } from 'lucide-react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import { DeadlineExactTimeTooltip } from '@/components/ui/DeadlineExactTimeTooltip';
 
 interface BountyMetadataLineProps {
   amount: number;
@@ -62,15 +61,11 @@ export const BountyMetadataLine = ({
             ) : (
               <Check size={14} className="text-green-600 flex-shrink-0" />
             )}
-            <DeadlineExactTimeTooltip
-              deadlineIso={isOpen && expirationDate ? expirationDate : undefined}
+            <span
+              className={`${isOpen ? (expiringSoon ? 'text-orange-600 font-medium' : 'text-gray-700') : 'text-green-700 font-medium'}`}
             >
-              <span
-                className={`${isOpen ? (expiringSoon ? 'text-orange-600 font-medium' : 'text-gray-700') : 'text-green-700 font-medium'}`}
-              >
-                {deadlineText}
-              </span>
-            </DeadlineExactTimeTooltip>
+              {deadlineText}
+            </span>
           </div>
         )}
       </div>
