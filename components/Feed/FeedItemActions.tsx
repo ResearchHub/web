@@ -415,7 +415,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               showTooltip={showTooltips}
             />
           )}
-          {onTip &&
+          {(onTip || totalAwarded > 0) &&
             (showTooltips && totalAwarded > 0 ? (
               <Tooltip
                 content={
@@ -430,30 +430,52 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 position="top"
                 width="w-[320px]"
               >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    'flex items-center space-x-1 border border-gray-200 rounded-full transition-all',
-                    'py-0.5 px-2 md:!py-1 md:!px-3',
-                    'text-gray-900 bg-white hover:text-gray-900 hover:bg-gray-100'
-                  )}
-                  onClick={handleTip}
-                >
-                  <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
-                  {totalAwarded > 0 && (
-                    <span className="text-xs md:!text-sm font-medium">
-                      {formatCurrency({
-                        amount: totalAwarded,
-                        showUSD,
-                        exchangeRate,
-                        shorten: true,
-                      })}
-                    </span>
-                  )}
-                </Button>
+                {onTip ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      'flex items-center space-x-1 border border-gray-200 rounded-full transition-all',
+                      'py-0.5 px-2 md:!py-1 md:!px-3',
+                      'text-gray-900 bg-white hover:text-gray-900 hover:bg-gray-100'
+                    )}
+                    onClick={handleTip}
+                  >
+                    <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
+                    {totalAwarded > 0 && (
+                      <span className="text-xs md:!text-sm font-medium">
+                        {formatCurrency({
+                          amount: totalAwarded,
+                          showUSD,
+                          exchangeRate,
+                          shorten: true,
+                        })}
+                      </span>
+                    )}
+                  </Button>
+                ) : (
+                  <div
+                    className={cn(
+                      'flex items-center space-x-1 border border-gray-200 rounded-full',
+                      'py-0.5 px-2 md:!py-1 md:!px-3',
+                      'text-gray-900 bg-white cursor-default'
+                    )}
+                  >
+                    <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
+                    {totalAwarded > 0 && (
+                      <span className="text-xs md:!text-sm font-medium">
+                        {formatCurrency({
+                          amount: totalAwarded,
+                          showUSD,
+                          exchangeRate,
+                          shorten: true,
+                        })}
+                      </span>
+                    )}
+                  </div>
+                )}
               </Tooltip>
-            ) : (
+            ) : onTip ? (
               <Button
                 variant="ghost"
                 size="sm"
@@ -472,6 +494,21 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                   </span>
                 )}
               </Button>
+            ) : (
+              <div
+                className={cn(
+                  'flex items-center space-x-1 border border-gray-200 rounded-full',
+                  'py-0.5 px-2 md:!py-1 md:!px-3',
+                  'text-gray-900 bg-white cursor-default'
+                )}
+              >
+                <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
+                {totalAwarded > 0 && (
+                  <span className="text-xs md:!text-sm font-medium">
+                    {formatCurrency({ amount: totalAwarded, showUSD, exchangeRate, shorten: true })}
+                  </span>
+                )}
+              </div>
             ))}
           {showInlineReviews &&
             (showTooltips && reviews.length > 0 ? (
