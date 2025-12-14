@@ -1,6 +1,7 @@
 'use client';
 
 import { FC, useState } from 'react';
+import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatRSC } from '@/utils/number';
 import { Fundraise } from '@/types/funding';
@@ -42,6 +43,7 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
   // Format contributors for modal
   const modalContributors = topContributors.map((contributor) => ({
     profile: {
+      id: contributor.authorProfile.id,
       profileImage: contributor.authorProfile.profileImage,
       fullName: contributor.authorProfile.fullName,
     },
@@ -84,10 +86,14 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
                       src={contributor.authorProfile.profileImage}
                       alt={contributor.authorProfile.fullName}
                       size="xs"
+                      authorId={contributor.authorProfile.id}
                     />
-                    <span className="text-sm font-medium text-gray-900">
+                    <Link
+                      href={`/author/${contributor.authorProfile.id}`}
+                      className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                    >
                       {contributor.authorProfile.fullName}
-                    </span>
+                    </Link>
                   </div>
                   <div className="flex items-center text-sm font-medium text-orange-500">
                     <span className="mr-0.5">+</span>

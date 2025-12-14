@@ -1,6 +1,7 @@
 'use client';
 
 import { FC } from 'react';
+import Link from 'next/link';
 import { Dialog } from '@headlessui/react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -10,6 +11,7 @@ import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 
 interface Contributor {
   profile: {
+    id?: number;
     profileImage?: string | null;
     fullName: string;
   };
@@ -85,10 +87,20 @@ export const ContributorModal: FC<ContributorModalProps> = ({
                       src={contributor.profile.profileImage}
                       alt={contributor.profile.fullName}
                       size="sm"
+                      authorId={contributor.profile.id}
                     />
-                    <span className="text-sm font-medium text-gray-900">
-                      {contributor.profile.fullName}
-                    </span>
+                    {contributor.profile.id ? (
+                      <Link
+                        href={`/author/${contributor.profile.id}`}
+                        className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                      >
+                        {contributor.profile.fullName}
+                      </Link>
+                    ) : (
+                      <span className="text-sm font-medium text-gray-900">
+                        {contributor.profile.fullName}
+                      </span>
+                    )}
                   </div>
                   <span className="text-sm font-medium text-orange-500">
                     +{formatRSC({ amount: contributor.amount, round: true })} RSC
