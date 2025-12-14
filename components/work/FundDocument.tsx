@@ -12,12 +12,9 @@ import { WorkTabs, TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
-import { ProgressUpdates } from '@/components/ui/ProgressUpdates';
 import { useStorageKey } from '@/utils/storageKeys';
-import { calculateUpdateRate } from '@/components/Fund/lib/FundUtils';
 import { FundingRightSidebar } from './FundingRightSidebar';
 import { useUser } from '@/contexts/UserContext';
-import { UpdateRateBadge } from '@/components/ui/badges/UpdateRateBadge';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -112,29 +109,6 @@ export const FundDocument = ({
       case 'updates':
         return (
           <div className="space-y-6" key="updates-tab">
-            {/* Project Activity Timeline */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 lg:hidden">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3 className="text-base font-semibold text-gray-900">Updates Timeline</h3>
-                  <p className="mt-1 text-sm text-gray-700">
-                    Track updates made by authors about their research progress.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 ml-4">
-                  <UpdateRateBadge updateRate={calculateUpdateRate(authorUpdates)} />
-                </div>
-              </div>
-              <ProgressUpdates
-                updates={authorUpdates.map((update) => ({
-                  id: update.id,
-                  createdDate: update.createdDate,
-                  content: update.content,
-                }))}
-              />
-            </div>
-
-            {/* Comment Feed for posting updates */}
             <CommentFeed
               documentId={work.id}
               unifiedDocumentId={work.unifiedDocumentId || null}
@@ -312,7 +286,7 @@ export const FundDocument = ({
           >
             <FontAwesomeIcon icon={faXmark} className="w-4 h-4 text-gray-600" />
           </Button>
-          <FundingRightSidebar work={work} metadata={metadata} authorUpdates={authorUpdates} />
+          <FundingRightSidebar work={work} metadata={metadata} />
         </div>
       </div>
     </div>
