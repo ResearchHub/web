@@ -4,17 +4,25 @@ import React from 'react';
 import { Tip } from '@/types/tip';
 import { Avatar } from '@/components/ui/Avatar';
 import { Icon } from '@/components/ui/icons/Icon';
-import { formatRSC } from '@/utils/number';
+import { formatCurrency } from '@/utils/currency';
 
 interface TipTooltipProps {
   tips: Tip[];
   awardedBountyAmount?: number;
   totalAwarded: number;
+  showUSD?: boolean;
+  exchangeRate?: number;
 }
 
 const MAX_VISIBLE_TIPS = 5;
 
-export function TipTooltip({ tips, awardedBountyAmount, totalAwarded }: TipTooltipProps) {
+export function TipTooltip({
+  tips,
+  awardedBountyAmount,
+  totalAwarded,
+  showUSD = false,
+  exchangeRate = 0,
+}: TipTooltipProps) {
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
@@ -30,7 +38,13 @@ export function TipTooltip({ tips, awardedBountyAmount, totalAwarded }: TipToolt
         <Icon name="tipRSC" size={20} />
         <span className="font-semibold text-gray-900">Total Awarded</span>
         <span className="ml-auto text-lg font-bold text-gray-900">
-          {formatRSC({ amount: totalAwarded, shorten: true })} RSC
+          {formatCurrency({
+            amount: totalAwarded,
+            showUSD,
+            exchangeRate,
+            shorten: true,
+          })}
+          {!showUSD && ' RSC'}
         </span>
       </div>
 
@@ -61,7 +75,13 @@ export function TipTooltip({ tips, awardedBountyAmount, totalAwarded }: TipToolt
               </div>
               <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full flex-shrink-0">
                 <span className="text-sm font-semibold text-gray-900">
-                  {formatRSC({ amount: tip.amount, shorten: true })} RSC
+                  {formatCurrency({
+                    amount: tip.amount,
+                    showUSD,
+                    exchangeRate,
+                    shorten: true,
+                  })}
+                  {!showUSD && ' RSC'}
                 </span>
               </div>
             </div>
@@ -83,7 +103,6 @@ export function TipTooltip({ tips, awardedBountyAmount, totalAwarded }: TipToolt
           </div>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-              {/* Visual centering adjustment */}
               <Icon name="earn1" size={16} className="translate-x-px translate-y-px" />
             </div>
             <div className="flex-1 min-w-0 text-left">
@@ -91,7 +110,13 @@ export function TipTooltip({ tips, awardedBountyAmount, totalAwarded }: TipToolt
             </div>
             <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full flex-shrink-0">
               <span className="text-sm font-semibold text-gray-900">
-                {formatRSC({ amount: awardedBountyAmount || 0, shorten: true })} RSC
+                {formatCurrency({
+                  amount: awardedBountyAmount || 0,
+                  showUSD,
+                  exchangeRate,
+                  shorten: true,
+                })}
+                {!showUSD && ' RSC'}
               </span>
             </div>
           </div>

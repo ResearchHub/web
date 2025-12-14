@@ -33,7 +33,7 @@ import { BountyTooltip } from '@/components/tooltips/BountyTooltip';
 import { TipTooltip } from '@/components/tooltips/TipTooltip';
 import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
 import { Tip } from '@/types/tip';
-import { formatRSC } from '@/utils/number';
+import { formatCurrency } from '@/utils/currency';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -423,6 +423,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     tips={tips}
                     awardedBountyAmount={awardedBountyAmount}
                     totalAwarded={totalAwarded}
+                    showUSD={showUSD}
+                    exchangeRate={exchangeRate}
                   />
                 }
                 position="top"
@@ -441,7 +443,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                   <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
                   {totalAwarded > 0 && (
                     <span className="text-xs md:!text-sm font-medium">
-                      {formatRSC({ amount: totalAwarded, shorten: true })}
+                      {formatCurrency({
+                        amount: totalAwarded,
+                        showUSD,
+                        exchangeRate,
+                        shorten: true,
+                      })}
                     </span>
                   )}
                 </Button>
@@ -461,7 +468,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
                 {totalAwarded > 0 && (
                   <span className="text-xs md:!text-sm font-medium">
-                    {formatRSC({ amount: totalAwarded, shorten: true })}
+                    {formatCurrency({ amount: totalAwarded, showUSD, exchangeRate, shorten: true })}
                   </span>
                 )}
               </Button>
