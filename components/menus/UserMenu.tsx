@@ -17,7 +17,6 @@ import { AuthSharingService } from '@/services/auth-sharing.service';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { Button } from '@/components/ui/Button';
 import { useVerification } from '@/contexts/VerificationContext';
-import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 interface UserMenuProps {
   user: User;
@@ -42,7 +41,6 @@ export default function UserMenu({
   const [internalMenuOpen, setInternalMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { openVerificationModal } = useVerification();
-  const { showUSD, toggleCurrency } = useCurrencyPreference();
   // Use controlled or uncontrolled menu state
   const menuOpenState = isMenuOpen !== undefined ? isMenuOpen : internalMenuOpen;
   const setMenuOpenState = (open: boolean) => {
@@ -263,19 +261,6 @@ export default function UserMenu({
             <span className="text-base text-gray-700">Sign Out</span>
           </div>
         </div>
-
-        {/* Currency Toggle */}
-        <div className="px-6 py-2 border-t border-gray-200">
-          <select
-            value={showUSD ? 'USD' : 'RSC'}
-            onChange={() => toggleCurrency()}
-            onClick={(e) => e.stopPropagation()}
-            className="text-xs px-2 py-1 border border-gray-200 rounded-md bg-white text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
-          >
-            <option value="RSC">RSC</option>
-            <option value="USD">USD</option>
-          </select>
-        </div>
       </div>
 
       {/* Verification Banner at bottom */}
@@ -440,19 +425,6 @@ export default function UserMenu({
                 <span className="text-sm text-gray-700">Sign Out</span>
               </div>
             </BaseMenuItem>
-
-            {/* Currency Toggle */}
-            <div className="w-full px-4 py-2 border-t border-gray-200">
-              <select
-                value={showUSD ? 'USD' : 'RSC'}
-                onChange={() => toggleCurrency()}
-                onClick={(e) => e.stopPropagation()}
-                className="text-xs px-2 py-1 border border-gray-200 rounded-md bg-white text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
-              >
-                <option value="RSC">RSC</option>
-                <option value="USD">USD</option>
-              </select>
-            </div>
           </div>
 
           {/* Verification Banner at bottom */}

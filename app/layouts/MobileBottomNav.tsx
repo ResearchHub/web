@@ -21,6 +21,7 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 import { useUser } from '@/contexts/UserContext';
 
@@ -75,6 +76,7 @@ export const MobileBottomNav: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname() || '';
   const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const { showUSD, toggleCurrency } = useCurrencyPreference();
   const scrollContainerRef = useScrollContainer();
   const { user } = useUser();
 
@@ -303,8 +305,8 @@ export const MobileBottomNav: React.FC = () => {
 
           {/* Footer Links Section */}
           <div className="px-4">
-            {/* Social Icons */}
-            <div className="flex items-center mb-4">
+            {/* Social Icons & Currency Toggle */}
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-4">
                 <a
                   href="https://x.com/researchhub"
@@ -339,6 +341,15 @@ export const MobileBottomNav: React.FC = () => {
                   <FontAwesomeIcon icon={faLinkedin} className="h-5 w-5" />
                 </a>
               </div>
+              {/* Currency Toggle */}
+              <select
+                value={showUSD ? 'USD' : 'RSC'}
+                onChange={() => toggleCurrency()}
+                className="text-xs px-2 py-1 border border-gray-200 rounded-md bg-white text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+              >
+                <option value="RSC">RSC</option>
+                <option value="USD">USD</option>
+              </select>
             </div>
 
             {/* Utility Links */}
