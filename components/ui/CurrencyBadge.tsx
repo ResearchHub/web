@@ -168,8 +168,6 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
 
     if (isUSD) {
       // Main display is USD, tooltip shows RSC equivalent
-      // If skipConversion is true, amount is already in USD, so convert to RSC
-      // If skipConversion is false, amount is in RSC, so use it directly
       const rscAmount =
         skipConversion && exchangeRate > 0 ? Math.round(amount / exchangeRate) : Math.round(amount);
 
