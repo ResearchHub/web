@@ -442,7 +442,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     onClick={handleTip}
                   >
                     <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
-                    {totalAwarded > 0 && (
+                    {totalAwarded > 0 ? (
                       <span className="text-xs md:!text-sm font-medium">
                         {formatCurrency({
                           amount: totalAwarded,
@@ -451,6 +451,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                           shorten: true,
                         })}
                       </span>
+                    ) : (
+                      <span className="text-xs md:!text-sm font-medium">Tip</span>
                     )}
                   </Button>
                 ) : (
@@ -462,7 +464,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     )}
                   >
                     <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
-                    {totalAwarded > 0 && (
+                    {totalAwarded > 0 ? (
                       <span className="text-xs md:!text-sm font-medium">
                         {formatCurrency({
                           amount: totalAwarded,
@@ -471,6 +473,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                           shorten: true,
                         })}
                       </span>
+                    ) : (
+                      <span className="text-xs md:!text-sm font-medium">Tip</span>
                     )}
                   </div>
                 )}
@@ -488,10 +492,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 onClick={handleTip}
               >
                 <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
-                {totalAwarded > 0 && (
+                {totalAwarded > 0 ? (
                   <span className="text-xs md:!text-sm font-medium">
                     {formatCurrency({ amount: totalAwarded, showUSD, exchangeRate, shorten: true })}
                   </span>
+                ) : (
+                  <span className="text-xs md:!text-sm font-medium">Tip</span>
                 )}
               </Button>
             ) : (
@@ -503,10 +509,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 )}
               >
                 <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
-                {totalAwarded > 0 && (
+                {totalAwarded > 0 ? (
                   <span className="text-xs md:!text-sm font-medium">
                     {formatCurrency({ amount: totalAwarded, showUSD, exchangeRate, shorten: true })}
                   </span>
+                ) : (
+                  <span className="text-xs md:!text-sm font-medium">Tip</span>
                 )}
               </div>
             ))}
