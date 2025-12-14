@@ -167,12 +167,14 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
     }
 
     if (isUSD) {
-      // Main display is USD, tooltip shows original RSC amount
+      // Main display is USD, tooltip shows RSC equivalent
+      const rscAmount = exchangeRate > 0 ? Math.round(amount / exchangeRate) : Math.round(amount);
+
       return (
         <div className="p-1">
           <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1">
             <ResearchCoinIcon size={14} outlined />
-            <span>{Math.round(amount).toLocaleString()} RSC</span>
+            <span>{rscAmount.toLocaleString()} RSC</span>
           </div>
           <div className="text-gray-700 text-xs">≈ ${formatNumber(displayValue, shorten)} USD</div>
         </div>
