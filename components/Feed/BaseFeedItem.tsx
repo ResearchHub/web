@@ -68,6 +68,7 @@ export interface ImageSectionProps {
   alt?: string;
   className?: string;
   aspectRatio?: '4/3' | '16/9' | '1/1';
+  showFullImage?: boolean;
 }
 
 // Metadata component interface
@@ -213,6 +214,7 @@ export const ImageSection: FC<ImageSectionProps> = ({
   alt = 'Image',
   className,
   aspectRatio = '4/3',
+  showFullImage = false,
 }) => {
   if (!imageUrl) return null;
 
@@ -234,7 +236,7 @@ export const ImageSection: FC<ImageSectionProps> = ({
         src={imageUrl}
         alt={alt}
         fill
-        className="object-cover"
+        className={showFullImage ? 'object-contain' : 'object-cover'}
         sizes="(max-width: 768px) 100vw, 280px"
       />
     </div>

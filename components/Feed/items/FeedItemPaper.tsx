@@ -97,6 +97,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               imageUrl={paper.journal.imageUrl}
               alt={paper.journal.name || 'Journal cover'}
               aspectRatio="16/9"
+              showFullImage={true}
             />
           )
         }
@@ -188,11 +189,13 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
           </>
         }
         rightContent={
+          isDebugMode &&
           imageUrl && (
             <ImageSection
               imageUrl={imageUrl}
               alt={paper.title || 'Paper image'}
-              aspectRatio="4/3"
+              aspectRatio="1/1"
+              showFullImage={true}
             />
           )
         }
