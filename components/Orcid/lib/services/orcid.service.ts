@@ -1,9 +1,20 @@
+'use server';
+
 import { ApiClient } from '@/services/client';
 import { ID } from '@/types/root';
+import { redirect } from 'next/navigation';
 
 export async function connectOrcidAccount(): Promise<void> {
-  const { auth_url } = await ApiClient.post<{ auth_url: string }>('/api/orcid/connect/');
-  window.location.href = auth_url;
+  try {
+    const { auth_url } = await ApiClient.post<{ auth_url: string }>('/api/orcid/connect/');
+
+    if (!auth_url) {
+      throw new Error('Could not connect to ORCID. Please try again.');
+    }
+    redirect(auth_url);
+  } catch (error) {
+    throw error;
+  }
 }
 
 interface ApiOrcidCallbackResponse {

@@ -33,10 +33,9 @@ export default function OrcidCallbackPage() {
       return;
     }
 
-    setStatus('processing');
-    router.replace('/auth/orcid/callback', { scroll: false });
-
     const handleCallback = async () => {
+      setStatus('processing');
+
       try {
         const response = await processOrcidCallback(code, oauthState);
 
@@ -54,7 +53,7 @@ export default function OrcidCallbackPage() {
     };
 
     handleCallback();
-  }, [status, searchParams, router]);
+  }, [status, searchParams, router, refreshUser]);
 
   return (
     <PageLayout rightSidebar={false}>
