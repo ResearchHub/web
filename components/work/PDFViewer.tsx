@@ -628,18 +628,22 @@ const PDFViewer = ({ url, onReady, onError }: PDFViewerProps) => {
             <ZoomIn className="h-4 w-4 text-gray-500" />
           </ToolbarButton>
 
-          <ToolbarDivider />
+          {!isMobile && (
+            <>
+              <ToolbarDivider />
 
-          <ToolbarButton
-            onClick={toggleFullscreen}
-            title={isFullscreen ? 'Exit (Esc)' : 'Full screen'}
-          >
-            {isFullscreen ? (
-              <Minimize2 className="h-4 w-4 text-gray-500" />
-            ) : (
-              <Maximize2 className="h-4 w-4 text-gray-500" />
-            )}
-          </ToolbarButton>
+              <ToolbarButton
+                onClick={toggleFullscreen}
+                title={isFullscreen ? 'Exit (Esc)' : 'Full screen'}
+              >
+                {isFullscreen ? (
+                  <Minimize2 className="h-4 w-4 text-gray-500" />
+                ) : (
+                  <Maximize2 className="h-4 w-4 text-gray-500" />
+                )}
+              </ToolbarButton>
+            </>
+          )}
 
           <ToolbarDivider />
 
