@@ -17,6 +17,7 @@ import { Clock, Forward, ArrowLeft } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleInfo } from '@fortawesome/pro-light-svg-icons';
 import { getBountyDisplayAmount } from './lib/bountyUtil';
+import { DeadlineExactTimeTooltip } from '@/components/ui/DeadlineExactTimeTooltip';
 
 interface BountyDetailsModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ interface BountyDetailsModalProps {
   displayAmount: number;
   showUSD: boolean;
   deadline?: string;
+  deadlineIso?: string;
   onAddSolutionClick: (e: React.MouseEvent) => void;
   buttonText: string;
   isActive: boolean;
@@ -43,6 +45,7 @@ const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
   displayAmount,
   showUSD,
   deadline,
+  deadlineIso,
   onAddSolutionClick,
   buttonText,
   isActive,
@@ -111,7 +114,9 @@ const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
         {deadline && (
           <div className="flex items-center gap-1.5 text-sm text-gray-500">
             <Clock size={14} />
-            <span>Ends {deadline}</span>
+            <DeadlineExactTimeTooltip deadlineIso={deadlineIso} highZIndex={true}>
+              <span>Ends {deadline}</span>
+            </DeadlineExactTimeTooltip>
           </div>
         )}
       </div>
@@ -228,7 +233,9 @@ export const BountyInfo: FC<BountyInfoProps> = ({
               )}
             >
               <Clock size={12} className="flex-shrink-0" />
-              <span className="whitespace-nowrap">Ends {deadline}</span>
+              <DeadlineExactTimeTooltip deadlineIso={bounty.expirationDate}>
+                <span className="whitespace-nowrap">Ends {deadline}</span>
+              </DeadlineExactTimeTooltip>
             </div>
           )}
 
@@ -275,6 +282,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
         displayAmount={displayAmount}
         showUSD={showUSD}
         deadline={deadline}
+        deadlineIso={bounty.expirationDate}
         onAddSolutionClick={onAddSolutionClick}
         buttonText={getAddButtonText()}
         isActive={isActive}
