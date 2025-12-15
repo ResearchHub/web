@@ -26,6 +26,7 @@ interface AddToListModalProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly unifiedDocumentId: ID;
+  readonly documentTitle?: string;
 }
 
 const TOAST_MESSAGES = {
@@ -158,6 +159,7 @@ export function AddToListModal({
   isOpen,
   onClose,
   unifiedDocumentId,
+  documentTitle,
 }: Readonly<AddToListModalProps>) {
   const { overviewLists, isLoading, listIdsContainingDocument } = useIsInList(
     isOpen ? unifiedDocumentId : null
@@ -358,6 +360,11 @@ export function AddToListModal({
             'flex items-center justify-center min-h-[150px]'
         )}
       >
+        {!showCreateForm && documentTitle && (
+          <div className="mb-3 px-3">
+            <p className="text-xs text-gray-500 truncate">{documentTitle}</p>
+          </div>
+        )}
         {isLoading && <ListLoadingSkeleton />}
 
         {!isLoading && overviewLists.length === 0 && !showCreateForm && (
