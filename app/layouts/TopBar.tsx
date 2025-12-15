@@ -463,7 +463,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             {/* Mobile page title - next to hamburger/back button */}
             {pageInfo && (
               <div className="flex tablet:!hidden items-center">
-                {pageInfo.icon && <div className="mr-2">{pageInfo.icon}</div>}
                 {pageInfo.title && (
                   <h1 className="text-lg font-bold text-gray-900 leading-tight">
                     {pageInfo.title}
