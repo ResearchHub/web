@@ -1,7 +1,6 @@
 'use client';
 
 import { FC, useState, useEffect } from 'react';
-import { PageLayout } from '@/app/layouts/PageLayout';
 import { Globe } from 'lucide-react';
 import { useFeed, FeedTab, FeedSource } from '@/hooks/useFeed';
 import { FeedContent } from './FeedContent';
@@ -215,7 +214,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   ) : null;
 
   return (
-    <PageLayout>
+    <>
       <FeedContent
         showFundraiseHeaders={false}
         showGrantHeaders={false}
@@ -238,7 +237,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
         onClose={() => setIsManageTopicsModalOpen(false)}
         onTopicsChanged={refresh}
       />
-    </PageLayout>
+    </>
   );
 };
 

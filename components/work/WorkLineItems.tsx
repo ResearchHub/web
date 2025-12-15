@@ -10,6 +10,7 @@ import {
   Octagon,
   Share2,
   CheckCircle,
+  Download,
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
@@ -37,10 +38,10 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useCompleteFundraise } from '@/hooks/useFundraise';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
-import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
 import { useAddToList } from '@/components/UserList/lib/UserListsContext';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
+import { handleDownload } from '@/utils/download';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -78,13 +79,15 @@ export const WorkLineItems = ({
   const { user } = useUser();
   const [isWorkEditModalOpen, setIsWorkEditModalOpen] = useState(false);
   const { showShareModal } = useShareModalContext();
-  const userListsEnabled = useUserListsEnabled();
   const { isInList, listIdsContainingDocument } = useIsInList(work.unifiedDocumentId);
   const { isTogglingDefaultList, handleAddToList } = useAddToList({
     unifiedDocumentId: work.unifiedDocumentId,
     isInList,
     onOpenModal: () => setIsAddToListModalOpen(true),
   });
+
+  // Extract PDF format for download
+  const pdfFormat = work.formats?.find((format) => format.type === 'PDF');
 
   const {
     data: userVotes,
@@ -336,7 +339,7 @@ export const WorkLineItems = ({
             <span>{voteCount}</span>
           </button>
 
-          {userListsEnabled && work.unifiedDocumentId && work.postType !== 'QUESTION' && (
+          {work.unifiedDocumentId && work.postType !== 'QUESTION' && (
             <Button
               variant="ghost"
               onClick={handleAddToList}
@@ -421,6 +424,12 @@ export const WorkLineItems = ({
                   <span>Complete fundraise</span>
                 </BaseMenuItem>
               </>
+            )}
+            {pdfFormat && (
+              <BaseMenuItem onSelect={() => handleDownload(pdfFormat.url, 'document.pdf')}>
+                <Download className="h-4 w-4 mr-2" />
+                <span>Download PDF</span>
+              </BaseMenuItem>
             )}
             <BaseMenuItem
               onSelect={() => executeAuthenticatedAction(() => setIsFlagModalOpen(true))}
@@ -526,7 +535,7 @@ export const WorkLineItems = ({
         onTipSuccess={handleTipSuccess}
       />
 
-      {userListsEnabled && work.unifiedDocumentId && (
+      {work.unifiedDocumentId && (
         <AddToListModal
           isOpen={isAddToListModalOpen}
           onClose={() => setIsAddToListModalOpen(false)}

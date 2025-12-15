@@ -18,7 +18,6 @@ import { AuthSharingService } from '@/services/auth-sharing.service';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { Button } from '@/components/ui/Button';
 import { useVerification } from '@/contexts/VerificationContext';
-import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
 import { useConnectOrcid } from '@/components/Orcid/lib/hooks/useConnectOrcid';
 import { useOrcidCallback } from '@/components/Orcid/lib/hooks/useOrcidCallback';
 
@@ -45,7 +44,6 @@ export default function UserMenu({
   const [internalMenuOpen, setInternalMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { openVerificationModal } = useVerification();
-  const userListsEnabled = useUserListsEnabled();
   const { connect: connectOrcid, isConnecting: isConnectingOrcid } = useConnectOrcid();
   const orcidConnected = user.authorProfile?.orcidConnected ?? false;
 
@@ -216,16 +214,14 @@ export default function UserMenu({
           </Link>
         )}
 
-        {userListsEnabled && (
-          <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
-            <div className="px-6 py-2 hover:bg-gray-50">
-              <div className="flex items-center">
-                <FontAwesomeIcon icon={faBookmark} className="h-5 w-5 mr-3 text-gray-500" />
-                <span className="text-base text-gray-700">Your Lists</span>
-              </div>
+        <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
+          <div className="px-6 py-2 hover:bg-gray-50">
+            <div className="flex items-center">
+              <FontAwesomeIcon icon={faBookmark} className="h-5 w-5 mr-3 text-gray-500" />
+              <span className="text-base text-gray-700">Your Lists</span>
             </div>
-          </Link>
-        )}
+          </div>
+        </Link>
 
         {!orcidConnected && (
           <div
@@ -434,16 +430,14 @@ export default function UserMenu({
               </Link>
             )}
 
-            {userListsEnabled && (
-              <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
-                <div className="w-full px-4 py-2 hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <FontAwesomeIcon icon={faBookmark} className="h-4 w-4 mr-3 text-gray-500" />
-                    <span className="text-sm text-gray-700">Your Lists</span>
-                  </div>
+            <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
+              <div className="w-full px-4 py-2 hover:bg-gray-50">
+                <div className="flex items-center">
+                  <FontAwesomeIcon icon={faBookmark} className="h-4 w-4 mr-3 text-gray-500" />
+                  <span className="text-sm text-gray-700">Your Lists</span>
                 </div>
-              </Link>
-            )}
+              </div>
+            </Link>
 
             {!orcidConnected && (
               <BaseMenuItem

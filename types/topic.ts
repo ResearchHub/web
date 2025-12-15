@@ -4,7 +4,7 @@ export type Topic = {
   name: string;
   slug: string;
   id: number;
-  namespace?: 'journal' | 'topic';
+  namespace?: 'journal' | 'topic' | 'category' | 'subcategory';
   imageUrl?: string;
   description?: string;
   category?: string;

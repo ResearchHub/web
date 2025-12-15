@@ -15,6 +15,7 @@ import type { FeedEntry } from '@/types/feed';
 import Link from 'next/link';
 import { ArrowRightIcon } from 'lucide-react';
 import { LeaderboardSkeleton } from '@/components/Leaderboard/LeaderboardOverview';
+import { PersonalizeFeedBanner } from './components/PersonalizeFeedBanner';
 
 const LeaderboardOverview = dynamic(
   () =>
@@ -54,14 +55,6 @@ const NextStepsPanel = dynamic(
   {
     ssr: false,
     loading: () => null, // No loading state needed, component handles its own visibility
-  }
-);
-
-const PersonalizeFeedBanner = dynamic(
-  () => import('./components/PersonalizeFeedBanner').then((mod) => mod.PersonalizeFeedBanner),
-  {
-    ssr: false,
-    loading: () => null,
   }
 );
 
