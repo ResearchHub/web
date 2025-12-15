@@ -121,8 +121,8 @@ export const FeedItemAbstractSection: FC<FeedItemAbstractSectionProps> = ({
           mobileLabel={mobileLabel}
         />
         {isMobileExpanded && (
-          <div className={cn('mt-2 text-sm leading-relaxed', textColorClass)}>
-            <p>{highlightedContent ? content : truncateText(content, maxLength)}</p>
+          <div className="mt-2 text-sm text-gray-900 leading-relaxed">
+            <p>{content}</p>
           </div>
         )}
       </div>

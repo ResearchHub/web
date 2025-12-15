@@ -1,7 +1,6 @@
 import { Suspense } from 'react';
 import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
-import { CommentService } from '@/services/comment.service';
 import { Work } from '@/types/work';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
@@ -62,21 +61,13 @@ export default async function FundReviewsPage({ params }: Props) {
   const work = await getFundingProject(id);
 
   // Fetch all required data in parallel
-  const [metadata, content, authorUpdates] = await Promise.all([
+  const [metadata, content] = await Promise.all([
     MetadataService.get(work.unifiedDocumentId?.toString() || ''),
     getWorkHTMLContent(work),
-    CommentService.fetchAuthorUpdates({
-      documentId: work.id,
-      contentType: work.contentType,
-    }),
   ]);
 
   return (
-    <PageLayout
-      rightSidebar={
-        <FundingRightSidebar work={work} metadata={metadata} authorUpdates={authorUpdates} />
-      }
-    >
+    <PageLayout rightSidebar={<FundingRightSidebar work={work} metadata={metadata} />}>
       <Suspense>
         <FundDocument work={work} metadata={metadata} content={content} defaultTab="reviews" />
         <SearchHistoryTracker work={work} />

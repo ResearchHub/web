@@ -9,32 +9,65 @@ interface Topic {
   id: string | number;
   name: string;
   slug: string;
+  namespace?: 'journal' | 'topic' | 'category' | 'subcategory';
 }
 
 interface TopicsSectionProps {
   topics: Topic[];
-  category?: Topic;
-  subcategory?: Topic;
 }
 
-export const TopicsSection = ({ topics, category, subcategory }: TopicsSectionProps) => {
+export const TopicsSection = ({ topics }: TopicsSectionProps) => {
   const [showAllTopics, setShowAllTopics] = useState(false);
 
-  // Sort topics: category first, then subcategory, then the rest
+  // Sort topics: lowest-id category first, lowest-id subcategory second, then the rest
   const sortedTopics = useMemo(() => {
-    const filteredTopics = topics.filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
+    const filtered = topics.filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
 
-    // Create a priority map for sorting
-    const getPriority = (topic: Topic): number => {
-      if (category && topic.id === category.id) return 0;
-      if (subcategory && topic.id === subcategory.id) return 1;
-      return 2;
-    };
+    // Find the category and subcategory with the lowest ids
+    const categories = filtered.filter((t) => t.namespace === 'category');
+    const subcategories = filtered.filter((t) => t.namespace === 'subcategory');
+    const others = filtered.filter(
+      (t) => t.namespace !== 'category' && t.namespace !== 'subcategory'
+    );
 
-    return [...filteredTopics].sort((a, b) => getPriority(a) - getPriority(b));
-  }, [topics, category, subcategory]);
+    // Sort each group by id to get the lowest
+    categories.sort((a, b) => Number(a.id) - Number(b.id));
+    subcategories.sort((a, b) => Number(a.id) - Number(b.id));
 
-  if (sortedTopics.length === 0) return null;
+    const result: Topic[] = [];
+
+    // Add the lowest-id category first
+    if (categories.length > 0) {
+      result.push(categories[0]);
+    }
+
+    // Add the lowest-id subcategory second
+    if (subcategories.length > 0) {
+      result.push(subcategories[0]);
+    }
+
+    // Add remaining categories (excluding the first one already added)
+    result.push(...categories.slice(1));
+
+    // Add remaining subcategories (excluding the first one already added)
+    result.push(...subcategories.slice(1));
+
+    // Add all other topics
+    result.push(...others);
+
+    return result;
+  }, [topics]);
+
+  // Mobile: Only subcategories, sorted by lowest ID first
+  const mobileSubcategories = useMemo(() => {
+    const filtered = topics.filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
+    return filtered
+      .filter((t) => t.namespace === 'subcategory')
+      .sort((a, b) => Number(a.id) - Number(b.id));
+  }, [topics]);
+
+  // Return null only if both views would be empty
+  if (sortedTopics.length === 0 && mobileSubcategories.length === 0) return null;
 
   const displayedTopics = showAllTopics ? sortedTopics : sortedTopics.slice(0, 5);
   const hasMoreTopics = sortedTopics.length > 5;
@@ -45,7 +78,15 @@ export const TopicsSection = ({ topics, category, subcategory }: TopicsSectionPr
         <Tags className="h-6 w-6 text-gray-500" />
         <h2 className="text-base font-semibold text-gray-900">Topics</h2>
       </div>
-      <div className="space-y-3">
+      {/* Mobile: Subcategories only */}
+      <div className="tablet:!hidden flex flex-wrap gap-2">
+        {mobileSubcategories.map((topic) => (
+          <TopicAndJournalBadge key={topic.id} name={topic.name} slug={topic.slug} size="md" />
+        ))}
+      </div>
+
+      {/* Desktop: All topics with expand/collapse */}
+      <div className="hidden tablet:!block space-y-3">
         <div className="flex flex-wrap gap-2">
           {displayedTopics.map((topic) => (
             <TopicAndJournalBadge key={topic.id} name={topic.name} slug={topic.slug} size="md" />

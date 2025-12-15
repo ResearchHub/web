@@ -44,7 +44,7 @@ export default async function WorkPage({ params }: Props) {
   const resolvedParams = await params;
   const work = await getWork(resolvedParams.id);
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
-
+  console.log('metadata', metadata);
   if (!work) {
     notFound();
   }
