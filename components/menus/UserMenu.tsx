@@ -224,30 +224,20 @@ export default function UserMenu({
         </Link>
 
         {!orcidConnected && (
-          <div
-            className="px-6 py-2 hover:bg-gray-50 cursor-pointer"
+          <Button
+            variant="ghost"
+            className="px-6 py-2 hover:bg-gray-50 w-full justify-start !h-auto !rounded-none"
             onClick={() => {
               connectOrcid();
               setMenuOpenState(false);
             }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                connectOrcid();
-                setMenuOpenState(false);
-              }
-            }}
-            tabIndex={0}
-            role="button"
             aria-label="Connect to ORCID"
           >
-            <div className="flex items-center">
-              <FontAwesomeIcon icon={faOrcid} className="h-5 w-5 mr-3 text-gray-500" />
-              <span className="text-base text-gray-700">
-                {isConnectingOrcid ? 'Connecting...' : 'Connect to ORCID'}
-              </span>
-            </div>
-          </div>
+            <FontAwesomeIcon icon={faOrcid} className="h-5 w-5 mr-3 text-gray-500" />
+            <span className="text-base text-gray-700">
+              {isConnectingOrcid ? 'Connecting...' : 'Connect to ORCID'}
+            </span>
+          </Button>
         )}
 
         {!user.isVerified && (

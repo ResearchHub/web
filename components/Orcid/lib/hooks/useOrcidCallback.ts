@@ -32,6 +32,7 @@ export function useOrcidCallback() {
     params.delete('orcid_connected');
     params.delete('orcid_error');
     const query = params.toString();
-    window.history.replaceState(null, '', `${pathname}${query ? `?${query}` : ''}`);
+    const url = query ? `${pathname}?${query}` : pathname;
+    globalThis.history.replaceState(null, '', url);
   }, [orcidSuccess, orcidError, pathname, searchParams]);
 }

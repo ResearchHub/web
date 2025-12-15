@@ -9,7 +9,7 @@ export function useConnectOrcid() {
   const connect = useCallback(async () => {
     setIsConnecting(true);
     try {
-      await connectOrcidAccount(window.location.href);
+      await connectOrcidAccount(globalThis.location.href);
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to connect ORCID'));
       setIsConnecting(false);

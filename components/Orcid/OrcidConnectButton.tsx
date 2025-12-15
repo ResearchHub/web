@@ -6,9 +6,9 @@ import { Button, ButtonProps } from '@/components/ui/Button';
 import { useConnectOrcid } from '@/components/Orcid/lib/hooks/useConnectOrcid';
 
 interface OrcidConnectButtonProps {
-  variant?: ButtonProps['variant'];
-  size?: ButtonProps['size'];
-  className?: string;
+  readonly variant?: ButtonProps['variant'];
+  readonly size?: ButtonProps['size'];
+  readonly className?: string;
 }
 
 export function OrcidConnectButton({
