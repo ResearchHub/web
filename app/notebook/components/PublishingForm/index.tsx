@@ -33,6 +33,7 @@ import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
+import { useUser } from '@/contexts/UserContext';
 
 // Feature flags for conditionally showing sections
 const FEATURE_FLAG_RESEARCH_COIN = false;
@@ -75,7 +76,8 @@ const getButtonText = ({
 };
 
 export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormProps) {
-  const { currentNote: note, editor } = useNotebookContext();
+  const { currentNote: note, editor, users } = useNotebookContext();
+  const { user: currentUser } = useUser();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
@@ -126,6 +128,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
   // 1. note.post data
   // 2. localStorage data
   // 3. URL search params
+  // 4. Auto-add current user as author/contact if none exist
   useEffect(() => {
     if (!note) return;
 
@@ -172,6 +175,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         const contactOptions = note.post.grant.contacts.map((contact) => ({
           value: contact.id.toString(),
           label: contact.authorProfile?.fullName || contact.name,
+          image: contact.authorProfile?.profileImage,
         }));
         methods.setValue('contacts', contactOptions);
       }
@@ -192,10 +196,15 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       }
 
       if (note.post.authors && note.post.authors.length > 0) {
-        const authorOptions = note.post.authors.map((author) => ({
-          value: author.authorId.toString(),
-          label: author.name,
-        }));
+        const authorOptions = note.post.authors.map((author) => {
+          const orgUser = users?.users.find((user) => user.authorId === author.authorId);
+
+          return {
+            value: author.authorId.toString(),
+            label: author.name,
+            image: orgUser?.avatarUrl,
+          };
+        });
         methods.setValue('authors', authorOptions);
       }
 
@@ -238,7 +247,46 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
         methods.setValue('articleType', articleType);
       }
     }
-  }, [note, methods, searchParams]);
+
+    // Priority 4: Auto-add current user as author/contact if none exist
+    // Only do this if we're using localStorage data or if there's no data at all
+    if ((storedData || (!note?.post && !storedData)) && users?.users && currentUser) {
+      const currentAuthor = users.users.find((user) => user.id === currentUser.id.toString());
+
+      if (currentAuthor) {
+        const userOption = {
+          value: currentAuthor.authorId.toString(),
+          label: currentAuthor.name || currentAuthor.email || 'Unknown User',
+          data: {
+            id: currentAuthor.authorId,
+            fullName: currentAuthor.name || currentAuthor.email || 'Unknown User',
+            profileImage: currentAuthor.avatarUrl,
+            userId: currentAuthor.id,
+            institutions: [],
+            education: [],
+            reputationHubs: [],
+          },
+        };
+
+        // Get current article type to determine whether to add as author or contact
+        const articleType = methods.getValues('articleType');
+
+        if (articleType === 'grant') {
+          // For grants: add as contact if no contacts exist
+          const currentContacts = methods.getValues('contacts');
+          if (currentContacts.length === 0) {
+            methods.setValue('contacts', [userOption], { shouldValidate: true });
+          }
+        } else {
+          // For non-grants: add as author if no authors exist
+          const currentAuthors = methods.getValues('authors');
+          if (currentAuthors.length === 0) {
+            methods.setValue('authors', [userOption], { shouldValidate: true });
+          }
+        }
+      }
+    }
+  }, [note, methods, searchParams, users]);
 
   // Add effect to save form data when it changes
   useEffect(() => {

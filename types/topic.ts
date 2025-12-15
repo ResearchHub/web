@@ -39,7 +39,7 @@ export const transformTopic = createTransformer<any, Topic>((raw: any) => {
 
 export const transformTopicSuggestions = (raw: any): Topic[] => {
   const topicSuggestions: Topic[] = [];
-  const suggestions = raw.name_suggest__completion;
+  const suggestions = raw.name_suggest__completion || raw.name_suggest || [];
 
   suggestions.forEach((suggestion: any) => {
     suggestion.options.forEach((option: any) => {

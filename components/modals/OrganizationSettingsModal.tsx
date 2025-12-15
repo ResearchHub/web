@@ -60,7 +60,7 @@ const UserRow = ({
 }) => {
   const isCurrentUser = () => {
     if (!sessionUserId || user.type === 'invite') return false;
-    return sessionUserId === user.id.toString();
+    return sessionUserId.toString() === user.id.toString();
   };
 
   return (
@@ -202,7 +202,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
   const isCurrentUserAdmin = (() => {
     if (!session?.userId || !orgUsers?.users) return false;
 
-    const currentUser = orgUsers.users.find((user) => user.id.toString() === session.userId);
+    const currentUser = orgUsers.users.find((user) => user.id === session.userId.toString());
 
     return currentUser?.role === 'ADMIN';
   })();
@@ -405,7 +405,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
 
                   {/* Organization Name */}
                   <div className="mb-8">
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-center md:!items-start justify-center gap-4 flex-col md:!flex-row">
                       <div className="flex-grow">
                         <label
                           htmlFor="orgName"

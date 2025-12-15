@@ -43,7 +43,7 @@ function transformOrganizationUser(raw: any, role: OrganizationRole): Organizati
     name: `${raw.author_profile?.first_name} ${raw.author_profile?.last_name}`.trim(),
     email: raw.email,
     role,
-    avatarUrl: raw.author_profile?.profileImage || undefined,
+    avatarUrl: raw.author_profile?.profile_image || undefined,
   };
 }
 
