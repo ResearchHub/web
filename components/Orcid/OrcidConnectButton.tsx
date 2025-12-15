@@ -1,9 +1,9 @@
 'use client';
 
-import { RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faOrcid } from '@fortawesome/free-brands-svg-icons';
+import { Button, ButtonProps } from '@/components/ui/Button';
 import { useConnectOrcid } from '@/components/Orcid/lib/hooks/useConnectOrcid';
-import { ButtonProps } from '@/components/ui/Button';
 
 interface OrcidConnectButtonProps {
   variant?: ButtonProps['variant'];
@@ -26,8 +26,11 @@ export function OrcidConnectButton({
       size={size}
       className={className}
     >
-      <RefreshCw className={`mr-2 h-4 w-4 ${isConnecting ? 'animate-spin' : ''}`} />
-      {isConnecting ? 'Connecting…' : 'Connect ORCID'}
+      <FontAwesomeIcon
+        icon={faOrcid}
+        className={`mr-2 h-4 w-4 ${isConnecting ? 'animate-spin' : ''}`}
+      />
+      {isConnecting ? 'Connecting...' : 'Connect ORCID'}
     </Button>
   );
 }

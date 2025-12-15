@@ -4,6 +4,7 @@ import { User as UserIcon, LogOut, BadgeCheck, Bell, Shield, UserPlus } from 'lu
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
+import { faOrcid } from '@fortawesome/free-brands-svg-icons';
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
 import VerificationBanner from '@/components/banners/VerificationBanner';
@@ -18,6 +19,8 @@ import { navigateToAuthorProfile } from '@/utils/navigation';
 import { Button } from '@/components/ui/Button';
 import { useVerification } from '@/contexts/VerificationContext';
 import { useUserListsEnabled } from '@/components/UserList/lib/hooks/useUserListsEnabled';
+import { useConnectOrcid } from '@/components/Orcid/lib/hooks/useConnectOrcid';
+import { useOrcidCallback } from '@/components/Orcid/lib/hooks/useOrcidCallback';
 
 interface UserMenuProps {
   user: User;
@@ -43,6 +46,10 @@ export default function UserMenu({
   const [isMobile, setIsMobile] = useState(false);
   const { openVerificationModal } = useVerification();
   const userListsEnabled = useUserListsEnabled();
+  const { connect: connectOrcid, isConnecting: isConnectingOrcid } = useConnectOrcid();
+  const orcidConnected = user.authorProfile?.orcidConnected ?? false;
+
+  useOrcidCallback();
   // Use controlled or uncontrolled menu state
   const menuOpenState = isMenuOpen !== undefined ? isMenuOpen : internalMenuOpen;
   const setMenuOpenState = (open: boolean) => {
@@ -218,6 +225,33 @@ export default function UserMenu({
               </div>
             </div>
           </Link>
+        )}
+
+        {!orcidConnected && (
+          <div
+            className="px-6 py-2 hover:bg-gray-50 cursor-pointer"
+            onClick={() => {
+              connectOrcid();
+              setMenuOpenState(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                connectOrcid();
+                setMenuOpenState(false);
+              }
+            }}
+            tabIndex={0}
+            role="button"
+            aria-label="Connect to ORCID"
+          >
+            <div className="flex items-center">
+              <FontAwesomeIcon icon={faOrcid} className="h-5 w-5 mr-3 text-gray-500" />
+              <span className="text-base text-gray-700">
+                {isConnectingOrcid ? 'Connecting...' : 'Connect to ORCID'}
+              </span>
+            </div>
+          </div>
         )}
 
         {!user.isVerified && (
@@ -409,6 +443,23 @@ export default function UserMenu({
                   </div>
                 </div>
               </Link>
+            )}
+
+            {!orcidConnected && (
+              <BaseMenuItem
+                onClick={() => {
+                  connectOrcid();
+                  setMenuOpenState(false);
+                }}
+                className="w-full px-4 py-2"
+              >
+                <div className="flex items-center">
+                  <FontAwesomeIcon icon={faOrcid} className="h-4 w-4 mr-3 text-gray-500" />
+                  <span className="text-sm text-gray-700">
+                    {isConnectingOrcid ? 'Connecting...' : 'Connect to ORCID'}
+                  </span>
+                </div>
+              </BaseMenuItem>
             )}
 
             {!user.isVerified && (
