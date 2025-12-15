@@ -2,6 +2,14 @@ import { useEffect } from 'react';
 import { useSearchParams, usePathname } from 'next/navigation';
 import toast from 'react-hot-toast';
 
+const ORCID_MESSAGES = {
+  success: 'ORCID Connected',
+  invalid_state: 'This User Does Not Exist',
+  cancelled: 'Unable to connect to ORCID',
+  already_linked: 'This ORCID ID Is Already Linked',
+  service_error: 'This ORCID ID Is Not Valid',
+} as const;
+
 export function useOrcidCallback() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -13,9 +21,11 @@ export function useOrcidCallback() {
     if (!orcidSuccess && !orcidError) return;
 
     if (orcidSuccess) {
-      toast.success('ORCID connected', { id: 'orcid-success' });
+      toast.success(ORCID_MESSAGES.success, { id: 'orcid-success' });
     } else if (orcidError) {
-      toast.error(decodeURIComponent(orcidError), { id: 'orcid-error' });
+      const errorMessage =
+        ORCID_MESSAGES[orcidError as keyof typeof ORCID_MESSAGES] || decodeURIComponent(orcidError);
+      toast.error(errorMessage, { id: 'orcid-error' });
     }
 
     const params = new URLSearchParams(searchParams.toString());
