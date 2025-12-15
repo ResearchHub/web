@@ -25,7 +25,7 @@ import toast from 'react-hot-toast';
 import { Accordion, AccordionItem } from '@/components/ui/Accordion';
 import { faUpload, faGraduationCap, faShareNodes, faUser } from '@fortawesome/pro-light-svg-icons';
 import Icon from '@/components/ui/icons/Icon';
-import { useConnectOrcid } from '@/components/Orcid/lib/hooks/useConnectOrcid';
+import { OrcidConnectButton } from '@/components/Orcid/OrcidConnectButton';
 
 interface ProfileInformationFormProps {
   onSubmit: (data: ProfileInformationFormValues) => void;
@@ -67,8 +67,6 @@ export function ProfileInformationForm({
 
   const authorProfile = user?.authorProfile;
   const orcidConnected = authorProfile?.orcidConnected ?? false;
-
-  const { connect: connectOrcid, isConnecting: isConnectingOrcid } = useConnectOrcid();
 
   const methods = useForm<ProfileInformationFormValues>({
     resolver: zodResolver(getProfileInformationSchema({ fields })),
@@ -264,14 +262,7 @@ export function ProfileInformationForm({
                     className="text-gray-500"
                   />
                   {isOrcid && !orcidConnected ? (
-                    <Button
-                      onClick={connectOrcid}
-                      disabled={isConnectingOrcid}
-                      size="default"
-                      className="flex-grow justify-center bg-[#A6CE39] text-white hover:bg-[#95BC33] focus-visible:ring-[#A6CE39]"
-                    >
-                      {isConnectingOrcid ? 'Connecting…' : 'Connect ORCID'}
-                    </Button>
+                    <OrcidConnectButton className="flex-grow justify-center" />
                   ) : (
                     <Input
                       id={key}

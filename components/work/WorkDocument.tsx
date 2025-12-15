@@ -30,7 +30,6 @@ import { WorkHistoryDisplay } from './WorkHistoryDisplay';
 import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
 
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
@@ -257,7 +256,6 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
         <EarningOpportunityBanner work={work} metadata={metadata} />
       </div>
       {/* Title & Actions */}
-      {work.type === 'preprint' && <ContentTypeBadge type="preprint" size="lg" />}
       <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-0" />
 
       <WorkLineItems

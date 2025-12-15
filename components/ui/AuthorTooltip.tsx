@@ -344,12 +344,12 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
             label="Google Scholar"
           />
           <SocialIcon
-            href={userData.authorProfile.orcidId}
+            href={userData.authorProfile.orcidConnected ? userData.authorProfile.orcidId : null}
             icon={
               <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
-                {/* ORCID icon with its official color */}
+                {/* ORCID icon - green if connected, gray if not */}
                 <path
-                  fill="#A6CE39"
+                  fill={userData.authorProfile.orcidConnected ? '#A6CE39' : 'currentColor'}
                   d="M12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zM7.369 4.378c.525 0 .947.431.947.947s-.422.947-.947.947a.95.95 0 0 1-.947-.947c0-.525.422-.947.947-.947zm-.722 3.038h1.444v10.041H6.647V7.416zm4.163 0h3.909c3.947 0 5.894 2.788 5.894 5.022 0 2.628-2.009 5.022-5.897 5.022h-3.906V7.416zm1.444 1.368v7.303h2.463c3.103 0 4.453-1.641 4.453-3.652 0-1.838-1.2-3.653-4.453-3.653h-2.463v.002z"
                 />
               </svg>

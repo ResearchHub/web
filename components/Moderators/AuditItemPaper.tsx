@@ -10,7 +10,6 @@ import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { getAuditUserInfo, getAuditContentUrl } from './utils/auditUtils';
 import { formatTimestamp } from '@/utils/date';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { ModerationMetadata } from './ModerationMetadata';
 import { ModerationActions } from './ModerationActions';
 import { truncateText } from '@/utils/stringUtils';
@@ -67,11 +66,6 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({ entry, onAction, view 
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
-      {/* Content type badge */}
-      <div className="mb-3">
-        <ContentTypeBadge type="preprint" />
-      </div>
-
       {/* User and unified action */}
       <div className="flex items-center space-x-3 mb-3">
         <Avatar src={userInfo.avatar} alt={userInfo.name} size="sm" authorId={userInfo.authorId} />
