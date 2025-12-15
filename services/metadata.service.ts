@@ -1,5 +1,5 @@
 import { ApiClient } from './client';
-import { Topic } from '@/types/topic';
+import { Topic, transformTopic } from '@/types/topic';
 import type { AuthorProfile } from '@/types/authorProfile';
 import { transformAuthorProfile } from '@/types/authorProfile';
 import { ContentMetrics } from '@/types/metrics';
@@ -34,11 +34,7 @@ function transformWorkMetadata(response: any): WorkMetadata {
     score: response.score,
     topics: response.hubs
       .filter((hub: any) => hub.namespace !== 'journal')
-      .map((hub: any) => ({
-        id: hub.id,
-        name: hub.name,
-        slug: hub.slug,
-      })),
+      .map((hub: any) => transformTopic(hub)),
     metrics: {
       votes: response.score,
       comments: document.discussion_aggregates.discussion_count,

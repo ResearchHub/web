@@ -24,7 +24,7 @@ export const EditorHeader = ({
   // If session is null, show a default header with "User"
   if (!user) {
     return (
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+      <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between px-4 py-3 border-b border-gray-100 gap-2 mobile:!gap-3">
         <div className="flex items-center gap-3">
           <Avatar src={undefined} alt="User" size="sm" />
           <div className="flex flex-col">
@@ -37,7 +37,7 @@ export const EditorHeader = ({
 
         {/* Rating stars for review comments */}
         {isReview && (
-          <div className="ml-auto flex items-center">
+          <div className="flex items-center mobile:!ml-auto">
             <span className="text-sm text-gray-700 mr-2">Overall score:</span>
             <ReviewStars
               rating={rating}
@@ -53,7 +53,7 @@ export const EditorHeader = ({
   }
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+    <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between px-4 py-3 border-b border-gray-100 gap-2 mobile:!gap-3">
       <div className="flex items-center gap-3">
         <Avatar src={user.authorProfile?.profileImage} alt={user.fullName || 'User'} size="sm" />
         <div className="flex flex-col">
@@ -69,7 +69,7 @@ export const EditorHeader = ({
 
       {/* Rating stars for review comments */}
       {isReview && (
-        <div className="ml-auto flex items-center">
+        <div className="flex items-center mobile:!ml-auto">
           <span className="text-sm text-gray-700 mr-2">Overall score:</span>
           <ReviewStars
             rating={rating}

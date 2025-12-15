@@ -30,7 +30,10 @@ import { getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil'
 import { Topic } from '@/types/topic';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { BountyTooltip } from '@/components/tooltips/BountyTooltip';
+import { TipTooltip } from '@/components/tooltips/TipTooltip';
 import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
+import { Tip } from '@/types/tip';
+import { formatCurrency } from '@/utils/currency';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -144,6 +147,7 @@ interface FeedItemActionsProps {
     report?: string;
   };
   onComment?: () => void;
+  onTip?: () => void; // Callback for tip action (when provided, tip button shows)
   children?: ReactNode; // Add children prop to accept additional action buttons
   showTooltips?: boolean; // New property for controlling tooltips
   hideCommentButton?: boolean; // New property to hide the comment button
@@ -161,6 +165,7 @@ interface FeedItemActionsProps {
   reviews?: Review[]; // New property for reviews
   bounties?: Bounty[]; // Updated to use imported Bounty type
   awardedBountyAmount?: number; // Add awarded bounty amount
+  tips?: Tip[]; // Tips received on this content
   relatedDocumentTopics?: Topic[];
   relatedDocumentUnifiedDocumentId?: string;
   showPeerReviews?: boolean;
@@ -184,6 +189,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   relatedDocumentContentType,
   actionLabels,
   onComment,
+  onTip,
   children,
   showTooltips = true,
   hideCommentButton = false,
@@ -193,6 +199,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   href,
   reviews = [],
   bounties = [],
+  awardedBountyAmount,
+  tips = [],
   relatedDocumentTopics,
   relatedDocumentUnifiedDocumentId,
   showPeerReviews = true,
@@ -284,6 +292,15 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     }
   };
 
+  const handleTip = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    if (onTip) {
+      onTip();
+    }
+  };
+
   const handleReviewClick = (e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation();
@@ -370,6 +387,10 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const showInlineReviews = showPeerReviews && reviews.length > 0;
   const showInlineBounties = hasOpenBounties;
 
+  // Calculate total awarded amount (tips + bounty awards)
+  const tipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
+  const totalAwarded = tipAmount + (awardedBountyAmount || 0);
+
   return (
     <>
       <div className="flex items-center justify-between w-full">
@@ -394,6 +415,109 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               showTooltip={showTooltips}
             />
           )}
+          {(onTip || totalAwarded > 0) &&
+            (showTooltips && totalAwarded > 0 ? (
+              <Tooltip
+                content={
+                  <TipTooltip
+                    tips={tips}
+                    awardedBountyAmount={awardedBountyAmount}
+                    totalAwarded={totalAwarded}
+                    showUSD={showUSD}
+                    exchangeRate={exchangeRate}
+                  />
+                }
+                position="top"
+                width="w-[320px]"
+              >
+                {onTip ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      'flex items-center space-x-1 border border-gray-200 rounded-full transition-all',
+                      'py-0.5 px-2 md:!py-1 md:!px-3',
+                      'text-gray-900 bg-white hover:text-gray-900 hover:bg-gray-100'
+                    )}
+                    onClick={handleTip}
+                  >
+                    <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
+                    {totalAwarded > 0 ? (
+                      <span className="text-xs md:!text-sm font-medium">
+                        {formatCurrency({
+                          amount: totalAwarded,
+                          showUSD,
+                          exchangeRate,
+                          shorten: true,
+                        })}
+                      </span>
+                    ) : (
+                      <span className="text-xs md:!text-sm font-medium">Tip</span>
+                    )}
+                  </Button>
+                ) : (
+                  <div
+                    className={cn(
+                      'flex items-center space-x-1 border border-gray-200 rounded-full',
+                      'py-0.5 px-2 md:!py-1 md:!px-3',
+                      'text-gray-900 bg-white cursor-default'
+                    )}
+                  >
+                    <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
+                    {totalAwarded > 0 ? (
+                      <span className="text-xs md:!text-sm font-medium">
+                        {formatCurrency({
+                          amount: totalAwarded,
+                          showUSD,
+                          exchangeRate,
+                          shorten: true,
+                        })}
+                      </span>
+                    ) : (
+                      <span className="text-xs md:!text-sm font-medium">Tip</span>
+                    )}
+                  </div>
+                )}
+              </Tooltip>
+            ) : onTip ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  'flex items-center space-x-1 border border-gray-200 rounded-full transition-all',
+                  'py-0.5 px-2 md:!py-1 md:!px-3',
+                  'text-gray-900 bg-white hover:text-gray-900 hover:bg-gray-100'
+                )}
+                tooltip={showTooltips ? 'Tip' : undefined}
+                onClick={handleTip}
+              >
+                <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
+                {totalAwarded > 0 ? (
+                  <span className="text-xs md:!text-sm font-medium">
+                    {formatCurrency({ amount: totalAwarded, showUSD, exchangeRate, shorten: true })}
+                  </span>
+                ) : (
+                  <span className="text-xs md:!text-sm font-medium">Tip</span>
+                )}
+              </Button>
+            ) : (
+              <div
+                className={cn(
+                  'flex items-center space-x-1 border border-gray-200 rounded-full',
+                  'py-0.5 px-2 md:!py-1 md:!px-3',
+                  'text-gray-900 bg-white cursor-default'
+                )}
+              >
+                <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
+                {totalAwarded > 0 ? (
+                  <span className="text-xs md:!text-sm font-medium">
+                    {formatCurrency({ amount: totalAwarded, showUSD, exchangeRate, shorten: true })}
+                  </span>
+                ) : (
+                  <span className="text-xs md:!text-sm font-medium">Tip</span>
+                )}
+              </div>
+            ))}
           {showInlineReviews &&
             (showTooltips && reviews.length > 0 ? (
               <Tooltip

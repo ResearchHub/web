@@ -30,6 +30,8 @@ import { ReferralProvider } from '@/contexts/ReferralContext';
 import { FeatureNotifications } from '@/components/FeatureNotifications';
 import Hotjar from '@/components/Hotjar';
 import { UserListsProvider } from '@/components/UserList/lib/UserListsContext';
+import { LeaderboardProvider } from '@/contexts/LeaderboardContext';
+import { DismissedFeaturesProvider } from '@/contexts/DismissedFeaturesContext';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -137,10 +139,14 @@ export default async function RootLayout({
                                   <OrganizationProvider>
                                     <PreferencesProvider>
                                       <UserListsProvider>
-                                        <FollowProvider>{children}</FollowProvider>
+                                        <LeaderboardProvider>
+                                          <DismissedFeaturesProvider>
+                                            <FollowProvider>{children}</FollowProvider>
+                                            <FeatureNotifications />
+                                          </DismissedFeaturesProvider>
+                                        </LeaderboardProvider>
                                       </UserListsProvider>
                                     </PreferencesProvider>
-                                    <FeatureNotifications />
                                   </OrganizationProvider>
                                 </NotificationProvider>
                               </CurrencyPreferenceProvider>

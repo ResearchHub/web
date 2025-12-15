@@ -184,6 +184,85 @@ interface RenderNodeProps {
   currentLength?: number; // Track current text length for truncation
 }
 
+interface RenderChildrenWithTruncationResult {
+  children: ReactNode[];
+  finalLength: number;
+}
+
+const renderChildrenWithTruncation = (
+  content: any[] | undefined,
+  props: {
+    debug?: boolean;
+    renderSectionHeader?: (props: SectionHeaderProps) => ReactNode;
+    truncate: boolean;
+    maxLength: number;
+    currentLength: number;
+  }
+): RenderChildrenWithTruncationResult => {
+  const { debug, renderSectionHeader, truncate, maxLength, currentLength } = props;
+
+  if (!truncate) {
+    return { children: [], finalLength: currentLength };
+  }
+
+  const renderedChildren: ReactNode[] = [];
+  let trackedLength = currentLength;
+
+  for (const child of content || []) {
+    if (!child) continue;
+
+    if (trackedLength >= maxLength) {
+      if (debug) {
+        console.log(
+          '||renderChildrenWithTruncation: Breaking loop due to length',
+          trackedLength,
+          '>=',
+          maxLength
+        );
+      }
+      break;
+    }
+
+    const childTextLength = extractPlainText(child).length;
+    const wouldExceedLimit = trackedLength + childTextLength > maxLength;
+
+    if (debug) {
+      console.log(
+        '||renderChildrenWithTruncation: Processing child',
+        child.type,
+        'textLength:',
+        childTextLength,
+        'currentTotal:',
+        trackedLength,
+        'wouldExceed:',
+        wouldExceedLimit
+      );
+    }
+
+    const childNode = (
+      <RenderNode
+        key={renderedChildren.length}
+        node={child}
+        debug={debug}
+        renderSectionHeader={renderSectionHeader}
+        truncate={truncate}
+        maxLength={maxLength}
+        currentLength={trackedLength}
+      />
+    );
+    renderedChildren.push(childNode);
+
+    if (wouldExceedLimit) {
+      trackedLength = maxLength;
+      break;
+    } else {
+      trackedLength += childTextLength;
+    }
+  }
+
+  return { children: renderedChildren, finalLength: trackedLength };
+};
+
 /**
  * Renders a TipTap node based on its type
  */
@@ -206,6 +285,28 @@ const RenderNode: React.FC<RenderNodeProps> = ({
   // For truncation, we need to track how much text we've rendered
   let textLengthSoFar = currentLength;
 
+  const getRenderedChildren = (
+    truncatedChildren: ReactNode[],
+    content: any[] | undefined
+  ): ReactNode[] => {
+    if (truncate) {
+      return truncatedChildren;
+    }
+    return (
+      content?.map((child: any, i: number) => (
+        <RenderNode
+          key={i}
+          node={child}
+          debug={debug}
+          renderSectionHeader={renderSectionHeader}
+          truncate={truncate}
+          maxLength={maxLength}
+          currentLength={textLengthSoFar}
+        />
+      )) || []
+    );
+  };
+
   // If we've already exceeded the max length and truncation is enabled, don't render more
   if (truncate && textLengthSoFar >= maxLength) {
     if (debug)
@@ -222,50 +323,14 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
     // For truncation, we need to render children one by one and track length
     if (truncate) {
-      const renderedChildren: ReactNode[] = [];
-      let currentTextLength = 0;
-
-      for (const child of node.content || []) {
-        // If we've already exceeded max length, stop rendering
-        if (currentTextLength >= maxLength) {
-          if (debug)
-            console.log(
-              '||RenderNode: Breaking loop due to length',
-              currentTextLength,
-              '>=',
-              maxLength
-            );
-          break;
-        }
-
-        // Render this child with current text length
-        const childNode = (
-          <RenderNode
-            key={renderedChildren.length}
-            node={child}
-            debug={debug}
-            renderSectionHeader={renderSectionHeader}
-            truncate={truncate}
-            maxLength={maxLength}
-            currentLength={currentTextLength}
-          />
-        );
-
-        renderedChildren.push(childNode);
-
-        // Update text length by adding this child's text
-        const childTextLength = extractPlainText(child).length;
-        currentTextLength += childTextLength;
-        if (debug)
-          console.log(
-            '||RenderNode: Child text length',
-            childTextLength,
-            'Current total',
-            currentTextLength
-          );
-      }
-
-      return <div className="tiptap-doc">{renderedChildren}</div>;
+      const { children } = renderChildrenWithTruncation(node.content, {
+        debug,
+        renderSectionHeader,
+        truncate,
+        maxLength,
+        currentLength: 0,
+      });
+      return <div className="tiptap-doc">{children}</div>;
     }
 
     // Normal rendering without truncation
@@ -317,58 +382,48 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
   // Handle paragraph nodes
   if (node.type === 'paragraph') {
-    return (
-      <p className="tiptap-paragraph my-2">
-        {node.content?.map((child: any, i: number) => (
-          <RenderNode
-            key={i}
-            node={child}
-            debug={debug}
-            renderSectionHeader={renderSectionHeader}
-            truncate={truncate}
-            maxLength={maxLength}
-            currentLength={textLengthSoFar}
-          />
-        ))}
-      </p>
-    );
+    const { children } = renderChildrenWithTruncation(node.content, {
+      debug,
+      renderSectionHeader,
+      truncate,
+      maxLength,
+      currentLength: textLengthSoFar,
+    });
+
+    return <p className="tiptap-paragraph my-2">{getRenderedChildren(children, node.content)}</p>;
   }
 
   // Handle heading nodes
   if (node.type === 'heading') {
     const HeadingTag = `h${node.attrs?.level || 1}` as keyof JSX.IntrinsicElements;
+    const { children } = renderChildrenWithTruncation(node.content, {
+      debug,
+      renderSectionHeader,
+      truncate,
+      maxLength,
+      currentLength: textLengthSoFar,
+    });
+
     return (
       <HeadingTag className={`tiptap-heading tiptap-h${node.attrs?.level || 1} my-4`}>
-        {node.content?.map((child: any, i: number) => (
-          <RenderNode
-            key={i}
-            node={child}
-            debug={debug}
-            renderSectionHeader={renderSectionHeader}
-            truncate={truncate}
-            maxLength={maxLength}
-            currentLength={textLengthSoFar}
-          />
-        ))}
+        {getRenderedChildren(children, node.content)}
       </HeadingTag>
     );
   }
 
   // Handle blockquote nodes
   if (node.type === 'blockquote') {
+    const { children } = renderChildrenWithTruncation(node.content, {
+      debug,
+      renderSectionHeader,
+      truncate,
+      maxLength,
+      currentLength: textLengthSoFar,
+    });
+
     return (
       <blockquote className="tiptap-blockquote border-l-4 border-gray-300 pl-4 italic text-gray-600 my-4">
-        {node.content?.map((child: any, i: number) => (
-          <RenderNode
-            key={i}
-            node={child}
-            debug={debug}
-            renderSectionHeader={renderSectionHeader}
-            truncate={truncate}
-            maxLength={maxLength}
-            currentLength={textLengthSoFar}
-          />
-        ))}
+        {getRenderedChildren(children, node.content)}
       </blockquote>
     );
   }
@@ -396,116 +451,83 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
   // Handle ordered list
   if (node.type === 'orderedList') {
+    const { children } = renderChildrenWithTruncation(node.content, {
+      debug,
+      renderSectionHeader,
+      truncate,
+      maxLength,
+      currentLength: textLengthSoFar,
+    });
+
     return (
       <ol className="tiptap-ordered-list list-decimal pl-5 my-4" start={node.attrs?.start || 1}>
-        {node.content?.map((child: any, i: number) => (
-          <RenderNode
-            key={i}
-            node={child}
-            debug={debug}
-            renderSectionHeader={renderSectionHeader}
-            truncate={truncate}
-            maxLength={maxLength}
-            currentLength={textLengthSoFar}
-          />
-        ))}
+        {getRenderedChildren(children, node.content)}
       </ol>
     );
   }
 
   // Handle ordered_list (compatibility with ProseMirror schema naming)
   if (node.type === 'ordered_list') {
+    const { children } = renderChildrenWithTruncation(node.content, {
+      debug,
+      renderSectionHeader,
+      truncate,
+      maxLength,
+      currentLength: textLengthSoFar,
+    });
+
     return (
       <ol className="tiptap-ordered-list list-decimal pl-5 my-4" start={node.attrs?.start || 1}>
-        {node.content?.map((child: any, i: number) => (
-          <RenderNode
-            key={i}
-            node={child}
-            debug={debug}
-            renderSectionHeader={renderSectionHeader}
-            truncate={truncate}
-            maxLength={maxLength}
-            currentLength={textLengthSoFar}
-          />
-        ))}
+        {getRenderedChildren(children, node.content)}
       </ol>
     );
   }
 
   // Handle bullet list
   if (node.type === 'bulletList') {
+    const { children } = renderChildrenWithTruncation(node.content, {
+      debug,
+      renderSectionHeader,
+      truncate,
+      maxLength,
+      currentLength: textLengthSoFar,
+    });
+
     return (
       <ul className="tiptap-bullet-list list-disc pl-5 my-4">
-        {node.content?.map((child: any, i: number) => (
-          <RenderNode
-            key={i}
-            node={child}
-            debug={debug}
-            renderSectionHeader={renderSectionHeader}
-            truncate={truncate}
-            maxLength={maxLength}
-            currentLength={textLengthSoFar}
-          />
-        ))}
+        {getRenderedChildren(children, node.content)}
       </ul>
     );
   }
 
   // Handle bullet_list (compatibility with ProseMirror schema naming)
   if (node.type === 'bullet_list') {
+    const { children } = renderChildrenWithTruncation(node.content, {
+      debug,
+      renderSectionHeader,
+      truncate,
+      maxLength,
+      currentLength: textLengthSoFar,
+    });
+
     return (
       <ul className="tiptap-bullet-list list-disc pl-5 my-4">
-        {node.content?.map((child: any, i: number) => (
-          <RenderNode
-            key={i}
-            node={child}
-            debug={debug}
-            renderSectionHeader={renderSectionHeader}
-            truncate={truncate}
-            maxLength={maxLength}
-            currentLength={textLengthSoFar}
-          />
-        ))}
+        {getRenderedChildren(children, node.content)}
       </ul>
     );
   }
 
   // Handle list item
-  if (node.type === 'list_item') {
-    return (
-      <li className="tiptap-list-item">
-        {node.content?.map((child: any, i: number) => (
-          <RenderNode
-            key={i}
-            node={child}
-            debug={debug}
-            renderSectionHeader={renderSectionHeader}
-            truncate={truncate}
-            maxLength={maxLength}
-            currentLength={textLengthSoFar}
-          />
-        ))}
-      </li>
-    );
-  }
+  if (node.type === 'list_item' || node.type === 'listItem') {
+    const { children } = renderChildrenWithTruncation(node.content, {
+      debug,
+      renderSectionHeader,
+      truncate,
+      maxLength,
+      currentLength: textLengthSoFar,
+    });
 
-  // Handle listItem (TipTap naming)
-  if (node.type === 'listItem') {
-    return (
-      <li className="tiptap-list-item">
-        {node.content?.map((child: any, i: number) => (
-          <RenderNode
-            key={i}
-            node={child}
-            debug={debug}
-            renderSectionHeader={renderSectionHeader}
-            truncate={truncate}
-            maxLength={maxLength}
-            currentLength={textLengthSoFar}
-          />
-        ))}
-      </li>
-    );
+    return <li className="tiptap-list-item">{getRenderedChildren(children, node.content)}</li>;
   }
 
   // Handle image
