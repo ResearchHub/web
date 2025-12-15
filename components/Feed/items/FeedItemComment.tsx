@@ -14,6 +14,8 @@ import { Avatar } from '@/components/ui/Avatar';
 import { LegacyCommentBanner } from '@/components/LegacyCommentBanner';
 import { BaseFeedItem } from '@/components/Feed/BaseFeedItem';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { TipContentModal } from '@/components/modals/TipContentModal';
+import { useUser } from '@/contexts/UserContext';
 
 // Define the recursive rendering component for parent comments
 const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> = ({
@@ -96,6 +98,8 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   onFeedItemClick,
 }) => {
   let [showLegacyCommentBanner, setShowLegacyCommentBanner] = useState(false);
+  const [isTipModalOpen, setIsTipModalOpen] = useState(false);
+  const { user } = useUser();
   const commentEntry = entry.content as FeedCommentContent;
   const comment = commentEntry.comment;
   const parentComment = commentEntry.parentComment;
@@ -106,6 +110,9 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   const isRemoved = commentEntry.isRemoved;
   const relatedWork = entry.relatedWork;
   const commentPageUrl = href;
+
+  // Check if current user is the comment author to prevent self-tipping
+  const isCurrentUserAuthor = user?.authorProfile?.id === author?.id;
 
   const menuItems = [];
   if (showCreatorActions) {
@@ -213,9 +220,11 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 userVote={entry.userVote}
                 actionLabels={actionLabels}
                 onComment={onReply}
+                onTip={!isCurrentUserAuthor ? () => setIsTipModalOpen(true) : undefined}
                 showTooltips={showTooltips}
                 menuItems={menuItems}
                 awardedBountyAmount={entry.awardedBountyAmount}
+                tips={entry.tips}
                 relatedDocumentTopics={entry.relatedWork?.topics}
                 onFeedItemClick={onFeedItemClick}
               />
@@ -223,6 +232,14 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
           </div>
         )}
       </BaseFeedItem>
+
+      <TipContentModal
+        isOpen={isTipModalOpen}
+        onClose={() => setIsTipModalOpen(false)}
+        contentId={comment.id}
+        feedContentType="COMMENT"
+        recipientName={author?.fullName}
+      />
     </div>
   );
 };

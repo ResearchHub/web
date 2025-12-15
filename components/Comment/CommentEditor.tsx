@@ -218,13 +218,13 @@ export const CommentEditor = ({
         {isReview && !isReviewBannerDismissed && (
           <div className="mb-3 flex flex-col sm:!flex-row items-start sm:!items-center justify-between bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md p-2 sm:!p-3 text-xs sm:!text-sm">
             <p className="pr-0 sm:!pr-2 mb-1 sm:!mb-0">
-              <span className="font-semibold">Add your review.</span> If your review is part of a
-              bounty, please make sure to view bounty guidelines in the bounties tab first.
+              <span className="font-semibold">Add your review.</span> Be sure to view bounty
+              description in the bounties tab before reviewing.
             </p>
             <button
               onClick={() => setIsReviewBannerDismissed(true)}
               aria-label="Dismiss notice"
-              className="mt-1 sm:!mt-0 inline-flex items-center px-2 py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-xs font-medium"
+              className="mt-1 sm:!mt-0 inline-flex items-center px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-xs font-medium"
             >
               Got it
             </button>

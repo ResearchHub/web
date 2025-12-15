@@ -29,7 +29,7 @@ export const EditorFooter = ({
   const isMobile = useIsMobile();
 
   return (
-    <div className="flex justify-between items-center px-4 py-2 border-t border-gray-200">
+    <div className="flex flex-col-reverse mobile:!flex-row justify-between items-start mobile:!items-center px-4 py-2 border-t border-gray-200 gap-2 mobile:!gap-0">
       {/* Draft status */}
       <div className="text-xs text-gray-500">
         {saveStatus === 'saved' && lastSaved && <span>Draft saved {formatLastSaved()}</span>}

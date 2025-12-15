@@ -10,6 +10,7 @@ import {
   Octagon,
   Share2,
   CheckCircle,
+  Download,
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
@@ -40,6 +41,7 @@ import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { useAddToList } from '@/components/UserList/lib/UserListsContext';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
+import { handleDownload } from '@/utils/download';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -83,6 +85,9 @@ export const WorkLineItems = ({
     isInList,
     onOpenModal: () => setIsAddToListModalOpen(true),
   });
+
+  // Extract PDF format for download
+  const pdfFormat = work.formats?.find((format) => format.type === 'PDF');
 
   const {
     data: userVotes,
@@ -419,6 +424,12 @@ export const WorkLineItems = ({
                   <span>Complete fundraise</span>
                 </BaseMenuItem>
               </>
+            )}
+            {pdfFormat && (
+              <BaseMenuItem onSelect={() => handleDownload(pdfFormat.url, 'document.pdf')}>
+                <Download className="h-4 w-4 mr-2" />
+                <span>Download PDF</span>
+              </BaseMenuItem>
             )}
             <BaseMenuItem
               onSelect={() => executeAuthenticatedAction(() => setIsFlagModalOpen(true))}

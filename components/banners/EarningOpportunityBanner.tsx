@@ -71,7 +71,12 @@ export const EarningOpportunityBanner = ({
               <span className="text-sm font-semibold text-orange-600">Earn</span>
               {canDisplayAmount && (
                 <>
-                  <DollarSign className="w-3.5 h-3.5 text-orange-600 -mr-[5px]" strokeWidth={2.5} />
+                  {showUSD && (
+                    <DollarSign
+                      className="w-3.5 h-3.5 text-orange-600 -mr-[5px]"
+                      strokeWidth={2.5}
+                    />
+                  )}
                   <CurrencyBadge
                     amount={displayAmount}
                     variant="text"
@@ -112,7 +117,9 @@ export const EarningOpportunityBanner = ({
               <span className="text-base font-semibold text-orange-600">Earn</span>
               {canDisplayAmount && (
                 <>
-                  <DollarSign className="w-4 h-4 text-orange-600 -mr-[6px]" strokeWidth={2.5} />
+                  {showUSD && (
+                    <DollarSign className="w-4 h-4 text-orange-600 -mr-[6px]" strokeWidth={2.5} />
+                  )}
                   <CurrencyBadge
                     amount={displayAmount}
                     variant="text"
