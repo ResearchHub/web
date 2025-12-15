@@ -361,40 +361,6 @@ export class SearchService {
     return extendedSnippet;
   }
 
-  /**
-   * Transform journal data from API response (handles both string and object formats)
-   */
-  private static transformJournal(
-    journal:
-      | string
-      | { id?: number; name?: string; slug?: string; image_url?: string }
-      | null
-      | undefined
-  ): { id: number; name: string; slug: string | null; imageUrl: string | null } | null {
-    if (!journal) {
-      return null;
-    }
-
-    // Legacy format: journal is just a string name
-    if (typeof journal === 'string') {
-      return {
-        id: 0,
-        name: journal,
-        slug: journal.toLowerCase().replaceAll(/\s+/g, '-'),
-        imageUrl: null,
-      };
-    }
-
-    // New format: journal is an object
-    const slugFromName = journal.name?.toLowerCase().replaceAll(/\s+/g, '-') || null;
-    return {
-      id: journal.id || 0,
-      name: journal.name || '',
-      slug: journal.slug || slugFromName,
-      imageUrl: journal.image_url || null,
-    };
-  }
-
   private static transformSearchResult(doc: ApiDocumentSearchResult, query: string): FeedEntry {
     // First transform to a clean FeedEntry
     const feedEntry = this.transformDocumentToFeedEntry(doc);
@@ -491,11 +457,11 @@ export class SearchService {
           profile_image: '',
         })),
         hub: doc.hubs?.[0] || null,
-        // Pass category and subcategory from first two hubs for badge display
-        category: doc.hubs?.[0] || null,
-        subcategory: doc.hubs?.[1] || null,
-        // Handle journal as either a string (legacy) or object (new format)
-        journal: this.transformJournal(doc.journal),
+        // Pass category and subcategory from hubs by namespace
+        category: doc.hubs?.find((hub) => hub.namespace === 'category') || null,
+        subcategory: doc.hubs?.find((hub) => hub.namespace === 'subcategory') || null,
+        // Only use journal if it's an object format
+        journal: doc.journal && typeof doc.journal === 'object' ? doc.journal : null,
         doi: doc.doi,
         citations: doc.citations || 0,
         score: doc.score || 0,

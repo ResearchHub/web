@@ -409,11 +409,11 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     return (
       <>
         <div className="flex items-center justify-end w-full">{bookmarkButton}</div>
-        {relatedDocumentUnifiedDocumentId && isAddToListModalOpen && (
+        {isAddToListModalOpen && (
           <AddToListModal
             isOpen={isAddToListModalOpen}
             onClose={handleCloseAddToListModal}
-            unifiedDocumentId={Number.parseInt(relatedDocumentUnifiedDocumentId)}
+            unifiedDocumentId={relatedDocumentUnifiedDocumentId}
           />
         )}
       </>
@@ -554,7 +554,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           {rightSideActionButton}
 
           {/* Show "Add to List" button in right section */}
-          {showPeerReviews && bookmarkButton}
+          {bookmarkButton}
 
           {(!hideReportButton || menuItems.length > 0) && (
             <BaseMenu
@@ -614,11 +614,11 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         />
       )}
 
-      {relatedDocumentUnifiedDocumentId && isAddToListModalOpen && (
+      {isAddToListModalOpen && (
         <AddToListModal
           isOpen={isAddToListModalOpen}
           onClose={handleCloseAddToListModal}
-          unifiedDocumentId={Number.parseInt(relatedDocumentUnifiedDocumentId)}
+          unifiedDocumentId={relatedDocumentUnifiedDocumentId}
         />
       )}
     </>
