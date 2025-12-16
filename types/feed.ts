@@ -343,6 +343,7 @@ export interface RawApiFeedEntry {
   };
   metrics?: {
     votes: number;
+    adjusted_score?: number;
     comments?: number;
     replies?: number;
     review_metrics?: {
@@ -430,11 +431,11 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     timestamp: action_date,
     action: action.toLowerCase() as FeedActionType,
   };
-
   // Pre-process metrics to ensure consistent format
   const processedMetrics = feedEntry.metrics
     ? {
         votes: feedEntry.metrics.votes || 0,
+        adjusted_score: feedEntry.metrics.adjusted_score,
         comments:
           feedEntry.metrics.comments !== undefined
             ? feedEntry.metrics.comments
@@ -931,6 +932,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     metrics: processedMetrics
       ? {
           votes: processedMetrics.votes || 0,
+          adjustedScore: processedMetrics.adjusted_score,
           comments: processedMetrics.comments || 0,
           saves: 0, // Default value for saves
           reviewScore: getReviewScore(processedMetrics, contentType, content),
