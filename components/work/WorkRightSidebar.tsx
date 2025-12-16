@@ -12,6 +12,7 @@ import { LicenseSection } from './components/LicenseSection';
 import { FormatsSection } from './components/FormatsSection';
 import { VersionsSection } from './components/VersionsSection';
 import { JournalSection } from './components/JournalSection';
+import { SimilarPapersSection } from './components/SimilarPapersSection';
 import { useMemo } from 'react';
 
 interface WorkRightSidebarProps {
@@ -34,6 +35,7 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
       <SupportersSection tips={work.tips || []} documentId={work.id} />
       {work.journal && <JournalSection journal={work.journal} />}
       <TopicsSection topics={metadata.topics || []} />
+      {work.contentType === 'paper' && <SimilarPapersSection paperId={work.id} />}
       {work.doi && <DOISection doi={work.doi} />}
       {work.postType !== 'QUESTION' && <LicenseSection license={work.license} />}
       <FormatsSection formats={work.formats} />
