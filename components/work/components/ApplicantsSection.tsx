@@ -1,6 +1,7 @@
 'use client';
 
 import { FC } from 'react';
+import Link from 'next/link';
 import { Users } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorProfile } from '@/types/authorProfile';
@@ -27,10 +28,18 @@ export const ApplicantsSection: FC<ApplicantsSectionProps> = ({ applicants = [] 
           <div className="space-y-3">
             {displayedApplicants.map((applicant, index) => (
               <div key={`${applicant.id}-${index}`} className="flex items-center gap-2">
-                <Avatar src={applicant.profileImage || ''} alt={applicant.fullName} size="xs" />
-                <span className="text-sm font-medium text-gray-900 truncate">
+                <Avatar
+                  src={applicant.profileImage || ''}
+                  alt={applicant.fullName}
+                  size="xs"
+                  authorId={applicant.id}
+                />
+                <Link
+                  href={`/author/${applicant.id}`}
+                  className="text-sm font-medium text-gray-900 truncate hover:text-blue-600"
+                >
                   {applicant.fullName}
-                </span>
+                </Link>
               </div>
             ))}
           </div>
