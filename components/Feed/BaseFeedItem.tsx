@@ -98,7 +98,7 @@ export const BadgeSection: FC<BadgeSectionProps> = ({
   onClick,
 }) => {
   return (
-    <div className={cn('flex flex-wrap gap-2 mb-3', className)}>
+    <div className={cn('flex flex-wrap gap-2 mb-1', className)}>
       {/* Content type badge would be rendered here */}
       {topics.map((topic) => (
         <div
@@ -227,7 +227,7 @@ export const ImageSection: FC<ImageSectionProps> = ({
   return (
     <div
       className={cn(
-        'relative rounded-lg overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md',
+        'relative rounded-lg overflow-hidden shadow-none md:shadow-sm transition-all duration-300 md:hover:shadow-md',
         aspectClasses[aspectRatio],
         className
       )}
@@ -236,10 +236,7 @@ export const ImageSection: FC<ImageSectionProps> = ({
         src={imageUrl}
         alt={alt}
         fill
-        className={cn(
-          showFullImage ? 'object-contain' : 'object-cover',
-          'transition-transform duration-300 ease-out hover:scale-[1.08]'
-        )}
+        className={showFullImage ? 'object-contain' : 'object-cover'}
         sizes="(max-width: 768px) 100vw, 280px"
       />
     </div>
@@ -480,15 +477,17 @@ export const FeedItemTopSection: FC<{
 }> = ({ leftContent, className, imageSection, rightContent }) => {
   return (
     <>
-      <div className={cn('flex items-start justify-between mb-3', className)}>
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-1 mr-2">{leftContent}</div>
-        {rightContent && <div className="flex-shrink-0">{rightContent}</div>}
-      </div>
+      {/* Mobile image - shown above badges on mobile only */}
       {imageSection && (
         <div className="md:!hidden w-full mb-4 rounded-lg overflow-hidden shadow-sm">
           {imageSection}
         </div>
       )}
+      {/* Badges row (leftContent) + menu (rightContent) */}
+      <div className={cn('flex items-start justify-between mb-1', className)}>
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-1 mr-2">{leftContent}</div>
+        {rightContent && <div className="flex-shrink-0">{rightContent}</div>}
+      </div>
     </>
   );
 };

@@ -25,7 +25,7 @@ import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { Icon } from '@/components/ui/icons/Icon';
 import { PaperService } from '@/services/paper.service';
@@ -64,8 +64,6 @@ export const WorkLineItems = ({
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | null>(null);
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
-  const searchParams = useSearchParams();
-  const isDebugMode = searchParams?.get('debug');
   const { vote, isVoting } = useVote({
     votableEntityId: work.id,
     feedContentType: work.contentType === 'paper' ? 'PAPER' : 'POST',
@@ -75,9 +73,7 @@ export const WorkLineItems = ({
   });
 
   const [voteCount, setVoteCount] = useState(
-    isDebugMode
-      ? (work.metrics?.adjustedScore ?? work.metrics?.votes ?? 0)
-      : (work.metrics?.votes ?? 0)
+    work.metrics?.adjustedScore ?? work.metrics?.votes ?? 0
   );
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
   const router = useRouter();

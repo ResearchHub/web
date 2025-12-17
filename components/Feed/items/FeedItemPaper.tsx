@@ -92,12 +92,13 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
       {/* Top section with badges and mobile image */}
       <FeedItemTopSection
         imageSection={
-          paper.journal?.imageUrl && (
+          imageUrl && (
             <ImageSection
-              imageUrl={paper.journal.imageUrl}
-              alt={paper.journal.name || 'Journal cover'}
+              imageUrl={imageUrl}
+              alt={paper.title || 'Paper image'}
               aspectRatio="16/9"
               showFullImage={true}
+              className="max-h-[180px] mx-auto"
             />
           )
         }
@@ -189,12 +190,11 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
           </>
         }
         rightContent={
-          isDebugMode &&
           imageUrl && (
             <ImageSection
               imageUrl={imageUrl}
               alt={paper.title || 'Paper image'}
-              aspectRatio="1/1"
+              aspectRatio="4/3"
               showFullImage={true}
             />
           )
