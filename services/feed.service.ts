@@ -65,7 +65,6 @@ export class FeedService {
       const transformedEntries = response.results
         .map((entry: RawApiFeedEntry) => {
           try {
-            console.log('entry', entry);
             return transformFeedEntry(entry);
           } catch (error) {
             console.error('Error transforming feed entry:', error, entry);

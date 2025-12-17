@@ -227,7 +227,7 @@ export const ImageSection: FC<ImageSectionProps> = ({
   return (
     <div
       className={cn(
-        'relative rounded-lg overflow-hidden shadow-sm',
+        'relative rounded-lg overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md',
         aspectClasses[aspectRatio],
         className
       )}
@@ -236,7 +236,10 @@ export const ImageSection: FC<ImageSectionProps> = ({
         src={imageUrl}
         alt={alt}
         fill
-        className={showFullImage ? 'object-contain' : 'object-cover'}
+        className={cn(
+          showFullImage ? 'object-contain' : 'object-cover',
+          'transition-transform duration-300 ease-out hover:scale-[1.08]'
+        )}
         sizes="(max-width: 768px) 100vw, 280px"
       />
     </div>

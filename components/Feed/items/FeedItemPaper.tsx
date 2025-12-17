@@ -74,7 +74,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const shouldShowJournal = ALLOWED_JOURNALS.some((j) => journalSlugLower.includes(j));
   const filteredJournal = shouldShowJournal ? paper.journal : undefined;
 
-  const imageUrl = paper.previewImage || paper.journal?.imageUrl;
+  const imageUrl = paper.previewThumbnail || paper.journal?.imageUrl;
 
   return (
     <BaseFeedItem
