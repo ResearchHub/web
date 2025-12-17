@@ -241,6 +241,7 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     versions: Array.isArray(raw.version_list) ? raw.version_list.map(transformDocumentVersion) : [],
     metrics: {
       votes: raw.metrics?.votes || raw.score || 0,
+      adjustedScore: raw.adjusted_score,
       comments: raw.metrics?.comments || raw.discussion_count || 0,
       saves: raw.metrics?.saves || raw.saves_count || 0,
       reviewScore: raw?.unified_document?.reviews?.avg || 0,

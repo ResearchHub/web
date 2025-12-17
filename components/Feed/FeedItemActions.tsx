@@ -16,7 +16,7 @@ import { useFlagModal } from '@/hooks/useFlagging';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { ContentType } from '@/types/work';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { useAddToList } from '@/components/UserList/lib/UserListsContext';
@@ -69,6 +69,7 @@ interface Author {
 // Exporting ExtendedContentMetrics
 export interface ExtendedContentMetrics {
   votes: number;
+  adjustedScore?: number;
   comments: number;
   reviewScore?: number;
   commentAuthors?: Author[];
@@ -209,7 +210,11 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
-  const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
+  const searchParams = useSearchParams();
+  const isDebugMode = searchParams?.get('debug') === 'true';
+  const [localVoteCount, setLocalVoteCount] = useState(
+    isDebugMode ? (metrics?.adjustedScore ?? metrics?.votes ?? 0) : (metrics?.votes ?? 0)
+  );
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
   const isTouchDevice = useIsTouchDevice();
@@ -239,12 +244,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     onVoteError: () => {
       // Revert optimistic update on error
       // Restore previous vote state
-      setLocalVoteCount(metrics?.votes || 0);
+      setLocalVoteCount(
+        isDebugMode ? (metrics?.adjustedScore ?? metrics?.votes ?? 0) : (metrics?.votes ?? 0)
+      );
       setLocalUserVote(userVote);
     },
     relatedDocumentTopics: relatedDocumentTopics,
   });
-
   // Use the flag modal hook
   const { isOpen, contentToFlag, openFlagModal, closeFlagModal } = useFlagModal();
 
