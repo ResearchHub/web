@@ -169,6 +169,7 @@ interface FeedItemActionsProps {
   tips?: Tip[]; // Tips received on this content
   relatedDocumentTopics?: Topic[];
   relatedDocumentUnifiedDocumentId?: string;
+  relatedDocumentTitle?: string; // Title of the related document for list modal
   showPeerReviews?: boolean;
   onFeedItemClick?: () => void;
 }
@@ -204,6 +205,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   tips = [],
   relatedDocumentTopics,
   relatedDocumentUnifiedDocumentId,
+  relatedDocumentTitle,
   showPeerReviews = true,
   onFeedItemClick,
 }) => {
@@ -700,7 +702,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     ? 'text-green-600 hover:text-green-600'
                     : 'text-gray-900 hover:text-gray-600'
                 )}
-                tooltip={'Save'}
+                tooltip={isDocumentInList ? 'Manage' : 'Save'}
                 onClick={handleAddToList}
                 disabled={isTogglingDefaultList}
               >
@@ -774,6 +776,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           isOpen={isAddToListModalOpen}
           onClose={handleCloseAddToListModal}
           unifiedDocumentId={Number.parseInt(relatedDocumentUnifiedDocumentId)}
+          documentTitle={relatedDocumentTitle}
         />
       )}
     </>

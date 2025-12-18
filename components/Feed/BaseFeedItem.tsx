@@ -441,6 +441,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               relatedDocumentUnifiedDocumentId={
                 'unifiedDocumentId' in content ? content.unifiedDocumentId : undefined
               }
+              relatedDocumentTitle={'title' in content ? content.title : undefined}
               showPeerReviews={showPeerReviews}
               onFeedItemClick={onFeedItemClick}
               bounties={showBountyInfo ? undefined : content.bounties}

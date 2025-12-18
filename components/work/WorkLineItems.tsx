@@ -412,6 +412,7 @@ export const WorkLineItems = ({
               variant="ghost"
               onClick={handleAddToList}
               disabled={isTogglingDefaultList}
+              tooltip={isInList ? 'Manage' : 'Save'}
               className={cn(
                 'flex items-center justify-center !px-4 !min-w-0 rounded-lg',
                 isInList
@@ -604,6 +605,7 @@ export const WorkLineItems = ({
           isOpen={isAddToListModalOpen}
           onClose={() => setIsAddToListModalOpen(false)}
           unifiedDocumentId={work.unifiedDocumentId}
+          documentTitle={work.title}
         />
       )}
 
