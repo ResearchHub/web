@@ -4,10 +4,8 @@ import toast from 'react-hot-toast';
 
 const ORCID_MESSAGES = {
   success: 'ORCID Connected',
-  invalid_state: 'This User Does Not Exist',
-  cancelled: 'Unable to connect to ORCID',
+  error: 'Unable to connect to ORCID',
   already_linked: 'This ORCID ID Is Already Linked',
-  service_error: 'This ORCID ID Is Not Valid',
 } as const;
 
 export function useOrcidCallback() {

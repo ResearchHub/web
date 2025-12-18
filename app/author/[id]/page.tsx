@@ -293,11 +293,11 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
 
   const isOwnProfile =
     currentUser?.authorProfile?.id && user.authorProfile.id === currentUser.authorProfile.id;
-  const orcidConnected = currentUser?.authorProfile?.orcidConnected ?? false;
+  const isOrcidConnected = currentUser?.authorProfile?.isOrcidConnected ?? false;
 
   return (
     <>
-      {isOwnProfile && !orcidConnected && <OrcidSyncBanner />}
+      {isOwnProfile && !isOrcidConnected && <OrcidSyncBanner />}
       <Card className="mt-4 bg-gray-50">
         <AuthorProfile author={user.authorProfile} refetchAuthorInfo={refetchAuthorInfo} />
       </Card>

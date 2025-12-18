@@ -45,7 +45,7 @@ export default function UserMenu({
   const [isMobile, setIsMobile] = useState(false);
   const { openVerificationModal } = useVerification();
   const { connect: connectOrcid, isConnecting: isConnectingOrcid } = useConnectOrcid();
-  const orcidConnected = user.authorProfile?.orcidConnected ?? false;
+  const isOrcidConnected = user.authorProfile?.isOrcidConnected ?? false;
 
   useOrcidCallback();
   // Use controlled or uncontrolled menu state
@@ -223,7 +223,7 @@ export default function UserMenu({
           </div>
         </Link>
 
-        {!orcidConnected && (
+        {!isOrcidConnected && (
           <Button
             variant="ghost"
             className="px-6 py-2 hover:bg-gray-50 w-full justify-start !h-auto !rounded-none"
@@ -429,7 +429,7 @@ export default function UserMenu({
               </div>
             </Link>
 
-            {!orcidConnected && (
+            {!isOrcidConnected && (
               <BaseMenuItem
                 onClick={() => {
                   connectOrcid();
