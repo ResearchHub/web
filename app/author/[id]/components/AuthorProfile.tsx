@@ -184,7 +184,14 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
                   icon={faBirthdayCake}
                   className="h-5 w-5 self-start text-[#6B7280]"
                 />
-                <span>Member for {specificTimeSince(author.createdDate)}</span>
+                <span>
+                  {(() => {
+                    const memberDuration = specificTimeSince(author.createdDate);
+                    return memberDuration === 'just joined'
+                      ? `Member ${memberDuration}`
+                      : `Member for ${memberDuration}`;
+                  })()}
+                </span>
               </div>
             )}
           </div>
