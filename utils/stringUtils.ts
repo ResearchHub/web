@@ -15,16 +15,34 @@ export const truncateText = (text: string, maxLength: number = 200): string => {
 };
 
 /**
- * Strips HTML tags from a string
+ * Strips HTML tags from a string using an iterative approach (safe from ReDoS)
  * @param html The HTML string to strip
  * @returns The plain text without HTML tags
  */
 export const stripHtml = (html: string): string => {
   if (!html) return '';
-  return html
-    .replace(/<[^>]+>/g, '') // Remove HTML tags
-    .replace(/&nbsp;/g, ' ') // Replace &nbsp; with spaces
-    .replace(/\s+/g, ' ') // Replace multiple whitespace with single space
+
+  let result = '';
+  let inTag = false;
+
+  for (const char of html) {
+    if (char === '<') {
+      inTag = true;
+    } else if (char === '>') {
+      inTag = false;
+    } else if (!inTag) {
+      result += char;
+    }
+  }
+
+  // Clean up whitespace and HTML entities
+  return result
+    .replaceAll('&nbsp;', ' ')
+    .replaceAll('&amp;', '&')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replace(/\s+/g, ' ')
     .trim();
 };
 

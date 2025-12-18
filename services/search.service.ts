@@ -18,7 +18,7 @@ import { highlightSearchTerms, hasHighlights } from '@/components/Search/lib/sea
 import { stripHtml } from '@/utils/stringUtils';
 
 // Constants for search result snippet extension
-const SEARCH_RESULT_MAX_LENGTH = 300; // Maximum length for extended search result snippets
+const SEARCH_RESULT_MAX_LENGTH = 500; // Maximum length for extended search result snippets
 
 export interface InstitutionResponse {
   id: number;
@@ -456,8 +456,12 @@ export class SearchService {
           last_name: author.last_name || '',
           profile_image: '',
         })),
-        hub: doc.hubs && doc.hubs.length > 0 ? doc.hubs[0] : null,
-        journal: null,
+        hub: doc.hubs?.[0] || null,
+        // Pass category and subcategory from hubs by namespace
+        category: doc.hubs?.find((hub) => hub.namespace === 'category') || null,
+        subcategory: doc.hubs?.find((hub) => hub.namespace === 'subcategory') || null,
+        // Only use journal if it's an object format
+        journal: doc.journal && typeof doc.journal === 'object' ? doc.journal : null,
         doi: doc.doi,
         citations: doc.citations || 0,
         score: doc.score || 0,

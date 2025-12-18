@@ -11,8 +11,8 @@ import {
   MetadataSection,
   FeedItemLayout,
   FeedItemTopSection,
+  FeedItemAbstractSection,
 } from '@/components/Feed/BaseFeedItem';
-import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
 import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
 import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
@@ -26,6 +26,7 @@ interface FeedItemPaperProps {
   href?: string;
   showTooltips?: boolean;
   showActions?: boolean;
+  showOnlyBookmark?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
   highlights?: Highlight[];
@@ -40,6 +41,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   href,
   showTooltips = true,
   showActions = true,
+  showOnlyBookmark = false,
   maxLength,
   onFeedItemClick,
   highlights,
@@ -81,6 +83,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
       entry={entry}
       href={paperPageUrl}
       showActions={showActions}
+      showOnlyBookmark={showOnlyBookmark}
       showHeader={false}
       showTooltips={showTooltips}
       customActionText={actionText}
