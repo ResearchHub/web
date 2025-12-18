@@ -148,6 +148,7 @@ export interface FeedCommentContent extends BaseFeedContent {
 export interface FeedPaperContent extends BaseFeedContent {
   contentType: 'PAPER';
   previewImage?: string;
+  previewThumbnail?: string;
   textPreview: string;
   slug: string;
   title: string;
@@ -527,6 +528,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           slug: content_object.slug || '',
           title: stripHtml(content_object.title || ''),
           previewImage: content_object.primary_image,
+          previewThumbnail: content_object.primary_image_thumbnail,
           authors:
             content_object.authors && content_object.authors.length > 0
               ? content_object.authors.map(transformAuthorProfile)
