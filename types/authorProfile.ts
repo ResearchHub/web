@@ -38,7 +38,7 @@ export interface AuthorProfile {
   linkedin?: string | null;
   googleScholar?: string | null;
   orcidId?: string | null;
-  orcidConnected?: boolean;
+  isOrcidConnected?: boolean;
   isClaimed: boolean;
   isVerified: boolean;
   hIndex?: number;
@@ -89,7 +89,7 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     linkedin: raw.linkedin || undefined,
     googleScholar: raw.google_scholar || undefined,
     orcidId: raw.orcid_id || undefined,
-    orcidConnected: raw.orcid_connected || false,
+    isOrcidConnected: raw.is_orcid_connected || false,
     isClaimed: isClaimed,
     hIndex: raw.h_index || undefined,
     i10Index: raw.i10_index || undefined,

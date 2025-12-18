@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faOrcid } from '@fortawesome/free-brands-svg-icons';
 import { OrcidConnectButton } from '@/components/Orcid/OrcidConnectButton';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
+import { Button } from '@/components/ui/Button';
 
 export function OrcidSyncBanner() {
   const { isDismissed, dismissFeature } = useDismissableFeature('orcid_sync_banner');
@@ -15,13 +16,15 @@ export function OrcidSyncBanner() {
 
   return (
     <div className="relative mb-6 rounded-lg border border-[#DCEEC4] bg-[#F5FAEB] p-4">
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={dismissFeature}
-        className="absolute right-2 top-2 rounded-lg p-0.5 text-gray-500 hover:bg-[#E3F3C1]"
+        className="absolute right-2 top-2 rounded-lg !p-0.5 text-gray-500 hover:!bg-[#E3F3C1] !h-auto !w-auto"
         aria-label="Dismiss banner"
       >
         <X className="h-4 w-4" />
-      </button>
+      </Button>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:pr-8">
         <div className="flex flex-1 items-start gap-3 pr-8 sm:pr-0">

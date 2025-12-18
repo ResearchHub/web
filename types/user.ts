@@ -122,6 +122,8 @@ export type UserDetailsForModerator = {
   isSuspended: boolean;
   email: string;
   createdData: string;
+  isOrcidConnected: boolean;
+  orcidVerifiedEduEmail: string | null;
   verification: {
     createdDate: string;
     externalId: string;
@@ -142,6 +144,8 @@ export const transformUserDetailsForModerator = (raw: any): UserDetailsForModera
       isSuspended: false,
       email: '',
       createdData: '',
+      isOrcidConnected: false,
+      orcidVerifiedEduEmail: null,
       verification: null,
     };
   }
@@ -152,6 +156,8 @@ export const transformUserDetailsForModerator = (raw: any): UserDetailsForModera
     isSuspended: raw.is_suspended || false,
     email: raw.email || '',
     createdData: raw.created_date || '',
+    isOrcidConnected: raw.is_orcid_connected || false,
+    orcidVerifiedEduEmail: raw.orcid_verified_edu_email || null,
     verification: raw.verification
       ? {
           createdDate: raw.verification.created_date || '',

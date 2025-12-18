@@ -56,7 +56,7 @@ export default function UserMenu({
   const { connect: connectOrcid, isConnecting: isConnectingOrcid } = useConnectOrcid();
 
   const { sync: syncOrcid, isSyncing: isSyncingOrcid } = useSyncOrcid();
-  const orcidConnected = user.authorProfile?.orcidConnected ?? false;
+  const isOrcidConnected = user.authorProfile?.isOrcidConnected ?? false;
 
   useOrcidCallback();
   // Use controlled or uncontrolled menu state
@@ -234,60 +234,40 @@ export default function UserMenu({
           </div>
         </Link>
 
-        {!orcidConnected && (
-          <div
-            className="px-6 py-2 hover:bg-gray-50 cursor-pointer"
+        {!isOrcidConnected && (
+          <Button
+            variant="ghost"
+            className="px-6 py-2 hover:bg-gray-50 w-full justify-start !h-auto !rounded-none"
             onClick={() => {
               connectOrcid();
               setMenuOpenState(false);
             }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                connectOrcid();
-                setMenuOpenState(false);
-              }
-            }}
-            tabIndex={0}
-            role="button"
             aria-label="Connect to ORCID"
           >
-            <div className="flex items-center">
-              <FontAwesomeIcon icon={faOrcid} className="h-5 w-5 mr-3 text-gray-500" />
-              <span className="text-base text-gray-700">
-                {isConnectingOrcid ? 'Connecting...' : 'Connect to ORCID'}
-              </span>
-            </div>
-          </div>
+            <FontAwesomeIcon icon={faOrcid} className="h-5 w-5 mr-3 text-gray-500" />
+            <span className="text-base text-gray-700">
+              {isConnectingOrcid ? 'Connecting...' : 'Connect to ORCID'}
+            </span>
+          </Button>
         )}
 
-        {orcidConnected && (
-          <div
-            className="px-6 py-2 hover:bg-gray-50 cursor-pointer"
+        {isOrcidConnected && (
+          <Button
+            variant="ghost"
+            className="px-6 py-2 hover:bg-gray-50 w-full justify-start !h-auto !rounded-none"
             onClick={() => {
               syncOrcid();
               setMenuOpenState(false);
             }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                syncOrcid();
-                setMenuOpenState(false);
-              }
-            }}
-            tabIndex={0}
-            role="button"
             aria-label="Sync Authorship"
           >
-            <div className="flex items-center">
-              <RefreshCw
-                className={`h-5 w-5 mr-3 text-gray-500 ${isSyncingOrcid ? 'animate-spin' : ''}`}
-              />
-              <span className="text-base text-gray-700">
-                {isSyncingOrcid ? 'Syncing…' : 'Sync Authorship'}
-              </span>
-            </div>
-          </div>
+            <RefreshCw
+              className={`h-5 w-5 mr-3 text-gray-500 ${isSyncingOrcid ? 'animate-spin' : ''}`}
+            />
+            <span className="text-base text-gray-700">
+              {isSyncingOrcid ? 'Syncing…' : 'Sync Authorship'}
+            </span>
+          </Button>
         )}
 
         {!user.isVerified && (
@@ -479,7 +459,7 @@ export default function UserMenu({
               </div>
             </Link>
 
-            {!orcidConnected && (
+            {!isOrcidConnected && (
               <BaseMenuItem
                 onClick={() => {
                   connectOrcid();
@@ -496,7 +476,7 @@ export default function UserMenu({
               </BaseMenuItem>
             )}
 
-            {orcidConnected && (
+            {isOrcidConnected && (
               <BaseMenuItem
                 onClick={() => {
                   syncOrcid();

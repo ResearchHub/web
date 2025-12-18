@@ -58,7 +58,16 @@ export const TopicsSection = ({ topics }: TopicsSectionProps) => {
     return result;
   }, [topics]);
 
-  if (sortedTopics.length === 0) return null;
+  // Mobile: Only subcategories, sorted by lowest ID first
+  const mobileSubcategories = useMemo(() => {
+    const filtered = topics.filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
+    return filtered
+      .filter((t) => t.namespace === 'subcategory')
+      .sort((a, b) => Number(a.id) - Number(b.id));
+  }, [topics]);
+
+  // Return null only if both views would be empty
+  if (sortedTopics.length === 0 && mobileSubcategories.length === 0) return null;
 
   const displayedTopics = showAllTopics ? sortedTopics : sortedTopics.slice(0, 5);
   const hasMoreTopics = sortedTopics.length > 5;
@@ -69,7 +78,15 @@ export const TopicsSection = ({ topics }: TopicsSectionProps) => {
         <Tags className="h-6 w-6 text-gray-500" />
         <h2 className="text-base font-semibold text-gray-900">Topics</h2>
       </div>
-      <div className="space-y-3">
+      {/* Mobile: Subcategories only */}
+      <div className="tablet:!hidden flex flex-wrap gap-2">
+        {mobileSubcategories.map((topic) => (
+          <TopicAndJournalBadge key={topic.id} name={topic.name} slug={topic.slug} size="md" />
+        ))}
+      </div>
+
+      {/* Desktop: All topics with expand/collapse */}
+      <div className="hidden tablet:!block space-y-3">
         <div className="flex flex-wrap gap-2">
           {displayedTopics.map((topic) => (
             <TopicAndJournalBadge key={topic.id} name={topic.name} slug={topic.slug} size="md" />

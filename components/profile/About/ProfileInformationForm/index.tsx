@@ -66,7 +66,7 @@ export function ProfileInformationForm({
   const { user } = useUser();
 
   const authorProfile = user?.authorProfile;
-  const orcidConnected = authorProfile?.orcidConnected ?? false;
+  const isOrcidConnected = authorProfile?.isOrcidConnected ?? false;
 
   const methods = useForm<ProfileInformationFormValues>({
     resolver: zodResolver(getProfileInformationSchema({ fields })),
@@ -261,7 +261,7 @@ export function ProfileInformationForm({
                     size="sm"
                     className="text-gray-500"
                   />
-                  {isOrcid && !orcidConnected ? (
+                  {isOrcid && !isOrcidConnected ? (
                     <OrcidConnectButton className="flex-grow justify-center" />
                   ) : (
                     <Input
