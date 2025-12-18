@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, ReactNode, useState } from 'react';
+import { FC, ReactNode, useState, useRef } from 'react';
 import {
   FeedContentType,
   FeedEntry,
@@ -15,6 +15,7 @@ import Image from 'next/image';
 import { stripHtml, truncateText } from '@/utils/stringUtils';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { useNavigation } from '@/contexts/NavigationContext';
+import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
 import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
 import { BountyInfoSummary } from '@/components/Bounty/BountyInfoSummary';
@@ -65,10 +66,14 @@ export interface ContentSectionProps {
 // Image component interface
 export interface ImageSectionProps {
   imageUrl?: string;
+  fullImageUrl?: string; // Full resolution image for zoom popup
   alt?: string;
   className?: string;
   aspectRatio?: '4/3' | '16/9' | '1/1';
   showFullImage?: boolean;
+  expandToFit?: boolean;
+  enableZoom?: boolean; // Enable hover zoom popup
+  naturalDimensions?: boolean; // Let image use natural aspect ratio with max-height
 }
 
 // Metadata component interface
@@ -211,11 +216,24 @@ export const ContentSection: FC<ContentSectionProps> = ({
 
 export const ImageSection: FC<ImageSectionProps> = ({
   imageUrl,
+  fullImageUrl,
   alt = 'Image',
   className,
   aspectRatio = '4/3',
   showFullImage = false,
+  expandToFit = false,
+  enableZoom = false,
+  naturalDimensions = false,
 }) => {
+  const [isHovering, setIsHovering] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isTouchDevice = useIsTouchDevice();
+
+  // Disable zoom on touch devices
+  const isZoomEnabled = enableZoom && !isTouchDevice;
+
   if (!imageUrl) return null;
 
   const aspectClasses = {
@@ -224,22 +242,160 @@ export const ImageSection: FC<ImageSectionProps> = ({
     '1/1': 'aspect-square',
   };
 
-  return (
-    <div
-      className={cn(
-        'relative rounded-lg overflow-hidden shadow-none md:shadow-sm transition-all duration-300 md:hover:shadow-md',
-        aspectClasses[aspectRatio],
-        className
-      )}
-    >
-      <Image
-        src={imageUrl}
-        alt={alt}
-        fill
-        className={showFullImage ? 'object-contain' : 'object-cover'}
-        sizes="(max-width: 768px) 100vw, 280px"
+  // The image URL to show in the zoom (prefer fullImageUrl, fallback to imageUrl)
+  const zoomImageUrl = fullImageUrl || imageUrl;
+
+  // Magnifier settings
+  const magnifierWidth = 800; // Width of the magnifier tooltip
+  const magnifierHeight = 700; // Height of the magnifier tooltip
+  const zoomLevel = 1.25; // How much to magnify
+
+  const handleMouseEnter = () => {
+    if (isZoomEnabled && containerRef.current) {
+      setContainerRect(containerRef.current.getBoundingClientRect());
+      setIsHovering(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isZoomEnabled || !containerRect) return;
+
+    // Calculate mouse position relative to the container (0-1 range)
+    const x = (e.clientX - containerRect.left) / containerRect.width;
+    const y = (e.clientY - containerRect.top) / containerRect.height;
+
+    setMousePos({ x: Math.max(0, Math.min(1, x)), y: Math.max(0, Math.min(1, y)) });
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isZoomEnabled) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+  };
+
+  // Magnifier tooltip component - always positioned to the left of the image
+  const MagnifierTooltip = () => {
+    if (!isHovering || !isZoomEnabled || !containerRect) return null;
+
+    // Calculate background position for the magnified area
+    const bgPosX = mousePos.x * 100;
+    const bgPosY = mousePos.y * 100;
+
+    // Always position the tooltip to the left of the image container
+    const finalX = containerRect.left - magnifierWidth - 16;
+    // Vertically center the tooltip relative to the image container
+    const finalY = containerRect.top + (containerRect.height - magnifierHeight) / 2;
+
+    // Clamp Y position to stay within viewport
+    const clampedY = Math.max(10, Math.min(window.innerHeight - magnifierHeight - 10, finalY));
+
+    return (
+      <div
+        className="fixed z-50 rounded-xl overflow-hidden shadow-2xl border-4 border-white/90 pointer-events-none bg-gray-100"
+        style={{
+          width: magnifierWidth,
+          height: magnifierHeight,
+          left: Math.max(10, finalX), // Ensure it doesn't go off-screen left
+          top: clampedY,
+          backgroundImage: `url(${zoomImageUrl})`,
+          backgroundPosition: `${bgPosX}% ${bgPosY}%`,
+          backgroundSize: `${zoomLevel * 100}%`,
+          backgroundRepeat: 'no-repeat',
+        }}
       />
-    </div>
+    );
+  };
+
+  // When expandToFit is true, fill the container and crop to fit (no whitespace)
+  if (expandToFit) {
+    return (
+      <>
+        <div
+          ref={containerRef}
+          className={cn(
+            'relative overflow-hidden w-full h-[200px] md:rounded-lg md:shadow-sm transition-all duration-300 md:hover:shadow-md',
+            isZoomEnabled && 'cursor-crosshair',
+            className
+          )}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onMouseMove={handleMouseMove}
+          onClick={handleClick}
+        >
+          <Image
+            src={imageUrl}
+            alt={alt}
+            fill
+            className="object-cover object-center"
+            sizes="100vw"
+          />
+        </div>
+        <MagnifierTooltip />
+      </>
+    );
+  }
+
+  // When naturalDimensions is true, let image use its natural aspect ratio with max-height
+  if (naturalDimensions) {
+    return (
+      <>
+        <div
+          ref={containerRef}
+          className={cn(
+            'relative rounded-lg overflow-hidden shadow-none md:shadow-sm transition-all duration-300 md:hover:shadow-md w-full',
+            isZoomEnabled && 'cursor-crosshair',
+            className
+          )}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onMouseMove={handleMouseMove}
+          onClick={handleClick}
+        >
+          <Image
+            src={imageUrl}
+            alt={alt}
+            width={0}
+            height={0}
+            sizes="100vw"
+            className="w-full h-auto max-h-[400px] object-contain"
+            style={{ width: '100%', height: 'auto' }}
+          />
+        </div>
+        <MagnifierTooltip />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div
+        ref={containerRef}
+        className={cn(
+          'relative rounded-lg overflow-hidden shadow-none md:shadow-sm transition-all duration-300 md:hover:shadow-md',
+          aspectClasses[aspectRatio],
+          isZoomEnabled && 'cursor-crosshair',
+          className
+        )}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onMouseMove={handleMouseMove}
+        onClick={handleClick}
+      >
+        <Image
+          src={imageUrl}
+          alt={alt}
+          fill
+          className={showFullImage ? 'object-contain' : 'object-cover'}
+          sizes="(max-width: 768px) 100vw, 280px"
+        />
+      </div>
+      <MagnifierTooltip />
+    </>
   );
 };
 
@@ -477,9 +633,9 @@ export const FeedItemTopSection: FC<{
 }> = ({ leftContent, className, imageSection, rightContent }) => {
   return (
     <>
-      {/* Mobile image - shown above badges on mobile only */}
+      {/* Mobile image - shown above badges on mobile only, edge-to-edge */}
       {imageSection && (
-        <div className="md:!hidden w-full mb-4 rounded-lg overflow-hidden shadow-sm">
+        <div className="md:!hidden w-[calc(100%+2rem)] mb-5 -mx-4 -mt-4 overflow-hidden">
           {imageSection}
         </div>
       )}
