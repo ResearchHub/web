@@ -12,7 +12,6 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
-import { faOrcid } from '@fortawesome/free-brands-svg-icons';
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
 import VerificationBanner from '@/components/banners/VerificationBanner';
@@ -26,9 +25,6 @@ import { AuthSharingService } from '@/services/auth-sharing.service';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { Button } from '@/components/ui/Button';
 import { useVerification } from '@/contexts/VerificationContext';
-import { useConnectOrcid } from '@/components/Orcid/lib/hooks/useConnectOrcid';
-import { useOrcidCallback } from '@/components/Orcid/lib/hooks/useOrcidCallback';
-import { useSyncOrcid } from '@/components/Orcid/lib/hooks/useSyncOrcid';
 
 interface UserMenuProps {
   user: User;
@@ -53,12 +49,6 @@ export default function UserMenu({
   const [internalMenuOpen, setInternalMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { openVerificationModal } = useVerification();
-  const { connect: connectOrcid, isConnecting: isConnectingOrcid } = useConnectOrcid();
-
-  const { sync: syncOrcid, isSyncing: isSyncingOrcid } = useSyncOrcid();
-  const isOrcidConnected = user.authorProfile?.isOrcidConnected ?? false;
-
-  useOrcidCallback();
   // Use controlled or uncontrolled menu state
   const menuOpenState = isMenuOpen !== undefined ? isMenuOpen : internalMenuOpen;
   const setMenuOpenState = (open: boolean) => {
@@ -233,42 +223,6 @@ export default function UserMenu({
             </div>
           </div>
         </Link>
-
-        {!isOrcidConnected && (
-          <Button
-            variant="ghost"
-            className="px-6 py-2 hover:bg-gray-50 w-full justify-start !h-auto !rounded-none"
-            onClick={() => {
-              connectOrcid();
-              setMenuOpenState(false);
-            }}
-            aria-label="Connect to ORCID"
-          >
-            <FontAwesomeIcon icon={faOrcid} className="h-5 w-5 mr-3 text-gray-500" />
-            <span className="text-base text-gray-700">
-              {isConnectingOrcid ? 'Connecting...' : 'Connect to ORCID'}
-            </span>
-          </Button>
-        )}
-
-        {isOrcidConnected && (
-          <Button
-            variant="ghost"
-            className="px-6 py-2 hover:bg-gray-50 w-full justify-start !h-auto !rounded-none"
-            onClick={() => {
-              syncOrcid();
-              setMenuOpenState(false);
-            }}
-            aria-label="Sync Authorship"
-          >
-            <RefreshCw
-              className={`h-5 w-5 mr-3 text-gray-500 ${isSyncingOrcid ? 'animate-spin' : ''}`}
-            />
-            <span className="text-base text-gray-700">
-              {isSyncingOrcid ? 'Syncing…' : 'Sync Authorship'}
-            </span>
-          </Button>
-        )}
 
         {!user.isVerified && (
           <div
@@ -458,42 +412,6 @@ export default function UserMenu({
                 </div>
               </div>
             </Link>
-
-            {!isOrcidConnected && (
-              <BaseMenuItem
-                onClick={() => {
-                  connectOrcid();
-                  setMenuOpenState(false);
-                }}
-                className="w-full px-4 py-2"
-              >
-                <div className="flex items-center">
-                  <FontAwesomeIcon icon={faOrcid} className="h-4 w-4 mr-3 text-gray-500" />
-                  <span className="text-sm text-gray-700">
-                    {isConnectingOrcid ? 'Connecting...' : 'Connect to ORCID'}
-                  </span>
-                </div>
-              </BaseMenuItem>
-            )}
-
-            {isOrcidConnected && (
-              <BaseMenuItem
-                onClick={() => {
-                  syncOrcid();
-                  setMenuOpenState(false);
-                }}
-                className="w-full px-4 py-2"
-              >
-                <div className="flex items-center">
-                  <RefreshCw
-                    className={`h-4 w-4 mr-3 text-gray-500 ${isSyncingOrcid ? 'animate-spin' : ''}`}
-                  />
-                  <span className="text-sm text-gray-700">
-                    {isSyncingOrcid ? 'Syncing…' : 'Sync Authorship'}
-                  </span>
-                </div>
-              </BaseMenuItem>
-            )}
 
             {!user.isVerified && (
               <BaseMenuItem onClick={openVerificationModal} className="w-full px-4 py-2">

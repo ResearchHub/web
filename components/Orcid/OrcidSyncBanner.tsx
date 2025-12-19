@@ -40,7 +40,10 @@ export function OrcidSyncBanner() {
           </div>
         </div>
 
-        <OrcidConnectButton className="w-full shrink-0 sm:w-auto" />
+        <OrcidConnectButton
+          variant="default"
+          className="w-full shrink-0 sm:w-auto bg-[#A6CE39] hover:bg-[#82A629] text-white border-[#A6CE39]"
+        />
       </div>
     </div>
   );
