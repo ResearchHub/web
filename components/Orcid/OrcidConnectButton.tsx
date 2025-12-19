@@ -6,7 +6,11 @@ import { Loader2 } from 'lucide-react';
 import { Button, ButtonProps } from '@/components/ui/Button';
 import { useConnectOrcid } from '@/components/Orcid/lib/hooks/useConnectOrcid';
 
-type OrcidConnectButtonProps = Pick<ButtonProps, 'variant' | 'size' | 'className'>;
+interface OrcidConnectButtonProps {
+  readonly variant?: ButtonProps['variant'];
+  readonly size?: ButtonProps['size'];
+  readonly className?: string;
+}
 
 export function OrcidConnectButton({
   variant = 'outlined',

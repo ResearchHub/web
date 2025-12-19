@@ -10,12 +10,15 @@ export function useConnectOrcid() {
   const searchParams = useSearchParams();
 
   const connect = useCallback(async () => {
+    const url = new URL(pathname, window.location.origin);
     const query = searchParams.toString();
-    const returnUrl = `${window.location.origin}${pathname}${query ? `?${query}` : ''}`;
+    if (query) {
+      url.search = query;
+    }
 
     try {
       setIsConnecting(true);
-      await connectOrcidAccount(returnUrl);
+      await connectOrcidAccount(url.toString());
     } catch (error) {
       toast.error(extractApiErrorMessage(error, 'Failed to connect to ORCID'));
     } finally {
