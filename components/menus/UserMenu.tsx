@@ -17,7 +17,6 @@ import { AuthSharingService } from '@/services/auth-sharing.service';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { Button } from '@/components/ui/Button';
 import { useVerification } from '@/contexts/VerificationContext';
-import { useOrcidCallback } from '@/components/Orcid/lib/hooks/useOrcidCallback';
 
 interface UserMenuProps {
   user: User;
@@ -43,7 +42,6 @@ export default function UserMenu({
   const [isMobile, setIsMobile] = useState(false);
   const { openVerificationModal } = useVerification();
 
-  useOrcidCallback();
   // Use controlled or uncontrolled menu state
   const menuOpenState = isMenuOpen !== undefined ? isMenuOpen : internalMenuOpen;
   const setMenuOpenState = (open: boolean) => {
