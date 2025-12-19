@@ -77,6 +77,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   // Thumbnail for display, full image for zoom popup
   const thumbnailUrl = paper.previewThumbnail || paper.journal?.imageUrl;
   const fullImageUrl = paper.previewImage || thumbnailUrl;
+  const isPdfPreview = thumbnailUrl?.includes('preview');
 
   return (
     <BaseFeedItem
@@ -91,10 +92,11 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
       showBountyInfo={showBountyInfo}
       hideReportButton={true}
     >
-      {/* Top section with badges and mobile image */}
+      {/* Top section with badges and mobile image (hide PDF previews on mobile) */}
       <FeedItemTopSection
         imageSection={
-          thumbnailUrl && (
+          thumbnailUrl &&
+          !isPdfPreview && (
             <ImageSection
               imageUrl={thumbnailUrl}
               fullImageUrl={fullImageUrl}

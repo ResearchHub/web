@@ -236,6 +236,9 @@ export const ImageSection: FC<ImageSectionProps> = ({
 
   if (!imageUrl) return null;
 
+  // Detect if this is a PDF preview (URL contains "preview")
+  const isPdfPreview = imageUrl.includes('preview');
+
   const aspectClasses = {
     '4/3': 'aspect-[4/3]',
     '16/9': 'aspect-[16/9]',
@@ -319,6 +322,7 @@ export const ImageSection: FC<ImageSectionProps> = ({
           ref={containerRef}
           className={cn(
             'relative overflow-hidden w-full h-[200px] md:rounded-lg md:shadow-sm transition-all duration-300 md:hover:shadow-md',
+            isPdfPreview && 'border-[3px] border-gray-200 rounded-lg',
             isZoomEnabled && 'cursor-crosshair',
             className
           )}
@@ -348,6 +352,7 @@ export const ImageSection: FC<ImageSectionProps> = ({
           ref={containerRef}
           className={cn(
             'relative rounded-lg overflow-hidden shadow-none md:shadow-sm transition-all duration-300 md:hover:shadow-md w-full',
+            isPdfPreview && 'border-[3px] border-gray-100',
             isZoomEnabled && 'cursor-crosshair',
             className
           )}
@@ -362,7 +367,7 @@ export const ImageSection: FC<ImageSectionProps> = ({
             width={0}
             height={0}
             sizes="100vw"
-            className="w-full h-auto max-h-[400px] object-contain"
+            className="w-full h-auto max-h-[240px] object-contain"
             style={{ width: '100%', height: 'auto' }}
           />
         </div>
@@ -378,6 +383,7 @@ export const ImageSection: FC<ImageSectionProps> = ({
         className={cn(
           'relative rounded-lg overflow-hidden shadow-none md:shadow-sm transition-all duration-300 md:hover:shadow-md',
           aspectClasses[aspectRatio],
+          isPdfPreview && 'border-[3px] border-gray-100',
           isZoomEnabled && 'cursor-crosshair',
           className
         )}
