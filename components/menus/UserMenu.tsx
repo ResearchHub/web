@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  User as UserIcon,
-  LogOut,
-  BadgeCheck,
-  Bell,
-  Shield,
-  UserPlus,
-  RefreshCw,
-} from 'lucide-react';
+import { User as UserIcon, LogOut, BadgeCheck, Bell, Shield, UserPlus } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
