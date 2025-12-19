@@ -12,11 +12,10 @@ interface UseOrcidCallbackOptions {
   readonly onSuccess?: () => void;
 }
 
-export function useOrcidCallback(options?: UseOrcidCallbackOptions) {
+export function useOrcidCallback({ onSuccess }: UseOrcidCallbackOptions = {}) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { onSuccess } = options || {};
 
   const orcidSuccess = searchParams.get('orcid_connected') === 'true';
   const orcidError = searchParams.get('orcid_error');

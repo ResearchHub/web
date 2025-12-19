@@ -16,12 +16,13 @@ export function useConnectOrcid() {
       url.search = query;
     }
 
-    try {
-      setIsConnecting(true);
-      await connectOrcidAccount(url.toString());
-    } catch (error) {
-      toast.error(extractApiErrorMessage(error, 'Unable to connect to ORCID.'));
-    } finally {
+    setIsConnecting(true);
+    const result = await connectOrcidAccount(url.toString());
+
+    if (result.success) {
+      globalThis.location.href = result.authUrl;
+    } else {
+      toast.error(extractApiErrorMessage(result.error, 'Unable to connect to ORCID.'));
       setIsConnecting(false);
     }
   }, [pathname, searchParams]);
