@@ -18,9 +18,8 @@ import { useUser } from '@/contexts/UserContext';
 import { ProfileInformationForm } from '@/components/profile/About/ProfileInformationForm';
 import { ProfileInformationFormValues } from '@/components/profile/About/ProfileInformationForm/schema';
 import { Icon } from '@/components/ui/icons/Icon';
-import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { Edit, RefreshCw, MoreHorizontal } from 'lucide-react';
 import { useSyncOrcid } from '@/components/Orcid/lib/hooks/useSyncOrcid';
+import { ProfileEditButton } from './ProfileEditButton';
 
 type AuthorProfileProps = {
   author: AuthorProfileType;
@@ -32,7 +31,7 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { user: currentUser, refreshUser } = useUser();
   const isOwnProfile = currentUser?.authorProfile?.id === author.id;
-  const isOrcidConnected = author.isOrcidConnected ?? false;
+  const isOrcidConnected = Boolean(author.isOrcidConnected);
   const fullName = author.fullName;
 
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -57,7 +56,9 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
     : { percent: 0, missing: [] };
 
   const [{ isLoading: updateLoading }, updateAuthorProfileData] = useUpdateAuthorProfileData();
-  const { sync: syncAuthorship, isSyncing } = useSyncOrcid();
+  const { sync: syncAuthorship, isSyncing } = useSyncOrcid({
+    onSuccess: refetchAuthorInfo,
+  });
 
   const handleProfileFormSubmit = async (data: ProfileInformationFormValues) => {
     if (!author.id) {
@@ -107,34 +108,14 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
             missing={missing}
             showTooltip
           />
-          {isOwnProfile && !isOrcidConnected && (
-            <Button
-              onClick={() => setIsEditModalOpen(true)}
-              variant="outlined"
+          {isOwnProfile && (
+            <ProfileEditButton
+              isOrcidConnected={isOrcidConnected}
+              onEditClick={() => setIsEditModalOpen(true)}
+              onSyncClick={syncAuthorship}
+              isSyncing={isSyncing}
               className="flex sm:!hidden items-center gap-2"
-            >
-              <Icon name="edit" className="h-4 w-4" />
-              Edit Profile
-            </Button>
-          )}
-          {isOwnProfile && isOrcidConnected && (
-            <BaseMenu
-              trigger={
-                <Button variant="outlined" size="sm" className="flex sm:!hidden">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              }
-              align="end"
-            >
-              <BaseMenuItem onClick={() => setIsEditModalOpen(true)}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Profile
-              </BaseMenuItem>
-              <BaseMenuItem onClick={syncAuthorship} disabled={isSyncing}>
-                <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-                {isSyncing ? 'Syncing...' : 'Sync Authorship'}
-              </BaseMenuItem>
-            </BaseMenu>
+            />
           )}
         </div>
 
@@ -153,34 +134,14 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
                 </div>
               )}
             </div>
-            {isOwnProfile && !isOrcidConnected && (
-              <Button
-                onClick={() => setIsEditModalOpen(true)}
-                variant="outlined"
+            {isOwnProfile && (
+              <ProfileEditButton
+                isOrcidConnected={isOrcidConnected}
+                onEditClick={() => setIsEditModalOpen(true)}
+                onSyncClick={syncAuthorship}
+                isSyncing={isSyncing}
                 className="hidden sm:!flex items-center gap-2"
-              >
-                <Icon name="edit" className="h-4 w-4" />
-                Edit Profile
-              </Button>
-            )}
-            {isOwnProfile && isOrcidConnected && (
-              <BaseMenu
-                trigger={
-                  <Button variant="outlined" size="sm" className="hidden sm:!flex">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                }
-                align="end"
-              >
-                <BaseMenuItem onClick={() => setIsEditModalOpen(true)}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Profile
-                </BaseMenuItem>
-                <BaseMenuItem onClick={syncAuthorship} disabled={isSyncing}>
-                  <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-                  {isSyncing ? 'Syncing...' : 'Sync Authorship'}
-                </BaseMenuItem>
-              </BaseMenu>
+              />
             )}
           </div>
 
@@ -277,7 +238,7 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
               label="ORCID"
               className={
                 author.isOrcidConnected
-                  ? '[&>svg]:text-[#A6CE39] [&>svg]:hover:text-[#82A629] px-0'
+                  ? '[&>svg]:text-orcid-500 [&>svg]:hover:text-orcid-600 px-0'
                   : 'px-0'
               }
             />
