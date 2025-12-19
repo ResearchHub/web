@@ -10,7 +10,7 @@ export function useConnectOrcid() {
   const searchParams = useSearchParams();
 
   const connect = useCallback(async () => {
-    const url = new URL(pathname, window.location.origin);
+    const url = new URL(pathname, globalThis.location.origin);
     const query = searchParams.toString();
     if (query) {
       url.search = query;
