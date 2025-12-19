@@ -33,15 +33,15 @@ export function OrcidSyncBanner({ isOwnProfile, isOrcidConnected }: OrcidSyncBan
         <X className="h-4 w-4" />
       </Button>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:pr-8">
-        <div className="flex flex-1 items-start gap-3 pr-8 sm:pr-0">
+      <div className="flex flex-col gap-3 sm:!flex-row sm:!items-center sm:!pr-8">
+        <div className="flex flex-1 items-start gap-3 pr-8 sm:!pr-0">
           <div className="flex shrink-0 items-center justify-center rounded-lg bg-orcid-100 p-2">
             <FontAwesomeIcon icon={faOrcid} className="h-5 w-5 text-orcid-500" />
           </div>
 
           <div className="min-w-0 flex-1">
             <h3 className="font-medium text-gray-900">Sync your ORCID account</h3>
-            <p className="mt-1 hidden text-sm text-gray-700 sm:block">
+            <p className="mt-1 hidden text-sm text-gray-700 sm:!block">
               Sync your ORCID publications with your ResearchHub profile
             </p>
           </div>
@@ -49,7 +49,7 @@ export function OrcidSyncBanner({ isOwnProfile, isOrcidConnected }: OrcidSyncBan
 
         <OrcidConnectButton
           variant="default"
-          className="w-full shrink-0 !bg-orcid-500 !text-white hover:!bg-orcid-600 !border-orcid-500 sm:w-auto"
+          className="w-full shrink-0 !bg-orcid-500 !text-white hover:!bg-orcid-600 !border-orcid-500 sm:!w-auto"
         />
       </div>
     </div>
