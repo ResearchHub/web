@@ -234,7 +234,7 @@ const AuthorProfile: React.FC<AuthorProfileProps> = ({ author, refetchAuthorInfo
               label="ORCID"
               className={
                 author.isOrcidConnected
-                  ? '[&>svg]:text-[#A6CE39] [&>svg]:hover:text-[#82A629] px-0'
+                  ? '[&>svg]:text-orcid-500 [&>svg]:hover:text-orcid-600 px-0'
                   : 'px-0'
               }
             />

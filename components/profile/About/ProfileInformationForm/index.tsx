@@ -58,7 +58,7 @@ export function ProfileInformationForm({
       label: 'X (Twitter) Profile URL',
     },
     orcid_id: {
-      icon: <FontAwesomeIcon icon={faOrcid} className="h-6 w-6 text-[#A6CE39]" />,
+      icon: <FontAwesomeIcon icon={faOrcid} className="h-6 w-6 text-orcid-500" />,
       label: 'ORCID URL',
     },
   } as const;
