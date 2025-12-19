@@ -242,7 +242,7 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
             <span>{userDetails.isSuspended ? 'Yes' : 'No'}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="font-medium whitespace-nowrap">ORCID Verified?</span>
+            <span className="font-medium whitespace-nowrap">ORCID Connected?</span>
             <span>{userDetails.isOrcidConnected ? 'Yes' : 'No'}</span>
           </div>
         </div>
