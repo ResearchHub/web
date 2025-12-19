@@ -11,7 +11,6 @@ import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CardWrapper } from './CardWrapper';
 import { cn } from '@/utils/styles';
-import Image from 'next/image';
 import { stripHtml, truncateText } from '@/utils/stringUtils';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { useNavigation } from '@/contexts/NavigationContext';
@@ -60,15 +59,6 @@ export interface ContentSectionProps {
   highlightedContent?: string;
   maxLength?: number;
   className?: string;
-}
-
-// Image component interface
-export interface ImageSectionProps {
-  imageUrl?: string;
-  alt?: string;
-  className?: string;
-  aspectRatio?: '4/3' | '16/9' | '1/1';
-  showFullImage?: boolean;
 }
 
 // Metadata component interface
@@ -209,39 +199,8 @@ export const ContentSection: FC<ContentSectionProps> = ({
   );
 };
 
-export const ImageSection: FC<ImageSectionProps> = ({
-  imageUrl,
-  alt = 'Image',
-  className,
-  aspectRatio = '4/3',
-  showFullImage = false,
-}) => {
-  if (!imageUrl) return null;
-
-  const aspectClasses = {
-    '4/3': 'aspect-[4/3]',
-    '16/9': 'aspect-[16/9]',
-    '1/1': 'aspect-square',
-  };
-
-  return (
-    <div
-      className={cn(
-        'relative rounded-lg overflow-hidden shadow-none md:shadow-sm transition-all duration-300 md:hover:shadow-md',
-        aspectClasses[aspectRatio],
-        className
-      )}
-    >
-      <Image
-        src={imageUrl}
-        alt={alt}
-        fill
-        className={showFullImage ? 'object-contain' : 'object-cover'}
-        sizes="(max-width: 768px) 100vw, 280px"
-      />
-    </div>
-  );
-};
+// Re-export ImageSection for backwards compatibility
+export { ImageSection, type ImageSectionProps } from './ImageSection';
 
 export const MetadataSection: FC<MetadataSectionProps> = ({ children, className }) => {
   return <div className={cn('mb-2', className)}>{children}</div>;
@@ -477,9 +436,9 @@ export const FeedItemTopSection: FC<{
 }> = ({ leftContent, className, imageSection, rightContent }) => {
   return (
     <>
-      {/* Mobile image - shown above badges on mobile only */}
+      {/* Mobile image - shown above badges on mobile only, edge-to-edge */}
       {imageSection && (
-        <div className="md:!hidden w-full mb-4 rounded-lg overflow-hidden shadow-sm">
+        <div className="md:!hidden w-[calc(100%+2rem)] mb-5 -mx-4 -mt-4 overflow-hidden">
           {imageSection}
         </div>
       )}
