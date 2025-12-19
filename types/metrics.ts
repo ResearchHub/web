@@ -1,5 +1,6 @@
 export interface ContentMetrics {
   votes: number;
+  adjustedScore?: number;
   comments: number;
   saves: number;
   reviewScore?: number;
