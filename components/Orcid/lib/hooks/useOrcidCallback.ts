@@ -1,16 +1,22 @@
 import { useEffect } from 'react';
-import { useSearchParams, usePathname } from 'next/navigation';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 const ORCID_MESSAGES = {
-  success: 'ORCID Connected',
+  success: 'ORCID connected',
   error: 'Unable to connect to ORCID',
-  already_linked: 'This ORCID ID Is Already Linked',
+  already_linked: 'This ORCID ID is already linked',
 } as const;
 
-export function useOrcidCallback() {
+interface UseOrcidCallbackOptions {
+  readonly onSuccess?: () => void;
+}
+
+export function useOrcidCallback(options?: UseOrcidCallbackOptions) {
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const { onSuccess } = options || {};
 
   const orcidSuccess = searchParams.get('orcid_connected') === 'true';
   const orcidError = searchParams.get('orcid_error');
@@ -20,6 +26,7 @@ export function useOrcidCallback() {
 
     if (orcidSuccess) {
       toast.success(ORCID_MESSAGES.success, { id: 'orcid-success' });
+      onSuccess?.();
     } else if (orcidError) {
       const errorMessage =
         ORCID_MESSAGES[orcidError as keyof typeof ORCID_MESSAGES] || decodeURIComponent(orcidError);
@@ -31,6 +38,6 @@ export function useOrcidCallback() {
     params.delete('orcid_error');
     const query = params.toString();
     const url = query ? `${pathname}?${query}` : pathname;
-    globalThis.history.replaceState(null, '', url);
-  }, [orcidSuccess, orcidError, pathname, searchParams]);
+    router.replace(url);
+  }, [orcidSuccess, orcidError, pathname, searchParams, router, onSuccess]);
 }

@@ -2,14 +2,11 @@
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faOrcid } from '@fortawesome/free-brands-svg-icons';
+import { Loader2 } from 'lucide-react';
 import { Button, ButtonProps } from '@/components/ui/Button';
 import { useConnectOrcid } from '@/components/Orcid/lib/hooks/useConnectOrcid';
 
-interface OrcidConnectButtonProps {
-  readonly variant?: ButtonProps['variant'];
-  readonly size?: ButtonProps['size'];
-  readonly className?: string;
-}
+type OrcidConnectButtonProps = Pick<ButtonProps, 'variant' | 'size' | 'className'>;
 
 export function OrcidConnectButton({
   variant = 'outlined',
@@ -26,10 +23,11 @@ export function OrcidConnectButton({
       size={size}
       className={className}
     >
-      <FontAwesomeIcon
-        icon={faOrcid}
-        className={`mr-2 h-4 w-4 ${isConnecting ? 'animate-spin' : ''}`}
-      />
+      {isConnecting ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
+        <FontAwesomeIcon icon={faOrcid} className="mr-2 h-4 w-4" />
+      )}
       {isConnecting ? 'Connecting...' : 'Connect ORCID'}
     </Button>
   );
