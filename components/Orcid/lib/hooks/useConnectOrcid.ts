@@ -20,7 +20,7 @@ export function useConnectOrcid() {
       setIsConnecting(true);
       await connectOrcidAccount(url.toString());
     } catch (error) {
-      toast.error(extractApiErrorMessage(error, 'Failed to connect to ORCID'));
+      toast.error(extractApiErrorMessage(error, 'Unable to connect to ORCID.'));
     } finally {
       setIsConnecting(false);
     }
