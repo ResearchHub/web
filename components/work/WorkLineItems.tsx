@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from 'react';
 import {
-  ArrowUp,
   Flag,
   Edit,
   MoreHorizontal,
@@ -11,6 +10,8 @@ import {
   Share2,
   CheckCircle,
   Download,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
@@ -72,7 +73,9 @@ export const WorkLineItems = ({
     relatedDocumentContentType: work.contentType,
   });
 
-  const [voteCount, setVoteCount] = useState(work.metrics?.votes || 0);
+  const [voteCount, setVoteCount] = useState(
+    work.metrics?.adjustedScore ?? work.metrics?.votes ?? 0
+  );
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
   const router = useRouter();
   const { selectedOrg } = useOrganizationContext();
@@ -108,31 +111,74 @@ export const WorkLineItems = ({
       ? userVotes?.papers[work.id]?.voteType === 'upvote'
       : userVotes?.posts[work.id]?.voteType === 'upvote';
 
-  const handleVote = useCallback(async () => {
-    const wasUpvoted = isUpvoted;
+  const isDownvoted =
+    work.contentType === 'paper'
+      ? userVotes?.papers[work.id]?.voteType === 'downvote'
+      : userVotes?.posts[work.id]?.voteType === 'downvote';
 
-    try {
-      await vote(wasUpvoted ? 'NEUTRAL' : 'UPVOTE');
+  const handleVote = useCallback(
+    async (direction: 'up' | 'down') => {
+      const wasUpvoted = isUpvoted;
+      const wasDownvoted = isDownvoted;
 
-      setVoteCount((prevCount) => (wasUpvoted ? prevCount - 1 : prevCount + 1));
+      try {
+        let newVoteType: 'UPVOTE' | 'DOWNVOTE' | 'NEUTRAL';
+        let countDelta: number;
 
-      await refreshVotes();
-    } catch (error: any) {
-      // Check if it's a 403 error or contains the specific error message
-      if (
-        error?.status === 403 ||
-        (error?.response && error?.response?.status === 403) ||
-        (typeof error === 'object' && error?.detail === 'Can not vote on own content')
-      ) {
-        toast.error('Cannot vote on your own content');
-      } else {
-        // For other errors, show a generic message
-        toast.error(
-          error instanceof Error ? error.message : 'Unable to process your vote. Please try again.'
-        );
+        if (direction === 'up') {
+          if (wasUpvoted) {
+            // Already upvoted, clicking up again -> neutral
+            newVoteType = 'NEUTRAL';
+            countDelta = -1;
+          } else if (wasDownvoted) {
+            // Was downvoted, clicking up -> upvote (swing of +2)
+            newVoteType = 'UPVOTE';
+            countDelta = 2;
+          } else {
+            // Neutral, clicking up -> upvote
+            newVoteType = 'UPVOTE';
+            countDelta = 1;
+          }
+        } else {
+          // direction === 'down'
+          if (wasDownvoted) {
+            // Already downvoted, clicking down again -> neutral
+            newVoteType = 'NEUTRAL';
+            countDelta = 1;
+          } else if (wasUpvoted) {
+            // Was upvoted, clicking down -> downvote (swing of -2)
+            newVoteType = 'DOWNVOTE';
+            countDelta = -2;
+          } else {
+            // Neutral, clicking down -> downvote
+            newVoteType = 'DOWNVOTE';
+            countDelta = -1;
+          }
+        }
+
+        await vote(newVoteType);
+        setVoteCount((prevCount) => prevCount + countDelta);
+        await refreshVotes();
+      } catch (error: any) {
+        // Check if it's a 403 error or contains the specific error message
+        if (
+          error?.status === 403 ||
+          (error?.response && error?.response?.status === 403) ||
+          (typeof error === 'object' && error?.detail === 'Can not vote on own content')
+        ) {
+          toast.error('Cannot vote on your own content');
+        } else {
+          // For other errors, show a generic message
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : 'Unable to process your vote. Please try again.'
+          );
+        }
       }
-    }
-  }, [work.contentType, work.id, isUpvoted, vote, refreshVotes]);
+    },
+    [isUpvoted, isDownvoted, vote, refreshVotes]
+  );
 
   // Determine if current user is a moderator
   const isModerator = !!user?.isModerator;
@@ -326,18 +372,40 @@ export const WorkLineItems = ({
       {/* Primary Actions */}
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-3">
-          <button
-            onClick={() => executeAuthenticatedAction(handleVote)}
-            disabled={isVoting || isLoadingVotes}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
-              isUpvoted
-                ? 'bg-green-50 text-green-600 hover:bg-green-100'
-                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-            } ${isVoting || isLoadingVotes ? 'opacity-50 cursor-not-allowed' : ''}`}
+          <div
+            className={cn(
+              'flex items-center rounded-lg bg-gray-50',
+              isVoting || isLoadingVotes ? 'opacity-50' : ''
+            )}
           >
-            <ArrowUp className={`h-4 w-4`} />
-            <span>{voteCount}</span>
-          </button>
+            <button
+              onClick={() => executeAuthenticatedAction(() => handleVote('up'))}
+              disabled={isVoting || isLoadingVotes}
+              className={cn(
+                'px-3 py-2 rounded-l-lg transition-colors',
+                isUpvoted ? 'text-green-600 hover:bg-green-100' : 'text-gray-600 hover:bg-gray-100',
+                isVoting || isLoadingVotes ? 'cursor-not-allowed' : 'cursor-pointer'
+              )}
+              aria-label="Upvote"
+            >
+              <ArrowUp className="h-6 w-6" />
+            </button>
+            <span className="text-sm font-medium text-gray-700 min-w-[2rem] text-center">
+              {voteCount}
+            </span>
+            <button
+              onClick={() => executeAuthenticatedAction(() => handleVote('down'))}
+              disabled={isVoting || isLoadingVotes}
+              className={cn(
+                'px-3 py-2 rounded-r-lg transition-colors',
+                isDownvoted ? 'text-red-600 hover:bg-red-100' : 'text-gray-600 hover:bg-gray-100',
+                isVoting || isLoadingVotes ? 'cursor-not-allowed' : 'cursor-pointer'
+              )}
+              aria-label="Downvote"
+            >
+              <ArrowDown className="h-6 w-6" />
+            </button>
+          </div>
 
           {work.unifiedDocumentId && work.postType !== 'QUESTION' && (
             <Button
@@ -352,11 +420,7 @@ export const WorkLineItems = ({
                 isTogglingDefaultList && 'opacity-50 cursor-not-allowed'
               )}
             >
-              <FontAwesomeIcon
-                icon={isInList ? faBookmarkSolid : faBookmark}
-                className="h-3.
-              5 w-3.5"
-              />
+              <FontAwesomeIcon icon={isInList ? faBookmarkSolid : faBookmark} className="h-5 w-5" />
             </Button>
           )}
 

@@ -74,7 +74,10 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const shouldShowJournal = ALLOWED_JOURNALS.some((j) => journalSlugLower.includes(j));
   const filteredJournal = shouldShowJournal ? paper.journal : undefined;
 
-  const imageUrl = paper.previewImage || paper.journal?.imageUrl;
+  // Thumbnail for display, full image for zoom popup
+  const thumbnailUrl = paper.previewThumbnail || paper.journal?.imageUrl;
+  const fullImageUrl = paper.previewImage || thumbnailUrl;
+  const isPdfPreview = thumbnailUrl?.includes('preview');
 
   return (
     <BaseFeedItem
@@ -89,15 +92,20 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
       showBountyInfo={showBountyInfo}
       hideReportButton={true}
     >
-      {/* Top section with badges and mobile image */}
+      {/* Top section with badges and mobile image (hide PDF previews on mobile) */}
       <FeedItemTopSection
         imageSection={
-          paper.journal?.imageUrl && (
+          thumbnailUrl &&
+          !isPdfPreview && (
             <ImageSection
-              imageUrl={paper.journal.imageUrl}
-              alt={paper.journal.name || 'Journal cover'}
+              imageUrl={thumbnailUrl}
+              fullImageUrl={fullImageUrl}
+              alt={paper.title || 'Paper image'}
               aspectRatio="16/9"
               showFullImage={true}
+              expandToFit={true}
+              enableZoom={!!fullImageUrl}
+              className="max-h-[180px] mx-auto"
             />
           )
         }
@@ -189,13 +197,13 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
           </>
         }
         rightContent={
-          isDebugMode &&
-          imageUrl && (
+          thumbnailUrl && (
             <ImageSection
-              imageUrl={imageUrl}
+              imageUrl={thumbnailUrl}
+              fullImageUrl={fullImageUrl}
               alt={paper.title || 'Paper image'}
-              aspectRatio="1/1"
-              showFullImage={true}
+              naturalDimensions={true}
+              enableZoom={!!fullImageUrl}
             />
           )
         }

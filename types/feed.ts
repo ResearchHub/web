@@ -148,6 +148,7 @@ export interface FeedCommentContent extends BaseFeedContent {
 export interface FeedPaperContent extends BaseFeedContent {
   contentType: 'PAPER';
   previewImage?: string;
+  previewThumbnail?: string;
   textPreview: string;
   slug: string;
   title: string;
@@ -343,6 +344,7 @@ export interface RawApiFeedEntry {
   };
   metrics?: {
     votes: number;
+    adjusted_score?: number;
     comments?: number;
     replies?: number;
     review_metrics?: {
@@ -430,11 +432,11 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     timestamp: action_date,
     action: action.toLowerCase() as FeedActionType,
   };
-
   // Pre-process metrics to ensure consistent format
   const processedMetrics = feedEntry.metrics
     ? {
         votes: feedEntry.metrics.votes || 0,
+        adjusted_score: feedEntry.metrics.adjusted_score,
         comments:
           feedEntry.metrics.comments !== undefined
             ? feedEntry.metrics.comments
@@ -526,6 +528,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           slug: content_object.slug || '',
           title: stripHtml(content_object.title || ''),
           previewImage: content_object.primary_image,
+          previewThumbnail: content_object.primary_image_thumbnail,
           authors:
             content_object.authors && content_object.authors.length > 0
               ? content_object.authors.map(transformAuthorProfile)
@@ -931,6 +934,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     metrics: processedMetrics
       ? {
           votes: processedMetrics.votes || 0,
+          adjustedScore: processedMetrics.adjusted_score,
           comments: processedMetrics.comments || 0,
           saves: 0, // Default value for saves
           reviewScore: getReviewScore(processedMetrics, contentType, content),

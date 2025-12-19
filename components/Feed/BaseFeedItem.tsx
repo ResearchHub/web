@@ -11,7 +11,6 @@ import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CardWrapper } from './CardWrapper';
 import { cn } from '@/utils/styles';
-import Image from 'next/image';
 import { stripHtml, truncateText } from '@/utils/stringUtils';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { useNavigation } from '@/contexts/NavigationContext';
@@ -62,15 +61,6 @@ export interface ContentSectionProps {
   className?: string;
 }
 
-// Image component interface
-export interface ImageSectionProps {
-  imageUrl?: string;
-  alt?: string;
-  className?: string;
-  aspectRatio?: '4/3' | '16/9' | '1/1';
-  showFullImage?: boolean;
-}
-
 // Metadata component interface
 export interface MetadataSectionProps {
   children: ReactNode;
@@ -98,7 +88,7 @@ export const BadgeSection: FC<BadgeSectionProps> = ({
   onClick,
 }) => {
   return (
-    <div className={cn('flex flex-wrap gap-2 mb-3', className)}>
+    <div className={cn('flex flex-wrap gap-2 mb-1', className)}>
       {/* Content type badge would be rendered here */}
       {topics.map((topic) => (
         <div
@@ -209,39 +199,8 @@ export const ContentSection: FC<ContentSectionProps> = ({
   );
 };
 
-export const ImageSection: FC<ImageSectionProps> = ({
-  imageUrl,
-  alt = 'Image',
-  className,
-  aspectRatio = '4/3',
-  showFullImage = false,
-}) => {
-  if (!imageUrl) return null;
-
-  const aspectClasses = {
-    '4/3': 'aspect-[4/3]',
-    '16/9': 'aspect-[16/9]',
-    '1/1': 'aspect-square',
-  };
-
-  return (
-    <div
-      className={cn(
-        'relative rounded-lg overflow-hidden shadow-sm',
-        aspectClasses[aspectRatio],
-        className
-      )}
-    >
-      <Image
-        src={imageUrl}
-        alt={alt}
-        fill
-        className={showFullImage ? 'object-contain' : 'object-cover'}
-        sizes="(max-width: 768px) 100vw, 280px"
-      />
-    </div>
-  );
-};
+// Re-export ImageSection for backwards compatibility
+export { ImageSection, type ImageSectionProps } from './ImageSection';
 
 export const MetadataSection: FC<MetadataSectionProps> = ({ children, className }) => {
   return <div className={cn('mb-2', className)}>{children}</div>;
@@ -477,15 +436,17 @@ export const FeedItemTopSection: FC<{
 }> = ({ leftContent, className, imageSection, rightContent }) => {
   return (
     <>
-      <div className={cn('flex items-start justify-between mb-3', className)}>
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-1 mr-2">{leftContent}</div>
-        {rightContent && <div className="flex-shrink-0">{rightContent}</div>}
-      </div>
+      {/* Mobile image - shown above badges on mobile only, edge-to-edge */}
       {imageSection && (
-        <div className="md:!hidden w-full mb-4 rounded-lg overflow-hidden shadow-sm">
+        <div className="md:!hidden w-[calc(100%+2rem)] mb-5 -mx-4 -mt-4 overflow-hidden">
           {imageSection}
         </div>
       )}
+      {/* Badges row (leftContent) + menu (rightContent) */}
+      <div className={cn('flex items-start justify-between mb-1', className)}>
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-1 mr-2">{leftContent}</div>
+        {rightContent && <div className="flex-shrink-0">{rightContent}</div>}
+      </div>
     </>
   );
 };

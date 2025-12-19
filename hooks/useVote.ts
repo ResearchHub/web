@@ -64,7 +64,7 @@ export function useVote({
 
   /**
    * Vote on a document, comment or other content item
-   * @param voteType The type of vote (UPVOTE or NEUTRAL)
+   * @param voteType The type of vote (UPVOTE, DOWNVOTE, or NEUTRAL)
    */
   const vote = useCallback(
     async (voteType: UserVoteType) => {
@@ -112,7 +112,12 @@ export function useVote({
           response = await ReactionService.voteOnDocument({
             documentId: votableEntityId,
             documentType,
-            voteType: voteType === 'UPVOTE' ? 'upvote' : 'neutralvote',
+            voteType:
+              voteType === 'UPVOTE'
+                ? 'upvote'
+                : voteType === 'DOWNVOTE'
+                  ? 'downvote'
+                  : 'neutralvote',
           });
         }
 

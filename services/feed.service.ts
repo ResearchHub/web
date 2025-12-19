@@ -63,9 +63,9 @@ export class FeedService {
       const response = await ApiClient.get<FeedApiResponse>(url);
 
       const transformedEntries = response.results
-        .map((entry) => {
+        .map((entry: RawApiFeedEntry) => {
           try {
-            return transformFeedEntry(entry as any);
+            return transformFeedEntry(entry);
           } catch (error) {
             console.error('Error transforming feed entry:', error, entry);
             return null;

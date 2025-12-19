@@ -3,7 +3,7 @@
 import { FC, useState, ReactNode, useEffect } from 'react';
 import React from 'react';
 import { FeedContentType, Review } from '@/types/feed';
-import { MessageCircle, Flag, ArrowUp, MoreHorizontal, Star } from 'lucide-react';
+import { MessageCircle, Flag, MoreHorizontal, Star, ArrowUp, ArrowDown } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
@@ -69,6 +69,7 @@ interface Author {
 // Exporting ExtendedContentMetrics
 export interface ExtendedContentMetrics {
   votes: number;
+  adjustedScore?: number;
   comments: number;
   reviewScore?: number;
   commentAuthors?: Author[];
@@ -209,7 +210,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
-  const [localVoteCount, setLocalVoteCount] = useState(metrics?.votes || 0);
+  const [localVoteCount, setLocalVoteCount] = useState(
+    metrics?.adjustedScore ?? metrics?.votes ?? 0
+  );
   const [localUserVote, setLocalUserVote] = useState<UserVoteType | undefined>(userVote);
   const router = useRouter();
   const isTouchDevice = useIsTouchDevice();
@@ -239,16 +242,15 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     onVoteError: () => {
       // Revert optimistic update on error
       // Restore previous vote state
-      setLocalVoteCount(metrics?.votes || 0);
+      setLocalVoteCount(metrics?.adjustedScore ?? metrics?.votes ?? 0);
       setLocalUserVote(userVote);
     },
     relatedDocumentTopics: relatedDocumentTopics,
   });
-
   // Use the flag modal hook
   const { isOpen, contentToFlag, openFlagModal, closeFlagModal } = useFlagModal();
 
-  const handleVote = (e?: React.MouseEvent) => {
+  const handleVote = (e?: React.MouseEvent, direction: 'up' | 'down' = 'up') => {
     if (e) {
       e.stopPropagation();
     }
@@ -257,17 +259,43 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     if (isVoting) return;
 
     executeAuthenticatedAction(() => {
-      // Toggle vote: if already upvoted, neutralize, otherwise upvote
-      const newVoteType: UserVoteType = localUserVote === 'UPVOTE' ? 'NEUTRAL' : 'UPVOTE';
+      let newVoteType: UserVoteType;
+      let countDelta: number;
+
+      if (direction === 'up') {
+        if (localUserVote === 'UPVOTE') {
+          // Already upvoted, clicking up again -> neutral
+          newVoteType = 'NEUTRAL';
+          countDelta = -1;
+        } else if (localUserVote === 'DOWNVOTE') {
+          // Was downvoted, clicking up -> upvote (swing of +2)
+          newVoteType = 'UPVOTE';
+          countDelta = 2;
+        } else {
+          // Neutral, clicking up -> upvote
+          newVoteType = 'UPVOTE';
+          countDelta = 1;
+        }
+      } else {
+        // direction === 'down'
+        if (localUserVote === 'DOWNVOTE') {
+          // Already downvoted, clicking down again -> neutral
+          newVoteType = 'NEUTRAL';
+          countDelta = 1;
+        } else if (localUserVote === 'UPVOTE') {
+          // Was upvoted, clicking down -> downvote (swing of -2)
+          newVoteType = 'DOWNVOTE';
+          countDelta = -2;
+        } else {
+          // Neutral, clicking down -> downvote
+          newVoteType = 'DOWNVOTE';
+          countDelta = -1;
+        }
+      }
 
       // Optimistic update: immediately update UI before API call
-      if (newVoteType === 'UPVOTE' && localUserVote !== 'UPVOTE') {
-        setLocalVoteCount((prev) => prev + 1);
-        setLocalUserVote('UPVOTE');
-      } else if (newVoteType === 'NEUTRAL' && localUserVote === 'UPVOTE') {
-        setLocalVoteCount((prev) => Math.max(0, prev - 1));
-        setLocalUserVote('NEUTRAL');
-      }
+      setLocalVoteCount((prev) => prev + countDelta);
+      setLocalUserVote(newVoteType);
 
       vote(newVoteType);
     });
@@ -395,15 +423,45 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     <>
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center space-x-3 md:space-x-4 flex-nowrap overflow-x-auto">
-          <ActionButton
-            icon={ArrowUp}
-            count={localVoteCount}
-            tooltip="Upvote"
-            label={actionLabels?.upvote || 'Upvote'}
-            onClick={handleVote}
-            isActive={localUserVote === 'UPVOTE'}
-            showTooltip={showTooltips}
-          />
+          <div
+            className={cn(
+              'flex items-center h-8 border rounded-full bg-white transition-all',
+              localUserVote === 'UPVOTE'
+                ? 'border-green-300'
+                : localUserVote === 'DOWNVOTE'
+                  ? 'border-red-300'
+                  : 'border-gray-200',
+              isVoting ? 'opacity-50' : ''
+            )}
+          >
+            <button
+              onClick={(e) => handleVote(e, 'up')}
+              disabled={isVoting}
+              className={cn(
+                'py-0.5 px-2 md:!py-1 md:!px-2 rounded-l-full transition-colors',
+                localUserVote === 'UPVOTE' ? 'text-green-600' : 'text-gray-900 hover:bg-gray-100',
+                isVoting ? 'cursor-not-allowed' : 'cursor-pointer'
+              )}
+              aria-label="Upvote"
+            >
+              <ArrowUp className="w-4 h-4 md:!w-5 md:!h-5" />
+            </button>
+            <span className="text-xs md:!text-sm font-medium text-gray-900 px-1">
+              {localVoteCount}
+            </span>
+            <button
+              onClick={(e) => handleVote(e, 'down')}
+              disabled={isVoting}
+              className={cn(
+                'py-0.5 px-2 md:!py-1 md:!px-2 rounded-r-full transition-colors',
+                localUserVote === 'DOWNVOTE' ? 'text-red-600' : 'text-gray-900 hover:bg-gray-100',
+                isVoting ? 'cursor-not-allowed' : 'cursor-pointer'
+              )}
+              aria-label="Downvote"
+            >
+              <ArrowDown className="w-4 h-4 md:!w-5 md:!h-5" />
+            </button>
+          </div>
           {!hideCommentButton && (
             <ActionButton
               icon={MessageCircle}
