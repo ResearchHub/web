@@ -1,31 +1,39 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useFeed } from '@/hooks/useFeed';
+import { useFeedTabs } from '@/hooks/useFeedTabs';
 import { FeedContent } from '@/components/Feed/FeedContent';
+import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { FundRightSidebar } from '@/components/Fund/FundRightSidebar';
 import { GrantRightSidebar } from '@/components/Fund/GrantRightSidebar';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
-import {
-  MarketplaceTabs,
-  MarketplaceTab,
-  FundingSortOption,
-} from '@/components/Fund/MarketplaceTabs';
+import { FundingSortOption } from '@/components/Fund/MarketplaceTabs';
 import Icon from '@/components/ui/icons/Icon';
-import { createTabConfig } from '@/components/Fund/lib/FundingFeedConfig';
+import { createTabConfig, getSortOptions } from '@/components/Fund/lib/FundingFeedConfig';
 
 interface FundPageContentProps {
-  marketplaceTab: MarketplaceTab;
+  marketplaceTab: 'grants' | 'needs-funding';
 }
 
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  const {
+    tabs: feedTabsList,
+    activeTab,
+    handleTabChange,
+  } = useFeedTabs(() => setIsNavigating(true));
+
   const defaultSort = marketplaceTab === 'needs-funding' ? 'best' : 'newest';
   const sortBy = (searchParams.get('ordering') as FundingSortOption) || defaultSort;
   const TAB_CONFIG = createTabConfig(<GrantRightSidebar />, <FundRightSidebar />);
   const config = TAB_CONFIG[marketplaceTab];
+  const sortOptions = getSortOptions(marketplaceTab);
 
   const handleSortChange = (newSort: FundingSortOption) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -57,6 +65,12 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     ordering: effectiveOrdering,
   });
 
+  useEffect(() => {
+    setIsNavigating(false);
+  }, [marketplaceTab]);
+
+  const combinedLoading = isLoading || isNavigating;
+
   return (
     <PageLayout rightSidebar={config.sidebar}>
       <MainPageHeader
@@ -65,15 +79,21 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
         subtitle={config.subtitle}
         showTitle={false}
       />
-      <MarketplaceTabs
-        activeTab={marketplaceTab}
-        onTabChange={() => {}}
-        sortBy={sortBy}
-        onSortChange={handleSortChange}
-      />
+      <div className="mb-6 border-b">
+        <FeedTabs
+          activeTab={activeTab}
+          tabs={feedTabsList}
+          onTabChange={handleTabChange}
+          isLoading={combinedLoading}
+          showSorting
+          sortOption={sortBy as any}
+          onSortChange={(sort) => handleSortChange(sort as any)}
+          sortOptions={sortOptions}
+        />
+      </div>
       <FeedContent
         entries={entries}
-        isLoading={isLoading}
+        isLoading={combinedLoading}
         hasMore={hasMore}
         loadMore={loadMore}
         showGrantHeaders={false}

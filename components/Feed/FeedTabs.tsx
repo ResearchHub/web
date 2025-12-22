@@ -23,12 +23,13 @@ interface FeedTabsProps {
   showGearIcon?: boolean;
   onGearClick?: () => void;
   showSorting?: boolean;
-  sortOption?: FeedSortOption;
-  onSortChange?: (sort: FeedSortOption) => void;
+  sortOption?: string;
+  onSortChange?: (sort: string) => void;
   isCompact?: boolean;
+  sortOptions?: SortOption[];
 }
 
-const sortOptions: SortOption[] = [
+const defaultSortOptions: SortOption[] = [
   { label: 'Best', value: 'hot_score_v2' },
   { label: 'Latest', value: 'latest' },
 ];
@@ -44,6 +45,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   sortOption = 'hot_score_v2',
   onSortChange,
   isCompact = false,
+  sortOptions = defaultSortOptions,
 }) => {
   const handleTabChange = (tabId: string) => {
     onTabChange(tabId);
@@ -51,7 +53,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
 
   const handleSortChange = (option: SortOption) => {
     if (onSortChange) {
-      onSortChange(option.value as FeedSortOption);
+      onSortChange(option.value);
     }
   };
 

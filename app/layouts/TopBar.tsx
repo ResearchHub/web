@@ -56,7 +56,9 @@ const isRootNavigationPage = (pathname: string): boolean => {
     '/latest',
     '/popular', // Home variants
     '/for-you',
+    '/feed',
     '/earn',
+    '/fund',
     '/fund/grants',
     '/fund/needs-funding', // Fundraises page
     '/journal',
@@ -72,7 +74,7 @@ const isRootNavigationPage = (pathname: string): boolean => {
 // Function to get page info based on current route
 const getPageInfo = (pathname: string): PageInfo | null => {
   // Homepage variants
-  if (['/', '/following', '/latest', '/popular', '/for-you'].includes(pathname)) {
+  if (['/', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(pathname)) {
     return {
       title: 'Home',
       subtitle: 'Explore cutting-edge research from leading preprint servers.',
@@ -186,16 +188,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
-  // Specific funding routes
-  if (pathname === '/fund/needs-funding') {
-    return {
-      title: 'Research Proposals',
-      subtitle: 'Support research projects seeking funding',
-      icon: <Icon name="createBounty" size={24} className="text-gray-900" />,
-    };
-  }
-
-  // Grant routes
   if (pathname.startsWith('/fund/grants')) {
     return {
       title: 'Request for Proposals',
@@ -204,7 +196,15 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
-  if (pathname.startsWith('/fund/')) {
+  if (pathname === '/fund/needs-funding') {
+    return {
+      title: 'Research Proposals',
+      subtitle: 'Support research projects seeking funding',
+      icon: <Icon name="createBounty" size={24} className="text-gray-900" />,
+    };
+  }
+
+  if (pathname.startsWith('/fund')) {
     return {
       title: 'Funding',
       subtitle: 'Fund breakthrough research shaping tomorrow',

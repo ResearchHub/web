@@ -86,7 +86,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     setSourceFilter(source);
   };
 
-  const handleSortChange = (sort: FeedSortOption) => {
+  const handleSortChange = (sort: string) => {
     setOrdering(sort);
     // Update URL with new ordering
     const params = new URLSearchParams(searchParams.toString());

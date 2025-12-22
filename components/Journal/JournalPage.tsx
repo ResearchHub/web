@@ -1,65 +1,39 @@
 'use client';
 
-import { FC, useMemo, useLayoutEffect } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { JournalFeed } from './JournalFeed';
-import { JournalTabs, TabType } from './JournalTabs';
 import { JournalAboutTab } from './JournalAboutTab';
 import Icon from '@/components/ui/icons/Icon';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
+import { FeedTabs } from '@/components/Feed/FeedTabs';
+import { useFeedTabs } from '@/hooks/useFeedTabs';
 
-const DEFAULT_TAB: TabType = 'all';
+const DEFAULT_TAB = 'all';
 
 export const JournalPage: FC = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isNavigating, setIsNavigating] = useState(false);
 
-  const activeTab = useMemo(() => {
-    const tabParam = searchParams.get('tab') as TabType | null;
-    return tabParam && ['all', 'in-review', 'published', 'about'].includes(tabParam)
-      ? tabParam
-      : DEFAULT_TAB;
-  }, [searchParams]);
+  const {
+    tabs: feedTabsList,
+    activeTab,
+    handleTabChange,
+  } = useFeedTabs(() => setIsNavigating(true));
 
-  useLayoutEffect(() => {
-    console.log('JournalPage useEffect');
+  useEffect(() => {
+    setIsNavigating(false);
+  }, [pathname, searchParams]);
+
+  useEffect(() => {
     if (!searchParams.get('tab')) {
-      console.log('JournalPage useEffect: no tab');
       const params = new URLSearchParams(searchParams.toString());
-      console.log('JournalPage useEffect: params', params);
       params.set('tab', DEFAULT_TAB);
-      console.log('JournalPage useEffect: params after set', params);
       window.history.replaceState({}, '', `${pathname}?${params.toString()}`);
-      // router.refresh();
     }
-  }, [pathname, router, searchParams]);
-
-  const handleTabChange = (tab: TabType) => {
-    if (tab === activeTab) return; // Skip if tab is already active
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', tab);
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  };
-
-  const tabs = [
-    {
-      id: 'all',
-      label: 'All',
-    },
-    {
-      id: 'in-review',
-      label: 'In Review',
-    },
-    {
-      id: 'published',
-      label: 'Published',
-    },
-    {
-      id: 'about',
-      label: 'About this journal',
-    },
-  ];
+  }, [pathname, searchParams]);
 
   const header = (
     <MainPageHeader
@@ -74,9 +48,16 @@ export const JournalPage: FC = () => {
     <div className="space-y-1">
       {header}
 
-      <JournalTabs activeTab={activeTab} tabs={tabs} onTabChange={handleTabChange} />
+      <div className="mb-6 border-b">
+        <FeedTabs
+          activeTab={activeTab as any}
+          tabs={feedTabsList}
+          onTabChange={handleTabChange}
+          isLoading={isNavigating}
+        />
+      </div>
 
-      {activeTab === 'about' ? <JournalAboutTab /> : <JournalFeed activeTab={activeTab} />}
+      {activeTab === 'about' ? <JournalAboutTab /> : <JournalFeed activeTab={activeTab as any} />}
     </div>
   );
 };
