@@ -17,6 +17,8 @@ import { useUser } from '@/contexts/UserContext';
 import { useVerification } from '@/contexts/VerificationContext';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { Button } from '@/components/ui/Button';
+import { MainPageHeader } from '@/components/ui/MainPageHeader';
+import { Icon } from '@/components/ui/icons';
 import './researchcoin-wallet.css';
 
 export default function ResearchCoinPage() {
@@ -83,9 +85,14 @@ export default function ResearchCoinPage() {
     <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
       <div className="w-full">
         <div className="">
-          <p className="text-gray-900 text-lg tablet:!hidden py-4 pt-1">
-            Manage your wallet and view transactions.
-          </p>
+          <div className="mb-8">
+            <MainPageHeader
+              icon={<Icon name="rscThin" size={28} />}
+              title="My Wallet"
+              subtitle="Manage your wallet and view transactions"
+              showTitle={false}
+            />
+          </div>
           <div className="flex">
             <div className="flex-1">
               {/* Verification Banner */}

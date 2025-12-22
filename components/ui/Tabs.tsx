@@ -93,7 +93,8 @@ export const Tabs: React.FC<TabsProps> = ({
     }
 
     return cn(
-      'px-1 py-3 text-sm font-medium border-b-2 transition-colors duration-200 flex items-center gap-1 whitespace-nowrap flex-shrink-0',
+      'px-1 text-sm font-medium border-b-2 transition-all duration-200 flex items-center gap-1 whitespace-nowrap flex-shrink-0 h-full',
+      variant === 'primary' && !className?.includes('py-') && 'py-3',
       isActive
         ? 'text-primary-600 border-primary-600'
         : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-200',

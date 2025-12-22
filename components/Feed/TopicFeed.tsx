@@ -4,6 +4,7 @@ import { FC, useState, useEffect } from 'react';
 import { useParams, useRouter, notFound } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useFeed, FeedTab } from '@/hooks/useFeed';
+import { useFeedTabs } from '@/hooks/useFeedTabs';
 import { useHub } from '@/hooks/useHub';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
@@ -24,10 +25,14 @@ export const TopicFeed: FC<TopicFeedProps> = ({ defaultTab }) => {
   const router = useRouter();
   const slug = params?.slug;
   const decodedSlug = typeof slug === 'string' ? decodeURIComponent(slug) : null;
-  const { hub, isLoading: isHubLoading, error: hubError } = useHub(decodedSlug);
-
-  const [activeTab, setActiveTab] = useState<FeedTab>(defaultTab);
   const [isNavigating, setIsNavigating] = useState(false);
+
+  const { hub, isLoading: isHubLoading, error: hubError } = useHub(decodedSlug);
+  const {
+    tabs: feedTabsList,
+    activeTab,
+    handleTabChange,
+  } = useFeedTabs(() => setIsNavigating(true));
 
   const {
     entries,
@@ -43,31 +48,8 @@ export const TopicFeed: FC<TopicFeedProps> = ({ defaultTab }) => {
   });
 
   useEffect(() => {
-    setActiveTab(defaultTab);
     setIsNavigating(false);
   }, [defaultTab]);
-
-  const handleTabChange = (tab: string) => {
-    if (tab === activeTab) {
-      return;
-    }
-
-    setIsNavigating(true);
-
-    const encodedSlug = decodedSlug ? encodeURIComponent(decodedSlug) : slug;
-    router.push(`/topic/${encodedSlug}/${tab}`, { scroll: false });
-  };
-
-  const topicTabs = [
-    {
-      id: 'popular',
-      label: 'Popular',
-    },
-    {
-      id: 'latest',
-      label: 'Latest',
-    },
-  ];
 
   if (!isHubLoading && (hubError || !hub)) {
     notFound();
@@ -79,7 +61,7 @@ export const TopicFeed: FC<TopicFeedProps> = ({ defaultTab }) => {
   const tabs = (
     <FeedTabs
       activeTab={activeTab}
-      tabs={topicTabs}
+      tabs={feedTabsList}
       onTabChange={handleTabChange}
       isLoading={isLoading}
     />

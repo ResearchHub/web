@@ -89,11 +89,11 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
 
   const header = (
     <div className="space-y-4 mb-8">
-      {/* Title only; users will use the header search bar */}
       <MainPageHeader
         icon={<SearchIcon className="w-6 h-6 text-primary-500" />}
         title="Search"
         subtitle="Find papers, grants, authors, and peer reviews"
+        showTitle={false}
       />
     </div>
   );

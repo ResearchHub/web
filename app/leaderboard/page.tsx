@@ -452,9 +452,10 @@ function LeaderboardPageContent() {
   return (
     <div className="px-0 py-0">
       <MainPageHeader
-        icon={<ChartNoAxesColumnIncreasing size={28} />}
+        icon={<ChartNoAxesColumnIncreasing size={28} color="#3971ff" />}
         title="Leaderboard"
-        subtitle="See top earners on ResearchHub for a given period."
+        subtitle="See top contributors in the ResearchHub community"
+        showTitle={false}
       />
 
       <div className="max-w-4xl mx-auto">
