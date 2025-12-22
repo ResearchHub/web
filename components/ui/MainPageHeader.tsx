@@ -4,16 +4,19 @@ interface MainPageHeaderProps {
   title: string;
   subtitle: string;
   icon: ReactNode;
+  showTitle?: boolean;
 }
 
-export const MainPageHeader: React.FC<MainPageHeaderProps> = ({ title, subtitle, icon }) => {
+export const MainPageHeader: React.FC<MainPageHeaderProps> = ({
+  title,
+  subtitle,
+  icon,
+  showTitle = true,
+}) => {
   return (
-    <div className="block tablet:!hidden pt-4 pb-7">
-      <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
-        {icon}
-        {title}
-      </h1>
-      <p className="mt-1 text-base text-gray-600">{subtitle}</p>
+    <div className="tablet:!hidden pt-2 pb-6">
+      {showTitle && <h1 className="text-2xl font-bold text-gray-900 mb-1">{title}</h1>}
+      <p className="text-lg text-gray-600 font-medium">{subtitle}</p>
     </div>
   );
 };

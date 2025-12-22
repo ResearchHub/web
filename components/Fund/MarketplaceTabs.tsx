@@ -78,7 +78,7 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
   return (
     <div className="bg-white pb-6">
       <div className="full-w border-b border-gray-200">
-        <div className="flex items-center gap-4">
+        <div className="flex items-end gap-4">
           <div className="flex-1">
             <Tabs
               tabs={tabs}
@@ -88,29 +88,31 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
               className="border-b-0"
             />
           </div>
-          <BaseMenu
-            align="end"
-            trigger={
-              <Button variant="outlined" size="sm" className="flex items-center gap-1">
-                <CurrentIcon className="h-4 w-4 mr-1" />
-                <span>{label}</span>
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            }
-          >
-            {sortOptions.map(({ value, label: optionLabel, icon: OptionIcon }) => (
-              <BaseMenuItem
-                key={value || 'default'}
-                onClick={() => onSortChange(value)}
-                className={sortBy === value ? 'bg-gray-100' : ''}
-              >
-                <div className="flex items-center gap-2">
-                  <OptionIcon className="h-4 w-4" />
-                  <span>{optionLabel}</span>
-                </div>
-              </BaseMenuItem>
-            ))}
-          </BaseMenu>
+          <div className="pb-2">
+            <BaseMenu
+              align="end"
+              trigger={
+                <Button variant="outlined" size="sm" className="flex items-center gap-1">
+                  <CurrentIcon className="h-4 w-4 mr-1" />
+                  <span>{label}</span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              }
+            >
+              {sortOptions.map(({ value, label: optionLabel, icon: OptionIcon }) => (
+                <BaseMenuItem
+                  key={value || 'default'}
+                  onClick={() => onSortChange(value)}
+                  className={sortBy === value ? 'bg-gray-100' : ''}
+                >
+                  <div className="flex items-center gap-2">
+                    <OptionIcon className="h-4 w-4" />
+                    <span>{optionLabel}</span>
+                  </div>
+                </BaseMenuItem>
+              ))}
+            </BaseMenu>
+          </div>
         </div>
       </div>
     </div>

@@ -3,16 +3,18 @@
 import { FC, useState, useEffect } from 'react';
 import { Globe } from 'lucide-react';
 import { useFeed, FeedTab, FeedSource } from '@/hooks/useFeed';
+import { useFeedTabs } from '@/hooks/useFeedTabs';
 import { FeedContent } from './FeedContent';
 import { FeedTabs, FeedSortOption } from './FeedTabs';
 import { ForYouFeedBanner } from './ForYouFeedBanner';
-import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FeedEntry } from '@/types/feed';
 import Icon from '@/components/ui/icons/Icon';
 import { useUser } from '@/contexts/UserContext';
 import { ManageTopicsModal } from '@/components/modals/ManageTopicsModal';
-import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { MainPageHeader } from '@/components/ui/MainPageHeader';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
 
 interface FeedProps {
   defaultTab: FeedTab;
@@ -32,16 +34,13 @@ const getDefaultOrdering = (tab: FeedTab): string | undefined => {
 };
 
 export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFilter = true }) => {
-  const { status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useUser();
-  const { executeAuthenticatedAction } = useAuthenticatedAction();
-  const isAuthenticated = status === 'authenticated';
-  const isModerator = !!user?.isModerator;
-
-  const [activeTab, setActiveTab] = useState<FeedTab>(defaultTab);
   const [isNavigating, setIsNavigating] = useState(false);
+
+  const { tabs, activeTab, handleTabChange } = useFeedTabs(() => setIsNavigating(true));
+
   const [sourceFilter, setSourceFilter] = useState<FeedSource>('all');
   const orderingParam = searchParams.get('ordering');
   const filterParam = searchParams.get('filter');
@@ -77,36 +76,11 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     const orderingParam = searchParams.get('ordering');
     const newOrdering = !orderingParam ? getDefaultOrdering(defaultTab) : ordering;
 
-    setActiveTab(defaultTab);
     if (!orderingParam) {
       setOrdering(newOrdering);
     }
     setIsNavigating(false);
   }, [defaultTab, searchParams]);
-
-  const handleTabChange = (tab: string) => {
-    if (tab === activeTab) {
-      return;
-    }
-
-    // Protected tabs require authentication
-    const protectedTabs = ['following', 'for-you'];
-    if (protectedTabs.includes(tab) && !isAuthenticated) {
-      executeAuthenticatedAction(() => {
-        setIsNavigating(true);
-        router.push(`/${tab}`);
-      });
-      return;
-    }
-
-    setIsNavigating(true);
-
-    if (tab === 'popular') {
-      router.push('/popular');
-    } else {
-      router.push(`/${tab}`);
-    }
-  };
 
   const handleSourceFilterChange = (source: FeedSource) => {
     setSourceFilter(source);
@@ -122,43 +96,13 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
 
   const combinedIsLoading = isLoading || isNavigating;
 
-  // Tab ordering differs based on authentication state:
-  // - Logged in: For You, Following, Popular
-  // - Logged out: Popular, For You, Following
-  const tabs = isAuthenticated
-    ? [
-        {
-          id: 'for-you',
-          label: 'For You',
-        },
-        {
-          id: 'following',
-          label: 'Following',
-        },
-        {
-          id: 'popular',
-          label: 'Popular',
-        },
-      ]
-    : [
-        {
-          id: 'popular',
-          label: 'Popular',
-        },
-        {
-          id: 'for-you',
-          label: 'For You',
-        },
-        {
-          id: 'following',
-          label: 'Following',
-        },
-      ];
-
-  const header = (
-    <p className="text-gray-900 text-lg tablet:!hidden py-4 pt-1">
-      Explore cutting-edge research from leading preprint servers.
-    </p>
+  const renderHeader = () => (
+    <MainPageHeader
+      icon={<FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#3971ff" />}
+      title="Home"
+      subtitle="Explore cutting-edge research from leading preprint servers."
+      showTitle={false}
+    />
   );
 
   const feedTabs = (
@@ -167,9 +111,9 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
       tabs={tabs}
       onTabChange={handleTabChange}
       isLoading={combinedIsLoading}
-      showGearIcon={activeTab === 'following' && isAuthenticated}
+      showGearIcon={activeTab === 'following' && !!user}
       onGearClick={() => setIsManageTopicsModalOpen(true)}
-      showSorting={activeTab === 'following' && isAuthenticated}
+      showSorting={activeTab === 'following' && !!user}
       sortOption={(ordering as FeedSortOption) || 'hot_score_v2'}
       onSortChange={handleSortChange}
     />
@@ -223,7 +167,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
         isLoading={combinedIsLoading}
         hasMore={hasMore}
         loadMore={loadMore}
-        header={header}
+        header={renderHeader()}
         tabs={feedTabs}
         banner={banner}
         activeTab={activeTab}

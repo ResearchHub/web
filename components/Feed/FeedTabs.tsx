@@ -25,6 +25,7 @@ interface FeedTabsProps {
   showSorting?: boolean;
   sortOption?: FeedSortOption;
   onSortChange?: (sort: FeedSortOption) => void;
+  isCompact?: boolean;
 }
 
 const sortOptions: SortOption[] = [
@@ -42,6 +43,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   showSorting = false,
   sortOption = 'hot_score_v2',
   onSortChange,
+  isCompact = false,
 }) => {
   const handleTabChange = (tabId: string) => {
     onTabChange(tabId);
@@ -54,19 +56,22 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   };
 
   return (
-    <div className="">
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0 flex-1">
+    <div className="h-full">
+      <div className="flex items-center justify-between gap-2 h-full">
+        <div className="min-w-0 flex-1 h-full">
           <Tabs
             tabs={tabs}
             activeTab={activeTab}
             onTabChange={handleTabChange}
             disabled={isLoading}
+            className={`!border-b-0 h-full transition-all duration-150 py-0 ${
+              isCompact ? 'h-[48px]' : 'h-[64px]'
+            }`}
           />
         </div>
         {/* Sorting and gear icon for Following tab */}
         {(showSorting || showGearIcon) && (
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0 self-center">
             {showSorting && onSortChange && (
               <SortDropdown
                 value={sortOption}
@@ -80,10 +85,10 @@ export const FeedTabs: FC<FeedTabsProps> = ({
                 onClick={onGearClick}
                 variant="ghost"
                 size="sm"
-                className="p-2"
+                className="p-1.5"
                 aria-label="Edit topics"
               >
-                <Settings className="w-4 h-4 text-gray-600" />
+                <Settings className="w-3.5 h-3.5 text-gray-600" />
               </Button>
             )}
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   User,
   ArrowLeft,
@@ -14,7 +14,7 @@ import { SearchModal } from '@/components/Search/SearchModal';
 import UserMenu from '@/components/menus/UserMenu';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { useAuthenticatedAction, useAuthModalContext } from '@/contexts/AuthModalContext';
+import { useAuthModalContext } from '@/contexts/AuthModalContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { Icon } from '@/components/ui/icons';
 import Link from 'next/link';
@@ -33,6 +33,10 @@ import { toTitleCase } from '@/utils/stringUtils';
 import { Hash } from 'lucide-react';
 import { getSourceLogo, getPreprintDisplayName } from '@/utils/preprintUtil';
 import { Logo } from '@/components/ui/Logo';
+import { useScrollContainer } from '@/contexts/ScrollContainerContext';
+import { FeedTabs } from '@/components/Feed/FeedTabs';
+import { useFeedTabs } from '@/hooks/useFeedTabs';
+import { FeedTab } from '@/hooks/useFeed';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -350,12 +354,35 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { unreadCount } = useNotifications();
   const goBack = useSmartBack();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [shortcutText, setShortcutText] = useState('Ctrl+K');
   const { showAuthModal } = useAuthModalContext();
+
+  const scrollContainerRef = useScrollContainer();
+  const [showFeedTabs, setShowFeedTabs] = useState(false);
+  const [isCompact, setIsCompact] = useState(false);
+
+  const { tabs, activeTab, handleTabChange, isFeedPage } = useFeedTabs();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollContainerRef?.current) {
+        const scrolled = scrollContainerRef.current.scrollTop > 100;
+        setShowFeedTabs(scrolled);
+        setIsCompact(scrolled);
+      }
+    };
+
+    const container = scrollContainerRef?.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll, { passive: true });
+      // Initial check
+      handleScroll();
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [scrollContainerRef]);
 
   // Get current search query from URL if on search page
   const currentSearchQuery = pathname === '/search' ? searchParams.get('q') : null;
@@ -416,9 +443,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
       <div className="relative">
         <button
           onClick={() => setIsSearchModalOpen(true)}
-          className="flex items-center w-full md:!w-80 max-w-md mx-auto h-10 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors text-left group"
+          className="flex items-center w-full md:!w-80 max-w-md mx-auto h-8 px-4 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors text-left group"
         >
-          <SearchIcon className="h-5 w-5 text-gray-400 mr-3 flex-shrink-0" />
+          <SearchIcon className="h-4 w-4 text-gray-400 mr-3 flex-shrink-0" />
           <span
             className={`text-sm flex-1 truncate ${currentSearchQuery ? 'text-gray-900' : 'text-gray-500'}`}
           >
@@ -426,7 +453,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             <span className="hidden tablet:!inline">{displayTextTablet}</span>
           </span>
           <div className="hidden md:!flex items-center space-x-1 ml-2 flex-shrink-0">
-            <span className="text-xs text-gray-400 bg-gray-200 px-2 py-1 rounded font-medium">
+            <span className="text-[10px] text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded font-medium">
               {shortcutText}
             </span>
           </div>
@@ -437,93 +464,157 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   return (
     <>
-      <div className="h-[64px] border-b border-gray-200 bg-white">
+      <div
+        className={`border-b border-gray-200 bg-white transition-all duration-150 ${
+          isCompact ? 'h-[48px]' : 'h-[64px]'
+        }`}
+      >
         <div className="h-full flex items-center justify-between px-4 lg:px-8">
-          {/* Left side - Back button + Page title */}
-          <div className="flex items-center">
-            {/* Mobile logo - leftmost position */}
-            <Link href="/" className="block tablet:!hidden mr-2">
-              <div className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center">
-                <Logo noText size={36} className="mt-[-4px]" />
-              </div>
-            </Link>
-
-            {/* Mobile back button - show when not on root navigation pages */}
-            {pageInfo && !isRootNavigationPage(pathname) && (
-              <div className="block tablet:!hidden mr-1">
-                <button
-                  onClick={goBack}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <ArrowLeft className="h-5 w-5 text-gray-600" />
-                </button>
-              </div>
-            )}
-
-            {/* Mobile page title - next to hamburger/back button */}
-            {pageInfo && (
-              <div className="flex tablet:!hidden items-center">
-                {pageInfo.title && (
-                  <h1 className="text-lg font-bold text-gray-900 leading-tight">
-                    {pageInfo.title}
-                  </h1>
+          {/* Left side - Back button + Page title OR FeedTabs */}
+          <div className="flex items-center min-w-0 flex-1 mr-4 h-full">
+            {showFeedTabs && isFeedPage ? (
+              <div className="flex items-center w-full max-w-md h-full gap-4">
+                {pageInfo?.icon && (
+                  <div className="hidden tablet:!block flex-shrink-0 opacity-80 scale-90">
+                    {pageInfo.icon}
+                  </div>
                 )}
-              </div>
-            )}
-
-            {/* Desktop back button - show when we have page info but not for root navigation pages */}
-            {pageInfo && !isRootNavigationPage(pathname) && (
-              <div className="hidden tablet:!block mr-3">
-                <button
-                  onClick={goBack}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <ArrowLeft className="h-6 w-6 text-gray-600" />
-                </button>
-              </div>
-            )}
-
-            {/* Page title - only on desktop */}
-            {pageInfo && (
-              <div className="hidden tablet:!flex items-center">
-                {pageInfo.icon && <div className="mr-4">{pageInfo.icon}</div>}
-                <div>
-                  {pageInfo.title && (
-                    <h1 className="text-xl font-bold text-gray-900 leading-tight">
-                      {pageInfo.title}
-                    </h1>
-                  )}
-                  {pageInfo.subtitle && (
-                    <p className="hidden wide:!block text-md text-gray-600 leading-tight mt-0.5">
-                      {pageInfo.subtitle}
-                    </p>
-                  )}
+                <div className="flex-1 h-full min-w-0">
+                  <FeedTabs
+                    activeTab={activeTab}
+                    tabs={tabs}
+                    onTabChange={handleTabChange}
+                    isCompact={isCompact}
+                  />
                 </div>
               </div>
+            ) : (
+              <>
+                {/* Mobile logo - leftmost position */}
+                <Link href="/" className="block tablet:!hidden mr-2">
+                  <div
+                    className={`rounded-full bg-gray-100 flex items-center justify-center transition-all ${
+                      isCompact ? 'w-8 h-8' : 'w-11 h-11'
+                    }`}
+                  >
+                    <Logo noText size={isCompact ? 28 : 36} className="mt-[-2px]" />
+                  </div>
+                </Link>
+
+                {/* Mobile back button - show when not on root navigation pages */}
+                {pageInfo && !isRootNavigationPage(pathname) && (
+                  <div className="block tablet:!hidden mr-1">
+                    <button
+                      onClick={goBack}
+                      className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <ArrowLeft className={`text-gray-600 ${isCompact ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Mobile page title - next to hamburger/back button */}
+                {pageInfo && (
+                  <div className="flex tablet:!hidden items-center min-w-0">
+                    <div>
+                      {pageInfo.title && (
+                        <h1
+                          className={`font-bold text-gray-900 leading-tight truncate transition-all ${
+                            isCompact ? 'text-md' : 'text-lg'
+                          }`}
+                        >
+                          {pageInfo.title}
+                        </h1>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Desktop back button - show when we have page info but not for root navigation pages */}
+                {pageInfo && !isRootNavigationPage(pathname) && (
+                  <div className="hidden tablet:!block mr-3">
+                    <button
+                      onClick={goBack}
+                      className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <ArrowLeft className={`text-gray-600 ${isCompact ? 'h-5 w-5' : 'h-6 w-6'}`} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Page title - only on desktop */}
+                {pageInfo && (
+                  <div className="hidden tablet:!flex items-center min-w-0">
+                    {pageInfo.icon && (
+                      <div className={`mr-3 flex-shrink-0 transition-all`}>{pageInfo.icon}</div>
+                    )}
+                    <div className="min-w-0">
+                      {pageInfo.title && (
+                        <h1
+                          className={`font-bold text-gray-900 leading-tight truncate transition-all ${
+                            isCompact ? 'text-lg' : 'text-xl'
+                          }`}
+                        >
+                          {pageInfo.title}
+                        </h1>
+                      )}
+                      {pageInfo.subtitle && !isCompact && (
+                        <p className="hidden wide:!block text-md text-gray-600 leading-tight mt-0.5">
+                          {pageInfo.subtitle}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
           {/* Right side - User controls */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 h-full">
             {/* Desktop user controls */}
-            <div className="hidden tablet:!flex items-center space-x-2">
+            <div className="hidden tablet:!flex items-center space-x-2 h-full">
               {/* Search bar */}
               {renderSearchbarButton()}
 
               {user && (
                 <>
                   <Link href="/researchcoin" className="flex items-center">
-                    <div className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors">
-                      <Icon name="rscThin" size={28} className="text-gray-500" />
+                    <div
+                      className={`flex items-center justify-center hover:bg-gray-100 rounded-md transition-all ${
+                        isCompact ? 'p-1.5' : 'p-2'
+                      }`}
+                    >
+                      <Icon
+                        name="rscThin"
+                        size={isCompact ? 24 : 28}
+                        className="text-gray-500 transition-all"
+                      />
                     </div>
                   </Link>
 
                   <Link href="/notifications" className="flex items-center">
-                    <div className="flex items-center justify-center p-2.5 hover:bg-gray-100 rounded-md transition-colors relative">
-                      <Icon name="notification" size={28} className="text-gray-500" />
+                    <div
+                      className={`flex items-center justify-center hover:bg-gray-100 rounded-md transition-all relative ${
+                        isCompact ? 'p-1.5' : 'p-2'
+                      }`}
+                    >
+                      <Icon
+                        name="notification"
+                        size={isCompact ? 24 : 28}
+                        className="text-gray-500 transition-all"
+                      />
                       {unreadCount > 0 && (
-                        <div className="absolute top-1 -right-0 h-4 w-4 rounded-full bg-primary-600 text-white flex items-center justify-center">
-                          <span className="font-medium text-[9px]">
+                        <div
+                          className={`absolute rounded-full bg-primary-600 text-white flex items-center justify-center transition-all ${
+                            isCompact ? 'top-0.5 -right-0 h-3.5 w-3.5' : 'top-1 -right-0 h-4 w-4'
+                          }`}
+                        >
+                          <span
+                            className={`font-medium transition-all ${
+                              isCompact ? 'text-[8px]' : 'text-[9px]'
+                            }`}
+                          >
                             {unreadCount > 9 ? '9+' : unreadCount}
                           </span>
                         </div>
@@ -536,30 +627,34 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               {/* Avatar/Login buttons */}
               {isLoading ? (
                 <div className="flex items-center">
-                  <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse"></div>
+                  <div
+                    className={`bg-gray-300 rounded-full animate-pulse transition-all ${
+                      isCompact ? 'w-8 h-8' : 'w-10 h-10'
+                    }`}
+                  ></div>
                 </div>
               ) : user ? (
                 <UserMenu
                   user={user}
                   onViewProfile={handleViewProfile}
-                  avatarSize={32}
+                  avatarSize={isCompact ? 28 : 32}
                   percent={calculatePercent()}
                 />
               ) : (
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="ghost"
-                    size="md"
+                    size={isCompact ? 'sm' : 'md'}
                     onClick={handleLogin}
-                    className="text-gray-700 hover:text-gray-900 whitespace-nowrap"
+                    className="text-gray-700 hover:text-gray-900 whitespace-nowrap transition-all"
                   >
                     Log in
                   </Button>
                   <Button
                     variant="default"
-                    size="md"
+                    size={isCompact ? 'sm' : 'md'}
                     onClick={handleSignUp}
-                    className="bg-rhBlue-500 hover:bg-rhBlue-600 text-white whitespace-nowrap"
+                    className="bg-rhBlue-500 hover:bg-rhBlue-600 text-white whitespace-nowrap transition-all"
                   >
                     Sign up
                   </Button>
@@ -568,32 +663,40 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             </div>
 
             {/* Mobile user controls */}
-            <div className="flex tablet:!hidden items-center space-x-1">
+            <div className="flex tablet:!hidden items-center space-x-1 h-full">
               {/* Mobile search icon */}
               <button
                 onClick={() => setIsSearchModalOpen(true)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className={`rounded-lg hover:bg-gray-100 transition-all ${
+                  isCompact ? 'p-1' : 'p-2'
+                }`}
               >
-                <SearchIcon className="h-6 w-6 text-gray-600" />
+                <SearchIcon
+                  className={`text-gray-600 transition-all ${isCompact ? 'h-5 w-5' : 'h-6 w-6'}`}
+                />
               </button>
 
               {isLoading ? (
                 <div className="flex items-center">
-                  <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse"></div>
+                  <div
+                    className={`bg-gray-300 rounded-full animate-pulse transition-all ${
+                      isCompact ? 'w-8 h-8' : 'w-10 h-10'
+                    }`}
+                  ></div>
                 </div>
               ) : user ? (
                 <UserMenu
                   user={user}
                   onViewProfile={handleViewProfile}
-                  avatarSize={calculatePercent() === 100 ? 40 : 30}
+                  avatarSize={isCompact ? (calculatePercent() === 100 ? 32 : 24) : 40}
                   percent={calculatePercent()}
                 />
               ) : (
                 <Button
                   variant="default"
-                  size="md"
+                  size={isCompact ? 'sm' : 'md'}
                   onClick={handleSignUp}
-                  className="bg-rhBlue-500 hover:bg-rhBlue-600 text-white whitespace-nowrap"
+                  className="bg-rhBlue-500 hover:bg-rhBlue-600 text-white whitespace-nowrap transition-all"
                 >
                   Sign up
                 </Button>

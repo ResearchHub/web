@@ -66,6 +66,7 @@ export const JournalPage: FC = () => {
       icon={<Icon name="rhJournal2" size={26} color="#3971ff" />}
       title="ResearchHub Journal"
       subtitle="Accelerating science through open access publishing and peer review."
+      showTitle={false}
     />
   );
 
