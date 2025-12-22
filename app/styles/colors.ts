@@ -39,4 +39,11 @@ export const colors = {
     900: '#1e3a8a',
     950: '#172554',
   },
+  orcid: {
+    50: '#F5FAEB', // Pale lemon background
+    100: '#E3F3C1', // Light green
+    200: '#DCEEC4', // Border green
+    500: '#A6CE39', // ORCID brand green
+    600: '#82A629', // Darker green for hover
+  },
 };
