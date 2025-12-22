@@ -475,7 +475,11 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             {showFeedTabs && isFeedPage ? (
               <div className="flex items-center w-full max-w-md h-full gap-4">
                 {pageInfo?.icon && (
-                  <div className="hidden tablet:!block flex-shrink-0 opacity-80 scale-90">
+                  <div
+                    className={`${
+                      pageInfo.title ? 'hidden tablet:!block' : 'block'
+                    } flex-shrink-0 opacity-80 scale-90`}
+                  >
                     {pageInfo.icon}
                   </div>
                 )}
@@ -517,7 +521,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                 {pageInfo && (
                   <div className="flex tablet:!hidden items-center min-w-0">
                     <div>
-                      {pageInfo.title && (
+                      {pageInfo.title ? (
                         <h1
                           className={`font-bold text-gray-900 leading-tight truncate transition-all ${
                             isCompact ? 'text-md' : 'text-lg'
@@ -525,6 +529,12 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                         >
                           {pageInfo.title}
                         </h1>
+                      ) : (
+                        pageInfo.icon && (
+                          <div className="flex-shrink-0 opacity-90 scale-90 origin-left">
+                            {pageInfo.icon}
+                          </div>
+                        )
                       )}
                     </div>
                   </div>
