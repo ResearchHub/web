@@ -110,7 +110,7 @@ export function getBrowsePageMetadata() {
     tags: [
       'Research Topics',
       'Scientific Communities',
-      'Research Hub',
+      'ResearchHub',
       'Academic Topics',
       'Science Categories',
     ],
