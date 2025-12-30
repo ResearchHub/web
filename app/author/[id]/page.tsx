@@ -18,7 +18,8 @@ import AuthorProfile from './components/AuthorProfile';
 import { useAuthorPublications } from '@/hooks/usePublications';
 import { transformPublicationToFeedEntry } from '@/types/publication';
 import PinnedFundraise from './components/PinnedFundraise';
-
+import { OrcidSyncBanner } from '@/components/Orcid/OrcidSyncBanner';
+import { useOrcidCallback } from '@/components/Orcid/lib/hooks/useOrcidCallback';
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
   const num = Number(value);
@@ -255,8 +256,8 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const { isLoading: isUserLoading, error: userError } = useUser();
   const authorId = toNumberOrNull(resolvedParams.id);
   const [{ author: user, isLoading, error }, refetchAuthorInfo] = useAuthorInfo(authorId);
-  const { user: currentUser } = useUser();
-  // Determine if current user is a hub editor
+  const { user: currentUser, refreshUser } = useUser();
+  useOrcidCallback({ onSuccess: refreshUser });
   const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
   const [{ achievements, isLoading: isAchievementsLoading, error: achievementsError }] =
     useAuthorAchievements(authorId);
@@ -291,8 +292,14 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     return <AuthorProfileError error="Author not found" />;
   }
 
+  const isOwnProfile = Boolean(
+    currentUser?.authorProfile?.id && user.authorProfile.id === currentUser.authorProfile.id
+  );
+  const isOrcidConnected = Boolean(currentUser?.authorProfile?.isOrcidConnected);
+
   return (
     <>
+      <OrcidSyncBanner isOwnProfile={isOwnProfile} isOrcidConnected={isOrcidConnected} />
       <Card className="mt-4 bg-gray-50">
         <AuthorProfile author={user.authorProfile} refetchAuthorInfo={refetchAuthorInfo} />
       </Card>
