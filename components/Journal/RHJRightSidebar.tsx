@@ -42,6 +42,14 @@ export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
         />
       )}
 
+      {/* Journal Information Section */}
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold text-gray-800">Journal Information</h3>
+        <div className="text-sm text-gray-600">
+          <div className="font-medium text-gray-600 mb-1">ISSN: 3070-3395</div>
+        </div>
+      </div>
+
       {/* Editorial Board Section */}
       <div className="space-y-2">
         <h3 className="text-lg font-semibold text-gray-800">Editorial Board</h3>

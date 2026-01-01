@@ -34,7 +34,7 @@ export const EditorCard: FC<EditorCardProps> = ({ editor, className, size = 'sm'
 
   // Check if this editor should have collapsible functionality disabled
   const disableCollapsible =
-    editor.name === 'Emilio Merheb, PhD' || editor.name === 'Attila Karsi, PhD';
+    editor.name === 'Ruslan Rust, PhD' || editor.name === 'Attila Karsi, PhD';
 
   const bioPreviewLength = 150;
   const showExpandButton = editor.bio.length > bioPreviewLength && !disableCollapsible;
