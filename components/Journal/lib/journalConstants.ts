@@ -19,7 +19,7 @@ export const editors: Editor[] = [
     name: 'Ruslan Rust, PhD',
     role: 'Senior Editor',
     bio: '',
-    image: '',
+    image: '/people/ruslan.jpeg',
     authorId: '4945925',
     socialLinks: {
       email: 'ruslan.editor@researchhub.foundation',
