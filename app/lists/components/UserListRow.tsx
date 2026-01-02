@@ -2,13 +2,14 @@
 
 import { UserList } from '@/components/UserList/lib/user-list';
 import { formatItemCount } from '@/components/UserList/lib/listUtils';
-import { Edit2, Trash2, MoreHorizontal } from 'lucide-react';
+import { Edit2, Trash2, MoreHorizontal, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import { formatTimeAgo } from '@/utils/date';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useState } from 'react';
+import { useShareModalContext } from '@/contexts/ShareContext';
 
 interface UserListRowProps {
   readonly list: UserList;
@@ -18,12 +19,13 @@ interface UserListRowProps {
 
 export const UserListRow = ({ list, onEdit, onDelete }: UserListRowProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { showShareModal } = useShareModalContext();
 
-  const handleMenuAction = (action: (list: UserList) => void) => (e: React.MouseEvent) => {
+  const handleMenuAction = (action: () => void) => (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsMenuOpen(false);
-    action(list);
+    action();
   };
 
   return (
@@ -53,12 +55,29 @@ export const UserListRow = ({ list, onEdit, onDelete }: UserListRowProps) => {
             open={isMenuOpen}
             onOpenChange={setIsMenuOpen}
           >
-            <BaseMenuItem onClick={handleMenuAction(onEdit)} className="flex items-center gap-2">
+            <BaseMenuItem
+              onClick={handleMenuAction(() =>
+                showShareModal({
+                  url: `${window.location.origin}/list/${list.id}`,
+                  docTitle: list.name,
+                  action: 'USER_SHARED_DOCUMENT',
+                  shouldShowConfetti: false,
+                })
+              )}
+              className="flex items-center gap-2"
+            >
+              <Share2 className="w-4 h-4" />
+              <span>Share</span>
+            </BaseMenuItem>
+            <BaseMenuItem
+              onClick={handleMenuAction(() => onEdit(list))}
+              className="flex items-center gap-2"
+            >
               <Edit2 className="w-4 h-4" />
               <span>Rename</span>
             </BaseMenuItem>
             <BaseMenuItem
-              onClick={handleMenuAction(onDelete)}
+              onClick={handleMenuAction(() => onDelete(list))}
               className="flex items-center gap-2 text-red-600 hover:!text-red-600"
             >
               <Trash2 className="w-4 h-4" />

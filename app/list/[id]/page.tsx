@@ -6,9 +6,10 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { useUserListDetail } from '@/components/UserList/lib/hooks/useUserListDetail';
 import { useUserListsContext } from '@/components/UserList/lib/UserListsContext';
 import { useUser } from '@/contexts/UserContext';
+import { useShareModalContext } from '@/contexts/ShareContext';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
-import { Edit2, Trash2, MoreHorizontal } from 'lucide-react';
+import { Edit2, Trash2, MoreHorizontal, Share2 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { Button } from '@/components/ui/Button';
@@ -18,7 +19,6 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { formatItemCount, transformListItemToFeedEntry } from '@/components/UserList/lib/listUtils';
 import { ListDetailContext } from '@/components/UserList/lib/user-list';
 import { formatTimeAgo } from '@/utils/date';
-import { FeedEntry } from '@/types/feed';
 import { ID } from '@/types/root';
 import { idMatch } from '@/services/lib/serviceUtils';
 
@@ -37,6 +37,7 @@ export default function ListDetailPage() {
   const id = params?.id as ID;
 
   const { updateList, deleteList } = useUserListsContext();
+  const { showShareModal } = useShareModalContext();
   const {
     list,
     items,
@@ -139,6 +140,20 @@ export default function ListDetailPage() {
                       }
                       align="end"
                     >
+                      <BaseMenuItem
+                        onClick={() =>
+                          showShareModal({
+                            url: window.location.href,
+                            docTitle: list.name,
+                            action: 'USER_SHARED_DOCUMENT',
+                            shouldShowConfetti: false,
+                          })
+                        }
+                        className="flex items-center gap-2"
+                      >
+                        <Share2 className="w-4 h-4" />
+                        <span>Share</span>
+                      </BaseMenuItem>
                       <BaseMenuItem
                         onClick={() => openModal('edit', list.name)}
                         className="flex items-center gap-2"
