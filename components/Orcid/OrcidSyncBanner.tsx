@@ -40,8 +40,8 @@ export function OrcidSyncBanner({ isOwnProfile, isOrcidConnected }: OrcidSyncBan
           </div>
 
           <div className="min-w-0 flex-1">
-            <h3 className="font-medium text-gray-900">Sync your ORCID account</h3>
-            <p className="mt-1 hidden text-sm text-gray-700 sm:!block">
+            <h3 className="text-sm font-medium text-gray-900">Connect your ORCID account</h3>
+            <p className="text-xs text-gray-700">
               Sync your ORCID publications with your ResearchHub profile
             </p>
           </div>

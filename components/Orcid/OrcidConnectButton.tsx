@@ -10,12 +10,14 @@ interface OrcidConnectButtonProps {
   readonly variant?: ButtonProps['variant'];
   readonly size?: ButtonProps['size'];
   readonly className?: string;
+  readonly showIcon?: boolean;
 }
 
 export function OrcidConnectButton({
   variant = 'outlined',
   size = 'default',
   className,
+  showIcon = true,
 }: OrcidConnectButtonProps) {
   const { connect, isConnecting } = useConnectOrcid();
 
@@ -30,7 +32,7 @@ export function OrcidConnectButton({
       {isConnecting ? (
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : (
-        <FontAwesomeIcon icon={faOrcid} className="mr-2 h-4 w-4" />
+        showIcon && <FontAwesomeIcon icon={faOrcid} className="mr-2 h-4 w-4" />
       )}
       {isConnecting ? 'Connecting...' : 'Connect ORCID'}
     </Button>
