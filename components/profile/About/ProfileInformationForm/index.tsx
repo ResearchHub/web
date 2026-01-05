@@ -262,7 +262,11 @@ export function ProfileInformationForm({
                     className="text-gray-500"
                   />
                   {isOrcid && !isOrcidConnected ? (
-                    <OrcidConnectButton className="flex-grow justify-center" />
+                    <OrcidConnectButton
+                      variant="default"
+                      className="flex-grow justify-center !bg-orcid-100 text-orcid-700 hover:!bg-orcid-500 !border-orcid-500"
+                      showIcon={false}
+                    />
                   ) : (
                     <Input
                       id={key}
