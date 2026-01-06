@@ -15,10 +15,10 @@ export function useSyncOrcid(options?: UseSyncOrcidOptions) {
     try {
       setIsSyncing(true);
       await syncOrcidAuthorship();
-      toast.success('ORCID sync started.');
+      toast.success('Syncing started. Check back in a few minutes.');
       onSuccess?.();
     } catch (error) {
-      toast.error(extractApiErrorMessage(error, 'Failed to sync authorship.'));
+      toast.error(extractApiErrorMessage(error, 'Failed to sync ORCID.'));
     } finally {
       setIsSyncing(false);
     }

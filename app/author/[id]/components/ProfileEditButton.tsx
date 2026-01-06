@@ -1,6 +1,8 @@
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { RefreshCw, MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faOrcid } from '@fortawesome/free-brands-svg-icons';
 import { Icon } from '@/components/ui/icons/Icon';
 
 interface ProfileEditButtonProps {
@@ -41,8 +43,8 @@ export function ProfileEditButton({
         Edit Profile
       </BaseMenuItem>
       <BaseMenuItem onClick={onSyncClick} disabled={isSyncing}>
-        <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-        {isSyncing ? 'Syncing...' : 'Sync Authorship'}
+        <FontAwesomeIcon icon={faOrcid} className="h-4 w-4 mr-2 text-orcid-500" />
+        {isSyncing ? 'Syncing...' : 'Sync ORCID'}
       </BaseMenuItem>
     </BaseMenu>
   );
