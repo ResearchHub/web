@@ -263,7 +263,7 @@ export function ProfileInformationForm({
                   />
                   {isOrcid && !isOrcidConnected ? (
                     <OrcidConnectButton
-                      variant="default"
+                      variant="outlined"
                       className="flex-grow justify-center !bg-orcid-100 text-orcid-700 hover:!bg-orcid-500 !border-orcid-500"
                       showIcon={false}
                     />
