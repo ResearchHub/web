@@ -5,7 +5,8 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { NotificationList } from '@/components/Notification/NotificationList';
 import { NotificationSkeleton } from '@/components/skeletons/NotificationSkeleton';
-import { PageHeader } from '@/components/ui/PageHeader';
+import { MainPageHeader } from '@/components/ui/MainPageHeader';
+import { Icon } from '@/components/ui/icons';
 import { Button } from '@/components/ui/Button';
 
 export default function NotificationsPage() {
@@ -37,7 +38,12 @@ export default function NotificationsPage() {
     <PageLayout>
       <div className="w-full">
         <div className="mb-4">
-          <PageHeader title="Notifications" className="mb-0" />
+          <MainPageHeader
+            icon={<Icon name="notification" size={24} className="text-gray-900" />}
+            title="Notifications"
+            subtitle="Stay updated with your latest activity"
+            showTitle={false}
+          />
         </div>
 
         <div className="py-6">

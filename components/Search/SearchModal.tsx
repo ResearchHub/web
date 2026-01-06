@@ -208,7 +208,8 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
       </div>
 
       {/* Show All Results Button - appears when user has typed a search query */}
-      {query.trim().length >= 2 && !loading && (
+      {/* Hide for now as functionality is in progress */}
+      {/* {query.trim().length >= 2 && !loading && (
         <div className="border-t border-gray-200 py-4 bg-white">
           <Button
             variant="ghost"
@@ -223,7 +224,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
         </div>
-      )}
+      )} */}
     </BaseModal>
   );
 }

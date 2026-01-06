@@ -23,11 +23,13 @@ interface FeedTabsProps {
   showGearIcon?: boolean;
   onGearClick?: () => void;
   showSorting?: boolean;
-  sortOption?: FeedSortOption;
-  onSortChange?: (sort: FeedSortOption) => void;
+  sortOption?: string;
+  onSortChange?: (sort: string) => void;
+  isCompact?: boolean;
+  sortOptions?: SortOption[];
 }
 
-const sortOptions: SortOption[] = [
+const defaultSortOptions: SortOption[] = [
   { label: 'Best', value: 'hot_score_v2' },
   { label: 'Latest', value: 'latest' },
 ];
@@ -42,6 +44,8 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   showSorting = false,
   sortOption = 'hot_score_v2',
   onSortChange,
+  isCompact = false,
+  sortOptions = defaultSortOptions,
 }) => {
   const handleTabChange = (tabId: string) => {
     onTabChange(tabId);
@@ -49,24 +53,27 @@ export const FeedTabs: FC<FeedTabsProps> = ({
 
   const handleSortChange = (option: SortOption) => {
     if (onSortChange) {
-      onSortChange(option.value as FeedSortOption);
+      onSortChange(option.value);
     }
   };
 
   return (
-    <div className="">
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0 flex-1">
+    <div className="h-full">
+      <div className="flex items-center justify-between gap-2 h-full">
+        <div className="min-w-0 flex-1 h-full">
           <Tabs
             tabs={tabs}
             activeTab={activeTab}
             onTabChange={handleTabChange}
             disabled={isLoading}
+            className={`!border-b-0 h-full transition-all duration-150 py-0 ${
+              isCompact ? 'h-[48px]' : 'h-[64px]'
+            }`}
           />
         </div>
         {/* Sorting and gear icon for Following tab */}
         {(showSorting || showGearIcon) && (
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0 self-center">
             {showSorting && onSortChange && (
               <SortDropdown
                 value={sortOption}
@@ -80,10 +87,10 @@ export const FeedTabs: FC<FeedTabsProps> = ({
                 onClick={onGearClick}
                 variant="ghost"
                 size="sm"
-                className="p-2"
+                className="p-1.5"
                 aria-label="Edit topics"
               >
-                <Settings className="w-4 h-4 text-gray-600" />
+                <Settings className="w-3.5 h-3.5 text-gray-600" />
               </Button>
             )}
           </div>

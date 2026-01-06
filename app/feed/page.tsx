@@ -21,6 +21,8 @@ import { usePreferences } from '@/contexts/PreferencesContext';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { FeedTabs } from '@/components/Feed/FeedTabs';
+import { useFeedTabs } from '@/hooks/useFeedTabs';
 
 function FeedContent() {
   const { user, isLoading: isUserLoading } = useUser();
@@ -28,6 +30,13 @@ function FeedContent() {
   const { preferences, clearPreferences } = usePreferences();
   const [checkingOnboarding, setCheckingOnboarding] = useState(true);
   const searchParams = useSearchParams();
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  const {
+    tabs: feedTabsList,
+    activeTab,
+    handleTabChange,
+  } = useFeedTabs(() => setIsNavigating(true));
 
   // Check if we should reset onboarding (for testing)
   useEffect(() => {
@@ -280,6 +289,15 @@ function FeedContent() {
             ? 'Your personalized feed is ready based on your interests.'
             : 'Discover the latest research papers from leading preprint servers'}
         </p>
+      </div>
+
+      <div className="mb-6 border-b">
+        <FeedTabs
+          activeTab={activeTab}
+          tabs={feedTabsList}
+          onTabChange={handleTabChange}
+          isLoading={loading || isNavigating}
+        />
       </div>
 
       {/* Filter Controls */}
