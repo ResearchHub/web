@@ -1,24 +1,92 @@
 import { cn } from '@/utils/styles';
 import { ChevronLeft, ChevronRight, LucideIcon } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 
 interface Tab {
   id: string;
   label: React.ReactNode;
+  href?: string;
+  scroll?: boolean;
   highlight?: boolean;
   separator?: boolean;
   icon?: LucideIcon;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
 interface TabsProps {
   tabs: Tab[];
   activeTab: string;
-  onTabChange: (tabId: string) => void;
+  onTabChange: (tabId: string, e?: React.MouseEvent) => void;
   className?: string;
   variant?: 'primary' | 'pill';
   disabled?: boolean;
 }
+
+const TabItem: React.FC<{
+  tab: Tab;
+  isActive: boolean;
+  disabled: boolean;
+  variant: 'primary' | 'pill';
+  onTabChange: (id: string, e: React.MouseEvent) => void;
+}> = ({ tab, isActive, disabled, variant, onTabChange }) => {
+  const handleClick = (e: React.MouseEvent) => {
+    if (disabled) {
+      e.preventDefault();
+      return;
+    }
+    tab.onClick?.(e);
+    if (!e.defaultPrevented) {
+      onTabChange(tab.id, e);
+    }
+  };
+
+  const styles = cn(
+    'text-sm font-medium flex items-center gap-1 whitespace-nowrap flex-shrink-0 h-full cursor-pointer',
+    variant === 'pill'
+      ? [
+          'px-4 py-2 rounded-lg',
+          isActive
+            ? 'bg-primary-100 text-primary-600 shadow-sm'
+            : 'text-gray-500 hover:text-gray-700',
+        ]
+      : [
+          'px-1 border-b-2 py-3',
+          isActive
+            ? 'text-primary-600 border-primary-600'
+            : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-200',
+        ],
+    // disabled && 'opacity-50 cursor-not-allowed pointer-events-none'
+    disabled && 'cursor-not-allowed pointer-events-none'
+  );
+
+  const content = (
+    <>
+      {tab.icon && <tab.icon className="w-4 h-4 flex-shrink-0" />}
+      <span className="truncate">{tab.label}</span>
+    </>
+  );
+
+  const commonProps = {
+    onClick: handleClick,
+    className: styles,
+    title: typeof tab.label === 'string' ? tab.label : undefined,
+  };
+
+  if (tab.href && !disabled) {
+    return (
+      <Link href={tab.href} scroll={tab.scroll ?? false} {...commonProps}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button disabled={disabled} type="button" {...commonProps}>
+      {content}
+    </button>
+  );
+};
 
 export const Tabs: React.FC<TabsProps> = ({
   tabs,
@@ -29,159 +97,47 @@ export const Tabs: React.FC<TabsProps> = ({
   disabled = false,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const tabRefs = useRef<Record<string, HTMLElement | null>>({});
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
   const checkScrollability = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
-
     const { scrollLeft, scrollWidth, clientWidth } = container;
     setCanScrollLeft(scrollLeft > 0);
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
   }, []);
 
-  // Check scrollability on mount and when tabs change
   useEffect(() => {
     checkScrollability();
-    // Also check after a short delay to account for rendering
     const timeout = setTimeout(checkScrollability, 100);
     return () => clearTimeout(timeout);
   }, [tabs, checkScrollability]);
 
-  // Scroll active tab into view when it changes
-  useEffect(() => {
-    const activeTabRef = tabRefs.current[activeTab];
-    if (activeTabRef && scrollContainerRef.current) {
-      activeTabRef.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'nearest',
-      });
-      // Check scrollability after scroll animation
-      setTimeout(checkScrollability, 300);
-    }
-  }, [activeTab, checkScrollability]);
-
   const scroll = (direction: 'left' | 'right') => {
     const container = scrollContainerRef.current;
     if (!container) return;
-
-    const scrollAmount = container.clientWidth * 0.6;
     container.scrollBy({
-      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      left: container.clientWidth * 0.6 * (direction === 'left' ? -1 : 1),
       behavior: 'smooth',
     });
   };
 
-  const getTabStyles = (tab: Tab, isSeparatorElement: boolean = false) => {
-    const isActive = activeTab === tab.id;
-
-    if (isSeparatorElement) {
-      return 'h-6 w-px bg-gray-300';
-    }
-
-    if (variant === 'pill') {
-      return cn(
-        'px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 flex items-center gap-1 flex-shrink-0 whitespace-nowrap',
-        isActive
-          ? 'bg-primary-100 text-primary-600 shadow-sm'
-          : 'text-gray-500 hover:text-gray-700',
-        disabled && 'opacity-50 cursor-not-allowed pointer-events-none'
-      );
-    }
-
-    return cn(
-      'px-1 text-sm font-medium border-b-2 transition-all duration-200 flex items-center gap-1 whitespace-nowrap flex-shrink-0 h-full',
-      variant === 'primary' && !className?.includes('py-') && 'py-3',
-      isActive
-        ? 'text-primary-600 border-primary-600'
-        : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-200',
-      disabled && 'opacity-50 cursor-not-allowed pointer-events-none'
-    );
-  };
-
-  const wrapperStyles = cn(
-    'w-full',
-    variant === 'pill' && 'rounded-lg bg-gray-100 p-1',
-    disabled && 'opacity-50',
-    className
-  );
-
-  const renderTabButton = (tab: Tab) => {
-    const Icon = tab.icon;
-    const buttonContent = (
-      <>
-        {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
-        <span className="truncate">{tab.label}</span>
-      </>
-    );
-
-    const commonButtonProps = {
-      key: tab.id,
-      onClick: () => !disabled && onTabChange(tab.id),
-      className: getTabStyles(tab),
-      disabled: disabled,
-      title: typeof tab.label === 'string' ? tab.label : undefined,
-    };
-
-    if (tab.separator) {
-      return (
-        <div
-          key={`${tab.id}-wrapper`}
-          ref={(el) => {
-            tabRefs.current[tab.id] = el;
-          }}
-          className={cn('flex items-center flex-shrink-0', variant === 'primary' ? 'ml-6' : 'ml-1')}
-          style={{ marginLeft: variant === 'primary' ? '24px' : '4px' }}
-        >
-          <div className={cn(getTabStyles(tab, true), variant === 'primary' ? 'mr-6' : 'mr-1')} />
-          <button {...commonButtonProps}>{buttonContent}</button>
-        </div>
-      );
-    }
-
-    return (
-      <button
-        {...commonButtonProps}
-        key={tab.id}
-        ref={(el) => {
-          tabRefs.current[tab.id] = el;
-        }}
-      >
-        {buttonContent}
-      </button>
-    );
-  };
-
-  const gradientBg =
-    variant === 'primary'
-      ? 'linear-gradient(to right, transparent, white 40%)'
-      : 'linear-gradient(to right, transparent, #f3f4f6 40%)';
-
-  const gradientBgLeft =
-    variant === 'primary'
-      ? 'linear-gradient(to left, transparent, white 40%)'
-      : 'linear-gradient(to left, transparent, #f3f4f6 40%)';
+  const isPrimary = variant === 'primary';
+  const gradient = isPrimary ? 'white' : '#f3f4f6';
 
   return (
-    <div className={cn(wrapperStyles, 'relative')}>
-      {/* Left scroll indicator */}
+    <div className={cn('w-full relative', className)}>
       <div
         className={cn(
-          'absolute left-0 top-0 bottom-0 z-10 flex items-center pl-0 pr-2 transition-opacity duration-200',
+          'absolute left-0 top-0 bottom-0 z-10 flex items-center pr-2 transition-opacity duration-200',
           canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
         )}
-        style={{ background: gradientBgLeft }}
+        style={{ background: `linear-gradient(to left, transparent, ${gradient} 40%)` }}
       >
         <button
           onClick={() => scroll('left')}
-          className={cn(
-            'p-1 rounded-full hover:bg-gray-200/80 transition-colors',
-            'text-gray-500 hover:text-gray-700'
-          )}
-          aria-label="Scroll left"
+          className="p-1 rounded-full hover:bg-gray-200/80 text-gray-500 hover:text-gray-700"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -192,31 +148,41 @@ export const Tabs: React.FC<TabsProps> = ({
         onScroll={checkScrollability}
         className={cn(
           'flex items-center flex-nowrap h-full overflow-x-auto scrollbar-none',
-          variant === 'pill' ? 'space-x-1' : 'space-x-6'
+          variant === 'pill' ? 'space-x-1 bg-gray-100 p-1 rounded-lg' : 'space-x-6'
         )}
-        style={{
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-        }}
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {tabs.map(renderTabButton)}
+        {tabs.map((tab) => (
+          <React.Fragment key={tab.id}>
+            {tab.separator && (
+              <div
+                className={cn(
+                  'h-6 w-px bg-gray-300 flex-shrink-0',
+                  isPrimary ? 'ml-6 mr-6' : 'ml-1 mr-1'
+                )}
+              />
+            )}
+            <TabItem
+              tab={tab}
+              isActive={activeTab === tab.id}
+              disabled={disabled}
+              variant={variant}
+              onTabChange={onTabChange}
+            />
+          </React.Fragment>
+        ))}
       </div>
 
-      {/* Right scroll indicator */}
       <div
         className={cn(
-          'absolute right-0 top-0 bottom-0 z-10 flex items-center pr-0 pl-2 transition-opacity duration-200',
+          'absolute right-0 top-0 bottom-0 z-10 flex items-center pl-2 transition-opacity duration-200',
           canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
         )}
-        style={{ background: gradientBg }}
+        style={{ background: `linear-gradient(to right, transparent, ${gradient} 40%)` }}
       >
         <button
           onClick={() => scroll('right')}
-          className={cn(
-            'p-1 rounded-full hover:bg-gray-200/80 transition-colors',
-            'text-gray-500 hover:text-gray-700'
-          )}
-          aria-label="Scroll right"
+          className="p-1 rounded-full hover:bg-gray-200/80 text-gray-500 hover:text-gray-700"
         >
           <ChevronRight className="w-4 h-4" />
         </button>

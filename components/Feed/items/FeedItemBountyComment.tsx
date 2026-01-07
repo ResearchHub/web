@@ -36,7 +36,8 @@ export const BountyDetails: FC<{
   contentFormat: ContentFormat | undefined;
   bountyType: BountyType;
   maxLength?: number;
-}> = ({ content, contentFormat, bountyType, maxLength }) => {
+  href?: string;
+}> = ({ content, contentFormat, bountyType, maxLength, href }) => {
   if (!content || Object.keys(content).length === 0) {
     return null;
   }
@@ -46,6 +47,7 @@ export const BountyDetails: FC<{
       <TitleSection
         title={bountyType === 'REVIEW' ? 'Peer Review Earning Opportunity' : 'Earning Opportunity'}
         className="text-md"
+        href={href}
       />
       <div className="text-gray-600 mt-2">
         <CommentReadOnly content={content} contentFormat={contentFormat} maxLength={maxLength} />
@@ -320,6 +322,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
           contentFormat={bountyEntry.comment.contentFormat}
           bountyType={bounty.bountyType}
           maxLength={maxLength}
+          href={href}
         />
 
         {!isOpen && hasSolutions && showSolutions && (

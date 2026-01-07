@@ -18,6 +18,7 @@ import { AuthorList } from '@/components/ui/AuthorList';
 
 import { Highlight } from '@/components/Feed/FeedEntryItem';
 import { formatTimestamp } from '@/utils/date';
+import { buildWorkUrl } from '@/utils/url';
 
 interface FeedItemGrantRefactoredProps {
   entry: FeedEntry;
@@ -54,7 +55,13 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
   const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
   // Use provided href or create default grant page URL
-  const grantPageUrl = href || `/grant/${grant.id}/${grant.slug}`;
+  const grantPageUrl =
+    href ||
+    buildWorkUrl({
+      id: grant.id,
+      slug: grant.slug,
+      contentType: 'funding_request',
+    });
 
   // Extract props for FeedItemMenuButton (same as BaseFeedItem uses for FeedItemActions)
   const feedContentType = grant.contentType || 'GRANT';
@@ -114,7 +121,11 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection title={grant.title} highlightedTitle={highlightedTitle} />
+            <TitleSection
+              title={grant.title}
+              highlightedTitle={highlightedTitle}
+              href={grantPageUrl}
+            />
 
             {/* Organization or Authors list */}
             <MetadataSection className="mb-1">

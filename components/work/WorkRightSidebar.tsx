@@ -33,6 +33,7 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
       )}
       <SupportersSection tips={work.tips || []} documentId={work.id} />
       {work.journal && <JournalSection journal={work.journal} />}
+      {/* Topics badges should not be hidden/collapsed differently on mobile */}
       <TopicsSection topics={metadata.topics || []} />
       {work.doi && <DOISection doi={work.doi} />}
       {work.postType !== 'QUESTION' && <LicenseSection license={work.license} />}
