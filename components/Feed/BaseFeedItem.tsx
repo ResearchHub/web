@@ -455,7 +455,7 @@ export const FeedItemTopSection: FC<{
       )}
       {/* Badges row (leftContent) + menu (rightContent) */}
       <div className={cn('flex items-start justify-between mb-1', className)}>
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide flex-1 mr-2">{leftContent}</div>
+        <div className="flex-1 min-w-0 mr-2">{leftContent}</div>
         {rightContent && <div className="flex-shrink-0">{rightContent}</div>}
       </div>
     </>
