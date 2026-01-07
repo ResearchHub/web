@@ -14,6 +14,39 @@ import { EditorModals } from './components/EditorModals';
 import { CommentContent } from './lib/types';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { useIsMac } from '@/hooks/useIsMac';
+import { useUser } from '@/contexts/UserContext';
+import { useReviewCooldown } from '@/hooks/useReviewCooldown';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { Info } from 'lucide-react';
+import { Tooltip } from '@/components/ui/Tooltip';
+
+const ReviewCooldownTooltipContent = (
+  <div className="space-y-2.5 text-left">
+    <div>
+      <div className="font-semibold text-sm text-gray-900 leading-tight">Review Cooldown</div>
+      <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">
+        One peer review every 4 days
+      </div>
+    </div>
+    <div>
+      <div className="text-xs font-medium text-gray-700 mb-1">Why?</div>
+      <ul className="text-xs text-gray-600 space-y-0.5">
+        <li className="flex items-start">
+          <span className="text-green-600 mr-1.5 flex-shrink-0">✓</span>
+          <span>Ensures thoughtful, quality reviews</span>
+        </li>
+        <li className="flex items-start">
+          <span className="text-green-600 mr-1.5 flex-shrink-0">✓</span>
+          <span>Prevents spam submissions</span>
+        </li>
+        <li className="flex items-start">
+          <span className="text-green-600 mr-1.5 flex-shrink-0">✓</span>
+          <span>Distributes bounties fairly</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+);
 
 export interface CommentEditorProps {
   onSubmit: (content: {
@@ -66,8 +99,14 @@ export const CommentEditor = ({
 }: CommentEditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [isReviewBannerDismissed, setIsReviewBannerDismissed] = useState(false);
+  const [isReviewCooldownBannerDismissed, setIsReviewCooldownBannerDismissed] = useState(false);
   const [isBountyReplyBannerDismissed, setIsBountyReplyBannerDismissed] = useState(false);
   const isMac = useIsMac();
+  const isMobile = useIsMobile();
+  const { user } = useUser();
+  const { canReview, formattedTimeRemaining, startCooldown } = useReviewCooldown(
+    user?.nextAvailableReviewTime ?? null
+  );
 
   // Adapt the onSubmit function to the format expected by useEditorHandlers
   const adaptedOnSubmit = useCallback(
@@ -143,6 +182,7 @@ export const CommentEditor = ({
     clearDraft,
     setRating,
     setSectionRatings,
+    onReviewSuccess: startCooldown,
   });
 
   // Configure editor click handler for links and keyboard shortcuts
@@ -214,8 +254,32 @@ export const CommentEditor = ({
 
       {/* Editor content */}
       <div ref={editorRef} className="relative comment-editor-content">
+        {/* Cooldown banner - shown when user cannot review yet */}
+        {isReview && !canReview && !isReviewCooldownBannerDismissed && (
+          <div className="mb-3 flex items-center justify-between gap-3 bg-red-50 border border-red-200 text-red-800 rounded-md p-2 sm:!p-3 text-xs sm:!text-sm">
+            <div className="flex items-center gap-1.5">
+              <span className="flex flex-col sm:!block">
+                <span>You can write a Peer Review again in</span>
+                <span className="font-semibold sm:!ml-1">{formattedTimeRemaining}</span>
+              </span>
+              {!isMobile && (
+                <Tooltip content={ReviewCooldownTooltipContent} position="top" width="w-72">
+                  <Info className="h-4 w-4 text-red-600 cursor-help flex-shrink-0" />
+                </Tooltip>
+              )}
+            </div>
+            <button
+              onClick={() => setIsReviewCooldownBannerDismissed(true)}
+              aria-label="Dismiss notice"
+              className="flex-shrink-0 inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-800 rounded text-xs font-medium"
+            >
+              Got it
+            </button>
+          </div>
+        )}
+
         {/* Informative banner displayed inside editing area */}
-        {isReview && !isReviewBannerDismissed && (
+        {isReview && canReview && !isReviewBannerDismissed && (
           <div className="mb-3 flex flex-col sm:!flex-row items-start sm:!items-center justify-between bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md p-2 sm:!p-3 text-xs sm:!text-sm">
             <p className="pr-0 sm:!pr-2 mb-1 sm:!mb-0">
               <span className="font-semibold">Add your review.</span> Be sure to view bounty
@@ -264,6 +328,7 @@ export const CommentEditor = ({
           clearDraft={clearDraft}
           isSubmitting={isSubmitting}
           isMac={isMac}
+          canSubmit={isReview ? canReview : true}
         />
       )}
 
