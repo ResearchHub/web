@@ -4,10 +4,12 @@ import { useMemo } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { useSession } from 'next-auth/react';
 import { FeedTab } from './useFeed';
 
 export const useFeedTabs = (onBeforeNavigate?: () => void) => {
   const { user } = useUser();
+  const { status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -95,18 +97,26 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
       ];
     }
 
-    const feedTabs = [
-      { id: 'for-you', label: 'For You' },
-      { id: 'following', label: 'Following' },
-      { id: 'popular', label: 'Popular' },
-    ];
+    const isLoggedOut = status === 'unauthenticated';
+
+    const feedTabs = isLoggedOut
+      ? [
+          { id: 'popular', label: 'Popular' },
+          { id: 'for-you', label: 'For You' },
+          { id: 'following', label: 'Following' },
+        ]
+      : [
+          { id: 'for-you', label: 'For You' },
+          { id: 'following', label: 'Following' },
+          { id: 'popular', label: 'Popular' },
+        ];
 
     return feedTabs.map((tab) => ({
       ...tab,
       href: getHref(tab.id),
       scroll: false,
     }));
-  }, [isTopicPage, isFundPage, isJournalPage, topicSlug, pathname, searchParams]);
+  }, [status, isTopicPage, isFundPage, isJournalPage, topicSlug, pathname, searchParams]);
 
   const handleTabChange = (tab: string, e?: React.MouseEvent) => {
     if (tab === activeTab) {
