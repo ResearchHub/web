@@ -3,7 +3,7 @@
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
-import { Button } from '@/components/Editor/components/ui/Button';
+import Link from 'next/link';
 import Icon from '@/components/ui/icons/Icon';
 import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -214,19 +214,17 @@ export const Navigation: React.FC<NavigationProps> = ({
     };
 
     const handleClick = (e: React.MouseEvent) => {
-      e.preventDefault();
-
       if (item.isUnimplemented) {
+        e.preventDefault();
         onUnimplementedFeature(item.label);
         return;
       }
 
       if (item.requiresAuth) {
+        e.preventDefault();
         executeAuthenticatedAction(() => router.push(item.href));
         return;
       }
-
-      router.push(item.href);
     };
 
     // Determine if the current item is the Home item using FontAwesome
@@ -242,7 +240,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       : 'flex items-center justify-between w-full min-w-0 tablet:max-sidebar-compact:!hidden';
 
     return (
-      <Button onClick={handleClick} className={buttonStyles} variant="ghost">
+      <Link href={item.href} onClick={handleClick} className={buttonStyles} scroll={false}>
         <div className={iconContainerClass}>
           {item.href === '/leaderboard' ? (
             <ChartNoAxesColumnIncreasing
@@ -277,7 +275,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         <div className={textContainerClass}>
           <span className="truncate text-[16px]">{item.label}</span>
         </div>
-      </Button>
+      </Link>
     );
   };
 

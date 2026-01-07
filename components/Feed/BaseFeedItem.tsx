@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/Button';
 import { ChevronDown } from 'lucide-react';
 import { BountyInfoSummary } from '@/components/Bounty/BountyInfoSummary';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { BountyInfo } from '../Bounty/BountyInfo';
 import { sanitizeHighlightHtml } from '@/components/Search/lib/htmlSanitizer';
 
@@ -51,6 +52,7 @@ export interface TitleSectionProps {
   title: string;
   highlightedTitle?: string;
   className?: string;
+  href?: string;
 }
 
 // Content component interface
@@ -118,24 +120,23 @@ export const BadgeSection: FC<BadgeSectionProps> = ({
   );
 };
 
-export const TitleSection: FC<TitleSectionProps> = ({ title, highlightedTitle, className }) => {
-  // If we have highlighted HTML, render it safely
-  if (highlightedTitle) {
-    return (
-      <h2
-        className={cn(
-          'text-md md:!text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors',
-          className
-        )}
-        dangerouslySetInnerHTML={{
-          __html: sanitizeHighlightHtml(highlightedTitle),
-        }}
-      />
-    );
-  }
-
-  // Default: render plain text
-  return (
+export const TitleSection: FC<TitleSectionProps> = ({
+  title,
+  highlightedTitle,
+  className,
+  href,
+}) => {
+  const content = highlightedTitle ? (
+    <h2
+      className={cn(
+        'text-md md:!text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors',
+        className
+      )}
+      dangerouslySetInnerHTML={{
+        __html: sanitizeHighlightHtml(highlightedTitle),
+      }}
+    />
+  ) : (
     <h2
       className={cn(
         'text-md md:!text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors',
@@ -145,6 +146,16 @@ export const TitleSection: FC<TitleSectionProps> = ({ title, highlightedTitle, c
       {title}
     </h2>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="no-underline block" scroll={false}>
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 };
 
 export const ContentSection: FC<ContentSectionProps> = ({

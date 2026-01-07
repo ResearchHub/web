@@ -22,16 +22,11 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
     [pathname]
   );
 
-  const isTopicPage = useMemo(() => pathname.startsWith('/topic/'), [pathname]);
-  const isFundPage = useMemo(() => pathname.startsWith('/fund'), [pathname]);
-  const isJournalPage = useMemo(() => pathname.startsWith('/journal'), [pathname]);
+  const isTopicPage = pathname.startsWith('/topic/');
+  const isFundPage = pathname.startsWith('/fund');
+  const isJournalPage = pathname.startsWith('/journal');
 
-  const topicSlug = useMemo(() => {
-    if (isTopicPage) {
-      return pathname.split('/')[2];
-    }
-    return null;
-  }, [isTopicPage, pathname]);
+  const topicSlug = isTopicPage ? pathname.split('/')[2] : null;
 
   const activeTab = useMemo((): FeedTab | any => {
     if (isTopicPage) {
@@ -63,44 +58,61 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
   }, [pathname, isTopicPage, isFundPage, isJournalPage, searchParams]);
 
   const tabs = useMemo(() => {
+    const getHref = (id: string) => {
+      if (isTopicPage && topicSlug) {
+        return `/topic/${topicSlug}/${id}`;
+      } else if (isFundPage) {
+        return `/fund/${id}`;
+      } else if (isJournalPage) {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('tab', id);
+        return `${pathname}?${params.toString()}`;
+      } else {
+        return id === 'popular' ? '/popular' : `/${id}`;
+      }
+    };
+
     if (isTopicPage) {
       return [
-        { id: 'popular', label: 'Popular' },
-        { id: 'latest', label: 'Latest' },
+        { id: 'popular', label: 'Popular', href: getHref('popular'), scroll: false },
+        { id: 'latest', label: 'Latest', href: getHref('latest'), scroll: false },
       ];
     }
 
     if (isFundPage) {
       return [
-        { id: 'grants', label: 'RFPs' },
-        { id: 'needs-funding', label: 'Proposals' },
+        { id: 'grants', label: 'RFPs', href: getHref('grants'), scroll: false },
+        { id: 'needs-funding', label: 'Proposals', href: getHref('needs-funding'), scroll: false },
       ];
     }
 
     if (isJournalPage) {
       return [
-        { id: 'all', label: 'All' },
-        { id: 'in-review', label: 'In Review' },
-        { id: 'published', label: 'Published' },
-        { id: 'about', label: 'About this journal' },
+        { id: 'all', label: 'All', href: getHref('all'), scroll: false },
+        { id: 'in-review', label: 'In Review', href: getHref('in-review'), scroll: false },
+        { id: 'published', label: 'Published', href: getHref('published'), scroll: false },
+        { id: 'about', label: 'About this journal', href: getHref('about'), scroll: false },
       ];
     }
 
-    return user
-      ? [
-          { id: 'for-you', label: 'For You' },
-          { id: 'following', label: 'Following' },
-          { id: 'popular', label: 'Popular' },
-        ]
-      : [
-          { id: 'popular', label: 'Popular' },
-          { id: 'for-you', label: 'For You' },
-          { id: 'following', label: 'Following' },
-        ];
-  }, [user, isTopicPage, isFundPage, isJournalPage]);
+    const feedTabs = [
+      { id: 'for-you', label: 'For You' },
+      { id: 'following', label: 'Following' },
+      { id: 'popular', label: 'Popular' },
+    ];
 
-  const handleTabChange = (tab: string) => {
-    if (tab === activeTab) return;
+    return feedTabs.map((tab) => ({
+      ...tab,
+      href: getHref(tab.id),
+      scroll: false,
+    }));
+  }, [isTopicPage, isFundPage, isJournalPage, topicSlug, pathname, searchParams]);
+
+  const handleTabChange = (tab: string, e?: React.MouseEvent) => {
+    if (tab === activeTab) {
+      e?.preventDefault();
+      return;
+    }
 
     const navigate = () => {
       onBeforeNavigate?.();
@@ -113,17 +125,25 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
         params.set('tab', tab);
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
       } else {
-        router.push(tab === 'popular' ? '/popular' : `/${tab}`);
+        router.push(tab === 'popular' ? '/popular' : `/${tab}`, { scroll: false });
       }
     };
 
     const protectedTabs = ['following', 'for-you'];
     if (protectedTabs.includes(tab) && !user && !isTopicPage && !isFundPage && !isJournalPage) {
+      e?.preventDefault();
       executeAuthenticatedAction(navigate);
       return;
     }
 
-    navigate();
+    // If we have an event and it's a normal link navigation, let the browser handle it
+    // but still call onBeforeNavigate
+    if (e && !e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) {
+      onBeforeNavigate?.();
+    } else if (!e) {
+      // If no event (programmatic change), navigate manually
+      navigate();
+    }
   };
 
   return {

@@ -16,6 +16,7 @@ import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { formatTimestamp } from '@/utils/date';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
+import { buildWorkUrl } from '@/utils/url';
 
 interface FeedItemPostProps {
   entry: FeedEntry;
@@ -59,7 +60,13 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
     })) || [];
 
   // Use provided href or create default post page URL
-  const postPageUrl = href || `/post/${post.id}/${post.slug}`;
+  const postPageUrl =
+    href ||
+    buildWorkUrl({
+      id: post.id,
+      slug: post.slug,
+      contentType: post.postType === 'QUESTION' ? 'question' : 'post',
+    });
 
   // Extract props for FeedItemMenuButton (same as BaseFeedItem uses for FeedItemActions)
   const feedContentType = post.contentType || 'POST';
@@ -115,7 +122,11 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection title={post.title} highlightedTitle={highlightedTitle} />
+            <TitleSection
+              title={post.title}
+              highlightedTitle={highlightedTitle}
+              href={postPageUrl}
+            />
 
             <div>
               {/* Authors list below title */}

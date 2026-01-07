@@ -20,6 +20,8 @@ import { useFeedItemClick } from '@/hooks/useFeedItemClick';
 import { useCallback } from 'react';
 import { getUnifiedDocumentId } from '@/types/analytics';
 import { FeedItemBountyComment } from './items/FeedItemBountyComment';
+import { buildWorkUrl } from '@/utils/url';
+import { ContentType } from '@/types/work';
 
 export interface Highlight {
   field: string;
@@ -108,50 +110,79 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
       switch (entry.contentType) {
         case 'POST': {
           const postContent = entry.content as FeedPostContent;
-          // Check if this is a question based on postType
-          if (postContent.postType === 'QUESTION') {
-            return `/question/${postContent.id}/${postContent.slug}`;
-          }
-          return `/post/${postContent.id}/${postContent.slug}`;
+          return buildWorkUrl({
+            id: postContent.id,
+            slug: postContent.slug,
+            contentType: postContent.postType === 'QUESTION' ? 'question' : 'post',
+          });
         }
         case 'PREREGISTRATION': {
           const fundContent = entry.content as FeedPostContent;
-          return `/fund/${fundContent.id}/${fundContent.slug}`;
+          return buildWorkUrl({
+            id: fundContent.id,
+            slug: fundContent.slug,
+            contentType: 'preregistration',
+          });
         }
         case 'PAPER': {
           const paperContent = entry.content as FeedPaperContent;
-          return `/paper/${paperContent.id}/${paperContent.slug}`;
+          return buildWorkUrl({
+            id: paperContent.id,
+            slug: paperContent.slug,
+            contentType: 'paper',
+          });
         }
 
         case 'BOUNTY':
-          if (entry.relatedWork?.contentType === 'paper') {
-            return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}/bounties`;
-          } else if (entry.relatedWork) {
-            // Check if the related work is a question
-            if ('postType' in entry.relatedWork && entry.relatedWork.postType === 'QUESTION') {
-              return `/question/${entry.relatedWork.id}/${entry.relatedWork.slug}/bounties`;
+          if (entry.relatedWork) {
+            let contentType = entry.relatedWork.contentType;
+            if (
+              'postType' in entry.relatedWork &&
+              entry.relatedWork.postType === 'QUESTION' &&
+              contentType === 'post'
+            ) {
+              contentType = 'question';
             }
-            return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/bounties`;
+
+            return buildWorkUrl({
+              id: entry.relatedWork.id,
+              slug: entry.relatedWork.slug,
+              contentType: contentType,
+              tab: 'bounties',
+            });
           }
           break;
+
         case 'COMMENT': {
           const comment = entry.content as FeedCommentContent;
-          // For comments, we might want to link to the parent content with the comment ID as a hash
-          if (entry.relatedWork?.contentType === 'paper') {
-            return `/paper/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
-          } else if (entry.relatedWork) {
-            // Check if the related work is a question
-            if ('postType' in entry.relatedWork && entry.relatedWork.postType === 'QUESTION') {
-              return `/question/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
+          if (entry.relatedWork) {
+            let contentType = entry.relatedWork.contentType;
+            if (
+              'postType' in entry.relatedWork &&
+              entry.relatedWork.postType === 'QUESTION' &&
+              contentType === 'post'
+            ) {
+              contentType = 'question';
             }
-            return `/post/${entry.relatedWork.id}/${entry.relatedWork.slug}/conversation#comment-${comment.id}`;
+
+            const baseUrl = buildWorkUrl({
+              id: entry.relatedWork.id,
+              slug: entry.relatedWork.slug,
+              contentType: contentType,
+              tab: 'conversation',
+            });
+            return `${baseUrl}#comment-${comment.id}`;
           }
           break;
         }
 
         case 'GRANT': {
           const grantContent = entry.content as FeedGrantContent;
-          return `/grant/${grantContent.id}/${grantContent.slug}`;
+          return buildWorkUrl({
+            id: grantContent.id,
+            slug: grantContent.slug,
+            contentType: 'funding_request',
+          });
         }
 
         default:

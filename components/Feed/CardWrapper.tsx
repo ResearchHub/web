@@ -65,7 +65,7 @@ export const CardWrapper = ({
         window.open(href, '_blank');
       } else {
         // Normal click - navigate
-        router.push(href);
+        router.push(href, { scroll: false });
       }
     }
   };
@@ -78,7 +78,7 @@ export const CardWrapper = ({
         onClick();
       }
       e.preventDefault();
-      router.push(href);
+      router.push(href, { scroll: false });
     }
   };
 

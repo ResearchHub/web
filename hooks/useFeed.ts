@@ -108,7 +108,6 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
 
   const loadFeed = async () => {
     setIsLoading(true);
-    setEntries([]);
 
     try {
       const isHomeFeedTab =

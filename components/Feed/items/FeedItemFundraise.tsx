@@ -19,6 +19,7 @@ import { FundraiseProgress } from '@/components/Fund/FundraiseProgressV2';
 import { Users, Building, Pin } from 'lucide-react';
 import { formatTimestamp } from '@/utils/date';
 import { useRouter } from 'next/navigation';
+import { buildWorkUrl } from '@/utils/url';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -69,7 +70,13 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
     })) || [];
 
   // Use provided href or create default funding page URL
-  const fundingPageUrl = href || `/fund/${post.id}/${post.slug}`;
+  const fundingPageUrl =
+    href ||
+    buildWorkUrl({
+      id: post.id,
+      slug: post.slug,
+      contentType: 'preregistration',
+    });
 
   // Image URL
   const imageUrl = post.previewImage ?? undefined;
@@ -151,7 +158,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection title={post.title} />
+            <TitleSection title={post.title} href={fundingPageUrl} />
 
             {/* Authors list */}
             <MetadataSection className="mb-1">

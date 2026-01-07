@@ -1,7 +1,6 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useFeed } from '@/hooks/useFeed';
 import { useFeedTabs } from '@/hooks/useFeedTabs';
@@ -21,13 +20,8 @@ interface FundPageContentProps {
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isNavigating, setIsNavigating] = useState(false);
 
-  const {
-    tabs: feedTabsList,
-    activeTab,
-    handleTabChange,
-  } = useFeedTabs(() => setIsNavigating(true));
+  const { tabs: feedTabsList, activeTab, handleTabChange } = useFeedTabs();
 
   const defaultSort = marketplaceTab === 'needs-funding' ? 'best' : 'newest';
   const sortBy = (searchParams.get('ordering') as FundingSortOption) || defaultSort;
@@ -65,12 +59,6 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     ordering: effectiveOrdering,
   });
 
-  useEffect(() => {
-    setIsNavigating(false);
-  }, [marketplaceTab]);
-
-  const combinedLoading = isLoading || isNavigating;
-
   return (
     <PageLayout rightSidebar={config.sidebar}>
       <MainPageHeader
@@ -84,7 +72,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
           activeTab={activeTab}
           tabs={feedTabsList}
           onTabChange={handleTabChange}
-          isLoading={combinedLoading}
+          isLoading={isLoading}
           showSorting
           sortOption={sortBy as any}
           onSortChange={(sort) => handleSortChange(sort as any)}
@@ -93,7 +81,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
       </div>
       <FeedContent
         entries={entries}
-        isLoading={combinedLoading}
+        isLoading={isLoading}
         hasMore={hasMore}
         loadMore={loadMore}
         showGrantHeaders={false}
