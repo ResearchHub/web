@@ -25,25 +25,9 @@ const ReviewCooldownTooltipContent = (
     <div>
       <div className="font-semibold text-sm text-gray-900 leading-tight">Review Cooldown</div>
       <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-        One peer review every 4 days
+        After submitting a review, users have a 4 day cooldown period before they can submit
+        another.
       </div>
-    </div>
-    <div>
-      <div className="text-xs font-medium text-gray-700 mb-1">Why?</div>
-      <ul className="text-xs text-gray-600 space-y-0.5">
-        <li className="flex items-start">
-          <span className="text-green-600 mr-1.5 flex-shrink-0">✓</span>
-          <span>Ensures thoughtful, quality reviews</span>
-        </li>
-        <li className="flex items-start">
-          <span className="text-green-600 mr-1.5 flex-shrink-0">✓</span>
-          <span>Prevents spam submissions</span>
-        </li>
-        <li className="flex items-start">
-          <span className="text-green-600 mr-1.5 flex-shrink-0">✓</span>
-          <span>Distributes bounties fairly</span>
-        </li>
-      </ul>
     </div>
   </div>
 );
@@ -182,7 +166,7 @@ export const CommentEditor = ({
     clearDraft,
     setRating,
     setSectionRatings,
-    onReviewSuccess: startCooldown,
+    onReviewSuccess: editing ? undefined : startCooldown,
   });
 
   // Configure editor click handler for links and keyboard shortcuts
@@ -255,7 +239,7 @@ export const CommentEditor = ({
       {/* Editor content */}
       <div ref={editorRef} className="relative comment-editor-content">
         {/* Cooldown banner - shown when user cannot review yet */}
-        {isReview && !canReview && !isReviewCooldownBannerDismissed && (
+        {isReview && !editing && !canReview && !isReviewCooldownBannerDismissed && (
           <div className="mb-3 flex items-center justify-between gap-3 bg-red-50 border border-red-200 text-red-800 rounded-md p-2 sm:!p-3 text-xs sm:!text-sm">
             <div className="flex items-center gap-1.5">
               <span className="flex flex-col sm:!block">
@@ -328,7 +312,7 @@ export const CommentEditor = ({
           clearDraft={clearDraft}
           isSubmitting={isSubmitting}
           isMac={isMac}
-          canSubmit={isReview ? canReview : true}
+          canSubmit={isReview && !editing ? canReview : true}
         />
       )}
 
