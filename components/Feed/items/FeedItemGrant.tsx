@@ -30,6 +30,7 @@ interface FeedItemGrantRefactoredProps {
   maxLength?: number;
   showHeader?: boolean;
   onFeedItemClick?: () => void;
+  onAbstractExpanded?: () => void;
   highlights?: Highlight[];
 }
 
@@ -46,6 +47,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
   maxLength,
   showHeader = true,
   onFeedItemClick,
+  onAbstractExpanded,
   highlights,
 }) => {
   const grant = entry.content as FeedGrantContent;
@@ -170,6 +172,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
                 maxLength={maxLength}
                 mobileLabel="Read description"
                 className="mb-3"
+                onAbstractExpanded={onAbstractExpanded}
               />
             )}
           </>

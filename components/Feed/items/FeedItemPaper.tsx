@@ -29,6 +29,7 @@ interface FeedItemPaperProps {
   showActions?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
+  onAbstractExpanded?: () => void;
   highlights?: Highlight[];
   showBountyInfo?: boolean;
 }
@@ -43,6 +44,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   showActions = true,
   maxLength,
   onFeedItemClick,
+  onAbstractExpanded,
   highlights,
   showBountyInfo,
 }) => {
@@ -204,6 +206,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               highlightedContent={highlightedSnippet}
               maxLength={maxLength}
               className="mt-3"
+              onAbstractExpanded={onAbstractExpanded}
             />
           </>
         }

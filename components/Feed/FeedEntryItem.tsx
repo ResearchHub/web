@@ -16,7 +16,7 @@ import { FeedItemPaper } from './items/FeedItemPaper';
 import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
 import { FeedItemGrant } from './items/FeedItemGrant';
-import { useFeedItemClick } from '@/hooks/useFeedItemClick';
+import { useFeedItemAnalyticsTracking } from '@/hooks/useFeedItemAnalyticsTracking';
 import { useCallback } from 'react';
 import { getUnifiedDocumentId } from '@/types/analytics';
 import { FeedItemBountyComment } from './items/FeedItemBountyComment';
@@ -88,8 +88,8 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
     return visibleItems.length > 0 ? visibleItems : undefined;
   }, [unifiedDocumentId, getVisibleItems]);
 
-  // Handle feed item click with analytics
-  const handleFeedItemClick = useFeedItemClick({
+  // Handle feed item interactions with analytics
+  const { handleFeedItemClick, handleAbstractExpanded } = useFeedItemAnalyticsTracking({
     entry,
     feedPosition: index + 1,
     feedOrdering,
@@ -210,6 +210,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             showActions={!hideActions}
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
+            onAbstractExpanded={handleAbstractExpanded}
             highlights={highlights}
             showBountyInfo={showBountyInfo}
           />
@@ -237,6 +238,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             showActions={!hideActions}
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
+            onAbstractExpanded={handleAbstractExpanded}
             highlights={highlights}
             showBountyInfo={showBountyInfo}
           />
@@ -279,6 +281,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
                     showActions={showBountyFooter}
                     maxLength={maxLength}
                     onFeedItemClick={handleFeedItemClick}
+                    onAbstractExpanded={handleAbstractExpanded}
                     highlights={highlights}
                     showBountyInfo={showBountyInfo}
                   />
@@ -290,6 +293,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
                     showActions={showBountyFooter}
                     maxLength={maxLength}
                     onFeedItemClick={handleFeedItemClick}
+                    onAbstractExpanded={handleAbstractExpanded}
                     highlights={highlights}
                     showBountyInfo={showBountyInfo}
                   />
@@ -325,6 +329,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             maxLength={maxLength}
             showHeader={showGrantHeaders}
             onFeedItemClick={handleFeedItemClick}
+            onAbstractExpanded={handleAbstractExpanded}
             highlights={highlights}
           />
         );

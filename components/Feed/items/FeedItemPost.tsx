@@ -25,6 +25,7 @@ interface FeedItemPostProps {
   showActions?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
+  onAbstractExpanded?: () => void;
   highlights?: Highlight[];
   showHeader?: boolean;
   showBountyInfo?: boolean;
@@ -41,6 +42,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   showHeader = true,
   maxLength,
   onFeedItemClick,
+  onAbstractExpanded,
   highlights,
   showBountyInfo,
 }) => {
@@ -151,6 +153,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
               highlightedContent={highlightedSnippet}
               maxLength={maxLength}
               mobileLabel="Read more"
+              onAbstractExpanded={onAbstractExpanded}
             />
           </>
         }
