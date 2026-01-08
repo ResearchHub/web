@@ -89,7 +89,7 @@ export const CommentEditor = ({
   const isMobile = useIsMobile();
   const { user } = useUser();
   const { canReview, formattedTimeRemaining, startCooldown } = useReviewCooldown(
-    user?.nextAvailableReviewTime ?? null
+    user?.reviewAvailability ?? null
   );
 
   // Adapt the onSubmit function to the format expected by useEditorHandlers

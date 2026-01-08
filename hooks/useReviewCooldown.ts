@@ -1,56 +1,40 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { formatCountdownRemaining } from '@/utils/date';
-
-interface ReviewCooldownState {
-  canReview: boolean;
-  formattedTimeRemaining: string | null;
-}
-
-interface UseReviewCooldownReturn extends ReviewCooldownState {
-  startCooldown: () => void;
-}
+import type { ReviewAvailability } from '@/types/user';
 
 const COOLDOWN_DAYS = 4;
 const COOLDOWN_INTERVAL_MS = 60_000;
 
-function calculateState(nextAvailableReviewTime: string | null): ReviewCooldownState {
-  const { isPast, formatted } = formatCountdownRemaining(nextAvailableReviewTime);
-  return { canReview: isPast, formattedTimeRemaining: formatted };
+function deriveState(availability: ReviewAvailability | null) {
+  if (!availability) return { canReview: true, formattedTimeRemaining: null };
+  const { isPast, formatted } = formatCountdownRemaining(availability.availableAt);
+  return { canReview: isPast || availability.canReview, formattedTimeRemaining: formatted };
 }
 
-export function useReviewCooldown(nextAvailableReviewTime: string | null): UseReviewCooldownReturn {
-  const [state, setState] = useState(() => calculateState(nextAvailableReviewTime));
-  const [localCooldownTime, setLocalCooldownTime] = useState<string | null>(null);
-  const prevTimeRef = useRef(nextAvailableReviewTime);
+export function useReviewCooldown(reviewAvailability: ReviewAvailability | null) {
+  const [localAvailability, setLocalAvailability] = useState<ReviewAvailability | null>(null);
+  const effective = localAvailability ?? reviewAvailability;
+  const [state, setState] = useState(() => deriveState(effective));
 
-  const effectiveTime = localCooldownTime ?? nextAvailableReviewTime;
-
-  // Start cooldown immediately after successful review submission
   const startCooldown = useCallback(() => {
-    const cooldownEnd = new Date();
-    cooldownEnd.setDate(cooldownEnd.getDate() + COOLDOWN_DAYS);
-    const cooldownTimeISO = cooldownEnd.toISOString();
-    setLocalCooldownTime(cooldownTimeISO);
-    setState(calculateState(cooldownTimeISO));
+    const end = new Date();
+    end.setDate(end.getDate() + COOLDOWN_DAYS);
+    setLocalAvailability({ canReview: false, availableAt: end.toISOString() });
   }, []);
 
   useEffect(() => {
-    // Only recalculate immediately if the prop changed (not on initial mount)
-    if (prevTimeRef.current !== effectiveTime) {
-      prevTimeRef.current = effectiveTime;
-      setState(calculateState(effectiveTime));
-    }
-
-    if (state.canReview) return;
+    const derived = deriveState(effective);
+    setState(derived);
+    if (derived.canReview) return;
 
     const interval = setInterval(() => {
-      const newState = calculateState(effectiveTime);
-      setState(newState);
-      if (newState.canReview) clearInterval(interval);
+      const next = deriveState(effective);
+      setState(next);
+      if (next.canReview) clearInterval(interval);
     }, COOLDOWN_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [effectiveTime, state.canReview]);
+  }, [effective]);
 
   return { ...state, startCooldown };
 }
