@@ -40,13 +40,51 @@ export const editors: Editor[] = [
     },
   },
   {
-    name: 'Meet the Editor Team',
-    role: 'Full Team',
-    bio: 'Our editorial team consists of leading researchers and academics who are passionate about advancing scientific knowledge through innovative peer review systems. They bring expertise across diverse fields and are committed to maintaining the highest standards of scientific rigor and transparency.',
-    image: '/EinsteinAvatar.png',
-    authorId: '999998', // Placeholder ID for editorial team
+    name: 'Selda Yildiz',
+    role: 'Associate Editor',
+    bio: '',
+    image: '/people/selda.jpeg',
+    authorId: '8116339',
     socialLinks: {
-      website: 'https://www.researchhub.foundation/about',
+      email: 'selda.editor@researchhub.foundation',
+      linkedin: 'https://www.linkedin.com/in/seldayildiz/',
+      scholar: 'https://scholar.google.com/citations?user=QbTyK0AAAAAJ&hl=en',
+    },
+  },
+  {
+    name: 'Scott Nelson',
+    role: 'Associate Editor',
+    bio: '',
+    image: '/people/scott.jpeg',
+    authorId: '6328170',
+    socialLinks: {
+      email: 'scott.editor@researchhub.foundation',
+      linkedin: 'https://www.linkedin.com/in/scott-nelson-8976897/',
+      scholar: 'https://scholar.google.com/citations?user=MGmYWIYAAAAJ&hl=en',
+    },
+  },
+  {
+    name: 'Qingyu Luo',
+    role: 'Associate Editor',
+    bio: '',
+    image: '/people/qingyu.jpeg',
+    authorId: '6487201',
+    socialLinks: {
+      email: 'qingyu.editor@researchhub.foundation',
+      linkedin: 'https://www.linkedin.com/in/qingyu-luo-md-phd/',
+      scholar: 'https://scholar.google.com/citations?pli=1&authuser=1&user=rmULKhYAAAAJ',
+    },
+  },
+  {
+    name: 'Suramya Asthana',
+    role: 'Assistant Editor',
+    bio: '',
+    image: '/people/suramya.jpeg',
+    authorId: '9842880',
+    socialLinks: {
+      email: 'suramya.editor@researchhub.foundation',
+      linkedin: 'https://www.linkedin.com/in/suramyaa/',
+      scholar: 'https://scholar.google.com/citations?user=HWI44igAAAAJ&hl=en',
     },
   },
 ];
