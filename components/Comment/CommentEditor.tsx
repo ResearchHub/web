@@ -14,7 +14,6 @@ import { EditorModals } from './components/EditorModals';
 import { CommentContent } from './lib/types';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { useIsMac } from '@/hooks/useIsMac';
-import { useUser } from '@/contexts/UserContext';
 import { useReviewCooldown } from '@/hooks/useReviewCooldown';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { Info } from 'lucide-react';
@@ -87,10 +86,13 @@ export const CommentEditor = ({
   const [isBountyReplyBannerDismissed, setIsBountyReplyBannerDismissed] = useState(false);
   const isMac = useIsMac();
   const isMobile = useIsMobile();
-  const { user } = useUser();
-  const { canReview, formattedTimeRemaining, startCooldown } = useReviewCooldown(
-    user?.reviewAvailability ?? null
-  );
+  const isReview = commentType === 'REVIEW';
+  const {
+    canReview,
+    formattedTimeRemaining,
+    isLoading: isLoadingCooldown,
+    startCooldown,
+  } = useReviewCooldown(isReview);
 
   // Adapt the onSubmit function to the format expected by useEditorHandlers
   const adaptedOnSubmit = useCallback(
@@ -115,7 +117,6 @@ export const CommentEditor = ({
   // Initialize the editor with our custom hook
   const {
     editor,
-    isReview,
     rating,
     sectionRatings,
     setRating,
@@ -211,6 +212,15 @@ export const CommentEditor = ({
   }
 
   if (!editor) return null;
+
+  if (isReview && isLoadingCooldown) {
+    return (
+      <div className="border border-gray-200 rounded-lg bg-white p-6 animate-pulse">
+        <div className="h-4 bg-gray-200 rounded w-1/3 mb-4" />
+        <div className="h-24 bg-gray-100 rounded" />
+      </div>
+    );
+  }
 
   return (
     <div className="relative border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:ring-blue-500 focus-within:border-blue-500 transition-all duration-200">

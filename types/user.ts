@@ -21,12 +21,6 @@ export interface User {
   isModerator?: boolean;
   referralCode?: string;
   authProvider?: 'google' | 'credentials';
-  reviewAvailability?: ReviewAvailability | null;
-}
-
-export interface ReviewAvailability {
-  canReview: boolean;
-  availableAt: string | null;
 }
 
 export type TransformedUser = User & BaseTransformed;
@@ -50,7 +44,6 @@ const baseTransformUser = (raw: any): User => {
       moderator: false,
       isModerator: false,
       authProvider: undefined,
-      reviewAvailability: null,
     };
   }
 
@@ -87,12 +80,6 @@ const baseTransformUser = (raw: any): User => {
         ? 'google'
         : 'credentials'
       : undefined,
-    reviewAvailability: raw.review_availability
-      ? {
-          canReview: raw.review_availability.can_review ?? true,
-          availableAt: raw.review_availability.available_at ?? null,
-        }
-      : null,
   };
 };
 
@@ -115,7 +102,6 @@ export const transformUser = (raw: any): TransformedUser => {
       raw: null,
       isModerator: false,
       authProvider: undefined,
-      reviewAvailability: null,
     };
   }
 

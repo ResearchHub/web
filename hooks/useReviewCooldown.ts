@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { formatCountdownRemaining } from '@/utils/date';
-import type { ReviewAvailability } from '@/types/user';
+import { ReviewService } from '@/services/review.service';
+import type { ReviewAvailability } from '@/types/review';
 
 const COOLDOWN_DAYS = 4;
 const COOLDOWN_INTERVAL_MS = 60_000;
@@ -11,9 +12,12 @@ function deriveState(availability: ReviewAvailability | null) {
   return { canReview: isPast || availability.canReview, formattedTimeRemaining: formatted };
 }
 
-export function useReviewCooldown(reviewAvailability: ReviewAvailability | null) {
+export function useReviewCooldown(enabled: boolean) {
+  const [availability, setAvailability] = useState<ReviewAvailability | null>(null);
   const [localAvailability, setLocalAvailability] = useState<ReviewAvailability | null>(null);
-  const effective = localAvailability ?? reviewAvailability;
+  const [isLoading, setIsLoading] = useState(false);
+
+  const effective = localAvailability ?? availability;
   const [state, setState] = useState(() => deriveState(effective));
 
   const startCooldown = useCallback(() => {
@@ -21,6 +25,16 @@ export function useReviewCooldown(reviewAvailability: ReviewAvailability | null)
     end.setDate(end.getDate() + COOLDOWN_DAYS);
     setLocalAvailability({ canReview: false, availableAt: end.toISOString() });
   }, []);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    setIsLoading(true);
+    ReviewService.getAvailability()
+      .then(setAvailability)
+      .catch(() => setAvailability(null))
+      .finally(() => setIsLoading(false));
+  }, [enabled]);
 
   useEffect(() => {
     const derived = deriveState(effective);
@@ -36,5 +50,5 @@ export function useReviewCooldown(reviewAvailability: ReviewAvailability | null)
     return () => clearInterval(interval);
   }, [effective]);
 
-  return { ...state, startCooldown };
+  return { ...state, isLoading, startCooldown };
 }
