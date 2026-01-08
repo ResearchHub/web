@@ -21,6 +21,7 @@ export const LogEvent = {
   SIGNED_UP: 'signed_up',
   VOTE_ACTION: 'vote_action',
   FEED_ITEM_CLICKED: 'feed_item_clicked',
+  FEED_ITEM_ABSTRACT_EXPANDED: 'feed_item_abstract_expanded',
   WORK_DOCUMENT_VIEWED: 'work_document_viewed',
   DOCUMENT_TAB_CLICKED: 'document_tab_clicked',
 } as const;
