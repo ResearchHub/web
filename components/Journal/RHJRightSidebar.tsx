@@ -78,6 +78,15 @@ export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
           })}
         </div>
       </div>
+
+      {/* Journal Information Footnote */}
+      <div className="pt-4 mt-4 border-t border-gray-200">
+        <div className="text-xs text-gray-500 space-y-1">
+          <div>ResearchHub Journal is published by ResearchHub.</div>
+          <div>Address: ResearchHub, 548 Market Street PMB 26680, San Francisco, CA 94104, USA</div>
+          <div>ISSN: 3070-3395</div>
+        </div>
+      </div>
     </div>
   );
 }
