@@ -42,14 +42,6 @@ export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
         />
       )}
 
-      {/* Journal Information Section */}
-      <div className="space-y-2">
-        <h3 className="text-lg font-semibold text-gray-800">Journal Information</h3>
-        <div className="text-sm text-gray-600">
-          <div className="font-medium text-gray-600 mb-1">ISSN: 3070-3395</div>
-        </div>
-      </div>
-
       {/* Editorial Board Section */}
       <div className="space-y-2">
         <h3 className="text-lg font-semibold text-gray-800">Editorial Board</h3>
@@ -84,6 +76,15 @@ export function RHJRightSidebar({ showBanner = true }: RHJRightSidebarProps) {
               </a>
             );
           })}
+        </div>
+      </div>
+
+      {/* Journal Information Footnote */}
+      <div className="pt-4 mt-4 border-t border-gray-200">
+        <div className="text-xs text-gray-500 space-y-1">
+          <div>ResearchHub Journal is published by ResearchHub.</div>
+          <div>Address: ResearchHub, 548 Market Street PMB 26680, San Francisco, CA 94104, USA</div>
+          <div>ISSN: 3070-3395</div>
         </div>
       </div>
     </div>

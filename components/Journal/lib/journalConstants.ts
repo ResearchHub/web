@@ -4,6 +4,7 @@ export interface Editor {
   name: string;
   role: string;
   bio: string;
+  affiliation?: string;
   image: StaticImageData | string; // Allow string for placeholder
   authorId: string | null;
   socialLinks: {
@@ -19,6 +20,7 @@ export const editors: Editor[] = [
     name: 'Ruslan Rust, PhD',
     role: 'Senior Editor',
     bio: '',
+    affiliation: 'University of Southern California',
     image: '/people/ruslan.jpeg',
     authorId: '4945925',
     socialLinks: {
@@ -31,6 +33,7 @@ export const editors: Editor[] = [
     name: 'Attila Karsi, PhD',
     role: 'Senior Editor',
     bio: 'Dr. Attila Karsi earned his MSc and PhD degrees from Auburn University and is a tenured professor in the College of Veterinary Medicine at Mississippi State University. His research focuses on bacterial pathogenesis, host-pathogen interactions, and vaccine development. He has published over 100 peer-reviewed articles in esteemed journals, including Nucleic Acids Research, Journal of Bacteriology, Frontiers in Microbiology, and PLOS One.',
+    affiliation: 'Mississippi State University',
     image: '/people/attila.jpeg',
     authorId: '984218',
     socialLinks: {
@@ -40,9 +43,10 @@ export const editors: Editor[] = [
     },
   },
   {
-    name: 'Selda Yildiz',
+    name: 'Selda Yildiz, PhD',
     role: 'Associate Editor',
     bio: '',
+    affiliation: 'Oregon Health & Science University',
     image: '/people/selda.jpeg',
     authorId: '8116339',
     socialLinks: {
@@ -52,9 +56,10 @@ export const editors: Editor[] = [
     },
   },
   {
-    name: 'Scott Nelson',
+    name: 'Scott Nelson, PhD',
     role: 'Associate Editor',
     bio: '',
+    affiliation: 'Iowa State University',
     image: '/people/scott.jpeg',
     authorId: '6328170',
     socialLinks: {
@@ -64,27 +69,16 @@ export const editors: Editor[] = [
     },
   },
   {
-    name: 'Qingyu Luo',
+    name: 'Qingyu Luo, MD, PhD',
     role: 'Associate Editor',
     bio: '',
+    affiliation: 'Harvard University',
     image: '/people/qingyu.jpeg',
     authorId: '6487201',
     socialLinks: {
       email: 'qingyu.editor@researchhub.foundation',
       linkedin: 'https://www.linkedin.com/in/qingyu-luo-md-phd/',
       scholar: 'https://scholar.google.com/citations?pli=1&authuser=1&user=rmULKhYAAAAJ',
-    },
-  },
-  {
-    name: 'Suramya Asthana',
-    role: 'Assistant Editor',
-    bio: '',
-    image: '/people/suramya.jpeg',
-    authorId: '9842880',
-    socialLinks: {
-      email: 'suramya.editor@researchhub.foundation',
-      linkedin: 'https://www.linkedin.com/in/suramyaa/',
-      scholar: 'https://scholar.google.com/citations?user=HWI44igAAAAJ&hl=en',
     },
   },
 ];

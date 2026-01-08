@@ -113,6 +113,11 @@ export const EditorCard: FC<EditorCardProps> = ({ editor, className, size = 'sm'
             {editor.name}
           </p>
           <p className={cn('text-gray-500', isLarge ? 'text-sm' : 'text-xs')}>{editor.role}</p>
+          {editor.affiliation && (
+            <p className={cn('text-gray-500', isLarge ? 'text-sm' : 'text-xs')}>
+              {editor.affiliation}
+            </p>
+          )}
           <div className={cn('flex mt-1', isLarge ? 'space-x-3 mt-2' : 'space-x-2')}>
             {!isExternalLink && editorEmail && (
               <button
