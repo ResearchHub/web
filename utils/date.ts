@@ -186,7 +186,7 @@ export const formatDate = (datetime: string, format: string = 'MMM D, YYYY'): st
 };
 
 /** Pluralizes a unit (e.g., "1 day" vs "2 days") */
-const pluralize = (count: number, unit: string) => `${count} ${unit}${count !== 1 ? 's' : ''}`;
+const pluralize = (count: number, unit: string) => `${count} ${unit}${count === 1 ? '' : 's'}`;
 
 /**
  * Formats remaining time until a target date as a countdown string
