@@ -44,42 +44,52 @@ export function CommentEditorBanner({ isEditing, children }: CommentEditorBanner
   const showCooldown = !canReview && !isEditing && !isCooldownDismissed;
   const showInfo = canReview && !isInfoDismissed;
 
-  const banner = showCooldown ? (
-    <div className="mb-3 flex items-center justify-between gap-3 border rounded-md p-2 sm:!p-3 text-xs sm:!text-sm bg-red-50 border-red-200 text-red-800">
-      <div className="flex items-center gap-1.5">
-        <span className="flex flex-col sm:!block">
-          <span>You can write a Peer Review again in</span>
-          <span className="font-semibold sm:!ml-1">{timeRemaining}</span>
-        </span>
-        {!isMobile && (
-          <Tooltip content={CooldownTooltip} position="top" width="w-72">
-            <Info className="h-4 w-4 cursor-help flex-shrink-0 text-red-600" />
-          </Tooltip>
-        )}
-      </div>
-      <button
-        onClick={() => setIsCooldownDismissed(true)}
-        aria-label="Dismiss notice"
-        className="flex-shrink-0 inline-flex items-center px-3 py-1.5 rounded text-xs font-medium bg-red-100 hover:bg-red-200 text-red-800"
-      >
-        Got it
-      </button>
-    </div>
-  ) : showInfo ? (
-    <div className="mb-3 flex items-center justify-between gap-3 border rounded-md p-2 sm:!p-3 text-xs sm:!text-sm bg-yellow-50 border-yellow-200 text-yellow-800">
-      <p>
-        <span className="font-semibold">Add your review.</span> Be sure to view bounty description
-        in the bounties tab before reviewing.
-      </p>
-      <button
-        onClick={() => setIsInfoDismissed(true)}
-        aria-label="Dismiss notice"
-        className="flex-shrink-0 inline-flex items-center px-3 py-1.5 rounded text-xs font-medium bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
-      >
-        Got it
-      </button>
-    </div>
-  ) : null;
+  const renderBanner = () => {
+    if (showCooldown) {
+      return (
+        <div className="mb-3 flex items-center justify-between gap-3 border rounded-md p-2 sm:!p-3 text-xs sm:!text-sm bg-red-50 border-red-200 text-red-800">
+          <div className="flex items-center gap-1.5">
+            <span className="flex flex-col sm:!block">
+              <span>You can write a Peer Review again in</span>
+              <span className="font-semibold sm:!ml-1">{timeRemaining}</span>
+            </span>
+            {!isMobile && (
+              <Tooltip content={CooldownTooltip} position="top" width="w-72">
+                <Info className="h-4 w-4 cursor-help flex-shrink-0 text-red-600" />
+              </Tooltip>
+            )}
+          </div>
+          <button
+            onClick={() => setIsCooldownDismissed(true)}
+            aria-label="Dismiss notice"
+            className="flex-shrink-0 inline-flex items-center px-3 py-1.5 rounded text-xs font-medium bg-red-100 hover:bg-red-200 text-red-800"
+          >
+            Got it
+          </button>
+        </div>
+      );
+    }
 
-  return children({ canReview, startCooldown, banner });
+    if (showInfo) {
+      return (
+        <div className="mb-3 flex items-center justify-between gap-3 border rounded-md p-2 sm:!p-3 text-xs sm:!text-sm bg-yellow-50 border-yellow-200 text-yellow-800">
+          <p>
+            <span className="font-semibold">Add your review.</span> Be sure to view bounty
+            description in the bounties tab before reviewing.
+          </p>
+          <button
+            onClick={() => setIsInfoDismissed(true)}
+            aria-label="Dismiss notice"
+            className="flex-shrink-0 inline-flex items-center px-3 py-1.5 rounded text-xs font-medium bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
+          >
+            Got it
+          </button>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  return children({ canReview, startCooldown, banner: renderBanner() });
 }
