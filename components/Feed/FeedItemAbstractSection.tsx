@@ -13,6 +13,7 @@ export interface FeedItemAbstractSectionProps {
   maxLength?: number;
   className?: string;
   mobileLabel?: string;
+  onAbstractExpanded?: () => void;
 }
 
 export const FeedItemAbstractSection: FC<FeedItemAbstractSectionProps> = ({
@@ -21,6 +22,7 @@ export const FeedItemAbstractSection: FC<FeedItemAbstractSectionProps> = ({
   maxLength = 300,
   className,
   mobileLabel = 'Read abstract',
+  onAbstractExpanded,
 }) => {
   const [isDesktopExpanded, setIsDesktopExpanded] = useState(false);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
@@ -29,11 +31,17 @@ export const FeedItemAbstractSection: FC<FeedItemAbstractSectionProps> = ({
 
   const handleDesktopToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isDesktopExpanded) {
+      onAbstractExpanded?.();
+    }
     setIsDesktopExpanded(!isDesktopExpanded);
   };
 
   const handleMobileToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isMobileExpanded) {
+      onAbstractExpanded?.();
+    }
     setIsMobileExpanded(!isMobileExpanded);
   };
 

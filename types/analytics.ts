@@ -64,6 +64,17 @@ export interface FeedItemClickedEvent extends UserContext, BaseContext {
   impression?: string[];
 }
 
+// 2b. Feed Item Abstract Expanded
+export interface FeedItemAbstractExpandedEvent extends UserContext, BaseContext {
+  feed_position: number;
+  feed_source: FeedSource;
+  feed_tab: string;
+  related_work?: RelatedWork;
+  recommendation_id?: string | null;
+  feed_ordering?: string;
+  impression?: string[];
+}
+
 // 3. Work Document Viewed
 export interface WorkDocumentViewedEvent extends UserContext {
   related_work?: RelatedWork;
@@ -96,6 +107,51 @@ export function buildPayloadForFeedItemClick(
   const { feedPosition = 1, feedSource, feedTab, deviceType, feedOrdering, impression } = options;
 
   const payload: FeedItemClickedEvent = {
+    device_type: deviceType,
+    feed_position: feedPosition,
+    feed_source: feedSource,
+    feed_tab: feedTab,
+    related_work: {
+      id:
+        'relatedDocumentId' in entry.content && entry.content.relatedDocumentId
+          ? entry.content.relatedDocumentId.toString()
+          : entry.content.id?.toString() || '',
+      content_type:
+        'relatedDocumentContentType' in entry.content && entry.content.relatedDocumentContentType
+          ? mapAppContentTypeToApiType(entry.content.relatedDocumentContentType)
+          : mapAppFeedContentTypeToApiType(entry.content.contentType),
+      unified_document_id: getUnifiedDocumentId(entry),
+    },
+    recommendation_id: entry.recommendationId,
+    // Include feed ordering if provided
+    ...(feedOrdering && { feed_ordering: feedOrdering }),
+    // Include impressions if provided
+    ...(impression && impression.length > 0 && { impression }),
+  };
+
+  return payload;
+}
+
+/**
+ * Builds the payload for a feed item abstract expansion event
+ * @param entry - The feed entry whose abstract was expanded
+ * @param options - Options for building the payload
+ * @returns The FeedItemAbstractExpandedEvent payload
+ */
+export function buildPayloadForFeedItemAbstractExpanded(
+  entry: FeedEntry,
+  options: {
+    feedPosition?: number;
+    feedSource: FeedSource;
+    feedTab: string;
+    deviceType: DeviceType;
+    feedOrdering?: string;
+    impression?: string[];
+  }
+): FeedItemAbstractExpandedEvent {
+  const { feedPosition = 1, feedSource, feedTab, deviceType, feedOrdering, impression } = options;
+
+  const payload: FeedItemAbstractExpandedEvent = {
     device_type: deviceType,
     feed_position: feedPosition,
     feed_source: feedSource,

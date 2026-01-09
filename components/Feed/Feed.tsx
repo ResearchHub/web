@@ -39,7 +39,9 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   const { user } = useUser();
   const [isNavigating, setIsNavigating] = useState(false);
 
-  const { tabs, activeTab, handleTabChange } = useFeedTabs(() => setIsNavigating(true));
+  const { tabs, activeTab, handleTabChange } = useFeedTabs(() => {
+    // setIsNavigating(true);
+  });
 
   const [sourceFilter, setSourceFilter] = useState<FeedSource>('all');
   const orderingParam = searchParams.get('ordering');
@@ -91,10 +93,10 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     // Update URL with new ordering
     const params = new URLSearchParams(searchParams.toString());
     params.set('ordering', sort);
-    router.push(`/${activeTab}?${params.toString()}`);
+    router.push(`/${activeTab}?${params.toString()}`, { scroll: false });
   };
 
-  const combinedIsLoading = isLoading || isNavigating;
+  const combinedIsLoading = isLoading; // || isNavigating;
 
   const renderHeader = () => (
     <MainPageHeader

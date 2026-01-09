@@ -10,6 +10,8 @@ import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
 interface TabItem {
   id: string;
   label: string | React.ReactNode;
+  href?: string;
+  scroll?: boolean;
   customAction?: () => void;
 }
 
@@ -18,7 +20,7 @@ export type FeedSortOption = 'hot_score_v2' | 'latest';
 interface FeedTabsProps {
   activeTab: FeedTab;
   tabs: TabItem[];
-  onTabChange: (tab: string) => void;
+  onTabChange: (tab: string, e?: React.MouseEvent) => void;
   isLoading?: boolean;
   showGearIcon?: boolean;
   onGearClick?: () => void;
@@ -47,8 +49,8 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   isCompact = false,
   sortOptions = defaultSortOptions,
 }) => {
-  const handleTabChange = (tabId: string) => {
-    onTabChange(tabId);
+  const handleTabChange = (tabId: string, e?: React.MouseEvent) => {
+    onTabChange(tabId, e);
   };
 
   const handleSortChange = (option: SortOption) => {
@@ -66,9 +68,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
             activeTab={activeTab}
             onTabChange={handleTabChange}
             disabled={isLoading}
-            className={`!border-b-0 h-full transition-all duration-150 py-0 ${
-              isCompact ? 'h-[48px]' : 'h-[64px]'
-            }`}
+            className={`!border-b-0 h-full py-0 ${isCompact ? 'h-[48px]' : 'h-[64px]'}`}
           />
         </div>
         {/* Sorting and gear icon for Following tab */}

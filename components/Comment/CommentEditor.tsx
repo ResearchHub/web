@@ -1,8 +1,7 @@
 'use client';
 
 import { EditorContent } from '@tiptap/react';
-import { useRef, useCallback, useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useRef, useCallback, useState } from 'react';
 import 'highlight.js/styles/atom-one-dark.css';
 import { CommentType } from '@/types/comment';
 import { useCommentEditor } from './lib/hooks/useCommentEditor';
@@ -12,8 +11,8 @@ import { EditorToolbar } from './components/EditorToolbar';
 import { EditorFooter } from './components/EditorFooter';
 import { EditorModals } from './components/EditorModals';
 import { CommentContent } from './lib/types';
-import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { useIsMac } from '@/hooks/useIsMac';
+import { CommentEditorBanner } from './components/CommentEditorBanner';
 
 export interface CommentEditorProps {
   onSubmit: (content: {
@@ -65,9 +64,12 @@ export const CommentEditor = ({
   isAuthor = false,
 }: CommentEditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
-  const [isReviewBannerDismissed, setIsReviewBannerDismissed] = useState(false);
   const [isBountyReplyBannerDismissed, setIsBountyReplyBannerDismissed] = useState(false);
   const isMac = useIsMac();
+  const isReview = commentType === 'REVIEW';
+
+  // Ref to store startCooldown from render prop for use in handler
+  const startCooldownRef = useRef<() => void>(() => {});
 
   // Adapt the onSubmit function to the format expected by useEditorHandlers
   const adaptedOnSubmit = useCallback(
@@ -92,7 +94,6 @@ export const CommentEditor = ({
   // Initialize the editor with our custom hook
   const {
     editor,
-    isReview,
     rating,
     sectionRatings,
     setRating,
@@ -143,6 +144,7 @@ export const CommentEditor = ({
     clearDraft,
     setRating,
     setSectionRatings,
+    onReviewSuccess: editing ? undefined : () => startCooldownRef.current(),
   });
 
   // Configure editor click handler for links and keyboard shortcuts
@@ -188,7 +190,7 @@ export const CommentEditor = ({
 
   if (!editor) return null;
 
-  return (
+  const renderEditor = (canReview: boolean, banner: React.ReactNode = null) => (
     <div className="relative border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:ring-blue-500 focus-within:border-blue-500 transition-all duration-200">
       {/* User info header */}
       {showHeader && (
@@ -214,22 +216,8 @@ export const CommentEditor = ({
 
       {/* Editor content */}
       <div ref={editorRef} className="relative comment-editor-content">
-        {/* Informative banner displayed inside editing area */}
-        {isReview && !isReviewBannerDismissed && (
-          <div className="mb-3 flex flex-col sm:!flex-row items-start sm:!items-center justify-between bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md p-2 sm:!p-3 text-xs sm:!text-sm">
-            <p className="pr-0 sm:!pr-2 mb-1 sm:!mb-0">
-              <span className="font-semibold">Add your review.</span> Be sure to view bounty
-              description in the bounties tab before reviewing.
-            </p>
-            <button
-              onClick={() => setIsReviewBannerDismissed(true)}
-              aria-label="Dismiss notice"
-              className="mt-1 sm:!mt-0 inline-flex items-center px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded text-xs font-medium"
-            >
-              Got it
-            </button>
-          </div>
-        )}
+        {/* Review banners */}
+        {banner}
 
         {/* Bounty reply banner */}
         {isBountyReply && !isBountyReplyBannerDismissed && (
@@ -264,6 +252,7 @@ export const CommentEditor = ({
           clearDraft={clearDraft}
           isSubmitting={isSubmitting}
           isMac={isMac}
+          canSubmit={isReview && !editing ? canReview : true}
         />
       )}
 
@@ -283,4 +272,19 @@ export const CommentEditor = ({
       />
     </div>
   );
+
+  // For reviews, wrap with CommentEditorBanner which handles loading, banners, and cooldown state
+  if (isReview) {
+    return (
+      <CommentEditorBanner isEditing={editing}>
+        {({ canReview, startCooldown, banner }) => {
+          startCooldownRef.current = startCooldown;
+          return renderEditor(canReview, banner);
+        }}
+      </CommentEditorBanner>
+    );
+  }
+
+  // For non-reviews, render editor directly
+  return renderEditor(true);
 };

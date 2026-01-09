@@ -4,7 +4,7 @@ import { FC } from 'react';
 import { useFeed } from '@/hooks/useFeed';
 import { ID } from '@/types/root';
 import { FeedItemFundraise } from '@/components/Feed/items/FeedItemFundraise';
-import { useFeedItemClick } from '@/hooks/useFeedItemClick';
+import { useFeedItemAnalyticsTracking } from '@/hooks/useFeedItemAnalyticsTracking';
 import { cn } from '@/utils/styles';
 
 export function PinnedFundraiseSkeleton({ className }: { className?: string }) {
@@ -63,7 +63,7 @@ const PinnedFundraise: FC<PinnedFundraiseProps> = ({
 
   const mostFundedFundraise = getMostFundedFundraise(entries);
 
-  const handleFeedItemClick = useFeedItemClick({
+  const { handleFeedItemClick } = useFeedItemAnalyticsTracking({
     entry: mostFundedFundraise,
   });
 

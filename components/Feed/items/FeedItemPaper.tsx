@@ -20,6 +20,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { PopularityScoreTooltip } from '@/components/tooltips/HotScoreTooltip';
 import { formatTimestamp } from '@/utils/date';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
+import { buildWorkUrl } from '@/utils/url';
 
 interface FeedItemPaperProps {
   entry: FeedEntry;
@@ -28,6 +29,7 @@ interface FeedItemPaperProps {
   showActions?: boolean;
   maxLength?: number;
   onFeedItemClick?: () => void;
+  onAbstractExpanded?: () => void;
   highlights?: Highlight[];
   showBountyInfo?: boolean;
 }
@@ -42,6 +44,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   showActions = true,
   maxLength,
   onFeedItemClick,
+  onAbstractExpanded,
   highlights,
   showBountyInfo,
 }) => {
@@ -55,7 +58,13 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
   // Use provided href or create default paper page URL
-  const paperPageUrl = href || `/paper/${paper.id}/${paper.slug}`;
+  const paperPageUrl =
+    href ||
+    buildWorkUrl({
+      id: paper.id,
+      slug: paper.slug,
+      contentType: 'paper',
+    });
 
   // Construct the dynamic action text
   const journalName = paper.journal?.name;
@@ -157,7 +166,11 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection title={paper.title} highlightedTitle={highlightedTitle} />
+            <TitleSection
+              title={paper.title}
+              highlightedTitle={highlightedTitle}
+              href={paperPageUrl}
+            />
 
             {/* Authors and Date */}
             <MetadataSection className="mb-1">
@@ -193,6 +206,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               highlightedContent={highlightedSnippet}
               maxLength={maxLength}
               className="mt-3"
+              onAbstractExpanded={onAbstractExpanded}
             />
           </>
         }
