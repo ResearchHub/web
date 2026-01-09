@@ -12,6 +12,7 @@ interface EditorFooterProps {
   isSubmitting: boolean;
   hideSubmit?: boolean;
   isMac?: boolean;
+  canSubmit?: boolean;
 }
 
 export const EditorFooter = ({
@@ -25,6 +26,7 @@ export const EditorFooter = ({
   isSubmitting,
   hideSubmit = false,
   isMac = false,
+  canSubmit = true,
 }: EditorFooterProps) => {
   const isMobile = useIsMobile();
 
@@ -53,7 +55,12 @@ export const EditorFooter = ({
           </Button>
         )}
         {!hideSubmit && (
-          <Button variant="default" size="sm" onClick={onSubmit} disabled={isSubmitting}>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={onSubmit}
+            disabled={isSubmitting || !canSubmit}
+          >
             <span className="flex items-center justify-between w-full gap-3">
               <span>{isSubmitting ? 'Submitting...' : 'Submit'}</span>
               {!isSubmitting && !isMobile && (

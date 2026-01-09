@@ -184,3 +184,34 @@ export const formatExactTime = (deadline: string): string => {
 export const formatDate = (datetime: string, format: string = 'MMM D, YYYY'): string => {
   return dayjs(datetime).format(format);
 };
+
+/** Pluralizes a unit (e.g., "1 day" vs "2 days") */
+const pluralize = (count: number, unit: string) => `${count} ${unit}${count === 1 ? '' : 's'}`;
+
+/**
+ * Formats remaining time until a target date as a countdown string
+ * @param targetDate ISO timestamp, or null
+ * @returns { isPast: true } if past/null, or { isPast: false, formatted: "3 days 2 hours" }
+ */
+export function formatCountdownRemaining(targetDate: string | null): {
+  isPast: boolean;
+  formatted: string | null;
+} {
+  if (!targetDate) return { isPast: true, formatted: null };
+
+  const diffMs = dayjs(targetDate).diff(dayjs());
+  if (diffMs <= 0) return { isPast: true, formatted: null };
+
+  const dur = dayjs.duration(diffMs);
+  const days = Math.floor(dur.asDays());
+  const hours = dur.hours();
+  const minutes = dur.minutes();
+
+  const parts = [
+    days > 0 && pluralize(days, 'day'),
+    hours > 0 && pluralize(hours, 'hour'),
+    minutes > 0 && pluralize(minutes, 'minute'),
+  ].filter(Boolean);
+
+  return { isPast: false, formatted: parts.join(' ') || 'less than a minute' };
+}
