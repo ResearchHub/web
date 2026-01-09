@@ -8,8 +8,7 @@ interface CommentEditorBannerProps {
   readonly isInfoDismissed: boolean;
   readonly timeRemaining: string | null;
   readonly isMobile: boolean;
-  readonly onDismissCooldown: () => void;
-  readonly onDismissInfo: () => void;
+  readonly onDismiss: () => void;
 }
 
 const CooldownTooltip = (
@@ -21,17 +20,6 @@ const CooldownTooltip = (
   </div>
 );
 
-const STYLES = {
-  cooldown: {
-    container: 'bg-red-50 border-red-200 text-red-800',
-    button: 'bg-red-100 hover:bg-red-200 text-red-800',
-  },
-  info: {
-    container: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-    button: 'bg-yellow-100 hover:bg-yellow-200 text-yellow-800',
-  },
-} as const;
-
 export function CommentEditorBanner({
   canReview,
   isEditing,
@@ -39,17 +27,14 @@ export function CommentEditorBanner({
   isInfoDismissed,
   timeRemaining,
   isMobile,
-  onDismissCooldown,
-  onDismissInfo,
+  onDismiss,
 }: CommentEditorBannerProps) {
   const showCooldown = !canReview && !isEditing && !isCooldownDismissed;
   const showInfo = canReview && !isInfoDismissed;
 
   if (showCooldown) {
     return (
-      <div
-        className={`mb-3 flex items-center justify-between gap-3 border rounded-md p-2 sm:!p-3 text-xs sm:!text-sm ${STYLES.cooldown.container}`}
-      >
+      <div className="mb-3 flex items-center justify-between gap-3 border rounded-md p-2 sm:!p-3 text-xs sm:!text-sm bg-red-50 border-red-200 text-red-800">
         <div className="flex items-center gap-1.5">
           <span className="flex flex-col sm:!block">
             <span>You can write a Peer Review again in</span>
@@ -62,9 +47,9 @@ export function CommentEditorBanner({
           )}
         </div>
         <button
-          onClick={onDismissCooldown}
+          onClick={onDismiss}
           aria-label="Dismiss notice"
-          className={`flex-shrink-0 inline-flex items-center px-3 py-1.5 rounded text-xs font-medium ${STYLES.cooldown.button}`}
+          className="flex-shrink-0 inline-flex items-center px-3 py-1.5 rounded text-xs font-medium bg-red-100 hover:bg-red-200 text-red-800"
         >
           Got it
         </button>
@@ -74,17 +59,15 @@ export function CommentEditorBanner({
 
   if (showInfo) {
     return (
-      <div
-        className={`mb-3 flex items-center justify-between gap-3 border rounded-md p-2 sm:!p-3 text-xs sm:!text-sm ${STYLES.info.container}`}
-      >
+      <div className="mb-3 flex items-center justify-between gap-3 border rounded-md p-2 sm:!p-3 text-xs sm:!text-sm bg-yellow-50 border-yellow-200 text-yellow-800">
         <p>
           <span className="font-semibold">Add your review.</span> Be sure to view bounty description
           in the bounties tab before reviewing.
         </p>
         <button
-          onClick={onDismissInfo}
+          onClick={onDismiss}
           aria-label="Dismiss notice"
-          className={`flex-shrink-0 inline-flex items-center px-3 py-1.5 rounded text-xs font-medium ${STYLES.info.button}`}
+          className="flex-shrink-0 inline-flex items-center px-3 py-1.5 rounded text-xs font-medium bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
         >
           Got it
         </button>

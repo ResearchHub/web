@@ -76,7 +76,7 @@ export const CommentEditor = ({
   const isReview = commentType === 'REVIEW';
   const {
     canReview,
-    formattedTimeRemaining,
+    timeRemaining,
     isLoading: isLoadingCooldown,
     startCooldown,
   } = useReviewCooldown(isReview);
@@ -242,10 +242,15 @@ export const CommentEditor = ({
             isEditing={editing}
             isCooldownDismissed={isReviewCooldownBannerDismissed}
             isInfoDismissed={isReviewBannerDismissed}
-            timeRemaining={formattedTimeRemaining}
+            timeRemaining={timeRemaining}
             isMobile={isMobile}
-            onDismissCooldown={() => setIsReviewCooldownBannerDismissed(true)}
-            onDismissInfo={() => setIsReviewBannerDismissed(true)}
+            onDismiss={() => {
+              if (!canReview && !editing) {
+                setIsReviewCooldownBannerDismissed(true);
+              } else {
+                setIsReviewBannerDismissed(true);
+              }
+            }}
           />
         )}
 

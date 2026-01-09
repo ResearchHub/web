@@ -6,9 +6,9 @@ import type { ReviewAvailability } from '@/types/review';
 const COOLDOWN_DAYS = 4;
 
 function deriveState(availability: ReviewAvailability | null) {
-  if (!availability) return { canReview: true, formattedTimeRemaining: null };
+  if (!availability) return { canReview: true, timeRemaining: null };
   const { isPast, formatted } = formatCountdownRemaining(availability.availableAt);
-  return { canReview: isPast || availability.canReview, formattedTimeRemaining: formatted };
+  return { canReview: isPast || availability.canReview, timeRemaining: formatted };
 }
 
 export function useReviewCooldown(enabled: boolean) {
