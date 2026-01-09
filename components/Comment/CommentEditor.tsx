@@ -235,21 +235,17 @@ export const CommentEditor = ({
 
       {/* Editor content */}
       <div ref={editorRef} className="relative comment-editor-content">
-        {/* Cooldown banner - shown when user cannot review yet */}
-        {isReview && !editing && !canReview && !isReviewCooldownBannerDismissed && (
+        {/* Review banners */}
+        {isReview && (
           <CommentEditorBanner
-            variant="cooldown"
-            formattedTimeRemaining={formattedTimeRemaining}
+            canReview={canReview}
+            isEditing={editing}
+            isCooldownDismissed={isReviewCooldownBannerDismissed}
+            isInfoDismissed={isReviewBannerDismissed}
+            timeRemaining={formattedTimeRemaining}
             isMobile={isMobile}
-            onDismiss={() => setIsReviewCooldownBannerDismissed(true)}
-          />
-        )}
-
-        {/* Informative banner displayed inside editing area */}
-        {isReview && canReview && !isReviewBannerDismissed && (
-          <CommentEditorBanner
-            variant="review-info"
-            onDismiss={() => setIsReviewBannerDismissed(true)}
+            onDismissCooldown={() => setIsReviewCooldownBannerDismissed(true)}
+            onDismissInfo={() => setIsReviewBannerDismissed(true)}
           />
         )}
 
