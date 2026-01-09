@@ -244,13 +244,11 @@ export const CommentEditor = ({
             isInfoDismissed={isReviewBannerDismissed}
             timeRemaining={timeRemaining}
             isMobile={isMobile}
-            onDismiss={() => {
-              if (!canReview && !editing) {
-                setIsReviewCooldownBannerDismissed(true);
-              } else {
-                setIsReviewBannerDismissed(true);
-              }
-            }}
+            onDismiss={
+              !canReview && !editing
+                ? () => setIsReviewCooldownBannerDismissed(true)
+                : () => setIsReviewBannerDismissed(true)
+            }
           />
         )}
 
