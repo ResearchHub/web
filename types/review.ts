@@ -3,7 +3,7 @@ export interface ReviewAvailability {
   availableAt: string | null;
 }
 
-interface ApiReviewAvailability {
+export interface ApiReviewAvailability {
   can_review: boolean;
   available_at: string | null;
 }

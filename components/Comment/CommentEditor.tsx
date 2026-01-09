@@ -1,8 +1,7 @@
 'use client';
 
 import { EditorContent } from '@tiptap/react';
-import { useRef, useCallback, useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useRef, useCallback, useState } from 'react';
 import 'highlight.js/styles/atom-one-dark.css';
 import { CommentType } from '@/types/comment';
 import { useCommentEditor } from './lib/hooks/useCommentEditor';
@@ -12,10 +11,7 @@ import { EditorToolbar } from './components/EditorToolbar';
 import { EditorFooter } from './components/EditorFooter';
 import { EditorModals } from './components/EditorModals';
 import { CommentContent } from './lib/types';
-import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { useIsMac } from '@/hooks/useIsMac';
-import { useReviewCooldown } from '@/hooks/useReviewCooldown';
-import { useIsMobile } from '@/hooks/useIsMobile';
 import { CommentEditorBanner } from './components/CommentEditorBanner';
 
 export interface CommentEditorProps {
@@ -68,18 +64,12 @@ export const CommentEditor = ({
   isAuthor = false,
 }: CommentEditorProps) => {
   const editorRef = useRef<HTMLDivElement>(null);
-  const [isReviewBannerDismissed, setIsReviewBannerDismissed] = useState(false);
-  const [isReviewCooldownBannerDismissed, setIsReviewCooldownBannerDismissed] = useState(false);
   const [isBountyReplyBannerDismissed, setIsBountyReplyBannerDismissed] = useState(false);
   const isMac = useIsMac();
-  const isMobile = useIsMobile();
   const isReview = commentType === 'REVIEW';
-  const {
-    canReview,
-    timeRemaining,
-    isLoading: isLoadingCooldown,
-    startCooldown,
-  } = useReviewCooldown(isReview);
+
+  // Ref to store startCooldown from render prop for use in handler
+  const startCooldownRef = useRef<() => void>(() => {});
 
   // Adapt the onSubmit function to the format expected by useEditorHandlers
   const adaptedOnSubmit = useCallback(
@@ -154,7 +144,7 @@ export const CommentEditor = ({
     clearDraft,
     setRating,
     setSectionRatings,
-    onReviewSuccess: editing ? undefined : startCooldown,
+    onReviewSuccess: editing ? undefined : () => startCooldownRef.current(),
   });
 
   // Configure editor click handler for links and keyboard shortcuts
@@ -200,16 +190,7 @@ export const CommentEditor = ({
 
   if (!editor) return null;
 
-  if (isReview && isLoadingCooldown) {
-    return (
-      <div className="border border-gray-200 rounded-lg bg-white p-6 animate-pulse">
-        <div className="h-4 bg-gray-200 rounded w-1/3 mb-4" />
-        <div className="h-24 bg-gray-100 rounded" />
-      </div>
-    );
-  }
-
-  return (
+  const renderEditor = (canReview: boolean, banner: React.ReactNode = null) => (
     <div className="relative border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:ring-blue-500 focus-within:border-blue-500 transition-all duration-200">
       {/* User info header */}
       {showHeader && (
@@ -236,21 +217,7 @@ export const CommentEditor = ({
       {/* Editor content */}
       <div ref={editorRef} className="relative comment-editor-content">
         {/* Review banners */}
-        {isReview && (
-          <CommentEditorBanner
-            canReview={canReview}
-            isEditing={editing}
-            isCooldownDismissed={isReviewCooldownBannerDismissed}
-            isInfoDismissed={isReviewBannerDismissed}
-            timeRemaining={timeRemaining}
-            isMobile={isMobile}
-            onDismiss={
-              !canReview && !editing
-                ? () => setIsReviewCooldownBannerDismissed(true)
-                : () => setIsReviewBannerDismissed(true)
-            }
-          />
-        )}
+        {banner}
 
         {/* Bounty reply banner */}
         {isBountyReply && !isBountyReplyBannerDismissed && (
@@ -305,4 +272,19 @@ export const CommentEditor = ({
       />
     </div>
   );
+
+  // For reviews, wrap with CommentEditorBanner which handles loading, banners, and cooldown state
+  if (isReview) {
+    return (
+      <CommentEditorBanner isEditing={editing}>
+        {({ canReview, startCooldown, banner }) => {
+          startCooldownRef.current = startCooldown;
+          return renderEditor(canReview, banner);
+        }}
+      </CommentEditorBanner>
+    );
+  }
+
+  // For non-reviews, render editor directly
+  return renderEditor(true);
 };
