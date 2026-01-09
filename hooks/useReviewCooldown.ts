@@ -4,7 +4,6 @@ import { ReviewService } from '@/services/review.service';
 import type { ReviewAvailability } from '@/types/review';
 
 const COOLDOWN_DAYS = 4;
-const COOLDOWN_INTERVAL_MS = 60_000;
 
 function deriveState(availability: ReviewAvailability | null) {
   if (!availability) return { canReview: true, formattedTimeRemaining: null };
@@ -37,17 +36,7 @@ export function useReviewCooldown(enabled: boolean) {
   }, [enabled]);
 
   useEffect(() => {
-    const derived = deriveState(effective);
-    setState(derived);
-    if (derived.canReview) return;
-
-    const interval = setInterval(() => {
-      const next = deriveState(effective);
-      setState(next);
-      if (next.canReview) clearInterval(interval);
-    }, COOLDOWN_INTERVAL_MS);
-
-    return () => clearInterval(interval);
+    setState(deriveState(effective));
   }, [effective]);
 
   return { ...state, isLoading, startCooldown };
