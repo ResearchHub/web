@@ -190,11 +190,11 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                     hideExpandButton={true}
                   />
                 )}
-                {paper.createdDate && (
+                {(entry.timestamp || paper.createdDate) && (
                   <>
                     {paper.authors.length > 0 && <span className="mx-2 text-gray-500">•</span>}
                     <span className="text-gray-600 whitespace-nowrap text-sm">
-                      {formatTimestamp(paper.createdDate, false)}
+                      {formatTimestamp(entry.timestamp || paper.createdDate, false)}
                     </span>
                   </>
                 )}
