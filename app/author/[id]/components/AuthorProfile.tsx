@@ -17,7 +17,6 @@ import { useUpdateAuthorProfileData } from '@/hooks/useAuthor';
 import { useUser } from '@/contexts/UserContext';
 import { ProfileInformationForm } from '@/components/profile/About/ProfileInformationForm';
 import { ProfileInformationFormValues } from '@/components/profile/About/ProfileInformationForm/schema';
-import { Icon } from '@/components/ui/icons/Icon';
 import { useSyncOrcid } from '@/components/Orcid/lib/hooks/useSyncOrcid';
 import { ProfileEditButton } from './ProfileEditButton';
 
