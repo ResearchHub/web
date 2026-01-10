@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { Work } from '@/types/work';
 import { generateSlug } from '@/utils/url';
+import { ExperimentVariant, isExperimentEnabledServer } from '@/utils/experiment';
 
 /**
  * Opens an author profile using the appropriate routing mechanism
@@ -109,7 +110,25 @@ export function handleMissingSlugRedirect(work: Work, id: string, currentPath: s
  * @param isUserLoggedIn Whether the user is logged in
  * @param searchParams Optional search parameters to preserve in the redirect
  */
-export function handleTrendingRedirect(isUserLoggedIn: boolean, searchParams?: URLSearchParams) {
+export function handleTrendingRedirect(
+  isUserLoggedIn: boolean,
+  searchParams?: URLSearchParams,
+  homepageExperimentVariant?: ExperimentVariant | null
+) {
+  // Redirect if user is logged in OR if homepage experiment is enabled
+  const isHPExperimentEnabled = isExperimentEnabledServer(homepageExperimentVariant);
+
+  if (!isUserLoggedIn && isHPExperimentEnabled) {
+    let redirectUrl = '/popular';
+
+    // Preserve search parameters if provided
+    if (searchParams && searchParams.toString()) {
+      redirectUrl += `?${searchParams.toString()}`;
+    }
+
+    redirect(redirectUrl);
+  }
+
   if (isUserLoggedIn) {
     let redirectUrl = '/for-you';
 
