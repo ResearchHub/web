@@ -7,7 +7,7 @@ import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { ContentType } from '@/types/work';
-import { Pen, Trash2 } from 'lucide-react';
+import { Pen, Trash2, CheckCircle } from 'lucide-react';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { Avatar } from '@/components/ui/Avatar';
@@ -15,6 +15,7 @@ import { LegacyCommentBanner } from '@/components/LegacyCommentBanner';
 import { BaseFeedItem } from '@/components/Feed/BaseFeedItem';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { TipContentModal } from '@/components/modals/TipContentModal';
+import { Badge } from '@/components/ui/Badge';
 import { useUser } from '@/contexts/UserContext';
 
 // Define the recursive rendering component for parent comments
@@ -170,6 +171,12 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         {isReview && (
           <div className="flex items-center gap-2 mb-3">
             <ContentTypeBadge type="review" />
+            {entry.awardedBountyAmount && entry.awardedBountyAmount > 0 && (
+              <Badge variant="success" className="gap-1">
+                <CheckCircle className="h-3 w-3" />
+                Awarded
+              </Badge>
+            )}
           </div>
         )}
 

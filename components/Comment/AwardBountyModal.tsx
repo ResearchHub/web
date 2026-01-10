@@ -1,27 +1,25 @@
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState, useMemo, useEffect, useCallback, FC } from 'react';
+import { useState, useMemo, useEffect, useCallback, FC } from 'react';
 import { Comment, CommentFilter } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import { Modal } from '@/components/ui/form/Modal';
 import { Input } from '@/components/ui/form/Input';
 import { Button } from '@/components/ui/Button';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Progress } from '@/components/ui/Progress';
 import { formatRSC } from '@/utils/number';
 import { Alert } from '@/components/ui/Alert';
 import { cn } from '@/utils/styles';
 import { BountyService } from '@/services/bounty.service';
 import { toast } from 'react-hot-toast';
-import { hasBounties, isOpenBounty } from '@/components/Bounty/lib/bountyUtil';
-import { CommentProvider, useComments } from '@/contexts/CommentContext';
+import { hasBounties } from '@/components/Bounty/lib/bountyUtil';
+import { useComments } from '@/contexts/CommentContext';
 import { CommentItem } from './CommentItem';
-import { Trophy, DollarSign, Award, PercentIcon, Zap } from 'lucide-react';
 
 interface AwardBountyModalProps {
   isOpen: boolean;
   onClose: () => void;
   comment: Comment;
   contentType: ContentType;
+  bountyId?: number;
   onBountyUpdated?: () => void;
 }
 
@@ -474,6 +472,7 @@ export const AwardBountyModal = ({
   onClose,
   comment,
   contentType,
+  bountyId,
   onBountyUpdated,
 }: AwardBountyModalProps) => {
   const [awardAmounts, setAwardAmounts] = useState<Record<number, number>>({});
@@ -493,8 +492,20 @@ export const AwardBountyModal = ({
     }
   }, [isOpen]);
 
-  // Get the total bounty amount available to award
-  const activeBounty = comment.bounties?.find(isOpenBounty);
+  // Get the total bounty amount available to award (OPEN or ASSESSMENT)
+  const activeBounty = useMemo(() => {
+    if (!comment.bounties || comment.bounties.length === 0) {
+      return undefined;
+    }
+
+    if (!bountyId) {
+      return undefined;
+    }
+
+    // Find the exact bounty by ID
+    return comment.bounties.find((b) => b.id === bountyId);
+  }, [comment.bounties, bountyId]);
+
   const totalBountyAmount = activeBounty ? parseFloat(activeBounty.totalAmount) : 0;
 
   // Calculate total amount awarded and remaining

@@ -36,7 +36,7 @@ export interface BountyComment {
 export interface Bounty {
   id: number;
   amount: string;
-  status: 'OPEN' | 'CLOSED';
+  status: 'OPEN' | 'CLOSED' | 'ASSESSMENT';
   expirationDate?: string;
   bountyType: BountyType;
   createdBy: User;

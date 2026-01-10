@@ -9,6 +9,7 @@ import { WorkTabs, TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
+import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 import { QuestionEditModal } from '@/components/modals/QuestionEditModal';
 import TipTapRenderer from '@/components/Comment/lib/TipTapRenderer';
 import { htmlToTipTapJSON } from '@/components/Comment/lib/htmlToTipTap';
@@ -82,6 +83,7 @@ export const PostDocument = ({
       case 'reviews':
         return (
           <div className="space-y-6" key="reviews-tab">
+            <ReviewStatusBanner bounties={metadata.bounties || []} />
             <CommentFeed
               unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}
