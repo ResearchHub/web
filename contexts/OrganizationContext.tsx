@@ -31,7 +31,7 @@ interface OrganizationContextType {
 
 const OrganizationContext = createContext<OrganizationContextType | null>(null);
 
-export function OrganizationProvider({ children }: { children: ReactNode }) {
+function OrganizationProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const params = useParams();
   const targetOrgSlug = params?.orgSlug as string;
@@ -126,10 +126,12 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   return <OrganizationContext.Provider value={value}>{children}</OrganizationContext.Provider>;
 }
 
-export function useOrganizationContext() {
+function useOrganizationContext() {
   const context = useContext(OrganizationContext);
   if (!context) {
     throw new Error('useOrganizationContext must be used within an OrganizationProvider');
   }
   return context;
 }
+
+export { OrganizationProvider, useOrganizationContext };
