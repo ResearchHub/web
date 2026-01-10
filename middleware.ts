@@ -11,6 +11,7 @@ function getExperimentVariant(request: NextRequest): string {
   }
 
   // Assign new variant (50/50 split)
+  // NOSONAR - Math.random is safe for A/B test assignment (non-security context)
   const variant = Math.random() < 0.5 ? ExperimentVariant.A : ExperimentVariant.B;
 
   return variant;
