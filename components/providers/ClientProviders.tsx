@@ -27,8 +27,8 @@ import { LeaderboardProvider } from '@/contexts/LeaderboardContext';
 import { DismissedFeaturesProvider } from '@/contexts/DismissedFeaturesContext';
 
 interface ClientProvidersProps {
-  children: ReactNode;
-  session: Session | null;
+  readonly children: ReactNode;
+  readonly session: Session | null;
 }
 
 export function ClientProviders({ children, session }: ClientProvidersProps) {
