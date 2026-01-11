@@ -41,6 +41,10 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
     icon: 'openGrant',
     useAvatar: false,
   },
+  BOUNTY_SOLUTION_IN_ASSESSMENT: {
+    icon: 'openGrant',
+    useAvatar: false,
+  },
   BOUNTY_HUB_EXPIRING_SOON: {
     icon: 'earn1',
     useAvatar: false,
@@ -277,6 +281,9 @@ export function formatNotificationMessage(
 
     case 'BOUNTY_ASSESSMENT_EXPIRING_SOON':
       return `Your bounty on "${truncatedTitle}" is expiring soon! Please award the best answer`;
+
+    case 'BOUNTY_SOLUTION_IN_ASSESSMENT':
+      return `Your solution to the bounty on "${truncatedTitle}" is in assessment`;
 
     case 'BOUNTY_HUB_EXPIRING_SOON':
       return `A bounty on "${truncatedTitle}" is expiring soon `;
