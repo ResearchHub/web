@@ -18,6 +18,7 @@ interface UseEditorHandlersProps {
   clearDraft: () => void;
   setRating: (rating: number) => void;
   setSectionRatings: (ratings: Record<string, number>) => void;
+  onReviewSuccess?: () => void;
 }
 
 export const useEditorHandlers = ({
@@ -29,6 +30,7 @@ export const useEditorHandlers = ({
   clearDraft,
   setRating,
   setSectionRatings,
+  onReviewSuccess,
 }: UseEditorHandlersProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
@@ -98,6 +100,7 @@ export const useEditorHandlers = ({
         if (isReview) {
           setRating(0);
           setSectionRatings({});
+          onReviewSuccess?.();
         }
       }
     } catch (error) {
