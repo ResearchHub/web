@@ -128,6 +128,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
               title={post.title}
               highlightedTitle={highlightedTitle}
               href={postPageUrl}
+              onClick={onFeedItemClick}
             />
 
             <div>
