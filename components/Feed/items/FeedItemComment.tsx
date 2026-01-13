@@ -227,6 +227,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 tips={entry.tips}
                 relatedDocumentTopics={entry.relatedWork?.topics}
                 onFeedItemClick={onFeedItemClick}
+                hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
               />
             </div>
           </div>
