@@ -170,6 +170,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               title={paper.title}
               highlightedTitle={highlightedTitle}
               href={paperPageUrl}
+              onClick={onFeedItemClick}
             />
 
             {/* Authors and Date */}

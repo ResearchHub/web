@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useCallback, useRef, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 import {
   FeedCommentContent,
@@ -17,11 +17,14 @@ import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
 import { FeedItemGrant } from './items/FeedItemGrant';
 import { useFeedItemAnalyticsTracking } from '@/hooks/useFeedItemAnalyticsTracking';
-import { useCallback } from 'react';
 import { getUnifiedDocumentId } from '@/types/analytics';
 import { FeedItemBountyComment } from './items/FeedItemBountyComment';
 import { buildWorkUrl } from '@/utils/url';
 import { ContentType } from '@/types/work';
+import ImpressionBufferService from '@/services/impression-buffer.service';
+import { mapAppFeedContentTypeToApiType } from '@/utils/contentTypeMapping';
+import { useFeedSource } from '@/hooks/useFeedSource';
+import { useDeviceType } from '@/hooks/useDeviceType';
 
 export interface Highlight {
   field: string;
@@ -66,17 +69,46 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   highlights,
 }) => {
   const unifiedDocumentId = getUnifiedDocumentId(entry);
+  const hasTrackedImpression = useRef(false);
 
+  // Set impression buffer context
+  const { source: feedSource, tab: feedTab } = useFeedSource();
+  const deviceType = useDeviceType();
+
+  useEffect(() => {
+    ImpressionBufferService.setContext({
+      feedSource,
+      feedTab,
+      feedOrdering,
+      deviceType,
+    });
+  }, [feedSource, feedTab, feedOrdering, deviceType]);
+
+  // Single observer for both visibility tracking and bulk impressions
   const { ref } = useInView({
-    threshold: 0,
-    rootMargin: '50px',
+    threshold: 0.9,
+    rootMargin: '-50px 0px 0px 0px',
     onChange: (inView) => {
-      if (unifiedDocumentId) {
-        if (inView) {
-          registerVisibleItem(index, unifiedDocumentId);
-        } else {
-          unregisterVisibleItem(index, unifiedDocumentId);
+      if (!unifiedDocumentId) return;
+
+      if (inView) {
+        // 1. Add to "currently visible" set (for click context)
+        registerVisibleItem(index, unifiedDocumentId);
+
+        // 2. Track bulk impression (once per item, ever)
+        if (!hasTrackedImpression.current) {
+          hasTrackedImpression.current = true;
+
+          ImpressionBufferService.trackImpression({
+            unifiedDocumentId,
+            contentType: mapAppFeedContentTypeToApiType(entry.content.contentType),
+            feedPosition: index + 1,
+            recommendationId: entry.recommendationId,
+          });
         }
+      } else {
+        // Remove from "currently visible" set
+        unregisterVisibleItem(index, unifiedDocumentId);
       }
     },
   });
