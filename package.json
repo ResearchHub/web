@@ -155,7 +155,7 @@
     "@typescript-eslint/parser": "^8.20.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^8",
-    "eslint-config-next": "^14.0.3",
+    "eslint-config-next": "^15.5.9",
     "eslint-plugin-prettier": "^5.2.1",
     "husky": "^9.1.7",
     "lint-staged": "^15.4.1",
