@@ -412,6 +412,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
                 entry.relatedWork?.unifiedDocumentId?.toString() || undefined
               }
               onFeedItemClick={onFeedItemClick}
+              hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
             />
           </div>
         )}

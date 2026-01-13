@@ -417,6 +417,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               onFeedItemClick={onFeedItemClick}
               bounties={showBountyInfo ? undefined : content.bounties}
               hideReportButton={hideReportButton}
+              hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
             />
           </div>
         )}
