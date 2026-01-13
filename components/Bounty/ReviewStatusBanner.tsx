@@ -2,20 +2,20 @@
 
 import { Alert } from '@/components/ui/Alert';
 import { Bounty } from '@/types/bounty';
-import { findLatestActiveReviewBounty } from './lib/bountyUtil';
+import { findLatestFoundationBounty } from './lib/bountyUtil';
 
 interface ReviewStatusBannerProps {
   bounties: Bounty[];
 }
 
 export const ReviewStatusBanner = ({ bounties }: ReviewStatusBannerProps) => {
-  const activeReviewBounty = findLatestActiveReviewBounty(bounties);
+  const activeFoundationBounty = findLatestFoundationBounty(bounties);
 
-  if (!activeReviewBounty) {
+  if (!activeFoundationBounty) {
     return null;
   }
 
-  if (activeReviewBounty.status === 'OPEN') {
+  if (activeFoundationBounty.status === 'OPEN') {
     return (
       <Alert variant="success" className="mb-6">
         <div className="flex flex-col gap-1">
@@ -29,7 +29,7 @@ export const ReviewStatusBanner = ({ bounties }: ReviewStatusBannerProps) => {
     );
   }
 
-  if (activeReviewBounty.status === 'ASSESSMENT') {
+  if (activeFoundationBounty.status === 'ASSESSMENT') {
     return (
       <Alert variant="warning" className="mb-6">
         <div className="flex flex-col gap-1">

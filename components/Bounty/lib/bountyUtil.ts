@@ -138,28 +138,6 @@ export const getDisplayBounty = (bounties: Bounty[]): Bounty | undefined => {
 };
 
 /**
- * Finds the latest active (OPEN or ASSESSMENT) REVIEW bounty in an array
- * @param bounties Array of bounties to search
- * @returns The latest active REVIEW bounty or undefined if none found
- */
-export const findLatestActiveReviewBounty = (bounties: Bounty[]): Bounty | undefined => {
-  if (!bounties || !Array.isArray(bounties) || bounties.length === 0) {
-    return undefined;
-  }
-
-  const activeReviewBounties = bounties.filter(
-    (bounty) =>
-      bounty.bountyType === 'REVIEW' || (bounty.bountyType === 'BOUNTY' && isActiveBounty(bounty))
-  );
-
-  if (activeReviewBounties.length === 0) {
-    return undefined;
-  }
-
-  return activeReviewBounties[0];
-};
-
-/**
  * Checks if a bounty is expiring soon (within 3 days)
  * @param expirationDate The expiration date string
  * @param daysThreshold Number of days to consider as "expiring soon" (default: 3)
@@ -643,4 +621,28 @@ export const getTotalBountyDisplayAmount = (
   }, 0);
 
   return { amount, foundationBountyCount };
+};
+
+/**
+ * Finds the latest active Foundation bounty in an array
+ * @param bounties Array of bounties to search
+ * @returns The latest active Foundation bounty or undefined if none found
+ */
+export const findLatestFoundationBounty = (bounties: Bounty[]): Bounty | undefined => {
+  if (!bounties || !Array.isArray(bounties) || bounties.length === 0) {
+    return undefined;
+  }
+
+  const activeReviewBounties = bounties.filter(
+    (bounty) =>
+      (bounty.bountyType === 'REVIEW' || bounty.bountyType === 'BOUNTY') &&
+      isFoundationBounty(bounty) &&
+      isActiveBounty(bounty)
+  );
+
+  if (activeReviewBounties.length === 0) {
+    return undefined;
+  }
+
+  return activeReviewBounties[0];
 };

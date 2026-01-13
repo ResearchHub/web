@@ -143,6 +143,15 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
     }
   }
 
+  const renderAwardedBadge = () => {
+    return (
+      <Badge variant="success" className="gap-1 border-green-300 cursor-pointer gap-1.5 py-1">
+        <CheckCircle className="h-4 w-4" />
+        Awarded
+      </Badge>
+    );
+  };
+
   return (
     <div className="space-y-3">
       <FeedItemHeader
@@ -171,12 +180,24 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         {isReview && (
           <div className="flex items-center gap-2 mb-3">
             <ContentTypeBadge type="review" />
-            {entry.awardedBountyAmount && entry.awardedBountyAmount > 0 && (
-              <Badge variant="success" className="gap-1">
-                <CheckCircle className="h-3 w-3" />
-                Awarded
-              </Badge>
-            )}
+            {entry.awardedBountyAmount &&
+              entry.awardedBountyAmount > 0 &&
+              (entry.isAwardedForFoundationBounty ? (
+                <Tooltip
+                  content={
+                    <div className="flex items-start gap-3 text-left">
+                      <CheckCircle className="h-10 w-10 text-green-600" />
+                      <div>Reviewed and approved by the ResearchHub Foundation Editor Team.</div>
+                    </div>
+                  }
+                  position="top"
+                  width="w-[320px]"
+                >
+                  {renderAwardedBadge()}
+                </Tooltip>
+              ) : (
+                renderAwardedBadge()
+              ))}
           </div>
         )}
 
