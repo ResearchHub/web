@@ -145,7 +145,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
   const renderAwardedBadge = () => {
     return (
-      <Badge variant="success" className="gap-1 border-green-300 cursor-pointer gap-1.5 py-1">
+      <Badge variant="success" className="gap-1 border-green-600 cursor-pointer gap-1.5 py-1">
         <CheckCircle className="h-4 w-4" />
         Awarded
       </Badge>
