@@ -158,7 +158,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection title={post.title} href={fundingPageUrl} />
+            <TitleSection title={post.title} href={fundingPageUrl} onClick={onFeedItemClick} />
 
             {/* Authors list */}
             <MetadataSection className="mb-1">
