@@ -259,7 +259,7 @@ export const CommentEditor = ({
           clearDraft={clearDraft}
           isSubmitting={isSubmitting}
           isMac={isMac}
-          canSubmit={(editing || canReview) && !isOverLimit}
+          canSubmit={isReview ? (editing || canReview) && !isOverLimit : true}
           wordCount={wordLimit ? wordCount : undefined}
           wordLimit={wordLimit}
         />
