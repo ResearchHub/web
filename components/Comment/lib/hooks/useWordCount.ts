@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Editor } from '@tiptap/react';
+import { debounce } from 'lodash';
 import { countWords } from '@/utils/stringUtils';
 
 interface UseWordCountOptions {
@@ -10,16 +11,19 @@ interface UseWordCountOptions {
 /** Tracks word count from a TipTap editor with optional limit */
 export const useWordCount = ({ editor, limit }: UseWordCountOptions) => {
   const [wordCount, setWordCount] = useState(0);
+  const debouncedSetCount = useRef(debounce((text: string) => setWordCount(countWords(text)), 300));
 
   useEffect(() => {
     if (!editor || !limit) return;
 
-    const updateCount = () => setWordCount(countWords(editor.getText()));
-    updateCount();
+    setWordCount(countWords(editor.getText()));
 
-    editor.on('update', updateCount);
+    const handleUpdate = () => debouncedSetCount.current(editor.getText());
+    editor.on('update', handleUpdate);
+
     return () => {
-      editor.off('update', updateCount);
+      editor.off('update', handleUpdate);
+      debouncedSetCount.current.cancel();
     };
   }, [editor, limit]);
 
