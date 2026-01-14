@@ -53,6 +53,7 @@ export interface TitleSectionProps {
   highlightedTitle?: string;
   className?: string;
   href?: string;
+  onClick?: () => void;
 }
 
 // Content component interface
@@ -125,6 +126,7 @@ export const TitleSection: FC<TitleSectionProps> = ({
   highlightedTitle,
   className,
   href,
+  onClick,
 }) => {
   const content = highlightedTitle ? (
     <h2
@@ -149,7 +151,7 @@ export const TitleSection: FC<TitleSectionProps> = ({
 
   if (href) {
     return (
-      <Link href={href} className="no-underline block" scroll={false}>
+      <Link href={href} className="no-underline block" scroll={false} onClick={onClick}>
         {content}
       </Link>
     );
@@ -415,6 +417,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               onFeedItemClick={onFeedItemClick}
               bounties={showBountyInfo ? undefined : content.bounties}
               hideReportButton={hideReportButton}
+              hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
             />
           </div>
         )}

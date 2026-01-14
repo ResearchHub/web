@@ -85,7 +85,7 @@ export function useFeedSource(): FeedSourceInfo {
   const source = pathSegments[0] || 'home';
 
   // Treat trending, following, latest, for-you as home
-  const homeTabs = ['trending', 'following', 'latest', 'for-you'];
+  const homeTabs = ['popular', 'following', 'latest', 'for-you'];
   const isHomeTab = homeTabs.includes(source);
   const isTopicTab = source === 'topic';
   const isAuthorTab = source === 'author';

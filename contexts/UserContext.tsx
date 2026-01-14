@@ -6,6 +6,7 @@ import { AuthError, AuthService } from '@/services/auth.service';
 import type { User } from '@/types/user';
 import { AuthSharingService } from '@/services/auth-sharing.service';
 import AnalyticsService from '@/services/analytics.service';
+import { Experiment } from '@/utils/experiment';
 
 interface UserContextType {
   user: User | null;
@@ -71,11 +72,34 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
         // Track Google OAuth sign-up if applicable
         if (user.authProvider === 'google' && user.hasCompletedOnboarding === false) {
-          AnalyticsService.logSignedUp('google', {});
+          const urlParams = new URLSearchParams(window.location.search);
+          const urlHPExperimentVariant = urlParams.get(Experiment.HomepageExperiment);
+
+          if (urlHPExperimentVariant) {
+            /**
+             * Due to authentication flow limitations:
+             *
+             * 1. Credentials/Email flow: Track signed_up event immediately after client-side registration
+             *    (cookies accessible in Signup.tsx component)
+             *
+             * 2. Google OAuth: Track during user context initialization by checking authProvider === 'google'
+             *    (cookies accessible after redirect from Google OAuth)
+             *
+             * We track here instead of in SelectProvider because:
+             * - Google OAuth redirects to a new page, losing the original context
+             * - The experiment variant is passed via URL parameter and needs to be captured after redirect
+             * - UserContext is the first place where we have both user data and access to URL parameters
+             * - This ensures we capture the experiment variant before it gets cleaned up
+             */
+            AnalyticsService.logSignedUp('google', {
+              homepage_experiment: urlHPExperimentVariant,
+            });
+          }
         }
 
         // Clean up URL parameter
         const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete(Experiment.HomepageExperiment);
         window.history.replaceState({}, '', newUrl.toString());
 
         // Mark analytics as initialized for this user

@@ -127,6 +127,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
               title={grant.title}
               highlightedTitle={highlightedTitle}
               href={grantPageUrl}
+              onClick={onFeedItemClick}
             />
 
             {/* Organization or Authors list */}

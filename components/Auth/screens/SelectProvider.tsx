@@ -6,6 +6,7 @@ import { useAutoFocus } from '@/hooks/useAutoFocus';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { useReferral } from '@/contexts/ReferralContext';
 import { Button } from '@/components/ui/Button';
+import { Experiment, getHomepageExperimentVariant } from '@/utils/experiment';
 
 interface SelectProviderProps {
   onContinue: () => void;
@@ -48,7 +49,18 @@ export default function SelectProvider({
 
       if (response.exists) {
         if (response.auth === 'google') {
-          signIn('google', { callbackUrl: '/' });
+          const originalCallbackUrl = '/';
+          let finalCallbackUrl = originalCallbackUrl;
+
+          const experimentVariant = getHomepageExperimentVariant();
+          if (experimentVariant) {
+            // Create URL with experiment parameter
+            const experimentUrl = new URL(originalCallbackUrl, window.location.origin);
+            experimentUrl.searchParams.set(Experiment.HomepageExperiment, experimentVariant);
+            finalCallbackUrl = experimentUrl.toString();
+          }
+
+          signIn('google', { callbackUrl: finalCallbackUrl });
         } else if (response.is_verified) {
           onContinue();
         } else {
@@ -73,6 +85,14 @@ export default function SelectProvider({
     const originalCallbackUrl = searchParams.get('callbackUrl') || '/';
 
     let finalCallbackUrl = originalCallbackUrl;
+
+    const homepageExperimentVariant = getHomepageExperimentVariant();
+    if (homepageExperimentVariant) {
+      // Create URL with experiment parameter
+      const experimentUrl = new URL(originalCallbackUrl, window.location.origin);
+      experimentUrl.searchParams.set(Experiment.HomepageExperiment, homepageExperimentVariant);
+      finalCallbackUrl = experimentUrl.toString();
+    }
 
     if (referralCode) {
       // Create referral application URL with referral code and redirect as URL parameters
