@@ -6,6 +6,7 @@ import 'highlight.js/styles/atom-one-dark.css';
 import { CommentType } from '@/types/comment';
 import { useCommentEditor } from './lib/hooks/useCommentEditor';
 import { useEditorHandlers } from './lib/hooks/useEditorHandlers';
+import { useWordCount } from './lib/hooks/useWordCount';
 import { EditorHeader } from './components/EditorHeader';
 import { EditorToolbar } from './components/EditorToolbar';
 import { EditorFooter } from './components/EditorFooter';
@@ -13,6 +14,8 @@ import { EditorModals } from './components/EditorModals';
 import { CommentContent } from './lib/types';
 import { useIsMac } from '@/hooks/useIsMac';
 import { CommentEditorBanner } from './components/CommentEditorBanner';
+
+const REVIEW_WORD_LIMIT = 3000;
 
 export interface CommentEditorProps {
   onSubmit: (content: {
@@ -118,6 +121,10 @@ export const CommentEditor = ({
     autoFocus,
   });
 
+  // Track word count for reviews
+  const wordLimit = isReview ? REVIEW_WORD_LIMIT : undefined;
+  const { wordCount, isOverLimit } = useWordCount({ editor, limit: wordLimit });
+
   // Initialize the editor handlers with our custom hook
   const {
     isSubmitting,
@@ -179,6 +186,7 @@ export const CommentEditor = ({
         handleKeyDown: (view, event) => {
           if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
             event.preventDefault();
+            if (isReview && isOverLimit) return true;
             handleSubmit();
             return true;
           }
@@ -252,7 +260,9 @@ export const CommentEditor = ({
           clearDraft={clearDraft}
           isSubmitting={isSubmitting}
           isMac={isMac}
-          canSubmit={isReview && !editing ? canReview : true}
+          canSubmit={isReview ? (editing || canReview) && !isOverLimit : true}
+          wordCount={wordLimit ? wordCount : undefined}
+          wordLimit={wordLimit}
         />
       )}
 
