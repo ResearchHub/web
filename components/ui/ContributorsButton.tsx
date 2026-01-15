@@ -17,7 +17,7 @@ interface LabelBadgeProps {
   count: number;
   label: string;
   size?: number | 'xxs' | 'xs' | 'sm' | 'md' | 'lg';
-  addBadgeSpacing?: boolean;
+  removeBadgeSpacing?: boolean;
 }
 
 // Extract the label badge as a separate component
@@ -25,7 +25,7 @@ export function LabelBadge({
   count,
   label,
   size = 'xs',
-  addBadgeSpacing = false,
+  removeBadgeSpacing = false,
 }: LabelBadgeProps) {
   // Use singular form if there's only one
   const displayLabel = count === 1 ? label.replace(/s$/, '') : label;
@@ -112,7 +112,7 @@ export function LabelBadge({
         'bg-gray-100 rounded-full ring-white shadow-sm z-10',
         getRingSize(),
         getPadding(),
-        addBadgeSpacing ? undefined : getMargin()
+        removeBadgeSpacing ? undefined : getMargin()
       )}
     >
       <span className={cn('text-gray-900 whitespace-nowrap', getFontSize())}>
@@ -207,7 +207,7 @@ export function ContributorsButton({
           showLabel={false}
         />
         {!hideLabel && (
-          <LabelBadge count={contributors.length} label={label} size={size} addBadgeSpacing />
+          <LabelBadge count={contributors.length} label={label} size={size} removeBadgeSpacing />
         )}
       </button>
 
