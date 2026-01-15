@@ -69,28 +69,31 @@ export const useUserModeration = (): UseUserModerationReturn => {
     }
   }, []);
 
-  const markProbableSpammer: MarkProbableSpammerAction = useCallback(async (authorId: string) => {
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+  const markProbableSpammer: MarkProbableSpammerAction = useCallback(
+    async (authorId: string, reason?: string, reasonMemo?: string) => {
+      setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
-    try {
-      await UserModerationService.markProbableSpammer(authorId);
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        lastAction: 'flag',
-        error: null,
-      }));
-    } catch (error) {
-      const errorMessage =
-        error instanceof UserModerationError ? error.message : 'Failed to flag user';
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: errorMessage,
-      }));
-      throw error; // Re-throw for component handling
-    }
-  }, []);
+      try {
+        await UserModerationService.markProbableSpammer(authorId, reason, reasonMemo);
+        setState((prev) => ({
+          ...prev,
+          isLoading: false,
+          lastAction: 'flag',
+          error: null,
+        }));
+      } catch (error) {
+        const errorMessage =
+          error instanceof UserModerationError ? error.message : 'Failed to flag user';
+        setState((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: errorMessage,
+        }));
+        throw error; // Re-throw for component handling
+      }
+    },
+    []
+  );
 
   const actions: UserModerationActions = {
     suspendUser,

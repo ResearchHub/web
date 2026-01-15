@@ -36,3 +36,51 @@ export const getFlagOptions = () => {
     description: metadata.description,
   }));
 };
+
+// User flag reasons - used when moderators flag a user account
+export type UserFlagReasonKey =
+  | 'SPAM_ACCOUNT'
+  | 'FAKE_IDENTITY'
+  | 'HARASSMENT'
+  | 'POLICY_VIOLATION'
+  | 'SUSPICIOUS_ACTIVITY'
+  | 'OTHER';
+
+export const USER_FLAG_REASON_METADATA: Record<
+  UserFlagReasonKey,
+  { label: string; description: string }
+> = {
+  SPAM_ACCOUNT: {
+    label: 'Spam Account',
+    description: 'Account exists primarily to promote products or services',
+  },
+  FAKE_IDENTITY: {
+    label: 'Fake Identity',
+    description: 'User is impersonating someone else or using false credentials',
+  },
+  HARASSMENT: {
+    label: 'Harassment',
+    description: 'User has engaged in harassment or abusive behavior toward others',
+  },
+  POLICY_VIOLATION: {
+    label: 'Policy Violation',
+    description: 'User has violated community guidelines or terms of service',
+  },
+  SUSPICIOUS_ACTIVITY: {
+    label: 'Suspicious Activity',
+    description: 'Unusual patterns suggesting automated or malicious behavior',
+  },
+  OTHER: {
+    label: 'Other',
+    description: 'Other reason not listed above',
+  },
+} as const;
+
+// Helper function to get user flag options for the modal
+export const getUserFlagOptions = () => {
+  return Object.entries(USER_FLAG_REASON_METADATA).map(([key, metadata]) => ({
+    value: key,
+    label: metadata.label,
+    description: metadata.description,
+  }));
+};

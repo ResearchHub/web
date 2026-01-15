@@ -9,6 +9,7 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 import { useUserModeration } from '@/hooks/useUserModeration';
 import { useUser } from '@/contexts/UserContext';
+import { FlagUserModal } from '@/components/modals/FlagUserModal';
 
 export function ModerationSkeleton() {
   return (
@@ -61,6 +62,7 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
   const { user: currentUser } = useUser();
   const [{ userDetails, isLoading }, refetchModerationDetails] = useUserDetailsForModerator(userId);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
   // Determine if current user is a hub editor
   const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
   // Determine if current user is a moderator
@@ -101,26 +103,28 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
       });
   };
 
-  const handleFlagUser = () => {
+  const handleOpenFlagModal = () => {
     setIsMenuOpen(false);
+    setIsFlagModalOpen(true);
+  };
 
-    markProbableSpammer(authorId.toString())
-      .then(() => {
-        toast.success('User flagged as probable spammer');
-        // Refresh both author info and moderation details to show updated status
-        return Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
-      })
-      .catch((error) => {
-        console.error('Failed to flag user:', error);
-        toast.error('Failed to flag user. Please try again.');
-      });
+  const handleFlagUser = async (reason: string, reasonMemo: string) => {
+    try {
+      await markProbableSpammer(authorId.toString(), reason, reasonMemo);
+      toast.success('User flagged as probable spammer');
+      setIsFlagModalOpen(false);
+      await Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
+    } catch (error) {
+      console.error('Failed to flag user:', error);
+      toast.error('Failed to flag user. Please try again.');
+    }
   };
 
   const moderationMenuItems: ModerationMenuItem[] = [
     {
       id: 'flag_user',
       label: 'Flag user',
-      onClick: handleFlagUser,
+      onClick: handleOpenFlagModal,
       disabled: moderationState.isLoading,
       loadingText: 'Flagging...',
       shouldShow: (isModerator, isHubEditor, userDetails) =>
@@ -285,6 +289,13 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
           </div>
         </div>
       </div>
+
+      <FlagUserModal
+        isOpen={isFlagModalOpen}
+        onClose={() => setIsFlagModalOpen(false)}
+        onSubmit={handleFlagUser}
+        isLoading={moderationState.isLoading}
+      />
     </div>
   );
 }

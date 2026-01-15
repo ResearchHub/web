@@ -16,6 +16,8 @@ export interface SuspendUserResponse {
 // New: Mark user as probable spammer
 export interface MarkProbableSpammerParams {
   authorId: string;
+  reason?: string;
+  reasonMemo?: string;
 }
 
 export interface MarkProbableSpammerResponse {
@@ -66,7 +68,11 @@ export interface UserModerationState {
 // Hook action types
 export type SuspendUserAction = (authorId: string) => Promise<void>;
 export type ReinstateUserAction = (authorId: string) => Promise<void>;
-export type MarkProbableSpammerAction = (authorId: string) => Promise<void>;
+export type MarkProbableSpammerAction = (
+  authorId: string,
+  reason?: string,
+  reasonMemo?: string
+) => Promise<void>;
 
 export type UserModerationActions = {
   suspendUser: SuspendUserAction;

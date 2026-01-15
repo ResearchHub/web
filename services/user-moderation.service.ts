@@ -71,11 +71,21 @@ export class UserModerationService {
   /**
    * Flags a user as probable spammer
    * @param authorId - The author profile ID of the user to flag
+   * @param reason - Optional reason code for flagging
+   * @param reasonMemo - Optional additional context for the flag
    * @returns Promise with confirmation message
    */
-  static async markProbableSpammer(authorId: string): Promise<MarkProbableSpammerResponse> {
+  static async markProbableSpammer(
+    authorId: string,
+    reason?: string,
+    reasonMemo?: string
+  ): Promise<MarkProbableSpammerResponse> {
     try {
-      const params: MarkProbableSpammerParams = { authorId };
+      const params: MarkProbableSpammerParams = {
+        authorId,
+        ...(reason && { reason }),
+        ...(reasonMemo && { reasonMemo }),
+      };
       const response = await ApiClient.post<MarkProbableSpammerResponse>(
         `${this.BASE_PATH}/mark_probable_spammer/`,
         params
