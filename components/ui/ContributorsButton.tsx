@@ -14,10 +14,10 @@ type FlexibleProfile = {
 };
 
 interface LabelBadgeProps {
-  count: number;
-  label: string;
-  size?: number | 'xxs' | 'xs' | 'sm' | 'md' | 'lg';
-  removeBadgeSpacing?: boolean;
+  readonly count: number;
+  readonly label: string;
+  readonly size?: number | 'xxs' | 'xs' | 'sm' | 'md' | 'lg';
+  readonly removeBadgeSpacing?: boolean;
 }
 
 // Extract the label badge as a separate component
@@ -123,15 +123,15 @@ export function LabelBadge({
 }
 
 interface ContributorsButtonProps {
-  contributors: Array<{
+  readonly contributors: Array<{
     profile: FlexibleProfile;
     amount: number;
   }>;
-  onContribute?: () => void;
-  label?: string;
-  hideLabel?: boolean;
-  size?: number | 'xxs' | 'xs' | 'sm' | 'md' | 'lg';
-  disableContribute?: boolean;
+  readonly onContribute?: () => void;
+  readonly label?: string;
+  readonly hideLabel?: boolean;
+  readonly size?: number | 'xxs' | 'xs' | 'sm' | 'md' | 'lg';
+  readonly disableContribute?: boolean;
 }
 
 export function ContributorsButton({
