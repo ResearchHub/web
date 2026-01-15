@@ -21,6 +21,7 @@ import { CommentEmptyState } from './CommentEmptyState';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
 import { comment } from 'postcss';
 import { useShareModalContext } from '@/contexts/ShareContext';
+import { useStorageKey } from '@/utils/storageKeys';
 
 interface CommentFeedProps {
   documentId: number;
@@ -130,6 +131,11 @@ function CommentFeedContent({
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { user } = useUser();
   const { showShareModal } = useShareModalContext();
+
+  const docId = unifiedDocumentId || work?.unifiedDocumentId || work?.id || 'unknown';
+  const baseStorageKey = `${(commentType || 'generic_comment').toLowerCase()}-editor-draft-${docId}`;
+  const storageKey = useStorageKey(baseStorageKey);
+
   // Check if current user is an author
   const isCurrentUserAuthor = useMemo(() => {
     if (!user?.id || !workAuthors) return false;
@@ -248,6 +254,7 @@ function CommentFeedContent({
             onSubmit={handleSubmit}
             placeholder="Add a comment..."
             commentType={commentType}
+            storageKey={storageKey}
             {...editorProps}
           />
           <div className="mt-12 mb-2">

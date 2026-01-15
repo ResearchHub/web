@@ -3,6 +3,7 @@
 import { Alert } from '@/components/ui/Alert';
 import { Bounty } from '@/types/bounty';
 import { findLatestFoundationBounty } from './lib/bountyUtil';
+import { AlertCircle } from 'lucide-react';
 
 interface ReviewStatusBannerProps {
   bounties: Bounty[];
@@ -17,7 +18,11 @@ export const ReviewStatusBanner = ({ bounties }: ReviewStatusBannerProps) => {
 
   if (activeFoundationBounty.status === 'OPEN') {
     return (
-      <Alert variant="success" className="mb-6">
+      <Alert
+        variant="success"
+        className="mb-6"
+        icon={<AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />}
+      >
         <div className="flex flex-col gap-1">
           <div className="font-semibold">Review Submission Period</div>
           <div className="text-sm font-normal">
@@ -31,7 +36,11 @@ export const ReviewStatusBanner = ({ bounties }: ReviewStatusBannerProps) => {
 
   if (activeFoundationBounty.status === 'ASSESSMENT') {
     return (
-      <Alert variant="warning" className="mb-6">
+      <Alert
+        variant="warning"
+        className="mb-6"
+        icon={<AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />}
+      >
         <div className="flex flex-col gap-1">
           <div className="font-semibold">Editor Assessment Period</div>
           <div className="text-sm font-normal">

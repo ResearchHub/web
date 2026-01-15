@@ -144,6 +144,18 @@ export const CommentProvider = ({
     });
   }, [state.comments, commentType, state.bountyFilter]);
 
+  const getFilterToUse = useCallback(
+    (commentType: CommentType, stateFilter?: CommentFilter): CommentFilter | undefined => {
+      // Map commentType to valid CommentFilter values
+      // Only use commentType as filter if it's a valid CommentFilter value
+      if (commentType === 'REVIEW' || commentType === 'BOUNTY' || commentType === 'AUTHOR_UPDATE') {
+        return stateFilter || commentType;
+      }
+      return stateFilter;
+    },
+    []
+  );
+
   // Fetch comments from API
   const fetchComments = useCallback(
     async (pageToFetch = 1) => {
@@ -152,17 +164,7 @@ export const CommentProvider = ({
         // as it's already handled by the calling functions (refresh or loadMore)
 
         // Determine the filter to use based on commentType and user selection
-        let filterToUse = state.filter;
-
-        // Map commentType to valid CommentFilter values
-        // Only use commentType as filter if it's a valid CommentFilter value
-        if (
-          commentType === 'REVIEW' ||
-          commentType === 'BOUNTY' ||
-          commentType === 'AUTHOR_UPDATE'
-        ) {
-          filterToUse = state.filter || commentType;
-        }
+        const filterToUse = getFilterToUse(commentType, state.filter);
 
         const { comments: fetchedComments, count: totalCount } = await CommentService.fetchComments(
           {
@@ -193,7 +195,7 @@ export const CommentProvider = ({
         console.error('Error fetching comments:', err);
       }
     },
-    [documentId, contentType, state.sortBy, state.filter, commentType]
+    [documentId, contentType, state.sortBy, state.filter, commentType, getFilterToUse]
   );
 
   // Refresh comments (fetch page 1)
@@ -254,11 +256,14 @@ export const CommentProvider = ({
       dispatch({ type: CommentActionType.FORCE_REFRESH });
       // Set loading to true for force refresh
       dispatch({ type: CommentActionType.FETCH_COMMENTS_START });
+
+      const filterToUse = getFilterToUse(commentType, state.filter);
+
       const { comments: fetchedComments, count: totalCount } = await CommentService.fetchComments({
         documentId,
         contentType,
         sort: state.sortBy,
-        filter: state.filter,
+        filter: filterToUse,
         page: 1,
       });
 
@@ -277,7 +282,7 @@ export const CommentProvider = ({
       });
       console.error('Error refreshing comments:', err);
     }
-  }, [documentId, contentType, state.sortBy, state.filter, debug]);
+  }, [documentId, contentType, state.sortBy, state.filter, commentType, getFilterToUse, debug]);
 
   // Function to load more replies for a specific comment
   const loadMoreReplies = useCallback(

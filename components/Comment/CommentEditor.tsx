@@ -104,7 +104,6 @@ export const CommentEditor = ({
     clearDraft,
     contentRef,
   } = useCommentEditor({
-    onSubmit: adaptedOnSubmit,
     onUpdate,
     onContentChange,
     placeholder,

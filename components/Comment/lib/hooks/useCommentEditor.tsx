@@ -16,7 +16,7 @@ import { ReviewExtension } from '../ReviewExtension';
 import { parseContent } from '../commentContentUtils';
 import { CommentType } from '@/types/comment';
 import { useCommentDraft } from '../useCommentDraft';
-import { CommentContent, TipTapDocument } from '../types';
+import { CommentContent } from '../types';
 
 // Initialize lowlight with supported languages
 const lowlight = createLowlight();
@@ -25,11 +25,6 @@ lowlight.register('typescript', typescript);
 lowlight.register('python', python);
 
 export interface UseCommentEditorProps {
-  onSubmit: (content: {
-    content: CommentContent;
-    rating?: number;
-    sectionRatings?: Record<string, number>;
-  }) => Promise<boolean | void> | void;
   onUpdate?: (content: CommentContent) => void;
   onContentChange?: (plainText: string, html: string) => void;
   placeholder?: string;
@@ -59,15 +54,6 @@ export const useCommentEditor = ({
   const [rating, setRating] = useState(initialRating);
   const [sectionRatings, setSectionRatings] = useState<Record<string, number>>({});
   const [isFocused, setIsFocused] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [showImageModal, setShowImageModal] = useState(false);
-  const [showLinkModal, setShowLinkModal] = useState(false);
-  const [showCodeModal, setShowCodeModal] = useState(false);
-  const [linkUrl, setLinkUrl] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [codeLanguage, setCodeLanguage] = useState('javascript');
-  const [codeContent, setCodeContent] = useState('');
   const contentRef = useRef<JSONContent | null>(null);
   const isFirstRender = useRef(true);
   const isReview = commentType === 'REVIEW';
