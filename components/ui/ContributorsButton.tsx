@@ -17,10 +17,16 @@ interface LabelBadgeProps {
   count: number;
   label: string;
   size?: number | 'xxs' | 'xs' | 'sm' | 'md' | 'lg';
+  addBadgeSpacing?: boolean;
 }
 
 // Extract the label badge as a separate component
-export function LabelBadge({ count, label, size = 'xs' }: LabelBadgeProps) {
+export function LabelBadge({
+  count,
+  label,
+  size = 'xs',
+  addBadgeSpacing = false,
+}: LabelBadgeProps) {
   // Use singular form if there's only one
   const displayLabel = count === 1 ? label.replace(/s$/, '') : label;
 
@@ -106,7 +112,7 @@ export function LabelBadge({ count, label, size = 'xs' }: LabelBadgeProps) {
         'bg-gray-100 rounded-full ring-white shadow-sm z-10',
         getRingSize(),
         getPadding(),
-        getMargin()
+        addBadgeSpacing ? undefined : getMargin()
       )}
     >
       <span className={cn('text-gray-900 whitespace-nowrap', getFontSize())}>
@@ -190,7 +196,7 @@ export function ContributorsButton({
     <>
       <button
         onClick={() => setShowModal(true)}
-        className="flex items-center hover:opacity-80 transition-opacity"
+        className="flex items-center gap-1 hover:opacity-80 transition-opacity"
       >
         <AvatarStack
           items={avatarItems}
@@ -198,8 +204,11 @@ export function ContributorsButton({
           maxItems={3}
           spacing={getSpacing()}
           ringColorClass="ring-white"
+          showLabel={false}
         />
-        {!hideLabel && <LabelBadge count={contributors.length} label={label} size={size} />}
+        {!hideLabel && (
+          <LabelBadge count={contributors.length} label={label} size={size} addBadgeSpacing />
+        )}
       </button>
 
       <ContributorModal
