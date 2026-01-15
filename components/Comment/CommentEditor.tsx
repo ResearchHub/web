@@ -15,7 +15,7 @@ import { CommentContent } from './lib/types';
 import { useIsMac } from '@/hooks/useIsMac';
 import { CommentEditorBanner } from './components/CommentEditorBanner';
 
-const REVIEW_WORD_LIMIT = 2000;
+const REVIEW_WORD_LIMIT = 3000;
 
 export interface CommentEditorProps {
   onSubmit: (content: {
