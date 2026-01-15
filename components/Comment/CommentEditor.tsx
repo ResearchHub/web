@@ -186,6 +186,7 @@ export const CommentEditor = ({
         handleKeyDown: (view, event) => {
           if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
             event.preventDefault();
+            if (isReview && isOverLimit) return true;
             handleSubmit();
             return true;
           }
