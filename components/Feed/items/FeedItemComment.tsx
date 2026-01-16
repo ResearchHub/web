@@ -114,6 +114,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
   // Check if current user is the comment author to prevent self-tipping
   const isCurrentUserAuthor = user?.authorProfile?.id === author?.id;
+  const isAwardedByFoundation = entry.awardedBountyAmount && entry.awardedBountyAmount > 0;
 
   const menuItems = [];
   if (showCreatorActions) {
@@ -180,8 +181,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         {isReview && (
           <div className="flex items-center gap-2 mb-3">
             <ContentTypeBadge type="review" />
-            {entry.awardedBountyAmount &&
-              entry.awardedBountyAmount > 0 &&
+            {isAwardedByFoundation &&
               (entry.isAwardedForFoundationBounty ? (
                 <Tooltip
                   content={
