@@ -53,3 +53,14 @@ export const getSingularLabel = (label: string): string => {
   if (!label) return '';
   return label.replace(/s$/, '');
 };
+
+/**
+ * Counts the number of words in a string
+ * @param text The text to count words in
+ * @returns The word count
+ */
+export const countWords = (text: string): number => {
+  if (!text) return 0;
+  const trimmed = text.trim();
+  return trimmed ? trimmed.split(/\s+/).length : 0;
+};

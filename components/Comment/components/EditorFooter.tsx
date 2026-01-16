@@ -13,6 +13,8 @@ interface EditorFooterProps {
   hideSubmit?: boolean;
   isMac?: boolean;
   canSubmit?: boolean;
+  wordCount?: number;
+  wordLimit?: number;
 }
 
 export const EditorFooter = ({
@@ -27,15 +29,24 @@ export const EditorFooter = ({
   hideSubmit = false,
   isMac = false,
   canSubmit = true,
+  wordCount,
+  wordLimit,
 }: EditorFooterProps) => {
   const isMobile = useIsMobile();
+  const showWordCount = wordCount !== undefined && wordLimit !== undefined;
+  const isOverLimit = showWordCount && wordCount > wordLimit;
 
   return (
     <div className="flex flex-col-reverse mobile:!flex-row justify-between items-start mobile:!items-center px-4 py-2 border-t border-gray-200 gap-2 mobile:!gap-0">
-      {/* Draft status */}
-      <div className="text-xs text-gray-500">
+      {/* Left section: Draft status and word count */}
+      <div className="flex items-center gap-3 text-xs text-gray-500">
         {saveStatus === 'saved' && lastSaved && <span>Draft saved {formatLastSaved()}</span>}
         {saveStatus === 'saving' && <span>Saving draft...</span>}
+        {showWordCount && (
+          <span className={isOverLimit ? 'text-red-600 font-medium' : ''}>
+            {wordCount.toLocaleString()} / {wordLimit.toLocaleString()} words
+          </span>
+        )}
       </div>
 
       {/* Action buttons */}

@@ -165,6 +165,7 @@ function CommentFeedContent({
             });
 
             result.score = overallRating;
+            result.reviewScore = overallRating;
             toast.success('Review submitted successfully!', { id: toastId });
             showShareModal({
               url: window.location.href,
