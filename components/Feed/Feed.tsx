@@ -40,7 +40,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   const [isNavigating, setIsNavigating] = useState(false);
 
   const { tabs, activeTab, handleTabChange } = useFeedTabs(() => {
-    // setIsNavigating(true);
+    setIsNavigating(true);
   });
 
   const [sourceFilter, setSourceFilter] = useState<FeedSource>('all');
@@ -96,7 +96,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     router.push(`/${activeTab}?${params.toString()}`, { scroll: false });
   };
 
-  const combinedIsLoading = isLoading; // || isNavigating;
+  const combinedIsLoading = isLoading || isNavigating;
 
   const renderHeader = () => (
     <MainPageHeader
