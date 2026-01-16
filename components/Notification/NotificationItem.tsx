@@ -38,6 +38,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     'RSC_SUPPORT_ON_DIS',
     'RSC_SUPPORT_ON_DOC',
     'RSC_WITHDRAWAL_COMPLETE',
+    'BOUNTY_PAYOUT',
   ].includes(notification.type);
 
   const IndicatorSection = (

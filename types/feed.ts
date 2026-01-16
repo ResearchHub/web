@@ -11,6 +11,7 @@ import { UserVoteType } from './reaction';
 import { User } from './user';
 import { stripHtml } from '@/utils/stringUtils';
 import { Tip } from './tip';
+import { FOUNDATION_USER_ID } from '@/config/constants';
 
 export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
 
@@ -271,6 +272,7 @@ export interface FeedEntry {
   raw?: RawApiFeedEntry;
   userVote?: UserVoteType;
   awardedBountyAmount?: number;
+  isAwardedForFoundationBounty?: boolean;
   hotScoreV2?: number;
   hotScoreBreakdown?: HotScoreBreakdown;
   externalMetrics?: ExternalMetrics;
@@ -949,6 +951,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           : undefined,
     tips: [], // Default empty tips
     awardedBountyAmount: (content as any)?.awardedBountyAmount,
+    isAwardedForFoundationBounty: (content as any)?.bounty_creator_id,
   } as FeedEntry;
 };
 
@@ -1050,6 +1053,8 @@ export const transformCommentToFeedItem = (
     userVote: comment.userVote,
     tips: comment.tips,
     awardedBountyAmount: comment.awardedBountyAmount,
+    isAwardedForFoundationBounty:
+      comment.bountyCreatorId?.toString() === FOUNDATION_USER_ID?.toString(),
   };
 };
 

@@ -66,6 +66,7 @@ export const CommentItem = ({
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAwardModal, setShowAwardModal] = useState(false);
+  const [selectedBountyId, setSelectedBountyId] = useState<number | undefined>(undefined);
   const [selectedSolution, setSelectedSolution] = useState<SolutionViewEvent | null>(null);
 
   const { user } = useUser();
@@ -224,7 +225,10 @@ export const CommentItem = ({
               showTooltips={showTooltips}
               isAuthor={isAuthor}
               showCreatorActions={isAuthor}
-              onAward={() => setShowAwardModal(true)}
+              onAward={(bountyId) => {
+                setSelectedBountyId(bountyId);
+                setShowAwardModal(true);
+              }}
               onEdit={() => setEditingCommentId(comment.id)}
               onReply={() => setReplyingToCommentId(comment.id)}
               onContributeSuccess={() => {
@@ -453,9 +457,13 @@ export const CommentItem = ({
       {showAwardModal && (
         <AwardBountyModal
           isOpen={showAwardModal}
-          onClose={() => setShowAwardModal(false)}
+          onClose={() => {
+            setShowAwardModal(false);
+            setSelectedBountyId(undefined);
+          }}
           comment={comment}
           contentType={contentType}
+          bountyId={selectedBountyId}
           onBountyUpdated={() => {
             // Refresh the comments using the context
             forceRefresh();

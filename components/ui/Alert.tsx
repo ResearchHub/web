@@ -20,6 +20,10 @@ interface AlertProps {
    * Optional CSS class name
    */
   className?: string;
+  /**
+   * Optional icon
+   */
+  icon?: React.ReactNode;
 }
 
 const variantStyles = {
@@ -45,12 +49,12 @@ const variantStyles = {
   },
 };
 
-export function Alert({ variant = 'info', children, className }: AlertProps) {
+export function Alert({ variant = 'info', children, className, icon }: AlertProps) {
   const styles = variantStyles[variant];
 
   return (
     <div className={cn('flex items-start gap-3 rounded-lg px-4 py-3', styles.container, className)}>
-      <div className="shrink-0">{styles.icon}</div>
+      <div className="shrink-0">{icon || styles.icon}</div>
       <div className="text-sm font-medium">{children}</div>
     </div>
   );

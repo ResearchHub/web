@@ -13,6 +13,7 @@ interface BountyMetadataLineProps {
   className?: string;
   solutionsCount?: number;
   showDeadline?: boolean;
+  bountyStatus?: 'OPEN' | 'CLOSED' | 'ASSESSMENT';
   /**
    * If true, the amount is already in the target currency and should not be converted.
    * Useful when the caller has pre-calculated the amount (e.g., Foundation bounty flat fee).
@@ -27,16 +28,20 @@ export const BountyMetadataLine = ({
   expiringSoon,
   className = '',
   showDeadline = true,
+  bountyStatus,
   skipConversion = false,
 }: BountyMetadataLineProps) => {
   const { showUSD } = useCurrencyPreference();
 
   // Format the deadline text
-  const deadlineText = isOpen
-    ? expirationDate
-      ? formatDeadline(expirationDate)
-      : 'No deadline'
-    : 'Completed';
+  const deadlineText =
+    bountyStatus === 'ASSESSMENT'
+      ? 'Assessment Period'
+      : isOpen
+        ? expirationDate
+          ? formatDeadline(expirationDate)
+          : 'No deadline'
+        : 'Completed';
 
   return (
     <div className={`space-y-3 ${className}`}>

@@ -33,6 +33,7 @@ import { SessionProvider } from 'next-auth/react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useStorageKey } from '@/utils/storageKeys';
 import { extractUserMentions } from '@/components/Comment/lib/commentUtils';
+import { removeCommentDraftById } from '@/components/Comment/lib/commentDraftStorage';
 
 type Step = 'details' | 'payment';
 type BountyLength = '14' | '30' | '60' | 'custom';
@@ -282,6 +283,9 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
     }
   }, [exchangeRate, isExchangeRateLoading, hasInteractedWithAmount]);
 
+  const baseStorageKey = `bounty-editor-draft-${workId || 'new'}`;
+  const storageKey = useStorageKey(baseStorageKey);
+
   const handleCreateBounty = async () => {
     if (isSubmitting) return;
 
@@ -343,6 +347,8 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
       }
 
       if (createdComment) {
+        removeCommentDraftById(storageKey);
+
         toast.success('Bounty created successfully!', { id: toastId });
         onSubmitSuccess?.();
       } else {
@@ -547,9 +553,6 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
       </div>
     </div>
   );
-
-  const baseStorageKey = `bounty-editor-draft-${workId || 'new'}`;
-  const storageKey = useStorageKey(baseStorageKey);
 
   return (
     <div className={className}>

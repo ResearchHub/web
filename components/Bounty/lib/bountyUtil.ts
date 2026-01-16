@@ -1,4 +1,4 @@
-import { Bounty, BountyType } from '@/types/bounty';
+import { Bounty } from '@/types/bounty';
 import { FOUNDATION_USER_ID, FOUNDATION_BOUNTY_FLAT_USD } from '@/config/constants';
 
 /**
@@ -21,6 +21,18 @@ export const isClosedBounty = (bounty: Bounty): boolean => {
   // A bounty is not a contribution if it doesn't have a parent bounty
   const isContribution = bounty.raw && !!bounty.raw.parent;
   return bounty.status === 'CLOSED' && !isContribution;
+};
+
+/**
+ * @param bounty The bounty to check
+ * @returns True if the bounty is OPEN or ASSESSMENT and not a contribution
+ */
+export const isActiveBounty = (bounty: Bounty): boolean => {
+  // A bounty is not a contribution if it doesn't have a parent bounty
+  const isContribution = bounty.raw && !!bounty.raw.parent;
+  if (isContribution) return false;
+
+  return bounty.status === 'OPEN' || bounty.status === 'ASSESSMENT';
 };
 
 /**
@@ -609,4 +621,28 @@ export const getTotalBountyDisplayAmount = (
   }, 0);
 
   return { amount, foundationBountyCount };
+};
+
+/**
+ * Finds the latest active Foundation bounty in an array
+ * @param bounties Array of bounties to search
+ * @returns The latest active Foundation bounty or undefined if none found
+ */
+export const findLatestFoundationBounty = (bounties: Bounty[]): Bounty | undefined => {
+  if (!bounties || !Array.isArray(bounties) || bounties.length === 0) {
+    return undefined;
+  }
+
+  const activeReviewBounties = bounties.filter(
+    (bounty) =>
+      (bounty.bountyType === 'REVIEW' || bounty.bountyType === 'BOUNTY') &&
+      isFoundationBounty(bounty) &&
+      isActiveBounty(bounty)
+  );
+
+  if (activeReviewBounties.length === 0) {
+    return undefined;
+  }
+
+  return activeReviewBounties[0];
 };

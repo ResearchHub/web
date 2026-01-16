@@ -33,6 +33,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
+import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 
 interface WorkDocumentProps {
   work: Work;
@@ -164,6 +165,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
       case 'reviews':
         return (
           <div className="space-y-6" key="reviews-tab">
+            <ReviewStatusBanner bounties={metadata.bounties || []} />
             <CommentFeed
               documentId={work.id}
               unifiedDocumentId={work.unifiedDocumentId || null}
