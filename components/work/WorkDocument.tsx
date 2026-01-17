@@ -72,9 +72,9 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   }, [defaultTab]);
 
   // Handle tab change (updates URL via WorkTabs now)
-  const handleTabChange = (tab: TabType) => {
+  const handleTabChange = useCallback((tab: TabType) => {
     setActiveTab(tab);
-  };
+  }, []);
 
   const isAuthor = useMemo(() => {
     if (!user) return false;
