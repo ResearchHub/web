@@ -14,7 +14,6 @@ import { OnchainProvider } from '@/contexts/OnchainContext';
 import { FollowProvider } from '@/contexts/FollowContext';
 import { ClickProvider } from '@/contexts/ClickContext';
 import { NavigationProvider } from '@/contexts/NavigationContext';
-import { AuthSharingWrapper } from '@/components/AuthSharingWrapper';
 import { VerificationProvider } from '@/contexts/VerificationContext';
 import SignupModalContainer from '@/components/modals/SignupModalContainer';
 import { ShareModalProvider } from '@/contexts/ShareContext';
@@ -40,35 +39,33 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
           <OnchainProvider>
             <NextAuthProvider session={session}>
               <ReferralProvider>
-                <AuthSharingWrapper>
-                  <AuthModalProvider>
-                    <ShareModalProvider>
-                      <UserProvider>
-                        <VerificationProvider>
-                          <ExchangeRateProvider>
-                            <CurrencyPreferenceProvider>
-                              <NotificationProvider>
-                                <OrganizationProvider>
-                                  <PreferencesProvider>
-                                    <UserListsProvider>
-                                      <LeaderboardProvider>
-                                        <DismissedFeaturesProvider>
-                                          <FollowProvider>{children}</FollowProvider>
-                                          <FeatureNotifications />
-                                        </DismissedFeaturesProvider>
-                                      </LeaderboardProvider>
-                                    </UserListsProvider>
-                                  </PreferencesProvider>
-                                </OrganizationProvider>
-                              </NotificationProvider>
-                            </CurrencyPreferenceProvider>
-                          </ExchangeRateProvider>
-                        </VerificationProvider>
-                      </UserProvider>
-                      <SignupModalContainer />
-                    </ShareModalProvider>
-                  </AuthModalProvider>
-                </AuthSharingWrapper>
+                <AuthModalProvider>
+                  <ShareModalProvider>
+                    <UserProvider>
+                      <VerificationProvider>
+                        <ExchangeRateProvider>
+                          <CurrencyPreferenceProvider>
+                            <NotificationProvider>
+                              <OrganizationProvider>
+                                <PreferencesProvider>
+                                  <UserListsProvider>
+                                    <LeaderboardProvider>
+                                      <DismissedFeaturesProvider>
+                                        <FollowProvider>{children}</FollowProvider>
+                                        <FeatureNotifications />
+                                      </DismissedFeaturesProvider>
+                                    </LeaderboardProvider>
+                                  </UserListsProvider>
+                                </PreferencesProvider>
+                              </OrganizationProvider>
+                            </NotificationProvider>
+                          </CurrencyPreferenceProvider>
+                        </ExchangeRateProvider>
+                      </VerificationProvider>
+                    </UserProvider>
+                    <SignupModalContainer />
+                  </ShareModalProvider>
+                </AuthModalProvider>
               </ReferralProvider>
             </NextAuthProvider>
             <ToasterProvider />
