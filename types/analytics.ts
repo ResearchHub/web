@@ -34,6 +34,7 @@ export type FeedSource =
   | 'topic'
   | 'author'
   | 'search'
+  | 'list'
   | 'unknown';
 
 /**
