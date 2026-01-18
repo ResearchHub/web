@@ -7,10 +7,8 @@ import type {
   ReinstateUserApiResponse,
   MarkProbableSpammerParams,
   MarkProbableSpammerResponse,
-  ApiFlagHistoryResponse,
-  FlagHistoryResponse,
 } from '@/types/moderation';
-import { transformReinstateUserResponse, transformFlagHistoryResponse } from '@/types/moderation';
+import { transformReinstateUserResponse } from '@/types/moderation';
 
 // Service-specific error class
 export class UserModerationError extends Error {
@@ -25,7 +23,6 @@ export class UserModerationError extends Error {
 
 export class UserModerationService {
   private static readonly BASE_PATH = '/api/user';
-  private static readonly AUTHOR_PATH = '/api/author';
 
   /**
    * Suspends a user account (ban user)
@@ -97,23 +94,6 @@ export class UserModerationService {
     } catch (error) {
       console.error(`Error flagging user ${authorId} as probable spammer:`, error);
       throw new UserModerationError('Failed to flag user as probable spammer.', error);
-    }
-  }
-
-  /**
-   * Fetches flag history for an author
-   * @param authorId - The author profile ID to get flag history for
-   * @returns Promise with flag history data
-   */
-  static async getFlagHistory(authorId: string): Promise<FlagHistoryResponse> {
-    try {
-      const response = await ApiClient.get<ApiFlagHistoryResponse>(
-        `${this.AUTHOR_PATH}/${authorId}/flags/`
-      );
-      return transformFlagHistoryResponse(response);
-    } catch (error) {
-      console.error(`Error fetching flag history for author ${authorId}:`, error);
-      throw new UserModerationError('Failed to fetch flag history.', error);
     }
   }
 }

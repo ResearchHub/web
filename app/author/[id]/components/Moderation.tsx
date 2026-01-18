@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/Button';
 import { useUserModeration } from '@/hooks/useUserModeration';
 import { useUser } from '@/contexts/UserContext';
 import { FlagUserModal } from '@/components/modals/FlagUserModal';
-import { FlagHistoryModal } from '@/components/modals/FlagHistoryModal';
 
 export function ModerationSkeleton() {
   return (
@@ -64,7 +63,6 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
   const [{ userDetails, isLoading }, refetchModerationDetails] = useUserDetailsForModerator(userId);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
-  const [isFlagHistoryModalOpen, setIsFlagHistoryModalOpen] = useState(false);
   // Determine if current user is a hub editor
   const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
   // Determine if current user is a moderator
@@ -122,11 +120,6 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
     }
   };
 
-  const handleOpenFlagHistoryModal = () => {
-    setIsMenuOpen(false);
-    setIsFlagHistoryModalOpen(true);
-  };
-
   const moderationMenuItems: ModerationMenuItem[] = [
     {
       id: 'flag_user',
@@ -152,13 +145,6 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
       disabled: moderationState.isLoading,
       loadingText: 'Reinstating...',
       shouldShow: (isModerator) => isModerator,
-    },
-    {
-      id: 'flag_history',
-      label: 'Flag History',
-      onClick: handleOpenFlagHistoryModal,
-      disabled: false,
-      shouldShow: (isModerator, isHubEditor) => isModerator || isHubEditor,
     },
   ];
 
@@ -309,12 +295,6 @@ export default function Moderation({ userId, authorId, refetchAuthorInfo }: Mode
         onClose={() => setIsFlagModalOpen(false)}
         onSubmit={handleFlagUser}
         isLoading={moderationState.isLoading}
-      />
-
-      <FlagHistoryModal
-        isOpen={isFlagHistoryModalOpen}
-        onClose={() => setIsFlagHistoryModalOpen(false)}
-        authorId={authorId}
       />
     </div>
   );
