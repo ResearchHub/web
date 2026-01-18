@@ -253,10 +253,9 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
 
 export default function AuthorProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
-  const { isLoading: isUserLoading, error: userError } = useUser();
+  const { user: currentUser, isLoading: isUserLoading, error: userError, refreshUser } = useUser();
   const authorId = toNumberOrNull(resolvedParams.id);
   const [{ author: user, isLoading, error }, refetchAuthorInfo] = useAuthorInfo(authorId);
-  const { user: currentUser, refreshUser } = useUser();
   useOrcidCallback({ onSuccess: refreshUser });
   const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
   const [{ achievements, isLoading: isAchievementsLoading, error: achievementsError }] =
