@@ -142,14 +142,14 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
           />
         }
         leftContent={
-          <>
+          <div className="flex items-center gap-2">
             {isNonprofit && <TaxDeductibleBadge />}
             <FeedItemBadges
               topics={topics}
               category={post.category}
               subcategory={post.subcategory}
             />
-          </>
+          </div>
         }
       />
 
