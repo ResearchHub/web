@@ -6,6 +6,7 @@ import {
   WithdrawalRequest,
   WithdrawalResponse,
 } from '@/services/transaction.service';
+import { NetworkType } from '@/constants/tokens';
 
 // Define transaction status type
 export type TransactionStatus =
@@ -25,27 +26,34 @@ interface UseWithdrawRSCState {
 type WithdrawRSCFn = (
   withdrawalData: Omit<WithdrawalRequest, 'transaction_fee'>
 ) => Promise<WithdrawalResponse | null>;
-type UseWithdrawRSCReturn = [UseWithdrawRSCState, WithdrawRSCFn];
+type ResetFn = () => void;
+type UseWithdrawRSCReturn = [UseWithdrawRSCState, WithdrawRSCFn, ResetFn];
+
+interface UseWithdrawRSCOptions {
+  network?: NetworkType;
+}
 
 /**
  * Hook for withdrawing RSC to a wallet address.
  * Manages transaction state and handles API interaction.
  *
+ * @param options - Options including network selection
  * @returns A tuple containing withdrawal state and function
  */
-export function useWithdrawRSC(): UseWithdrawRSCReturn {
+export function useWithdrawRSC(options: UseWithdrawRSCOptions = {}): UseWithdrawRSCReturn {
+  const { network = 'BASE' } = options;
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
   const [fee, setFee] = useState<number | null>(null);
   const [isFeeLoading, setIsFeeLoading] = useState<boolean>(true);
   const [feeError, setFeeError] = useState<string | null>(null);
 
-  // Fetch the transaction fee when the hook is initialized
+  // Fetch the transaction fee when the hook is initialized or network changes
   useEffect(() => {
     const fetchTransactionFee = async () => {
       try {
         setIsFeeLoading(true);
         setFeeError(null);
-        const feeAmount = await TransactionService.getWithdrawalFee();
+        const feeAmount = await TransactionService.getWithdrawalFee(network);
         setFee(feeAmount);
       } catch (error) {
         let errorMessage = 'Failed to fetch transaction fee';
@@ -63,7 +71,7 @@ export function useWithdrawRSC(): UseWithdrawRSCReturn {
     };
 
     fetchTransactionFee();
-  }, []);
+  }, [network]);
 
   const withdrawRSC = async (
     withdrawalData: Omit<WithdrawalRequest, 'transaction_fee'>
@@ -108,6 +116,10 @@ export function useWithdrawRSC(): UseWithdrawRSCReturn {
     }
   };
 
+  const reset = () => {
+    setTxStatus({ state: 'idle' });
+  };
+
   return [
     {
       txStatus,
@@ -117,5 +129,6 @@ export function useWithdrawRSC(): UseWithdrawRSCReturn {
       feeError,
     },
     withdrawRSC,
+    reset,
   ];
 }
