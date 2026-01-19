@@ -71,8 +71,8 @@ export const CommentEditor = ({
   const isMac = useIsMac();
   const isReview = commentType === 'REVIEW';
 
-  // Ref to store startCooldown from render prop for use in handler
-  const startCooldownRef = useRef<() => void>(() => {});
+  // Ref to store refetchAvailability from render prop for use in handler
+  const refetchAvailabilityRef = useRef<() => void>(() => {});
 
   // Adapt the onSubmit function to the format expected by useEditorHandlers
   const adaptedOnSubmit = useCallback(
@@ -150,7 +150,7 @@ export const CommentEditor = ({
     clearDraft,
     setRating,
     setSectionRatings,
-    onReviewSuccess: editing ? undefined : () => startCooldownRef.current(),
+    onReviewSuccess: editing ? undefined : () => refetchAvailabilityRef.current(),
   });
 
   // Configure editor click handler for links and keyboard shortcuts
@@ -282,12 +282,12 @@ export const CommentEditor = ({
     </div>
   );
 
-  // For reviews, wrap with CommentEditorBanner which handles loading, banners, and cooldown state
+  // For reviews, wrap with CommentEditorBanner which handles loading, banners, and availability state
   if (isReview) {
     return (
       <CommentEditorBanner isEditing={editing}>
-        {({ canReview, startCooldown, banner }) => {
-          startCooldownRef.current = startCooldown;
+        {({ canReview, refetchAvailability, banner }) => {
+          refetchAvailabilityRef.current = refetchAvailability;
           return renderEditor(canReview, banner);
         }}
       </CommentEditorBanner>

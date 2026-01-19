@@ -3,31 +3,34 @@ import { formatCountdownRemaining } from '@/utils/date';
 import { ReviewService } from '@/services/review.service';
 import type { ReviewAvailability } from '@/types/review';
 
-const COOLDOWN_DAYS = 4;
-
 export function useReviewCooldown(enabled: boolean) {
   const [availability, setAvailability] = useState<ReviewAvailability | null>(null);
-  const [isLoading, setIsLoading] = useState(enabled);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { isPast, formatted: timeRemaining } = formatCountdownRemaining(
     availability?.availableAt ?? null
   );
-  const canReview = !availability || isPast || availability.canReview;
 
-  const startCooldown = useCallback(() => {
-    const end = new Date();
-    end.setDate(end.getDate() + COOLDOWN_DAYS);
-    setAvailability({ canReview: false, availableAt: end.toISOString() });
+  const canReview = availability ? availability.canReview || isPast : false;
+
+  const refetchAvailability = useCallback(async () => {
+    setIsLoading(true);
+
+    try {
+      const data = await ReviewService.getAvailability();
+      setAvailability(data);
+    } catch {
+      setAvailability(null);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (enabled) {
+      refetchAvailability();
+    }
+  }, [enabled, refetchAvailability]);
 
-    ReviewService.getAvailability()
-      .then(setAvailability)
-      .catch(() => setAvailability(null))
-      .finally(() => setIsLoading(false));
-  }, [enabled]);
-
-  return { canReview, timeRemaining, isLoading, startCooldown };
+  return { canReview, timeRemaining, isLoading, refetchAvailability };
 }

@@ -10,7 +10,7 @@ interface CommentEditorBannerProps {
   readonly isEditing: boolean;
   readonly children: (props: {
     canReview: boolean;
-    startCooldown: () => void;
+    refetchAvailability: () => void;
     banner: React.ReactNode;
   }) => React.ReactNode;
 }
@@ -32,7 +32,7 @@ const LoadingSkeleton = () => (
 );
 
 export function CommentEditorBanner({ isEditing, children }: CommentEditorBannerProps) {
-  const { canReview, timeRemaining, isLoading, startCooldown } = useReviewCooldown(true);
+  const { canReview, timeRemaining, isLoading, refetchAvailability } = useReviewCooldown(true);
   const isMobile = useIsMobile();
   const [isCooldownDismissed, setIsCooldownDismissed] = useState(false);
   const [isInfoDismissed, setIsInfoDismissed] = useState(false);
@@ -91,5 +91,5 @@ export function CommentEditorBanner({ isEditing, children }: CommentEditorBanner
     return null;
   };
 
-  return children({ canReview, startCooldown, banner: renderBanner() });
+  return children({ canReview, refetchAvailability, banner: renderBanner() });
 }
