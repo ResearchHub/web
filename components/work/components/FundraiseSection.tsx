@@ -54,17 +54,6 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
           </div>
         </div>
 
-        {/* Contributors */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Users className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-600">Contributors</span>
-          </div>
-          <span className="text-sm font-medium text-gray-900">
-            {fundraise.contributors.numContributors}
-          </span>
-        </div>
-
         {/* Status */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
