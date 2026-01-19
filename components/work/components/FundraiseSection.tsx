@@ -1,9 +1,8 @@
 'use client';
 
 import { Fundraise } from '@/types/funding';
-import { BarChart3, Users } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
-import { formatRSC } from '@/utils/number';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
