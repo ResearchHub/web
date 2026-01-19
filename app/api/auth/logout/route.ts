@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { AuthSharingService } from '@/services/auth-sharing.service';
 
 /**
  * Gets the cookie prefix based on the environment
@@ -14,7 +13,7 @@ function getCookiePrefix(): string {
 }
 
 /**
- * Handles the shared logout process by clearing the authentication cookies
+ * Handles the logout process by clearing the NextAuth cookies
  * and redirecting to the callback URL or the origin.
  *
  * @param request - The HTTP request object
@@ -35,7 +34,6 @@ export async function GET(request: Request) {
         'Set-Cookie': [
           `${prefix}next-auth.session-token=; Expires=${expiredDate}; Path=/; HttpOnly; Secure`,
           `${prefix}next-auth.csrf-token=; Expires=${expiredDate}; Path=/; HttpOnly; Secure`,
-          `${AuthSharingService.getAuthCookieName()}=; Expires=${expiredDate}; Path=/; Domain=${AuthSharingService.getParentDomain()}; HttpOnly; Secure`,
         ].join(', '),
       },
     });
