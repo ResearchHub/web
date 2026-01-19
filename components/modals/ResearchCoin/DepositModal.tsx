@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
-import { Check, AlertCircle, Loader2 } from 'lucide-react';
+import { ExternalLink, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { formatRSC } from '@/utils/number';
@@ -16,7 +16,7 @@ import { getRSCForNetwork, NetworkType, TRANSFER_ABI, NETWORK_CONFIG } from '@/c
 import { NetworkSelector } from '@/components/ui/NetworkSelector';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
-import { cn } from '@/utils/styles';
+import { DepositSuccessView } from './DepositSuccessView';
 
 const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
 if (!HOT_WALLET_ADDRESS_ENV || HOT_WALLET_ADDRESS_ENV.trim() === '') {
@@ -62,6 +62,8 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const processedTxHashRef = useRef<string | null>(null);
 
   const rscToken = useMemo(() => getRSCForNetwork(selectedNetwork), [selectedNetwork]);
+  const networkConfig = NETWORK_CONFIG[selectedNetwork];
+  const blockExplorerUrl = networkConfig.explorerUrl;
 
   useEffect(() => {
     if (isOpen) {
@@ -72,6 +74,19 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       hasCalledSuccessRef.current = false;
       hasProcessedDepositRef.current = false;
       processedTxHashRef.current = null;
+    } else {
+      // Delay reset to ensure modal closing animation completes
+      const timeoutId = setTimeout(() => {
+        setTxStatus({ state: 'idle' });
+        setAmount('');
+        setSelectedNetwork('BASE');
+        isDepositButtonDisabled(false);
+        hasCalledSuccessRef.current = false;
+        hasProcessedDepositRef.current = false;
+        processedTxHashRef.current = null;
+      }, 300);
+
+      return () => clearTimeout(timeoutId);
     }
   }, [isOpen]);
 
@@ -236,6 +251,26 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   }
 
   const footer = useMemo(() => {
+    if (txStatus.state === 'success') {
+      const txHash = 'txHash' in txStatus ? txStatus.txHash : undefined;
+      if (txHash) {
+        const normalizedTxHash = txHash.startsWith('0x') ? txHash : `0x${txHash}`;
+        return (
+          <a
+            href={`${blockExplorerUrl}/tx/${normalizedTxHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full"
+          >
+            <Button className="w-full" size="lg">
+              View Transaction
+              <ExternalLink className="h-4 w-4 ml-2" />
+            </Button>
+          </a>
+        );
+      }
+    }
+
     return (
       <Transaction
         isSponsored={true}
@@ -246,14 +281,16 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
         <div onClick={setButtonDisabledOnClick} role="presentation">
           <TransactionButton
             className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-            disabled={isButtonDisabled || txStatus.state === 'pending'}
-            text={
-              txStatus.state === 'pending'
-                ? 'Processing...'
-                : txStatus.state === 'buildingTransaction'
-                  ? 'Building transaction...'
-                  : 'Deposit RSC'
-            }
+            disabled={isButtonDisabled}
+            text="Deposit RSC"
+            pendingOverride={{
+              text: (
+                <span className="flex items-center justify-center">
+                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  {txStatus.state === 'pending' ? 'Processing...' : 'Building transaction...'}
+                </span>
+              ),
+            }}
           />
         </div>
       </Transaction>
@@ -265,6 +302,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     setButtonDisabledOnClick,
     isButtonDisabled,
     txStatus.state,
+    blockExplorerUrl,
   ]);
 
   return (
@@ -277,151 +315,149 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       className="md:!w-[500px]"
     >
       <div ref={contentRef} className="space-y-6">
-        {/* Transaction Status Display */}
-        {txStatus.state === 'success' && (
-          <Alert variant="success">
-            <div className="space-y-1">
-              <div className="font-medium">Deposit successful!</div>
-              <div className="text-sm font-normal opacity-90">
-                It can take up to 10-20 minutes for the deposit to appear in your account.
-              </div>
-            </div>
-          </Alert>
-        )}
-
-        {txStatus.state === 'error' && (
-          <Alert variant="error">
-            <div className="space-y-1">
-              <div className="font-medium">Deposit failed</div>
-              {'message' in txStatus && txStatus.message && (
-                <div className="text-sm font-normal opacity-90">{txStatus.message}</div>
-              )}
-            </div>
-          </Alert>
-        )}
-
-        {isMobile && (
-          <Alert variant="warning">
-            Deposits are temporarily unavailable on mobile devices. Please use a desktop browser to
-            make deposits.
-          </Alert>
-        )}
-
-        {/* Network Selector */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[15px] text-gray-700">Network</span>
-            <div className="flex items-center gap-2">
-              {(Object.keys(NETWORK_CONFIG) as NetworkType[]).map((network) => {
-                const config = NETWORK_CONFIG[network];
-                return (
-                  <Image
-                    key={network}
-                    src={config.icon}
-                    alt={`${config.name} logo`}
-                    width={20}
-                    height={20}
-                    className="flex-shrink-0"
-                  />
-                );
-              })}
-            </div>
-          </div>
-          <NetworkSelector
-            value={selectedNetwork}
-            onChange={setSelectedNetwork}
-            disabled={isInputDisabled()}
+        {txStatus.state === 'success' ? (
+          <DepositSuccessView
+            depositAmount={depositAmount}
+            networkConfig={networkConfig}
+            address={address || ''}
           />
-        </div>
+        ) : (
+          <>
+            {txStatus.state === 'error' && (
+              <Alert variant="error">
+                <div className="space-y-1">
+                  <div className="font-medium">Deposit failed</div>
+                  {'message' in txStatus && txStatus.message && (
+                    <div className="text-sm font-normal opacity-90">{txStatus.message}</div>
+                  )}
+                </div>
+              </Alert>
+            )}
 
-        {/* Wallet RSC Balance */}
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">Wallet Balance:</span>
-            <div className="flex items-center gap-2">
-              <ResearchCoinIcon size={16} />
-              {isWalletBalanceLoading ? (
-                <span className="text-sm font-semibold text-gray-400">Loading...</span>
-              ) : (
-                <>
-                  <span className="text-sm font-semibold text-gray-900">
-                    {walletBalance.toFixed(2)}
-                  </span>
-                  <span className="text-sm text-gray-500">RSC</span>
-                </>
+            {isMobile && (
+              <Alert variant="warning">
+                Deposits are temporarily unavailable on mobile devices. Please use a desktop browser
+                to make deposits.
+              </Alert>
+            )}
+
+            {/* Network Selector */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[15px] text-gray-700">Network</span>
+                <div className="flex items-center gap-2">
+                  {(Object.keys(NETWORK_CONFIG) as NetworkType[]).map((network) => {
+                    const config = NETWORK_CONFIG[network];
+                    return (
+                      <Image
+                        key={network}
+                        src={config.icon}
+                        alt={`${config.name} logo`}
+                        width={20}
+                        height={20}
+                        className="flex-shrink-0"
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+              <NetworkSelector
+                value={selectedNetwork}
+                onChange={setSelectedNetwork}
+                disabled={isInputDisabled()}
+              />
+            </div>
+
+            {/* Wallet RSC Balance */}
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Wallet Balance:</span>
+                <div className="flex items-center gap-2">
+                  <ResearchCoinIcon size={16} />
+                  {isWalletBalanceLoading ? (
+                    <span className="text-sm font-semibold text-gray-400">Loading...</span>
+                  ) : (
+                    <>
+                      <span className="text-sm font-semibold text-gray-900">
+                        {walletBalance.toFixed(2)}
+                      </span>
+                      <span className="text-sm text-gray-500">RSC</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Amount Input */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-[15px] text-gray-700">Amount to Deposit</span>
+                <button
+                  onClick={() => setAmount(Math.floor(walletBalance).toString())}
+                  className="text-sm text-primary-500 font-medium hover:text-primary-600 disabled:opacity-50 disabled:text-gray-400 disabled:hover:text-gray-400"
+                  disabled={isInputDisabled()}
+                >
+                  MAX
+                </button>
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d*"
+                  value={amount}
+                  onChange={handleAmountChange}
+                  placeholder="0"
+                  disabled={isInputDisabled()}
+                  aria-label="Amount to deposit"
+                  className={`w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200 ${isInputDisabled() ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+                  <span className="text-gray-500">RSC</span>
+                </div>
+              </div>
+              {depositAmount > walletBalance && (
+                <p className="text-sm text-red-600" role="alert">
+                  Deposit amount exceeds your wallet balance.
+                </p>
               )}
             </div>
-          </div>
-        </div>
 
-        {/* Amount Input */}
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-[15px] text-gray-700">Amount to Deposit</span>
-            <button
-              onClick={() => setAmount(Math.floor(walletBalance).toString())}
-              className="text-sm text-primary-500 font-medium hover:text-primary-600 disabled:opacity-50 disabled:text-gray-400 disabled:hover:text-gray-400"
-              disabled={isInputDisabled()}
-            >
-              MAX
-            </button>
-          </div>
-          <div className="relative">
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="\d*"
-              value={amount}
-              onChange={handleAmountChange}
-              placeholder="0"
-              disabled={isInputDisabled()}
-              aria-label="Amount to deposit"
-              className={`w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200 ${isInputDisabled() ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-            />
-            <div className="absolute inset-y-0 right-0 flex items-center pr-4">
-              <span className="text-gray-500">RSC</span>
-            </div>
-          </div>
-          {depositAmount > walletBalance && (
-            <p className="text-sm text-red-600" role="alert">
-              Deposit amount exceeds your wallet balance.
-            </p>
-          )}
-        </div>
+            {/* Balance Display */}
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Current Balance:</span>
+                <div className="text-right flex items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <ResearchCoinIcon size={16} />
+                    <span className="text-sm font-semibold text-gray-900">
+                      {formatRSC({ amount: currentBalance })}
+                    </span>
+                    <span className="text-sm text-gray-500">RSC</span>
+                  </div>
+                </div>
+              </div>
 
-        {/* Balance Display */}
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">Current Balance:</span>
-            <div className="text-right flex items-center gap-2">
-              <div className="flex items-center gap-2">
-                <ResearchCoinIcon size={16} />
-                <span className="text-sm font-semibold text-gray-900">
-                  {formatRSC({ amount: currentBalance })}
-                </span>
-                <span className="text-sm text-gray-500">RSC</span>
+              <div className="my-2 border-t border-gray-200" />
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">After Deposit:</span>
+                <div className="text-right flex items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <ResearchCoinIcon size={16} />
+                    <span
+                      className={`text-sm font-semibold ${depositAmount > 0 && depositAmount <= walletBalance ? 'text-green-600' : 'text-gray-900'}`}
+                    >
+                      {depositAmount > 0 && depositAmount <= walletBalance
+                        ? formatRSC({ amount: calculateNewBalance() })
+                        : formatRSC({ amount: currentBalance })}
+                    </span>
+                    <span className="text-sm text-gray-500">RSC</span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="my-2 border-t border-gray-200" />
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">After Deposit:</span>
-            <div className="text-right flex items-center gap-2">
-              <div className="flex items-center gap-2">
-                <ResearchCoinIcon size={16} />
-                <span
-                  className={`text-sm font-semibold ${depositAmount > 0 && depositAmount <= walletBalance ? 'text-green-600' : 'text-gray-900'}`}
-                >
-                  {depositAmount > 0 && depositAmount <= walletBalance
-                    ? formatRSC({ amount: calculateNewBalance() })
-                    : formatRSC({ amount: currentBalance })}
-                </span>
-                <span className="text-sm text-gray-500">RSC</span>
-              </div>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </BaseModal>
   );
