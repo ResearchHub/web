@@ -19,7 +19,7 @@ const CooldownTooltip = (
   <div className="text-left">
     <div className="font-semibold text-sm text-gray-900 leading-tight">Limit Reached</div>
     <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-      We currently limit reviews to once every four days.
+      We currently limit reviews to twice every seven days.
     </div>
   </div>
 );
