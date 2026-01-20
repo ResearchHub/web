@@ -3,7 +3,7 @@ import { formatCountdownRemaining } from '@/utils/date';
 import { ReviewService } from '@/services/review.service';
 import type { ReviewAvailability } from '@/types/review';
 
-export function useReviewCooldown(enabled: boolean) {
+export function useReviewAvailability(enabled: boolean) {
   const [availability, setAvailability] = useState<ReviewAvailability | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 

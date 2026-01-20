@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Info } from 'lucide-react';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { useReviewCooldown } from '@/hooks/useReviewCooldown';
+import { useReviewAvailability } from '@/hooks/useReviewAvailability';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface CommentEditorBannerProps {
@@ -32,7 +32,7 @@ const LoadingSkeleton = () => (
 );
 
 export function CommentEditorBanner({ isEditing, children }: CommentEditorBannerProps) {
-  const { canReview, timeRemaining, isLoading, refetchAvailability } = useReviewCooldown(true);
+  const { canReview, timeRemaining, isLoading, refetchAvailability } = useReviewAvailability(true);
   const isMobile = useIsMobile();
   const [isCooldownDismissed, setIsCooldownDismissed] = useState(false);
   const [isInfoDismissed, setIsInfoDismissed] = useState(false);
