@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Info } from 'lucide-react';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { useReviewAvailability } from '@/hooks/useReviewAvailability';
+import { useReviewAvailability } from '@/components/Comment/lib/hooks/useReviewAvailability';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface CommentEditorBannerProps {

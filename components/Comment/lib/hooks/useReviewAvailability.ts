@@ -17,8 +17,8 @@ export function useReviewAvailability(enabled: boolean) {
     setIsLoading(true);
 
     try {
-      const data = await ReviewService.getAvailability();
-      setAvailability(data);
+      const availability = await ReviewService.getAvailability();
+      setAvailability(availability);
     } catch {
       setAvailability(null);
     } finally {
