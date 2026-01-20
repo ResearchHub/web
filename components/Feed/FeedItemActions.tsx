@@ -422,7 +422,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   return (
     <>
       <div className="flex items-center justify-between w-full">
-        <div className="flex items-center space-x-3 md:space-x-4 flex-nowrap overflow-x-auto">
+        <div className="flex items-center space-x-3 md:space-x-4 flex-nowrap overflow-visible">
           <div
             className={cn(
               'flex items-center h-8 border rounded-full bg-white transition-all',
