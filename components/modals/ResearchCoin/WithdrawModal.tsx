@@ -13,10 +13,12 @@ import { NetworkSelector } from '@/components/ui/NetworkSelector';
 import { NETWORK_CONFIG, NetworkType } from '@/constants/tokens';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Input } from '@/components/ui/form/Input';
+import { Checkbox } from '@/components/ui/form/Checkbox';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import toast from 'react-hot-toast';
 import { WithdrawalSuccessView } from './WithdrawalSuccessView';
+import { isValidEthereumAddress } from '@/utils/stringUtils';
 
 // Minimum withdrawal amount in RSC
 const MIN_WITHDRAWAL_AMOUNT = 150;
@@ -37,6 +39,8 @@ export function WithdrawModal({
   const [amount, setAmount] = useState<string>('');
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkType>('BASE');
   const [isCopied, setIsCopied] = useState(false);
+  const [addressMode, setAddressMode] = useState<'connected' | 'custom'>('connected');
+  const [customAddress, setCustomAddress] = useState<string>('');
   const contentRef = useRef<HTMLDivElement>(null);
   const { address } = useAccount();
   const [{ txStatus, isLoading, fee, isFeeLoading, feeError }, withdrawRSC, resetTransaction] =
@@ -54,12 +58,23 @@ export function WithdrawModal({
         setAmount('');
         setSelectedNetwork('BASE');
         setIsCopied(false);
+        setAddressMode('connected');
+        setCustomAddress('');
         resetTransaction();
       }, 300);
 
       return () => clearTimeout(timeoutId);
     }
   }, [isOpen, resetTransaction]);
+
+  const withdrawalAddress = useMemo(() => {
+    return addressMode === 'connected' ? address : customAddress;
+  }, [addressMode, address, customAddress]);
+
+  const isCustomAddressValid = useMemo(() => {
+    if (addressMode === 'connected') return true;
+    return isValidEthereumAddress(customAddress);
+  }, [addressMode, customAddress]);
 
   useEffect(() => {
     if (txStatus.state === 'error') {
@@ -118,7 +133,9 @@ export function WithdrawModal({
       !fee ||
       hasInsufficientBalance ||
       isBelowMinimum ||
-      amountUserWillReceive <= 0,
+      amountUserWillReceive <= 0 ||
+      !isCustomAddressValid ||
+      !withdrawalAddress,
     [
       amount,
       withdrawAmount,
@@ -128,6 +145,8 @@ export function WithdrawModal({
       hasInsufficientBalance,
       isBelowMinimum,
       amountUserWillReceive,
+      isCustomAddressValid,
+      withdrawalAddress,
     ]
   );
 
@@ -142,12 +161,12 @@ export function WithdrawModal({
   }, [availableBalance, isInputDisabled, fee]);
 
   const handleWithdraw = useCallback(async () => {
-    if (!address || !amount || isButtonDisabled || !fee) {
+    if (!withdrawalAddress || !amount || isButtonDisabled || !fee) {
       return;
     }
 
     const result = await withdrawRSC({
-      to_address: address,
+      to_address: withdrawalAddress,
       agreed_to_terms: true,
       amount: amount,
       network: selectedNetwork,
@@ -157,7 +176,7 @@ export function WithdrawModal({
       onSuccess();
     }
   }, [
-    address,
+    withdrawalAddress,
     amount,
     isButtonDisabled,
     withdrawRSC,
@@ -168,8 +187,8 @@ export function WithdrawModal({
   ]);
 
   const handleCopyAddress = useCallback(() => {
-    if (!address) return;
-    navigator.clipboard.writeText(address).then(
+    if (!withdrawalAddress) return;
+    navigator.clipboard.writeText(withdrawalAddress).then(
       () => {
         setIsCopied(true);
         toast.success('Address copied to clipboard!');
@@ -180,7 +199,11 @@ export function WithdrawModal({
         toast.error('Failed to copy address.');
       }
     );
-  }, [address]);
+  }, [withdrawalAddress]);
+
+  const handleCustomAddressChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomAddress(e.target.value);
+  }, []);
 
   if (!address) {
     return null;
@@ -237,7 +260,7 @@ export function WithdrawModal({
             fee={fee || 0}
             amountReceived={amountUserWillReceive}
             networkConfig={networkConfig}
-            address={address || ''}
+            address={withdrawalAddress || ''}
           />
         ) : (
           /* Form View */
@@ -255,7 +278,7 @@ export function WithdrawModal({
 
             {/* Network Selector */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
                 <span className="text-[15px] text-gray-700">Network</span>
                 <div className="flex items-center gap-2">
                   {(Object.keys(NETWORK_CONFIG) as NetworkType[]).map((network) => {
@@ -379,38 +402,90 @@ export function WithdrawModal({
               )}
             </div>
 
-            {/* Withdrawal Address Display */}
-            <div className="space-y-2">
-              <Input
-                label="Withdrawal Address"
-                value={address || ''}
-                readOnly
-                disabled
-                className="bg-gray-50 font-mono text-sm pr-0"
-                style={{
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
+            {/* Withdrawal Address */}
+            <div className="space-y-3">
+              <span className="text-[15px] text-gray-700">Withdrawal Address</span>
+
+              {/* Address Mode Toggle */}
+              <Checkbox
+                id="useConnectedWallet"
+                label="Use my connected wallet"
+                checked={addressMode === 'connected'}
+                onCheckedChange={(checked) => {
+                  if (!isInputDisabled()) {
+                    setAddressMode(checked ? 'connected' : 'custom');
+                  }
                 }}
-                rightElement={
-                  <button
-                    onClick={handleCopyAddress}
-                    className="flex items-center gap-2 px-4 py-2 h-full text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors border-l border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-r-lg flex-shrink-0"
-                    type="button"
-                  >
-                    {isCopied ? (
-                      <Check className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </button>
-                }
+                disabled={isInputDisabled()}
               />
 
+              {/* Address Input */}
+              {addressMode === 'connected' ? (
+                <Input
+                  value={address || ''}
+                  readOnly
+                  disabled
+                  className="bg-gray-50 font-mono text-sm pr-0"
+                  style={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                  rightElement={
+                    <button
+                      onClick={handleCopyAddress}
+                      className="flex items-center gap-2 px-4 py-2 h-full text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors border-l border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-r-lg flex-shrink-0"
+                      type="button"
+                    >
+                      {isCopied ? (
+                        <Check className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </button>
+                  }
+                />
+              ) : (
+                <div className="space-y-2">
+                  <Input
+                    value={customAddress}
+                    onChange={handleCustomAddressChange}
+                    placeholder="0x..."
+                    disabled={isInputDisabled()}
+                    className={cn(
+                      'font-mono text-sm',
+                      customAddress &&
+                        !isCustomAddressValid &&
+                        'border-red-500 focus:border-red-500 focus:ring-red-500'
+                    )}
+                    rightElement={
+                      customAddress && (
+                        <button
+                          onClick={handleCopyAddress}
+                          className="flex items-center gap-2 px-4 py-2 h-full text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors border-l border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-r-lg flex-shrink-0"
+                          type="button"
+                        >
+                          {isCopied ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </button>
+                      )
+                    }
+                  />
+                  {customAddress && !isCustomAddressValid && (
+                    <p className="text-sm text-red-600" role="alert">
+                      Please enter a valid Ethereum address (0x followed by 40 hex characters).
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Network Compatibility Warning */}
-              <Alert variant="warning" className="mt-2">
+              <Alert variant="warning">
                 <div className="font-medium">
-                  Ensure your wallet supports {NETWORK_CONFIG[selectedNetwork].name}
+                  Ensure the destination wallet supports {NETWORK_CONFIG[selectedNetwork].name}
                 </div>
               </Alert>
             </div>

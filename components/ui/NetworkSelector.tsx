@@ -11,6 +11,7 @@ interface NetworkSelectorProps {
   onChange: (network: NetworkType) => void;
   disabled?: boolean;
   className?: string;
+  showBadges?: boolean;
 }
 
 export function NetworkSelector({
@@ -18,6 +19,7 @@ export function NetworkSelector({
   onChange,
   disabled = false,
   className,
+  showBadges = true,
 }: NetworkSelectorProps) {
   const selectedNetwork = NETWORK_CONFIG[value];
 
@@ -41,16 +43,20 @@ export function NetworkSelector({
         <div className="flex-1 flex flex-col items-start">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-900">{selectedNetwork.name}</span>
-            <span
-              className={cn(
-                'text-xs px-2 py-0.5 rounded-full font-medium',
-                value === 'BASE' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-              )}
-            >
-              {selectedNetwork.badge}
-            </span>
+            {showBadges && selectedNetwork.badge && (
+              <span
+                className={cn(
+                  'text-xs px-2 py-0.5 rounded-full font-medium',
+                  value === 'BASE' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                )}
+              >
+                {selectedNetwork.badge}
+              </span>
+            )}
           </div>
-          <span className="text-xs text-gray-500">{selectedNetwork.description}</span>
+          {showBadges && selectedNetwork.description && (
+            <span className="text-xs text-gray-500">{selectedNetwork.description}</span>
+          )}
         </div>
         <svg
           className="w-5 h-5 text-gray-400 flex-shrink-0"
@@ -62,7 +68,7 @@ export function NetworkSelector({
         </svg>
       </div>
     ),
-    [selectedNetwork, value, disabled, className]
+    [selectedNetwork, value, disabled, className, showBadges]
   );
 
   return (
@@ -87,7 +93,7 @@ export function NetworkSelector({
               }
             }}
             className={cn(
-              'flex items-start gap-3 px-3 py-3 rounded-md',
+              'flex items-center gap-3 px-3 py-3 rounded-md',
               isSelected && 'bg-primary-50'
             )}
           >
@@ -96,29 +102,33 @@ export function NetworkSelector({
               alt={`${config.name} logo`}
               width={30}
               height={30}
-              className="flex-shrink-0 mt-0.5"
+              className="flex-shrink-0"
             />
             <div className="flex-1 flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-900">{config.name}</span>
-                <span
-                  className={cn(
-                    'text-xs px-2 py-0.5 rounded-full font-medium',
-                    network === 'BASE'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-amber-100 text-amber-700'
-                  )}
-                >
-                  {config.badge}
-                </span>
+                {showBadges && config.badge && (
+                  <span
+                    className={cn(
+                      'text-xs px-2 py-0.5 rounded-full font-medium',
+                      network === 'BASE'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-amber-100 text-amber-700'
+                    )}
+                  >
+                    {config.badge}
+                  </span>
+                )}
               </div>
-              <span className={cn('text-xs', isSelected ? 'text-primary-700' : 'text-gray-500')}>
-                {config.description}
-              </span>
+              {showBadges && config.description && (
+                <span className={cn('text-xs', isSelected ? 'text-primary-700' : 'text-gray-500')}>
+                  {config.description}
+                </span>
+              )}
             </div>
             {isSelected && (
               <svg
-                className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5"
+                className="w-5 h-5 text-primary-600 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

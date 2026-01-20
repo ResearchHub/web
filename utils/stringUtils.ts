@@ -64,3 +64,12 @@ export const countWords = (text: string): number => {
   const trimmed = text.trim();
   return trimmed ? trimmed.split(/\s+/).length : 0;
 };
+
+/**
+ * Validates if a string is a valid Ethereum address format
+ * @param address The address string to validate
+ * @returns true if the address is a valid Ethereum address (0x followed by 40 hex characters)
+ */
+export const isValidEthereumAddress = (address: string): boolean => {
+  return /^0x[a-fA-F0-9]{40}$/.test(address);
+};

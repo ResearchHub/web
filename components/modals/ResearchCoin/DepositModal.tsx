@@ -271,9 +271,11 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       }
     }
 
+    const isSponsored = selectedNetwork === 'BASE';
+
     return (
       <Transaction
-        isSponsored={true}
+        isSponsored={isSponsored}
         chainId={rscToken.chainId}
         calls={callsCallback}
         onStatus={handleOnStatus}
@@ -303,6 +305,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     isButtonDisabled,
     txStatus.state,
     blockExplorerUrl,
+    selectedNetwork,
   ]);
 
   return (
@@ -343,7 +346,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
             {/* Network Selector */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
                 <span className="text-[15px] text-gray-700">Network</span>
                 <div className="flex items-center gap-2">
                   {(Object.keys(NETWORK_CONFIG) as NetworkType[]).map((network) => {
@@ -365,6 +368,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                 value={selectedNetwork}
                 onChange={setSelectedNetwork}
                 disabled={isInputDisabled()}
+                showBadges={false}
               />
             </div>
 

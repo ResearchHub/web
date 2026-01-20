@@ -9,6 +9,9 @@ import { coinbaseWallet, metaMask } from 'wagmi/connectors';
 
 const IS_PRODUCTION = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production';
 
+const PAYMASTER_URL = process.env.NEXT_PUBLIC_PAYMASTER_URL?.trim() || undefined;
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://researchhub.com';
+
 const productionConfig = createConfig({
   chains: [base, mainnet],
   connectors: [
@@ -19,7 +22,7 @@ const productionConfig = createConfig({
     metaMask({
       dappMetadata: {
         name: 'ResearchHub',
-        url: typeof window !== 'undefined' ? window.location.origin : 'https://researchhub.com',
+        url: SITE_URL,
       },
     }),
   ],
@@ -40,7 +43,7 @@ const developmentConfig = createConfig({
     metaMask({
       dappMetadata: {
         name: 'ResearchHub',
-        url: typeof window !== 'undefined' ? window.location.origin : 'https://researchhub.com',
+        url: SITE_URL,
       },
     }),
   ],
@@ -82,6 +85,7 @@ export function OnchainProvider({ children }: OnchainProviderProps) {
             wallet: {
               display: 'modal',
             },
+            paymaster: PAYMASTER_URL,
           }}
           chain={primaryChain}
         >
