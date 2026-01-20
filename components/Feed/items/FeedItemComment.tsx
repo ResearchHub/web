@@ -2,12 +2,8 @@
 
 import { FC, useState } from 'react';
 import React from 'react';
-import {
-  FeedEntry,
-  FeedCommentContent,
-  ParentCommentPreview,
-  shouldHideCommentButton,
-} from '@/types/feed';
+import { FeedEntry, FeedCommentContent, ParentCommentPreview } from '@/types/feed';
+import { shouldShowCommentButton } from '@/components/Feed/lib/feedUtils';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
@@ -260,7 +256,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 tips={entry.tips}
                 relatedDocumentTopics={entry.relatedWork?.topics}
                 onFeedItemClick={onFeedItemClick}
-                hideCommentButton={shouldHideCommentButton(entry.metrics, Boolean(onReply))}
+                hideCommentButton={!shouldShowCommentButton(entry.metrics, Boolean(onReply))}
               />
             </div>
           </div>

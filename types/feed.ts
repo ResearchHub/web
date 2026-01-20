@@ -1225,20 +1225,3 @@ export function mapFeedContentTypeToContentType(
       return undefined;
   }
 }
-
-/**
- * Determines if the comment/reply button should be hidden.
- * Show the button if there are comments to view OR the user can add one.
- * Hide only when there's nothing to see and no way to add.
- *
- * @param metrics - The content metrics containing comment count
- * @param hasCommentAction - Whether the user has a way to comment (via callback or navigation)
- */
-export function shouldHideCommentButton(
-  metrics: ContentMetrics | undefined,
-  hasCommentAction: boolean
-): boolean {
-  const hasComments = (metrics?.comments ?? 0) > 0;
-  const shouldShowButton = hasComments || hasCommentAction;
-  return !shouldShowButton;
-}
