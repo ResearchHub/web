@@ -1,12 +1,11 @@
 'use client';
 
-import { FC, useState, useEffect, useMemo, useCallback } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { Plus, ChevronDown, Star, Clock, ArrowUp, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { FeedItemFundraise } from '@/components/Feed/items/FeedItemFundraise';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
-import { ProposalForModal } from '@/services/post.service';
 import { useFundingFeed } from '@/hooks/useFundingFeed';
 import { FeedPostContent } from '@/types/feed';
 import { CommentLoader } from '@/components/Comment/CommentLoader';
@@ -48,19 +47,12 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
     }
   }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
 
-  const currentSortOption = useMemo(
-    () => sortOptions.find((opt) => opt.value === sortBy),
-    [sortBy]
-  );
-
+  const currentSortOption = sortOptions.find((opt) => opt.value === sortBy);
   const SortIcon = currentSortOption?.icon ?? Star;
 
-  const openModal = useCallback(() => setIsModalOpen(true), []);
-  const closeModal = useCallback(() => setIsModalOpen(false), []);
-
-  const handleProposalSelected = useCallback((_proposal: ProposalForModal) => {
-    setIsModalOpen(false);
-  }, []);
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+  const handleProposalSelected = () => setIsModalOpen(false);
 
   const renderSortButton = () => (
     <BaseMenu
