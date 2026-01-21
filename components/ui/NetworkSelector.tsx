@@ -12,6 +12,8 @@ interface NetworkSelectorProps {
   disabled?: boolean;
   className?: string;
   showBadges?: boolean;
+  customBadges?: Partial<Record<NetworkType, string>>;
+  showDescription?: boolean;
 }
 
 export function NetworkSelector({
@@ -20,8 +22,17 @@ export function NetworkSelector({
   disabled = false,
   className,
   showBadges = true,
+  customBadges,
+  showDescription = true,
 }: NetworkSelectorProps) {
   const selectedNetwork = NETWORK_CONFIG[value];
+
+  const getBadge = (network: NetworkType): string | undefined => {
+    if (customBadges && customBadges[network]) {
+      return customBadges[network];
+    }
+    return NETWORK_CONFIG[network].badge;
+  };
 
   const trigger = useMemo(
     () => (
@@ -43,18 +54,18 @@ export function NetworkSelector({
         <div className="flex-1 flex flex-col items-start">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-900">{selectedNetwork.name}</span>
-            {showBadges && selectedNetwork.badge && (
+            {showBadges && getBadge(value) && (
               <span
                 className={cn(
                   'text-xs px-2 py-0.5 rounded-full font-medium',
                   value === 'BASE' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
                 )}
               >
-                {selectedNetwork.badge}
+                {getBadge(value)}
               </span>
             )}
           </div>
-          {showBadges && selectedNetwork.description && (
+          {showDescription && showBadges && selectedNetwork.description && (
             <span className="text-xs text-gray-500">{selectedNetwork.description}</span>
           )}
         </div>
@@ -68,7 +79,7 @@ export function NetworkSelector({
         </svg>
       </div>
     ),
-    [selectedNetwork, value, disabled, className, showBadges]
+    [selectedNetwork, value, disabled, className, showBadges, showDescription, customBadges]
   );
 
   return (
@@ -107,7 +118,7 @@ export function NetworkSelector({
             <div className="flex-1 flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-900">{config.name}</span>
-                {showBadges && config.badge && (
+                {showBadges && getBadge(network) && (
                   <span
                     className={cn(
                       'text-xs px-2 py-0.5 rounded-full font-medium',
@@ -116,11 +127,11 @@ export function NetworkSelector({
                         : 'bg-amber-100 text-amber-700'
                     )}
                   >
-                    {config.badge}
+                    {getBadge(network)}
                   </span>
                 )}
               </div>
-              {showBadges && config.description && (
+              {showDescription && showBadges && config.description && (
                 <span className={cn('text-xs', isSelected ? 'text-primary-700' : 'text-gray-500')}>
                   {config.description}
                 </span>

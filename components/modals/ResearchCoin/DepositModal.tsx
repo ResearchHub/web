@@ -52,14 +52,26 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const [isInitiating, isDepositButtonDisabled] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const { address } = useAccount();
-  const { balance: walletBalance, isLoading: isWalletBalanceLoading } = useWalletRSCBalance({
-    network: selectedNetwork,
+
+  // Fetch balances for both networks to determine smart default
+  const { balance: baseBalance, isLoading: isBaseBalanceLoading } = useWalletRSCBalance({
+    network: 'BASE',
   });
+  const { balance: ethereumBalance, isLoading: isEthereumBalanceLoading } = useWalletRSCBalance({
+    network: 'ETHEREUM',
+  });
+
+  // Use selected network's balance for display and validation
+  const walletBalance = selectedNetwork === 'BASE' ? baseBalance : ethereumBalance;
+  const isWalletBalanceLoading =
+    selectedNetwork === 'BASE' ? isBaseBalanceLoading : isEthereumBalanceLoading;
+
   const isMobile = useIsMobile();
   const [txStatus, setTxStatus] = useState<TransactionStatus>({ state: 'idle' });
   const hasCalledSuccessRef = useRef(false);
   const hasProcessedDepositRef = useRef(false);
   const processedTxHashRef = useRef<string | null>(null);
+  const hasSetDefaultRef = useRef(false);
 
   const rscToken = useMemo(() => getRSCForNetwork(selectedNetwork), [selectedNetwork]);
   const networkConfig = NETWORK_CONFIG[selectedNetwork];
@@ -69,7 +81,8 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     if (isOpen) {
       setTxStatus({ state: 'idle' });
       setAmount('');
-      setSelectedNetwork('BASE');
+      // Reset default flag to allow smart default to run
+      hasSetDefaultRef.current = false;
       isDepositButtonDisabled(false);
       hasCalledSuccessRef.current = false;
       hasProcessedDepositRef.current = false;
@@ -79,7 +92,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       const timeoutId = setTimeout(() => {
         setTxStatus({ state: 'idle' });
         setAmount('');
-        setSelectedNetwork('BASE');
+        hasSetDefaultRef.current = false;
         isDepositButtonDisabled(false);
         hasCalledSuccessRef.current = false;
         hasProcessedDepositRef.current = false;
@@ -89,6 +102,24 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       return () => clearTimeout(timeoutId);
     }
   }, [isOpen]);
+
+  // Smart default selection based on wallet balances
+  useEffect(() => {
+    if (!isOpen || hasSetDefaultRef.current) return;
+
+    if (!isBaseBalanceLoading && !isEthereumBalanceLoading) {
+      const baseHasBalance = baseBalance > 0;
+      const ethereumHasBalance = ethereumBalance > 0;
+
+      if (ethereumHasBalance && !baseHasBalance) {
+        setSelectedNetwork('ETHEREUM');
+      } else {
+        setSelectedNetwork('BASE'); // Default to Base if both have balance or neither has balance
+      }
+
+      hasSetDefaultRef.current = true;
+    }
+  }, [isOpen, baseBalance, ethereumBalance, isBaseBalanceLoading, isEthereumBalanceLoading]);
 
   useEffect(() => {
     if (txStatus.state === 'error') {
@@ -368,7 +399,12 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                 value={selectedNetwork}
                 onChange={setSelectedNetwork}
                 disabled={isInputDisabled()}
-                showBadges={false}
+                showBadges={true}
+                showDescription={false}
+                customBadges={{
+                  BASE: 'Sponsored',
+                  ETHEREUM: 'Network Fee',
+                }}
               />
             </div>
 
