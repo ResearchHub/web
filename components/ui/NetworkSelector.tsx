@@ -29,7 +29,7 @@ export function NetworkSelector({
   const selectedNetwork = NETWORK_CONFIG[value];
 
   const getBadge = (network: NetworkType): string | undefined => {
-    if (customBadges && customBadges[network]) {
+    if (customBadges?.[network]) {
       return customBadges[network];
     }
     return NETWORK_CONFIG[network].badge;

@@ -262,11 +262,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     return [transferCall];
   }, [amount, depositAmount, walletBalance, rscToken.address]);
 
-  // If no wallet is connected, show nothing - assuming modal shouldn't open in this state
-  if (!address) {
-    return null;
-  }
-
   const footer = useMemo(() => {
     const txHash = txStatus.state === 'success' ? txStatus.txHash : undefined;
 
@@ -312,6 +307,11 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     blockExplorerUrl,
     selectedNetwork,
   ]);
+
+  // If no wallet is connected, show nothing - assuming modal shouldn't open in this state
+  if (!address) {
+    return null;
+  }
 
   return (
     <BaseModal
