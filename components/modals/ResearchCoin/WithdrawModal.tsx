@@ -1,16 +1,17 @@
 'use client';
 
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
-import { Check, AlertCircle, ExternalLink, Loader2, Copy } from 'lucide-react';
-import Image from 'next/image';
+import { Check, AlertCircle, Loader2, Copy } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useAccount } from 'wagmi';
 import { useWithdrawRSC } from '@/hooks/useWithdrawRSC';
 import { cn } from '@/utils/styles';
-import { NetworkSelector } from '@/components/ui/NetworkSelector';
 import { NETWORK_CONFIG, NetworkType } from '@/constants/tokens';
+import { NetworkSelectorSection } from './shared/NetworkSelectorSection';
+import { BalanceDisplay } from './shared/BalanceDisplay';
+import { TransactionFooter } from './shared/TransactionFooter';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Input } from '@/components/ui/form/Input';
 import { Checkbox } from '@/components/ui/form/Checkbox';
@@ -19,6 +20,7 @@ import { Alert } from '@/components/ui/Alert';
 import toast from 'react-hot-toast';
 import { WithdrawalSuccessView } from './WithdrawalSuccessView';
 import { isValidEthereumAddress } from '@/utils/stringUtils';
+import { useCopyAddress } from '@/hooks/useCopyAddress';
 
 // Minimum withdrawal amount in RSC
 const MIN_WITHDRAWAL_AMOUNT = 150;
@@ -38,7 +40,6 @@ export function WithdrawModal({
 }: WithdrawModalProps) {
   const [amount, setAmount] = useState<string>('');
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkType>('BASE');
-  const [isCopied, setIsCopied] = useState(false);
   const [addressMode, setAddressMode] = useState<'connected' | 'custom'>('connected');
   const [customAddress, setCustomAddress] = useState<string>('');
   const contentRef = useRef<HTMLDivElement>(null);
@@ -57,7 +58,6 @@ export function WithdrawModal({
       const timeoutId = setTimeout(() => {
         setAmount('');
         setSelectedNetwork('BASE');
-        setIsCopied(false);
         setAddressMode('connected');
         setCustomAddress('');
         resetTransaction();
@@ -186,20 +186,11 @@ export function WithdrawModal({
     selectedNetwork,
   ]);
 
+  const { isCopied: isAddressCopied, copyAddress } = useCopyAddress();
+
   const handleCopyAddress = useCallback(() => {
-    if (!withdrawalAddress) return;
-    navigator.clipboard.writeText(withdrawalAddress).then(
-      () => {
-        setIsCopied(true);
-        toast.success('Address copied to clipboard!');
-        setTimeout(() => setIsCopied(false), 2000);
-      },
-      (err) => {
-        console.error('Failed to copy address: ', err);
-        toast.error('Failed to copy address.');
-      }
-    );
-  }, [withdrawalAddress]);
+    copyAddress(withdrawalAddress);
+  }, [withdrawalAddress, copyAddress]);
 
   const handleCustomAddressChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setCustomAddress(e.target.value);
@@ -210,37 +201,25 @@ export function WithdrawModal({
   }
 
   const footer = useMemo(() => {
-    if (txStatus.state === 'success') {
-      const txHash = 'txHash' in txStatus ? txStatus.txHash : undefined;
-      if (txHash) {
-        const normalizedTxHash = txHash.startsWith('0x') ? txHash : `0x${txHash}`;
-        return (
-          <a
-            href={`${blockExplorerUrl}/tx/${normalizedTxHash}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full"
-          >
-            <Button className="w-full" size="lg">
-              View Transaction
-              <ExternalLink className="h-4 w-4 ml-2" />
-            </Button>
-          </a>
-        );
-      }
+    const txHash = txStatus.state === 'success' ? txStatus.txHash : undefined;
+
+    if (txHash) {
+      return <TransactionFooter txHash={txHash} blockExplorerUrl={blockExplorerUrl} />;
     }
 
     return (
-      <Button onClick={handleWithdraw} disabled={isButtonDisabled} className="w-full" size="lg">
-        {isFeeLoading || txStatus.state === 'pending' ? (
-          <>
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            {isFeeLoading ? 'Loading fee...' : 'Processing...'}
-          </>
-        ) : (
-          'Withdraw RSC'
-        )}
-      </Button>
+      <TransactionFooter blockExplorerUrl={blockExplorerUrl}>
+        <Button onClick={handleWithdraw} disabled={isButtonDisabled} className="w-full" size="lg">
+          {isFeeLoading || txStatus.state === 'pending' ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              {isFeeLoading ? 'Loading fee...' : 'Processing...'}
+            </>
+          ) : (
+            'Withdraw RSC'
+          )}
+        </Button>
+      </TransactionFooter>
     );
   }, [txStatus, blockExplorerUrl, isButtonDisabled, handleWithdraw, isFeeLoading]);
 
@@ -277,31 +256,11 @@ export function WithdrawModal({
             )}
 
             {/* Network Selector */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-[15px] text-gray-700">Network</span>
-                <div className="flex items-center gap-2">
-                  {(Object.keys(NETWORK_CONFIG) as NetworkType[]).map((network) => {
-                    const config = NETWORK_CONFIG[network];
-                    return (
-                      <Image
-                        key={network}
-                        src={config.icon}
-                        alt={`${config.name} logo`}
-                        width={20}
-                        height={20}
-                        className="flex-shrink-0"
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-              <NetworkSelector
-                value={selectedNetwork}
-                onChange={setSelectedNetwork}
-                disabled={isInputDisabled()}
-              />
-            </div>
+            <NetworkSelectorSection
+              selectedNetwork={selectedNetwork}
+              onNetworkChange={setSelectedNetwork}
+              disabled={isInputDisabled()}
+            />
 
             {/* Amount Input */}
             <div className="space-y-2">
@@ -437,7 +396,7 @@ export function WithdrawModal({
                       className="flex items-center gap-2 px-4 py-2 h-full text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors border-l border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-r-lg flex-shrink-0"
                       type="button"
                     >
-                      {isCopied ? (
+                      {isAddressCopied ? (
                         <Check className="h-4 w-4 text-green-500" />
                       ) : (
                         <Copy className="h-4 w-4" />
@@ -465,7 +424,7 @@ export function WithdrawModal({
                           className="flex items-center gap-2 px-4 py-2 h-full text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors border-l border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-r-lg flex-shrink-0"
                           type="button"
                         >
-                          {isCopied ? (
+                          {isAddressCopied ? (
                             <Check className="h-4 w-4 text-green-500" />
                           ) : (
                             <Copy className="h-4 w-4" />
@@ -491,41 +450,12 @@ export function WithdrawModal({
             </div>
 
             {/* Balance Display */}
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Current Balance:</span>
-                <div className="text-right flex items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <ResearchCoinIcon size={16} />
-                    <span className="text-sm font-semibold text-gray-900">
-                      {formatRSC({ amount: availableBalance })}
-                    </span>
-                    <span className="text-sm text-gray-500">RSC</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="my-2 border-t border-gray-200" />
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">After Withdrawal:</span>
-                <div className="text-right flex items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <ResearchCoinIcon size={16} />
-                    <span
-                      className={cn(
-                        'text-sm font-semibold',
-                        withdrawAmount > 0 ? 'text-red-600' : 'text-gray-900'
-                      )}
-                    >
-                      {withdrawAmount > 0
-                        ? formatRSC({ amount: calculateNewBalance() })
-                        : formatRSC({ amount: availableBalance })}
-                    </span>
-                    <span className="text-sm text-gray-500">RSC</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <BalanceDisplay
+              currentBalance={availableBalance}
+              futureBalance={withdrawAmount > 0 ? calculateNewBalance() : availableBalance}
+              futureBalanceLabel="After Withdrawal"
+              futureBalanceColor={withdrawAmount > 0 ? 'red' : 'gray'}
+            />
           </>
         )}
       </div>
