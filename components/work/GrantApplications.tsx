@@ -16,19 +16,17 @@ interface GrantApplicationsProps {
   grantId: number;
 }
 
-interface SortOption {
+type SortOption = {
   label: string;
   value: string;
-  icon: typeof Star;
-}
+  icon: typeof Star | typeof Clock | typeof ArrowUp;
+};
 
-const SORT_OPTIONS: SortOption[] = [
+const sortOptions: SortOption[] = [
   { label: 'Best', value: 'best', icon: Star },
   { label: 'Newest', value: 'newest', icon: Clock },
   { label: 'Top', value: 'upvotes', icon: ArrowUp },
 ];
-
-const DEFAULT_SORT_ICON = Star;
 
 /**
  * Displays a list of applications (proposals) for a grant as a feed.
@@ -51,11 +49,11 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
   }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
 
   const currentSortOption = useMemo(
-    () => SORT_OPTIONS.find((opt) => opt.value === sortBy),
+    () => sortOptions.find((opt) => opt.value === sortBy),
     [sortBy]
   );
 
-  const SortIcon = currentSortOption?.icon ?? DEFAULT_SORT_ICON;
+  const SortIcon = currentSortOption?.icon ?? Star;
 
   const openModal = useCallback(() => setIsModalOpen(true), []);
   const closeModal = useCallback(() => setIsModalOpen(false), []);
@@ -75,7 +73,7 @@ export const GrantApplications: FC<GrantApplicationsProps> = ({ grantId }) => {
         </Button>
       }
     >
-      {SORT_OPTIONS.map((option) => {
+      {sortOptions.map((option) => {
         const Icon = option.icon;
         return (
           <BaseMenuItem
