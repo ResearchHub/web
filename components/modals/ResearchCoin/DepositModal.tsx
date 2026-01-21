@@ -1,10 +1,8 @@
 'use client';
 
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
-import { ExternalLink, Loader2 } from 'lucide-react';
-import Image from 'next/image';
+import { Loader2 } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
-import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useAccount } from 'wagmi';
 import { useWalletRSCBalance } from '@/hooks/useWalletRSCBalance';
@@ -13,10 +11,11 @@ import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction
 import { Interface } from 'ethers';
 import { TransactionService } from '@/services/transaction.service';
 import { getRSCForNetwork, NetworkType, TRANSFER_ABI, NETWORK_CONFIG } from '@/constants/tokens';
-import { NetworkSelector } from '@/components/ui/NetworkSelector';
 import { Alert } from '@/components/ui/Alert';
-import { Button } from '@/components/ui/Button';
 import { DepositSuccessView } from './DepositSuccessView';
+import { NetworkSelectorSection } from './shared/NetworkSelectorSection';
+import { BalanceDisplay } from './shared/BalanceDisplay';
+import { TransactionFooter } from './shared/TransactionFooter';
 import toast from 'react-hot-toast';
 
 const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
@@ -269,51 +268,39 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   }
 
   const footer = useMemo(() => {
-    if (txStatus.state === 'success') {
-      const txHash = 'txHash' in txStatus ? txStatus.txHash : undefined;
-      if (txHash) {
-        const normalizedTxHash = txHash.startsWith('0x') ? txHash : `0x${txHash}`;
-        return (
-          <a
-            href={`${blockExplorerUrl}/tx/${normalizedTxHash}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full"
-          >
-            <Button className="w-full" size="lg">
-              View Transaction
-              <ExternalLink className="h-4 w-4 ml-2" />
-            </Button>
-          </a>
-        );
-      }
+    const txHash = txStatus.state === 'success' ? txStatus.txHash : undefined;
+
+    if (txHash) {
+      return <TransactionFooter txHash={txHash} blockExplorerUrl={blockExplorerUrl} />;
     }
 
     const isSponsored = selectedNetwork === 'BASE';
 
     return (
-      <Transaction
-        isSponsored={isSponsored}
-        chainId={rscToken.chainId}
-        calls={callsCallback}
-        onStatus={handleOnStatus}
-      >
-        <div onClick={setButtonDisabledOnClick} role="presentation">
-          <TransactionButton
-            className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-            disabled={isButtonDisabled}
-            text="Deposit RSC"
-            pendingOverride={{
-              text: (
-                <span className="flex items-center justify-center">
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                  {txStatus.state === 'pending' ? 'Processing...' : 'Building transaction...'}
-                </span>
-              ),
-            }}
-          />
-        </div>
-      </Transaction>
+      <TransactionFooter blockExplorerUrl={blockExplorerUrl}>
+        <Transaction
+          isSponsored={isSponsored}
+          chainId={rscToken.chainId}
+          calls={callsCallback}
+          onStatus={handleOnStatus}
+        >
+          <div onClick={setButtonDisabledOnClick} role="presentation">
+            <TransactionButton
+              className="w-full h-12 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+              disabled={isButtonDisabled}
+              text="Deposit RSC"
+              pendingOverride={{
+                text: (
+                  <span className="flex items-center justify-center">
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    {txStatus.state === 'pending' ? 'Processing...' : 'Building transaction...'}
+                  </span>
+                ),
+              }}
+            />
+          </div>
+        </Transaction>
+      </TransactionFooter>
     );
   }, [
     rscToken.chainId,
@@ -321,7 +308,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     handleOnStatus,
     setButtonDisabledOnClick,
     isButtonDisabled,
-    txStatus.state,
+    txStatus,
     blockExplorerUrl,
     selectedNetwork,
   ]);
@@ -363,37 +350,16 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
             )}
 
             {/* Network Selector */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-[15px] text-gray-700">Network</span>
-                <div className="flex items-center gap-2">
-                  {(Object.keys(NETWORK_CONFIG) as NetworkType[]).map((network) => {
-                    const config = NETWORK_CONFIG[network];
-                    return (
-                      <Image
-                        key={network}
-                        src={config.icon}
-                        alt={`${config.name} logo`}
-                        width={20}
-                        height={20}
-                        className="flex-shrink-0"
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-              <NetworkSelector
-                value={selectedNetwork}
-                onChange={setSelectedNetwork}
-                disabled={isInputDisabled()}
-                showBadges={true}
-                showDescription={false}
-                customBadges={{
-                  BASE: 'Sponsored',
-                  ETHEREUM: 'Network Fee',
-                }}
-              />
-            </div>
+            <NetworkSelectorSection
+              selectedNetwork={selectedNetwork}
+              onNetworkChange={setSelectedNetwork}
+              disabled={isInputDisabled()}
+              showDescription={false}
+              customBadges={{
+                BASE: 'Sponsored',
+                ETHEREUM: 'Network Fee',
+              }}
+            />
 
             {/* Wallet RSC Balance */}
             <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
@@ -451,38 +417,18 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
             </div>
 
             {/* Balance Display */}
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Current Balance:</span>
-                <div className="text-right flex items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <ResearchCoinIcon size={16} />
-                    <span className="text-sm font-semibold text-gray-900">
-                      {formatRSC({ amount: currentBalance })}
-                    </span>
-                    <span className="text-sm text-gray-500">RSC</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="my-2 border-t border-gray-200" />
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">After Deposit:</span>
-                <div className="text-right flex items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <ResearchCoinIcon size={16} />
-                    <span
-                      className={`text-sm font-semibold ${depositAmount > 0 && depositAmount <= walletBalance ? 'text-green-600' : 'text-gray-900'}`}
-                    >
-                      {depositAmount > 0 && depositAmount <= walletBalance
-                        ? formatRSC({ amount: calculateNewBalance() })
-                        : formatRSC({ amount: currentBalance })}
-                    </span>
-                    <span className="text-sm text-gray-500">RSC</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <BalanceDisplay
+              currentBalance={currentBalance}
+              futureBalance={
+                depositAmount > 0 && depositAmount <= walletBalance
+                  ? calculateNewBalance()
+                  : currentBalance
+              }
+              futureBalanceLabel="After Deposit"
+              futureBalanceColor={
+                depositAmount > 0 && depositAmount <= walletBalance ? 'green' : 'gray'
+              }
+            />
           </>
         )}
       </div>
