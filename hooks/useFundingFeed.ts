@@ -43,7 +43,7 @@ export const useFundingFeed = (pageSize: number = 20, grantId?: number): UseFund
     try {
       const result = await FeedService.getFeed(getFeedParams(1));
       setEntries(result.entries);
-      setHasMore(result.hasMore);
+      setHasMore(result.entries.length >= pageSize && result.hasMore);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch applications'));
       setEntries([]);
@@ -51,7 +51,7 @@ export const useFundingFeed = (pageSize: number = 20, grantId?: number): UseFund
     } finally {
       setIsLoading(false);
     }
-  }, [getFeedParams]);
+  }, [getFeedParams, pageSize]);
 
   const loadMore = useCallback(async () => {
     if (!hasMore || isLoading || isLoadingMore) return;
@@ -62,15 +62,22 @@ export const useFundingFeed = (pageSize: number = 20, grantId?: number): UseFund
 
     try {
       const result = await FeedService.getFeed(getFeedParams(nextPage));
+
+      // If no entries returned, we've reached the end regardless of what API says
+      if (result.entries.length === 0) {
+        setHasMore(false);
+        return;
+      }
+
       setEntries((prev) => [...prev, ...result.entries]);
-      setHasMore(result.hasMore);
+      setHasMore(result.entries.length >= pageSize && result.hasMore);
       setPage(nextPage);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to load more applications'));
     } finally {
       setIsLoadingMore(false);
     }
-  }, [hasMore, isLoading, isLoadingMore, page, getFeedParams]);
+  }, [hasMore, isLoading, isLoadingMore, page, getFeedParams, pageSize]);
 
   useEffect(() => {
     fetchFeed();
