@@ -34,10 +34,7 @@ export function useWalletRSCBalance(
     error,
   } = useBalance({
     address,
-    token:
-      rscToken.address && rscToken.address.startsWith('0x')
-        ? (rscToken.address as `0x${string}`)
-        : undefined,
+    token: rscToken.address?.startsWith('0x') ? (rscToken.address as `0x${string}`) : undefined,
     chainId: rscToken.chainId,
   });
 

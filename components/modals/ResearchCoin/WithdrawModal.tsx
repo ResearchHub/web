@@ -196,10 +196,6 @@ export function WithdrawModal({
     setCustomAddress(e.target.value);
   }, []);
 
-  if (!address) {
-    return null;
-  }
-
   const footer = useMemo(() => {
     const txHash = txStatus.state === 'success' ? txStatus.txHash : undefined;
 
@@ -222,6 +218,10 @@ export function WithdrawModal({
       </TransactionFooter>
     );
   }, [txStatus, blockExplorerUrl, isButtonDisabled, handleWithdraw, isFeeLoading]);
+
+  if (!address) {
+    return null;
+  }
 
   return (
     <BaseModal
