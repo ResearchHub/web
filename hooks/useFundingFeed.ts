@@ -19,7 +19,7 @@ export const useFundingFeed = (pageSize: number = 20, grantId?: number): UseFund
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [sortBy, setSortBy] = useState('personalized');
+  const [sortBy, setSortBy] = useState('best');
   const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
 
@@ -30,7 +30,7 @@ export const useFundingFeed = (pageSize: number = 20, grantId?: number): UseFund
       pageSize,
       page: pageNum,
       grantId,
-      feedView: sortBy,
+      ordering: sortBy,
     }),
     [pageSize, grantId, sortBy]
   );

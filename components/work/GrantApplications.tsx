@@ -23,9 +23,9 @@ interface SortOption {
 }
 
 const SORT_OPTIONS: SortOption[] = [
-  { label: 'Best', value: 'personalized', icon: Star },
+  { label: 'Best', value: 'best', icon: Star },
   { label: 'Newest', value: 'newest', icon: Clock },
-  { label: 'Top', value: 'top', icon: ArrowUp },
+  { label: 'Top', value: 'upvotes', icon: ArrowUp },
 ];
 
 const DEFAULT_SORT_ICON = Star;
