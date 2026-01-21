@@ -17,6 +17,7 @@ import { NetworkSelector } from '@/components/ui/NetworkSelector';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { DepositSuccessView } from './DepositSuccessView';
+import toast from 'react-hot-toast';
 
 const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
 if (!HOT_WALLET_ADDRESS_ENV || HOT_WALLET_ADDRESS_ENV.trim() === '') {
@@ -53,7 +54,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const contentRef = useRef<HTMLDivElement>(null);
   const { address } = useAccount();
 
-  // Fetch balances for both networks to determine smart default
   const { balance: baseBalance, isLoading: isBaseBalanceLoading } = useWalletRSCBalance({
     network: 'BASE',
   });
@@ -61,7 +61,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     network: 'ETHEREUM',
   });
 
-  // Use selected network's balance for display and validation
   const walletBalance = selectedNetwork === 'BASE' ? baseBalance : ethereumBalance;
   const isWalletBalanceLoading =
     selectedNetwork === 'BASE' ? isBaseBalanceLoading : isEthereumBalanceLoading;
@@ -81,7 +80,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     if (isOpen) {
       setTxStatus({ state: 'idle' });
       setAmount('');
-      // Reset default flag to allow smart default to run
       hasSetDefaultRef.current = false;
       isDepositButtonDisabled(false);
       hasCalledSuccessRef.current = false;
@@ -114,25 +112,12 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       if (ethereumHasBalance && !baseHasBalance) {
         setSelectedNetwork('ETHEREUM');
       } else {
-        setSelectedNetwork('BASE'); // Default to Base if both have balance or neither has balance
+        setSelectedNetwork('BASE');
       }
 
       hasSetDefaultRef.current = true;
     }
   }, [isOpen, baseBalance, ethereumBalance, isBaseBalanceLoading, isEthereumBalanceLoading]);
-
-  useEffect(() => {
-    if (txStatus.state === 'error') {
-      if (contentRef.current) {
-        const scrollableParent = contentRef.current.closest('[class*="overflow-y-auto"]');
-        if (scrollableParent) {
-          scrollableParent.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-          contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }
-    }
-  }, [txStatus]);
 
   const handleClose = useCallback(() => {
     setTxStatus({ state: 'idle' });
@@ -241,10 +226,12 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
       if (status.statusName === 'error') {
         console.error('Transaction error full status:', JSON.stringify(status, null, 2));
+        const errorMessage = status.statusData?.message || 'Transaction failed';
         setTxStatus({
           state: 'error',
-          message: status.statusData?.message || 'Transaction failed',
+          message: errorMessage,
         });
+        toast.error(errorMessage);
         isDepositButtonDisabled(false);
       }
     },

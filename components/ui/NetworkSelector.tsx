@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import Image from 'next/image';
+import { Check, ChevronDown } from 'lucide-react';
 import { BaseMenu, BaseMenuItem } from './form/BaseMenu';
 import { NETWORK_CONFIG, NetworkType } from '@/constants/tokens';
 import { cn } from '@/utils/styles';
@@ -69,14 +70,7 @@ export function NetworkSelector({
             <span className="text-xs text-gray-500">{selectedNetwork.description}</span>
           )}
         </div>
-        <svg
-          className="w-5 h-5 text-gray-400 flex-shrink-0"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
       </div>
     ),
     [selectedNetwork, value, disabled, className, showBadges, showDescription, customBadges]
@@ -137,21 +131,7 @@ export function NetworkSelector({
                 </span>
               )}
             </div>
-            {isSelected && (
-              <svg
-                className="w-5 h-5 text-primary-600 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            )}
+            {isSelected && <Check className="w-5 h-5 text-primary-600 flex-shrink-0" />}
           </BaseMenuItem>
         );
       })}

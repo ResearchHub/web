@@ -5,6 +5,7 @@ import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { NetworkConfig } from '@/constants/tokens';
 import toast from 'react-hot-toast';
+import { maskAddress } from '@/utils/stringUtils';
 
 interface WithdrawalSuccessViewProps {
   withdrawAmount: number;
@@ -38,7 +39,7 @@ export function WithdrawalSuccessView({
     );
   }, [address]);
 
-  const maskedAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
+  const maskedAddress = maskAddress(address);
 
   return (
     <div className="space-y-6">

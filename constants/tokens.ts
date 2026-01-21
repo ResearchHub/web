@@ -1,9 +1,8 @@
 import { Token } from '@coinbase/onchainkit/token';
 
 const IS_PRODUCTION = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production';
-const CHAIN_ID = IS_PRODUCTION
-  ? 8453 // Base mainnet
-  : 84532; // Base Sepolia testnet
+export const BASE_CHAIN_ID = IS_PRODUCTION ? 8453 : 84532; // Base mainnet : Base Sepolia testnet
+export const ETHEREUM_CHAIN_ID = IS_PRODUCTION ? 1 : 11155111; // Ethereum mainnet : Sepolia testnet
 
 export type NetworkType = 'BASE' | 'ETHEREUM';
 
@@ -19,7 +18,7 @@ export interface NetworkConfig {
 
 export const NETWORK_CONFIG: Record<NetworkType, NetworkConfig> = {
   BASE: {
-    chainId: IS_PRODUCTION ? 8453 : 84532,
+    chainId: BASE_CHAIN_ID,
     name: IS_PRODUCTION ? 'Base' : 'Base Sepolia',
     rscAddress: IS_PRODUCTION
       ? '0xFbB75A59193A3525a8825BeBe7D4b56899E2f7e1'
@@ -30,7 +29,7 @@ export const NETWORK_CONFIG: Record<NetworkType, NetworkConfig> = {
     icon: '/base-logo.svg',
   },
   ETHEREUM: {
-    chainId: IS_PRODUCTION ? 1 : 11155111,
+    chainId: ETHEREUM_CHAIN_ID,
     name: IS_PRODUCTION ? 'Ethereum' : 'Sepolia',
     rscAddress: IS_PRODUCTION
       ? '0xd101dcc414f310268c37eeb4cd376ccfa507f571'
@@ -50,7 +49,7 @@ export const RSC: Token = {
     ? '0xFbB75A59193A3525a8825BeBe7D4b56899E2f7e1'
     : '0xdAf43508D785939D6C2d97c2df73d65c9359dBEa',
   image: 'RSC.webp',
-  chainId: CHAIN_ID,
+  chainId: BASE_CHAIN_ID,
 };
 
 /**
@@ -74,7 +73,7 @@ export const ETH: Token = {
   symbol: 'ETH',
   decimals: 18,
   image: 'ETH.webp',
-  chainId: CHAIN_ID,
+  chainId: BASE_CHAIN_ID,
 };
 
 export const USDC: Token = {
@@ -85,7 +84,7 @@ export const USDC: Token = {
   symbol: 'USDC',
   decimals: 6,
   image: 'USDC.webp',
-  chainId: CHAIN_ID,
+  chainId: BASE_CHAIN_ID,
 };
 
 export const TRANSFER_ABI = [

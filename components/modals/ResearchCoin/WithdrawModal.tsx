@@ -78,16 +78,16 @@ export function WithdrawModal({
 
   useEffect(() => {
     if (txStatus.state === 'error') {
-      if (contentRef.current) {
-        const scrollableParent = contentRef.current.closest('[class*="overflow-y-auto"]');
-        if (scrollableParent) {
-          scrollableParent.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-          contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }
+      const errorMessage = 'message' in txStatus ? txStatus.message : 'Transaction failed';
+      toast.error(errorMessage);
     }
   }, [txStatus]);
+
+  useEffect(() => {
+    if (feeError) {
+      toast.error(`Unable to fetch fee: ${feeError}`);
+    }
+  }, [feeError]);
 
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;

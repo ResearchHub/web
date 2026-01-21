@@ -73,3 +73,20 @@ export const countWords = (text: string): number => {
 export const isValidEthereumAddress = (address: string): boolean => {
   return /^0x[a-fA-F0-9]{40}$/.test(address);
 };
+
+/**
+ * Masks an Ethereum address by showing only the first few and last few characters
+ * @param address The address to mask (e.g., "0x1234567890abcdef1234567890abcdef12345678")
+ * @param prefixLength The number of characters to show at the start (default: 6)
+ * @param suffixLength The number of characters to show at the end (default: 4)
+ * @returns The masked address (e.g., "0x1234...5678") or empty string if address is invalid
+ */
+export const maskAddress = (
+  address: string | null | undefined,
+  prefixLength: number = 6,
+  suffixLength: number = 4
+): string => {
+  if (!address) return '';
+  if (address.length <= prefixLength + suffixLength) return address;
+  return `${address.slice(0, prefixLength)}...${address.slice(-suffixLength)}`;
+};
