@@ -2,6 +2,7 @@
 
 import { FC, useState } from 'react';
 import { FeedEntry, FeedBountyContent } from '@/types/feed';
+import { shouldShowCommentButton } from '@/components/Feed/lib/feedUtils';
 import { Topic } from '@/types/topic';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
@@ -424,7 +425,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
                 entry.relatedWork?.unifiedDocumentId?.toString() || undefined
               }
               onFeedItemClick={onFeedItemClick}
-              hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
+              hideCommentButton={!shouldShowCommentButton(entry.metrics, Boolean(onReply))}
             />
           </div>
         )}

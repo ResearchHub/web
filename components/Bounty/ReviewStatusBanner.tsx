@@ -19,7 +19,7 @@ export const ReviewStatusBanner = ({ bounties }: ReviewStatusBannerProps) => {
   if (activeFoundationBounty.status === 'OPEN') {
     return (
       <Alert
-        variant="success"
+        variant="info"
         className="mb-6"
         icon={<AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />}
       >

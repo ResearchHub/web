@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import { Info } from 'lucide-react';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { useReviewCooldown } from '@/hooks/useReviewCooldown';
+import { useReviewAvailability } from '@/components/Comment/lib/hooks/useReviewAvailability';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface CommentEditorBannerProps {
   readonly isEditing: boolean;
   readonly children: (props: {
     canReview: boolean;
-    startCooldown: () => void;
+    refetchAvailability: () => void;
     banner: React.ReactNode;
   }) => React.ReactNode;
 }
@@ -19,7 +19,7 @@ const CooldownTooltip = (
   <div className="text-left">
     <div className="font-semibold text-sm text-gray-900 leading-tight">Limit Reached</div>
     <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-      We currently limit reviews to once every four days.
+      We currently limit reviews to twice every seven days.
     </div>
   </div>
 );
@@ -32,7 +32,7 @@ const LoadingSkeleton = () => (
 );
 
 export function CommentEditorBanner({ isEditing, children }: CommentEditorBannerProps) {
-  const { canReview, timeRemaining, isLoading, startCooldown } = useReviewCooldown(true);
+  const { canReview, timeRemaining, isLoading, refetchAvailability } = useReviewAvailability(true);
   const isMobile = useIsMobile();
   const [isCooldownDismissed, setIsCooldownDismissed] = useState(false);
   const [isInfoDismissed, setIsInfoDismissed] = useState(false);
@@ -91,5 +91,5 @@ export function CommentEditorBanner({ isEditing, children }: CommentEditorBanner
     return null;
   };
 
-  return children({ canReview, startCooldown, banner: renderBanner() });
+  return children({ canReview, refetchAvailability, banner: renderBanner() });
 }
