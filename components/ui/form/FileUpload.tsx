@@ -170,7 +170,7 @@ export function FileUpload({
 
   const hasImage = Boolean(
     (selectedFile && selectedFile.type && selectedFile.type.startsWith('image/')) ||
-    (existingImageUrl && !selectedFile)
+      (existingImageUrl && !selectedFile)
   );
 
   return (
