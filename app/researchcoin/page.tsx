@@ -125,11 +125,10 @@ export default function ResearchCoinPage() {
               {status === 'authenticated' && (
                 <UserBalanceSection
                   balance={formatBalance(balance || 0, exchangeRate)}
+                  rscBalance={user?.rscBalance}
+                  usdCents={user?.usdCents}
                   isFetchingExchangeRate={isFetchingExchangeRate}
                   onTransactionSuccess={handleRefresh}
-                  lockedBalance={
-                    user?.lockedBalance ? formatBalance(user.lockedBalance, exchangeRate) : null
-                  }
                 />
               )}
 
