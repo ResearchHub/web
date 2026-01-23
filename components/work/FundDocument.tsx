@@ -16,6 +16,7 @@ import { useStorageKey } from '@/utils/storageKeys';
 import { FundingRightSidebar } from './FundingRightSidebar';
 import { useUser } from '@/contexts/UserContext';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
+import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/pro-solid-svg-icons';
@@ -129,6 +130,7 @@ export const FundDocument = ({
       case 'reviews':
         return (
           <div className="space-y-6" key="reviews-tab">
+            <ReviewStatusBanner bounties={metadata.bounties || []} />
             <CommentFeed
               unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}

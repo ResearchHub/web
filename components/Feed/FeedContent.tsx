@@ -178,7 +178,7 @@ export const FeedContent: FC<FeedContentProps> = ({
               );
             })}
 
-          {isLoading && displayEntries.length === 0 && (
+          {isLoading && (
             <>
               {[...Array(3)].map((_, index) => (
                 <div

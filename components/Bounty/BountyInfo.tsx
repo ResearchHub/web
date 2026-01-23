@@ -146,13 +146,24 @@ export const BountyInfo: FC<BountyInfoProps> = ({
   const { exchangeRate } = useExchangeRate();
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-  // Check if bounty is active
-  const isActive =
-    bounty.status === 'OPEN' &&
-    (bounty.expirationDate ? isDeadlineInFuture(bounty.expirationDate) : true);
+  // Check if bounty is active (OPEN or ASSESSMENT)
+  const isActive = useMemo(() => {
+    if (bounty.status === 'OPEN') {
+      return bounty.expirationDate ? isDeadlineInFuture(bounty.expirationDate) : true;
+    }
+    if (bounty.status === 'ASSESSMENT') {
+      return true;
+    }
+
+    return false;
+  }, [bounty.status, bounty.expirationDate]);
 
   // Compute deadline label: use hours format if <24h, else use date format
   const deadlineLabel = useMemo(() => {
+    if (bounty.status === 'ASSESSMENT') {
+      return 'Assessment Period';
+    }
+
     if (!bounty.expirationDate) return undefined;
 
     // If <24h remaining, use formatDeadline which returns "Ends in Xh" or "Ends in Xm"
@@ -162,7 +173,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
 
     // Otherwise, use date format with "Ends" prefix
     return `Ends ${formatDate(bounty.expirationDate)}`;
-  }, [bounty.expirationDate]);
+  }, [bounty.status, bounty.expirationDate]);
 
   // Get bounty label text
   const bountyLabel = bounty.bountyType === 'REVIEW' ? 'Peer Review' : 'Bounty';

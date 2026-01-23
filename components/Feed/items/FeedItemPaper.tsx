@@ -83,9 +83,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const shouldShowJournal = ALLOWED_JOURNALS.some((j) => journalSlugLower.includes(j));
   const filteredJournal = shouldShowJournal ? paper.journal : undefined;
 
-  // Thumbnail for display, full image for zoom popup
   const thumbnailUrl = paper.previewThumbnail || paper.journal?.imageUrl;
-  const fullImageUrl = paper.previewImage || thumbnailUrl;
   const isPdfPreview = thumbnailUrl?.includes('preview');
 
   return (
@@ -108,12 +106,10 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
           !isPdfPreview && (
             <ImageSection
               imageUrl={thumbnailUrl}
-              fullImageUrl={fullImageUrl}
               alt={paper.title || 'Paper image'}
               aspectRatio="16/9"
               showFullImage={true}
               expandToFit={true}
-              enableZoom={!!fullImageUrl}
               className="max-h-[180px] mx-auto"
             />
           )
@@ -170,6 +166,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               title={paper.title}
               highlightedTitle={highlightedTitle}
               href={paperPageUrl}
+              onClick={onFeedItemClick}
             />
 
             {/* Authors and Date */}
@@ -190,11 +187,11 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                     hideExpandButton={true}
                   />
                 )}
-                {paper.createdDate && (
+                {(entry.timestamp || paper.createdDate) && (
                   <>
                     {paper.authors.length > 0 && <span className="mx-2 text-gray-500">•</span>}
                     <span className="text-gray-600 whitespace-nowrap text-sm">
-                      {formatTimestamp(paper.createdDate, false)}
+                      {formatTimestamp(entry.timestamp || paper.createdDate, false)}
                     </span>
                   </>
                 )}
@@ -214,10 +211,8 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
           thumbnailUrl && (
             <ImageSection
               imageUrl={thumbnailUrl}
-              fullImageUrl={fullImageUrl}
               alt={paper.title || 'Paper image'}
               naturalDimensions={true}
-              enableZoom={!!fullImageUrl}
             />
           )
         }

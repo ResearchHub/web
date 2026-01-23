@@ -7,6 +7,7 @@ import {
   FeedPostContent,
   mapFeedContentTypeToContentType,
 } from '@/types/feed';
+import { shouldShowCommentButton } from '@/components/Feed/lib/feedUtils';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CardWrapper } from './CardWrapper';
@@ -53,6 +54,7 @@ export interface TitleSectionProps {
   highlightedTitle?: string;
   className?: string;
   href?: string;
+  onClick?: () => void;
 }
 
 // Content component interface
@@ -125,6 +127,7 @@ export const TitleSection: FC<TitleSectionProps> = ({
   highlightedTitle,
   className,
   href,
+  onClick,
 }) => {
   const content = highlightedTitle ? (
     <h2
@@ -149,7 +152,7 @@ export const TitleSection: FC<TitleSectionProps> = ({
 
   if (href) {
     return (
-      <Link href={href} className="no-underline block" scroll={false}>
+      <Link href={href} className="no-underline block" scroll={false} onClick={onClick}>
         {content}
       </Link>
     );
@@ -415,6 +418,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               onFeedItemClick={onFeedItemClick}
               bounties={showBountyInfo ? undefined : content.bounties}
               hideReportButton={hideReportButton}
+              hideCommentButton={!shouldShowCommentButton(entry.metrics, Boolean(href))}
             />
           </div>
         )}

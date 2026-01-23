@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useCallback } from 'react';
 import { useInView } from 'react-intersection-observer';
 import {
   FeedCommentContent,
@@ -17,7 +17,6 @@ import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
 import { FeedItemGrant } from './items/FeedItemGrant';
 import { useFeedItemAnalyticsTracking } from '@/hooks/useFeedItemAnalyticsTracking';
-import { useCallback } from 'react';
 import { getUnifiedDocumentId } from '@/types/analytics';
 import { FeedItemBountyComment } from './items/FeedItemBountyComment';
 import { buildWorkUrl } from '@/utils/url';

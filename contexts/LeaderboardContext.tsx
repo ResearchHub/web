@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react';
 import { LeaderboardService } from '@/services/leaderboard.service';
 import { TopReviewer, TopFunder } from '@/types/leaderboard';
 
@@ -32,16 +32,13 @@ export function LeaderboardProvider({ children }: LeaderboardProviderProps) {
   const [error, setError] = useState<string | null>(null);
   const [lastFetched, setLastFetched] = useState<number | null>(null);
 
-  const fetchData = useCallback(async () => {
-    // If we have cached data that's still fresh, don't refetch
-    if (data && lastFetched && Date.now() - lastFetched < CACHE_DURATION) {
-      return;
-    }
+  // Single ref to prevent re-fetching after failure
+  const hasAttemptedRef = useRef(false);
 
-    // If already loading, don't start another fetch
-    if (isLoading) {
-      return;
-    }
+  const fetchData = useCallback(async () => {
+    // Only attempt once per mount (successful fetches update lastFetched for cache logic)
+    if (hasAttemptedRef.current) return;
+    hasAttemptedRef.current = true;
 
     setIsLoading(true);
     setError(null);
@@ -59,7 +56,7 @@ export function LeaderboardProvider({ children }: LeaderboardProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [data, lastFetched, isLoading]);
+  }, []); // Empty deps - stable identity
 
   return (
     <LeaderboardContext.Provider value={{ data, isLoading, error, fetchData, lastFetched }}>

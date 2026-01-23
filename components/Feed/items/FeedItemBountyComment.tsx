@@ -2,6 +2,7 @@
 
 import { FC, useState } from 'react';
 import { FeedEntry, FeedBountyContent } from '@/types/feed';
+import { shouldShowCommentButton } from '@/components/Feed/lib/feedUtils';
 import { Topic } from '@/types/topic';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
@@ -13,6 +14,7 @@ import {
   calculateTotalAwardedAmount,
   isOpenBounty,
   getBountyDisplayAmount,
+  isActiveBounty,
 } from '@/components/Bounty/lib/bountyUtil';
 import { ContentFormat } from '@/types/comment';
 import { ID } from '@/types/root';
@@ -22,6 +24,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Trophy, Pen, Users, MessageSquareReply } from 'lucide-react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
@@ -37,7 +40,8 @@ export const BountyDetails: FC<{
   bountyType: BountyType;
   maxLength?: number;
   href?: string;
-}> = ({ content, contentFormat, bountyType, maxLength, href }) => {
+  onFeedItemClick?: () => void;
+}> = ({ content, contentFormat, bountyType, maxLength, href, onFeedItemClick }) => {
   if (!content || Object.keys(content).length === 0) {
     return null;
   }
@@ -48,6 +52,7 @@ export const BountyDetails: FC<{
         title={bountyType === 'REVIEW' ? 'Peer Review Earning Opportunity' : 'Earning Opportunity'}
         className="text-md"
         href={href}
+        onClick={onFeedItemClick}
       />
       <div className="text-gray-600 mt-2">
         <CommentReadOnly content={content} contentFormat={contentFormat} maxLength={maxLength} />
@@ -69,7 +74,7 @@ interface FeedItemBountyCommentProps {
     authorName: string;
     awardedAmount?: string;
   }) => void;
-  onAward?: () => void; // Prop for Award action
+  onAward?: (bountyId: number) => void; // Prop for Award action, passes bounty ID
   onEdit?: () => void; // Prop for Edit action
   onReply?: () => void; // Prop for Reply action
   onContributeSuccess?: () => void; // Prop for handling successful contribution
@@ -132,7 +137,8 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
   const author = bountyEntry.createdBy;
 
   // Determine bounty status
-  const isOpen = bounty.status === 'OPEN';
+  const isOpen = isOpenBounty(bounty);
+  const isActive = isActiveBounty(bounty);
   const expiringSoon = isExpiringSoon(bounty.expirationDate);
   const solutionsCount = bounty.solutions ? bounty.solutions.length : 0;
   const hasSolutions = solutionsCount > 0;
@@ -209,7 +215,15 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
       e.preventDefault();
       e.stopPropagation();
     }
-    if (onAward) onAward();
+    if (!bounty.id) {
+      toast.error(
+        'Bounty ID is missing. Please try again. If the problem persists, please contact support.'
+      );
+      return;
+    }
+    if (onAward) {
+      onAward(bounty.id);
+    }
   };
 
   const handleViewSolution = (solutionId: ID, authorName: string, awardedAmount?: string) => {
@@ -236,7 +250,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
   }
 
   const awardButton =
-    showCreatorActions && isAuthor && isOpenBounty(bounty) && onAward ? (
+    showCreatorActions && isAuthor && isActiveBounty(bounty) && onAward ? (
       <Button
         onClick={handleAwardBounty}
         size="sm"
@@ -294,9 +308,10 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
           <BountyMetadataLine
             amount={displayBountyAmount}
             expirationDate={bounty.expirationDate}
-            isOpen={isOpen}
+            isOpen={isActive}
             expiringSoon={expiringSoon}
             solutionsCount={solutionsCount}
+            bountyStatus={bounty.status}
             showDeadline={showDeadline}
             skipConversion={showUSD}
           />
@@ -323,6 +338,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
           bountyType={bounty.bountyType}
           maxLength={maxLength}
           href={href}
+          onFeedItemClick={onFeedItemClick}
         />
 
         {!isOpen && hasSolutions && showSolutions && (
@@ -370,7 +386,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
               </Button>
             )}
             {awardButton}
-            {isOpen && showContributeButton && !isAuthor && (
+            {isActive && showContributeButton && !isAuthor && (
               <Button
                 variant="outlined"
                 size="sm"
@@ -409,6 +425,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
                 entry.relatedWork?.unifiedDocumentId?.toString() || undefined
               }
               onFeedItemClick={onFeedItemClick}
+              hideCommentButton={!shouldShowCommentButton(entry.metrics, Boolean(onReply))}
             />
           </div>
         )}

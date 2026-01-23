@@ -154,7 +154,7 @@ export const transformPublicationToFeedEntry = (
   return {
     id: documents.id.toString(),
     recommendationId: publication.recommendation_id,
-    timestamp: created_date,
+    timestamp: documents.paper_publish_date || created_date,
     action: 'publish',
     contentType: 'PAPER',
     content: {

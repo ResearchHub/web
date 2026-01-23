@@ -142,14 +142,14 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
           />
         }
         leftContent={
-          <>
+          <div className="flex items-center gap-2">
             {isNonprofit && <TaxDeductibleBadge />}
             <FeedItemBadges
               topics={topics}
               category={post.category}
               subcategory={post.subcategory}
             />
-          </>
+          </div>
         }
       />
 
@@ -158,7 +158,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         leftContent={
           <>
             {/* Title */}
-            <TitleSection title={post.title} href={fundingPageUrl} />
+            <TitleSection title={post.title} href={fundingPageUrl} onClick={onFeedItemClick} />
 
             {/* Authors list */}
             <MetadataSection className="mb-1">
