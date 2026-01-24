@@ -17,3 +17,7 @@ export async function connectOrcidAccount(returnUrl: string): Promise<ConnectRes
     return { success: false, error: 'Unable to connect to ORCID.' };
   }
 }
+
+export async function syncOrcidAuthorship(): Promise<void> {
+  await ApiClient.post('/api/orcid/fetch/');
+}

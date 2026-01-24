@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import Link from 'next/link';
 import { Users } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
@@ -11,9 +11,10 @@ interface ApplicantsSectionProps {
 }
 
 export const ApplicantsSection: FC<ApplicantsSectionProps> = ({ applicants = [] }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const hasApplicants = applicants.length > 0;
-  const displayLimit = 5; // Show only top 5 applicants in the sidebar
-  const displayedApplicants = applicants.slice(0, displayLimit);
+  const displayLimit = 5;
+  const displayedApplicants = isExpanded ? applicants : applicants.slice(0, displayLimit);
   const hasMoreApplicants = applicants.length > displayLimit;
 
   return (
@@ -45,9 +46,12 @@ export const ApplicantsSection: FC<ApplicantsSectionProps> = ({ applicants = [] 
           </div>
 
           {hasMoreApplicants && (
-            <p className="text-sm text-gray-500 mt-3">
-              +{applicants.length - displayedApplicants.length} more applicants
-            </p>
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-sm text-gray-500 mt-3 hover:text-primary-600 hover:underline"
+            >
+              {isExpanded ? 'Show less' : `+${applicants.length - displayLimit} more applicants`}
+            </button>
           )}
         </>
       ) : (
