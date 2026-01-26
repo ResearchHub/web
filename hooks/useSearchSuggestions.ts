@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { debounce } from 'lodash';
 import { SearchService } from '@/services/search.service';
 import { SearchSuggestion } from '@/types/search';
 import { getSearchHistory, SEARCH_HISTORY_KEY } from '@/utils/searchHistory';
@@ -10,6 +11,7 @@ interface UseSearchSuggestionsConfig {
   includeLocalSuggestions?: boolean;
   debounceMs?: number;
   minQueryLength?: number;
+  externalSearch?: boolean;
 }
 
 export function useSearchSuggestions({
@@ -18,6 +20,7 @@ export function useSearchSuggestions({
   includeLocalSuggestions = false,
   debounceMs = 300,
   minQueryLength = 2,
+  externalSearch = false,
 }: UseSearchSuggestionsConfig) {
   const [loading, setLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -65,10 +68,35 @@ export function useSearchSuggestions({
     });
   }, [localSuggestions, query, includeLocalSuggestions]);
 
+  // Fetch suggestions function - memoized with useCallback
+  const fetchSuggestions = useCallback(
+    async (searchQuery: string) => {
+      try {
+        console.log(
+          '[SearchSuggestions] 🔍 Fetching suggestions for query:',
+          searchQuery,
+          'timestamp:',
+          Date.now()
+        );
+        const suggestions = await SearchService.getSuggestions(
+          searchQuery,
+          indices,
+          undefined,
+          externalSearch
+        );
+        setApiSuggestions(suggestions);
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch suggestions:', error);
+        setApiSuggestions([]);
+        setLoading(false);
+      }
+    },
+    [indices, externalSearch]
+  );
+
   // Fetch API suggestions when query changes
   useEffect(() => {
-    let mounted = true;
-
     // If query doesn't meet minimum length, clear results and don't search
     if (!query || query.length < minQueryLength) {
       setApiSuggestions([]);
@@ -80,30 +108,24 @@ export function useSearchSuggestions({
     // This prevents the brief "No results found" flash
     setLoading(true);
 
-    const fetchSuggestions = async () => {
-      try {
-        const suggestions = await SearchService.getSuggestions(query, indices);
-        if (mounted) {
-          setApiSuggestions(suggestions);
-        }
-      } catch (error) {
-        console.error('Failed to fetch suggestions:', error);
-        if (mounted) {
-          setApiSuggestions([]);
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
+    // Create debounced function - it will capture the current query value
+    const debouncedFetch = debounce(() => fetchSuggestions(query), debounceMs);
 
-    const debounceTimer = setTimeout(fetchSuggestions, debounceMs);
+    // Call the debounced function
+    debouncedFetch();
+
     return () => {
-      mounted = false;
-      clearTimeout(debounceTimer);
+      // Cancel any pending debounced call on cleanup
+      debouncedFetch.cancel();
     };
-  }, [query, indices, minQueryLength, debounceMs]);
+  }, [query, minQueryLength, debounceMs, fetchSuggestions]);
+
+  useEffect(() => {
+    console.log('useEffect mount');
+    return () => {
+      console.log('useEffect unmount');
+    };
+  }, []);
 
   // Combine suggestions, prioritizing local results if enabled
   const suggestions = useMemo(() => {

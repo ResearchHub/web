@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { FileText, History, Search, X, ArrowRight, User, Hash, HelpCircle } from 'lucide-react';
 import Icon from '@/components/ui/icons/Icon';
-import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { cn } from '@/utils/styles';
 import { SearchSuggestion } from '@/types/search';
-import type { EntityType } from '@/types/search';
 import { FollowTopicButton } from '@/components/ui/FollowTopicButton';
 import { Avatar } from '@/components/ui/Avatar';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
@@ -15,7 +13,10 @@ interface SearchSuggestionsProps {
   onSelect?: (suggestion: SearchSuggestion) => void;
   displayMode?: 'dropdown' | 'inline';
   showSuggestionsOnFocus?: boolean;
-  indices?: EntityType[];
+  loading?: boolean;
+  suggestions?: SearchSuggestion[];
+  hasLocalSuggestions?: boolean;
+  clearSearchHistory?: () => void;
 }
 
 // Maximum number of search results to display
@@ -35,14 +36,12 @@ export function SearchSuggestions({
   onSelect,
   displayMode = 'dropdown',
   showSuggestionsOnFocus = true,
-  indices,
+  loading = false,
+  suggestions = [],
+  hasLocalSuggestions = false,
+  clearSearchHistory,
 }: SearchSuggestionsProps) {
   const [erroredSuggestions, setErroredSuggestions] = useState<Set<string>>(new Set());
-  const { loading, suggestions, hasLocalSuggestions, clearSearchHistory } = useSearchSuggestions({
-    query,
-    indices,
-    includeLocalSuggestions: true,
-  });
 
   // Only hide when explicitly not focused
   if (isFocused === false) {
@@ -84,6 +83,7 @@ export function SearchSuggestions({
       const isTopicSuggestion = suggestion.entityType === 'hub';
       const isPostSuggestion = suggestion.entityType === 'post';
       const isGrantPost = isPostSuggestion && suggestion?.documentType === 'GRANT';
+      const isProposalRequest = isPostSuggestion && suggestion?.documentType === 'PREREGISTRATION';
 
       // Safely access nested properties
       const safeGetAuthorsList = () => {
@@ -155,7 +155,7 @@ export function SearchSuggestions({
         }
         if (isTopicSuggestion)
           return <Hash className="h-5 w-8 text-gray-500 mt-0.5 flex-shrink-0" />;
-        if (isGrantPost)
+        if (isGrantPost || isProposalRequest)
           return (
             <div style={{ padding: '6px' }} className="mt-0.5 flex-shrink-0">
               <Icon name="fund" size={20} className="text-gray-500" />

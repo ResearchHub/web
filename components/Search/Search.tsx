@@ -138,7 +138,6 @@ export function Search({
         onSelect={handleSelect}
         displayMode={displayMode}
         showSuggestionsOnFocus={showSuggestionsOnFocus}
-        indices={indices}
       />
     </div>
   );

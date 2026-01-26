@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Search as SearchIcon, X, ArrowLeft, ArrowRight } from 'lucide-react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { Search as SearchIcon, X, ArrowLeft, Filter, FilterX } from 'lucide-react';
 import { SearchSuggestions } from './SearchSuggestions';
+import { SearchSuggestionFilters, AVAILABLE_INDICES } from './SearchSuggestionFilters';
 import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
 import { SearchSuggestion } from '@/types/search';
+import type { EntityType } from '@/types/search';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { BaseModal } from '@/components/ui/BaseModal';
@@ -19,11 +21,26 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(true);
+  const [selectedIndices, setSelectedIndices] = useState<EntityType[]>([]);
+  const [useExternalSearch, setUseExternalSearch] = useState(false);
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const hasPrefetchedRef = useRef(false);
   const navigatingToSearchRef = useRef(false);
+
+  const indicesToUse = useMemo(() => {
+    if (selectedIndices.length === 0) {
+      return AVAILABLE_INDICES;
+    }
+
+    return selectedIndices;
+  }, [selectedIndices]);
+
+  const hasActiveFilters = useMemo(() => {
+    return selectedIndices.length > 0 || useExternalSearch;
+  }, [selectedIndices, useExternalSearch]);
 
   const prefetchSearchRoute = () => {
     if (!hasPrefetchedRef.current) {
@@ -35,9 +52,11 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   };
 
   // Get search suggestions
-  const { loading, suggestions } = useSearchSuggestions({
+  const { loading, suggestions, hasLocalSuggestions, clearSearchHistory } = useSearchSuggestions({
     query,
+    indices: indicesToUse,
     includeLocalSuggestions: true,
+    externalSearch: useExternalSearch,
   });
 
   // Focus the input when modal opens
@@ -142,49 +161,80 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     >
       {/* Search Input */}
       <div className="border-b border-gray-200 p-4">
-        <div className="relative">
-          <SearchIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder="Search papers, topics, authors..."
-            className="h-12 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-8 md:!pr-24 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onClick={(e) => {
-              (e.target as HTMLInputElement).select();
-            }}
-            onFocus={() => {
-              setIsFocused(true);
-              prefetchSearchRoute();
-              inputRef.current?.select();
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && e.shiftKey && query.trim()) {
-                e.preventDefault();
-                navigatingToSearchRef.current = true;
-                router.push(`/search?debug&q=${encodeURIComponent(query.trim())}`);
-                onClose();
-              }
-            }}
-          />
-          {/* Keyboard shortcut hint - desktop only */}
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:!flex items-center space-x-1 text-xs text-gray-400">
-            <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded">
-              {shortcutKey}
-            </kbd>
-            <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded">
-              K
-            </kbd>
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <SearchIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder="Search papers, topics, authors..."
+              className="h-12 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-8 md:!pr-24 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onClick={(e) => {
+                (e.target as HTMLInputElement).select();
+              }}
+              onFocus={() => {
+                setIsFocused(true);
+                prefetchSearchRoute();
+                inputRef.current?.select();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && e.shiftKey && query.trim()) {
+                  e.preventDefault();
+                  navigatingToSearchRef.current = true;
+                  router.push(`/search?debug&q=${encodeURIComponent(query.trim())}`);
+                  onClose();
+                }
+              }}
+            />
+            {/* Keyboard shortcut hint - desktop only */}
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:!flex items-center space-x-1 text-xs text-gray-400">
+              <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded">
+                {shortcutKey}
+              </kbd>
+              <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded">
+                K
+              </kbd>
+            </div>
+            {query && (
+              <button
+                onClick={() => setQuery('')}
+                className="absolute right-2 md:!right-20 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100"
+              >
+                <X className="h-4 w-4 text-gray-400" />
+              </button>
+            )}
           </div>
-          {query && (
-            <button
-              onClick={() => setQuery('')}
-              className="absolute right-2 md:!right-20 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100"
-            >
-              <X className="h-4 w-4 text-gray-400" />
-            </button>
-          )}
+          {/* Settings/Filter Button */}
+          <Button
+            variant="outlined"
+            size="icon"
+            onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
+            className="flex-shrink-0 h-12 w-12"
+            aria-label="Toggle filters"
+          >
+            {hasActiveFilters ? (
+              <FilterX className="h-4 w-4 text-gray-500" />
+            ) : (
+              <Filter className="h-4 w-4 text-gray-500" />
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Filter Section */}
+      <div
+        className="grid transition-[grid-template-rows] duration-[500ms] ease-in-out"
+        style={{ gridTemplateRows: isFiltersExpanded ? '1fr' : '0fr' }}
+      >
+        <div className="overflow-hidden">
+          <SearchSuggestionFilters
+            selectedIndices={selectedIndices}
+            useExternalSearch={useExternalSearch}
+            onIndicesChange={setSelectedIndices}
+            onExternalSearchChange={setUseExternalSearch}
+          />
         </div>
       </div>
 
@@ -197,6 +247,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             onSelect={handleSelect}
             displayMode="inline"
             showSuggestionsOnFocus={true}
+            loading={loading}
+            suggestions={suggestions}
+            hasLocalSuggestions={hasLocalSuggestions}
+            clearSearchHistory={clearSearchHistory}
           />
         ) : (
           <div className="p-8 text-center text-gray-500">

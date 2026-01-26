@@ -88,7 +88,8 @@ export class SearchService {
   static async getSuggestions(
     query: string,
     indices?: EntityType | EntityType[],
-    limit?: number
+    limit?: number,
+    externalSearch?: boolean
   ): Promise<SearchSuggestion[]> {
     const params = new URLSearchParams({ q: query });
 
@@ -100,6 +101,10 @@ export class SearchService {
     // Add limit parameter if provided
     if (limit) {
       params.append('limit', limit.toString());
+    }
+
+    if (externalSearch) {
+      params.append('external_search', 'true');
     }
 
     const response = await ApiClient.get<any[]>(
