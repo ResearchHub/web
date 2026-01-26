@@ -225,6 +225,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
             showHeader={showFundraiseHeaders}
+            showBountyInfo={showBountyInfo}
           />
         );
         break;
