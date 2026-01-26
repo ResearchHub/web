@@ -14,7 +14,7 @@ import { CurrencyInput } from '../ui/form/CurrencyInput';
 import { StripeWrapper } from '@/components/StripeWrapper';
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
-const PROCESSING_FEE_PERCENTAGE = 0.07; // 7%
+const PROCESSING_FEE_PERCENTAGE = 0.09; // 9%
 
 interface ContributeToFundraiseModalProps {
   isOpen: boolean;
