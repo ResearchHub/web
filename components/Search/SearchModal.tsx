@@ -22,7 +22,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(true);
   const [selectedIndices, setSelectedIndices] = useState<EntityType[]>([]);
-  const [useExternalSearch, setUseExternalSearch] = useState(false);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
@@ -39,8 +38,8 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   }, [selectedIndices]);
 
   const hasActiveFilters = useMemo(() => {
-    return selectedIndices.length > 0 || useExternalSearch;
-  }, [selectedIndices, useExternalSearch]);
+    return selectedIndices.length > 0;
+  }, [selectedIndices]);
 
   const prefetchSearchRoute = () => {
     if (!hasPrefetchedRef.current) {
@@ -56,7 +55,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     query,
     indices: indicesToUse,
     includeLocalSuggestions: true,
-    externalSearch: useExternalSearch,
   });
 
   // Focus the input when modal opens
@@ -105,11 +103,13 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     }
   };
 
-  // Reset query when modal closes (but preserve if navigating to search page)
+  // Reset query and filters when modal closes (but preserve if navigating to search page)
   useEffect(() => {
     if (!isOpen) {
       if (!navigatingToSearchRef.current) {
         setQuery('');
+        setSelectedIndices([]);
+        setIsFiltersExpanded(false);
       }
       navigatingToSearchRef.current = false;
     }
@@ -168,7 +168,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
               ref={inputRef}
               type="text"
               placeholder="Search papers, topics, authors..."
-              className="h-12 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-8 md:!pr-24 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
+              className="h-12 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-10 text-base focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onClick={(e) => {
@@ -188,19 +188,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 }
               }}
             />
-            {/* Keyboard shortcut hint - desktop only */}
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:!flex items-center space-x-1 text-xs text-gray-400">
-              <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded">
-                {shortcutKey}
-              </kbd>
-              <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-200 rounded">
-                K
-              </kbd>
-            </div>
             {query && (
               <button
                 onClick={() => setQuery('')}
-                className="absolute right-2 md:!right-20 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100"
               >
                 <X className="h-4 w-4 text-gray-400" />
               </button>
@@ -221,20 +212,17 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             )}
           </Button>
         </div>
-      </div>
-
-      {/* Filter Section */}
-      <div
-        className="grid transition-[grid-template-rows] duration-[500ms] ease-in-out"
-        style={{ gridTemplateRows: isFiltersExpanded ? '1fr' : '0fr' }}
-      >
-        <div className="overflow-hidden">
-          <SearchSuggestionFilters
-            selectedIndices={selectedIndices}
-            useExternalSearch={useExternalSearch}
-            onIndicesChange={setSelectedIndices}
-            onExternalSearchChange={setUseExternalSearch}
-          />
+        {/* Filter Section */}
+        <div
+          className="grid transition-[grid-template-rows] duration-[500ms] ease-in-out"
+          style={{ gridTemplateRows: isFiltersExpanded ? '1fr' : '0fr' }}
+        >
+          <div className="overflow-hidden">
+            <SearchSuggestionFilters
+              selectedIndices={selectedIndices}
+              onIndicesChange={setSelectedIndices}
+            />
+          </div>
         </div>
       </div>
 

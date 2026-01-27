@@ -1,7 +1,4 @@
-import { Check, HelpCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
-import { Tooltip } from '@/components/ui/Tooltip';
-import { Checkbox } from '@/components/ui/form/Checkbox';
 import { cn } from '@/utils/styles';
 import type { EntityType } from '@/types/search';
 
@@ -19,16 +16,12 @@ export const ENTITY_LABELS: Record<EntityType, string> = {
 
 interface SearchSuggestionFiltersProps {
   selectedIndices: EntityType[];
-  useExternalSearch: boolean;
   onIndicesChange: (indices: EntityType[]) => void;
-  onExternalSearchChange: (enabled: boolean) => void;
 }
 
 export function SearchSuggestionFilters({
   selectedIndices,
-  useExternalSearch,
   onIndicesChange,
-  onExternalSearchChange,
 }: SearchSuggestionFiltersProps) {
   const noneSelected = selectedIndices.length === 0;
 
@@ -50,9 +43,9 @@ export function SearchSuggestionFilters({
   };
 
   return (
-    <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 min-h-0">
+    <div className="min-h-0 mt-2">
       {/* Index Selection Badges */}
-      <div className="flex items-center gap-2 mb-3 overflow-x-auto scrollbar-hide">
+      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
         {/* Show "All" badge - only selected when noneSelected is true */}
         <Badge
           variant={noneSelected ? 'primary' : 'default'}
@@ -83,25 +76,6 @@ export function SearchSuggestionFilters({
             </Badge>
           );
         })}
-      </div>
-
-      {/* External Search Checkbox */}
-      <div className="flex items-center gap-2">
-        <Checkbox
-          checked={useExternalSearch}
-          onCheckedChange={onExternalSearchChange}
-          label="Use external sources for search"
-          id="external-search-checkbox"
-          className="flex items-center gap-2"
-        />
-        <Tooltip
-          content={<div className="text-sm">We will search papers outside of our platform</div>}
-          position="top"
-          width="w-64"
-          className="!z-[10000]"
-        >
-          <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 transition-colors cursor-help" />
-        </Tooltip>
       </div>
     </div>
   );
