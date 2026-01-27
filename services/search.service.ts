@@ -104,7 +104,7 @@ export class SearchService {
     }
 
     if (externalSearch) {
-      params.append('external_search', 'true');
+      params.append('enable_openalex', 'true');
     }
 
     const response = await ApiClient.get<any[]>(
