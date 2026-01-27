@@ -7,7 +7,6 @@ import {
   FeedPostContent,
   mapFeedContentTypeToContentType,
 } from '@/types/feed';
-import { shouldShowCommentButton } from '@/components/Feed/lib/feedUtils';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CardWrapper } from './CardWrapper';
@@ -418,7 +417,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               onFeedItemClick={onFeedItemClick}
               bounties={showBountyInfo ? undefined : content.bounties}
               hideReportButton={hideReportButton}
-              hideCommentButton={!shouldShowCommentButton(entry.metrics, Boolean(href))}
+              hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
             />
           </div>
         )}
