@@ -31,6 +31,7 @@ interface FeedItemFundraiseProps {
   customActionText?: string;
   isPinnedFundraise?: boolean;
   onFeedItemClick?: () => void;
+  showBountyInfo?: boolean;
 }
 
 /**
@@ -46,6 +47,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   customActionText,
   isPinnedFundraise = false,
   onFeedItemClick,
+  showBountyInfo,
 }) => {
   const router = useRouter();
   // Extract the post from the entry's content
@@ -110,7 +112,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       }
       maxLength={maxLength}
       onFeedItemClick={onFeedItemClick}
-      showBountyInfo={false}
+      showBountyInfo={showBountyInfo}
       showHeader={showHeader}
       hideReportButton={true}
     >
