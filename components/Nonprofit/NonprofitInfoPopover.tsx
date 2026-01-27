@@ -5,6 +5,7 @@ import { ExternalLink, X } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CHAIN_IDS } from '@/constants/chains';
+import { maskAddress } from '@/utils/stringUtils';
 
 interface NonprofitInfoPopoverProps {
   nonprofit: NonprofitOrg;
@@ -100,7 +101,7 @@ export function NonprofitInfoPopover({ nonprofit, position, onClose }: Nonprofit
                     className="text-primary-600 hover:underline flex items-center gap-1 break-all"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    {baseDeployment.address.slice(0, 8)}...{baseDeployment.address.slice(-6)}
+                    {maskAddress(baseDeployment.address, 8, 6)}
                     <ExternalLink className="h-3 w-3 flex-shrink-0" />
                   </a>
                 </>

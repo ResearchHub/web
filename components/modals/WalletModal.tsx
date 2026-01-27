@@ -7,15 +7,12 @@ import { X as XIcon } from 'lucide-react';
 import Image from 'next/image';
 import { coinbaseWallet, metaMask } from 'wagmi/connectors';
 import toast from 'react-hot-toast';
+import { maskAddress } from '@/utils/stringUtils';
 
 interface WalletModalProps {
   isOpen: boolean;
   onClose: () => void;
   onError?: (error: Error) => void;
-}
-
-function truncateWalletAddress(address: string): string {
-  return `${address.slice(0, 4)}...${address.slice(-4)}`;
 }
 
 export function WalletModal({ isOpen, onClose, onError }: WalletModalProps) {
@@ -29,7 +26,7 @@ export function WalletModal({ isOpen, onClose, onError }: WalletModalProps) {
       });
       const data = await connectAsync({ connector: cbConnector });
       if (data?.accounts && data.accounts.length > 0) {
-        toast.success(`Wallet Connected (${truncateWalletAddress(data.accounts[0])})`);
+        toast.success(`Wallet Connected (${maskAddress(data.accounts[0], 4, 4)})`);
         onClose();
       } else {
         throw new Error('No accounts returned');
@@ -51,7 +48,7 @@ export function WalletModal({ isOpen, onClose, onError }: WalletModalProps) {
       });
       const data = await connectAsync({ connector: mmConnector });
       if (data?.accounts && data.accounts.length > 0) {
-        toast.success(`Wallet Connected (${truncateWalletAddress(data.accounts[0])})`);
+        toast.success(`Wallet Connected (${maskAddress(data.accounts[0], 4, 4)})`);
         onClose();
       } else {
         throw new Error('No accounts returned');
