@@ -32,6 +32,8 @@
     "@radix-ui/react-popover": "^1.1.2",
     "@radix-ui/react-slider": "^1.2.3",
     "@radix-ui/react-slot": "^1.1.0",
+    "@stripe/react-stripe-js": "^5.5.0",
+    "@stripe/stripe-js": "^8.6.4",
     "@svgr/webpack": "^8.1.0",
     "@tippyjs/react": "^4.2.6",
     "@tiptap-pro/extension-ai": "^2.16.0",
