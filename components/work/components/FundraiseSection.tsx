@@ -1,9 +1,8 @@
 'use client';
 
 import { Fundraise } from '@/types/funding';
-import { BarChart3, Users } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
-import { formatRSC } from '@/utils/number';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
@@ -52,17 +51,6 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
               }}
             />
           </div>
-        </div>
-
-        {/* Contributors */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Users className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-600">Contributors</span>
-          </div>
-          <span className="text-sm font-medium text-gray-900">
-            {fundraise.contributors.numContributors}
-          </span>
         </div>
 
         {/* Status */}
