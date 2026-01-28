@@ -89,14 +89,15 @@ export class TransactionService {
   private static readonly PURCHASE_PATH = '/api/purchase/'; // Define purchase path
 
   /**
-   * Fetches the current transaction fee for withdrawal on the BASE network
+   * Fetches the current transaction fee for withdrawal on the specified network
+   * @param network - The network to fetch the fee for ('BASE' or 'ETHEREUM')
    * @returns The transaction fee amount in RSC
    * @throws Error when the API request fails
    */
-  static async getWithdrawalFee(): Promise<number> {
+  static async getWithdrawalFee(network: 'BASE' | 'ETHEREUM' = 'BASE'): Promise<number> {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}${this.WITHDRAWAL_PATH}/transaction_fee/?network=BASE`,
+        `${process.env.NEXT_PUBLIC_API_URL}${this.WITHDRAWAL_PATH}/transaction_fee/?network=${network}`,
         {
           method: 'GET',
           headers: {
