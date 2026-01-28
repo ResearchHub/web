@@ -15,6 +15,7 @@ interface UseFeedOptions {
   endpoint?: 'feed' | 'funding_feed' | 'grant_feed';
   fundraiseStatus?: 'OPEN' | 'CLOSED';
   createdBy?: number;
+  fundedBy?: number;
   ordering?: string;
   filter?: string;
   userId?: string;
@@ -90,6 +91,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       options.endpoint !== currentOptions.endpoint ||
       options.fundraiseStatus !== currentOptions.fundraiseStatus ||
       options.createdBy !== currentOptions.createdBy ||
+      options.fundedBy !== currentOptions.fundedBy ||
       options.ordering !== currentOptions.ordering ||
       options.isDebugMode !== currentOptions.isDebugMode ||
       options.filter !== currentOptions.filter ||
@@ -132,6 +134,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         endpoint: options.endpoint,
         fundraiseStatus: options.fundraiseStatus,
         createdBy: options.createdBy,
+        fundedBy: options.fundedBy,
         ordering: options.ordering,
         includeHotScoreBreakdown: options.isDebugMode,
         filter: options.filter,
@@ -179,6 +182,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         endpoint: options.endpoint,
         fundraiseStatus: options.fundraiseStatus,
         createdBy: options.createdBy,
+        fundedBy: options.fundedBy,
         ordering: options.ordering,
         includeHotScoreBreakdown: options.isDebugMode,
         filter: options.filter,

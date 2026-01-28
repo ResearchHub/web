@@ -21,6 +21,7 @@ export class FeedService {
     fundraiseStatus?: 'OPEN' | 'CLOSED';
     grantId?: number;
     createdBy?: number;
+    fundedBy?: number;
     ordering?: string;
     includeHotScoreBreakdown?: boolean;
     filter?: string;
@@ -33,9 +34,17 @@ export class FeedService {
     if (params?.hubSlug) queryParams.append('hub_slug', params.hubSlug);
     if (params?.contentType) queryParams.append('content_type', params.contentType);
     if (params?.source) queryParams.append('source', params.source);
-    if (params?.fundraiseStatus) queryParams.append('fundraise_status', params.fundraiseStatus);
+    // Use 'status' param with lowercase values for grant_feed, 'fundraise_status' for others
+    if (params?.fundraiseStatus) {
+      if (params?.endpoint === 'grant_feed') {
+        queryParams.append('status', params.fundraiseStatus.toLowerCase());
+      } else {
+        queryParams.append('fundraise_status', params.fundraiseStatus);
+      }
+    }
     if (params?.grantId) queryParams.append('grant_id', params.grantId.toString());
     if (params?.createdBy) queryParams.append('created_by', params.createdBy.toString());
+    if (params?.fundedBy) queryParams.append('funded_by', params.fundedBy.toString());
 
     if (params?.ordering) {
       queryParams.append('ordering', params.ordering);
