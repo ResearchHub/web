@@ -4,16 +4,25 @@ import { AlertTriangle } from 'lucide-react';
 import { cn } from '@/utils/styles';
 
 interface InsufficientBalanceAlertProps {
-  /** Callback when user clicks "Add funds" */
-  onAddFunds: () => void;
+  /** Callback when user clicks "Deposit RSC" */
+  onDepositRsc: () => void;
+  /** Callback when user clicks "Buy RSC" */
+  onBuyRsc: () => void;
   className?: string;
 }
 
 /**
  * Alert displayed when user has insufficient balance for a contribution.
- * Includes a highlighted "Add funds" action button.
+ * Includes "Deposit RSC" and "Buy RSC" action buttons.
  */
-export function InsufficientBalanceAlert({ onAddFunds, className }: InsufficientBalanceAlertProps) {
+export function InsufficientBalanceAlert({
+  onDepositRsc,
+  onBuyRsc,
+  className,
+}: InsufficientBalanceAlertProps) {
+  const linkButtonClass =
+    'font-semibold text-primary-600 hover:text-primary-700 underline underline-offset-2';
+
   return (
     <div
       className={cn(
@@ -24,12 +33,12 @@ export function InsufficientBalanceAlert({ onAddFunds, className }: Insufficient
       <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0" />
       <div className="flex-1 text-sm text-amber-800">
         Insufficient funds.{' '}
-        <button
-          type="button"
-          onClick={onAddFunds}
-          className="font-semibold text-primary-600 hover:text-primary-700 underline underline-offset-2"
-        >
-          Add funds
+        <button type="button" onClick={onDepositRsc} className={linkButtonClass}>
+          Deposit RSC
+        </button>{' '}
+        or{' '}
+        <button type="button" onClick={onBuyRsc} className={linkButtonClass}>
+          Buy RSC
         </button>{' '}
         to continue.
       </div>

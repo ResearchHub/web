@@ -1,6 +1,5 @@
 'use client';
 
-import { ArrowDownToLine, ArrowUpFromLine, Plus, Minus, DollarSign } from 'lucide-react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useState } from 'react';
 import { DepositOptionsModal } from '../modals/ResearchCoin/DepositOptionsModal';
@@ -18,9 +17,8 @@ interface UserBalanceSectionProps {
     formattedUsd: string;
     raw: number;
   } | null;
-  // Balance fields for Coinbase-style display
+  // Balance fields
   rscBalance?: number;
-  usdCents?: number;
   isFetchingExchangeRate: boolean;
   onTransactionSuccess?: () => void;
   // Deprecated - kept for backwards compatibility but no longer used in UI
@@ -34,7 +32,6 @@ interface UserBalanceSectionProps {
 export function UserBalanceSection({
   balance,
   rscBalance,
-  usdCents,
   isFetchingExchangeRate,
   onTransactionSuccess,
 }: UserBalanceSectionProps) {
@@ -55,13 +52,11 @@ export function UserBalanceSection({
     return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  // Use new balance fields with fallbacks
-  const displayUsdBalance = usdCents ?? 0;
+  // Use RSC balance with fallback
   const displayRscBalance = rscBalance ?? balance?.raw ?? 0;
 
-  // Calculate RSC value in USD cents and total dynamically
+  // Calculate RSC value in USD cents
   const rscValueInUsdCents = exchangeRate ? Math.round(displayRscBalance * exchangeRate * 100) : 0;
-  const displayTotalUsd = displayUsdBalance + rscValueInUsdCents;
 
   return (
     <>
@@ -77,7 +72,7 @@ export function UserBalanceSection({
                 ) : (
                   <>
                     <div className="text-2xl font-bold text-gray-900">
-                      {formatUsdFromCents(displayTotalUsd)}
+                      {formatUsdFromCents(rscValueInUsdCents)}
                     </div>
                     <div className="text-sm text-gray-500">Total Balance</div>
                   </>
@@ -126,58 +121,30 @@ export function UserBalanceSection({
             {/* Divider */}
             <div className="border-t border-gray-100" />
 
-            {/* Token breakdown rows */}
+            {/* RSC Balance Row */}
             {!isBalanceReady ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between py-2">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full" />
-                    <div className="h-5 w-20 bg-gray-200 animate-pulse rounded" />
-                  </div>
-                  <div className="h-5 w-24 bg-gray-200 animate-pulse rounded" />
+              <div className="flex items-center justify-between py-2">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full" />
+                  <div className="h-5 w-20 bg-gray-200 animate-pulse rounded" />
                 </div>
-                <div className="flex items-center justify-between py-2">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full" />
-                    <div className="h-5 w-20 bg-gray-200 animate-pulse rounded" />
-                  </div>
-                  <div className="h-5 w-24 bg-gray-200 animate-pulse rounded" />
-                </div>
+                <div className="h-5 w-24 bg-gray-200 animate-pulse rounded" />
               </div>
             ) : (
-              <div className="space-y-1">
-                {/* USD Balance Row */}
-                <div className="flex items-center justify-between py-2.5 px-2 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <DollarSign className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900">Cash</div>
-                      <div className="text-sm text-gray-500">USD</div>
-                    </div>
+              <div className="flex items-center justify-between py-2.5 px-2 rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <ResearchCoinIcon size={40} />
+                  <div>
+                    <div className="font-medium text-gray-900">ResearchCoin</div>
+                    <div className="text-sm text-gray-500">RSC</div>
                   </div>
-                  <span className="font-semibold text-gray-900">
-                    {formatUsdFromCents(displayUsdBalance)}
-                  </span>
                 </div>
-
-                {/* RSC Balance Row */}
-                <div className="flex items-center justify-between py-2.5 px-2 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <ResearchCoinIcon size={40} />
-                    <div>
-                      <div className="font-medium text-gray-900">ResearchCoin</div>
-                      <div className="text-sm text-gray-500">RSC</div>
-                    </div>
+                <div className="text-right">
+                  <div className="font-semibold text-gray-900">
+                    {formatRSC({ amount: displayRscBalance })} RSC
                   </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-gray-900">
-                      {formatUsdFromCents(rscValueInUsdCents)}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {formatRSC({ amount: displayRscBalance })} RSC
-                    </div>
+                  <div className="text-sm text-gray-500">
+                    {formatUsdFromCents(rscValueInUsdCents)}
                   </div>
                 </div>
               </div>
