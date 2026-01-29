@@ -51,7 +51,7 @@ export type PaymentMethodType =
  * Payment methods that are temporarily hidden from the UI.
  * These can be re-enabled when the integration is complete.
  */
-export const HIDDEN_PAYMENT_METHODS: PaymentMethodType[] = ['endaoment'];
+export const HIDDEN_PAYMENT_METHODS: PaymentMethodType[] = ['paypal', 'endaoment'];
 
 /**
  * Payment method display information.

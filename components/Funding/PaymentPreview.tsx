@@ -121,9 +121,7 @@ export function PaymentPreview({
       </div>
 
       {/* Balance check - only for RSC */}
-      {paymentMethod === 'rsc' && insufficientBalance && onDepositRsc && onBuyRsc && (
-        <InsufficientBalanceAlert onDepositRsc={onDepositRsc} onBuyRsc={onBuyRsc} />
-      )}
+      {paymentMethod === 'rsc' && insufficientBalance && <InsufficientBalanceAlert />}
 
       {/* Error Alert */}
       {error && <Alert variant="error">{error}</Alert>}

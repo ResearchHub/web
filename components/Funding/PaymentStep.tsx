@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PaymentWidget } from './PaymentWidget';
 import { InsufficientBalanceAlert } from './InsufficientBalanceAlert';
-import { usePaymentCalculations, type PaymentMethodType } from './lib';
+import { usePaymentCalculations, getDefaultPaymentMethod, type PaymentMethodType } from './lib';
+import type { StripePaymentContext } from './CreditCardForm';
+import { useIsSafari } from '@/hooks/useIsSafari';
 import {
   PLATFORM_FEE_PERCENTAGE,
   PAYMENT_PROCESSING_FEE,
@@ -27,12 +29,16 @@ interface PaymentStepProps {
   isProcessing?: boolean;
   /** Error message to display */
   error?: string | null;
-  /** Called when payment is confirmed */
-  onConfirmPayment: (paymentMethod: Exclude<PaymentMethodType, 'endaoment' | 'other'>) => void;
+  /** Called when payment is confirmed (excludes endaoment which has separate flow) */
+  onConfirmPayment: (
+    paymentMethod: Exclude<PaymentMethodType, 'endaoment'>
+  ) => void | Promise<void>;
   /** Called when user wants to deposit RSC */
   onDepositRsc?: () => void;
   /** Called when user wants to buy RSC */
   onBuyRsc?: () => void;
+  /** Called when Stripe context is ready for payment confirmation */
+  onStripeReady?: (context: StripePaymentContext | null) => void;
 }
 
 /**
@@ -49,20 +55,29 @@ export function PaymentStep({
   onConfirmPayment,
   onDepositRsc,
   onBuyRsc,
+  onStripeReady,
 }: PaymentStepProps) {
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | null>('credit_card');
+  const isSafari = useIsSafari();
+
+  // Compute the default payment method based on balance and browser
+  const defaultPaymentMethod = useMemo(
+    () => getDefaultPaymentMethod(rscBalance, amountInRsc, PLATFORM_FEE_PERCENTAGE, isSafari),
+    [rscBalance, amountInRsc, isSafari]
+  );
+
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | null>(
+    defaultPaymentMethod
+  );
   const [isCreditCardComplete, setIsCreditCardComplete] = useState(false);
 
-  // Get RSC balance check
-  const paymentMethodForCalc =
-    (selectedMethod as Exclude<PaymentMethodType, 'endaoment' | 'other'>) || 'rsc';
+  // Get RSC balance check (only relevant for RSC payment method)
   const { insufficientBalance } = usePaymentCalculations({
     amountInRsc,
     rscBalance,
-    paymentMethod: paymentMethodForCalc,
+    paymentMethod: 'rsc',
   });
 
-  // Calculate fees in USD - fees are SUBTRACTED from user's input
+  // Calculate fees in USD - fees are ADDED on top of user's input
   const platformFeeUsd = amountInUsd * (PLATFORM_FEE_PERCENTAGE / 100);
 
   // Payment processing fee only for non-RSC methods
@@ -72,8 +87,8 @@ export function PaymentStep({
       PAYMENT_PROCESSING_FEE.fixedCents / 100
     : 0;
 
-  // Net amount = user's input minus all fees
-  const netAmountUsd = amountInUsd - platformFeeUsd - processingFeeUsd;
+  // Total due = user's input plus all fees
+  const totalDueUsd = amountInUsd + platformFeeUsd + processingFeeUsd;
 
   // Format USD
   const formatUsd = (amount: number) =>
@@ -87,13 +102,10 @@ export function PaymentStep({
 
   // Determine if button should be disabled
   const isDisabled =
-    isProcessing ||
-    !selectedMethod ||
-    isRscInsufficientBalance ||
-    isCreditCardIncomplete ||
-    selectedMethod === 'endaoment';
+    isProcessing || !selectedMethod || isRscInsufficientBalance || isCreditCardIncomplete;
 
   const handleConfirm = useCallback(() => {
+    // Endaoment has a separate flow, so we only handle other payment methods here
     if (selectedMethod && selectedMethod !== 'endaoment') {
       onConfirmPayment(selectedMethod);
     }
@@ -127,18 +139,19 @@ export function PaymentStep({
         selectedPaymentMethod={selectedMethod}
         onPaymentMethodChange={handlePaymentMethodChange}
         onCreditCardCompleteChange={setIsCreditCardComplete}
+        onStripeReady={onStripeReady}
         hideButton
       />
 
       {/* Receipt-style line items */}
-      {selectedMethod && selectedMethod !== 'endaoment' && (
+      {selectedMethod && (
         <div className="space-y-4">
           {/* Line items */}
           <div className="space-y-1">
-            {/* Funding contribution (net amount going to fundraise) */}
+            {/* Funding contribution (amount going to fundraise) */}
             <div className="py-1.5 flex items-center justify-between">
               <span className="text-sm text-gray-600">Funding contribution</span>
-              <span className="text-sm text-gray-900">{formatUsd(netAmountUsd)}</span>
+              <span className="text-sm text-gray-900">{formatUsd(amountInUsd)}</span>
             </div>
 
             {/* Platform fee with tooltip */}
@@ -179,14 +192,12 @@ export function PaymentStep({
             {/* Total due with divider */}
             <div className="pt-3 mt-2 flex items-center justify-between border-t border-gray-200">
               <span className="text-base font-semibold text-gray-900">Total Due</span>
-              <span className="text-lg font-bold text-gray-900">{formatUsd(amountInUsd)}</span>
+              <span className="text-lg font-bold text-gray-900">{formatUsd(totalDueUsd)}</span>
             </div>
           </div>
 
           {/* Insufficient balance alert for RSC */}
-          {isRscInsufficientBalance && onDepositRsc && onBuyRsc && (
-            <InsufficientBalanceAlert onDepositRsc={onDepositRsc} onBuyRsc={onBuyRsc} />
-          )}
+          {isRscInsufficientBalance && <InsufficientBalanceAlert />}
 
           {/* Error Alert */}
           {error && <Alert variant="error">{error}</Alert>}

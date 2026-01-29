@@ -1,11 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import type { Stripe, StripeCardElement } from '@stripe/stripe-js';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { CreditCard, Lock } from 'lucide-react';
 import { StripeProvider } from './StripeProvider';
+
+/**
+ * Stripe context provided to parent for payment confirmation.
+ */
+export interface StripePaymentContext {
+  stripe: Stripe;
+  cardElement: StripeCardElement;
+}
 
 interface CreditCardFormProps {
   /** Amount to display in the pay button */
@@ -18,6 +27,8 @@ interface CreditCardFormProps {
   hideSubmitButton?: boolean;
   /** Called when card completeness state changes */
   onCardComplete?: (isComplete: boolean) => void;
+  /** Called when Stripe context is ready, providing access for payment confirmation */
+  onStripeReady?: (context: StripePaymentContext | null) => void;
 }
 
 /**
@@ -27,15 +38,22 @@ function CreditCardFormPlaceholder({
   amountDisplay,
   hideSubmitButton = false,
   onCardComplete,
+  onStripeReady,
 }: {
   amountDisplay: string;
   hideSubmitButton?: boolean;
   onCardComplete?: (isComplete: boolean) => void;
+  onStripeReady?: (context: StripePaymentContext | null) => void;
 }) {
   // Card is never complete in placeholder mode
   useEffect(() => {
     onCardComplete?.(false);
   }, [onCardComplete]);
+
+  // Stripe is not available in placeholder mode
+  useEffect(() => {
+    onStripeReady?.(null);
+  }, [onStripeReady]);
   return (
     <div className="space-y-4">
       {/* Card Element Container - Placeholder */}
@@ -79,6 +97,7 @@ function StripeCardForm({
   onSubmit,
   hideSubmitButton = false,
   onCardComplete,
+  onStripeReady,
 }: CreditCardFormProps) {
   const stripe = useStripe();
   const elements = useElements();
@@ -89,6 +108,18 @@ function StripeCardForm({
   useEffect(() => {
     onCardComplete?.(cardComplete);
   }, [cardComplete, onCardComplete]);
+
+  // Notify parent when Stripe context is ready
+  useEffect(() => {
+    if (stripe && elements) {
+      const cardElement = elements.getElement(CardElement);
+      if (cardElement) {
+        onStripeReady?.({ stripe, cardElement });
+      }
+    } else {
+      onStripeReady?.(null);
+    }
+  }, [stripe, elements, onStripeReady]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,6 +208,7 @@ export function CreditCardForm(props: CreditCardFormProps) {
         amountDisplay={props.amountDisplay}
         hideSubmitButton={props.hideSubmitButton}
         onCardComplete={props.onCardComplete}
+        onStripeReady={props.onStripeReady}
       />
     );
   }
