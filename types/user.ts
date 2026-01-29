@@ -45,11 +45,11 @@ const baseTransformUser = (raw: any): User => {
       authorProfile: undefined,
       balance: 0,
       lockedBalance: 0,
-      rscBalance: 5000, // Hard-coded fallback
+      rscBalance: 0,
       rscLocked: 0,
-      totalRsc: 5000,
-      usdCents: 10000, // $100.00
-      totalUsdCents: 15000, // $150.00
+      totalRsc: 0,
+      usdCents: 0,
+      totalUsdCents: 0,
       hasCompletedOnboarding: false,
       createdDate: undefined,
       moderator: false,
@@ -80,11 +80,11 @@ const baseTransformUser = (raw: any): User => {
     authorProfile: undefined,
     balance: raw.balance || 0,
     lockedBalance: raw.locked_balance || 0,
-    rscBalance: raw.rsc ?? 5000, // Hard-coded fallback until API is ready
-    rscLocked: raw.rsc_locked ?? 0,
-    totalRsc: raw.total_rsc ?? 5000,
-    usdCents: raw.usd_cents ?? 10000, // $100.00
-    totalUsdCents: raw.total_usd_cents ?? 15000, // $150.00
+    rscBalance: raw.balance || 0, // Available RSC from API
+    rscLocked: raw.locked_balance || 0, // Locked RSC (funding credits)
+    totalRsc: (raw.balance || 0) + (raw.locked_balance || 0), // Total usable for funding
+    usdCents: raw.usd_cents ?? 0,
+    totalUsdCents: raw.total_usd_cents ?? 0,
     hasCompletedOnboarding: raw.has_completed_onboarding || false,
     createdDate: raw.created_date || undefined,
     moderator: raw.moderator || false,
@@ -113,11 +113,11 @@ export const transformUser = (raw: any): TransformedUser => {
       authorProfile: undefined,
       balance: 0,
       lockedBalance: 0,
-      rscBalance: 5000, // Hard-coded fallback
+      rscBalance: 0,
       rscLocked: 0,
-      totalRsc: 5000,
-      usdCents: 10000, // $100.00
-      totalUsdCents: 15000, // $150.00
+      totalRsc: 0,
+      usdCents: 0,
+      totalUsdCents: 0,
       hasCompletedOnboarding: false,
       moderator: false,
       raw: null,
