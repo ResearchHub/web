@@ -7,6 +7,17 @@ export const isJsonParseError = (err: unknown): boolean =>
 // eslint-disable-next-line eqeqeq
 export const idMatch = (a: ID, b: ID) => a == b;
 
+/**
+ * Rounds an RSC amount to 3 decimal places.
+ * Used to ensure API compatibility when sending RSC amounts to the backend.
+ *
+ * @param amount The RSC amount to round
+ * @returns The amount rounded to 3 decimal places
+ */
+export const roundRscAmount = (amount: number): number => {
+  return Math.round(amount * 1000) / 1000;
+};
+
 export function extractApiErrorMessage(error: unknown, defaultMessage: string): string {
   if (error instanceof ApiError) {
     const errors = error.errors as any;

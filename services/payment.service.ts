@@ -1,4 +1,5 @@
 import { ApiClient } from './client';
+import { roundRscAmount } from './lib/serviceUtils';
 
 /**
  * Raw response from the payment intent API endpoint (snake_case from backend).
@@ -45,7 +46,7 @@ export class PaymentService {
     const response = await ApiClient.post<PaymentIntentApiResponse>(
       `${this.BASE_PATH}/payment-intent/`,
       {
-        amount,
+        amount: roundRscAmount(amount),
         currency: 'RSC',
       }
     );

@@ -1,4 +1,5 @@
 import { ApiClient } from './client';
+import { roundRscAmount } from './lib/serviceUtils';
 import { Fundraise, transformFundraise } from '@/types/funding';
 import { ID } from '@/types/root';
 
@@ -27,10 +28,13 @@ export class FundraiseService {
     amount: number,
     currency: 'usd' | 'rsc' = 'rsc'
   ): Promise<Fundraise> {
+    // Round RSC amounts to 3 decimal places for API compatibility
+    const finalAmount = currency === 'rsc' ? roundRscAmount(amount) : amount;
+
     const response = await ApiClient.post<any>(
       `${this.BASE_PATH}/${fundraiseId}/create_contribution/`,
       {
-        amount,
+        amount: finalAmount,
         currency,
       }
     );
