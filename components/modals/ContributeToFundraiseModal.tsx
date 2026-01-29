@@ -61,7 +61,8 @@ export function ContributeToFundraiseModal({
   }, []);
 
   // Get balance from user fields
-  const rscBalance = user?.rscBalance ?? 0;
+  // Use totalRsc since users can use both available RSC and funding credits for funding
+  const rscBalance = user?.totalRsc ?? 0;
 
   // Calculate conversions
   const rscToUsd = (rsc: number) => (exchangeRate ? rsc * exchangeRate : 0);
