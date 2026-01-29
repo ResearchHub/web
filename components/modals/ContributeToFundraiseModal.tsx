@@ -152,23 +152,25 @@ export function ContributeToFundraiseModal({
         const { clientSecret } = await PaymentService.createPaymentIntent(amountInRsc);
 
         // Step 2: Confirm payment with Stripe
-        const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
-          clientSecret,
-          {
+        const { error: stripeError, paymentIntent: stripePaymentIntent } =
+          await stripe.confirmCardPayment(clientSecret, {
             payment_method: {
               card: cardElement,
             },
-          }
-        );
+          });
 
         if (stripeError) {
-          setError(stripeError.message ?? 'Payment failed. Please try again.');
+          setError(
+            'We had an issue processing your credit card. Choose a different payment method.'
+          );
           setIsContributing(false);
           return;
         }
 
-        if (paymentIntent?.status !== 'succeeded') {
-          setError('Payment was not successful. Please try again.');
+        if (stripePaymentIntent?.status !== 'succeeded') {
+          setError(
+            'We had an issue processing your credit card. Choose a different payment method.'
+          );
           setIsContributing(false);
           return;
         }
@@ -199,7 +201,11 @@ export function ContributeToFundraiseModal({
       onClose();
     } catch (err) {
       console.error('Failed to contribute to fundraise:', err);
-      setError(err instanceof Error ? err.message : 'Failed to contribute to fundraise');
+      if (paymentMethod === 'credit_card') {
+        setError('We had an issue processing your credit card. Choose a different payment method.');
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
     } finally {
       setIsContributing(false);
     }
