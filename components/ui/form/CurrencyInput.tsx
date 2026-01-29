@@ -1,7 +1,8 @@
 import React from 'react';
 import { Input } from './Input';
-import { ChevronDown } from 'lucide-react';
+import { ArrowRightLeft, DollarSign } from 'lucide-react';
 import { Currency } from '@/types/root';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 
 interface CurrencyInputProps {
   value: string | number;
@@ -52,15 +53,21 @@ export const CurrencyInput = ({
         placeholder="0.00"
         type="text"
         inputMode="numeric"
-        className={`w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${error ? 'border-red-500' : ''} ${className}`}
+        autoComplete="off"
+        className={`w-full text-left h-12 ${error ? 'border-red-500' : ''} ${className}`}
         rightElement={
           <button
             type="button"
             onClick={onCurrencyToggle}
-            className="flex items-center gap-1 pr-3 text-gray-900 hover:text-gray-600"
+            className="flex items-center gap-1 px-2 py-1 rounded-l rounded-r-md bg-gray-50 hover:bg-gray-100 active:bg-gray-150 transition-colors text-gray-700"
           >
-            <span className="font-medium">{currency}</span>
-            <ChevronDown className="w-4 h-4" />
+            {currency === 'RSC' ? (
+              <ResearchCoinIcon size={14} variant="gray" />
+            ) : (
+              <DollarSign className="w-3.5 h-3.5 text-gray-500" />
+            )}
+            <span className="font-medium text-sm">{currency}</span>
+            <ArrowRightLeft className="w-3 h-3 text-gray-400" />
           </button>
         }
       />
@@ -75,9 +82,13 @@ export const CurrencyInput = ({
         </p>
       )}
       {isExchangeRateLoading ? (
-        <div className="mt-1.5 text-sm text-gray-500">Loading exchange rate...</div>
+        <div className="mt-2 text-sm text-gray-400">Loading exchange rate...</div>
       ) : (
-        convertedAmount && <div className="mt-1.5 text-sm text-gray-500">{convertedAmount}</div>
+        convertedAmount && (
+          <div className="flex justify-end mt-1.5">
+            <span className="text-sm text-gray-400">{convertedAmount}</span>
+          </div>
+        )
       )}
     </div>
   );

@@ -39,6 +39,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <div
           className={cn(
             'relative flex border border-gray-200 transition-all',
+            'focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500',
             roundedClass,
             error && 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20',
             className,
@@ -48,7 +49,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {icon && <div className="absolute left-4 top-1/2 -translate-y-1/2">{icon}</div>}
           <input
             className={cn(
-              'w-full px-4 py-2 text-sm outline-none border-none focus:ring-2 focus:ring-primary-500',
+              'w-full px-4 py-2 text-sm outline-none border-none',
               roundedClass,
               'placeholder:text-gray-500',
               icon && 'pl-11',

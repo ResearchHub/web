@@ -14,6 +14,12 @@ export interface User {
   authorProfile?: AuthorProfile;
   balance: number;
   lockedBalance: number;
+  // New balance fields for USD/RSC support (optional - not all contexts provide these)
+  rscBalance?: number; // Available RSC
+  rscLocked?: number; // Locked RSC (keep in data, hide from UI)
+  totalRsc?: number; // Total in RSC equivalent
+  usdCents?: number; // Available USD in cents
+  totalUsdCents?: number; // Total balance in USD cents (the "whole pie")
   hasCompletedOnboarding?: boolean;
   createdDate?: string;
   moderator: boolean;
@@ -39,6 +45,11 @@ const baseTransformUser = (raw: any): User => {
       authorProfile: undefined,
       balance: 0,
       lockedBalance: 0,
+      rscBalance: 0,
+      rscLocked: 0,
+      totalRsc: 0,
+      usdCents: 0,
+      totalUsdCents: 0,
       hasCompletedOnboarding: false,
       createdDate: undefined,
       moderator: false,
@@ -69,6 +80,11 @@ const baseTransformUser = (raw: any): User => {
     authorProfile: undefined,
     balance: raw.balance || 0,
     lockedBalance: raw.locked_balance || 0,
+    rscBalance: raw.balance || 0, // Available RSC from API
+    rscLocked: raw.locked_balance || 0, // Locked RSC (funding credits)
+    totalRsc: (raw.balance || 0) + (raw.locked_balance || 0), // Total usable for funding
+    usdCents: raw.usd_cents ?? 0,
+    totalUsdCents: raw.total_usd_cents ?? 0,
     hasCompletedOnboarding: raw.has_completed_onboarding || false,
     createdDate: raw.created_date || undefined,
     moderator: raw.moderator || false,
@@ -97,6 +113,11 @@ export const transformUser = (raw: any): TransformedUser => {
       authorProfile: undefined,
       balance: 0,
       lockedBalance: 0,
+      rscBalance: 0,
+      rscLocked: 0,
+      totalRsc: 0,
+      usdCents: 0,
+      totalUsdCents: 0,
       hasCompletedOnboarding: false,
       moderator: false,
       raw: null,

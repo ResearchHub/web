@@ -43,7 +43,7 @@ interface ResearchCoinIconProps {
    * Visual variant of the icon (changes the gradient or fill)
    * @default 'orange'
    */
-  variant?: 'orange' | 'green' | 'solid';
+  variant?: 'orange' | 'green' | 'gray' | 'solid';
 }
 
 function ContributeVariant({ size, color }: { size: number; color: string }) {
@@ -128,9 +128,15 @@ export function ResearchCoinIcon({
     );
   }
 
-  // Simple approach: just use solid green for green variant, keep everything else the same
+  // Simple approach: use different fills based on variant
   const coinFill =
-    variant === 'solid' ? color : variant === 'green' ? '#22C55E' : 'url(#coinGradient)';
+    variant === 'solid'
+      ? color
+      : variant === 'green'
+        ? '#22C55E'
+        : variant === 'gray'
+          ? '#6B7280'
+          : 'url(#coinGradient)';
 
   return (
     <svg width={size} height={size} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14">
