@@ -1,9 +1,10 @@
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState, useCallback } from 'react';
+import { Fragment, useState, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { FundraiseService } from '@/services/fundraise.service';
+import { PaymentService } from '@/services/payment.service';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { Fundraise } from '@/types/funding';
@@ -13,6 +14,7 @@ import {
   FundingImpactPreview,
   QuickAmountSelector,
   type PaymentMethodType,
+  type StripePaymentContext,
 } from '@/components/Funding';
 import { Input } from '@/components/ui/form/Input';
 import { Button } from '@/components/ui/Button';
@@ -89,9 +91,17 @@ export function ContributeToFundraiseModal({
   const [error, setError] = useState<string | null>(null);
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
   const [currentView, setCurrentView] = useState<ModalView>('funding');
-  const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(null);
+  const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(100);
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
   const [isSliderControlled, setIsSliderControlled] = useState(false);
+
+  // Store Stripe context for credit card payments
+  const stripeContextRef = useRef<StripePaymentContext | null>(null);
+
+  // Handle Stripe context updates from CreditCardForm
+  const handleStripeReady = useCallback((context: StripePaymentContext | null) => {
+    stripeContextRef.current = context;
+  }, []);
 
   // Get balance from user fields
   const rscBalance = user?.rscBalance ?? 0;
@@ -151,9 +161,7 @@ export function ContributeToFundraiseModal({
     setCurrentView('payment');
   }, []);
 
-  const handleConfirmPayment = async (
-    paymentMethod: Exclude<PaymentMethodType, 'endaoment' | 'other'>
-  ) => {
+  const handleConfirmPayment = async (paymentMethod: Exclude<PaymentMethodType, 'endaoment'>) => {
     try {
       if (amountUsd < minAmountUsd) {
         setError(`Minimum contribution is $${minAmountUsd}`);
@@ -164,19 +172,67 @@ export function ContributeToFundraiseModal({
       setError(null);
 
       if (paymentMethod === 'rsc') {
+        // Direct RSC payment from user's balance
+        await FundraiseService.contributeToFundraise(fundraise.id, amountInRsc, 'rsc');
+        toast.success('Your contribution has been successfully added to the fundraise.');
+      } else if (paymentMethod === 'credit_card') {
+        // Credit card payment flow:
+        // 1. Create payment intent (backend adds fees)
+        // 2. Confirm payment with Stripe
+        // 3. On success, create contribution
+
+        const stripeContext = stripeContextRef.current;
+        if (!stripeContext) {
+          setError('Payment form is not ready. Please try again.');
+          setIsContributing(false);
+          return;
+        }
+
+        const { stripe, cardElement } = stripeContext;
+
+        // Step 1: Create payment intent with amount (without fees - backend adds them)
+        const { clientSecret } = await PaymentService.createPaymentIntent(amountInRsc);
+
+        // Step 2: Confirm payment with Stripe
+        const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
+          clientSecret,
+          {
+            payment_method: {
+              card: cardElement,
+            },
+          }
+        );
+
+        if (stripeError) {
+          setError(stripeError.message ?? 'Payment failed. Please try again.');
+          setIsContributing(false);
+          return;
+        }
+
+        if (paymentIntent?.status !== 'succeeded') {
+          setError('Payment was not successful. Please try again.');
+          setIsContributing(false);
+          return;
+        }
+
+        // Step 3: Create contribution in our system
         await FundraiseService.contributeToFundraise(fundraise.id, amountInRsc, 'rsc');
         toast.success('Your contribution has been successfully added to the fundraise.');
       } else if (
-        paymentMethod === 'credit_card' ||
         paymentMethod === 'apple_pay' ||
         paymentMethod === 'google_pay' ||
         paymentMethod === 'paypal'
       ) {
-        // TODO: Implement payment processing when backend is ready
-        toast.error('This payment method is not yet available. Please use ResearchCoin.');
+        // Other payment methods not yet implemented
+        toast.error(
+          'This payment method is not yet available. Please use Credit Card or ResearchCoin.'
+        );
         setIsContributing(false);
         return;
       }
+
+      // Refresh user data to update balance
+      refreshUser?.();
 
       if (onContributeSuccess) {
         onContributeSuccess();
@@ -222,7 +278,7 @@ export function ContributeToFundraiseModal({
 
   const handleClose = useCallback(() => {
     setCurrentView('funding');
-    setSelectedQuickAmount(null);
+    setSelectedQuickAmount(100);
     setAmountUsd(100);
     setError(null);
     setAmountError(undefined);
@@ -275,6 +331,7 @@ export function ContributeToFundraiseModal({
             onConfirmPayment={handleConfirmPayment}
             onDepositRsc={handleOpenDeposit}
             onBuyRsc={handleBuyRsc}
+            onStripeReady={handleStripeReady}
           />
         );
 

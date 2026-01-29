@@ -3,7 +3,7 @@
 import { FC, useCallback } from 'react';
 import { cn } from '@/utils/styles';
 
-const QUICK_AMOUNTS = [25, 50, 100, 200] as const;
+const QUICK_AMOUNTS = [50, 100, 250, 500] as const;
 
 interface QuickAmountSelectorProps {
   /** Currently selected quick amount (in USD) */

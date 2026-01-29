@@ -15,8 +15,7 @@ import {
   type PaymentMethodType,
 } from './lib';
 import { MOCK_DAF_ACCOUNTS } from './lib/mockEndaomentData';
-import { CreditCardForm } from './CreditCardForm';
-import { InsufficientBalanceAlert } from './InsufficientBalanceAlert';
+import { CreditCardForm, type StripePaymentContext } from './CreditCardForm';
 import { DAFAccountSelector } from './DAFAccountSelector';
 import { InsufficientDAFFundsAlert } from './InsufficientDAFFundsAlert';
 
@@ -53,6 +52,8 @@ interface PaymentWidgetProps {
   onPaymentMethodChange?: (method: PaymentMethodType | null) => void;
   /** Callback when credit card completeness changes */
   onCreditCardCompleteChange?: (isComplete: boolean) => void;
+  /** Callback when Stripe context is ready for payment confirmation */
+  onStripeReady?: (context: StripePaymentContext | null) => void;
   /** Whether to hide the CTA button (when used inside PaymentStep) */
   hideButton?: boolean;
 }
@@ -75,6 +76,7 @@ export function PaymentWidget({
   selectedPaymentMethod,
   onPaymentMethodChange,
   onCreditCardCompleteChange,
+  onStripeReady,
   hideButton = false,
 }: PaymentWidgetProps) {
   const { isExpanded, selectedMethod, toggleExpanded, selectMethod } = usePaymentMethod({
@@ -142,12 +144,12 @@ export function PaymentWidget({
     {
       id: 'apple_pay',
       title: 'Apple Pay',
-      icon: <FontAwesomeIcon icon={faApplePay} className="h-[18px] w-[18px] text-gray-800" />,
+      icon: <FontAwesomeIcon icon={faApplePay} className="h-6 w-6 text-gray-800" />,
     },
     {
       id: 'google_pay',
       title: 'Google Pay',
-      icon: <FontAwesomeIcon icon={faGooglePay} className="h-[18px] w-[18px] text-gray-600" />,
+      icon: <FontAwesomeIcon icon={faGooglePay} className="h-6 w-6 text-gray-600" />,
     },
     {
       id: 'paypal',
@@ -324,6 +326,7 @@ export function PaymentWidget({
             isSubmitting={false}
             hideSubmitButton
             onCardComplete={handleCreditCardComplete}
+            onStripeReady={onStripeReady}
           />
         </div>
       )}
@@ -342,11 +345,6 @@ export function PaymentWidget({
 
       {/* Insufficient DAF Funds Alert - appears when selected DAF has insufficient balance */}
       {isDafInsufficientBalance && !isExpanded && <InsufficientDAFFundsAlert />}
-
-      {/* Insufficient Balance Alert - appears when RSC is selected and balance is low */}
-      {isRscInsufficientBalance && !isExpanded && onDepositRsc && onBuyRsc && (
-        <InsufficientBalanceAlert onDepositRsc={onDepositRsc} onBuyRsc={onBuyRsc} />
-      )}
 
       {/* CTA Button - hidden when used inside PaymentStep */}
       {!hideButton && (

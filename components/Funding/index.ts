@@ -6,7 +6,7 @@ export { PaymentMethodSelector } from './PaymentMethodSelector';
 export { PaymentWidget } from './PaymentWidget';
 export { PaymentPreview } from './PaymentPreview';
 export { PaymentStep } from './PaymentStep';
-export { CreditCardForm } from './CreditCardForm';
+export { CreditCardForm, type StripePaymentContext } from './CreditCardForm';
 export { StripeProvider } from './StripeProvider';
 export { DAFAccountSelector } from './DAFAccountSelector';
 export { FundingImpactPreview } from './FundingImpactPreview';

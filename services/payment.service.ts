@@ -1,0 +1,61 @@
+import { ApiClient } from './client';
+
+/**
+ * Raw response from the payment intent API endpoint (snake_case from backend).
+ */
+interface PaymentIntentApiResponse {
+  /** Stripe client secret for confirming the payment */
+  client_secret: string;
+  /** The Stripe payment intent ID */
+  payment_intent_id: string;
+  /** The RSC amount that was locked for this payment */
+  locked_rsc_amount: number;
+  /** The amount in cents that Stripe will charge */
+  stripe_amount_cents: number;
+}
+
+/**
+ * Transformed response with camelCase properties.
+ */
+export interface PaymentIntentResponse {
+  /** Stripe client secret for confirming the payment */
+  clientSecret: string;
+  /** The Stripe payment intent ID */
+  paymentIntentId: string;
+  /** The RSC amount that was locked for this payment */
+  lockedRscAmount: number;
+  /** The amount in cents that Stripe will charge */
+  stripeAmountCents: number;
+}
+
+/**
+ * Service for handling payment-related API calls.
+ */
+export class PaymentService {
+  private static readonly BASE_PATH = '/api/payment';
+
+  /**
+   * Creates a payment intent for purchasing RSC.
+   * The backend will add fees to the amount.
+   *
+   * @param amount The RSC amount to purchase (without fees)
+   * @returns Promise containing the Stripe client secret and payment details
+   */
+  static async createPaymentIntent(amount: number): Promise<PaymentIntentResponse> {
+    const response = await ApiClient.post<PaymentIntentApiResponse>(
+      `${this.BASE_PATH}/payment-intent/`,
+      {
+        amount,
+        currency: 'RSC',
+      }
+    );
+
+    // Transform snake_case to camelCase
+    return {
+      clientSecret: response.client_secret,
+      paymentIntentId: response.payment_intent_id,
+      lockedRscAmount: response.locked_rsc_amount,
+      stripeAmountCents: response.stripe_amount_cents,
+    };
+  }
+}
