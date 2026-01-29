@@ -1,14 +1,13 @@
 'use client';
 
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { FundraiseService } from '@/services/fundraise.service';
 import { PaymentService } from '@/services/payment.service';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { Fundraise } from '@/types/funding';
-import { X, ArrowLeft, DollarSign } from 'lucide-react';
+import { ArrowLeft, DollarSign } from 'lucide-react';
 import {
   PaymentStep,
   FundingImpactPreview,
@@ -18,6 +17,7 @@ import {
 } from '@/components/Funding';
 import { Input } from '@/components/ui/form/Input';
 import { Button } from '@/components/ui/Button';
+import { BaseModal } from '@/components/ui/BaseModal';
 
 // Import inline deposit views
 import { DepositRSCView } from './DepositRSCView';
@@ -33,49 +33,6 @@ interface ContributeToFundraiseModalProps {
 }
 
 type ModalView = 'funding' | 'payment' | 'deposit-rsc';
-
-// Modal Header Component with optional back button and subtitle
-const ModalHeader = ({
-  title,
-  subtitle,
-  onClose,
-  onBack,
-  showBackButton = false,
-}: {
-  title: string;
-  subtitle?: string;
-  onClose: () => void;
-  onBack?: () => void;
-  showBackButton?: boolean;
-}) => (
-  <div className="border-b border-gray-200 px-6 py-4">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        {showBackButton && onBack && (
-          <button
-            type="button"
-            className="p-1 -ml-1 text-gray-400 hover:text-gray-600 transition-colors"
-            onClick={onBack}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-        )}
-        <Dialog.Title as="h2" className="text-lg font-semibold text-gray-900">
-          {title}
-        </Dialog.Title>
-      </div>
-      <button
-        type="button"
-        className="p-1 text-gray-400 hover:text-gray-500 transition-colors"
-        onClick={onClose}
-      >
-        <span className="sr-only">Close</span>
-        <X className="h-5 w-5" />
-      </button>
-    </div>
-    {subtitle && <p className="mt-1 text-sm text-gray-500 line-clamp-2">{subtitle}</p>}
-  </div>
-);
 
 export function ContributeToFundraiseModal({
   isOpen,
@@ -390,49 +347,39 @@ export function ContributeToFundraiseModal({
     }
   };
 
+  // Back button for header
+  const headerAction =
+    currentView !== 'funding' ? (
+      <button
+        type="button"
+        className="p-1 -ml-1 text-gray-400 hover:text-gray-600 transition-colors"
+        onClick={handleBack}
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </button>
+    ) : undefined;
+
+  // Custom title element with optional subtitle
+  const subtitle = getSubtitle();
+  const modalTitle = (
+    <div className="flex flex-col">
+      <span className="text-lg font-semibold text-gray-900">{getTitle()}</span>
+      {subtitle && <span className="text-sm text-gray-500 line-clamp-1">{subtitle}</span>}
+    </div>
+  );
+
   return (
     <>
-      <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-[100]" onClose={handleClose}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-black/25" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-              >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
-                  <ModalHeader
-                    title={getTitle()}
-                    subtitle={getSubtitle()}
-                    onClose={handleClose}
-                    onBack={handleBack}
-                    showBackButton={currentView !== 'funding'}
-                  />
-
-                  <div className="p-6">{renderContent()}</div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition>
+      <BaseModal
+        isOpen={isOpen}
+        onClose={handleClose}
+        title={modalTitle}
+        maxWidth="max-w-md"
+        headerAction={headerAction}
+        className="md:min-w-[400px]"
+      >
+        {renderContent()}
+      </BaseModal>
 
       {/* Buy RSC Modal */}
       <BuyModal isOpen={isBuyModalOpen} onClose={() => setIsBuyModalOpen(false)} />

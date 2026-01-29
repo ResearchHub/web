@@ -120,7 +120,6 @@ export function PaymentWidget({
       title: 'ResearchCoin',
       description: `Balance: ${formatRsc(rscBalance)}`,
       icon: <ResearchCoinIcon size={18} variant="gray" />,
-      badge: 'Lowest fees',
     },
     {
       id: 'endaoment',

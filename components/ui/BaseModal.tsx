@@ -11,7 +11,8 @@ interface BaseModalProps {
   onClose: () => void;
   children: ReactNode;
   initialFocus?: React.MutableRefObject<HTMLElement | null>;
-  title?: string;
+  /** Modal title - can be a string or custom ReactNode for complex headers */
+  title?: ReactNode;
   maxWidth?: string; // e.g., 'max-w-md', 'max-w-xl', 'max-w-4xl'
   showCloseButton?: boolean;
   padding?: string; // e.g., 'p-4', 'p-6', 'p-8'
