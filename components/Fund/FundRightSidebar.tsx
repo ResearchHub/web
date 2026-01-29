@@ -1,32 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
-import { CollapsibleItem, SimpleCollapsibleSection } from '@/components/ui/CollapsibleSection';
-import {
-  BookCheck,
-  Lightbulb,
-  Zap,
-  Banknote,
-  Target,
-  Share2,
-  Feather,
-  ArrowUpRightSquare,
-  Check,
-  ExternalLink,
-} from 'lucide-react';
-import { Icon } from '@/components/ui/icons/Icon';
-import Link from 'next/link';
+import React from 'react';
+import { BookCheck, Feather, ExternalLink } from 'lucide-react';
 import { RightSidebarBanner } from '@/components/ui/RightSidebarBanner';
 
 export const FundRightSidebar = () => {
-  const [openSections, setOpenSections] = useState<string[]>(['why-fund']); // Default open section
-
-  const toggleSection = (section: string) => {
-    setOpenSections((prev) =>
-      prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]
-    );
-  };
-
   return (
     <div className="space-y-6">
       <RightSidebarBanner
@@ -50,7 +28,7 @@ export const FundRightSidebar = () => {
         <h3 className="text-lg font-semibold mb-3 text-gray-900">Resources</h3>
         <div className="space-y-3">
           <a
-            href="https://blog.researchhub.foundation/funding-for-researchers/"
+            href="https://docs.researchhub.com/researchhub/product-features/fund/funding-recipients"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors"
@@ -64,14 +42,14 @@ export const FundRightSidebar = () => {
             </div>
           </a>
           <a
-            href="https://drive.google.com/file/d/1wQVjVfy4x6VadIExEysx4VyLJN9dkD53/view"
+            href="https://docs.researchhub.com/researchhub-foundation/programs-and-initiatives/peer-review-program/peer-review-program-guidelines"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors"
           >
             <div className="flex items-center gap-2">
               <Feather size={16} className="text-primary-600" />
-              <span>Peer Review Guidelines (Funding)</span>
+              <span>Peer Review Guidelines</span>
             </div>
             <div className="ml-4">
               <ExternalLink size={14} className="text-gray-400" />
@@ -80,67 +58,35 @@ export const FundRightSidebar = () => {
         </div>
       </div>
 
-      <SimpleCollapsibleSection title="How does it work?">
-        <div className="pl-6">
-          <CollapsibleItem
-            title="1. Plan your experiment"
-            isOpen={openSections.includes('preregister')}
-            onToggle={() => toggleSection('preregister')}
-          >
-            Researchers plan their experiment in the open, providing all relevant methodological
-            details and planned analyses openly before receiving funding.
-          </CollapsibleItem>
-          <CollapsibleItem
-            title="2. Link a nonprofit (Recommended)"
-            isOpen={openSections.includes('tax-deduct')}
-            onToggle={() => toggleSection('tax-deduct')}
-          >
-            Researchers can coordinate with a qualifying nonprofit via the lab notebook to enable
-            tax deductions for donors and improved processing of funds.
-          </CollapsibleItem>
-          <CollapsibleItem
-            title="3. Receive expert review"
-            isOpen={openSections.includes('peer-review')}
-            onToggle={() => toggleSection('peer-review')}
-          >
-            Experts and the community review the proposal, providing feedback to improve rigor and
-            reproducibility, offering insight into the work.
-          </CollapsibleItem>
-          <CollapsibleItem
-            title="4. Receive crowdfunding"
-            isOpen={openSections.includes('pledge')}
-            onToggle={() => toggleSection('pledge')}
-          >
-            Users review the proposal and peer feedback, then contribute funds (any amount) directly
-            to the projects they support via RSC or USD.
-          </CollapsibleItem>
-          <CollapsibleItem
-            title="5. Funds are disbursed"
-            isOpen={openSections.includes('disburse')}
-            onToggle={() => toggleSection('disburse')}
-          >
-            Once fully raised,{' '}
-            <Link
-              href="https://endaoment.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary-600 hover:underline"
-            >
-              Endaoment
-            </Link>{' '}
-            provides nonprofit support, asset conversion, and sends contributions directly to the
-            institution or researcher.
-          </CollapsibleItem>
-          <CollapsibleItem
-            title="6. Funds arrive"
-            isOpen={openSections.includes('unrestricted')}
-            onToggle={() => toggleSection('unrestricted')}
-          >
-            Funds arrive in the researcher's discretionary spending account at their institution,
-            free from traditional grant restrictions on usage.
-          </CollapsibleItem>
-        </div>
-      </SimpleCollapsibleSection>
+      <div>
+        <h3 className="text-md font-semibold mb-4">How to Request Funding</h3>
+        <ol className="list-none space-y-3 text-gray-600 mb-4 text-sm">
+          <li className="flex">
+            <span className="mr-3 font-medium">1.</span>
+            <span>Create your research proposal</span>
+          </li>
+          <li className="flex">
+            <span className="mr-3 font-medium">2.</span>
+            <span>Include a clear budget</span>
+          </li>
+          <li className="flex">
+            <span className="mr-3 font-medium">3.</span>
+            <span>Add your university as the nonprofit recipient</span>
+          </li>
+          <li className="flex">
+            <span className="mr-3 font-medium">4.</span>
+            <span>Upload for crowdfunding or an RFP</span>
+          </li>
+          <li className="flex">
+            <span className="mr-3 font-medium">5.</span>
+            <span>Use peer review to improve your work</span>
+          </li>
+          <li className="flex">
+            <span className="mr-3 font-medium">6.</span>
+            <span>Receive funds to your institution</span>
+          </li>
+        </ol>
+      </div>
     </div>
   );
 };

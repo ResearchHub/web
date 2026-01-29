@@ -226,7 +226,7 @@ export const LeaderboardOverview = () => {
           href="/earn"
           className="mt-4 block w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium py-2 px-3 rounded-md border border-primary-200 hover:bg-primary-50 transition-colors"
         >
-          View preprints needing review
+          View peer reviewing opportunities
         </Link>
       </div>
 
