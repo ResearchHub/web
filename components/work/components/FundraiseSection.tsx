@@ -31,7 +31,7 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
               size="xs"
               currency={showUSD ? 'USD' : 'RSC'}
               showText={true}
-              className="text-gray-600"
+              className="text-orange-500"
             />
             <CurrencyBadge
               amount={fundraise.goalAmount.rsc}
@@ -39,7 +39,7 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
               size="xs"
               currency={showUSD ? 'USD' : 'RSC'}
               showText={true}
-              className="text-gray-600"
+              className="text-orange-500"
             />
           </div>
           <div className="h-2 bg-gray-100 rounded-full overflow-hidden">

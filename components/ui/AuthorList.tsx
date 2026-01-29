@@ -33,6 +33,8 @@ interface AuthorListProps {
   showAbbreviatedInMobile?: boolean;
   /** When true, shows ellipsis (...) instead of expand button when there are more than 3 authors */
   hideExpandButton?: boolean;
+  /** When true and showAbbreviatedInMobile is true, makes the mobile "et al." clickable to expand */
+  mobileExpandable?: boolean;
 }
 
 export const AuthorList = ({
@@ -46,8 +48,10 @@ export const AuthorList = ({
   maxLength,
   showAbbreviatedInMobile = false,
   hideExpandButton = false,
+  mobileExpandable = false,
 }: AuthorListProps) => {
   const [showAll, setShowAll] = useState(false);
+  const [showAllMobile, setShowAllMobile] = useState(false);
 
   // Filter out "et al" variations
   const filteredAuthors = authors.filter(
@@ -254,10 +258,68 @@ export const AuthorList = ({
       );
     }
 
+    // If expanded, show all authors
+    if (showAllMobile) {
+      return (
+        <>
+          {filteredAuthors.map((author, index) => (
+            <Fragment key={author?.name + index}>
+              <AuthorItem author={author} showDot={false} size={size} className={className} />
+              {index < filteredAuthors.length - 1 && (
+                <span
+                  className={cn('mx-1 flex-shrink-0', getTextSize(), className, delimiterClassName)}
+                >
+                  {delimiter}
+                </span>
+              )}
+            </Fragment>
+          ))}
+          {mobileExpandable && (
+            <Button
+              variant="link"
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowAllMobile(false);
+              }}
+              className={cn(
+                'flex items-center gap-0.5 ml-1 text-blue-500 p-0 h-auto whitespace-nowrap flex-shrink-0',
+                getTextSize()
+              )}
+            >
+              <Minus className="w-3.5 h-3.5 mr-0.5" />
+              <span>less</span>
+            </Button>
+          )}
+        </>
+      );
+    }
+
+    // Abbreviated view
     return (
       <>
         <AuthorItem author={filteredAuthors[0]} showDot={false} size={size} className={className} />
-        <span className={cn('ml-1 flex-shrink-0', getTextSize(), className)}>et al.</span>
+        {mobileExpandable ? (
+          <Button
+            variant="link"
+            size="sm"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowAllMobile(true);
+            }}
+            className={cn(
+              'flex items-center gap-0.5 ml-1 text-blue-500 p-0 h-auto whitespace-nowrap flex-shrink-0',
+              getTextSize()
+            )}
+          >
+            <Plus className="w-3.5 h-3.5 mr-0.5" />
+            <span>{filteredAuthors.length - 1} more</span>
+          </Button>
+        ) : (
+          <span className={cn('ml-1 flex-shrink-0', getTextSize(), className)}>et al.</span>
+        )}
       </>
     );
   };
@@ -266,8 +328,13 @@ export const AuthorList = ({
     <div className="flex flex-wrap items-center overflow-hidden">
       {showAbbreviatedInMobile ? (
         <>
-          {/* Mobile-only abbreviated view - Using flex-nowrap to prevent line breaks */}
-          <div className="md:!hidden flex flex-nowrap items-center overflow-hidden min-w-0">
+          {/* Mobile-only abbreviated view - flex-nowrap when collapsed, flex-wrap when expanded */}
+          <div
+            className={cn(
+              'md:!hidden flex items-center min-w-0',
+              showAllMobile ? 'flex-wrap' : 'flex-nowrap overflow-hidden'
+            )}
+          >
             {renderMobileAbbreviatedAuthors()}
             {timestamp && (
               <>

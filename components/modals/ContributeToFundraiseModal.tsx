@@ -198,7 +198,7 @@ export function ContributeToFundraiseModal({
         onContributeSuccess();
       }
 
-      onClose();
+      handleClose();
     } catch (err) {
       console.error('Failed to contribute to fundraise:', err);
       if (paymentMethod === 'credit_card') {
