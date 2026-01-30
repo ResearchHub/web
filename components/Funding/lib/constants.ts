@@ -2,7 +2,7 @@
  * Platform fee percentage - applies to ALL payment methods.
  * This fee is subtracted from the funding amount.
  */
-export const PLATFORM_FEE_PERCENTAGE = 9;
+export const PLATFORM_FEE_PERCENTAGE = 7;
 
 /**
  * Payment processing fee for non-RSC payment methods.
@@ -29,11 +29,11 @@ export const METHODS_WITH_PROCESSING_FEE: PaymentMethodType[] = [
  * Kept for backwards compatibility with usePaymentCalculations hook.
  */
 export const PAYMENT_FEES = {
-  rsc: 9,
-  credit_card: 9,
-  apple_pay: 9,
-  google_pay: 9,
-  paypal: 9,
+  rsc: 7,
+  credit_card: 7,
+  apple_pay: 7,
+  google_pay: 7,
+  paypal: 7,
 } as const;
 
 /**

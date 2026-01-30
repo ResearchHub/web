@@ -150,7 +150,7 @@ export function WalletCurrencySelector({
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-gray-900">ResearchCoin</span>
                     <span className="px-1.5 py-0.5 text-[10px] font-semibold rounded bg-yellow-100 text-yellow-700">
-                      9% fee
+                      7% fee
                     </span>
                   </div>
                   <div className="text-xs text-gray-500">RSC</div>

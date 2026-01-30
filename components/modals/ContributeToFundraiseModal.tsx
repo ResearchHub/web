@@ -8,7 +8,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { Fundraise } from '@/types/funding';
 import { Work } from '@/types/work';
-import { ArrowLeft, DollarSign } from 'lucide-react';
+import { ArrowLeft, MoveRight, DollarSign } from 'lucide-react';
 import {
   PaymentStep,
   FundingImpactPreview,
@@ -371,6 +371,7 @@ export function ContributeToFundraiseModal({
                 onClick={handleContinueToPayment}
               >
                 Continue to Payment
+                <MoveRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
           </div>
