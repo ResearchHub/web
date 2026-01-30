@@ -1,5 +1,6 @@
 import { ApiClient } from './client';
 import { roundRscAmount } from './lib/serviceUtils';
+import { ID } from '@/types/root';
 
 /**
  * Raw response from the payment intent API endpoint (snake_case from backend).
@@ -36,18 +37,23 @@ export class PaymentService {
   private static readonly BASE_PATH = '/api/payment';
 
   /**
-   * Creates a payment intent for purchasing RSC.
-   * The backend will add fees to the amount.
+   * Creates a payment intent for purchasing RSC and contributing to a fundraise.
+   * The backend will add fees to the amount and handle the contribution.
    *
    * @param amount The RSC amount to purchase (without fees)
+   * @param fundraiseId The ID of the fundraise to contribute to
    * @returns Promise containing the Stripe client secret and payment details
    */
-  static async createPaymentIntent(amount: number): Promise<PaymentIntentResponse> {
+  static async createPaymentIntent(
+    amount: number,
+    fundraiseId: ID
+  ): Promise<PaymentIntentResponse> {
     const response = await ApiClient.post<PaymentIntentApiResponse>(
       `${this.BASE_PATH}/payment-intent/`,
       {
         amount: roundRscAmount(amount),
         currency: 'RSC',
+        fundraise_id: fundraiseId,
       }
     );
 

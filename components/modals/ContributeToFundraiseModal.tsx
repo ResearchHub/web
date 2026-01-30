@@ -148,8 +148,11 @@ export function ContributeToFundraiseModal({
 
         const { stripe, cardElement } = stripeContext;
 
-        // Step 1: Create payment intent with amount (without fees - backend adds them)
-        const { clientSecret } = await PaymentService.createPaymentIntent(amountInRsc);
+        // Step 1: Create payment intent with amount and fundraise ID (backend adds fees and handles contribution)
+        const { clientSecret } = await PaymentService.createPaymentIntent(
+          amountInRsc,
+          fundraise.id
+        );
 
         // Step 2: Confirm payment with Stripe
         const { error: stripeError, paymentIntent: stripePaymentIntent } =
@@ -175,8 +178,7 @@ export function ContributeToFundraiseModal({
           return;
         }
 
-        // Step 3: Create contribution in our system
-        await FundraiseService.contributeToFundraise(fundraise.id, amountInRsc, 'rsc');
+        // Payment succeeded - backend handles contribution automatically
         toast.success('Your contribution has been successfully added to the fundraise.');
       } else if (
         paymentMethod === 'apple_pay' ||
