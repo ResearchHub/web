@@ -183,24 +183,34 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
             ) : (
               <div className="flex items-center gap-1 flex-wrap min-w-0 truncate">
                 <CurrencyBadge
-                  amount={Math.round(fundraise.amountRaised.rsc)}
+                  amount={
+                    showUSD
+                      ? Math.round(fundraise.amountRaised.usd)
+                      : Math.round(fundraise.amountRaised.rsc)
+                  }
                   variant="text"
                   size="xs"
                   showText={false}
                   currency={showUSD ? 'USD' : 'RSC'}
                   shorten
                   className="pl-0"
+                  skipConversion={showUSD}
                 />
                 <span className="font-medium text-gray-700 mx-0.5 text-sm mobile:!text-base">
                   /
                 </span>
                 <CurrencyBadge
-                  amount={Math.round(fundraise.goalAmount.rsc)}
+                  amount={
+                    showUSD
+                      ? Math.round(fundraise.goalAmount.usd)
+                      : Math.round(fundraise.goalAmount.rsc)
+                  }
                   variant="text"
                   size="xs"
                   showText={true}
                   currency={showUSD ? 'USD' : 'RSC'}
                   shorten
+                  skipConversion={showUSD}
                 />
               </div>
             )}
@@ -278,22 +288,32 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
               ) : (
                 <div className="flex items-center flex-wrap gap-1">
                   <CurrencyBadge
-                    amount={Math.round(fundraise.amountRaised.rsc)}
+                    amount={
+                      showUSD
+                        ? Math.round(fundraise.amountRaised.usd)
+                        : Math.round(fundraise.amountRaised.rsc)
+                    }
                     variant="text"
                     size="md"
                     showText={false}
                     currency={showUSD ? 'USD' : 'RSC'}
                     className="font-medium text-orange-500 text-base mobile:!text-lg pl-0"
+                    skipConversion={showUSD}
                   />
                   <span className="text-gray-500 text-base mobile:!text-lg">raised of</span>
                   <CurrencyBadge
-                    amount={Math.round(fundraise.goalAmount.rsc)}
+                    amount={
+                      showUSD
+                        ? Math.round(fundraise.goalAmount.usd)
+                        : Math.round(fundraise.goalAmount.rsc)
+                    }
                     variant="text"
                     size="md"
                     showText={true}
                     showIcon={true}
                     currency={showUSD ? 'USD' : 'RSC'}
                     className="text-orange-500 text-base mobile:!text-lg"
+                    skipConversion={showUSD}
                   />
                   <span className="text-orange-500 text-base mobile:!text-lg">goal</span>
                 </div>

@@ -26,20 +26,22 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <CurrencyBadge
-              amount={fundraise.amountRaised.rsc}
+              amount={showUSD ? fundraise.amountRaised.usd : fundraise.amountRaised.rsc}
               variant="text"
               size="xs"
               currency={showUSD ? 'USD' : 'RSC'}
               showText={true}
               className="text-orange-500"
+              skipConversion={showUSD}
             />
             <CurrencyBadge
-              amount={fundraise.goalAmount.rsc}
+              amount={showUSD ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc}
               variant="text"
               size="xs"
               currency={showUSD ? 'USD' : 'RSC'}
               showText={true}
               className="text-orange-500"
+              skipConversion={showUSD}
             />
           </div>
           <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
