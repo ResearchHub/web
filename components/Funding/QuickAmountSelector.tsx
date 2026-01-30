@@ -41,7 +41,7 @@ export const QuickAmountSelector: FC<QuickAmountSelectorProps> = ({
   }, [remainingGoalUsd, onAmountSelect]);
 
   return (
-    <div className={cn('flex flex-wrap items-center gap-2', className)}>
+    <div className={cn('flex flex-nowrap items-center gap-2', className)}>
       {/* Quick amount buttons */}
       {QUICK_AMOUNTS.map((amount) => (
         <button
@@ -53,7 +53,9 @@ export const QuickAmountSelector: FC<QuickAmountSelectorProps> = ({
             'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
             isQuickAmountSelected(amount)
               ? 'bg-primary-600 text-white border-primary-600'
-              : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400 hover:bg-primary-50'
+              : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400 hover:bg-primary-50',
+            // Hide $50 button on mobile to fit all buttons on one line
+            amount === 50 && 'hidden tablet:!block'
           )}
         >
           ${amount}

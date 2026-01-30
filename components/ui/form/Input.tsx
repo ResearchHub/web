@@ -49,7 +49,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {icon && <div className="absolute left-4 top-1/2 -translate-y-1/2">{icon}</div>}
           <input
             className={cn(
-              'w-full px-4 py-2 text-sm outline-none border-none',
+              'w-full px-4 py-2 text-base outline-none border-none',
               roundedClass,
               'placeholder:text-gray-500',
               icon && 'pl-11',

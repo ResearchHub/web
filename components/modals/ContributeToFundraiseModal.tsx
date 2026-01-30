@@ -397,7 +397,7 @@ export function ContributeToFundraiseModal({
   return (
     <>
       {isMobile ? (
-        <SwipeableDrawer isOpen={isOpen} onClose={handleClose} height="75vh" showCloseButton={true}>
+        <SwipeableDrawer isOpen={isOpen} onClose={handleClose} height="70vh" showCloseButton={true}>
           <div className="flex flex-col h-full">
             {/* Header with back button and title */}
             <div className="flex items-center gap-2 mb-4">

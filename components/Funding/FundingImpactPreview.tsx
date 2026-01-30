@@ -114,6 +114,21 @@ export const FundingImpactPreview: FC<FundingImpactPreviewProps> = ({
   const formatAmount = (amount: number) =>
     amount.toLocaleString('en-US', { maximumFractionDigits: 0 });
 
+  // Generate dynamic impact message with emoji based on contribution
+  const getImpactMessage = (): { text: string; emoji: string } | null => {
+    if (previewAmountUsd <= 0) return null;
+
+    // Fully funding the project
+    if (isFullyFunded) {
+      return { text: "You'll complete this fundraise!", emoji: '🎉' };
+    }
+
+    // All other contributions
+    return { text: 'Thank you for your support of science', emoji: '💚' };
+  };
+
+  const impactMessage = getImpactMessage();
+
   // Calculate percentage from cursor position
   const getPercentageFromPosition = useCallback((clientX: number): number => {
     if (!barRef.current) return 0;
@@ -323,6 +338,23 @@ export const FundingImpactPreview: FC<FundingImpactPreviewProps> = ({
           <span className="font-medium text-gray-700">${formatAmount(goalAmountUsd)}</span> goal
         </div>
       </div>
+
+      {/* Dynamic impact message with emoji */}
+      {impactMessage && (
+        <div
+          className={cn(
+            'flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-300',
+            isFullyFunded
+              ? 'bg-green-50 text-green-700'
+              : intensity >= 0.5
+                ? 'bg-amber-50 text-amber-700'
+                : 'bg-gray-50 text-gray-600'
+          )}
+        >
+          <span className="text-base">{impactMessage.emoji}</span>
+          <span>{impactMessage.text}</span>
+        </div>
+      )}
     </div>
   );
 };
