@@ -2,6 +2,8 @@
 
 import { FC, useRef, useCallback, useEffect, useState } from 'react';
 import { cn } from '@/utils/styles';
+import { AuthorProfile } from '@/types/authorProfile';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface FundingImpactPreviewProps {
   /** Current amount raised in USD */
@@ -16,6 +18,8 @@ interface FundingImpactPreviewProps {
   isSliderControlled?: boolean;
   /** Optional class name */
   className?: string;
+  /** Authors who will receive the funds */
+  authors?: AuthorProfile[];
 }
 
 /**
@@ -33,6 +37,7 @@ export const FundingImpactPreview: FC<FundingImpactPreviewProps> = ({
   onAmountChange,
   isSliderControlled = false,
   className,
+  authors,
 }) => {
   const barRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -114,8 +119,8 @@ export const FundingImpactPreview: FC<FundingImpactPreviewProps> = ({
   const formatAmount = (amount: number) =>
     amount.toLocaleString('en-US', { maximumFractionDigits: 0 });
 
-  // Generate dynamic impact message with emoji based on contribution
-  const getImpactMessage = (): { text: string; emoji: string } | null => {
+  // Generate dynamic impact message based on contribution
+  const getImpactMessage = (): { text: string; emoji: string | null } | null => {
     if (previewAmountUsd <= 0) return null;
 
     // Fully funding the project
@@ -123,7 +128,25 @@ export const FundingImpactPreview: FC<FundingImpactPreviewProps> = ({
       return { text: "You'll complete this fundraise!", emoji: '🎉' };
     }
 
-    // All other contributions
+    // Personalized message with author full names
+    if (authors && authors.length > 0) {
+      if (authors.length === 1) {
+        return { text: `You are supporting ${authors[0].fullName}`, emoji: null };
+      } else if (authors.length === 2) {
+        return {
+          text: `You are supporting ${authors[0].fullName} and ${authors[1].fullName}`,
+          emoji: null,
+        };
+      } else {
+        const othersCount = authors.length - 2;
+        return {
+          text: `You are supporting ${authors[0].fullName}, ${authors[1].fullName}, and ${othersCount} ${othersCount === 1 ? 'other' : 'others'}`,
+          emoji: null,
+        };
+      }
+    }
+
+    // Fallback message
     return { text: 'Thank you for your support of science', emoji: '💚' };
   };
 
@@ -339,11 +362,11 @@ export const FundingImpactPreview: FC<FundingImpactPreviewProps> = ({
         </div>
       </div>
 
-      {/* Dynamic impact message with emoji */}
+      {/* Dynamic impact message with author avatars */}
       {impactMessage && (
         <div
           className={cn(
-            'flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-300',
+            'flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-300',
             isFullyFunded
               ? 'bg-green-50 text-green-700'
               : intensity >= 0.5
@@ -351,7 +374,21 @@ export const FundingImpactPreview: FC<FundingImpactPreviewProps> = ({
                 : 'bg-gray-50 text-gray-600'
           )}
         >
-          <span className="text-base">{impactMessage.emoji}</span>
+          {/* Author avatars */}
+          {authors && authors.length > 0 && !isFullyFunded && (
+            <div className="flex -space-x-1">
+              {authors.slice(0, 2).map((author) => (
+                <Avatar
+                  key={author.id}
+                  src={author.profileImage}
+                  alt={author.fullName}
+                  size="xs"
+                  className="ring-2 ring-white"
+                />
+              ))}
+            </div>
+          )}
+          {impactMessage.emoji && <span className="text-base">{impactMessage.emoji}</span>}
           <span>{impactMessage.text}</span>
         </div>
       )}

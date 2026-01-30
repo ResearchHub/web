@@ -7,6 +7,7 @@ import { PaymentService } from '@/services/payment.service';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { Fundraise } from '@/types/funding';
+import { Work } from '@/types/work';
 import { ArrowLeft, DollarSign } from 'lucide-react';
 import {
   PaymentStep,
@@ -32,6 +33,8 @@ interface ContributeToFundraiseModalProps {
   fundraise: Fundraise;
   /** Title of the proposal being funded */
   proposalTitle?: string;
+  /** Work object containing author information */
+  work?: Work;
 }
 
 type ModalView = 'funding' | 'payment' | 'deposit-rsc';
@@ -42,6 +45,7 @@ export function ContributeToFundraiseModal({
   onContributeSuccess,
   fundraise,
   proposalTitle,
+  work,
 }: ContributeToFundraiseModalProps) {
   const { user, refreshUser } = useUser();
   const { exchangeRate } = useExchangeRate();
@@ -352,6 +356,7 @@ export function ContributeToFundraiseModal({
                     setAmountError(undefined);
                     setIsSliderControlled(true); // Slider sets linear visual mode
                   }}
+                  authors={work?.authors.map((a) => a.authorProfile)}
                 />
               )}
             </div>

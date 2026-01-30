@@ -7,6 +7,7 @@ import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Clock } from 'lucide-react';
 import { formatDeadline, formatExactTime, isDeadlineInFuture, formatDate } from '@/utils/date';
 import type { Fundraise } from '@/types/funding';
+import type { Work } from '@/types/work';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
@@ -27,6 +28,8 @@ interface FundraiseProgressProps {
   onContribute?: () => void;
   className?: string;
   onDetailsClick?: () => void;
+  /** Work object containing author information */
+  work?: Work;
 }
 
 export const FundraiseProgress: FC<FundraiseProgressProps> = ({
@@ -36,6 +39,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   onContribute,
   className,
   onDetailsClick,
+  work,
 }) => {
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
   const { showUSD } = useCurrencyPreference();
@@ -371,6 +375,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
         onContributeSuccess={handleContributeSuccess}
         fundraise={fundraise}
         proposalTitle={fundraiseTitle}
+        work={work}
       />
     </>
   );
