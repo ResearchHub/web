@@ -16,6 +16,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useRouter } from 'next/navigation';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 interface FundraiseProgressProps {
   fundraise: Fundraise;
@@ -44,6 +45,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   const { showUSD } = useCurrencyPreference();
   const { showShareModal } = useShareModalContext();
   const router = useRouter();
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
 
   if (!fundraise) return null;
 
@@ -115,10 +117,12 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   };
 
   const handleContributeClick = () => {
-    setIsContributeModalOpen(true);
-    if (onContribute) {
-      onContribute();
-    }
+    executeAuthenticatedAction(() => {
+      setIsContributeModalOpen(true);
+      if (onContribute) {
+        onContribute();
+      }
+    });
   };
 
   const handleContributeSuccess = () => {
