@@ -245,7 +245,7 @@ export function PaymentWidget({
                 <div className="flex-shrink-0 w-5 flex items-center justify-center">
                   {selectedOption.icon}
                 </div>
-                <div className="flex items-center gap-2 text-left">
+                <div className="flex flex-col text-left">
                   <span className="font-medium text-gray-900">{selectedOption.title}</span>
                   {selectedOption.description && (
                     <span className="text-xs text-gray-500">{selectedOption.description}</span>
@@ -292,16 +292,18 @@ export function PaymentWidget({
                   {option.icon}
                 </div>
 
-                {/* Title and optional inline description */}
-                <div className="flex-1 flex items-center gap-2 text-left min-w-0">
-                  <span className="font-medium text-gray-900 text-sm">{option.title}</span>
+                {/* Title and optional description */}
+                <div className="flex-1 flex flex-col text-left min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-900 text-sm">{option.title}</span>
+                    {option.badge && (
+                      <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700 whitespace-nowrap">
+                        {option.badge}
+                      </span>
+                    )}
+                  </div>
                   {option.description && (
-                    <span className="text-xs text-gray-500 truncate">{option.description}</span>
-                  )}
-                  {option.badge && (
-                    <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700 whitespace-nowrap">
-                      {option.badge}
-                    </span>
+                    <span className="text-xs text-gray-500">{option.description}</span>
                   )}
                 </div>
 
