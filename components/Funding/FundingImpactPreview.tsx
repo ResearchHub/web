@@ -46,10 +46,37 @@ export const FundingImpactPreview: FC<FundingImpactPreviewProps> = ({
   );
 
   // Apply visual scaling for small contributions ONLY when set via input (not slider)
-  // Uses square root scaling to amplify small amounts while preserving relative differences
-  const scalePercentage = (pct: number): number => {
-    if (pct <= 0) return 0;
-    return Math.sqrt(pct / 100) * 100;
+  // Scales based on goal size: less amplification for small goals (accuracy),
+  // more amplification for large goals (feel-good factor)
+  const scalePercentage = (actualPct: number): number => {
+    if (actualPct <= 0) return 0;
+
+    // Goal size thresholds for scaling behavior
+    const smallGoalThreshold = 2000; // Below this, use minimal scaling (more accurate)
+    const largeGoalThreshold = 10000; // Above this, use maximum scaling
+
+    // Calculate goal factor (0 = small goal, 1 = large goal)
+    const goalFactor = Math.max(
+      0,
+      Math.min(1, (goalAmountUsd - smallGoalThreshold) / (largeGoalThreshold - smallGoalThreshold))
+    );
+
+    // Minimum visible percentage for any contribution (ensures visibility)
+    // Smaller for small goals (5%), larger for large goals (8%)
+    const minVisiblePct = 5 + goalFactor * 3;
+
+    // Amplification factor: 1.3x for small goals, 2.5x for large goals
+    const minAmplification = 1.3;
+    const maxAmplification = 2.5;
+    const amplification = minAmplification + goalFactor * (maxAmplification - minAmplification);
+
+    // Apply amplification but cap the boost to prevent extreme exaggeration
+    // Max boost is 10 percentage points above actual
+    const maxBoost = 10 + goalFactor * 5; // 10-15pp max boost based on goal size
+    const amplifiedPct = Math.min(actualPct * amplification, actualPct + maxBoost);
+
+    // Return the larger of minimum visible or amplified, but never exceed 100%
+    return Math.min(100, Math.max(minVisiblePct, amplifiedPct));
   };
 
   // Use scaled visual when amount was set via input, linear when set via slider
