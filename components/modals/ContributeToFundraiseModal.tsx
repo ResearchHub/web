@@ -274,9 +274,9 @@ export function ContributeToFundraiseModal({
     }
   };
 
-  // Get subtitle - only show proposal title on funding screen
+  // Get subtitle - show proposal title on funding and payment screens
   const getSubtitle = () => {
-    if (currentView === 'funding') {
+    if (currentView === 'funding' || currentView === 'payment') {
       return proposalTitle;
     }
     return undefined;
@@ -388,9 +388,9 @@ export function ContributeToFundraiseModal({
   // Custom title element with optional subtitle
   const subtitle = getSubtitle();
   const modalTitle = (
-    <div className="flex flex-col">
+    <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
       <span className="text-lg font-semibold text-gray-900">{getTitle()}</span>
-      {subtitle && <span className="text-sm text-gray-500 line-clamp-1">{subtitle}</span>}
+      {subtitle && <span className="text-sm text-gray-500 truncate">{subtitle}</span>}
     </div>
   );
 
@@ -400,7 +400,7 @@ export function ContributeToFundraiseModal({
         <SwipeableDrawer isOpen={isOpen} onClose={handleClose} height="70vh" showCloseButton={true}>
           <div className="flex flex-col h-full">
             {/* Header with back button and title */}
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 pb-3 mb-4 border-b border-gray-200">
               {currentView !== 'funding' && (
                 <button
                   type="button"
