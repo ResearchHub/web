@@ -173,8 +173,8 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
           </button>
         )}
         <div
-          className="drawer-content p-4 pt-2 overflow-y-auto"
-          style={{ maxHeight: `calc(${height} - 40px)` }}
+          className="drawer-content p-4 pt-2 overflow-y-auto flex flex-col"
+          style={{ height: `calc(${height} - 40px)` }}
         >
           {children}
         </div>

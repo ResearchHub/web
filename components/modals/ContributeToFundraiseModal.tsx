@@ -18,6 +18,8 @@ import {
 import { Input } from '@/components/ui/form/Input';
 import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
+import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 // Import inline deposit views
 import { DepositRSCView } from './DepositRSCView';
@@ -43,6 +45,7 @@ export function ContributeToFundraiseModal({
 }: ContributeToFundraiseModalProps) {
   const { user, refreshUser } = useUser();
   const { exchangeRate } = useExchangeRate();
+  const isMobile = useIsMobile();
   const [amountUsd, setAmountUsd] = useState(100);
   const [isContributing, setIsContributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -304,53 +307,58 @@ export function ContributeToFundraiseModal({
       case 'funding':
       default:
         return (
-          <div className="space-y-6">
-            {/* Amount Input */}
-            <Input
-              type="text"
-              inputMode="decimal"
-              autoComplete="off"
-              value={getFormattedInputValue()}
-              onChange={handleAmountChange}
-              icon={<DollarSign className="h-5 w-5 text-gray-500" />}
-              error={amountError}
-              label="Funding amount"
-              className="text-lg"
-            />
-
-            {/* Quick Amount Selector */}
-            <QuickAmountSelector
-              selectedAmount={selectedQuickAmount}
-              onAmountSelect={handleQuickAmountSelect}
-              remainingGoalUsd={remainingGoalUsd}
-            />
-
-            {/* Funding Impact Preview with Slider */}
-            {goalAmountUsd > 0 && (
-              <FundingImpactPreview
-                currentAmountUsd={currentAmountUsd}
-                goalAmountUsd={goalAmountUsd}
-                previewAmountUsd={amountUsd}
-                isSliderControlled={isSliderControlled}
-                onAmountChange={(amount) => {
-                  setAmountUsd(amount);
-                  setSelectedQuickAmount(null);
-                  setAmountError(undefined);
-                  setIsSliderControlled(true); // Slider sets linear visual mode
-                }}
+          <div className="flex flex-col h-full">
+            {/* Content area */}
+            <div className="space-y-6 flex-1">
+              {/* Amount Input */}
+              <Input
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                value={getFormattedInputValue()}
+                onChange={handleAmountChange}
+                icon={<DollarSign className="h-5 w-5 text-gray-500" />}
+                error={amountError}
+                label="Funding amount"
+                className="text-lg"
               />
-            )}
 
-            {/* Continue to Payment Button */}
-            <Button
-              type="button"
-              variant="default"
-              disabled={amountUsd < minAmountUsd || !!amountError}
-              className="w-full h-12 text-base"
-              onClick={handleContinueToPayment}
-            >
-              Continue to Payment
-            </Button>
+              {/* Quick Amount Selector */}
+              <QuickAmountSelector
+                selectedAmount={selectedQuickAmount}
+                onAmountSelect={handleQuickAmountSelect}
+                remainingGoalUsd={remainingGoalUsd}
+              />
+
+              {/* Funding Impact Preview with Slider */}
+              {goalAmountUsd > 0 && (
+                <FundingImpactPreview
+                  currentAmountUsd={currentAmountUsd}
+                  goalAmountUsd={goalAmountUsd}
+                  previewAmountUsd={amountUsd}
+                  isSliderControlled={isSliderControlled}
+                  onAmountChange={(amount) => {
+                    setAmountUsd(amount);
+                    setSelectedQuickAmount(null);
+                    setAmountError(undefined);
+                    setIsSliderControlled(true); // Slider sets linear visual mode
+                  }}
+                />
+              )}
+            </div>
+
+            {/* Continue to Payment Button - pinned to bottom */}
+            <div className="pt-6">
+              <Button
+                type="button"
+                variant="default"
+                disabled={amountUsd < minAmountUsd || !!amountError}
+                className="w-full h-12 text-base"
+                onClick={handleContinueToPayment}
+              >
+                Continue to Payment
+              </Button>
+            </div>
           </div>
         );
     }
@@ -379,16 +387,37 @@ export function ContributeToFundraiseModal({
 
   return (
     <>
-      <BaseModal
-        isOpen={isOpen}
-        onClose={handleClose}
-        title={modalTitle}
-        maxWidth="max-w-md"
-        headerAction={headerAction}
-        className="md:min-w-[400px]"
-      >
-        {renderContent()}
-      </BaseModal>
+      {isMobile ? (
+        <SwipeableDrawer isOpen={isOpen} onClose={handleClose} height="85vh" showCloseButton={true}>
+          <div className="flex flex-col h-full">
+            {/* Header with back button and title */}
+            <div className="flex items-center gap-2 mb-4">
+              {currentView !== 'funding' && (
+                <button
+                  type="button"
+                  className="p-1 -ml-1 text-gray-400 hover:text-gray-600 transition-colors"
+                  onClick={handleBack}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+              )}
+              {modalTitle}
+            </div>
+            <div className="flex-1 flex flex-col">{renderContent()}</div>
+          </div>
+        </SwipeableDrawer>
+      ) : (
+        <BaseModal
+          isOpen={isOpen}
+          onClose={handleClose}
+          title={modalTitle}
+          maxWidth="max-w-md"
+          headerAction={headerAction}
+          className="md:min-w-[400px]"
+        >
+          {renderContent()}
+        </BaseModal>
+      )}
 
       {/* Buy RSC Modal */}
       <BuyModal isOpen={isBuyModalOpen} onClose={() => setIsBuyModalOpen(false)} />
