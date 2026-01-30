@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PaymentWidget } from './PaymentWidget';
+import { PaymentRequestButton } from './PaymentRequestButton';
 import { InsufficientBalanceAlert } from './InsufficientBalanceAlert';
 import { usePaymentCalculations, getDefaultPaymentMethod, type PaymentMethodType } from './lib';
 import type { StripePaymentContext } from './CreditCardForm';
@@ -15,6 +16,7 @@ import {
   PAYMENT_PROCESSING_FEE,
   METHODS_WITH_PROCESSING_FEE,
 } from './lib/constants';
+import { ID } from '@/types/root';
 
 interface PaymentStepProps {
   /** Amount in RSC (before fees) */
@@ -25,6 +27,8 @@ interface PaymentStepProps {
   amountDisplay: string;
   /** User's current RSC balance */
   rscBalance: number;
+  /** Fundraise ID for payment request button */
+  fundraiseId: ID;
   /** Whether the action is being processed */
   isProcessing?: boolean;
   /** Error message to display */
@@ -33,6 +37,8 @@ interface PaymentStepProps {
   onConfirmPayment: (
     paymentMethod: Exclude<PaymentMethodType, 'endaoment'>
   ) => void | Promise<void>;
+  /** Called when Apple Pay/Google Pay payment succeeds */
+  onPaymentRequestSuccess?: () => void;
   /** Called when user wants to deposit RSC */
   onDepositRsc?: () => void;
   /** Called when user wants to buy RSC */
@@ -50,9 +56,11 @@ export function PaymentStep({
   amountInUsd,
   amountDisplay,
   rscBalance,
+  fundraiseId,
   isProcessing = false,
   error,
   onConfirmPayment,
+  onPaymentRequestSuccess,
   onDepositRsc,
   onBuyRsc,
   onStripeReady,
@@ -214,18 +222,34 @@ export function PaymentStep({
         )}
       </div>
 
-      {/* Confirm Button - pinned to bottom */}
+      {/* Payment Button - pinned to bottom */}
       {selectedMethod && (
         <div className="pt-6">
-          <Button
-            type="button"
-            variant="default"
-            disabled={isDisabled}
-            className="w-full h-12 text-base"
-            onClick={handleConfirm}
-          >
-            {isProcessing ? 'Processing...' : 'Confirm & Pay'}
-          </Button>
+          {selectedMethod === 'apple_pay' || selectedMethod === 'google_pay' ? (
+            <PaymentRequestButton
+              amountCents={Math.round(totalDueUsd * 100)}
+              amountInRsc={amountInRsc}
+              fundraiseId={fundraiseId}
+              label="Fund Research"
+              unavailableText={
+                selectedMethod === 'apple_pay'
+                  ? 'Apple Pay not available on this device'
+                  : 'Google Pay not available on this device'
+              }
+              onSuccess={onPaymentRequestSuccess}
+              onError={(err) => console.error('Payment request error:', err)}
+            />
+          ) : (
+            <Button
+              type="button"
+              variant="default"
+              disabled={isDisabled}
+              className="w-full h-12 text-base"
+              onClick={handleConfirm}
+            >
+              {isProcessing ? 'Processing...' : 'Confirm & Pay'}
+            </Button>
+          )}
         </div>
       )}
     </div>

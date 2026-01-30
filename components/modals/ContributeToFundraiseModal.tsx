@@ -183,18 +183,13 @@ export function ContributeToFundraiseModal({
 
         // Payment succeeded - backend handles contribution automatically
         toast.success('Your contribution has been successfully added to the fundraise.');
-      } else if (
-        paymentMethod === 'apple_pay' ||
-        paymentMethod === 'google_pay' ||
-        paymentMethod === 'paypal'
-      ) {
-        // Other payment methods not yet implemented
-        toast.error(
-          'This payment method is not yet available. Please use Credit Card or ResearchCoin.'
-        );
+      } else if (paymentMethod === 'paypal') {
+        // PayPal not yet implemented
+        toast.error('PayPal is not yet available. Please use Credit Card or ResearchCoin.');
         setIsContributing(false);
         return;
       }
+      // Note: apple_pay and google_pay are handled by PaymentRequestButton
 
       // Refresh user data to update balance
       refreshUser?.();
@@ -255,6 +250,16 @@ export function ContributeToFundraiseModal({
     onClose();
   }, [onClose]);
 
+  // Handle Apple Pay / Google Pay success
+  const handlePaymentRequestSuccess = useCallback(() => {
+    toast.success('Your contribution has been successfully added to the fundraise.');
+    refreshUser?.();
+    if (onContributeSuccess) {
+      onContributeSuccess();
+    }
+    handleClose();
+  }, [refreshUser, onContributeSuccess, handleClose]);
+
   // Get title based on current view
   const getTitle = () => {
     switch (currentView) {
@@ -295,9 +300,11 @@ export function ContributeToFundraiseModal({
             amountInUsd={amountUsd}
             amountDisplay={getAmountDisplay()}
             rscBalance={rscBalance}
+            fundraiseId={fundraise.id}
             isProcessing={isContributing}
             error={error}
             onConfirmPayment={handleConfirmPayment}
+            onPaymentRequestSuccess={handlePaymentRequestSuccess}
             onDepositRsc={handleOpenDeposit}
             onBuyRsc={handleBuyRsc}
             onStripeReady={handleStripeReady}
@@ -309,26 +316,28 @@ export function ContributeToFundraiseModal({
         return (
           <div className="flex flex-col h-full">
             {/* Content area */}
-            <div className="space-y-6 flex-1">
-              {/* Amount Input */}
-              <Input
-                type="text"
-                inputMode="decimal"
-                autoComplete="off"
-                value={getFormattedInputValue()}
-                onChange={handleAmountChange}
-                icon={<DollarSign className="h-5 w-5 text-gray-500" />}
-                error={amountError}
-                label="Funding amount"
-                className="text-lg"
-              />
+            <div className="space-y-10 flex-1">
+              {/* Amount Input + Quick Amount Selector grouped together */}
+              <div className="space-y-3">
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  value={getFormattedInputValue()}
+                  onChange={handleAmountChange}
+                  icon={<DollarSign className="h-5 w-5 text-gray-500" />}
+                  error={amountError}
+                  label="Funding amount"
+                  className="text-lg"
+                />
 
-              {/* Quick Amount Selector */}
-              <QuickAmountSelector
-                selectedAmount={selectedQuickAmount}
-                onAmountSelect={handleQuickAmountSelect}
-                remainingGoalUsd={remainingGoalUsd}
-              />
+                {/* Quick Amount Selector */}
+                <QuickAmountSelector
+                  selectedAmount={selectedQuickAmount}
+                  onAmountSelect={handleQuickAmountSelect}
+                  remainingGoalUsd={remainingGoalUsd}
+                />
+              </div>
 
               {/* Funding Impact Preview with Slider */}
               {goalAmountUsd > 0 && (
@@ -388,7 +397,7 @@ export function ContributeToFundraiseModal({
   return (
     <>
       {isMobile ? (
-        <SwipeableDrawer isOpen={isOpen} onClose={handleClose} height="85vh" showCloseButton={true}>
+        <SwipeableDrawer isOpen={isOpen} onClose={handleClose} height="75vh" showCloseButton={true}>
           <div className="flex flex-col h-full">
             {/* Header with back button and title */}
             <div className="flex items-center gap-2 mb-4">

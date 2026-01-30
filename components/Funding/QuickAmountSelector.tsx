@@ -3,7 +3,7 @@
 import { FC, useCallback } from 'react';
 import { cn } from '@/utils/styles';
 
-const QUICK_AMOUNTS = [50, 100, 250, 500] as const;
+const QUICK_AMOUNTS = [50, 100, 250, 1000] as const;
 
 interface QuickAmountSelectorProps {
   /** Currently selected quick amount (in USD) */
@@ -49,7 +49,7 @@ export const QuickAmountSelector: FC<QuickAmountSelectorProps> = ({
           type="button"
           onClick={() => handleAmountClick(amount)}
           className={cn(
-            'px-2.5 py-1 text-xs font-medium rounded-full border transition-all',
+            'px-3 py-2 text-sm font-medium rounded-full border transition-all',
             'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
             isQuickAmountSelected(amount)
               ? 'bg-primary-600 text-white border-primary-600'
@@ -66,7 +66,7 @@ export const QuickAmountSelector: FC<QuickAmountSelectorProps> = ({
           type="button"
           onClick={handleFundRemaining}
           className={cn(
-            'px-2.5 py-1 text-xs font-medium rounded-full border transition-all',
+            'px-3 py-2 text-sm font-medium rounded-full border transition-all',
             'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
             isRemainingSelected
               ? 'bg-primary-600 text-white border-primary-600'
