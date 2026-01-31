@@ -56,6 +56,8 @@ interface PaymentWidgetProps {
   onStripeReady?: (context: StripePaymentContext | null) => void;
   /** Whether to hide the CTA button (when used inside PaymentStep) */
   hideButton?: boolean;
+  /** Whether the browser is Safari (determines Apple Pay vs Google Pay visibility) */
+  isSafari?: boolean;
 }
 
 /**
@@ -78,6 +80,7 @@ export function PaymentWidget({
   onCreditCardCompleteChange,
   onStripeReady,
   hideButton = false,
+  isSafari = false,
 }: PaymentWidgetProps) {
   const { isExpanded, selectedMethod, toggleExpanded, selectMethod } = usePaymentMethod({
     initialMethod: selectedPaymentMethod,
@@ -157,10 +160,15 @@ export function PaymentWidget({
     },
   ];
 
-  // Filter out hidden payment methods
-  const visiblePaymentOptions = paymentOptions.filter(
-    (option) => !HIDDEN_PAYMENT_METHODS.includes(option.id)
-  );
+  // Filter out hidden payment methods and browser-specific payment methods
+  // Safari: show Apple Pay, hide Google Pay
+  // Non-Safari: show Google Pay, hide Apple Pay
+  const visiblePaymentOptions = paymentOptions.filter((option) => {
+    if (HIDDEN_PAYMENT_METHODS.includes(option.id)) return false;
+    if (option.id === 'apple_pay' && !isSafari) return false;
+    if (option.id === 'google_pay' && isSafari) return false;
+    return true;
+  });
 
   // Get the selected payment option details
   const selectedOption = paymentOptions.find((opt) => opt.id === selectedMethod);

@@ -151,6 +151,7 @@ export function PaymentStep({
           onCreditCardCompleteChange={setIsCreditCardComplete}
           onStripeReady={onStripeReady}
           hideButton
+          isSafari={isSafari}
         />
 
         {/* Receipt-style line items */}

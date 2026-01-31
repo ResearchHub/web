@@ -153,7 +153,7 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
       {/* Drawer */}
       <div
         ref={drawerRef}
-        className={`fixed bottom-0 left-0 right-0 z-[1001] bg-white shadow-xl rounded-t-2xl transition-transform duration-300 ease-in-out ${
+        className={`fixed bottom-0 left-0 right-0 z-[1001] bg-white shadow-xl rounded-t-2xl transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         } ${className}`}
         style={{ height }}
@@ -163,6 +163,7 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
       >
         {/* Swipeable header area - this section triggers swipe-to-close */}
         <div
+          className="flex-shrink-0"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -185,10 +186,7 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
             <CloseIcon className="h-6 w-6 text-gray-500" />
           </button>
         )}
-        <div
-          className="drawer-content p-4 pt-2 overflow-y-auto flex flex-col"
-          style={{ height: `calc(${height} - 40px)` }}
-        >
+        <div className="drawer-content flex-1 min-h-0 p-4 pt-2 overflow-y-auto flex flex-col">
           {children}
         </div>
       </div>
