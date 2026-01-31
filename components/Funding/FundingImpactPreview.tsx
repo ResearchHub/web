@@ -1,9 +1,9 @@
 'use client';
 
-import { FC, useRef, useCallback, useEffect, useState } from 'react';
+import { FC, useRef, useCallback, useEffect, useState, useMemo } from 'react';
 import { cn } from '@/utils/styles';
 import { AuthorProfile } from '@/types/authorProfile';
-import { Avatar } from '@/components/ui/Avatar';
+import { AvatarStack } from '@/components/ui/AvatarStack';
 
 interface FundingImpactPreviewProps {
   /** Current amount raised in USD */
@@ -129,22 +129,9 @@ export const FundingImpactPreview: FC<FundingImpactPreviewProps> = ({
       return { text: "You'll complete this fundraise!", emoji: '🎉' };
     }
 
-    // Personalized message with author full names
+    // Personalized message with first author's full name
     if (authors && authors.length > 0) {
-      if (authors.length === 1) {
-        return { text: `You are supporting ${authors[0].fullName}`, emoji: null };
-      } else if (authors.length === 2) {
-        return {
-          text: `You are supporting ${authors[0].fullName} and ${authors[1].fullName}`,
-          emoji: null,
-        };
-      } else {
-        const othersCount = authors.length - 2;
-        return {
-          text: `You are supporting ${authors[0].fullName}, ${authors[1].fullName}, and ${othersCount} ${othersCount === 1 ? 'other' : 'others'}`,
-          emoji: null,
-        };
-      }
+      return { text: `You are supporting ${authors[0].fullName}`, emoji: null };
     }
 
     // Fallback message
@@ -152,6 +139,20 @@ export const FundingImpactPreview: FC<FundingImpactPreviewProps> = ({
   };
 
   const impactMessage = getImpactMessage();
+
+  // Prepare avatar items for AvatarStack
+  const avatarItems = useMemo(() => {
+    if (!authors || authors.length === 0) return [];
+    return authors.map((author) => ({
+      src: author.profileImage || '',
+      alt: author.fullName,
+      tooltip: author.fullName,
+      authorId: author.id ? Number(author.id) : undefined,
+    }));
+  }, [authors]);
+
+  // Calculate extra authors count (beyond the 2 shown)
+  const extraAuthorsCount = authors && authors.length > 1 ? authors.length - 1 : 0;
 
   // Calculate percentage from cursor position
   const getPercentageFromPosition = useCallback((clientX: number): number => {
@@ -379,22 +380,24 @@ export const FundingImpactPreview: FC<FundingImpactPreviewProps> = ({
                 : 'bg-gray-50 text-gray-600'
           )}
         >
-          {/* Author avatars */}
-          {authors && authors.length > 0 && !isFullyFunded && (
-            <div className="flex -space-x-1">
-              {authors.slice(0, 2).map((author) => (
-                <Avatar
-                  key={author.id}
-                  src={author.profileImage}
-                  alt={author.fullName}
-                  size="xs"
-                  className="ring-2 ring-white"
-                />
-              ))}
-            </div>
+          {/* Author avatars using AvatarStack */}
+          {avatarItems.length > 0 && !isFullyFunded && (
+            <AvatarStack
+              items={avatarItems}
+              maxItems={2}
+              size="xs"
+              spacing={-6}
+              showExtraCount={false}
+              showLabel={false}
+              ringColorClass="ring-white"
+            />
           )}
           {impactMessage.emoji && <span className="text-base">{impactMessage.emoji}</span>}
           <span>{impactMessage.text}</span>
+          {/* Show +N for extra authors */}
+          {extraAuthorsCount > 0 && !isFullyFunded && (
+            <span className="text-gray-500">+{extraAuthorsCount}</span>
+          )}
         </div>
       )}
     </div>
