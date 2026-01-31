@@ -95,15 +95,16 @@ export const FundingImpactPreview: FC<FundingImpactPreviewProps> = ({
   // Total percentage for thumb position (always uses visual percentage so thumb matches bar)
   const totalPercentage = currentPercentage + visualPreviewPercentage;
 
-  // Check if fully funded (based on actual amounts)
-  const isFullyFunded = currentPercentage + actualPreviewPercentage >= 100;
+  // Check if fully funded (compare rounded values for consistency with UI)
+  // UI rounds amounts, so comparison must also use rounded remaining to match
+  const remainingGoal = goalAmountUsd - currentAmountUsd;
+  const isFullyFunded = previewAmountUsd >= Math.round(remainingGoal) && remainingGoal > 0;
 
   // Calculate new total with user's contribution
   const newTotal = currentAmountUsd + previewAmountUsd;
 
   // Calculate intensity (0-1) based on how much of the remaining goal user is contributing
   // This drives visual effects: animation speed, glow, and color
-  const remainingGoal = goalAmountUsd - currentAmountUsd;
   const contributionRatio = remainingGoal > 0 ? Math.min(1, previewAmountUsd / remainingGoal) : 0;
   // Use easing for more dramatic effect at higher contributions
   const intensity = Math.pow(contributionRatio, 0.7);
@@ -165,9 +166,13 @@ export const FundingImpactPreview: FC<FundingImpactPreviewProps> = ({
     (percentage: number) => {
       if (!onAmountChange) return;
 
-      const remainingGoal = goalAmountUsd - currentAmountUsd;
-      if (percentage <= currentPercentage) {
+      // Ensure remainingGoal is never negative (handles over-funded cases)
+      const remainingGoal = Math.max(0, goalAmountUsd - currentAmountUsd);
+      if (percentage <= currentPercentage || remainingGoal <= 0) {
         onAmountChange(0);
+      } else if (percentage >= 100) {
+        // At 100%, use exact remaining goal (fixes rounding issues)
+        onAmountChange(Math.round(remainingGoal));
       } else {
         // Snap to 1% increments of the total goal
         const contributionPercentage = percentage - currentPercentage;

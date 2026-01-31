@@ -352,7 +352,12 @@ export function ContributeToFundraiseModal({
                   isSliderControlled={isSliderControlled}
                   onAmountChange={(amount) => {
                     setAmountUsd(amount);
-                    setSelectedQuickAmount(null);
+                    // Auto-select "Remaining" button if slider is at the end
+                    if (amount === Math.round(remainingGoalUsd)) {
+                      setSelectedQuickAmount(amount);
+                    } else {
+                      setSelectedQuickAmount(null);
+                    }
                     setAmountError(undefined);
                     setIsSliderControlled(true); // Slider sets linear visual mode
                   }}
