@@ -27,6 +27,12 @@ interface SwipeableDrawerProps {
   children: React.ReactNode;
 
   /**
+   * Optional header content that renders inside the swipeable zone.
+   * Swiping down on this area will also close the drawer.
+   */
+  header?: React.ReactNode;
+
+  /**
    * Whether to show the close button in the top-right corner
    * @default true
    */
@@ -53,6 +59,7 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
   onClose,
   height = '50vh',
   children,
+  header,
   showCloseButton = true,
   className = '',
   swipeThreshold = 50,
@@ -151,15 +158,21 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
         } ${className}`}
         style={{ height }}
         onClick={(e) => e.stopPropagation()}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
         role="dialog"
         aria-modal="true"
       >
-        {/* Drawer handle for better UX */}
-        <div className="w-full flex justify-center pt-2 pb-1">
-          <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
+        {/* Swipeable header area - this section triggers swipe-to-close */}
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Drawer handle */}
+          <div className="w-full flex justify-center pt-2 pb-2">
+            <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
+          </div>
+          {/* Optional header content inside swipe zone */}
+          {header && <div className="px-4 pb-4">{header}</div>}
         </div>
 
         {showCloseButton && (

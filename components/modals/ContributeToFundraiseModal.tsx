@@ -408,10 +408,13 @@ export function ContributeToFundraiseModal({
   return (
     <>
       {isMobile ? (
-        <SwipeableDrawer isOpen={isOpen} onClose={handleClose} height="70vh" showCloseButton={true}>
-          <div className="flex flex-col h-full">
-            {/* Header with back button and title */}
-            <div className="flex items-center gap-2 pb-3 mb-4 border-b border-gray-200">
+        <SwipeableDrawer
+          isOpen={isOpen}
+          onClose={handleClose}
+          height="72vh"
+          showCloseButton={true}
+          header={
+            <div className="flex items-center gap-2 pb-3 border-b border-gray-200">
               {currentView !== 'funding' && (
                 <button
                   type="button"
@@ -423,6 +426,9 @@ export function ContributeToFundraiseModal({
               )}
               {modalTitle}
             </div>
+          }
+        >
+          <div className="flex flex-col h-full">
             <div className="flex-1 flex flex-col">{renderContent()}</div>
           </div>
         </SwipeableDrawer>
