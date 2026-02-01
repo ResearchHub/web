@@ -26,6 +26,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 // Import inline deposit views
 import { DepositRSCView } from './DepositRSCView';
 import { BuyModal } from './ResearchCoin/BuyModal';
+import AuthContent from '@/components/Auth/AuthContent';
 
 interface ContributeToFundraiseModalProps {
   isOpen: boolean;
@@ -38,7 +39,7 @@ interface ContributeToFundraiseModalProps {
   work?: Work;
 }
 
-type ModalView = 'funding' | 'payment' | 'deposit-rsc';
+type ModalView = 'funding' | 'auth' | 'payment' | 'deposit-rsc';
 
 export function ContributeToFundraiseModal({
   isOpen,
@@ -137,14 +138,29 @@ export function ContributeToFundraiseModal({
   }, [isOpen]);
 
   const handleContinueToPayment = useCallback(() => {
-    // Track funnel step: user reached payment step
+    if (!user) {
+      setCurrentView('auth');
+    } else {
+      // Track funnel step: user reached payment step
+      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP, {
+        fundraise_id: fundraise.id,
+        amount_usd: amountUsd,
+        amount_rsc: amountInRsc,
+      });
+      setCurrentView('payment');
+    }
+  }, [user, fundraise.id, amountUsd, amountInRsc]);
+
+  const handleAuthSuccess = useCallback(() => {
+    // Track funnel step: user reached payment step after auth
     AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP, {
       fundraise_id: fundraise.id,
       amount_usd: amountUsd,
       amount_rsc: amountInRsc,
     });
+    refreshUser?.();
     setCurrentView('payment');
-  }, [fundraise.id, amountUsd, amountInRsc]);
+  }, [fundraise.id, amountUsd, amountInRsc, refreshUser]);
 
   const handleConfirmPayment = async (paymentMethod: Exclude<PaymentMethodType, 'endaoment'>) => {
     try {
@@ -297,7 +313,7 @@ export function ContributeToFundraiseModal({
   const handleBack = useCallback(() => {
     if (currentView === 'deposit-rsc') {
       setCurrentView('payment');
-    } else if (currentView === 'payment') {
+    } else if (currentView === 'payment' || currentView === 'auth') {
       setCurrentView('funding');
     }
   }, [currentView]);
@@ -338,6 +354,8 @@ export function ContributeToFundraiseModal({
     switch (currentView) {
       case 'funding':
         return 'Fund Proposal';
+      case 'auth':
+        return 'Sign in to continue';
       case 'payment':
         return 'Select Payment Method';
       case 'deposit-rsc':
@@ -381,6 +399,16 @@ export function ContributeToFundraiseModal({
             onDepositRsc={handleOpenDeposit}
             onBuyRsc={handleBuyRsc}
             onStripeReady={handleStripeReady}
+          />
+        );
+
+      case 'auth':
+        return (
+          <AuthContent
+            onSuccess={handleAuthSuccess}
+            modalView={true}
+            showHeader={false}
+            callbackUrl={typeof window !== 'undefined' ? window.location.href : undefined}
           />
         );
 

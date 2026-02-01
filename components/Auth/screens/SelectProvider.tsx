@@ -18,6 +18,8 @@ interface SelectProviderProps {
   setError: (error: string | null) => void;
   showHeader?: boolean;
   setIsLoading?: (isLoading: boolean) => void;
+  /** URL to redirect to after Google OAuth login */
+  callbackUrl?: string;
 }
 
 export default function SelectProvider({
@@ -30,6 +32,7 @@ export default function SelectProvider({
   setError,
   showHeader = true,
   setIsLoading,
+  callbackUrl,
 }: SelectProviderProps) {
   const emailInputRef = useAutoFocus<HTMLInputElement>(true);
   const { referralCode } = useReferral();
@@ -81,8 +84,9 @@ export default function SelectProvider({
       console.error('Analytics failed:', error);
     });
 
+    // Use prop if provided, otherwise check URL params, fallback to home
     const searchParams = new URLSearchParams(window.location.search);
-    const originalCallbackUrl = searchParams.get('callbackUrl') || '/';
+    const originalCallbackUrl = callbackUrl || searchParams.get('callbackUrl') || '/';
 
     let finalCallbackUrl = originalCallbackUrl;
 
