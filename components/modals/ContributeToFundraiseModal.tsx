@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { FundraiseService } from '@/services/fundraise.service';
 import { PaymentService } from '@/services/payment.service';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { Fundraise } from '@/types/funding';
@@ -123,13 +124,25 @@ export function ContributeToFundraiseModal({
   }, [refreshUser]);
 
   const handleContinueToPayment = useCallback(() => {
+    // Track funnel step: amount selected
+    AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_AMOUNT, {
+      fundraise_id: fundraise.id,
+      amount_usd: amountUsd,
+      amount_rsc: amountInRsc,
+    });
     setCurrentView('payment');
-  }, []);
+  }, [fundraise.id, amountUsd, amountInRsc]);
 
   const handleConfirmPayment = async (paymentMethod: Exclude<PaymentMethodType, 'endaoment'>) => {
     try {
       if (amountUsd < minAmountUsd) {
         setError(`Minimum contribution is $${minAmountUsd}`);
+        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+          fundraise_id: fundraise.id,
+          payment_method: paymentMethod,
+          error_type: 'validation',
+          error_message: 'Amount below minimum',
+        });
         return;
       }
 
@@ -149,6 +162,12 @@ export function ContributeToFundraiseModal({
         const stripeContext = stripeContextRef.current;
         if (!stripeContext) {
           setError('Payment form is not ready. Please try again.');
+          AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+            fundraise_id: fundraise.id,
+            payment_method: paymentMethod,
+            error_type: 'stripe',
+            error_message: 'Payment form not ready',
+          });
           setIsContributing(false);
           return;
         }
@@ -173,6 +192,12 @@ export function ContributeToFundraiseModal({
           setError(
             'We had an issue processing your credit card. Choose a different payment method.'
           );
+          AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+            fundraise_id: fundraise.id,
+            payment_method: paymentMethod,
+            error_type: 'stripe',
+            error_message: 'Card payment failed',
+          });
           setIsContributing(false);
           return;
         }
@@ -181,6 +206,12 @@ export function ContributeToFundraiseModal({
           setError(
             'We had an issue processing your credit card. Choose a different payment method.'
           );
+          AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+            fundraise_id: fundraise.id,
+            payment_method: paymentMethod,
+            error_type: 'stripe',
+            error_message: 'Payment not succeeded',
+          });
           setIsContributing(false);
           return;
         }
@@ -195,6 +226,14 @@ export function ContributeToFundraiseModal({
       }
       // Note: apple_pay and google_pay are handled by PaymentRequestButton
 
+      // Track successful payment
+      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
+        fundraise_id: fundraise.id,
+        payment_method: paymentMethod,
+        amount_usd: amountUsd,
+        amount_rsc: amountInRsc,
+      });
+
       // Refresh user data to update balance
       refreshUser?.();
 
@@ -205,6 +244,12 @@ export function ContributeToFundraiseModal({
       handleClose();
     } catch (err) {
       console.error('Failed to contribute to fundraise:', err);
+      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+        fundraise_id: fundraise.id,
+        payment_method: paymentMethod,
+        error_type: 'api',
+        error_message: 'Request failed',
+      });
       if (paymentMethod === 'credit_card') {
         setError('We had an issue processing your credit card. Choose a different payment method.');
       } else {
@@ -255,14 +300,25 @@ export function ContributeToFundraiseModal({
   }, [onClose]);
 
   // Handle Apple Pay / Google Pay success
-  const handlePaymentRequestSuccess = useCallback(() => {
-    toast.success('Your contribution has been successfully added to the fundraise.');
-    refreshUser?.();
-    if (onContributeSuccess) {
-      onContributeSuccess();
-    }
-    handleClose();
-  }, [refreshUser, onContributeSuccess, handleClose]);
+  const handlePaymentRequestSuccess = useCallback(
+    (paymentMethod?: 'apple_pay' | 'google_pay') => {
+      // Track successful payment
+      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
+        fundraise_id: fundraise.id,
+        payment_method: paymentMethod || 'payment_request',
+        amount_usd: amountUsd,
+        amount_rsc: amountInRsc,
+      });
+
+      toast.success('Your contribution has been successfully added to the fundraise.');
+      refreshUser?.();
+      if (onContributeSuccess) {
+        onContributeSuccess();
+      }
+      handleClose();
+    },
+    [fundraise.id, amountUsd, amountInRsc, refreshUser, onContributeSuccess, handleClose]
+  );
 
   // Get title based on current view
   const getTitle = () => {

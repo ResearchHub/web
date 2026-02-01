@@ -17,6 +17,7 @@ import {
   METHODS_WITH_PROCESSING_FEE,
 } from './lib/constants';
 import { ID } from '@/types/root';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
 interface PaymentStepProps {
   /** Amount in RSC (before fees) */
@@ -38,7 +39,7 @@ interface PaymentStepProps {
     paymentMethod: Exclude<PaymentMethodType, 'endaoment'>
   ) => void | Promise<void>;
   /** Called when Apple Pay/Google Pay payment succeeds */
-  onPaymentRequestSuccess?: () => void;
+  onPaymentRequestSuccess?: (paymentMethod?: 'apple_pay' | 'google_pay') => void;
   /** Called when user wants to deposit RSC */
   onDepositRsc?: () => void;
   /** Called when user wants to buy RSC */
@@ -120,13 +121,24 @@ export function PaymentStep({
   }, [selectedMethod, onConfirmPayment]);
 
   // Handle payment method selection from widget
-  const handlePaymentMethodChange = useCallback((method: PaymentMethodType | null) => {
-    setSelectedMethod(method);
-    // Reset credit card completeness when changing methods
-    if (method !== 'credit_card') {
-      setIsCreditCardComplete(false);
-    }
-  }, []);
+  const handlePaymentMethodChange = useCallback(
+    (method: PaymentMethodType | null) => {
+      setSelectedMethod(method);
+      // Reset credit card completeness when changing methods
+      if (method !== 'credit_card') {
+        setIsCreditCardComplete(false);
+      }
+      // Track payment method selection
+      if (method) {
+        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_METHOD_SELECTED, {
+          fundraise_id: fundraiseId,
+          payment_method: method,
+          amount_usd: amountInUsd,
+        });
+      }
+    },
+    [fundraiseId, amountInUsd]
+  );
 
   // Dummy handlers for PaymentWidget (we handle the action in this component)
   const handlePreviewTransaction = useCallback(() => {
@@ -237,7 +249,7 @@ export function PaymentStep({
                   ? 'Apple Pay not available on this device'
                   : 'Google Pay not available on this device'
               }
-              onSuccess={onPaymentRequestSuccess}
+              onSuccess={() => onPaymentRequestSuccess?.(selectedMethod)}
               onError={(err) => console.error('Payment request error:', err)}
             />
           ) : (
