@@ -330,8 +330,10 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
               <div className="mobile:!flex-shrink-0 hidden mobile:!block">{getStatusDisplay()}</div>
             </div>
 
+            <Progress value={progressPercentage} variant={getProgressVariant()} className="h-3" />
+
             {/* Mobile: Status and Contributors in same row */}
-            <div className="flex mobile:!hidden items-center justify-between mb-3">
+            <div className="flex mobile:!hidden items-center justify-between mt-3">
               <div>{getStatusDisplay()}</div>
               {contributors.length > 0 && (
                 <ContributorsButton
@@ -343,8 +345,6 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                 />
               )}
             </div>
-
-            <Progress value={progressPercentage} variant={getProgressVariant()} className="h-3" />
           </div>
 
           <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between gap-4 mobile:!gap-0">
