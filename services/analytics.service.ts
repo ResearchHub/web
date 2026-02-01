@@ -25,7 +25,8 @@ export const LogEvent = {
   WORK_DOCUMENT_VIEWED: 'work_document_viewed',
   DOCUMENT_TAB_CLICKED: 'document_tab_clicked',
   // Fundraise contribution funnel events
-  FUNDRAISE_CONTRIBUTION_AMOUNT: 'fundraise_contribution_amount',
+  FUNDRAISE_CONTRIBUTION_AMOUNT_STEP: 'fundraise_contribution_amount_step',
+  FUNDRAISE_CONTRIBUTION_PAYMENT_STEP: 'fundraise_contribution_payment_step',
   FUNDRAISE_CONTRIBUTION_PAYMENT_METHOD_SELECTED: 'fundraise_contribution_payment_method_selected',
   FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL: 'fundraise_contribution_payment_successful',
   FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR: 'fundraise_contribution_payment_error',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { FundraiseService } from '@/services/fundraise.service';
 import { PaymentService } from '@/services/payment.service';
@@ -123,9 +123,22 @@ export function ContributeToFundraiseModal({
     setCurrentView('payment');
   }, [refreshUser]);
 
+  // Track when modal/drawer opens
+  useEffect(() => {
+    if (isOpen) {
+      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_AMOUNT_STEP, {
+        fundraise_id: fundraise.id,
+        amount_usd: amountUsd,
+        amount_rsc: amountInRsc,
+      });
+    }
+    // Only fire when isOpen changes to true, not when amounts change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
   const handleContinueToPayment = useCallback(() => {
-    // Track funnel step: amount selected
-    AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_AMOUNT, {
+    // Track funnel step: user reached payment step
+    AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP, {
       fundraise_id: fundraise.id,
       amount_usd: amountUsd,
       amount_rsc: amountInRsc,
