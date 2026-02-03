@@ -25,4 +25,3 @@ export {
 // Legacy - kept for backwards compatibility, may be removed in future
 export { CurrencyRadioGroup, type ContributionCurrency } from './CurrencyRadioGroup';
 export { WalletCurrencySelector } from './WalletCurrencySelector';
-export { BalanceWidget } from './BalanceWidget';
