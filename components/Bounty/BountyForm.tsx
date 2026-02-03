@@ -483,7 +483,7 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
       </div>
       <div className="flex justify-between text-sm">
         <div className="flex items-center">
-          <span className="text-gray-600">Platform fee (9%):</span>
+          <span className="text-gray-600">Platform fee (7%):</span>
           <Tooltip content="This fee is used to maintain and improve the platform" position="top">
             <span className="ml-1 cursor-help text-gray-400">
               <svg
@@ -866,7 +866,7 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
                     onClick={() => setIsFeesExpanded(!isFeesExpanded)}
                   >
                     <div className="flex items-center gap-1">
-                      <span className="text-gray-600">Platform fees (9%)</span>
+                      <span className="text-gray-600">Platform fees (7%)</span>
                       <div className="flex items-center gap-1">
                         <ChevronDown
                           className={`w-4 h-4 text-gray-500 transition-transform transform ${
