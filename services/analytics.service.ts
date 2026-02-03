@@ -24,6 +24,12 @@ export const LogEvent = {
   FEED_ITEM_ABSTRACT_EXPANDED: 'feed_item_abstract_expanded',
   WORK_DOCUMENT_VIEWED: 'work_document_viewed',
   DOCUMENT_TAB_CLICKED: 'document_tab_clicked',
+  // Fundraise contribution funnel events
+  FUNDRAISE_CONTRIBUTION_AMOUNT_STEP: 'fundraise_contribution_amount_step',
+  FUNDRAISE_CONTRIBUTION_PAYMENT_STEP: 'fundraise_contribution_payment_step',
+  FUNDRAISE_CONTRIBUTION_PAYMENT_METHOD_SELECTED: 'fundraise_contribution_payment_method_selected',
+  FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL: 'fundraise_contribution_payment_successful',
+  FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR: 'fundraise_contribution_payment_error',
 } as const;
 
 export type LogEventValue = (typeof LogEvent)[keyof typeof LogEvent];

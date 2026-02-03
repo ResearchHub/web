@@ -11,7 +11,8 @@ interface BaseModalProps {
   onClose: () => void;
   children: ReactNode;
   initialFocus?: React.MutableRefObject<HTMLElement | null>;
-  title?: string;
+  /** Modal title - can be a string or custom ReactNode for complex headers */
+  title?: ReactNode;
   maxWidth?: string; // e.g., 'max-w-md', 'max-w-xl', 'max-w-4xl'
   showCloseButton?: boolean;
   padding?: string; // e.g., 'p-4', 'p-6', 'p-8'
@@ -131,12 +132,15 @@ export const BaseModal: FC<BaseModalProps> = ({
                 {(showCloseButton || title) && (
                   <div ref={headerRef} className="relative">
                     {/* Header with close button - only show for non-INTRO steps */}
-                    <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between gap-4">
                       {/* Left: headerAction */}
-                      <div className="flex items-center">
+                      <div className="flex items-center min-w-0 flex-1">
                         {headerAction}
                         {title && (
-                          <Dialog.Title as="h2" className="text-lg font-medium text-gray-900 ml-2">
+                          <Dialog.Title
+                            as="h2"
+                            className="text-lg font-medium text-gray-900 ml-2 min-w-0 flex-1"
+                          >
                             {title}
                           </Dialog.Title>
                         )}

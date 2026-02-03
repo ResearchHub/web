@@ -7,6 +7,7 @@ import { ContributorsButton } from '@/components/ui/ContributorsButton';
 import { Clock } from 'lucide-react';
 import { formatDeadline, formatExactTime, isDeadlineInFuture, formatDate } from '@/utils/date';
 import type { Fundraise } from '@/types/funding';
+import type { Work } from '@/types/work';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
@@ -18,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { StatusCard } from '@/components/ui/StatusCard';
 import { colors } from '@/app/styles/colors';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 interface FundraiseProgressProps {
   fundraise: Fundraise;
@@ -26,6 +28,8 @@ interface FundraiseProgressProps {
   onContribute?: () => void;
   className?: string;
   onDetailsClick?: () => void;
+  /** Work object containing author information */
+  work?: Work;
 }
 
 export const FundraiseProgress: FC<FundraiseProgressProps> = ({
@@ -35,11 +39,13 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   onContribute,
   className,
   onDetailsClick,
+  work,
 }) => {
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
   const { showUSD } = useCurrencyPreference();
   const { showShareModal } = useShareModalContext();
   const router = useRouter();
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
 
   if (!fundraise) return null;
 
@@ -110,10 +116,12 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   };
 
   const handleContributeClick = () => {
-    setIsContributeModalOpen(true);
-    if (onContribute) {
-      onContribute();
-    }
+    executeAuthenticatedAction(() => {
+      setIsContributeModalOpen(true);
+      if (onContribute) {
+        onContribute();
+      }
+    });
   };
 
   const handleContributeSuccess = () => {
@@ -154,7 +162,11 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                 {/* Amount raised / goal */}
                 <div className="flex items-center gap-0.5">
                   <CurrencyBadge
-                    amount={Math.round(fundraise.amountRaised.rsc)}
+                    amount={
+                      showUSD
+                        ? Math.round(fundraise.amountRaised.usd)
+                        : Math.round(fundraise.amountRaised.rsc)
+                    }
                     variant="text"
                     size="md"
                     showText={false}
@@ -166,10 +178,15 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     iconColor={isActive ? colors.primary[600] : colors.gray[500]}
                     iconSize={18}
                     shorten={false}
+                    skipConversion={showUSD}
                   />
                   <span className="text-xs text-gray-500 mx-0.5">/</span>
                   <CurrencyBadge
-                    amount={Math.round(fundraise.goalAmount.rsc)}
+                    amount={
+                      showUSD
+                        ? Math.round(fundraise.goalAmount.usd)
+                        : Math.round(fundraise.goalAmount.rsc)
+                    }
                     variant="text"
                     size="md"
                     showText={true}
@@ -181,6 +198,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     iconColor={colors.gray[400]}
                     iconSize={16}
                     shorten={false}
+                    skipConversion={showUSD}
                   />
                 </div>
 
@@ -275,22 +293,32 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
               <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between mb-4 mobile:!mb-3 gap-3 mobile:!gap-0">
                 <div className="flex items-center flex-wrap gap-1">
                   <CurrencyBadge
-                    amount={Math.round(fundraise.amountRaised.rsc)}
+                    amount={
+                      showUSD
+                        ? Math.round(fundraise.amountRaised.usd)
+                        : Math.round(fundraise.amountRaised.rsc)
+                    }
                     variant="text"
                     size="md"
                     showText={false}
                     currency={showUSD ? 'USD' : 'RSC'}
                     className="font-medium text-orange-500 text-base mobile:!text-lg pl-0"
+                    skipConversion={showUSD}
                   />
                   <span className="text-gray-500 text-base mobile:!text-lg">raised of</span>
                   <CurrencyBadge
-                    amount={Math.round(fundraise.goalAmount.rsc)}
+                    amount={
+                      showUSD
+                        ? Math.round(fundraise.goalAmount.usd)
+                        : Math.round(fundraise.goalAmount.rsc)
+                    }
                     variant="text"
                     size="md"
                     showText={true}
                     showIcon={true}
                     currency={showUSD ? 'USD' : 'RSC'}
                     className="text-gray-500 text-base mobile:!text-lg"
+                    skipConversion={showUSD}
                   />
                   <span className="text-gray-500 text-base mobile:!text-lg">goal</span>
                 </div>
@@ -346,6 +374,8 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
         onClose={() => setIsContributeModalOpen(false)}
         onContributeSuccess={handleContributeSuccess}
         fundraise={fundraise}
+        proposalTitle={fundraiseTitle}
+        work={work}
       />
     </>
   );

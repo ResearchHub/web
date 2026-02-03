@@ -241,6 +241,7 @@ export const FundDocument = ({
               goalCurrency: metadata.fundraising.goalCurrency || 'RSC',
             }}
             fundraiseTitle={work.title}
+            work={work}
             onContribute={() => {
               // Handle contribute action
             }}

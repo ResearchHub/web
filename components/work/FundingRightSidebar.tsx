@@ -23,7 +23,11 @@ export const FundingRightSidebar = ({ work, metadata }: FundingRightSidebarProps
       {metadata.fundraising &&
         metadata.fundraising.contributors &&
         metadata.fundraising.contributors.numContributors > 0 && (
-          <FundersSection fundraise={metadata.fundraising} fundraiseTitle={work.title} />
+          <FundersSection
+            fundraise={metadata.fundraising}
+            fundraiseTitle={work.title}
+            work={work}
+          />
         )}
       {/* Applicants for the grant */}
       {/* <ApplicantsSection grantId={work.id} /> */}
