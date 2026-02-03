@@ -1,5 +1,4 @@
 // Active components
-export { FeeLineItem } from './FeeLineItem';
 export { InsufficientBalanceAlert } from './InsufficientBalanceAlert';
 export { InsufficientDAFFundsAlert } from './InsufficientDAFFundsAlert';
 export { PaymentMethodSelector } from './PaymentMethodSelector';
@@ -21,7 +20,3 @@ export {
   usePaymentMethod,
   usePaymentCalculations,
 } from './lib';
-
-// Legacy - kept for backwards compatibility, may be removed in future
-export { CurrencyRadioGroup, type ContributionCurrency } from './CurrencyRadioGroup';
-export { WalletCurrencySelector } from './WalletCurrencySelector';
