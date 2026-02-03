@@ -64,6 +64,7 @@ interface RawBounty {
       }>;
       title: string;
       abstract: string;
+      renderable_text?: string;
       slug: string;
     };
     document_type: string;
@@ -250,6 +251,12 @@ export class BountyService {
         const transformedDoc = transformUnifiedDocument(rawBounty.unified_document);
         const isPaper = rawBounty.unified_document?.document_type === 'PAPER';
 
+        // Get raw document data to access renderable_text
+        const rawDocData = Array.isArray(rawBounty.unified_document?.documents)
+          ? rawBounty.unified_document.documents[0]
+          : rawBounty.unified_document?.documents;
+        const renderableText = rawDocData?.renderable_text || '';
+
         // Create the bounty object to attach to the paper/post
         const bountyData = {
           id: rawBounty.id,
@@ -292,7 +299,8 @@ export class BountyService {
           content_object: {
             id: documentId,
             title: transformedDoc?.document.title || '',
-            abstract: transformedDoc?.document.abstract || '',
+            // For posts without abstract, use renderable_text as fallback
+            abstract: transformedDoc?.document.abstract || renderableText,
             slug: transformedDoc?.document.slug || '',
             authors: transformedDoc?.document.authors || [],
             created_date: rawBounty.created_date,
@@ -306,12 +314,12 @@ export class BountyService {
             journal: rawBounty.journal,
             // Attach the bounty to the paper/post
             bounties: [bountyData],
-            // For non-paper types, include type info
+            // For non-paper types, include type info and renderable_text
             ...(isPaper
               ? {}
               : {
                   type: rawBounty.unified_document?.document_type,
-                  renderable_text: transformedDoc?.document.abstract || '',
+                  renderable_text: renderableText,
                 }),
           },
           created_date: rawBounty.created_date,
