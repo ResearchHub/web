@@ -251,11 +251,8 @@ export class BountyService {
         const transformedDoc = transformUnifiedDocument(rawBounty.unified_document);
         const isPaper = rawBounty.unified_document?.document_type === 'PAPER';
 
-        // Get raw document data to access renderable_text
-        const rawDocData = Array.isArray(rawBounty.unified_document?.documents)
-          ? rawBounty.unified_document.documents[0]
-          : rawBounty.unified_document?.documents;
-        const renderableText = rawDocData?.renderable_text || '';
+        // Posts may lack an abstract; use renderableText as preview fallback
+        const renderableText = transformedDoc?.document.renderableText || '';
 
         // Create the bounty object to attach to the paper/post
         const bountyData = {
