@@ -7,7 +7,8 @@ import { useFeed } from '@/hooks/useFeed';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
-import { FileText, Wallet, Sparkles } from 'lucide-react';
+import { FileText, Wallet } from 'lucide-react';
+import { ImpactTab } from './ImpactTab';
 
 export type PortfolioTab = 'my-rfps' | 'proposals' | 'impact';
 type StatusFilter = 'all' | 'open' | 'closed';
@@ -86,14 +87,7 @@ export function PortfolioTabs({ activeTab, onTabChange }: PortfolioTabsProps) {
         />
       )}
 
-      {activeTab === 'impact' && (
-        <EmptyState
-          icon={<Sparkles className="w-8 h-8 text-primary-500" />}
-          title="Impact"
-          description="See the research impact of your funding activities."
-          comingSoon
-        />
-      )}
+      {activeTab === 'impact' && <ImpactTab />}
     </div>
   );
 }
@@ -151,26 +145,20 @@ interface EmptyStateProps {
   icon: React.ReactNode;
   title: string;
   description: string;
-  action?: { label: string; href: string };
-  comingSoon?: boolean;
+  action: { label: string; href: string };
 }
 
-function EmptyState({ icon, title, description, action, comingSoon }: EmptyStateProps) {
+function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div
-        className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${comingSoon ? 'bg-primary-50' : 'bg-gray-100'}`}
-      >
+      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
         {icon}
       </div>
       <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
       <p className="text-gray-500 max-w-sm">{description}</p>
-      {action && (
-        <Button asChild className="mt-6">
-          <Link href={action.href}>{action.label}</Link>
-        </Button>
-      )}
-      {comingSoon && <p className="text-sm text-primary-600 mt-4">Coming soon</p>}
+      <Button asChild className="mt-6">
+        <Link href={action.href}>{action.label}</Link>
+      </Button>
     </div>
   );
 }
