@@ -35,3 +35,18 @@ export async function getEndaomentStatus(): Promise<EndaomentStatus> {
     endaomentUserId: response.endaoment_user_id,
   };
 }
+
+export interface EndaomentFund {
+  id: string;
+  name: string;
+  type: string;
+  description: string;
+  usdcBalance: string;
+}
+
+/**
+ * Fetches the user's Endaoment funds (DAFs).
+ */
+export async function getEndaomentFunds(): Promise<EndaomentFund[]> {
+  return ApiClient.get<EndaomentFund[]>('/api/endaoment/funds/');
+}
