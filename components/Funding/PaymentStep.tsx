@@ -5,6 +5,7 @@ import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { Logo } from '@/components/ui/Logo';
 import { PaymentWidget } from './PaymentWidget';
 import { PaymentRequestButton } from './PaymentRequestButton';
 import { InsufficientBalanceAlert } from './InsufficientBalanceAlert';
@@ -185,13 +186,34 @@ export function PaymentStep({
                   </span>
                   <Tooltip
                     content={
-                      <div className="text-xs space-y-1">
-                        <p>7% to ResearchHub Inc</p>
-                        <p>2% to ResearchHub Foundation</p>
+                      <div className="text-left space-y-3 py-1">
+                        {/* Header with logo */}
+                        <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                          <Logo noText size={32} />
+                          <span className="text-base font-medium text-gray-800">Platform Fee</span>
+                        </div>
+
+                        {/* Fee breakdown */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-600">ResearchHub Inc</span>
+                            <span className="font-medium text-gray-800">7%</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-600">ResearchHub Foundation</span>
+                            <span className="font-medium text-gray-800">2%</span>
+                          </div>
+                        </div>
+
+                        {/* Footer note */}
+                        <p className="text-xs text-gray-600 pt-1 border-t border-gray-100">
+                          Supports open science infrastructure
+                        </p>
                       </div>
                     }
+                    width="w-64"
                   >
-                    <Info className="h-3.5 w-3.5 text-gray-400 cursor-help" />
+                    <Info className="h-4 w-4 text-gray-500 cursor-help" />
                   </Tooltip>
                   {selectedMethod === 'rsc' && (
                     <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
