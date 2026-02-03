@@ -33,9 +33,7 @@ const RESOURCES = [
   },
 ] as const;
 
-function getStats(
-  o: PortfolioOverview
-): Array<{
+function getStats(o: PortfolioOverview): Array<{
   icon: LucideIcon;
   iconColor: string;
   label: string;
@@ -90,7 +88,7 @@ export function PortfolioRightSidebar() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    ApiClient.get<any>('/api/funding_dashboard/overview/')
+    ApiClient.get<any>('/api/fundraise/funding_overview/')
       .then((raw) => setOverview(transformPortfolioOverview(raw)))
       .catch((err) => {
         console.error('Failed to fetch portfolio overview:', err);

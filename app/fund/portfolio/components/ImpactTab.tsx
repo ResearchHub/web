@@ -42,7 +42,7 @@ export function ImpactTab() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    ApiClient.get<any>('/api/funding_dashboard/overview/')
+    ApiClient.get<any>('/api/fundraise/funding_overview/')
       .then((raw) => setData(transformImpactData(raw)))
       .catch((err) => {
         console.error('Failed to fetch impact data:', err);
