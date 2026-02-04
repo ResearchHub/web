@@ -153,139 +153,131 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
 
   return (
     <>
-      <StatusCard variant={isActive ? 'active' : 'inactive'}>
+      <StatusCard variant={isActive ? 'orange' : 'inactive'}>
         {compact ? (
           <div className={cn(className)}>
-            {/* Main row: Amount + Status + Contributors + Buttons */}
-            <div className="flex items-center justify-between gap-3 mb-1.5">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                {/* Amount raised / goal */}
-                <div className="flex items-center gap-0.5">
-                  <CurrencyBadge
-                    amount={
-                      showUSD
-                        ? Math.round(fundraise.amountRaised.usd)
-                        : Math.round(fundraise.amountRaised.rsc)
-                    }
-                    variant="text"
-                    size="md"
-                    showText={false}
-                    currency={showUSD ? 'USD' : 'RSC'}
-                    className="p-0 gap-0"
-                    textColor={isActive ? 'text-primary-700' : 'text-gray-600'}
-                    fontWeight="font-bold"
-                    showExchangeRate={false}
-                    iconColor={isActive ? colors.primary[600] : colors.gray[500]}
-                    iconSize={18}
-                    shorten={false}
-                    skipConversion={showUSD}
-                  />
-                  <span className="text-xs text-gray-500 mx-0.5">/</span>
-                  <CurrencyBadge
-                    amount={
-                      showUSD
-                        ? Math.round(fundraise.goalAmount.usd)
-                        : Math.round(fundraise.goalAmount.rsc)
-                    }
-                    variant="text"
-                    size="md"
-                    showText={true}
-                    currency={showUSD ? 'USD' : 'RSC'}
-                    textColor="text-gray-500"
-                    fontWeight="font-medium"
-                    className="p-0 gap-0"
-                    showExchangeRate={false}
-                    iconColor={colors.gray[400]}
-                    iconSize={16}
-                    shorten={false}
-                    skipConversion={showUSD}
-                  />
+            {/* Stats row with labels */}
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-4 sm:gap-8 min-w-0 flex-1">
+                {/* Amount Raised */}
+                <div className="flex flex-col flex-shrink-0">
+                  <span className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wide mb-0.5">
+                    Raised
+                  </span>
+                  <span
+                    className={`text-base sm:text-lg font-bold ${isActive ? 'text-orange-600' : 'text-gray-500'}`}
+                  >
+                    {showUSD
+                      ? `$${fundraise.amountRaised.usd >= 1000 ? `${(fundraise.amountRaised.usd / 1000).toFixed(0)}K` : fundraise.amountRaised.usd.toLocaleString()}`
+                      : `${fundraise.amountRaised.rsc >= 1000 ? `${(fundraise.amountRaised.rsc / 1000).toFixed(0)}K` : fundraise.amountRaised.rsc.toLocaleString()} RSC`}
+                  </span>
                 </div>
 
-                {/* Deadline - hidden on mobile */}
-                {fundraise.endDate && isActive && (
-                  <div className="hidden sm:!flex items-center gap-1.5 text-xs text-gray-500">
-                    <Clock size={14} className="text-gray-400" />
-                    <span className="whitespace-nowrap">Ends {formatDate(fundraise.endDate)}</span>
-                  </div>
+                {/* Divider */}
+                <div className="hidden sm:block w-px h-8 bg-gray-200" />
+
+                {/* Goal */}
+                <div className="hidden sm:flex flex-col flex-shrink-0">
+                  <span className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Goal</span>
+                  <span className="text-base font-semibold text-gray-800">
+                    {showUSD
+                      ? `$${fundraise.goalAmount.usd >= 1000 ? `${(fundraise.goalAmount.usd / 1000).toFixed(0)}K` : fundraise.goalAmount.usd.toLocaleString()}`
+                      : `${fundraise.goalAmount.rsc >= 1000 ? `${(fundraise.goalAmount.rsc / 1000).toFixed(0)}K` : fundraise.goalAmount.rsc.toLocaleString()} RSC`}
+                  </span>
+                </div>
+
+                {/* Divider */}
+                {deadlineText && !isEnded && (
+                  <div className="hidden sm:block w-px h-8 bg-gray-200" />
                 )}
 
-                {/* Status badges */}
-                {fundraise.status === 'COMPLETED' && (
-                  <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
-                    Completed
-                  </span>
-                )}
-                {fundraise.status === 'CLOSED' && (
-                  <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
-                    Closed
-                  </span>
-                )}
-                {fundraise.status === 'OPEN' && isEnded && (
-                  <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
-                    Ended
-                  </span>
-                )}
-                {isActive && (
-                  <span className="text-xs font-medium text-primary-700 bg-primary-100 px-2 py-0.5 rounded-full">
-                    Open
-                  </span>
-                )}
-
-                {/* Contributors inline (hidden on mobile) */}
-                {contributors.length > 0 && (
-                  <div className="cursor-pointer hidden sm:!flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 transition-colors">
-                    <AvatarStack
-                      items={contributors.map((contributor) => ({
-                        src: contributor.profile.profileImage || '',
-                        alt: contributor.profile.fullName,
-                        tooltip: contributor.profile.fullName,
-                        authorId: contributor.profile.id,
-                      }))}
-                      size="xs"
-                      maxItems={3}
-                      spacing={-6}
-                      showExtraCount={false}
-                      totalItemsCount={contributors.length}
-                      extraCountLabel="Funders"
-                      showLabel={false}
-                    />
-                    <span className="text-xs text-gray-600 whitespace-nowrap">
-                      {contributors.length} {contributors.length === 1 ? 'Funder' : 'Funders'}
+                {/* Days Left */}
+                {deadlineText && !isEnded && isActive && (
+                  <div className="hidden sm:flex flex-col flex-shrink-0">
+                    <span className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">
+                      Time Left
                     </span>
+                    <span className="text-base font-semibold text-gray-800">{deadlineText}</span>
                   </div>
                 )}
+
+                {/* Divider */}
+                {contributors.length > 0 && (
+                  <div className="hidden sm:block w-px h-8 bg-gray-200" />
+                )}
+
+                {/* Funders with AvatarStack */}
+                {contributors.length > 0 && (
+                  <div className="hidden sm:flex flex-col flex-shrink-0">
+                    <span className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">
+                      Funders
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <AvatarStack
+                        items={contributors.map((contributor) => ({
+                          src: contributor.profile.profileImage || '',
+                          alt: contributor.profile.fullName,
+                          tooltip: contributor.profile.fullName,
+                          authorId: contributor.profile.id,
+                        }))}
+                        size="xs"
+                        maxItems={3}
+                        spacing={-6}
+                        showExtraCount={false}
+                        totalItemsCount={contributors.length}
+                        extraCountLabel="Funders"
+                        showLabel={false}
+                      />
+                      <span className="text-base font-semibold text-gray-800">
+                        {contributors.length}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Mobile: Status badge */}
+                <div className="sm:hidden flex-shrink-0">
+                  {fundraise.status === 'COMPLETED' && (
+                    <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                      Completed
+                    </span>
+                  )}
+                  {fundraise.status === 'CLOSED' && (
+                    <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+                      Closed
+                    </span>
+                  )}
+                  {fundraise.status === 'OPEN' && isEnded && (
+                    <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+                      Ended
+                    </span>
+                  )}
+                  {isActive && (
+                    <span className="text-xs font-medium text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">
+                      Open
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {/* CTA Buttons */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {isActive ? (
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={handleContributeClick}
-                    className="bg-primary-600 hover:bg-primary-700 text-white !py-1.5 !px-2.5"
-                  >
-                    <span className="text-xs font-medium">Fund</span>
-                  </Button>
-                ) : onDetailsClick ? (
-                  <Button
-                    variant="outlined"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDetailsClick();
-                    }}
-                    className="!py-1.5 !px-2.5 text-gray-600 hover:text-gray-800"
-                  >
-                    <span className="text-xs font-medium">Details</span>
-                  </Button>
-                ) : null}
+              {/* CTA Button */}
+              <div className="flex items-center flex-shrink-0">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={isActive ? handleContributeClick : undefined}
+                  disabled={!isActive}
+                  className={`!py-2 !px-5 ${isActive ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                >
+                  <span className="text-sm font-semibold">
+                    {isActive ? 'Fund Proposal' : 'Closed'}
+                  </span>
+                </Button>
               </div>
             </div>
 
             {/* Progress bar */}
-            <Progress value={progressPercentage} variant={getProgressVariant()} size="xs" />
+            <Progress value={progressPercentage} variant={getProgressVariant()} size="sm" />
           </div>
         ) : (
           <div className={cn(className)}>

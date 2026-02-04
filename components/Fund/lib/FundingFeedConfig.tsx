@@ -19,7 +19,7 @@ export const getSortOptions = (activeTab: MarketplaceTab): SortOption[] => {
     { label: 'Best', value: 'best', icon: Star },
     {
       label: 'Newest',
-      value: activeTab === 'needs-funding' ? 'newest' : '',
+      value: activeTab === 'needs-funding' || activeTab === 'all' ? 'newest' : '',
       icon: Clock,
     },
     { label: 'Most upvoted', value: 'upvotes', icon: ArrowUp },
@@ -56,8 +56,17 @@ export type TabConfig = {
 // This will be populated with actual sidebar components when imported
 export const createTabConfig = (
   GrantRightSidebar: ReactNode,
-  FundRightSidebar: ReactNode
+  FundRightSidebar: ReactNode,
+  AllFundingRightSidebar: ReactNode
 ): Record<MarketplaceTab, TabConfig> => ({
+  all: {
+    title: 'Funding',
+    subtitle: 'Explore all funding opportunities and proposals',
+    contentType: 'PREREGISTRATION',
+    endpoint: 'funding_feed',
+    sidebar: AllFundingRightSidebar,
+    fundraiseStatus: 'OPEN',
+  },
   grants: {
     title: 'Request for Proposals',
     subtitle: 'Explore available funding opportunities',

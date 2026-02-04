@@ -162,7 +162,7 @@ export function ContributeToFundraiseModal({
     setCurrentView('payment');
   }, [fundraise.id, amountUsd, amountInRsc, refreshUser]);
 
-  const handleConfirmPayment = async (paymentMethod: Exclude<PaymentMethodType, 'endaoment'>) => {
+  const handleConfirmPayment = async (paymentMethod: PaymentMethodType) => {
     try {
       if (amountUsd < minAmountUsd) {
         setError(`Minimum contribution is $${minAmountUsd}`);
@@ -252,6 +252,15 @@ export function ContributeToFundraiseModal({
         toast.error('PayPal is not yet available. Please use Credit Card or ResearchCoin.');
         setIsContributing(false);
         return;
+      } else if (paymentMethod === 'endaoment') {
+        // Endaoment DAF payment (currently mocked)
+        // In production, this would:
+        // 1. Authenticate with Endaoment
+        // 2. Create a grant from the selected DAF account
+        // 3. Process the contribution
+        toast.success(
+          'Your contribution has been successfully added to the fundraise via Endaoment.'
+        );
       }
       // Note: apple_pay and google_pay are handled by PaymentRequestButton
 

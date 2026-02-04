@@ -16,7 +16,7 @@ interface RightSidebarBannerProps {
   iconColor?: string;
   iconSize?: number;
   className?: string;
-  variant?: 'blue' | 'green' | 'purple' | 'gray';
+  variant?: 'blue' | 'green' | 'purple' | 'gray' | 'orange';
 }
 
 export const RightSidebarBanner: React.FC<RightSidebarBannerProps> = ({
@@ -52,6 +52,11 @@ export const RightSidebarBanner: React.FC<RightSidebarBannerProps> = ({
         return {
           container: 'bg-gray-50 border-gray-100',
           checkIcon: 'text-gray-500',
+        };
+      case 'orange':
+        return {
+          container: 'bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200',
+          checkIcon: 'text-orange-500',
         };
       default:
         return {
