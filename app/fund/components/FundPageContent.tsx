@@ -10,6 +10,7 @@ import { FundRightSidebar } from '@/components/Fund/FundRightSidebar';
 import { GrantRightSidebar } from '@/components/Fund/GrantRightSidebar';
 import { AllFundingRightSidebar } from '@/components/Fund/AllFundingRightSidebar';
 import { FundingMobileInfo } from '@/components/Fund/FundingMobileInfo';
+import { FundingPromotionCards } from '@/components/Fund/FundingPromotionCards';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { FundingSortOption } from '@/components/Fund/MarketplaceTabs';
 import Icon from '@/components/ui/icons/Icon';
@@ -74,6 +75,11 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
         subtitle={config.subtitle}
         showTitle={false}
       />
+      {activeTab === 'all' && (
+        <div className="py-4">
+          <FundingPromotionCards />
+        </div>
+      )}
       <div className="border-b">
         <FeedTabs
           activeTab={activeTab}

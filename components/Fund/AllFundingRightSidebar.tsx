@@ -2,27 +2,22 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ChevronRight, Zap, Send, Users, Trophy } from 'lucide-react';
-import Icon from '@/components/ui/icons/Icon';
+import { ChevronRight, Zap } from 'lucide-react';
 
 const fundingSteps = [
   {
-    icon: Zap,
-    title: 'Funder Posts RFP',
+    title: 'Funder Posts Opportunity',
     description: 'Funders post opportunities with clear goals',
   },
   {
-    icon: Send,
     title: 'Pitch Your Idea',
     description: 'Submit a proposal',
   },
   {
-    icon: Users,
     title: 'Community Validates',
     description: 'Experts review and boost top proposals',
   },
   {
-    icon: Trophy,
     title: 'Get Funded',
     description: 'Receive funds directly to your account',
   },
@@ -59,13 +54,12 @@ export const AllFundingRightSidebar = () => {
 
           <div className="space-y-4">
             {fundingSteps.map((step, index) => {
-              const IconComponent = step.icon;
               return (
                 <div key={index} className="relative flex gap-3 group">
                   {/* Step indicator */}
                   <div className="relative flex-shrink-0">
-                    <div className="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center z-10 relative ring-2 ring-white shadow-sm group-hover:scale-110 transition-transform">
-                      <IconComponent className="w-3.5 h-3.5 text-blue-600" strokeWidth={2} />
+                    <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center z-10 relative ring-2 ring-white shadow-sm group-hover:scale-110 transition-transform">
+                      <span className="text-xs font-bold text-white">{index + 1}</span>
                     </div>
                   </div>
 
