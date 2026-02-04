@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { CreditCard, Plus, Minus, Check, Info } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faApplePay, faGooglePay, faPaypal } from '@fortawesome/free-brands-svg-icons';
@@ -54,6 +54,10 @@ interface PaymentWidgetProps {
   onCreditCardCompleteChange?: (isComplete: boolean) => void;
   /** Callback when Stripe context is ready for payment confirmation */
   onStripeReady?: (context: StripePaymentContext | null) => void;
+  /** Callback when DAF account selection changes */
+  onDafAccountChange?: (accountId: string | null) => void;
+  /** Callback when DAF account insufficient funds status changes */
+  onDafInsufficientFundsChange?: (hasInsufficientFunds: boolean) => void;
   /** Whether to hide the CTA button (when used inside PaymentStep) */
   hideButton?: boolean;
   /** Whether the browser is Safari (determines Apple Pay vs Google Pay visibility) */
@@ -79,6 +83,8 @@ export function PaymentWidget({
   onPaymentMethodChange,
   onCreditCardCompleteChange,
   onStripeReady,
+  onDafAccountChange,
+  onDafInsufficientFundsChange,
   hideButton = false,
   isSafari = false,
 }: PaymentWidgetProps) {
@@ -89,6 +95,12 @@ export function PaymentWidget({
 
   // State for selected DAF account (Endaoment)
   const [selectedDafAccountId, setSelectedDafAccountId] = useState<string | null>(null);
+
+  // Handler for DAF account selection that also notifies parent
+  const handleDafAccountSelect = (accountId: string) => {
+    setSelectedDafAccountId(accountId);
+    onDafAccountChange?.(accountId);
+  };
 
   // State for credit card completeness
   const [isCreditCardComplete, setIsCreditCardComplete] = useState(false);
@@ -113,6 +125,13 @@ export function PaymentWidget({
     selectedDafAccount &&
     selectedDafAccount.balanceUsd < amountInUsd
   );
+
+  // Notify parent when DAF insufficient funds status changes
+  React.useEffect(() => {
+    if (selectedMethod === 'endaoment') {
+      onDafInsufficientFundsChange?.(isDafInsufficientBalance);
+    }
+  }, [selectedMethod, isDafInsufficientBalance, onDafInsufficientFundsChange]);
 
   const formatRsc = (amount: number) =>
     `${amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} RSC`;
@@ -346,7 +365,7 @@ export function PaymentWidget({
           <DAFAccountSelector
             accounts={MOCK_DAF_ACCOUNTS}
             selectedAccountId={selectedDafAccountId}
-            onSelectAccount={setSelectedDafAccountId}
+            onSelectAccount={handleDafAccountSelect}
             requiredAmountUsd={amountInUsd}
           />
         </div>

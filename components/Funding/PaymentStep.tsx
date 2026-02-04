@@ -9,7 +9,12 @@ import { Logo } from '@/components/ui/Logo';
 import { PaymentWidget } from './PaymentWidget';
 import { PaymentRequestButton } from './PaymentRequestButton';
 import { InsufficientBalanceAlert } from './InsufficientBalanceAlert';
-import { usePaymentCalculations, getDefaultPaymentMethod, type PaymentMethodType } from './lib';
+import {
+  usePaymentCalculations,
+  getDefaultPaymentMethod,
+  type PaymentMethodType,
+  MOCK_DAF_ACCOUNTS,
+} from './lib';
 import type { StripePaymentContext } from './CreditCardForm';
 import { useIsSafari } from '@/hooks/useIsSafari';
 import {
@@ -35,10 +40,8 @@ interface PaymentStepProps {
   isProcessing?: boolean;
   /** Error message to display */
   error?: string | null;
-  /** Called when payment is confirmed (excludes endaoment which has separate flow) */
-  onConfirmPayment: (
-    paymentMethod: Exclude<PaymentMethodType, 'endaoment'>
-  ) => void | Promise<void>;
+  /** Called when payment is confirmed */
+  onConfirmPayment: (paymentMethod: PaymentMethodType) => void | Promise<void>;
   /** Called when Apple Pay/Google Pay payment succeeds */
   onPaymentRequestSuccess?: (paymentMethod?: 'apple_pay' | 'google_pay') => void;
   /** Called when user wants to deposit RSC */
@@ -79,6 +82,8 @@ export function PaymentStep({
     defaultPaymentMethod
   );
   const [isCreditCardComplete, setIsCreditCardComplete] = useState(false);
+  const [selectedDafAccountId, setSelectedDafAccountId] = useState<string | null>(null);
+  const [isDafInsufficientBalance, setIsDafInsufficientBalance] = useState(false);
 
   // Get RSC balance check (only relevant for RSC payment method)
   const { insufficientBalance } = usePaymentCalculations({
@@ -110,13 +115,20 @@ export function PaymentStep({
   // Check if credit card is selected but not complete
   const isCreditCardIncomplete = selectedMethod === 'credit_card' && !isCreditCardComplete;
 
+  // Check if Endaoment is selected but no account selected or insufficient funds
+  const isEndaomentIncomplete =
+    selectedMethod === 'endaoment' && (!selectedDafAccountId || isDafInsufficientBalance);
+
   // Determine if button should be disabled
   const isDisabled =
-    isProcessing || !selectedMethod || isRscInsufficientBalance || isCreditCardIncomplete;
+    isProcessing ||
+    !selectedMethod ||
+    isRscInsufficientBalance ||
+    isCreditCardIncomplete ||
+    isEndaomentIncomplete;
 
   const handleConfirm = useCallback(() => {
-    // Endaoment has a separate flow, so we only handle other payment methods here
-    if (selectedMethod && selectedMethod !== 'endaoment') {
+    if (selectedMethod) {
       onConfirmPayment(selectedMethod);
     }
   }, [selectedMethod, onConfirmPayment]);
@@ -129,6 +141,10 @@ export function PaymentStep({
       if (method !== 'credit_card') {
         setIsCreditCardComplete(false);
       }
+      // Reset DAF account selection when changing methods
+      if (method !== 'endaoment') {
+        setSelectedDafAccountId(null);
+      }
       // Track payment method selection
       if (method) {
         AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_METHOD_SELECTED, {
@@ -140,6 +156,11 @@ export function PaymentStep({
     },
     [fundraiseId, amountInUsd]
   );
+
+  // Handle DAF account selection from widget
+  const handleDafAccountChange = useCallback((accountId: string | null) => {
+    setSelectedDafAccountId(accountId);
+  }, []);
 
   // Dummy handlers for PaymentWidget (we handle the action in this component)
   const handlePreviewTransaction = useCallback(() => {
@@ -163,6 +184,8 @@ export function PaymentStep({
           onPaymentMethodChange={handlePaymentMethodChange}
           onCreditCardCompleteChange={setIsCreditCardComplete}
           onStripeReady={onStripeReady}
+          onDafAccountChange={handleDafAccountChange}
+          onDafInsufficientFundsChange={setIsDafInsufficientBalance}
           hideButton
           isSafari={isSafari}
         />
