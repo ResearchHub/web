@@ -10,6 +10,7 @@ interface UseSearchSuggestionsConfig {
   includeLocalSuggestions?: boolean;
   debounceMs?: number;
   minQueryLength?: number;
+  externalSearch?: boolean;
 }
 
 export function useSearchSuggestions({
@@ -18,6 +19,7 @@ export function useSearchSuggestions({
   includeLocalSuggestions = false,
   debounceMs = 300,
   minQueryLength = 2,
+  externalSearch = false,
 }: UseSearchSuggestionsConfig) {
   const [loading, setLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -82,7 +84,12 @@ export function useSearchSuggestions({
 
     const fetchSuggestions = async () => {
       try {
-        const suggestions = await SearchService.getSuggestions(query, indices);
+        const suggestions = await SearchService.getSuggestions(
+          query,
+          indices,
+          undefined,
+          externalSearch
+        );
         if (mounted) {
           setApiSuggestions(suggestions);
         }
@@ -103,7 +110,7 @@ export function useSearchSuggestions({
       mounted = false;
       clearTimeout(debounceTimer);
     };
-  }, [query, indices, minQueryLength, debounceMs]);
+  }, [query, indices, minQueryLength, debounceMs, externalSearch]);
 
   // Combine suggestions, prioritizing local results if enabled
   const suggestions = useMemo(() => {

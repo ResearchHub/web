@@ -1,333 +1,549 @@
 'use client';
 
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/form/Input';
-import { Alert } from '@/components/ui/Alert';
-import { Tooltip } from '@/components/ui/Tooltip';
-import { Currency, ID } from '@/types/root';
-import { BalanceInfo } from './BalanceInfo';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { FundraiseService } from '@/services/fundraise.service';
+import { PaymentService } from '@/services/payment.service';
+import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { Fundraise } from '@/types/funding';
+import { Work } from '@/types/work';
+import { ArrowLeft, MoveRight, DollarSign } from 'lucide-react';
+import {
+  PaymentStep,
+  FundingImpactPreview,
+  QuickAmountSelector,
+  type PaymentMethodType,
+  type StripePaymentContext,
+} from '@/components/Funding';
+import { Input } from '@/components/ui/form/Input';
+import { Button } from '@/components/ui/Button';
+import { BaseModal } from '@/components/ui/BaseModal';
+import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
+import { useIsMobile } from '@/hooks/useIsMobile';
+
+// Import inline deposit views
+import { DepositRSCView } from './DepositRSCView';
+import { BuyModal } from './ResearchCoin/BuyModal';
+import AuthContent from '@/components/Auth/AuthContent';
 
 interface ContributeToFundraiseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onContributeSuccess?: () => void;
   fundraise: Fundraise;
+  /** Title of the proposal being funded */
+  proposalTitle?: string;
+  /** Work object containing author information */
+  work?: Work;
 }
 
-// Currency Input Component
-const CurrencyInput = ({
-  value,
-  onChange,
-  error,
-}: {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  error?: string;
-}) => {
-  return (
-    <div className="relative">
-      <Input
-        name="amount"
-        value={value}
-        onChange={onChange}
-        required
-        label="I am contributing"
-        placeholder="0.00"
-        type="text"
-        inputMode="numeric"
-        className={`w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${error ? 'border-red-500' : ''}`}
-        rightElement={
-          <div className="flex items-center gap-1 pr-3 text-gray-900">
-            <span className="font-medium">RSC</span>
-          </div>
-        }
-      />
-      {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
-    </div>
-  );
-};
-
-// Fee Breakdown Component
-const FeeBreakdown = ({
-  contributionAmount,
-  platformFee,
-  totalAmount,
-}: {
-  contributionAmount: number;
-  platformFee: number;
-  totalAmount: number;
-}) => (
-  <div className="bg-gray-50 rounded-lg p-4 space-y-4 border border-gray-200">
-    <div className="flex justify-between items-center">
-      <span className="text-gray-900">Your contribution:</span>
-      <span className="text-gray-900">{contributionAmount.toLocaleString()} RSC</span>
-    </div>
-
-    <div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <span className="text-gray-600">Platform fees (9%)</span>
-          <Tooltip
-            content="Platform fees help support ResearchHub's operations and development"
-            className="max-w-xs"
-          >
-            <div className="text-gray-400 hover:text-gray-500">
-              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-          </Tooltip>
-        </div>
-        <span className="text-gray-600">+ {platformFee.toLocaleString()} RSC</span>
-      </div>
-    </div>
-
-    <div className="border-t border-gray-200" />
-
-    <div className="flex justify-between items-center">
-      <span className="font-semibold text-gray-900">Total amount:</span>
-      <span className="font-semibold text-gray-900">{totalAmount.toLocaleString()} RSC</span>
-    </div>
-  </div>
-);
-
-const ModalHeader = ({
-  title,
-  onClose,
-  subtitle,
-}: {
-  title: string;
-  onClose: () => void;
-  subtitle?: string;
-}) => (
-  <div className="border-b border-gray-200 -mx-6 px-6 pb-4 mb-6">
-    <div className="flex justify-between items-center">
-      <div>
-        <Dialog.Title as="h2" className="text-xl font-semibold text-gray-900">
-          {title}
-        </Dialog.Title>
-        {subtitle && <p className="text-sm font-medium text-gray-500 mt-1">{subtitle}</p>}
-      </div>
-      <button type="button" className="text-gray-400 hover:text-gray-500" onClick={onClose}>
-        <span className="sr-only">Close</span>
-        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path
-            fillRule="evenodd"
-            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-            clipRule="evenodd"
-          />
-        </svg>
-      </button>
-    </div>
-  </div>
-);
+type ModalView = 'funding' | 'auth' | 'payment' | 'deposit-rsc';
 
 export function ContributeToFundraiseModal({
   isOpen,
   onClose,
   onContributeSuccess,
   fundraise,
+  proposalTitle,
+  work,
 }: ContributeToFundraiseModalProps) {
-  const { user } = useUser();
-  const [inputAmount, setInputAmount] = useState(100);
+  const { user, refreshUser } = useUser();
+  const { exchangeRate } = useExchangeRate();
+  const isMobile = useIsMobile();
+  const [amountUsd, setAmountUsd] = useState(100);
   const [isContributing, setIsContributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isSuccess, setIsSuccess] = useState(false);
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
+  const [currentView, setCurrentView] = useState<ModalView>('funding');
+  const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(100);
+  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
+  const [isSliderControlled, setIsSliderControlled] = useState(false);
 
-  // Calculate total available balance including locked balance for fundraise contributions
-  const userBalance = user?.balance || 0;
-  const lockedBalance = user?.lockedBalance || 0;
-  const totalAvailableBalance = userBalance + lockedBalance;
+  // Store Stripe context for credit card payments
+  const stripeContextRef = useRef<StripePaymentContext | null>(null);
 
-  // Utility functions
+  // Handle Stripe context updates from CreditCardForm
+  const handleStripeReady = useCallback((context: StripePaymentContext | null) => {
+    stripeContextRef.current = context;
+  }, []);
+
+  // Get balance from user fields
+  // Use totalRsc since users can use both available RSC and funding credits for funding
+  const rscBalance = user?.totalRsc ?? 0;
+
+  // Calculate conversions
+  const rscToUsd = (rsc: number) => (exchangeRate ? rsc * exchangeRate : 0);
+  const usdToRsc = (usd: number) => (exchangeRate ? usd / exchangeRate : 0);
+
+  // Get amount in RSC (derived from USD amount)
+  const amountInRsc = usdToRsc(amountUsd);
+
+  const minAmountUsd = 1;
+
+  // Format helpers
+  const formatUsd = (amount: number) => {
+    return `$${amount.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
+  // Handlers
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/[^0-9.]/g, '');
     const numValue = parseFloat(rawValue);
 
     if (!isNaN(numValue)) {
-      setInputAmount(numValue);
+      setAmountUsd(numValue);
+      setSelectedQuickAmount(null);
+      setIsSliderControlled(false); // Input sets scaled visual mode
 
-      // Validate minimum amount
-      if (numValue < 10) {
-        setAmountError('Minimum contribution amount is 10 RSC');
+      if (numValue < minAmountUsd) {
+        setAmountError(`Minimum contribution is $${minAmountUsd}`);
       } else {
         setAmountError(undefined);
       }
     } else {
-      setInputAmount(0);
+      setAmountUsd(0);
       setAmountError('Please enter a valid amount');
     }
   };
 
   const getFormattedInputValue = () => {
-    if (inputAmount === 0) return '';
-    return inputAmount.toLocaleString();
+    if (amountUsd === 0) return '';
+    return amountUsd.toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
   };
 
-  const handleContribute = async () => {
+  const handleDepositSuccess = useCallback(() => {
+    refreshUser?.();
+    setCurrentView('payment');
+  }, [refreshUser]);
+
+  // Track when modal/drawer opens
+  useEffect(() => {
+    if (isOpen) {
+      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_AMOUNT_STEP, {
+        fundraise_id: fundraise.id,
+        amount_usd: amountUsd,
+        amount_rsc: amountInRsc,
+      });
+    }
+    // Only fire when isOpen changes to true, not when amounts change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  const handleContinueToPayment = useCallback(() => {
+    if (!user) {
+      setCurrentView('auth');
+    } else {
+      // Track funnel step: user reached payment step
+      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP, {
+        fundraise_id: fundraise.id,
+        amount_usd: amountUsd,
+        amount_rsc: amountInRsc,
+      });
+      setCurrentView('payment');
+    }
+  }, [user, fundraise.id, amountUsd, amountInRsc]);
+
+  const handleAuthSuccess = useCallback(() => {
+    // Track funnel step: user reached payment step after auth
+    AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP, {
+      fundraise_id: fundraise.id,
+      amount_usd: amountUsd,
+      amount_rsc: amountInRsc,
+    });
+    refreshUser?.();
+    setCurrentView('payment');
+  }, [fundraise.id, amountUsd, amountInRsc, refreshUser]);
+
+  const handleConfirmPayment = async (paymentMethod: Exclude<PaymentMethodType, 'endaoment'>) => {
     try {
-      // Validate minimum amount before proceeding
-      if (inputAmount < 10) {
-        setError('Minimum contribution amount is 10 RSC');
+      if (amountUsd < minAmountUsd) {
+        setError(`Minimum contribution is $${minAmountUsd}`);
+        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+          fundraise_id: fundraise.id,
+          payment_method: paymentMethod,
+          error_type: 'validation',
+          error_message: 'Amount below minimum',
+        });
         return;
       }
 
       setIsContributing(true);
       setError(null);
 
-      // Pass the contribution amount without the platform fee
-      // The API expects the net contribution amount
-      await FundraiseService.contributeToFundraise(fundraise.id, inputAmount);
+      if (paymentMethod === 'rsc') {
+        // Direct RSC payment from user's balance
+        await FundraiseService.contributeToFundraise(fundraise.id, amountInRsc, 'rsc');
+        toast.success('Your contribution has been successfully added to the fundraise.');
+      } else if (paymentMethod === 'credit_card') {
+        // Credit card payment flow:
+        // 1. Create payment intent (backend adds fees)
+        // 2. Confirm payment with Stripe
+        // 3. On success, create contribution
 
-      toast.success('Your contribution has been successfully added to the fundraise.');
+        const stripeContext = stripeContextRef.current;
+        if (!stripeContext) {
+          setError('Payment form is not ready. Please try again.');
+          AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+            fundraise_id: fundraise.id,
+            payment_method: paymentMethod,
+            error_type: 'stripe',
+            error_message: 'Payment form not ready',
+          });
+          setIsContributing(false);
+          return;
+        }
 
-      // Set success flag
-      setIsSuccess(true);
+        const { stripe, cardElement } = stripeContext;
 
-      // Call onContributeSuccess if provided
+        // Step 1: Create payment intent with amount and fundraise ID (backend adds fees and handles contribution)
+        const { clientSecret } = await PaymentService.createPaymentIntent(
+          amountInRsc,
+          fundraise.id
+        );
+
+        // Step 2: Confirm payment with Stripe
+        const { error: stripeError, paymentIntent: stripePaymentIntent } =
+          await stripe.confirmCardPayment(clientSecret, {
+            payment_method: {
+              card: cardElement,
+            },
+          });
+
+        if (stripeError) {
+          setError(
+            'We had an issue processing your credit card. Choose a different payment method.'
+          );
+          AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+            fundraise_id: fundraise.id,
+            payment_method: paymentMethod,
+            error_type: 'stripe',
+            error_message: 'Card payment failed',
+          });
+          setIsContributing(false);
+          return;
+        }
+
+        if (stripePaymentIntent?.status !== 'succeeded') {
+          setError(
+            'We had an issue processing your credit card. Choose a different payment method.'
+          );
+          AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+            fundraise_id: fundraise.id,
+            payment_method: paymentMethod,
+            error_type: 'stripe',
+            error_message: 'Payment not succeeded',
+          });
+          setIsContributing(false);
+          return;
+        }
+
+        // Payment succeeded - backend handles contribution automatically
+        toast.success('Your contribution has been successfully added to the fundraise.');
+      } else if (paymentMethod === 'paypal') {
+        // PayPal not yet implemented
+        toast.error('PayPal is not yet available. Please use Credit Card or ResearchCoin.');
+        setIsContributing(false);
+        return;
+      }
+      // Note: apple_pay and google_pay are handled by PaymentRequestButton
+
+      // Track successful payment
+      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
+        fundraise_id: fundraise.id,
+        payment_method: paymentMethod,
+        amount_usd: amountUsd,
+        amount_rsc: amountInRsc,
+      });
+
+      // Refresh user data to update balance
+      refreshUser?.();
+
       if (onContributeSuccess) {
         onContributeSuccess();
       }
 
-      // Close the modal
-      onClose();
-    } catch (error) {
-      console.error('Failed to contribute to fundraise:', error);
-      setError(error instanceof Error ? error.message : 'Failed to contribute to fundraise');
+      handleClose();
+    } catch (err) {
+      console.error('Failed to contribute to fundraise:', err);
+      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+        fundraise_id: fundraise.id,
+        payment_method: paymentMethod,
+        error_type: 'api',
+        error_message: 'Request failed',
+      });
+      if (paymentMethod === 'credit_card') {
+        setError('We had an issue processing your credit card. Choose a different payment method.');
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
     } finally {
       setIsContributing(false);
     }
   };
 
-  const platformFee = Math.round(inputAmount * 0.09 * 100) / 100;
-  const totalAmount = inputAmount + platformFee;
-  const insufficientBalance = totalAvailableBalance < totalAmount;
+  const handleOpenDeposit = useCallback(() => {
+    setCurrentView('deposit-rsc');
+  }, []);
+
+  const handleBuyRsc = useCallback(() => {
+    setIsBuyModalOpen(true);
+  }, []);
+
+  // Handle quick amount selection
+  const handleQuickAmountSelect = useCallback((amount: number) => {
+    setSelectedQuickAmount(amount);
+    setAmountUsd(amount);
+    setAmountError(undefined);
+    setIsSliderControlled(false); // Quick buttons set scaled visual mode
+  }, []);
+
+  // Calculate amounts in USD for display
+  const currentAmountUsd = fundraise.amountRaised?.usd ?? 0;
+  const goalAmountUsd = fundraise.goalAmount?.usd ?? 0;
+  const remainingGoalUsd = Math.max(0, goalAmountUsd - currentAmountUsd);
+
+  const handleBack = useCallback(() => {
+    if (currentView === 'deposit-rsc') {
+      setCurrentView('payment');
+    } else if (currentView === 'payment' || currentView === 'auth') {
+      setCurrentView('funding');
+    }
+  }, [currentView]);
+
+  const handleClose = useCallback(() => {
+    setCurrentView('funding');
+    setSelectedQuickAmount(100);
+    setAmountUsd(100);
+    setError(null);
+    setAmountError(undefined);
+    setIsSliderControlled(false);
+    onClose();
+  }, [onClose]);
+
+  // Handle Apple Pay / Google Pay success
+  const handlePaymentRequestSuccess = useCallback(
+    (paymentMethod?: 'apple_pay' | 'google_pay') => {
+      // Track successful payment
+      AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
+        fundraise_id: fundraise.id,
+        payment_method: paymentMethod || 'payment_request',
+        amount_usd: amountUsd,
+        amount_rsc: amountInRsc,
+      });
+
+      toast.success('Your contribution has been successfully added to the fundraise.');
+      refreshUser?.();
+      if (onContributeSuccess) {
+        onContributeSuccess();
+      }
+      handleClose();
+    },
+    [fundraise.id, amountUsd, amountInRsc, refreshUser, onContributeSuccess, handleClose]
+  );
+
+  // Get title based on current view
+  const getTitle = () => {
+    switch (currentView) {
+      case 'funding':
+        return 'Fund Proposal';
+      case 'auth':
+        return 'Sign in to continue';
+      case 'payment':
+        return 'Select Payment Method';
+      case 'deposit-rsc':
+        return 'Deposit RSC';
+      default:
+        return 'Fund Proposal';
+    }
+  };
+
+  // Get subtitle - show proposal title on funding and payment screens
+  const getSubtitle = () => {
+    if (currentView === 'funding' || currentView === 'payment') {
+      return proposalTitle;
+    }
+    return undefined;
+  };
+
+  // Get amount display for payment widget
+  const getAmountDisplay = () => {
+    return formatUsd(amountUsd);
+  };
+
+  // Render content based on current view
+  const renderContent = () => {
+    switch (currentView) {
+      case 'deposit-rsc':
+        return <DepositRSCView currentBalance={rscBalance} onSuccess={handleDepositSuccess} />;
+
+      case 'payment':
+        return (
+          <PaymentStep
+            amountInRsc={amountInRsc}
+            amountInUsd={amountUsd}
+            amountDisplay={getAmountDisplay()}
+            rscBalance={rscBalance}
+            fundraiseId={fundraise.id}
+            isProcessing={isContributing}
+            error={error}
+            onConfirmPayment={handleConfirmPayment}
+            onPaymentRequestSuccess={handlePaymentRequestSuccess}
+            onDepositRsc={handleOpenDeposit}
+            onBuyRsc={handleBuyRsc}
+            onStripeReady={handleStripeReady}
+          />
+        );
+
+      case 'auth':
+        return (
+          <AuthContent
+            onSuccess={handleAuthSuccess}
+            modalView={true}
+            showHeader={false}
+            callbackUrl={typeof window !== 'undefined' ? window.location.href : undefined}
+          />
+        );
+
+      case 'funding':
+      default:
+        return (
+          <div className="flex flex-col h-full">
+            {/* Content area */}
+            <div className="space-y-10 flex-1">
+              {/* Amount Input + Quick Amount Selector grouped together */}
+              <div className="space-y-3">
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  value={getFormattedInputValue()}
+                  onChange={handleAmountChange}
+                  icon={<DollarSign className="h-5 w-5 text-gray-500" />}
+                  error={amountError}
+                  label="Funding amount"
+                  className="text-lg"
+                />
+
+                {/* Quick Amount Selector */}
+                <QuickAmountSelector
+                  selectedAmount={selectedQuickAmount}
+                  onAmountSelect={handleQuickAmountSelect}
+                  remainingGoalUsd={remainingGoalUsd}
+                />
+              </div>
+
+              {/* Funding Impact Preview with Slider */}
+              {goalAmountUsd > 0 && (
+                <FundingImpactPreview
+                  currentAmountUsd={currentAmountUsd}
+                  goalAmountUsd={goalAmountUsd}
+                  previewAmountUsd={amountUsd}
+                  isSliderControlled={isSliderControlled}
+                  onAmountChange={(amount) => {
+                    setAmountUsd(amount);
+                    // Auto-select "Remaining" button if slider is at the end
+                    if (amount === Math.round(remainingGoalUsd)) {
+                      setSelectedQuickAmount(amount);
+                    } else {
+                      setSelectedQuickAmount(null);
+                    }
+                    setAmountError(undefined);
+                    setIsSliderControlled(true); // Slider sets linear visual mode
+                  }}
+                  authors={work?.authors.map((a) => a.authorProfile)}
+                />
+              )}
+            </div>
+
+            {/* Continue to Payment Button - pinned to bottom */}
+            <div className="pt-6">
+              <Button
+                type="button"
+                variant="default"
+                disabled={amountUsd < minAmountUsd || !!amountError}
+                className="w-full h-12 text-base"
+                onClick={handleContinueToPayment}
+              >
+                Continue to Payment
+                <MoveRight className="ml-2 h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        );
+    }
+  };
+
+  // Back button for header
+  const headerAction =
+    currentView !== 'funding' ? (
+      <button
+        type="button"
+        className="p-1 -ml-1 text-gray-400 hover:text-gray-600 transition-colors"
+        onClick={handleBack}
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </button>
+    ) : undefined;
+
+  // Custom title element with optional subtitle
+  const subtitle = getSubtitle();
+  const modalTitle = (
+    <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
+      <span className="text-lg font-semibold text-gray-900">{getTitle()}</span>
+      {subtitle && <span className="text-sm text-gray-500 truncate">{subtitle}</span>}
+    </div>
+  );
 
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog
-        as="div"
-        className="relative z-[100]"
-        onClose={() => {
-          // Reset success flag when modal is closed without contribution
-          if (!isSuccess) {
-            setIsSuccess(false);
+    <>
+      {isMobile ? (
+        <SwipeableDrawer
+          isOpen={isOpen}
+          onClose={handleClose}
+          height="72vh"
+          showCloseButton={true}
+          header={
+            <div className="flex items-center gap-2 pb-3 border-b border-gray-200">
+              {currentView !== 'funding' && (
+                <button
+                  type="button"
+                  className="p-1 -ml-1 text-gray-400 hover:text-gray-600 transition-colors"
+                  onClick={handleBack}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+              )}
+              {modalTitle}
+            </div>
           }
-          onClose();
-        }}
-      >
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black !bg-opacity-25" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
-                <div className="p-6">
-                  <ModalHeader
-                    title="Contribute to Fundraise"
-                    onClose={onClose}
-                    subtitle="Support this fundraise by contributing ResearchCoin"
-                  />
-
-                  <div className="space-y-6">
-                    {/* Amount Section */}
-                    <div>
-                      <CurrencyInput
-                        value={getFormattedInputValue()}
-                        onChange={handleAmountChange}
-                        error={amountError}
-                      />
-                    </div>
-
-                    {/* Fees Breakdown */}
-                    <div>
-                      <div className="mb-2">
-                        <h3 className="text-sm font-semibold text-gray-900">Fees Breakdown</h3>
-                      </div>
-                      <FeeBreakdown
-                        contributionAmount={inputAmount}
-                        platformFee={platformFee}
-                        totalAmount={totalAmount}
-                      />
-                    </div>
-
-                    {/* Balance Info */}
-                    <div>
-                      <BalanceInfo
-                        amount={totalAmount}
-                        showWarning={insufficientBalance}
-                        includeLockedBalance={true}
-                      />
-                    </div>
-
-                    {/* Error Alert */}
-                    {error && <Alert variant="error">{error}</Alert>}
-
-                    {/* Contribute Button */}
-                    <Button
-                      type="button"
-                      variant="default"
-                      disabled={
-                        isContributing ||
-                        !inputAmount ||
-                        insufficientBalance ||
-                        !!amountError ||
-                        inputAmount < 10
-                      }
-                      className="w-full h-12 text-base"
-                      onClick={handleContribute}
-                    >
-                      {isContributing ? 'Contributing...' : 'Contribute to Fundraise'}
-                    </Button>
-
-                    {/* Info Alert */}
-                    <Alert variant="info">
-                      <div className="flex items-center gap-3">
-                        <span>
-                          Your contribution will help this fundraise reach its goal of{' '}
-                          {fundraise.goalCurrency === 'RSC'
-                            ? `${fundraise.goalAmount.rsc.toLocaleString()} RSC`
-                            : `$${fundraise.goalAmount.usd.toLocaleString()} USD`}
-                        </span>
-                      </div>
-                    </Alert>
-                  </div>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
+          <div className="flex flex-col h-full">
+            <div className="flex-1 flex flex-col">{renderContent()}</div>
           </div>
-        </div>
-      </Dialog>
-    </Transition>
+        </SwipeableDrawer>
+      ) : (
+        <BaseModal
+          isOpen={isOpen}
+          onClose={handleClose}
+          title={modalTitle}
+          maxWidth="max-w-md"
+          headerAction={headerAction}
+          className="md:min-w-[400px]"
+        >
+          {renderContent()}
+        </BaseModal>
+      )}
+
+      {/* Buy RSC Modal */}
+      <BuyModal isOpen={isBuyModalOpen} onClose={() => setIsBuyModalOpen(false)} />
+    </>
   );
 }

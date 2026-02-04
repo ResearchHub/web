@@ -192,23 +192,45 @@ export function ContributorsButton({
     }
   };
 
+  // Get label font size based on button size
+  const getLabelFontSize = () => {
+    if (typeof size === 'number') {
+      return 'text-xs';
+    }
+    switch (size) {
+      case 'lg':
+        return 'text-base';
+      case 'md':
+        return 'text-sm';
+      default:
+        return 'text-xs';
+    }
+  };
+
+  // Get display label (singular/plural)
+  const displayLabel = contributors.length === 1 ? label.replace(/s$/, '') : label;
+
   return (
     <>
       <button
         onClick={() => setShowModal(true)}
-        className="flex items-center gap-1 hover:opacity-80 transition-opacity"
+        className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full px-2 py-1 transition-colors"
       >
+        {!hideLabel && (
+          <span
+            className={cn('text-gray-700 font-medium pl-1 whitespace-nowrap', getLabelFontSize())}
+          >
+            {contributors.length} {displayLabel}
+          </span>
+        )}
         <AvatarStack
           items={avatarItems}
           size={getAvatarSize()}
           maxItems={3}
           spacing={getSpacing()}
-          ringColorClass="ring-white"
+          ringColorClass="ring-gray-50"
           showLabel={false}
         />
-        {!hideLabel && (
-          <LabelBadge count={contributors.length} label={label} size={size} removeBadgeSpacing />
-        )}
       </button>
 
       <ContributorModal

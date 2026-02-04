@@ -14,6 +14,8 @@ export interface User {
   authorProfile?: AuthorProfile;
   balance: number;
   lockedBalance: number;
+  // Total RSC balance (available + locked) for funding
+  totalRsc?: number;
   hasCompletedOnboarding?: boolean;
   createdDate?: string;
   moderator: boolean;
@@ -39,6 +41,7 @@ const baseTransformUser = (raw: any): User => {
       authorProfile: undefined,
       balance: 0,
       lockedBalance: 0,
+      totalRsc: 0,
       hasCompletedOnboarding: false,
       createdDate: undefined,
       moderator: false,
@@ -69,6 +72,7 @@ const baseTransformUser = (raw: any): User => {
     authorProfile: undefined,
     balance: raw.balance || 0,
     lockedBalance: raw.locked_balance || 0,
+    totalRsc: (raw.balance || 0) + (raw.locked_balance || 0),
     hasCompletedOnboarding: raw.has_completed_onboarding || false,
     createdDate: raw.created_date || undefined,
     moderator: raw.moderator || false,
@@ -97,6 +101,7 @@ export const transformUser = (raw: any): TransformedUser => {
       authorProfile: undefined,
       balance: 0,
       lockedBalance: 0,
+      totalRsc: 0,
       hasCompletedOnboarding: false,
       moderator: false,
       raw: null,

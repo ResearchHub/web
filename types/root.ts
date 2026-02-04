@@ -24,6 +24,7 @@ export interface TransformedDocument {
   id: ID;
   title?: string;
   abstract?: string;
+  renderableText?: string;
   slug?: string;
   authors?: Array<any>;
   [key: string]: any;
@@ -60,6 +61,7 @@ export const transformUnifiedDocument = (
       id: documentData?.id,
       title: documentData?.title,
       abstract: stripHtml(documentData?.abstract || ''),
+      renderableText: stripHtml(documentData?.renderable_text || ''),
       slug: documentData?.slug,
       authors: documentData?.authors,
     },

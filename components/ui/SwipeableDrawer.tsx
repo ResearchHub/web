@@ -27,6 +27,12 @@ interface SwipeableDrawerProps {
   children: React.ReactNode;
 
   /**
+   * Optional header content that renders inside the swipeable zone.
+   * Swiping down on this area will also close the drawer.
+   */
+  header?: React.ReactNode;
+
+  /**
    * Whether to show the close button in the top-right corner
    * @default true
    */
@@ -53,6 +59,7 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
   onClose,
   height = '50vh',
   children,
+  header,
   showCloseButton = true,
   className = '',
   swipeThreshold = 50,
@@ -146,20 +153,27 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
       {/* Drawer */}
       <div
         ref={drawerRef}
-        className={`fixed bottom-0 left-0 right-0 z-[1001] bg-white shadow-xl rounded-t-lg transition-transform duration-300 ease-in-out ${
+        className={`fixed bottom-0 left-0 right-0 z-[1001] bg-white shadow-xl rounded-t-2xl transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         } ${className}`}
         style={{ height }}
         onClick={(e) => e.stopPropagation()}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
         role="dialog"
         aria-modal="true"
       >
-        {/* Drawer handle for better UX */}
-        <div className="w-full flex justify-center pt-2 pb-1">
-          <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
+        {/* Swipeable header area - this section triggers swipe-to-close */}
+        <div
+          className="flex-shrink-0"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Drawer handle */}
+          <div className="w-full flex justify-center pt-2 pb-2">
+            <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
+          </div>
+          {/* Optional header content inside swipe zone */}
+          {header && <div className="px-4 pb-4">{header}</div>}
         </div>
 
         {showCloseButton && (
@@ -172,10 +186,7 @@ export const SwipeableDrawer: React.FC<SwipeableDrawerProps> = ({
             <CloseIcon className="h-6 w-6 text-gray-500" />
           </button>
         )}
-        <div
-          className="drawer-content p-4 pt-2 overflow-y-auto"
-          style={{ maxHeight: `calc(${height} - 40px)` }}
-        >
+        <div className="drawer-content flex-1 min-h-0 p-4 pt-2 overflow-y-auto flex flex-col">
           {children}
         </div>
       </div>

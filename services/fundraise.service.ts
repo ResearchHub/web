@@ -1,4 +1,5 @@
 import { ApiClient } from './client';
+import { roundRscAmount } from './lib/serviceUtils';
 import { Fundraise, transformFundraise } from '@/types/funding';
 import { ID } from '@/types/root';
 
@@ -16,16 +17,25 @@ export class FundraiseService {
   }
 
   /**
-   * Contribute to a fundraise with RSC
+   * Contribute to a fundraise with RSC or USD
    * @param fundraiseId The ID of the fundraise to contribute to
-   * @param amount The amount of RSC to contribute
+   * @param amount The amount to contribute
+   * @param currency The currency type ('usd' or 'rsc'), defaults to 'rsc'
    * @returns The updated fundraise
    */
-  static async contributeToFundraise(fundraiseId: ID, amount: number): Promise<Fundraise> {
+  static async contributeToFundraise(
+    fundraiseId: ID,
+    amount: number,
+    currency: 'usd' | 'rsc' = 'rsc'
+  ): Promise<Fundraise> {
+    // Round RSC amounts to 3 decimal places for API compatibility
+    const finalAmount = currency === 'rsc' ? roundRscAmount(amount) : amount;
+
     const response = await ApiClient.post<any>(
       `${this.BASE_PATH}/${fundraiseId}/create_contribution/`,
       {
-        amount,
+        amount: finalAmount,
+        currency,
       }
     );
     return transformFundraise(response);
@@ -54,10 +64,10 @@ export class FundraiseService {
   /**
    * Alias for contributeToFundraise to maintain backwards compatibility with existing hooks
    * @param id The ID of the fundraise to contribute to
-   * @param payload The payload containing the amount
+   * @param payload The payload containing the amount and optional currency
    * @returns The updated fundraise
    */
   static async createContribution(id: ID, payload: any): Promise<Fundraise> {
-    return this.contributeToFundraise(id, payload.amount);
+    return this.contributeToFundraise(id, payload.amount, payload.currency || 'rsc');
   }
 }

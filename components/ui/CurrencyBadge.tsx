@@ -74,11 +74,6 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
   const { exchangeRate, isLoading } = useExchangeRate();
   const isUSD = currency === 'USD';
 
-  // Convert amount based on desired currency display
-  // If currency is USD but amount is in RSC, convert it (unless skipConversion is true)
-  const displayValue =
-    isUSD && exchangeRate > 0 && !skipConversion ? Math.round(amount * exchangeRate) : amount;
-
   // Custom size classes that override Badge's default sizes
   const sizeClasses = {
     xxs: 'text-[9px] gap-0.5 py-0 px-1',
@@ -88,6 +83,21 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
     lg: 'text-base gap-1 py-1.5 px-3',
     xl: 'text-lg gap-1 py-2 px-4',
   };
+
+  // Show skeleton when loading USD conversion
+  if (isUSD && isLoading && !skipConversion) {
+    return (
+      <div className={cn('flex items-center animate-pulse', sizeClasses[size], className)}>
+        {showIcon && <div className="w-4 h-4 bg-gray-200 rounded-full mr-1" />}
+        <div className="w-12 h-4 bg-gray-200 rounded" />
+      </div>
+    );
+  }
+
+  // Convert amount based on desired currency display
+  // If currency is USD but amount is in RSC, convert it (unless skipConversion is true)
+  const displayValue =
+    isUSD && exchangeRate > 0 && !skipConversion ? Math.round(amount * exchangeRate) : amount;
 
   // Define orange theme colors
   const colors = {
@@ -231,7 +241,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
       >
         {showIcon &&
           (isUSD ? (
-            <DollarSign size={effectiveIconSize} className="mr-0.5" strokeWidth={2} />
+            <DollarSign size={effectiveIconSize} className="-mr-1" strokeWidth={2} />
           ) : (
             <ResearchCoinIcon
               size={effectiveIconSize}
@@ -328,7 +338,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
           <span
             className={cn(
               fontWeight || 'font-semibold',
-              'mr-0.5', // Reduced spacing for closer positioning
+              '-mr-0.5', // Tighter spacing for USD
               variant === 'award'
                 ? colors.awardText
                 : variant === 'received'

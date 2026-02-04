@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatRSC } from '@/utils/number';
 import { Fundraise } from '@/types/funding';
+import { Work } from '@/types/work';
 import { isDeadlineInFuture } from '@/utils/date';
 import { ContributorModal } from '@/components/modals/ContributorModal';
 import { Users } from 'lucide-react';
@@ -17,9 +18,11 @@ import { useShareModalContext } from '@/contexts/ShareContext';
 interface FundersSectionProps {
   fundraise: Fundraise;
   fundraiseTitle: string;
+  /** Work object containing author information */
+  work?: Work;
 }
 
-export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTitle }) => {
+export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTitle, work }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
   const { showUSD } = useCurrencyPreference();
@@ -141,6 +144,8 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
         onClose={() => setIsContributeModalOpen(false)}
         onContributeSuccess={handleContributeSuccess}
         fundraise={fundraise}
+        proposalTitle={fundraiseTitle}
+        work={work}
       />
     </>
   );
