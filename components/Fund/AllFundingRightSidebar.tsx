@@ -20,15 +20,16 @@ const fundingSteps = [
   {
     title: 'Get Funded',
     description: 'Receive funds directly to your account',
+    extra: { label: 'Fast funding', value: '~2 weeks avg' },
   },
 ];
 
 export const AllFundingRightSidebar = () => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Funding Stats */}
-      <div className="rounded-xl border border-gray-200 bg-white p-5">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Funding Stats</h3>
+      <div className="rounded-xl bg-white p-5">
+        <h3 className="font-semibold text-gray-900 mb-4">Funding Stats</h3>
         <div className="flex items-center justify-center gap-8">
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">$105K</div>
@@ -43,9 +44,9 @@ export const AllFundingRightSidebar = () => {
       </div>
 
       {/* How Funding Works - Enhanced */}
-      <div className="rounded-xl border border-gray-200 bg-gradient-to-b from-white to-gray-50/50 p-5 overflow-hidden">
+      <div className="rounded-xl bg-gradient-to-b from-white to-gray-50/50 p-5 overflow-hidden">
         <div className="flex items-center gap-2 mb-5">
-          <h3 className="text-lg font-semibold text-gray-900">How It Works</h3>
+          <h3 className="font-semibold text-gray-900">How Funding Works</h3>
         </div>
 
         <div className="relative">
@@ -67,28 +68,26 @@ export const AllFundingRightSidebar = () => {
                   <div className="flex-1 pb-1">
                     <div className="text-sm font-semibold text-gray-900">{step.title}</div>
                     <div className="text-xs text-gray-500 mt-0.5">{step.description}</div>
+                    {step.extra && (
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-xs text-gray-600">{step.extra.label}</span>
+                        <span className="text-xs font-semibold text-emerald-600">
+                          {step.extra.value}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
             })}
           </div>
         </div>
-
-        {/* Success indicator */}
-        <div className="mt-5 pt-4 border-t border-gray-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-sm font-medium text-gray-700">Fast funding</span>
-            </div>
-            <span className="text-sm font-semibold text-emerald-600">~2 weeks avg</span>
-          </div>
-        </div>
       </div>
 
       {/* Resources */}
-      <div className="rounded-xl border border-gray-200 bg-white p-5">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Resources</h3>
+      <div className="rounded-xl bg-white p-5">
+        <h3 className="font-semibold text-gray-900 mb-3">Resources</h3>
         <div className="space-y-1">
           <a
             href="https://blog.researchhub.foundation/funding-for-researchers/"
