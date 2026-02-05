@@ -19,6 +19,7 @@ import {
 } from './lib/constants';
 import { ID } from '@/types/root';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
+import { EndaomentConnectButton } from '@/components/Endaoment/EndaomentConnectButton';
 
 interface PaymentStepProps {
   /** Amount in RSC (before fees) */
@@ -274,6 +275,8 @@ export function PaymentStep({
               onSuccess={() => onPaymentRequestSuccess?.(selectedMethod)}
               onError={(err) => console.error('Payment request error:', err)}
             />
+          ) : selectedMethod === 'endaoment' ? (
+            <EndaomentConnectButton variant="default" size="lg" className="w-full h-12 text-base" />
           ) : (
             <Button
               type="button"

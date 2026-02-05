@@ -18,6 +18,7 @@ import { MOCK_DAF_ACCOUNTS } from './lib/mockEndaomentData';
 import { CreditCardForm, type StripePaymentContext } from './CreditCardForm';
 import { DAFAccountSelector } from './DAFAccountSelector';
 import { InsufficientDAFFundsAlert } from './InsufficientDAFFundsAlert';
+import { EndaomentConnectButton } from '@/components/Endaoment/EndaomentConnectButton';
 
 interface PaymentOption {
   id: PaymentMethodType;
@@ -87,9 +88,6 @@ export function PaymentWidget({
     onMethodChange: onPaymentMethodChange,
   });
 
-  // State for selected DAF account (Endaoment)
-  const [selectedDafAccountId, setSelectedDafAccountId] = useState<string | null>(null);
-
   // State for credit card completeness
   const [isCreditCardComplete, setIsCreditCardComplete] = useState(false);
 
@@ -105,14 +103,6 @@ export function PaymentWidget({
     rscBalance,
     paymentMethod: 'rsc', // Always calculate for RSC to check balance
   });
-
-  // Calculate if selected DAF account has insufficient funds
-  const selectedDafAccount = MOCK_DAF_ACCOUNTS.find((acc) => acc.id === selectedDafAccountId);
-  const isDafInsufficientBalance = Boolean(
-    selectedMethod === 'endaoment' &&
-    selectedDafAccount &&
-    selectedDafAccount.balanceUsd < amountInUsd
-  );
 
   const formatRsc = (amount: number) =>
     `${amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} RSC`;
@@ -205,14 +195,11 @@ export function PaymentWidget({
           disabled: isButtonDisabled,
         };
       case 'endaoment':
+        // Endaoment uses its own button component (EndaomentConnectButton)
         return {
           text: 'Preview Payment',
-          onClick: () => onEndaomentLogin?.(),
-          disabled:
-            isButtonDisabled ||
-            !onEndaomentLogin ||
-            !selectedDafAccountId ||
-            isDafInsufficientBalance,
+          onClick: () => {},
+          disabled: true,
         };
       default:
         return {
@@ -340,33 +327,26 @@ export function PaymentWidget({
         </div>
       )}
 
-      {/* DAF Account Selector - appears below widget when Endaoment is selected */}
-      {selectedMethod === 'endaoment' && !isExpanded && (
-        <div className="animate-in slide-in-from-top-2 duration-200">
-          <DAFAccountSelector
-            accounts={MOCK_DAF_ACCOUNTS}
-            selectedAccountId={selectedDafAccountId}
-            onSelectAccount={setSelectedDafAccountId}
-            requiredAmountUsd={amountInUsd}
-          />
-        </div>
-      )}
-
-      {/* Insufficient DAF Funds Alert - appears when selected DAF has insufficient balance */}
-      {isDafInsufficientBalance && !isExpanded && <InsufficientDAFFundsAlert />}
-
       {/* CTA Button - hidden when used inside PaymentStep */}
       {!hideButton && (
-        <Button
-          type="button"
-          variant="default"
-          disabled={buttonConfig.disabled}
-          className="w-full h-12 text-base"
-          onClick={buttonConfig.onClick}
-        >
-          {buttonConfig.icon && <span className="mr-2 flex items-center">{buttonConfig.icon}</span>}
-          {buttonConfig.text}
-        </Button>
+        <>
+          {selectedMethod === 'endaoment' ? (
+            <EndaomentConnectButton variant="default" size="lg" className="w-full h-12 text-base" />
+          ) : (
+            <Button
+              type="button"
+              variant="default"
+              disabled={buttonConfig.disabled}
+              className="w-full h-12 text-base"
+              onClick={buttonConfig.onClick}
+            >
+              {buttonConfig.icon && (
+                <span className="mr-2 flex items-center">{buttonConfig.icon}</span>
+              )}
+              {buttonConfig.text}
+            </Button>
+          )}
+        </>
       )}
     </div>
   );
