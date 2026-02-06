@@ -1,5 +1,27 @@
 import { createTransformer } from './transformer';
 
+// Raw API response types (snake_case)
+export interface RawActiveGrants {
+  active?: number;
+  total?: number;
+}
+
+export interface RawTotalApplicants {
+  total?: number;
+  active?: number;
+  previous?: number;
+}
+
+export interface RawPortfolioOverview {
+  total_distributed_usd?: number;
+  active_grants?: RawActiveGrants;
+  total_applicants?: RawTotalApplicants | number;
+  matched_funding_usd?: number;
+  recent_updates?: number;
+  proposals_funded?: number;
+}
+
+// Transformed types (camelCase)
 export interface ActiveRfps {
   active: number;
   total: number;
@@ -20,8 +42,10 @@ export interface PortfolioOverview {
   proposalsFunded: number;
 }
 
-export const transformPortfolioOverview = createTransformer<any, PortfolioOverview>((raw) => {
-  // Handle both old format (number) and new format (object) for total_applicants
+export const transformPortfolioOverview = createTransformer<
+  RawPortfolioOverview,
+  PortfolioOverview
+>((raw) => {
   const applicants =
     typeof raw.total_applicants === 'object'
       ? raw.total_applicants

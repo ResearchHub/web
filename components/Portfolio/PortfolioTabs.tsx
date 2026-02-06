@@ -2,20 +2,19 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { FileText, Wallet } from 'lucide-react';
+import { FileText, Wallet, LucideIcon } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
 import { useFeed } from '@/hooks/useFeed';
+import { FeedContent } from '@/components/Feed/FeedContent';
 import { useFilterTransition } from './lib/hooks/useFilterTransition';
 import { ImpactTab } from './ImpactTab';
-import { GrantList } from './GrantList';
-import { ProposalList } from './ProposalList';
 import { PortfolioOverview } from '@/types/portfolioOverview';
 
 export type PortfolioTab = 'my-rfps' | 'proposals' | 'impact';
 type GrantsFilter = 'all' | 'open' | 'closed';
-type ProposalFilter = 'active' | 'previously-funded' | 'starred';
+type ProposalFilter = 'active' | 'previously-funded';
 
 const MAIN_TABS = [
   { id: 'my-rfps', label: 'My RFPs' },
@@ -34,6 +33,38 @@ const STATUS_MAP: Record<string, 'OPEN' | 'CLOSED' | undefined> = {
   active: 'OPEN',
   closed: 'CLOSED',
   'previously-funded': 'CLOSED',
+};
+
+interface EmptyStateConfig {
+  readonly icon: LucideIcon;
+  readonly title: string;
+  readonly desc: string;
+  readonly action: string;
+  readonly href: string;
+}
+
+const EMPTY_STATES: Record<'grants' | ProposalFilter, EmptyStateConfig> = {
+  grants: {
+    icon: FileText,
+    title: 'No RFPs yet',
+    desc: 'Create your first Request for Proposal to start funding research.',
+    action: 'Create an RFP',
+    href: '/notebook?newGrant=true',
+  },
+  active: {
+    icon: Wallet,
+    title: 'No active proposals',
+    desc: 'Proposals you contribute to will appear here.',
+    action: 'Browse proposals',
+    href: '/fund/needs-funding',
+  },
+  'previously-funded': {
+    icon: Wallet,
+    title: 'No previously funded proposals',
+    desc: 'Proposals you contribute to will appear here.',
+    action: 'Browse proposals',
+    href: '/fund/needs-funding',
+  },
 };
 
 interface Props {
@@ -83,33 +114,18 @@ function GrantsTab() {
         onTabChange={handleFilterChange}
         variant="pill-standalone"
       />
-      <GrantList
+      <FeedContent
         entries={isTransitioning ? [] : entries}
         isLoading={isLoading || isTransitioning}
         hasMore={hasMore}
         loadMore={loadMore}
-        emptyState={
-          <Empty
-            icon={<FileText className="w-8 h-8 text-gray-400" />}
-            title="No RFPs yet"
-            desc="Create your first Request for Proposal to start funding research."
-            action="Create an RFP"
-            href="/notebook?newGrant=true"
-          />
-        }
+        noEntriesElement={<EmptyState {...EMPTY_STATES.grants} />}
+        showFundraiseHeaders={false}
+        showGrantHeaders={false}
       />
     </div>
   );
 }
-
-const EMPTY_MESSAGES: Record<ProposalFilter, [string, string]> = {
-  active: ['No active proposals', 'Proposals you contribute to will appear here.'],
-  'previously-funded': [
-    'No previously funded proposals',
-    'Proposals you contribute to will appear here.',
-  ],
-  starred: ['No starred proposals', 'Star proposals to save them here for later.'],
-};
 
 function ProposalsTab({ overview }: { readonly overview: PortfolioOverview | null }) {
   const { user } = useUser();
@@ -134,10 +150,7 @@ function ProposalsTab({ overview }: { readonly overview: PortfolioOverview | nul
       id: 'previously-funded',
       label: `Previously funded (${overview?.totalApplicants.previous ?? 0})`,
     },
-    { id: 'starred', label: 'Starred' },
   ];
-
-  const [emptyTitle, emptyDesc] = EMPTY_MESSAGES[filter];
 
   return (
     <div className="space-y-4">
@@ -147,42 +160,24 @@ function ProposalsTab({ overview }: { readonly overview: PortfolioOverview | nul
         onTabChange={handleFilterChange}
         variant="pill-standalone"
       />
-      <ProposalList
+      <FeedContent
         entries={isTransitioning ? [] : entries}
         isLoading={isLoading || isTransitioning}
         hasMore={hasMore}
         loadMore={loadMore}
-        emptyState={
-          <Empty
-            icon={<Wallet className="w-8 h-8 text-gray-400" />}
-            title={emptyTitle}
-            desc={emptyDesc}
-            action="Browse proposals"
-            href="/fund/needs-funding"
-          />
-        }
+        noEntriesElement={<EmptyState {...EMPTY_STATES[filter]} />}
+        showFundraiseHeaders={false}
+        showGrantHeaders={false}
       />
     </div>
   );
 }
 
-function Empty({
-  icon,
-  title,
-  desc,
-  action,
-  href,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  desc: string;
-  action: string;
-  href: string;
-}) {
+function EmptyState({ icon: Icon, title, desc, action, href }: EmptyStateConfig) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-        {icon}
+        <Icon className="w-8 h-8 text-gray-400" />
       </div>
       <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
       <p className="text-gray-500 max-w-sm">{desc}</p>

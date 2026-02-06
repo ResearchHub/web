@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Target, AlertCircle, Building2 } from 'lucide-react';
 import { Line, Bar } from 'react-chartjs-2';
 import {
@@ -14,9 +13,10 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { ApiClient } from '@/services/client';
-import { ImpactData, Milestones, transformImpactData } from '@/types/impactData';
+import { useImpactData } from './lib/hooks/useImpactData';
+import { ImpactData, Milestones } from '@/types/impactData';
 import { formatNumber } from '@/utils/number';
+import { pluralizeSuffix } from '@/utils/stringUtils';
 
 ChartJS.register(
   CategoryScale,
@@ -29,23 +29,14 @@ ChartJS.register(
   Legend
 );
 
-const formatUsd = (n: number) => `$${formatNumber(n)}`;
+const toUsd = (n: number) => `$${formatNumber(n)}`;
 const formatMonth = (m: string) => {
   const [y, mo] = m.split('-');
   return new Date(+y, +mo - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 };
 
 export function ImpactTab() {
-  const [data, setData] = useState<ImpactData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    ApiClient.get<ImpactData>('/api/fundraise/funding_impact/')
-      .then((raw) => setData(transformImpactData(raw)))
-      .catch(() => setError('Failed to load impact data'))
-      .finally(() => setIsLoading(false));
-  }, []);
+  const { data, isLoading, error } = useImpactData();
 
   if (isLoading) return <ImpactSkeleton />;
   if (error || !data) {
@@ -79,7 +70,7 @@ export function ImpactTab() {
   );
 }
 
-function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function Card({ children, className = '' }: { children?: React.ReactNode; className?: string }) {
   return (
     <div className={`bg-white border border-gray-200 rounded-xl p-6 ${className}`}>{children}</div>
   );
@@ -126,16 +117,16 @@ function MilestonesCard({ milestones }: { milestones: Milestones }) {
             <div key={label}>
               <p className="text-sm text-gray-600 mb-2">{label}</p>
               <p className="text-2xl font-bold text-gray-900">
-                {currency ? formatUsd(current) : current}
+                {currency ? toUsd(current) : current}
                 <span className="text-base font-normal text-gray-400 ml-1">
-                  / {currency ? formatUsd(target) : target}
+                  / {currency ? toUsd(target) : target}
                 </span>
               </p>
               <div className="h-2 bg-gray-100 rounded-full mt-2 overflow-hidden">
                 <div className={`h-full ${color} rounded-full`} style={{ width: `${pct}%` }} />
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                {currency ? formatUsd(remaining) : remaining} to next milestone
+                {currency ? toUsd(remaining) : remaining} to next milestone
               </p>
             </div>
           );
@@ -206,7 +197,7 @@ function TopicsCard({ topics }: { topics: ImpactData['topicBreakdown'] }) {
           <div key={t.name}>
             <div className="flex justify-between text-sm mb-1">
               <span className="text-gray-700">{t.name}</span>
-              <span className="text-primary-600 font-medium">{formatUsd(t.amountUsd)}</span>
+              <span className="text-primary-600 font-medium">{toUsd(t.amountUsd)}</span>
             </div>
             <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
               <div
@@ -264,9 +255,9 @@ function InstitutionsCard({ institutions }: { institutions: ImpactData['institut
               {inst.ein && <p className="text-sm text-gray-500">EIN: {inst.ein}</p>}
             </div>
             <div className="text-right">
-              <div className="text-primary-600 font-medium">{formatUsd(inst.amountUsd)}</div>
+              <div className="text-primary-600 font-medium">{toUsd(inst.amountUsd)}</div>
               <div className="text-sm text-gray-500">
-                {inst.projectCount} project{inst.projectCount !== 1 && 's'}
+                {inst.projectCount} project{pluralizeSuffix(inst.projectCount)}
               </div>
             </div>
           </div>
@@ -275,7 +266,7 @@ function InstitutionsCard({ institutions }: { institutions: ImpactData['institut
       {institutions.length > 0 && (
         <div className="flex justify-between pt-4 border-t border-gray-200 mt-4">
           <span className="font-medium text-gray-900">Total to institutions</span>
-          <span className="text-primary-600 font-semibold">{formatUsd(total)}</span>
+          <span className="text-primary-600 font-semibold">{toUsd(total)}</span>
         </div>
       )}
     </Card>
@@ -301,16 +292,10 @@ function ImpactSkeleton() {
           ))}
         </div>
       </Card>
-      <Card className="h-64">
-        <div />
-      </Card>
+      <Card className="h-64" />
       <div className="grid grid-cols-2 gap-6">
-        <Card className="h-64">
-          <div />
-        </Card>
-        <Card className="h-64">
-          <div />
-        </Card>
+        <Card className="h-64" />
+        <Card className="h-64" />
       </div>
     </div>
   );
