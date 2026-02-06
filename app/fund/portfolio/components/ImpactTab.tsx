@@ -42,7 +42,7 @@ export function ImpactTab() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    ApiClient.get<any>('/api/fundraise/funding_overview/')
+    ApiClient.get<any>('/api/fundraise/funding_impact/')
       .then((raw) => setData(transformImpactData(raw)))
       .catch((err) => {
         console.error('Failed to fetch impact data:', err);
@@ -155,20 +155,18 @@ function FundingChart({ data }: { data: ImpactData['fundingOverTime'] }) {
       {
         label: 'Your contributions',
         data: data.map((d) => d.userContributions),
-        fill: true,
+        fill: 'origin',
         backgroundColor: 'rgba(59, 130, 246, 0.4)',
         borderColor: 'rgb(59, 130, 246)',
         tension: 0.4,
-        order: 2,
       },
       {
         label: 'Matched by others',
         data: data.map((d) => d.matchedContributions),
-        fill: true,
+        fill: 'origin',
         backgroundColor: 'rgba(34, 197, 94, 0.3)',
         borderColor: 'rgb(34, 197, 94)',
         tension: 0.4,
-        order: 1,
       },
     ],
   };
@@ -184,14 +182,10 @@ function FundingChart({ data }: { data: ImpactData['fundingOverTime'] }) {
     scales: {
       y: {
         beginAtZero: true,
-        stacked: true,
         ticks: {
           callback: (v: number | string) =>
             typeof v === 'number' && v >= 1000 ? `${v / 1000}k` : v,
         },
-      },
-      x: {
-        stacked: true,
       },
     },
   };

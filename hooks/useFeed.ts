@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { FeedService } from '@/services/feed.service';
 import { useSession } from 'next-auth/react';
@@ -46,6 +46,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(
     initialEntries.length > 0 || initialHasMore
   );
+  const isLoadingRef = useRef(false);
 
   useEffect(() => {
     if (status === 'loading') {
@@ -109,6 +110,8 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
   }, [options, currentTab, activeTab]);
 
   const loadFeed = async () => {
+    if (isLoadingRef.current) return;
+    isLoadingRef.current = true;
     setIsLoading(true);
 
     try {
@@ -150,6 +153,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       setPage(1);
       setHasAttemptedLoad(true);
     } finally {
+      isLoadingRef.current = false;
       setIsLoading(false);
     }
   };

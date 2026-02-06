@@ -43,8 +43,7 @@ export interface ImpactData {
 }
 
 export const transformImpactData = createTransformer<any, ImpactData>((raw) => {
-  const impact = raw.impact || {};
-  const ms = impact.milestones || {};
+  const ms = raw.milestones || {};
 
   return {
     milestones: {
@@ -61,20 +60,20 @@ export const transformImpactData = createTransformer<any, ImpactData>((raw) => {
         target: ms.matched_funding?.target ?? 0,
       },
     },
-    fundingOverTime: (impact.funding_over_time || []).map((p: any) => ({
+    fundingOverTime: (raw.funding_over_time || []).map((p: any) => ({
       month: p.month,
       userContributions: p.user_contributions ?? 0,
       matchedContributions: p.matched_contributions ?? 0,
     })),
-    topicBreakdown: (impact.topic_breakdown || []).map((t: any) => ({
+    topicBreakdown: (raw.topic_breakdown || []).map((t: any) => ({
       name: t.name,
       amountUsd: t.amount_usd ?? 0,
     })),
-    updateFrequency: (impact.update_frequency || []).map((u: any) => ({
+    updateFrequency: (raw.update_frequency || []).map((u: any) => ({
       bucket: u.bucket,
       count: u.count ?? 0,
     })),
-    institutionsSupported: (impact.institutions_supported || []).map((i: any) => ({
+    institutionsSupported: (raw.institutions_supported || []).map((i: any) => ({
       name: i.name,
       ein: i.ein ?? '',
       amountUsd: i.amount_usd ?? 0,

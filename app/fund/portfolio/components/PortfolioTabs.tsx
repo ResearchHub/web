@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { Tabs } from '@/components/ui/Tabs';
 import { useFeed } from '@/hooks/useFeed';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import { FileText, Wallet } from 'lucide-react';
 import { ImpactTab } from './ImpactTab';
+import { GrantList } from './GrantList';
 
 export type PortfolioTab = 'my-rfps' | 'proposals' | 'impact';
 type StatusFilter = 'all' | 'open' | 'closed';
@@ -37,58 +38,88 @@ interface PortfolioTabsProps {
 }
 
 export function PortfolioTabs({ activeTab, onTabChange }: PortfolioTabsProps) {
+  return (
+    <div className="space-y-4">
+      <Tabs
+        tabs={MAIN_TABS}
+        activeTab={activeTab}
+        onTabChange={(id) => onTabChange(id as PortfolioTab)}
+        variant="pill"
+      />
+
+      {activeTab === 'my-rfps' && <RfpFeedTab />}
+      {activeTab === 'proposals' && <ProposalsFeedTab />}
+      {activeTab === 'impact' && <ImpactTab />}
+    </div>
+  );
+}
+
+function RfpFeedTab() {
   const { user } = useUser();
-  const [rfpFilter, setRfpFilter] = useState<StatusFilter>('all');
-  const [proposalsFilter, setProposalsFilter] = useState<StatusFilter>('all');
+  const [filter, setFilter] = useState<StatusFilter>('all');
 
-  const rfpFeed = useFeed('all', {
-    endpoint: 'grant_feed',
-    createdBy: user?.id,
-    fundraiseStatus: toApiStatus(rfpFilter),
-  });
+  const feedOptions = useMemo(
+    () => ({
+      endpoint: 'grant_feed' as const,
+      createdBy: user?.id,
+      fundraiseStatus: toApiStatus(filter),
+    }),
+    [user?.id, filter]
+  );
 
-  const proposalsFeed = useFeed('all', {
-    endpoint: 'funding_feed',
-    fundedBy: user?.id,
-    fundraiseStatus: toApiStatus(proposalsFilter),
-  });
+  const feed = useFeed('all', feedOptions);
 
   return (
     <div className="space-y-4">
-      <div className="border-b border-gray-200">
-        <Tabs
-          tabs={MAIN_TABS}
-          activeTab={activeTab}
-          onTabChange={(id) => onTabChange(id as PortfolioTab)}
-        />
-      </div>
-
-      {activeTab === 'my-rfps' && (
-        <FeedWithFilter
-          filter={rfpFilter}
-          onFilterChange={setRfpFilter}
-          feed={rfpFeed}
-          emptyIcon={<FileText className="w-8 h-8 text-gray-400" />}
-          emptyTitle="No RFPs yet"
-          emptyDescription="Create your first Request for Proposal to start funding research on ResearchHub."
-          emptyAction={{ label: 'Create an RFP', href: '/notebook?newGrant=true' }}
-        />
-      )}
-
-      {activeTab === 'proposals' && (
-        <FeedWithFilter
-          filter={proposalsFilter}
-          onFilterChange={setProposalsFilter}
-          feed={proposalsFeed}
-          emptyIcon={<Wallet className="w-8 h-8 text-gray-400" />}
-          emptyTitle="No funded proposals yet"
-          emptyDescription="Proposals you contribute to will appear here."
-          emptyAction={{ label: 'Browse proposals', href: '/fund/needs-funding' }}
-        />
-      )}
-
-      {activeTab === 'impact' && <ImpactTab />}
+      <Tabs
+        tabs={STATUS_TABS}
+        activeTab={filter}
+        onTabChange={(id) => setFilter(id as StatusFilter)}
+        variant="pill-standalone"
+      />
+      <GrantList
+        entries={feed.entries}
+        isLoading={feed.isLoading}
+        hasMore={feed.hasMore}
+        loadMore={feed.loadMore}
+        emptyState={
+          <EmptyState
+            icon={<FileText className="w-8 h-8 text-gray-400" />}
+            title="No RFPs yet"
+            description="Create your first Request for Proposal to start funding research on ResearchHub."
+            action={{ label: 'Create an RFP', href: '/notebook?newGrant=true' }}
+          />
+        }
+      />
     </div>
+  );
+}
+
+function ProposalsFeedTab() {
+  const { user } = useUser();
+  const [filter, setFilter] = useState<StatusFilter>('all');
+
+  const feedOptions = useMemo(
+    () => ({
+      endpoint: 'funding_feed' as const,
+      fundedBy: user?.id,
+      fundraiseStatus: toApiStatus(filter),
+    }),
+    [user?.id, filter]
+  );
+
+  const feed = useFeed('all', feedOptions);
+
+  return (
+    <FeedWithFilter
+      filter={filter}
+      onFilterChange={setFilter}
+      feed={feed}
+      emptyIcon={<Wallet className="w-8 h-8 text-gray-400" />}
+      emptyTitle="No funded proposals yet"
+      emptyDescription="Proposals you contribute to will appear here."
+      emptyAction={{ label: 'Browse proposals', href: '/fund/needs-funding' }}
+    />
   );
 }
 
@@ -117,7 +148,7 @@ function FeedWithFilter({
         tabs={STATUS_TABS}
         activeTab={filter}
         onTabChange={(id) => onFilterChange(id as StatusFilter)}
-        variant="pill"
+        variant="pill-standalone"
       />
       <FeedContent
         entries={feed.entries}

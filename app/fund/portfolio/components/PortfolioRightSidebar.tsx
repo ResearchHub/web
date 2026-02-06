@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import {
   ExternalLink,
-  DollarSign,
+  Wallet,
   FileText,
   Users,
-  Sparkles,
+  Zap,
   Bell,
   TrendingUp,
   BookOpen,
@@ -17,8 +17,18 @@ import {
 import { ApiClient } from '@/services/client';
 import { PortfolioOverview, transformPortfolioOverview } from '@/types/portfolioOverview';
 
-const formatUsd = (amount: number) =>
-  `$${amount.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+const formatUsd = (amount: number) => {
+  if (amount >= 1_000_000_000) {
+    return `$${(amount / 1_000_000_000).toLocaleString('en-US', { maximumFractionDigits: 1 })}B`;
+  }
+  if (amount >= 1_000_000) {
+    return `$${(amount / 1_000_000).toLocaleString('en-US', { maximumFractionDigits: 1 })}M`;
+  }
+  if (amount >= 100_000) {
+    return `$${(amount / 1_000).toLocaleString('en-US', { maximumFractionDigits: 0 })}K`;
+  }
+  return `$${amount.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+};
 
 const RESOURCES = [
   {
@@ -36,46 +46,53 @@ const RESOURCES = [
 function getStats(o: PortfolioOverview): Array<{
   icon: LucideIcon;
   iconColor: string;
+  iconBg: string;
   label: string;
   value: string;
   valueColor?: string;
 }> {
   return [
     {
-      icon: DollarSign,
-      iconColor: 'text-primary-500',
+      icon: Wallet,
+      iconColor: 'text-orange-600',
+      iconBg: 'bg-orange-100',
       label: 'Total distributed',
       value: formatUsd(o.totalDistributedUsd),
-      valueColor: 'text-primary-600',
+      valueColor: 'text-orange-600',
     },
     {
       icon: FileText,
-      iconColor: 'text-gray-400',
+      iconColor: 'text-blue-600',
+      iconBg: 'bg-blue-100',
       label: 'Active RFPs',
       value: `${o.activeRfps.active} / ${o.activeRfps.total}`,
     },
     {
       icon: Users,
-      iconColor: 'text-gray-400',
+      iconColor: 'text-purple-500',
+      iconBg: 'bg-purple-50',
       label: 'Total applicants',
       value: o.totalApplicants.toString(),
     },
     {
-      icon: Sparkles,
+      icon: Zap,
       iconColor: 'text-orange-500',
+      iconBg: 'bg-orange-100',
       label: 'Matched funding',
       value: formatUsd(o.matchedFundingUsd),
       valueColor: 'text-orange-600',
     },
     {
       icon: Bell,
-      iconColor: 'text-gray-400',
-      label: 'Recent updates',
+      iconColor: 'text-blue-500',
+      iconBg: 'bg-blue-50',
+      label: 'Updates (30d)',
       value: o.recentUpdates.toString(),
     },
     {
       icon: TrendingUp,
-      iconColor: 'text-green-500',
+      iconColor: 'text-green-600',
+      iconBg: 'bg-green-100',
       label: 'Proposals funded',
       value: o.proposalsFunded.toString(),
     },
@@ -110,17 +127,25 @@ export function PortfolioRightSidebar() {
               <span className="text-sm">{error || 'Unable to load data'}</span>
             </div>
           ) : (
-            getStats(overview).map(({ icon: Icon, iconColor, label, value, valueColor }) => (
-              <div key={label} className="flex items-center justify-between py-2">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Icon className={`w-4 h-4 ${iconColor}`} />
-                  <span className="text-sm">{label}</span>
+            getStats(overview).map(
+              ({ icon: Icon, iconColor, iconBg, label, value, valueColor }) => (
+                <div key={label} className="flex items-center justify-between gap-2 py-2.5">
+                  <div className="flex items-center gap-3 text-gray-600 min-w-0">
+                    <div
+                      className={`w-7 h-7 rounded-lg ${iconBg} flex items-center justify-center flex-shrink-0`}
+                    >
+                      <Icon className={`w-4 h-4 ${iconColor}`} />
+                    </div>
+                    <span className="text-sm truncate">{label}</span>
+                  </div>
+                  <span
+                    className={`text-sm font-semibold whitespace-nowrap ${valueColor || 'text-gray-900'}`}
+                  >
+                    {value}
+                  </span>
                 </div>
-                <span className={`text-sm font-semibold ${valueColor || 'text-gray-900'}`}>
-                  {value}
-                </span>
-              </div>
-            ))
+              )
+            )
           )}
         </div>
       </div>
@@ -151,9 +176,9 @@ export function PortfolioRightSidebar() {
 
 function StatSkeleton() {
   return (
-    <div className="flex items-center justify-between py-2">
-      <div className="flex items-center gap-2">
-        <div className="w-4 h-4 bg-gray-200 rounded animate-pulse" />
+    <div className="flex items-center justify-between py-2.5">
+      <div className="flex items-center gap-3">
+        <div className="w-7 h-7 bg-gray-200 rounded-lg animate-pulse" />
         <div className="w-24 h-4 bg-gray-200 rounded animate-pulse" />
       </div>
       <div className="w-12 h-4 bg-gray-200 rounded animate-pulse" />

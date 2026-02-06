@@ -17,8 +17,8 @@ export interface PortfolioOverview {
 export const transformPortfolioOverview = createTransformer<any, PortfolioOverview>((raw) => ({
   totalDistributedUsd: raw.total_distributed_usd ?? 0,
   activeRfps: {
-    active: raw.active_rfps?.active ?? 0,
-    total: raw.active_rfps?.total ?? 0,
+    active: raw.active_grants?.active ?? 0,
+    total: raw.active_grants?.total ?? 0,
   },
   totalApplicants: raw.total_applicants ?? 0,
   matchedFundingUsd: raw.matched_funding_usd ?? 0,

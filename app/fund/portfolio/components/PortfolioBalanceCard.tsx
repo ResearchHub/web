@@ -21,7 +21,7 @@ function BalanceDisplay({ label, balance, showUSD, tooltip }: BalanceDisplayProp
   const secondary = showUSD ? `${balance.formatted} RSC` : balance.formattedUsd;
 
   return (
-    <div className="flex-1">
+    <div className="flex-1 min-w-0">
       <div className="flex items-center gap-2 mb-2">
         <span className="text-gray-600 text-sm font-medium">{label}</span>
         {tooltip && (
@@ -30,7 +30,7 @@ function BalanceDisplay({ label, balance, showUSD, tooltip }: BalanceDisplayProp
           </Tooltip>
         )}
       </div>
-      <div className="text-2xl font-semibold text-gray-900">{primary}</div>
+      <div className="text-lg sm:text-2xl font-semibold text-gray-900 break-all">{primary}</div>
       <div className="text-gray-500 text-sm">{secondary}</div>
     </div>
   );
@@ -56,12 +56,12 @@ export function PortfolioBalanceCard() {
   const isReady = !isFetchingExchangeRate;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
+    <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 space-y-4 sm:space-y-6">
       <div>
         <h3 className="text-gray-500 text-sm font-medium mb-2">Total Funding Balance</h3>
         {isReady ? (
           <>
-            <div className="text-4xl font-bold text-gray-900">
+            <div className="text-2xl sm:text-4xl font-bold text-gray-900 break-all">
               {formatCombinedBalance({ balance, lockedBalance, showUSD })}
             </div>
             <div className="text-gray-500 text-sm mt-1">
@@ -76,11 +76,11 @@ export function PortfolioBalanceCard() {
         )}
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-4 flex">
+      <div className="bg-gray-50 rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row gap-4 sm:gap-0">
         {isReady ? (
           <>
             <BalanceDisplay label="Available Balance" balance={balance} showUSD={showUSD} />
-            <div className="w-px bg-gray-200 mx-6" />
+            <div className="h-px sm:h-auto sm:w-px bg-gray-200 sm:mx-6" />
             <BalanceDisplay
               label="Funding Credits"
               balance={lockedBalance}
@@ -91,7 +91,7 @@ export function PortfolioBalanceCard() {
         ) : (
           <>
             <BalanceDisplaySkeleton />
-            <div className="w-px bg-gray-200 mx-6" />
+            <div className="h-px sm:h-auto sm:w-px bg-gray-200 sm:mx-6" />
             <BalanceDisplaySkeleton />
           </>
         )}

@@ -52,7 +52,7 @@ export default function PortfolioPage() {
           </div>
         </div>
 
-        <div>
+        <div className="pl-1 tablet:!pl-0">
           <h2 className="text-2xl font-bold text-gray-900">Welcome back, {firstName}</h2>
           <p className="text-gray-600 mt-1">Today&apos;s a good day to fund some science.</p>
         </div>

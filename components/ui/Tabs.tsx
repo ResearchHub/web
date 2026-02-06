@@ -19,7 +19,7 @@ interface TabsProps {
   activeTab: string;
   onTabChange: (tabId: string, e?: React.MouseEvent) => void;
   className?: string;
-  variant?: 'primary' | 'pill';
+  variant?: 'primary' | 'pill' | 'pill-standalone';
   disabled?: boolean;
 }
 
@@ -27,7 +27,7 @@ const TabItem: React.FC<{
   tab: Tab;
   isActive: boolean;
   disabled: boolean;
-  variant: 'primary' | 'pill';
+  variant: 'primary' | 'pill' | 'pill-standalone';
   onTabChange: (id: string, e: React.MouseEvent) => void;
 }> = ({ tab, isActive, disabled, variant, onTabChange }) => {
   const handleClick = (e: React.MouseEvent) => {
@@ -41,22 +41,35 @@ const TabItem: React.FC<{
     }
   };
 
+  const getVariantStyles = () => {
+    if (variant === 'pill') {
+      return [
+        'px-4 py-2 rounded-lg',
+        isActive
+          ? 'bg-primary-100 text-primary-600 shadow-sm'
+          : 'text-gray-500 hover:text-gray-700',
+      ];
+    }
+    if (variant === 'pill-standalone') {
+      return [
+        'px-4 py-2 rounded-lg border',
+        isActive
+          ? 'bg-primary-50 text-primary-600 border-primary-200'
+          : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50',
+      ];
+    }
+    // primary (default)
+    return [
+      'px-1 border-b-2 py-3',
+      isActive
+        ? 'text-primary-600 border-primary-600'
+        : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-200',
+    ];
+  };
+
   const styles = cn(
     'text-sm font-medium flex items-center gap-1 whitespace-nowrap flex-shrink-0 h-full cursor-pointer',
-    variant === 'pill'
-      ? [
-          'px-4 py-2 rounded-lg',
-          isActive
-            ? 'bg-primary-100 text-primary-600 shadow-sm'
-            : 'text-gray-500 hover:text-gray-700',
-        ]
-      : [
-          'px-1 border-b-2 py-3',
-          isActive
-            ? 'text-primary-600 border-primary-600'
-            : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-200',
-        ],
-    // disabled && 'opacity-50 cursor-not-allowed pointer-events-none'
+    getVariantStyles(),
     disabled && 'cursor-not-allowed pointer-events-none'
   );
 
@@ -124,7 +137,8 @@ export const Tabs: React.FC<TabsProps> = ({
   };
 
   const isPrimary = variant === 'primary';
-  const gradient = isPrimary ? 'white' : '#f3f4f6';
+  const isPillStandalone = variant === 'pill-standalone';
+  const gradient = isPrimary || isPillStandalone ? 'white' : '#f3f4f6';
 
   return (
     <div className={cn('w-full relative', className)}>
@@ -148,7 +162,11 @@ export const Tabs: React.FC<TabsProps> = ({
         onScroll={checkScrollability}
         className={cn(
           'flex items-center flex-nowrap h-full overflow-x-auto scrollbar-none',
-          variant === 'pill' ? 'space-x-1 bg-gray-100 p-1 rounded-lg' : 'space-x-6'
+          variant === 'pill'
+            ? 'space-x-1 bg-gray-100 p-1 rounded-lg'
+            : variant === 'pill-standalone'
+              ? 'space-x-2'
+              : 'space-x-6'
         )}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
