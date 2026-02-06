@@ -4,15 +4,17 @@ import { useState, useMemo } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { Tabs } from '@/components/ui/Tabs';
 import { useFeed } from '@/hooks/useFeed';
-import { FeedContent } from '@/components/Feed/FeedContent';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import { FileText, Wallet } from 'lucide-react';
 import { ImpactTab } from './ImpactTab';
 import { GrantList } from './GrantList';
+import { ProposalList } from './ProposalList';
+import { PortfolioOverview } from '@/types/portfolioOverview';
 
 export type PortfolioTab = 'my-rfps' | 'proposals' | 'impact';
 type StatusFilter = 'all' | 'open' | 'closed';
+type ProposalFilter = 'active' | 'previously-funded' | 'starred';
 
 const MAIN_TABS = [
   { id: 'my-rfps', label: 'My RFPs' },
@@ -32,12 +34,19 @@ function toApiStatus(filter: StatusFilter): 'OPEN' | 'CLOSED' | undefined {
   return undefined;
 }
 
+function toProposalApiStatus(filter: ProposalFilter): 'OPEN' | 'CLOSED' | undefined {
+  if (filter === 'active') return 'OPEN';
+  if (filter === 'previously-funded') return 'CLOSED';
+  return undefined;
+}
+
 interface PortfolioTabsProps {
   readonly activeTab: PortfolioTab;
   readonly onTabChange: (tab: PortfolioTab) => void;
+  readonly overview: PortfolioOverview | null;
 }
 
-export function PortfolioTabs({ activeTab, onTabChange }: PortfolioTabsProps) {
+export function PortfolioTabs({ activeTab, onTabChange, overview }: PortfolioTabsProps) {
   return (
     <div className="space-y-4">
       <Tabs
@@ -48,7 +57,7 @@ export function PortfolioTabs({ activeTab, onTabChange }: PortfolioTabsProps) {
       />
 
       {activeTab === 'my-rfps' && <RfpFeedTab />}
-      {activeTab === 'proposals' && <ProposalsFeedTab />}
+      {activeTab === 'proposals' && <ProposalsFeedTab overview={overview} />}
       {activeTab === 'impact' && <ImpactTab />}
     </div>
   );
@@ -95,76 +104,72 @@ function RfpFeedTab() {
   );
 }
 
-function ProposalsFeedTab() {
-  const { user } = useUser();
-  const [filter, setFilter] = useState<StatusFilter>('all');
+interface ProposalsFeedTabProps {
+  readonly overview: PortfolioOverview | null;
+}
 
+function ProposalsFeedTab({ overview }: ProposalsFeedTabProps) {
+  const { user } = useUser();
+  const [filter, setFilter] = useState<ProposalFilter>('active');
+
+  // Get feed options based on current filter
   const feedOptions = useMemo(
     () => ({
       endpoint: 'funding_feed' as const,
       fundedBy: user?.id,
-      fundraiseStatus: toApiStatus(filter),
+      fundraiseStatus:
+        filter === 'active'
+          ? ('OPEN' as const)
+          : filter === 'previously-funded'
+            ? ('CLOSED' as const)
+            : undefined,
+      bookmarked: filter === 'starred' ? true : undefined,
     }),
     [user?.id, filter]
   );
 
   const feed = useFeed('all', feedOptions);
 
-  return (
-    <FeedWithFilter
-      filter={filter}
-      onFilterChange={setFilter}
-      feed={feed}
-      emptyIcon={<Wallet className="w-8 h-8 text-gray-400" />}
-      emptyTitle="No funded proposals yet"
-      emptyDescription="Proposals you contribute to will appear here."
-      emptyAction={{ label: 'Browse proposals', href: '/fund/needs-funding' }}
-    />
-  );
-}
+  // Get counts from overview
+  const activeCount = overview?.totalApplicants.active ?? 0;
+  const previousCount = overview?.totalApplicants.previous ?? 0;
+  const starredCount = 0; // Starred count would come from a different source
 
-interface FeedWithFilterProps {
-  filter: StatusFilter;
-  onFilterChange: (filter: StatusFilter) => void;
-  feed: ReturnType<typeof useFeed>;
-  emptyIcon: React.ReactNode;
-  emptyTitle: string;
-  emptyDescription: string;
-  emptyAction: { label: string; href: string };
-}
+  const PROPOSAL_TABS = [
+    { id: 'active', label: `Active (${activeCount})` },
+    { id: 'previously-funded', label: `Previously funded (${previousCount})` },
+    { id: 'starred', label: `Starred (${starredCount})` },
+  ];
 
-function FeedWithFilter({
-  filter,
-  onFilterChange,
-  feed,
-  emptyIcon,
-  emptyTitle,
-  emptyDescription,
-  emptyAction,
-}: FeedWithFilterProps) {
   return (
     <div className="space-y-4">
       <Tabs
-        tabs={STATUS_TABS}
+        tabs={PROPOSAL_TABS}
         activeTab={filter}
-        onTabChange={(id) => onFilterChange(id as StatusFilter)}
+        onTabChange={(id) => setFilter(id as ProposalFilter)}
         variant="pill-standalone"
       />
-      <FeedContent
+      <ProposalList
         entries={feed.entries}
         isLoading={feed.isLoading}
         hasMore={feed.hasMore}
         loadMore={feed.loadMore}
-        showGrantHeaders={false}
-        showFundraiseHeaders={false}
-        showPostHeaders={false}
-        activeTab="all"
-        noEntriesElement={
+        emptyState={
           <EmptyState
-            icon={emptyIcon}
-            title={emptyTitle}
-            description={emptyDescription}
-            action={emptyAction}
+            icon={<Wallet className="w-8 h-8 text-gray-400" />}
+            title={
+              filter === 'active'
+                ? 'No active proposals'
+                : filter === 'previously-funded'
+                  ? 'No previously funded proposals'
+                  : 'No starred proposals'
+            }
+            description={
+              filter === 'starred'
+                ? 'Star proposals to save them here for later.'
+                : 'Proposals you contribute to will appear here.'
+            }
+            action={{ label: 'Browse proposals', href: '/fund/needs-funding' }}
           />
         }
       />

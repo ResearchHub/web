@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import {
   ExternalLink,
   Wallet,
@@ -14,8 +13,7 @@ import {
   AlertCircle,
   LucideIcon,
 } from 'lucide-react';
-import { ApiClient } from '@/services/client';
-import { PortfolioOverview, transformPortfolioOverview } from '@/types/portfolioOverview';
+import { PortfolioOverview } from '@/types/portfolioOverview';
 
 const formatUsd = (amount: number) => {
   if (amount >= 1_000_000_000) {
@@ -72,7 +70,7 @@ function getStats(o: PortfolioOverview): Array<{
       iconColor: 'text-purple-500',
       iconBg: 'bg-purple-50',
       label: 'Total applicants',
-      value: o.totalApplicants.toString(),
+      value: o.totalApplicants.total.toString(),
     },
     {
       icon: Zap,
@@ -99,21 +97,12 @@ function getStats(o: PortfolioOverview): Array<{
   ];
 }
 
-export function PortfolioRightSidebar() {
-  const [overview, setOverview] = useState<PortfolioOverview | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface PortfolioRightSidebarProps {
+  readonly overview: PortfolioOverview | null;
+  readonly isLoading: boolean;
+}
 
-  useEffect(() => {
-    ApiClient.get<any>('/api/fundraise/funding_overview/')
-      .then((raw) => setOverview(transformPortfolioOverview(raw)))
-      .catch((err) => {
-        console.error('Failed to fetch portfolio overview:', err);
-        setError('Failed to load overview');
-      })
-      .finally(() => setIsLoading(false));
-  }, []);
-
+export function PortfolioRightSidebar({ overview, isLoading }: PortfolioRightSidebarProps) {
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg border border-gray-200 p-4">
@@ -121,10 +110,10 @@ export function PortfolioRightSidebar() {
         <div className="divide-y divide-gray-100">
           {isLoading ? (
             Array.from({ length: 6 }).map((_, i) => <StatSkeleton key={i} />)
-          ) : error || !overview ? (
+          ) : !overview ? (
             <div className="flex items-center gap-2 py-4 text-gray-500">
               <AlertCircle className="w-4 h-4" />
-              <span className="text-sm">{error || 'Unable to load data'}</span>
+              <span className="text-sm">Unable to load data</span>
             </div>
           ) : (
             getStats(overview).map(

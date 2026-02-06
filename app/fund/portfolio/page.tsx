@@ -9,11 +9,23 @@ import { PortfolioBalanceCard } from './components/PortfolioBalanceCard';
 import { PortfolioTabs, PortfolioTab } from './components/PortfolioTabs';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Loader2 } from 'lucide-react';
+import { ApiClient } from '@/services/client';
+import { PortfolioOverview, transformPortfolioOverview } from '@/types/portfolioOverview';
 
 export default function PortfolioPage() {
   const router = useRouter();
   const { user, isLoading: isUserLoading } = useUser();
   const [activeTab, setActiveTab] = useState<PortfolioTab>('my-rfps');
+  const [overview, setOverview] = useState<PortfolioOverview | null>(null);
+  const [isOverviewLoading, setIsOverviewLoading] = useState(true);
+
+  // Fetch overview once at page level
+  useEffect(() => {
+    ApiClient.get<any>('/api/fundraise/funding_overview/')
+      .then((raw) => setOverview(transformPortfolioOverview(raw)))
+      .catch((err) => console.error('Failed to fetch overview:', err))
+      .finally(() => setIsOverviewLoading(false));
+  }, []);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -38,7 +50,9 @@ export default function PortfolioPage() {
   const firstName = user.fullName?.split(' ')[0] || 'Funder';
 
   return (
-    <PageLayout rightSidebar={<PortfolioRightSidebar />}>
+    <PageLayout
+      rightSidebar={<PortfolioRightSidebar overview={overview} isLoading={isOverviewLoading} />}
+    >
       <div className="space-y-6">
         <div className="flex items-center gap-3 tablet:!hidden">
           <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-50">
@@ -58,7 +72,7 @@ export default function PortfolioPage() {
         </div>
 
         <PortfolioBalanceCard />
-        <PortfolioTabs activeTab={activeTab} onTabChange={setActiveTab} />
+        <PortfolioTabs activeTab={activeTab} onTabChange={setActiveTab} overview={overview} />
       </div>
     </PageLayout>
   );
