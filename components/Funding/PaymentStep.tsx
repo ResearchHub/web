@@ -204,16 +204,14 @@ export function PaymentStep({
                         <div className="space-y-2">
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-gray-600">ResearchHub Inc</span>
-                            <span className="font-medium text-gray-800">7%</span>
+                            <span className="font-medium text-gray-800">
+                              {currentFeePercentage - 2}%
+                            </span>
                           </div>
-                          {currentFeePercentage > 7 && (
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-gray-600">Payment processing</span>
-                              <span className="font-medium text-gray-800">
-                                {currentFeePercentage - 7}%
-                              </span>
-                            </div>
-                          )}
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-600">ResearchHub Foundation</span>
+                            <span className="font-medium text-gray-800">2%</span>
+                          </div>
                         </div>
 
                         {/* Footer note */}
