@@ -1,8 +1,14 @@
 /**
- * Platform fee percentage - applies to ALL payment methods.
- * This fee is subtracted from the funding amount.
+ * Platform fee percentage for RSC payments.
+ * Credit card methods (credit_card, apple_pay, google_pay, paypal) use a higher rate.
+ * @see PAYMENT_FEES for per-method fee percentages.
  */
-export const PLATFORM_FEE_PERCENTAGE = 7;
+export const PLATFORM_FEE_PERCENTAGE_RSC = 7;
+
+/**
+ * Platform fee percentage for credit card / wallet payment methods.
+ */
+export const PLATFORM_FEE_PERCENTAGE_CARD = 9;
 
 /**
  * Payment processing fee for non-RSC payment methods.
@@ -25,15 +31,15 @@ export const METHODS_WITH_PROCESSING_FEE: PaymentMethodType[] = [
 ];
 
 /**
- * @deprecated Use PLATFORM_FEE_PERCENTAGE instead.
- * Kept for backwards compatibility with usePaymentCalculations hook.
+ * Per-method platform fee percentages.
+ * RSC payments have a lower fee; credit card / wallet methods have a higher fee.
  */
 export const PAYMENT_FEES = {
-  rsc: 7,
-  credit_card: 7,
-  apple_pay: 7,
-  google_pay: 7,
-  paypal: 7,
+  rsc: PLATFORM_FEE_PERCENTAGE_RSC,
+  credit_card: PLATFORM_FEE_PERCENTAGE_CARD,
+  apple_pay: PLATFORM_FEE_PERCENTAGE_CARD,
+  google_pay: PLATFORM_FEE_PERCENTAGE_CARD,
+  paypal: PLATFORM_FEE_PERCENTAGE_CARD,
 } as const;
 
 /**
