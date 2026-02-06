@@ -13,7 +13,8 @@ import { usePaymentCalculations, getDefaultPaymentMethod, type PaymentMethodType
 import type { StripePaymentContext } from './CreditCardForm';
 import { useIsSafari } from '@/hooks/useIsSafari';
 import {
-  PLATFORM_FEE_PERCENTAGE,
+  PAYMENT_FEES,
+  PLATFORM_FEE_PERCENTAGE_RSC,
   PAYMENT_PROCESSING_FEE,
   METHODS_WITH_PROCESSING_FEE,
 } from './lib/constants';
@@ -70,8 +71,9 @@ export function PaymentStep({
   const isSafari = useIsSafari();
 
   // Compute the default payment method based on balance and browser
+  // Use RSC fee percentage since we're checking if user can afford RSC payment
   const defaultPaymentMethod = useMemo(
-    () => getDefaultPaymentMethod(rscBalance, amountInRsc, PLATFORM_FEE_PERCENTAGE, isSafari),
+    () => getDefaultPaymentMethod(rscBalance, amountInRsc, PLATFORM_FEE_PERCENTAGE_RSC, isSafari),
     [rscBalance, amountInRsc, isSafari]
   );
 
@@ -88,7 +90,12 @@ export function PaymentStep({
   });
 
   // Calculate fees in USD - fees are ADDED on top of user's input
-  const platformFeeUsd = amountInUsd * (PLATFORM_FEE_PERCENTAGE / 100);
+  // Fee percentage depends on the selected payment method
+  const currentFeePercentage =
+    selectedMethod && selectedMethod in PAYMENT_FEES
+      ? PAYMENT_FEES[selectedMethod as keyof typeof PAYMENT_FEES]
+      : PLATFORM_FEE_PERCENTAGE_RSC;
+  const platformFeeUsd = amountInUsd * (currentFeePercentage / 100);
 
   // Payment processing fee only for non-RSC methods
   const hasProcessingFee = selectedMethod && METHODS_WITH_PROCESSING_FEE.includes(selectedMethod);
@@ -182,7 +189,7 @@ export function PaymentStep({
               <div className="py-1.5 flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm text-gray-600">
-                    Platform fee ({PLATFORM_FEE_PERCENTAGE}%)
+                    Platform fee ({currentFeePercentage}%)
                   </span>
                   <Tooltip
                     content={
@@ -197,7 +204,9 @@ export function PaymentStep({
                         <div className="space-y-2">
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-gray-600">ResearchHub Inc</span>
-                            <span className="font-medium text-gray-800">7%</span>
+                            <span className="font-medium text-gray-800">
+                              {currentFeePercentage - 2}%
+                            </span>
                           </div>
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-gray-600">ResearchHub Foundation</span>
