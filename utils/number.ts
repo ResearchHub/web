@@ -193,3 +193,37 @@ export function formatCombinedBalanceSecondary({
     return exchangeRate > 0 ? formatUsdValue(totalRaw.toString(), exchangeRate) : '$0.00 USD';
   }
 }
+
+/**
+ * Formats a USD amount with compact notation for large numbers
+ * @param amount The amount in USD
+ * @returns Formatted string with $ prefix
+ *
+ * @example
+ * formatUsdCompact(1234) // "$1,234"
+ * formatUsdCompact(12345) // "$12,345"
+ * formatUsdCompact(123456) // "$123K"
+ * formatUsdCompact(1234567) // "$1.2M"
+ * formatUsdCompact(1234567890) // "$1.2B"
+ */
+export function formatUsdCompact(amount: number): string {
+  if (amount >= 1_000_000_000) {
+    return `$${(amount / 1_000_000_000).toLocaleString('en-US', { maximumFractionDigits: 1 })}B`;
+  }
+  if (amount >= 1_000_000) {
+    return `$${(amount / 1_000_000).toLocaleString('en-US', { maximumFractionDigits: 1 })}M`;
+  }
+  if (amount >= 100_000) {
+    return `$${(amount / 1_000).toLocaleString('en-US', { maximumFractionDigits: 0 })}K`;
+  }
+  return `$${amount.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+}
+
+/**
+ * Formats a number with locale-specific thousand separators
+ * @param num The number to format
+ * @returns Formatted string
+ */
+export function formatNumber(num: number): string {
+  return num.toLocaleString('en-US', { maximumFractionDigits: 0 });
+}

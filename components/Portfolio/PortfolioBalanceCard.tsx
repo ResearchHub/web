@@ -46,6 +46,10 @@ function BalanceDisplaySkeleton() {
   );
 }
 
+function Divider() {
+  return <div className="h-px sm:h-auto sm:w-px bg-gray-200 sm:mx-6" />;
+}
+
 export function PortfolioBalanceCard() {
   const { user } = useUser();
   const { exchangeRate, isLoading: isFetchingExchangeRate } = useExchangeRate();
@@ -80,7 +84,7 @@ export function PortfolioBalanceCard() {
         {isReady ? (
           <>
             <BalanceDisplay label="Available Balance" balance={balance} showUSD={showUSD} />
-            <div className="h-px sm:h-auto sm:w-px bg-gray-200 sm:mx-6" />
+            <Divider />
             <BalanceDisplay
               label="Funding Credits"
               balance={lockedBalance}
@@ -91,7 +95,7 @@ export function PortfolioBalanceCard() {
         ) : (
           <>
             <BalanceDisplaySkeleton />
-            <div className="h-px sm:h-auto sm:w-px bg-gray-200 sm:mx-6" />
+            <Divider />
             <BalanceDisplaySkeleton />
           </>
         )}

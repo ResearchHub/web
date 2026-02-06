@@ -16,6 +16,7 @@ import {
 } from 'chart.js';
 import { ApiClient } from '@/services/client';
 import { ImpactData, Milestones, transformImpactData } from '@/types/impactData';
+import { formatNumber } from '@/utils/number';
 
 ChartJS.register(
   CategoryScale,
@@ -28,12 +29,10 @@ ChartJS.register(
   Legend
 );
 
-const formatUsd = (n: number) => `$${n.toLocaleString()}`;
-
-const formatMonth = (yyyyMm: string) => {
-  const [year, month] = yyyyMm.split('-');
-  const date = new Date(parseInt(year), parseInt(month) - 1);
-  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+const formatUsd = (n: number) => `$${formatNumber(n)}`;
+const formatMonth = (m: string) => {
+  const [y, mo] = m.split('-');
+  return new Date(+y, +mo - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 };
 
 export function ImpactTab() {
@@ -42,47 +41,47 @@ export function ImpactTab() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    ApiClient.get<any>('/api/fundraise/funding_impact/')
+    ApiClient.get<ImpactData>('/api/fundraise/funding_impact/')
       .then((raw) => setData(transformImpactData(raw)))
-      .catch((err) => {
-        console.error('Failed to fetch impact data:', err);
-        setError('Failed to load impact data');
-      })
+      .catch(() => setError('Failed to load impact data'))
       .finally(() => setIsLoading(false));
   }, []);
 
   if (isLoading) return <ImpactSkeleton />;
-
   if (error || !data) {
     return (
       <div className="flex items-center gap-2 py-8 text-gray-500 justify-center">
         <AlertCircle className="w-5 h-5" />
-        <span>{error || 'Unable to load impact data'}</span>
+        <span>{error ?? 'Unable to load impact data'}</span>
       </div>
     );
   }
 
-  const totalToInstitutions = data.institutionsSupported.reduce((sum, i) => sum + i.amountUsd, 0);
-
   return (
     <div className="space-y-8">
-      <div>
+      <header>
         <h2 className="text-xl font-bold text-gray-900">Your impact story</h2>
         <p className="text-gray-600 mt-1">
           A scoreboard of what your funding is enabling—and how it&apos;s growing.
         </p>
-      </div>
+      </header>
 
       <MilestonesCard milestones={data.milestones} />
       <FundingChart data={data.fundingOverTime} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TopicBreakdownCard topics={data.topicBreakdown} />
-        <UpdateFrequencyCard buckets={data.updateFrequency} />
+        <TopicsCard topics={data.topicBreakdown} />
+        <FrequencyCard buckets={data.updateFrequency} />
       </div>
 
-      <InstitutionsCard institutions={data.institutionsSupported} total={totalToInstitutions} />
+      <InstitutionsCard institutions={data.institutionsSupported} />
     </div>
+  );
+}
+
+function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`bg-white border border-gray-200 rounded-xl p-6 ${className}`}>{children}</div>
   );
 }
 
@@ -91,25 +90,25 @@ function MilestonesCard({ milestones }: { milestones: Milestones }) {
     {
       label: 'Funding contributed',
       ...milestones.fundingContributed,
-      isCurrency: true,
+      currency: true,
       color: 'bg-orange-500',
     },
     {
       label: 'Researchers supported',
       ...milestones.researchersSupported,
-      isCurrency: false,
+      currency: false,
       color: 'bg-green-500',
     },
     {
       label: 'Matched funding',
       ...milestones.matchedFunding,
-      isCurrency: true,
+      currency: true,
       color: 'bg-green-500',
     },
   ];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
+    <Card>
       <div className="flex items-center gap-3 mb-6">
         <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center">
           <Target className="w-4 h-4 text-green-600" />
@@ -120,31 +119,29 @@ function MilestonesCard({ milestones }: { milestones: Milestones }) {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {items.map(({ label, current, target, isCurrency, color }) => {
+        {items.map(({ label, current, target, currency, color }) => {
           const pct = target > 0 ? Math.min((current / target) * 100, 100) : 0;
-          const toNext = target - current;
-          const toNextLabel = isCurrency
-            ? `${formatUsd(toNext)} to next milestone`
-            : `${toNext} more to next milestone`;
-
+          const remaining = target - current;
           return (
             <div key={label}>
-              <div className="text-sm text-gray-600 mb-2">{label}</div>
-              <div className="text-2xl font-bold text-gray-900">
-                {isCurrency ? formatUsd(current) : current}
+              <p className="text-sm text-gray-600 mb-2">{label}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {currency ? formatUsd(current) : current}
                 <span className="text-base font-normal text-gray-400 ml-1">
-                  / {isCurrency ? formatUsd(target) : target}
+                  / {currency ? formatUsd(target) : target}
                 </span>
-              </div>
+              </p>
               <div className="h-2 bg-gray-100 rounded-full mt-2 overflow-hidden">
                 <div className={`h-full ${color} rounded-full`} style={{ width: `${pct}%` }} />
               </div>
-              <p className="text-xs text-gray-500 mt-1">{toNextLabel}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {currency ? formatUsd(remaining) : remaining} to next milestone
+              </p>
             </div>
           );
         })}
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -182,30 +179,26 @@ function FundingChart({ data }: { data: ImpactData['fundingOverTime'] }) {
     scales: {
       y: {
         beginAtZero: true,
-        ticks: {
-          callback: (v: number | string) =>
-            typeof v === 'number' && v >= 1000 ? `${v / 1000}k` : v,
-        },
+        ticks: { callback: (v: number | string) => (+v >= 1000 ? `${+v / 1000}k` : v) },
       },
     },
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
+    <Card>
       <h3 className="font-semibold text-gray-900 mb-1">Funding over time</h3>
       <p className="text-sm text-gray-500 mb-4">
         Cumulative contributions and matching from other funders
       </p>
       <Line data={chartData} options={options} />
-    </div>
+    </Card>
   );
 }
 
-function TopicBreakdownCard({ topics }: { topics: ImpactData['topicBreakdown'] }) {
-  const maxAmount = Math.max(...topics.map((t) => t.amountUsd), 1);
-
+function TopicsCard({ topics }: { topics: ImpactData['topicBreakdown'] }) {
+  const max = Math.max(...topics.map((t) => t.amountUsd), 1);
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
+    <Card>
       <h3 className="font-semibold text-gray-900 mb-1">Topic breakdown</h3>
       <p className="text-sm text-gray-500 mb-4">Where your funding is concentrated</p>
       <div className="space-y-4">
@@ -218,65 +211,50 @@ function TopicBreakdownCard({ topics }: { topics: ImpactData['topicBreakdown'] }
             <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
               <div
                 className="h-full bg-primary-500 rounded-full"
-                style={{ width: `${(t.amountUsd / maxAmount) * 100}%` }}
+                style={{ width: `${(t.amountUsd / max) * 100}%` }}
               />
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }
 
-function UpdateFrequencyCard({ buckets }: { buckets: ImpactData['updateFrequency'] }) {
+function FrequencyCard({ buckets }: { buckets: ImpactData['updateFrequency'] }) {
   const chartData = {
     labels: buckets.map((b) => b.bucket),
-    datasets: [
-      {
-        data: buckets.map((b) => b.count),
-        backgroundColor: '#3b82f6',
-        borderRadius: 4,
-      },
-    ],
+    datasets: [{ data: buckets.map((b) => b.count), backgroundColor: '#3b82f6', borderRadius: 4 }],
   };
-
   const options = {
     responsive: true,
     plugins: { legend: { display: false } },
-    scales: {
-      y: { beginAtZero: true, ticks: { stepSize: 0.5 } },
-    },
+    scales: { y: { beginAtZero: true, ticks: { stepSize: 0.5 } } },
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
+    <Card>
       <h3 className="font-semibold text-gray-900 mb-1">Update frequency (last 180 days)</h3>
-      <p className="text-sm text-gray-500 mb-4">
-        How consistently proposals in your portfolio publish updates
-      </p>
+      <p className="text-sm text-gray-500 mb-4">How consistently proposals publish updates</p>
       <Bar data={chartData} options={options} />
       <p className="text-xs text-gray-500 mt-3">
-        Buckets show the number of author updates per proposal over the last 6 months.
+        Buckets show updates per proposal over the last 6 months.
       </p>
-    </div>
+    </Card>
   );
 }
 
-function InstitutionsCard({
-  institutions,
-  total,
-}: {
-  institutions: ImpactData['institutionsSupported'];
-  total: number;
-}) {
+function InstitutionsCard({ institutions }: { institutions: ImpactData['institutionsSupported'] }) {
+  const total = institutions.reduce((sum, i) => sum + i.amountUsd, 0);
+
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
+    <Card>
       <div className="flex items-center gap-2 mb-1">
         <Building2 className="w-5 h-5 text-gray-400" />
         <h3 className="font-semibold text-gray-900">Institutions supported</h3>
       </div>
       <p className="text-sm text-gray-500 mb-4">
-        Nonprofit research institutions that received funding through your contributions
+        Nonprofits that received funding through your contributions
       </p>
       <div className="divide-y divide-gray-100">
         {institutions.map((inst) => (
@@ -288,7 +266,7 @@ function InstitutionsCard({
             <div className="text-right">
               <div className="text-primary-600 font-medium">{formatUsd(inst.amountUsd)}</div>
               <div className="text-sm text-gray-500">
-                {inst.projectCount} {inst.projectCount === 1 ? 'project' : 'projects'}
+                {inst.projectCount} project{inst.projectCount !== 1 && 's'}
               </div>
             </div>
           </div>
@@ -300,7 +278,7 @@ function InstitutionsCard({
           <span className="text-primary-600 font-semibold">{formatUsd(total)}</span>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -311,22 +289,28 @@ function ImpactSkeleton() {
         <div className="h-6 w-48 bg-gray-200 rounded mb-2" />
         <div className="h-4 w-80 bg-gray-200 rounded" />
       </div>
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
+      <Card>
         <div className="h-5 w-32 bg-gray-200 rounded mb-6" />
         <div className="grid grid-cols-3 gap-6">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i}>
-              <div className="h-4 w-24 bg-gray-200 rounded mb-2" />
-              <div className="h-8 w-32 bg-gray-200 rounded mb-2" />
+          {Array.from({ length: 3 }, (_, i) => (
+            <div key={i} className="space-y-2">
+              <div className="h-4 w-24 bg-gray-200 rounded" />
+              <div className="h-8 w-32 bg-gray-200 rounded" />
               <div className="h-2 w-full bg-gray-200 rounded" />
             </div>
           ))}
         </div>
-      </div>
-      <div className="bg-white border border-gray-200 rounded-xl p-6 h-64" />
+      </Card>
+      <Card className="h-64">
+        <div />
+      </Card>
       <div className="grid grid-cols-2 gap-6">
-        <div className="bg-white border border-gray-200 rounded-xl p-6 h-64" />
-        <div className="bg-white border border-gray-200 rounded-xl p-6 h-64" />
+        <Card className="h-64">
+          <div />
+        </Card>
+        <Card className="h-64">
+          <div />
+        </Card>
       </div>
     </div>
   );

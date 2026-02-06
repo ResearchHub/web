@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { PortfolioRightSidebar } from './components/PortfolioRightSidebar';
-import { PortfolioBalanceCard } from './components/PortfolioBalanceCard';
-import { PortfolioTabs, PortfolioTab } from './components/PortfolioTabs';
+import { PortfolioRightSidebar } from '@/components/Portfolio/PortfolioRightSidebar';
+import { PortfolioBalanceCard } from '@/components/Portfolio/PortfolioBalanceCard';
+import { PortfolioTabs, PortfolioTab } from '@/components/Portfolio/PortfolioTabs';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Loader2 } from 'lucide-react';
 import { ApiClient } from '@/services/client';
@@ -19,9 +19,8 @@ export default function PortfolioPage() {
   const [overview, setOverview] = useState<PortfolioOverview | null>(null);
   const [isOverviewLoading, setIsOverviewLoading] = useState(true);
 
-  // Fetch overview once at page level
   useEffect(() => {
-    ApiClient.get<any>('/api/fundraise/funding_overview/')
+    ApiClient.get<Record<string, unknown>>('/api/fundraise/funding_overview/')
       .then((raw) => setOverview(transformPortfolioOverview(raw)))
       .catch((err) => console.error('Failed to fetch overview:', err))
       .finally(() => setIsOverviewLoading(false));
