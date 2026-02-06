@@ -11,8 +11,9 @@ const initialEditorPanel = {
 
 export function createInitialState(role?: AssistantRole | null): ChatState {
   return {
-    sessionId: null, // Server assigns session ID on first response
+    sessionId: null,
     role: role ?? null,
+    noteId: null,
     messages: [],
     quickReplies: null,
     fieldState: role ? getInitialFieldState(role) : {},
@@ -35,18 +36,15 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
     case 'SET_ROLE': {
       const fieldState = getInitialFieldState(action.role);
-      return {
-        ...state,
-        role: action.role,
-        fieldState,
-      };
+      return { ...state, role: action.role, fieldState };
     }
 
     case 'SET_SESSION_ID': {
-      return {
-        ...state,
-        sessionId: action.sessionId,
-      };
+      return { ...state, sessionId: action.sessionId };
+    }
+
+    case 'SET_NOTE_ID': {
+      return { ...state, noteId: action.noteId };
     }
 
     case 'ADD_USER_MESSAGE': {
@@ -54,14 +52,9 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
         ...state,
         messages: [
           ...state.messages,
-          {
-            id: nextMsgId(),
-            role: 'user',
-            content: action.content,
-            timestamp: Date.now(),
-          },
+          { id: nextMsgId(), role: 'user', content: action.content, timestamp: Date.now() },
         ],
-        quickReplies: null, // Clear quick replies when user sends
+        quickReplies: null,
       };
     }
 
@@ -81,15 +74,13 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
           },
         ],
         quickReplies: action.quickReplies ?? null,
+        noteId: action.noteId ?? state.noteId,
         isTyping: false,
       };
     }
 
     case 'SET_TYPING': {
-      return {
-        ...state,
-        isTyping: action.isTyping,
-      };
+      return { ...state, isTyping: action.isTyping };
     }
 
     case 'UPDATE_FIELDS': {
@@ -97,42 +88,35 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
       for (const [key, update] of Object.entries(action.updates)) {
         updatedFields[key] = update;
       }
-      return {
-        ...state,
-        fieldState: updatedFields,
-      };
+      return { ...state, fieldState: updatedFields };
     }
 
     case 'SET_COMPLETE': {
-      return {
-        ...state,
-        isComplete: true,
-        payload: action.payload,
-      };
+      return { ...state, isComplete: true, payload: action.payload };
     }
 
     case 'CLEAR_QUICK_REPLIES': {
-      return {
-        ...state,
-        quickReplies: null,
-      };
+      return { ...state, quickReplies: null };
     }
 
     case 'OPEN_EDITOR': {
       return {
         ...state,
-        editorPanel: {
-          isOpen: true,
-          field: action.field,
-          initialContent: action.content,
-        },
+        editorPanel: { isOpen: true, field: action.field, initialContent: action.content },
       };
     }
 
     case 'CLOSE_EDITOR': {
+      return { ...state, editorPanel: { ...initialEditorPanel } };
+    }
+
+    case 'HYDRATE_SESSION': {
       return {
         ...state,
-        editorPanel: { ...initialEditorPanel },
+        sessionId: action.sessionId,
+        role: action.role,
+        noteId: action.noteId,
+        fieldState: action.fieldState,
       };
     }
 

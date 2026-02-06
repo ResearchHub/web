@@ -28,14 +28,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
 }) => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // ── Handlers ────────────────────────────────────────────────────────────
-
-  const handleSend = useCallback(
-    (message: string) => {
-      sendMessage(message);
-    },
-    [sendMessage]
-  );
+  const handleSend = useCallback((message: string) => sendMessage(message), [sendMessage]);
 
   const handleQuickReply = useCallback(
     (reply: QuickReply) => {
@@ -64,11 +57,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
     [sendMessage, onSubmit]
   );
 
-  // ── Render ─────────────────────────────────────────────────────────────
-
   return (
     <div className="flex flex-col h-[calc(100vh-120px)] max-h-[800px] bg-white overflow-hidden">
-      {/* Header */}
       <ChatHeader
         role={role}
         fieldState={state.fieldState}
@@ -76,19 +66,16 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         onToggleEditor={onToggleEditor}
       />
 
-      {/* Messages */}
       <MessageList
         messages={state.messages}
         isTyping={state.isTyping}
         onStructuredInput={handleStructuredInput}
       />
 
-      {/* Quick Replies */}
       {state.quickReplies && state.quickReplies.length > 0 && (
         <QuickReplies replies={state.quickReplies} onSelect={handleQuickReply} />
       )}
 
-      {/* Input */}
       <ChatInput
         onSend={handleSend}
         isTyping={state.isTyping}

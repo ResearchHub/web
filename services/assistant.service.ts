@@ -2,12 +2,14 @@ import { ApiClient } from './client';
 import type {
   AssistantChatRequest,
   AssistantChatResponse,
-  AssistantSubmitRequest,
-  AssistantSubmitResponse,
-  AuthorSearchResult,
-  HubSearchResult,
-  NonprofitSearchResult,
+  AssistantSessionResponse,
 } from '@/types/assistant';
+import type { SearchSuggestion, UserSuggestion } from '@/types/search';
+import type { Topic } from '@/types/topic';
+import type { NonprofitOrg } from '@/types/nonprofit';
+import { SearchService } from './search.service';
+import { HubService } from './hub.service';
+import { NonprofitService } from './nonprofit.service';
 
 // ── Main Assistant Service ──────────────────────────────────────────────────
 
@@ -18,9 +20,6 @@ export class AssistantService {
    * Send a message to the assistant and receive a response.
    *
    * POST /api/assistant/chat/
-   *
-   * On the first message, omit `session_id` and include `role`.
-   * The server returns a `session_id` that must be sent on all subsequent messages.
    */
   static async chat(request: AssistantChatRequest): Promise<AssistantChatResponse> {
     const body: Record<string, unknown> = {
@@ -43,87 +42,50 @@ export class AssistantService {
   }
 
   /**
-   * Submit the completed session to create the actual post/grant.
+   * Load an existing session by ID (for resuming).
    *
-   * POST /api/assistant/submit/
+   * GET /api/assistant/session/{session_id}/
    */
-  static async submit(request: AssistantSubmitRequest): Promise<AssistantSubmitResponse> {
-    return ApiClient.post<AssistantSubmitResponse>(`${this.BASE_PATH}/submit/`, {
-      session_id: request.session_id,
-    });
+  static async getSession(sessionId: string): Promise<AssistantSessionResponse> {
+    return ApiClient.get<AssistantSessionResponse>(`${this.BASE_PATH}/sessions/${sessionId}/`);
   }
 
-  // ── Inline Component Search APIs ────────────────────────────────────────
+  // ── Search APIs (delegates to existing services) ────────────────────────
 
   /**
-   * Search for authors/users.
-   *
-   * GET /api/search/suggest/?q=<query>&index=author,user&limit=10
+   * Search for authors/users via SearchService.
+   * Returns UserSuggestion[] filtered to user/author entity types.
    */
-  static async searchAuthors(query: string): Promise<AuthorSearchResult[]> {
+  static async searchAuthors(query: string): Promise<UserSuggestion[]> {
     if (!query.trim()) return [];
-
-    const encoded = encodeURIComponent(query.trim());
-    const raw = await ApiClient.get<any[]>(
-      `/api/search/suggest/?q=${encoded}&index=author,user&limit=10`
+    const results = await SearchService.getSuggestions(query, 'user', 10);
+    return results.filter(
+      (r): r is UserSuggestion => r.entityType === 'user' || r.entityType === 'author'
     );
-
-    return (raw ?? []).map((item) => ({
-      id: item.author_profile?.id ?? item.id,
-      name:
-        item.display_name ??
-        item.full_name ??
-        [item.first_name, item.last_name].filter(Boolean).join(' ') ??
-        'Unknown',
-      headline:
-        typeof item.headline === 'string'
-          ? item.headline
-          : (item.headline?.title ?? item.author_profile?.headline?.title ?? undefined),
-      profileImage: item.profile_image ?? item.author_profile?.profile_image ?? undefined,
-    }));
   }
 
   /**
-   * Search for hubs/topics.
-   *
-   * GET /api/hub/?search=<query>&exclude_journals=true
-   * Falls back to GET /api/hub/?exclude_journals=true when no query.
+   * Search for hubs/topics via HubService.
+   * Returns Topic[].
    */
-  static async searchHubs(query?: string): Promise<HubSearchResult[]> {
-    let path = '/api/hub/?exclude_journals=true&ordering=-paper_count';
+  static async searchHubs(query?: string): Promise<Topic[]> {
     if (query?.trim()) {
-      path += `&search=${encodeURIComponent(query.trim())}`;
+      // HubService.getHubs doesn't support search query, use API directly
+      const raw = await ApiClient.get<{ results: any[] }>(
+        `/api/hub/?exclude_journals=true&ordering=-paper_count&search=${encodeURIComponent(query.trim())}`
+      );
+      const { transformTopic } = await import('@/types/topic');
+      return (raw?.results ?? []).map(transformTopic);
     }
-
-    const raw = await ApiClient.get<{ results: any[] }>(path);
-
-    return (raw?.results ?? []).map((item) => ({
-      id: item.id,
-      name: item.name,
-      slug: item.slug,
-      imageUrl: item.hub_image ?? undefined,
-    }));
+    return HubService.getHubs({ excludeJournals: true });
   }
 
   /**
-   * Search for non-profit organizations.
-   *
-   * GET /api/organizations/non-profit/search/?searchTerm=<query>&count=15
+   * Search for non-profit organizations via NonprofitService.
+   * Returns NonprofitOrg[].
    */
-  static async searchNonprofits(query: string): Promise<NonprofitSearchResult[]> {
+  static async searchNonprofits(query: string): Promise<NonprofitOrg[]> {
     if (!query.trim()) return [];
-
-    const encoded = encodeURIComponent(query.trim());
-    const raw = await ApiClient.get<any[]>(
-      `/api/organizations/non-profit/search/?searchTerm=${encoded}&count=15`
-    );
-
-    return (raw ?? []).map((item) => ({
-      id: item.endaomentOrgId ?? item.id,
-      name: item.name,
-      ein: item.ein ?? undefined,
-      description: item.description ?? undefined,
-      logoUrl: item.logoUrl ?? undefined,
-    }));
+    return NonprofitService.searchNonprofitOrgs(query, { count: 15 });
   }
 }

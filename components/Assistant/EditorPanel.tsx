@@ -8,7 +8,7 @@ import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEdi
 interface EditorPanelProps {
   field: string;
   initialContent: string;
-  onConfirm: (json: object) => void;
+  onConfirm: (json: object, html: string) => void;
   onDiscard: () => void;
 }
 
@@ -31,8 +31,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
 
   const handleConfirm = useCallback(() => {
     if (!editor) return;
-    const json = editor.getJSON();
-    onConfirm(json);
+    onConfirm(editor.getJSON(), editor.getHTML());
   }, [editor, onConfirm]);
 
   return (
@@ -51,8 +50,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           <button
             onClick={onDiscard}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600
-              border border-gray-200 rounded-lg
-              hover:bg-gray-100 active:scale-[0.98] transition-all"
+              border border-gray-200 rounded-lg hover:bg-gray-100 active:scale-[0.98] transition-all"
           >
             <X size={12} />
             Discard
@@ -61,8 +59,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
             onClick={handleConfirm}
             disabled={!editorReady}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white
-              bg-primary-600 rounded-lg
-              hover:bg-primary-700 active:scale-[0.98] transition-all
+              bg-primary-600 rounded-lg hover:bg-primary-700 active:scale-[0.98] transition-all
               disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {editorReady ? <Check size={12} /> : <Loader2 size={12} className="animate-spin" />}

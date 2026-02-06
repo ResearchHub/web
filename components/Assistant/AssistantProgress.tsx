@@ -12,7 +12,7 @@ interface AssistantProgressProps {
 }
 
 function isFieldDone(status?: string): boolean {
-  return status === 'complete' || status === 'skipped';
+  return status === 'complete';
 }
 
 export const AssistantProgress: React.FC<AssistantProgressProps> = ({
@@ -26,7 +26,6 @@ export const AssistantProgress: React.FC<AssistantProgressProps> = ({
 
   return (
     <div className="py-4">
-      {/* Header + progress bar */}
       <div className="px-4 mb-4">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold text-gray-900">Progress</h3>
@@ -42,7 +41,6 @@ export const AssistantProgress: React.FC<AssistantProgressProps> = ({
         </div>
       </div>
 
-      {/* Required fields — always visible */}
       <div className="px-4 mb-4">
         <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
           Required
@@ -60,9 +58,7 @@ export const AssistantProgress: React.FC<AssistantProgressProps> = ({
                 <Checkbox checked={done} readOnly className="pointer-events-none" />
                 <div className="min-w-0 flex-1">
                   <p
-                    className={`text-sm truncate ${
-                      done ? 'text-gray-400 line-through' : 'font-medium text-gray-800'
-                    }`}
+                    className={`text-sm truncate ${done ? 'text-gray-400 line-through' : 'font-medium text-gray-800'}`}
                   >
                     {field.label}
                   </p>
@@ -76,7 +72,6 @@ export const AssistantProgress: React.FC<AssistantProgressProps> = ({
         </div>
       </div>
 
-      {/* Optional fields */}
       {optional.length > 0 && (
         <div className="px-4">
           <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
@@ -94,9 +89,7 @@ export const AssistantProgress: React.FC<AssistantProgressProps> = ({
                 >
                   <Checkbox checked={done} readOnly className="pointer-events-none" />
                   <p
-                    className={`text-sm truncate min-w-0 flex-1 ${
-                      done ? 'text-gray-400 line-through' : 'text-gray-500'
-                    }`}
+                    className={`text-sm truncate min-w-0 flex-1 ${done ? 'text-gray-400 line-through' : 'text-gray-500'}`}
                   >
                     {field.label}
                   </p>

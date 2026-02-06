@@ -6,13 +6,14 @@ export type InputType =
   | 'author_lookup'
   | 'topic_select'
   | 'nonprofit_lookup'
+  | 'contact_lookup'
   | 'final_review'
   | 'rich_editor'
   | null;
 
-export type FieldStatus = 'draft' | 'complete' | 'skipped' | 'empty';
+export type FieldStatus = 'ai_suggested' | 'complete' | 'empty';
 
-// ── API DTOs ────────────────────────────────────────────────────────────────
+// ── API DTOs (snake_case to match backend) ──────────────────────────────────
 
 export interface AssistantChatRequest {
   session_id?: string;
@@ -24,6 +25,29 @@ export interface AssistantChatRequest {
   };
 }
 
+export interface AssistantChatResponse {
+  session_id: string;
+  message: string;
+  follow_up?: string | null;
+  input_type: InputType;
+  editor_field?: string | null;
+  note_id?: string | null;
+  quick_replies: QuickReply[] | null;
+  field_updates: Record<string, FieldUpdate> | null;
+  payload: object | null;
+  complete: boolean;
+}
+
+export interface AssistantSessionResponse {
+  session_id: string;
+  role: AssistantRole;
+  note_id: string | null;
+  field_state: Record<string, FieldUpdate>;
+  is_complete: boolean;
+}
+
+// ── Shared Value Types (camelCase) ──────────────────────────────────────────
+
 export interface QuickReply {
   label: string;
   value: string | null;
@@ -34,30 +58,13 @@ export interface FieldUpdate {
   value: string;
 }
 
-export interface AssistantChatResponse {
-  session_id: string;
-  message: string;
-  follow_up?: string | null;
-  input_type: InputType;
-  editor_field?: string | null;
-  quick_replies: QuickReply[] | null;
-  field_updates: Record<string, FieldUpdate> | null;
-  payload: object | null;
-  complete: boolean;
+export interface FieldDefinition {
+  key: string;
+  label: string;
+  required: boolean;
 }
 
-export interface AssistantSubmitRequest {
-  session_id: string;
-}
-
-export interface AssistantSubmitResponse {
-  success: boolean;
-  message: string;
-  document_id?: number;
-  document_type?: 'post' | 'grant';
-}
-
-// ── Chat State ──────────────────────────────────────────────────────────────
+// ── Chat State (camelCase) ──────────────────────────────────────────────────
 
 export interface ChatMessage {
   id: string;
@@ -66,15 +73,7 @@ export interface ChatMessage {
   followUp?: string;
   inputType?: InputType;
   editorField?: string;
-  quickReplies?: QuickReply[] | null;
   timestamp: number;
-}
-
-export interface FieldDefinition {
-  key: string;
-  label: string;
-  required: boolean;
-  inputMethod: string;
 }
 
 export interface EditorPanelState {
@@ -86,6 +85,7 @@ export interface EditorPanelState {
 export interface ChatState {
   sessionId: string | null;
   role: AssistantRole | null;
+  noteId: string | null;
   messages: ChatMessage[];
   quickReplies: QuickReply[] | null;
   fieldState: Record<string, FieldUpdate>;
@@ -95,11 +95,12 @@ export interface ChatState {
   payload: object | null;
 }
 
-// ── Reducer Actions ─────────────────────────────────────────────────────────
+// ── Reducer Actions (camelCase) ─────────────────────────────────────────────
 
 export type ChatAction =
   | { type: 'SET_ROLE'; role: AssistantRole }
   | { type: 'SET_SESSION_ID'; sessionId: string }
+  | { type: 'SET_NOTE_ID'; noteId: string }
   | { type: 'ADD_USER_MESSAGE'; content: string }
   | {
       type: 'ADD_BOT_MESSAGE';
@@ -107,6 +108,7 @@ export type ChatAction =
       followUp?: string;
       inputType?: InputType;
       editorField?: string;
+      noteId?: string;
       quickReplies?: QuickReply[] | null;
     }
   | { type: 'SET_TYPING'; isTyping: boolean }
@@ -115,28 +117,14 @@ export type ChatAction =
   | { type: 'CLEAR_QUICK_REPLIES' }
   | { type: 'OPEN_EDITOR'; field: string; content: string }
   | { type: 'CLOSE_EDITOR' }
+  | {
+      type: 'HYDRATE_SESSION';
+      sessionId: string;
+      role: AssistantRole;
+      noteId: string | null;
+      fieldState: Record<string, FieldUpdate>;
+    }
   | { type: 'RESET' };
 
-// ── Inline Component Search Result Types ────────────────────────────────────
-
-export interface AuthorSearchResult {
-  id: number;
-  name: string;
-  headline?: string;
-  profileImage?: string;
-}
-
-export interface HubSearchResult {
-  id: number;
-  name: string;
-  slug: string;
-  imageUrl?: string;
-}
-
-export interface NonprofitSearchResult {
-  id: string;
-  name: string;
-  ein?: string;
-  description?: string;
-  logoUrl?: string;
-}
+// ── Note: Inline component search types use existing types from ──────────────
+// @/types/search (UserSuggestion), @/types/topic (Topic), @/types/nonprofit (NonprofitOrg)

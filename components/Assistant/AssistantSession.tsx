@@ -1,16 +1,22 @@
 'use client';
 
-import React, { useReducer, useCallback, useEffect, useRef } from 'react';
+import React, { useReducer, useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import type { AssistantRole, AssistantChatResponse } from '@/types/assistant';
+import type { AssistantChatResponse } from '@/types/assistant';
 import { AssistantService } from '@/services/assistant.service';
+import { NoteService } from '@/services/note.service';
 import { chatReducer, createInitialState } from './lib/assistantReducer';
-import { OnboardingScreen } from './OnboardingScreen';
 import { ChatScreen } from './ChatScreen';
 import { EditorPanel } from './EditorPanel';
 import { AssistantProgress } from './AssistantProgress';
 import { BaseModal } from '@/components/ui/BaseModal';
+import proposalTemplate from '@/components/Editor/lib/data/proposalTemplate';
+import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
+
+interface AssistantSessionProps {
+  sessionId: string;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Process API responses                                              */
@@ -18,6 +24,10 @@ import { BaseModal } from '@/components/ui/BaseModal';
 function handleChatResponse(response: AssistantChatResponse, dispatch: React.Dispatch<any>) {
   if (response.session_id) {
     dispatch({ type: 'SET_SESSION_ID', sessionId: response.session_id });
+  }
+
+  if (response.note_id) {
+    dispatch({ type: 'SET_NOTE_ID', noteId: String(response.note_id) });
   }
 
   const editorField =
@@ -32,6 +42,7 @@ function handleChatResponse(response: AssistantChatResponse, dispatch: React.Dis
     followUp: response.follow_up ?? undefined,
     inputType: response.input_type ?? undefined,
     editorField: editorField ?? undefined,
+    noteId: response.note_id ? String(response.note_id) : undefined,
     quickReplies: response.quick_replies,
   });
 
@@ -49,10 +60,11 @@ function handleChatResponse(response: AssistantChatResponse, dispatch: React.Dis
 }
 
 /* ================================================================== */
-/*  AssistantRoot                                                      */
+/*  AssistantSession                                                   */
 /* ================================================================== */
-export const AssistantRoot: React.FC = () => {
+export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId }) => {
   const [state, dispatch] = useReducer(chatReducer, createInitialState());
+  const [isLoadingSession, setIsLoadingSession] = useState(true);
   const router = useRouter();
   const sessionIdRef = useRef(state.sessionId);
   sessionIdRef.current = state.sessionId;
@@ -61,38 +73,46 @@ export const AssistantRoot: React.FC = () => {
   const role = state.role;
   const editorIsOpen = state.editorPanel.isOpen;
 
-  // ── Role selection ────────────────────────────────────────────────────
-
-  const handleSelectRole = useCallback((selectedRole: AssistantRole) => {
-    dispatch({ type: 'SET_ROLE', role: selectedRole });
-  }, []);
-
-  // ── Initialize chat when role is set ──────────────────────────────────
+  // ── Load session on mount ─────────────────────────────────────────────
 
   useEffect(() => {
-    if (!role || hasInitialized.current) return;
+    if (hasInitialized.current) return;
     hasInitialized.current = true;
 
-    const initChat = async () => {
-      dispatch({ type: 'SET_TYPING', isTyping: true });
+    const loadSession = async () => {
       try {
-        const response = await AssistantService.chat({
-          role,
-          message: 'Hello, I want to get started.',
+        // 1. Load session metadata
+        const session = await AssistantService.getSession(sessionId);
+
+        // 2. Hydrate state
+        dispatch({
+          type: 'HYDRATE_SESSION',
+          sessionId: session.session_id,
+          role: session.role,
+          noteId: session.note_id,
+          fieldState: session.field_state,
         });
+
+        setIsLoadingSession(false);
+
+        // 3. Resume the chat to get a welcome-back message
+        const response = await AssistantService.chat({
+          session_id: session.session_id,
+          role: session.role,
+          message: 'Resuming session',
+        });
+
         handleChatResponse(response, dispatch);
       } catch {
-        dispatch({
-          type: 'ADD_BOT_MESSAGE',
-          content: 'Sorry, I had trouble connecting. Please try refreshing the page.',
-        });
+        // Session not found or expired — redirect to onboarding
+        router.replace('/assistant');
       }
     };
 
-    initChat();
-  }, [role]);
+    loadSession();
+  }, [sessionId, router]);
 
-  // ── Send message (shared by ChatScreen + editor confirm) ─────────────
+  // ── Send message ──────────────────────────────────────────────────────
 
   const sendMessage = useCallback(
     async (content: string, structuredInput?: { field: string; value: any }) => {
@@ -101,7 +121,7 @@ export const AssistantRoot: React.FC = () => {
 
       try {
         const response = await AssistantService.chat({
-          session_id: sessionIdRef.current ?? undefined,
+          session_id: sessionIdRef.current ?? sessionId,
           role: role ?? undefined,
           message: content,
           structured_input: structuredInput,
@@ -114,37 +134,22 @@ export const AssistantRoot: React.FC = () => {
         });
       }
     },
-    [role]
+    [role, sessionId]
   );
 
-  // ── Submit completed session ──────────────────────────────────────────
+  // ── Submit ────────────────────────────────────────────────────────────
+  // TODO: Wire to PostService.upsert / GrantService.createGrant
+  // For now, placeholder that sends a message
 
   const handleSubmit = useCallback(async () => {
-    const sid = sessionIdRef.current;
-    if (!sid) return;
-
     dispatch({ type: 'SET_TYPING', isTyping: true });
+    dispatch({
+      type: 'ADD_BOT_MESSAGE',
+      content: 'Submission flow coming soon! All fields have been collected.',
+    });
+  }, []);
 
-    try {
-      const result = await AssistantService.submit({ session_id: sid });
-      dispatch({
-        type: 'ADD_BOT_MESSAGE',
-        content: result.message || 'Your submission was created successfully!',
-      });
-
-      if (result.success && result.document_id) {
-        const basePath = result.document_type === 'grant' ? '/fund' : '/post';
-        setTimeout(() => router.push(`${basePath}/${result.document_id}`), 1500);
-      }
-    } catch {
-      dispatch({
-        type: 'ADD_BOT_MESSAGE',
-        content: 'There was a problem submitting. Please try again.',
-      });
-    }
-  }, [router]);
-
-  // ── Field click (from sidebar) ────────────────────────────────────────
+  // ── Field click ───────────────────────────────────────────────────────
 
   const handleFieldClick = useCallback(
     (fieldKey: string) => {
@@ -153,12 +158,48 @@ export const AssistantRoot: React.FC = () => {
     [sendMessage]
   );
 
+  // ── Note creation ─────────────────────────────────────────────────────
+
+  const createNoteForSession = useCallback(async () => {
+    if (state.noteId) return state.noteId;
+
+    // TODO: get orgSlug from user context
+    const orgSlug = 'default';
+
+    const note = await NoteService.createNote({
+      title: state.fieldState.title?.value || 'Untitled',
+      grouping: 'WORKSPACE' as any,
+      organization_slug: orgSlug,
+    });
+
+    const template = role === 'funder' ? grantTemplate : proposalTemplate;
+    await NoteService.updateNoteContent({
+      note: note.id,
+      full_json: JSON.stringify(template),
+    });
+
+    const noteId = String(note.id);
+    dispatch({ type: 'SET_NOTE_ID', noteId });
+
+    // Tell the backend about the note
+    await AssistantService.chat({
+      session_id: sessionIdRef.current ?? sessionId,
+      message: 'Note created',
+      structured_input: { field: 'note_id', value: noteId },
+    });
+
+    return noteId;
+  }, [state.noteId, state.fieldState.title?.value, role, sessionId]);
+
   // ── Editor toggle ─────────────────────────────────────────────────────
 
-  const handleToggleEditor = useCallback(() => {
+  const handleToggleEditor = useCallback(async () => {
     if (editorIsOpen) {
       dispatch({ type: 'CLOSE_EDITOR' });
     } else {
+      // Ensure a note exists before opening the editor
+      await createNoteForSession();
+
       const existing = state.fieldState.description?.value;
       dispatch({
         type: 'OPEN_EDITOR',
@@ -166,12 +207,21 @@ export const AssistantRoot: React.FC = () => {
         content: existing || '<p></p>',
       });
     }
-  }, [editorIsOpen, state.fieldState.description?.value]);
+  }, [editorIsOpen, state.fieldState.description?.value, createNoteForSession]);
 
   const handleEditorConfirm = useCallback(
-    (json: object) => {
+    async (json: object, html: string) => {
       const field = state.editorPanel.field;
       if (!field) return;
+
+      // Persist to note if one exists
+      if (state.noteId) {
+        await NoteService.updateNoteContent({
+          note: state.noteId,
+          full_json: JSON.stringify(json),
+          full_src: html,
+        });
+      }
 
       sendMessage(`I've finished editing the ${field.replace(/_/g, ' ')}.`, {
         field,
@@ -179,7 +229,7 @@ export const AssistantRoot: React.FC = () => {
       });
       dispatch({ type: 'CLOSE_EDITOR' });
     },
-    [state.editorPanel.field, sendMessage]
+    [state.editorPanel.field, state.noteId, sendMessage]
   );
 
   const handleEditorDiscard = useCallback(() => {
@@ -196,12 +246,26 @@ export const AssistantRoot: React.FC = () => {
 
   // ── Render ────────────────────────────────────────────────────────────
 
-  if (!role) {
+  if (isLoadingSession) {
     return (
       <PageLayout rightSidebar={false}>
-        <OnboardingScreen onSelectRole={handleSelectRole} />
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex gap-1">
+              <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:0ms]" />
+              <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:150ms]" />
+              <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:300ms]" />
+            </div>
+            <p className="text-sm text-gray-500">Loading session...</p>
+          </div>
+        </div>
       </PageLayout>
     );
+  }
+
+  if (!role) {
+    router.replace('/assistant');
+    return null;
   }
 
   return (
@@ -216,7 +280,7 @@ export const AssistantRoot: React.FC = () => {
         onToggleEditor={handleToggleEditor}
       />
 
-      {/* Editor modal — EditorPanel has its own header with confirm/discard */}
+      {/* Editor modal */}
       <BaseModal
         isOpen={editorIsOpen && !!state.editorPanel.field}
         onClose={handleEditorDiscard}

@@ -12,6 +12,7 @@ import {
   PenTool,
   Star,
   ChevronDown,
+  Loader2,
 } from 'lucide-react';
 import Icon from '@/components/ui/icons/Icon';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
@@ -19,6 +20,7 @@ import type { AssistantRole } from '@/types/assistant';
 
 interface OnboardingScreenProps {
   onSelectRole: (role: AssistantRole) => void;
+  isLoading?: boolean;
 }
 
 interface StepItem {
@@ -40,10 +42,11 @@ interface RoleCardProps {
   accentBg: string;
   accentBorder: string;
   delay: number;
+  disabled?: boolean;
 }
 
 /* ------------------------------------------------------------------ */
-/*  Floating particle component for AI atmosphere                     */
+/*  Floating particle                                                  */
 /* ------------------------------------------------------------------ */
 const FloatingParticle: React.FC<{
   size: number;
@@ -68,7 +71,7 @@ const FloatingParticle: React.FC<{
 );
 
 /* ------------------------------------------------------------------ */
-/*  Sparkle icon with pulse animation                                 */
+/*  Animated sparkle                                                   */
 /* ------------------------------------------------------------------ */
 const AnimatedSparkle: React.FC<{ className?: string }> = ({ className }) => (
   <div className={`relative ${className ?? ''}`}>
@@ -84,7 +87,7 @@ const AnimatedSparkle: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 /* ------------------------------------------------------------------ */
-/*  Collapsible "How it works" section                                */
+/*  Collapsible "How it works"                                         */
 /* ------------------------------------------------------------------ */
 const HowItWorks: React.FC<{
   steps: StepItem[];
@@ -120,7 +123,6 @@ const HowItWorks: React.FC<{
         }}
       >
         <div className="relative">
-          {/* Connecting line */}
           <div
             className="absolute left-[11px] top-[12px] w-0.5"
             style={{
@@ -128,23 +130,17 @@ const HowItWorks: React.FC<{
               background: accentColorLight,
             }}
           />
-
           <div className="space-y-3">
             {steps.map((step, index) => (
               <div key={index} className="relative flex items-start gap-3">
-                {/* Step indicator */}
                 <div
                   className="relative flex-shrink-0 w-[23px] h-[23px] rounded-full flex items-center justify-center z-10 ring-2 ring-white"
-                  style={{
-                    background: step.highlight ? accentColor : accentColorLight,
-                  }}
+                  style={{ background: step.highlight ? accentColor : accentColorLight }}
                 >
                   <span style={{ color: step.highlight ? '#fff' : accentColor }}>
                     {React.cloneElement(step.icon as React.ReactElement, { size: 11 })}
                   </span>
                 </div>
-
-                {/* Label */}
                 <div className="flex-1 pt-[1px]">
                   <span
                     className={`text-sm leading-snug ${
@@ -175,7 +171,7 @@ const HowItWorks: React.FC<{
 };
 
 /* ------------------------------------------------------------------ */
-/*  Role card component                                               */
+/*  Role card                                                          */
 /* ------------------------------------------------------------------ */
 const RoleCard: React.FC<RoleCardProps> = ({
   persona,
@@ -189,6 +185,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
   accentBg,
   accentBorder,
   delay,
+  disabled,
 }) => {
   const [visible, setVisible] = useState(false);
 
@@ -200,6 +197,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(24px)',
@@ -208,27 +206,21 @@ const RoleCard: React.FC<RoleCardProps> = ({
       }}
       className={`group relative flex flex-col items-start text-left w-full
         rounded-2xl p-6 overflow-hidden
-        hover:shadow-xl
-        active:scale-[0.98]
+        hover:shadow-xl active:scale-[0.98]
         transition-shadow duration-300 ease-out
         bg-white cursor-pointer
-        border ${accentBorder}`}
+        border ${accentBorder}
+        disabled:opacity-60 disabled:cursor-wait`}
     >
-      {/* Top gradient accent line */}
       <div
         className="absolute top-0 left-0 right-0 h-[3px] opacity-60 group-hover:opacity-100 transition-opacity duration-300"
-        style={{
-          background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
-        }}
+        style={{ background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)` }}
       />
-
-      {/* Background glow on hover */}
       <div
         className="absolute -top-20 -right-20 w-40 h-40 rounded-full opacity-0 group-hover:opacity-[0.07] transition-opacity duration-500 blur-3xl"
         style={{ background: accentColor }}
       />
 
-      {/* Icon */}
       <div className="relative mb-4">
         <div
           className={`flex items-center justify-center w-14 h-14 rounded-2xl ${accentBg} transition-all duration-300 group-hover:shadow-lg`}
@@ -237,7 +229,6 @@ const RoleCard: React.FC<RoleCardProps> = ({
         </div>
       </div>
 
-      {/* Persona label */}
       <span
         className="inline-flex items-center text-xs font-semibold uppercase tracking-wider mb-2"
         style={{ color: accentColor }}
@@ -245,46 +236,56 @@ const RoleCard: React.FC<RoleCardProps> = ({
         {persona}
       </span>
 
-      {/* Title */}
       <h3 className="text-lg font-bold text-gray-900 mb-1.5 group-hover:text-gray-800 transition-colors">
         {title}
       </h3>
 
-      {/* Description */}
       <p className="text-sm text-gray-500 leading-relaxed mb-5">{description}</p>
 
-      {/* How it works — collapsible */}
       <HowItWorks steps={steps} accentColor={accentColor} accentColorLight={accentColorLight} />
 
-      {/* CTA */}
       <div
         className="flex items-center gap-2 text-sm font-semibold mt-auto transition-all duration-300 group-hover:gap-3"
         style={{ color: accentColor }}
       >
-        Get started
-        <ArrowRight
-          size={16}
-          className="group-hover:translate-x-0.5 transition-transform duration-300"
-        />
+        {disabled ? (
+          <>
+            <Loader2 size={16} className="animate-spin" />
+            Starting...
+          </>
+        ) : (
+          <>
+            Get started
+            <ArrowRight
+              size={16}
+              className="group-hover:translate-x-0.5 transition-transform duration-300"
+            />
+          </>
+        )}
       </div>
     </button>
   );
 };
 
 /* ================================================================== */
-/*  Onboarding Screen                                                 */
+/*  Onboarding Screen                                                  */
 /* ================================================================== */
-export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onSelectRole }) => {
+export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onSelectRole, isLoading }) => {
   const [headerVisible, setHeaderVisible] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<AssistantRole | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setHeaderVisible(true), 100);
     return () => clearTimeout(timer);
   }, []);
 
+  const handleSelect = (role: AssistantRole) => {
+    setSelectedRole(role);
+    onSelectRole(role);
+  };
+
   return (
     <>
-      {/* Scoped keyframes */}
       <style>{`
         @keyframes assistantFloat {
           0%, 100% { opacity: 0; transform: translateY(0) scale(1); }
@@ -303,7 +304,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onSelectRole
       `}</style>
 
       <div className="relative flex flex-col items-center py-14 px-4 overflow-hidden">
-        {/* ---- Background ambient layer ---- */}
+        {/* Background */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <div
             className="absolute w-[500px] h-[500px] rounded-full blur-[120px] opacity-[0.08]"
@@ -329,11 +330,9 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onSelectRole
           <FloatingParticle size={4} x="80%" y="15%" delay={1} duration={5} color="#6366f1" />
           <FloatingParticle size={5} x="70%" y="70%" delay={2} duration={4.5} color="#a78bfa" />
           <FloatingParticle size={3} x="25%" y="75%" delay={0.5} duration={3.5} color="#93c5fd" />
-          <FloatingParticle size={4} x="50%" y="10%" delay={1.5} duration={5.5} color="#c4b5fd" />
-          <FloatingParticle size={5} x="90%" y="50%" delay={0.8} duration={4} color="#818cf8" />
         </div>
 
-        {/* ---- Header section ---- */}
+        {/* Header */}
         <div
           className="relative z-10 flex flex-col items-center"
           style={{
@@ -342,7 +341,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onSelectRole
             transition: 'all 0.7s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          {/* AI badge */}
           <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-8 border border-indigo-100"
             style={{
@@ -354,7 +352,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onSelectRole
             <span>Powered by AI</span>
           </div>
 
-          {/* Headline */}
           <h1 className="text-4xl sm:text-5xl font-bold text-center mb-4 leading-[1.15] tracking-tight">
             <span className="text-gray-900">Meet your</span>
             <br />
@@ -369,13 +366,12 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onSelectRole
             </span>
           </h1>
 
-          {/* Subheadline */}
           <p className="text-gray-500 text-center mb-12 max-w-lg text-base leading-relaxed">
             Our research assistant will help you brainstorm and submit proposals.
           </p>
         </div>
 
-        {/* ---- Role cards ---- */}
+        {/* Cards */}
         <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-5 w-full max-w-2xl">
           <RoleCard
             persona="Funder"
@@ -397,8 +393,9 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onSelectRole
             accentColorLight="#dbeafe"
             accentBg="bg-blue-50"
             accentBorder="border-blue-100 hover:border-blue-200"
-            onClick={() => onSelectRole('funder')}
+            onClick={() => handleSelect('funder')}
             delay={300}
+            disabled={isLoading && selectedRole === 'funder'}
           />
           <RoleCard
             persona="Researcher"
@@ -420,18 +417,15 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onSelectRole
             accentColorLight="#ffedd5"
             accentBg="bg-orange-50"
             accentBorder="border-orange-100 hover:border-orange-200"
-            onClick={() => onSelectRole('researcher')}
+            onClick={() => handleSelect('researcher')}
             delay={450}
+            disabled={isLoading && selectedRole === 'researcher'}
           />
         </div>
 
-        {/* ---- Bottom trust bar ---- */}
         <div
           className="relative z-10 mt-10 flex items-center gap-2 text-xs text-gray-400"
-          style={{
-            opacity: headerVisible ? 1 : 0,
-            transition: 'opacity 1s ease-out 0.8s',
-          }}
+          style={{ opacity: headerVisible ? 1 : 0, transition: 'opacity 1s ease-out 0.8s' }}
         >
           <Sparkles size={12} className="text-gray-300" />
           <span>Powered by AI — your data stays private & secure</span>

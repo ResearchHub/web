@@ -41,7 +41,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Mobile-only progress button (hidden when right sidebar is visible) */}
+          {/* Mobile-only progress button */}
           <button
             onClick={() => setShowProgressModal(true)}
             className="right-sidebar:!hidden inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-600
@@ -54,7 +54,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             </span>
           </button>
 
-          {/* Editor toggle CTA */}
+          {/* Editor toggle */}
           {onToggleEditor && (
             <button
               onClick={onToggleEditor}
@@ -82,7 +82,6 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
         </div>
       </div>
 
-      {/* Mobile progress modal */}
       <BaseModal
         isOpen={showProgressModal}
         onClose={() => setShowProgressModal(false)}

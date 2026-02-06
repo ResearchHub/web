@@ -1,116 +1,34 @@
 import type { AssistantRole, FieldDefinition, FieldUpdate } from '@/types/assistant';
 
 // ── Proposal fields (researcher path) ───────────────────────────────────────
+// Maps to: PostService.upsert({ document_type: 'PREREGISTRATION', ... })
 
 export const PROPOSAL_REQUIRED_FIELDS: FieldDefinition[] = [
-  {
-    key: 'title',
-    label: 'Title',
-    required: true,
-    inputMethod: 'Bot drafts from conversation, user confirms/edits',
-  },
-  {
-    key: 'description',
-    label: 'Description',
-    required: true,
-    inputMethod: 'Bot drafts from conversation, user confirms/edits',
-  },
-  {
-    key: 'authors',
-    label: 'Authors',
-    required: true,
-    inputMethod: 'Inline autocomplete component',
-  },
-  {
-    key: 'topics',
-    label: 'Topics / Hubs',
-    required: true,
-    inputMethod: 'Inline chip selector',
-  },
-  {
-    key: 'funding_amount_rsc',
-    label: 'Funding Amount (RSC)',
-    required: true,
-    inputMethod: 'Quick reply presets + custom input',
-  },
-  {
-    key: 'deadline',
-    label: 'Deadline',
-    required: true,
-    inputMethod: 'Quick reply presets + custom input',
-  },
+  { key: 'title', label: 'Title', required: true },
+  { key: 'description', label: 'Description', required: true },
+  { key: 'authors', label: 'Authors', required: true },
+  { key: 'hubs', label: 'Topics', required: true },
 ];
 
 export const PROPOSAL_OPTIONAL_FIELDS: FieldDefinition[] = [
-  {
-    key: 'nonprofit',
-    label: 'Non-profit Entity',
-    required: false,
-    inputMethod: 'Yes/No quick reply → autocomplete',
-  },
-  {
-    key: 'milestones',
-    label: 'Milestones',
-    required: false,
-    inputMethod: 'Conversational (bot helps structure)',
-  },
-  {
-    key: 'attachments',
-    label: 'Attachments',
-    required: false,
-    inputMethod: 'File upload component',
-  },
+  { key: 'nonprofit', label: 'Non-profit Entity', required: false },
 ];
 
 // ── Funding opportunity fields (funder path) ────────────────────────────────
+// Maps to: PostService.upsert({ document_type: 'GRANT', ... }) + GrantService.createGrant()
+// Note: grant_currency is always 'USD', assign_doi is always true — set behind the scenes
 
 export const FUNDING_REQUIRED_FIELDS: FieldDefinition[] = [
-  {
-    key: 'title',
-    label: 'Title',
-    required: true,
-    inputMethod: 'Bot drafts from conversation, user confirms/edits',
-  },
-  {
-    key: 'description',
-    label: 'Description',
-    required: true,
-    inputMethod: 'Bot drafts from conversation, user confirms/edits',
-  },
-  {
-    key: 'topics',
-    label: 'Topics / Hubs',
-    required: true,
-    inputMethod: 'Inline chip selector',
-  },
-  {
-    key: 'funding_amount_rsc',
-    label: 'Budget (RSC)',
-    required: true,
-    inputMethod: 'Quick reply presets + custom input',
-  },
-  {
-    key: 'deadline',
-    label: 'Submission Deadline',
-    required: true,
-    inputMethod: 'Quick reply presets + custom input',
-  },
+  { key: 'title', label: 'Title', required: true },
+  { key: 'description', label: 'Description', required: true },
+  { key: 'hubs', label: 'Topics', required: true },
+  { key: 'grant_amount', label: 'Budget (USD)', required: true },
+  { key: 'grant_end_date', label: 'Submission Deadline', required: true },
+  { key: 'grant_organization', label: 'Organization', required: true },
+  { key: 'grant_contacts', label: 'Contact Person', required: true },
 ];
 
-export const FUNDING_OPTIONAL_FIELDS: FieldDefinition[] = [
-  {
-    key: 'evaluation_criteria',
-    label: 'Evaluation Criteria',
-    required: false,
-    inputMethod: 'Conversational',
-  },
-  {
-    key: 'attachments',
-    label: 'Attachments',
-    required: false,
-    inputMethod: 'File upload component',
-  },
-];
+export const FUNDING_OPTIONAL_FIELDS: FieldDefinition[] = [];
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -150,7 +68,7 @@ export function countCompleted(
   let completed = 0;
   for (const field of requiredFields) {
     const state = fieldState[field.key];
-    if (state && (state.status === 'complete' || state.status === 'skipped')) {
+    if (state && state.status === 'complete') {
       completed++;
     }
   }

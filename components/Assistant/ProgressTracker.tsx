@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown, Check, Pencil, Circle, Minus } from 'lucide-react';
+import { ChevronDown, Check, Sparkles, Circle } from 'lucide-react';
 import type { AssistantRole, FieldUpdate } from '@/types/assistant';
 import { getFieldsForRole, countCompleted } from './lib/fieldDefinitions';
 
@@ -19,16 +19,10 @@ function StatusIcon({ status }: { status: string }) {
           <Check size={12} className="text-green-600" strokeWidth={3} />
         </div>
       );
-    case 'draft':
+    case 'ai_suggested':
       return (
-        <div className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-100">
-          <Pencil size={11} className="text-amber-600" />
-        </div>
-      );
-    case 'skipped':
-      return (
-        <div className="flex items-center justify-center w-5 h-5 rounded-full bg-gray-100">
-          <Minus size={12} className="text-gray-400" strokeWidth={3} />
+        <div className="flex items-center justify-center w-5 h-5 rounded-full bg-indigo-100">
+          <Sparkles size={11} className="text-indigo-600" />
         </div>
       );
     default:
