@@ -9,7 +9,7 @@ import { useFormContext } from 'react-hook-form';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { getFieldErrorMessage } from '@/utils/form';
 import { SearchService } from '@/services/search.service';
-import { AuthorSuggestion } from '@/types/search';
+import { UserSuggestion } from '@/types/search';
 
 export function ContactsSection() {
   const {
@@ -20,20 +20,20 @@ export function ContactsSection() {
 
   const contacts = watch('contacts') || [];
 
-  // Helper function for async people search
+  // Helper function for async user search
   const handleAsyncSearch = useCallback(async (query: string): Promise<MultiSelectOption[]> => {
     try {
-      const authorSuggestions: AuthorSuggestion[] = await SearchService.suggestPeople(query);
+      const suggestions = await SearchService.getSuggestions(query, 'user');
 
-      // Filter out suggestions without userId and map to options
-      return authorSuggestions
-        .filter((author) => author.userId)
-        .map((author) => ({
-          value: author.userId?.toString() || `temp-${Date.now()}`,
-          label: author.fullName || 'Unknown User',
+      // Filter to user suggestions with an id and map to options
+      return suggestions
+        .filter((s): s is UserSuggestion => s.entityType === 'user' && !!s.id)
+        .map((user) => ({
+          value: user.id!.toString(),
+          label: user.displayName || 'Unknown User',
         }));
     } catch (error) {
-      console.error('Error searching people:', error);
+      console.error('Error searching users:', error);
       return [];
     }
   }, []);
