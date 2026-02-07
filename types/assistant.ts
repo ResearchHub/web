@@ -15,11 +15,13 @@ export type FieldStatus = 'ai_suggested' | 'complete' | 'empty';
 
 // ── API DTOs (snake_case to match backend) ──────────────────────────────────
 
+export type AssistantChatAction = 'start' | 'resume' | 'message';
+
 export interface AssistantChatRequest {
   session_id?: string;
   role?: AssistantRole;
-  message: string;
-  is_resume?: boolean;
+  action: AssistantChatAction;
+  message?: string;
   structured_input?: {
     field: string;
     value: any;

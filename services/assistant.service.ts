@@ -36,7 +36,7 @@ export class AssistantService {
    */
   static async chat(request: AssistantChatRequest): Promise<AssistantChatResponse> {
     const body: Record<string, unknown> = {
-      message: request.message,
+      action: request.action,
     };
 
     if (request.session_id) {
@@ -47,8 +47,8 @@ export class AssistantService {
       body.role = request.role;
     }
 
-    if (request.is_resume) {
-      body.is_resume = request.is_resume;
+    if (request.message) {
+      body.message = request.message;
     }
 
     if (request.structured_input) {

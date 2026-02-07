@@ -104,8 +104,7 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
         const response = await AssistantService.chat({
           session_id: session.session_id,
           role: session.role,
-          message: hasProgress ? 'Resuming session' : 'Hello, I want to get started.',
-          is_resume: hasProgress,
+          action: hasProgress ? 'resume' : 'start',
         });
 
         handleChatResponse(response, dispatch);
@@ -128,6 +127,7 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
         const response = await AssistantService.chat({
           session_id: sessionIdRef.current ?? sessionId,
           role: role ?? undefined,
+          action: 'message',
           message: content,
           structured_input: structuredInput,
         });
@@ -184,6 +184,7 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
 
     await AssistantService.chat({
       session_id: sessionIdRef.current ?? sessionId,
+      action: 'message',
       message: 'Note created',
       structured_input: { field: 'note_id', value: noteId },
     });
