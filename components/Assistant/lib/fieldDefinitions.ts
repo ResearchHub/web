@@ -1,18 +1,16 @@
 import type { AssistantRole, FieldDefinition, FieldUpdate } from '@/types/assistant';
 
 // ── Proposal fields (researcher path) ───────────────────────────────────────
-// Maps to: PostService.upsert({ document_type: 'PREREGISTRATION', ... })
+// Progress bar tracks submission readiness — NOT document sections.
+// Document content (description) is managed through the editor and AI conversation.
 
 export const PROPOSAL_REQUIRED_FIELDS: FieldDefinition[] = [
   { key: 'title', label: 'Title', required: true },
-  { key: 'description', label: 'Description', required: true },
   { key: 'authors', label: 'Authors', required: true },
   { key: 'hubs', label: 'Topics', required: true },
 ];
 
-export const PROPOSAL_OPTIONAL_FIELDS: FieldDefinition[] = [
-  { key: 'nonprofit', label: 'Non-profit Entity', required: false },
-];
+export const PROPOSAL_OPTIONAL_FIELDS: FieldDefinition[] = [];
 
 // ── Funding opportunity fields (funder path) ────────────────────────────────
 // Maps to: PostService.upsert({ document_type: 'GRANT', ... }) + GrantService.createGrant()
@@ -20,12 +18,11 @@ export const PROPOSAL_OPTIONAL_FIELDS: FieldDefinition[] = [
 
 export const FUNDING_REQUIRED_FIELDS: FieldDefinition[] = [
   { key: 'title', label: 'Title', required: true },
-  { key: 'description', label: 'Description', required: true },
+  { key: 'grant_amount', label: 'Budget', required: true },
+  { key: 'grant_end_date', label: 'Deadline', required: true },
   { key: 'hubs', label: 'Topics', required: true },
-  { key: 'grant_amount', label: 'Budget (USD)', required: true },
-  { key: 'grant_end_date', label: 'Submission Deadline', required: true },
   { key: 'grant_organization', label: 'Organization', required: true },
-  { key: 'grant_contacts', label: 'Contact Person', required: true },
+  { key: 'grant_contacts', label: 'Contact', required: true },
 ];
 
 export const FUNDING_OPTIONAL_FIELDS: FieldDefinition[] = [];

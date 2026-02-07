@@ -15,11 +15,8 @@ export default function AssistantPage() {
     async (role: AssistantRole) => {
       setIsLoading(true);
       try {
-        const response = await AssistantService.chat({
-          role,
-          message: 'Hello, I want to get started.',
-        });
-        router.push(`/assistant/${response.session_id}`);
+        const { session_id } = await AssistantService.createSession({ role });
+        router.push(`/assistant/${session_id}`);
       } catch {
         setIsLoading(false);
       }

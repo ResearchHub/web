@@ -96,10 +96,16 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
 
         setIsLoadingSession(false);
 
+        // Determine if this is a new session or a returning one
+        const hasProgress = Object.values(session.field_state).some(
+          (f: any) => f.status !== 'empty'
+        );
+
         const response = await AssistantService.chat({
           session_id: session.session_id,
           role: session.role,
-          message: 'Resuming session',
+          message: hasProgress ? 'Resuming session' : 'Hello, I want to get started.',
+          is_resume: hasProgress,
         });
 
         handleChatResponse(response, dispatch);

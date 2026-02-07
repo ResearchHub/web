@@ -19,6 +19,7 @@ export interface AssistantChatRequest {
   session_id?: string;
   role?: AssistantRole;
   message: string;
+  is_resume?: boolean;
   structured_input?: {
     field: string;
     value: any;
@@ -36,6 +37,14 @@ export interface AssistantChatResponse {
   field_updates: Record<string, FieldUpdate> | null;
   payload: object | null;
   complete: boolean;
+}
+
+export interface CreateSessionRequest {
+  role: AssistantRole;
+}
+
+export interface CreateSessionResponse {
+  session_id: string;
 }
 
 export interface AssistantSessionResponse {

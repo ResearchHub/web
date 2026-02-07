@@ -3,6 +3,8 @@ import type {
   AssistantChatRequest,
   AssistantChatResponse,
   AssistantSessionResponse,
+  CreateSessionRequest,
+  CreateSessionResponse,
 } from '@/types/assistant';
 import type { SearchSuggestion, UserSuggestion } from '@/types/search';
 import type { Topic } from '@/types/topic';
@@ -15,6 +17,17 @@ import { NonprofitService } from './nonprofit.service';
 
 export class AssistantService {
   private static readonly BASE_PATH = '/api/assistant';
+
+  /**
+   * Create a new assistant session.
+   *
+   * POST /api/assistant/sessions/
+   */
+  static async createSession(request: CreateSessionRequest): Promise<CreateSessionResponse> {
+    return ApiClient.post<CreateSessionResponse>(`${this.BASE_PATH}/session/`, {
+      role: request.role,
+    });
+  }
 
   /**
    * Send a message to the assistant and receive a response.
@@ -34,6 +47,10 @@ export class AssistantService {
       body.role = request.role;
     }
 
+    if (request.is_resume) {
+      body.is_resume = request.is_resume;
+    }
+
     if (request.structured_input) {
       body.structured_input = request.structured_input;
     }
@@ -47,7 +64,7 @@ export class AssistantService {
    * GET /api/assistant/session/{session_id}/
    */
   static async getSession(sessionId: string): Promise<AssistantSessionResponse> {
-    return ApiClient.get<AssistantSessionResponse>(`${this.BASE_PATH}/sessions/${sessionId}/`);
+    return ApiClient.get<AssistantSessionResponse>(`${this.BASE_PATH}/session/${sessionId}/`);
   }
 
   // ── Search APIs (delegates to existing services) ────────────────────────
