@@ -79,7 +79,8 @@ export interface ChatMessage {
 export interface EditorPanelState {
   isOpen: boolean;
   field: string | null;
-  initialContent: string | null;
+  content: string | null;
+  contentJson: string | null;
 }
 
 export interface ChatState {
@@ -115,7 +116,7 @@ export type ChatAction =
   | { type: 'UPDATE_FIELDS'; updates: Record<string, FieldUpdate> }
   | { type: 'SET_COMPLETE'; payload: object }
   | { type: 'CLEAR_QUICK_REPLIES' }
-  | { type: 'OPEN_EDITOR'; field: string; content: string }
+  | { type: 'OPEN_EDITOR'; field: string; content?: string; contentJson?: string }
   | { type: 'CLOSE_EDITOR' }
   | {
       type: 'HYDRATE_SESSION';

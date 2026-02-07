@@ -6,11 +6,12 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import type { AssistantChatResponse } from '@/types/assistant';
 import { AssistantService } from '@/services/assistant.service';
 import { NoteService } from '@/services/note.service';
+import { useCreateNoteFromTemplate } from '@/hooks/useNote';
+import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { chatReducer, createInitialState } from './lib/assistantReducer';
 import { ChatScreen } from './ChatScreen';
-import { EditorPanel } from './EditorPanel';
 import { AssistantProgress } from './AssistantProgress';
-import { BaseModal } from '@/components/ui/BaseModal';
+import { AssistantNoteEditorModal } from './AssistantNoteEditorModal';
 import proposalTemplate from '@/components/Editor/lib/data/proposalTemplate';
 import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
 
@@ -66,6 +67,8 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
   const [state, dispatch] = useReducer(chatReducer, createInitialState());
   const [isLoadingSession, setIsLoadingSession] = useState(true);
   const router = useRouter();
+  const { selectedOrg } = useOrganizationContext();
+  const [, createNoteFromTemplate] = useCreateNoteFromTemplate();
   const sessionIdRef = useRef(state.sessionId);
   sessionIdRef.current = state.sessionId;
   const hasInitialized = useRef(false);
@@ -81,10 +84,8 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
 
     const loadSession = async () => {
       try {
-        // 1. Load session metadata
         const session = await AssistantService.getSession(sessionId);
 
-        // 2. Hydrate state
         dispatch({
           type: 'HYDRATE_SESSION',
           sessionId: session.session_id,
@@ -95,7 +96,6 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
 
         setIsLoadingSession(false);
 
-        // 3. Resume the chat to get a welcome-back message
         const response = await AssistantService.chat({
           session_id: session.session_id,
           role: session.role,
@@ -104,7 +104,6 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
 
         handleChatResponse(response, dispatch);
       } catch {
-        // Session not found or expired — redirect to onboarding
         router.replace('/assistant');
       }
     };
@@ -139,7 +138,6 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
 
   // ── Submit ────────────────────────────────────────────────────────────
   // TODO: Wire to PostService.upsert / GrantService.createGrant
-  // For now, placeholder that sends a message
 
   const handleSubmit = useCallback(async () => {
     dispatch({ type: 'SET_TYPING', isTyping: true });
@@ -161,35 +159,38 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
   // ── Note creation ─────────────────────────────────────────────────────
 
   const createNoteForSession = useCallback(async () => {
-    if (state.noteId) return state.noteId;
+    if (state.noteId) return { noteId: state.noteId, contentJson: '' };
 
-    // TODO: get orgSlug from user context
-    const orgSlug = 'default';
-
-    const note = await NoteService.createNote({
-      title: state.fieldState.title?.value || 'Untitled',
-      grouping: 'WORKSPACE' as any,
-      organization_slug: orgSlug,
-    });
+    if (!selectedOrg?.slug) {
+      throw new Error('No organization selected');
+    }
 
     const template = role === 'funder' ? grantTemplate : proposalTemplate;
-    await NoteService.updateNoteContent({
-      note: note.id,
-      full_json: JSON.stringify(template),
+
+    const fullNote = await createNoteFromTemplate({
+      organizationSlug: selectedOrg.slug,
+      template,
+      title: state.fieldState.title?.value,
     });
 
-    const noteId = String(note.id);
+    const noteId = String(fullNote.id);
     dispatch({ type: 'SET_NOTE_ID', noteId });
 
-    // Tell the backend about the note
     await AssistantService.chat({
       session_id: sessionIdRef.current ?? sessionId,
       message: 'Note created',
       structured_input: { field: 'note_id', value: noteId },
     });
 
-    return noteId;
-  }, [state.noteId, state.fieldState.title?.value, role, sessionId]);
+    return { noteId, contentJson: fullNote.contentJson || '' };
+  }, [
+    state.noteId,
+    state.fieldState.title?.value,
+    role,
+    sessionId,
+    selectedOrg?.slug,
+    createNoteFromTemplate,
+  ]);
 
   // ── Editor toggle ─────────────────────────────────────────────────────
 
@@ -197,17 +198,29 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
     if (editorIsOpen) {
       dispatch({ type: 'CLOSE_EDITOR' });
     } else {
-      // Ensure a note exists before opening the editor
-      await createNoteForSession();
+      const { noteId, contentJson } = await createNoteForSession();
 
-      const existing = state.fieldState.description?.value;
+      let noteContent: string | undefined;
+      let noteContentJson = contentJson || undefined;
+
+      if (!noteContentJson && noteId) {
+        try {
+          const noteData = await NoteService.getNote(noteId);
+          noteContent = noteData.content || undefined;
+          noteContentJson = noteData.contentJson || undefined;
+        } catch {
+          // Fall back to empty
+        }
+      }
+
       dispatch({
         type: 'OPEN_EDITOR',
         field: 'description',
-        content: existing || '<p></p>',
+        content: noteContent,
+        contentJson: noteContentJson,
       });
     }
-  }, [editorIsOpen, state.fieldState.description?.value, createNoteForSession]);
+  }, [editorIsOpen, createNoteForSession]);
 
   const handleEditorConfirm = useCallback(
     async (json: object, html: string) => {
@@ -280,25 +293,13 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
         onToggleEditor={handleToggleEditor}
       />
 
-      {/* Editor modal */}
-      <BaseModal
+      <AssistantNoteEditorModal
         isOpen={editorIsOpen && !!state.editorPanel.field}
-        onClose={handleEditorDiscard}
-        showCloseButton={false}
-        maxWidth="max-w-4xl"
-        padding="p-0"
-      >
-        {state.editorPanel.field && (
-          <div style={{ height: '75vh' }}>
-            <EditorPanel
-              field={state.editorPanel.field}
-              initialContent={state.editorPanel.initialContent || '<p></p>'}
-              onConfirm={handleEditorConfirm}
-              onDiscard={handleEditorDiscard}
-            />
-          </div>
-        )}
-      </BaseModal>
+        content={state.editorPanel.content || undefined}
+        contentJson={state.editorPanel.contentJson || undefined}
+        onConfirm={handleEditorConfirm}
+        onDiscard={handleEditorDiscard}
+      />
     </PageLayout>
   );
 };

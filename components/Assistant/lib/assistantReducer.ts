@@ -6,7 +6,8 @@ import { getInitialFieldState } from './fieldDefinitions';
 const initialEditorPanel = {
   isOpen: false,
   field: null,
-  initialContent: null,
+  content: null,
+  contentJson: null,
 } as const;
 
 export function createInitialState(role?: AssistantRole | null): ChatState {
@@ -102,7 +103,12 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'OPEN_EDITOR': {
       return {
         ...state,
-        editorPanel: { isOpen: true, field: action.field, initialContent: action.content },
+        editorPanel: {
+          isOpen: true,
+          field: action.field,
+          content: action.content ?? null,
+          contentJson: action.contentJson ?? null,
+        },
       };
     }
 
