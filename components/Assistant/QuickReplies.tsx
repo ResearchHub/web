@@ -18,8 +18,8 @@ export const QuickReplies: React.FC<QuickRepliesProps> = ({ replies, onSelect })
           key={i}
           onClick={() => onSelect(reply)}
           className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium
-            border border-indigo-200 text-indigo-700 bg-white
-            hover:bg-indigo-50 hover:border-indigo-300
+            border border-primary-200 text-primary-700 bg-white
+            hover:bg-primary-50 hover:border-primary-300
             active:scale-95
             transition-all duration-150 ease-in-out
             cursor-pointer"

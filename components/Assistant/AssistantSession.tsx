@@ -265,9 +265,9 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
         <div className="flex items-center justify-center h-[60vh]">
           <div className="flex flex-col items-center gap-3">
             <div className="flex gap-1">
-              <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:0ms]" />
-              <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:150ms]" />
-              <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:300ms]" />
+              <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce [animation-delay:0ms]" />
+              <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce [animation-delay:150ms]" />
+              <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce [animation-delay:300ms]" />
             </div>
             <p className="text-sm text-gray-500">Loading session...</p>
           </div>
@@ -293,13 +293,15 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
         onToggleEditor={handleToggleEditor}
       />
 
-      <AssistantNoteEditorModal
-        isOpen={editorIsOpen && !!state.editorPanel.field}
-        content={state.editorPanel.content || undefined}
-        contentJson={state.editorPanel.contentJson || undefined}
-        onConfirm={handleEditorConfirm}
-        onDiscard={handleEditorDiscard}
-      />
+      {editorIsOpen && state.editorPanel.field && (
+        <AssistantNoteEditorModal
+          isOpen
+          content={state.editorPanel.content || undefined}
+          contentJson={state.editorPanel.contentJson || undefined}
+          onConfirm={handleEditorConfirm}
+          onDiscard={handleEditorDiscard}
+        />
+      )}
     </PageLayout>
   );
 };

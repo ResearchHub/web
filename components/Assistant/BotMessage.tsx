@@ -29,19 +29,19 @@ function renderFormattedText(text: string): React.ReactNode[] {
 export const BotMessage: React.FC<BotMessageProps> = ({ message, isLatest, onStructuredInput }) => {
   return (
     <div className="flex items-start gap-3 px-4 py-3 animate-in fade-in slide-in-from-left-2 duration-300">
-      <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50">
-        <Sparkles size={16} className="text-indigo-600" />
+      <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-primary-50">
+        <Sparkles size={16} className="text-primary-600" />
       </div>
 
       <div className="flex-1 min-w-0 space-y-2">
-        <div className="bg-gradient-to-br from-gray-50 to-indigo-50/30 rounded-2xl rounded-tl-md px-4 py-3 text-sm text-gray-700 leading-relaxed">
+        <div className="bg-gradient-to-br from-gray-50 to-primary-50/30 rounded-2xl rounded-tl-md px-4 py-3 text-sm text-gray-700 leading-relaxed">
           {renderFormattedText(message.content)}
         </div>
 
         {/* Follow-up content — hidden when shown in editor */}
         {message.followUp && message.inputType !== 'rich_editor' && (
-          <div className="relative bg-white border border-indigo-100 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed">
-            <span className="absolute -top-2.5 right-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 text-[10px] font-semibold text-indigo-500 uppercase tracking-wider">
+          <div className="relative bg-white border border-primary-100 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed">
+            <span className="absolute -top-2.5 right-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-50 text-[10px] font-semibold text-primary-500 uppercase tracking-wider">
               <Sparkles size={10} />
               AI Draft
             </span>
@@ -51,7 +51,7 @@ export const BotMessage: React.FC<BotMessageProps> = ({ message, isLatest, onStr
 
         {/* Editor indicator */}
         {message.inputType === 'rich_editor' && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-50/50 border border-indigo-100 text-xs text-indigo-600 font-medium">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-50/50 border border-primary-100 text-xs text-primary-600 font-medium">
             <PenLine size={13} />
             Content available in the editor
           </div>

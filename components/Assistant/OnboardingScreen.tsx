@@ -342,7 +342,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onSelectRole
           }}
         >
           <div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-8 border border-indigo-100"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-8 border border-primary-100"
             style={{
               background: 'linear-gradient(135deg, rgba(238,242,255,0.9), rgba(224,231,255,0.7))',
               color: '#4338ca',

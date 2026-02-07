@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { X, Check, Loader2 } from 'lucide-react';
 import type { Editor } from '@tiptap/core';
 import { BaseModal } from '@/components/ui/BaseModal';
@@ -25,13 +25,6 @@ export const AssistantNoteEditorModal: React.FC<AssistantNoteEditorModalProps> =
 }) => {
   const [editor, setEditor] = useState<Editor | null>(null);
   const editorReady = !!editor;
-
-  // Reset editor instance when modal closes
-  useEffect(() => {
-    if (!isOpen) {
-      setEditor(null);
-    }
-  }, [isOpen]);
 
   const handleConfirm = useCallback(() => {
     if (!editor) return;
@@ -64,7 +57,7 @@ export const AssistantNoteEditorModal: React.FC<AssistantNoteEditorModalProps> =
               disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {editorReady ? <Check size={14} /> : <Loader2 size={14} className="animate-spin" />}
-            Confirm
+            Save Changes
           </button>
         </div>
       }
