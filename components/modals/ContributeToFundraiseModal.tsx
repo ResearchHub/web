@@ -14,6 +14,8 @@ import {
   PaymentStep,
   FundingImpactPreview,
   QuickAmountSelector,
+  StripeProvider,
+  useWalletAvailability,
   type PaymentMethodType,
   type StripePaymentContext,
 } from '@/components/Funding';
@@ -42,7 +44,40 @@ interface ContributeToFundraiseModalProps {
 
 type ModalView = 'funding' | 'auth' | 'payment' | 'deposit-rsc';
 
-export function ContributeToFundraiseModal({
+/**
+ * Outer wrapper that lazily provides StripeProvider context.
+ *
+ * StripeProvider (and Stripe.js) are only mounted the first time the modal
+ * opens. Once mounted, they stay mounted so the wallet availability check
+ * persists across open/close cycles and exit animations still work.
+ *
+ * This prevents unnecessary Stripe.js loading and API calls on pages
+ * where the modal is rendered but never opened.
+ */
+export function ContributeToFundraiseModal(props: ContributeToFundraiseModalProps) {
+  // Track whether the modal has been opened at least once.
+  // Using a ref for the flag (no extra render) and state to trigger the
+  // initial mount when isOpen first becomes true.
+  const hasBeenOpenedRef = useRef(false);
+  const [mountStripe, setMountStripe] = useState(false);
+
+  if (props.isOpen && !hasBeenOpenedRef.current) {
+    hasBeenOpenedRef.current = true;
+    if (!mountStripe) setMountStripe(true);
+  }
+
+  // Before modal has ever been opened, render nothing.
+  // BaseModal/SwipeableDrawer aren't needed when isOpen has never been true.
+  if (!mountStripe) return null;
+
+  return (
+    <StripeProvider>
+      <ContributeToFundraiseModalInner {...props} />
+    </StripeProvider>
+  );
+}
+
+function ContributeToFundraiseModalInner({
   isOpen,
   onClose,
   onContributeSuccess,
@@ -51,6 +86,7 @@ export function ContributeToFundraiseModal({
   work,
 }: ContributeToFundraiseModalProps) {
   const { user, refreshUser } = useUser();
+  const walletAvailability = useWalletAvailability();
   const { exchangeRate } = useExchangeRate();
   const isMobile = useIsMobile();
   const [amountUsd, setAmountUsd] = useState(100);
@@ -398,6 +434,7 @@ export function ContributeToFundraiseModal({
             fundraiseId={fundraise.id}
             isProcessing={isContributing}
             error={error}
+            walletAvailability={walletAvailability}
             onConfirmPayment={handleConfirmPayment}
             onPaymentRequestSuccess={handlePaymentRequestSuccess}
             onDepositRsc={handleOpenDeposit}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
@@ -9,9 +9,13 @@ import { Logo } from '@/components/ui/Logo';
 import { PaymentWidget } from './PaymentWidget';
 import { PaymentRequestButton } from './PaymentRequestButton';
 import { InsufficientBalanceAlert } from './InsufficientBalanceAlert';
-import { usePaymentCalculations, getDefaultPaymentMethod, type PaymentMethodType } from './lib';
+import {
+  usePaymentCalculations,
+  getDefaultPaymentMethod,
+  type PaymentMethodType,
+  type WalletAvailability,
+} from './lib';
 import type { StripePaymentContext } from './CreditCardForm';
-import { useIsSafari } from '@/hooks/useIsSafari';
 import {
   PAYMENT_FEES,
   PLATFORM_FEE_PERCENTAGE_RSC,
@@ -32,6 +36,8 @@ interface PaymentStepProps {
   rscBalance: number;
   /** Fundraise ID for payment request button */
   fundraiseId: ID;
+  /** Wallet payment method availability from Stripe (resolved at modal level) */
+  walletAvailability: WalletAvailability;
   /** Whether the action is being processed */
   isProcessing?: boolean;
   /** Error message to display */
@@ -60,6 +66,7 @@ export function PaymentStep({
   amountDisplay,
   rscBalance,
   fundraiseId,
+  walletAvailability,
   isProcessing = false,
   error,
   onConfirmPayment,
@@ -68,18 +75,29 @@ export function PaymentStep({
   onBuyRsc,
   onStripeReady,
 }: PaymentStepProps) {
-  const isSafari = useIsSafari();
-
-  // Compute the default payment method based on balance and browser
+  // Compute the default payment method based on balance and actual wallet availability
   // Use RSC fee percentage since we're checking if user can afford RSC payment
   const defaultPaymentMethod = useMemo(
-    () => getDefaultPaymentMethod(rscBalance, amountInRsc, PLATFORM_FEE_PERCENTAGE_RSC, isSafari),
-    [rscBalance, amountInRsc, isSafari]
+    () =>
+      getDefaultPaymentMethod(
+        rscBalance,
+        amountInRsc,
+        PLATFORM_FEE_PERCENTAGE_RSC,
+        walletAvailability
+      ),
+    [rscBalance, amountInRsc, walletAvailability]
   );
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | null>(
     defaultPaymentMethod
   );
+
+  // When wallet availability resolves and no method is selected yet, apply the default
+  useEffect(() => {
+    if (selectedMethod === null && defaultPaymentMethod !== null) {
+      setSelectedMethod(defaultPaymentMethod);
+    }
+  }, [defaultPaymentMethod, selectedMethod]);
   const [isCreditCardComplete, setIsCreditCardComplete] = useState(false);
 
   // Get RSC balance check (only relevant for RSC payment method)
@@ -171,7 +189,7 @@ export function PaymentStep({
           onCreditCardCompleteChange={setIsCreditCardComplete}
           onStripeReady={onStripeReady}
           hideButton
-          isSafari={isSafari}
+          walletAvailability={walletAvailability}
         />
 
         {/* Receipt-style line items */}
