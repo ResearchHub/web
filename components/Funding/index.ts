@@ -17,6 +17,4 @@ export {
   type PaymentMethodType,
   usePaymentMethod,
   usePaymentCalculations,
-  usePaymentRequest,
-  type WalletAvailability,
 } from './lib';

@@ -56,11 +56,8 @@ interface PaymentWidgetProps {
   onStripeReady?: (context: StripePaymentContext | null) => void;
   /** Whether to hide the CTA button (when used inside PaymentStep) */
   hideButton?: boolean;
-  /** Wallet payment method availability from Stripe (undefined = still checking) */
-  walletAvailability?: {
-    applePay: boolean;
-    googlePay: boolean;
-  };
+  /** Whether the browser is Safari (determines Apple Pay vs Google Pay visibility) */
+  isSafari?: boolean;
 }
 
 /**
@@ -83,7 +80,7 @@ export function PaymentWidget({
   onCreditCardCompleteChange,
   onStripeReady,
   hideButton = false,
-  walletAvailability,
+  isSafari = false,
 }: PaymentWidgetProps) {
   const { isExpanded, selectedMethod, toggleExpanded, selectMethod } = usePaymentMethod({
     initialMethod: selectedPaymentMethod,
@@ -163,15 +160,13 @@ export function PaymentWidget({
     },
   ];
 
-  // Filter out hidden payment methods and unavailable wallet methods.
-  // While walletAvailability is undefined (still checking), show both Apple Pay and Google Pay.
-  // Once resolved, hide methods that aren't available on this device.
+  // Filter out hidden payment methods and browser-specific payment methods
+  // Safari: show Apple Pay, hide Google Pay
+  // Non-Safari: show Google Pay, hide Apple Pay
   const visiblePaymentOptions = paymentOptions.filter((option) => {
     if (HIDDEN_PAYMENT_METHODS.includes(option.id)) return false;
-    if (walletAvailability) {
-      if (option.id === 'apple_pay' && !walletAvailability.applePay) return false;
-      if (option.id === 'google_pay' && !walletAvailability.googlePay) return false;
-    }
+    if (option.id === 'apple_pay' && !isSafari) return false;
+    if (option.id === 'google_pay' && isSafari) return false;
     return true;
   });
 

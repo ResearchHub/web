@@ -12,7 +12,6 @@ export { MOCK_DAF_ACCOUNTS } from './mockEndaomentData';
 // Hooks
 export { usePaymentMethod } from './usePaymentMethod';
 export { usePaymentCalculations } from './usePaymentCalculations';
-export { usePaymentRequest, type WalletAvailability } from './usePaymentRequest';
 
 // Utilities
 export { getDefaultPaymentMethod } from './getDefaultPaymentMethod';
