@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
@@ -9,13 +9,7 @@ import { Logo } from '@/components/ui/Logo';
 import { PaymentWidget } from './PaymentWidget';
 import { PaymentRequestButton } from './PaymentRequestButton';
 import { InsufficientBalanceAlert } from './InsufficientBalanceAlert';
-import { StripeProvider } from './StripeProvider';
-import {
-  usePaymentCalculations,
-  usePaymentRequest,
-  getDefaultPaymentMethod,
-  type PaymentMethodType,
-} from './lib';
+import { usePaymentCalculations, getDefaultPaymentMethod, type PaymentMethodType } from './lib';
 import type { StripePaymentContext } from './CreditCardForm';
 import { useIsSafari } from '@/hooks/useIsSafari';
 import {
@@ -59,19 +53,8 @@ interface PaymentStepProps {
 /**
  * Payment step component combining payment method selection with receipt-style line items.
  * This is the second step in the funding flow.
- *
- * Wrapped with StripeProvider so the usePaymentRequest hook can check
- * wallet payment method availability (Apple Pay, Google Pay, Link).
  */
-export function PaymentStep(props: PaymentStepProps) {
-  return (
-    <StripeProvider>
-      <PaymentStepInner {...props} />
-    </StripeProvider>
-  );
-}
-
-function PaymentStepInner({
+export function PaymentStep({
   amountInRsc,
   amountInUsd,
   amountDisplay,
@@ -124,24 +107,6 @@ function PaymentStepInner({
   // Total due = user's input plus all fees
   const totalDueUsd = amountInUsd + platformFeeUsd + processingFeeUsd;
 
-  // Check wallet payment method availability via Stripe
-  const { paymentRequest, availability } = usePaymentRequest({
-    amountCents: Math.round(totalDueUsd * 100),
-    label: 'Fund Research',
-  });
-
-  // Auto-fallback: if user has a wallet method selected but availability resolved
-  // and that method isn't available, switch to credit card
-  useEffect(() => {
-    if (availability.checking) return;
-
-    if (selectedMethod === 'apple_pay' && !availability.applePay && !availability.link) {
-      setSelectedMethod('credit_card');
-    } else if (selectedMethod === 'google_pay' && !availability.googlePay && !availability.link) {
-      setSelectedMethod('credit_card');
-    }
-  }, [availability, selectedMethod]);
-
   // Format USD
   const formatUsd = (amount: number) =>
     `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -188,12 +153,6 @@ function PaymentStepInner({
     // No-op - we use the confirm button below instead
   }, []);
 
-  // Determine if the selected wallet method should show the PaymentRequestButton
-  const showPaymentRequestButton =
-    paymentRequest &&
-    (selectedMethod === 'apple_pay' || selectedMethod === 'google_pay') &&
-    !availability.checking;
-
   return (
     <div className="flex flex-col h-full">
       {/* Content area */}
@@ -212,11 +171,7 @@ function PaymentStepInner({
           onCreditCardCompleteChange={setIsCreditCardComplete}
           onStripeReady={onStripeReady}
           hideButton
-          walletAvailability={
-            availability.checking
-              ? undefined
-              : { applePay: availability.applePay, googlePay: availability.googlePay }
-          }
+          isSafari={isSafari}
         />
 
         {/* Receipt-style line items */}
@@ -314,14 +269,18 @@ function PaymentStepInner({
       {/* Payment Button - pinned to bottom */}
       {selectedMethod && (
         <div className="pt-6">
-          {showPaymentRequestButton ? (
+          {selectedMethod === 'apple_pay' || selectedMethod === 'google_pay' ? (
             <PaymentRequestButton
-              paymentRequest={paymentRequest}
+              amountCents={Math.round(totalDueUsd * 100)}
               amountInRsc={amountInRsc}
               fundraiseId={fundraiseId}
-              onSuccess={() =>
-                onPaymentRequestSuccess?.(selectedMethod as 'apple_pay' | 'google_pay')
+              label="Fund Research"
+              unavailableText={
+                selectedMethod === 'apple_pay'
+                  ? 'Apple Pay not available on this device'
+                  : 'Google Pay not available on this device'
               }
+              onSuccess={() => onPaymentRequestSuccess?.(selectedMethod)}
               onError={(err) => console.error('Payment request error:', err)}
             />
           ) : (
