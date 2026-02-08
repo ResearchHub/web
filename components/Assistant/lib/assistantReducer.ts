@@ -100,14 +100,26 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return { ...state, quickReplies: null };
     }
 
+    case 'STAGE_EDITOR_CONTENT': {
+      return {
+        ...state,
+        editorPanel: {
+          ...state.editorPanel,
+          field: action.field,
+          content: action.content ?? state.editorPanel.content,
+          contentJson: action.contentJson ?? state.editorPanel.contentJson,
+        },
+      };
+    }
+
     case 'OPEN_EDITOR': {
       return {
         ...state,
         editorPanel: {
           isOpen: true,
-          field: action.field,
-          content: action.content ?? null,
-          contentJson: action.contentJson ?? null,
+          field: action.field ?? state.editorPanel.field ?? 'description',
+          content: action.content ?? state.editorPanel.content,
+          contentJson: action.contentJson ?? state.editorPanel.contentJson,
         },
       };
     }

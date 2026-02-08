@@ -127,7 +127,8 @@ export type ChatAction =
   | { type: 'UPDATE_FIELDS'; updates: Record<string, FieldUpdate> }
   | { type: 'SET_COMPLETE'; payload: object }
   | { type: 'CLEAR_QUICK_REPLIES' }
-  | { type: 'OPEN_EDITOR'; field: string; content?: string; contentJson?: string }
+  | { type: 'STAGE_EDITOR_CONTENT'; field: string; content?: string; contentJson?: string }
+  | { type: 'OPEN_EDITOR'; field?: string; content?: string; contentJson?: string }
   | { type: 'CLOSE_EDITOR' }
   | {
       type: 'HYDRATE_SESSION';

@@ -9,16 +9,17 @@ interface MessageListProps {
   messages: ChatMessage[];
   isTyping: boolean;
   onStructuredInput?: (field: string, value: any, displayText: string) => void;
+  onOpenEditor?: () => void;
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
   messages,
   isTyping,
   onStructuredInput,
+  onOpenEditor,
 }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length, isTyping]);
@@ -40,6 +41,7 @@ export const MessageList: React.FC<MessageListProps> = ({
               message={msg}
               isLatest={isLatest}
               onStructuredInput={onStructuredInput}
+              onOpenEditor={onOpenEditor}
             />
           );
         }

@@ -9,6 +9,7 @@ interface BotMessageProps {
   message: ChatMessage;
   isLatest: boolean;
   onStructuredInput?: (field: string, value: any, displayText: string) => void;
+  onOpenEditor?: () => void;
 }
 
 function renderFormattedText(text: string): React.ReactNode[] {
@@ -26,7 +27,12 @@ function renderFormattedText(text: string): React.ReactNode[] {
   });
 }
 
-export const BotMessage: React.FC<BotMessageProps> = ({ message, isLatest, onStructuredInput }) => {
+export const BotMessage: React.FC<BotMessageProps> = ({
+  message,
+  isLatest,
+  onStructuredInput,
+  onOpenEditor,
+}) => {
   return (
     <div className="flex items-start gap-3 px-4 py-3 animate-in fade-in slide-in-from-left-2 duration-300">
       <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-primary-50">
@@ -38,7 +44,7 @@ export const BotMessage: React.FC<BotMessageProps> = ({ message, isLatest, onStr
           {renderFormattedText(message.content)}
         </div>
 
-        {/* Follow-up content — hidden when shown in editor */}
+        {/* Follow-up content — hidden when content goes to editor */}
         {message.followUp && message.inputType !== 'rich_editor' && (
           <div className="relative bg-white border border-primary-100 rounded-xl px-4 py-3 text-sm text-gray-700 leading-relaxed">
             <span className="absolute -top-2.5 right-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-50 text-[10px] font-semibold text-primary-500 uppercase tracking-wider">
@@ -49,11 +55,24 @@ export const BotMessage: React.FC<BotMessageProps> = ({ message, isLatest, onStr
           </div>
         )}
 
-        {/* Editor indicator */}
-        {message.inputType === 'rich_editor' && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-50/50 border border-primary-100 text-xs text-primary-600 font-medium">
-            <PenLine size={13} />
-            Content available in the editor
+        {/* Editor changes card — shown when AI has updated the draft */}
+        {message.inputType === 'rich_editor' && onOpenEditor && (
+          <div className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200">
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-white border border-gray-200 shrink-0">
+              <PenLine size={18} className="text-gray-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900">Draft Updated</p>
+              <p className="text-xs text-gray-500">Changes were made to your document</p>
+            </div>
+            <button
+              onClick={onOpenEditor}
+              className="shrink-0 px-4 py-2 text-sm font-medium text-gray-700
+                bg-white border border-gray-300 rounded-lg
+                hover:bg-gray-50 active:scale-[0.98] transition-all cursor-pointer"
+            >
+              Review
+            </button>
           </div>
         )}
 

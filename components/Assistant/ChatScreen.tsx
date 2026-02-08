@@ -70,6 +70,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({
         messages={state.messages}
         isTyping={state.isTyping}
         onStructuredInput={handleStructuredInput}
+        onOpenEditor={onToggleEditor}
       />
 
       {state.quickReplies && state.quickReplies.length > 0 && (

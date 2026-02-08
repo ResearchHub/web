@@ -49,7 +49,7 @@ function dispatchChatResponse(response: AssistantChatResponse, dispatch: React.D
   }
 
   if (response.input_type === 'rich_editor' && response.follow_up && editorField) {
-    dispatch({ type: 'OPEN_EDITOR', field: editorField, content: response.follow_up });
+    dispatch({ type: 'STAGE_EDITOR_CONTENT', field: editorField, content: response.follow_up });
   }
 
   if (response.complete && response.payload) {
@@ -63,6 +63,7 @@ function dispatchChatResponse(response: AssistantChatResponse, dispatch: React.D
 export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId }) => {
   const [state, dispatch] = useReducer(chatReducer, createInitialState());
   const [isLoadingSession, setIsLoadingSession] = useState(true);
+  const [isSavingEditor, setIsSavingEditor] = useState(false);
   const router = useRouter();
   const { selectedOrg } = useOrganizationContext();
   const sessionIdRef = useRef(state.sessionId);
@@ -73,56 +74,6 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
 
   const role = state.role;
   const editorIsOpen = state.editorPanel.isOpen;
-
-  // ── Note creation (empty, no template) ────────────────────────────────
-
-  const ensureNoteExists = useCallback(async (): Promise<string> => {
-    if (noteIdRef.current) return noteIdRef.current;
-
-    if (!selectedOrg?.slug) {
-      throw new Error('No organization selected');
-    }
-
-    const note = await NoteService.createNote({
-      title: state.fieldState.title?.value || 'Untitled',
-      grouping: 'WORKSPACE' as any,
-      organization_slug: selectedOrg.slug,
-    });
-
-    const noteId = String(note.id);
-    dispatch({ type: 'SET_NOTE_ID', noteId });
-    noteIdRef.current = noteId;
-
-    // Tell the backend about the note
-    await AssistantService.chat({
-      session_id: sessionIdRef.current ?? sessionId,
-      action: 'message',
-      message: 'Note created',
-      structured_input: { field: 'note_id', value: noteId },
-    });
-
-    return noteId;
-  }, [state.fieldState.title?.value, sessionId, selectedOrg?.slug]);
-
-  // ── Process API response + create note if needed ──────────────────────
-
-  const handleChatResponse = useCallback(
-    async (response: AssistantChatResponse) => {
-      // Dispatch all state updates
-      dispatchChatResponse(response, dispatch);
-
-      // If the API sent rich_editor content and no note exists yet, create one
-      if (
-        response.input_type === 'rich_editor' &&
-        response.follow_up &&
-        !noteIdRef.current &&
-        !response.note_id
-      ) {
-        await ensureNoteExists();
-      }
-    },
-    [ensureNoteExists]
-  );
 
   // ── Load session on mount ─────────────────────────────────────────────
 
@@ -158,14 +109,14 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
           action: hasProgress ? 'resume' : 'start',
         });
 
-        await handleChatResponse(response);
+        dispatchChatResponse(response, dispatch);
       } catch {
         router.replace('/assistant');
       }
     };
 
     loadSession();
-  }, [sessionId, router, handleChatResponse]);
+  }, [sessionId, router]);
 
   // ── Send message ──────────────────────────────────────────────────────
 
@@ -182,7 +133,7 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
           message: content,
           structured_input: structuredInput,
         });
-        await handleChatResponse(response);
+        dispatchChatResponse(response, dispatch);
       } catch {
         dispatch({
           type: 'ADD_BOT_MESSAGE',
@@ -190,7 +141,7 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
         });
       }
     },
-    [role, sessionId, handleChatResponse]
+    [role, sessionId]
   );
 
   // ── Submit ────────────────────────────────────────────────────────────
@@ -215,12 +166,11 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
 
   // ── Editor toggle ─────────────────────────────────────────────────────
 
-  const handleToggleEditor = useCallback(async () => {
+  const handleToggleEditor = useCallback(() => {
     if (editorIsOpen) {
       dispatch({ type: 'CLOSE_EDITOR' });
     } else {
-      await ensureNoteExists();
-
+      // Open with staged content (from API) or empty
       dispatch({
         type: 'OPEN_EDITOR',
         field: 'description',
@@ -228,25 +178,61 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
         contentJson: state.editorPanel.contentJson || undefined,
       });
     }
-  }, [editorIsOpen, ensureNoteExists, state.editorPanel.content, state.editorPanel.contentJson]);
+  }, [editorIsOpen, state.editorPanel.content, state.editorPanel.contentJson]);
 
-  // ── Editor confirm: save to note only, no sendMessage ─────────────────
+  // ── Editor confirm: create note if needed, save content, notify backend ─
 
   const handleEditorConfirm = useCallback(
     async (json: object, html: string) => {
       if (!state.editorPanel.field) return;
 
-      if (noteIdRef.current) {
+      setIsSavingEditor(true);
+
+      try {
+        // 1. Create note if it doesn't exist yet
+        let currentNoteId = noteIdRef.current;
+
+        if (!currentNoteId) {
+          if (!selectedOrg?.slug) {
+            throw new Error('No organization selected');
+          }
+
+          const note = await NoteService.createNote({
+            title: state.fieldState.title?.value || 'Untitled',
+            grouping: 'WORKSPACE' as any,
+            organization_slug: selectedOrg.slug,
+          });
+
+          currentNoteId = String(note.id);
+          dispatch({ type: 'SET_NOTE_ID', noteId: currentNoteId });
+          noteIdRef.current = currentNoteId;
+
+          // Tell the backend about the note
+          await AssistantService.chat({
+            session_id: sessionIdRef.current ?? sessionId,
+            action: 'message',
+            message: 'Note created',
+            structured_input: { field: 'note_id', value: currentNoteId },
+          });
+        }
+
+        // 2. Save content to the note
         await NoteService.updateNoteContent({
-          note: noteIdRef.current,
+          note: currentNoteId,
           full_json: JSON.stringify(json),
           full_src: html,
         });
-      }
 
-      dispatch({ type: 'CLOSE_EDITOR' });
+        // 3. Close editor only after everything succeeds
+        dispatch({ type: 'CLOSE_EDITOR' });
+      } catch (err) {
+        // Keep editor open so user can retry
+        console.error('Failed to save editor content:', err);
+      } finally {
+        setIsSavingEditor(false);
+      }
     },
-    [state.editorPanel.field]
+    [state.editorPanel.field, state.fieldState.title?.value, sessionId, selectedOrg?.slug]
   );
 
   const handleEditorDiscard = useCallback(() => {
