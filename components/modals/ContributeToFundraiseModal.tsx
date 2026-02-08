@@ -14,6 +14,8 @@ import {
   PaymentStep,
   FundingImpactPreview,
   QuickAmountSelector,
+  StripeProvider,
+  useWalletAvailability,
   type PaymentMethodType,
   type StripePaymentContext,
 } from '@/components/Funding';
@@ -42,7 +44,21 @@ interface ContributeToFundraiseModalProps {
 
 type ModalView = 'funding' | 'auth' | 'payment' | 'deposit-rsc';
 
-export function ContributeToFundraiseModal({
+/**
+ * Outer wrapper that provides StripeProvider context.
+ * This allows useWalletAvailability to check Apple Pay / Google Pay
+ * availability as soon as the modal renders, so it's resolved by the
+ * time the user reaches the payment step.
+ */
+export function ContributeToFundraiseModal(props: ContributeToFundraiseModalProps) {
+  return (
+    <StripeProvider>
+      <ContributeToFundraiseModalInner {...props} />
+    </StripeProvider>
+  );
+}
+
+function ContributeToFundraiseModalInner({
   isOpen,
   onClose,
   onContributeSuccess,
@@ -51,6 +67,7 @@ export function ContributeToFundraiseModal({
   work,
 }: ContributeToFundraiseModalProps) {
   const { user, refreshUser } = useUser();
+  const walletAvailability = useWalletAvailability();
   const { exchangeRate } = useExchangeRate();
   const isMobile = useIsMobile();
   const [amountUsd, setAmountUsd] = useState(100);
@@ -398,6 +415,7 @@ export function ContributeToFundraiseModal({
             fundraiseId={fundraise.id}
             isProcessing={isContributing}
             error={error}
+            walletAvailability={walletAvailability}
             onConfirmPayment={handleConfirmPayment}
             onPaymentRequestSuccess={handlePaymentRequestSuccess}
             onDepositRsc={handleOpenDeposit}
