@@ -1,113 +1,72 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PaymentRequestButtonElement, useStripe } from '@stripe/react-stripe-js';
 import type { PaymentRequest, PaymentRequestPaymentMethodEvent } from '@stripe/stripe-js';
-import { Button } from '@/components/ui/Button';
-import { StripeProvider } from './StripeProvider';
 import { PaymentService } from '@/services/payment.service';
 import { ID } from '@/types/root';
 
 interface PaymentRequestButtonProps {
-  /** Amount in cents */
-  amountCents: number;
+  /** Stripe PaymentRequest object from usePaymentRequest hook */
+  paymentRequest: PaymentRequest;
   /** Amount in RSC for creating payment intent */
   amountInRsc: number;
   /** Fundraise ID for the contribution */
   fundraiseId: ID;
-  /** Label shown in the payment sheet */
-  label?: string;
-  /** Button text to show when payment method is not available */
-  unavailableText?: string;
   /** Called when payment succeeds */
   onSuccess?: () => void;
   /** Called when payment fails */
   onError?: (error: string) => void;
-  /** Called when payment method availability is determined */
-  onAvailabilityChange?: (available: boolean, type?: 'applePay' | 'googlePay') => void;
 }
 
 /**
- * Stripe Payment Request Button for Apple Pay and Google Pay.
- * This component handles the entire payment flow including payment intent creation.
+ * Stripe Payment Request Button for Apple Pay, Google Pay, and Link.
+ *
+ * Renders the Stripe PaymentRequestButtonElement and handles the payment flow
+ * (creating payment intents, confirming payments, handling 3D Secure).
+ *
+ * The PaymentRequest object and availability checking are handled externally
+ * by the `usePaymentRequest` hook. This component must be rendered inside
+ * a StripeProvider context.
  */
-function PaymentRequestButtonInner({
-  amountCents,
+export function PaymentRequestButton({
+  paymentRequest,
   amountInRsc,
   fundraiseId,
-  label = 'Fund Research',
-  unavailableText = 'Not available on this device',
   onSuccess,
   onError,
-  onAvailabilityChange,
 }: PaymentRequestButtonProps) {
   const stripe = useStripe();
-  const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(null);
-  const [canMakePayment, setCanMakePayment] = useState<boolean | null>(null); // null = checking
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Create and configure payment request
-  useEffect(() => {
-    if (!stripe || amountCents <= 0) {
-      return;
-    }
-
-    const pr = stripe.paymentRequest({
-      country: 'US',
-      currency: 'usd',
-      total: {
-        label,
-        amount: amountCents,
-      },
-      requestPayerName: true,
-      requestPayerEmail: true,
-    });
-
-    // Check if the Payment Request is available
-    pr.canMakePayment().then((result) => {
-      if (result) {
-        setPaymentRequest(pr);
-        setCanMakePayment(true);
-        // Determine which payment method is available
-        const type = result.applePay ? 'applePay' : 'googlePay';
-        onAvailabilityChange?.(true, type);
-      } else {
-        setCanMakePayment(false);
-        onAvailabilityChange?.(false);
-      }
-    });
-
-    return () => {
-      // Cleanup
-      setPaymentRequest(null);
-    };
-  }, [stripe, amountCents, label, onAvailabilityChange]);
-
-  // Update payment request amount when it changes
-  useEffect(() => {
-    if (paymentRequest && amountCents > 0) {
-      paymentRequest.update({
-        total: {
-          label,
-          amount: amountCents,
-        },
-      });
-    }
-  }, [paymentRequest, amountCents, label]);
+  // Use refs for callbacks and values that change with each render
+  // so the paymentmethod event handler always has the latest values
+  // without needing to re-register the listener.
+  const amountInRscRef = useRef(amountInRsc);
+  amountInRscRef.current = amountInRsc;
+  const fundraiseIdRef = useRef(fundraiseId);
+  fundraiseIdRef.current = fundraiseId;
+  const onSuccessRef = useRef(onSuccess);
+  onSuccessRef.current = onSuccess;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
 
   // Handle payment method event
   useEffect(() => {
-    if (!paymentRequest) return;
+    if (!paymentRequest || !stripe) return;
 
     const handlePaymentMethod = async (event: PaymentRequestPaymentMethodEvent) => {
       setIsProcessing(true);
 
       try {
         // Create payment intent on our backend
-        const { clientSecret } = await PaymentService.createPaymentIntent(amountInRsc, fundraiseId);
+        const { clientSecret } = await PaymentService.createPaymentIntent(
+          amountInRscRef.current,
+          fundraiseIdRef.current
+        );
 
-        // Confirm the payment with the payment method from Apple Pay/Google Pay
-        const { error: confirmError, paymentIntent } = await stripe!.confirmCardPayment(
+        // Confirm the payment with the payment method from Apple Pay/Google Pay/Link
+        const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
           clientSecret,
           { payment_method: event.paymentMethod.id },
           { handleActions: false }
@@ -115,17 +74,17 @@ function PaymentRequestButtonInner({
 
         if (confirmError) {
           event.complete('fail');
-          onError?.(confirmError.message || 'Payment failed');
+          onErrorRef.current?.(confirmError.message || 'Payment failed');
           setIsProcessing(false);
           return;
         }
 
         if (paymentIntent?.status === 'requires_action') {
           // Handle 3D Secure if required
-          const { error: actionError } = await stripe!.confirmCardPayment(clientSecret);
+          const { error: actionError } = await stripe.confirmCardPayment(clientSecret);
           if (actionError) {
             event.complete('fail');
-            onError?.(actionError.message || 'Payment authentication failed');
+            onErrorRef.current?.(actionError.message || 'Payment authentication failed');
             setIsProcessing(false);
             return;
           }
@@ -133,10 +92,10 @@ function PaymentRequestButtonInner({
 
         // Payment succeeded
         event.complete('success');
-        onSuccess?.();
-      } catch (err) {
+        onSuccessRef.current?.();
+      } catch {
         event.complete('fail');
-        onError?.('Something went wrong. Please try again.');
+        onErrorRef.current?.('Something went wrong. Please try again.');
       } finally {
         setIsProcessing(false);
       }
@@ -147,25 +106,7 @@ function PaymentRequestButtonInner({
     return () => {
       paymentRequest.off('paymentmethod', handlePaymentMethod);
     };
-  }, [paymentRequest, stripe, amountInRsc, fundraiseId, onSuccess, onError]);
-
-  // Still checking availability
-  if (canMakePayment === null) {
-    return (
-      <Button type="button" variant="default" disabled className="w-full h-12 text-base">
-        Checking availability...
-      </Button>
-    );
-  }
-
-  // Not available on this device
-  if (!canMakePayment || !paymentRequest) {
-    return (
-      <Button type="button" variant="default" disabled className="w-full h-12 text-base">
-        {unavailableText}
-      </Button>
-    );
-  }
+  }, [paymentRequest, stripe]);
 
   return (
     <div className="w-full">
@@ -188,28 +129,5 @@ function PaymentRequestButtonInner({
         />
       )}
     </div>
-  );
-}
-
-// Check if Stripe key is configured
-const STRIPE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-
-/**
- * Payment Request Button component wrapper.
- * Provides Apple Pay and Google Pay support via Stripe.
- */
-export function PaymentRequestButton(props: PaymentRequestButtonProps) {
-  if (!STRIPE_KEY) {
-    return (
-      <Button type="button" variant="default" disabled className="w-full h-12 text-base">
-        {props.unavailableText || 'Not available'}
-      </Button>
-    );
-  }
-
-  return (
-    <StripeProvider>
-      <PaymentRequestButtonInner {...props} />
-    </StripeProvider>
   );
 }
