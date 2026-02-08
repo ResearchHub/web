@@ -45,12 +45,31 @@ interface ContributeToFundraiseModalProps {
 type ModalView = 'funding' | 'auth' | 'payment' | 'deposit-rsc';
 
 /**
- * Outer wrapper that provides StripeProvider context.
- * This allows useWalletAvailability to check Apple Pay / Google Pay
- * availability as soon as the modal renders, so it's resolved by the
- * time the user reaches the payment step.
+ * Outer wrapper that lazily provides StripeProvider context.
+ *
+ * StripeProvider (and Stripe.js) are only mounted the first time the modal
+ * opens. Once mounted, they stay mounted so the wallet availability check
+ * persists across open/close cycles and exit animations still work.
+ *
+ * This prevents unnecessary Stripe.js loading and API calls on pages
+ * where the modal is rendered but never opened.
  */
 export function ContributeToFundraiseModal(props: ContributeToFundraiseModalProps) {
+  // Track whether the modal has been opened at least once.
+  // Using a ref for the flag (no extra render) and state to trigger the
+  // initial mount when isOpen first becomes true.
+  const hasBeenOpenedRef = useRef(false);
+  const [mountStripe, setMountStripe] = useState(false);
+
+  if (props.isOpen && !hasBeenOpenedRef.current) {
+    hasBeenOpenedRef.current = true;
+    if (!mountStripe) setMountStripe(true);
+  }
+
+  // Before modal has ever been opened, render nothing.
+  // BaseModal/SwipeableDrawer aren't needed when isOpen has never been true.
+  if (!mountStripe) return null;
+
   return (
     <StripeProvider>
       <ContributeToFundraiseModalInner {...props} />

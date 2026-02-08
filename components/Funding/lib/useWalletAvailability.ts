@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStripe } from '@stripe/react-stripe-js';
 
 /**
@@ -31,15 +31,18 @@ const INITIAL_STATE: WalletAvailability = {
  * device capabilities. The result (which wallets are available) does not
  * depend on the amount — it's purely a device/browser capability check.
  *
- * Designed to be called early (e.g., when a modal opens) so availability
- * is resolved by the time the user reaches the payment step.
+ * The check runs exactly once per component mount. A ref guard prevents
+ * duplicate Stripe API calls even if the effect re-fires (e.g., due to
+ * React StrictMode or parent re-renders).
  */
 export function useWalletAvailability(): WalletAvailability {
   const stripe = useStripe();
   const [availability, setAvailability] = useState<WalletAvailability>(INITIAL_STATE);
+  const hasCheckedRef = useRef(false);
 
   useEffect(() => {
-    if (!stripe) return;
+    if (!stripe || hasCheckedRef.current) return;
+    hasCheckedRef.current = true;
 
     const pr = stripe.paymentRequest({
       country: 'US',
