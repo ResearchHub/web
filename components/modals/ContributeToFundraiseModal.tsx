@@ -27,6 +27,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { DepositRSCView } from './DepositRSCView';
 import { BuyModal } from './ResearchCoin/BuyModal';
 import AuthContent from '@/components/Auth/AuthContent';
+import { UserService } from '@/services/user.service';
 
 interface ContributeToFundraiseModalProps {
   isOpen: boolean;
@@ -151,7 +152,10 @@ export function ContributeToFundraiseModal({
     }
   }, [user, fundraise.id, amountUsd, amountInRsc]);
 
-  const handleAuthSuccess = useCallback(() => {
+  const handleAuthSuccess = useCallback(async () => {
+    // Skip onboarding for users who sign up through the fundraise flow
+    await UserService.setCompletedOnboarding();
+
     // Track funnel step: user reached payment step after auth
     AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP, {
       fundraise_id: fundraise.id,
