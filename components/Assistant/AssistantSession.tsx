@@ -6,23 +6,20 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import type { AssistantChatResponse } from '@/types/assistant';
 import { AssistantService } from '@/services/assistant.service';
 import { NoteService } from '@/services/note.service';
-import { useCreateNoteFromTemplate } from '@/hooks/useNote';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { chatReducer, createInitialState } from './lib/assistantReducer';
 import { ChatScreen } from './ChatScreen';
 import { AssistantProgress } from './AssistantProgress';
 import { AssistantNoteEditorModal } from './AssistantNoteEditorModal';
-import proposalTemplate from '@/components/Editor/lib/data/proposalTemplate';
-import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
 
 interface AssistantSessionProps {
   sessionId: string;
 }
 
 /* ------------------------------------------------------------------ */
-/*  Process API responses                                              */
+/*  Process API responses (pure state updates only)                    */
 /* ------------------------------------------------------------------ */
-function handleChatResponse(response: AssistantChatResponse, dispatch: React.Dispatch<any>) {
+function dispatchChatResponse(response: AssistantChatResponse, dispatch: React.Dispatch<any>) {
   if (response.session_id) {
     dispatch({ type: 'SET_SESSION_ID', sessionId: response.session_id });
   }
@@ -68,13 +65,64 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
   const [isLoadingSession, setIsLoadingSession] = useState(true);
   const router = useRouter();
   const { selectedOrg } = useOrganizationContext();
-  const [, createNoteFromTemplate] = useCreateNoteFromTemplate();
   const sessionIdRef = useRef(state.sessionId);
   sessionIdRef.current = state.sessionId;
+  const noteIdRef = useRef(state.noteId);
+  noteIdRef.current = state.noteId;
   const hasInitialized = useRef(false);
 
   const role = state.role;
   const editorIsOpen = state.editorPanel.isOpen;
+
+  // ── Note creation (empty, no template) ────────────────────────────────
+
+  const ensureNoteExists = useCallback(async (): Promise<string> => {
+    if (noteIdRef.current) return noteIdRef.current;
+
+    if (!selectedOrg?.slug) {
+      throw new Error('No organization selected');
+    }
+
+    const note = await NoteService.createNote({
+      title: state.fieldState.title?.value || 'Untitled',
+      grouping: 'WORKSPACE' as any,
+      organization_slug: selectedOrg.slug,
+    });
+
+    const noteId = String(note.id);
+    dispatch({ type: 'SET_NOTE_ID', noteId });
+    noteIdRef.current = noteId;
+
+    // Tell the backend about the note
+    await AssistantService.chat({
+      session_id: sessionIdRef.current ?? sessionId,
+      action: 'message',
+      message: 'Note created',
+      structured_input: { field: 'note_id', value: noteId },
+    });
+
+    return noteId;
+  }, [state.fieldState.title?.value, sessionId, selectedOrg?.slug]);
+
+  // ── Process API response + create note if needed ──────────────────────
+
+  const handleChatResponse = useCallback(
+    async (response: AssistantChatResponse) => {
+      // Dispatch all state updates
+      dispatchChatResponse(response, dispatch);
+
+      // If the API sent rich_editor content and no note exists yet, create one
+      if (
+        response.input_type === 'rich_editor' &&
+        response.follow_up &&
+        !noteIdRef.current &&
+        !response.note_id
+      ) {
+        await ensureNoteExists();
+      }
+    },
+    [ensureNoteExists]
+  );
 
   // ── Load session on mount ─────────────────────────────────────────────
 
@@ -94,9 +142,12 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
           fieldState: session.field_state,
         });
 
+        if (session.note_id) {
+          noteIdRef.current = session.note_id;
+        }
+
         setIsLoadingSession(false);
 
-        // Determine if this is a new session or a returning one
         const hasProgress = Object.values(session.field_state).some(
           (f: any) => f.status !== 'empty'
         );
@@ -107,14 +158,14 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
           action: hasProgress ? 'resume' : 'start',
         });
 
-        handleChatResponse(response, dispatch);
+        await handleChatResponse(response);
       } catch {
         router.replace('/assistant');
       }
     };
 
     loadSession();
-  }, [sessionId, router]);
+  }, [sessionId, router, handleChatResponse]);
 
   // ── Send message ──────────────────────────────────────────────────────
 
@@ -131,7 +182,7 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
           message: content,
           structured_input: structuredInput,
         });
-        handleChatResponse(response, dispatch);
+        await handleChatResponse(response);
       } catch {
         dispatch({
           type: 'ADD_BOT_MESSAGE',
@@ -139,7 +190,7 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
         });
       }
     },
-    [role, sessionId]
+    [role, sessionId, handleChatResponse]
   );
 
   // ── Submit ────────────────────────────────────────────────────────────
@@ -162,94 +213,40 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
     [sendMessage]
   );
 
-  // ── Note creation ─────────────────────────────────────────────────────
-
-  const createNoteForSession = useCallback(async () => {
-    if (state.noteId) return { noteId: state.noteId, contentJson: '' };
-
-    if (!selectedOrg?.slug) {
-      throw new Error('No organization selected');
-    }
-
-    const template = role === 'funder' ? grantTemplate : proposalTemplate;
-
-    const fullNote = await createNoteFromTemplate({
-      organizationSlug: selectedOrg.slug,
-      template,
-      title: state.fieldState.title?.value,
-    });
-
-    const noteId = String(fullNote.id);
-    dispatch({ type: 'SET_NOTE_ID', noteId });
-
-    await AssistantService.chat({
-      session_id: sessionIdRef.current ?? sessionId,
-      action: 'message',
-      message: 'Note created',
-      structured_input: { field: 'note_id', value: noteId },
-    });
-
-    return { noteId, contentJson: fullNote.contentJson || '' };
-  }, [
-    state.noteId,
-    state.fieldState.title?.value,
-    role,
-    sessionId,
-    selectedOrg?.slug,
-    createNoteFromTemplate,
-  ]);
-
   // ── Editor toggle ─────────────────────────────────────────────────────
 
   const handleToggleEditor = useCallback(async () => {
     if (editorIsOpen) {
       dispatch({ type: 'CLOSE_EDITOR' });
     } else {
-      const { noteId, contentJson } = await createNoteForSession();
-
-      let noteContent: string | undefined;
-      let noteContentJson = contentJson || undefined;
-
-      if (!noteContentJson && noteId) {
-        try {
-          const noteData = await NoteService.getNote(noteId);
-          noteContent = noteData.content || undefined;
-          noteContentJson = noteData.contentJson || undefined;
-        } catch {
-          // Fall back to empty
-        }
-      }
+      await ensureNoteExists();
 
       dispatch({
         type: 'OPEN_EDITOR',
         field: 'description',
-        content: noteContent,
-        contentJson: noteContentJson,
+        content: state.editorPanel.content || '<p></p>',
+        contentJson: state.editorPanel.contentJson || undefined,
       });
     }
-  }, [editorIsOpen, createNoteForSession]);
+  }, [editorIsOpen, ensureNoteExists, state.editorPanel.content, state.editorPanel.contentJson]);
+
+  // ── Editor confirm: save to note only, no sendMessage ─────────────────
 
   const handleEditorConfirm = useCallback(
     async (json: object, html: string) => {
-      const field = state.editorPanel.field;
-      if (!field) return;
+      if (!state.editorPanel.field) return;
 
-      // Persist to note if one exists
-      if (state.noteId) {
+      if (noteIdRef.current) {
         await NoteService.updateNoteContent({
-          note: state.noteId,
+          note: noteIdRef.current,
           full_json: JSON.stringify(json),
           full_src: html,
         });
       }
 
-      sendMessage(`I've finished editing the ${field.replace(/_/g, ' ')}.`, {
-        field,
-        value: JSON.stringify(json),
-      });
       dispatch({ type: 'CLOSE_EDITOR' });
     },
-    [state.editorPanel.field, state.noteId, sendMessage]
+    [state.editorPanel.field]
   );
 
   const handleEditorDiscard = useCallback(() => {
