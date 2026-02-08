@@ -3,7 +3,7 @@ import { UserPlus } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 
 export const featureNotificationsConfig: FeatureNotificationConfig = {
-  enabled: true,
+  enabled: false, // Kobe: Turning off for now so not all users see this after signup
   defaultPosition: 'top-right',
   defaultDuration: undefined, // no auto-dismiss
   notifications: [
