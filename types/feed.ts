@@ -951,7 +951,8 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           : undefined,
     tips: [], // Default empty tips
     awardedBountyAmount: (content as any)?.awardedBountyAmount,
-    isAwardedForFoundationBounty: (content as any)?.bounty_creator_id,
+    isAwardedForFoundationBounty:
+      (content as any)?.bounty_creator_id?.toString() === FOUNDATION_USER_ID?.toString(),
   } as FeedEntry;
 };
 
@@ -1113,6 +1114,8 @@ export const transformBountyCommentToFeedItem = (
     userVote: comment.userVote,
     tips: comment.tips,
     awardedBountyAmount: comment.awardedBountyAmount,
+    isAwardedForFoundationBounty:
+      comment.bountyCreatorId?.toString() === FOUNDATION_USER_ID?.toString(),
   };
 };
 
