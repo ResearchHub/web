@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CreditCard, Plus, Minus, Check, Info } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faApplePay, faGooglePay, faPaypal } from '@fortawesome/free-brands-svg-icons';
@@ -18,7 +18,6 @@ import {
 import { CreditCardForm, type StripePaymentContext } from './CreditCardForm';
 import { useEndaoment } from '@/contexts/EndaomentContext';
 import { EndaomentFundSelector } from '@/components/Endaoment/EndaomentFundSelector';
-import { InsufficientDAFFundsAlert } from '@/components/Endaoment/InsufficientDAFFundsAlert';
 
 interface PaymentOption {
   id: PaymentMethodType;
@@ -53,6 +52,10 @@ interface PaymentWidgetProps {
   onPaymentMethodChange?: (method: PaymentMethodType | null) => void;
   /** Callback when credit card completeness changes */
   onCreditCardCompleteChange?: (isComplete: boolean) => void;
+  /** Callback when an Endaoment fund is selected (or deselected) */
+  onEndaomentFundSelected?: (
+    fund: import('@/services/endaoment.service').EndaomentFund | null
+  ) => void;
   /** Callback when Stripe context is ready for payment confirmation */
   onStripeReady?: (context: StripePaymentContext | null) => void;
   /** Whether to hide the CTA button (when used inside PaymentStep) */
@@ -79,6 +82,7 @@ export function PaymentWidget({
   selectedPaymentMethod,
   onPaymentMethodChange,
   onCreditCardCompleteChange,
+  onEndaomentFundSelected,
   onStripeReady,
   hideButton = false,
   walletAvailability,
@@ -110,12 +114,12 @@ export function PaymentWidget({
     paymentMethod: 'rsc', // Always calculate for RSC to check balance
   });
 
-  // Calculate if selected DAF fund has insufficient funds
-  const selectedDafFund = funds.find((f) => f.id === selectedDafAccountId);
-  const selectedDafFundBalance = selectedDafFund ? parseFloat(selectedDafFund.usdcBalance) || 0 : 0;
-  const isDafInsufficientBalance = Boolean(
-    selectedMethod === 'endaoment' && selectedDafFund && selectedDafFundBalance < amountInUsd
-  );
+  // Resolve the selected Endaoment fund and notify parent
+  const selectedEndaomentFund = funds.find((f) => f.id === selectedDafAccountId) ?? null;
+
+  useEffect(() => {
+    onEndaomentFundSelected?.(selectedEndaomentFund);
+  }, [selectedEndaomentFund, onEndaomentFundSelected]);
 
   const formatRsc = (amount: number) =>
     `${amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} RSC`;
@@ -130,7 +134,12 @@ export function PaymentWidget({
     {
       id: 'endaoment',
       title: 'Endaoment',
-      description: 'Contribute from your DAF',
+      description:
+        connected && selectedEndaomentFund
+          ? `Balance: $${(parseFloat(selectedEndaomentFund.usdcBalance) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          : connected
+            ? 'Select a fund'
+            : 'Contribute from your fund',
       icon: (
         <Image
           src="/logos/endaoment_color.svg"
@@ -221,11 +230,7 @@ export function PaymentWidget({
         return {
           text: 'Preview Payment',
           onClick: () => onEndaomentLogin?.(),
-          disabled:
-            isButtonDisabled ||
-            !onEndaomentLogin ||
-            !selectedDafAccountId ||
-            isDafInsufficientBalance,
+          disabled: isButtonDisabled || !onEndaomentLogin || !selectedDafAccountId,
         };
       default:
         return {
@@ -364,9 +369,6 @@ export function PaymentWidget({
           />
         </div>
       )}
-
-      {/* Insufficient DAF Funds Alert - appears when selected DAF has insufficient balance */}
-      {isDafInsufficientBalance && !isExpanded && <InsufficientDAFFundsAlert />}
 
       {/* CTA Button - hidden when used inside PaymentStep */}
       {!hideButton && (

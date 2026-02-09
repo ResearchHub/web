@@ -10,6 +10,8 @@ import { PaymentWidget } from './PaymentWidget';
 import { PaymentRequestButton } from './PaymentRequestButton';
 import { EndaomentPaymentButton } from '@/components/Endaoment/EndaomentPaymentButton';
 import { InsufficientBalanceAlert } from './InsufficientBalanceAlert';
+import { EndaomentInsufficientFundsAlert } from '@/components/Endaoment/EndaomentInsufficientFundsAlert';
+import type { EndaomentFund } from '@/services/endaoment.service';
 import {
   usePaymentCalculations,
   getDefaultPaymentMethod,
@@ -100,6 +102,7 @@ export function PaymentStep({
     }
   }, [defaultPaymentMethod, selectedMethod]);
   const [isCreditCardComplete, setIsCreditCardComplete] = useState(false);
+  const [selectedEndaomentFund, setSelectedEndaomentFund] = useState<EndaomentFund | null>(null);
 
   // Get RSC balance check (only relevant for RSC payment method)
   const { insufficientBalance } = usePaymentCalculations({
@@ -132,6 +135,13 @@ export function PaymentStep({
 
   // Check if selected method has insufficient balance
   const isRscInsufficientBalance = selectedMethod === 'rsc' && insufficientBalance;
+
+  // Check if selected Endaoment fund has insufficient balance
+  const isEndaomentInsufficientBalance = Boolean(
+    selectedMethod === 'endaoment' &&
+    selectedEndaomentFund &&
+    (parseFloat(selectedEndaomentFund.usdcBalance) || 0) < amountInUsd
+  );
 
   // Check if credit card is selected but not complete
   const isCreditCardIncomplete = selectedMethod === 'credit_card' && !isCreditCardComplete;
@@ -188,6 +198,7 @@ export function PaymentStep({
           selectedPaymentMethod={selectedMethod}
           onPaymentMethodChange={handlePaymentMethodChange}
           onCreditCardCompleteChange={setIsCreditCardComplete}
+          onEndaomentFundSelected={setSelectedEndaomentFund}
           onStripeReady={onStripeReady}
           hideButton
           walletAvailability={walletAvailability}
@@ -271,6 +282,9 @@ export function PaymentStep({
 
             {/* Insufficient balance alert for RSC */}
             {isRscInsufficientBalance && <InsufficientBalanceAlert />}
+
+            {/* Insufficient balance alert for Endaoment */}
+            {isEndaomentInsufficientBalance && <EndaomentInsufficientFundsAlert />}
 
             {/* Error Alert */}
             {error && <Alert variant="error">{error}</Alert>}

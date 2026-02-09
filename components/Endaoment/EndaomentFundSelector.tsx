@@ -69,15 +69,15 @@ export function EndaomentFundSelector({
             <Wallet className="h-[18px] w-[18px] text-gray-500" />
           </div>
           {selectedFund ? (
-            <div className="flex items-center gap-2 text-left">
+            <div className="flex flex-col text-left">
               <span className="font-medium text-gray-900">{selectedFund.name}</span>
               <span
                 className={cn(
                   'text-xs',
-                  hasInsufficientFunds(selectedFund) ? 'text-amber-600' : 'text-green-600'
+                  hasInsufficientFunds(selectedFund) ? 'text-amber-600' : 'text-gray-500'
                 )}
               >
-                {formatUsd(getBalanceUsd(selectedFund))}
+                Balance: {formatUsd(getBalanceUsd(selectedFund))}
               </span>
             </div>
           ) : (
@@ -120,16 +120,18 @@ export function EndaomentFundSelector({
                 </div>
 
                 {/* Fund name and balance */}
-                <div className="flex-1 flex items-center gap-2 text-left min-w-0">
+                <div className="flex-1 flex flex-col text-left min-w-0">
                   <span className="font-medium text-gray-900 text-sm">{fund.name}</span>
-                  <span
-                    className={cn('text-xs', isInsufficient ? 'text-amber-600' : 'text-green-600')}
-                  >
-                    {formatUsd(getBalanceUsd(fund))}
-                  </span>
-                  {isInsufficient && (
-                    <span className="text-xs text-amber-600 font-medium">Insufficient funds</span>
-                  )}
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={cn('text-xs', isInsufficient ? 'text-amber-600' : 'text-gray-500')}
+                    >
+                      Balance: {formatUsd(getBalanceUsd(fund))}
+                    </span>
+                    {isInsufficient && (
+                      <span className="text-xs text-amber-600 font-medium">Insufficient funds</span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Checkmark for selected fund */}
