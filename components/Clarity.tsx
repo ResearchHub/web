@@ -14,8 +14,7 @@ const Clarity = () => {
   const isProduction = process.env.NODE_ENV === 'production';
 
   useEffect(() => {
-    //if (!isInitialized && isProduction && clarityId) {
-    if (!isInitialized && clarityId) {
+    if (!isInitialized && isProduction && clarityId) {
       ClaritySDK.init(clarityId);
       isInitialized = true;
     }
