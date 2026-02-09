@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { EndaomentProvider } from '@/contexts/EndaomentContext';
 
 // Import inline deposit views
 import { DepositRSCView } from './DepositRSCView';
@@ -72,7 +73,9 @@ export function ContributeToFundraiseModal(props: ContributeToFundraiseModalProp
 
   return (
     <StripeProvider>
-      <ContributeToFundraiseModalInner {...props} />
+      <EndaomentProvider>
+        <ContributeToFundraiseModalInner {...props} />
+      </EndaomentProvider>
     </StripeProvider>
   );
 }

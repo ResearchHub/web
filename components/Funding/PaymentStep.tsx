@@ -8,6 +8,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { Logo } from '@/components/ui/Logo';
 import { PaymentWidget } from './PaymentWidget';
 import { PaymentRequestButton } from './PaymentRequestButton';
+import { EndaomentPaymentButton } from '@/components/Endaoment/EndaomentPaymentButton';
 import { InsufficientBalanceAlert } from './InsufficientBalanceAlert';
 import {
   usePaymentCalculations,
@@ -300,6 +301,12 @@ export function PaymentStep({
               }
               onSuccess={() => onPaymentRequestSuccess?.(selectedMethod)}
               onError={(err) => console.error('Payment request error:', err)}
+            />
+          ) : selectedMethod === 'endaoment' ? (
+            <EndaomentPaymentButton
+              fundraiseId={fundraiseId}
+              amountInUsd={totalDueUsd}
+              isProcessing={isProcessing}
             />
           ) : (
             <Button
