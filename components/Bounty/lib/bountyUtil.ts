@@ -523,10 +523,20 @@ const getCreatorUserId = (bounty: Bounty): number | undefined => {
  * @returns True if the bounty was created by the Foundation account
  */
 export const isFoundationBounty = (bounty: Bounty): boolean => {
-  if (!FOUNDATION_USER_ID) return false;
-
   const creatorUserId = getCreatorUserId(bounty);
-  return creatorUserId === FOUNDATION_USER_ID;
+
+  if (FOUNDATION_USER_ID && creatorUserId === FOUNDATION_USER_ID) {
+    return true;
+  }
+
+  // Fallback check for Foundation account by name
+  const authorProfile = bounty.createdBy?.authorProfile;
+  const fullName = authorProfile?.fullName || bounty.createdBy?.fullName;
+  if (fullName?.toLowerCase() === 'researchhub foundation') {
+    return true;
+  }
+
+  return false;
 };
 
 /**
@@ -571,18 +581,13 @@ export const getBountyDisplayAmount = (
   showUSD: boolean
 ): { amount: number; isFoundation: boolean } => {
   const isFoundation = isFoundationBounty(bounty);
-  const rscAmount = parseFloat(bounty.totalAmount || bounty.amount || '0');
 
   if (isFoundation) {
-    if (showUSD) {
-      // Show flat $150 USD for Foundation bounties
-      return { amount: FOUNDATION_BOUNTY_FLAT_USD, isFoundation: true };
-    }
-    // Show RSC equivalent of $150 USD for Foundation bounties
-    // exchangeRate is USD per RSC, so RSC = USD / exchangeRate
-    const rscEquivalent = exchangeRate > 0 ? FOUNDATION_BOUNTY_FLAT_USD / exchangeRate : rscAmount;
-    return { amount: Math.round(rscEquivalent), isFoundation: true };
+    // ALWAYS return flat $150 USD for Foundation bounties to avoid confusion
+    return { amount: FOUNDATION_BOUNTY_FLAT_USD, isFoundation: true };
   }
+
+  const rscAmount = parseFloat(bounty.totalAmount || bounty.amount || '0');
 
   if (showUSD) {
     return { amount: Math.round(rscAmount * exchangeRate), isFoundation: false };

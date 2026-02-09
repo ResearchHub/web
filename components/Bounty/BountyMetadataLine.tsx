@@ -19,6 +19,10 @@ interface BountyMetadataLineProps {
    * Useful when the caller has pre-calculated the amount (e.g., Foundation bounty flat fee).
    */
   skipConversion?: boolean;
+  /**
+   * Optional currency override. If provided, uses this currency instead of the global preference.
+   */
+  currency?: 'RSC' | 'USD';
 }
 
 export const BountyMetadataLine = ({
@@ -30,6 +34,7 @@ export const BountyMetadataLine = ({
   showDeadline = true,
   bountyStatus,
   skipConversion = false,
+  currency,
 }: BountyMetadataLineProps) => {
   const { showUSD } = useCurrencyPreference();
 
@@ -54,7 +59,7 @@ export const BountyMetadataLine = ({
             amount={amount}
             size="sm"
             variant={isOpen ? 'badge' : 'disabled'}
-            currency={showUSD ? 'USD' : 'RSC'}
+            currency={currency || (showUSD ? 'USD' : 'RSC')}
             skipConversion={skipConversion}
           />
         </div>

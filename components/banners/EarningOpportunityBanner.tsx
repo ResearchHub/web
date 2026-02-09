@@ -34,10 +34,12 @@ export const EarningOpportunityBanner = ({
 
   // Calculate display amount (handles Foundation bounties with flat $150 USD)
   const openBounties = useMemo(() => getOpenBounties(metadata.bounties || []), [metadata.bounties]);
-  const { amount: displayAmount } = useMemo(
+  const { amount: displayAmount, foundationBountyCount } = useMemo(
     () => getTotalBountyDisplayAmount(openBounties, exchangeRate, showUSD),
     [openBounties, exchangeRate, showUSD]
   );
+
+  const isAllFoundation = foundationBountyCount > 0 && foundationBountyCount === openBounties.length;
 
   // Check if we can display the bounty amount (exchange rate loaded if USD preferred)
   const canDisplayAmount = !showUSD || (showUSD && !isExchangeRateLoading && exchangeRate > 0);
@@ -81,14 +83,14 @@ export const EarningOpportunityBanner = ({
                     amount={displayAmount}
                     variant="text"
                     size="sm"
-                    currency={showUSD ? 'USD' : 'RSC'}
+                    currency={isAllFoundation ? 'USD' : showUSD ? 'USD' : 'RSC'}
                     showExchangeRate={false}
                     showText={true}
                     showIcon={false}
                     textColor="text-orange-600"
                     fontWeight="font-semibold"
                     className="p-0 text-sm inline-flex"
-                    skipConversion={showUSD}
+                    skipConversion={isAllFoundation || showUSD}
                   />
                 </>
               )}
@@ -124,14 +126,14 @@ export const EarningOpportunityBanner = ({
                     amount={displayAmount}
                     variant="text"
                     size="sm"
-                    currency={showUSD ? 'USD' : 'RSC'}
+                    currency={isAllFoundation ? 'USD' : showUSD ? 'USD' : 'RSC'}
                     showExchangeRate={false}
                     showText={true}
                     showIcon={false}
                     textColor="text-orange-600"
                     fontWeight="font-semibold"
                     className="p-0 text-base inline-flex"
-                    skipConversion={showUSD}
+                    skipConversion={isAllFoundation || showUSD}
                   />
                 </>
               )}
