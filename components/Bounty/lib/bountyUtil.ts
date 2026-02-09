@@ -537,8 +537,8 @@ export const isFoundationBounty = (bounty: Bounty): boolean => {
  * @returns The RSC amount as a number
  */
 const getRscAmount = (bounty: Bounty): number => {
-  const totalAmount = parseFloat(bounty.totalAmount || '0');
-  return totalAmount > 0 ? totalAmount : parseFloat(bounty.amount || '0');
+  const totalAmount = Number.parseFloat(bounty.totalAmount || '0');
+  return totalAmount > 0 ? totalAmount : Number.parseFloat(bounty.amount || '0');
 };
 
 /**
