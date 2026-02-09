@@ -31,10 +31,12 @@ export const BountyInfoSummary: FC<BountyInfoSummaryProps> = ({
   );
 
   // Calculate display amount (handles Foundation bounties with flat $150 USD)
-  const { amount: totalAmount } = useMemo(
+  const { amount: totalAmount, foundationBountyCount } = useMemo(
     () => getTotalBountyDisplayAmount(openBounties, exchangeRate, showUSD),
     [openBounties, exchangeRate, showUSD]
   );
+
+  const isAllFoundation = foundationBountyCount > 0 && foundationBountyCount === openBounties.length;
 
   // If no open bounties, don't render anything
   if (openBounties.length === 0) {
@@ -60,14 +62,14 @@ export const BountyInfoSummary: FC<BountyInfoSummaryProps> = ({
                 variant="text"
                 size="xl"
                 showText={true}
-                currency={showUSD ? 'USD' : 'RSC'}
+                currency={isAllFoundation ? 'USD' : showUSD ? 'USD' : 'RSC'}
                 className="p-0 gap-0"
                 textColor="text-gray-700"
                 showExchangeRate={false}
                 iconColor={colors.gray[700]}
                 iconSize={24}
                 shorten
-                skipConversion={showUSD}
+                skipConversion={isAllFoundation || showUSD}
               />
             </div>
           </div>

@@ -144,7 +144,11 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
   const hasSolutions = solutionsCount > 0;
 
   // Calculate display amount (handles Foundation bounties with flat $150 USD)
-  const { amount: displayBountyAmount } = getBountyDisplayAmount(bounty, exchangeRate, showUSD);
+  const { amount: displayBountyAmount, isFoundation } = getBountyDisplayAmount(
+    bounty,
+    exchangeRate,
+    showUSD
+  );
 
   // Always use generic action text without amount
   const bountyActionText = 'created a bounty';
@@ -313,7 +317,8 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
             solutionsCount={solutionsCount}
             bountyStatus={bounty.status}
             showDeadline={showDeadline}
-            skipConversion={showUSD}
+            currency={isFoundation ? 'USD' : showUSD ? 'USD' : 'RSC'}
+            skipConversion={isFoundation || showUSD}
           />
         </div>
 

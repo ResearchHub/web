@@ -404,7 +404,9 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
 
   const getFormattedInputValue = () => {
     if (inputAmount === 0) return '';
-    return inputAmount.toLocaleString();
+    return inputAmount.toLocaleString(undefined, {
+      maximumFractionDigits: currency === 'USD' ? 2 : 0,
+    });
   };
 
   const toggleCurrency = () => {
@@ -413,7 +415,13 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
       toast.error('Exchange rate is loading. Please wait before switching to USD.');
       return;
     }
-    setCurrency(currency === 'RSC' ? 'USD' : 'RSC');
+
+    const nextCurrency = currency === 'RSC' ? 'USD' : 'RSC';
+    const nextAmount =
+      nextCurrency === 'USD' ? inputAmount * exchangeRate : inputAmount / exchangeRate;
+
+    setCurrency(nextCurrency);
+    setInputAmount(nextCurrency === 'USD' ? Number(nextAmount.toFixed(2)) : Math.round(nextAmount));
   };
 
   const getConvertedAmount = () => {
@@ -421,13 +429,14 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
     if (isExchangeRateLoading) return '';
 
     return currency === 'RSC'
-      ? `≈ $${(inputAmount * exchangeRate).toLocaleString()} USD`
-      : `≈ ${(inputAmount / exchangeRate).toLocaleString()} RSC`;
+      ? `≈ $${(inputAmount * exchangeRate).toLocaleString(undefined, { maximumFractionDigits: 2 })} USD`
+      : `≈ ${Math.round(inputAmount / exchangeRate).toLocaleString()} RSC`;
   };
 
   const getRscAmount = () => {
     if (isExchangeRateLoading) return currency === 'RSC' ? inputAmount : 0;
-    return currency === 'RSC' ? inputAmount : inputAmount / exchangeRate;
+    const amount = currency === 'RSC' ? inputAmount : inputAmount / exchangeRate;
+    return Math.round(amount);
   };
 
   const handleEditorContent = (content: any) => {

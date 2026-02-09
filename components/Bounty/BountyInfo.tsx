@@ -190,7 +190,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
   };
 
   // Get display amount (handles Foundation bounties with flat $150 USD)
-  const { amount: displayAmount } = useMemo(
+  const { amount: displayAmount, isFoundation } = useMemo(
     () => getBountyDisplayAmount(bounty, exchangeRate, showUSD),
     [bounty, exchangeRate, showUSD]
   );
@@ -231,7 +231,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
               variant="text"
               size="md"
               showText={true}
-              currency={showUSD ? 'USD' : 'RSC'}
+              currency={isFoundation ? 'USD' : showUSD ? 'USD' : 'RSC'}
               className="p-0 gap-0"
               textColor={isActive ? 'text-orange-700' : 'text-gray-600'}
               fontWeight="font-bold"
@@ -239,7 +239,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
               iconColor={isActive ? '#ea580c' : colors.gray[500]}
               iconSize={18}
               shorten
-              skipConversion={showUSD}
+              skipConversion={isFoundation || showUSD}
             />
           </div>
 

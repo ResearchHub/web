@@ -8,6 +8,7 @@ import Icon from '@/components/ui/icons/Icon';
 import { BountyHubSelector as HubsSelector } from '@/components/Earn/BountyHubSelector';
 import SortDropdown, { SortOption } from '@/components/ui/SortDropdown';
 import { Badge } from '@/components/ui/Badge';
+import { cn } from '@/utils/styles';
 import { X } from 'lucide-react';
 import { useBounties } from '@/hooks/useBounties';
 
@@ -24,6 +25,8 @@ export default function EarnPage() {
     restoredScrollPosition,
     page,
     lastClickedEntryId,
+    bountyFilter,
+    handleBountyFilterChange,
   } = useBounties();
 
   // Available sort options
@@ -38,15 +41,55 @@ export default function EarnPage() {
     <div className="mt-5 space-y-3">
       {/* Top filter bar */}
       <div className="flex items-center gap-0 sm:gap-2 flex-wrap justify-between">
-        <div className="w-1/2 sm:!w-[220px] flex-1 sm:!flex-none pr-1 sm:!pr-0">
-          <HubsSelector
-            selectedHubs={selectedHubs}
-            onChange={handleHubsChange}
-            displayCountOnly
-            hideSelectedItems={true}
-          />
+        <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+          <div className="w-full sm:!w-[220px] pr-0 sm:!pr-0">
+            <HubsSelector
+              selectedHubs={selectedHubs}
+              onChange={handleHubsChange}
+              displayCountOnly
+              hideSelectedItems={true}
+            />
+          </div>
+
+          {/* Bounty Type Filter */}
+          <div className="flex items-center bg-gray-100 p-1 rounded-lg">
+            <button
+              onClick={() => handleBountyFilterChange('all')}
+              className={cn(
+                'px-3 py-1.5 text-xs font-medium rounded-md transition-all',
+                bountyFilter === 'all'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              )}
+            >
+              All
+            </button>
+            <button
+              onClick={() => handleBountyFilterChange('foundation')}
+              className={cn(
+                'px-3 py-1.5 text-xs font-medium rounded-md transition-all',
+                bountyFilter === 'foundation'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              )}
+            >
+              Foundation
+            </button>
+            <button
+              onClick={() => handleBountyFilterChange('user')}
+              className={cn(
+                'px-3 py-1.5 text-xs font-medium rounded-md transition-all',
+                bountyFilter === 'user'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              )}
+            >
+              Community
+            </button>
+          </div>
         </div>
-        <div className="w-1/2 sm:!w-[120px] flex-1 sm:!flex-none pl-1 sm:!pl-0">
+
+        <div className="w-1/2 sm:!w-[120px] flex-1 sm:!flex-none pl-1 sm:!pl-0 mt-2 sm:mt-0">
           <SortDropdown
             value={sort}
             onChange={(opt: SortOption) => handleSortChange(opt.value)}

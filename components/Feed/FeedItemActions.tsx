@@ -398,11 +398,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const hasOpenBounties = openBounties.length > 0;
 
   // Calculate total bounty amount for open bounties (handles Foundation bounties with flat $150 USD)
-  const { amount: totalBountyAmount } = getTotalBountyDisplayAmount(
+  const { amount: totalBountyAmount, foundationBountyCount } = getTotalBountyDisplayAmount(
     openBounties,
     exchangeRate,
     showUSD
   );
+
+  const isAllFoundation = foundationBountyCount > 0 && foundationBountyCount === openBounties.length;
 
   // Use media queries to determine screen size
   const isMobile = useMediaQuery('(max-width: 480px)');
@@ -620,7 +622,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     totalAmount={totalBountyAmount}
                     href={href}
                     showUSD={showUSD}
-                    skipConversion={showUSD}
+                    skipConversion={isAllFoundation || showUSD}
                   />
                 }
                 position="top"
@@ -640,12 +642,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                       textColor="inherit"
                       iconColor="inherit"
                       iconSize={18}
-                      currency={showUSD ? 'USD' : 'RSC'}
+                      currency={isAllFoundation ? 'USD' : showUSD ? 'USD' : 'RSC'}
                       shorten={true}
                       showExchangeRate={false}
                       showIcon={true}
                       showText={false}
-                      skipConversion={showUSD}
+                      skipConversion={isAllFoundation || showUSD}
                     />
                   }
                   showTooltip={false}
@@ -667,12 +669,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     textColor="inherit"
                     iconColor="inherit"
                     iconSize={18}
-                    currency={showUSD ? 'USD' : 'RSC'}
+                    currency={isAllFoundation ? 'USD' : showUSD ? 'USD' : 'RSC'}
                     shorten={true}
                     showExchangeRate={false}
                     showIcon={true}
                     showText={false}
-                    skipConversion={showUSD}
+                    skipConversion={isAllFoundation || showUSD}
                   />
                 }
                 showTooltip={false}

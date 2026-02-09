@@ -5,6 +5,7 @@ import { BountyService } from '@/services/bounty.service';
 import { useNavigation, getFeedKey } from '@/contexts/NavigationContext';
 import { useClickContext } from '@/contexts/ClickContext';
 import { Hub } from '@/components/Earn/BountyHubSelector';
+import { isFoundationBounty } from '@/components/Bounty/lib/bountyUtil';
 
 export const useBounties = () => {
   const pathname = usePathname();
@@ -67,6 +68,7 @@ export const useBounties = () => {
   const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
   const selectedHubsRef = useRef<Hub[]>([]);
   const [sort, setSort] = useState<string>(sortFromUrl);
+  const [bountyFilter, setBountyFilter] = useState<BountyFilter>('all');
   const previousHubsParamRef = useRef<string>('');
   const hasInitialFetchRef = useRef<boolean>(false);
   const previousSortRef = useRef<string>(sortFromUrl);
@@ -141,7 +143,11 @@ export const useBounties = () => {
     }
   }, [searchParams]);
 
-  const fetchBounties = async (reset = false, hubs: Hub[] = selectedHubs) => {
+  const fetchBounties = async (
+    reset = false,
+    hubs: Hub[] = selectedHubs,
+    filter: BountyFilter = bountyFilter
+  ) => {
     if (reset) {
       setEntries([]);
     }
@@ -156,14 +162,27 @@ export const useBounties = () => {
         sort,
         onlyParentBounties: true,
         page: currentPage,
-        pageSize: 10,
+        pageSize: 15, // Slightly increased page size to account for frontend filtering
         hubIds: hubs.map((h) => h.id),
       });
 
+      let filteredEntries = result.entries;
+      if (filter === 'foundation') {
+        filteredEntries = result.entries.filter((entry) => {
+          const bounty = (entry.content as any).bounties?.[0];
+          return bounty && isFoundationBounty(bounty);
+        });
+      } else if (filter === 'user') {
+        filteredEntries = result.entries.filter((entry) => {
+          const bounty = (entry.content as any).bounties?.[0];
+          return bounty && !isFoundationBounty(bounty);
+        });
+      }
+
       if (reset) {
-        setEntries(result.entries);
+        setEntries(filteredEntries);
       } else {
-        setEntries((prev) => [...prev, ...result.entries]);
+        setEntries((prev) => [...prev, ...filteredEntries]);
       }
 
       setHasMore(result.hasMore);
@@ -236,6 +255,12 @@ export const useBounties = () => {
     router.replace(`?${params.toString()}`, { scroll: false });
   };
 
+  const handleBountyFilterChange = (filter: BountyFilter) => {
+    setBountyFilter(filter);
+    setPage(1);
+    fetchBounties(true, selectedHubs, filter);
+  };
+
   const loadMore = () => {
     fetchBounties();
   };
@@ -306,5 +331,9 @@ export const useBounties = () => {
     page,
     total,
     lastClickedEntryId,
+    bountyFilter,
+    handleBountyFilterChange,
   };
 };
+
+export type BountyFilter = 'all' | 'foundation' | 'user';
