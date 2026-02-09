@@ -1,6 +1,7 @@
 import { User } from '@/types/user';
 import * as amplitude from '@amplitude/analytics-browser';
 import { sendGAEvent } from '@next/third-parties/google';
+import ClaritySDK from '@microsoft/clarity';
 
 export const LogEvent = {
   SIGNUP_PROMO_MODAL_OPENED: 'signup_promo_modal_opened',
@@ -103,6 +104,10 @@ class AnalyticsService {
       identify.set(key, value);
     });
     amplitude.identify(identify);
+
+    if (userProperties.user_id) {
+      ClaritySDK.identify(userProperties.user_id);
+    }
   }
 
   static async logEvent(
