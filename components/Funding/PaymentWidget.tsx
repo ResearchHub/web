@@ -15,10 +15,10 @@ import {
   type PaymentMethodType,
   type WalletAvailability,
 } from './lib';
-import { MOCK_DAF_ACCOUNTS } from './lib/mockEndaomentData';
 import { CreditCardForm, type StripePaymentContext } from './CreditCardForm';
-import { DAFAccountSelector } from './DAFAccountSelector';
-import { InsufficientDAFFundsAlert } from './InsufficientDAFFundsAlert';
+import { useEndaoment } from '@/contexts/EndaomentContext';
+import { EndaomentFundSelector } from '@/components/Endaoment/EndaomentFundSelector';
+import { InsufficientDAFFundsAlert } from '@/components/Endaoment/InsufficientDAFFundsAlert';
 
 interface PaymentOption {
   id: PaymentMethodType;
@@ -88,7 +88,10 @@ export function PaymentWidget({
     onMethodChange: onPaymentMethodChange,
   });
 
-  // State for selected DAF account (Endaoment)
+  // Endaoment connection status and funds from context
+  const { connected, funds } = useEndaoment();
+
+  // State for selected DAF fund (Endaoment)
   const [selectedDafAccountId, setSelectedDafAccountId] = useState<string | null>(null);
 
   // State for credit card completeness
@@ -107,12 +110,11 @@ export function PaymentWidget({
     paymentMethod: 'rsc', // Always calculate for RSC to check balance
   });
 
-  // Calculate if selected DAF account has insufficient funds
-  const selectedDafAccount = MOCK_DAF_ACCOUNTS.find((acc) => acc.id === selectedDafAccountId);
+  // Calculate if selected DAF fund has insufficient funds
+  const selectedDafFund = funds.find((f) => f.id === selectedDafAccountId);
+  const selectedDafFundBalance = selectedDafFund ? parseFloat(selectedDafFund.usdcBalance) || 0 : 0;
   const isDafInsufficientBalance = Boolean(
-    selectedMethod === 'endaoment' &&
-    selectedDafAccount &&
-    selectedDafAccount.balanceUsd < amountInUsd
+    selectedMethod === 'endaoment' && selectedDafFund && selectedDafFundBalance < amountInUsd
   );
 
   const formatRsc = (amount: number) =>
@@ -351,13 +353,13 @@ export function PaymentWidget({
         </div>
       )}
 
-      {/* DAF Account Selector - appears below widget when Endaoment is selected */}
-      {selectedMethod === 'endaoment' && !isExpanded && (
+      {/* Endaoment Fund Selector - appears below widget when Endaoment is selected and connected */}
+      {selectedMethod === 'endaoment' && !isExpanded && connected && (
         <div className="animate-in slide-in-from-top-2 duration-200">
-          <DAFAccountSelector
-            accounts={MOCK_DAF_ACCOUNTS}
-            selectedAccountId={selectedDafAccountId}
-            onSelectAccount={setSelectedDafAccountId}
+          <EndaomentFundSelector
+            funds={funds}
+            selectedFundId={selectedDafAccountId}
+            onSelectFund={setSelectedDafAccountId}
             requiredAmountUsd={amountInUsd}
           />
         </div>
