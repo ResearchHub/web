@@ -11,6 +11,8 @@ interface BountyTooltipProps {
   showUSD?: boolean;
   /** If true, the amount is already in the target currency and should not be converted */
   skipConversion?: boolean;
+  /** If true, the bounty is from the foundation and should be displayed in USD */
+  isFoundation?: boolean;
 }
 
 export function BountyTooltip({
@@ -18,6 +20,7 @@ export function BountyTooltip({
   href,
   showUSD = false,
   skipConversion = false,
+  isFoundation = false,
 }: BountyTooltipProps) {
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -38,12 +41,12 @@ export function BountyTooltip({
             iconColor="#f97316"
             iconSize={20}
             fontWeight="font-bold"
-            currency={showUSD ? 'USD' : 'RSC'}
+            currency={isFoundation ? 'USD' : showUSD ? 'USD' : 'RSC'}
             shorten={true}
             showExchangeRate={false}
             showIcon={true}
             showText={false}
-            skipConversion={skipConversion}
+            skipConversion={isFoundation || skipConversion}
           />
         </span>
       </div>
