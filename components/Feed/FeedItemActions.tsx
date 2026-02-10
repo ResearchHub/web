@@ -146,8 +146,10 @@ interface FeedItemActionsProps {
     comment?: string;
     upvote?: string;
     report?: string;
+    award?: string;
   };
   onComment?: () => void;
+  onAward?: () => void; // Prop for inline award action
   onTip?: () => void; // Callback for tip action (when provided, tip button shows)
   children?: ReactNode; // Add children prop to accept additional action buttons
   showTooltips?: boolean; // New property for controlling tooltips
@@ -201,6 +203,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   reviews = [],
   bounties = [],
   awardedBountyAmount,
+  onAward,
   tips = [],
   relatedDocumentTopics,
   relatedDocumentUnifiedDocumentId,
@@ -417,7 +420,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   // Calculate tip amount and awarded bounty amount separately
   const tipAmount = tips.reduce((total, tip) => total + (tip.amount || 0), 0);
-  const totalAwarded = tipAmount + (awardedBountyAmount || 0);
   const hasBountyAwards = (awardedBountyAmount || 0) > 0;
 
   return (
@@ -661,6 +663,19 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 onClick={handleBountyClick}
               />
             ))}
+
+          {/* Inline Award Button - For bounty creators to award specific comments */}
+          {feedContentType === 'COMMENT' && onAward && (
+            <ActionButton
+              icon={Trophy}
+              label={actionLabels?.award || 'Award'}
+              tooltip="Award bounty to this comment"
+              onClick={onAward}
+              className="hover:!bg-amber-50 hover:!text-amber-600 hover:!border-amber-300"
+              showTooltip={showTooltips}
+            />
+          )}
+
           {children}
         </div>
 

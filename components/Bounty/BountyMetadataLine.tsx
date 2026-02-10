@@ -34,21 +34,41 @@ export const BountyMetadataLine = ({
 }: BountyMetadataLineProps) => {
   const { showUSD } = useCurrencyPreference();
 
-  // Format the deadline text
-  const deadlineText =
-    bountyStatus === 'ASSESSMENT'
-      ? 'Assessment Period'
-      : bountyStatus === 'EXPIRED'
-        ? 'Expired'
-        : bountyStatus === 'CANCELLED'
-          ? 'Cancelled'
-          : isOpen
-            ? expirationDate
-              ? formatDeadline(expirationDate)
-              : 'No deadline'
-            : 'Completed';
+  // Helper to determine the deadline text
+  const getDeadlineText = () => {
+    if (bountyStatus === 'ASSESSMENT') return 'Assessment Period';
+    if (bountyStatus === 'EXPIRED') return 'Expired';
+    if (bountyStatus === 'CANCELLED') return 'Cancelled';
+    if (isOpen) {
+      return expirationDate ? formatDeadline(expirationDate) : 'No deadline';
+    }
+    return 'Completed';
+  };
 
+  const deadlineText = getDeadlineText();
   const isInactive = bountyStatus === 'EXPIRED' || bountyStatus === 'CANCELLED';
+
+  // Helper to determine the status icon
+  const renderStatusIcon = () => {
+    if (isOpen) {
+      return <RadiatingDot size={12} dotSize={6} isRadiating={isOpen} className="flex-shrink-0" />;
+    }
+    if (isInactive) {
+      return <XCircle size={14} className="text-gray-400 flex-shrink-0" />;
+    }
+    return <Check size={14} className="text-green-600 flex-shrink-0" />;
+  };
+
+  // Helper to determine the status text color
+  const getStatusColorClass = () => {
+    if (isOpen) {
+      return expiringSoon ? 'text-orange-600 font-medium' : 'text-gray-700';
+    }
+    if (isInactive) {
+      return 'text-gray-500 italic';
+    }
+    return 'text-green-700 font-medium';
+  };
 
   return (
     <div className={`space-y-3 ${className}`}>
@@ -69,26 +89,8 @@ export const BountyMetadataLine = ({
 
         {showDeadline && (
           <div className="flex items-center gap-2 text-sm">
-            {isOpen ? (
-              <RadiatingDot size={12} dotSize={6} isRadiating={isOpen} className="flex-shrink-0" />
-            ) : isInactive ? (
-              <XCircle size={14} className="text-gray-400 flex-shrink-0" />
-            ) : (
-              <Check size={14} className="text-green-600 flex-shrink-0" />
-            )}
-            <span
-              className={`${
-                isOpen
-                  ? expiringSoon
-                    ? 'text-orange-600 font-medium'
-                    : 'text-gray-700'
-                  : isInactive
-                    ? 'text-gray-500 italic'
-                    : 'text-green-700 font-medium'
-              }`}
-            >
-              {deadlineText}
-            </span>
+            {renderStatusIcon()}
+            <span className={getStatusColorClass()}>{deadlineText}</span>
           </div>
         )}
       </div>
