@@ -48,7 +48,7 @@ export const EarningOpportunityBanner = ({
     } else {
       const bountiesUrl = buildWorkUrl({
         id: work.id,
-        contentType: work.contentType === 'paper' ? 'paper' : 'post',
+        contentType: work.contentType,
         slug: work.slug,
         tab: 'bounties',
       });

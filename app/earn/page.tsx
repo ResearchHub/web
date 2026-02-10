@@ -19,6 +19,8 @@ export default function EarnPage() {
     loadMore,
     sort,
     handleSortChange,
+    bountyFilter,
+    handleBountyFilterChange,
     selectedHubs,
     handleHubsChange,
     restoredScrollPosition,
@@ -34,19 +36,35 @@ export default function EarnPage() {
     { label: 'RSC amount', value: '-total_amount' },
   ];
 
+  // Available bounty type options
+  const bountyTypeOptions = [
+    { label: 'All Bounties', value: 'ALL' },
+    { label: 'Foundation Only', value: 'FOUNDATION' },
+    { label: 'Community Only', value: 'COMMUNITY' },
+  ];
+
   const renderFilters = () => (
     <div className="mt-5 space-y-3">
       {/* Top filter bar */}
       <div className="flex items-center gap-0 sm:gap-2 flex-wrap justify-between">
-        <div className="w-1/2 sm:!w-[220px] flex-1 sm:!flex-none pr-1 sm:!pr-0">
-          <HubsSelector
-            selectedHubs={selectedHubs}
-            onChange={handleHubsChange}
-            displayCountOnly
-            hideSelectedItems={true}
-          />
+        <div className="flex items-center gap-2 flex-1 sm:flex-none">
+          <div className="w-[180px] sm:!w-[220px]">
+            <HubsSelector
+              selectedHubs={selectedHubs}
+              onChange={handleHubsChange}
+              displayCountOnly
+              hideSelectedItems={true}
+            />
+          </div>
+          <div className="w-[140px] sm:!w-[160px]">
+            <SortDropdown
+              value={bountyFilter}
+              onChange={(opt: SortOption) => handleBountyFilterChange(opt.value as any)}
+              options={bountyTypeOptions}
+            />
+          </div>
         </div>
-        <div className="w-1/2 sm:!w-[120px] flex-1 sm:!flex-none pl-1 sm:!pl-0">
+        <div className="w-1/2 sm:!w-[120px] flex-1 sm:!flex-none pl-1 sm:!pl-0 mt-2 sm:mt-0">
           <SortDropdown
             value={sort}
             onChange={(opt: SortOption) => handleSortChange(opt.value)}
