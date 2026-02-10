@@ -91,6 +91,7 @@ export interface ChatMessage {
 export interface EditorPanelState {
   isOpen: boolean;
   field: string | null;
+  /** Editor content — may be AI-staged or fetched from backend. Cleared on commit or discard. */
   content: string | null;
   contentJson: string | null;
 }
@@ -131,6 +132,8 @@ export type ChatAction =
   | { type: 'STAGE_EDITOR_CONTENT'; field: string; content?: string; contentJson?: string }
   | { type: 'OPEN_EDITOR'; field?: string; content?: string; contentJson?: string }
   | { type: 'CLOSE_EDITOR' }
+  | { type: 'DISCARD_STAGED' }
+  | { type: 'COMMIT_EDITOR' }
   | {
       type: 'HYDRATE_SESSION';
       sessionId: string;

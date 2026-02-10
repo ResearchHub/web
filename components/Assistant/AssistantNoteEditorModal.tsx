@@ -11,8 +11,12 @@ interface AssistantNoteEditorModalProps {
   title?: string;
   content?: string;
   contentJson?: string;
-  onConfirm: (json: object, html: string) => void;
+  /** Persist content to backend (Save Changes). */
+  onCommit: (json: object, html: string) => void;
+  /** Explicitly reject staged AI content (Discard). */
   onDiscard: () => void;
+  /** Dismiss modal without affecting staged or committed content (background click / X). */
+  onClose: () => void;
 }
 
 export const AssistantNoteEditorModal: React.FC<AssistantNoteEditorModalProps> = ({
@@ -20,21 +24,22 @@ export const AssistantNoteEditorModal: React.FC<AssistantNoteEditorModalProps> =
   title = 'Description',
   content,
   contentJson,
-  onConfirm,
+  onCommit,
   onDiscard,
+  onClose,
 }) => {
   const [editor, setEditor] = useState<Editor | null>(null);
   const editorReady = !!editor;
 
-  const handleConfirm = useCallback(() => {
+  const handleCommit = useCallback(() => {
     if (!editor) return;
-    onConfirm(editor.getJSON(), editor.getHTML());
-  }, [editor, onConfirm]);
+    onCommit(editor.getJSON(), editor.getHTML());
+  }, [editor, onCommit]);
 
   return (
     <BaseModal
       isOpen={isOpen}
-      onClose={onDiscard}
+      onClose={onClose}
       showCloseButton={false}
       maxWidth="max-w-4xl"
       padding="p-0"
@@ -50,7 +55,7 @@ export const AssistantNoteEditorModal: React.FC<AssistantNoteEditorModalProps> =
             Discard
           </button>
           <button
-            onClick={handleConfirm}
+            onClick={handleCommit}
             disabled={!editorReady}
             className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white
               bg-primary-600 rounded-lg hover:bg-primary-700 active:scale-[0.98] transition-all

@@ -116,6 +116,7 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         editorPanel: {
+          ...state.editorPanel,
           isOpen: true,
           field: action.field ?? state.editorPanel.field ?? 'description',
           content: action.content ?? state.editorPanel.content,
@@ -125,7 +126,34 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
     }
 
     case 'CLOSE_EDITOR': {
-      return { ...state, editorPanel: { ...initialEditorPanel } };
+      // Just close — preserve content for next open
+      return {
+        ...state,
+        editorPanel: {
+          ...state.editorPanel,
+          isOpen: false,
+        },
+      };
+    }
+
+    case 'DISCARD_STAGED': {
+      // User explicitly rejected AI proposal — clear staged + close
+      return {
+        ...state,
+        editorPanel: {
+          ...initialEditorPanel,
+        },
+      };
+    }
+
+    case 'COMMIT_EDITOR': {
+      // Content has been persisted to backend — clear staged + close
+      return {
+        ...state,
+        editorPanel: {
+          ...initialEditorPanel,
+        },
+      };
     }
 
     case 'HYDRATE_SESSION': {

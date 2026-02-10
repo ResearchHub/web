@@ -168,23 +168,54 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
 
   // ── Editor toggle ─────────────────────────────────────────────────────
 
-  const handleToggleEditor = useCallback(() => {
+  const handleToggleEditor = useCallback(async () => {
     if (editorIsOpen) {
+      // Just close — preserve staged content for next open
       dispatch({ type: 'CLOSE_EDITOR' });
-    } else {
-      // Open with staged content (from API) or empty
-      dispatch({
-        type: 'OPEN_EDITOR',
-        field: 'description',
-        content: state.editorPanel.content || '<p></p>',
-        contentJson: state.editorPanel.contentJson || undefined,
-      });
+      return;
     }
-  }, [editorIsOpen, state.editorPanel.content, state.editorPanel.contentJson]);
 
-  // ── Editor confirm: create note if needed, save content, notify backend ─
+    // Priority 1: Content already available (AI-staged or cached)
+    if (state.editorPanel.content) {
+      dispatch({ type: 'OPEN_EDITOR', field: 'description' });
+      return;
+    }
 
-  const handleEditorConfirm = useCallback(
+    // Priority 2: Note exists on backend — fetch committed version
+    if (noteIdRef.current) {
+      try {
+        const note = await NoteService.getNote(noteIdRef.current);
+        dispatch({
+          type: 'OPEN_EDITOR',
+          field: 'description',
+          content: note.content || '<p></p>',
+          contentJson: note.contentJson || undefined,
+        });
+        return;
+      } catch (err) {
+        console.error('Failed to fetch note content:', err);
+      }
+    }
+
+    // Priority 3: Nothing available — empty editor
+    dispatch({ type: 'OPEN_EDITOR', field: 'description' });
+  }, [editorIsOpen, state.editorPanel]);
+
+  // ── Editor close: just dismiss modal, preserve staged content ──────
+
+  const handleEditorClose = useCallback(() => {
+    dispatch({ type: 'CLOSE_EDITOR' });
+  }, []);
+
+  // ── Editor discard: user explicitly rejects AI proposal ────────────
+
+  const handleEditorDiscard = useCallback(() => {
+    dispatch({ type: 'DISCARD_STAGED' });
+  }, []);
+
+  // ── Editor commit: persist to backend, then clear staged ───────────
+
+  const handleEditorCommit = useCallback(
     async (json: object, html: string) => {
       if (!state.editorPanel.field) return;
 
@@ -217,8 +248,8 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
           full_src: html,
         });
 
-        // 3. Close editor only after everything succeeds
-        dispatch({ type: 'CLOSE_EDITOR' });
+        // 3. Commit — clears staged content and closes editor
+        dispatch({ type: 'COMMIT_EDITOR' });
       } catch (err) {
         // Keep editor open so user can retry
         console.error('Failed to save editor content:', err);
@@ -228,10 +259,6 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
     },
     [state.editorPanel.field, state.fieldState.title?.value, selectedOrg?.slug]
   );
-
-  const handleEditorDiscard = useCallback(() => {
-    dispatch({ type: 'CLOSE_EDITOR' });
-  }, []);
 
   // ── Right sidebar ─────────────────────────────────────────────────────
 
@@ -282,8 +309,9 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
           isOpen
           content={state.editorPanel.content || undefined}
           contentJson={state.editorPanel.contentJson || undefined}
-          onConfirm={handleEditorConfirm}
+          onCommit={handleEditorCommit}
           onDiscard={handleEditorDiscard}
+          onClose={handleEditorClose}
         />
       )}
     </PageLayout>
