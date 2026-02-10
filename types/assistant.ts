@@ -22,6 +22,7 @@ export interface AssistantChatRequest {
   role?: AssistantRole;
   action: AssistantChatAction;
   message?: string;
+  note_id?: string;
   structured_input?: {
     field: string;
     value: any;

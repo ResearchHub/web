@@ -51,6 +51,10 @@ export class AssistantService {
       body.message = request.message;
     }
 
+    if (request.note_id) {
+      body.note_id = request.note_id;
+    }
+
     if (request.structured_input) {
       body.structured_input = request.structured_input;
     }

@@ -107,6 +107,7 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
           session_id: session.session_id,
           role: session.role,
           action: hasProgress ? 'resume' : 'start',
+          note_id: noteIdRef.current ?? undefined,
         });
 
         dispatchChatResponse(response, dispatch);
@@ -131,6 +132,7 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
           role: role ?? undefined,
           action: 'message',
           message: content,
+          note_id: noteIdRef.current ?? undefined,
           structured_input: structuredInput,
         });
         dispatchChatResponse(response, dispatch);
@@ -206,14 +208,6 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
           currentNoteId = String(note.id);
           dispatch({ type: 'SET_NOTE_ID', noteId: currentNoteId });
           noteIdRef.current = currentNoteId;
-
-          // Tell the backend about the note
-          await AssistantService.chat({
-            session_id: sessionIdRef.current ?? sessionId,
-            action: 'message',
-            message: 'Note created',
-            structured_input: { field: 'note_id', value: currentNoteId },
-          });
         }
 
         // 2. Save content to the note
@@ -232,7 +226,7 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
         setIsSavingEditor(false);
       }
     },
-    [state.editorPanel.field, state.fieldState.title?.value, sessionId, selectedOrg?.slug]
+    [state.editorPanel.field, state.fieldState.title?.value, selectedOrg?.slug]
   );
 
   const handleEditorDiscard = useCallback(() => {
