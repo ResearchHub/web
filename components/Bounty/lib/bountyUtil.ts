@@ -530,18 +530,6 @@ export const isFoundationBounty = (bounty: Bounty): boolean => {
 };
 
 /**
- * Gets the RSC amount from a bounty, preferring totalAmount if it's greater than 0.
- * This handles the case where totalAmount might be '0' due to ignoreBaseAmount transformation.
- *
- * @param bounty The bounty to get the amount from
- * @returns The RSC amount as a number
- */
-const getRscAmount = (bounty: Bounty): number => {
-  const totalAmount = Number.parseFloat(bounty.totalAmount || '0');
-  return totalAmount > 0 ? totalAmount : Number.parseFloat(bounty.amount || '0');
-};
-
-/**
  * Calculates the display amount for a bounty in USD.
  * For Foundation bounties, returns a flat $150 USD.
  * For other bounties, converts RSC to USD using the exchange rate.
@@ -555,7 +543,8 @@ export const calculateBountyDisplayAmountUSD = (bounty: Bounty, exchangeRate: nu
     return FOUNDATION_BOUNTY_FLAT_USD;
   }
 
-  const rscAmount = getRscAmount(bounty);
+  const totalAmount = Number.parseFloat(bounty.totalAmount || '0');
+  const rscAmount = totalAmount > 0 ? totalAmount : Number.parseFloat(bounty.amount || '0');
   return Math.round(rscAmount * exchangeRate);
 };
 
@@ -583,7 +572,8 @@ export const getBountyDisplayAmount = (
   showUSD: boolean
 ): { amount: number; isFoundation: boolean } => {
   const isFoundation = isFoundationBounty(bounty);
-  const rscAmount = getRscAmount(bounty);
+  const totalAmount = Number.parseFloat(bounty.totalAmount || '0');
+  const rscAmount = totalAmount > 0 ? totalAmount : Number.parseFloat(bounty.amount || '0');
 
   if (isFoundation) {
     if (showUSD) {
