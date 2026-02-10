@@ -105,8 +105,9 @@ class AnalyticsService {
     });
     amplitude.identify(identify);
 
-    if (userProperties.user_id) {
-      ClaritySDK.identify(userProperties.user_id);
+    const clarityUserId = userProperties.user_id || this.userId;
+    if (clarityUserId) {
+      ClaritySDK.identify(clarityUserId);
     }
   }
 
