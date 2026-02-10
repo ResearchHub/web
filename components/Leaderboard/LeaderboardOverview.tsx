@@ -34,6 +34,27 @@ const LeaderboardListSkeleton = () => (
 // Skeleton Loader for leaderboard sections
 export const LeaderboardSkeleton = () => (
   <>
+    {/* Top Funders Section Skeleton */}
+    <div>
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex items-start gap-2">
+          <Icon name="fund" size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <h2 className="font-semibold text-gray-900">Top Funders</h2>
+            <p className="text-xs text-gray-500">This Month</p>
+          </div>
+        </div>
+        <div className="text-xs text-gray-700 flex items-center gap-0.5 mt-1">
+          View All
+          <ChevronRight className="w-3 h-3" />
+        </div>
+      </div>
+      <LeaderboardListSkeleton />
+    </div>
+
+    {/* Divider */}
+    <div className="border-t border-gray-200 my-4" />
+
     {/* Top Peer Reviewers Section Skeleton */}
     <div>
       <div className="flex justify-between items-start mb-3">
@@ -51,27 +72,6 @@ export const LeaderboardSkeleton = () => (
       </div>
       <LeaderboardListSkeleton />
       <div className="mt-4 h-9 bg-gray-100 rounded-md w-full animate-pulse" />
-    </div>
-
-    {/* Divider */}
-    <div className="border-t border-gray-200 my-4" />
-
-    {/* Top Funders Section Skeleton */}
-    <div>
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex items-start gap-2">
-          <Icon name="fund" size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
-          <div>
-            <h2 className="font-semibold text-gray-900">Top Funders</h2>
-            <p className="text-xs text-gray-500">This Month</p>
-          </div>
-        </div>
-        <div className="text-xs text-gray-700 flex items-center gap-0.5 mt-1">
-          View All
-          <ChevronRight className="w-3 h-3" />
-        </div>
-      </div>
-      <LeaderboardListSkeleton />
     </div>
   </>
 );
@@ -192,6 +192,40 @@ export const LeaderboardOverview = () => {
 
   return (
     <>
+      {/* Top Funders Section */}
+      <div>
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex items-start gap-2">
+            <Icon name="fund" size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h2 className="font-semibold text-gray-900">Top Funders</h2>
+              <p className="text-xs text-gray-500">This Month</p>
+            </div>
+          </div>
+          <Link
+            href="/leaderboard/funders"
+            className="text-xs text-gray-700 hover:underline flex items-center gap-0.5 mt-1"
+          >
+            View All
+            <ChevronRight className="w-3 h-3" />
+          </Link>
+        </div>
+        {isLoading ? (
+          <LeaderboardListSkeleton />
+        ) : error ? (
+          <p className="text-xs text-red-600">{error}</p>
+        ) : funders.length > 0 ? (
+          <div className="space-y-3">
+            {funders.map((funder, index) => renderListItem(funder, index, 'funder'))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500 mt-4 text-center">No funders found this month.</p>
+        )}
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-gray-200 my-4" />
+
       {/* Top Peer Reviewers Section */}
       <div>
         <div className="flex justify-between items-start mb-3">
@@ -203,7 +237,7 @@ export const LeaderboardOverview = () => {
             </div>
           </div>
           <Link
-            href="/leaderboard?tab=reviewers"
+            href="/leaderboard/reviewers"
             className="text-xs text-gray-700 hover:underline flex items-center gap-0.5 mt-1"
           >
             View All
@@ -228,40 +262,6 @@ export const LeaderboardOverview = () => {
         >
           View preprints needing review
         </Link>
-      </div>
-
-      {/* Divider */}
-      <div className="border-t border-gray-200 my-4" />
-
-      {/* Top Funders Section */}
-      <div>
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex items-start gap-2">
-            <Icon name="fund" size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <h2 className="font-semibold text-gray-900">Top Funders</h2>
-              <p className="text-xs text-gray-500">This Month</p>
-            </div>
-          </div>
-          <Link
-            href="/leaderboard?tab=funders"
-            className="text-xs text-gray-700 hover:underline flex items-center gap-0.5 mt-1"
-          >
-            View All
-            <ChevronRight className="w-3 h-3" />
-          </Link>
-        </div>
-        {isLoading ? (
-          <LeaderboardListSkeleton />
-        ) : error ? (
-          <p className="text-xs text-red-600">{error}</p>
-        ) : funders.length > 0 ? (
-          <div className="space-y-3">
-            {funders.map((funder, index) => renderListItem(funder, index, 'funder'))}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-500 mt-4 text-center">No funders found this month.</p>
-        )}
       </div>
     </>
   );

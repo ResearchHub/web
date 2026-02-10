@@ -1,8 +1,8 @@
 import { ApiClient } from './client';
 import {
   LeaderboardOverviewResponse,
-  LeaderboardReviewersResponse,
-  LeaderboardFundersResponse,
+  LeaderboardReviewersListResponse,
+  LeaderboardFundersListResponse,
   TopReviewer,
   TopFunder,
   transformTopReviewer,
@@ -16,11 +16,8 @@ interface TransformedLeaderboardOverview {
   funders: TopFunder[];
 }
 
-// Define structure for paginated/structured list responses
-interface ListApiResponse<T> {
-  results: T[];
-  // Add other pagination fields like count, next, previous if they exist
-}
+/** Default page size for leaderboard list endpoints. Not passed from consumer. */
+export const LEADERBOARD_PAGE_SIZE = 10;
 
 export class LeaderboardService {
   private static readonly BASE_PATH = '/api/leaderboard';
@@ -42,40 +39,60 @@ export class LeaderboardService {
   }
 
   /**
-   * Fetch the detailed list of top reviewers within a date range.
+   * Fetch a page of top reviewers for a given period.
+   * @param period - One of: 7_days, 30_days, 6_months, 1_year, all_time
+   * @param page - 1-based page number (default 1)
+   * @returns Paginated result with list, total count, and current user entry (or null if unauthenticated / not on list).
    */
-  static async fetchReviewers(startDate: string, endDate: string): Promise<TopReviewer[]> {
+  static async fetchReviewers(
+    period: string,
+    page: number = 1
+  ): Promise<{ results: TopReviewer[]; count: number; currentUser: TopReviewer | null }> {
     const params = new URLSearchParams({
-      start_date: startDate,
-      end_date: endDate,
+      period,
+      page: page.toString(),
+      page_size: LEADERBOARD_PAGE_SIZE.toString(),
     });
-    const rawData = await ApiClient.get<ListApiResponse<RawTopReviewer>>(
+    const rawData = await ApiClient.get<LeaderboardReviewersListResponse>(
       `${this.BASE_PATH}/reviewers/?${params.toString()}`
     );
     if (rawData && Array.isArray(rawData.results)) {
-      return rawData.results.map(transformTopReviewer);
-    } else {
-      console.error('Unexpected response structure for reviewers:', rawData);
-      return [];
+      const results = rawData.results.map(transformTopReviewer).filter((r) => r.earnedRsc > 0);
+      const count = typeof rawData.count === 'number' ? rawData.count : 0;
+      const currentUser =
+        rawData.current_user != null ? transformTopReviewer(rawData.current_user) : null;
+      return { results, count, currentUser };
     }
+    console.error('Unexpected response structure for reviewers:', rawData);
+    return { results: [], count: 0, currentUser: null };
   }
 
   /**
-   * Fetch the detailed list of top funders within a date range.
+   * Fetch a page of top funders for a given period.
+   * @param period - One of: 7_days, 30_days, 6_months, 1_year, all_time
+   * @param page - 1-based page number (default 1)
+   * @returns Paginated result with list, total count, and current user entry (or null if unauthenticated / not on list).
    */
-  static async fetchFunders(startDate: string, endDate: string): Promise<TopFunder[]> {
+  static async fetchFunders(
+    period: string,
+    page: number = 1
+  ): Promise<{ results: TopFunder[]; count: number; currentUser: TopFunder | null }> {
     const params = new URLSearchParams({
-      start_date: startDate,
-      end_date: endDate,
+      period,
+      page: page.toString(),
+      page_size: LEADERBOARD_PAGE_SIZE.toString(),
     });
-    const rawData = await ApiClient.get<ListApiResponse<RawTopFunder>>(
+    const rawData = await ApiClient.get<LeaderboardFundersListResponse>(
       `${this.BASE_PATH}/funders/?${params.toString()}`
     );
     if (rawData && Array.isArray(rawData.results)) {
-      return rawData.results.map(transformTopFunder);
-    } else {
-      console.error('Unexpected response structure for funders:', rawData);
-      return [];
+      const results = rawData.results.map(transformTopFunder).filter((f) => f.totalFunding > 0);
+      const count = typeof rawData.count === 'number' ? rawData.count : 0;
+      const currentUser =
+        rawData.current_user != null ? transformTopFunder(rawData.current_user) : null;
+      return { results, count, currentUser };
     }
+    console.error('Unexpected response structure for funders:', rawData);
+    return { results: [], count: 0, currentUser: null };
   }
 }
