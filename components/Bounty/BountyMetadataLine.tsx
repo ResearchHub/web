@@ -2,8 +2,9 @@ import { formatDeadline } from '@/utils/date';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
-import { Check } from 'lucide-react';
+import { Check, XCircle } from 'lucide-react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { BountyStatus } from '@/types/bounty';
 
 interface BountyMetadataLineProps {
   amount: number;
@@ -13,7 +14,7 @@ interface BountyMetadataLineProps {
   className?: string;
   solutionsCount?: number;
   showDeadline?: boolean;
-  bountyStatus?: 'OPEN' | 'CLOSED' | 'ASSESSMENT';
+  bountyStatus?: BountyStatus;
   /**
    * If true, the amount is already in the target currency and should not be converted.
    * Useful when the caller has pre-calculated the amount (e.g., Foundation bounty flat fee).
@@ -37,11 +38,17 @@ export const BountyMetadataLine = ({
   const deadlineText =
     bountyStatus === 'ASSESSMENT'
       ? 'Assessment Period'
-      : isOpen
-        ? expirationDate
-          ? formatDeadline(expirationDate)
-          : 'No deadline'
-        : 'Completed';
+      : bountyStatus === 'EXPIRED'
+        ? 'Expired'
+        : bountyStatus === 'CANCELLED'
+          ? 'Cancelled'
+          : isOpen
+            ? expirationDate
+              ? formatDeadline(expirationDate)
+              : 'No deadline'
+            : 'Completed';
+
+  const isInactive = bountyStatus === 'EXPIRED' || bountyStatus === 'CANCELLED';
 
   return (
     <div className={`space-y-3 ${className}`}>
@@ -49,13 +56,14 @@ export const BountyMetadataLine = ({
       <div className="flex justify-between items-center w-full">
         {/* Badges */}
         <div className="flex flex-wrap gap-2">
-          <ContentTypeBadge type="bounty" />
+          <ContentTypeBadge type="bounty" className={isInactive ? 'opacity-50' : ''} />
           <CurrencyBadge
             amount={amount}
             size="sm"
             variant={isOpen ? 'badge' : 'disabled'}
             currency={showUSD ? 'USD' : 'RSC'}
             skipConversion={skipConversion}
+            className={isInactive ? 'grayscale opacity-60' : ''}
           />
         </div>
 
@@ -63,11 +71,21 @@ export const BountyMetadataLine = ({
           <div className="flex items-center gap-2 text-sm">
             {isOpen ? (
               <RadiatingDot size={12} dotSize={6} isRadiating={isOpen} className="flex-shrink-0" />
+            ) : isInactive ? (
+              <XCircle size={14} className="text-gray-400 flex-shrink-0" />
             ) : (
               <Check size={14} className="text-green-600 flex-shrink-0" />
             )}
             <span
-              className={`${isOpen ? (expiringSoon ? 'text-orange-600 font-medium' : 'text-gray-700') : 'text-green-700 font-medium'}`}
+              className={`${
+                isOpen
+                  ? expiringSoon
+                    ? 'text-orange-600 font-medium'
+                    : 'text-gray-700'
+                  : isInactive
+                    ? 'text-gray-500 italic'
+                    : 'text-green-700 font-medium'
+              }`}
             >
               {deadlineText}
             </span>

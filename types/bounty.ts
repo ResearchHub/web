@@ -3,6 +3,7 @@ import { BaseTransformer } from './transformer';
 import { User, transformUser } from './user';
 
 export type BountyType = 'REVIEW' | 'ANSWER' | 'BOUNTY' | 'GENERIC_COMMENT';
+export type BountyStatus = 'OPEN' | 'CLOSED' | 'ASSESSMENT' | 'EXPIRED' | 'CANCELLED';
 export type SolutionStatus = 'AWARDED' | 'PENDING';
 export type ContributionStatus = 'ACTIVE' | 'REFUNDED';
 
@@ -36,7 +37,7 @@ export interface BountyComment {
 export interface Bounty {
   id: number;
   amount: string;
-  status: 'OPEN' | 'CLOSED' | 'ASSESSMENT';
+  status: BountyStatus;
   expirationDate?: string;
   bountyType: BountyType;
   createdBy: User;
