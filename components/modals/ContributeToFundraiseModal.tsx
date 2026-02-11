@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
 
 // Import inline deposit views
 import { DepositRSCView } from './DepositRSCView';
@@ -154,6 +155,10 @@ function ContributeToFundraiseModalInner({
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     });
+  };
+
+  const handleCurrencyToggle = () => {
+    // Only USD supported here
   };
 
   const handleDepositSuccess = useCallback(() => {
@@ -461,13 +466,11 @@ function ContributeToFundraiseModalInner({
             <div className="space-y-10 flex-1">
               {/* Amount Input + Quick Amount Selector grouped together */}
               <div className="space-y-3">
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  autoComplete="off"
+                <CurrencyInput
                   value={getFormattedInputValue()}
                   onChange={handleAmountChange}
-                  icon={<DollarSign className="h-5 w-5 text-gray-500" />}
+                  currency="USD"
+                  onCurrencyToggle={handleCurrencyToggle}
                   error={amountError}
                   label="Funding amount"
                   className="text-lg"
