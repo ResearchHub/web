@@ -14,8 +14,7 @@ import { TransactionService } from '@/services/transaction.service';
 import { getRSCForNetwork, NetworkType, TRANSFER_ABI, NETWORK_CONFIG } from '@/constants/tokens';
 import { NetworkSelector } from '@/components/ui/NetworkSelector';
 import { Alert } from '@/components/ui/Alert';
-import { Button } from '@/components/ui/Button';
-import { WalletDefault } from '@coinbase/onchainkit/wallet';
+import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
 
 const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
 if (!HOT_WALLET_ADDRESS_ENV || HOT_WALLET_ADDRESS_ENV.trim() === '') {
@@ -75,11 +74,19 @@ export function DepositRSCView({ currentBalance, onSuccess }: DepositRSCViewProp
   }, []);
 
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value === '' || /^\d+$/.test(value)) {
+    const value = e.target.value.replace(/[^0-9.]/g, '');
+    if (value === '' || /^\d+(\.\d*)?$/.test(value)) {
       setAmount(value);
     }
   }, []);
+
+  const getFormattedInputValue = () => {
+    return amount;
+  };
+
+  const handleCurrencyToggle = () => {
+    // Only support RSC
+  };
 
   const depositAmount = useMemo(() => parseInt(amount || '0', 10), [amount]);
 
@@ -327,23 +334,16 @@ export function DepositRSCView({ currentBalance, onSuccess }: DepositRSCViewProp
           </button>
         </div>
         <div className="relative">
-          <input
-            type="text"
-            inputMode="numeric"
-            pattern="\d*"
-            value={amount}
+          <CurrencyInput
+            value={getFormattedInputValue()}
             onChange={handleAmountChange}
-            placeholder="0"
-            disabled={isInputDisabled()}
-            className={`w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200 ${isInputDisabled() ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+            error={depositAmount > walletBalance ? 'Deposit amount exceeds your wallet balance.' : undefined}
+            currency="RSC"
+            onCurrencyToggle={handleCurrencyToggle}
+            label=""
+            className={isInputDisabled() ? 'bg-gray-100 cursor-not-allowed' : ''}
           />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-4">
-            <span className="text-gray-500">RSC</span>
-          </div>
         </div>
-        {depositAmount > walletBalance && (
-          <p className="text-sm text-red-600">Deposit amount exceeds your wallet balance.</p>
-        )}
       </div>
 
       {/* Balance Display */}
