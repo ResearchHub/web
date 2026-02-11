@@ -21,6 +21,7 @@ interface AwardBountyModalProps {
   contentType: ContentType;
   bountyId?: number;
   onBountyUpdated?: () => void;
+  bounties?: any[]; // Optional explicit bounties list
 }
 
 // Explanation banner component
@@ -474,6 +475,7 @@ export const AwardBountyModal = ({
   contentType,
   bountyId,
   onBountyUpdated,
+  bounties: explicitBounties,
 }: AwardBountyModalProps) => {
   const [awardAmounts, setAwardAmounts] = useState<Record<number, number>>({});
   const [selectedPercentages, setSelectedPercentages] = useState<Record<number, number>>({});
@@ -494,7 +496,8 @@ export const AwardBountyModal = ({
 
   // Get the total bounty amount available to award (OPEN or ASSESSMENT)
   const activeBounty = useMemo(() => {
-    if (!comment.bounties || comment.bounties.length === 0) {
+    const bounties = explicitBounties || comment.bounties;
+    if (!bounties || bounties.length === 0) {
       return undefined;
     }
 
@@ -503,8 +506,8 @@ export const AwardBountyModal = ({
     }
 
     // Find the exact bounty by ID
-    return comment.bounties.find((b) => b.id === bountyId);
-  }, [comment.bounties, bountyId]);
+    return bounties.find((b: any) => b.id === bountyId);
+  }, [comment.bounties, bountyId, explicitBounties]);
 
   const totalBountyAmount = activeBounty ? parseFloat(activeBounty.totalAmount) : 0;
 

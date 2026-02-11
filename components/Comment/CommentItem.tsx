@@ -73,6 +73,29 @@ export const CommentItem = ({
   // Check if the current user is the author of the comment
   const isAuthor = user?.authorProfile?.id === comment?.createdBy?.authorProfile?.id;
 
+  // Check if current user is the creator of any active bounty on this work
+  const userBounties = useMemo(() => {
+    if (!user?.id || !work?.bounties) return [];
+    return work.bounties.filter(
+      (b: any) =>
+        (b.createdBy?.id === user.id || b.createdBy?.authorProfile?.id === user.authorProfile?.id) &&
+        (b.status === 'OPEN' || b.status === 'ASSESSMENT')
+    );
+  }, [user?.id, work?.bounties]);
+
+  const canAward = userBounties.length > 0;
+
+  const handleOpenAwardModal = useCallback(
+    (bountyId?: number) => {
+      const idToUse = bountyId || userBounties[0]?.id;
+      if (idToUse) {
+        setSelectedBountyId(idToUse);
+        setShowAwardModal(true);
+      }
+    },
+    [userBounties]
+  );
+
   // Determine if this comment is being edited or replied to
   const isEditing = editingCommentId === comment.id;
   const isReplying = replyingToCommentId === comment.id;
@@ -290,6 +313,7 @@ export const CommentItem = ({
           onReply={() => setReplyingToCommentId(comment.id)}
           onEdit={() => setEditingCommentId(comment.id)}
           onDelete={() => handleDelete()}
+          onAward={canAward ? () => handleOpenAwardModal() : undefined}
           showCreatorActions={isAuthor}
           showTooltips={showTooltips}
           showRelatedWork={false}
@@ -464,6 +488,7 @@ export const CommentItem = ({
           comment={comment}
           contentType={contentType}
           bountyId={selectedBountyId}
+          bounties={work?.bounties}
           onBountyUpdated={() => {
             // Refresh the comments using the context
             forceRefresh();

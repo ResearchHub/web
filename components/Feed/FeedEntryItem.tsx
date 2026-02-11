@@ -212,6 +212,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             onAbstractExpanded={handleAbstractExpanded}
             highlights={highlights}
             showBountyInfo={showBountyInfo}
+            compact={showBountyInfo}
           />
         );
         break;
@@ -241,6 +242,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             onAbstractExpanded={handleAbstractExpanded}
             highlights={highlights}
             showBountyInfo={showBountyInfo}
+            compact={showBountyInfo}
           />
         );
         break;

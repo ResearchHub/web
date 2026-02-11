@@ -41,6 +41,10 @@ export const FundDocument = ({
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [overlayVisible, setOverlayVisible] = useState(false);
+  const [showAwardModal, setShowAwardModal] = useState(false);
+  const [selectedBountyId, setSelectedBountyId] = useState<number | undefined>(undefined);
+  const [bountyComment, setBountyComment] = useState<Comment | null>(null);
+
   const storageKey = useStorageKey('rh-comments');
   const { user } = useUser();
   const { showShareModal } = useShareModalContext();
@@ -76,6 +80,31 @@ export const FundDocument = ({
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
   };
+
+  // Handle award bounty click
+  const handleAwardBounty = useCallback(
+    (bountyId: number) => {
+      const bounty = metadata.bounties?.find((b) => b.id === bountyId);
+      if (bounty?.comment) {
+        // Transform BountyComment to Comment for the modal
+        const transformedBountyComment: any = {
+          id: bounty.comment.id,
+          content: bounty.comment.content,
+          contentFormat: bounty.comment.contentFormat,
+          commentType: bounty.comment.commentType,
+          createdBy: bounty.createdBy,
+          bounties: [bounty],
+          thread: {
+            objectId: work.id,
+          },
+        };
+        setBountyComment(transformedBountyComment);
+        setSelectedBountyId(bountyId);
+        setShowAwardModal(true);
+      }
+    },
+    [metadata.bounties, work.id]
+  );
 
   useEffect(() => {
     if (showMobileMetrics) {
@@ -193,7 +222,11 @@ export const FundDocument = ({
     <div>
       {/* Show on mobile only - desktop shows in right sidebar */}
       <div className="lg:hidden mb-3">
-        <EarningOpportunityBanner work={work} metadata={metadata} />
+        <EarningOpportunityBanner
+          work={work}
+          metadata={metadata}
+          onAwardBounty={handleAwardBounty}
+        />
       </div>
       {/* Title & Actions */}
       {work.type === 'preprint' && (
@@ -207,6 +240,7 @@ export const FundDocument = ({
         work={work}
         metadata={metadata}
         showClaimButton={false}
+        onAwardClick={handleAwardBounty}
         insightsButton={
           <button
             className="lg:!hidden flex items-center px-4 py-2.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
@@ -289,9 +323,28 @@ export const FundDocument = ({
           >
             <FontAwesomeIcon icon={faXmark} className="w-4 h-4 text-gray-600" />
           </Button>
-          <FundingRightSidebar work={work} metadata={metadata} />
+          <FundingRightSidebar
+            work={work}
+            metadata={metadata}
+            onAwardBounty={handleAwardBounty}
+          />
         </div>
       </div>
+
+      {/* Award Bounty Modal */}
+      {showAwardModal && bountyComment && (
+        <AwardBountyModal
+          isOpen={showAwardModal}
+          onClose={() => {
+            setShowAwardModal(false);
+            setSelectedBountyId(undefined);
+            setBountyComment(null);
+          }}
+          comment={bountyComment}
+          contentType={work.contentType}
+          bountyId={selectedBountyId}
+        />
+      )}
     </div>
   );
 };

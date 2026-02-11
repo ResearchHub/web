@@ -67,6 +67,7 @@ export const useBounties = () => {
   const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
   const selectedHubsRef = useRef<Hub[]>([]);
   const [sort, setSort] = useState<string>(sortFromUrl);
+  const [bountyFilter, setBountyFilter] = useState<'ALL' | 'FOUNDATION' | 'COMMUNITY'>('ALL');
   const previousHubsParamRef = useRef<string>('');
   const hasInitialFetchRef = useRef<boolean>(false);
   const previousSortRef = useRef<string>(sortFromUrl);
@@ -236,6 +237,22 @@ export const useBounties = () => {
     router.replace(`?${params.toString()}`, { scroll: false });
   };
 
+  const handleBountyFilterChange = (filter: 'ALL' | 'FOUNDATION' | 'COMMUNITY') => {
+    setBountyFilter(filter);
+  };
+
+  const filteredEntries = useMemo(() => {
+    if (bountyFilter === 'ALL') return entries;
+
+    return entries.filter((entry) => {
+      const bounties = entry.content.bounties || [];
+      const hasFoundation = bounties.some((b) => b.createdBy?.isOfficialAccount);
+      if (bountyFilter === 'FOUNDATION') return hasFoundation;
+      if (bountyFilter === 'COMMUNITY') return !hasFoundation;
+      return true;
+    });
+  }, [entries, bountyFilter]);
+
   const loadMore = () => {
     fetchBounties();
   };
@@ -294,12 +311,14 @@ export const useBounties = () => {
   }, [event, router, searchParams]);
 
   return {
-    entries,
+    entries: filteredEntries,
     isLoading,
     hasMore,
     loadMore,
     sort,
     handleSortChange,
+    bountyFilter,
+    handleBountyFilterChange,
     selectedHubs,
     handleHubsChange,
     restoredScrollPosition,

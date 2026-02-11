@@ -13,7 +13,7 @@ import { NetworkSelectorSection } from './shared/NetworkSelectorSection';
 import { BalanceDisplay } from './shared/BalanceDisplay';
 import { TransactionFooter } from './shared/TransactionFooter';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Input } from '@/components/ui/form/Input';
+import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
 import { Checkbox } from '@/components/ui/form/Checkbox';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
@@ -32,13 +32,21 @@ interface WithdrawModalProps {
   onSuccess?: () => void;
 }
 
+import { useAmountInput } from '@/hooks/useAmountInput';
+
 export function WithdrawModal({
   isOpen,
   onClose,
   availableBalance,
   onSuccess,
 }: WithdrawModalProps) {
-  const [amount, setAmount] = useState<string>('');
+  const {
+    amount: withdrawAmount,
+    setAmount: setAmountNum,
+    handleAmountChange,
+    getFormattedValue: getFormattedInputValue,
+  } = useAmountInput();
+
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkType>('BASE');
   const [addressMode, setAddressMode] = useState<'connected' | 'custom'>('connected');
   const [customAddress, setCustomAddress] = useState<string>('');
@@ -56,7 +64,7 @@ export function WithdrawModal({
     if (!isOpen) {
       // Delay reset to ensure modal closing animation completes
       const timeoutId = setTimeout(() => {
-        setAmount('');
+        setAmountNum(0);
         setSelectedNetwork('BASE');
         setAddressMode('connected');
         setCustomAddress('');
@@ -65,7 +73,7 @@ export function WithdrawModal({
 
       return () => clearTimeout(timeoutId);
     }
-  }, [isOpen, resetTransaction]);
+  }, [isOpen, resetTransaction, setAmountNum]);
 
   const withdrawalAddress = useMemo(() => {
     return addressMode === 'connected' ? address : customAddress;
@@ -88,15 +96,6 @@ export function WithdrawModal({
       toast.error(`Unable to fetch fee: ${feeError}`);
     }
   }, [feeError]);
-
-  const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value === '' || /^\d+$/.test(value)) {
-      setAmount(value);
-    }
-  }, []);
-
-  const withdrawAmount = useMemo(() => parseInt(amount || '0', 10), [amount]);
 
   const amountUserWillReceive = useMemo((): number => {
     if (!fee) return 0;
@@ -126,7 +125,6 @@ export function WithdrawModal({
   // Determine if withdraw button should be disabled
   const isButtonDisabled = useMemo(
     () =>
-      !amount ||
       withdrawAmount <= 0 ||
       txStatus.state === 'pending' ||
       isFeeLoading ||
@@ -137,7 +135,6 @@ export function WithdrawModal({
       !isCustomAddressValid ||
       !withdrawalAddress,
     [
-      amount,
       withdrawAmount,
       txStatus.state,
       isFeeLoading,
@@ -157,18 +154,18 @@ export function WithdrawModal({
   const handleMaxAmount = useCallback(() => {
     if (isInputDisabled() || !fee) return;
     const maxWithdrawAmount = Math.floor(availableBalance);
-    setAmount(maxWithdrawAmount > 0 ? maxWithdrawAmount.toString() : '0');
-  }, [availableBalance, isInputDisabled, fee]);
+    setAmountNum(maxWithdrawAmount > 0 ? maxWithdrawAmount : 0);
+  }, [availableBalance, isInputDisabled, fee, setAmountNum]);
 
   const handleWithdraw = useCallback(async () => {
-    if (!withdrawalAddress || !amount || isButtonDisabled || !fee) {
+    if (!withdrawalAddress || withdrawAmount <= 0 || isButtonDisabled || !fee) {
       return;
     }
 
     const result = await withdrawRSC({
       to_address: withdrawalAddress,
       agreed_to_terms: true,
-      amount: amount,
+      amount: withdrawAmount.toString(),
       network: selectedNetwork,
     });
 
@@ -177,7 +174,7 @@ export function WithdrawModal({
     }
   }, [
     withdrawalAddress,
-    amount,
+    withdrawAmount,
     isButtonDisabled,
     withdrawRSC,
     txStatus.state,
@@ -275,35 +272,22 @@ export function WithdrawModal({
                 </button>
               </div>
               <div className="relative">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="\d*"
-                  value={amount}
+                <CurrencyInput
+                  value={getFormattedInputValue()}
                   onChange={handleAmountChange}
-                  placeholder="0"
-                  disabled={isInputDisabled()}
-                  aria-label="Amount to withdraw"
-                  className={cn(
-                    'w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400',
-                    'focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200',
-                    isInputDisabled() && 'bg-gray-100 cursor-not-allowed'
-                  )}
+                  error={
+                    isBelowMinimum
+                      ? `Minimum withdrawal amount is ${MIN_WITHDRAWAL_AMOUNT} RSC.`
+                      : hasInsufficientBalance
+                        ? 'Withdrawal amount exceeds your available balance.'
+                        : undefined
+                  }
+                  currency="RSC"
+                  onCurrencyToggle={() => {}}
+                  label=""
+                  className={isInputDisabled() ? 'bg-gray-100 cursor-not-allowed' : ''}
                 />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-4">
-                  <span className="text-gray-500">RSC</span>
-                </div>
               </div>
-              {isBelowMinimum && (
-                <p className="text-sm text-red-600" role="alert">
-                  Minimum withdrawal amount is {MIN_WITHDRAWAL_AMOUNT} RSC.
-                </p>
-              )}
-              {hasInsufficientBalance && (
-                <p className="text-sm text-red-600" role="alert">
-                  Withdrawal amount exceeds your available balance.
-                </p>
-              )}
             </div>
 
             {/* Fee Display */}

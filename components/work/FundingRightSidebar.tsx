@@ -12,12 +12,21 @@ import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunit
 interface FundingRightSidebarProps {
   work: Work;
   metadata: WorkMetadata;
+  onAwardBounty?: (bountyId: number) => void;
 }
 
-export const FundingRightSidebar = ({ work, metadata }: FundingRightSidebarProps) => {
+export const FundingRightSidebar = ({
+  work,
+  metadata,
+  onAwardBounty,
+}: FundingRightSidebarProps) => {
   return (
     <div className="space-y-12">
-      <EarningOpportunityBanner work={work} metadata={metadata} />
+      <EarningOpportunityBanner
+        work={work}
+        metadata={metadata}
+        onAwardBounty={onAwardBounty}
+      />
       {metadata.fundraising && <FundraiseSection fundraise={metadata.fundraising} />}
       {metadata.fundraising && <NonprofitSection fundraiseId={metadata.fundraising.id} />}
       {metadata.fundraising &&

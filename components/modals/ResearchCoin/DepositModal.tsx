@@ -7,12 +7,12 @@ import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useAccount } from 'wagmi';
 import { useWalletRSCBalance } from '@/hooks/useWalletRSCBalance';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
 import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction';
 import { Interface } from 'ethers';
 import { TransactionService } from '@/services/transaction.service';
 import { getRSCForNetwork, NetworkType, TRANSFER_ABI, NETWORK_CONFIG } from '@/constants/tokens';
 import { Alert } from '@/components/ui/Alert';
-import { DepositSuccessView } from './DepositSuccessView';
 import { NetworkSelectorSection } from './shared/NetworkSelectorSection';
 import { BalanceDisplay } from './shared/BalanceDisplay';
 import { TransactionFooter } from './shared/TransactionFooter';
@@ -46,8 +46,20 @@ type TransactionStatus =
   | { state: 'success'; txHash: string }
   | { state: 'error'; message: string };
 
+import { useAmountInput } from '@/hooks/useAmountInput';
+
+import { ModalContainer } from '@/components/ui/Modal/ModalContainer';
+import { ModalHeader } from '@/components/ui/Modal/ModalHeader';
+import { DepositSuccessView } from './DepositSuccessView';
+
 export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: DepositModalProps) {
-  const [amount, setAmount] = useState<string>('');
+  const {
+    amount: depositAmount,
+    setAmount: setAmountNum,
+    handleAmountChange,
+    getFormattedValue: getFormattedInputValue,
+  } = useAmountInput();
+
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkType>('BASE');
   const [isInitiating, isDepositButtonDisabled] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -78,7 +90,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   useEffect(() => {
     if (isOpen) {
       setTxStatus({ state: 'idle' });
-      setAmount('');
+      setAmountNum(0);
       hasSetDefaultRef.current = false;
       isDepositButtonDisabled(false);
       hasCalledSuccessRef.current = false;
@@ -88,7 +100,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       // Delay reset to ensure modal closing animation completes
       const timeoutId = setTimeout(() => {
         setTxStatus({ state: 'idle' });
-        setAmount('');
+        setAmountNum(0);
         hasSetDefaultRef.current = false;
         isDepositButtonDisabled(false);
         hasCalledSuccessRef.current = false;
@@ -98,7 +110,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
       return () => clearTimeout(timeoutId);
     }
-  }, [isOpen]);
+  }, [isOpen, setAmountNum]);
 
   // Smart default selection based on wallet balances
   useEffect(() => {
@@ -120,18 +132,9 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
 
   const handleClose = useCallback(() => {
     setTxStatus({ state: 'idle' });
-    setAmount('');
+    setAmountNum(0);
     onClose();
-  }, [onClose]);
-
-  const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value === '' || /^\d+$/.test(value)) {
-      setAmount(value);
-    }
-  }, []);
-
-  const depositAmount = useMemo(() => parseInt(amount || '0', 10), [amount]);
+  }, [onClose, setAmountNum]);
 
   const calculateNewBalance = useCallback(
     (): number => currentBalance + depositAmount,
@@ -141,12 +144,11 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const isButtonDisabled = useMemo(
     () =>
       !address ||
-      !amount ||
       depositAmount <= 0 ||
       depositAmount > walletBalance ||
       isInitiating ||
       isMobile,
-    [address, amount, depositAmount, walletBalance, isInitiating, isMobile]
+    [address, depositAmount, walletBalance, isInitiating, isMobile]
   );
 
   const isInputDisabled = useCallback(() => {
@@ -260,7 +262,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     };
 
     return [transferCall];
-  }, [amount, depositAmount, walletBalance, rscToken.address]);
+  }, [depositAmount, walletBalance, rscToken.address]);
 
   const footer = useMemo(() => {
     const txHash = txStatus.state === 'success' ? txStatus.txHash : undefined;
@@ -314,124 +316,117 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   }
 
   return (
-    <BaseModal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title="Deposit RSC"
-      padding="p-8"
-      footer={footer}
-      className="md:!w-[500px]"
-    >
-      <div ref={contentRef} className="space-y-6">
-        {txStatus.state === 'success' ? (
-          <DepositSuccessView
-            depositAmount={depositAmount}
-            networkConfig={networkConfig}
-            address={address || ''}
-          />
-        ) : (
-          <>
-            {txStatus.state === 'error' && (
-              <Alert variant="error">
-                <div className="space-y-1">
-                  <div className="font-medium">Deposit failed</div>
-                  {'message' in txStatus && txStatus.message && (
-                    <div className="text-sm font-normal opacity-90">{txStatus.message}</div>
-                  )}
-                </div>
-              </Alert>
-            )}
-
-            {isMobile && (
-              <Alert variant="warning">
-                Deposits are temporarily unavailable on mobile devices. Please use a desktop browser
-                to make deposits.
-              </Alert>
-            )}
-
-            {/* Network Selector */}
-            <NetworkSelectorSection
-              selectedNetwork={selectedNetwork}
-              onNetworkChange={setSelectedNetwork}
-              disabled={isInputDisabled()}
-              showDescription={false}
-              customBadges={{
-                BASE: 'Sponsored',
-                ETHEREUM: 'Network Fee',
-              }}
+    <ModalContainer isOpen={isOpen} onClose={handleClose}>
+      <div className="p-8">
+        <ModalHeader title="Deposit RSC" onClose={handleClose} />
+        <div ref={contentRef} className="space-y-6">
+          {txStatus.state === 'success' ? (
+            <DepositSuccessView
+              depositAmount={depositAmount}
+              networkConfig={networkConfig}
+              address={address || ''}
             />
-
-            {/* Wallet RSC Balance */}
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Wallet Balance:</span>
-                <div className="flex items-center gap-2">
-                  <ResearchCoinIcon size={16} />
-                  {isWalletBalanceLoading ? (
-                    <span className="text-sm font-semibold text-gray-400">Loading...</span>
-                  ) : (
-                    <>
-                      <span className="text-sm font-semibold text-gray-900">
-                        {walletBalance.toFixed(2)}
-                      </span>
-                      <span className="text-sm text-gray-500">RSC</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Amount Input */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-[15px] text-gray-700">Amount to Deposit</span>
-                <button
-                  onClick={() => setAmount(Math.floor(walletBalance).toString())}
-                  className="text-sm text-primary-500 font-medium hover:text-primary-600 disabled:opacity-50 disabled:text-gray-400 disabled:hover:text-gray-400"
-                  disabled={isInputDisabled()}
-                >
-                  MAX
-                </button>
-              </div>
-              <div className="relative">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="\d*"
-                  value={amount}
-                  onChange={handleAmountChange}
-                  placeholder="0"
-                  disabled={isInputDisabled()}
-                  aria-label="Amount to deposit"
-                  className={`w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200 ${isInputDisabled() ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-4">
-                  <span className="text-gray-500">RSC</span>
-                </div>
-              </div>
-              {depositAmount > walletBalance && (
-                <p className="text-sm text-red-600" role="alert">
-                  Deposit amount exceeds your wallet balance.
-                </p>
+          ) : (
+            <>
+              {txStatus.state === 'error' && (
+                <Alert variant="error">
+                  <div className="space-y-1">
+                    <div className="font-medium">Deposit failed</div>
+                    {'message' in txStatus && txStatus.message && (
+                      <div className="text-sm font-normal opacity-90">{txStatus.message}</div>
+                    )}
+                  </div>
+                </Alert>
               )}
-            </div>
 
-            {/* Balance Display */}
-            <BalanceDisplay
-              currentBalance={currentBalance}
-              futureBalance={
-                depositAmount > 0 && depositAmount <= walletBalance
-                  ? calculateNewBalance()
-                  : currentBalance
-              }
-              futureBalanceLabel="After Deposit"
-              futureBalanceColor={
-                depositAmount > 0 && depositAmount <= walletBalance ? 'green' : 'gray'
-              }
-            />
-          </>
-        )}
+              {isMobile && (
+                <Alert variant="warning">
+                  Deposits are temporarily unavailable on mobile devices. Please use a desktop browser
+                  to make deposits.
+                </Alert>
+              )}
+
+              {/* Network Selector */}
+              <NetworkSelectorSection
+                selectedNetwork={selectedNetwork}
+                onNetworkChange={setSelectedNetwork}
+                disabled={isInputDisabled()}
+                showDescription={false}
+                customBadges={{
+                  BASE: 'Sponsored',
+                  ETHEREUM: 'Network Fee',
+                }}
+              />
+
+              {/* Wallet RSC Balance */}
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Wallet Balance:</span>
+                  <div className="flex items-center gap-2">
+                    <ResearchCoinIcon size={16} />
+                    {isWalletBalanceLoading ? (
+                      <span className="text-sm font-semibold text-gray-400">Loading...</span>
+                    ) : (
+                      <>
+                        <span className="text-sm font-semibold text-gray-900">
+                          {walletBalance.toFixed(2)}
+                        </span>
+                        <span className="text-sm text-gray-500">RSC</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Amount Input */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-[15px] text-gray-700">Amount to Deposit</span>
+                  <button
+                    onClick={() => setAmountNum(Math.floor(walletBalance))}
+                    className="text-sm text-primary-500 font-medium hover:text-primary-600 disabled:opacity-50 disabled:text-gray-400 disabled:hover:text-gray-400"
+                    disabled={isInputDisabled()}
+                  >
+                    MAX
+                  </button>
+                </div>
+                <div className="relative">
+                  <CurrencyInput
+                    value={getFormattedInputValue()}
+                    onChange={handleAmountChange}
+                    error={
+                      depositAmount > walletBalance
+                        ? 'Deposit amount exceeds your wallet balance.'
+                        : undefined
+                    }
+                    currency="RSC"
+                    onCurrencyToggle={() => {}}
+                    label=""
+                    className={isInputDisabled() ? 'bg-gray-100 cursor-not-allowed' : ''}
+                  />
+                </div>
+              </div>
+
+              {/* Balance Display */}
+              <BalanceDisplay
+                currentBalance={currentBalance}
+                futureBalance={
+                  depositAmount > 0 && depositAmount <= walletBalance
+                    ? calculateNewBalance()
+                    : currentBalance
+                }
+                futureBalanceLabel="After Deposit"
+                futureBalanceColor={
+                  depositAmount > 0 && depositAmount <= walletBalance ? 'green' : 'gray'
+                }
+              />
+
+              {/* Deposit Button */}
+              <div className="pt-2">{footer}</div>
+            </>
+          )}
+        </div>
       </div>
-    </BaseModal>
+    </ModalContainer>
   );
 }

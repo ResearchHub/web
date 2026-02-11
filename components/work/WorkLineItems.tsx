@@ -12,6 +12,7 @@ import {
   Download,
   ArrowUp,
   ArrowDown,
+  Trophy,
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
@@ -50,6 +51,7 @@ interface WorkLineItemsProps {
   insightsButton?: React.ReactNode;
   metadata: WorkMetadata;
   onEditClick?: () => void;
+  onAwardClick?: (bountyId: number) => void;
 }
 
 export const WorkLineItems = ({
@@ -58,6 +60,7 @@ export const WorkLineItems = ({
   insightsButton,
   metadata,
   onEditClick,
+  onAwardClick,
 }: WorkLineItemsProps) => {
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -189,6 +192,26 @@ export const WorkLineItems = ({
   const isAuthor =
     user?.authorProfile != null &&
     work.authors?.some((a) => a.authorProfile.id === user.authorProfile?.id);
+
+  // Check if current user is the creator of any active bounty
+  const userBounties = useMemo(() => {
+    if (!user?.id || !metadata.bounties) return [];
+    return metadata.bounties.filter(
+      (b: Bounty) => b.createdBy.id === user.id && (b.status === 'OPEN' || b.status === 'ASSESSMENT')
+    );
+  }, [user?.id, metadata.bounties]);
+
+  const canAward = userBounties.length > 0;
+
+  const handleAwardBounty = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (onAwardClick && userBounties.length > 0) {
+        onAwardClick(userBounties[0].id);
+      }
+    },
+    [onAwardClick, userBounties]
+  );
 
   const handleEdit = useCallback(() => {
     if (work.contentType === 'paper' && (isModerator || isHubEditor)) {
@@ -440,6 +463,20 @@ export const WorkLineItems = ({
 
           {/* Render insights button if provided */}
           {insightsButton}
+
+          {/* Award Bounty Button - Shown for bounty creators */}
+          {canAward && (
+            <Button
+              onClick={handleAwardBounty}
+              size="sm"
+              variant="outlined"
+              className="flex items-center space-x-2 px-4 py-2 border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg"
+              tooltip="Award your active bounty"
+            >
+              <Trophy size={18} />
+              <span className="hidden sm:!inline font-medium">Award Bounty</span>
+            </Button>
+          )}
 
           {/* More Actions Dropdown */}
           <BaseMenu

@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
 
 // Import inline deposit views
 import { DepositRSCView } from './DepositRSCView';
@@ -77,6 +78,8 @@ export function ContributeToFundraiseModal(props: ContributeToFundraiseModalProp
   );
 }
 
+import { useAmountInput } from '@/hooks/useAmountInput';
+
 function ContributeToFundraiseModalInner({
   isOpen,
   onClose,
@@ -89,10 +92,22 @@ function ContributeToFundraiseModalInner({
   const walletAvailability = useWalletAvailability();
   const { exchangeRate } = useExchangeRate();
   const isMobile = useIsMobile();
-  const [amountUsd, setAmountUsd] = useState(100);
+  
+  const minAmountUsd = 1;
+  const {
+    amount: amountUsd,
+    setAmount: setAmountUsd,
+    error: amountError,
+    setError: setAmountError,
+    handleAmountChange,
+    getFormattedValue: getFormattedInputValue,
+  } = useAmountInput({
+    initialAmount: 100,
+    minAmount: 1,
+  });
+
   const [isContributing, setIsContributing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [amountError, setAmountError] = useState<string | undefined>(undefined);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<ModalView>('funding');
   const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(100);
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
@@ -125,35 +140,6 @@ function ContributeToFundraiseModalInner({
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
-  };
-
-  // Handlers
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value.replace(/[^0-9.]/g, '');
-    const numValue = parseFloat(rawValue);
-
-    if (!isNaN(numValue)) {
-      setAmountUsd(numValue);
-      setSelectedQuickAmount(null);
-      setIsSliderControlled(false); // Input sets scaled visual mode
-
-      if (numValue < minAmountUsd) {
-        setAmountError(`Minimum contribution is $${minAmountUsd}`);
-      } else {
-        setAmountError(undefined);
-      }
-    } else {
-      setAmountUsd(0);
-      setAmountError('Please enter a valid amount');
-    }
-  };
-
-  const getFormattedInputValue = () => {
-    if (amountUsd === 0) return '';
-    return amountUsd.toLocaleString('en-US', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
   };
 
   const handleDepositSuccess = useCallback(() => {
@@ -461,13 +447,11 @@ function ContributeToFundraiseModalInner({
             <div className="space-y-10 flex-1">
               {/* Amount Input + Quick Amount Selector grouped together */}
               <div className="space-y-3">
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  autoComplete="off"
+                <CurrencyInput
                   value={getFormattedInputValue()}
                   onChange={handleAmountChange}
-                  icon={<DollarSign className="h-5 w-5 text-gray-500" />}
+                  currency="USD"
+                  onCurrencyToggle={handleCurrencyToggle}
                   error={amountError}
                   label="Funding amount"
                   className="text-lg"

@@ -17,9 +17,10 @@ import { useMemo } from 'react';
 interface WorkRightSidebarProps {
   work: Work;
   metadata: WorkMetadata;
+  onAwardBounty?: (bountyId: number) => void;
 }
 
-export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
+export const WorkRightSidebar = ({ work, metadata, onAwardBounty }: WorkRightSidebarProps) => {
   // Check if any version is part of the ResearchHub journal
   const hasResearchHubJournalVersions = useMemo(() => {
     return (work.versions || []).some((version) => version.isResearchHubJournal);
@@ -27,7 +28,11 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
 
   return (
     <div className="space-y-8">
-      <EarningOpportunityBanner work={work} metadata={metadata} />
+      <EarningOpportunityBanner
+        work={work}
+        metadata={metadata}
+        onAwardBounty={onAwardBounty}
+      />
       {hasResearchHubJournalVersions && (
         <VersionsSection versions={work.versions || []} currentPaperId={work.id} slug={work.slug} />
       )}
