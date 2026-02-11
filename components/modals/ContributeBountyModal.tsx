@@ -16,6 +16,8 @@ import { BountyType } from '@/types/bounty';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 
+import { FeeBreakdown } from '../Bounty/lib/FeeBreakdown';
+
 interface ContributeBountyModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -29,54 +31,6 @@ interface ContributeBountyModalProps {
 }
 
 import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
-
-// Fee Breakdown Component
-const FeeBreakdown = ({
-  contributionAmount,
-  platformFee,
-  totalAmount,
-}: {
-  contributionAmount: number;
-  platformFee: number;
-  totalAmount: number;
-}) => (
-  <div className="bg-gray-50 rounded-lg p-4 space-y-4 border border-gray-200">
-    <div className="flex justify-between items-center">
-      <span className="text-gray-900">Your contribution:</span>
-      <span className="text-gray-900">{contributionAmount.toLocaleString()} RSC</span>
-    </div>
-
-    <div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <span className="text-gray-600">Platform fees (9%)</span>
-          <Tooltip
-            content="Platform fees help support ResearchHub's operations and development"
-            className="max-w-xs"
-          >
-            <div className="text-gray-400 hover:text-gray-500">
-              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-          </Tooltip>
-        </div>
-        <span className="text-gray-600">+ {platformFee.toLocaleString()} RSC</span>
-      </div>
-    </div>
-
-    <div className="border-t border-gray-200" />
-
-    <div className="flex justify-between items-center">
-      <span className="font-semibold text-gray-900">Total amount:</span>
-      <span className="font-semibold text-gray-900">{totalAmount.toLocaleString()} RSC</span>
-    </div>
-  </div>
-);
 
 const ModalHeader = ({
   title,
@@ -276,7 +230,7 @@ export function ContributeBountyModal({
                         <h3 className="text-sm font-semibold text-gray-900">Fees Breakdown</h3>
                       </div>
                       <FeeBreakdown
-                        contributionAmount={inputAmount}
+                        rscAmount={inputAmount}
                         platformFee={platformFee}
                         totalAmount={totalAmount}
                       />

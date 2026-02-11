@@ -78,6 +78,8 @@ export function ContributeToFundraiseModal(props: ContributeToFundraiseModalProp
   );
 }
 
+import { useAmountInput } from '@/hooks/useAmountInput';
+
 function ContributeToFundraiseModalInner({
   isOpen,
   onClose,
@@ -90,10 +92,21 @@ function ContributeToFundraiseModalInner({
   const walletAvailability = useWalletAvailability();
   const { exchangeRate } = useExchangeRate();
   const isMobile = useIsMobile();
-  const [amountUsd, setAmountUsd] = useState(100);
+  
+  const minAmountUsd = 1;
+  const {
+    amount: amountUsd,
+    setAmount: setAmountUsd,
+    error: amountError,
+    setError: setAmountError,
+    handleAmountChange,
+    getFormattedValue: getFormattedInputValue,
+  } = useAmountInput({
+    initialAmount: 100,
+    minAmount: minAmountUsd,
+  });
+
   const [isContributing, setIsContributing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [amountError, setAmountError] = useState<string | undefined>(undefined);
   const [currentView, setCurrentView] = useState<ModalView>('funding');
   const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(100);
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
@@ -126,39 +139,6 @@ function ContributeToFundraiseModalInner({
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
-  };
-
-  // Handlers
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value.replace(/[^0-9.]/g, '');
-    const numValue = parseFloat(rawValue);
-
-    if (!isNaN(numValue)) {
-      setAmountUsd(numValue);
-      setSelectedQuickAmount(null);
-      setIsSliderControlled(false); // Input sets scaled visual mode
-
-      if (numValue < minAmountUsd) {
-        setAmountError(`Minimum contribution is $${minAmountUsd}`);
-      } else {
-        setAmountError(undefined);
-      }
-    } else {
-      setAmountUsd(0);
-      setAmountError('Please enter a valid amount');
-    }
-  };
-
-  const getFormattedInputValue = () => {
-    if (amountUsd === 0) return '';
-    return amountUsd.toLocaleString('en-US', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
-  };
-
-  const handleCurrencyToggle = () => {
-    // Only USD supported here
   };
 
   const handleDepositSuccess = useCallback(() => {

@@ -58,6 +58,8 @@ const ModalHeader = ({
   </div>
 );
 
+import { useAmountInput } from '@/hooks/useAmountInput';
+
 export function TipContentModal({
   isOpen,
   onClose,
@@ -68,9 +70,19 @@ export function TipContentModal({
 }: TipContentModalProps) {
   const { user } = useUser();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
-  const [inputAmount, setInputAmount] = useState(10); // Default tip amount
+
+  const {
+    amount: inputAmount,
+    setAmount: setInputAmount,
+    error: amountError,
+    setError: setAmountError,
+    handleAmountChange,
+    getFormattedValue: getFormattedInputValue,
+  } = useAmountInput({
+    initialAmount: 10,
+  });
+
   const [error, setError] = useState<string | null>(null); // General error state
-  const [amountError, setAmountError] = useState<string | undefined>(undefined); // Input specific error
 
   const userBalance = user?.balance || 0;
 
@@ -91,39 +103,6 @@ export function TipContentModal({
       setError(err instanceof Error ? err.message : 'Failed to send tip.');
     },
   });
-
-  // Handle amount input changes
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value.replace(/[^0-9.]/g, '');
-    const numValue = parseFloat(rawValue);
-
-    // Reset errors on change
-    setError(null);
-    setAmountError(undefined);
-
-    if (!isNaN(numValue)) {
-      setInputAmount(numValue);
-      if (numValue <= 0) {
-        setAmountError('Tip amount must be positive');
-      }
-    } else if (rawValue === '') {
-      setInputAmount(0); // Allow clearing the input
-    } else {
-      // Handle invalid input like multiple decimals etc.
-      setInputAmount(inputAmount); // Keep previous valid value
-      setAmountError('Please enter a valid amount');
-    }
-  };
-
-  // Format the input value for display (e.g., with commas)
-  const getFormattedInputValue = () => {
-    if (inputAmount === 0) return ''; // Show placeholder if 0
-    return inputAmount.toLocaleString();
-  };
-
-  const handleCurrencyToggle = () => {
-    // Only support RSC for now
-  };
 
   // Handle the tip submission
   const handleTip = async () => {

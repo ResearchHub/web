@@ -46,8 +46,19 @@ type TransactionStatus =
   | { state: 'success'; txHash: string }
   | { state: 'error'; message: string };
 
+import { useAmountInput } from '@/hooks/useAmountInput';
+
 export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: DepositModalProps) {
-  const [amount, setAmount] = useState<string>('');
+  const {
+    amount: amountNum,
+    setAmount: setAmountNum,
+    handleAmountChange,
+    getFormattedValue: getFormattedInputValue,
+  } = useAmountInput();
+  
+  // Backwards compatibility
+  const amount = amountNum === 0 ? '' : amountNum.toString();
+
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkType>('BASE');
   const [isInitiating, isDepositButtonDisabled] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -123,21 +134,6 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     setAmount('');
     onClose();
   }, [onClose]);
-
-  const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9.]/g, '');
-    if (value === '' || /^\d+(\.\d*)?$/.test(value)) {
-      setAmount(value);
-    }
-  }, []);
-
-  const getFormattedInputValue = () => {
-    return amount;
-  };
-
-  const handleCurrencyToggle = () => {
-    // Only support RSC
-  };
 
   const depositAmount = useMemo(() => parseInt(amount || '0', 10), [amount]);
 

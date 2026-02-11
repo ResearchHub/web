@@ -32,13 +32,24 @@ interface WithdrawModalProps {
   onSuccess?: () => void;
 }
 
+import { useAmountInput } from '@/hooks/useAmountInput';
+
 export function WithdrawModal({
   isOpen,
   onClose,
   availableBalance,
   onSuccess,
 }: WithdrawModalProps) {
-  const [amount, setAmount] = useState<string>('');
+  const {
+    amount: amountNum,
+    setAmount: setAmountNum,
+    handleAmountChange,
+    getFormattedValue: getFormattedInputValue,
+  } = useAmountInput();
+  
+  // Backwards compatibility
+  const amount = amountNum === 0 ? '' : amountNum.toString();
+
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkType>('BASE');
   const [addressMode, setAddressMode] = useState<'connected' | 'custom'>('connected');
   const [customAddress, setCustomAddress] = useState<string>('');
@@ -88,21 +99,6 @@ export function WithdrawModal({
       toast.error(`Unable to fetch fee: ${feeError}`);
     }
   }, [feeError]);
-
-  const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9.]/g, '');
-    if (value === '' || /^\d+(\.\d*)?$/.test(value)) {
-      setAmount(value);
-    }
-  }, []);
-
-  const getFormattedInputValue = () => {
-    return amount;
-  };
-
-  const handleCurrencyToggle = () => {
-    // Only support RSC
-  };
 
   const withdrawAmount = useMemo(() => parseInt(amount || '0', 10), [amount]);
 

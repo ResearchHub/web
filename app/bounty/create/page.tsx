@@ -45,6 +45,8 @@ import { extractUserMentions } from '@/components/Comment/lib/commentUtils';
 import { removeCommentDraftById } from '@/components/Comment/lib/commentDraftStorage';
 import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
 
+import { FeeBreakdown } from '@/components/Bounty/lib/FeeBreakdown';
+
 // Wizard steps.
 // We intentionally separate review-specific and answer-specific steps.
 // Shared                      : TYPE -> AMOUNT (submit)
@@ -57,6 +59,8 @@ type WizardStep =
   | 'DETAILS' // title & description (answer only)
   | 'DESCRIPTION' // review-only editor step
   | 'AMOUNT';
+
+import { useAmountInput } from '@/hooks/useAmountInput';
 
 export default function CreateBountyPage() {
   const router = useRouter();
@@ -89,8 +93,14 @@ export default function CreateBountyPage() {
   const [selectedHubs, setSelectedHubs] = useState<Hub[]>([]);
 
   // Shared – amount / currency
-  const [inputAmount, setInputAmount] = useState<number>(0);
-  const [amountError, setAmountError] = useState<string | undefined>();
+  const {
+    amount: inputAmount,
+    setAmount: setInputAmount,
+    error: amountError,
+    setError: setAmountError,
+    handleAmountChange,
+    getFormattedValue: getFormattedInputValue,
+  } = useAmountInput();
 
   // User balance
   const { user } = useUser();
@@ -142,24 +152,6 @@ export default function CreateBountyPage() {
     return undefined;
   };
 
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value.replace(/[^0-9.]/g, '');
-    const num = parseFloat(rawValue);
-    if (isNaN(num)) {
-      setInputAmount(0);
-      setAmountError('Please enter a valid number');
-      return;
-    }
-    setInputAmount(num);
-    const err = validateAmount(currency === 'RSC' ? num : num / exchangeRate);
-    setAmountError(err);
-  };
-
-  const getFormattedInputValue = () => {
-    if (inputAmount === 0) return '';
-    return inputAmount.toLocaleString();
-  };
-
   const toggleCurrency = () => {
     if (isExchangeRateLoading && !showUSD) {
       toast.error('Exchange rate is loading. Please wait before switching to USD.');
@@ -183,45 +175,6 @@ export default function CreateBountyPage() {
   const platformFee = Math.floor(rscAmount * 0.09);
   const netBountyAmount = rscAmount - platformFee;
   const totalAmount = rscAmount + platformFee;
-
-  const FeeBreakdown = () => (
-    <div className="bg-gray-50 rounded-lg p-4 space-y-4 border border-gray-200">
-      <div className="flex justify-between items-center">
-        <span className="text-gray-900">Your contribution:</span>
-        <span className="text-gray-900">{rscAmount.toLocaleString()} RSC</span>
-      </div>
-
-      <div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <span className="text-gray-600">Platform fees (9%)</span>
-            <Tooltip
-              content="This fee is used to maintain the platform and support the community"
-              className="max-w-xs"
-            >
-              <div className="text-gray-400 hover:text-gray-500">
-                <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    fillRule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-            </Tooltip>
-          </div>
-          <span className="text-gray-600">+ {platformFee.toLocaleString()} RSC</span>
-        </div>
-      </div>
-
-      <div className="border-t border-gray-200" />
-
-      <div className="flex justify-between items-center">
-        <span className="font-semibold text-gray-900">Total:</span>
-        <span className="font-semibold text-gray-900">{totalAmount.toLocaleString()} RSC</span>
-      </div>
-    </div>
-  );
 
   /* ---------- Submission ---------- */
 
@@ -614,7 +567,11 @@ export default function CreateBountyPage() {
         </div>
 
         {/* Fees breakdown */}
-        <FeeBreakdown />
+        <FeeBreakdown
+          rscAmount={rscAmount}
+          platformFee={platformFee}
+          totalAmount={totalAmount}
+        />
 
         {/* User balance */}
         <BalanceInfo amount={totalAmount} showWarning={userBalance < totalAmount} />

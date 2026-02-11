@@ -40,12 +40,23 @@ type TransactionStatus =
   | { state: 'success'; txHash: string }
   | { state: 'error'; message: string };
 
+import { useAmountInput } from '@/hooks/useAmountInput';
+
 /**
  * Inline RSC deposit view for use within the contribution modal.
  * Renders the same content as DepositModal but without the modal wrapper.
  */
 export function DepositRSCView({ currentBalance, onSuccess }: DepositRSCViewProps) {
-  const [amount, setAmount] = useState<string>('');
+  const {
+    amount: amountNum,
+    setAmount: setAmountNum,
+    handleAmountChange,
+    getFormattedValue: getFormattedInputValue,
+  } = useAmountInput();
+  
+  // Backwards compatibility for existing code that uses 'amount' as string
+  const amount = amountNum === 0 ? '' : amountNum.toString();
+
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkType>('BASE');
   const [isInitiating, setIsDepositButtonDisabled] = useState(false);
   const { address } = useAccount();
@@ -72,21 +83,6 @@ export function DepositRSCView({ currentBalance, onSuccess }: DepositRSCViewProp
     hasProcessedDepositRef.current = false;
     processedTxHashRef.current = null;
   }, []);
-
-  const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9.]/g, '');
-    if (value === '' || /^\d+(\.\d*)?$/.test(value)) {
-      setAmount(value);
-    }
-  }, []);
-
-  const getFormattedInputValue = () => {
-    return amount;
-  };
-
-  const handleCurrencyToggle = () => {
-    // Only support RSC
-  };
 
   const depositAmount = useMemo(() => parseInt(amount || '0', 10), [amount]);
 

@@ -16,6 +16,8 @@ import { useSession } from 'next-auth/react';
 import { BalanceInfo } from './BalanceInfo';
 import { ID } from '@/types/root';
 import { useUser } from '@/contexts/UserContext';
+import { FeeBreakdown } from '../Bounty/lib/FeeBreakdown';
+
 interface FundResearchModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -87,91 +89,6 @@ const PaymentIcons = {
   deposit: <ArrowDownToLine className="w-6 h-6" />,
 };
 
-const FeeBreakdown = ({
-  totalAmount,
-  platformFee,
-  daoFee,
-  incFee,
-  baseAmount,
-  nftCount,
-  isFeesExpanded,
-  onToggleExpand,
-}: {
-  totalAmount: number;
-  platformFee: number;
-  daoFee: number;
-  incFee: number;
-  baseAmount: number;
-  nftCount: number;
-  isFeesExpanded: boolean;
-  onToggleExpand: () => void;
-}) => (
-  <div className="bg-gray-50 rounded-lg p-4 space-y-4 border border-gray-200">
-    <div className="flex justify-between items-center">
-      <span className="text-gray-900">Your contribution:</span>
-      <span className="text-gray-900">{totalAmount.toLocaleString()} RSC</span>
-    </div>
-
-    <div>
-      <button
-        onClick={onToggleExpand}
-        className="w-full flex items-center justify-between text-left group"
-      >
-        <div className="flex items-center gap-1">
-          <span className="text-gray-600">Platform fees (9%)</span>
-          <div className="flex items-center gap-1">
-            <ChevronDown
-              className={cn(
-                'w-4 h-4 text-gray-500 transition-transform',
-                isFeesExpanded && 'transform rotate-180'
-              )}
-            />
-            <Tooltip
-              content="Platform fees help support ResearchHub's operations and development"
-              className="max-w-xs"
-            >
-              <div className="text-gray-400 hover:text-gray-500">
-                <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    fillRule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-            </Tooltip>
-          </div>
-        </div>
-        <span className="text-gray-600">{platformFee.toLocaleString()} RSC</span>
-      </button>
-
-      {isFeesExpanded && (
-        <div className="mt-2 pl-0 space-y-1">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500 pl-0">ResearchHub DAO (2%)</span>
-            <span className="text-gray-500">{daoFee.toLocaleString()} RSC</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500 pl-0">ResearchHub Inc (7%)</span>
-            <span className="text-gray-500">{incFee.toLocaleString()} RSC</span>
-          </div>
-        </div>
-      )}
-    </div>
-
-    <div className="border-t border-gray-200" />
-
-    <div className="flex justify-between items-center">
-      <span className="font-semibold text-gray-900">Net research funding:</span>
-      <span className="font-semibold text-gray-900">{baseAmount.toLocaleString()} RSC</span>
-    </div>
-
-    <div className="flex justify-between items-center">
-      <span className="text-gray-600">NFTs received:</span>
-      <span className="font-bold text-blue-600">{nftCount.toLocaleString()}</span>
-    </div>
-  </div>
-);
 const NFTPreview = ({ rscAmount, nftCount }: { rscAmount: number; nftCount: number }) => (
   <div className="mt-4 bg-gray-50 rounded-lg p-4 space-y-2">
     <div className="flex justify-between items-center">
@@ -185,6 +102,8 @@ const NFTPreview = ({ rscAmount, nftCount }: { rscAmount: number; nftCount: numb
   </div>
 );
 
+import { useAmountInput } from '@/hooks/useAmountInput';
+
 export function FundResearchModal({
   isOpen,
   onClose,
@@ -196,7 +115,14 @@ export function FundResearchModal({
   const { user } = useUser();
   const userBalance = user?.balance || 0;
   const [step, setStep] = useState<Step>('amount');
-  const [inputAmount, setInputAmount] = useState(0);
+
+  const {
+    amount: inputAmount,
+    setAmount: setInputAmount,
+    handleAmountChange,
+    getFormattedValue: getFormattedInputValue,
+  } = useAmountInput();
+
   const [currency, setCurrency] = useState<Currency>('RSC');
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
   const RSC_TO_USD = 1;
@@ -206,24 +132,6 @@ export function FundResearchModal({
     { data: contributionData, isLoading: isContributing, error: contributionError },
     createContribution,
   ] = useCreateContribution();
-
-  // Utility functions
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Remove any non-numeric characters except decimal point
-    const rawValue = e.target.value.replace(/[^0-9.]/g, '');
-    const numValue = parseFloat(rawValue);
-
-    if (!isNaN(numValue)) {
-      setInputAmount(numValue);
-    } else {
-      setInputAmount(0);
-    }
-  };
-
-  const getFormattedInputValue = () => {
-    if (inputAmount === 0) return '';
-    return inputAmount.toLocaleString();
-  };
 
   const toggleCurrency = () => {
     setCurrency(currency === 'RSC' ? 'USD' : 'RSC');
@@ -342,13 +250,12 @@ export function FundResearchModal({
         <ModalHeader title="Fund Research" onClose={onClose} onBack={() => setStep('amount')} />
         <div className="mt-6 mb-6">
           <FeeBreakdown
-            totalAmount={rscAmount}
+            rscAmount={rscAmount}
             platformFee={platformFee}
             daoFee={daoFee}
             incFee={incFee}
             baseAmount={baseAmount}
-            nftCount={nftCount}
-            isFeesExpanded={isFeesExpanded}
+            isExpanded={isFeesExpanded}
             onToggleExpand={() => setIsFeesExpanded(!isFeesExpanded)}
           />
         </div>

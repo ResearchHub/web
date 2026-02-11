@@ -150,6 +150,10 @@ const SessionAwareCommentEditor = (props: CommentEditorProps) => {
 
 import { useCurrencyConversion } from './lib/useCurrencyConversion';
 
+import { FeeBreakdown } from './lib/FeeBreakdown';
+
+import { useAmountInput } from '@/hooks/useAmountInput';
+
 export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormProps) {
   const { user } = useUser();
   const { data: session, status } = useSession();
@@ -165,10 +169,18 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
   const [step, setStep] = useState<Step>('details');
   const [selectedPaper, setSelectedPaper] = useState<SelectedPaper | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
-  // Initialize with 150 USD worth of RSC, or 100 RSC if exchange rate is loading
-  const [inputAmount, setInputAmount] = useState(() => {
-    return isExchangeRateLoading ? 100 : Math.round(150 / exchangeRate);
+
+  const {
+    amount: inputAmount,
+    setAmount: setInputAmount,
+    error: amountError,
+    handleAmountChange,
+    getFormattedValue: getFormattedInputValue,
+    hasInteracted: hasInteractedWithAmount,
+  } = useAmountInput({
+    initialAmount: isExchangeRateLoading ? 100 : Math.round(150 / exchangeRate),
   });
+
   const [currency, setCurrency] = useState<Currency>('RSC');
   const [bountyLength, setBountyLength] = useState<BountyLength>('30');
   const [bountyType, setBountyType] = useState<BountyType>('REVIEW');
@@ -305,39 +317,6 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
     }
   };
 
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value.replace(/[^0-9.]/g, '');
-    const numValue = parseFloat(rawValue);
-
-    if (!hasInteractedWithAmount) {
-      setHasInteractedWithAmount(true);
-    }
-
-    if (!isNaN(numValue)) {
-      setInputAmount(numValue);
-
-      if (isExchangeRateLoading && currency !== 'RSC') {
-        setAmountError(undefined);
-        return;
-      }
-
-      const rscAmount = currency === 'RSC' ? numValue : convertToRSC(numValue);
-      if (rscAmount < 10) {
-        setAmountError('Minimum bounty amount is 10 RSC');
-      } else {
-        setAmountError(undefined);
-      }
-    } else {
-      setInputAmount(0);
-      setAmountError(undefined);
-    }
-  };
-
-  const getFormattedInputValue = () => {
-    if (inputAmount === 0) return '';
-    return inputAmount.toLocaleString();
-  };
-
   const toggleCurrency = () => {
     if (isExchangeRateLoading) {
       toast.error('Exchange rate is loading. Please wait before switching currency.');
@@ -410,86 +389,6 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
   const handleBackToDetails = () => {
     setStep('details');
   };
-
-  // Fee breakdown component
-  const FeeBreakdown = () => (
-    <div className="mt-4 space-y-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
-      <div className="flex justify-between text-sm">
-        <span className="text-gray-600">Base amount:</span>
-        <span className="font-medium">{baseAmount.toLocaleString()} RSC</span>
-      </div>
-      <div className="flex justify-between text-sm">
-        <div className="flex items-center">
-          <span className="text-gray-600">Platform fee (7%):</span>
-          <Tooltip content="This fee is used to maintain and improve the platform" position="top">
-            <span className="ml-1 cursor-help text-gray-400">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="w-4 h-4"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </span>
-          </Tooltip>
-        </div>
-        <span className="font-medium">{platformFee.toLocaleString()} RSC</span>
-      </div>
-      <div className="flex justify-between text-sm">
-        <div className="flex items-center">
-          <span className="text-gray-600">DAO fee (2%):</span>
-          <Tooltip content="This fee goes to the ResearchHub DAO treasury" position="top">
-            <span className="ml-1 cursor-help text-gray-400">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="w-4 h-4"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </span>
-          </Tooltip>
-        </div>
-        <span className="font-medium">{daoFee.toLocaleString()} RSC</span>
-      </div>
-      <div className="flex justify-between text-sm">
-        <div className="flex items-center">
-          <span className="text-gray-600">Inc fee (7%):</span>
-          <Tooltip content="This fee goes to ResearchHub Inc. to support operations" position="top">
-            <span className="ml-1 cursor-help text-gray-400">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="w-4 h-4"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 108.94 6.94zM10 15a1 1 0 100-2 1 1 0 000 2z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </span>
-          </Tooltip>
-        </div>
-        <span className="font-medium">{incFee.toLocaleString()} RSC</span>
-      </div>
-      <div className="pt-2 border-t border-gray-200 flex justify-between font-medium">
-        <span>Total:</span>
-        <span>{rscAmount.toLocaleString()} RSC</span>
-      </div>
-    </div>
-  );
 
   return (
     <div className={className}>
@@ -792,62 +691,15 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
               <div className="mb-2">
                 <h3 className="text-sm font-semibold text-gray-900">Fees Breakdown</h3>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4 space-y-4 border border-gray-200">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-900">Your contribution:</span>
-                  <span className="text-gray-900">{rscAmount.toLocaleString()} RSC</span>
-                </div>
-                <div>
-                  <button
-                    className="w-full flex items-center justify-between text-left group"
-                    onClick={() => setIsFeesExpanded(!isFeesExpanded)}
-                  >
-                    <div className="flex items-center gap-1">
-                      <span className="text-gray-600">Platform fees (7%)</span>
-                      <div className="flex items-center gap-1">
-                        <ChevronDown
-                          className={`w-4 h-4 text-gray-500 transition-transform transform ${
-                            isFeesExpanded ? 'rotate-180' : ''
-                          }`}
-                        />
-                        <div className="inline-flex">
-                          <Tooltip content="This fee is used to maintain and improve the platform">
-                            <div className="text-gray-400 hover:text-gray-500">
-                              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                                <path
-                                  fillRule="evenodd"
-                                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            </div>
-                          </Tooltip>
-                        </div>
-                      </div>
-                    </div>
-                    <span className="text-gray-600">{platformFee.toLocaleString()} RSC</span>
-                  </button>
-                  {isFeesExpanded && (
-                    <div className="mt-2 pl-0 space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500 pl-0">ResearchHub DAO (2%)</span>
-                        <span className="text-gray-500">{daoFee.toLocaleString()} RSC</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500 pl-0">ResearchHub Inc (7%)</span>
-                        <span className="text-gray-500">{incFee.toLocaleString()} RSC</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="border-t border-gray-200"></div>
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-gray-900">Net bounty amount:</span>
-                  <span className="font-semibold text-gray-900">
-                    {totalCost.toLocaleString()} RSC
-                  </span>
-                </div>
-              </div>
+              <FeeBreakdown
+                rscAmount={rscAmount}
+                platformFee={platformFee}
+                daoFee={daoFee}
+                incFee={incFee}
+                totalAmount={totalCost}
+                isExpanded={isFeesExpanded}
+                onToggleExpand={() => setIsFeesExpanded(!isFeesExpanded)}
+              />
             </div>
 
             {/* Balance Info */}
