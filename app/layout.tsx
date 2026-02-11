@@ -7,7 +7,6 @@ import { authOptions } from './api/auth/[...nextauth]/auth.config';
 import { SITE_CONFIG } from '@/lib/metadata';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Analytics } from '@vercel/analytics/react';
-import Hotjar from '@/components/Hotjar';
 import Clarity from '@/components/Clarity';
 import { ClientProviders } from '@/components/providers/ClientProviders';
 
@@ -103,7 +102,6 @@ export default async function RootLayout({
         <ClientProviders session={session}>{children}</ClientProviders>
         {process.env.GA_MEASUREMENT_ID && <GoogleAnalytics gaId={process.env.GA_MEASUREMENT_ID} />}
         <Analytics />
-        <Hotjar />
         <Clarity />
       </body>
     </html>
