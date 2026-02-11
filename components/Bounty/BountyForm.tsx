@@ -375,6 +375,14 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/[^0-9.]/g, '');
+    
+    // Allow empty string to reset the input
+    if (rawValue === '') {
+      setInputAmount(0);
+      setAmountError(undefined);
+      return;
+    }
+
     const numValue = parseFloat(rawValue);
 
     if (!hasInteractedWithAmount) {
@@ -396,13 +404,12 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
       } else {
         setAmountError(undefined);
       }
-    } else {
-      setInputAmount(0);
-      setAmountError('Please enter a valid amount');
     }
   };
 
   const getFormattedInputValue = () => {
+    // If user has interacted and value is 0, show empty string to allow clearing
+    if (hasInteractedWithAmount && inputAmount === 0) return '';
     if (inputAmount === 0) return '';
     return inputAmount.toLocaleString();
   };
