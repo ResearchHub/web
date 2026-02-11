@@ -1,4 +1,4 @@
-import { BountySolution } from '@/types/bounty';
+import { Bounty, BountySolution } from '@/types/bounty';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -6,14 +6,18 @@ import { faEye } from '@fortawesome/free-solid-svg-icons';
 import { faTrophy } from '@fortawesome/pro-light-svg-icons';
 import { ID } from '@/types/root';
 import { ChevronUp, ChevronDown, MessageCircle, PlusIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
+import { isFoundationBounty, FOUNDATION_BOUNTY_FLAT_USD } from './lib/bountyUtil';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 
 interface BountySolutionsProps {
   solutions: BountySolution[];
   isPeerReviewBounty: boolean;
   totalAwardedAmount: number;
   onViewSolution: (solutionId: ID, authorName: string, awardedAmount?: string) => void;
+  bounty?: Bounty;
 }
 
 export const BountySolutions = ({
@@ -21,8 +25,20 @@ export const BountySolutions = ({
   isPeerReviewBounty,
   totalAwardedAmount,
   onViewSolution,
+  bounty,
 }: BountySolutionsProps) => {
   const [showSolutions, setShowSolutions] = useState(false);
+  const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
+
+  const isFoundation = useMemo(() => bounty && isFoundationBounty(bounty), [bounty]);
+
+  const displayTotalAwarded = useMemo(() => {
+    if (isFoundation && showUSD) {
+      return FOUNDATION_BOUNTY_FLAT_USD;
+    }
+    return totalAwardedAmount;
+  }, [isFoundation, showUSD, totalAwardedAmount]);
 
   if (!solutions || solutions.length === 0) {
     return null;

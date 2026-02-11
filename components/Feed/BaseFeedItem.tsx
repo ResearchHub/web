@@ -31,6 +31,7 @@ export interface BaseFeedItemProps {
   showTooltips?: boolean;
   maxLength?: number;
   showHeader?: boolean;
+  compact?: boolean; // New prop for compact mode
   customActionText?: string;
   children?: ReactNode;
   onFeedItemClick?: () => void;
@@ -261,6 +262,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   showTooltips = true,
   maxLength,
   showHeader = true,
+  compact = false, // Initialize compact prop
   customActionText,
   children,
   onFeedItemClick,
@@ -348,13 +350,13 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
       )}
       {/* Main Content Card */}
       <CardWrapper href={href} isClickable={isClickable} onClick={handleClick} entryId={entryIdKey}>
-        <div className="p-4">
+        <div className={cn('p-4', compact && 'py-2.5')}>
           {children}
           {/* BountyInfoSummary */}
           {showBountyInfo ? (
             openBounties.length === 1 ? (
               <div
-                className="mt-4"
+                className={cn('mt-4', compact && 'mt-2.5')}
                 onMouseDown={(e) => e.stopPropagation()}
                 onKeyDown={(e) => e.stopPropagation()}
                 onClick={(e) => e.stopPropagation()}
@@ -368,7 +370,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               </div>
             ) : openBounties.length > 0 ? (
               <div
-                className="mt-4"
+                className={cn('mt-4', compact && 'mt-2.5')}
                 onMouseDown={(e) => e.stopPropagation()}
                 onKeyDown={(e) => e.stopPropagation()}
                 onClick={(e) => e.stopPropagation()}
@@ -384,7 +386,10 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
         {/* Action Buttons */}
         {showActions && (
           <div
-            className="px-4 py-2 border-t border-gray-200 bg-gray-50 cursor-default"
+            className={cn(
+              'px-4 py-2 border-t border-gray-200 bg-gray-50 cursor-default',
+              compact && 'py-1'
+            )}
             onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}

@@ -32,6 +32,7 @@ interface FeedItemPaperProps {
   onAbstractExpanded?: () => void;
   highlights?: Highlight[];
   showBountyInfo?: boolean;
+  compact?: boolean; // Add compact prop
 }
 
 /**
@@ -47,45 +48,11 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   onAbstractExpanded,
   highlights,
   showBountyInfo,
+  compact = false, // Initialize compact prop
 }) => {
   const searchParams = useSearchParams();
   const isDebugMode = searchParams.has('debug');
-
-  // Extract the paper from the entry's content
-  const paper = entry.content as FeedPaperContent;
-  // Extract highlighted fields from highlights prop
-  const highlightedTitle = highlights?.find((h) => h.field === 'title')?.value;
-  const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
-
-  // Use provided href or create default paper page URL
-  const paperPageUrl =
-    href ||
-    buildWorkUrl({
-      id: paper.id,
-      slug: paper.slug,
-      contentType: 'paper',
-    });
-
-  // Construct the dynamic action text
-  const journalName = paper.journal?.name;
-  const actionText = journalName ? `published in ${journalName}` : 'published in a journal';
-
-  // Extract props for FeedItemMenuButton (same as BaseFeedItem uses for FeedItemActions)
-  const feedContentType = paper.contentType || 'PAPER';
-  const votableEntityId = paper.id;
-  const relatedDocumentId =
-    'relatedDocumentId' in paper ? paper.relatedDocumentId?.toString() : paper.id.toString();
-  const relatedDocumentContentType = mapFeedContentTypeToContentType(paper.contentType);
-
-  // Only show journal badge for specific preprint servers
-  const ALLOWED_JOURNALS = ['biorxiv', 'arxiv', 'medrxiv', 'chemrxiv'];
-  const journalSlugLower = paper.journal?.slug?.toLowerCase() || '';
-  const shouldShowJournal = ALLOWED_JOURNALS.some((j) => journalSlugLower.includes(j));
-  const filteredJournal = shouldShowJournal ? paper.journal : undefined;
-
-  const thumbnailUrl = paper.previewThumbnail || paper.journal?.imageUrl;
-  const isPdfPreview = thumbnailUrl?.includes('preview');
-
+  ...
   return (
     <BaseFeedItem
       entry={entry}
@@ -98,12 +65,14 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
       onFeedItemClick={onFeedItemClick}
       showBountyInfo={showBountyInfo}
       hideReportButton={true}
+      compact={compact}
     >
       {/* Top section with badges and mobile image (hide PDF previews on mobile) */}
       <FeedItemTopSection
         imageSection={
           thumbnailUrl &&
-          !isPdfPreview && (
+          !isPdfPreview &&
+          !compact && ( // Hide image in compact mode
             <ImageSection
               imageUrl={thumbnailUrl}
               alt={paper.title || 'Paper image'}
@@ -114,48 +83,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
             />
           )
         }
-        rightContent={
-          <div className="flex items-center gap-2">
-            {isDebugMode && entry.hotScoreV2 !== undefined && entry.hotScoreV2 > 0 && (
-              <Tooltip
-                content={
-                  <PopularityScoreTooltip
-                    score={entry.hotScoreV2}
-                    breakdown={entry.hotScoreBreakdown}
-                  />
-                }
-                width="w-72"
-                position="bottom"
-              >
-                <div className="flex items-center gap-1 text-blue-600 cursor-help hover:text-blue-700 transition-colors">
-                  <Image
-                    src="/icons/flaskVector.svg"
-                    alt="Popularity Score"
-                    width={16}
-                    height={16}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm font-medium">{Math.round(entry.hotScoreV2)}</span>
-                </div>
-              </Tooltip>
-            )}
-            <FeedItemMenuButton
-              feedContentType={feedContentType}
-              votableEntityId={votableEntityId}
-              relatedDocumentId={relatedDocumentId}
-              relatedDocumentContentType={relatedDocumentContentType}
-              relatedDocumentUnifiedDocumentId={paper.unifiedDocumentId}
-            />
-          </div>
-        }
-        leftContent={
-          <FeedItemBadges
-            journal={filteredJournal}
-            category={paper.category}
-            subcategory={paper.subcategory}
-            topics={paper.topics}
-          />
-        }
+        ...
       />
       {/* Main content layout with desktop image */}
       <FeedItemLayout
@@ -167,10 +95,11 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               highlightedTitle={highlightedTitle}
               href={paperPageUrl}
               onClick={onFeedItemClick}
+              className={cn(compact && 'text-sm md:!text-base mb-0')} // Smaller title in compact mode
             />
 
             {/* Authors and Date */}
-            <MetadataSection className="mb-1">
+            <MetadataSection className={cn('mb-1', compact && 'mb-0')}>
               <div className="flex items-center flex-wrap text-base">
                 {paper.authors.length > 0 && (
                   <AuthorList
@@ -180,7 +109,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                       authorUrl: author.id === 0 ? undefined : author.profileUrl,
                     }))}
                     size="base"
-                    className="text-gray-500 font-normal text-sm"
+                    className={cn('text-gray-500 font-normal text-sm', compact && 'text-xs')}
                     delimiter=","
                     delimiterClassName="ml-0"
                     showAbbreviatedInMobile={true}
@@ -190,7 +119,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
                 {(entry.timestamp || paper.createdDate) && (
                   <>
                     {paper.authors.length > 0 && <span className="mx-2 text-gray-500">•</span>}
-                    <span className="text-gray-600 whitespace-nowrap text-sm">
+                    <span className={cn('text-gray-600 whitespace-nowrap text-sm', compact && 'text-xs')}>
                       {formatTimestamp(entry.timestamp || paper.createdDate, false)}
                     </span>
                   </>
@@ -198,17 +127,20 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               </div>
             </MetadataSection>
 
-            <FeedItemAbstractSection
-              content={paper.textPreview}
-              highlightedContent={highlightedSnippet}
-              maxLength={maxLength}
-              className="mt-3"
-              onAbstractExpanded={onAbstractExpanded}
-            />
+            {!compact && ( // Hide abstract in compact mode
+              <FeedItemAbstractSection
+                content={paper.textPreview}
+                highlightedContent={highlightedSnippet}
+                maxLength={maxLength}
+                className="mt-3"
+                onAbstractExpanded={onAbstractExpanded}
+              />
+            )}
           </>
         }
         rightContent={
-          thumbnailUrl && (
+          thumbnailUrl &&
+          !compact && ( // Hide image in compact mode
             <ImageSection
               imageUrl={thumbnailUrl}
               alt={paper.title || 'Paper image'}

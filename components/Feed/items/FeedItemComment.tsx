@@ -76,6 +76,7 @@ interface FeedItemCommentProps {
   showTooltips?: boolean; // New property for controlling tooltips
   hideActions?: boolean; // New property to hide action buttons completely
   workContentType?: ContentType;
+  onAward?: () => void;
   maxLength?: number;
   onFeedItemClick?: () => void;
 }
@@ -96,6 +97,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   showTooltips = true, // Default to showing tooltips
   hideActions = false, // Default to not hiding actions
   workContentType,
+  onAward,
   maxLength,
   onFeedItemClick,
 }) => {
@@ -249,6 +251,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 userVote={entry.userVote}
                 actionLabels={actionLabels}
                 onComment={onReply}
+                onAward={onAward}
                 onTip={!isCurrentUserAuthor ? () => setIsTipModalOpen(true) : undefined}
                 showTooltips={showTooltips}
                 menuItems={menuItems}

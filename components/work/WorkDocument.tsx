@@ -13,6 +13,7 @@ import {
   History,
   Plus,
   X,
+  MessageCircleQuestion,
 } from 'lucide-react';
 import { Work, DocumentVersion } from '@/types/work';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
@@ -60,6 +61,9 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   const [rewardModalOpen, setRewardModalOpen] = useState(false);
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
   const [pdfUnavailable, setPdfUnavailable] = useState(false);
+  const [showAwardModal, setShowAwardModal] = useState(false);
+  const [selectedBountyId, setSelectedBountyId] = useState<number | undefined>(undefined);
+  const [bountyComment, setBountyComment] = useState<Comment | null>(null);
 
   // Determine if we should auto focus the review editor based on query param
   const shouldFocusReviewEditor = useMemo(() => {
@@ -75,6 +79,31 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
   const handleTabChange = useCallback((tab: TabType) => {
     setActiveTab(tab);
   }, []);
+
+  // Handle award bounty click
+  const handleAwardBounty = useCallback(
+    (bountyId: number) => {
+      const bounty = metadata.bounties?.find((b) => b.id === bountyId);
+      if (bounty?.comment) {
+        // Transform BountyComment to Comment for the modal
+        const transformedBountyComment: any = {
+          id: bounty.comment.id,
+          content: bounty.comment.content,
+          contentFormat: bounty.comment.contentFormat,
+          commentType: bounty.comment.commentType,
+          createdBy: bounty.createdBy,
+          bounties: [bounty],
+          thread: {
+            objectId: work.id,
+          },
+        };
+        setBountyComment(transformedBountyComment);
+        setSelectedBountyId(bountyId);
+        setShowAwardModal(true);
+      }
+    },
+    [metadata.bounties, work.id]
+  );
 
   const isAuthor = useMemo(() => {
     if (!user) return false;
@@ -255,7 +284,11 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
     <div>
       {/* Show on mobile only - desktop shows in right sidebar */}
       <div className="lg:hidden mb-3">
-        <EarningOpportunityBanner work={work} metadata={metadata} />
+        <EarningOpportunityBanner
+          work={work}
+          metadata={metadata}
+          onAwardBounty={handleAwardBounty}
+        />
       </div>
       {/* Title & Actions */}
       <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-0" />
@@ -263,6 +296,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
       <WorkLineItems
         work={work}
         metadata={metadata}
+        onAwardClick={handleAwardBounty}
         insightsButton={
           <button
             className="lg:!hidden flex items-center px-4 py-2.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
@@ -308,10 +342,29 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
             >
               <X className="w-4 h-4 text-gray-600" />
             </Button>
-            <WorkRightSidebar metadata={metadata} work={work} />
+            <WorkRightSidebar
+              metadata={metadata}
+              work={work}
+              onAwardBounty={handleAwardBounty}
+            />
           </div>
         </div>
       </div>
+
+      {/* Award Bounty Modal */}
+      {showAwardModal && bountyComment && (
+        <AwardBountyModal
+          isOpen={showAwardModal}
+          onClose={() => {
+            setShowAwardModal(false);
+            setSelectedBountyId(undefined);
+            setBountyComment(null);
+          }}
+          comment={bountyComment}
+          contentType={work.contentType}
+          bountyId={selectedBountyId}
+        />
+      )}
     </div>
   );
 };

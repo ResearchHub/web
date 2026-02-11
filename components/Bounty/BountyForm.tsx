@@ -289,7 +289,8 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
   const handleCreateBounty = async () => {
     if (isSubmitting) return;
 
-    const rscAmount = getRscAmount();
+    // Ensure we send a whole number for the bounty amount to avoid backend rounding errors
+    const rscAmount = Math.round(getRscAmount());
 
     if (rscAmount < 10) {
       toast.error('Minimum bounty amount is 10 RSC');
@@ -398,7 +399,7 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
       }
     } else {
       setInputAmount(0);
-      setAmountError('Please enter a valid amount');
+      setAmountError(undefined);
     }
   };
 
@@ -409,11 +410,22 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
 
   const toggleCurrency = () => {
     // If exchange rate is loading, only allow toggling from USD to RSC, not the other way around
-    if (isExchangeRateLoading && currency === 'RSC') {
-      toast.error('Exchange rate is loading. Please wait before switching to USD.');
+    if (isExchangeRateLoading) {
+      toast.error('Exchange rate is loading. Please wait before switching currency.');
       return;
     }
-    setCurrency(currency === 'RSC' ? 'USD' : 'RSC');
+
+    if (currency === 'RSC') {
+      // Converting RSC to USD
+      setCurrency('USD');
+      const newAmount = Number((inputAmount * exchangeRate).toFixed(2));
+      setInputAmount(newAmount);
+    } else {
+      // Converting USD to RSC
+      setCurrency('RSC');
+      const newAmount = Math.round(inputAmount / exchangeRate);
+      setInputAmount(newAmount);
+    }
   };
 
   const getConvertedAmount = () => {
