@@ -98,34 +98,6 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
           <FundingMobileInfo />
         </div>
       )}
-      {activeTab === 'needs-funding' && (
-        <div className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-lg px-4 py-2.5 mt-4 mb-4">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-orange-500" />
-            <span className="text-sm text-gray-700">Explore available funding opportunities</span>
-          </div>
-          <Link
-            href="/notebook?newFunding=true"
-            className="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
-          >
-            Create a proposal →
-          </Link>
-        </div>
-      )}
-      {activeTab === 'opportunities' && (
-        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5 mt-4 mb-4">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-500" />
-            <span className="text-sm text-gray-700">Support research projects seeking funding</span>
-          </div>
-          <Link
-            href="/notebook?newFunding=true"
-            className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
-          >
-            Create a proposal →
-          </Link>
-        </div>
-      )}
       <FeedContent
         entries={entries}
         isLoading={isLoading}
