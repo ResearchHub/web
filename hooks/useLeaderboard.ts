@@ -33,7 +33,6 @@ export interface UseLeaderboardFundersReturn {
 /**
  * Fetches paginated top reviewers for a given period.
  * Page is controlled via URL (parent passes page and onPageChange).
- * Page size is fixed at LEADERBOARD_PAGE_SIZE (10); consumer does not pass it.
  */
 export function useLeaderboardReviewers(
   period: string,
@@ -126,7 +125,6 @@ export function useLeaderboardReviewers(
 /**
  * Fetches paginated top funders for a given period.
  * Page is controlled via URL (parent passes page and onPageChange).
- * Page size is fixed at LEADERBOARD_PAGE_SIZE (10); consumer does not pass it.
  */
 export function useLeaderboardFunders(
   period: string,

@@ -72,7 +72,6 @@ export interface LeaderboardFundersListResponse {
   current_user: RawTopFunder | null;
 }
 
-// Legacy type aliases (detailed list responses without pagination wrapper)
 export type LeaderboardReviewersResponse = RawTopReviewer[];
 export type LeaderboardFundersResponse = RawTopFunder[];
 

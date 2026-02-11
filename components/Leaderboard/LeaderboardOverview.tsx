@@ -41,7 +41,6 @@ export const LeaderboardSkeleton = () => (
           <Icon name="fund" size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
           <div>
             <h2 className="font-semibold text-gray-900">Top Funders</h2>
-            <p className="text-xs text-gray-500">This Month</p>
           </div>
         </div>
         <div className="text-xs text-gray-700 flex items-center gap-0.5 mt-1">
@@ -62,7 +61,6 @@ export const LeaderboardSkeleton = () => (
           <Star className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
           <div>
             <h2 className="font-semibold text-gray-900">Top Peer Reviewers</h2>
-            <p className="text-xs text-gray-500">This Week</p>
           </div>
         </div>
         <div className="text-xs text-gray-700 flex items-center gap-0.5 mt-1">
@@ -199,7 +197,6 @@ export const LeaderboardOverview = () => {
             <Icon name="fund" size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
             <div>
               <h2 className="font-semibold text-gray-900">Top Funders</h2>
-              <p className="text-xs text-gray-500">This Month</p>
             </div>
           </div>
           <Link
@@ -233,7 +230,6 @@ export const LeaderboardOverview = () => {
             <Star className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
             <div>
               <h2 className="font-semibold text-gray-900">Top Peer Reviewers</h2>
-              <p className="text-xs text-gray-500">This Week</p>
             </div>
           </div>
           <Link

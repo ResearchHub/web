@@ -16,7 +16,7 @@ interface TransformedLeaderboardOverview {
   funders: TopFunder[];
 }
 
-/** Default page size for leaderboard list endpoints. Not passed from consumer. */
+/** Default page size for leaderboard list endpoints. */
 export const LEADERBOARD_PAGE_SIZE = 10;
 
 export class LeaderboardService {
