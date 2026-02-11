@@ -63,50 +63,7 @@ const ModalHeader = ({
   </div>
 );
 
-// Amount Step Components
-const CurrencyInput = ({
-  value,
-  onChange,
-  currency,
-  onCurrencyToggle,
-  convertedAmount,
-}: {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  currency: Currency;
-  onCurrencyToggle: () => void;
-  convertedAmount?: string;
-}) => (
-  <div className="relative">
-    <Input
-      name="amount"
-      value={value}
-      onChange={onChange}
-      required
-      placeholder="0.00"
-      type="text"
-      inputMode="numeric"
-      className="w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-      rightElement={
-        <button
-          type="button"
-          onClick={onCurrencyToggle}
-          className="flex items-center gap-1 pr-3 text-gray-900 hover:text-gray-600"
-        >
-          <span className="font-medium">{currency}</span>
-          <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-            <path
-              fillRule="evenodd"
-              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
-      }
-    />
-    {convertedAmount && <div className="mt-1.5 text-sm text-gray-500">{convertedAmount}</div>}
-  </div>
-);
+import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
 
 // Payment Step Components
 const PaymentOption = ({
@@ -350,6 +307,7 @@ export function FundResearchModal({
             currency={currency}
             onCurrencyToggle={toggleCurrency}
             convertedAmount={getConvertedAmount()}
+            label=""
           />
           {inputAmount > 1 && nftRewardsEnabled && (
             <NFTPreview rscAmount={getRscAmount()} nftCount={getNFTCount()} />
