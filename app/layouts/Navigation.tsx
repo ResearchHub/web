@@ -9,12 +9,10 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHouse as faHouseSolid,
-  faGrid3 as faGrid3Solid,
   faBookmark as faBookmarkSolid,
 } from '@fortawesome/pro-solid-svg-icons';
 import {
   faHouse as faHouseLight,
-  faGrid3 as faGrid3Light,
   faBookmark as faBookmarkLight,
 } from '@fortawesome/pro-light-svg-icons';
 import { ChartNoAxesColumnIncreasing } from 'lucide-react';
@@ -100,22 +98,16 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Navigate to the home page',
     },
     {
-      label: 'Browse',
-      href: '/browse',
-      description: 'Browse topics by category',
-      isFontAwesome: true,
+      label: 'Fund',
+      href: '/fund/grants',
+      iconKey: 'fund',
+      description: 'Browse grants and fundraising opportunities',
     },
     {
       label: 'Earn',
       href: '/earn',
       iconKey: 'earn',
       description: 'Earn RSC for completing peer reviews',
-    },
-    {
-      label: 'Fund',
-      href: '/fund/grants',
-      iconKey: 'fund',
-      description: 'Browse grants and fundraising opportunities',
     },
     {
       label: 'RH Journal',
@@ -176,11 +168,6 @@ export const Navigation: React.FC<NavigationProps> = ({
     // Special case for leaderboard page
     if (path === '/leaderboard') {
       return currentPath.startsWith('/leaderboard');
-    }
-
-    // Special case for browse page
-    if (path === '/browse') {
-      return currentPath.startsWith('/browse');
     }
 
     // Special case for lists page - match /lists and /list/[id]
@@ -247,12 +234,6 @@ export const Navigation: React.FC<NavigationProps> = ({
               size={22}
               color={iconColor}
               strokeWidth={isActive ? 2.5 : 2}
-            />
-          ) : item.href === '/browse' ? (
-            <FontAwesomeIcon
-              icon={isActive ? faGrid3Solid : faGrid3Light}
-              fontSize={24}
-              color={iconColor}
             />
           ) : item.href === '/lists' ? (
             <FontAwesomeIcon
