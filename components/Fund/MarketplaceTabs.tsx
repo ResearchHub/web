@@ -9,7 +9,7 @@ import { ChevronDown } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { getSortOptions } from './lib/FundingFeedConfig';
 
-export type MarketplaceTab = 'all' | 'grants' | 'needs-funding';
+export type MarketplaceTab = 'all' | 'opportunities' | 'needs-funding';
 export type FundingSortOption =
   | ''
   | 'newest'
@@ -20,14 +20,14 @@ export type FundingSortOption =
   | 'completed';
 
 const getTabs = (isMobile: boolean) => [
-  { id: 'grants' as const, label: isMobile ? 'RFPs' : 'Request for Proposals' },
-  { id: 'needs-funding' as const, label: 'Proposals' },
+  { id: 'needs-funding' as const, label: 'Needs Funding' },
+  { id: 'opportunities' as const, label: isMobile ? 'Opportunities' : 'Funding Opportunities' },
 ];
 
 const TAB_ROUTES: Record<MarketplaceTab, string> = {
   all: '/fund',
-  grants: '/fund/grants',
   'needs-funding': '/fund/needs-funding',
+  opportunities: '/fund/opportunities',
 };
 
 interface MarketplaceTabsProps {
@@ -55,8 +55,11 @@ export const MarketplaceTabs: FC<MarketplaceTabsProps> = ({
     if (disableTabs) return;
     const tab = tabId as MarketplaceTab;
 
-    // If switching to grants tab with "best", "newest", or "completed" sort, reset to default (empty)
-    if (tab === 'grants' && (sortBy === 'best' || sortBy === 'newest' || sortBy === 'completed')) {
+    // If switching to opportunities tab with "best", "newest", or "completed" sort, reset to default (empty)
+    if (
+      tab === 'opportunities' &&
+      (sortBy === 'best' || sortBy === 'newest' || sortBy === 'completed')
+    ) {
       onSortChange('');
       onTabChange(tab);
       const newParams = new URLSearchParams(searchParams.toString());

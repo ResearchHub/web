@@ -99,9 +99,9 @@ export const Navigation: React.FC<NavigationProps> = ({
     },
     {
       label: 'Fund',
-      href: '/fund/grants',
+      href: '/fund/needs-funding',
       iconKey: 'fund',
-      description: 'Browse grants and fundraising opportunities',
+      description: 'Browse funding and research opportunities',
     },
     {
       label: 'Earn',
@@ -155,9 +155,9 @@ export const Navigation: React.FC<NavigationProps> = ({
       return ['/popular', '/for-you', '/latest', '/following'].includes(currentPath);
     }
 
-    // Special case for fund page - match specific fund routes
-    if (path === '/fund/grants') {
-      return ['/fund/grants', '/fund/needs-funding'].includes(currentPath);
+    // Special case for fund page - match all funding pages
+    if (path === '/fund/needs-funding') {
+      return currentPath.startsWith('/fund') || currentPath.startsWith('/opportunity');
     }
 
     // Special case for notebook page - match any route that starts with /notebook

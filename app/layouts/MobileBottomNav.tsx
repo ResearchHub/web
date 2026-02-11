@@ -48,8 +48,8 @@ const isPathActive = (path: string, currentPath: string): boolean => {
   if (path === '/for-you' || path === '/popular') {
     return ['/popular', '/for-you', '/latest', '/following', '/'].includes(currentPath);
   }
-  if (path === '/fund/grants') {
-    return ['/fund/grants', '/fund/needs-funding'].includes(currentPath);
+  if (path === '/fund/needs-funding') {
+    return currentPath.startsWith('/fund') || currentPath.startsWith('/opportunity');
   }
   if (path === '/notebook') {
     return currentPath.startsWith('/notebook');
@@ -86,7 +86,7 @@ export const MobileBottomNav: React.FC = () => {
   const mainNavItems: NavItem[] = [
     { label: 'Home', href: homeHref, iconKey: 'home', isDynamicHome: true },
     { label: 'Earn', href: '/earn', iconKey: 'earn' },
-    { label: 'Fund', href: '/fund/grants', iconKey: 'fund' },
+    { label: 'Fund', href: '/fund/needs-funding', iconKey: 'fund' },
     { label: 'Wallet', href: '/researchcoin', iconKey: 'wallet' },
     { label: 'More', isMore: true, iconKey: 'more' },
   ];

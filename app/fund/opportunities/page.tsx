@@ -2,7 +2,6 @@
 
 import { FundPageContent } from '../components/FundPageContent';
 
-// Legacy route - redirected to /fund/opportunities via next.config.js
-export default function GrantsPage() {
+export default function OpportunitiesPage() {
   return <FundPageContent marketplaceTab="opportunities" />;
 }

@@ -41,9 +41,9 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
     }
 
     if (isFundPage) {
-      if (pathname.includes('/grants')) return 'grants';
+      if (pathname.includes('/opportunities')) return 'opportunities';
       if (pathname.includes('/needs-funding')) return 'needs-funding';
-      return 'grants';
+      return 'needs-funding';
     }
 
     if (isJournalPage) {
@@ -83,8 +83,18 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
 
     if (isFundPage) {
       return [
-        { id: 'grants', label: 'RFPs', href: getHref('grants'), scroll: false },
-        { id: 'needs-funding', label: 'Proposals', href: getHref('needs-funding'), scroll: false },
+        {
+          id: 'needs-funding',
+          label: 'Needs Funding',
+          href: getHref('needs-funding'),
+          scroll: false,
+        },
+        {
+          id: 'opportunities',
+          label: 'Funding Opportunities',
+          href: getHref('opportunities'),
+          scroll: false,
+        },
       ];
     }
 

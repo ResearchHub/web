@@ -24,20 +24,20 @@ export const getSortOptions = (activeTab: MarketplaceTab): SortOption[] => {
     },
     { label: 'Most upvoted', value: 'upvotes', icon: ArrowUp },
     {
-      label: activeTab === 'grants' ? 'Most applicants' : 'Most funders',
+      label: activeTab === 'opportunities' ? 'Most applicants' : 'Most funders',
       value: 'most_applicants',
       icon: Users,
     },
     {
-      label: activeTab === 'grants' ? 'Amount' : 'Raised',
+      label: activeTab === 'opportunities' ? 'Amount' : 'Raised',
       value: 'amount_raised',
       icon: DollarSign,
     },
     { label: 'Completed', value: 'completed', icon: CheckCircle },
   ];
 
-  // Hide "Best" and "Completed" options on the RFPs (grants) tab
-  if (activeTab === 'grants') {
+  // Hide "Best" and "Completed" options on the opportunities tab
+  if (activeTab === 'opportunities') {
     return allOptions.filter((option) => option.value !== 'best' && option.value !== 'completed');
   }
 
@@ -67,8 +67,8 @@ export const createTabConfig = (
     sidebar: AllFundingRightSidebar,
     fundraiseStatus: 'OPEN',
   },
-  grants: {
-    title: 'Request for Proposals',
+  opportunities: {
+    title: 'Funding Opportunities',
     subtitle: 'Explore available funding opportunities',
     contentType: 'GRANT',
     endpoint: 'grant_feed',

@@ -2,11 +2,33 @@
 const nextConfig = {
   reactStrictMode: false,
   redirects: async () => [
-    // {
-    //   source: '/fund',
-    //   destination: '/fund/grants',
-    //   permanent: false,
-    // },
+    // Legacy grant routes -> opportunity
+    {
+      source: '/grant/create',
+      destination: '/opportunity/create',
+      permanent: true,
+    },
+    {
+      source: '/grant/:id/:slug/:tab',
+      destination: '/opportunity/:id/:slug/:tab',
+      permanent: true,
+    },
+    {
+      source: '/grant/:id/:slug',
+      destination: '/opportunity/:id/:slug',
+      permanent: true,
+    },
+    {
+      source: '/grant/:id',
+      destination: '/opportunity/:id',
+      permanent: true,
+    },
+    // Legacy /fund/grants -> /fund/opportunities
+    {
+      source: '/fund/grants',
+      destination: '/fund/opportunities',
+      permanent: true,
+    },
     {
       source: '/researchhub-journal',
       destination: '/journal',

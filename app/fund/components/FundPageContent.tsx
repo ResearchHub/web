@@ -18,7 +18,7 @@ import { createTabConfig, getSortOptions } from '@/components/Fund/lib/FundingFe
 import Link from 'next/link';
 
 interface FundPageContentProps {
-  marketplaceTab: 'all' | 'grants' | 'needs-funding';
+  marketplaceTab: 'all' | 'opportunities' | 'needs-funding';
 }
 
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
@@ -75,7 +75,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
         subtitle={config.subtitle}
         showTitle={false}
       />
-      {activeTab === 'all' && (
+      {activeTab === 'needs-funding' && (
         <div className="py-4">
           <FundingPromotionCards />
         </div>
@@ -93,7 +93,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
         />
       </div>
       {/* Mobile-only: Horizontal scrolling CTAs and info drawer */}
-      {activeTab === 'all' && (
+      {activeTab === 'needs-funding' && (
         <div className="lg:hidden mt-4 mb-4">
           <FundingMobileInfo />
         </div>
@@ -112,7 +112,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
           </Link>
         </div>
       )}
-      {activeTab === 'grants' && (
+      {activeTab === 'opportunities' && (
         <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5 mt-4 mb-4">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-blue-500" />

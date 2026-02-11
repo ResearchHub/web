@@ -96,7 +96,7 @@ export function FeaturesSection() {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
 
   const handleGiveResearchFunding = () => {
-    router.push('/fund/grants');
+    router.push('/fund/opportunities');
   };
 
   const handleRequestFunding = () => {

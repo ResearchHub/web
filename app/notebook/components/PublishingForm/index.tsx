@@ -431,7 +431,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
       if (formData.articleType === 'preregistration') {
         router.push(`/fund/${response.id}/${response.slug}?new=true`);
       } else if (formData.articleType === 'grant') {
-        router.push(`/grant/${response.id}/${response.slug}`);
+        router.push(`/opportunity/${response.id}/${response.slug}`);
       } else {
         router.push(`/post/${response.id}/${response.slug}`);
       }

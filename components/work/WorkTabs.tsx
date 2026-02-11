@@ -130,7 +130,7 @@ export const WorkTabs = ({
           : contentType === 'fund'
             ? `/fund/${work.id}/${work.slug}`
             : contentType === 'grant'
-              ? `/grant/${work.id}/${work.slug}`
+              ? `/opportunity/${work.id}/${work.slug}`
               : work.postType === 'QUESTION'
                 ? `/question/${work.id}/${work.slug}`
                 : `/post/${work.id}/${work.slug}`;

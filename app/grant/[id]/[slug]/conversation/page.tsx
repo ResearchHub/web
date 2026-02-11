@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const grant = await getGrant(resolvedParams.id);
   return getWorkMetadata({
     work: grant,
-    url: `/grant/${resolvedParams.id}/${resolvedParams.slug}/conversation`,
+    url: `/opportunity/${resolvedParams.id}/${resolvedParams.slug}/conversation`,
     titleSuffix: 'Conversation',
   });
 }

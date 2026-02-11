@@ -2,7 +2,7 @@
 
 import { FundPageContent } from './components/FundPageContent';
 
-// Show all funding items by default
+// Default to needs-funding tab
 export default function FundingPage() {
-  return <FundPageContent marketplaceTab="all" />;
+  return <FundPageContent marketplaceTab="needs-funding" />;
 }

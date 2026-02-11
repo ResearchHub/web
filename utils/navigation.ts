@@ -59,7 +59,7 @@ export function handleQuestionRedirect(work: Work, id: string, slug: string, tab
 export function handleGrantRedirect(work: Work, id: string, slug: string) {
   // Grants are represented as contentType 'funding_request' or postType 'GRANT'
   if (work.contentType === 'funding_request' || work.postType === 'GRANT') {
-    redirect(`/grant/${id}/${slug}`);
+    redirect(`/opportunity/${id}/${slug}`);
   }
 }
 

@@ -38,8 +38,8 @@ export const buildWorkUrl = ({
       baseUrl = slug ? `/post/${id}/${slug}` : `/post/${id}`;
       break;
     case 'funding_request':
-      if (!id) return '#'; // Return a safe fallback for grants without ID
-      baseUrl = slug ? `/grant/${id}/${slug}` : `/grant/${id}`;
+      if (!id) return '#'; // Return a safe fallback for opportunities without ID
+      baseUrl = slug ? `/opportunity/${id}/${slug}` : `/opportunity/${id}`;
       break;
     case 'preregistration':
       if (!id) return '#'; // Return a safe fallback for proposals without ID

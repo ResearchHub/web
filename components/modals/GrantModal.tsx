@@ -30,7 +30,7 @@ export function GrantModal({ isOpen, onClose }: GrantModalProps) {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     // TODO: Implement grant submission
-    router.push('/grants');
+    router.push('/fund/opportunities');
     onClose();
   };
 

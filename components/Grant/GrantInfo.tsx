@@ -65,7 +65,7 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
     if (onFeedItemClick) {
       onFeedItemClick();
     }
-    router.push(`/grant/${grant.id}/${grant.slug}/applications`);
+    router.push(`/opportunity/${grant.id}/${grant.slug}/applications`);
   };
 
   const handleApplyClick = (e: React.MouseEvent) => {
@@ -73,7 +73,7 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
     if (onFeedItemClick) {
       onFeedItemClick();
     }
-    router.push(`/grant/${grant.id}/${grant.slug}/applications`);
+    router.push(`/opportunity/${grant.id}/${grant.slug}/applications`);
   };
 
   const budgetAmount = grant.grant.amount?.rsc || 0;

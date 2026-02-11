@@ -8,7 +8,7 @@ interface Props {
   }>;
 }
 
-export default async function GrantRedirectPage({ params }: Props) {
+export default async function OpportunityRedirectPage({ params }: Props) {
   const resolvedParams = await params;
   const id = resolvedParams.id;
 

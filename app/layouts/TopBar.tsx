@@ -59,7 +59,7 @@ const isRootNavigationPage = (pathname: string): boolean => {
     '/feed',
     '/earn',
     '/fund',
-    '/fund/grants',
+    '/fund/opportunities',
     '/fund/needs-funding', // Fundraises page
     '/journal',
     '/notebook',
@@ -188,9 +188,9 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
-  if (pathname.startsWith('/fund/grants')) {
+  if (pathname.startsWith('/fund/opportunities')) {
     return {
-      title: 'Request for Proposals',
+      title: 'Funding Opportunities',
       subtitle: 'Explore available funding opportunities',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
@@ -198,7 +198,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
 
   if (pathname === '/fund/needs-funding') {
     return {
-      title: 'Research Proposals',
+      title: 'Needs Funding',
       subtitle: 'Support research projects seeking funding',
       icon: <Icon name="createBounty" size={24} className="text-gray-900" />,
     };
@@ -212,10 +212,10 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
-  // Grant routes
-  if (pathname.startsWith('/grant')) {
+  // Opportunity routes (individual opportunity pages)
+  if (pathname.startsWith('/opportunity')) {
     return {
-      title: 'RFP',
+      title: 'Funding Opportunity',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }

@@ -5,7 +5,6 @@ import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
 import { Work } from '@/types/work';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FundingRightSidebar } from '@/components/work/FundingRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { GrantDocument } from '@/components/work/GrantDocument';
@@ -29,7 +28,7 @@ async function getWorkHTMLContent(work: Work): Promise<string | undefined> {
   }
 }
 
-async function getGrant(id: string): Promise<Work> {
+async function getOpportunity(id: string): Promise<Work> {
   if (!id.match(/^\d+$/)) {
     notFound();
   }
@@ -44,18 +43,18 @@ async function getGrant(id: string): Promise<Work> {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
-  const grant = await getGrant(resolvedParams.id);
+  const opportunity = await getOpportunity(resolvedParams.id);
   return getWorkMetadata({
-    work: grant,
+    work: opportunity,
     url: `/opportunity/${resolvedParams.id}/${resolvedParams.slug}`,
   });
 }
 
-export default async function GrantPage({ params }: Props) {
+export default async function OpportunityPage({ params }: Props) {
   const resolvedParams = await params;
   const id = resolvedParams.id;
 
-  const work = await getGrant(id);
+  const work = await getOpportunity(id);
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
   const content = await getWorkHTMLContent(work);

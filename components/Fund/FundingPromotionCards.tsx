@@ -96,7 +96,7 @@ export const FundingPromotionCards = ({
             title="Get Funded"
             description="Apply for grants and opportunities"
             ctaText="View Grants"
-            ctaHref="/fund/grants"
+            ctaHref="/fund/opportunities"
             ctaColor="text-orange-600 hover:text-orange-700"
             onClose={onCloseResearcher}
           />
