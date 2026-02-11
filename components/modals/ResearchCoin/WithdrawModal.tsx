@@ -13,7 +13,7 @@ import { NetworkSelectorSection } from './shared/NetworkSelectorSection';
 import { BalanceDisplay } from './shared/BalanceDisplay';
 import { TransactionFooter } from './shared/TransactionFooter';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Input } from '@/components/ui/form/Input';
+import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
 import { Checkbox } from '@/components/ui/form/Checkbox';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Alert';
@@ -90,11 +90,19 @@ export function WithdrawModal({
   }, [feeError]);
 
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value === '' || /^\d+$/.test(value)) {
+    const value = e.target.value.replace(/[^0-9.]/g, '');
+    if (value === '' || /^\d+(\.\d*)?$/.test(value)) {
       setAmount(value);
     }
   }, []);
+
+  const getFormattedInputValue = () => {
+    return amount;
+  };
+
+  const handleCurrencyToggle = () => {
+    // Only support RSC
+  };
 
   const withdrawAmount = useMemo(() => parseInt(amount || '0', 10), [amount]);
 
@@ -275,35 +283,22 @@ export function WithdrawModal({
                 </button>
               </div>
               <div className="relative">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="\d*"
-                  value={amount}
+                <CurrencyInput
+                  value={getFormattedInputValue()}
                   onChange={handleAmountChange}
-                  placeholder="0"
-                  disabled={isInputDisabled()}
-                  aria-label="Amount to withdraw"
-                  className={cn(
-                    'w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400',
-                    'focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200',
-                    isInputDisabled() && 'bg-gray-100 cursor-not-allowed'
-                  )}
+                  error={
+                    isBelowMinimum
+                      ? `Minimum withdrawal amount is ${MIN_WITHDRAWAL_AMOUNT} RSC.`
+                      : hasInsufficientBalance
+                        ? 'Withdrawal amount exceeds your available balance.'
+                        : undefined
+                  }
+                  currency="RSC"
+                  onCurrencyToggle={handleCurrencyToggle}
+                  label=""
+                  className={isInputDisabled() ? 'bg-gray-100 cursor-not-allowed' : ''}
                 />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-4">
-                  <span className="text-gray-500">RSC</span>
-                </div>
               </div>
-              {isBelowMinimum && (
-                <p className="text-sm text-red-600" role="alert">
-                  Minimum withdrawal amount is {MIN_WITHDRAWAL_AMOUNT} RSC.
-                </p>
-              )}
-              {hasInsufficientBalance && (
-                <p className="text-sm text-red-600" role="alert">
-                  Withdrawal amount exceeds your available balance.
-                </p>
-              )}
             </div>
 
             {/* Fee Display */}
