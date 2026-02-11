@@ -30,17 +30,37 @@ export interface UseLeaderboardFundersReturn {
   pageSize: number;
 }
 
-/**
- * Fetches paginated top reviewers for a given period.
- * Page is controlled via URL (parent passes page and onPageChange).
- */
-export function useLeaderboardReviewers(
-  period: string,
-  page: number,
-  onPageChange: (page: number) => void
-): UseLeaderboardReviewersReturn {
-  const [items, setItems] = useState<TopReviewer[]>([]);
-  const [currentUser, setCurrentUser] = useState<TopReviewer | null>(null);
+interface LeaderboardPageResult<T> {
+  results: T[];
+  count: number;
+  currentUser: T | null;
+}
+
+interface UseLeaderboardListOptions<T> {
+  period: string;
+  page: number;
+  onPageChange: (page: number) => void;
+  fetchPage: (period: string, pageNum: number) => Promise<LeaderboardPageResult<T>>;
+  errorMessage: string;
+  logLabel: string;
+}
+
+function useLeaderboardList<T>({
+  period,
+  page,
+  onPageChange,
+  fetchPage,
+  errorMessage,
+  logLabel,
+}: UseLeaderboardListOptions<T>): {
+  state: LeaderboardListState<T>;
+  goToPage: (page: number) => void;
+  goToNextPage: () => void;
+  goToPrevPage: () => void;
+  pageSize: number;
+} {
+  const [items, setItems] = useState<T[]>([]);
+  const [currentUser, setCurrentUser] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
@@ -49,7 +69,7 @@ export function useLeaderboardReviewers(
   const hasNextPage = page < totalPages;
   const hasPrevPage = page > 1;
 
-  const fetchPage = useCallback(
+  const loadPage = useCallback(
     async (pageNum: number) => {
       if (!period) {
         setItems([]);
@@ -62,17 +82,13 @@ export function useLeaderboardReviewers(
       try {
         setIsLoading(true);
         setError(null);
-        const {
-          results,
-          count,
-          currentUser: user,
-        } = await LeaderboardService.fetchReviewers(period, pageNum);
+        const { results, count, currentUser: user } = await fetchPage(period, pageNum);
         setItems(results);
         setTotalCount(count);
         setCurrentUser(user);
       } catch (err) {
-        console.error('Failed to fetch reviewers:', err);
-        setError('Failed to load reviewers data.');
+        console.error(`Failed to fetch ${logLabel}:`, err);
+        setError(errorMessage);
         setItems([]);
         setCurrentUser(null);
         setTotalCount(0);
@@ -80,12 +96,12 @@ export function useLeaderboardReviewers(
         setIsLoading(false);
       }
     },
-    [period]
+    [period, fetchPage, errorMessage, logLabel]
   );
 
   useEffect(() => {
-    fetchPage(page);
-  }, [fetchPage, page]);
+    loadPage(page);
+  }, [loadPage, page]);
 
   const goToPage = useCallback(
     (pageNum: number) => {
@@ -123,6 +139,28 @@ export function useLeaderboardReviewers(
 }
 
 /**
+ * Fetches paginated top reviewers for a given period.
+ */
+export function useLeaderboardReviewers(
+  period: string,
+  page: number,
+  onPageChange: (page: number) => void
+): UseLeaderboardReviewersReturn {
+  const fetchPage = useCallback(
+    (p: string, pageNum: number) => LeaderboardService.fetchReviewers(p, pageNum),
+    []
+  );
+  return useLeaderboardList({
+    period,
+    page,
+    onPageChange,
+    fetchPage,
+    errorMessage: 'Failed to load reviewers data.',
+    logLabel: 'reviewers',
+  });
+}
+
+/**
  * Fetches paginated top funders for a given period.
  * Page is controlled via URL (parent passes page and onPageChange).
  */
@@ -131,85 +169,16 @@ export function useLeaderboardFunders(
   page: number,
   onPageChange: (page: number) => void
 ): UseLeaderboardFundersReturn {
-  const [items, setItems] = useState<TopFunder[]>([]);
-  const [currentUser, setCurrentUser] = useState<TopFunder | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [totalCount, setTotalCount] = useState(0);
-
-  const totalPages = Math.ceil(totalCount / LEADERBOARD_PAGE_SIZE) || 1;
-  const hasNextPage = page < totalPages;
-  const hasPrevPage = page > 1;
-
   const fetchPage = useCallback(
-    async (pageNum: number) => {
-      if (!period) {
-        setItems([]);
-        setCurrentUser(null);
-        setTotalCount(0);
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        setError(null);
-        const {
-          results,
-          count,
-          currentUser: user,
-        } = await LeaderboardService.fetchFunders(period, pageNum);
-        setItems(results);
-        setTotalCount(count);
-        setCurrentUser(user);
-      } catch (err) {
-        console.error('Failed to fetch funders:', err);
-        setError('Failed to load funders data.');
-        setItems([]);
-        setCurrentUser(null);
-        setTotalCount(0);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [period]
+    (p: string, pageNum: number) => LeaderboardService.fetchFunders(p, pageNum),
+    []
   );
-
-  useEffect(() => {
-    fetchPage(page);
-  }, [fetchPage, page]);
-
-  const goToPage = useCallback(
-    (pageNum: number) => {
-      if (pageNum < 1 || pageNum > totalPages) return;
-      onPageChange(pageNum);
-    },
-    [onPageChange, totalPages]
-  );
-
-  const goToNextPage = useCallback(() => {
-    if (hasNextPage) onPageChange(page + 1);
-  }, [hasNextPage, page, onPageChange]);
-
-  const goToPrevPage = useCallback(() => {
-    if (hasPrevPage) onPageChange(page - 1);
-  }, [hasPrevPage, page, onPageChange]);
-
-  return {
-    state: {
-      items,
-      currentUser,
-      isLoading,
-      error,
-      currentPage: page,
-      totalPages,
-      totalCount,
-      hasNextPage,
-      hasPrevPage,
-    },
-    goToPage,
-    goToNextPage,
-    goToPrevPage,
-    pageSize: LEADERBOARD_PAGE_SIZE,
-  };
+  return useLeaderboardList({
+    period,
+    page,
+    onPageChange,
+    fetchPage,
+    errorMessage: 'Failed to load funders data.',
+    logLabel: 'funders',
+  });
 }
