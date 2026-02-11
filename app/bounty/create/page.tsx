@@ -43,6 +43,7 @@ import { Icon } from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { extractUserMentions } from '@/components/Comment/lib/commentUtils';
 import { removeCommentDraftById } from '@/components/Comment/lib/commentDraftStorage';
+import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
 
 // Wizard steps.
 // We intentionally separate review-specific and answer-specific steps.
@@ -154,6 +155,11 @@ export default function CreateBountyPage() {
     setAmountError(err);
   };
 
+  const getFormattedInputValue = () => {
+    if (inputAmount === 0) return '';
+    return inputAmount.toLocaleString();
+  };
+
   const toggleCurrency = () => {
     if (isExchangeRateLoading && !showUSD) {
       toast.error('Exchange rate is loading. Please wait before switching to USD.');
@@ -163,7 +169,7 @@ export default function CreateBountyPage() {
     // Convert the current input amount to the other currency
     if (showUSD) {
       // Switching from USD to RSC
-      setInputAmount(Number((inputAmount / exchangeRate).toFixed(2)));
+      setInputAmount(Math.round(inputAmount / exchangeRate));
     } else {
       // Switching from RSC to USD
       setInputAmount(Number((inputAmount * exchangeRate).toFixed(2)));
@@ -590,28 +596,15 @@ export default function CreateBountyPage() {
         </div>
 
         <div className="relative">
-          <Input
-            name="amount"
-            value={inputAmount === 0 ? '' : inputAmount.toString()}
+          <CurrencyInput
+            value={getFormattedInputValue()}
             onChange={handleAmountChange}
-            required
+            currency={currency}
+            onCurrencyToggle={toggleCurrency}
+            error={amountError}
             label="I am offering"
-            placeholder="0.00"
-            type="text"
-            inputMode="numeric"
-            className={`w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${amountError ? 'border-red-500' : ''}`}
-            rightElement={
-              <button
-                type="button"
-                onClick={toggleCurrency}
-                className="flex items-center gap-1 pr-3 text-gray-900 hover:text-gray-600"
-              >
-                <span className="font-medium">{currency}</span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
-            }
+            className="w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           />
-          {amountError && <p className="mt-1.5 text-xs text-red-500">{amountError}</p>}
           {!amountError && (
             <p className="mt-1.5 text-xs text-gray-500">
               Suggested amount: {suggestedAmount}
