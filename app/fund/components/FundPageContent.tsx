@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { useFeed } from '@/hooks/useFeed';
@@ -11,11 +12,11 @@ import { GrantRightSidebar } from '@/components/Fund/GrantRightSidebar';
 import { AllFundingRightSidebar } from '@/components/Fund/AllFundingRightSidebar';
 import { FundingMobileInfo } from '@/components/Fund/FundingMobileInfo';
 import { FundingPromotionCards } from '@/components/Fund/FundingPromotionCards';
+import { FundingFilters } from '@/components/Fund/FundingFilters';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { FundingSortOption } from '@/components/Fund/MarketplaceTabs';
 import Icon from '@/components/ui/icons/Icon';
 import { createTabConfig, getSortOptions } from '@/components/Fund/lib/FundingFeedConfig';
-import Link from 'next/link';
 
 interface FundPageContentProps {
   marketplaceTab: 'all' | 'opportunities' | 'needs-funding';
@@ -35,22 +36,49 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
     <AllFundingRightSidebar />
   );
   const config = TAB_CONFIG[marketplaceTab];
-  const sortOptions = getSortOptions(marketplaceTab);
+
+  // Filter state derived from URL
+  const status = searchParams.get('status') || 'all';
+  const peerReview = searchParams.get('peer_review') || 'all';
+  const taxDeductible = searchParams.get('tax_deductible') === 'true';
+
+  const updateParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === '') {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+      router.push(`?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router]
+  );
 
   const handleSortChange = (newSort: FundingSortOption) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (newSort) {
-      params.set('ordering', newSort);
-    } else {
-      params.delete('ordering');
-    }
-    router.push(`?${params.toString()}`, { scroll: false });
+    updateParams({ ordering: newSort || null });
   };
 
-  // When "completed" is selected, fetch closed fundraises with newest ordering
-  const isCompleted = sortBy === 'completed';
-  const effectiveFundraiseStatus = isCompleted ? 'CLOSED' : config.fundraiseStatus;
-  const effectiveOrdering = isCompleted ? 'newest' : sortBy || undefined;
+  const handleStatusChange = (value: string) => {
+    updateParams({ status: value === 'all' ? null : value });
+  };
+
+  const handlePeerReviewChange = (value: string) => {
+    updateParams({ peer_review: value === 'all' ? null : value });
+  };
+
+  const handleTaxDeductibleToggle = () => {
+    updateParams({ tax_deductible: taxDeductible ? null : 'true' });
+  };
+
+  // Derive effective fundraise status from pill filter + sort
+  const isCompletedSort = sortBy === 'completed';
+  const isCompletedFilter = status === 'completed';
+  const showClosed = isCompletedSort || isCompletedFilter;
+  const effectiveFundraiseStatus = showClosed ? 'CLOSED' : config.fundraiseStatus;
+  const effectiveOrdering = isCompletedSort ? 'newest' : sortBy || undefined;
 
   const {
     entries,
@@ -86,12 +114,20 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
           tabs={feedTabsList}
           onTabChange={handleTabChange}
           isLoading={isLoading}
-          showSorting
-          sortOption={sortBy as any}
-          onSortChange={(sort) => handleSortChange(sort as any)}
-          sortOptions={sortOptions}
         />
       </div>
+      {/* Pill filters */}
+      <FundingFilters
+        activeTab={marketplaceTab}
+        status={status}
+        onStatusChange={handleStatusChange}
+        peerReview={peerReview}
+        onPeerReviewChange={handlePeerReviewChange}
+        taxDeductible={taxDeductible}
+        onTaxDeductibleToggle={handleTaxDeductibleToggle}
+        sortBy={sortBy}
+        onSortChange={handleSortChange}
+      />
       {/* Mobile-only: Horizontal scrolling CTAs and info drawer */}
       {activeTab === 'needs-funding' && (
         <div className="lg:hidden mt-4 mb-4">
