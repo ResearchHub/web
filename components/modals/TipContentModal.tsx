@@ -24,38 +24,7 @@ interface TipContentModalProps {
   recipientName?: string; // Optional: Name of the recipient for display
 }
 
-// Currency Input Component (reusable, slightly modified label)
-const CurrencyInput = ({
-  value,
-  onChange,
-  error,
-}: {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  error?: string;
-}) => {
-  return (
-    <div className="relative">
-      <Input
-        name="amount"
-        value={value}
-        onChange={onChange}
-        required
-        label="Tip Amount" // Changed label
-        placeholder="0.00"
-        type="text"
-        inputMode="numeric"
-        className={`w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${error ? 'border-red-500' : ''}`}
-        rightElement={
-          <div className="flex items-center gap-1 pr-3 text-gray-900">
-            <span className="font-medium">RSC</span>
-          </div>
-        }
-      />
-      {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
-    </div>
-  );
-};
+import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
 
 // Modal Header Component (reusable)
 const ModalHeader = ({
@@ -148,8 +117,12 @@ export function TipContentModal({
 
   // Format the input value for display (e.g., with commas)
   const getFormattedInputValue = () => {
-    if (inputAmount === 0 && !document.activeElement?.matches('input[name="amount"]')) return ''; // Show placeholder if 0 and not focused
+    if (inputAmount === 0) return ''; // Show placeholder if 0
     return inputAmount.toLocaleString();
+  };
+
+  const handleCurrencyToggle = () => {
+    // Only support RSC for now
   };
 
   // Handle the tip submission
@@ -224,6 +197,9 @@ export function TipContentModal({
                         value={getFormattedInputValue()}
                         onChange={handleAmountChange}
                         error={amountError}
+                        currency="RSC"
+                        onCurrencyToggle={handleCurrencyToggle}
+                        label="Tip Amount"
                       />
                       {!amountError && usdEquivalent && (
                         <div className="mt-1.5 text-sm text-gray-500">{usdEquivalent}</div>
