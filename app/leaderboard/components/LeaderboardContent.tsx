@@ -64,8 +64,11 @@ export function LeaderboardContent({ defaultTab }: LeaderboardContentProps) {
 
   const page = getPageFromSearchParams(searchParams);
 
-  const { reviewer: currentUserReviewer, funder: currentUserFunder } =
-    useCurrentUserLeaderboard(period);
+  const {
+    reviewer: currentUserReviewer,
+    funder: currentUserFunder,
+    isLoading: currentUserLoading,
+  } = useCurrentUserLeaderboard(period);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -214,14 +217,14 @@ export function LeaderboardContent({ defaultTab }: LeaderboardContentProps) {
             period={period}
             page={page}
             onPageChange={handlePageChange}
-            currentUser={currentUserReviewer}
+            currentUser={currentUserLoading ? null : currentUserReviewer}
           />
         ) : (
           <TopFunders
             period={period}
             page={page}
             onPageChange={handlePageChange}
-            currentUser={currentUserFunder}
+            currentUser={currentUserLoading ? null : currentUserFunder}
           />
         )}
       </div>
