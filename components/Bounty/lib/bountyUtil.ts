@@ -649,3 +649,37 @@ export const findLatestFoundationBounty = (bounties: Bounty[]): Bounty | undefin
 
   return activeReviewBounties[0];
 };
+
+/**
+ * Interface for bounty fees breakdown
+ */
+export interface BountyFees {
+  platformFee: number;
+  daoFee: number;
+  incFee: number;
+  baseAmount: number;
+  totalAmount: number;
+}
+
+/**
+ * Calculates bounty fees based on the RSC amount.
+ * Standard platform fee is 9% (2% DAO + 7% Inc).
+ * 
+ * @param rscAmount The net amount of the bounty in RSC
+ * @returns Object containing the calculated fees and total amount
+ */
+export const calculateBountyFees = (rscAmount: number): BountyFees => {
+  const platformFee = Math.floor(rscAmount * 0.09);
+  const daoFee = Math.floor(rscAmount * 0.02);
+  const incFee = Math.floor(rscAmount * 0.07);
+  const baseAmount = rscAmount - platformFee;
+  const totalAmount = rscAmount + platformFee;
+
+  return {
+    platformFee,
+    daoFee,
+    incFee,
+    baseAmount,
+    totalAmount,
+  };
+};

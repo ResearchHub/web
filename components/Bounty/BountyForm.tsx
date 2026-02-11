@@ -1,22 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/form/Input';
 import { Search } from '@/components/Search/Search';
 import { SearchSuggestion } from '@/types/search';
-import {
-  ChevronDown,
-  Users,
-  MessageCircleQuestion,
-  Star,
-  Calendar,
-  MessageCircle,
-  RecycleIcon,
-} from 'lucide-react';
+import { Star, MessageCircleQuestion, MessageCircle, ChevronDown, BookOpen } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
-import { Tooltip } from '@/components/ui/Tooltip';
-import { cn } from '@/utils/styles';
 import { Currency } from '@/types/root';
 import { BountyType } from '@/types/bounty';
 import { BalanceInfo } from '@/components/modals/BalanceInfo';
@@ -28,12 +17,16 @@ import { useComments } from '@/contexts/CommentContext';
 import { useCreateComment } from '@/hooks/useComments';
 import { CommentService } from '@/services/comment.service';
 import { RadioGroup as HeadlessRadioGroup, Listbox } from '@headlessui/react';
-import { useSession } from 'next-auth/react';
-import { SessionProvider } from 'next-auth/react';
+import { useSession, SessionProvider } from 'next-auth/react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useStorageKey } from '@/utils/storageKeys';
 import { extractUserMentions } from '@/components/Comment/lib/commentUtils';
 import { removeCommentDraftById } from '@/components/Comment/lib/commentDraftStorage';
+import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
+import { FeeBreakdown } from './lib/FeeBreakdown';
+import { useCurrencyConversion } from './lib/useCurrencyConversion';
+import { useAmountInput } from '@/hooks/useAmountInput';
+import { calculateBountyFees } from './lib/bountyUtil';
 
 type Step = 'details' | 'payment';
 type BountyLength = '14' | '30' | '60' | 'custom';
@@ -55,8 +48,6 @@ interface BountyFormProps {
   onSubmitSuccess?: () => void;
   className?: string;
 }
-
-import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
 
 const BountyLengthSelector = ({
   selected,
@@ -121,16 +112,13 @@ const BountyLengthSelector = ({
   );
 };
 
-// Custom CommentEditor wrapper that ensures a session is provided
 const SessionAwareCommentEditor = (props: CommentEditorProps) => {
   const { data: session } = useSession();
 
-  // If we have a real session, use it directly
   if (session) {
     return <CommentEditor {...props} />;
   }
 
-  // Otherwise, create a mock session with a default user
   const mockSession = {
     user: {
       name: 'You',
@@ -140,7 +128,6 @@ const SessionAwareCommentEditor = (props: CommentEditorProps) => {
     userId: '0',
   };
 
-  // Wrap the CommentEditor with a SessionProvider using our mock session
   return (
     <SessionProvider session={mockSession as any}>
       <CommentEditor {...props} />
@@ -148,23 +135,10 @@ const SessionAwareCommentEditor = (props: CommentEditorProps) => {
   );
 };
 
-import { useCurrencyConversion } from './lib/useCurrencyConversion';
-
-import { FeeBreakdown } from './lib/FeeBreakdown';
-
-import { useAmountInput } from '@/hooks/useAmountInput';
-
 export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormProps) {
   const { user } = useUser();
-  const { data: session, status } = useSession();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
   const { convertToRSC, convertToUSD } = useCurrencyConversion(exchangeRate);
-
-  // Debug session information
-  useEffect(() => {
-    console.log('BountyForm - Session Status:', status);
-    console.log('BountyForm - Session Data:', session);
-  }, [session, status]);
 
   const [step, setStep] = useState<Step>('details');
   const [selectedPaper, setSelectedPaper] = useState<SelectedPaper | null>(null);
@@ -184,60 +158,31 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
   const [currency, setCurrency] = useState<Currency>('RSC');
   const [bountyLength, setBountyLength] = useState<BountyLength>('30');
   const [bountyType, setBountyType] = useState<BountyType>('REVIEW');
-  const [otherDescription, setOtherDescription] = useState('');
   const [isFeesExpanded, setIsFeesExpanded] = useState(false);
-  const [customDate, setCustomDate] = useState('');
   const [editorContent, setEditorContent] = useState<any>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const userBalance = user?.balance || 0;
 
-  const [{ data: commentData, isLoading: isCreatingBounty, error: bountyError }, createComment] =
-    useCreateComment();
-
-  const [amountError, setAmountError] = useState<string | undefined>(undefined);
-  const [hasInteractedWithAmount, setHasInteractedWithAmount] = useState(false);
-
-  // Make useComments optional to handle cases when the component is not wrapped with a CommentProvider
-  let commentContext;
-  try {
-    commentContext = useComments();
-  } catch (error) {
-    commentContext = null;
-  }
-
-  // Update amount validation when exchange rate changes
-  useEffect(() => {
-    if (!isExchangeRateLoading && currency !== 'RSC' && inputAmount > 0) {
-      const rscAmount = inputAmount / exchangeRate;
-      if (rscAmount < 10) {
-        setAmountError('Minimum bounty amount is 10 RSC');
-      } else {
-        setAmountError(undefined);
-      }
-    }
-  }, [exchangeRate, isExchangeRateLoading, currency, inputAmount]);
-
-  // Update the input amount when the exchange rate loads
-  useEffect(() => {
-    if (!isExchangeRateLoading && exchangeRate > 0 && !hasInteractedWithAmount) {
-      // Only update if the user hasn't manually changed the amount
-      setInputAmount(Math.round(150 / exchangeRate));
-    }
-  }, [exchangeRate, isExchangeRateLoading, hasInteractedWithAmount]);
+  const commentContext = useComments();
 
   const baseStorageKey = `bounty-editor-draft-${workId || 'new'}`;
   const storageKey = useStorageKey(baseStorageKey);
 
+  const getRscAmount = () => {
+    if (isExchangeRateLoading) return currency === 'RSC' ? inputAmount : 0;
+    return currency === 'RSC' ? inputAmount : convertToRSC(inputAmount);
+  };
+
+  const { platformFee, daoFee, incFee, totalAmount: totalCost } = calculateBountyFees(getRscAmount());
+
   const handleCreateBounty = async () => {
     if (isSubmitting) return;
 
-    // Ensure we send a whole number for the bounty amount to avoid backend rounding errors
     const rscAmount = Math.round(getRscAmount());
 
     if (rscAmount < 10) {
       toast.error('Minimum bounty amount is 10 RSC');
-      setAmountError('Minimum bounty amount is 10 RSC');
       return;
     }
 
@@ -245,81 +190,44 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
     const toastId = toast.loading('Creating bounty...');
 
     try {
-      const expirationDate = (() => {
-        const days = parseInt(bountyLength);
-        const date = new Date();
-        date.setDate(date.getDate() + days);
-        return date.toISOString();
-      })();
-
-      const commentContent = {
+      const expirationDate = new Date();
+      expirationDate.setDate(expirationDate.getDate() + parseInt(bountyLength));
+      
+      const apiContent = {
         type: 'doc',
         content: editorContent?.content || [],
       };
 
-      // Extract mentions from the editor content
       const mentions = extractUserMentions(editorContent || {});
 
-      let createdComment;
-
-      if (commentContext?.createBounty) {
-        createdComment = await commentContext.createBounty(
-          commentContent,
-          rscAmount,
-          bountyType,
-          expirationDate,
-          workId || selectedPaper?.id
-        );
-      } else {
-        const apiContent = {
-          type: 'doc',
-          content: editorContent?.content || [],
-        };
-
-        createdComment = await CommentService.createComment({
-          workId: workId || selectedPaper?.id,
-          contentType: 'paper',
-          content: JSON.stringify(apiContent),
-          contentFormat: 'TIPTAP',
-          commentType: 'GENERIC_COMMENT',
-          bountyAmount: rscAmount,
-          bountyType,
-          expirationDate,
-          privacyType: 'PUBLIC',
-          mentions,
-        });
-      }
+      const createdComment = await CommentService.createComment({
+        workId: workId || selectedPaper?.id,
+        contentType: 'paper',
+        content: JSON.stringify(apiContent),
+        contentFormat: 'TIPTAP',
+        commentType: 'GENERIC_COMMENT',
+        bountyAmount: rscAmount,
+        bountyType,
+        expirationDate: expirationDate.toISOString(),
+        privacyType: 'PUBLIC',
+        mentions,
+      });
 
       if (createdComment) {
         removeCommentDraftById(storageKey);
-
         toast.success('Bounty created successfully!', { id: toastId });
         onSubmitSuccess?.();
-      } else {
-        toast.error('Failed to create bounty. Please try again.', { id: toastId });
       }
     } catch (error) {
-      console.error('Failed to create bounty:', error);
-      toast.error('Failed to create bounty. Please try again.', { id: toastId });
+      toast.error('Failed to create bounty.', { id: toastId });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handlePaperSelect = (paper: SearchSuggestion) => {
-    if (paper.entityType === 'paper') {
-      setSelectedPaper({
-        id: paper.id?.toString() || paper.openalexId,
-        title: paper.displayName,
-        authors: paper.authors,
-      });
-      setShowSuggestions(false);
-    }
-  };
-
   const toggleCurrency = () => {
     if (isExchangeRateLoading) {
-      toast.error('Exchange rate is loading. Please wait before switching currency.');
+      toast.error('Exchange rate is loading.');
       return;
     }
 
@@ -332,217 +240,40 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
     }
   };
 
-  const getConvertedAmount = () => {
-    if (inputAmount === 0) return '';
-    if (isExchangeRateLoading) return '';
-
-    return currency === 'RSC'
-      ? `≈ $${convertToUSD(inputAmount).toLocaleString()} USD`
-      : `≈ ${convertToRSC(inputAmount).toLocaleString()} RSC`;
-  };
-
-  const getRscAmount = () => {
-    if (isExchangeRateLoading) return currency === 'RSC' ? inputAmount : 0;
-    return currency === 'RSC' ? inputAmount : convertToRSC(inputAmount);
-  };
-
-  const handleEditorContent = (content: any) => {
-    setEditorContent(content);
-  };
-
-  const handleEditorUpdate = (content: any) => {
-    setEditorContent(content);
-  };
-
-  const rscAmount = getRscAmount();
-  const platformFee = Math.floor(rscAmount * 0.09);
-  const daoFee = Math.floor(rscAmount * 0.02);
-  const incFee = Math.floor(rscAmount * 0.07);
-  const baseAmount = rscAmount - platformFee;
-  const totalCost = rscAmount + platformFee;
-  const insufficientBalance = userBalance < rscAmount;
-  const hasAdditionalInfo = !!(
-    editorContent &&
-    editorContent.content &&
-    (Array.isArray(editorContent.content)
-      ? editorContent.content.length > 0
-      : Object.keys(editorContent.content).length > 0)
-  );
-  const isAmountTooLow = rscAmount < 10;
-
-  // Function to proceed to payment step
-  const handleProceedToPayment = () => {
-    if (!workId && !selectedPaper) {
-      toast.error('Please select a paper first');
-      return;
-    }
-
-    if (inputAmount === 0 || getRscAmount() < 10 || !!amountError) {
-      toast.error('Please enter a valid amount (minimum 10 RSC)');
-      return;
-    }
-
-    setStep('payment');
-  };
-
-  // Function to go back to details step
-  const handleBackToDetails = () => {
-    setStep('details');
-  };
-
   return (
     <div className={className}>
-      <div className="mb-4 flex items-center">
-        {step === 'payment' && (
-          <button
-            type="button"
-            onClick={handleBackToDetails}
-            className="mr-2 p-2 rounded-md hover:bg-gray-100"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-gray-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              />
-            </svg>
-          </button>
-        )}
-        <h2 className="text-lg font-semibold text-gray-700"></h2>
-      </div>
       <div className="space-y-6">
         {step === 'details' ? (
           <>
-            {/* Paper Search Section */}
             {!workId && (
               <div>
-                <div className="mb-2">
-                  <label className="block text-sm font-semibold text-gray-700">
-                    Which work is this bounty for?
-                  </label>
-                </div>
-                <div className="relative">
-                  <Search
-                    onSelect={handlePaperSelect}
-                    displayMode="inline"
-                    placeholder="Search for work..."
-                    className="w-full [&_input]:bg-white"
-                    showSuggestionsOnFocus={!selectedPaper || showSuggestions}
-                  />
-                  {selectedPaper && (
-                    <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="text-sm font-medium text-gray-900">{selectedPaper.title}</div>
-                      <div className="text-xs text-gray-600 mt-1">
-                        {selectedPaper.authors.join(', ')}
-                      </div>
-                      {selectedPaper.abstract && (
-                        <div className="text-xs text-gray-500 mt-2 line-clamp-2">
-                          {selectedPaper.abstract}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <Search
+                  onSelect={(paper) => {
+                    setSelectedPaper({
+                      id: paper.id?.toString() || paper.openalexId,
+                      title: paper.displayName,
+                      authors: paper.authors,
+                    });
+                    setShowSuggestions(false);
+                  }}
+                  displayMode="inline"
+                  placeholder="Search for work..."
+                  showSuggestionsOnFocus={!selectedPaper || showSuggestions}
+                />
               </div>
             )}
 
-            {/* Bounty Type Section */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                What is this bounty for?
-              </label>
-              <HeadlessRadioGroup
-                value={bountyType}
-                onChange={(value) => setBountyType(value as BountyType)}
-              >
+              <HeadlessRadioGroup value={bountyType} onChange={setBountyType}>
                 <div className="space-y-2">
-                  <HeadlessRadioGroup.Option
-                    value="REVIEW"
-                    className={({ checked }) =>
-                      cn(
-                        'relative flex cursor-pointer rounded-lg border p-4 focus:outline-none',
-                        checked
-                          ? 'border-indigo-600 bg-indigo-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      )
-                    }
-                  >
+                  <HeadlessRadioGroup.Option value="REVIEW" className={({ checked }) => cn('relative flex cursor-pointer rounded-lg border p-4 focus:outline-none', checked ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200')}>
                     {({ checked }) => (
                       <div className="flex w-full items-center justify-between">
-                        <div className="flex items-center">
-                          <div className="text-sm">
-                            <HeadlessRadioGroup.Label
-                              as="p"
-                              className={cn(
-                                'font-medium',
-                                checked ? 'text-indigo-900' : 'text-gray-900'
-                              )}
-                            >
-                              Peer Review
-                            </HeadlessRadioGroup.Label>
-                            <HeadlessRadioGroup.Description
-                              as="span"
-                              className={cn(
-                                'inline text-sm',
-                                checked ? 'text-indigo-700' : 'text-gray-500'
-                              )}
-                            >
-                              Get expert feedback on methodology and findings
-                            </HeadlessRadioGroup.Description>
-                          </div>
+                        <div>
+                          <p className={cn('font-medium', checked ? 'text-indigo-900' : 'text-gray-900')}>Peer Review</p>
+                          <span className="text-sm text-gray-500">Get expert feedback on methodology</span>
                         </div>
-                        <div className={cn('shrink-0 text-indigo-500', !checked && 'invisible')}>
-                          <Star className="h-5 w-5" />
-                        </div>
-                      </div>
-                    )}
-                  </HeadlessRadioGroup.Option>
-
-                  <HeadlessRadioGroup.Option
-                    value="ANSWER"
-                    className={({ checked }) =>
-                      cn(
-                        'relative flex cursor-pointer rounded-lg border p-4 focus:outline-none',
-                        checked
-                          ? 'border-indigo-600 bg-indigo-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      )
-                    }
-                  >
-                    {({ checked }) => (
-                      <div className="flex w-full items-center justify-between">
-                        <div className="flex items-center">
-                          <div className="text-sm">
-                            <HeadlessRadioGroup.Label
-                              as="p"
-                              className={cn(
-                                'font-medium',
-                                checked ? 'text-indigo-900' : 'text-gray-900'
-                              )}
-                            >
-                              Answer to Question
-                            </HeadlessRadioGroup.Label>
-                            <HeadlessRadioGroup.Description
-                              as="span"
-                              className={cn(
-                                'inline text-sm',
-                                checked ? 'text-indigo-700' : 'text-gray-500'
-                              )}
-                            >
-                              Ask a specific question about the research
-                            </HeadlessRadioGroup.Description>
-                          </div>
-                        </div>
-                        <div className={cn('shrink-0 text-indigo-500', !checked && 'invisible')}>
-                          <MessageCircleQuestion className="h-5 w-5" />
-                        </div>
+                        {checked && <Star className="h-5 w-5 text-indigo-500" />}
                       </div>
                     )}
                   </HeadlessRadioGroup.Option>
@@ -550,194 +281,53 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
               </HeadlessRadioGroup>
             </div>
 
-            {/* Amount Section */}
-            <div>
-              <CurrencyInput
-                value={getFormattedInputValue()}
-                onChange={handleAmountChange}
-                currency={currency}
-                onCurrencyToggle={toggleCurrency}
-                convertedAmount={getConvertedAmount()}
-                suggestedAmount={
-                  currency === 'USD'
-                    ? '150 USD'
-                    : isExchangeRateLoading
-                      ? 'Loading...'
-                      : `${Math.round(150 / exchangeRate)} RSC`
-                }
-                error={amountError}
-                isExchangeRateLoading={isExchangeRateLoading}
-              />
-            </div>
+            <CurrencyInput
+              value={getFormattedInputValue()}
+              onChange={handleAmountChange}
+              currency={currency}
+              onCurrencyToggle={toggleCurrency}
+              error={amountError}
+              isExchangeRateLoading={isExchangeRateLoading}
+              suggestedAmount={currency === 'USD' ? '150 USD' : `${Math.round(150 / exchangeRate)} RSC`}
+            />
 
-            {/* Additional Information Section */}
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <MessageCircle className="w-5 h-5 text-gray-500" />
-                <label className="block text-sm font-semibold text-gray-700">
-                  Additional Information
-                </label>
-                <span className="text-sm text-gray-500">(Optional)</span>
-              </div>
-              <p className="text-sm text-gray-600 mb-3">
-                Provide more details about what you're looking for in the bounty submissions.
-              </p>
-              <div className="border border-gray-200 rounded-lg bounty-editor">
-                <style jsx>{`
-                  :global(.bounty-editor .border-t) {
-                    display: none;
-                  }
-                  :global(.scrollbar-hide) {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                  }
-                  :global(.scrollbar-hide::-webkit-scrollbar) {
-                    display: none;
-                  }
-                `}</style>
-                <SessionAwareCommentEditor
-                  onSubmit={handleEditorContent}
-                  onUpdate={handleEditorUpdate}
-                  placeholder="Add more details about your bounty requirements..."
-                  commentType="GENERIC_COMMENT"
-                  onCancel={() => {}}
-                  compactToolbar={true}
-                  storageKey={storageKey}
-                  debug={true}
-                />
-              </div>
-            </div>
+            <SessionAwareCommentEditor
+              onUpdate={setEditorContent}
+              placeholder="Add more details..."
+              storageKey={storageKey}
+            />
 
-            {/* Advanced Options Toggle */}
-            <div className="border-t border-gray-200 pt-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">Advanced options</span>
-                </div>
-                <Switch
-                  checked={showAdvanced}
-                  onChange={setShowAdvanced}
-                  className={`${
-                    showAdvanced ? 'bg-indigo-600' : 'bg-gray-200'
-                  } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`}
-                >
-                  <span
-                    className={`${
-                      showAdvanced ? 'translate-x-6' : 'translate-x-1'
-                    } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
-                  />
-                </Switch>
-              </div>
-            </div>
-
-            {/* Advanced Options Section */}
-            {showAdvanced && (
-              <div className="space-y-6 pt-2">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Bounty Length
-                  </label>
-                  <BountyLengthSelector selected={bountyLength} onChange={setBountyLength} />
-                </div>
-              </div>
-            )}
-
-            {/* Continue Button */}
             <Button
-              type="button"
               variant="default"
-              className="w-full h-12 text-base"
-              onClick={handleProceedToPayment}
-              disabled={
-                (!workId && !selectedPaper) ||
-                inputAmount === 0 ||
-                getRscAmount() < 10 ||
-                !!amountError
-              }
+              className="w-full h-12"
+              onClick={() => setStep('payment')}
+              disabled={(!workId && !selectedPaper) || inputAmount === 0 || !!amountError}
             >
               Continue to Payment
             </Button>
           </>
         ) : (
-          // Payment Step
           <div className="space-y-6">
-            {/* Bounty Summary */}
-            <div>
-              <div className="mb-2">
-                <h3 className="text-sm font-semibold text-gray-900">Bounty Summary</h3>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-4 space-y-3 border border-gray-200">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-700">Type:</span>
-                  <span className="text-gray-900 font-medium">
-                    {bountyType === 'REVIEW' ? 'Peer Review' : 'Answer to Question'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-700">Amount:</span>
-                  <span className="text-gray-900 font-medium">
-                    {rscAmount.toLocaleString()} RSC
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-700">Duration:</span>
-                  <span className="text-gray-900 font-medium">{bountyLength} days</span>
-                </div>
-              </div>
-            </div>
+            <FeeBreakdown
+              rscAmount={getRscAmount()}
+              platformFee={platformFee}
+              daoFee={daoFee}
+              incFee={incFee}
+              totalAmount={totalCost}
+              isExpanded={isFeesExpanded}
+              onToggleExpand={() => setIsFeesExpanded(!isFeesExpanded)}
+            />
 
-            {/* Fees Breakdown */}
-            <div>
-              <div className="mb-2">
-                <h3 className="text-sm font-semibold text-gray-900">Fees Breakdown</h3>
-              </div>
-              <FeeBreakdown
-                rscAmount={rscAmount}
-                platformFee={platformFee}
-                daoFee={daoFee}
-                incFee={incFee}
-                totalAmount={totalCost}
-                isExpanded={isFeesExpanded}
-                onToggleExpand={() => setIsFeesExpanded(!isFeesExpanded)}
-              />
-            </div>
+            <BalanceInfo amount={totalCost} showWarning={userBalance < totalCost} />
 
-            {/* Balance Info */}
-            <div className="mt-6">
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Current RSC Balance:</span>
-                  <span className="text-sm font-medium">{userBalance.toLocaleString()} RSC</span>
-                </div>
-                {insufficientBalance && (
-                  <div className="mt-1 text-sm text-orange-600">
-                    You need {(rscAmount - userBalance).toLocaleString()} RSC more for this
-                    contribution
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Create Bounty Button */}
             <Button
-              type="button"
               variant="default"
-              className="w-full h-12 text-base"
+              className="w-full h-12"
               onClick={handleCreateBounty}
-              disabled={isSubmitting || insufficientBalance}
+              disabled={isSubmitting || userBalance < totalCost}
             >
-              {isSubmitting ? 'Creating Bounty...' : 'Create Bounty'}
+              {isSubmitting ? 'Creating...' : 'Create Bounty'}
             </Button>
-
-            {/* Info Alert */}
-            <Alert variant="info">
-              <div className="flex items-center gap-3">
-                <span>
-                  If no solution satisfies your request, the full bounty amount (excluding platform
-                  fee) will be refunded to you
-                </span>
-              </div>
-            </Alert>
           </div>
         )}
       </div>
