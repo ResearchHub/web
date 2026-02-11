@@ -53,18 +53,13 @@ export type TabConfig = {
   fundraiseStatus?: 'OPEN' | 'CLOSED';
 };
 
-// This will be populated with actual sidebar components when imported
-export const createTabConfig = (
-  GrantRightSidebar: ReactNode,
-  FundRightSidebar: ReactNode,
-  AllFundingRightSidebar: ReactNode
-): Record<MarketplaceTab, TabConfig> => ({
+export const createTabConfig = (sidebar: ReactNode): Record<MarketplaceTab, TabConfig> => ({
   all: {
     title: 'Funding',
     subtitle: 'Explore all funding opportunities and proposals',
     contentType: 'PREREGISTRATION',
     endpoint: 'funding_feed',
-    sidebar: AllFundingRightSidebar,
+    sidebar,
     fundraiseStatus: 'OPEN',
   },
   opportunities: {
@@ -72,7 +67,7 @@ export const createTabConfig = (
     subtitle: 'Explore available funding opportunities',
     contentType: 'GRANT',
     endpoint: 'grant_feed',
-    sidebar: GrantRightSidebar,
+    sidebar,
     fundraiseStatus: undefined,
   },
   'needs-funding': {
@@ -80,7 +75,7 @@ export const createTabConfig = (
     subtitle: 'Fund breakthrough research shaping tomorrow',
     contentType: 'PREREGISTRATION',
     endpoint: 'funding_feed',
-    sidebar: FundRightSidebar,
+    sidebar,
     fundraiseStatus: 'OPEN',
   },
 });

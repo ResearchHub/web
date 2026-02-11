@@ -8,8 +8,6 @@ import { useFeedTabs } from '@/hooks/useFeedTabs';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { FundRightSidebar } from '@/components/Fund/FundRightSidebar';
-import { GrantRightSidebar } from '@/components/Fund/GrantRightSidebar';
-import { AllFundingRightSidebar } from '@/components/Fund/AllFundingRightSidebar';
 import { FundingMobileInfo } from '@/components/Fund/FundingMobileInfo';
 import { FundingPromotionCards } from '@/components/Fund/FundingPromotionCards';
 import { FundingFilters } from '@/components/Fund/FundingFilters';
@@ -30,11 +28,7 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
 
   const defaultSort = marketplaceTab === 'needs-funding' ? 'best' : 'newest';
   const sortBy = (searchParams.get('ordering') as FundingSortOption) || defaultSort;
-  const TAB_CONFIG = createTabConfig(
-    <GrantRightSidebar />,
-    <FundRightSidebar />,
-    <AllFundingRightSidebar />
-  );
+  const TAB_CONFIG = createTabConfig(<FundRightSidebar />);
   const config = TAB_CONFIG[marketplaceTab];
 
   // Filter state derived from URL

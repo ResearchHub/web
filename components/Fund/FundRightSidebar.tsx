@@ -1,146 +1,131 @@
 'use client';
 
-import React, { useState } from 'react';
-import { CollapsibleItem, SimpleCollapsibleSection } from '@/components/ui/CollapsibleSection';
-import {
-  BookCheck,
-  Lightbulb,
-  Zap,
-  Banknote,
-  Target,
-  Share2,
-  Feather,
-  ArrowUpRightSquare,
-  Check,
-  ExternalLink,
-} from 'lucide-react';
-import { Icon } from '@/components/ui/icons/Icon';
-import Link from 'next/link';
-import { RightSidebarBanner } from '@/components/ui/RightSidebarBanner';
+import React from 'react';
+import { ChevronRight } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { LeaderboardFunderSkeleton } from '@/components/Leaderboard/LeaderboardOverview';
+
+const LeaderboardFunderOverview = dynamic(
+  () =>
+    import('@/components/Leaderboard/LeaderboardOverview').then(
+      (mod) => mod.LeaderboardFunderOverview
+    ),
+  {
+    ssr: false,
+    loading: () => <LeaderboardFunderSkeleton />,
+  }
+);
+
+const fundingSteps = [
+  {
+    title: 'Funder Posts Opportunity',
+    description: 'Funders post opportunities with clear goals',
+  },
+  {
+    title: 'Pitch Your Idea',
+    description: 'Submit a proposal',
+  },
+  {
+    title: 'Community Validates',
+    description: 'Experts review and boost top proposals',
+  },
+  {
+    title: 'Get Funded',
+    description: 'Receive funds directly to your account',
+    extra: { label: 'Fast funding', value: '~2 weeks avg' },
+  },
+];
 
 export const FundRightSidebar = () => {
-  const [openSections, setOpenSections] = useState<string[]>(['why-fund']); // Default open section
-
-  const toggleSection = (section: string) => {
-    setOpenSections((prev) =>
-      prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]
-    );
-  };
-
   return (
-    <div className="space-y-6">
-      <RightSidebarBanner
-        title="Get Funded."
-        description="Share a research proposal and get crowdfunded by the community."
-        bulletPoints={[
-          'Early expert feedback',
-          'Donors get tax deductions',
-          'Fully discretionary funds',
-        ]}
-        buttonText="Request funding"
-        buttonLink="/notebook?newFunding=true"
-        iconName="fundYourRsc2"
-        iconColor="#ea580c"
-        iconSize={20}
-        variant="orange"
-      />
+    <div className="space-y-3">
+      {/* How Funding Works */}
+      <div className="rounded-xl bg-gradient-to-b from-white to-gray-50/50 p-5 overflow-hidden">
+        <div className="flex items-center gap-2 mb-5">
+          <h3 className="font-semibold text-gray-900">How Funding Works</h3>
+        </div>
+
+        <div className="relative">
+          {/* Connecting line - stops before last step */}
+          <div className="absolute left-[13px] top-[14px] bottom-[42px] w-0.5 bg-blue-200" />
+
+          <div className="space-y-4">
+            {fundingSteps.map((step, index) => {
+              return (
+                <div key={index} className="relative flex gap-3 group">
+                  {/* Step indicator */}
+                  <div className="relative flex-shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center z-10 relative ring-2 ring-white shadow-sm group-hover:scale-110 transition-transform">
+                      <span className="text-xs font-bold text-white">{index + 1}</span>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 pb-1">
+                    <div className="text-sm font-semibold text-gray-900">{step.title}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">{step.description}</div>
+                    {step.extra && (
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-xs text-gray-600">{step.extra.label}</span>
+                        <span className="text-xs font-semibold text-emerald-600">
+                          {step.extra.value}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Top Funders Leaderboard */}
+      <div className="rounded-xl bg-white p-4">
+        <LeaderboardFunderOverview />
+      </div>
 
       {/* Resources */}
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-3 text-gray-900">Resources</h3>
-        <div className="space-y-3">
+      <div className="rounded-xl bg-white p-5">
+        <h3 className="font-semibold text-gray-900 mb-3">Resources</h3>
+        <div className="space-y-1">
           <a
             href="https://blog.researchhub.foundation/funding-for-researchers/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors"
+            className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
           >
-            <div className="flex items-center gap-2">
-              <BookCheck size={16} className="text-primary-600" />
-              <span>How to Apply for Funding</span>
-            </div>
-            <div className="ml-4">
-              <ExternalLink size={14} className="text-gray-400" />
-            </div>
+            <span className="text-sm text-gray-900">Funding Guidelines</span>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
           </a>
           <a
             href="https://drive.google.com/file/d/1wQVjVfy4x6VadIExEysx4VyLJN9dkD53/view"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors"
+            className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
           >
-            <div className="flex items-center gap-2">
-              <Feather size={16} className="text-primary-600" />
-              <span>Peer Review Guidelines (Funding)</span>
-            </div>
-            <div className="ml-4">
-              <ExternalLink size={14} className="text-gray-400" />
-            </div>
+            <span className="text-sm text-gray-900">Peer Review Process</span>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </a>
+          <a
+            href="https://researchhub.notion.site/ResearchHub-a2a87270f645483794c56ad12b4b7a0c?pvs=4"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+          >
+            <span className="text-sm text-gray-900">FAQ</span>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </a>
+          <a
+            href="mailto:support@researchhub.com"
+            className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+          >
+            <span className="text-sm text-gray-900">Contact Support</span>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
           </a>
         </div>
       </div>
-
-      <SimpleCollapsibleSection title="How does it work?">
-        <div className="pl-6">
-          <CollapsibleItem
-            title="1. Plan your experiment"
-            isOpen={openSections.includes('preregister')}
-            onToggle={() => toggleSection('preregister')}
-          >
-            Researchers plan their experiment in the open, providing all relevant methodological
-            details and planned analyses openly before receiving funding.
-          </CollapsibleItem>
-          <CollapsibleItem
-            title="2. Link a nonprofit (Recommended)"
-            isOpen={openSections.includes('tax-deduct')}
-            onToggle={() => toggleSection('tax-deduct')}
-          >
-            Researchers can coordinate with a qualifying nonprofit via the lab notebook to enable
-            tax deductions for donors and improved processing of funds.
-          </CollapsibleItem>
-          <CollapsibleItem
-            title="3. Receive expert review"
-            isOpen={openSections.includes('peer-review')}
-            onToggle={() => toggleSection('peer-review')}
-          >
-            Experts and the community review the proposal, providing feedback to improve rigor and
-            reproducibility, offering insight into the work.
-          </CollapsibleItem>
-          <CollapsibleItem
-            title="4. Receive crowdfunding"
-            isOpen={openSections.includes('pledge')}
-            onToggle={() => toggleSection('pledge')}
-          >
-            Users review the proposal and peer feedback, then contribute funds (any amount) directly
-            to the projects they support via RSC or USD.
-          </CollapsibleItem>
-          <CollapsibleItem
-            title="5. Funds are disbursed"
-            isOpen={openSections.includes('disburse')}
-            onToggle={() => toggleSection('disburse')}
-          >
-            Once fully raised,{' '}
-            <Link
-              href="https://endaoment.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary-600 hover:underline"
-            >
-              Endaoment
-            </Link>{' '}
-            provides nonprofit support, asset conversion, and sends contributions directly to the
-            institution or researcher.
-          </CollapsibleItem>
-          <CollapsibleItem
-            title="6. Funds arrive"
-            isOpen={openSections.includes('unrestricted')}
-            onToggle={() => toggleSection('unrestricted')}
-          >
-            Funds arrive in the researcher's discretionary spending account at their institution,
-            free from traditional grant restrictions on usage.
-          </CollapsibleItem>
-        </div>
-      </SimpleCollapsibleSection>
     </div>
   );
 };
