@@ -3,12 +3,11 @@ import {
   LeaderboardOverviewResponse,
   LeaderboardReviewersListResponse,
   LeaderboardFundersListResponse,
+  LeaderboardMeResponse,
   TopReviewer,
   TopFunder,
   transformTopReviewer,
   transformTopFunder,
-  RawTopReviewer,
-  RawTopFunder,
 } from '@/types/leaderboard';
 
 interface TransformedLeaderboardOverview {
@@ -42,12 +41,12 @@ export class LeaderboardService {
    * Fetch a page of top reviewers for a given period.
    * @param period - One of: 7_days, 30_days, 6_months, 1_year, all_time
    * @param page - 1-based page number (default 1)
-   * @returns Paginated result with list, total count, and current user entry (or null if unauthenticated / not on list).
+   * @returns Paginated result with list and total count.
    */
   static async fetchReviewers(
     period: string,
     page: number = 1
-  ): Promise<{ results: TopReviewer[]; count: number; currentUser: TopReviewer | null }> {
+  ): Promise<{ results: TopReviewer[]; count: number }> {
     const params = new URLSearchParams({
       period,
       page: page.toString(),
@@ -59,24 +58,22 @@ export class LeaderboardService {
     if (rawData && Array.isArray(rawData.results)) {
       const results = rawData.results.map(transformTopReviewer).filter((r) => r.earnedRsc > 0);
       const count = typeof rawData.count === 'number' ? rawData.count : 0;
-      const currentUser =
-        rawData.current_user != null ? transformTopReviewer(rawData.current_user) : null;
-      return { results, count, currentUser };
+      return { results, count };
     }
     console.error('Unexpected response structure for reviewers:', rawData);
-    return { results: [], count: 0, currentUser: null };
+    return { results: [], count: 0 };
   }
 
   /**
    * Fetch a page of top funders for a given period.
    * @param period - One of: 7_days, 30_days, 6_months, 1_year, all_time
    * @param page - 1-based page number (default 1)
-   * @returns Paginated result with list, total count, and current user entry (or null if unauthenticated / not on list).
+   * @returns Paginated result with list and total count.
    */
   static async fetchFunders(
     period: string,
     page: number = 1
-  ): Promise<{ results: TopFunder[]; count: number; currentUser: TopFunder | null }> {
+  ): Promise<{ results: TopFunder[]; count: number }> {
     const params = new URLSearchParams({
       period,
       page: page.toString(),
@@ -88,11 +85,30 @@ export class LeaderboardService {
     if (rawData && Array.isArray(rawData.results)) {
       const results = rawData.results.map(transformTopFunder).filter((f) => f.totalFunding > 0);
       const count = typeof rawData.count === 'number' ? rawData.count : 0;
-      const currentUser =
-        rawData.current_user != null ? transformTopFunder(rawData.current_user) : null;
-      return { results, count, currentUser };
+      return { results, count };
     }
     console.error('Unexpected response structure for funders:', rawData);
-    return { results: [], count: 0, currentUser: null };
+    return { results: [], count: 0 };
+  }
+
+  /**
+   * Fetch current user's leaderboard entries for a period (reviewer and funder).
+   * @param period - One of: 7_days, 30_days, 6_months, 1_year, all_time
+   */
+  static async fetchCurrentUserLeaderboard(
+    period: string
+  ): Promise<{ reviewer: TopReviewer | null; funder: TopFunder | null }> {
+    try {
+      const params = new URLSearchParams({ period });
+      const rawData = await ApiClient.get<LeaderboardMeResponse>(
+        `${this.BASE_PATH}/me?${params.toString()}`
+      );
+      if (!rawData) return { reviewer: null, funder: null };
+      const reviewer = rawData.reviewer != null ? transformTopReviewer(rawData.reviewer) : null;
+      const funder = rawData.funder != null ? transformTopFunder(rawData.funder) : null;
+      return { reviewer, funder };
+    } catch {
+      return { reviewer: null, funder: null };
+    }
   }
 }

@@ -54,22 +54,25 @@ export interface LeaderboardOverviewResponse {
   funders: RawTopFunder[];
 }
 
-// Paginated API response for reviewers list (includes current_user when authenticated)
+// Paginated API response for reviewers list
 export interface LeaderboardReviewersListResponse {
   count: number;
   next: string | null;
   previous: string | null;
   results: RawTopReviewer[];
-  current_user: RawTopReviewer | null;
 }
 
-// Paginated API response for funders list (includes current_user when authenticated)
+// Paginated API response for funders list
 export interface LeaderboardFundersListResponse {
   count: number;
   next: string | null;
   previous: string | null;
   results: RawTopFunder[];
-  current_user: RawTopFunder | null;
+}
+
+export interface LeaderboardMeResponse {
+  reviewer: RawTopReviewer | null;
+  funder: RawTopFunder | null;
 }
 
 export type LeaderboardReviewersResponse = RawTopReviewer[];

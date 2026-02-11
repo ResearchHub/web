@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useUser } from '@/contexts/UserContext';
 import { LeaderboardListSkeleton } from './LeaderboardListSkeleton';
 import { CurrentUserBanner } from './CurrentUserBanner';
 import { useLeaderboardReviewers } from '@/hooks/useLeaderboard';
@@ -47,8 +48,8 @@ function ReviewerRow({
         reviewer.authorProfile?.id && navigateToAuthorProfile(reviewer.authorProfile.id)
       }
       className={cn(
-        'flex items-center justify-between hover:bg-gray-100 p-4 rounded-lg border cursor-pointer',
-        isHighlighted && 'bg-orange-50 border-orange-200'
+        'flex items-center justify-between p-4 rounded-lg border cursor-pointer',
+        isHighlighted ? 'bg-orange-50 border-orange-200 hover:bg-orange-100' : 'hover:bg-gray-100'
       )}
     >
       <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -131,14 +132,21 @@ interface TopPeerReviewersProps {
   period: string;
   page: number;
   onPageChange: (page: number) => void;
+  currentUser: TopReviewer | null;
 }
 
-export function TopPeerReviewers({ period, page, onPageChange }: TopPeerReviewersProps) {
+export function TopPeerReviewers({
+  period,
+  page,
+  onPageChange,
+  currentUser,
+}: TopPeerReviewersProps) {
   const { showUSD } = useCurrencyPreference();
+  const { user } = useUser();
+  const currentUserAuthorId = user?.authorProfile?.id;
   const {
     state: {
       items: reviewers,
-      currentUser,
       isLoading,
       error,
       currentPage,
@@ -152,7 +160,9 @@ export function TopPeerReviewers({ period, page, onPageChange }: TopPeerReviewer
   } = useLeaderboardReviewers(period, page, onPageChange);
 
   const listStartRank = (currentPage - 1) * pageSize + 1;
-  const isCurrentUserInList = currentUser != null && reviewers.some((r) => r.id === currentUser.id);
+  const isCurrentUserInList =
+    currentUserAuthorId != null &&
+    reviewers.some((r) => r.authorProfile?.id === currentUserAuthorId);
   const isCurrentUserAbove =
     currentUser != null &&
     !isCurrentUserInList &&
@@ -194,7 +204,7 @@ export function TopPeerReviewers({ period, page, onPageChange }: TopPeerReviewer
       <div className="space-y-2">
         {reviewers.map((reviewer, index) => {
           const rank = reviewer.rank ?? listStartRank + index;
-          const isYou = currentUser != null && reviewer.id === currentUser.id;
+          const isYou = reviewer.authorProfile?.id === currentUserAuthorId;
           return (
             <ReviewerRow
               key={reviewer.id}

@@ -35,7 +35,7 @@ export function CurrentUserBanner({
 }: CurrentUserBannerProps) {
   const authorId = currentUser.authorProfile?.id;
   const baseClass =
-    'flex items-center gap-4 p-4 rounded-lg border border-orange-200 bg-orange-50/80 cursor-pointer hover:bg-orange-50';
+    'flex items-center gap-4 p-4 rounded-lg border border-orange-200 bg-orange-50/80 cursor-pointer hover:!bg-orange-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-1';
 
   if (variant === 'row') {
     return (

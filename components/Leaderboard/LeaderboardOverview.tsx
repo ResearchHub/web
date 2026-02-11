@@ -12,6 +12,8 @@ import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useLeaderboard } from '@/contexts/LeaderboardContext';
+import { useUser } from '@/contexts/UserContext';
+import { cn } from '@/utils/styles';
 import { Star, ChevronRight } from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
 
@@ -77,6 +79,8 @@ export const LeaderboardSkeleton = () => (
 export const LeaderboardOverview = () => {
   const { data, isLoading, error, fetchData } = useLeaderboard();
   const { showUSD } = useCurrencyPreference();
+  const { user } = useUser();
+  const currentUserAuthorId = user?.authorProfile?.id;
 
   const reviewers = data?.reviewers || [];
   const funders = data?.funders || [];
@@ -105,7 +109,8 @@ export const LeaderboardOverview = () => {
   const renderListItem = (
     item: TopReviewer | TopFunder,
     index: number,
-    type: 'reviewer' | 'funder'
+    type: 'reviewer' | 'funder',
+    isCurrentUser: boolean
   ) => {
     const rank = index + 1;
     const authorId = item.authorProfile?.id;
@@ -120,7 +125,10 @@ export const LeaderboardOverview = () => {
       <div
         key={item.id}
         onClick={() => authorId && navigateToAuthorProfile(authorId)}
-        className="grid grid-cols-[32px_40px_1fr_auto] gap-x-2 items-center hover:bg-gray-50 px-1 py-2 rounded-md cursor-pointer"
+        className={cn(
+          'grid grid-cols-[32px_40px_1fr_auto] gap-x-2 items-center px-1 py-2 rounded-md cursor-pointer',
+          isCurrentUser ? 'bg-orange-50 hover:bg-orange-100' : 'hover:bg-gray-50'
+        )}
       >
         {/* Rank */}
         <div className="w-8 flex-shrink-0">{renderRank(rank)}</div>
@@ -213,7 +221,14 @@ export const LeaderboardOverview = () => {
           <p className="text-xs text-red-600">{error}</p>
         ) : funders.length > 0 ? (
           <div className="space-y-3">
-            {funders.map((funder, index) => renderListItem(funder, index, 'funder'))}
+            {funders.map((funder, index) =>
+              renderListItem(
+                funder,
+                index,
+                'funder',
+                funder.authorProfile?.id === currentUserAuthorId
+              )
+            )}
           </div>
         ) : (
           <p className="text-sm text-gray-500 mt-4 text-center">No funders found this month.</p>
@@ -246,7 +261,14 @@ export const LeaderboardOverview = () => {
           <p className="text-xs text-red-600">{error}</p>
         ) : reviewers.length > 0 ? (
           <div className="space-y-3">
-            {reviewers.map((reviewer, index) => renderListItem(reviewer, index, 'reviewer'))}
+            {reviewers.map((reviewer, index) =>
+              renderListItem(
+                reviewer,
+                index,
+                'reviewer',
+                reviewer.authorProfile?.id === currentUserAuthorId
+              )
+            )}
           </div>
         ) : (
           <p className="text-sm text-gray-500 mt-4 text-center">No reviewers found this week.</p>

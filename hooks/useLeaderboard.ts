@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { LeaderboardService, LEADERBOARD_PAGE_SIZE } from '@/services/leaderboard.service';
+import { useSession } from 'next-auth/react';
 import type { TopReviewer, TopFunder } from '@/types/leaderboard';
 
 export interface LeaderboardListState<T> {
   items: T[];
-  currentUser: T | null;
   isLoading: boolean;
   error: string | null;
   currentPage: number;
@@ -33,7 +33,6 @@ export interface UseLeaderboardFundersReturn {
 interface LeaderboardPageResult<T> {
   results: T[];
   count: number;
-  currentUser: T | null;
 }
 
 interface UseLeaderboardListOptions<T> {
@@ -60,7 +59,6 @@ function useLeaderboardList<T>({
   pageSize: number;
 } {
   const [items, setItems] = useState<T[]>([]);
-  const [currentUser, setCurrentUser] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
@@ -73,7 +71,6 @@ function useLeaderboardList<T>({
     async (pageNum: number) => {
       if (!period) {
         setItems([]);
-        setCurrentUser(null);
         setTotalCount(0);
         setIsLoading(false);
         return;
@@ -82,15 +79,13 @@ function useLeaderboardList<T>({
       try {
         setIsLoading(true);
         setError(null);
-        const { results, count, currentUser: user } = await fetchPage(period, pageNum);
+        const { results, count } = await fetchPage(period, pageNum);
         setItems(results);
         setTotalCount(count);
-        setCurrentUser(user);
       } catch (err) {
         console.error(`Failed to fetch ${logLabel}:`, err);
         setError(errorMessage);
         setItems([]);
-        setCurrentUser(null);
         setTotalCount(0);
       } finally {
         setIsLoading(false);
@@ -122,7 +117,6 @@ function useLeaderboardList<T>({
   return {
     state: {
       items,
-      currentUser,
       isLoading,
       error,
       currentPage: page,
@@ -181,4 +175,68 @@ export function useLeaderboardFunders(
     errorMessage: 'Failed to load funders data.',
     logLabel: 'funders',
   });
+}
+
+export interface UseCurrentUserLeaderboardReturn {
+  reviewer: TopReviewer | null;
+  funder: TopFunder | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+/**
+ * Fetches current user's leaderboard entries (reviewer and funder) for a period.
+ */
+export function useCurrentUserLeaderboard(period: string): UseCurrentUserLeaderboardReturn {
+  const { status } = useSession();
+  const [reviewer, setReviewer] = useState<TopReviewer | null>(null);
+  const [funder, setFunder] = useState<TopFunder | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isAuthenticated = status === 'authenticated';
+
+  useEffect(() => {
+    if (!isAuthenticated || !period) {
+      setReviewer(null);
+      setFunder(null);
+      setIsLoading(false);
+      setError(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const fetchMe = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await LeaderboardService.fetchCurrentUserLeaderboard(period);
+        if (!cancelled) {
+          setReviewer(data.reviewer);
+          setFunder(data.funder);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Failed to fetch current user leaderboard:', err);
+          setError('Failed to load your leaderboard data.');
+          setReviewer(null);
+          setFunder(null);
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    fetchMe();
+    return () => {
+      cancelled = true;
+    };
+  }, [period, isAuthenticated]);
+
+  if (!isAuthenticated) {
+    return { reviewer: null, funder: null, isLoading: false, error: null };
+  }
+
+  return { reviewer, funder, isLoading, error };
 }

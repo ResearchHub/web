@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
+import { useCurrentUserLeaderboard } from '@/hooks/useLeaderboard';
 import { TopPeerReviewers } from './TopPeerReviewers';
 import { TopFunders } from './TopFunders';
 
@@ -63,6 +64,9 @@ export function LeaderboardContent({ defaultTab }: LeaderboardContentProps) {
 
   const page = getPageFromSearchParams(searchParams);
 
+  const { reviewer: currentUserReviewer, funder: currentUserFunder } =
+    useCurrentUserLeaderboard(period);
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -110,8 +114,8 @@ export function LeaderboardContent({ defaultTab }: LeaderboardContentProps) {
     PERIOD_OPTIONS.find((p) => p.value === period)?.label ?? PERIOD_OPTIONS[0].label;
 
   const leaderboardTabs = [
-    { id: 'reviewers', label: 'Top Reviewers', href: '/leaderboard/reviewers' },
     { id: 'funders', label: 'Top Funders', href: '/leaderboard/funders' },
+    { id: 'reviewers', label: 'Top Reviewers', href: '/leaderboard/reviewers' },
   ];
 
   const buildTabHref = (basePath: string) => {
@@ -206,9 +210,19 @@ export function LeaderboardContent({ defaultTab }: LeaderboardContentProps) {
 
       <div className="mt-4 max-w-4xl mx-auto">
         {defaultTab === 'reviewers' ? (
-          <TopPeerReviewers period={period} page={page} onPageChange={handlePageChange} />
+          <TopPeerReviewers
+            period={period}
+            page={page}
+            onPageChange={handlePageChange}
+            currentUser={currentUserReviewer}
+          />
         ) : (
-          <TopFunders period={period} page={page} onPageChange={handlePageChange} />
+          <TopFunders
+            period={period}
+            page={page}
+            onPageChange={handlePageChange}
+            currentUser={currentUserFunder}
+          />
         )}
       </div>
 

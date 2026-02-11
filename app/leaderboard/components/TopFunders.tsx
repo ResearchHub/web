@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useUser } from '@/contexts/UserContext';
 import { LeaderboardListSkeleton } from './LeaderboardListSkeleton';
 import { CurrentUserBanner } from './CurrentUserBanner';
 import { useLeaderboardFunders } from '@/hooks/useLeaderboard';
@@ -45,8 +46,8 @@ function FunderRow({
       key={funder.id}
       onClick={() => funder.authorProfile?.id && navigateToAuthorProfile(funder.authorProfile.id)}
       className={cn(
-        'flex items-center justify-between hover:bg-gray-100 p-4 rounded-lg border cursor-pointer',
-        isHighlighted && 'bg-orange-50 border-orange-200'
+        'flex items-center justify-between p-4 rounded-lg border cursor-pointer',
+        isHighlighted ? 'bg-orange-50 border-orange-200 hover:bg-orange-100' : 'hover:bg-gray-100'
       )}
     >
       <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -129,28 +130,23 @@ interface TopFundersProps {
   period: string;
   page: number;
   onPageChange: (page: number) => void;
+  currentUser: TopFunder | null;
 }
 
-export function TopFunders({ period, page, onPageChange }: TopFundersProps) {
+export function TopFunders({ period, page, onPageChange, currentUser }: TopFundersProps) {
   const { showUSD } = useCurrencyPreference();
+  const { user } = useUser();
+  const currentUserAuthorId = user?.authorProfile?.id;
   const {
-    state: {
-      items: funders,
-      currentUser,
-      isLoading,
-      error,
-      currentPage,
-      totalPages,
-      hasNextPage,
-      hasPrevPage,
-    },
+    state: { items: funders, isLoading, error, currentPage, totalPages, hasNextPage, hasPrevPage },
     goToNextPage,
     goToPrevPage,
     pageSize,
   } = useLeaderboardFunders(period, page, onPageChange);
 
   const listStartRank = (currentPage - 1) * pageSize + 1;
-  const isCurrentUserInList = currentUser != null && funders.some((f) => f.id === currentUser.id);
+  const isCurrentUserInList =
+    currentUserAuthorId != null && funders.some((f) => f.authorProfile?.id === currentUserAuthorId);
   const isCurrentUserAbove =
     currentUser != null &&
     !isCurrentUserInList &&
@@ -192,7 +188,7 @@ export function TopFunders({ period, page, onPageChange }: TopFundersProps) {
       <div className="space-y-2">
         {funders.map((funder, index) => {
           const rank = funder.rank ?? listStartRank + index;
-          const isYou = currentUser != null && funder.id === currentUser.id;
+          const isYou = funder.authorProfile?.id === currentUserAuthorId;
           return (
             <FunderRow
               key={funder.id}
