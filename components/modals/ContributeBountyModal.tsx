@@ -28,38 +28,7 @@ interface ContributeBountyModalProps {
   expirationDate?: string;
 }
 
-// Currency Input Component
-const CurrencyInput = ({
-  value,
-  onChange,
-  error,
-}: {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  error?: string;
-}) => {
-  return (
-    <div className="relative">
-      <Input
-        name="amount"
-        value={value}
-        onChange={onChange}
-        required
-        label="I am contributing"
-        placeholder="0.00"
-        type="text"
-        inputMode="numeric"
-        className={`w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${error ? 'border-red-500' : ''}`}
-        rightElement={
-          <div className="flex items-center gap-1 pr-3 text-gray-900">
-            <span className="font-medium">RSC</span>
-          </div>
-        }
-      />
-      {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
-    </div>
-  );
-};
+import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
 
 // Fee Breakdown Component
 const FeeBreakdown = ({
@@ -177,13 +146,17 @@ export function ContributeBountyModal({
       }
     } else {
       setInputAmount(0);
-      setAmountError('Please enter a valid amount');
+      setAmountError(undefined);
     }
   };
 
   const getFormattedInputValue = () => {
     if (inputAmount === 0) return '';
     return inputAmount.toLocaleString();
+  };
+
+  const handleCurrencyToggle = () => {
+    // Only support RSC for now in this modal
   };
 
   const handleContribute = async () => {
@@ -288,6 +261,9 @@ export function ContributeBountyModal({
                         value={getFormattedInputValue()}
                         onChange={handleAmountChange}
                         error={amountError}
+                        currency="RSC"
+                        onCurrencyToggle={handleCurrencyToggle}
+                        label="I am contributing"
                       />
                       {!amountError && usdEquivalent && (
                         <div className="mt-1.5 text-sm text-gray-500">{usdEquivalent}</div>
