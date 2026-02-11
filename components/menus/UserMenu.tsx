@@ -13,7 +13,7 @@ import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import Link from 'next/link';
-import { AuthSharingService } from '@/services/auth-sharing.service';
+import { signOut } from 'next-auth/react';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { Button } from '@/components/ui/Button';
 import { useVerification } from '@/contexts/VerificationContext';
@@ -245,11 +245,11 @@ export default function UserMenu({
 
         <div
           className="px-6 py-2 hover:bg-gray-50"
-          onClick={() => AuthSharingService.signOutFromBothApps()}
+          onClick={() => signOut({ callbackUrl: '/' })}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              AuthSharingService.signOutFromBothApps();
+              signOut({ callbackUrl: '/' });
             }
           }}
           tabIndex={0}
@@ -417,7 +417,7 @@ export default function UserMenu({
             )}
 
             <BaseMenuItem
-              onClick={() => AuthSharingService.signOutFromBothApps()}
+              onClick={() => signOut({ callbackUrl: '/' })}
               className="w-full px-4 py-2"
             >
               <div className="flex items-center">

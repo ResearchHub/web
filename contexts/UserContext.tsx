@@ -1,10 +1,9 @@
 'use client';
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { AuthError, AuthService } from '@/services/auth.service';
 import type { User } from '@/types/user';
-import { AuthSharingService } from '@/services/auth-sharing.service';
 import AnalyticsService from '@/services/analytics.service';
 import { Experiment } from '@/utils/experiment';
 
@@ -39,7 +38,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       if (err instanceof AuthError) {
         if (err.code === 401) {
-          await AuthSharingService.signOutFromBothApps();
+          AnalyticsService.clearUserSession();
+          await signOut({ callbackUrl: '/' });
         }
       }
       setError(err instanceof Error ? err : new Error('Failed to load user data'));
