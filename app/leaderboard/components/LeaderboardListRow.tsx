@@ -1,10 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
-import { navigateToAuthorProfile } from '@/utils/navigation';
 import { LeaderboardRank } from './LeaderboardRank';
 import type { LeaderboardListItemBase } from './leaderboardList.types';
 import { cn } from '@/utils/styles';
@@ -29,14 +29,13 @@ export function LeaderboardListRow({
   showYouLabel,
 }: LeaderboardListRowProps) {
   const authorId = item.authorProfile?.id;
-  return (
-    <div
-      onClick={() => authorId && navigateToAuthorProfile(authorId)}
-      className={cn(
-        'flex items-center justify-between p-4 rounded-lg border cursor-pointer',
-        isHighlighted ? 'bg-orange-50 border-orange-200 hover:bg-orange-100' : 'hover:bg-gray-100'
-      )}
-    >
+  const rowClassName = cn(
+    'flex items-center justify-between p-4 rounded-lg border',
+    authorId && 'cursor-pointer',
+    isHighlighted ? 'bg-orange-50 border-orange-200 hover:bg-orange-100' : 'hover:bg-gray-100'
+  );
+  const content = (
+    <>
       <div className="flex items-center gap-4 flex-1 min-w-0">
         <LeaderboardRank rank={rank} />
         {authorId ? (
@@ -109,6 +108,16 @@ export function LeaderboardListRow({
           showText={false}
         />
       </div>
-    </div>
+    </>
   );
+
+  if (authorId) {
+    return (
+      <Link href={`/author/${authorId}`} className={rowClassName}>
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className={rowClassName}>{content}</div>;
 }
