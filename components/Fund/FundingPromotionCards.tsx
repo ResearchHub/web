@@ -1,122 +1,106 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { Microscope, ArrowRight, X, Users } from 'lucide-react';
+import { Microscope, ArrowRight, Star } from 'lucide-react';
 import Icon from '@/components/ui/icons/Icon';
+import { Carousel, CarouselCard } from '@/components/ui/Carousel';
+import { FundingLearnMoreModal } from './FundingLearnMoreModal';
+import { useDismissableFeatures } from '@/hooks/useDismissableFeature';
 
-interface PromotionCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  ctaText: string;
-  ctaHref: string;
-  ctaColor: string;
-  onClose?: () => void;
-}
+const CARD_FEATURES = [
+  'funding_promo_funder',
+  'funding_promo_researcher',
+  'funding_promo_reviewer',
+] as const;
 
-const PromotionCard = ({
-  icon,
-  title,
-  description,
-  ctaText,
-  ctaHref,
-  ctaColor,
-  onClose,
-}: PromotionCardProps) => {
-  return (
-    <div className="relative flex-shrink-0 w-[340px] bg-gray-100 rounded-2xl p-5 pr-10">
-      {/* Close button */}
-      <button
-        onClick={onClose}
-        className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-200 transition-colors"
-        aria-label="Dismiss"
-      >
-        <X className="w-4 h-4 text-gray-600 hover:text-gray-800" />
-      </button>
+export const FundingPromotionCards = () => {
+  const [isLearnMoreOpen, setIsLearnMoreOpen] = useState(false);
+  const { features, dismissFeature } = useDismissableFeatures([...CARD_FEATURES]);
 
-      <div className="flex items-start gap-3">
-        {icon}
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm text-gray-900">{title}</h3>
-          <p className="text-sm text-gray-600 mt-0.5">{description}</p>
-          <Link
-            href={ctaHref}
-            className={`inline-flex items-center gap-1 text-xs font-medium ${ctaColor} transition-colors mt-2`}
-          >
-            {ctaText}
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+  const allCards: (CarouselCard & { featureKey: string })[] = [
+    {
+      featureKey: CARD_FEATURES[0],
+      onClose: () => dismissFeature(CARD_FEATURES[0]),
+      content: (
+        <div className="flex items-center gap-3 pr-4">
+          <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
+            <Icon name="fund" size={18} color="#ffffff" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-sm text-gray-900">I&apos;m a Funder</h3>
+            <p className="text-sm text-gray-600 mt-0.5">Fund peer-reviewed proposals</p>
+            <button
+              onClick={() => setIsLearnMoreOpen(true)}
+              className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors mt-1"
+            >
+              Learn More
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
-  );
-};
-
-interface FundingPromotionCardsProps {
-  onCloseFunder?: () => void;
-  onCloseResearcher?: () => void;
-  onCloseReviewer?: () => void;
-}
-
-export const FundingPromotionCards = ({
-  onCloseFunder,
-  onCloseResearcher,
-  onCloseReviewer,
-}: FundingPromotionCardsProps) => {
-  return (
-    <div className="relative">
-      {/* Right fade gradient to indicate more content */}
-      <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none z-10" />
-
-      <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
-        <div className="flex gap-4 min-w-max pr-8">
-          {/* Funder Card */}
-          <PromotionCard
-            icon={
-              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0">
-                <Icon name="fund" size={20} color="#ffffff" />
-              </div>
-            }
-            title="Fund Breakthrough Research"
-            description="Connect with top researchers"
-            ctaText="Post Opportunity"
-            ctaHref="/notebook?newGrant=true"
-            ctaColor="text-blue-600 hover:text-blue-700"
-            onClose={onCloseFunder}
-          />
-
-          {/* Researcher Card */}
-          <PromotionCard
-            icon={
-              <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center flex-shrink-0">
-                <Microscope className="w-5 h-5 text-white" strokeWidth={1.5} />
-              </div>
-            }
-            title="Get Funded"
-            description="Apply for grants and opportunities"
-            ctaText="View Grants"
-            ctaHref="/fund/opportunities"
-            ctaColor="text-orange-600 hover:text-orange-700"
-            onClose={onCloseResearcher}
-          />
-
-          {/* Peer Reviewer Card */}
-          <PromotionCard
-            icon={
-              <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center flex-shrink-0">
-                <Users className="w-5 h-5 text-white" strokeWidth={1.5} />
-              </div>
-            }
-            title="Become a Peer Reviewer"
-            description="View peer review opportunities"
-            ctaText="Start Reviewing"
-            ctaHref="/earn"
-            ctaColor="text-amber-600 hover:text-amber-700"
-            onClose={onCloseReviewer}
-          />
+      ),
+    },
+    {
+      featureKey: CARD_FEATURES[1],
+      onClose: () => dismissFeature(CARD_FEATURES[1]),
+      content: (
+        <div className="flex items-center gap-3 pr-4">
+          <div className="w-9 h-9 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0">
+            <Microscope className="w-[18px] h-[18px] text-white" strokeWidth={1.5} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-sm text-gray-900">I&apos;m a Researcher</h3>
+            <p className="text-sm text-gray-600 mt-0.5">Apply to open opportunities</p>
+            <Link
+              href="/fund/opportunities"
+              className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors mt-1"
+            >
+              View Opportunities
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
-      </div>
-    </div>
+      ),
+    },
+    {
+      featureKey: CARD_FEATURES[2],
+      onClose: () => dismissFeature(CARD_FEATURES[2]),
+      content: (
+        <div className="flex items-center gap-3 pr-4">
+          <div className="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0">
+            <Star className="w-[18px] h-[18px] text-white" strokeWidth={1.5} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-sm text-gray-900">Paid Peer Review</h3>
+            <p className="text-sm text-gray-600 mt-0.5">Earn $150 for peer reviews</p>
+            <Link
+              href="/earn"
+              className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors mt-1"
+            >
+              Browse Bounties
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      ),
+    },
+  ];
+
+  // Filter out dismissed cards
+  const visibleCards = allCards.filter((card) => !features[card.featureKey]?.isDismissed);
+
+  // Hide entire section when all cards are dismissed
+  if (visibleCards.length === 0) return null;
+
+  return (
+    <>
+      <Carousel
+        cards={visibleCards}
+        cardWidth="w-[300px]"
+        fillContainer={visibleCards.length <= 2}
+      />
+      <FundingLearnMoreModal isOpen={isLearnMoreOpen} onClose={() => setIsLearnMoreOpen(false)} />
+    </>
   );
 };
