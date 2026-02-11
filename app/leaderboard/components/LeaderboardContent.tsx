@@ -26,7 +26,7 @@ const PERIOD_OPTIONS: { value: LeaderboardPeriod; label: string }[] = [
   { value: 'all_time', label: 'All Time' },
 ];
 
-const DEFAULT_PERIOD: LeaderboardPeriod = '7_days';
+const DEFAULT_PERIOD: LeaderboardPeriod = 'all_time';
 
 function getValidPeriod(value: string | null): LeaderboardPeriod {
   const valid: LeaderboardPeriod[] = ['7_days', '30_days', '6_months', '1_year', 'all_time'];

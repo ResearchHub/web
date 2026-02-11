@@ -212,7 +212,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
         <Tooltip
           content={renderTooltipContent()}
           position={tooltipPosition}
-          className="bg-orange-50 border-orange-200 shadow-md"
+          className="bg-orange-50 border-orange-200 shadow-md pointer-events-none"
           delay={50}
         >
           {content}
