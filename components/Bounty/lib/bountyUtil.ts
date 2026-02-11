@@ -544,7 +544,8 @@ export const calculateBountyDisplayAmountUSD = (bounty: Bounty, exchangeRate: nu
     return FOUNDATION_BOUNTY_FLAT_USD;
   }
 
-  const rscAmount = parseFloat(bounty.totalAmount || bounty.amount || '0');
+  const totalAmount = Number.parseFloat(bounty.totalAmount || '0');
+  const rscAmount = totalAmount > 0 ? totalAmount : Number.parseFloat(bounty.amount || '0');
   return Math.round(rscAmount * exchangeRate);
 };
 
@@ -572,7 +573,8 @@ export const getBountyDisplayAmount = (
   showUSD: boolean
 ): { amount: number; isFoundation: boolean } => {
   const isFoundation = isFoundationBounty(bounty);
-  const rscAmount = parseFloat(bounty.totalAmount || bounty.amount || '0');
+  const totalAmount = Number.parseFloat(bounty.totalAmount || '0');
+  const rscAmount = totalAmount > 0 ? totalAmount : Number.parseFloat(bounty.amount || '0');
 
   if (isFoundation) {
     if (showUSD) {

@@ -21,8 +21,10 @@ import { useDeviceType } from '@/hooks/useDeviceType';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import Icon from '@/components/ui/icons/Icon';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { getOpenBounties, getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import { formatCurrency } from '@/utils/currency';
+import { colors } from '@/app/styles/colors';
 
 export type TabType =
   | 'paper'
@@ -276,25 +278,36 @@ export const WorkTabs = ({
                 <Icon
                   name={activeTab === 'bounties' ? 'solidEarn' : 'earn1'}
                   size={16}
-                  color={activeTab === 'bounties' ? '#3971ff' : '#6B7280'}
+                  color={activeTab === 'bounties' ? colors.primary[500] : colors.gray[500]}
                 />
                 <span className="ml-2">Bounties</span>
                 <span
-                  className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                  className={`ml-2 py-0.5 px-2 rounded-full text-xs flex items-center gap-0.5 ${
                     activeTab === 'bounties'
                       ? 'bg-primary-100 text-primary-600'
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {hasOpenBounties && canDisplayBountyAmount
-                    ? formatCurrency({
+                  {hasOpenBounties && canDisplayBountyAmount ? (
+                    <>
+                      {!showUSD && (
+                        <ResearchCoinIcon
+                          size={12}
+                          color={activeTab === 'bounties' ? colors.primary[500] : colors.gray[500]}
+                          outlined
+                        />
+                      )}
+                      {formatCurrency({
                         amount: totalBountyAmount,
                         showUSD,
                         exchangeRate,
                         shorten: true,
                         skipConversion: showUSD,
-                      })
-                    : 0}
+                      })}
+                    </>
+                  ) : (
+                    0
+                  )}
                 </span>
               </div>
             ),
