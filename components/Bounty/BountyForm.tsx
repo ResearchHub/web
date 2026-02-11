@@ -220,10 +220,13 @@ const SessionAwareCommentEditor = (props: CommentEditorProps) => {
   );
 };
 
+import { useCurrencyConversion } from './lib/useCurrencyConversion';
+
 export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormProps) {
   const { user } = useUser();
   const { data: session, status } = useSession();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
+  const { convertToRSC, convertToUSD } = useCurrencyConversion(exchangeRate);
 
   // Debug session information
   useEffect(() => {
@@ -386,12 +389,11 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
       setInputAmount(numValue);
 
       if (isExchangeRateLoading && currency !== 'RSC') {
-        // Don't validate amount if exchange rate is loading and currency is USD
         setAmountError(undefined);
         return;
       }
 
-      const rscAmount = currency === 'RSC' ? numValue : numValue / exchangeRate;
+      const rscAmount = currency === 'RSC' ? numValue : convertToRSC(numValue);
       if (rscAmount < 10) {
         setAmountError('Minimum bounty amount is 10 RSC');
       } else {
@@ -409,22 +411,17 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
   };
 
   const toggleCurrency = () => {
-    // If exchange rate is loading, only allow toggling from USD to RSC, not the other way around
     if (isExchangeRateLoading) {
       toast.error('Exchange rate is loading. Please wait before switching currency.');
       return;
     }
 
     if (currency === 'RSC') {
-      // Converting RSC to USD
       setCurrency('USD');
-      const newAmount = Number((inputAmount * exchangeRate).toFixed(2));
-      setInputAmount(newAmount);
+      setInputAmount(convertToUSD(inputAmount));
     } else {
-      // Converting USD to RSC
       setCurrency('RSC');
-      const newAmount = Math.round(inputAmount / exchangeRate);
-      setInputAmount(newAmount);
+      setInputAmount(convertToRSC(inputAmount));
     }
   };
 
@@ -433,13 +430,13 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
     if (isExchangeRateLoading) return '';
 
     return currency === 'RSC'
-      ? `≈ $${(inputAmount * exchangeRate).toLocaleString()} USD`
-      : `≈ ${(inputAmount / exchangeRate).toLocaleString()} RSC`;
+      ? `≈ $${convertToUSD(inputAmount).toLocaleString()} USD`
+      : `≈ ${convertToRSC(inputAmount).toLocaleString()} RSC`;
   };
 
   const getRscAmount = () => {
     if (isExchangeRateLoading) return currency === 'RSC' ? inputAmount : 0;
-    return currency === 'RSC' ? inputAmount : inputAmount / exchangeRate;
+    return currency === 'RSC' ? inputAmount : convertToRSC(inputAmount);
   };
 
   const handleEditorContent = (content: any) => {
