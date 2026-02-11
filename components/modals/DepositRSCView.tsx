@@ -48,14 +48,11 @@ import { useAmountInput } from '@/hooks/useAmountInput';
  */
 export function DepositRSCView({ currentBalance, onSuccess }: DepositRSCViewProps) {
   const {
-    amount: amountNum,
+    amount: depositAmount,
     setAmount: setAmountNum,
     handleAmountChange,
     getFormattedValue: getFormattedInputValue,
   } = useAmountInput();
-  
-  // Backwards compatibility for existing code that uses 'amount' as string
-  const amount = amountNum === 0 ? '' : amountNum.toString();
 
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkType>('BASE');
   const [isInitiating, setIsDepositButtonDisabled] = useState(false);
@@ -76,15 +73,13 @@ export function DepositRSCView({ currentBalance, onSuccess }: DepositRSCViewProp
   useEffect(() => {
     // Reset state on mount
     setTxStatus({ state: 'idle' });
-    setAmount('');
+    setAmountNum(0);
     setSelectedNetwork('BASE');
     setIsDepositButtonDisabled(false);
     hasCalledSuccessRef.current = false;
     hasProcessedDepositRef.current = false;
     processedTxHashRef.current = null;
   }, []);
-
-  const depositAmount = useMemo(() => parseInt(amount || '0', 10), [amount]);
 
   const calculateNewBalance = useCallback(
     (): number => currentBalance + depositAmount,
@@ -94,12 +89,11 @@ export function DepositRSCView({ currentBalance, onSuccess }: DepositRSCViewProp
   const isButtonDisabled = useMemo(
     () =>
       !address ||
-      !amount ||
       depositAmount <= 0 ||
       depositAmount > walletBalance ||
       isInitiating ||
       isMobile,
-    [address, amount, depositAmount, walletBalance, isInitiating, isMobile]
+    [address, depositAmount, walletBalance, isInitiating, isMobile]
   );
 
   const isInputDisabled = useCallback(() => {
@@ -322,7 +316,7 @@ export function DepositRSCView({ currentBalance, onSuccess }: DepositRSCViewProp
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-700">Amount to Deposit</span>
           <button
-            onClick={() => setAmount(Math.floor(walletBalance).toString())}
+            onClick={() => setAmountNum(Math.floor(walletBalance))}
             className="text-sm text-primary-500 font-medium hover:text-primary-600 disabled:opacity-50 disabled:text-gray-400"
             disabled={isInputDisabled()}
           >
@@ -335,7 +329,7 @@ export function DepositRSCView({ currentBalance, onSuccess }: DepositRSCViewProp
             onChange={handleAmountChange}
             error={depositAmount > walletBalance ? 'Deposit amount exceeds your wallet balance.' : undefined}
             currency="RSC"
-            onCurrencyToggle={handleCurrencyToggle}
+            onCurrencyToggle={() => {}}
             label=""
             className={isInputDisabled() ? 'bg-gray-100 cursor-not-allowed' : ''}
           />

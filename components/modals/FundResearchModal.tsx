@@ -1,22 +1,22 @@
 'use client';
 
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/form/Input';
 import Image from 'next/image';
-import { ArrowLeft, ArrowDownToLine, CreditCard, ChevronDown } from 'lucide-react';
+import { ArrowDownToLine, CreditCard } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHexagonImage } from '@fortawesome/pro-solid-svg-icons';
 import { Alert } from '@/components/ui/Alert';
-import { Tooltip } from '@/components/ui/Tooltip';
-import { cn } from '@/utils/styles';
 import { useCreateContribution } from '@/hooks/useFundraise';
-import { useSession } from 'next-auth/react';
 import { BalanceInfo } from './BalanceInfo';
 import { ID } from '@/types/root';
 import { useUser } from '@/contexts/UserContext';
 import { FeeBreakdown } from '../Bounty/lib/FeeBreakdown';
+import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
+import { useAmountInput } from '@/hooks/useAmountInput';
+import { ModalContainer } from '@/components/ui/Modal/ModalContainer';
+import { ModalHeader } from '@/components/ui/Modal/ModalHeader';
+import { calculateBountyFees } from '../Bounty/lib/bountyUtil';
 
 interface FundResearchModalProps {
   isOpen: boolean;
@@ -30,43 +30,6 @@ interface FundResearchModalProps {
 type Currency = 'RSC' | 'USD';
 type Step = 'amount' | 'payment';
 
-const ModalHeader = ({
-  title,
-  onClose,
-  onBack,
-}: {
-  title: string;
-  onClose: () => void;
-  onBack?: () => void;
-}) => (
-  <div className="border-b border-gray-200 -mx-6 px-6 pb-4 mb-6">
-    <div className="flex justify-between items-center">
-      <div className="flex items-center gap-2">
-        {onBack && (
-          <button type="button" onClick={onBack} className="text-gray-500 hover:text-gray-600">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-        )}
-        <Dialog.Title as="h2" className="text-xl font-semibold text-gray-900">
-          {title}
-        </Dialog.Title>
-      </div>
-      <button type="button" className="text-gray-400 hover:text-gray-500" onClick={onClose}>
-        <span className="sr-only">Close</span>
-        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path
-            fillRule="evenodd"
-            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-            clipRule="evenodd"
-          />
-        </svg>
-      </button>
-    </div>
-  </div>
-);
-
-import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
-
 // Payment Step Components
 const PaymentOption = ({
   icon,
@@ -77,7 +40,7 @@ const PaymentOption = ({
   title: string;
   subtitle?: string;
 }) => (
-  <button className="flex flex-col items-center justify-center p-6 border border-gray-200 rounded-xl hover:border-gray-300 w-full">
+  <button className="flex flex-col items-center justify-center p-6 border border-gray-200 rounded-xl hover:border-gray-300 w-full transition-colors">
     <div className="w-6 h-6 text-gray-700 mb-3">{icon}</div>
     <span className="font-semibold text-gray-900">{title}</span>
     {subtitle && <span className="text-sm text-gray-500 mt-1">{subtitle}</span>}
@@ -90,7 +53,7 @@ const PaymentIcons = {
 };
 
 const NFTPreview = ({ rscAmount, nftCount }: { rscAmount: number; nftCount: number }) => (
-  <div className="mt-4 bg-gray-50 rounded-lg p-4 space-y-2">
+  <div className="mt-4 bg-gray-50 rounded-lg p-4 space-y-2 border border-gray-100">
     <div className="flex justify-between items-center">
       <span className="text-sm text-gray-600">Your contribution:</span>
       <span className="text-sm font-medium">{rscAmount.toLocaleString()} RSC</span>
@@ -101,8 +64,6 @@ const NFTPreview = ({ rscAmount, nftCount }: { rscAmount: number; nftCount: numb
     </div>
   </div>
 );
-
-import { useAmountInput } from '@/hooks/useAmountInput';
 
 export function FundResearchModal({
   isOpen,
@@ -118,7 +79,6 @@ export function FundResearchModal({
 
   const {
     amount: inputAmount,
-    setAmount: setInputAmount,
     handleAmountChange,
     getFormattedValue: getFormattedInputValue,
   } = useAmountInput();
@@ -129,7 +89,7 @@ export function FundResearchModal({
   const NFT_THRESHOLD_USD = 1000;
 
   const [
-    { data: contributionData, isLoading: isContributing, error: contributionError },
+    { isLoading: isContributing, error: contributionError },
     createContribution,
   ] = useCreateContribution();
 
@@ -159,15 +119,12 @@ export function FundResearchModal({
         amount: getRscAmount(),
         amount_currency: currency,
       });
-
       onClose();
     } catch (error) {
-      // Error is handled by the hook
       console.error('Contribution failed:', error);
     }
   };
 
-  // Step rendering functions
   const renderAmountStep = () => (
     <div className="p-6">
       <ModalHeader title="Fund Research" onClose={onClose} />
@@ -238,11 +195,7 @@ export function FundResearchModal({
   const renderPaymentStep = () => {
     const rscAmount = getRscAmount();
     const insufficientBalance = userBalance < rscAmount;
-
-    const platformFee = Math.floor(rscAmount * 0.09);
-    const daoFee = Math.floor(rscAmount * 0.02);
-    const incFee = Math.floor(rscAmount * 0.07);
-    const baseAmount = rscAmount - platformFee;
+    const { platformFee, daoFee, incFee, baseAmount } = calculateBountyFees(rscAmount);
     const nftCount = nftRewardsEnabled ? Math.floor(rscAmount / NFT_THRESHOLD_USD) : 0;
 
     return (
@@ -277,7 +230,7 @@ export function FundResearchModal({
 
         {contributionError && (
           <Alert className="mt-4" variant="error">
-            {contributionError}
+            {contributionError instanceof Error ? contributionError.message : String(contributionError)}
           </Alert>
         )}
 
@@ -295,38 +248,8 @@ export function FundResearchModal({
   };
 
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-[100]" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black !bg-opacity-25" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
-                {step === 'amount' ? renderAmountStep() : renderPaymentStep()}
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
-        </div>
-      </Dialog>
-    </Transition>
+    <ModalContainer isOpen={isOpen} onClose={onClose}>
+      {step === 'amount' ? renderAmountStep() : renderPaymentStep()}
+    </ModalContainer>
   );
 }

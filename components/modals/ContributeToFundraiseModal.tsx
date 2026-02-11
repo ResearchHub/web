@@ -103,10 +103,11 @@ function ContributeToFundraiseModalInner({
     getFormattedValue: getFormattedInputValue,
   } = useAmountInput({
     initialAmount: 100,
-    minAmount: minAmountUsd,
+    minAmount: 1,
   });
 
   const [isContributing, setIsContributing] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<ModalView>('funding');
   const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(100);
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);

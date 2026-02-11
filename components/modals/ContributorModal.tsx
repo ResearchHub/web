@@ -2,12 +2,12 @@
 
 import { FC } from 'react';
 import Link from 'next/link';
-import { Dialog } from '@headlessui/react';
-import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { ModalContainer } from '@/components/ui/Modal/ModalContainer';
+import { ModalHeader } from '@/components/ui/Modal/ModalHeader';
 
 interface Contributor {
   profile: {
@@ -37,45 +37,16 @@ export const ContributorModal: FC<ContributorModalProps> = ({
   const totalAmount = contributors.reduce((sum, c) => sum + c.amount, 0);
 
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+    <ModalContainer isOpen={isOpen} onClose={onClose}>
+      <div className="p-6">
+        <ModalHeader
+          title={sortedContributors.length === 1 ? 'Contributor' : 'Contributors'}
+          onClose={onClose}
+          subtitle={`Total: ${formatRSC({ amount: totalAmount, round: true })} RSC`}
+        />
 
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="mx-auto max-w-lg w-full rounded-lg bg-white shadow-lg">
-          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-            <div className="flex flex-col">
-              <Dialog.Title className="text-lg font-semibold text-gray-900">
-                {sortedContributors.length === 1 ? 'Contributor' : 'Contributors'} (
-                {sortedContributors.length})
-              </Dialog.Title>
-              <div className="text-sm text-gray-500">
-                Total: {formatRSC({ amount: totalAmount, round: true })} RSC
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="contribute"
-                size="sm"
-                onClick={onContribute}
-                className="flex items-center gap-2"
-                disabled={disableContribute}
-              >
-                <ResearchCoinIcon size={16} contribute />
-                Contribute RSC
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <X className="h-5 w-5" />
-                <span className="sr-only">Close</span>
-              </Button>
-            </div>
-          </div>
-
-          <div className="px-4 py-3 max-h-[60vh] overflow-y-auto">
+        <div className="space-y-4">
+          <div className="max-h-[60vh] overflow-y-auto pr-2 -mr-2">
             <div className="space-y-3">
               {sortedContributors.map((contributor, index) => (
                 <div
@@ -92,7 +63,7 @@ export const ContributorModal: FC<ContributorModalProps> = ({
                     {contributor.profile.id ? (
                       <Link
                         href={`/author/${contributor.profile.id}`}
-                        className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                        className="text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors"
                       >
                         {contributor.profile.fullName}
                       </Link>
@@ -109,8 +80,21 @@ export const ContributorModal: FC<ContributorModalProps> = ({
               ))}
             </div>
           </div>
-        </Dialog.Panel>
+
+          <div className="pt-4 border-t border-gray-100">
+            <Button
+              variant="contribute"
+              size="lg"
+              onClick={onContribute}
+              className="w-full flex items-center justify-center gap-2"
+              disabled={disableContribute}
+            >
+              <ResearchCoinIcon size={20} contribute />
+              Contribute RSC
+            </Button>
+          </div>
+        </div>
       </div>
-    </Dialog>
+    </ModalContainer>
   );
 };

@@ -41,14 +41,11 @@ export function WithdrawModal({
   onSuccess,
 }: WithdrawModalProps) {
   const {
-    amount: amountNum,
+    amount: withdrawAmount,
     setAmount: setAmountNum,
     handleAmountChange,
     getFormattedValue: getFormattedInputValue,
   } = useAmountInput();
-  
-  // Backwards compatibility
-  const amount = amountNum === 0 ? '' : amountNum.toString();
 
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkType>('BASE');
   const [addressMode, setAddressMode] = useState<'connected' | 'custom'>('connected');
@@ -67,7 +64,7 @@ export function WithdrawModal({
     if (!isOpen) {
       // Delay reset to ensure modal closing animation completes
       const timeoutId = setTimeout(() => {
-        setAmount('');
+        setAmountNum(0);
         setSelectedNetwork('BASE');
         setAddressMode('connected');
         setCustomAddress('');
@@ -76,7 +73,7 @@ export function WithdrawModal({
 
       return () => clearTimeout(timeoutId);
     }
-  }, [isOpen, resetTransaction]);
+  }, [isOpen, resetTransaction, setAmountNum]);
 
   const withdrawalAddress = useMemo(() => {
     return addressMode === 'connected' ? address : customAddress;
@@ -99,8 +96,6 @@ export function WithdrawModal({
       toast.error(`Unable to fetch fee: ${feeError}`);
     }
   }, [feeError]);
-
-  const withdrawAmount = useMemo(() => parseInt(amount || '0', 10), [amount]);
 
   const amountUserWillReceive = useMemo((): number => {
     if (!fee) return 0;
@@ -130,7 +125,6 @@ export function WithdrawModal({
   // Determine if withdraw button should be disabled
   const isButtonDisabled = useMemo(
     () =>
-      !amount ||
       withdrawAmount <= 0 ||
       txStatus.state === 'pending' ||
       isFeeLoading ||
@@ -141,7 +135,6 @@ export function WithdrawModal({
       !isCustomAddressValid ||
       !withdrawalAddress,
     [
-      amount,
       withdrawAmount,
       txStatus.state,
       isFeeLoading,
@@ -161,18 +154,18 @@ export function WithdrawModal({
   const handleMaxAmount = useCallback(() => {
     if (isInputDisabled() || !fee) return;
     const maxWithdrawAmount = Math.floor(availableBalance);
-    setAmount(maxWithdrawAmount > 0 ? maxWithdrawAmount.toString() : '0');
-  }, [availableBalance, isInputDisabled, fee]);
+    setAmountNum(maxWithdrawAmount > 0 ? maxWithdrawAmount : 0);
+  }, [availableBalance, isInputDisabled, fee, setAmountNum]);
 
   const handleWithdraw = useCallback(async () => {
-    if (!withdrawalAddress || !amount || isButtonDisabled || !fee) {
+    if (!withdrawalAddress || withdrawAmount <= 0 || isButtonDisabled || !fee) {
       return;
     }
 
     const result = await withdrawRSC({
       to_address: withdrawalAddress,
       agreed_to_terms: true,
-      amount: amount,
+      amount: withdrawAmount.toString(),
       network: selectedNetwork,
     });
 
@@ -181,7 +174,7 @@ export function WithdrawModal({
     }
   }, [
     withdrawalAddress,
-    amount,
+    withdrawAmount,
     isButtonDisabled,
     withdrawRSC,
     txStatus.state,
@@ -290,7 +283,7 @@ export function WithdrawModal({
                         : undefined
                   }
                   currency="RSC"
-                  onCurrencyToggle={handleCurrencyToggle}
+                  onCurrencyToggle={() => {}}
                   label=""
                   className={isInputDisabled() ? 'bg-gray-100 cursor-not-allowed' : ''}
                 />
