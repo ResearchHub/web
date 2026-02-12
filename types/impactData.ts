@@ -18,7 +18,7 @@ export interface RawFundingPoint {
   matched_contributions?: number;
 }
 
-export interface RawTopicAmount {
+export interface RawHubAmount {
   name: string;
   amount_usd?: number;
 }
@@ -28,19 +28,11 @@ export interface RawUpdateBucket {
   count?: number;
 }
 
-export interface RawInstitution {
-  name: string;
-  ein?: string;
-  amount_usd?: number;
-  project_count?: number;
-}
-
 export interface RawImpactData {
   milestones?: RawMilestones;
   funding_over_time?: RawFundingPoint[];
-  topic_breakdown?: RawTopicAmount[];
+  hub_breakdown?: RawHubAmount[];
   update_frequency?: RawUpdateBucket[];
-  institutions_supported?: RawInstitution[];
 }
 
 // Transformed types (camelCase)
@@ -71,19 +63,11 @@ export interface UpdateBucket {
   count: number;
 }
 
-export interface Institution {
-  name: string;
-  ein: string;
-  amountUsd: number;
-  projectCount: number;
-}
-
 export interface ImpactData {
   milestones: Milestones;
   fundingOverTime: FundingPoint[];
   topicBreakdown: TopicAmount[];
   updateFrequency: UpdateBucket[];
-  institutionsSupported: Institution[];
 }
 
 export const transformImpactData = createTransformer<RawImpactData, ImpactData>((raw) => {
@@ -109,19 +93,13 @@ export const transformImpactData = createTransformer<RawImpactData, ImpactData>(
       userContributions: p.user_contributions ?? 0,
       matchedContributions: p.matched_contributions ?? 0,
     })),
-    topicBreakdown: (raw.topic_breakdown ?? []).map((t) => ({
+    topicBreakdown: (raw.hub_breakdown ?? []).map((t) => ({
       name: t.name,
       amountUsd: t.amount_usd ?? 0,
     })),
     updateFrequency: (raw.update_frequency ?? []).map((u) => ({
       bucket: u.bucket,
       count: u.count ?? 0,
-    })),
-    institutionsSupported: (raw.institutions_supported ?? []).map((i) => ({
-      name: i.name,
-      ein: i.ein ?? '',
-      amountUsd: i.amount_usd ?? 0,
-      projectCount: i.project_count ?? 0,
     })),
   };
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { Target, AlertCircle, Building2 } from 'lucide-react';
+import { Target, AlertCircle } from 'lucide-react';
 import { Line, Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -16,7 +16,6 @@ import {
 import { useImpactData } from './lib/hooks/useImpactData';
 import { ImpactData, Milestones } from '@/types/impactData';
 import { formatNumber } from '@/utils/number';
-import { pluralizeSuffix } from '@/utils/stringUtils';
 
 ChartJS.register(
   CategoryScale,
@@ -64,8 +63,6 @@ export function ImpactTab() {
         <TopicsCard topics={data.topicBreakdown} />
         <FrequencyCard buckets={data.updateFrequency} />
       </div>
-
-      <InstitutionsCard institutions={data.institutionsSupported} />
     </div>
   );
 }
@@ -231,44 +228,6 @@ function FrequencyCard({ buckets }: { buckets: ImpactData['updateFrequency'] }) 
       <p className="text-xs text-gray-500 mt-3">
         Buckets show updates per proposal over the last 6 months.
       </p>
-    </Card>
-  );
-}
-
-function InstitutionsCard({ institutions }: { institutions: ImpactData['institutionsSupported'] }) {
-  const total = institutions.reduce((sum, i) => sum + i.amountUsd, 0);
-
-  return (
-    <Card>
-      <div className="flex items-center gap-2 mb-1">
-        <Building2 className="w-5 h-5 text-gray-400" />
-        <h3 className="font-semibold text-gray-900">Institutions supported</h3>
-      </div>
-      <p className="text-sm text-gray-500 mb-4">
-        Nonprofits that received funding through your contributions
-      </p>
-      <div className="divide-y divide-gray-100">
-        {institutions.map((inst) => (
-          <div key={inst.ein || inst.name} className="py-4 flex justify-between items-start">
-            <div>
-              <span className="font-medium text-gray-900">{inst.name}</span>
-              {inst.ein && <p className="text-sm text-gray-500">EIN: {inst.ein}</p>}
-            </div>
-            <div className="text-right">
-              <div className="text-primary-600 font-medium">{toUsd(inst.amountUsd)}</div>
-              <div className="text-sm text-gray-500">
-                {inst.projectCount} project{pluralizeSuffix(inst.projectCount)}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      {institutions.length > 0 && (
-        <div className="flex justify-between pt-4 border-t border-gray-200 mt-4">
-          <span className="font-medium text-gray-900">Total to institutions</span>
-          <span className="text-primary-600 font-semibold">{toUsd(total)}</span>
-        </div>
-      )}
     </Card>
   );
 }
