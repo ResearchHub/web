@@ -15,8 +15,9 @@ import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
 import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
-import { FundraiseProgress } from '@/components/Fund/FundraiseProgressV2';
-import { Users, Building, Pin } from 'lucide-react';
+import { FundraiseProgressCardView } from '@/components/Fund/FundraiseProgressCardView';
+import { Building, Pin } from 'lucide-react';
+import { FeedItemGrantCallout } from '@/components/Feed/FeedItemGrantCallout';
 import { formatTimestamp } from '@/utils/date';
 import { useRouter } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
@@ -197,6 +198,11 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
               </MetadataSection>
             )}
 
+            {/* Grant Application Callout */}
+            {post.fundraise?.application && (
+              <FeedItemGrantCallout application={post.fundraise.application} />
+            )}
+
             {/* Truncated Content */}
             <ContentSection content={post.textPreview} maxLength={maxLength} />
           </>
@@ -214,7 +220,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       {/* Fundraise Progress (only for preregistrations with fundraise) */}
       {hasFundraise && post.fundraise && (
         <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-          <FundraiseProgress
+          <FundraiseProgressCardView
             fundraiseTitle={post.title}
             fundraise={post.fundraise}
             compact={true}

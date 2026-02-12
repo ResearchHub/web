@@ -21,7 +21,7 @@ import { StatusCard } from '@/components/ui/StatusCard';
 import { colors } from '@/app/styles/colors';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
-interface FundraiseProgressProps {
+interface FundraiseProgressCardViewProps {
   fundraise: Fundraise;
   fundraiseTitle: string;
   compact?: boolean;
@@ -32,7 +32,7 @@ interface FundraiseProgressProps {
   work?: Work;
 }
 
-export const FundraiseProgress: FC<FundraiseProgressProps> = ({
+export const FundraiseProgressCardView: FC<FundraiseProgressCardViewProps> = ({
   fundraise,
   fundraiseTitle,
   compact = false,
@@ -153,7 +153,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
 
   return (
     <>
-      <StatusCard variant={isActive ? 'orange' : 'inactive'}>
+      <StatusCard variant={isActive ? 'active' : 'inactive'}>
         {compact ? (
           <div className={cn(className)}>
             {/* Stats row with labels */}
@@ -165,7 +165,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     Raised
                   </span>
                   <span
-                    className={`text-base sm:text-lg font-bold ${isActive ? 'text-orange-600' : 'text-gray-500'}`}
+                    className={`text-base sm:text-lg font-bold ${isActive ? 'text-primary-600' : 'text-gray-500'}`}
                   >
                     {showUSD
                       ? `$${fundraise.amountRaised.usd >= 1000 ? `${(fundraise.amountRaised.usd / 1000).toFixed(0)}K` : fundraise.amountRaised.usd.toLocaleString()}`
@@ -253,7 +253,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     </span>
                   )}
                   {isActive && (
-                    <span className="text-xs font-medium text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-medium text-primary-700 bg-primary-100 px-2 py-0.5 rounded-full">
                       Open
                     </span>
                   )}
@@ -267,7 +267,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   size="sm"
                   onClick={isActive ? handleContributeClick : undefined}
                   disabled={!isActive}
-                  className={`!py-2 !px-5 ${isActive ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                  className={`!py-2 !px-5 ${isActive ? 'bg-primary-600 hover:bg-primary-700 text-white' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
                 >
                   <span className="text-sm font-semibold">
                     {isActive ? 'Fund Proposal' : 'Closed'}
@@ -294,7 +294,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     size="md"
                     showText={false}
                     currency={showUSD ? 'USD' : 'RSC'}
-                    className="font-medium text-orange-500 text-base mobile:!text-lg pl-0"
+                    className="font-medium text-primary-600 text-base mobile:!text-lg pl-0"
                     skipConversion={showUSD}
                   />
                   <span className="text-gray-500 text-base mobile:!text-lg">raised of</span>
@@ -325,7 +325,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   variant="contribute"
                   size="md"
                   disabled={!isActive}
-                  className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-all duration-200 border-0"
+                  className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold transition-all duration-200 border-0"
                   onClick={handleContributeClick}
                 >
                   <Icon name="giveRSC" size={20} color="white" />

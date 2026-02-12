@@ -1,6 +1,9 @@
 import { Currency, ID } from './root';
 import { createTransformer } from './transformer';
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
+import { GrantApplication, transformGrantApplication } from './grantApplication';
+
+export type { GrantApplication };
 
 export type FundraiseStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
 
@@ -39,6 +42,9 @@ export interface Fundraise {
 
   createdDate: string;
   updatedDate: string;
+
+  /** The grant application this fundraise is in response to, if any */
+  application?: GrantApplication;
 }
 
 export const transformFundraise = createTransformer<any, Fundraise>((raw) => ({
@@ -69,4 +75,5 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => ({
   endDate: raw.end_date || undefined,
   createdDate: raw.created_date,
   updatedDate: raw.updated_date,
+  application: raw.application ? transformGrantApplication(raw.application) : undefined,
 }));

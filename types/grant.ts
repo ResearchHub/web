@@ -13,6 +13,7 @@ export interface GrantAmount {
 
 export interface Grant {
   id: ID;
+  title: string;
   createdBy: {
     id: ID;
     authorProfile: AuthorProfile;
@@ -32,6 +33,7 @@ export interface Grant {
 
 export const transformGrant = createTransformer<any, Grant>((raw) => ({
   id: raw.id,
+  title: raw.title || '',
   createdBy: {
     id: raw.created_by.id,
     authorProfile: transformAuthorProfile(raw.created_by.author_profile),
