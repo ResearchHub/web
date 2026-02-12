@@ -5,13 +5,8 @@ import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
-import {
-  ChevronDownIcon,
-  Calendar as CalendarIcon,
-  ChartNoAxesColumnIncreasing,
-} from 'lucide-react';
+import { ChevronDownIcon, ChartNoAxesColumnIncreasing } from 'lucide-react';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
-import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useCurrentUserLeaderboard } from '@/hooks/useLeaderboard';
 import { TopPeerReviewers } from './TopPeerReviewers';
 import { TopFunders } from './TopFunders';
@@ -59,8 +54,6 @@ export function LeaderboardContent({ defaultTab }: LeaderboardContentProps) {
   const searchParams = useSearchParams();
 
   const [period, setPeriod] = useState<LeaderboardPeriod>(() => getInitialPeriod(searchParams));
-  const [isMobile, setIsMobile] = useState(false);
-  const [isPeriodDrawerOpen, setIsPeriodDrawerOpen] = useState(false);
 
   const page = getPageFromSearchParams(searchParams);
 
@@ -69,13 +62,6 @@ export function LeaderboardContent({ defaultTab }: LeaderboardContentProps) {
     funder: currentUserFunder,
     isLoading: currentUserLoading,
   } = useCurrentUserLeaderboard(period);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -93,15 +79,12 @@ export function LeaderboardContent({ defaultTab }: LeaderboardContentProps) {
   const handlePeriodSelection = useCallback(
     (value: string) => {
       setPeriod(getValidPeriod(value));
-      if (isMobile) {
-        setIsPeriodDrawerOpen(false);
-      }
       const params = new URLSearchParams(searchParams.toString());
       params.set('period', getValidPeriod(value));
       params.set('page', '1');
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     },
-    [isMobile, pathname, router, searchParams]
+    [pathname, router, searchParams]
   );
 
   const handlePageChange = useCallback(
@@ -134,29 +117,6 @@ export function LeaderboardContent({ defaultTab }: LeaderboardContentProps) {
     href: buildTabHref(tab.href!),
   }));
 
-  const periodDrawerContent = (
-    <div className="p-4 space-y-4">
-      <h3 className="text-lg font-medium mb-4">Select Time Period</h3>
-      {PERIOD_OPTIONS.map((option) => (
-        <Button
-          key={option.value}
-          variant={period === option.value ? 'default' : 'outlined'}
-          onClick={() => handlePeriodSelection(option.value)}
-          className="w-full justify-start"
-        >
-          {option.label}
-        </Button>
-      ))}
-      <Button
-        variant="ghost"
-        onClick={() => setIsPeriodDrawerOpen(false)}
-        className="w-full mt-4 text-gray-600"
-      >
-        Cancel
-      </Button>
-    </div>
-  );
-
   return (
     <div className="px-0 py-0">
       <MainPageHeader
@@ -177,36 +137,25 @@ export function LeaderboardContent({ defaultTab }: LeaderboardContentProps) {
           />
 
           <div className="flex-shrink-0">
-            {isMobile ? (
-              <Button
-                variant="outlined"
-                onClick={() => setIsPeriodDrawerOpen(true)}
-                className="w-full justify-between"
-              >
-                <span>{selectedPeriodLabel}</span>
-                <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
-              </Button>
-            ) : (
-              <Dropdown
-                trigger={
-                  <Button variant="outlined" className="w-full sm:w-auto justify-between h-8">
-                    <span>{selectedPeriodLabel}</span>
-                    <ChevronDownIcon className="ml-2 h-4 w-4 opacity-50" />
-                  </Button>
-                }
-                anchor="bottom end"
-              >
-                {PERIOD_OPTIONS.map((option) => (
-                  <DropdownItem
-                    key={option.value}
-                    onClick={() => handlePeriodSelection(option.value)}
-                    className={period === option.value ? 'bg-gray-100' : ''}
-                  >
-                    {option.label}
-                  </DropdownItem>
-                ))}
-              </Dropdown>
-            )}
+            <Dropdown
+              trigger={
+                <Button variant="outlined" className="w-full sm:w-auto justify-between h-8">
+                  <span>{selectedPeriodLabel}</span>
+                  <ChevronDownIcon className="ml-2 h-4 w-4 opacity-50" />
+                </Button>
+              }
+              anchor="bottom end"
+            >
+              {PERIOD_OPTIONS.map((option) => (
+                <DropdownItem
+                  key={option.value}
+                  onClick={() => handlePeriodSelection(option.value)}
+                  className={period === option.value ? 'bg-gray-100' : ''}
+                >
+                  {option.label}
+                </DropdownItem>
+              ))}
+            </Dropdown>
           </div>
         </div>
       </div>
@@ -228,18 +177,6 @@ export function LeaderboardContent({ defaultTab }: LeaderboardContentProps) {
           />
         )}
       </div>
-
-      {isMobile && (
-        <SwipeableDrawer
-          isOpen={isPeriodDrawerOpen}
-          onClose={() => setIsPeriodDrawerOpen(false)}
-          showCloseButton={false}
-          height="auto"
-          className="max-h-[80vh]"
-        >
-          {periodDrawerContent}
-        </SwipeableDrawer>
-      )}
     </div>
   );
 }

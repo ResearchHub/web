@@ -16,5 +16,5 @@ export const metadata: Metadata = buildOpenGraphMetadata({
 });
 
 export default function LeaderboardLayout({ children }: LeaderboardLayoutProps) {
-  return <PageLayout rightSidebar={true}>{children}</PageLayout>;
+  return <PageLayout rightSidebar={false}>{children}</PageLayout>;
 }
