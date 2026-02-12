@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/Button';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
 import { ChevronDownIcon, ChartNoAxesColumnIncreasing } from 'lucide-react';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
+import type { LeaderboardPeriod } from '@/services/leaderboard.service';
 import { useCurrentUserLeaderboard } from '@/hooks/useLeaderboard';
 import { TopPeerReviewers } from './TopPeerReviewers';
 import { TopFunders } from './TopFunders';
 
-export type LeaderboardPeriod = '7_days' | '30_days' | '6_months' | '1_year' | 'all_time';
+export type { LeaderboardPeriod } from '@/services/leaderboard.service';
 
 const PERIOD_OPTIONS: { value: LeaderboardPeriod; label: string }[] = [
   { value: '7_days', label: 'Last 7 Days' },

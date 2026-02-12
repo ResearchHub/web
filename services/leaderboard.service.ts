@@ -10,13 +10,16 @@ import {
   transformTopFunder,
 } from '@/types/leaderboard';
 
+/** Period values supported by the leaderboard API. */
+export type LeaderboardPeriod = '7_days' | '30_days' | '6_months' | '1_year' | 'all_time';
+
 interface TransformedLeaderboardOverview {
   reviewers: TopReviewer[];
   funders: TopFunder[];
 }
 
 /** Default page size for leaderboard list endpoints. */
-export const LEADERBOARD_PAGE_SIZE = 10;
+export const LEADERBOARD_PAGE_SIZE = 8;
 
 export class LeaderboardService {
   private static readonly BASE_PATH = '/api/leaderboard';
