@@ -1,6 +1,6 @@
 'use client';
 
-import { Target, AlertCircle } from 'lucide-react';
+import { Target, AlertCircle, TrendingUp, Users, Zap } from 'lucide-react';
 import { Line, Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -79,27 +79,33 @@ function MilestonesCard({ milestones }: { milestones: Milestones }) {
       label: 'Funding contributed',
       ...milestones.fundingContributed,
       currency: true,
-      color: 'bg-orange-500',
+      color: 'bg-orange-400',
+      icon: TrendingUp,
+      iconColor: 'text-blue-500',
     },
     {
       label: 'Researchers supported',
       ...milestones.researchersSupported,
       currency: false,
       color: 'bg-green-500',
+      icon: Users,
+      iconColor: 'text-green-500',
     },
     {
       label: 'Matched funding',
       ...milestones.matchedFunding,
       currency: true,
-      color: 'bg-green-500',
+      color: 'bg-orange-400',
+      icon: Zap,
+      iconColor: 'text-yellow-500',
     },
   ];
 
   return (
-    <Card>
+    <div className="rounded-xl p-6 border border-gray-200 bg-gradient-to-r from-blue-50/80 via-white to-teal-50/50">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center">
-          <Target className="w-4 h-4 text-green-600" />
+        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+          <Target className="w-4 h-4 text-blue-600" />
         </div>
         <div>
           <h3 className="font-semibold text-gray-900">Your milestones</h3>
@@ -107,29 +113,32 @@ function MilestonesCard({ milestones }: { milestones: Milestones }) {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {items.map(({ label, current, target, currency, color }) => {
+        {items.map(({ label, current, target, currency, color, icon: Icon, iconColor }) => {
           const pct = target > 0 ? Math.min((current / target) * 100, 100) : 0;
           const remaining = target - current;
           return (
             <div key={label}>
-              <p className="text-sm text-gray-600 mb-2">{label}</p>
+              <div className="flex items-center gap-2 mb-2">
+                <Icon className={`w-4 h-4 ${iconColor}`} />
+                <p className="text-sm text-gray-600">{label}</p>
+              </div>
               <p className="text-2xl font-bold text-gray-900">
                 {currency ? toUsd(current) : current}
                 <span className="text-base font-normal text-gray-400 ml-1">
                   / {currency ? toUsd(target) : target}
                 </span>
               </p>
-              <div className="h-2 bg-gray-100 rounded-full mt-2 overflow-hidden">
+              <div className="h-2 bg-gray-200 rounded-full mt-2 overflow-hidden">
                 <div className={`h-full ${color} rounded-full`} style={{ width: `${pct}%` }} />
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                {currency ? toUsd(remaining) : remaining} to next milestone
+                {currency ? toUsd(remaining) : `${remaining} more`} to next milestone
               </p>
             </div>
           );
         })}
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -165,8 +174,12 @@ function FundingChart({ data }: { data: ImpactData['fundingOverTime'] }) {
       },
     },
     scales: {
+      x: {
+        grid: { display: false },
+      },
       y: {
         beginAtZero: true,
+        grid: { display: false },
         ticks: { callback: (v: number | string) => (+v >= 1000 ? `${+v / 1000}k` : v) },
       },
     },
@@ -194,7 +207,7 @@ function TopicsCard({ topics }: { topics: ImpactData['topicBreakdown'] }) {
           <div key={t.name}>
             <div className="flex justify-between text-sm mb-1">
               <span className="text-gray-700">{t.name}</span>
-              <span className="text-primary-600 font-medium">{toUsd(t.amountUsd)}</span>
+              <span className="text-orange-500 font-medium">{toUsd(t.amountUsd)}</span>
             </div>
             <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
               <div

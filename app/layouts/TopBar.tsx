@@ -204,6 +204,14 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
+  if (pathname === '/fund/dashboard') {
+    return {
+      title: 'Portfolio Dashboard',
+      subtitle: "A feel-good view of what you've funded and the momentum you're building",
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
+    };
+  }
+
   if (pathname.startsWith('/fund')) {
     return {
       title: 'Funding',
