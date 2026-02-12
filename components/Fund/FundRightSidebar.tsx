@@ -1,15 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import {
-  BookCheck,
-  Feather,
-  ChevronRight,
-  FileText,
-  Lightbulb,
-  Users,
-  Banknote,
-} from 'lucide-react';
+import { BookCheck, Feather, ChevronRight } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 import { Avatar } from '@/components/ui/Avatar';
@@ -24,25 +16,25 @@ import type { TopFunder } from '@/types/leaderboard';
 
 // ─── How Funding Works Step ─────────────────────────────────────────────
 interface StepProps {
-  icon: React.ReactNode;
+  step: number;
   title: string;
   description: string;
   isLast?: boolean;
 }
 
-const Step = ({ icon, title, description, isLast = false }: StepProps) => (
+const Step = ({ step, title, description, isLast = false }: StepProps) => (
   <div className="flex gap-3">
-    {/* Icon column with connector line */}
+    {/* Timeline column: dot + connector */}
     <div className="flex flex-col items-center">
-      <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0">
-        {icon}
+      <div className="w-6 h-6 rounded-full bg-orange-500 text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0">
+        {step}
       </div>
-      {!isLast && <div className="w-px flex-1 bg-gray-200 my-1.5" />}
+      {!isLast && <div className="w-px flex-1 bg-orange-200 my-0.5" />}
     </div>
     {/* Text column */}
-    <div className={isLast ? 'pb-0' : 'pb-4'}>
+    <div className={isLast ? 'pt-0.5' : 'pt-0.5 pb-5'}>
       <p className="text-sm font-medium text-gray-900 leading-snug">{title}</p>
-      <p className="text-xs text-gray-500 leading-relaxed">{description}</p>
+      <p className="text-xs text-gray-700 leading-relaxed mt-0.5">{description}</p>
     </div>
   </div>
 );
@@ -164,19 +156,13 @@ const ResourceLink = ({ href, icon, label }: ResourceLinkProps) => (
 
 // ─── Section Header ─────────────────────────────────────────────────────
 interface SectionHeaderProps {
-  icon: React.ReactNode;
   title: string;
   action?: React.ReactNode;
 }
 
-const SectionHeader = ({ icon, title, action }: SectionHeaderProps) => (
+const SectionHeader = ({ title, action }: SectionHeaderProps) => (
   <div className="flex items-center justify-between mb-4">
-    <div className="flex items-center gap-2.5">
-      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0">
-        {icon}
-      </div>
-      <h3 className="text-base font-semibold text-gray-900">{title}</h3>
-    </div>
+    <h3 className="text-base font-semibold text-gray-900">{title}</h3>
     {action}
   </div>
 );
@@ -196,7 +182,6 @@ export const FundRightSidebar = () => {
       {/* ── How Funding Works ───────────────────────────────────── */}
       <div className="p-5">
         <SectionHeader
-          icon={<span className="text-lg">⚡</span>}
           title="How Funding Works"
           action={
             <span className="text-xs font-medium text-orange-500 bg-orange-50 px-2.5 py-1 rounded-full">
@@ -206,34 +191,16 @@ export const FundRightSidebar = () => {
         />
 
         <div className="mt-1">
-          <Step
-            icon={<FileText size={16} className="text-orange-400" />}
-            title="Post Opportunity"
-            description="Funders set clear goals"
-          />
-          <Step
-            icon={<Lightbulb size={16} className="text-orange-400" />}
-            title="Pitch Your Idea"
-            description="Submit a proposal"
-          />
-          <Step
-            icon={<Users size={16} className="text-orange-400" />}
-            title="Community Validates"
-            description="Experts review proposals"
-          />
-          <Step
-            icon={<Banknote size={16} className="text-orange-400" />}
-            title="Get Funded"
-            description="Receive funds directly"
-            isLast
-          />
+          <Step step={1} title="Post Opportunity" description="Funders set clear goals" />
+          <Step step={2} title="Proposals submitted" description="Researchers submit proposals" />
+          <Step step={3} title="Community Validates" description="Experts review proposals" />
+          <Step step={4} title="Fund best" description="Funder funds best proposals" isLast />
         </div>
       </div>
 
       {/* ── Top Funders ─────────────────────────────────────────── */}
       <div className="p-5">
         <SectionHeader
-          icon={<span className="text-lg">🏆</span>}
           title="Top Funders"
           action={
             <Link
@@ -263,7 +230,7 @@ export const FundRightSidebar = () => {
 
       {/* ── Resources ───────────────────────────────────────────── */}
       <div className="p-5">
-        <SectionHeader icon={<span className="text-lg">📚</span>} title="Resources" />
+        <SectionHeader title="Resources" />
 
         <div className="divide-y divide-gray-100">
           <ResourceLink
