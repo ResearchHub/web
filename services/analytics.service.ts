@@ -106,11 +106,7 @@ class AnalyticsService {
     amplitude.identify(identify);
 
     const clarityUserId = userProperties.user_id || this.userId;
-    if (
-      clarityUserId &&
-      typeof globalThis.window !== 'undefined' &&
-      typeof globalThis.window.clarity === 'function'
-    ) {
+    if (clarityUserId && typeof globalThis.window?.clarity === 'function') {
       ClaritySDK.identify(clarityUserId);
     }
   }
