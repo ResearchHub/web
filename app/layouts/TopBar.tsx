@@ -188,26 +188,10 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
-  if (pathname.startsWith('/fund/opportunities')) {
-    return {
-      title: 'Funding Opportunities',
-      subtitle: 'Explore available funding opportunities',
-      icon: <Icon name="fund" size={24} className="text-gray-900" />,
-    };
-  }
-
-  if (pathname === '/fund/needs-funding') {
-    return {
-      title: 'Needs Funding',
-      subtitle: 'Support research projects seeking funding',
-      icon: <Icon name="createBounty" size={24} className="text-gray-900" />,
-    };
-  }
-
   if (pathname.startsWith('/fund')) {
     return {
-      title: 'Funding',
-      subtitle: 'Fund breakthrough research shaping tomorrow',
+      title: 'Funding Marketplace',
+      subtitle: 'Participate in funding the future of science',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
