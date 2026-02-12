@@ -24,8 +24,8 @@ export const FundingPromotionCards = () => {
       onClose: () => dismissFeature(CARD_FEATURES[0]),
       content: (
         <div className="flex items-center gap-3 pr-4">
-          <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
-            <Icon name="fund" size={18} color="#ffffff" />
+          <div className="w-11 h-11 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+            <Icon name="fund" size={26} color="#6366f1" />
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm text-gray-900">I&apos;m a Funder</h3>
@@ -46,8 +46,8 @@ export const FundingPromotionCards = () => {
       onClose: () => dismissFeature(CARD_FEATURES[1]),
       content: (
         <div className="flex items-center gap-3 pr-4">
-          <div className="w-9 h-9 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0">
-            <Microscope className="w-[18px] h-[18px] text-white" strokeWidth={1.5} />
+          <div className="w-11 h-11 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+            <Microscope className="w-[26px] h-[26px] text-indigo-500" strokeWidth={1.5} />
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm text-gray-900">I&apos;m a Researcher</h3>
@@ -68,8 +68,8 @@ export const FundingPromotionCards = () => {
       onClose: () => dismissFeature(CARD_FEATURES[2]),
       content: (
         <div className="flex items-center gap-3 pr-4">
-          <div className="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0">
-            <Star className="w-[18px] h-[18px] text-white" strokeWidth={1.5} />
+          <div className="w-11 h-11 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+            <Star className="w-[26px] h-[26px] text-indigo-500" strokeWidth={1.5} />
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm text-gray-900">Paid Peer Review</h3>
@@ -97,7 +97,7 @@ export const FundingPromotionCards = () => {
     <>
       <Carousel
         cards={visibleCards}
-        cardWidth="w-[300px]"
+        cardWidth="w-[310px]"
         fillContainer={visibleCards.length <= 2}
       />
       <FundingLearnMoreModal isOpen={isLearnMoreOpen} onClose={() => setIsLearnMoreOpen(false)} />

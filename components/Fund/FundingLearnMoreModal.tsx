@@ -1,8 +1,10 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { BaseModal } from '@/components/ui/BaseModal';
-import { DollarSign, Zap, CheckCircle, Users, MousePointerClick } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { DollarSign, Zap, CheckCircle, Users, MousePointerClick, ArrowRight } from 'lucide-react';
 
 interface FundingLearnMoreModalProps {
   isOpen: boolean;
@@ -43,12 +45,25 @@ const benefits = [
 ];
 
 export const FundingLearnMoreModal = ({ isOpen, onClose }: FundingLearnMoreModalProps) => {
+  const router = useRouter();
+
+  const handlePostOpportunity = () => {
+    onClose();
+    router.push('/opportunity/create');
+  };
+
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
       title="Why Fund on ResearchHub?"
       maxWidth="max-w-xl"
+      footer={
+        <Button onClick={handlePostOpportunity} variant="default" className="w-full">
+          Post Funding Opportunity
+          <ArrowRight size={16} className="ml-2" />
+        </Button>
+      }
     >
       <div className="space-y-6">
         {benefits.map((benefit, index) => (

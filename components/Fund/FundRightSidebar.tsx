@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BookCheck, Feather, ChevronRight } from 'lucide-react';
+import { FundingLearnMoreModal } from '@/components/Fund/FundingLearnMoreModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWreathLaurel } from '@fortawesome/pro-light-svg-icons';
 import { Avatar } from '@/components/ui/Avatar';
@@ -26,10 +27,10 @@ const Step = ({ step, title, description, isLast = false }: StepProps) => (
   <div className="flex gap-3">
     {/* Timeline column: dot + connector */}
     <div className="flex flex-col items-center">
-      <div className="w-6 h-6 rounded-full bg-orange-500 text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0">
+      <div className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-900 text-[11px] font-bold flex items-center justify-center flex-shrink-0">
         {step}
       </div>
-      {!isLast && <div className="w-px flex-1 bg-orange-200 my-0.5" />}
+      {!isLast && <div className="w-px flex-1 bg-indigo-300 my-0.5" />}
     </div>
     {/* Text column */}
     <div className={isLast ? 'pt-0.5' : 'pt-0.5 pb-5'}>
@@ -172,6 +173,7 @@ export const FundRightSidebar = () => {
   const { data, isLoading, error, fetchData } = useLeaderboard();
   const { showUSD } = useCurrencyPreference();
   const funders = data?.funders || [];
+  const [showLearnMore, setShowLearnMore] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -179,14 +181,20 @@ export const FundRightSidebar = () => {
 
   return (
     <div className="bg-white rounded-xl border-gray-200 divide-y divide-gray-200 overflow-hidden">
+      <FundingLearnMoreModal isOpen={showLearnMore} onClose={() => setShowLearnMore(false)} />
+
       {/* ── How Funding Works ───────────────────────────────────── */}
       <div className="p-5">
         <SectionHeader
           title="How Funding Works"
           action={
-            <span className="text-xs font-medium text-orange-500 bg-orange-50 px-2.5 py-1 rounded-full">
-              ~2 weeks
-            </span>
+            <button
+              onClick={() => setShowLearnMore(true)}
+              className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-0.5 transition-colors"
+            >
+              Learn more
+              <ChevronRight size={12} />
+            </button>
           }
         />
 
