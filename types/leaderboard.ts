@@ -12,6 +12,7 @@ export interface RawTopReviewer {
   earned_rsc: number | string; // API might send as string
   bounty_earnings: number | string;
   tip_earnings: number | string;
+  rank?: number;
 }
 
 // Define the transformed structure for a top reviewer
@@ -20,6 +21,7 @@ export interface TopReviewer {
   authorProfile: AuthorProfile;
   earnedRsc: number;
   isVerified: boolean;
+  rank?: number;
 }
 
 // Define the structure for a top funder entry from the API
@@ -34,6 +36,7 @@ export interface RawTopFunder {
   purchase_funding: number | string;
   bounty_funding: number | string;
   distribution_funding: number | string;
+  rank?: number;
 }
 
 // Define the transformed structure for a top funder
@@ -42,6 +45,7 @@ export interface TopFunder {
   authorProfile: AuthorProfile;
   totalFunding: number;
   isVerified: boolean;
+  rank?: number;
 }
 
 // Define the structure for the leaderboard overview API response
@@ -50,10 +54,28 @@ export interface LeaderboardOverviewResponse {
   funders: RawTopFunder[];
 }
 
-// Define the structure for the detailed reviewers list API response
-export type LeaderboardReviewersResponse = RawTopReviewer[];
+// Paginated API response for reviewers list
+export interface LeaderboardReviewersListResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: RawTopReviewer[];
+}
 
-// Define the structure for the detailed funders list API response
+// Paginated API response for funders list
+export interface LeaderboardFundersListResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: RawTopFunder[];
+}
+
+export interface LeaderboardMeResponse {
+  reviewer: RawTopReviewer | null;
+  funder: RawTopFunder | null;
+}
+
+export type LeaderboardReviewersResponse = RawTopReviewer[];
 export type LeaderboardFundersResponse = RawTopFunder[];
 
 // Transformer for TopReviewer
@@ -69,6 +91,7 @@ export const transformTopReviewer = createTransformer<RawTopReviewer, TopReviewe
       authorProfile: authorProfile,
       earnedRsc: typeof raw.earned_rsc === 'string' ? parseFloat(raw.earned_rsc) : raw.earned_rsc,
       isVerified: raw.is_verified || false,
+      ...(raw.rank != null && { rank: raw.rank }),
     };
   }
 );
@@ -86,6 +109,7 @@ export const transformTopFunder = createTransformer<RawTopFunder, TopFunder>(
       totalFunding:
         typeof raw.total_funding === 'string' ? parseFloat(raw.total_funding) : raw.total_funding,
       isVerified: raw.is_verified || false,
+      ...(raw.rank != null && { rank: raw.rank }),
     };
   }
 );
