@@ -1,6 +1,11 @@
-import { redirect } from 'next/navigation';
+import { ReactNode } from 'react';
 import { Metadata } from 'next';
+import { PageLayout } from '@/app/layouts/PageLayout';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
+
+interface LeaderboardLayoutProps {
+  children: ReactNode;
+}
 
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'Leaderboard',
@@ -10,6 +15,6 @@ export const metadata: Metadata = buildOpenGraphMetadata({
   type: 'website',
 });
 
-export default function LeaderboardPage() {
-  redirect('/leaderboard/funders');
+export default function LeaderboardLayout({ children }: LeaderboardLayoutProps) {
+  return <PageLayout rightSidebar={false}>{children}</PageLayout>;
 }
