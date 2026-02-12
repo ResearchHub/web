@@ -6,6 +6,7 @@ import { ChevronRight, X } from 'lucide-react';
 
 export interface CarouselCard {
   content: ReactNode;
+  onClick?: () => void;
   onClose?: () => void;
 }
 
@@ -77,14 +78,19 @@ export const Carousel = ({
           {cards.map((card, index) => (
             <div
               key={index}
+              onClick={card.onClick}
               className={cn(
-                'relative bg-gray-100 rounded-2xl px-4 py-3.5',
+                'relative bg-gray-100 rounded-2xl px-4 py-3.5 hover:bg-gray-200/60 transition-colors',
+                card.onClick && 'cursor-pointer',
                 fillContainer ? 'flex-1 min-w-0' : `flex-shrink-0 ${cardWidth}`
               )}
             >
               {card.onClose && (
                 <button
-                  onClick={card.onClose}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    card.onClose?.();
+                  }}
                   className="absolute top-2.5 right-2.5 p-0.5 rounded-full hover:bg-gray-200 transition-colors"
                   aria-label="Dismiss"
                 >

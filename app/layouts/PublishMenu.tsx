@@ -1,13 +1,11 @@
 'use client';
 
-import { Plus, PenLine, UserCircle } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import Icon from '@/components/ui/icons/Icon';
-import { useUser } from '@/contexts/UserContext';
-import { navigateToAuthorProfile } from '@/utils/navigation';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useState } from 'react';
@@ -17,61 +15,33 @@ interface PublishMenuProps {
   forceMinimize?: boolean;
 }
 
-const PUBLISH_MENU_SECTIONS = [
+const PUBLISH_MENU_ITEMS = [
   {
-    title: 'Your Research',
-    items: [
-      {
-        id: 'submit-paper',
-        title: 'Publish manuscript',
-        description: 'Submit a manuscript as a preprint or publication',
-        icon: <Icon name="submit1" size={24} color="#2563eb" />,
-        action: 'navigate',
-        path: '/paper/create',
-        requiresAuth: true,
-      },
-      {
-        id: 'write-note',
-        title: 'Write a research note',
-        description: 'Share insights, ideas, or work in progress',
-        icon: <PenLine size={24} color="#2563eb" />,
-        action: 'navigate',
-        path: '/notebook',
-        requiresAuth: true,
-      },
-    ],
+    id: 'request-funding',
+    title: 'Post research proposal',
+    description: 'Get crowdfunding for your experiments',
+    icon: <FundingIcon size={24} color="#2563eb" />,
+    action: 'function',
+    handler: 'handleFundResearch',
+    requiresAuth: true,
   },
   {
-    title: 'ResearchCoin Economy',
-    items: [
-      {
-        id: 'request-funding',
-        title: 'Request funding',
-        description: 'Get crowdfunding for your experiments',
-        icon: <FundingIcon size={24} color="#2563eb" />,
-        action: 'function',
-        handler: 'handleFundResearch',
-        requiresAuth: true,
-      },
-      {
-        id: 'give-funding',
-        title: 'Give research funding',
-        description: 'Fund specific research you care about',
-        icon: <Icon name="fund" size={24} color="#2563eb" />,
-        action: 'function',
-        handler: 'handleOpenGrant',
-        requiresAuth: true,
-      },
-      {
-        id: 'post-bounty',
-        title: 'Post a bounty',
-        description: 'Pay experts to solve your problems',
-        icon: <Icon name="earn1" size={24} color="#2563eb" />,
-        action: 'function',
-        handler: 'handleCreateBounty',
-        requiresAuth: true,
-      },
-    ],
+    id: 'give-funding',
+    title: 'Post funding opportunity',
+    description: 'Fund specific research you care about',
+    icon: <Icon name="fund" size={24} color="#2563eb" />,
+    action: 'function',
+    handler: 'handleOpenGrant',
+    requiresAuth: true,
+  },
+  {
+    id: 'submit-paper',
+    title: 'Post manuscript',
+    description: 'Submit a manuscript as a preprint or publication',
+    icon: <Icon name="submit1" size={24} color="#2563eb" />,
+    action: 'navigate',
+    path: '/paper/create',
+    requiresAuth: true,
   },
 ] as const;
 
@@ -100,7 +70,6 @@ const MenuItemContent: React.FC<MenuItemContentProps> = ({ icon, title, descript
 export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimize = false }) => {
   const router = useRouter();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
-  const { user } = useUser();
   const { smAndDown } = useScreenSize();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
@@ -112,15 +81,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
     router.push('/notebook?newGrant=true');
   };
 
-  const handleCreateBounty = () => {
-    router.push('/bounty/create');
-  };
-
-  const handleViewProfile = () => {
-    navigateToAuthorProfile(user?.id, false);
-  };
-
-  const handleMenuItemClick = (item: (typeof PUBLISH_MENU_SECTIONS)[number]['items'][number]) => {
+  const handleMenuItemClick = (item: (typeof PUBLISH_MENU_ITEMS)[number]) => {
     if (item.requiresAuth) {
       executeAuthenticatedAction(() => {
         if (item.action === 'navigate') {
@@ -132,9 +93,6 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
               break;
             case 'handleOpenGrant':
               handleOpenGrant();
-              break;
-            case 'handleCreateBounty':
-              handleCreateBounty();
               break;
           }
         }
@@ -185,70 +143,54 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
   );
 
   const menuContent = (
-    <div className="space-y-4 pt-2">
-      {PUBLISH_MENU_SECTIONS.map((section) => (
-        <div key={section.title}>
-          <div className="px-3 mb-2">
-            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {section.title}
-            </h3>
-          </div>
-          <div className="space-y-2">
-            {section.items.map((item) => (
-              <BaseMenuItem
-                key={item.id}
-                onClick={() => handleMenuItemClick(item)}
-                className="w-full px-2"
-              >
-                <MenuItemContent
-                  icon={item.icon}
-                  title={item.title}
-                  description={item.description}
-                />
-              </BaseMenuItem>
-            ))}
-          </div>
-        </div>
-      ))}
+    <div className="pt-2">
+      <div className="px-3 mb-2">
+        <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Post on ResearchHub
+        </h3>
+      </div>
+      <div className="space-y-2">
+        {PUBLISH_MENU_ITEMS.map((item) => (
+          <BaseMenuItem
+            key={item.id}
+            onClick={() => handleMenuItemClick(item)}
+            className="w-full px-2"
+          >
+            <MenuItemContent icon={item.icon} title={item.title} description={item.description} />
+          </BaseMenuItem>
+        ))}
+      </div>
     </div>
   );
 
   // Mobile drawer content
   const mobileDrawerContent = (
-    <div className="space-y-4">
-      {PUBLISH_MENU_SECTIONS.map((section) => (
-        <div key={section.title}>
-          <div className="px-3 mb-2">
-            <h3 className="text-base font-medium text-gray-500 uppercase tracking-wider">
-              {section.title}
-            </h3>
+    <div>
+      <div className="px-3 mb-2">
+        <h3 className="text-base font-medium text-gray-500 uppercase tracking-wider">
+          Post on ResearchHub
+        </h3>
+      </div>
+      <div className="space-y-2">
+        {PUBLISH_MENU_ITEMS.map((item) => (
+          <div
+            key={item.id}
+            onClick={() => handleMenuItemClick(item)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleMenuItemClick(item);
+              }
+            }}
+            className="w-full px-3 py-3 hover:bg-gray-50 cursor-pointer rounded-lg"
+            role="button"
+            tabIndex={0}
+            aria-label={`${item.title}: ${item.description}`}
+          >
+            <MenuItemContent icon={item.icon} title={item.title} description={item.description} />
           </div>
-          <div className="space-y-2">
-            {section.items.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => handleMenuItemClick(item)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleMenuItemClick(item);
-                  }
-                }}
-                className="w-full px-3 py-3 hover:bg-gray-50 cursor-pointer rounded-lg"
-                role="button"
-                tabIndex={0}
-                aria-label={`${item.title}: ${item.description}`}
-              >
-                <MenuItemContent
-                  icon={item.icon}
-                  title={item.title}
-                  description={item.description}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 

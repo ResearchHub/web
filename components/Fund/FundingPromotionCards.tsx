@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Microscope, ArrowRight, Star } from 'lucide-react';
 import Icon from '@/components/ui/icons/Icon';
 import { Carousel, CarouselCard } from '@/components/ui/Carousel';
@@ -17,10 +18,12 @@ const CARD_FEATURES = [
 export const FundingPromotionCards = () => {
   const [isLearnMoreOpen, setIsLearnMoreOpen] = useState(false);
   const { features, dismissFeature } = useDismissableFeatures([...CARD_FEATURES]);
+  const router = useRouter();
 
   const allCards: (CarouselCard & { featureKey: string })[] = [
     {
       featureKey: CARD_FEATURES[0],
+      onClick: () => setIsLearnMoreOpen(true),
       onClose: () => dismissFeature(CARD_FEATURES[0]),
       content: (
         <div className="flex items-center gap-3 pr-4">
@@ -43,6 +46,7 @@ export const FundingPromotionCards = () => {
     },
     {
       featureKey: CARD_FEATURES[1],
+      onClick: () => router.push('/fund/opportunities'),
       onClose: () => dismissFeature(CARD_FEATURES[1]),
       content: (
         <div className="flex items-center gap-3 pr-4">
@@ -65,6 +69,7 @@ export const FundingPromotionCards = () => {
     },
     {
       featureKey: CARD_FEATURES[2],
+      onClick: () => router.push('/earn'),
       onClose: () => dismissFeature(CARD_FEATURES[2]),
       content: (
         <div className="flex items-center gap-3 pr-4">

@@ -27,7 +27,7 @@ const Step = ({ step, title, description, isLast = false }: StepProps) => (
   <div className="flex gap-3">
     {/* Timeline column: dot + connector */}
     <div className="flex flex-col items-center">
-      <div className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-900 text-[11px] font-bold flex items-center justify-center flex-shrink-0">
+      <div className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-900 text-[11px] font-bold flex items-center justify-center flex-shrink-0">
         {step}
       </div>
       {!isLast && <div className="w-px flex-1 bg-indigo-300 my-0.5" />}
