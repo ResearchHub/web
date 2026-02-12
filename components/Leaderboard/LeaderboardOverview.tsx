@@ -12,6 +12,8 @@ import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useLeaderboard } from '@/contexts/LeaderboardContext';
+import { useUser } from '@/contexts/UserContext';
+import { cn } from '@/utils/styles';
 import { Star, ChevronRight } from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
 
@@ -34,6 +36,26 @@ const LeaderboardListSkeleton = () => (
 // Skeleton Loader for leaderboard sections
 export const LeaderboardSkeleton = () => (
   <>
+    {/* Top Funders Section Skeleton */}
+    <div>
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex items-start gap-2">
+          <Icon name="fund" size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <h2 className="font-semibold text-gray-900">Top Funders</h2>
+          </div>
+        </div>
+        <div className="text-xs text-gray-700 flex items-center gap-0.5 mt-1">
+          View All
+          <ChevronRight className="w-3 h-3" />
+        </div>
+      </div>
+      <LeaderboardListSkeleton />
+    </div>
+
+    {/* Divider */}
+    <div className="border-t border-gray-200 my-4" />
+
     {/* Top Peer Reviewers Section Skeleton */}
     <div>
       <div className="flex justify-between items-start mb-3">
@@ -41,7 +63,6 @@ export const LeaderboardSkeleton = () => (
           <Star className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
           <div>
             <h2 className="font-semibold text-gray-900">Top Peer Reviewers</h2>
-            <p className="text-xs text-gray-500">This Week</p>
           </div>
         </div>
         <div className="text-xs text-gray-700 flex items-center gap-0.5 mt-1">
@@ -52,33 +73,14 @@ export const LeaderboardSkeleton = () => (
       <LeaderboardListSkeleton />
       <div className="mt-4 h-9 bg-gray-100 rounded-md w-full animate-pulse" />
     </div>
-
-    {/* Divider */}
-    <div className="border-t border-gray-200 my-4" />
-
-    {/* Top Funders Section Skeleton */}
-    <div>
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex items-start gap-2">
-          <Icon name="fund" size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
-          <div>
-            <h2 className="font-semibold text-gray-900">Top Funders</h2>
-            <p className="text-xs text-gray-500">This Month</p>
-          </div>
-        </div>
-        <div className="text-xs text-gray-700 flex items-center gap-0.5 mt-1">
-          View All
-          <ChevronRight className="w-3 h-3" />
-        </div>
-      </div>
-      <LeaderboardListSkeleton />
-    </div>
   </>
 );
 
 export const LeaderboardOverview = () => {
   const { data, isLoading, error, fetchData } = useLeaderboard();
   const { showUSD } = useCurrencyPreference();
+  const { user } = useUser();
+  const currentUserAuthorId = user?.authorProfile?.id;
 
   const reviewers = data?.reviewers || [];
   const funders = data?.funders || [];
@@ -107,7 +109,8 @@ export const LeaderboardOverview = () => {
   const renderListItem = (
     item: TopReviewer | TopFunder,
     index: number,
-    type: 'reviewer' | 'funder'
+    type: 'reviewer' | 'funder',
+    isCurrentUser: boolean
   ) => {
     const rank = index + 1;
     const authorId = item.authorProfile?.id;
@@ -122,7 +125,10 @@ export const LeaderboardOverview = () => {
       <div
         key={item.id}
         onClick={() => authorId && navigateToAuthorProfile(authorId)}
-        className="grid grid-cols-[32px_40px_1fr_auto] gap-x-2 items-center hover:bg-gray-50 px-1 py-2 rounded-md cursor-pointer"
+        className={cn(
+          'grid grid-cols-[32px_40px_1fr_auto] gap-x-2 items-center px-1 py-2 rounded-md cursor-pointer',
+          isCurrentUser ? 'bg-orange-50 hover:bg-orange-100' : 'hover:bg-gray-50'
+        )}
       >
         {/* Rank */}
         <div className="w-8 flex-shrink-0">{renderRank(rank)}</div>
@@ -192,47 +198,6 @@ export const LeaderboardOverview = () => {
 
   return (
     <>
-      {/* Top Peer Reviewers Section */}
-      <div>
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex items-start gap-2">
-            <Star className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <h2 className="font-semibold text-gray-900">Top Peer Reviewers</h2>
-              <p className="text-xs text-gray-500">This Week</p>
-            </div>
-          </div>
-          <Link
-            href="/leaderboard?tab=reviewers"
-            className="text-xs text-gray-700 hover:underline flex items-center gap-0.5 mt-1"
-          >
-            View All
-            <ChevronRight className="w-3 h-3" />
-          </Link>
-        </div>
-        {isLoading ? (
-          <LeaderboardListSkeleton />
-        ) : error ? (
-          <p className="text-xs text-red-600">{error}</p>
-        ) : reviewers.length > 0 ? (
-          <div className="space-y-3">
-            {reviewers.map((reviewer, index) => renderListItem(reviewer, index, 'reviewer'))}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-500 mt-4 text-center">No reviewers found this week.</p>
-        )}
-        {/* Secondary CTA for preprints needing review */}
-        <Link
-          href="/earn"
-          className="mt-4 block w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium py-2 px-3 rounded-md border border-primary-200 hover:bg-primary-50 transition-colors"
-        >
-          View preprints needing review
-        </Link>
-      </div>
-
-      {/* Divider */}
-      <div className="border-t border-gray-200 my-4" />
-
       {/* Top Funders Section */}
       <div>
         <div className="flex justify-between items-start mb-3">
@@ -240,11 +205,10 @@ export const LeaderboardOverview = () => {
             <Icon name="fund" size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
             <div>
               <h2 className="font-semibold text-gray-900">Top Funders</h2>
-              <p className="text-xs text-gray-500">This Month</p>
             </div>
           </div>
           <Link
-            href="/leaderboard?tab=funders"
+            href="/leaderboard/funders"
             className="text-xs text-gray-700 hover:underline flex items-center gap-0.5 mt-1"
           >
             View All
@@ -257,11 +221,65 @@ export const LeaderboardOverview = () => {
           <p className="text-xs text-red-600">{error}</p>
         ) : funders.length > 0 ? (
           <div className="space-y-3">
-            {funders.map((funder, index) => renderListItem(funder, index, 'funder'))}
+            {funders.map((funder, index) =>
+              renderListItem(
+                funder,
+                index,
+                'funder',
+                funder.authorProfile?.id === currentUserAuthorId
+              )
+            )}
           </div>
         ) : (
           <p className="text-sm text-gray-500 mt-4 text-center">No funders found this month.</p>
         )}
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-gray-200 my-4" />
+
+      {/* Top Peer Reviewers Section */}
+      <div>
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex items-start gap-2">
+            <Star className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <h2 className="font-semibold text-gray-900">Top Peer Reviewers</h2>
+            </div>
+          </div>
+          <Link
+            href="/leaderboard/reviewers"
+            className="text-xs text-gray-700 hover:underline flex items-center gap-0.5 mt-1"
+          >
+            View All
+            <ChevronRight className="w-3 h-3" />
+          </Link>
+        </div>
+        {isLoading ? (
+          <LeaderboardListSkeleton />
+        ) : error ? (
+          <p className="text-xs text-red-600">{error}</p>
+        ) : reviewers.length > 0 ? (
+          <div className="space-y-3">
+            {reviewers.map((reviewer, index) =>
+              renderListItem(
+                reviewer,
+                index,
+                'reviewer',
+                reviewer.authorProfile?.id === currentUserAuthorId
+              )
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500 mt-4 text-center">No reviewers found this week.</p>
+        )}
+        {/* Secondary CTA for preprints needing review */}
+        <Link
+          href="/earn"
+          className="mt-4 block w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium py-2 px-3 rounded-md border border-primary-200 hover:bg-primary-50 transition-colors"
+        >
+          View preprints needing review
+        </Link>
       </div>
     </>
   );

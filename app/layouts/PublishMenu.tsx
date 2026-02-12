@@ -62,15 +62,6 @@ const PUBLISH_MENU_SECTIONS = [
         handler: 'handleOpenGrant',
         requiresAuth: true,
       },
-      {
-        id: 'post-bounty',
-        title: 'Post a bounty',
-        description: 'Pay experts to solve your problems',
-        icon: <Icon name="earn1" size={24} color="#2563eb" />,
-        action: 'function',
-        handler: 'handleCreateBounty',
-        requiresAuth: true,
-      },
     ],
   },
 ] as const;
@@ -112,10 +103,6 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
     router.push('/notebook?newGrant=true');
   };
 
-  const handleCreateBounty = () => {
-    router.push('/bounty/create');
-  };
-
   const handleViewProfile = () => {
     navigateToAuthorProfile(user?.id, false);
   };
@@ -132,9 +119,6 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
               break;
             case 'handleOpenGrant':
               handleOpenGrant();
-              break;
-            case 'handleCreateBounty':
-              handleCreateBounty();
               break;
           }
         }

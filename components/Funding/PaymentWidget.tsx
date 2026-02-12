@@ -13,6 +13,7 @@ import {
   usePaymentCalculations,
   HIDDEN_PAYMENT_METHODS,
   type PaymentMethodType,
+  type WalletAvailability,
 } from './lib';
 import { MOCK_DAF_ACCOUNTS } from './lib/mockEndaomentData';
 import { CreditCardForm, type StripePaymentContext } from './CreditCardForm';
@@ -56,8 +57,8 @@ interface PaymentWidgetProps {
   onStripeReady?: (context: StripePaymentContext | null) => void;
   /** Whether to hide the CTA button (when used inside PaymentStep) */
   hideButton?: boolean;
-  /** Whether the browser is Safari (determines Apple Pay vs Google Pay visibility) */
-  isSafari?: boolean;
+  /** Wallet payment method availability from Stripe */
+  walletAvailability: WalletAvailability;
 }
 
 /**
@@ -80,7 +81,7 @@ export function PaymentWidget({
   onCreditCardCompleteChange,
   onStripeReady,
   hideButton = false,
-  isSafari = false,
+  walletAvailability,
 }: PaymentWidgetProps) {
   const { isExpanded, selectedMethod, toggleExpanded, selectMethod } = usePaymentMethod({
     initialMethod: selectedPaymentMethod,
@@ -160,13 +161,23 @@ export function PaymentWidget({
     },
   ];
 
-  // Filter out hidden payment methods and browser-specific payment methods
-  // Safari: show Apple Pay, hide Google Pay
-  // Non-Safari: show Google Pay, hide Apple Pay
+  // Filter payment methods based on actual device capabilities from Stripe.
+  // - Hide Apple Pay if not available on this device
+  // - Hide Google Pay if not available OR if Apple Pay is available
+  //   (Stripe's PaymentRequestButtonElement renders Apple Pay preferentially
+  //   on Apple devices, so showing Google Pay would be misleading)
+  // - While still checking, hide both wallet options to avoid showing
+  //   options that may not be available
   const visiblePaymentOptions = paymentOptions.filter((option) => {
     if (HIDDEN_PAYMENT_METHODS.includes(option.id)) return false;
-    if (option.id === 'apple_pay' && !isSafari) return false;
-    if (option.id === 'google_pay' && isSafari) return false;
+    if (option.id === 'apple_pay') {
+      return !walletAvailability.checking && walletAvailability.applePay;
+    }
+    if (option.id === 'google_pay') {
+      return (
+        !walletAvailability.checking && walletAvailability.googlePay && !walletAvailability.applePay
+      );
+    }
     return true;
   });
 
