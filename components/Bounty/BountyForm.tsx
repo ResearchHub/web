@@ -56,79 +56,7 @@ interface BountyFormProps {
   className?: string;
 }
 
-// Reuse the existing components from CreateBountyModal
-const CurrencyInput = ({
-  value,
-  onChange,
-  currency,
-  onCurrencyToggle,
-  convertedAmount,
-  suggestedAmount,
-  error,
-  isExchangeRateLoading,
-}: {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  currency: Currency;
-  onCurrencyToggle: () => void;
-  convertedAmount?: string;
-  suggestedAmount?: string;
-  error?: string;
-  isExchangeRateLoading?: boolean;
-}) => {
-  const currentAmount = parseFloat(value.replace(/,/g, '')) || 0;
-  const suggestedAmountValue = suggestedAmount
-    ? parseFloat(suggestedAmount.replace(/[^0-9.]/g, ''))
-    : 0;
-
-  const isBelowSuggested = currentAmount < suggestedAmountValue;
-  const suggestedTextColor = !currentAmount
-    ? 'text-gray-500'
-    : isBelowSuggested
-      ? 'text-orange-500'
-      : 'text-green-500';
-
-  return (
-    <div className="relative">
-      <Input
-        name="amount"
-        value={value}
-        onChange={onChange}
-        required
-        label="I am offering"
-        placeholder="0.00"
-        type="text"
-        inputMode="numeric"
-        className={`w-full text-left h-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${error ? 'border-red-500' : ''}`}
-        rightElement={
-          <button
-            type="button"
-            onClick={onCurrencyToggle}
-            className="flex items-center gap-1 pr-3 text-gray-900 hover:text-gray-600"
-          >
-            <span className="font-medium">{currency}</span>
-            <ChevronDown className="w-4 h-4" />
-          </button>
-        }
-      />
-      {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
-      {suggestedAmount && !error && (
-        <p className={`mt-1.5 text-xs ${suggestedTextColor}`}>
-          Suggested amount for peer review: {suggestedAmount}
-          {currency === 'RSC' &&
-            !isExchangeRateLoading &&
-            !suggestedAmount.includes('Loading') &&
-            ' (150 USD)'}
-        </p>
-      )}
-      {isExchangeRateLoading ? (
-        <div className="mt-1.5 text-sm text-gray-500">Loading exchange rate...</div>
-      ) : (
-        convertedAmount && <div className="mt-1.5 text-sm text-gray-500">{convertedAmount}</div>
-      )}
-    </div>
-  );
-};
+import { CurrencyInput } from '@/components/ui/form/CurrencyInput';
 
 const BountyLengthSelector = ({
   selected,
@@ -375,6 +303,14 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/[^0-9.]/g, '');
+    
+    // Allow empty string to reset the input
+    if (rawValue === '') {
+      setInputAmount(0);
+      setAmountError(undefined);
+      return;
+    }
+
     const numValue = parseFloat(rawValue);
 
     if (!hasInteractedWithAmount) {
@@ -396,15 +332,14 @@ export function BountyForm({ workId, onSubmitSuccess, className }: BountyFormPro
       } else {
         setAmountError(undefined);
       }
-    } else {
-      setInputAmount(0);
-      setAmountError('Please enter a valid amount');
     }
   };
 
   const getFormattedInputValue = () => {
+    // If user has interacted and value is 0, show empty string to allow clearing
+    if (hasInteractedWithAmount && inputAmount === 0) return '';
     if (inputAmount === 0) return '';
-    return inputAmount.toLocaleString();
+    return inputAmount;
   };
 
   const toggleCurrency = () => {
