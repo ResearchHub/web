@@ -9,6 +9,8 @@ import { LeaderboardPagination } from './LeaderboardPagination';
 import type { LeaderboardListItemBase } from './leaderboardList.types';
 import { useLeaderboardReviewers } from '@/hooks/useLeaderboard';
 import type { TopReviewer } from '@/types/leaderboard';
+import { SearchEmpty } from '@/components/ui/SearchEmpty';
+import { LoadErrorState } from '@/components/ui/LoadErrorState';
 
 function toRowItem(reviewer: TopReviewer): LeaderboardListItemBase {
   return {
@@ -48,6 +50,7 @@ export function TopPeerReviewers({
     goToNextPage,
     goToPrevPage,
     pageSize,
+    retry,
   } = useLeaderboardReviewers(period, page, onPageChange);
 
   const listStartRank = (currentPage - 1) * pageSize + 1;
@@ -66,11 +69,18 @@ export function TopPeerReviewers({
   }
 
   if (error) {
-    return <p className="text-center text-red-600 py-4">{error}</p>;
+    return (
+      <LoadErrorState
+        title={error}
+        subtitle="We couldn't load the leaderboard. Please try again."
+        onRetry={retry}
+        className="py-10"
+      />
+    );
   }
 
   if (reviewers.length === 0) {
-    return <p className="text-center text-gray-500 py-4">No reviewers found for this period.</p>;
+    return <SearchEmpty title="No reviewers found for this period." className="py-10" />;
   }
 
   const amountLabel = showUSD ? 'USD Earned' : 'RSC Earned';

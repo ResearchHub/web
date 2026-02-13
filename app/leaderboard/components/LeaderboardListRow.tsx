@@ -1,6 +1,7 @@
 'use client';
 
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { KeyboardEvent } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
@@ -28,7 +29,36 @@ export function LeaderboardListRow({
   isHighlighted,
   showYouLabel,
 }: LeaderboardListRowProps) {
+  const router = useRouter();
   const authorId = item.authorProfile?.id;
+  const href = authorId ? `/author/${authorId}` : undefined;
+
+  const handleClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const isInteractive = target.closest('button, a, [role="button"], input, select, textarea');
+    if (isInteractive || !href) return;
+
+    if (e.button === 1) {
+      window.open(href, '_blank');
+      return;
+    }
+    if (e.button === 0) {
+      if (e.metaKey || e.ctrlKey) {
+        window.open(href, '_blank');
+      } else {
+        router.push(href, { scroll: false });
+      }
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (!href) return;
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      router.push(href, { scroll: false });
+    }
+  };
+
   const rowClassName = cn(
     'flex items-center justify-between p-4 rounded-lg border',
     authorId && 'cursor-pointer',
@@ -113,9 +143,22 @@ export function LeaderboardListRow({
 
   if (authorId) {
     return (
-      <Link href={`/author/${authorId}`} className={rowClassName}>
+      <div
+        className={rowClassName}
+        onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        onAuxClick={(e) => {
+          if (e.button === 1 && href) {
+            e.preventDefault();
+            window.open(href, '_blank');
+          }
+        }}
+        role="link"
+        tabIndex={0}
+        aria-label={`View ${item.authorProfile?.fullName ?? 'author'} profile`}
+      >
         {content}
-      </Link>
+      </div>
     );
   }
 
