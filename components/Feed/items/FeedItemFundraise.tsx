@@ -17,7 +17,6 @@ import { AuthorList } from '@/components/ui/AuthorList';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
 import { FundraiseProgressCardView } from '@/components/Fund/FundraiseProgressCardView';
 import { Building, Pin } from 'lucide-react';
-import { FeedItemGrantCallout } from '@/components/Feed/FeedItemGrantCallout';
 import { formatTimestamp } from '@/utils/date';
 import { useRouter } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
@@ -198,11 +197,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
               </MetadataSection>
             )}
 
-            {/* Grant Application Callout */}
-            {post.fundraise?.application && (
-              <FeedItemGrantCallout application={post.fundraise.application} />
-            )}
-
             {/* Truncated Content */}
             <ContentSection content={post.textPreview} maxLength={maxLength} />
           </>
@@ -219,13 +213,8 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       />
       {/* Fundraise Progress (only for preregistrations with fundraise) */}
       {hasFundraise && post.fundraise && (
-        <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-          <FundraiseProgressCardView
-            fundraiseTitle={post.title}
-            fundraise={post.fundraise}
-            compact={true}
-            onDetailsClick={handleFundDetailsClick}
-          />
+        <div className="mt-4 pt-4 border-t border-gray-200" onClick={(e) => e.stopPropagation()}>
+          <FundraiseProgressCardView fundraise={post.fundraise} />
         </div>
       )}
     </BaseFeedItem>

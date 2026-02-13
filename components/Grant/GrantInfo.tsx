@@ -6,7 +6,6 @@ import { AvatarStack } from '@/components/ui/AvatarStack';
 import { formatDate, isDeadlineInFuture } from '@/utils/date';
 import { FeedGrantContent } from '@/types/feed';
 import { useRouter } from 'next/navigation';
-import { StatusCard } from '@/components/ui/StatusCard';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { ArrowRight } from 'lucide-react';
 
@@ -80,7 +79,7 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
   const applicantCount = applicants.length;
 
   return (
-    <StatusCard variant={isActive ? 'active' : 'inactive'} className={className}>
+    <div className={className}>
       <div className="flex items-center justify-between gap-3">
         {/* Stats Section */}
         <div className="flex items-center gap-4 sm:gap-8 min-w-0 flex-1">
@@ -172,6 +171,6 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
           </Button>
         </div>
       </div>
-    </StatusCard>
+    </div>
   );
 };
