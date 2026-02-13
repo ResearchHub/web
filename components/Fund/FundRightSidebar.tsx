@@ -162,9 +162,12 @@ interface SectionHeaderProps {
 }
 
 const SectionHeader = ({ title, action }: SectionHeaderProps) => (
-  <div className="flex items-center justify-between mb-4">
-    <h3 className="text-base font-semibold text-gray-900">{title}</h3>
-    {action}
+  <div className="mb-6">
+    <div className="flex items-center justify-between">
+      <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+      {action}
+    </div>
+    <div className="border-b border-gray-200 mt-3" />
   </div>
 );
 
@@ -180,11 +183,11 @@ export const FundRightSidebar = () => {
   }, [fetchData]);
 
   return (
-    <div className="bg-white rounded-xl border-gray-200 divide-y divide-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl border-gray-200 overflow-hidden">
       <FundingLearnMoreModal isOpen={showLearnMore} onClose={() => setShowLearnMore(false)} />
 
       {/* ── How Funding Works ───────────────────────────────────── */}
-      <div className="p-5">
+      <div className="py-3 pt-3">
         <SectionHeader
           title="How Funding Works"
           action={
@@ -207,7 +210,7 @@ export const FundRightSidebar = () => {
       </div>
 
       {/* ── Top Funders ─────────────────────────────────────────── */}
-      <div className="p-5">
+      <div className="py-3">
         <SectionHeader
           title="Top Funders"
           action={
@@ -237,7 +240,7 @@ export const FundRightSidebar = () => {
       </div>
 
       {/* ── Resources ───────────────────────────────────────────── */}
-      <div className="p-5">
+      <div className="py-3">
         <SectionHeader title="Resources" />
 
         <div className="divide-y divide-gray-100">

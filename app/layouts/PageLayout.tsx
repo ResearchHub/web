@@ -185,11 +185,11 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
           {rightSidebar && (
             <aside
               className={`fixed right-0 overflow-y-auto transition-all duration-150
-                    lg:!block !hidden right-sidebar:!block w-80 bg-white border-l border-gray-200
+                    lg:!block !hidden right-sidebar:!block w-80 bg-white
                     z-30 ${isCompact ? 'top-12 h-[calc(100vh-48px)]' : 'top-16 h-[calc(100vh-64px)]'}`}
             >
               {/* Sidebar Content */}
-              <div className="">
+              <div className="px-4 pt-4 pb-4">
                 <Suspense fallback={<RightSidebarSkeleton />}>
                   {pathname.startsWith('/paper/create') ? (
                     <RHJRightSidebar showBanner={false} />

@@ -20,6 +20,7 @@ import { Building, Pin } from 'lucide-react';
 import { formatTimestamp } from '@/utils/date';
 import { useRouter } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
+import { ReviewNeededBadge } from '@/components/ui/ReviewNeededBadge';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -62,6 +63,9 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   // Check if the entry has the is_nonprofit flag and is a funding type
   const isNonprofit =
     entry.raw?.is_nonprofit === true && post.contentType === 'PREREGISTRATION' && post.fundraise;
+
+  // Check if peer review is needed (fundraise exists but no reviews)
+  const needsReview = hasFundraise && (!post.reviews || post.reviews.length === 0);
 
   // Convert authors to the format expected by AuthorList
   const authors =
@@ -146,6 +150,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         leftContent={
           <div className="flex items-center gap-2">
             {isNonprofit && <TaxDeductibleBadge />}
+            {needsReview && <ReviewNeededBadge reviewHref={fundingPageUrl} />}
             <FeedItemBadges
               topics={topics}
               category={post.category}
