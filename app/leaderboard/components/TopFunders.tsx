@@ -9,6 +9,8 @@ import { LeaderboardPagination } from './LeaderboardPagination';
 import type { LeaderboardListItemBase } from './leaderboardList.types';
 import { useLeaderboardFunders } from '@/hooks/useLeaderboard';
 import type { TopFunder } from '@/types/leaderboard';
+import { SearchEmpty } from '@/components/ui/SearchEmpty';
+import { LoadErrorState } from '@/components/ui/LoadErrorState';
 
 function toRowItem(funder: TopFunder): LeaderboardListItemBase {
   return {
@@ -35,6 +37,7 @@ export function TopFunders({ period, page, onPageChange, currentUser }: TopFunde
     goToNextPage,
     goToPrevPage,
     pageSize,
+    retry,
   } = useLeaderboardFunders(period, page, onPageChange);
 
   const listStartRank = (currentPage - 1) * pageSize + 1;
@@ -52,11 +55,18 @@ export function TopFunders({ period, page, onPageChange, currentUser }: TopFunde
   }
 
   if (error) {
-    return <p className="text-center text-red-600 py-4">{error}</p>;
+    return (
+      <LoadErrorState
+        title={error}
+        subtitle="We couldn't load the leaderboard. Please try again."
+        onRetry={retry}
+        className="py-10"
+      />
+    );
   }
 
   if (funders.length === 0) {
-    return <p className="text-center text-gray-500 py-4">No funders found for this period.</p>;
+    return <SearchEmpty title="No funders found for this period." className="py-10" />;
   }
 
   const amountLabel = showUSD ? 'USD Funded' : 'RSC Funded';
