@@ -4,7 +4,18 @@ import { transformAuthorProfile } from './authorProfile';
 
 export interface GrantApplication {
   id: ID;
-  grant: Pick<Grant, 'id' | 'title' | 'createdBy' | 'amount' | 'organization'>;
+  grant: Pick<
+    Grant,
+    | 'id'
+    | 'title'
+    | 'createdBy'
+    | 'amount'
+    | 'organization'
+    | 'status'
+    | 'startDate'
+    | 'endDate'
+    | 'currency'
+  >;
 }
 
 export const transformGrantApplication = (raw: any): GrantApplication => ({
@@ -24,5 +35,9 @@ export const transformGrantApplication = (raw: any): GrantApplication => ({
       formatted: raw.grant.amount.formatted,
     },
     organization: raw.grant.organization,
+    status: raw.grant.status,
+    startDate: raw.grant.start_date,
+    endDate: raw.grant.end_date,
+    currency: raw.grant.goal_currency || raw.grant.currency,
   },
 });

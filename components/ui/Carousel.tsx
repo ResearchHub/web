@@ -17,6 +17,7 @@ interface CarouselProps {
   className?: string;
   showFadeGradient?: boolean; // right-edge fade hint, default true
   fillContainer?: boolean; // cards stretch to fill container
+  cardClassName?: string; // Override default card bg/hover classes. Pass '' for no background.
 }
 
 export const Carousel = ({
@@ -26,6 +27,7 @@ export const Carousel = ({
   className,
   showFadeGradient = true,
   fillContainer = false,
+  cardClassName,
 }: CarouselProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -80,7 +82,8 @@ export const Carousel = ({
               key={index}
               onClick={card.onClick}
               className={cn(
-                'relative bg-gray-100 rounded-2xl px-4 py-3.5 hover:bg-gray-200/60 transition-colors',
+                'relative rounded-2xl px-4 py-3.5 transition-colors',
+                cardClassName ?? 'bg-gray-100 hover:bg-gray-200/60',
                 card.onClick && 'cursor-pointer',
                 fillContainer ? 'flex-1 min-w-0' : `flex-shrink-0 ${cardWidth}`
               )}

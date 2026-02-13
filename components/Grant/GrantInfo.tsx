@@ -3,7 +3,8 @@
 import { FC } from 'react';
 import { Button } from '@/components/ui/Button';
 import { AvatarStack } from '@/components/ui/AvatarStack';
-import { formatDate, isDeadlineInFuture } from '@/utils/date';
+import { formatDate } from '@/utils/date';
+import { isGrantActive } from './lib/grantUtils';
 import { FeedGrantContent } from '@/types/feed';
 import { useRouter } from 'next/navigation';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -41,9 +42,7 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
   if (!grant || !grant.grant) return null;
 
   // Check if RFP is active
-  const isActive =
-    grant.grant?.status === 'OPEN' &&
-    (grant.grant?.endDate ? isDeadlineInFuture(grant.grant?.endDate) : true);
+  const isActive = isGrantActive(grant.grant?.status, grant.grant?.endDate);
   const deadline = grant.grant.endDate ? formatDate(grant.grant.endDate) : undefined;
 
   const applicants =

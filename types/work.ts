@@ -9,6 +9,7 @@ import { ProxyService } from '../services/proxy.service';
 import { stripHtml } from '../utils/stringUtils';
 import { transformUser, TransformedUser } from './user';
 import { transformTip, Tip } from './tip';
+import { Fundraise, transformFundraise } from './funding';
 
 export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration' | 'funding_request';
 
@@ -98,7 +99,7 @@ export interface Work {
   contentUrl?: string;
   unifiedDocumentId?: number | null;
   postType?: string;
-  fundraise?: any;
+  fundraise?: Fundraise;
   tips?: Tip[];
   enrichments?: Enrichment[];
 }
@@ -251,7 +252,7 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     },
     unifiedDocumentId: raw?.unified_document?.id || null,
     postType: raw.type || raw.unified_document?.document_type,
-    fundraise: raw.fundraise,
+    fundraise: raw.fundraise ? transformFundraise(raw.fundraise) : undefined,
     note: raw.note ? transformNoteWithContent(raw.note) : undefined,
     previewContent: raw.full_markdown || '',
     contentUrl: raw.post_src,

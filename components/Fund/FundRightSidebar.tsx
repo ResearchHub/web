@@ -14,6 +14,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useLeaderboard } from '@/contexts/LeaderboardContext';
 import Link from 'next/link';
 import type { TopFunder } from '@/types/leaderboard';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 
 // ─── How Funding Works Step ─────────────────────────────────────────────
 interface StepProps {
@@ -153,22 +154,6 @@ const ResourceLink = ({ href, icon, label }: ResourceLinkProps) => (
     </div>
     <ChevronRight size={14} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
   </a>
-);
-
-// ─── Section Header ─────────────────────────────────────────────────────
-interface SectionHeaderProps {
-  title: string;
-  action?: React.ReactNode;
-}
-
-const SectionHeader = ({ title, action }: SectionHeaderProps) => (
-  <div className="mb-6">
-    <div className="flex items-center justify-between">
-      <h3 className="text-base font-semibold text-gray-900">{title}</h3>
-      {action}
-    </div>
-    <div className="border-b border-gray-200 mt-3" />
-  </div>
 );
 
 // ─── Main Component ─────────────────────────────────────────────────────
