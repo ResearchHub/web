@@ -36,24 +36,41 @@ export const GrantFilter: FC<GrantFilterProps> = ({
   const isAllSelected = selectedGrantId === null;
 
   const cards: CarouselCard[] = useMemo(() => {
-    // "All" card
+    // "All Opportunities" card
     const allCard: CarouselCard = {
       onClick: () => onSelectGrant(null),
       content: (
-        <div className={cn(
-          'h-full px-3.5 py-2 rounded-lg border transition-all duration-200',
-          isAllSelected
-            ? 'border-primary-500 bg-primary-50'
-            : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50',
-        )}>
-          <span className="block text-xs text-gray-400 whitespace-nowrap">
-            All
+        <div
+          className={cn(
+            'h-full px-4 py-3 rounded-xl border-2 transition-all duration-200',
+            isAllSelected
+              ? 'border-primary-500 bg-primary-50/80 shadow-sm'
+              : 'border-transparent bg-gray-50 hover:bg-gray-100'
+          )}
+        >
+          <span
+            className={cn(
+              'block text-[10px] font-bold uppercase tracking-wider mb-1.5',
+              isAllSelected ? 'text-primary-500' : 'text-gray-400'
+            )}
+          >
+            Browse
           </span>
-          <span className={cn(
-            'block font-medium text-sm leading-snug mt-0.5',
-            isAllSelected ? 'text-primary-700' : 'text-gray-800',
-          )}>
-            Opportunities
+          <span
+            className={cn(
+              'block font-semibold text-sm leading-snug whitespace-nowrap',
+              isAllSelected ? 'text-primary-700' : 'text-gray-800'
+            )}
+          >
+            All Opportunities
+          </span>
+          <span
+            className={cn(
+              'block text-xs mt-1',
+              isAllSelected ? 'text-primary-500' : 'text-gray-400'
+            )}
+          >
+            {totalFundraiseCount} proposals
           </span>
         </div>
       ),
@@ -65,23 +82,43 @@ export const GrantFilter: FC<GrantFilterProps> = ({
       const amount = showUSD
         ? `$${formatAmount(grant.amount.usd)}`
         : `${formatAmount(grant.amount.rsc)} RSC`;
+      const count = fundraiseCounts[grant.id] || 0;
 
       return {
         onClick: () => onSelectGrant(grant.id),
         content: (
-          <div className={cn(
-            'h-full px-3.5 py-2 rounded-lg border transition-all duration-200',
-            isSelected
-              ? 'border-primary-500 bg-primary-50'
-              : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50',
-          )}>
-            <span className="block text-xs text-gray-400 whitespace-nowrap">
-              {amount}
-            </span>
-            <span className={cn(
-              'block font-medium text-sm leading-snug line-clamp-2 mt-0.5',
-              isSelected ? 'text-primary-700' : 'text-gray-800',
-            )}>
+          <div
+            className={cn(
+              'h-full px-4 py-3 rounded-xl border-2 transition-all duration-200',
+              isSelected
+                ? 'border-primary-500 bg-primary-50/80 shadow-sm'
+                : 'border-transparent bg-gray-50 hover:bg-gray-100'
+            )}
+          >
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+              <span
+                className={cn(
+                  'text-[10px] font-bold uppercase tracking-wider truncate',
+                  isSelected ? 'text-primary-500' : 'text-gray-400'
+                )}
+              >
+                {grant.organization}
+              </span>
+              <span
+                className={cn(
+                  'text-[10px] font-bold whitespace-nowrap',
+                  isSelected ? 'text-emerald-600' : 'text-emerald-500'
+                )}
+              >
+                {amount}
+              </span>
+            </div>
+            <span
+              className={cn(
+                'block font-semibold text-sm leading-snug line-clamp-2',
+                isSelected ? 'text-primary-700' : 'text-gray-800'
+              )}
+            >
               {grant.title}
             </span>
           </div>
@@ -90,25 +127,23 @@ export const GrantFilter: FC<GrantFilterProps> = ({
     });
 
     return [allCard, ...grantCards];
-  }, [grants, selectedGrantId, onSelectGrant, showUSD, isAllSelected]);
+  }, [
+    grants,
+    selectedGrantId,
+    onSelectGrant,
+    showUSD,
+    isAllSelected,
+    fundraiseCounts,
+    totalFundraiseCount,
+  ]);
 
   return (
-    <div className="w-full">
-      {/* Section header — matches FundraiseGridHeader */}
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold text-gray-900">
-          Funding Opportunities
-        </h2>
-      </div>
-
-      {/* Carousel with per-card selection styling baked into content */}
-      <Carousel
-        cards={cards}
-        cardWidth="w-[280px]"
-        gap="gap-2"
-        showFadeGradient={true}
-        cardClassName="!bg-transparent !p-0 !rounded-none"
-      />
-    </div>
+    <Carousel
+      cards={cards}
+      cardWidth="w-[240px]"
+      gap="gap-2"
+      showFadeGradient={true}
+      cardClassName="!bg-transparent !p-0 !rounded-none"
+    />
   );
 };

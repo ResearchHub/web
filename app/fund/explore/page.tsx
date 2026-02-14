@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
@@ -14,7 +14,6 @@ import {
 import {
   mockGrants,
   mockFundraises,
-  mockFundingActivities,
   getActivitiesByGrantId,
   getFundraisesByGrantId,
 } from '@/mocks/fundingExploreMocks';
@@ -91,8 +90,16 @@ export default function FundingExplorePage() {
         showTitle={true}
       />
 
-      {/* Grant Filter (Funding Opportunities) */}
-      <div className="mt-6 mb-8">
+      {/* Funding Opportunities Filter */}
+      <div className="mt-8 mb-8">
+        <div className="flex items-center gap-3 mb-4">
+          <h2 className="text-xl font-bold text-gray-900 tracking-tight">
+            Funding Opportunities
+          </h2>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-2.5 py-1 rounded-full border border-primary-100">
+            {mockGrants.length} Open
+          </span>
+        </div>
         <GrantFilter
           grants={mockGrants}
           selectedGrantId={selectedGrantId}
@@ -101,33 +108,6 @@ export default function FundingExplorePage() {
           totalFundraiseCount={mockFundraises.length}
         />
       </div>
-
-      {/* Selected Grant Info Banner (when a specific grant is selected) */}
-      {selectedGrant && (
-        <div className="mb-6 p-4 bg-gradient-to-r from-primary-50 to-indigo-50 rounded-xl border border-primary-100">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-1">
-                {selectedGrant.title}
-              </h3>
-              <p className="text-sm text-gray-600 line-clamp-2">
-                {selectedGrant.description}
-              </p>
-              <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                <span className="flex items-center gap-1">
-                  <span className="font-medium text-gray-700">
-                    {selectedGrant.organization}
-                  </span>
-                </span>
-                <span>•</span>
-                <span className="font-medium text-emerald-600">
-                  {selectedGrant.amount.formatted} available
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Fundraise Grid Header */}
       <FundraiseGridHeader
