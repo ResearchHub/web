@@ -8,6 +8,7 @@ import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { LeaderboardRank } from './LeaderboardRank';
 import type { LeaderboardListItemBase } from './leaderboardList.types';
+import { useDeviceType } from '@/hooks/useDeviceType';
 import { cn } from '@/utils/styles';
 
 interface LeaderboardListRowProps {
@@ -30,8 +31,11 @@ export function LeaderboardListRow({
   showYouLabel,
 }: LeaderboardListRowProps) {
   const router = useRouter();
+  const deviceType = useDeviceType();
   const authorId = item.authorProfile?.id;
   const href = authorId ? `/author/${authorId}` : undefined;
+
+  const isDesktop = deviceType === 'desktop';
 
   const handleClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -62,13 +66,25 @@ export function LeaderboardListRow({
   const rowClassName = cn(
     'flex items-center justify-between p-4 rounded-lg border',
     authorId && 'cursor-pointer',
-    isHighlighted ? 'bg-orange-50 border-orange-200 hover:bg-orange-100' : 'hover:bg-gray-100'
+    isHighlighted && 'bg-orange-50 border-orange-200',
+    authorId && (isHighlighted ? 'md:hover:!bg-orange-100' : 'md:hover:!bg-gray-100')
   );
+
+  const renderName = () => (
+    <div className="flex items-center gap-1">
+      <span className="text-base font-medium text-gray-900 truncate">
+        {item.authorProfile.fullName}
+        {showYouLabel && <span className="text-orange-600 font-medium"> (you)</span>}
+      </span>
+      {item.isVerified && <VerifiedBadge size="sm" />}
+    </div>
+  );
+
   const content = (
     <>
       <div className="flex items-center gap-4 flex-1 min-w-0">
         <LeaderboardRank rank={rank} />
-        {authorId ? (
+        {authorId && isDesktop ? (
           <AuthorTooltip authorId={authorId}>
             <Avatar
               src={item.authorProfile.profileImage}
@@ -82,27 +98,14 @@ export function LeaderboardListRow({
             src={item.authorProfile.profileImage}
             alt={item.authorProfile.fullName}
             size="md"
+            authorId={authorId || undefined}
           />
         )}
         <div className="flex flex-col min-w-0">
-          {authorId ? (
-            <AuthorTooltip authorId={authorId}>
-              <div className="flex items-center gap-1">
-                <span className="text-base font-medium text-gray-900 truncate">
-                  {item.authorProfile.fullName}
-                  {showYouLabel && <span className="text-orange-600 font-medium"> (you)</span>}
-                </span>
-                {item.isVerified && <VerifiedBadge size="sm" />}
-              </div>
-            </AuthorTooltip>
+          {authorId && isDesktop ? (
+            <AuthorTooltip authorId={authorId}>{renderName()}</AuthorTooltip>
           ) : (
-            <div className="flex items-center gap-1">
-              <span className="text-base font-medium text-gray-900 truncate">
-                {item.authorProfile.fullName}
-                {showYouLabel && <span className="text-orange-600 font-medium"> (you)</span>}
-              </span>
-              {item.isVerified && <VerifiedBadge size="sm" />}
-            </div>
+            renderName()
           )}
           {item.authorProfile.headline && (
             <span className="text-sm text-gray-500 line-clamp-2">
