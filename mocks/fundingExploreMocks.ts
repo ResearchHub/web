@@ -2,6 +2,7 @@ import { Grant } from '@/types/grant';
 import { Fundraise } from '@/types/funding';
 import { FundingActivity } from '@/types/fundingActivity';
 import { AuthorProfile } from '@/types/authorProfile';
+import { FundingOrganization } from '@/types/fundingOrganization';
 
 // ─── Mock Author Profiles ────────────────────────────────────────────────
 const mockAuthors: AuthorProfile[] = [
@@ -615,3 +616,66 @@ export const getFundraisesByGrantId = (grantId: number | null) => {
   }
   return mockFundraises.filter(fundraise => fundraise.grantId === grantId);
 };
+
+// ─── Slug Helper ──────────────────────────────────────────────────────────
+const toSlug = (name: string): string =>
+  name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+// ─── Mock Organizations (derived from unique grant organizations) ─────────
+export const mockOrganizations: FundingOrganization[] = (() => {
+  const orgMap = new Map<string, { name: string; grants: Grant[] }>();
+
+  mockGrants.forEach((grant) => {
+    const slug = toSlug(grant.organization);
+    if (!orgMap.has(slug)) {
+      orgMap.set(slug, { name: grant.organization, grants: [] });
+    }
+    orgMap.get(slug)!.grants.push(grant);
+  });
+
+  return Array.from(orgMap.entries()).map(([slug, { name, grants }]) => {
+    const totalUsd = grants.reduce((sum, g) => sum + g.amount.usd, 0);
+    const totalRsc = grants.reduce((sum, g) => sum + g.amount.rsc, 0);
+
+    const formatTotal = (usd: number) => {
+      if (usd >= 1_000_000) return `$${(usd / 1_000_000).toFixed(1)}M`;
+      if (usd >= 1_000) return `$${(usd / 1_000).toFixed(0)}K`;
+      return `$${usd.toLocaleString()}`;
+    };
+
+    return {
+      slug,
+      name,
+      description: `Funding organization providing grants and supporting research.`,
+      totalFunding: {
+        usd: totalUsd,
+        rsc: totalRsc,
+        formatted: formatTotal(totalUsd),
+      },
+      grantCount: grants.length,
+    };
+  });
+})();
+
+// ─── Organization-scoped helpers ──────────────────────────────────────────
+export const getGrantsByOrganization = (orgSlug: string): Grant[] =>
+  mockGrants.filter((g) => toSlug(g.organization) === orgSlug);
+
+export const getFundraisesByOrganization = (orgSlug: string) => {
+  const orgGrantIds = new Set(getGrantsByOrganization(orgSlug).map((g) => g.id));
+  return mockFundraises.filter((f) => orgGrantIds.has(f.grantId));
+};
+
+export const getActivitiesByOrganization = (orgSlug: string): FundingActivity[] => {
+  const orgGrantIds = new Set(
+    getGrantsByOrganization(orgSlug).map((g) => g.id)
+  );
+  return mockFundingActivities.filter(
+    (a) => a.grantId !== undefined && orgGrantIds.has(a.grantId as number)
+  );
+};
+
+export const getOrganizationBySlug = (slug: string): FundingOrganization | undefined =>
+  mockOrganizations.find((o) => o.slug === slug);
+
+export const getOrgSlugFromGrantOrganization = (orgName: string): string => toSlug(orgName);

@@ -22,6 +22,7 @@ interface GrantFilterProps {
   onSelectGrant: (grantId: number | null) => void;
   fundraiseCounts: Record<number, number>;
   totalFundraiseCount: number;
+  onClickOrganization?: (orgSlug: string) => void;
 }
 
 export const GrantFilter: FC<GrantFilterProps> = ({
@@ -30,6 +31,7 @@ export const GrantFilter: FC<GrantFilterProps> = ({
   onSelectGrant,
   fundraiseCounts,
   totalFundraiseCount,
+  onClickOrganization,
 }) => {
   const { showUSD } = useCurrencyPreference();
 
@@ -76,8 +78,10 @@ export const GrantFilter: FC<GrantFilterProps> = ({
       ),
     };
 
-    // Individual grant cards
-    const grantCards: CarouselCard[] = grants.map((grant) => {
+    // Individual grant cards - filter out grants with invalid IDs
+    const grantCards: CarouselCard[] = grants
+      .filter((grant): grant is Grant & { id: number } => typeof grant.id === 'number')
+      .map((grant) => {
       const isSelected = selectedGrantId === grant.id;
       const amount = showUSD
         ? `$${formatAmount(grant.amount.usd)}`
@@ -97,9 +101,22 @@ export const GrantFilter: FC<GrantFilterProps> = ({
           >
             <div className="flex items-center justify-between gap-2 mb-1.5">
               <span
+                onClick={
+                  onClickOrganization
+                    ? (e) => {
+                        e.stopPropagation();
+                        const slug = grant.organization
+                          .toLowerCase()
+                          .replace(/[^a-z0-9]+/g, '-')
+                          .replace(/(^-|-$)/g, '');
+                        onClickOrganization(slug);
+                      }
+                    : undefined
+                }
                 className={cn(
                   'text-[10px] font-bold uppercase tracking-wider truncate',
-                  isSelected ? 'text-primary-500' : 'text-gray-400'
+                  isSelected ? 'text-primary-500' : 'text-gray-400',
+                  onClickOrganization && 'hover:text-primary-600 hover:underline cursor-pointer'
                 )}
               >
                 {grant.organization}
@@ -135,6 +152,7 @@ export const GrantFilter: FC<GrantFilterProps> = ({
     isAllSelected,
     fundraiseCounts,
     totalFundraiseCount,
+    onClickOrganization,
   ]);
 
   return (
