@@ -41,16 +41,19 @@ export const GrantFilter: FC<GrantFilterProps> = ({
       onClick: () => onSelectGrant(null),
       content: (
         <div className={cn(
-          'h-full px-3.5 py-2 rounded-lg border transition-all duration-200 flex items-center',
+          'h-full px-3.5 py-2 rounded-lg border transition-all duration-200',
           isAllSelected
             ? 'border-primary-500 bg-primary-50'
             : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50',
         )}>
+          <span className="block text-xs text-gray-400 whitespace-nowrap">
+            All
+          </span>
           <span className={cn(
-            'font-medium text-sm whitespace-nowrap',
+            'block font-medium text-sm leading-snug mt-0.5',
             isAllSelected ? 'text-primary-700' : 'text-gray-800',
           )}>
-            All Opportunities
+            Opportunities
           </span>
         </div>
       ),

@@ -37,6 +37,8 @@ export const FundraiseCard: FC<FundraiseCardProps> = ({
   const deadlineText = fundraise.endDate ? formatDeadline(fundraise.endDate) : undefined;
   const isActive = fundraise.status === 'OPEN' && 
     (fundraise.endDate ? isDeadlineInFuture(fundraise.endDate) : true);
+  const isCompleted = fundraise.status === 'COMPLETED' || 
+    (fundraise.status === 'OPEN' && fundraise.endDate && !isDeadlineInFuture(fundraise.endDate));
 
   const formatAmount = (amount: number) => {
     if (amount >= 1000000) return `${(amount / 1000000).toFixed(1)}M`;
@@ -80,18 +82,14 @@ export const FundraiseCard: FC<FundraiseCardProps> = ({
           </div>
         )}
         
-        {/* Status badge */}
-        <div className="absolute top-3 right-3">
-          {isActive ? (
-            <span className="px-2.5 py-1 text-xs font-medium bg-emerald-500 text-white rounded-full shadow-sm">
-              Active
+        {/* Status badge - only show for completed */}
+        {isCompleted && (
+          <div className="absolute top-3 right-3">
+            <span className="px-2.5 py-1 text-xs font-medium bg-gray-400 text-white rounded-full shadow-sm">
+              Completed
             </span>
-          ) : (
-            <span className="px-2.5 py-1 text-xs font-medium bg-gray-500 text-white rounded-full shadow-sm">
-              {fundraise.status === 'COMPLETED' ? 'Funded' : 'Closed'}
-            </span>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Content Section */}
@@ -124,9 +122,15 @@ export const FundraiseCard: FC<FundraiseCardProps> = ({
 
         {/* Progress Section */}
         <div className="space-y-2">
-          <div className="w-full bg-emerald-100 rounded-lg h-2">
+          <div className={cn(
+            'w-full rounded-lg h-2',
+            isCompleted ? 'bg-gray-100' : 'bg-primary-50'
+          )}>
             <div
-              className="bg-emerald-400 rounded-lg h-2 transition-all duration-300"
+              className={cn(
+                'rounded-lg h-2 transition-all duration-300',
+                isCompleted ? 'bg-gray-400' : 'bg-primary-500'
+              )}
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
@@ -136,7 +140,7 @@ export const FundraiseCard: FC<FundraiseCardProps> = ({
             <div className="flex items-center gap-1">
               <span className={cn(
                 'font-bold',
-                isActive ? 'text-emerald-600' : 'text-gray-500'
+                isCompleted ? 'text-gray-500' : 'text-primary-600'
               )}>
                 {raisedDisplay}
               </span>

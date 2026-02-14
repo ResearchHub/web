@@ -402,6 +402,53 @@ export const mockFundraises: (Fundraise & {
     createdDate: '2026-03-05',
     updatedDate: '2026-02-13',
   },
+  // Completed fundraises
+  {
+    id: 501,
+    grantId: 1,
+    title: 'Open Source Research Platform Development',
+    description: 'Completed project that built a collaborative platform for open science research and data sharing.',
+    authors: [mockAuthors[5], mockAuthors[1]],
+    previewImage: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&h=300&fit=crop',
+    status: 'COMPLETED',
+    goalCurrency: 'USD',
+    goalAmount: { usd: 40000, rsc: 200000 },
+    amountRaised: { usd: 40000, rsc: 200000 },
+    startDate: '2025-10-01',
+    endDate: '2026-01-31',
+    contributors: {
+      numContributors: 42,
+      topContributors: [
+        { id: 17, authorProfile: mockAuthors[2], totalContribution: 7000, contributions: [] },
+        { id: 18, authorProfile: mockAuthors[4], totalContribution: 5500, contributions: [] },
+      ],
+    },
+    createdDate: '2025-10-01',
+    updatedDate: '2026-02-01',
+  },
+  {
+    id: 502,
+    grantId: 2,
+    title: 'Renewable Energy Grid Optimization Study',
+    description: 'Successfully completed research on machine learning optimization for renewable energy distribution.',
+    authors: [mockAuthors[2], mockAuthors[0]],
+    previewImage: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&h=300&fit=crop',
+    status: 'COMPLETED',
+    goalCurrency: 'USD',
+    goalAmount: { usd: 65000, rsc: 325000 },
+    amountRaised: { usd: 68000, rsc: 340000 },
+    startDate: '2025-09-15',
+    endDate: '2026-02-10',
+    contributors: {
+      numContributors: 38,
+      topContributors: [
+        { id: 19, authorProfile: mockAuthors[3], totalContribution: 9000, contributions: [] },
+        { id: 20, authorProfile: mockAuthors[5], totalContribution: 6500, contributions: [] },
+      ],
+    },
+    createdDate: '2025-09-15',
+    updatedDate: '2026-02-10',
+  },
 ];
 
 // ─── Mock Funding Activity Feed ──────────────────────────────────────────
