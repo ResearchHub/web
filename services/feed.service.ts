@@ -20,6 +20,7 @@ export class FeedService {
     endpoint?: 'feed' | 'funding_feed' | 'grant_feed';
     fundraiseStatus?: 'OPEN' | 'CLOSED';
     grantId?: number;
+    hasRecentUpdates?: boolean;
     createdBy?: number;
     fundedBy?: number;
     ordering?: string;
@@ -43,6 +44,7 @@ export class FeedService {
       }
     }
     if (params?.grantId) queryParams.append('grant_id', params.grantId.toString());
+    if (params?.hasRecentUpdates) queryParams.append('has_recent_updates', 'true');
     if (params?.createdBy) queryParams.append('created_by', params.createdBy.toString());
     if (params?.fundedBy) queryParams.append('funded_by', params.fundedBy.toString());
 

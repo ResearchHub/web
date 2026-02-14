@@ -44,6 +44,7 @@ interface FeedContentProps {
   insertContent?: InsertContentItem[];
   shouldRenderBountyAsComment?: boolean;
   showBountyInfo?: boolean;
+  getEntryHref?: (entry: FeedEntry) => string | undefined;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -72,6 +73,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   insertContent,
   shouldRenderBountyAsComment,
   showBountyInfo = false,
+  getEntryHref,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -163,6 +165,7 @@ export const FeedContent: FC<FeedContentProps> = ({
                   registerVisibleItem={registerVisibleItem}
                   unregisterVisibleItem={unregisterVisibleItem}
                   getVisibleItems={getVisibleItems}
+                  getEntryHref={getEntryHref}
                 />
               );
 

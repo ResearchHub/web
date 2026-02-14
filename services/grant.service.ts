@@ -9,8 +9,7 @@ export class GrantService {
    * @returns The created grant object
    */
   static async createGrant(payload: any): Promise<any> {
-    const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, payload);
-    return response;
+    return ApiClient.post<any>(`${this.BASE_PATH}/`, payload);
   }
 
   /**
@@ -23,9 +22,26 @@ export class GrantService {
     grantId: string | number,
     proposalPostId: string | number
   ): Promise<any> {
-    const response = await ApiClient.post<any>(`${this.BASE_PATH}/${grantId}/application/`, {
+    return ApiClient.post<any>(`${this.BASE_PATH}/${grantId}/application/`, {
       preregistration_post_id: proposalPostId,
     });
-    return response;
+  }
+
+  /**
+   * Updates a grant's fields
+   */
+  static async update(grantId: number, payload: Record<string, any>): Promise<any> {
+    return ApiClient.patch<any>(`${this.BASE_PATH}/${grantId}/`, payload);
+  }
+
+  /**
+   * Extends a grant's deadline by updating its end_date
+   * @param postId The post ID of the grant
+   * @param newEndDate ISO date string for the new end date
+   */
+  static async extendDeadline(postId: number, newEndDate: string): Promise<any> {
+    return ApiClient.patch<any>(`${this.BASE_PATH}/${postId}/update_deadline/`, {
+      end_date: newEndDate,
+    });
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { FileText, Wallet, LucideIcon } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
@@ -11,6 +11,7 @@ import { FeedContent } from '@/components/Feed/FeedContent';
 import { useFilterTransition } from './lib/hooks/useFilterTransition';
 import { ImpactTab } from './ImpactTab';
 import { PortfolioOverview } from '@/types/portfolioOverview';
+import { FeedEntry, FeedGrantContent } from '@/types/feed';
 
 export type PortfolioTab = 'my-rfps' | 'proposals' | 'impact';
 type GrantsFilter = 'all' | 'open' | 'closed';
@@ -106,6 +107,13 @@ function GrantsTab() {
     }
   };
 
+  const getEntryHref = useCallback((entry: FeedEntry) => {
+    if (entry.contentType === 'GRANT') {
+      return `/fund/dashboard/${(entry.content as FeedGrantContent).id}`;
+    }
+    return undefined;
+  }, []);
+
   return (
     <div className="space-y-4">
       <Tabs
@@ -122,6 +130,7 @@ function GrantsTab() {
         noEntriesElement={<EmptyState {...EMPTY_STATES.grants} />}
         showFundraiseHeaders={false}
         showGrantHeaders={false}
+        getEntryHref={getEntryHref}
       />
     </div>
   );

@@ -44,6 +44,7 @@ interface FeedEntryItemProps {
   shouldRenderBountyAsComment?: boolean;
   highlights?: Highlight[];
   showBountyInfo?: boolean;
+  getEntryHref?: (entry: FeedEntry) => string | undefined;
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
@@ -63,6 +64,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   getVisibleItems,
   shouldRenderBountyAsComment = false,
   highlights,
+  getEntryHref,
 }) => {
   const unifiedDocumentId = getUnifiedDocumentId(entry);
 
@@ -193,7 +195,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
     }
   };
 
-  const href = generateHref(entry);
+  const href = getEntryHref?.(entry) ?? generateHref(entry);
 
   let content = null;
 

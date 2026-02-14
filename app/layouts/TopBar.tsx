@@ -204,6 +204,14 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
+  if (pathname.startsWith('/fund/dashboard/')) {
+    return {
+      title: 'RFP Dashboard',
+      subtitle: 'Manage your grant and track funded research',
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
+    };
+  }
+
   if (pathname === '/fund/dashboard') {
     return {
       title: 'Portfolio Dashboard',
