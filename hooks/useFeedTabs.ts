@@ -41,6 +41,7 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
     }
 
     if (isFundPage) {
+      if (pathname.includes('/explore')) return 'explore';
       if (pathname.includes('/opportunities')) return 'opportunities';
       if (pathname.includes('/needs-funding')) return 'needs-funding';
       return 'needs-funding';
@@ -83,6 +84,12 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
 
     if (isFundPage) {
       return [
+        {
+          id: 'explore',
+          label: 'Explore',
+          href: getHref('explore'),
+          scroll: false,
+        },
         {
           id: 'needs-funding',
           label: 'Needs Funding',
