@@ -4,6 +4,28 @@ import { FundingActivity } from '@/types/fundingActivity';
 import { AuthorProfile } from '@/types/authorProfile';
 import { FundingOrganization } from '@/types/fundingOrganization';
 
+// ─── Funding Topics ──────────────────────────────────────────────────────
+export const FUNDING_TOPICS = [
+  { id: 'all', label: 'All' },
+  { id: 'open-science', label: 'Open Science' },
+  { id: 'ai-ml', label: 'AI & Machine Learning' },
+  { id: 'climate', label: 'Climate & Environment' },
+  { id: 'medicine', label: 'Medicine & Health' },
+  { id: 'neuroscience', label: 'Neuroscience' },
+  { id: 'genomics', label: 'Genomics & Genetics' },
+  { id: 'physics', label: 'Physics' },
+  { id: 'computer-science', label: 'Computer Science' },
+  { id: 'biology', label: 'Biology' },
+  { id: 'chemistry', label: 'Chemistry' },
+  { id: 'materials-science', label: 'Materials Science' },
+  { id: 'psychology', label: 'Psychology' },
+  { id: 'economics', label: 'Economics' },
+  { id: 'public-health', label: 'Public Health' },
+  { id: 'mathematics', label: 'Mathematics' },
+] as const;
+
+export type FundingTopic = typeof FUNDING_TOPICS[number]['id'];
+
 // ─── Mock Author Profiles ────────────────────────────────────────────────
 const mockAuthors: AuthorProfile[] = [
   {
@@ -75,9 +97,12 @@ const mockAuthors: AuthorProfile[] = [
 ];
 
 // ─── Mock Grants (Funding Opportunities) ─────────────────────────────────
-export const mockGrants: Grant[] = [
+export type MockGrant = Grant & { topic: FundingTopic };
+
+export const mockGrants: MockGrant[] = [
   {
     id: 1,
+    topic: 'open-science',
     title: 'Open Science Accelerator for Reproducibility and Data Sharing 2026',
     createdBy: {
       id: 100,
@@ -100,6 +125,7 @@ export const mockGrants: Grant[] = [
   },
   {
     id: 2,
+    topic: 'climate',
     title: 'Climate Research Initiative',
     createdBy: {
       id: 101,
@@ -122,6 +148,7 @@ export const mockGrants: Grant[] = [
   },
   {
     id: 3,
+    topic: 'ai-ml',
     title: 'AI Safety Research Grant',
     createdBy: {
       id: 102,
@@ -144,6 +171,7 @@ export const mockGrants: Grant[] = [
   },
   {
     id: 4,
+    topic: 'medicine',
     title: 'Biomedical Innovation Fund for Rare Diseases and Neglected Therapeutics',
     createdBy: {
       id: 103,
@@ -162,6 +190,98 @@ export const mockGrants: Grant[] = [
     status: 'OPEN',
     startDate: '2026-03-01',
     endDate: '2026-09-30',
+    contacts: [],
+  },
+  {
+    id: 5,
+    topic: 'neuroscience',
+    title: 'Neuroscience Discovery Program',
+    createdBy: {
+      id: 104,
+      authorProfile: mockAuthors[1],
+      firstName: 'Brain',
+      lastName: 'Research Foundation',
+    },
+    amount: {
+      usd: 600000,
+      rsc: 3000000,
+      formatted: '$600,000',
+    },
+    currency: 'USD',
+    organization: 'Brain Research Foundation',
+    description: 'Advancing our understanding of neural circuits, brain development, and neurological disorders through cutting-edge research.',
+    status: 'OPEN',
+    startDate: '2026-02-01',
+    endDate: '2026-10-31',
+    contacts: [],
+  },
+  {
+    id: 6,
+    topic: 'genomics',
+    title: 'Genomics & Precision Medicine Initiative',
+    createdBy: {
+      id: 105,
+      authorProfile: mockAuthors[4],
+      firstName: 'Genome',
+      lastName: 'Sciences',
+    },
+    amount: {
+      usd: 450000,
+      rsc: 2250000,
+      formatted: '$450,000',
+    },
+    currency: 'USD',
+    organization: 'Genome Sciences Consortium',
+    description: 'Supporting genomic research to advance personalized medicine and improve rare disease diagnostics.',
+    status: 'OPEN',
+    startDate: '2026-01-15',
+    endDate: '2026-09-15',
+    contacts: [],
+  },
+  {
+    id: 7,
+    topic: 'physics',
+    title: 'Quantum Computing Research Fund',
+    createdBy: {
+      id: 106,
+      authorProfile: mockAuthors[5],
+      firstName: 'Quantum',
+      lastName: 'Initiative',
+    },
+    amount: {
+      usd: 800000,
+      rsc: 4000000,
+      formatted: '$800,000',
+    },
+    currency: 'USD',
+    organization: 'National Quantum Initiative',
+    description: 'Funding breakthrough research in quantum computing, error correction, and quantum algorithms.',
+    status: 'OPEN',
+    startDate: '2026-03-01',
+    endDate: '2026-12-31',
+    contacts: [],
+  },
+  {
+    id: 8,
+    topic: 'public-health',
+    title: 'Global Health Resilience Fund',
+    createdBy: {
+      id: 107,
+      authorProfile: mockAuthors[2],
+      firstName: 'Global',
+      lastName: 'Health',
+    },
+    amount: {
+      usd: 550000,
+      rsc: 2750000,
+      formatted: '$550,000',
+    },
+    currency: 'USD',
+    organization: 'World Health Research Foundation',
+    description: 'Strengthening global health systems through innovative research in disease surveillance and prevention.',
+    status: 'OPEN',
+    startDate: '2026-02-15',
+    endDate: '2026-11-30',
     contacts: [],
   },
 ];
@@ -402,6 +522,184 @@ export const mockFundraises: (Fundraise & {
     },
     createdDate: '2026-03-05',
     updatedDate: '2026-02-13',
+  },
+  // Grant 5: Neuroscience Discovery
+  {
+    id: 601,
+    grantId: 5,
+    title: 'Neural Circuit Mapping with Advanced Imaging',
+    description: 'Developing next-generation imaging techniques for comprehensive mapping of neural circuits in the mammalian brain.',
+    authors: [mockAuthors[1]],
+    previewImage: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop',
+    status: 'OPEN',
+    goalCurrency: 'USD',
+    goalAmount: { usd: 80000, rsc: 400000 },
+    amountRaised: { usd: 48000, rsc: 240000 },
+    startDate: '2026-02-10',
+    endDate: '2026-08-10',
+    contributors: {
+      numContributors: 29,
+      topContributors: [
+        { id: 21, authorProfile: mockAuthors[0], totalContribution: 7000, contributions: [] },
+      ],
+    },
+    createdDate: '2026-02-10',
+    updatedDate: '2026-02-13',
+  },
+  {
+    id: 602,
+    grantId: 5,
+    title: 'Brain-Computer Interface for Motor Recovery',
+    description: 'Building non-invasive BCI systems to restore motor function in patients with spinal cord injuries.',
+    authors: [mockAuthors[3], mockAuthors[1]],
+    status: 'OPEN',
+    goalCurrency: 'USD',
+    goalAmount: { usd: 95000, rsc: 475000 },
+    amountRaised: { usd: 28500, rsc: 142500 },
+    startDate: '2026-02-15',
+    endDate: '2026-09-15',
+    contributors: {
+      numContributors: 15,
+      topContributors: [
+        { id: 22, authorProfile: mockAuthors[5], totalContribution: 5000, contributions: [] },
+      ],
+    },
+    createdDate: '2026-02-15',
+    updatedDate: '2026-02-14',
+  },
+  // Grant 6: Genomics
+  {
+    id: 603,
+    grantId: 6,
+    title: 'Population-Scale Genomic Analysis Pipeline',
+    description: 'Creating scalable computational pipelines for analyzing genomic data across diverse populations.',
+    authors: [mockAuthors[4]],
+    previewImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
+    status: 'OPEN',
+    goalCurrency: 'USD',
+    goalAmount: { usd: 65000, rsc: 325000 },
+    amountRaised: { usd: 39000, rsc: 195000 },
+    startDate: '2026-02-01',
+    endDate: '2026-07-31',
+    contributors: {
+      numContributors: 21,
+      topContributors: [
+        { id: 23, authorProfile: mockAuthors[2], totalContribution: 6000, contributions: [] },
+      ],
+    },
+    createdDate: '2026-02-01',
+    updatedDate: '2026-02-12',
+  },
+  {
+    id: 604,
+    grantId: 6,
+    title: 'Epigenetic Markers for Early Disease Detection',
+    description: 'Identifying epigenetic biomarkers that enable early diagnosis of complex diseases.',
+    authors: [mockAuthors[0], mockAuthors[4]],
+    status: 'OPEN',
+    goalCurrency: 'USD',
+    goalAmount: { usd: 55000, rsc: 275000 },
+    amountRaised: { usd: 11000, rsc: 55000 },
+    startDate: '2026-02-10',
+    endDate: '2026-08-31',
+    contributors: {
+      numContributors: 8,
+      topContributors: [
+        { id: 24, authorProfile: mockAuthors[1], totalContribution: 3000, contributions: [] },
+      ],
+    },
+    createdDate: '2026-02-10',
+    updatedDate: '2026-02-13',
+  },
+  // Grant 7: Quantum Computing
+  {
+    id: 605,
+    grantId: 7,
+    title: 'Quantum Error Correction for NISQ Devices',
+    description: 'Developing practical error correction codes optimized for near-term quantum computing hardware.',
+    authors: [mockAuthors[5]],
+    previewImage: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=300&fit=crop',
+    status: 'OPEN',
+    goalCurrency: 'USD',
+    goalAmount: { usd: 110000, rsc: 550000 },
+    amountRaised: { usd: 77000, rsc: 385000 },
+    startDate: '2026-03-05',
+    endDate: '2026-12-05',
+    contributors: {
+      numContributors: 37,
+      topContributors: [
+        { id: 25, authorProfile: mockAuthors[3], totalContribution: 10000, contributions: [] },
+        { id: 26, authorProfile: mockAuthors[0], totalContribution: 8000, contributions: [] },
+      ],
+    },
+    createdDate: '2026-03-05',
+    updatedDate: '2026-02-14',
+  },
+  {
+    id: 606,
+    grantId: 7,
+    title: 'Topological Quantum Computing Materials',
+    description: 'Exploring new materials that exhibit topological properties suitable for fault-tolerant quantum computation.',
+    authors: [mockAuthors[5], mockAuthors[2]],
+    status: 'OPEN',
+    goalCurrency: 'USD',
+    goalAmount: { usd: 85000, rsc: 425000 },
+    amountRaised: { usd: 17000, rsc: 85000 },
+    startDate: '2026-03-10',
+    endDate: '2026-11-30',
+    contributors: {
+      numContributors: 11,
+      topContributors: [
+        { id: 27, authorProfile: mockAuthors[1], totalContribution: 4000, contributions: [] },
+      ],
+    },
+    createdDate: '2026-03-10',
+    updatedDate: '2026-02-14',
+  },
+  // Grant 8: Public Health
+  {
+    id: 607,
+    grantId: 8,
+    title: 'AI-Powered Epidemic Early Warning System',
+    description: 'Using machine learning and epidemiological models to predict and track disease outbreaks globally.',
+    authors: [mockAuthors[2], mockAuthors[3]],
+    previewImage: 'https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?w=400&h=300&fit=crop',
+    status: 'OPEN',
+    goalCurrency: 'USD',
+    goalAmount: { usd: 75000, rsc: 375000 },
+    amountRaised: { usd: 52500, rsc: 262500 },
+    startDate: '2026-02-20',
+    endDate: '2026-10-31',
+    contributors: {
+      numContributors: 34,
+      topContributors: [
+        { id: 28, authorProfile: mockAuthors[4], totalContribution: 8000, contributions: [] },
+        { id: 29, authorProfile: mockAuthors[0], totalContribution: 5000, contributions: [] },
+      ],
+    },
+    createdDate: '2026-02-20',
+    updatedDate: '2026-02-14',
+  },
+  {
+    id: 608,
+    grantId: 8,
+    title: 'Community Health Monitoring Dashboard',
+    description: 'Building open-source tools for real-time community health monitoring and resource allocation.',
+    authors: [mockAuthors[1], mockAuthors[4]],
+    status: 'OPEN',
+    goalCurrency: 'USD',
+    goalAmount: { usd: 45000, rsc: 225000 },
+    amountRaised: { usd: 9000, rsc: 45000 },
+    startDate: '2026-02-25',
+    endDate: '2026-09-30',
+    contributors: {
+      numContributors: 7,
+      topContributors: [
+        { id: 30, authorProfile: mockAuthors[5], totalContribution: 2500, contributions: [] },
+      ],
+    },
+    createdDate: '2026-02-25',
+    updatedDate: '2026-02-14',
   },
   // Completed fundraises
   {
@@ -679,3 +977,27 @@ export const getOrganizationBySlug = (slug: string): FundingOrganization | undef
   mockOrganizations.find((o) => o.slug === slug);
 
 export const getOrgSlugFromGrantOrganization = (orgName: string): string => toSlug(orgName);
+
+// ─── Topic-based helpers ──────────────────────────────────────────────────
+export const getGrantsByTopic = (topic: string): MockGrant[] => {
+  if (topic === 'all') return mockGrants;
+  return mockGrants.filter((g) => g.topic === topic);
+};
+
+export const getFundraisesByTopic = (topic: string) => {
+  if (topic === 'all') return mockFundraises;
+  const topicGrantIds = new Set(
+    mockGrants.filter((g) => g.topic === topic).map((g) => g.id)
+  );
+  return mockFundraises.filter((f) => topicGrantIds.has(f.grantId));
+};
+
+export const getActivitiesByTopic = (topic: string): FundingActivity[] => {
+  if (topic === 'all') return mockFundingActivities;
+  const topicGrantIds = new Set(
+    mockGrants.filter((g) => g.topic === topic).map((g) => g.id)
+  );
+  return mockFundingActivities.filter(
+    (a) => a.grantId !== undefined && topicGrantIds.has(a.grantId as number)
+  );
+};

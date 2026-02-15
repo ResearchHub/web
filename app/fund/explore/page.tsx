@@ -7,112 +7,149 @@ import { ArrowRight } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import Icon from '@/components/ui/icons/Icon';
+import { Tabs } from '@/components/ui/Tabs';
 import { formatDeadline } from '@/utils/date';
 import {
   GrantFilter,
   FundraiseGrid,
-  FundraiseGridHeader,
   FundingActivityFeed,
-  BrowseToggle,
-  OrgFilter,
   OrgHeader,
 } from '@/components/Fund/explore';
-import type { BrowseView } from '@/components/Fund/explore/BrowseToggle';
 import {
-  mockGrants,
-  mockFundraises,
-  mockOrganizations,
+  FUNDING_TOPICS,
+  getGrantsByTopic,
+  getFundraisesByTopic,
   getActivitiesByGrantId,
-  getFundraisesByGrantId,
+  getActivitiesByTopic,
+  getOrganizationBySlug,
   getGrantsByOrganization,
   getFundraisesByOrganization,
   getActivitiesByOrganization,
-  getOrganizationBySlug,
 } from '@/mocks/fundingExploreMocks';
+import type { Grant } from '@/types/grant';
 
 export default function FundingExplorePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // ── URL state ──────────────────────────────────────────────────────────
-  const viewParam = searchParams.get('view');
-  const orgSlug = searchParams.get('org');
+  const topicParam = searchParams.get('topic') || 'all';
   const grantIdParam = searchParams.get('grant');
+  const orgSlug = searchParams.get('org');
 
   const selectedGrantId = grantIdParam ? parseInt(grantIdParam, 10) : null;
-  const browseView: BrowseView = viewParam === 'orgs' ? 'orgs' : 'opportunities';
   const isOrgMode = orgSlug !== null;
 
-  // Local state for org detail tab (Opportunities / Impact)
   const [orgTab, setOrgTab] = useState<'opportunities' | 'impact'>('opportunities');
-
-  // ── Resolved org data ──────────────────────────────────────────────────
   const selectedOrg = isOrgMode ? getOrganizationBySlug(orgSlug) : undefined;
 
-  // Grants: scoped to org when in org mode
-  const activeGrants = useMemo(
-    () => (isOrgMode ? getGrantsByOrganization(orgSlug) : mockGrants),
-    [isOrgMode, orgSlug]
-  );
+  // ── Topic-based data (default browse) ──────────────────────────────────
+  const topicGrants = useMemo(() => getGrantsByTopic(topicParam), [topicParam]);
+  const topicFundraises = useMemo(() => getFundraisesByTopic(topicParam), [topicParam]);
 
-  // Fundraises: scoped by org then optionally by grant
   const activeFundraises = useMemo(() => {
-    if (isOrgMode) {
-      if (selectedGrantId !== null) {
-        return getFundraisesByOrganization(orgSlug).filter(
-          (f) => f.grantId === selectedGrantId
-        );
-      }
-      return getFundraisesByOrganization(orgSlug);
+    if (selectedGrantId !== null) {
+      return topicFundraises.filter((f) => f.grantId === selectedGrantId);
     }
-    return getFundraisesByGrantId(selectedGrantId);
-  }, [isOrgMode, orgSlug, selectedGrantId]);
+    return topicFundraises;
+  }, [topicFundraises, selectedGrantId]);
 
-  // Activities: scoped by org then optionally by grant
   const activeActivities = useMemo(() => {
-    if (isOrgMode) {
-      if (selectedGrantId !== null) {
-        return getActivitiesByOrganization(orgSlug).filter(
-          (a) => a.grantId === selectedGrantId
-        );
-      }
-      return getActivitiesByOrganization(orgSlug);
+    if (selectedGrantId !== null) {
+      return getActivitiesByGrantId(selectedGrantId);
     }
-    return getActivitiesByGrantId(selectedGrantId);
-  }, [isOrgMode, orgSlug, selectedGrantId]);
+    return getActivitiesByTopic(topicParam);
+  }, [topicParam, selectedGrantId]);
 
-  // Fundraise counts per grant (within current scope)
   const fundraiseCounts = useMemo(() => {
-    const pool = isOrgMode ? getFundraisesByOrganization(orgSlug) : mockFundraises;
     const counts: Record<number, number> = {};
-    activeGrants.forEach((grant) => {
+    topicGrants.forEach((grant) => {
       if (typeof grant.id === 'number') {
-        counts[grant.id] = pool.filter((f) => f.grantId === grant.id).length;
+        counts[grant.id] = topicFundraises.filter((f) => f.grantId === grant.id).length;
       }
     });
     return counts;
-  }, [activeGrants, isOrgMode, orgSlug]);
+  }, [topicGrants, topicFundraises]);
 
-  // Grant titles map
   const grantTitles = useMemo(() => {
     const titles: Record<number, string> = {};
-    activeGrants.forEach((grant) => {
+    topicGrants.forEach((grant) => {
       if (typeof grant.id === 'number') {
         titles[grant.id] = grant.title;
       }
     });
     return titles;
-  }, [activeGrants]);
-
-  const totalFundraiseCount = isOrgMode
-    ? getFundraisesByOrganization(orgSlug).length
-    : mockFundraises.length;
+  }, [topicGrants]);
 
   const selectedGrant = selectedGrantId
-    ? activeGrants.find((g) => g.id === selectedGrantId)
+    ? topicGrants.find((g) => g.id === selectedGrantId) ?? null
     : null;
 
-  // ── Navigation helpers ─────────────────────────────────────────────────
+  // ── Org-scoped data ────────────────────────────────────────────────────
+  const orgGrants = useMemo(
+    () => (isOrgMode ? getGrantsByOrganization(orgSlug) : []),
+    [isOrgMode, orgSlug]
+  );
+  const orgFundraisesAll = useMemo(
+    () => (isOrgMode ? getFundraisesByOrganization(orgSlug) : []),
+    [isOrgMode, orgSlug]
+  );
+  const orgFundraises = useMemo(() => {
+    if (selectedGrantId !== null) {
+      return orgFundraisesAll.filter((f) => f.grantId === selectedGrantId);
+    }
+    return orgFundraisesAll;
+  }, [orgFundraisesAll, selectedGrantId]);
+
+  const orgActivities = useMemo(() => {
+    if (!isOrgMode) return [];
+    if (selectedGrantId !== null) {
+      return getActivitiesByOrganization(orgSlug).filter(
+        (a) => a.grantId === selectedGrantId
+      );
+    }
+    return getActivitiesByOrganization(orgSlug);
+  }, [isOrgMode, orgSlug, selectedGrantId]);
+
+  const orgFundraiseCounts = useMemo(() => {
+    const counts: Record<number, number> = {};
+    orgGrants.forEach((grant) => {
+      if (typeof grant.id === 'number') {
+        counts[grant.id] = orgFundraisesAll.filter((f) => f.grantId === grant.id).length;
+      }
+    });
+    return counts;
+  }, [orgGrants, orgFundraisesAll]);
+
+  const orgGrantTitles = useMemo(() => {
+    const titles: Record<number, string> = {};
+    orgGrants.forEach((grant) => {
+      if (typeof grant.id === 'number') {
+        titles[grant.id] = grant.title;
+      }
+    });
+    return titles;
+  }, [orgGrants]);
+
+  const selectedOrgGrant =
+    isOrgMode && selectedGrantId
+      ? orgGrants.find((g) => g.id === selectedGrantId) ?? null
+      : null;
+
+  // ── Tab definitions ────────────────────────────────────────────────────
+  const topicTabs = FUNDING_TOPICS.map((t) => ({
+    id: t.id,
+    label: t.label,
+  }));
+
+  // ── Navigation ─────────────────────────────────────────────────────────
+  const handleTopicChange = (topicId: string) => {
+    const params = new URLSearchParams();
+    if (topicId !== 'all') {
+      params.set('topic', topicId);
+    }
+    router.push(`/fund/explore?${params.toString()}`, { scroll: false });
+  };
 
   const handleGrantSelect = (grantId: number | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -124,25 +161,6 @@ export default function FundingExplorePage() {
     router.push(`/fund/explore?${params.toString()}`, { scroll: false });
   };
 
-  const handleViewChange = (view: BrowseView) => {
-    const params = new URLSearchParams();
-    if (view === 'orgs') {
-      params.set('view', 'orgs');
-    }
-    // Clear grant and org when switching browse mode
-    router.push(`/fund/explore?${params.toString()}`, { scroll: false });
-  };
-
-  const handleSelectOrg = (slug: string) => {
-    const params = new URLSearchParams();
-    params.set('org', slug);
-    router.push(`/fund/explore?${params.toString()}`, { scroll: false });
-  };
-
-  const handleClickOrgFromGrant = (slug: string) => {
-    handleSelectOrg(slug);
-  };
-
   const handleBackToBrowse = () => {
     router.push('/fund/explore', { scroll: false });
   };
@@ -150,8 +168,8 @@ export default function FundingExplorePage() {
   // ── Right sidebar ──────────────────────────────────────────────────────
   const rightSidebarContent = (
     <FundingActivityFeed
-      activities={activeActivities}
-      selectedGrantTitle={selectedGrant?.title}
+      activities={isOrgMode ? orgActivities : activeActivities}
+      selectedGrantTitle={(isOrgMode ? selectedOrgGrant : selectedGrant)?.title}
       maxItems={12}
     />
   );
@@ -159,22 +177,20 @@ export default function FundingExplorePage() {
   // ── Render ─────────────────────────────────────────────────────────────
   return (
     <PageLayout rightSidebar={rightSidebarContent}>
-      {/* Page Header */}
       <MainPageHeader
         icon={<Icon name="solidHand" size={26} color="#3971ff" />}
         title="Explore Funding"
-        subtitle="Browse proposals within funding opportunities and discover research worth supporting"
+        subtitle="Browse proposals seeking funding across research topics"
         showTitle={true}
       />
 
-      {/* ─── Organization Detail Mode ──────────────────────────────────── */}
       {isOrgMode && selectedOrg ? (
+        /* ─── Organization Detail Mode ──────────────────────────────── */
         <>
           <div className="mt-8">
             <OrgHeader organization={selectedOrg} onBack={handleBackToBrowse} />
           </div>
 
-          {/* Tab bar: Opportunities / Impact */}
           <div className="flex items-center gap-1 mb-6 border-b border-gray-200">
             <button
               onClick={() => setOrgTab('opportunities')}
@@ -205,38 +221,21 @@ export default function FundingExplorePage() {
             </div>
           ) : (
             <>
-              {/* Grant filter scoped to this org */}
               <div className="mb-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <h2 className="text-xl font-bold text-gray-900 tracking-tight">
-                    Funding Opportunities
-                  </h2>
-                  <span className="text-sm font-medium text-gray-400">
-                    ({activeGrants.length})
-                  </span>
-                </div>
                 <GrantFilter
-                  grants={activeGrants}
+                  grants={orgGrants}
                   selectedGrantId={selectedGrantId}
                   onSelectGrant={handleGrantSelect}
-                  fundraiseCounts={fundraiseCounts}
-                  totalFundraiseCount={totalFundraiseCount}
+                  fundraiseCounts={orgFundraiseCounts}
+                  totalFundraiseCount={orgFundraisesAll.length}
                 />
               </div>
 
-              {/* Selected Grant Details */}
-              {selectedGrant && <GrantDetailCard grant={selectedGrant} />}
+              {selectedOrgGrant && <GrantDetailCard grant={selectedOrgGrant} />}
 
-              {/* Fundraise Grid Header */}
-              <FundraiseGridHeader
-                count={activeFundraises.length}
-                selectedGrantTitle={selectedGrant?.title}
-              />
-
-              {/* Fundraise Grid */}
               <FundraiseGrid
-                fundraises={activeFundraises}
-                grantTitles={grantTitles}
+                fundraises={orgFundraises}
+                grantTitles={orgGrantTitles}
                 showGrantBadge={selectedGrantId === null}
                 isLoading={false}
               />
@@ -244,68 +243,65 @@ export default function FundingExplorePage() {
           )}
         </>
       ) : (
-        /* ─── Default Browse Mode ────────────────────────────────────── */
+        /* ─── Default Browse Mode (Consolidated) ──────────────────── */
         <>
-          <div className="mt-8 mb-8">
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold text-gray-900 tracking-tight">
-                  {browseView === 'orgs' ? 'Organizations' : 'Funding Opportunities'}
-                </h2>
-                <span className="text-sm font-medium text-gray-400">
-                  ({browseView === 'orgs'
-                    ? mockOrganizations.length
-                    : mockGrants.length})
-                </span>
-              </div>
-              <BrowseToggle activeView={browseView} onChangeView={handleViewChange} />
-            </div>
+          {/* Topic Tabs */}
+          <div className="mt-6 border-b border-gray-200">
+            <Tabs
+              tabs={topicTabs}
+              activeTab={topicParam}
+              onTabChange={handleTopicChange}
+            />
+          </div>
 
-            {browseView === 'orgs' ? (
-              <OrgFilter
-                organizations={mockOrganizations}
-                onSelectOrg={handleSelectOrg}
-              />
-            ) : (
+          {/* Funding Opportunities Carousel */}
+          {topicGrants.length > 0 && (
+            <div className="mt-6">
               <GrantFilter
-                grants={mockGrants}
+                grants={topicGrants}
                 selectedGrantId={selectedGrantId}
                 onSelectGrant={handleGrantSelect}
                 fundraiseCounts={fundraiseCounts}
-                totalFundraiseCount={totalFundraiseCount}
-                onClickOrganization={handleClickOrgFromGrant}
+                totalFundraiseCount={topicFundraises.length}
               />
-            )}
+            </div>
+          )}
+
+          {/* Selected Grant Detail */}
+          {selectedGrant && (
+            <div className="mt-6">
+              <GrantDetailCard grant={selectedGrant} />
+            </div>
+          )}
+
+          {/* Proposals Grid */}
+          <div className="mt-8">
+            <div className="flex items-center gap-3 mb-6">
+              <h2 className="text-lg font-bold text-gray-900">
+                {selectedGrant ? 'Proposals' : 'Proposals Seeking Funding'}
+              </h2>
+              <span className="text-sm font-medium text-gray-400">
+                ({activeFundraises.length})
+              </span>
+            </div>
+            <FundraiseGrid
+              fundraises={activeFundraises}
+              grantTitles={grantTitles}
+              showGrantBadge={selectedGrantId === null}
+              isLoading={false}
+            />
           </div>
-
-          {/* Selected Grant Details */}
-          {selectedGrant && <GrantDetailCard grant={selectedGrant} />}
-
-          {/* Fundraise Grid Header */}
-          <FundraiseGridHeader
-            count={activeFundraises.length}
-            selectedGrantTitle={selectedGrant?.title}
-          />
-
-          {/* Fundraise Grid */}
-          <FundraiseGrid
-            fundraises={activeFundraises}
-            grantTitles={grantTitles}
-            showGrantBadge={selectedGrantId === null}
-            isLoading={false}
-          />
         </>
       )}
     </PageLayout>
   );
 }
 
-// ─── Grant Detail Card (extracted for reuse) ────────────────────────────────
-import { Grant } from '@/types/grant';
+// ─── Grant Detail Card ────────────────────────────────────────────────────────
 
 function GrantDetailCard({ grant }: { grant: Grant }) {
   return (
-    <div className="mb-8 p-6 bg-white rounded-xl border border-gray-200 shadow-sm relative overflow-hidden group">
+    <div className="p-6 bg-white rounded-xl border border-gray-200 shadow-sm relative overflow-hidden group">
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary-50 rounded-full translate-x-1/3 -translate-y-1/3 blur-3xl opacity-50 pointer-events-none" />
 
       <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -342,7 +338,7 @@ function GrantDetailCard({ grant }: { grant: Grant }) {
         <div className="flex flex-col items-end gap-3 min-w-[200px]">
           <Link
             href={`/fund/new?grant=${grant.id}`}
-            className="flex items-center justify-between gap-4 px-6 py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-lg shadow-sm transition-all hover:shadow-md group/btn w-full "
+            className="flex items-center justify-between gap-4 px-6 py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-lg shadow-sm transition-all hover:shadow-md group/btn w-full"
           >
             <span className="font-semibold text-lg">Apply Now</span>
             <ArrowRight className="w-6 h-6 transition-transform group-hover/btn:translate-x-1" />
