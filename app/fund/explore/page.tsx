@@ -6,7 +6,13 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import Icon from '@/components/ui/icons/Icon';
 import { Tabs } from '@/components/ui/Tabs';
-import { FundraiseGrid, FundingActivityFeed, OrgHeader } from '@/components/Fund/explore';
+import {
+  FundraiseGrid,
+  FundingActivityFeed,
+  OrgHeader,
+  OpportunityCarousel,
+  OpportunityDetailHeader,
+} from '@/components/Fund/explore';
 import {
   FUNDING_TOPICS,
   getGrantsByTopic,
@@ -206,42 +212,110 @@ export default function FundingExplorePage() {
               <p className="text-lg font-medium mb-1">Coming soon</p>
               <p className="text-sm">Impact metrics and reports will appear here.</p>
             </div>
+          ) : selectedOrgGrant ? (
+            /* Opportunity Detail View within Org */
+            <>
+              <OpportunityDetailHeader
+                grant={selectedOrgGrant}
+                proposalCount={orgFundraiseCounts[selectedGrantId!] || 0}
+                onBack={() => handleGrantSelect(null)}
+              />
+
+              <div className="mt-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <h2 className="text-lg font-bold text-gray-900">Proposals</h2>
+                  <span className="text-sm text-gray-400">({orgFundraises.length})</span>
+                </div>
+                <FundraiseGrid
+                  fundraises={orgFundraises}
+                  grantTitles={orgGrantTitles}
+                  showGrantBadge={false}
+                  isLoading={false}
+                />
+              </div>
+            </>
           ) : (
-            <FundraiseGrid
-              fundraises={orgFundraises}
-              grantTitles={orgGrantTitles}
-              showGrantBadge={selectedGrantId === null}
-              isLoading={false}
-              grants={orgGrants}
-              selectedGrant={selectedOrgGrant}
-              selectedGrantId={selectedGrantId}
-              onSelectGrant={handleGrantSelect}
-              fundraiseCounts={orgFundraiseCounts}
-              totalFundraiseCount={orgFundraisesAll.length}
-            />
+            /* Browse Opportunities within Org */
+            <>
+              <div className="mb-8">
+                <OpportunityCarousel
+                  grants={orgGrants}
+                  selectedGrantId={selectedGrantId}
+                  onSelectGrant={handleGrantSelect}
+                  fundraiseCounts={orgFundraiseCounts}
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <h2 className="text-lg font-bold text-gray-900">Proposals</h2>
+                  <span className="text-sm text-gray-400">({orgFundraises.length})</span>
+                </div>
+                <FundraiseGrid
+                  fundraises={orgFundraises}
+                  grantTitles={orgGrantTitles}
+                  showGrantBadge={true}
+                  isLoading={false}
+                />
+              </div>
+            </>
           )}
         </>
+      ) : selectedGrant ? (
+        /* ─── Opportunity Detail Mode ─────────────────────────────── */
+        <>
+          {/* Opportunity Header */}
+          <div className="mt-6">
+            <OpportunityDetailHeader
+              grant={selectedGrant}
+              proposalCount={fundraiseCounts[selectedGrantId!] || 0}
+              onBack={() => handleGrantSelect(null)}
+            />
+          </div>
+
+          {/* Proposals Grid */}
+          <div className="mt-8">
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Proposals</h2>
+              <span className="text-sm text-gray-400">({activeFundraises.length})</span>
+            </div>
+            <FundraiseGrid
+              fundraises={activeFundraises}
+              grantTitles={grantTitles}
+              showGrantBadge={false}
+              isLoading={false}
+            />
+          </div>
+        </>
       ) : (
-        /* ─── Default Browse Mode (Consolidated) ──────────────────── */
+        /* ─── Default Browse Mode ─────────────────────────────────── */
         <>
           {/* Topic Tabs */}
           <div className="mt-6 border-b border-gray-200">
             <Tabs tabs={topicTabs} activeTab={topicParam} onTabChange={handleTopicChange} />
           </div>
 
-          {/* Proposals Grid with integrated opportunity selector */}
+          {/* Opportunities Carousel */}
           <div className="mt-8">
-            <FundraiseGrid
-              fundraises={activeFundraises}
-              grantTitles={grantTitles}
-              showGrantBadge={selectedGrantId === null}
-              isLoading={false}
+            <OpportunityCarousel
               grants={topicGrants}
-              selectedGrant={selectedGrant}
               selectedGrantId={selectedGrantId}
               onSelectGrant={handleGrantSelect}
               fundraiseCounts={fundraiseCounts}
-              totalFundraiseCount={topicFundraises.length}
+            />
+          </div>
+
+          {/* Proposals Grid */}
+          <div className="mt-8">
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Proposals</h2>
+              <span className="text-sm text-gray-400">({activeFundraises.length})</span>
+            </div>
+            <FundraiseGrid
+              fundraises={activeFundraises}
+              grantTitles={grantTitles}
+              showGrantBadge={true}
+              isLoading={false}
             />
           </div>
         </>
