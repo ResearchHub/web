@@ -24,12 +24,7 @@ const ReviewCard = ({ review }: { review: Comment }) => {
     <div className="flex items-start gap-3.5">
       <div className="relative flex-shrink-0">
         <AuthorTooltip authorId={author.id}>
-          <Avatar
-            src={author.profileImage}
-            alt={author.fullName}
-            size={48}
-            authorId={author.id}
-          />
+          <Avatar src={author.profileImage} alt={author.fullName} size={48} authorId={author.id} />
         </AuthorTooltip>
         {author.isVerified && (
           <div className="absolute -bottom-0.5 -right-0.5 bg-white rounded-full p-px">
@@ -42,9 +37,7 @@ const ReviewCard = ({ review }: { review: Comment }) => {
         <h4 className="text-sm font-semibold text-gray-900 truncate">{author.fullName}</h4>
         <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100 w-fit mt-1">
           <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-          <span className="text-xs font-bold text-amber-700">
-            {review.reviewScore.toFixed(1)}
-          </span>
+          <span className="text-xs font-bold text-amber-700">{review.reviewScore.toFixed(1)}</span>
         </div>
       </div>
     </div>
@@ -55,7 +48,7 @@ export function ReviewsSection({ work }: ReviewsSectionProps) {
   const [reviews, setReviews] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const reviewScore = work.metrics?.reviewScore || 0;
-  const reviewCount = work.metrics?.reviews || 0;
+  const reviewCount = work.metrics?.reviewComments || 0;
 
   useEffect(() => {
     async function loadReviews() {
