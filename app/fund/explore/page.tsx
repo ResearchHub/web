@@ -211,8 +211,8 @@ export default function FundingExplorePage() {
                   <h2 className="text-xl font-bold text-gray-900 tracking-tight">
                     Funding Opportunities
                   </h2>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-2.5 py-1 rounded-full border border-primary-100">
-                    {activeGrants.length} Open
+                  <span className="text-sm font-medium text-gray-400">
+                    ({activeGrants.length})
                   </span>
                 </div>
                 <GrantFilter
@@ -252,10 +252,10 @@ export default function FundingExplorePage() {
                 <h2 className="text-xl font-bold text-gray-900 tracking-tight">
                   {browseView === 'orgs' ? 'Organizations' : 'Funding Opportunities'}
                 </h2>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-2.5 py-1 rounded-full border border-primary-100">
-                  {browseView === 'orgs'
-                    ? `${mockOrganizations.length} Funders`
-                    : `${mockGrants.length} Open`}
+                <span className="text-sm font-medium text-gray-400">
+                  ({browseView === 'orgs'
+                    ? mockOrganizations.length
+                    : mockGrants.length})
                 </span>
               </div>
               <BrowseToggle activeView={browseView} onChangeView={handleViewChange} />

@@ -125,15 +125,20 @@ interface GridHeaderProps {
   onSortChange?: (sort: string) => void;
 }
 
-export const FundraiseGridHeader: FC<GridHeaderProps> = ({ count }) => {
+export const FundraiseGridHeader: FC<GridHeaderProps> = ({ count, selectedGrantTitle }) => {
   return (
-    <div className="flex items-center justify-between mb-6">
+    <div className="mb-6">
       <div className="flex items-center gap-3">
         <h2 className="text-xl font-bold text-gray-900 tracking-tight">Active Proposals</h2>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-primary-600 bg-primary-50 px-2.5 py-1 rounded-full border border-primary-100">
-          {count} Total
+        <span className="text-sm font-medium text-gray-400">
+          ({count})
         </span>
       </div>
+      <p className="text-sm text-gray-500 mt-1.5">
+        {selectedGrantTitle
+          ? `Competing for "${selectedGrantTitle}"`
+          : 'Proposals competing for the funding opportunities above'}
+      </p>
     </div>
   );
 };
