@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { CreditCard, Plus, Minus, Check, Info } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faApplePay, faGooglePay, faPaypal } from '@fortawesome/free-brands-svg-icons';
@@ -19,6 +18,8 @@ import {
 import { CreditCardForm, type StripePaymentContext } from './CreditCardForm';
 import { useEndaoment } from '@/contexts/EndaomentContext';
 import { EndaomentFundSelector } from '@/components/Endaoment/EndaomentFundSelector';
+import { EndaomentFund } from '@/services/endaoment.service';
+import { formatUsdValue } from '@/utils/number';
 
 interface PaymentOption {
   id: PaymentMethodType;
@@ -54,15 +55,15 @@ interface PaymentWidgetProps {
   /** Callback when credit card completeness changes */
   onCreditCardCompleteChange?: (isComplete: boolean) => void;
   /** Callback when an Endaoment fund is selected (or deselected) */
-  onEndaomentFundSelected?: (
-    fund: import('@/services/endaoment.service').EndaomentFund | null
-  ) => void;
+  onEndaomentFundSelected?: (fund: EndaomentFund | null) => void;
   /** Callback when Stripe context is ready for payment confirmation */
   onStripeReady?: (context: StripePaymentContext | null) => void;
   /** Whether to hide the CTA button (when used inside PaymentStep) */
   hideButton?: boolean;
   /** Wallet payment method availability from Stripe */
   walletAvailability: WalletAvailability;
+  /** Whether the Endaoment payment option is enabled (feature flag) */
+  isEndaomentEnabled?: boolean;
 }
 
 /**
@@ -87,15 +88,12 @@ export function PaymentWidget({
   onStripeReady,
   hideButton = false,
   walletAvailability,
+  isEndaomentEnabled = false,
 }: PaymentWidgetProps) {
   const { isExpanded, selectedMethod, toggleExpanded, selectMethod } = usePaymentMethod({
     initialMethod: selectedPaymentMethod,
     onMethodChange: onPaymentMethodChange,
   });
-
-  // Feature flag: Endaoment is only visible when ?exp_endaoment=true
-  const searchParams = useSearchParams();
-  const isEndaomentEnabled = searchParams.get('exp_endaoment') === 'true';
 
   // Endaoment connection status and funds from context
   const { connected, funds } = useEndaoment();
@@ -141,7 +139,7 @@ export function PaymentWidget({
       title: 'Endaoment',
       description:
         connected && selectedEndaomentFund
-          ? `Balance: $${(parseFloat(selectedEndaomentFund.usdcBalance) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          ? `Balance:  ${formatUsdValue(selectedEndaomentFund.usdcBalance, 0, false)}`
           : connected
             ? 'Select a fund'
             : 'Contribute from your fund',
