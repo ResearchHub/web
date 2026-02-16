@@ -23,11 +23,7 @@ export default function RfpDashboardPage() {
   const [isWorkLoading, setIsWorkLoading] = useState(true);
 
   const grantId = work?.note?.post?.grant?.id ? Number(work.note.post.grant.id) : null;
-  const {
-    overview,
-    isLoading: isOverviewLoading,
-    refetch: refetchOverview,
-  } = useGrantOverview(numericPostId);
+  const { overview, isLoading: isOverviewLoading } = useGrantOverview(numericPostId);
 
   // Auth guard
   useEffect(() => {
@@ -58,14 +54,7 @@ export default function RfpDashboardPage() {
 
   return (
     <PageLayout
-      rightSidebar={
-        <RfpRightSidebar
-          overview={overview}
-          isLoading={isOverviewLoading}
-          postId={numericPostId}
-          onDeadlineExtended={refetchOverview}
-        />
-      }
+      rightSidebar={<RfpRightSidebar overview={overview} isLoading={isOverviewLoading} />}
     >
       <div className="space-y-6">
         <div className="pl-1 tablet:!pl-0">

@@ -33,15 +33,4 @@ export class GrantService {
   static async update(grantId: number, payload: Record<string, any>): Promise<any> {
     return ApiClient.patch<any>(`${this.BASE_PATH}/${grantId}/`, payload);
   }
-
-  /**
-   * Extends a grant's deadline by updating its end_date
-   * @param postId The post ID of the grant
-   * @param newEndDate ISO date string for the new end date
-   */
-  static async extendDeadline(postId: number, newEndDate: string): Promise<any> {
-    return ApiClient.patch<any>(`${this.BASE_PATH}/${postId}/update_deadline/`, {
-      end_date: newEndDate,
-    });
-  }
 }

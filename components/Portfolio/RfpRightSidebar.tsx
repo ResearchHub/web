@@ -1,23 +1,16 @@
 'use client';
 
-import { useState } from 'react';
 import {
   ExternalLink,
   Zap,
-  Bell,
   TrendingUp,
   BookOpen,
   MessageCircle,
   AlertCircle,
-  Calendar,
-  ArrowRight,
   LucideIcon,
 } from 'lucide-react';
 import { GrantOverview } from '@/types/grantOverview';
 import { formatUsdCompact } from '@/utils/number';
-import { format, addDays } from 'date-fns';
-import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { GrantService } from '@/services/grant.service';
 
 // --- Quick Stats ---
 
@@ -38,13 +31,6 @@ const buildStats = (o: GrantOverview): Stat[] => [
     label: 'Matched funding',
     value: formatUsdCompact(o.matchedFundingUsd),
     valueColor: 'text-orange-600',
-  },
-  {
-    icon: Bell,
-    iconColor: 'text-blue-500',
-    iconBg: 'bg-blue-50',
-    label: 'Updates received',
-    value: String(o.updatesReceived),
   },
   {
     icon: TrendingUp,
@@ -83,11 +69,9 @@ const FUNDER_TIPS = [
 interface Props {
   readonly overview: GrantOverview | null;
   readonly isLoading: boolean;
-  readonly postId: number | null;
-  readonly onDeadlineExtended?: () => void;
 }
 
-export function RfpRightSidebar({ overview, isLoading, postId, onDeadlineExtended }: Props) {
+export function RfpRightSidebar({ overview, isLoading }: Props) {
   return (
     <div className="space-y-6">
       {/* Quick Stats */}
@@ -104,23 +88,14 @@ export function RfpRightSidebar({ overview, isLoading, postId, onDeadlineExtende
         {/* Stat rows */}
         <div className="mt-3">
           {isLoading ? (
-            Array.from({ length: 4 }, (_, i) => <StatSkeleton key={i} />)
+            Array.from({ length: 3 }, (_, i) => <StatSkeleton key={i} />)
           ) : !overview ? (
             <div className="flex items-center gap-2 py-4 text-gray-500">
               <AlertCircle className="w-4 h-4" />
               <span className="text-sm">Unable to load data</span>
             </div>
           ) : (
-            <>
-              {buildStats(overview).map((s) => (
-                <StatRow key={s.label} {...s} />
-              ))}
-              <DeadlineRow
-                deadline={overview.deadline}
-                postId={postId}
-                onExtended={onDeadlineExtended}
-              />
-            </>
+            buildStats(overview).map((s) => <StatRow key={s.label} {...s} />)
           )}
         </div>
       </div>
@@ -228,81 +203,6 @@ function StatSkeleton() {
         <div className="w-24 h-4 bg-gray-200 rounded animate-pulse" />
       </div>
       <div className="w-12 h-4 bg-gray-200 rounded animate-pulse" />
-    </div>
-  );
-}
-
-// --- Deadline Row with extend dropdown ---
-
-const EXTEND_OPTIONS = [7, 14, 30] as const;
-
-function DeadlineRow({
-  deadline,
-  postId,
-  onExtended,
-}: {
-  readonly deadline: string | null;
-  readonly postId: number | null;
-  readonly onExtended?: () => void;
-}) {
-  const [isExtending, setIsExtending] = useState(false);
-  const deadlineDate = deadline ? new Date(deadline) : null;
-  const displayDate = deadlineDate ? format(deadlineDate, 'M/d/yyyy') : '—';
-
-  const handleExtend = async (days: number) => {
-    if (!deadlineDate || !postId) return;
-
-    setIsExtending(true);
-    try {
-      const newDate = addDays(deadlineDate, days);
-      await GrantService.extendDeadline(postId, newDate.toISOString());
-      onExtended?.();
-    } catch (error) {
-      console.error('Failed to extend deadline:', error);
-    } finally {
-      setIsExtending(false);
-    }
-  };
-
-  return (
-    <div className="flex items-center gap-3 py-2.5">
-      {deadlineDate ? (
-        <BaseMenu
-          trigger={
-            <button
-              className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 cursor-pointer hover:bg-blue-50 transition-colors"
-              disabled={isExtending}
-            >
-              <Calendar className="w-4 h-4 text-blue-500" />
-            </button>
-          }
-          align="start"
-        >
-          {EXTEND_OPTIONS.map((days) => (
-            <BaseMenuItem
-              key={days}
-              onSelect={() => handleExtend(days)}
-              className="flex items-center justify-between gap-4 px-3 py-2 cursor-pointer"
-            >
-              <span>Extend by {days} days</span>
-              <span className="flex items-center gap-1 text-gray-400 text-xs">
-                <ArrowRight className="w-3 h-3" />
-                {format(addDays(deadlineDate, days), 'M/d/yyyy')}
-              </span>
-            </BaseMenuItem>
-          ))}
-        </BaseMenu>
-      ) : (
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0">
-          <Calendar className="w-4 h-4 text-blue-500" />
-        </div>
-      )}
-      <span className="text-sm text-gray-600">
-        Deadline:{' '}
-        <span className="font-semibold text-gray-900">
-          {isExtending ? 'Extending...' : displayDate}
-        </span>
-      </span>
     </div>
   );
 }
