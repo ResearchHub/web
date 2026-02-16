@@ -96,8 +96,9 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
 
   // Convert amount based on desired currency display
   // If currency is USD but amount is in RSC, convert it (unless skipConversion is true)
+  const rawUsdValue = isUSD && exchangeRate > 0 && !skipConversion ? amount * exchangeRate : amount;
   const displayValue =
-    isUSD && exchangeRate > 0 && !skipConversion ? Math.round(amount * exchangeRate) : amount;
+    isUSD && exchangeRate > 0 && !skipConversion ? Math.round(rawUsdValue) : amount;
 
   // Define orange theme colors
   const colors = {
@@ -161,7 +162,13 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
     return Math.round(num).toLocaleString();
   };
 
-  const displayAmount = formatNumber(displayValue, shorten);
+  const displayAmount =
+    isUSD && rawUsdValue > 0 && rawUsdValue < 1
+      ? rawUsdValue.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
+      : formatNumber(displayValue, shorten);
   const currencyText = isUSD ? 'USD' : 'RSC';
 
   // Determine whether to show currency text based on currency and hideUSDText setting
@@ -187,7 +194,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
             <ResearchCoinIcon size={14} outlined />
             <span>{rscAmount.toLocaleString()} RSC</span>
           </div>
-          <div className="text-gray-700 text-xs">≈ ${formatNumber(displayValue, shorten)} USD</div>
+          <div className="text-gray-700 text-xs">≈ ${displayAmount} USD</div>
         </div>
       );
     } else {

@@ -23,7 +23,7 @@ export const SearchEmpty = ({
         loading="lazy"
         className="w-[400px] mt-10 object-contain max-w-full sm:w-[70%]"
       />
-      <span className="text-center text-[22px] text-gray-900 mt-5 font-semibold md:text-[16px] sm:w-[85%]">
+      <span className="text-center text-[22px] text-gray-900 mt-5 font-medium md:text-[16px] sm:w-[85%]">
         {title}
       </span>
       {subtitle && (

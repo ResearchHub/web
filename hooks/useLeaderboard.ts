@@ -20,6 +20,7 @@ export interface UseLeaderboardReviewersReturn {
   goToNextPage: () => void;
   goToPrevPage: () => void;
   pageSize: number;
+  retry: () => void;
 }
 
 export interface UseLeaderboardFundersReturn {
@@ -28,6 +29,7 @@ export interface UseLeaderboardFundersReturn {
   goToNextPage: () => void;
   goToPrevPage: () => void;
   pageSize: number;
+  retry: () => void;
 }
 
 interface LeaderboardPageResult<T> {
@@ -57,6 +59,7 @@ function useLeaderboardList<T>({
   goToNextPage: () => void;
   goToPrevPage: () => void;
   pageSize: number;
+  retry: () => void;
 } {
   const [items, setItems] = useState<T[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -114,6 +117,10 @@ function useLeaderboardList<T>({
     if (hasPrevPage) onPageChange(page - 1);
   }, [hasPrevPage, page, onPageChange]);
 
+  const retry = useCallback(() => {
+    loadPage(page);
+  }, [loadPage, page]);
+
   return {
     state: {
       items,
@@ -129,6 +136,7 @@ function useLeaderboardList<T>({
     goToNextPage,
     goToPrevPage,
     pageSize: LEADERBOARD_PAGE_SIZE,
+    retry,
   };
 }
 

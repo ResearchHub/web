@@ -6,7 +6,6 @@ import {
   FileText,
   Users,
   Zap,
-  Bell,
   TrendingUp,
   BookOpen,
   MessageCircle,
@@ -70,13 +69,6 @@ const buildStats = (o: PortfolioOverview): Stat[] => [
     valueColor: 'text-orange-600',
   },
   {
-    icon: Bell,
-    iconColor: 'text-blue-500',
-    iconBg: 'bg-blue-50',
-    label: 'Updates (30d)',
-    value: String(o.recentUpdates),
-  },
-  {
     icon: TrendingUp,
     iconColor: 'text-green-600',
     iconBg: 'bg-green-100',
@@ -97,7 +89,7 @@ export function PortfolioRightSidebar({ overview, isLoading }: Props) {
         <h3 className="text-base font-semibold text-gray-900 mb-3">Portfolio Overview</h3>
         <div className="divide-y divide-gray-100">
           {isLoading ? (
-            Array.from({ length: 6 }, (_, i) => <StatSkeleton key={i} />)
+            Array.from({ length: 5 }, (_, i) => <StatSkeleton key={i} />)
           ) : !overview ? (
             <div className="flex items-center gap-2 py-4 text-gray-500">
               <AlertCircle className="w-4 h-4" />

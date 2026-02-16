@@ -1,14 +1,13 @@
 'use client';
 
 import { Target, AlertCircle, TrendingUp, Users, Zap } from 'lucide-react';
-import { Line, Bar } from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
-  BarElement,
   Filler,
   Tooltip,
   Legend,
@@ -17,16 +16,7 @@ import { useImpactData } from './lib/hooks/useImpactData';
 import { ImpactData, Milestones } from '@/types/impactData';
 import { formatNumber } from '@/utils/number';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Filler,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
 const toUsd = (n: number) => `$${formatNumber(n)}`;
 const formatMonth = (m: string) => {
@@ -59,10 +49,7 @@ export function ImpactTab() {
       <MilestonesCard milestones={data.milestones} />
       <FundingChart data={data.fundingOverTime} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TopicsCard topics={data.topicBreakdown} />
-        <FrequencyCard buckets={data.updateFrequency} />
-      </div>
+      <TopicsCard topics={data.topicBreakdown} />
     </div>
   );
 }
@@ -222,29 +209,6 @@ function TopicsCard({ topics }: { topics: ImpactData['topicBreakdown'] }) {
   );
 }
 
-function FrequencyCard({ buckets }: { buckets: ImpactData['updateFrequency'] }) {
-  const chartData = {
-    labels: buckets.map((b) => b.bucket),
-    datasets: [{ data: buckets.map((b) => b.count), backgroundColor: '#3b82f6', borderRadius: 4 }],
-  };
-  const options = {
-    responsive: true,
-    plugins: { legend: { display: false } },
-    scales: { y: { beginAtZero: true, ticks: { stepSize: 0.5 } } },
-  };
-
-  return (
-    <Card>
-      <h3 className="font-semibold text-gray-900 mb-1">Update frequency (last 180 days)</h3>
-      <p className="text-sm text-gray-500 mb-4">How consistently proposals publish updates</p>
-      <Bar data={chartData} options={options} />
-      <p className="text-xs text-gray-500 mt-3">
-        Buckets show updates per proposal over the last 6 months.
-      </p>
-    </Card>
-  );
-}
-
 function ImpactSkeleton() {
   return (
     <div className="space-y-8 animate-pulse">
@@ -265,10 +229,7 @@ function ImpactSkeleton() {
         </div>
       </Card>
       <Card className="h-64" />
-      <div className="grid grid-cols-2 gap-6">
-        <Card className="h-64" />
-        <Card className="h-64" />
-      </div>
+      <Card className="h-64" />
     </div>
   );
 }
