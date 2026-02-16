@@ -40,6 +40,7 @@ export const PAYMENT_FEES = {
   apple_pay: PLATFORM_FEE_PERCENTAGE_CARD,
   google_pay: PLATFORM_FEE_PERCENTAGE_CARD,
   paypal: PLATFORM_FEE_PERCENTAGE_CARD,
+  endaoment: PLATFORM_FEE_PERCENTAGE_CARD,
 } as const;
 
 /**
@@ -57,7 +58,7 @@ export type PaymentMethodType =
  * Payment methods that are temporarily hidden from the UI.
  * These can be re-enabled when the integration is complete.
  */
-export const HIDDEN_PAYMENT_METHODS: PaymentMethodType[] = ['paypal', 'endaoment'];
+export const HIDDEN_PAYMENT_METHODS: PaymentMethodType[] = ['paypal'];
 
 /**
  * Payment method display information.

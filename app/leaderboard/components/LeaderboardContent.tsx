@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
@@ -38,10 +38,6 @@ interface LeaderboardContentProps {
   defaultTab: LeaderboardTab;
 }
 
-function getInitialPeriod(searchParams: URLSearchParams): LeaderboardPeriod {
-  return getValidPeriod(searchParams.get('period'));
-}
-
 function getPageFromSearchParams(searchParams: URLSearchParams): number {
   const p = searchParams.get('page');
   if (p == null || p === '') return 1;
@@ -54,8 +50,7 @@ export function LeaderboardContent({ defaultTab }: LeaderboardContentProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [period, setPeriod] = useState<LeaderboardPeriod>(() => getInitialPeriod(searchParams));
-
+  const period = getValidPeriod(searchParams.get('period'));
   const page = getPageFromSearchParams(searchParams);
 
   const {
@@ -65,21 +60,16 @@ export function LeaderboardContent({ defaultTab }: LeaderboardContentProps) {
   } = useCurrentUserLeaderboard(period);
 
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('period', period);
-    params.set('page', String(page));
-    const newUrl = `${pathname}?${params.toString()}`;
-    if (
-      typeof window !== 'undefined' &&
-      window.location.pathname + window.location.search !== newUrl
-    ) {
-      router.replace(newUrl, { scroll: false });
+    if (!searchParams.get('period')) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('period', DEFAULT_PERIOD);
+      params.set('page', '1');
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     }
-  }, [period, page, pathname, router, searchParams]);
+  }, [pathname, router, searchParams]);
 
   const handlePeriodSelection = useCallback(
     (value: string) => {
-      setPeriod(getValidPeriod(value));
       const params = new URLSearchParams(searchParams.toString());
       params.set('period', getValidPeriod(value));
       params.set('page', '1');
