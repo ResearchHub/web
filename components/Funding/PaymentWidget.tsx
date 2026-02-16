@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { CreditCard, Plus, Minus, Check, Info } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faApplePay, faGooglePay, faPaypal } from '@fortawesome/free-brands-svg-icons';
@@ -92,6 +93,10 @@ export function PaymentWidget({
     onMethodChange: onPaymentMethodChange,
   });
 
+  // Feature flag: Endaoment is only visible when ?exp_endaoment=true
+  const searchParams = useSearchParams();
+  const isEndaomentEnabled = searchParams.get('exp_endaoment') === 'true';
+
   // Endaoment connection status and funds from context
   const { connected, funds } = useEndaoment();
 
@@ -181,6 +186,7 @@ export function PaymentWidget({
   //   options that may not be available
   const visiblePaymentOptions = paymentOptions.filter((option) => {
     if (HIDDEN_PAYMENT_METHODS.includes(option.id)) return false;
+    if (option.id === 'endaoment' && !isEndaomentEnabled) return false;
     if (option.id === 'apple_pay') {
       return !walletAvailability.checking && walletAvailability.applePay;
     }
