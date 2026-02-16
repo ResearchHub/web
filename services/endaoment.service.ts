@@ -45,8 +45,22 @@ export interface EndaomentFund {
 }
 
 /**
- * Fetches the user's Endaoment funds (DAFs).
+ * Transforms a raw Endaoment fund API response into an EndaomentFund.
+ */
+function transformEndaomentFund(raw: Record<string, any>): EndaomentFund {
+  return {
+    id: raw.id,
+    name: raw.name,
+    type: raw.type,
+    description: raw.description,
+    usdcBalance: raw.usdcBalance,
+  };
+}
+
+/**
+ * Fetches the user's Endaoment funds.
  */
 export async function getEndaomentFunds(): Promise<EndaomentFund[]> {
-  return ApiClient.get<EndaomentFund[]>('/api/endaoment/funds/');
+  const response = await ApiClient.get<Array<Record<string, any>>>('/api/endaoment/funds/');
+  return response.map(transformEndaomentFund);
 }

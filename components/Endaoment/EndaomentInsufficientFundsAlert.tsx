@@ -3,7 +3,7 @@
 import { AlertTriangle } from 'lucide-react';
 import { cn } from '@/utils/styles';
 
-interface InsufficientDAFFundsAlertProps {
+interface EndaomentInsufficientFundsAlertProps {
   className?: string;
 }
 
@@ -11,7 +11,9 @@ interface InsufficientDAFFundsAlertProps {
  * Alert displayed when selected DAF account has insufficient balance.
  * Prompts user to select a different account or add funds via Endaoment.
  */
-export function InsufficientDAFFundsAlert({ className }: InsufficientDAFFundsAlertProps) {
+export function EndaomentInsufficientFundsAlert({
+  className,
+}: EndaomentInsufficientFundsAlertProps) {
   return (
     <div
       className={cn(
