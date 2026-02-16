@@ -23,16 +23,10 @@ export interface RawHubAmount {
   amount_usd?: number;
 }
 
-export interface RawUpdateBucket {
-  bucket: string;
-  count?: number;
-}
-
 export interface RawImpactData {
   milestones?: RawMilestones;
   funding_over_time?: RawFundingPoint[];
   hub_breakdown?: RawHubAmount[];
-  update_frequency?: RawUpdateBucket[];
 }
 
 // Transformed types (camelCase)
@@ -58,16 +52,10 @@ export interface TopicAmount {
   amountUsd: number;
 }
 
-export interface UpdateBucket {
-  bucket: string;
-  count: number;
-}
-
 export interface ImpactData {
   milestones: Milestones;
   fundingOverTime: FundingPoint[];
   topicBreakdown: TopicAmount[];
-  updateFrequency: UpdateBucket[];
 }
 
 export const transformImpactData = createTransformer<RawImpactData, ImpactData>((raw) => {
@@ -96,10 +84,6 @@ export const transformImpactData = createTransformer<RawImpactData, ImpactData>(
     topicBreakdown: (raw.hub_breakdown ?? []).map((t) => ({
       name: t.name,
       amountUsd: t.amount_usd ?? 0,
-    })),
-    updateFrequency: (raw.update_frequency ?? []).map((u) => ({
-      bucket: u.bucket,
-      count: u.count ?? 0,
     })),
   };
 });
