@@ -51,6 +51,8 @@ interface PaymentStepProps {
   ) => void | Promise<void>;
   /** Called when Apple Pay/Google Pay payment succeeds */
   onPaymentRequestSuccess?: (paymentMethod?: 'apple_pay' | 'google_pay') => void;
+  /** Called when Endaoment payment is confirmed */
+  onEndaomentPaymentConfirm?: (fundId: string) => void;
   /** Called when user wants to deposit RSC */
   onDepositRsc?: () => void;
   /** Called when user wants to buy RSC */
@@ -76,6 +78,7 @@ export function PaymentStep({
   error,
   onConfirmPayment,
   onPaymentRequestSuccess,
+  onEndaomentPaymentConfirm,
   onDepositRsc,
   onBuyRsc,
   onStripeReady,
@@ -159,6 +162,12 @@ export function PaymentStep({
       onConfirmPayment(selectedMethod);
     }
   }, [selectedMethod, onConfirmPayment]);
+
+  const handleEndaomentConfirm = useCallback(() => {
+    if (selectedEndaomentFund && onEndaomentPaymentConfirm) {
+      onEndaomentPaymentConfirm(selectedEndaomentFund.id);
+    }
+  }, [selectedEndaomentFund, onEndaomentPaymentConfirm]);
 
   // Handle payment method selection from widget
   const handlePaymentMethodChange = useCallback(
@@ -322,9 +331,9 @@ export function PaymentStep({
             />
           ) : selectedMethod === 'endaoment' ? (
             <EndaomentPaymentButton
-              fundraiseId={fundraiseId}
-              amountInUsd={totalDueUsd}
               isProcessing={isProcessing}
+              selectedFund={selectedEndaomentFund}
+              onConfirm={handleEndaomentConfirm}
             />
           ) : (
             <Button
