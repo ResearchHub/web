@@ -12,6 +12,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { formatCurrency } from '@/utils/currency';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { cn } from '@/utils/styles';
+import { FundraiseProgressBar } from './FundraiseProgressBar';
 
 interface FundingProposalCardProps {
   entry: FeedEntry;
@@ -31,21 +32,27 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({ entry, class
   const author = content.authors?.[0] || content.createdBy;
   const href = `/fund/${content.id}/${content.slug}`;
 
-  // Calculate progress
+  // Calculate amounts for progress bar
   const goalAmount = showUSD ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc;
   const raisedAmount = showUSD ? fundraise.amountRaised.usd : fundraise.amountRaised.rsc;
-  const progressPercent = goalAmount > 0 ? Math.min((raisedAmount / goalAmount) * 100, 100) : 0;
 
   // Format time remaining
   const timeRemaining = fundraise.endDate
     ? formatDistanceToNowStrict(new Date(fundraise.endDate), { addSuffix: false })
     : null;
 
+  // Get education from author profile
+  const education = author?.education;
+  const educationDisplay =
+    education && education.length > 0
+      ? `${education[0].name}${education[0].degree?.label ? `, ${education[0].degree.label}` : ''}`
+      : null;
+
   return (
     <Link
       href={href}
       className={cn(
-        'block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow',
+        'block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow flex flex-col',
         isCompleted && 'opacity-75',
         className
       )}
@@ -75,7 +82,7 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({ entry, class
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="p-4 flex-1 flex flex-col">
         {/* Title */}
         <h3 className="font-semibold text-gray-900 text-base leading-tight line-clamp-2 mb-2 hover:text-primary-600 transition-colors">
           {content.title}
@@ -86,23 +93,22 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({ entry, class
           <Avatar src={author?.profileImage} alt={author?.fullName || 'Author'} size={24} />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-gray-800 truncate">{author?.fullName}</p>
-            {author?.headline && (
-              <p className="text-xs text-gray-500 truncate">{author.headline}</p>
+            {educationDisplay && (
+              <p className="text-xs text-gray-500 truncate">{educationDisplay}</p>
             )}
           </div>
         </div>
 
-        {/* Progress bar */}
+        {/* Spacer to push progress bar to consistent position */}
+        <div className="flex-1" />
+
+        {/* Progress bar - always at same position due to flex layout */}
         <div className="mb-2">
-          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className={cn(
-                'h-full rounded-full transition-all',
-                isCompleted ? 'bg-green-500' : 'bg-primary-500'
-              )}
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
+          <FundraiseProgressBar
+            raisedAmount={raisedAmount}
+            goalAmount={goalAmount}
+            isCompleted={isCompleted}
+          />
         </div>
 
         {/* Funding info */}
@@ -136,22 +142,27 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({ entry, class
             </div>
           )}
         </div>
+      </div>
 
-        {/* Actions */}
-        <div className="mt-3 pt-3 border-t border-gray-100" onClick={(e) => e.preventDefault()}>
-          <FeedItemActions
-            metrics={entry.metrics}
-            feedContentType={entry.contentType}
-            votableEntityId={content.id}
-            relatedDocumentId={content.id.toString()}
-            relatedDocumentContentType="post"
-            userVote={entry.userVote}
-            href={href}
-            hideCommentButton={false}
-            hideReportButton={true}
-            showPeerReviews={false}
-          />
-        </div>
+      {/* Actions - Gray background band at bottom */}
+      <div
+        className="px-4 py-2 border-t border-gray-200 bg-gray-50 cursor-default"
+        onClick={(e) => e.preventDefault()}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <FeedItemActions
+          metrics={entry.metrics}
+          feedContentType={entry.contentType}
+          votableEntityId={content.id}
+          relatedDocumentId={content.id.toString()}
+          relatedDocumentContentType="post"
+          userVote={entry.userVote}
+          href={href}
+          hideCommentButton={true}
+          hideReportButton={true}
+          showPeerReviews={true}
+          relatedDocumentUnifiedDocumentId={content.unifiedDocumentId}
+        />
       </div>
     </Link>
   );

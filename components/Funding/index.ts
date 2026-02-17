@@ -15,6 +15,7 @@ export { FundingTabs } from './FundingTabs';
 export { GrantPreview } from './GrantPreview';
 export { GrantPreviewAll } from './GrantPreviewAll';
 export { ActivityFeed } from './ActivityFeed';
+export { FundraiseProgressBar } from './FundraiseProgressBar';
 
 // Lib exports (constants, hooks, types)
 export {
