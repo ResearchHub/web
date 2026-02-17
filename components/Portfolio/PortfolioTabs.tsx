@@ -3,7 +3,6 @@
 import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { FileText, Wallet, LucideIcon } from 'lucide-react';
-import { useUser } from '@/contexts/UserContext';
 import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
 import { useFeed } from '@/hooks/useFeed';
@@ -72,9 +71,11 @@ interface Props {
   readonly activeTab: PortfolioTab;
   readonly onTabChange: (tab: PortfolioTab) => void;
   readonly overview: PortfolioOverview | null;
+  /** Temporary: override the user whose data is shown (via ?user_id=X) */
+  readonly userId?: number;
 }
 
-export function PortfolioTabs({ activeTab, onTabChange, overview }: Props) {
+export function PortfolioTabs({ activeTab, onTabChange, overview, userId }: Props) {
   return (
     <div className="space-y-4">
       <Tabs
@@ -83,19 +84,18 @@ export function PortfolioTabs({ activeTab, onTabChange, overview }: Props) {
         onTabChange={(id) => onTabChange(id as PortfolioTab)}
         variant="pill"
       />
-      {activeTab === 'my-rfps' && <GrantsTab />}
-      {activeTab === 'proposals' && <ProposalsTab overview={overview} />}
-      {activeTab === 'impact' && <ImpactTab />}
+      {activeTab === 'my-rfps' && <GrantsTab userId={userId} />}
+      {activeTab === 'proposals' && <ProposalsTab overview={overview} userId={userId} />}
+      {activeTab === 'impact' && <ImpactTab userId={userId} />}
     </div>
   );
 }
 
-function GrantsTab() {
-  const { user } = useUser();
+function GrantsTab({ userId }: { readonly userId?: number }) {
   const [filter, setFilter] = useState<GrantsFilter>('all');
   const { entries, isLoading, hasMore, loadMore } = useFeed('all', {
     endpoint: 'grant_feed',
-    createdBy: user?.id,
+    createdBy: userId,
     fundraiseStatus: STATUS_MAP[filter],
   });
   const { isTransitioning, startTransition } = useFilterTransition(isLoading);
@@ -136,12 +136,16 @@ function GrantsTab() {
   );
 }
 
-function ProposalsTab({ overview }: { readonly overview: PortfolioOverview | null }) {
-  const { user } = useUser();
+interface ProposalsTabProps {
+  readonly overview: PortfolioOverview | null;
+  readonly userId?: number;
+}
+
+function ProposalsTab({ overview, userId }: ProposalsTabProps) {
   const [filter, setFilter] = useState<ProposalFilter>('active');
   const { entries, isLoading, hasMore, loadMore } = useFeed('all', {
     endpoint: 'funding_feed',
-    fundedBy: user?.id,
+    fundedBy: userId,
     fundraiseStatus: STATUS_MAP[filter],
   });
   const { isTransitioning, startTransition } = useFilterTransition(isLoading);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { RfpDetailCard } from '@/components/Portfolio/RfpDetailCard';
@@ -15,22 +15,30 @@ import { Loader2 } from 'lucide-react';
 export default function RfpDashboardPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const postId = String(params.id);
   const numericPostId = Number(postId);
   const { user, isLoading: isUserLoading } = useUser();
+
+  // Temporary: allow viewing any user's RFP dashboard via ?user_id=X
+  const userIdParam = searchParams.get('user_id');
+  const overrideUserId = userIdParam ? Number(userIdParam) || undefined : undefined;
 
   const [work, setWork] = useState<Work | null>(null);
   const [isWorkLoading, setIsWorkLoading] = useState(true);
 
   const grantId = work?.note?.post?.grant?.id ? Number(work.note.post.grant.id) : null;
-  const { overview, isLoading: isOverviewLoading } = useGrantOverview(numericPostId);
+  const { overview, isLoading: isOverviewLoading } = useGrantOverview(
+    numericPostId,
+    overrideUserId
+  );
 
-  // Auth guard
+  // Auth guard — skip when viewing via user_id override
   useEffect(() => {
-    if (!isUserLoading && !user) {
+    if (!isUserLoading && !user && !overrideUserId) {
       router.push(`/auth/signin?redirect=${encodeURIComponent(`/fund/dashboard/${postId}`)}`);
     }
-  }, [user, isUserLoading, router, postId]);
+  }, [user, isUserLoading, router, postId, overrideUserId]);
 
   // Fetch post to extract grant details
   useEffect(() => {
@@ -40,7 +48,7 @@ export default function RfpDashboardPage() {
       .finally(() => setIsWorkLoading(false));
   }, [postId]);
 
-  if (isUserLoading || isWorkLoading) {
+  if ((isUserLoading && !overrideUserId) || isWorkLoading) {
     return (
       <PageLayout rightSidebar={false}>
         <div className="flex items-center justify-center min-h-[400px]">
@@ -50,7 +58,7 @@ export default function RfpDashboardPage() {
     );
   }
 
-  if (!user) return null;
+  if (!user && !overrideUserId) return null;
 
   return (
     <PageLayout

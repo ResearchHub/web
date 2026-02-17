@@ -24,8 +24,8 @@ const formatMonth = (m: string) => {
   return new Date(+y, +mo - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 };
 
-export function ImpactTab() {
-  const { data, isLoading, error } = useImpactData();
+export function ImpactTab({ userId }: { readonly userId?: number }) {
+  const { data, isLoading, error } = useImpactData(userId);
 
   if (isLoading) return <ImpactSkeleton />;
   if (error || !data) {
