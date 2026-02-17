@@ -101,6 +101,24 @@ export class ApiClient {
     };
   }
 
+  static async getStream(
+    path: string,
+    options?: { signal?: AbortSignal; accept?: string }
+  ): Promise<Response> {
+    const headers = await this.getHeaders('GET');
+    if (options?.accept) {
+      headers['Accept'] = options.accept;
+    }
+    const url = path.startsWith('http') ? path : `${this.baseURL}${path}`;
+    return fetch(url, {
+      method: 'GET',
+      headers,
+      mode: 'cors',
+      cache: 'no-cache',
+      signal: options?.signal,
+    });
+  }
+
   static async get<T>(path: string): Promise<T> {
     try {
       const headers = await this.getHeaders('GET');
