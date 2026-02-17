@@ -33,9 +33,9 @@ export const FundingTabs: FC<FundingTabsProps> = ({ selectedGrantId, className }
       const grantData = content.grant;
 
       return {
-        id: `grant-${grantData.id}`,
+        id: `grant-${content.id}`,
         label: getShortTitle(content.title, 3),
-        href: `/funding/${grantData.id}`,
+        href: `/funding/${content.id}`,
       };
     });
 
@@ -50,7 +50,7 @@ export const FundingTabs: FC<FundingTabsProps> = ({ selectedGrantId, className }
     ];
   }, [grants]);
 
-  // Determine active tab
+  // Determine active tab (selectedGrantId is now the post ID)
   const activeTab = useMemo(() => {
     if (selectedGrantId) {
       return `grant-${selectedGrantId}`;

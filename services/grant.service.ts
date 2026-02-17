@@ -75,36 +75,6 @@ export class GrantService {
   }
 
   /**
-   * Fetches a single grant by ID
-   * @param grantId The grant ID
-   * @returns The grant feed entry or null
-   */
-  static async getGrantById(grantId: string | number): Promise<FeedEntry | null> {
-    // Fetch from grant_feed with the specific grant's post ID
-    // The grant ID in the URL is actually the post ID that contains the grant
-    const url = `${this.GRANT_FEED_PATH}/?content_type=GRANT&page=1&page_size=50`;
-
-    try {
-      const response = await ApiClient.get<GrantFeedResponse>(url);
-
-      // Find the grant with matching ID
-      const grantEntry = response.results.find((entry) => {
-        const content = entry.content_object;
-        return content?.grant?.id === Number(grantId) || content?.id === Number(grantId);
-      });
-
-      if (!grantEntry) {
-        return null;
-      }
-
-      return transformFeedEntry(grantEntry);
-    } catch (error) {
-      console.error('Error fetching grant by ID:', error);
-      return null;
-    }
-  }
-
-  /**
    * Creates a new grant
    * @param payload The grant creation payload
    * @returns The created grant object

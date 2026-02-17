@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { Button } from '@/components/ui/Button';
-import { Calendar, Building2, ArrowRight, DollarSign } from 'lucide-react';
+import { Calendar, Building2, ArrowRight, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { formatCurrency } from '@/utils/currency';
@@ -34,6 +34,10 @@ interface GrantPreviewProps {
   className?: string;
   /** Show as compact card (for "All" view) */
   compact?: boolean;
+  /** Whether the details section is expanded */
+  showDetails?: boolean;
+  /** Callback to toggle the details section */
+  onToggleDetails?: () => void;
 }
 
 /**
@@ -60,7 +64,13 @@ export function transformFeedEntryToGrantPreviewData(entry: FeedEntry): GrantPre
   };
 }
 
-export const GrantPreview: FC<GrantPreviewProps> = ({ grant, className, compact = false }) => {
+export const GrantPreview: FC<GrantPreviewProps> = ({
+  grant,
+  className,
+  compact = false,
+  showDetails = false,
+  onToggleDetails,
+}) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
 
@@ -122,103 +132,114 @@ export const GrantPreview: FC<GrantPreviewProps> = ({ grant, className, compact 
   }
 
   return (
-    <div
-      className={cn(
-        'relative bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm',
-        className
-      )}
-    >
-      {/* Left gradient accent - image or default gradient */}
-      <div className="absolute left-0 top-0 bottom-0 w-2 overflow-hidden">
-        {grant.previewImage ? (
-          <Image
-            src={grant.previewImage}
-            alt=""
-            fill
-            className="object-cover"
-            style={{ objectPosition: 'left center' }}
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-b from-[#e8f4fc] via-[#d4e8f8] to-[#c5dff4]" />
-        )}
-      </div>
-
-      <div className="pl-6 pr-6 py-5">
-        {/* Header badges */}
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-xs font-semibold text-primary-500 uppercase tracking-wide">
-            Funding Opportunity
-          </span>
-          {isOpen ? (
-            <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
-              Open
-            </span>
+    <div className={className}>
+      {/* Grant preview card */}
+      <div className="relative bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+        {/* Left gradient accent - image or default gradient */}
+        <div className="absolute left-0 top-0 bottom-0 w-2 overflow-hidden">
+          {grant.previewImage ? (
+            <Image
+              src={grant.previewImage}
+              alt=""
+              fill
+              className="object-cover"
+              style={{ objectPosition: 'left center' }}
+            />
           ) : (
-            <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-              Closed
-            </span>
+            <div className="w-full h-full bg-gradient-to-b from-[#e8f4fc] via-[#d4e8f8] to-[#c5dff4]" />
           )}
         </div>
 
-        {/* Title */}
-        <h1 className="text-lg font-bold text-gray-900 mb-1.5 leading-snug">{grant.title}</h1>
-
-        {/* Organization */}
-        {grant.organization && (
-          <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-2">
-            <Building2 size={14} className="text-gray-400" />
-            <span>{grant.organization}</span>
-          </div>
-        )}
-
-        {/* Description */}
-        {grant.textPreview && (
-          <p className="text-sm text-gray-600 mb-4 line-clamp-2">{grant.textPreview}</p>
-        )}
-
-        {/* Bottom row: Stats and CTA */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          {/* Stats */}
-          <div className="flex items-center gap-4 text-sm">
-            {/* Amount */}
-            <div className="flex items-center gap-1.5">
-              <DollarSign size={14} className="text-green-600" />
-              <span className="font-semibold text-green-600">
-                {formatCurrency({
-                  amount,
-                  showUSD,
-                  exchangeRate,
-                  shorten: true,
-                  skipConversion: true,
-                })}
+        <div className="pl-6 pr-6 py-5">
+          {/* Header badges */}
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs font-semibold text-primary-500 uppercase tracking-wide">
+              Funding Opportunity
+            </span>
+            {isOpen ? (
+              <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                Open
               </span>
-              <span className="text-gray-500">available</span>
-            </div>
-
-            {/* Time remaining */}
-            {timeRemaining && isOpen && (
-              <div className="flex items-center gap-1.5 text-gray-500">
-                <Calendar size={14} className="text-gray-400" />
-                <span>Ends in {timeRemaining}</span>
-              </div>
+            ) : (
+              <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                Closed
+              </span>
             )}
-
-            {/* Applicants */}
-            <div className="text-gray-500">
-              {grant.applicantCount} {grant.applicantCount === 1 ? 'proposal' : 'proposals'}{' '}
-              submitted
-            </div>
           </div>
 
-          {/* CTA */}
-          {isOpen && (
-            <Link href={`${href}/applications`}>
-              <Button variant="default" size="md" className="gap-1.5">
-                Submit Proposal
-                <ArrowRight size={16} />
-              </Button>
-            </Link>
+          {/* Title */}
+          <h1 className="text-lg font-bold text-gray-900 mb-1.5 leading-snug">{grant.title}</h1>
+
+          {/* Organization */}
+          {grant.organization && (
+            <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-2">
+              <Building2 size={14} className="text-gray-400" />
+              <span>{grant.organization}</span>
+            </div>
           )}
+
+          {/* Text preview - always visible below title */}
+          {grant.textPreview && (
+            <p className="text-sm text-gray-600 mb-4 line-clamp-2">{grant.textPreview}</p>
+          )}
+
+          {/* Bottom row: Stats and CTA */}
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+            {/* Stats */}
+            <div className="flex items-center gap-4 text-sm">
+              {/* Amount */}
+              <div className="flex items-center gap-1.5">
+                <DollarSign size={14} className="text-green-600" />
+                <span className="font-semibold text-green-600">
+                  {formatCurrency({
+                    amount,
+                    showUSD,
+                    exchangeRate,
+                    shorten: true,
+                    skipConversion: true,
+                  })}
+                </span>
+                <span className="text-gray-500">available</span>
+              </div>
+
+              {/* Time remaining */}
+              {timeRemaining && isOpen && (
+                <div className="flex items-center gap-1.5 text-gray-500">
+                  <Calendar size={14} className="text-gray-400" />
+                  <span>Ends in {timeRemaining}</span>
+                </div>
+              )}
+
+              {/* Applicants */}
+              <div className="text-gray-500">
+                {grant.applicantCount} {grant.applicantCount === 1 ? 'proposal' : 'proposals'}{' '}
+                submitted
+              </div>
+            </div>
+
+            {/* CTA + Show details */}
+            <div className="flex items-center gap-3">
+              {onToggleDetails && (
+                <Button
+                  variant="ghost"
+                  size="md"
+                  onClick={onToggleDetails}
+                  className="gap-1 text-[#3971FF] hover:text-[#2C5EE8] hover:bg-blue-50"
+                >
+                  {showDetails ? 'Hide details' : 'Show details'}
+                  {showDetails ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                </Button>
+              )}
+              {isOpen && (
+                <Link href={`${href}/applications`}>
+                  <Button variant="default" size="md" className="px-4">
+                    Submit Proposal
+                    <ArrowRight size={16} />
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

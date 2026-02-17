@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
-import { GrantService } from '@/services/grant.service';
+import { PostService } from '@/services/post.service';
+import { Work } from '@/types/work';
 import { FundingGrantPageClient } from './FundingGrantPageClient';
 
 interface FundingGrantPageProps {
@@ -9,44 +10,34 @@ interface FundingGrantPageProps {
   }>;
 }
 
-// Generate static params for common grants (optional optimization)
-export async function generateStaticParams() {
-  // Fetch grants to pre-render
-  try {
-    const result = await GrantService.getGrants({
-      page: 1,
-      pageSize: 10,
-      status: 'OPEN',
-    });
+async function getGrantWork(grantId: string): Promise<Work> {
+  if (!grantId.match(/^\d+$/)) {
+    notFound();
+  }
 
-    return result.grants.map((grant) => {
-      const content = grant.content as any;
-      return {
-        grantId: content.grant?.id?.toString() || content.id?.toString(),
-      };
-    });
-  } catch {
-    return [];
+  try {
+    const work = await PostService.get(grantId);
+    return work;
+  } catch (error) {
+    notFound();
   }
 }
 
-async function getGrantData(grantId: string) {
+async function getWorkHTMLContent(work: Work): Promise<string | undefined> {
+  if (!work.contentUrl) return undefined;
+
   try {
-    const grant = await GrantService.getGrantById(grantId);
-    return grant;
+    return await PostService.getContent(work.contentUrl);
   } catch (error) {
-    console.error('Error fetching grant:', error);
-    return null;
+    console.error('Failed to fetch content:', error);
+    return undefined;
   }
 }
 
 export default async function FundingGrantPage({ params }: FundingGrantPageProps) {
   const { grantId } = await params;
-  const grant = await getGrantData(grantId);
-
-  if (!grant) {
-    notFound();
-  }
+  const work = await getGrantWork(grantId);
+  const htmlContent = await getWorkHTMLContent(work);
 
   return (
     <Suspense
@@ -62,7 +53,7 @@ export default async function FundingGrantPage({ params }: FundingGrantPageProps
         </div>
       }
     >
-      <FundingGrantPageClient initialGrant={grant} grantId={Number(grantId)} />
+      <FundingGrantPageClient work={work} htmlContent={htmlContent} />
     </Suspense>
   );
 }

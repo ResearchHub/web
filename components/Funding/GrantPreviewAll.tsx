@@ -25,7 +25,7 @@ const GrantCard: FC<GrantCardProps> = ({ grant }) => {
   if (!grantData) return null;
 
   const amount = showUSD ? grantData.amount.usd : grantData.amount.rsc;
-  const href = `/funding/${grantData.id}`;
+  const href = `/funding/${content.id}`;
 
   // Get first 3 words for display
   const shortTitle = content.title.split(' ').slice(0, 5).join(' ');

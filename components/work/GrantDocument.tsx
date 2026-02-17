@@ -53,7 +53,7 @@ export const GrantDocument = ({
   const renderTabContent = useMemo(() => {
     switch (activeTab) {
       case 'paper':
-        return renderGrantInfo();
+      // return renderGrantInfo();
       case 'applications':
         // Applications tab
         return (
