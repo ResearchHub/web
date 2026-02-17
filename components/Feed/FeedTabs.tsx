@@ -68,7 +68,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
             activeTab={activeTab}
             onTabChange={handleTabChange}
             disabled={isLoading}
-            className={`!border-b-0 h-full py-0 ${isCompact ? 'h-[48px]' : 'h-[64px]'}`}
+            className={`!border-b-0 h-full py-0 ${isCompact ? 'h-[48px]' : 'h-[56px]'}`}
           />
         </div>
         {/* Sorting and gear icon for Following tab */}
