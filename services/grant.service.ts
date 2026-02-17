@@ -1,7 +1,108 @@
 import { ApiClient } from './client';
+import { FeedEntry, transformFeedEntry, RawApiFeedEntry } from '@/types/feed';
+
+interface GrantFeedResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: RawApiFeedEntry[];
+}
+
+export interface GetGrantsParams {
+  page?: number;
+  pageSize?: number;
+  status?: 'OPEN' | 'CLOSED';
+  ordering?: 'newest' | 'oldest' | 'best';
+}
 
 export class GrantService {
   private static readonly BASE_PATH = '/api/grant';
+  private static readonly GRANT_FEED_PATH = '/api/grant_feed';
+
+  /**
+   * Fetches grants from the grant feed endpoint
+   * @param params Query parameters for filtering grants
+   * @returns Array of grant feed entries and pagination info
+   */
+  static async getGrants(params?: GetGrantsParams): Promise<{
+    grants: FeedEntry[];
+    hasMore: boolean;
+    total: number;
+  }> {
+    const queryParams = new URLSearchParams();
+
+    queryParams.append('content_type', 'GRANT');
+    queryParams.append('page', (params?.page || 1).toString());
+    queryParams.append('page_size', (params?.pageSize || 20).toString());
+
+    if (params?.status) {
+      queryParams.append('status', params.status);
+    }
+
+    if (params?.ordering) {
+      queryParams.append('ordering', params.ordering);
+    }
+
+    const url = `${this.GRANT_FEED_PATH}/?${queryParams.toString()}`;
+
+    try {
+      const response = await ApiClient.get<GrantFeedResponse>(url);
+
+      const grants = response.results
+        .map((entry) => {
+          try {
+            return transformFeedEntry(entry);
+          } catch (error) {
+            console.error('Error transforming grant entry:', error, entry);
+            return null;
+          }
+        })
+        .filter((entry): entry is FeedEntry => entry !== null);
+
+      return {
+        grants,
+        hasMore: !!response.next,
+        total: response.count,
+      };
+    } catch (error) {
+      console.error('Error fetching grants:', error);
+      return {
+        grants: [],
+        hasMore: false,
+        total: 0,
+      };
+    }
+  }
+
+  /**
+   * Fetches a single grant by ID
+   * @param grantId The grant ID
+   * @returns The grant feed entry or null
+   */
+  static async getGrantById(grantId: string | number): Promise<FeedEntry | null> {
+    // Fetch from grant_feed with the specific grant's post ID
+    // The grant ID in the URL is actually the post ID that contains the grant
+    const url = `${this.GRANT_FEED_PATH}/?content_type=GRANT&page=1&page_size=50`;
+
+    try {
+      const response = await ApiClient.get<GrantFeedResponse>(url);
+
+      // Find the grant with matching ID
+      const grantEntry = response.results.find((entry) => {
+        const content = entry.content_object;
+        return content?.grant?.id === Number(grantId) || content?.id === Number(grantId);
+      });
+
+      if (!grantEntry) {
+        return null;
+      }
+
+      return transformFeedEntry(grantEntry);
+    } catch (error) {
+      console.error('Error fetching grant by ID:', error);
+      return null;
+    }
+  }
 
   /**
    * Creates a new grant

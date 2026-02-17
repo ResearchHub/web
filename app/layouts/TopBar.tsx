@@ -61,6 +61,7 @@ const isRootNavigationPage = (pathname: string): boolean => {
     '/fund',
     '/fund/grants',
     '/fund/needs-funding', // Fundraises page
+    '/funding', // Funding V2 page
     '/journal',
     '/notebook',
     '/browse',
@@ -158,8 +159,8 @@ const getPageInfo = (pathname: string): PageInfo | null => {
 
   if (pathname.startsWith('/funding')) {
     return {
-      title: 'Funding',
-      subtitle: 'Browse funding opportunities and grants',
+      title: 'Funding Marketplace',
+      subtitle: 'Participate in funding the future of science',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }

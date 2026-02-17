@@ -8,6 +8,14 @@ export { StripeProvider } from './StripeProvider';
 export { FundingImpactPreview } from './FundingImpactPreview';
 export { QuickAmountSelector } from './QuickAmountSelector';
 
+// Funding feed components
+export { FundingProposalCard } from './FundingProposalCard';
+export { FundingProposalGrid } from './FundingProposalGrid';
+export { FundingTabs } from './FundingTabs';
+export { GrantPreview } from './GrantPreview';
+export { GrantPreviewAll } from './GrantPreviewAll';
+export { ActivityFeed } from './ActivityFeed';
+
 // Lib exports (constants, hooks, types)
 export {
   PAYMENT_FEES,
