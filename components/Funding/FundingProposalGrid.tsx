@@ -4,6 +4,7 @@ import { FC, useEffect, useState, useCallback } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { FeedService } from '@/services/feed.service';
 import { FundingProposalCard } from './FundingProposalCard';
+import { ProposalCardSkeleton } from '@/components/skeletons/ProposalCardSkeleton';
 import { cn } from '@/utils/styles';
 
 interface FundingProposalGridProps {
@@ -14,46 +15,6 @@ interface FundingProposalGridProps {
   /** Optional class name */
   className?: string;
 }
-
-const ProposalCardSkeleton: FC = () => (
-  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden animate-pulse">
-    {/* Image skeleton */}
-    <div className="aspect-[16/9] bg-gray-200" />
-
-    {/* Content skeleton */}
-    <div className="p-4">
-      {/* Title */}
-      <div className="h-5 bg-gray-200 rounded w-3/4 mb-2" />
-      <div className="h-5 bg-gray-200 rounded w-1/2 mb-3" />
-
-      {/* Author */}
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-6 h-6 bg-gray-200 rounded-full" />
-        <div className="flex-1">
-          <div className="h-3.5 bg-gray-200 rounded w-24 mb-1" />
-          <div className="h-3 bg-gray-200 rounded w-32" />
-        </div>
-      </div>
-
-      {/* Progress bar */}
-      <div className="h-1.5 bg-gray-200 rounded-full mb-2" />
-
-      {/* Funding info */}
-      <div className="flex justify-between">
-        <div className="h-4 bg-gray-200 rounded w-20" />
-        <div className="h-4 bg-gray-200 rounded w-24" />
-      </div>
-
-      {/* Actions */}
-      <div className="mt-3 pt-3 border-t border-gray-100">
-        <div className="flex gap-2">
-          <div className="h-8 bg-gray-200 rounded-full w-16" />
-          <div className="h-8 bg-gray-200 rounded-full w-16" />
-        </div>
-      </div>
-    </div>
-  </div>
-);
 
 export const FundingProposalGrid: FC<FundingProposalGridProps> = ({
   grantId,

@@ -27,9 +27,9 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({ entry, class
   const fundraise = content.fundraise;
 
   if (!fundraise) return null;
-
+  console.log('fundraise', fundraise);
   const isCompleted = fundraise.status === 'COMPLETED' || fundraise.status === 'CLOSED';
-  const author = content.authors?.[0] || content.createdBy;
+  const author = fundraise.createdBy?.authorProfile;
   const href = `/fund/${content.id}/${content.slug}`;
 
   // Calculate amounts for progress bar
@@ -44,9 +44,7 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({ entry, class
   // Get education from author profile
   const education = author?.education;
   const educationDisplay =
-    education && education.length > 0
-      ? `${education[0].name}${education[0].degree?.label ? `, ${education[0].degree.label}` : ''}`
-      : null;
+    (author?.education?.length || 0) > 0 ? `${author?.education?.[0]?.name}` : null;
 
   return (
     <Link
@@ -84,7 +82,7 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({ entry, class
       {/* Content */}
       <div className="p-4 flex-1 flex flex-col">
         {/* Title */}
-        <h3 className="font-semibold text-gray-900 text-base leading-tight line-clamp-2 mb-2 hover:text-primary-600 transition-colors">
+        <h3 className="font-semibold text-gray-900 text-base leading-tight line-clamp-2 min-h-[2.5rem] mb-2 hover:text-primary-600 transition-colors">
           {content.title}
         </h3>
 

@@ -1,6 +1,7 @@
 import { Currency, ID } from './root';
 import { createTransformer } from './transformer';
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
+import { transformUser, User } from './user';
 
 export type FundraiseStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
 
@@ -37,6 +38,7 @@ export interface Fundraise {
     topContributors: Contributor[];
   };
 
+  createdBy?: User;
   createdDate: string;
   updatedDate: string;
 }
@@ -63,6 +65,7 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => ({
       })),
     })),
   },
+  createdBy: transformUser(raw.created_by),
   status: raw.status as FundraiseStatus,
   goalCurrency: raw.goal_currency as Currency,
   startDate: raw.start_date || undefined,

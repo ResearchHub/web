@@ -248,6 +248,7 @@ export class FeedService {
           author_profile: contributor.author_profile,
         })),
       },
+      created_by: content_object.created_by,
       created_date: content_object.created_date,
       updated_date: content_object.updated_date,
     };
