@@ -379,6 +379,44 @@ function ContributeToFundraiseModalInner({
     onClose();
   }, [onClose]);
 
+  const handleEndaomentPaymentConfirm = useCallback(
+    async (originFundId: string) => {
+      try {
+        setIsContributing(true);
+        setError(null);
+
+        await FundraiseService.createEndaomentContribution(fundraise.id, originFundId, amountUsd);
+
+        // Track successful payment
+        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
+          fundraise_id: fundraise.id,
+          payment_method: 'endaoment',
+          amount_usd: amountUsd,
+          amount_rsc: amountInRsc,
+        });
+
+        toast.success('Your contribution has been successfully added to the fundraise.');
+        refreshUser?.();
+        if (onContributeSuccess) {
+          onContributeSuccess();
+        }
+        handleClose();
+      } catch (err) {
+        console.error('Failed to contribute via Endaoment:', err);
+        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+          fundraise_id: fundraise.id,
+          payment_method: 'endaoment',
+          error_type: 'api',
+          error_message: 'Request failed',
+        });
+        setError('Something went wrong with your Endaoment payment. Please try again.');
+      } finally {
+        setIsContributing(false);
+      }
+    },
+    [fundraise.id, amountUsd, amountInRsc, refreshUser, onContributeSuccess, handleClose]
+  );
+
   // Handle Apple Pay / Google Pay success
   const handlePaymentRequestSuccess = useCallback(
     (paymentMethod?: 'apple_pay' | 'google_pay') => {
@@ -448,6 +486,7 @@ function ContributeToFundraiseModalInner({
             walletAvailability={walletAvailability}
             onConfirmPayment={handleConfirmPayment}
             onPaymentRequestSuccess={handlePaymentRequestSuccess}
+            onEndaomentPaymentConfirm={handleEndaomentPaymentConfirm}
             onDepositRsc={handleOpenDeposit}
             onBuyRsc={handleBuyRsc}
             onStripeReady={handleStripeReady}
