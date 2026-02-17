@@ -2,7 +2,7 @@
 
 import { FC } from 'react';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
-import { GrantPreview } from './GrantPreview';
+import { GrantPreview, transformFeedEntryToGrantPreviewData } from './GrantPreview';
 import { FundingProposalGrid } from './FundingProposalGrid';
 
 interface FundingGrantViewProps {
@@ -12,12 +12,13 @@ interface FundingGrantViewProps {
 export const FundingGrantView: FC<FundingGrantViewProps> = ({ grant }) => {
   const grantContent = grant.content as FeedGrantContent;
   const grantId = grantContent.grant?.id;
+  const grantPreviewData = transformFeedEntryToGrantPreviewData(grant);
 
-  if (!grantId) return null;
+  if (!grantId || !grantPreviewData) return null;
 
   return (
     <>
-      <GrantPreview grant={grant} className="mb-8" />
+      <GrantPreview grant={grantPreviewData} className="mb-8" />
       <FundingProposalGrid grantId={grantId} />
     </>
   );

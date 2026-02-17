@@ -12,7 +12,11 @@ export { QuickAmountSelector } from './QuickAmountSelector';
 export { FundingProposalCard } from './FundingProposalCard';
 export { FundingProposalGrid } from './FundingProposalGrid';
 export { FundingTabs } from './FundingTabs';
-export { GrantPreview } from './GrantPreview';
+export {
+  GrantPreview,
+  transformFeedEntryToGrantPreviewData,
+  type GrantPreviewData,
+} from './GrantPreview';
 export { GrantPreviewAll } from './GrantPreviewAll';
 export { ActivityFeed } from './ActivityFeed';
 export { FundraiseProgressBar } from './FundraiseProgressBar';

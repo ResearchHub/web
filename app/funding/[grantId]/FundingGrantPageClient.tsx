@@ -1,9 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundingTabs } from '@/components/Funding/FundingTabs';
-import { GrantPreview } from '@/components/Funding/GrantPreview';
+import {
+  GrantPreview,
+  transformFeedEntryToGrantPreviewData,
+} from '@/components/Funding/GrantPreview';
 import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
 import { ActivityFeed } from '@/components/Funding/ActivityFeed';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
@@ -34,6 +37,13 @@ export function FundingGrantPageClient({ initialGrant, grantId }: FundingGrantPa
   const grant = selectedGrant || initialGrant;
   const grantContent = grant.content as FeedGrantContent;
 
+  // Transform grant to preview data
+  const grantPreviewData = useMemo(() => transformFeedEntryToGrantPreviewData(grant), [grant]);
+
+  if (!grantPreviewData) {
+    return null;
+  }
+
   return (
     <PageLayout rightSidebar={<ActivityFeed />}>
       {/* Tabs */}
@@ -42,7 +52,7 @@ export function FundingGrantPageClient({ initialGrant, grantId }: FundingGrantPa
       </div>
 
       {/* Grant Preview */}
-      <GrantPreview grant={grant} className="mb-8" />
+      <GrantPreview grant={grantPreviewData} className="mb-8" />
 
       {/* Proposals for this grant */}
       <FundingProposalGrid grantId={grantContent.grant?.id || grantId} />
