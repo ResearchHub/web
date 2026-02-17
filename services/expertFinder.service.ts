@@ -25,7 +25,7 @@ export interface ExpertSearchCreatePayload {
   input_type?: InputType;
   config: {
     expert_count: number;
-    expertise_level: ExpertiseLevel;
+    expertise_level: ExpertiseLevel[];
     region: Region;
     state: string;
     gender: Gender;
@@ -91,7 +91,6 @@ export class ExpertFinderService {
   static openProgressStream(searchId: number | string, signal?: AbortSignal): Promise<Response> {
     return ApiClient.getStream(`${this.BASE_PATH}/progress/${searchId}/`, {
       signal,
-      accept: 'text/event-stream',
     });
   }
 
@@ -108,24 +107,29 @@ export class ExpertFinderService {
   ): Promise<number> {
     let unifiedDocumentId: number | null | undefined;
 
-    switch (contentType) {
-      case 'paper': {
-        const work = await PaperService.get(documentId);
-        unifiedDocumentId = work.unifiedDocumentId;
-        break;
+    try {
+      switch (contentType) {
+        case 'paper': {
+          const work = await PaperService.get(documentId);
+          unifiedDocumentId = work.unifiedDocumentId;
+          break;
+        }
+        case 'post':
+        case 'question':
+        case 'discussion':
+        case 'preregistration':
+        case 'funding_request': {
+          const work = await PostService.get(documentId);
+          unifiedDocumentId = work.unifiedDocumentId;
+          break;
+        }
+        default: {
+          assertNever(contentType, true);
+        }
       }
-      case 'post':
-      case 'question':
-      case 'discussion':
-      case 'preregistration':
-      case 'funding_request': {
-        const work = await PostService.get(documentId);
-        unifiedDocumentId = work.unifiedDocumentId;
-        break;
-      }
-      default: {
-        assertNever(contentType, true);
-      }
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : 'Unknown error';
+      throw new Error(`Could not load the document (${contentType}/${documentId}). ${detail}`);
     }
 
     if (!unifiedDocumentId) {

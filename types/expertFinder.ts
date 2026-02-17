@@ -18,7 +18,7 @@ export type InputType = 'abstract' | 'pdf' | 'custom_query' | 'full_content';
 /** Form and UI config (camelCase); used in components. */
 export interface ExpertSearchConfig {
   expertCount: number;
-  expertiseLevel: ExpertiseLevel;
+  expertiseLevel: ExpertiseLevel[];
   region: Region;
   state: string;
   gender: Gender;
@@ -101,6 +101,18 @@ export interface ExpertSearchProgress {
   error?: string;
 }
 
+function transformExpertResult(raw: Record<string, unknown>): ExpertResult {
+  return {
+    name: (raw.name ?? raw.first_name ?? raw.full_name ?? '') as string,
+    title: (raw.title ?? raw.job_title ?? raw.position ?? '') as string,
+    affiliation: (raw.affiliation ?? raw.organization ?? raw.institution ?? '') as string,
+    expertise: (raw.expertise ?? raw.expertise_areas ?? '') as string,
+    email: (raw.email ?? '') as string,
+    notes: (raw.notes ?? raw.recommendation_notes) as string | undefined,
+    sources: Array.isArray(raw.sources) ? (raw.sources as string[]) : null,
+  };
+}
+
 export function transformExpertSearch(raw: Record<string, unknown>): ExpertSearchResult {
   return {
     searchId: (raw.search_id ?? raw.searchId ?? 0) as number,
@@ -112,7 +124,9 @@ export function transformExpertSearch(raw: Record<string, unknown>): ExpertSearc
     status: (raw.status as SearchStatus) || 'pending',
     progress: (raw.progress as number) ?? 0,
     currentStep: (raw.current_step as string) || '',
-    expertResults: Array.isArray(raw.expert_results) ? raw.expert_results : [],
+    expertResults: Array.isArray(raw.expert_results)
+      ? (raw.expert_results as Record<string, unknown>[]).map(transformExpertResult)
+      : [],
     expertCount: (raw.expert_count as number) ?? 0,
     expertNames: Array.isArray(raw.expert_names) ? raw.expert_names : [],
     reportUrls: (raw.report_urls as ReportUrls | null) || null,

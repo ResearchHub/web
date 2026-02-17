@@ -104,6 +104,7 @@ export const useExpertSearchProgress = (
               }
 
               if (eventType === 'complete') {
+                setStatus('completed');
                 cleanup();
                 return;
               }

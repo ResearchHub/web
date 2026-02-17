@@ -22,14 +22,12 @@ const navigationItems: SidebarNavItem[] = [
     href: '/expert-finder/templates',
     icon: FileText,
     description: 'Coming soon',
-    disabled: true,
   },
   {
     name: 'Outreach',
     href: '/expert-finder/outreach',
     icon: Send,
     description: 'Coming soon',
-    disabled: true,
   },
 ];
 
