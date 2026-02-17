@@ -26,7 +26,7 @@ export function EndaomentFundSelector({
   onSelectFund,
   requiredAmountUsd,
 }: EndaomentFundSelectorProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(!selectedFundId);
 
   const selectedFund = funds.find((f) => f.id === selectedFundId);
 
