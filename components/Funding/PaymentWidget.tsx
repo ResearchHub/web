@@ -117,6 +117,13 @@ export function PaymentWidget({
     paymentMethod: 'rsc', // Always calculate for RSC to check balance
   });
 
+  // Preselect DAF if user has exactly one
+  useEffect(() => {
+    if (funds.length === 1 && !selectedDafAccountId) {
+      setSelectedDafAccountId(funds[0].id);
+    }
+  }, [funds, selectedDafAccountId]);
+
   // Resolve the selected Endaoment fund and notify parent
   const selectedEndaomentFund = funds.find((f) => f.id === selectedDafAccountId) ?? null;
 
