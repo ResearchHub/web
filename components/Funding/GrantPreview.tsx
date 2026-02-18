@@ -1,11 +1,20 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { Button } from '@/components/ui/Button';
-import { Calendar, Building2, ArrowRight, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Calendar,
+  Building2,
+  ArrowRight,
+  DollarSign,
+  FileText,
+  LayoutList,
+  MessageSquare,
+  Activity,
+} from 'lucide-react';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { formatCurrency } from '@/utils/currency';
@@ -64,15 +73,23 @@ export function transformFeedEntryToGrantPreviewData(entry: FeedEntry): GrantPre
   };
 }
 
-export const GrantPreview: FC<GrantPreviewProps> = ({
-  grant,
-  className,
-  compact = false,
-  showDetails = false,
-  onToggleDetails,
-}) => {
+type GrantDetailTab = 'proposals' | 'details' | 'conversation' | 'activity';
+
+const GRANT_DETAIL_TABS: {
+  id: GrantDetailTab;
+  label: string;
+  icon: React.ElementType;
+}[] = [
+  { id: 'proposals', label: 'Proposals', icon: FileText },
+  { id: 'details', label: 'Details', icon: LayoutList },
+  { id: 'conversation', label: 'Conversation', icon: MessageSquare },
+  { id: 'activity', label: 'Activity', icon: Activity },
+];
+
+export const GrantPreview: FC<GrantPreviewProps> = ({ grant, className, compact = false }) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
+  const [activeTab, setActiveTab] = useState<GrantDetailTab>('proposals');
 
   const isOpen = grant.status === 'OPEN' && grant.isActive;
   const amount = showUSD ? grant.amount.usd : grant.amount.rsc;
@@ -150,7 +167,8 @@ export const GrantPreview: FC<GrantPreviewProps> = ({
           )}
         </div>
 
-        <div className="pl-6 pr-6 py-5">
+        {/* Main content */}
+        <div className="pl-6 pr-6 pt-5 pb-0">
           {/* Header badges */}
           <div className="flex items-center gap-2 mb-2">
             <span className="text-xs font-semibold text-primary-500 uppercase tracking-wide">
@@ -178,68 +196,87 @@ export const GrantPreview: FC<GrantPreviewProps> = ({
             </div>
           )}
 
-          {/* Text preview - always visible below title */}
+          {/* Text preview */}
           {grant.textPreview && (
-            <p className="text-sm text-gray-600 mb-4 line-clamp-2">{grant.textPreview}</p>
+            <p className="text-sm text-gray-600 mb-0 line-clamp-2">{grant.textPreview}</p>
           )}
+        </div>
 
-          {/* Bottom row: Stats and CTA */}
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-            {/* Stats */}
-            <div className="flex items-center gap-4 text-sm">
-              {/* Amount */}
-              <div className="flex items-center gap-1.5">
-                <DollarSign size={14} className="text-green-600" />
-                <span className="font-semibold text-green-600">
-                  {formatCurrency({
-                    amount,
-                    showUSD,
-                    exchangeRate,
-                    shorten: true,
-                    skipConversion: true,
-                  })}
-                </span>
-                <span className="text-gray-500">available</span>
-              </div>
-
-              {/* Time remaining */}
-              {timeRemaining && isOpen && (
-                <div className="flex items-center gap-1.5 text-gray-500">
-                  <Calendar size={14} className="text-gray-400" />
+        {/* Action row: compact stats + Submit Proposal */}
+        <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 mt-3">
+          {/* Compact stats */}
+          <div className="flex items-center gap-3 text-xs text-gray-500">
+            <span className="flex items-center gap-1">
+              <DollarSign size={12} className="text-green-500" />
+              <span className="font-semibold text-green-600">
+                {formatCurrency({
+                  amount,
+                  showUSD,
+                  exchangeRate,
+                  shorten: true,
+                  skipConversion: true,
+                })}
+              </span>
+              <span>available</span>
+            </span>
+            {timeRemaining && isOpen && (
+              <>
+                <span className="text-gray-300">·</span>
+                <span className="flex items-center gap-1">
+                  <Calendar size={11} className="text-gray-400" />
                   <span>Ends in {timeRemaining}</span>
-                </div>
-              )}
-
-              {/* Applicants */}
-              <div className="text-gray-500">
-                {grant.applicantCount} {grant.applicantCount === 1 ? 'proposal' : 'proposals'}{' '}
-                submitted
-              </div>
-            </div>
-
-            {/* CTA + Show details */}
-            <div className="flex items-center gap-3">
-              {onToggleDetails && (
-                <Button
-                  variant="ghost"
-                  size="md"
-                  onClick={onToggleDetails}
-                  className="gap-1 text-[#3971FF] hover:text-[#2C5EE8] hover:bg-blue-50"
-                >
-                  {showDetails ? 'Hide details' : 'Show details'}
-                  {showDetails ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-                </Button>
-              )}
-              {isOpen && (
-                <Link href={`${href}/applications`}>
-                  <Button variant="default" size="md" className="px-4">
-                    Submit Proposal
-                    <ArrowRight size={16} />
-                  </Button>
-                </Link>
-              )}
-            </div>
+                </span>
+              </>
+            )}
+            <span className="text-gray-300">·</span>
+            <span>
+              {grant.applicantCount} {grant.applicantCount === 1 ? 'proposal' : 'proposals'}
+            </span>
           </div>
+
+          {/* Submit Proposal CTA */}
+          {isOpen && (
+            <Link href={`${href}/applications`}>
+              <Button variant="default" size="sm" className="gap-1.5 text-xs px-3 py-1.5 h-auto">
+                Submit Proposal
+                <ArrowRight size={13} />
+              </Button>
+            </Link>
+          )}
+        </div>
+
+        {/* Full-width detail tabs */}
+        <div className="flex border-t border-gray-100 bg-gray-50/60">
+          {GRANT_DETAIL_TABS.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  'flex-1 flex flex-col items-center gap-1 py-3 transition-all duration-150 border-t-[2.5px] select-none',
+                  isActive
+                    ? 'border-primary-500 bg-white text-primary-600'
+                    : 'border-transparent text-gray-400 hover:text-gray-600 hover:bg-white/60'
+                )}
+              >
+                <tab.icon
+                  size={15}
+                  strokeWidth={isActive ? 2.5 : 1.75}
+                  className={isActive ? 'text-primary-500' : 'text-gray-400'}
+                />
+                <span
+                  className={cn(
+                    'text-[11px] font-medium leading-none',
+                    isActive ? 'text-primary-700' : 'text-gray-400'
+                  )}
+                >
+                  {tab.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
