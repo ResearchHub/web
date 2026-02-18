@@ -20,11 +20,11 @@ interface UseRFPPublishParams {
   editor: Editor | null;
   noteId: number | null;
   methods: UseFormReturn<PublishingFormData>;
-  /** When provided, the publish call becomes an update (re-publish). */
   postId?: ID;
+  onSuccess?: () => void;
 }
 
-export function useRFPPublish({ editor, noteId, methods, postId }: UseRFPPublishParams) {
+export function useRFPPublish({ editor, noteId, methods, postId, onSuccess }: UseRFPPublishParams) {
   const router = useRouter();
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
   const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
@@ -35,7 +35,6 @@ export function useRFPPublish({ editor, noteId, methods, postId }: UseRFPPublish
   const isPublishing = isLoadingUpsert || isUploadingImage;
   const isProcessing = isPublishing || isRedirecting;
 
-  // Save editor content + title to the backend note
   const saveNoteContent = useCallback(async () => {
     if (!editor || !noteId) return;
     const title = getDocumentTitleFromEditor(editor) || DEFAULT_RFP_TITLE;
@@ -50,7 +49,6 @@ export function useRFPPublish({ editor, noteId, methods, postId }: UseRFPPublish
     ]);
   }, [editor, noteId]);
 
-  // Validate form -> toast errors -> show confirm modal
   const handlePublishClick = async () => {
     const isValid = await methods.trigger();
     if (!isValid) {
@@ -64,7 +62,6 @@ export function useRFPPublish({ editor, noteId, methods, postId }: UseRFPPublish
     setShowConfirmModal(true);
   };
 
-  // Full publish flow: save note -> upload image -> upsert post -> redirect
   const handleConfirmPublish = async () => {
     if (!editor || !noteId) return;
 
@@ -72,9 +69,6 @@ export function useRFPPublish({ editor, noteId, methods, postId }: UseRFPPublish
       const title = getDocumentTitleFromEditor(editor);
       const formData = methods.getValues();
 
-      await saveNoteContent();
-
-      // Upload cover image if provided
       let imagePath: string | null = null;
       if (formData.coverImage?.file) {
         try {
@@ -111,6 +105,9 @@ export function useRFPPublish({ editor, noteId, methods, postId }: UseRFPPublish
         postId
       );
 
+      await saveNoteContent();
+
+      onSuccess?.();
       setIsRedirecting(true);
       toast.success(isUpdate ? 'RFP updated successfully!' : 'RFP published successfully!');
       router.push(`/grant/${response.id}/${response.slug}`);
@@ -129,7 +126,6 @@ export function useRFPPublish({ editor, noteId, methods, postId }: UseRFPPublish
     handleConfirmPublish,
     isProcessing,
     isPublishing,
-    isUpdate,
     showConfirmModal,
     setShowConfirmModal,
   };

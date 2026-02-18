@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Plus } from 'lucide-react';
-import { CreateRFPModal } from './CreateRFPModal';
+import { RFPModal } from './RFPModal';
 
 interface CreateRFPButtonProps {
   className?: string;
@@ -19,7 +19,7 @@ export function CreateRFPButton({ className }: CreateRFPButtonProps) {
         Create RFP
       </Button>
 
-      <CreateRFPModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <RFPModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </>
   );
 }

@@ -16,6 +16,8 @@ import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useCreateNote, useNoteContent } from '@/hooks/useNote';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useRFPPublish } from '@/hooks/useRFPPublish';
+import { PostService } from '@/services/post.service';
+import { NoteService } from '@/services/note.service';
 import {
   getDocumentTitle,
   getDocumentTitleFromEditor,
@@ -29,31 +31,42 @@ import {
 import { RFPFormSections } from './RFPFormSections';
 import { DEFAULT_RFP_TITLE, RFP_FORM_DEFAULTS } from './lib/constants';
 
-interface CreateRFPModalProps {
+interface RFPModalProps {
   isOpen: boolean;
   onClose: () => void;
+  postId?: number;
+  onSaved?: () => void;
 }
 
-export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
-  const { selectedOrg } = useOrganizationContext();
+export function RFPModal({ isOpen, onClose, postId, onSaved }: RFPModalProps) {
+  const isEditMode = !!postId;
   const isMobile = useIsMobile();
+  const { selectedOrg } = useOrganizationContext();
 
-  // Editor
   const [editor, setEditor] = useState<Editor | null>(null);
-
-  // Note creation — create a blank note and fill it with the grant template
   const [noteId, setNoteId] = useState<number | null>(null);
-  const [isCreatingNote, setIsCreatingNote] = useState(false);
-  const [noteError, setNoteError] = useState<string | null>(null);
-  const [, createNote] = useCreateNote();
-  const [, updateContent] = useNoteContent();
+  const [contentJson, setContentJson] = useState<string | null>(null);
+  const [contentHtml, setContentHtml] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [initError, setInitError] = useState<string | null>(null);
+  const [step, setStep] = useState<'editor' | 'form'>('editor');
 
+  const methods = useForm<PublishingFormData>({
+    defaultValues: RFP_FORM_DEFAULTS,
+    resolver: zodResolver(publishingFormSchema),
+    mode: 'onChange',
+  });
+
+  const [, createNote] = useCreateNote();
+  const [, updateNoteContent] = useNoteContent();
+
+  // ── Create mode ──
   useEffect(() => {
-    if (!isOpen || !selectedOrg?.slug || noteId) return;
+    if (isEditMode || !isOpen || !selectedOrg?.slug || noteId) return;
 
     const init = async () => {
-      setIsCreatingNote(true);
-      setNoteError(null);
+      setIsInitializing(true);
+      setInitError(null);
       try {
         const title = getDocumentTitle(grantTemplate) || DEFAULT_RFP_TITLE;
         const newNote = await createNote({
@@ -69,7 +82,7 @@ export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
               .filter(Boolean)
               .join('\n') || '';
 
-          await updateContent({
+          await updateNoteContent({
             note: newNote.id,
             fullJson: JSON.stringify(grantTemplate),
             plainText,
@@ -79,26 +92,95 @@ export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
         }
       } catch (err) {
         console.error('Failed to create note:', err);
-        setNoteError('Failed to initialize. Please try again.');
+        setInitError('Failed to initialize. Please try again.');
       } finally {
-        setIsCreatingNote(false);
+        setIsInitializing(false);
       }
     };
 
     init();
-  }, [isOpen, selectedOrg?.slug]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isEditMode, isOpen, selectedOrg?.slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Steps: 'editor' → 'form'
-  const [step, setStep] = useState<'editor' | 'form'>('editor');
+  // ── Edit mode ──
+  useEffect(() => {
+    if (!isEditMode || !isOpen || !postId) return;
 
-  // Form
-  const methods = useForm<PublishingFormData>({
-    defaultValues: RFP_FORM_DEFAULTS,
-    resolver: zodResolver(publishingFormSchema),
-    mode: 'onChange',
-  });
+    let cancelled = false;
 
-  // Publish flow (shared with future EditRFPModal)
+    const load = async () => {
+      setIsInitializing(true);
+      setInitError(null);
+      setContentJson(null);
+      setContentHtml(null);
+      setNoteId(null);
+      setStep('editor');
+
+      try {
+        const work = await PostService.get(String(postId));
+        if (cancelled) return;
+
+        const workNoteId = work.note?.id;
+        if (!workNoteId) {
+          setInitError('This RFP has no associated note.');
+          return;
+        }
+
+        const note = await NoteService.getNote(String(workNoteId));
+        if (cancelled) return;
+
+        setNoteId(workNoteId);
+
+        if (work.previewContent) {
+          setContentHtml(work.previewContent);
+        } else if (note.contentJson) {
+          setContentJson(note.contentJson);
+        } else if (note.content) {
+          setContentHtml(note.content);
+        }
+
+        const grant = work.note?.post?.grant;
+        if (grant) {
+          methods.setValue('shortDescription', grant.description || '');
+          methods.setValue('organization', grant.organization || '');
+          methods.setValue('budget', grant.amount?.usd?.toString() || '');
+
+          if (grant.contacts?.length) {
+            methods.setValue(
+              'contacts',
+              grant.contacts.map((c) => ({
+                value: c.id.toString(),
+                label: c.authorProfile?.fullName || c.name,
+              }))
+            );
+          }
+        }
+
+        if (work.topics?.length) {
+          methods.setValue(
+            'topics',
+            work.topics.map((t) => ({ value: t.id.toString(), label: t.name }))
+          );
+        }
+
+        if (work.image) {
+          methods.setValue('coverImage', { url: work.image, file: null });
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Failed to load RFP:', err);
+          setInitError('Failed to load RFP. Please try again.');
+        }
+      } finally {
+        if (!cancelled) setIsInitializing(false);
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [isEditMode, isOpen, postId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const {
     saveNoteContent,
     handlePublishClick,
@@ -107,14 +189,42 @@ export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
     isPublishing,
     showConfirmModal,
     setShowConfirmModal,
-  } = useRFPPublish({ editor, noteId, methods });
+  } = useRFPPublish({ editor, noteId, methods, postId, onSuccess: onSaved });
 
   const handleGoToForm = useCallback(() => {
     setStep('form');
-    saveNoteContent().catch(() => {});
+    saveNoteContent().catch((err) => console.error('Auto-save failed:', err));
   }, [saveNoteContent]);
 
-  const handleClose = isProcessing ? () => {} : onClose;
+  // Destroy editor before closing to avoid TipTap DOM errors during Headless UI leave transition
+  const handleClose = useCallback(() => {
+    if (isProcessing) return;
+    editor?.destroy();
+    onClose();
+  }, [isProcessing, editor, onClose]);
+
+  useEffect(() => {
+    if (isOpen) return;
+    setEditor(null);
+    setNoteId(null);
+    setContentJson(null);
+    setContentHtml(null);
+    setIsInitializing(true);
+    setInitError(null);
+    setStep('editor');
+    methods.reset(RFP_FORM_DEFAULTS);
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const headerTitle = isEditMode ? 'Edit RFP' : 'Create RFP';
+  const actionLabel = isEditMode ? 'Update' : 'Publish';
+  const formStepTitle = isEditMode ? 'Update Details' : 'Publish Details';
+  const loadingMessage = isEditMode ? 'Loading RFP...' : 'Setting up your RFP...';
+
+  const hasEditContent = !!(contentJson || contentHtml);
+  const editorContentJson = isEditMode && !contentHtml ? (contentJson ?? undefined) : undefined;
+  const editorContentHtml = isEditMode ? (contentHtml ?? undefined) : undefined;
+  const templateJson = !isEditMode ? JSON.stringify(grantTemplate) : undefined;
+  const isEditorReady = noteId && (isEditMode ? hasEditContent : true);
 
   return (
     <BaseModal
@@ -125,33 +235,31 @@ export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
       className="!max-h-screen md:!max-h-[calc(100vh-2rem)] md:!rounded-2xl"
     >
       <div className="h-full flex flex-col relative">
-        {/* Processing overlay */}
         {isProcessing && (
           <div className="absolute inset-0 bg-white/60 z-50 flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
           </div>
         )}
 
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
           {step === 'editor' ? (
             <>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 disabled={isProcessing}
                 className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500"
               >
                 <X className="w-5 h-5" />
               </button>
-              <h2 className="text-base font-semibold text-gray-900">Create RFP</h2>
+              <h2 className="text-base font-semibold text-gray-900">{headerTitle}</h2>
               <Button
                 variant="default"
                 size="sm"
                 onClick={handleGoToForm}
-                disabled={isProcessing || isCreatingNote || !noteId}
+                disabled={isProcessing || isInitializing || !noteId}
               >
                 <FileUp className="w-4 h-4 mr-1.5" />
-                Publish
+                {actionLabel}
               </Button>
             </>
           ) : (
@@ -164,7 +272,7 @@ export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
                 <ArrowLeft className="w-5 h-5" />
                 <span className="text-sm">Back</span>
               </button>
-              <h2 className="text-base font-semibold text-gray-900">Publish Details</h2>
+              <h2 className="text-base font-semibold text-gray-900">{formStepTitle}</h2>
               {isMobile ? (
                 <div className="w-16" />
               ) : (
@@ -174,38 +282,37 @@ export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
                   onClick={handlePublishClick}
                   disabled={isProcessing}
                 >
-                  Publish
+                  {actionLabel}
                 </Button>
               )}
             </>
           )}
         </div>
 
-        {/* Content — only this area scrolls */}
         <div className="flex-1 min-h-0 overflow-hidden">
           <FormProvider {...methods}>
-            {/* Editor Step */}
             <div className={`h-full overflow-y-auto ${step === 'editor' ? 'block' : 'hidden'}`}>
-              {isCreatingNote ? (
+              {isInitializing ? (
                 <div className="flex flex-col items-center justify-center h-full gap-3">
                   <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                  <p className="text-sm text-gray-500">Setting up your RFP...</p>
+                  <p className="text-sm text-gray-500">{loadingMessage}</p>
                 </div>
-              ) : noteError ? (
+              ) : initError ? (
                 <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
-                  <p className="text-sm text-red-500">{noteError}</p>
-                  <Button variant="outlined" size="sm" onClick={onClose}>
+                  <p className="text-sm text-red-500">{initError}</p>
+                  <Button variant="outlined" size="sm" onClick={handleClose}>
                     Close
                   </Button>
                 </div>
-              ) : noteId ? (
+              ) : isEditorReady ? (
                 <div className="max-w-4xl mx-auto pl-0 pr-4 py-2 sm:p-4 md:p-8">
                   <NotePaper
                     minHeight="600px"
                     className="pl-4 sm:pl-8 lg:pl-16 rounded-none sm:rounded-lg"
                   >
                     <BlockEditor
-                      contentJson={JSON.stringify(grantTemplate)}
+                      content={editorContentHtml}
+                      contentJson={editorContentJson || templateJson}
                       isLoading={false}
                       editable={true}
                       setEditor={setEditor}
@@ -215,7 +322,6 @@ export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
               ) : null}
             </div>
 
-            {/* Form Step */}
             <div className={`h-full overflow-y-auto ${step === 'form' ? 'block' : 'hidden'}`}>
               <div className="max-w-lg mx-auto pb-6">
                 <RFPFormSections />
@@ -224,7 +330,6 @@ export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
           </FormProvider>
         </div>
 
-        {/* Publish footer — pinned at bottom, mobile only */}
         {step === 'form' && isMobile && (
           <div className="border-t bg-white p-2 flex-shrink-0">
             <Button
@@ -233,13 +338,12 @@ export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
               className="w-full"
               disabled={isProcessing}
             >
-              Publish
+              {actionLabel}
             </Button>
           </div>
         )}
       </div>
 
-      {/* Confirm Publish Modal */}
       {showConfirmModal && (
         <ConfirmPublishModal
           isOpen={showConfirmModal}
