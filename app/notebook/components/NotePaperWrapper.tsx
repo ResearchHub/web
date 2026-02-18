@@ -1,5 +1,22 @@
 import { ReactNode } from 'react';
+import { cn } from '@/utils/styles';
 
+/** Shared editor paper card — provides the left gutter (pl-16) and top padding. */
+interface NotePaperProps {
+  children: ReactNode;
+  className?: string;
+  minHeight?: string;
+}
+
+export const NotePaper = ({ children, className, minHeight = '800px' }: NotePaperProps) => {
+  return (
+    <div className={cn('bg-white rounded-lg pt-8 lg:pt-16 pl-16', className)} style={{ minHeight }}>
+      {children}
+    </div>
+  );
+};
+
+/** Full-page wrapper for notebook routes. Adds gray background, shadow, and optional banner. */
 interface NotePaperWrapperProps {
   children: ReactNode;
   className?: string;
@@ -20,11 +37,7 @@ export const NotePaperWrapper = ({
               {showBanner}
             </div>
           )}
-          <div
-            className={`bg-white rounded-lg shadow-md pt-8 lg:pt-16 pl-16 min-h-[800px] ${className}`}
-          >
-            {children}
-          </div>
+          <NotePaper className={`shadow-md ${className}`}>{children}</NotePaper>
         </div>
       </div>
     </div>

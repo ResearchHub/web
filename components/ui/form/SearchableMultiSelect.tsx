@@ -122,9 +122,12 @@ export function SearchableMultiSelect({
   }, [query, debouncedSearch, onAsyncSearch, filterStaticOptions]);
 
   useEffect(() => {
-    if (comboboxRef.current) {
-      setDropdownWidth(comboboxRef.current.offsetWidth);
-    }
+    const el = comboboxRef.current;
+    if (!el) return;
+    setDropdownWidth(el.offsetWidth);
+    const ro = new ResizeObserver(() => setDropdownWidth(el.offsetWidth));
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   const handleChange = (newValue: MultiSelectOption[]) => {
@@ -168,6 +171,7 @@ export function SearchableMultiSelect({
       <Combobox value={value} onChange={handleChange} multiple disabled={disabled}>
         <label htmlFor={id} className="relative">
           <div
+            ref={comboboxRef}
             className={cn(
               'relative flex flex-wrap gap-1.5 min-h-[2.5rem] w-full border border-gray-200 rounded-lg bg-white p-1.5 text-left transition-colors',
               error && 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500/20',
@@ -195,7 +199,7 @@ export function SearchableMultiSelect({
                 </button>
               </span>
             ))}
-            <div className="flex-1 flex min-w-[120px] items-center" ref={comboboxRef}>
+            <div className="flex-1 flex min-w-[120px] items-center">
               <ComboboxInput
                 id={id}
                 autoComplete="off"

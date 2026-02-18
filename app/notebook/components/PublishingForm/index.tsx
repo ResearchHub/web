@@ -537,6 +537,8 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
           isPublishing={isLoadingUpsert || isRedirecting || isUploadingImage}
           isUpdate={Boolean(methods.watch('workId'))}
+          editor={editor}
+          variant={articleType === 'grant' ? 'rfp' : 'default'}
         />
       )}
     </FormProvider>

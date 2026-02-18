@@ -85,7 +85,7 @@ export const BaseModal: FC<BaseModalProps> = ({
 
         {/* Modal Container */}
         <div
-          className="fixed inset-0 overflow-y-auto"
+          className={cn('fixed inset-0', isFullScreen ? 'overflow-hidden' : 'overflow-y-auto')}
           onClick={(e) => {
             e.stopPropagation();
           }}
