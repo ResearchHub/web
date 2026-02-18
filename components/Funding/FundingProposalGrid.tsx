@@ -16,7 +16,7 @@ export const FundingProposalGrid: FC<FundingProposalGridProps> = ({ className })
 
   return (
     <div className={cn('', className)}>
-      <ProposalSortAndFilters className="mb-4" />
+      <ProposalSortAndFilters className="mb-8" />
 
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

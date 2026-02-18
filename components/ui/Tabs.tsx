@@ -148,7 +148,7 @@ export const Tabs: React.FC<TabsProps> = ({
         onScroll={checkScrollability}
         className={cn(
           'flex items-center flex-nowrap h-full overflow-x-auto scrollbar-none',
-          variant === 'pill' ? 'space-x-1 bg-gray-100 p-1 rounded-lg' : 'space-x-6'
+          variant === 'pill' ? 'space-x-1 bg-gray-100 p-1 rounded-lg' : 'space-x-8'
         )}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >

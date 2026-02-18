@@ -65,7 +65,7 @@ export function FundingGrantPageClient({
 
       <GrantPreview grant={grantPreviewData} className="mb-4" />
 
-      <div className="border-b mb-6">
+      <div className="border-b mb-4">
         <Tabs tabs={grantTabs} activeTab={initialTab} onTabChange={() => {}} />
       </div>
 
