@@ -3,11 +3,7 @@ import { formatUsdValue } from '@/utils/number';
 import { FundingMilestones } from '@/types/fundingImpactData';
 
 function formatCurrency(value: number): string {
-  return formatUsdValue(value.toString(), 0, false, 0);
-}
-
-function formatCount(value: number): string {
-  return String(value);
+  return formatUsdValue(value.toString(), 0, false, 0).replace(' USD', '');
 }
 
 interface MilestoneItemConfig {
@@ -39,7 +35,7 @@ export function MilestonesCard({ milestones }: MilestonesCardProps) {
     {
       label: 'Researchers supported',
       ...milestones.researchersSupported,
-      format: formatCount,
+      format: String,
       remainingSuffix: 'more to next milestone',
       barColor: 'bg-green-500',
       icon: Users,
