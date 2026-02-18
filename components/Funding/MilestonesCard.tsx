@@ -2,28 +2,27 @@ import { Target, TrendingUp, Users, Zap, LucideIcon } from 'lucide-react';
 import { formatUsdValue } from '@/utils/number';
 import { FundingMilestones } from '@/types/fundingImpactData';
 
+function formatCurrency(value: number): string {
+  return formatUsdValue(value.toString(), 0, false, 0);
+}
+
+function formatCount(value: number): string {
+  return String(value);
+}
+
 interface MilestoneItemConfig {
   label: string;
   current: number;
   target: number;
-  isCurrency: boolean;
+  format: (value: number) => string;
+  remainingSuffix: string;
   barColor: string;
   icon: LucideIcon;
   iconColor: string;
 }
 
 interface MilestonesCardProps {
-  milestones: FundingMilestones;
-}
-
-function formatValue(value: number, isCurrency: boolean): string {
-  return isCurrency ? formatUsdValue(value.toString(), 0, false, 0) : String(value);
-}
-
-function formatRemaining(remaining: number, isCurrency: boolean): string {
-  return isCurrency
-    ? `${formatUsdValue(remaining.toString(), 0, false, 0)} to next milestone`
-    : `${remaining} more to next milestone`;
+  readonly milestones: FundingMilestones;
 }
 
 export function MilestonesCard({ milestones }: MilestonesCardProps) {
@@ -31,7 +30,8 @@ export function MilestonesCard({ milestones }: MilestonesCardProps) {
     {
       label: 'Funding contributed',
       ...milestones.fundingContributed,
-      isCurrency: true,
+      format: formatCurrency,
+      remainingSuffix: 'to next milestone',
       barColor: 'bg-orange-400',
       icon: TrendingUp,
       iconColor: 'text-blue-500',
@@ -39,7 +39,8 @@ export function MilestonesCard({ milestones }: MilestonesCardProps) {
     {
       label: 'Researchers supported',
       ...milestones.researchersSupported,
-      isCurrency: false,
+      format: formatCount,
+      remainingSuffix: 'more to next milestone',
       barColor: 'bg-green-500',
       icon: Users,
       iconColor: 'text-green-500',
@@ -47,7 +48,8 @@ export function MilestonesCard({ milestones }: MilestonesCardProps) {
     {
       label: 'Matched funding',
       ...milestones.matchedFunding,
-      isCurrency: true,
+      format: formatCurrency,
+      remainingSuffix: 'to next milestone',
       barColor: 'bg-orange-400',
       icon: Zap,
       iconColor: 'text-yellow-500',
@@ -79,9 +81,9 @@ export function MilestonesCard({ milestones }: MilestonesCardProps) {
                 <p className="text-sm text-gray-600">{item.label}</p>
               </div>
               <p className="text-2xl font-bold text-gray-900">
-                {formatValue(item.current, item.isCurrency)}
+                {item.format(item.current)}
                 <span className="text-base font-normal text-gray-400 ml-1">
-                  / {formatValue(item.target, item.isCurrency)}
+                  / {item.format(item.target)}
                 </span>
               </p>
               <div className="h-2 bg-gray-200 rounded-full mt-2 overflow-hidden">
@@ -91,7 +93,7 @@ export function MilestonesCard({ milestones }: MilestonesCardProps) {
                 />
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                {formatRemaining(remaining, item.isCurrency)}
+                {item.format(remaining)} {item.remainingSuffix}
               </p>
             </div>
           );

@@ -38,7 +38,7 @@ const CHART_OPTIONS = {
 } as const;
 
 interface FundingChartProps {
-  data: FundingPoint[];
+  readonly data: FundingPoint[];
 }
 
 export function FundingChart({ data }: FundingChartProps) {
