@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { ApiClient } from '@/services/client';
-import { ImpactData, RawImpactData, transformImpactData } from '@/types/impactData';
+import { FundraiseService } from '@/services/fundraise.service';
+import { FundingImpactData, transformFundingImpactData } from '@/types/fundingImpactData';
 
 export function useImpactData(userId?: number) {
-  const [data, setData] = useState<ImpactData | null>(null);
+  const [data, setData] = useState<FundingImpactData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,11 +14,9 @@ export function useImpactData(userId?: number) {
     setError(null);
     setIsLoading(true);
 
-    const query = userId ? `?user_id=${userId}` : '';
-
-    ApiClient.get<RawImpactData>(`/api/fundraise/funding_impact/${query}`)
+    FundraiseService.getFundingImpact(userId)
       .then((raw) => {
-        if (!cancelled) setData(transformImpactData(raw));
+        if (!cancelled) setData(transformFundingImpactData(raw));
       })
       .catch(() => {
         if (!cancelled) setError('Failed to load impact data');

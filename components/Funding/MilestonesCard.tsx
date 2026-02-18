@@ -1,6 +1,6 @@
 import { Target, TrendingUp, Users, Zap, LucideIcon } from 'lucide-react';
-import { formatUsd } from '@/app/funding/dashboard/lib/dashboardUtils';
-import { Milestones } from '@/types/impactData';
+import { formatUsdValue } from '@/utils/number';
+import { FundingMilestones } from '@/types/fundingImpactData';
 
 interface MilestoneItemConfig {
   label: string;
@@ -13,16 +13,16 @@ interface MilestoneItemConfig {
 }
 
 interface MilestonesCardProps {
-  milestones: Milestones;
+  milestones: FundingMilestones;
 }
 
 function formatValue(value: number, isCurrency: boolean): string {
-  return isCurrency ? formatUsd(value) : String(value);
+  return isCurrency ? formatUsdValue(value.toString(), 0, false, 0) : String(value);
 }
 
 function formatRemaining(remaining: number, isCurrency: boolean): string {
   return isCurrency
-    ? `${formatUsd(remaining)} to next milestone`
+    ? `${formatUsdValue(remaining.toString(), 0, false, 0)} to next milestone`
     : `${remaining} more to next milestone`;
 }
 

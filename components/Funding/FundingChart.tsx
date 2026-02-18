@@ -12,8 +12,8 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { formatMonth } from '@/app/funding/dashboard/lib/dashboardUtils';
-import { FundingPoint } from '@/types/impactData';
+import { formatMonthForChart } from '@/app/funding/dashboard/lib/dashboardUtils';
+import { FundingPoint } from '@/types/fundingImpactData';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
@@ -44,7 +44,7 @@ interface FundingChartProps {
 export function FundingChart({ data }: FundingChartProps) {
   const chartData = useMemo(
     () => ({
-      labels: data.map((point) => formatMonth(point.month)),
+      labels: data.map((point) => formatMonthForChart(point.month)),
       datasets: [
         {
           label: 'Your contributions',

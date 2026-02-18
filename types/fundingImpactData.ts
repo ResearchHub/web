@@ -1,15 +1,15 @@
 import { createTransformer } from './transformer';
 
-export interface RawMilestone {
+export interface RawFundingMilestone {
   current?: number;
   target?: number;
 }
 
-export interface RawImpactData {
+export interface RawFundingImpactData {
   milestones?: {
-    funding_contributed?: RawMilestone;
-    researchers_supported?: RawMilestone;
-    matched_funding?: RawMilestone;
+    funding_contributed?: RawFundingMilestone;
+    researchers_supported?: RawFundingMilestone;
+    matched_funding?: RawFundingMilestone;
   };
   funding_over_time?: {
     month: string;
@@ -18,15 +18,15 @@ export interface RawImpactData {
   }[];
 }
 
-export interface Milestone {
+export interface FundingMilestone {
   current: number;
   target: number;
 }
 
-export interface Milestones {
-  fundingContributed: Milestone;
-  researchersSupported: Milestone;
-  matchedFunding: Milestone;
+export interface FundingMilestones {
+  fundingContributed: FundingMilestone;
+  researchersSupported: FundingMilestone;
+  matchedFunding: FundingMilestone;
 }
 
 export interface FundingPoint {
@@ -35,17 +35,20 @@ export interface FundingPoint {
   matchedContributions: number;
 }
 
-export interface ImpactData {
-  milestones: Milestones;
+export interface FundingImpactData {
+  milestones: FundingMilestones;
   fundingOverTime: FundingPoint[];
 }
 
-const toMilestone = (raw?: RawMilestone): Milestone => ({
+const toMilestone = (raw?: RawFundingMilestone): FundingMilestone => ({
   current: raw?.current ?? 0,
   target: raw?.target ?? 0,
 });
 
-export const transformImpactData = createTransformer<RawImpactData, ImpactData>((raw) => ({
+export const transformFundingImpactData = createTransformer<
+  RawFundingImpactData,
+  FundingImpactData
+>((raw) => ({
   milestones: {
     fundingContributed: toMilestone(raw.milestones?.funding_contributed),
     researchersSupported: toMilestone(raw.milestones?.researchers_supported),

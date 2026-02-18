@@ -1,6 +1,7 @@
 import { ApiClient } from './client';
 import { roundRscAmount } from './lib/serviceUtils';
 import { Fundraise, transformFundraise } from '@/types/funding';
+import { RawFundingImpactData } from '@/types/fundingImpactData';
 import { ID } from '@/types/root';
 
 export class FundraiseService {
@@ -92,5 +93,15 @@ export class FundraiseService {
       }
     );
     return transformFundraise(response);
+  }
+
+  /**
+   * Fetches funding impact data for a user
+   * @param userId Optional user ID to fetch impact data for
+   * @returns The raw impact data
+   */
+  static async getFundingImpact(userId?: number): Promise<RawFundingImpactData> {
+    const query = userId ? `?user_id=${userId}` : '';
+    return ApiClient.get<RawFundingImpactData>(`${this.BASE_PATH}/funding_impact/${query}`);
   }
 }
