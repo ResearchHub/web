@@ -113,7 +113,7 @@ export function FundingGrantPageClient({ work, htmlContent }: FundingGrantPageCl
       )}
 
       {/* Proposals */}
-      <FundingProposalGrid grantId={grant.id as number} />
+      <FundingProposalGrid />
     </PageLayout>
   );
 }

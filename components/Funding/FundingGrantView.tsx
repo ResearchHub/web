@@ -19,7 +19,7 @@ export const FundingGrantView: FC<FundingGrantViewProps> = ({ grant }) => {
   return (
     <>
       <GrantPreview grant={grantPreviewData} className="mb-8" />
-      <FundingProposalGrid grantId={grantId} />
+      <FundingProposalGrid />
     </>
   );
 };

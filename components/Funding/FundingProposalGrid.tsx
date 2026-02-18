@@ -1,82 +1,18 @@
 'use client';
 
-import { FC, useEffect, useState, useCallback } from 'react';
-import { FeedEntry } from '@/types/feed';
-import { FeedService } from '@/services/feed.service';
+import { FC } from 'react';
 import { FundingProposalCard } from './FundingProposalCard';
 import { ProposalCardSkeleton } from '@/components/skeletons/ProposalCardSkeleton';
+import { ProposalSortAndFilters } from './ProposalSortAndFilters';
+import { useProposalList } from '@/contexts/ProposalListContext';
 import { cn } from '@/utils/styles';
 
 interface FundingProposalGridProps {
-  /** Grant ID to filter proposals by, or null for all proposals */
-  grantId?: number | null;
-  /** Initial entries to display (for SSR) */
-  initialEntries?: FeedEntry[];
-  /** Optional class name */
   className?: string;
 }
 
-export const FundingProposalGrid: FC<FundingProposalGridProps> = ({
-  grantId,
-  initialEntries,
-  className,
-}) => {
-  const [entries, setEntries] = useState<FeedEntry[]>(initialEntries || []);
-  const [isLoading, setIsLoading] = useState(!initialEntries);
-  const [hasMore, setHasMore] = useState(false);
-  const [page, setPage] = useState(1);
-
-  const fetchProposals = useCallback(async () => {
-    setIsLoading(true);
-
-    try {
-      const result = await FeedService.getFeed({
-        page: 1,
-        pageSize: 20,
-        contentType: 'PREREGISTRATION',
-        endpoint: 'funding_feed',
-        grantId: grantId || undefined,
-        ordering: 'best',
-      });
-
-      setEntries(result.entries);
-      setHasMore(result.hasMore);
-    } catch (error) {
-      console.error('Error fetching proposals:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [grantId]);
-
-  // Fetch proposals when grantId changes or on initial mount
-  useEffect(() => {
-    fetchProposals();
-  }, [fetchProposals]);
-
-  const loadMore = async () => {
-    if (isLoading || !hasMore) return;
-
-    const nextPage = page + 1;
-
-    try {
-      const result = await FeedService.getFeed({
-        page: nextPage,
-        pageSize: 20,
-        contentType: 'PREREGISTRATION',
-        endpoint: 'funding_feed',
-        grantId: grantId || undefined,
-        ordering: 'best',
-      });
-
-      setEntries((prev) => [...prev, ...result.entries]);
-      setHasMore(result.hasMore);
-      setPage(nextPage);
-    } catch (error) {
-      console.error('Error loading more proposals:', error);
-    }
-  };
-
-  const proposalCount = entries.length;
+export const FundingProposalGrid: FC<FundingProposalGridProps> = ({ className }) => {
+  const { entries, isLoading, hasMore, loadMore, proposalCount } = useProposalList();
 
   return (
     <div className={cn('', className)}>
@@ -86,10 +22,11 @@ export const FundingProposalGrid: FC<FundingProposalGridProps> = ({
         {!isLoading && <span className="text-sm text-gray-500">({proposalCount})</span>}
       </div>
 
+      <ProposalSortAndFilters className="mb-4" />
+
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading ? (
-          // Skeleton loading
           <>
             <ProposalCardSkeleton />
             <ProposalCardSkeleton />
