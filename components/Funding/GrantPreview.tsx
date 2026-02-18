@@ -1,18 +1,11 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { Button } from '@/components/ui/Button';
-import {
-  ArrowRight,
-  DollarSign,
-  FileText,
-  LayoutList,
-  MessageSquare,
-  Activity,
-} from 'lucide-react';
+import { ArrowRight, DollarSign } from 'lucide-react';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { formatCurrency } from '@/utils/currency';
@@ -43,10 +36,6 @@ interface GrantPreviewProps {
   className?: string;
   /** Show as compact card (for "All" view) */
   compact?: boolean;
-  /** Whether the details section is expanded */
-  showDetails?: boolean;
-  /** Callback to toggle the details section */
-  onToggleDetails?: () => void;
 }
 
 /**
@@ -75,23 +64,9 @@ export function transformFeedEntryToGrantPreviewData(entry: FeedEntry): GrantPre
   };
 }
 
-type GrantDetailTab = 'proposals' | 'details' | 'conversation' | 'activity';
-
-const GRANT_DETAIL_TABS: {
-  id: GrantDetailTab;
-  label: string;
-  icon: React.ElementType;
-}[] = [
-  { id: 'proposals', label: 'Proposals', icon: FileText },
-  { id: 'details', label: 'Details', icon: LayoutList },
-  { id: 'conversation', label: 'Conversation', icon: MessageSquare },
-  { id: 'activity', label: 'Activity', icon: Activity },
-];
-
 export const GrantPreview: FC<GrantPreviewProps> = ({ grant, className, compact = false }) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
-  const [activeTab, setActiveTab] = useState<GrantDetailTab>('proposals');
 
   const isOpen = grant.status === 'OPEN' && grant.isActive;
   const amount = showUSD ? grant.amount.usd : grant.amount.rsc;
@@ -239,40 +214,6 @@ export const GrantPreview: FC<GrantPreviewProps> = ({ grant, className, compact 
               </Link>
             </div>
           )}
-        </div>
-
-        {/* Full-width detail tabs */}
-        <div className="flex border-t border-gray-100 bg-gray-50/60">
-          {GRANT_DETAIL_TABS.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  'flex-1 flex flex-col items-center gap-1 py-3 transition-all duration-150 border-t-[2.5px] select-none',
-                  isActive
-                    ? 'border-primary-500 bg-white text-primary-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-white/60'
-                )}
-              >
-                <tab.icon
-                  size={15}
-                  strokeWidth={isActive ? 2.5 : 1.75}
-                  className={isActive ? 'text-primary-500' : 'text-gray-500'}
-                />
-                <span
-                  className={cn(
-                    'text-[11px] font-medium leading-none',
-                    isActive ? 'text-primary-700' : 'text-gray-600'
-                  )}
-                >
-                  {tab.label}
-                </span>
-              </button>
-            );
-          })}
         </div>
       </div>
     </div>

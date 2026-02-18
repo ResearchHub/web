@@ -12,16 +12,10 @@ interface FundingProposalGridProps {
 }
 
 export const FundingProposalGrid: FC<FundingProposalGridProps> = ({ className }) => {
-  const { entries, isLoading, hasMore, loadMore, proposalCount } = useProposalList();
+  const { entries, isLoading, hasMore, loadMore } = useProposalList();
 
   return (
     <div className={cn('', className)}>
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">Proposals</h2>
-        {!isLoading && <span className="text-sm text-gray-500">({proposalCount})</span>}
-      </div>
-
       <ProposalSortAndFilters className="mb-4" />
 
       {/* Grid */}
