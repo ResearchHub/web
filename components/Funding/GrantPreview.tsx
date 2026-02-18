@@ -6,8 +6,6 @@ import Link from 'next/link';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { Button } from '@/components/ui/Button';
 import {
-  Calendar,
-  Building2,
   ArrowRight,
   DollarSign,
   FileText,
@@ -27,6 +25,7 @@ export interface GrantPreviewData {
   title: string;
   previewImage?: string;
   textPreview?: string;
+  description?: string;
   status: string;
   isActive: boolean;
   amount: {
@@ -34,6 +33,7 @@ export interface GrantPreviewData {
     rsc: number;
   };
   endDate?: string;
+  startDate?: string;
   organization?: string;
   applicantCount: number;
 }
@@ -64,10 +64,12 @@ export function transformFeedEntryToGrantPreviewData(entry: FeedEntry): GrantPre
     title: content.title,
     previewImage: content.previewImage,
     textPreview: content.textPreview,
+    description: grantData.description,
     status: grantData.status,
     isActive: grantData.isActive,
     amount: grantData.amount,
     endDate: grantData.endDate,
+    startDate: grantData.startDate,
     organization: grantData.organization,
     applicantCount: grantData.applicants?.length || 0,
   };
@@ -169,17 +171,14 @@ export const GrantPreview: FC<GrantPreviewProps> = ({ grant, className, compact 
 
         {/* Main content */}
         <div className="pl-6 pr-6 pt-5 pb-0">
-          {/* Header badges */}
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-semibold text-primary-500 uppercase tracking-wide">
-              Funding Opportunity
-            </span>
+          {/* Status badge */}
+          <div className="mb-2">
             {isOpen ? (
-              <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
-                Open
+              <span className="inline-flex items-center text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-1 rounded-full">
+                Accepting Proposals
               </span>
             ) : (
-              <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
                 Closed
               </span>
             )}
@@ -189,59 +188,56 @@ export const GrantPreview: FC<GrantPreviewProps> = ({ grant, className, compact 
           <h1 className="text-lg font-bold text-gray-900 mb-1.5 leading-snug">{grant.title}</h1>
 
           {/* Organization */}
-          {grant.organization && (
-            <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-2">
-              <Building2 size={14} className="text-gray-400" />
-              <span>{grant.organization}</span>
-            </div>
-          )}
+          {grant.organization && <p className="text-sm text-gray-500 mb-2">{grant.organization}</p>}
 
-          {/* Text preview */}
-          {grant.textPreview && (
-            <p className="text-sm text-gray-600 mb-0 line-clamp-2">{grant.textPreview}</p>
+          {/* Description */}
+          {(grant.description || grant.textPreview) && (
+            <p className="text-sm text-gray-600 mb-0 line-clamp-2">
+              {grant.description || grant.textPreview}
+            </p>
           )}
         </div>
 
-        {/* Action row: compact stats + Submit Proposal */}
-        <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 mt-3">
-          {/* Compact stats */}
-          <div className="flex items-center gap-3 text-xs text-gray-500">
-            <span className="flex items-center gap-1">
-              <DollarSign size={12} className="text-green-500" />
-              <span className="font-semibold text-green-600">
-                {formatCurrency({
-                  amount,
-                  showUSD,
-                  exchangeRate,
-                  shorten: true,
-                  skipConversion: true,
-                })}
-              </span>
-              <span>available</span>
+        {/* Info columns + CTA */}
+        <div className="flex items-center px-6 py-4 mt-3 border-t border-gray-100 bg-gray-50/50 gap-4">
+          {/* Funding Available */}
+          <div className="flex flex-col gap-1 flex-1">
+            <span className="text-xs text-gray-500 font-medium">Funding Available</span>
+            <span className="text-sm font-bold text-gray-900">
+              {formatCurrency({
+                amount,
+                showUSD,
+                exchangeRate,
+                shorten: true,
+                skipConversion: true,
+              })}
             </span>
-            {timeRemaining && isOpen && (
-              <>
-                <span className="text-gray-300">·</span>
-                <span className="flex items-center gap-1">
-                  <Calendar size={11} className="text-gray-400" />
-                  <span>Ends in {timeRemaining}</span>
-                </span>
-              </>
-            )}
-            <span className="text-gray-300">·</span>
-            <span>
-              {grant.applicantCount} {grant.applicantCount === 1 ? 'proposal' : 'proposals'}
+          </div>
+
+          {/* Timeline */}
+          <div className="flex flex-col gap-1 flex-1 border-l border-gray-200 pl-4">
+            <span className="text-xs text-gray-500 font-medium">Timeline</span>
+            <span className="text-sm font-bold text-gray-900">
+              {isOpen ? (timeRemaining ? `Ends in ${timeRemaining}` : 'Immediate') : 'Ended'}
             </span>
+          </div>
+
+          {/* Allocation of funds */}
+          <div className="flex flex-col gap-1 flex-1 border-l border-gray-200 pl-4">
+            <span className="text-xs text-gray-500 font-medium">Allocation of Funds</span>
+            <span className="text-sm font-bold text-gray-900">One or many</span>
           </div>
 
           {/* Submit Proposal CTA */}
           {isOpen && (
-            <Link href={`${href}/applications`}>
-              <Button variant="default" size="sm" className="gap-1.5 text-xs px-3 py-1.5 h-auto">
-                Submit Proposal
-                <ArrowRight size={13} />
-              </Button>
-            </Link>
+            <div className="border-l border-gray-200 pl-4 flex-shrink-0">
+              <Link href={`${href}/applications`}>
+                <Button variant="default" size="sm" className="gap-1.5 text-xs px-4 py-2.5 h-auto">
+                  Submit Proposal
+                  <ArrowRight size={13} />
+                </Button>
+              </Link>
+            </div>
           )}
         </div>
 
@@ -258,18 +254,18 @@ export const GrantPreview: FC<GrantPreviewProps> = ({ grant, className, compact 
                   'flex-1 flex flex-col items-center gap-1 py-3 transition-all duration-150 border-t-[2.5px] select-none',
                   isActive
                     ? 'border-primary-500 bg-white text-primary-600'
-                    : 'border-transparent text-gray-400 hover:text-gray-600 hover:bg-white/60'
+                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-white/60'
                 )}
               >
                 <tab.icon
                   size={15}
                   strokeWidth={isActive ? 2.5 : 1.75}
-                  className={isActive ? 'text-primary-500' : 'text-gray-400'}
+                  className={isActive ? 'text-primary-500' : 'text-gray-500'}
                 />
                 <span
                   className={cn(
                     'text-[11px] font-medium leading-none',
-                    isActive ? 'text-primary-700' : 'text-gray-400'
+                    isActive ? 'text-primary-700' : 'text-gray-600'
                   )}
                 >
                   {tab.label}

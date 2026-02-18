@@ -39,10 +39,12 @@ export function FundingGrantPageClient({ work, htmlContent }: FundingGrantPageCl
       title: work.title,
       previewImage: work.image,
       textPreview: work.abstract,
+      description: grant.description,
       status: grant.status,
       isActive: grant.status === 'OPEN',
       amount: grant.amount,
       endDate: grant.endDate,
+      startDate: grant.startDate,
       organization: grant.organization,
       applicantCount: grant.applicants?.length || 0,
     };
