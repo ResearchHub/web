@@ -190,6 +190,7 @@ export interface FeedGrantContent extends BaseFeedContent {
     createdBy: any;
     applicants: AuthorProfile[];
   };
+  fundraises?: Fundraise[];
   organization?: string;
   grantAmount?: {
     amount: number;
@@ -791,6 +792,9 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                 .map((application: any) => application.applicant)
                 .map(transformAuthorProfile),
             },
+            fundraises: Array.isArray(content_object.grant.fundraises)
+              ? content_object.grant.fundraises.map((raw: any) => transformFundraise(raw))
+              : [],
             organization: content_object.grant.organization || '',
             grantAmount: content_object.grant.amount || {},
             isExpired: content_object.grant.is_expired || false,
@@ -1200,6 +1204,41 @@ export const createFeedEntryFromWork = (work: Work, originalEntry: FeedEntry): F
   }
 
   return null;
+};
+
+export const transformFundraiseToFeedEntry = (fundraise: Fundraise): FeedEntry => {
+  const content: FeedPostContent = {
+    id: fundraise.postId!,
+    contentType: 'PREREGISTRATION',
+    createdDate: fundraise.createdDate,
+    createdBy: fundraise.createdBy?.authorProfile ?? {
+      id: 0,
+      fullName: 'Unknown',
+      firstName: '',
+      lastName: '',
+      profileImage: '',
+      headline: '',
+      profileUrl: '/author/0',
+      isClaimed: false,
+      isVerified: false,
+    },
+    title: fundraise.postTitle ?? 'Untitled Proposal',
+    slug: fundraise.postSlug ?? '',
+    textPreview: '',
+    previewImage: fundraise.postImage ?? undefined,
+    authors: [],
+    topics: [],
+    fundraise,
+  };
+
+  return {
+    id: fundraise.postId!.toString(),
+    recommendationId: null,
+    timestamp: fundraise.createdDate,
+    action: 'publish',
+    content,
+    contentType: 'PREREGISTRATION',
+  };
 };
 
 export type { AuthorProfile };
