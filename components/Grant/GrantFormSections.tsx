@@ -5,7 +5,7 @@ import { GrantFundingAmountSection } from '@/app/notebook/components/PublishingF
 import { ContactsSection } from '@/app/notebook/components/PublishingForm/components/ContactsSection';
 import { TopicsSection } from '@/app/notebook/components/PublishingForm/components/TopicsSection';
 
-export function RFPFormSections() {
+export function GrantFormSections() {
   return (
     <>
       <WorkImageSection />

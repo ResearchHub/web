@@ -1,13 +1,13 @@
 'use client';
 
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { CreateRFPButton } from '@/components/RFP/CreateRFPButton';
+import { CreateGrantButton } from '@/components/Grant/CreateGrantButton';
 
-export default function CreateRFPPage() {
+export default function CreateGrantPage() {
   return (
     <PageLayout rightSidebar={false}>
       <div className="flex items-center justify-center min-h-[60vh]">
-        <CreateRFPButton />
+        <CreateGrantButton />
       </div>
     </PageLayout>
   );

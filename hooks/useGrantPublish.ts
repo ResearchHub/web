@@ -13,32 +13,27 @@ import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/docume
 import { ApiError } from '@/services/types';
 import { getFieldErrorMessage } from '@/utils/form';
 import type { PublishingFormData } from '@/app/notebook/components/PublishingForm/schema';
-import type { ID } from '@/types/root';
-import { RFP_DEADLINE, DEFAULT_RFP_TITLE } from '@/components/RFP/lib/constants';
+import { GRANT_DEADLINE, DEFAULT_GRANT_TITLE } from '@/components/Grant/lib/constants';
 
-interface UseRFPPublishParams {
+interface UseGrantPublishParams {
   editor: Editor | null;
   noteId: number | null;
   methods: UseFormReturn<PublishingFormData>;
-  /** When provided, the publish call becomes an update (re-publish). */
-  postId?: ID;
 }
 
-export function useRFPPublish({ editor, noteId, methods, postId }: UseRFPPublishParams) {
+export function useGrantPublish({ editor, noteId, methods }: UseGrantPublishParams) {
   const router = useRouter();
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
   const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const isUpdate = !!postId;
   const isPublishing = isLoadingUpsert || isUploadingImage;
   const isProcessing = isPublishing || isRedirecting;
 
-  // Save editor content + title to the backend note
   const saveNoteContent = useCallback(async () => {
     if (!editor || !noteId) return;
-    const title = getDocumentTitleFromEditor(editor) || DEFAULT_RFP_TITLE;
+    const title = getDocumentTitleFromEditor(editor) || DEFAULT_GRANT_TITLE;
     await Promise.all([
       NoteService.updateNoteTitle({ noteId, title }),
       NoteService.updateNoteContent({
@@ -50,7 +45,6 @@ export function useRFPPublish({ editor, noteId, methods, postId }: UseRFPPublish
     ]);
   }, [editor, noteId]);
 
-  // Validate form -> toast errors -> show confirm modal
   const handlePublishClick = async () => {
     const isValid = await methods.trigger();
     if (!isValid) {
@@ -64,7 +58,6 @@ export function useRFPPublish({ editor, noteId, methods, postId }: UseRFPPublish
     setShowConfirmModal(true);
   };
 
-  // Full publish flow: save note -> upload image -> upsert post -> redirect
   const handleConfirmPublish = async () => {
     if (!editor || !noteId) return;
 
@@ -74,7 +67,6 @@ export function useRFPPublish({ editor, noteId, methods, postId }: UseRFPPublish
 
       await saveNoteContent();
 
-      // Upload cover image if provided
       let imagePath: string | null = null;
       if (formData.coverImage?.file) {
         try {
@@ -88,35 +80,32 @@ export function useRFPPublish({ editor, noteId, methods, postId }: UseRFPPublish
         }
       }
 
-      const response = await upsertPost(
-        {
-          budget: formData.budget || '0',
-          rewardFunders: false,
-          nftSupply: '1000',
-          title,
-          noteId: noteId.toString(),
-          renderableText: editor.getText() || '',
-          fullJSON: JSON.stringify(editor.getJSON()),
-          fullSrc: editor.getHTML() || '',
-          assignDOI: !isUpdate,
-          topics: formData.topics.map((t) => t.value),
-          authors: [],
-          contacts: formData.contacts.map((c) => Number(c.value)).filter((id) => !isNaN(id)),
-          articleType: 'GRANT',
-          image: imagePath,
-          organization: formData.organization,
-          description: formData.shortDescription,
-          applicationDeadline: RFP_DEADLINE,
-        },
-        postId
-      );
+      const response = await upsertPost({
+        budget: formData.budget || '0',
+        rewardFunders: false,
+        nftSupply: '1000',
+        title,
+        noteId: noteId.toString(),
+        renderableText: editor.getText() || '',
+        fullJSON: JSON.stringify(editor.getJSON()),
+        fullSrc: editor.getHTML() || '',
+        assignDOI: true,
+        topics: formData.topics.map((t) => t.value),
+        authors: [],
+        contacts: formData.contacts.map((c) => Number(c.value)).filter((id) => !isNaN(id)),
+        articleType: 'GRANT',
+        image: imagePath,
+        organization: formData.organization,
+        description: formData.shortDescription,
+        applicationDeadline: GRANT_DEADLINE,
+      });
 
       setIsRedirecting(true);
-      toast.success(isUpdate ? 'RFP updated successfully!' : 'RFP published successfully!');
+      toast.success('RFP published successfully!');
       router.push(`/grant/${response.id}/${response.slug}`);
     } catch (error) {
       const status = error instanceof ApiError ? ` (${error.status})` : '';
-      toast.error(`Error ${isUpdate ? 'updating' : 'publishing'} RFP${status}. Please try again.`);
+      toast.error(`Error publishing RFP${status}. Please try again.`);
       console.error('Error publishing:', error);
     } finally {
       setShowConfirmModal(false);
@@ -129,7 +118,6 @@ export function useRFPPublish({ editor, noteId, methods, postId }: UseRFPPublish
     handleConfirmPublish,
     isProcessing,
     isPublishing,
-    isUpdate,
     showConfirmModal,
     setShowConfirmModal,
   };

@@ -15,7 +15,7 @@ import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useCreateNote, useNoteContent } from '@/hooks/useNote';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { useRFPPublish } from '@/hooks/useRFPPublish';
+import { useGrantPublish } from '@/hooks/useGrantPublish';
 import {
   getDocumentTitle,
   getDocumentTitleFromEditor,
@@ -26,22 +26,19 @@ import {
   type PublishingFormData,
 } from '@/app/notebook/components/PublishingForm/schema';
 
-import { RFPFormSections } from './RFPFormSections';
-import { DEFAULT_RFP_TITLE, RFP_FORM_DEFAULTS } from './lib/constants';
+import { GrantFormSections } from './GrantFormSections';
+import { DEFAULT_GRANT_TITLE, GRANT_FORM_DEFAULTS } from './lib/constants';
 
-interface CreateRFPModalProps {
+interface CreateGrantModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
+export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
   const { selectedOrg } = useOrganizationContext();
   const isMobile = useIsMobile();
 
-  // Editor
   const [editor, setEditor] = useState<Editor | null>(null);
-
-  // Note creation — create a blank note and fill it with the grant template
   const [noteId, setNoteId] = useState<number | null>(null);
   const [isCreatingNote, setIsCreatingNote] = useState(false);
   const [noteError, setNoteError] = useState<string | null>(null);
@@ -55,7 +52,7 @@ export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
       setIsCreatingNote(true);
       setNoteError(null);
       try {
-        const title = getDocumentTitle(grantTemplate) || DEFAULT_RFP_TITLE;
+        const title = getDocumentTitle(grantTemplate) || DEFAULT_GRANT_TITLE;
         const newNote = await createNote({
           organizationSlug: selectedOrg.slug,
           title,
@@ -88,17 +85,14 @@ export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
     init();
   }, [isOpen, selectedOrg?.slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Steps: 'editor' → 'form'
   const [step, setStep] = useState<'editor' | 'form'>('editor');
 
-  // Form
   const methods = useForm<PublishingFormData>({
-    defaultValues: RFP_FORM_DEFAULTS,
+    defaultValues: GRANT_FORM_DEFAULTS,
     resolver: zodResolver(publishingFormSchema),
     mode: 'onChange',
   });
 
-  // Publish flow (shared with future EditRFPModal)
   const {
     saveNoteContent,
     handlePublishClick,
@@ -107,11 +101,11 @@ export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
     isPublishing,
     showConfirmModal,
     setShowConfirmModal,
-  } = useRFPPublish({ editor, noteId, methods });
+  } = useGrantPublish({ editor, noteId, methods });
 
   const handleGoToForm = useCallback(() => {
     setStep('form');
-    saveNoteContent().catch(() => {});
+    saveNoteContent().catch((err) => console.error('Auto-save failed:', err));
   }, [saveNoteContent]);
 
   const handleClose = isProcessing ? () => {} : onClose;
@@ -125,14 +119,12 @@ export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
       className="!max-h-screen md:!max-h-[calc(100vh-2rem)] md:!rounded-2xl"
     >
       <div className="h-full flex flex-col relative">
-        {/* Processing overlay */}
         {isProcessing && (
           <div className="absolute inset-0 bg-white/60 z-50 flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
           </div>
         )}
 
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
           {step === 'editor' ? (
             <>
@@ -181,10 +173,8 @@ export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
           )}
         </div>
 
-        {/* Content — only this area scrolls */}
         <div className="flex-1 min-h-0 overflow-hidden">
           <FormProvider {...methods}>
-            {/* Editor Step */}
             <div className={`h-full overflow-y-auto ${step === 'editor' ? 'block' : 'hidden'}`}>
               {isCreatingNote ? (
                 <div className="flex flex-col items-center justify-center h-full gap-3">
@@ -215,16 +205,14 @@ export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
               ) : null}
             </div>
 
-            {/* Form Step */}
             <div className={`h-full overflow-y-auto ${step === 'form' ? 'block' : 'hidden'}`}>
               <div className="max-w-lg mx-auto pb-6">
-                <RFPFormSections />
+                <GrantFormSections />
               </div>
             </div>
           </FormProvider>
         </div>
 
-        {/* Publish footer — pinned at bottom, mobile only */}
         {step === 'form' && isMobile && (
           <div className="border-t bg-white p-2 flex-shrink-0">
             <Button
@@ -239,13 +227,12 @@ export function CreateRFPModal({ isOpen, onClose }: CreateRFPModalProps) {
         )}
       </div>
 
-      {/* Confirm Publish Modal */}
       {showConfirmModal && (
         <ConfirmPublishModal
           isOpen={showConfirmModal}
           onClose={() => setShowConfirmModal(false)}
           onConfirm={handleConfirmPublish}
-          title={editor ? getDocumentTitleFromEditor(editor) : DEFAULT_RFP_TITLE}
+          title={editor ? getDocumentTitleFromEditor(editor) : DEFAULT_GRANT_TITLE}
           isPublishing={isPublishing}
           editor={editor}
           variant="rfp"
