@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { TopReviewer, TopFunder } from '@/types/leaderboard';
+import { TopReviewer } from '@/types/leaderboard';
 import { Avatar } from '@/components/ui/Avatar';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import Link from 'next/link';
@@ -15,11 +15,14 @@ import { useLeaderboard } from '@/contexts/LeaderboardContext';
 import { useUser } from '@/contexts/UserContext';
 import { cn } from '@/utils/styles';
 import { Star, ChevronRight } from 'lucide-react';
-import { Icon } from '@/components/ui/icons/Icon';
+import {
+  FundingOpportunities,
+  FundingOpportunitiesSkeleton,
+} from '@/components/FundingOpportunities/FundingOpportunities';
 
 const LeaderboardListSkeleton = () => (
   <div className="space-y-3 animate-pulse">
-    {[...Array(5)].map((_, i) => (
+    {Array.from({ length: 5 }).map((_, i) => (
       <div
         key={i}
         className="grid grid-cols-[32px_40px_1fr_auto] gap-x-3 items-center px-1 py-2 rounded-md"
@@ -36,22 +39,8 @@ const LeaderboardListSkeleton = () => (
 // Skeleton Loader for leaderboard sections
 export const LeaderboardSkeleton = () => (
   <>
-    {/* Top Funders Section Skeleton */}
-    <div>
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex items-start gap-2">
-          <Icon name="fund" size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
-          <div>
-            <h2 className="font-semibold text-gray-900">Top Funders</h2>
-          </div>
-        </div>
-        <div className="text-xs text-gray-700 flex items-center gap-0.5 mt-1">
-          View All
-          <ChevronRight className="w-3 h-3" />
-        </div>
-      </div>
-      <LeaderboardListSkeleton />
-    </div>
+    {/* Funding Opportunities Section Skeleton */}
+    <FundingOpportunitiesSkeleton />
 
     {/* Divider */}
     <div className="border-t border-gray-200 my-4" />
@@ -83,7 +72,6 @@ export const LeaderboardOverview = () => {
   const currentUserAuthorId = user?.authorProfile?.id;
 
   const reviewers = data?.reviewers || [];
-  const funders = data?.funders || [];
 
   useEffect(() => {
     fetchData();
@@ -106,16 +94,10 @@ export const LeaderboardOverview = () => {
     );
   };
 
-  const renderListItem = (
-    item: TopReviewer | TopFunder,
-    index: number,
-    type: 'reviewer' | 'funder',
-    isCurrentUser: boolean
-  ) => {
+  const renderListItem = (item: TopReviewer, index: number, isCurrentUser: boolean) => {
     const rank = index + 1;
     const authorId = item.authorProfile?.id;
-    const amount =
-      type === 'reviewer' ? (item as TopReviewer).earnedRsc : (item as TopFunder).totalFunding;
+    const amount = item.earnedRsc;
 
     const displayName = item.authorProfile.fullName;
     // Show gradient for long names, or shorter names if there's a verified badge (which takes up space)
@@ -198,42 +180,8 @@ export const LeaderboardOverview = () => {
 
   return (
     <>
-      {/* Top Funders Section */}
-      <div>
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex items-start gap-2">
-            <Icon name="fund" size={20} className="text-primary-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <h2 className="font-semibold text-gray-900">Top Funders</h2>
-            </div>
-          </div>
-          <Link
-            href="/leaderboard/funders"
-            className="text-xs text-gray-700 hover:underline flex items-center gap-0.5 mt-1"
-          >
-            View All
-            <ChevronRight className="w-3 h-3" />
-          </Link>
-        </div>
-        {isLoading ? (
-          <LeaderboardListSkeleton />
-        ) : error ? (
-          <p className="text-xs text-red-600">{error}</p>
-        ) : funders.length > 0 ? (
-          <div className="space-y-3">
-            {funders.map((funder, index) =>
-              renderListItem(
-                funder,
-                index,
-                'funder',
-                funder.authorProfile?.id === currentUserAuthorId
-              )
-            )}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-500 mt-4 text-center">No funders found this month.</p>
-        )}
-      </div>
+      {/* Funding Opportunities Section */}
+      <FundingOpportunities />
 
       {/* Divider */}
       <div className="border-t border-gray-200 my-4" />
@@ -262,12 +210,7 @@ export const LeaderboardOverview = () => {
         ) : reviewers.length > 0 ? (
           <div className="space-y-3">
             {reviewers.map((reviewer, index) =>
-              renderListItem(
-                reviewer,
-                index,
-                'reviewer',
-                reviewer.authorProfile?.id === currentUserAuthorId
-              )
+              renderListItem(reviewer, index, reviewer.authorProfile?.id === currentUserAuthorId)
             )}
           </div>
         ) : (
