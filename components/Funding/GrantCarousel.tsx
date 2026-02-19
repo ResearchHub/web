@@ -23,7 +23,14 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({ grant, className }) => {
       {/* Header row */}
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <h2 className="text-lg font-semibold text-gray-900 truncate">{content.title}</h2>
+          <div className="flex items-baseline gap-2">
+            <h2 className="text-lg font-semibold text-gray-900 truncate">{content.title}</h2>
+            {grantData.amount?.formatted && (
+              <span className="flex-shrink-0 text-sm font-medium text-gray-500">
+                {grantData.amount.formatted}
+              </span>
+            )}
+          </div>
           {grantData.description && (
             <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">{grantData.description}</p>
           )}
@@ -44,7 +51,10 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({ grant, className }) => {
               key={fundraise.postId ?? fundraise.id}
               className="flex-shrink-0 snap-start w-[280px] sm:w-[300px] md:w-[320px]"
             >
-              <FundingProposalCard entry={transformFundraiseToFeedEntry(fundraise)} />
+              <FundingProposalCard
+                entry={transformFundraiseToFeedEntry(fundraise)}
+                showActions={false}
+              />
             </div>
           ))}
         </Carousel>

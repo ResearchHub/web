@@ -17,9 +17,14 @@ import { FundraiseProgressBar } from './FundraiseProgressBar';
 interface FundingProposalCardProps {
   entry: FeedEntry;
   className?: string;
+  showActions?: boolean;
 }
 
-export const FundingProposalCard: FC<FundingProposalCardProps> = ({ entry, className }) => {
+export const FundingProposalCard: FC<FundingProposalCardProps> = ({
+  entry,
+  className,
+  showActions = true,
+}) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
 
@@ -142,26 +147,27 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({ entry, class
         </div>
       </div>
 
-      {/* Actions - Gray background band at bottom */}
-      <div
-        className="px-4 py-2 border-t border-gray-200 bg-gray-50 cursor-default"
-        onClick={(e) => e.preventDefault()}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <FeedItemActions
-          metrics={entry.metrics}
-          feedContentType={entry.contentType}
-          votableEntityId={content.id}
-          relatedDocumentId={content.id.toString()}
-          relatedDocumentContentType="post"
-          userVote={entry.userVote}
-          href={href}
-          hideCommentButton={true}
-          hideReportButton={true}
-          showPeerReviews={true}
-          relatedDocumentUnifiedDocumentId={content.unifiedDocumentId}
-        />
-      </div>
+      {showActions && (
+        <div
+          className="px-4 py-2 border-t border-gray-200 bg-gray-50 cursor-default"
+          onClick={(e) => e.preventDefault()}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <FeedItemActions
+            metrics={entry.metrics}
+            feedContentType={entry.contentType}
+            votableEntityId={content.id}
+            relatedDocumentId={content.id.toString()}
+            relatedDocumentContentType="post"
+            userVote={entry.userVote}
+            href={href}
+            hideCommentButton={true}
+            hideReportButton={true}
+            showPeerReviews={true}
+            relatedDocumentUnifiedDocumentId={content.unifiedDocumentId}
+          />
+        </div>
+      )}
     </Link>
   );
 };
