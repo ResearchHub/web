@@ -31,11 +31,146 @@ import {
 import { GrantFormSections } from './GrantFormSections';
 import { DEFAULT_GRANT_TITLE, GRANT_FORM_DEFAULTS } from './lib/constants';
 
+function extractPlainText(template: typeof grantTemplate): string {
+  return (
+    template.content
+      ?.map((block) => block.content?.map((c) => c.text).join(' '))
+      .filter(Boolean)
+      .join('\n') || ''
+  );
+}
+
 interface GrantPublishModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  postId?: number;
-  onSaved?: () => void;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly postId?: number;
+  readonly onSaved?: () => void;
+}
+
+function EditorHeader({
+  onClose,
+  onPublish,
+  isDisabled,
+  title,
+  actionLabel,
+}: {
+  readonly onClose: () => void;
+  readonly onPublish: () => void;
+  readonly isDisabled: boolean;
+  readonly title: string;
+  readonly actionLabel: string;
+}) {
+  return (
+    <>
+      <button
+        onClick={onClose}
+        disabled={isDisabled}
+        className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500"
+      >
+        <X className="w-5 h-5" />
+      </button>
+      <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+      <Button variant="default" size="sm" onClick={onPublish} disabled={isDisabled}>
+        <FileUp className="w-4 h-4 mr-1.5" />
+        {actionLabel}
+      </Button>
+    </>
+  );
+}
+
+function FormHeader({
+  onBack,
+  onPublish,
+  isDisabled,
+  isMobile,
+  title,
+  actionLabel,
+}: {
+  readonly onBack: () => void;
+  readonly onPublish: () => void;
+  readonly isDisabled: boolean;
+  readonly isMobile: boolean;
+  readonly title: string;
+  readonly actionLabel: string;
+}) {
+  return (
+    <>
+      <button
+        onClick={onBack}
+        disabled={isDisabled}
+        className="flex items-center gap-1 p-1.5 rounded-md hover:bg-gray-100 text-gray-500"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        <span className="text-sm">Back</span>
+      </button>
+      <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+      {isMobile ? (
+        <div className="w-16" />
+      ) : (
+        <Button variant="default" size="sm" onClick={onPublish} disabled={isDisabled}>
+          {actionLabel}
+        </Button>
+      )}
+    </>
+  );
+}
+
+function ModalEditorContent({
+  isInitializing,
+  initError,
+  isEditorReady,
+  loadingMessage,
+  onClose,
+  setEditor,
+  editorContentHtml,
+  editorContentJson,
+  templateJson,
+}: {
+  readonly isInitializing: boolean;
+  readonly initError: string | null;
+  readonly isEditorReady: boolean;
+  readonly loadingMessage: string;
+  readonly onClose: () => void;
+  readonly setEditor: (editor: Editor | null) => void;
+  readonly editorContentHtml?: string;
+  readonly editorContentJson?: string;
+  readonly templateJson?: string;
+}) {
+  if (isInitializing) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-3">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <p className="text-sm text-gray-500">{loadingMessage}</p>
+      </div>
+    );
+  }
+
+  if (initError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
+        <p className="text-sm text-red-500">{initError}</p>
+        <Button variant="outlined" size="sm" onClick={onClose}>
+          Close
+        </Button>
+      </div>
+    );
+  }
+
+  if (!isEditorReady) return null;
+
+  return (
+    <div className="max-w-4xl mx-auto pl-0 pr-4 py-2 sm:p-4 md:p-8">
+      <NotePaper minHeight="600px" className="pl-4 sm:pl-8 lg:pl-16 rounded-none sm:rounded-lg">
+        <BlockEditor
+          content={editorContentHtml}
+          contentJson={editorContentJson || templateJson}
+          isLoading={false}
+          editable={true}
+          setEditor={setEditor}
+        />
+      </NotePaper>
+    </div>
+  );
 }
 
 export function GrantPublishModal({ isOpen, onClose, postId, onSaved }: GrantPublishModalProps) {
@@ -60,7 +195,6 @@ export function GrantPublishModal({ isOpen, onClose, postId, onSaved }: GrantPub
   const [, createNote] = useCreateNote();
   const [, updateNoteContent] = useNoteContent();
 
-  // Create mode: create a blank note pre-filled with the grant template
   useEffect(() => {
     if (isEditMode || !isOpen || !selectedOrg?.slug || noteId) return;
 
@@ -76,16 +210,10 @@ export function GrantPublishModal({ isOpen, onClose, postId, onSaved }: GrantPub
         });
 
         if (newNote) {
-          const plainText =
-            grantTemplate.content
-              ?.map((block) => block.content?.map((c) => c.text).join(' '))
-              .filter(Boolean)
-              .join('\n') || '';
-
           await updateNoteContent({
             note: newNote.id,
             fullJson: JSON.stringify(grantTemplate),
-            plainText,
+            plainText: extractPlainText(grantTemplate),
           });
 
           setNoteId(newNote.id);
@@ -101,7 +229,6 @@ export function GrantPublishModal({ isOpen, onClose, postId, onSaved }: GrantPub
     init();
   }, [isEditMode, isOpen, selectedOrg?.slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Edit mode: fetch existing work + note content and prepopulate form
   useEffect(() => {
     if (!isEditMode || !isOpen || !postId) return;
 
@@ -202,7 +329,6 @@ export function GrantPublishModal({ isOpen, onClose, postId, onSaved }: GrantPub
     onClose();
   }, [isProcessing, editor, onClose]);
 
-  // Reset all state when modal closes
   useEffect(() => {
     if (isOpen) return;
     setEditor(null);
@@ -224,7 +350,7 @@ export function GrantPublishModal({ isOpen, onClose, postId, onSaved }: GrantPub
   const editorContentJson = isEditMode && !contentHtml ? (contentJson ?? undefined) : undefined;
   const editorContentHtml = isEditMode ? (contentHtml ?? undefined) : undefined;
   const templateJson = !isEditMode ? JSON.stringify(grantTemplate) : undefined;
-  const isEditorReady = noteId && (isEditMode ? hasEditContent : true);
+  const isEditorReady = !!(noteId && (isEditMode ? hasEditContent : true));
 
   return (
     <BaseModal
@@ -243,83 +369,39 @@ export function GrantPublishModal({ isOpen, onClose, postId, onSaved }: GrantPub
 
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
           {step === 'editor' ? (
-            <>
-              <button
-                onClick={handleClose}
-                disabled={isProcessing}
-                className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              <h2 className="text-base font-semibold text-gray-900">{headerTitle}</h2>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleGoToForm}
-                disabled={isProcessing || isInitializing || !noteId}
-              >
-                <FileUp className="w-4 h-4 mr-1.5" />
-                {actionLabel}
-              </Button>
-            </>
+            <EditorHeader
+              onClose={handleClose}
+              onPublish={handleGoToForm}
+              isDisabled={isProcessing || isInitializing || !noteId}
+              title={headerTitle}
+              actionLabel={actionLabel}
+            />
           ) : (
-            <>
-              <button
-                onClick={() => setStep('editor')}
-                disabled={isProcessing}
-                className="flex items-center gap-1 p-1.5 rounded-md hover:bg-gray-100 text-gray-500"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                <span className="text-sm">Back</span>
-              </button>
-              <h2 className="text-base font-semibold text-gray-900">{formStepTitle}</h2>
-              {isMobile ? (
-                <div className="w-16" />
-              ) : (
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={handlePublishClick}
-                  disabled={isProcessing}
-                >
-                  {actionLabel}
-                </Button>
-              )}
-            </>
+            <FormHeader
+              onBack={() => setStep('editor')}
+              onPublish={handlePublishClick}
+              isDisabled={isProcessing}
+              isMobile={isMobile}
+              title={formStepTitle}
+              actionLabel={actionLabel}
+            />
           )}
         </div>
 
         <div className="flex-1 min-h-0 overflow-hidden">
           <FormProvider {...methods}>
             <div className={`h-full overflow-y-auto ${step === 'editor' ? 'block' : 'hidden'}`}>
-              {isInitializing ? (
-                <div className="flex flex-col items-center justify-center h-full gap-3">
-                  <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                  <p className="text-sm text-gray-500">{loadingMessage}</p>
-                </div>
-              ) : initError ? (
-                <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
-                  <p className="text-sm text-red-500">{initError}</p>
-                  <Button variant="outlined" size="sm" onClick={handleClose}>
-                    Close
-                  </Button>
-                </div>
-              ) : isEditorReady ? (
-                <div className="max-w-4xl mx-auto pl-0 pr-4 py-2 sm:p-4 md:p-8">
-                  <NotePaper
-                    minHeight="600px"
-                    className="pl-4 sm:pl-8 lg:pl-16 rounded-none sm:rounded-lg"
-                  >
-                    <BlockEditor
-                      content={editorContentHtml}
-                      contentJson={editorContentJson || templateJson}
-                      isLoading={false}
-                      editable={true}
-                      setEditor={setEditor}
-                    />
-                  </NotePaper>
-                </div>
-              ) : null}
+              <ModalEditorContent
+                isInitializing={isInitializing}
+                initError={initError}
+                isEditorReady={isEditorReady}
+                loadingMessage={loadingMessage}
+                onClose={handleClose}
+                setEditor={setEditor}
+                editorContentHtml={editorContentHtml}
+                editorContentJson={editorContentJson}
+                templateJson={templateJson}
+              />
             </div>
 
             <div className={`h-full overflow-y-auto ${step === 'form' ? 'block' : 'hidden'}`}>

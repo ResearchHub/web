@@ -17,11 +17,11 @@ import type { ID } from '@/types/root';
 import { GRANT_DEADLINE, DEFAULT_GRANT_TITLE } from '@/components/Grant/lib/constants';
 
 interface UseGrantPublishParams {
-  editor: Editor | null;
-  noteId: number | null;
-  methods: UseFormReturn<PublishingFormData>;
-  postId?: ID;
-  onSuccess?: () => void;
+  readonly editor: Editor | null;
+  readonly noteId: number | null;
+  readonly methods: UseFormReturn<PublishingFormData>;
+  readonly postId?: ID;
+  readonly onSuccess?: () => void;
 }
 
 export function useGrantPublish({
@@ -103,7 +103,7 @@ export function useGrantPublish({
           assignDOI: !isUpdate,
           topics: formData.topics.map((t) => t.value),
           authors: [],
-          contacts: formData.contacts.map((c) => Number(c.value)).filter((id) => !isNaN(id)),
+          contacts: formData.contacts.map((c) => Number(c.value)).filter((id) => !Number.isNaN(id)),
           articleType: 'GRANT',
           image: imagePath,
           organization: formData.organization,

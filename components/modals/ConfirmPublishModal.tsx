@@ -144,8 +144,8 @@ export function ConfirmPublishModal({
                   <div className="bg-gray-50 p-4 rounded-lg mb-6">
                     <h4 className="font-medium text-sm text-gray-900 mb-3">{guidelines.heading}</h4>
                     <ul className="space-y-3">
-                      {guidelines.items.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2">
+                      {guidelines.items.map((item) => (
+                        <li key={item.text} className="flex items-start gap-2">
                           <item.icon
                             className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
                             strokeWidth={2}
