@@ -15,9 +15,9 @@ import { buildWorkUrl } from '@/utils/url';
 
 const FundingOpportunitySkeleton = () => (
   <div className="space-y-3 animate-pulse">
-    {Array.from({ length: 5 }).map((_, i) => (
+    {Array.from({ length: 5 }).map((_, skeletonIndex) => (
       <div
-        key={`funding-skeleton-${i}`}
+        key={'funding-skeleton-' + skeletonIndex}
         className="grid grid-cols-[40px_1fr_auto] gap-x-3 items-center px-1 py-2 rounded-md"
       >
         <div className="w-10 h-10 bg-gray-200 rounded-md" />
@@ -69,21 +69,20 @@ function OpportunityRow({
     >
       {/* Image (only first item) */}
       <div className="w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
-        {showImage ? (
-          opportunity.previewImage ? (
-            <Image
-              src={opportunity.previewImage}
-              alt={opportunity.title}
-              width={40}
-              height={40}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-100">
-              <Icon name="fund" size={18} className="text-gray-400" />
-            </div>
-          )
-        ) : null}
+        {showImage && opportunity.previewImage && (
+          <Image
+            src={opportunity.previewImage}
+            alt={opportunity.title}
+            width={40}
+            height={40}
+            className="w-full h-full object-cover"
+          />
+        )}
+        {showImage && !opportunity.previewImage && (
+          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            <Icon name="fund" size={18} className="text-gray-400" />
+          </div>
+        )}
       </div>
 
       {/* Title + Organization */}
@@ -138,11 +137,11 @@ export const FundingOpportunities = () => {
         </Link>
       </div>
 
-      {isLoading ? (
-        <FundingOpportunitySkeleton />
-      ) : error ? (
-        <p className="text-xs text-red-600">{error}</p>
-      ) : opportunities.length > 0 ? (
+      {isLoading && <FundingOpportunitySkeleton />}
+
+      {!isLoading && error && <p className="text-xs text-red-600">{error}</p>}
+
+      {!isLoading && !error && opportunities.length > 0 && (
         <div className="space-y-1">
           {opportunities.map((opp, index) => (
             <OpportunityRow
@@ -153,7 +152,9 @@ export const FundingOpportunities = () => {
             />
           ))}
         </div>
-      ) : (
+      )}
+
+      {!isLoading && !error && opportunities.length === 0 && (
         <p className="text-sm text-gray-500 mt-4 text-center">
           No open funding opportunities right now.
         </p>
