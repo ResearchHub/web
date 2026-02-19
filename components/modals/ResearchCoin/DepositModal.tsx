@@ -16,6 +16,7 @@ import { DepositSuccessView } from './DepositSuccessView';
 import { NetworkSelectorSection } from './shared/NetworkSelectorSection';
 import { BalanceDisplay } from './shared/BalanceDisplay';
 import { TransactionFooter } from './shared/TransactionFooter';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import toast from 'react-hot-toast';
 
 const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
@@ -70,6 +71,8 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const hasProcessedDepositRef = useRef(false);
   const processedTxHashRef = useRef<string | null>(null);
   const hasSetDefaultRef = useRef(false);
+
+  const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
 
   const rscToken = useMemo(() => getRSCForNetwork(selectedNetwork), [selectedNetwork]);
   const networkConfig = NETWORK_CONFIG[selectedNetwork];
@@ -409,6 +412,16 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
                   <span className="text-gray-500">RSC</span>
                 </div>
               </div>
+              {depositAmount > 0 && exchangeRate > 0 && !isExchangeRateLoading && (
+                <p className="text-sm text-gray-500 flex items-center justify-end gap-0.5 pr-2">
+                  $
+                  {(depositAmount * exchangeRate).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{' '}
+                  USD
+                </p>
+              )}
               {depositAmount > walletBalance && (
                 <p className="text-sm text-red-600" role="alert">
                   Deposit amount exceeds your wallet balance.
