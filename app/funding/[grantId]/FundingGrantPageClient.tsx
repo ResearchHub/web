@@ -7,9 +7,13 @@ import { GrantPreview, GrantPreviewData } from '@/components/Funding/GrantPrevie
 import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
 import { ActivityFeed } from '@/components/Funding/ActivityFeed';
 import { PostBlockEditor } from '@/components/work/PostBlockEditor';
+import { WorkPrimaryActions } from '@/components/work/WorkPrimaryActions';
 import { Tabs } from '@/components/ui/Tabs';
-import { FileText, LayoutList, MessageCircle, Activity } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { FileText, LayoutList, MessageCircle, Activity, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import { Work } from '@/types/work';
+import { WorkMetadata } from '@/services/metadata.service';
 
 type GrantTab = 'proposals' | 'details';
 
@@ -46,6 +50,16 @@ export function FundingGrantPageClient({
     };
   }, [work, grant]);
 
+  const metadata = useMemo((): WorkMetadata => ({
+    id: work.id,
+    score: work.metrics?.adjustedScore ?? 0,
+    topics: work.topics ?? [],
+    metrics: work.metrics ?? { votes: 0, adjustedScore: 0, comments: 0, saves: 0 },
+    bounties: [],
+    openBounties: 0,
+    closedBounties: 0,
+  }), [work]);
+
   if (!grantPreviewData || !grant) {
     return null;
   }
@@ -59,14 +73,25 @@ export function FundingGrantPageClient({
 
   return (
     <PageLayout rightSidebar={<ActivityFeed />}>
-      <div className="border-b border-gray-200 mb-6">
-        <FundingTabs selectedGrantId={work.id} />
-      </div>
+      <FundingTabs selectedGrantId={work.id} className="mb-6" />
 
       <GrantPreview grant={grantPreviewData} className="mb-4" />
 
-      <div className="border-b mb-4">
+      <WorkPrimaryActions work={work} metadata={metadata} className="mb-4" />
+
+      <div className="flex items-center border-b mb-4">
         <Tabs tabs={grantTabs} activeTab={initialTab} onTabChange={() => {}} />
+        {grantPreviewData.isActive && (
+          <Link
+            href={`/grant/${work.id}/${work.slug}/applications`}
+            className="ml-auto flex-shrink-0"
+          >
+            <Button variant="default" size="sm" className="gap-1.5 text-sm px-4 py-2.5 h-auto">
+              Submit Proposal
+              <ArrowRight size={13} />
+            </Button>
+          </Link>
+        )}
       </div>
 
       {initialTab === 'proposals' && <FundingProposalGrid />}

@@ -4,13 +4,14 @@ import { FC } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
-import { Button } from '@/components/ui/Button';
-import { ArrowRight, DollarSign } from 'lucide-react';
+import { DollarSign, Clock, Users } from 'lucide-react';
+import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { formatCurrency } from '@/utils/currency';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { cn } from '@/utils/styles';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export interface GrantPreviewData {
   id: number;
@@ -129,41 +130,25 @@ export const GrantPreview: FC<GrantPreviewProps> = ({ grant, className, compact 
     <div className={className}>
       {/* Grant preview card */}
       <div className="relative bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-        {/* Left gradient accent - image or default gradient */}
-        <div className="absolute left-0 top-0 bottom-0 w-2 overflow-hidden">
-          {grant.previewImage ? (
-            <Image
-              src={grant.previewImage}
-              alt=""
-              fill
-              className="object-cover"
-              style={{ objectPosition: 'left center' }}
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-b from-[#e8f4fc] via-[#d4e8f8] to-[#c5dff4]" />
-          )}
-        </div>
-
         {/* Main content */}
         <div className="pl-6 pr-6 pt-5 pb-0">
-          {/* Status badge */}
-          <div className="mb-2">
-            {isOpen ? (
-              <span className="inline-flex items-center text-xs font-semibold text-green-700 bg-green-100 px-2.5 py-1 rounded-full">
-                Accepting Proposals
-              </span>
-            ) : (
-              <span className="inline-flex items-center text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
-                Closed
-              </span>
-            )}
+          <div className="flex items-center gap-2 mb-2">
+            <RadiatingDot
+              color={isOpen ? 'bg-green-500' : 'bg-gray-400'}
+              dotSize={8}
+              isRadiating={false}
+            />
+            <span
+              className={cn('text-sm font-medium', isOpen ? 'text-green-600' : 'text-gray-500')}
+            >
+              {isOpen ? 'Accepting Proposals' : 'Closed'}
+            </span>
           </div>
 
-          {/* Title */}
-          <h1 className="text-lg font-bold text-gray-900 mb-1.5 leading-snug">{grant.title}</h1>
+          <PageHeader title={grant.title} className="text-2xl md:!text-3xl mt-0 mb-2" />
 
           {/* Organization */}
-          {grant.organization && <p className="text-sm text-gray-500 mb-2">{grant.organization}</p>}
+          {grant.organization && <p className="text-md text-gray-500 mb-2">{grant.organization}</p>}
 
           {/* Description */}
           {(grant.description || grant.textPreview) && (
@@ -173,47 +158,35 @@ export const GrantPreview: FC<GrantPreviewProps> = ({ grant, className, compact 
           )}
         </div>
 
-        {/* Info columns + CTA */}
-        <div className="flex items-center px-6 py-4 mt-3 border-t border-gray-100 bg-gray-50/50 gap-4">
-          {/* Funding Available */}
-          <div className="flex flex-col gap-1 flex-1">
-            <span className="text-xs text-gray-500 font-medium">Funding Available</span>
-            <span className="text-sm font-bold text-gray-900">
-              {formatCurrency({
-                amount,
-                showUSD,
-                exchangeRate,
-                shorten: true,
-                skipConversion: true,
-              })}
+        <div className="flex items-center gap-6 px-6 py-4 text-sm text-gray-500">
+          <div className="flex items-center gap-2">
+            <DollarSign size={16} className="text-gray-400" />
+            <span>
+              <span className="font-semibold text-gray-900">
+                {formatCurrency({ amount, showUSD, exchangeRate, shorten: true, skipConversion: true })}
+              </span>
+              {' '}available
             </span>
           </div>
 
-          {/* Timeline */}
-          <div className="flex flex-col gap-1 flex-1 border-l border-gray-200 pl-4">
-            <span className="text-xs text-gray-500 font-medium">Timeline</span>
-            <span className="text-sm font-bold text-gray-900">
-              {isOpen ? (timeRemaining ? `Ends in ${timeRemaining}` : 'Immediate') : 'Ended'}
+          <div className="h-4 w-px bg-gray-200" />
+
+          <div className="flex items-center gap-2">
+            <Clock size={16} className="text-gray-400" />
+            <span>
+              Ends in{' '}
+              <span className="font-semibold text-gray-900">
+                {isOpen ? (timeRemaining || 'Immediate') : 'Ended'}
+              </span>
             </span>
           </div>
 
-          {/* Allocation of funds */}
-          <div className="flex flex-col gap-1 flex-1 border-l border-gray-200 pl-4">
-            <span className="text-xs text-gray-500 font-medium">Allocation of Funds</span>
-            <span className="text-sm font-bold text-gray-900">One or many</span>
-          </div>
+          <div className="h-4 w-px bg-gray-200" />
 
-          {/* Submit Proposal CTA */}
-          {isOpen && (
-            <div className="border-l border-gray-200 pl-4 flex-shrink-0">
-              <Link href={`${href}/applications`}>
-                <Button variant="default" size="sm" className="gap-1.5 text-xs px-4 py-2.5 h-auto">
-                  Submit Proposal
-                  <ArrowRight size={13} />
-                </Button>
-              </Link>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <Users size={16} className="text-gray-400" />
+            <span>One or many</span>
+          </div>
         </div>
       </div>
     </div>

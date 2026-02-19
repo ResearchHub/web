@@ -42,21 +42,20 @@ const TabItem: React.FC<{
   };
 
   const styles = cn(
-    'text-sm font-semibold flex items-center gap-1 whitespace-nowrap flex-shrink-0 h-full cursor-pointer',
+    'text-sm font-medium flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 cursor-pointer transition-all duration-150',
     variant === 'pill'
       ? [
-          'px-4 py-2 rounded-lg',
+          'px-4 py-2 rounded-full',
           isActive
-            ? 'bg-primary-100 text-primary-600 shadow-sm'
+            ? 'border border-gray-300 bg-white text-gray-900 shadow-sm'
             : 'text-gray-500 hover:text-gray-700',
         ]
       : [
-          'border-b-2 py-3',
+          'border-b-2 py-3 h-full',
           isActive
             ? 'text-primary-600 border-primary-600'
             : 'text-gray-800 border-transparent hover:text-gray-700 hover:border-gray-200',
         ],
-    // disabled && 'opacity-50 cursor-not-allowed pointer-events-none'
     disabled && 'cursor-not-allowed pointer-events-none'
   );
 
@@ -148,7 +147,7 @@ export const Tabs: React.FC<TabsProps> = ({
         onScroll={checkScrollability}
         className={cn(
           'flex items-center flex-nowrap h-full overflow-x-auto scrollbar-none',
-          variant === 'pill' ? 'space-x-1 bg-gray-100 p-1 rounded-lg' : 'space-x-8'
+          variant === 'pill' ? 'gap-2' : 'space-x-8'
         )}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >

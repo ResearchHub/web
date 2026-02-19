@@ -8,38 +8,41 @@ import { FeedGrantContent } from '@/types/feed';
 import { cn } from '@/utils/styles';
 
 interface FundingTabsProps {
-  /** Currently selected grant ID */
   selectedGrantId?: number | null;
   className?: string;
+  rightContent?: React.ReactNode;
 }
 
-/**
- * Extracts the first N words from a title
- */
 function getShortTitle(title: string, wordCount: number = 3): string {
   const words = title.split(' ').slice(0, wordCount);
   return words.join(' ');
 }
 
-export const FundingTabs: FC<FundingTabsProps> = ({ selectedGrantId, className }) => {
+function formatCompactAmount(usd: number): string {
+  if (usd >= 1_000_000) return `$${Math.round(usd / 1_000_000)}M`;
+  if (usd >= 1_000) return `$${Math.round(usd / 1_000)}K`;
+  return `$${Math.round(usd).toLocaleString()}`;
+}
+
+export const FundingTabs: FC<FundingTabsProps> = ({ selectedGrantId, className, rightContent }) => {
   const router = useRouter();
   const pathname = usePathname();
   const { grants, isLoading } = useGrants();
 
-  // Build tabs from grants
   const tabs = useMemo(() => {
     const grantTabs = grants.map((grant) => {
       const content = grant.content as FeedGrantContent;
       const grantData = content.grant;
+      const amount = grantData?.amount?.usd;
+      const amountLabel = amount ? ` · ${formatCompactAmount(amount)}` : '';
 
       return {
         id: `grant-${content.id}`,
-        label: getShortTitle(content.title, 3),
+        label: `${getShortTitle(content.title, 3)}${amountLabel}`,
         href: `/funding/${content.id}`,
       };
     });
 
-    // Add "All" tab at the beginning
     return [
       {
         id: 'all',
@@ -75,14 +78,15 @@ export const FundingTabs: FC<FundingTabsProps> = ({ selectedGrantId, className }
   };
 
   return (
-    <div className={cn('h-[64px]', className)}>
+    <div className={cn('flex items-center', className)}>
       <Tabs
         activeTab={activeTab}
         tabs={tabs}
         onTabChange={handleTabChange}
         disabled={isLoading}
-        className="h-full"
+        variant="pill"
       />
+      {rightContent && <div className="ml-auto flex-shrink-0">{rightContent}</div>}
     </div>
   );
 };
