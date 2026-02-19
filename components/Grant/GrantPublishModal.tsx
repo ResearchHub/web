@@ -349,7 +349,7 @@ export function GrantPublishModal({ isOpen, onClose, postId, onSaved }: GrantPub
   const hasEditContent = !!(contentJson || contentHtml);
   const editorContentJson = isEditMode && !contentHtml ? (contentJson ?? undefined) : undefined;
   const editorContentHtml = isEditMode ? (contentHtml ?? undefined) : undefined;
-  const templateJson = !isEditMode ? JSON.stringify(grantTemplate) : undefined;
+  const templateJson = isEditMode ? undefined : JSON.stringify(grantTemplate);
   const isEditorReady = !!(noteId && (isEditMode ? hasEditContent : true));
 
   return (

@@ -72,9 +72,9 @@ export default function GrantManagementPage() {
 }
 
 interface GrantTabProps {
-  label: string;
-  isActive: boolean;
-  onClick?: () => void;
+  readonly label: string;
+  readonly isActive: boolean;
+  readonly onClick?: () => void;
 }
 
 function GrantTab({ label, isActive, onClick }: GrantTabProps) {
