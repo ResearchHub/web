@@ -1,35 +1,39 @@
 'use client';
 
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { NotePaperSkeleton } from '../components/NotePaperSkeleton';
-import { NotePaperWrapper } from '../components/NotePaperWrapper';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import proposalTemplate from '@/components/Editor/lib/data/proposalTemplate';
 import { getInitialContent, initialContent } from '@/components/Editor/lib/data/initialContent';
 import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
-import { getDocumentTitle } from '@/components/Editor/lib/utils/documentTitle';
-import { useCreateNote } from '@/hooks/useNote';
-import { useNoteContent } from '@/hooks/useNote';
+import {
+  getDocumentTitle,
+  getTemplatePlainText,
+} from '@/components/Editor/lib/utils/documentTitle';
+import { useCreateNote, useNoteContent } from '@/hooks/useNote';
 import { NoteCreationPopover } from '../components/NoteCreationPopover';
 
+/**
+ * Organization page – the welcome UI is now in NoteEditorLayout.
+ * This page only exists for:
+ *   1. Next.js routing (so /notebook/[orgSlug] resolves).
+ *   2. Auto-creating notes when landing with ?newFunding / ?newResearch / ?newGrant.
+ */
 export default function OrganizationPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
+  const { selectedOrg } = useOrganizationContext();
   const { refreshNotes } = useNotebookContext();
 
   const [{ isLoading: isCreatingNote }, createNote] = useCreateNote();
   const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
 
-  // Get URL search params
   const isNewFunding = searchParams.get('newFunding') === 'true';
   const isNewResearch = searchParams.get('newResearch') === 'true';
   const isNewGrant = searchParams.get('newGrant') === 'true';
 
-  // Helper function to create notes using hooks
   const createNoteWithContent = async (
     orgSlug: string,
     {
@@ -44,7 +48,6 @@ export default function OrganizationPage() {
   ) => {
     try {
       const title = getDocumentTitle(template) || 'Untitled';
-
       const newNote = await createNote({
         organizationSlug: orgSlug,
         title,
@@ -55,14 +58,10 @@ export default function OrganizationPage() {
         await updateNoteContent({
           note: newNote.id,
           fullJson: JSON.stringify(template),
-          plainText: template.content
-            .map((block) => block.content?.map((c) => c.text).join(' '))
-            .filter(Boolean)
-            .join('\n'),
+          plainText: getTemplatePlainText(template),
         });
 
         const queryString = queryParam && queryValue ? `?${queryParam}=${queryValue}` : '';
-
         refreshNotes();
         router.push(`/notebook/${orgSlug}/${newNote.id}${queryString}`);
       }
@@ -71,7 +70,6 @@ export default function OrganizationPage() {
     }
   };
 
-  // Handle routing logic based on search params
   useEffect(() => {
     if (!selectedOrg) return;
 
@@ -85,7 +83,6 @@ export default function OrganizationPage() {
           });
           return;
         }
-
         if (isNewResearch) {
           await createNoteWithContent(selectedOrg.slug, {
             template: getInitialContent('research'),
@@ -94,7 +91,6 @@ export default function OrganizationPage() {
           });
           return;
         }
-
         if (isNewGrant) {
           await createNoteWithContent(selectedOrg.slug, {
             template: grantTemplate,
@@ -109,34 +105,8 @@ export default function OrganizationPage() {
     };
 
     handleRouting();
-  }, [selectedOrg, isNewFunding, isNewResearch, isNewGrant]);
+  }, [selectedOrg, isNewFunding, isNewResearch, isNewGrant]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Show loading state while creating note or updating content
-  if (isLoadingOrg) {
-    return <NotePaperSkeleton />;
-  }
-
-  return (
-    <>
-      <NotePaperWrapper>
-        <div className="flex flex-col items-center justify-center h-full p-8">
-          <div className="max-w-md text-center">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-              {selectedOrg?.name ? `Welcome to ${selectedOrg.name}` : 'Welcome'}
-            </h2>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <p className="text-gray-600 mb-4">
-                Please select a note from the sidebar to view or edit its contents.
-              </p>
-              <p className="text-sm text-gray-500">
-                You can also create a new note by clicking the "New Note" button in the sidebar.
-              </p>
-            </div>
-          </div>
-        </div>
-      </NotePaperWrapper>
-
-      <NoteCreationPopover isOpen={isCreatingNote || isUpdatingContent} />
-    </>
-  );
+  // Only render the creation overlay; the welcome screen is in NoteEditorLayout.
+  return <NoteCreationPopover isOpen={isCreatingNote || isUpdatingContent} />;
 }

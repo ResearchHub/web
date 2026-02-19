@@ -1,13 +1,18 @@
 'use client';
 
 import { Button } from '@/components/ui/Button';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { ChevronRight, ChevronLeft, X } from 'lucide-react';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { PublishedStatusSection } from './PublishingForm/components/PublishedStatusSection';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 
-export function TopBarDesktop() {
+interface TopBarDesktopProps {
+  /** When provided (modal context), shows a close button on the left. */
+  onClose?: () => void;
+}
+
+export function TopBarDesktop({ onClose }: TopBarDesktopProps) {
   const { toggleLeftSidebar, toggleRightSidebar, isRightSidebarOpen } = useSidebar();
   const { currentNote: note, isLoading } = useNotebookContext();
 
@@ -18,6 +23,21 @@ export function TopBarDesktop() {
   return (
     <div className="h-16 border-b border-gray-200 sticky top-0 bg-white z-20">
       <div className="h-full flex items-center px-4 justify-between">
+        {/* Left: close button when in modal context */}
+        {onClose ? (
+          <Button
+            onClick={onClose}
+            className="p-2 rounded-md hover:bg-gray-100"
+            aria-label="Close"
+            variant="ghost"
+            size="icon"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        ) : (
+          <div />
+        )}
+
         {/* Center content - page title or logo */}
         <PublishedStatusSection />
 

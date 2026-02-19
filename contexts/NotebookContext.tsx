@@ -54,9 +54,15 @@ interface NotebookContextType {
 
 const NotebookContext = createContext<NotebookContextType | null>(null);
 
-export function NotebookProvider({ children }: { children: ReactNode }) {
+interface NotebookProviderProps {
+  readonly children: ReactNode;
+  /** Pass an explicit noteId (e.g. from a modal) instead of reading URL params. */
+  readonly noteId?: string;
+}
+
+export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookProviderProps) {
   const params = useParams();
-  const noteIdFromParams = (params?.noteId as string) || null;
+  const noteIdFromParams = explicitNoteId ?? (params?.noteId as string) ?? null;
 
   const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
 

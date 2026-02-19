@@ -14,3 +14,13 @@ export const getDocumentTitleFromEditor = (editor: Editor | null): string => {
 export function removeTitleFromHTML(html: string): string {
   return html.replace(/<h1[^>]*>.*?<\/h1>/i, '');
 }
+
+/** Extract a plain-text string from a TipTap-style JSON template (top-level blocks only). */
+export function getTemplatePlainText(content: JSONContent | undefined): string {
+  return (
+    content?.content
+      ?.map((block) => block.content?.map((c) => c.text).join(' '))
+      .filter(Boolean)
+      .join('\n') || ''
+  );
+}

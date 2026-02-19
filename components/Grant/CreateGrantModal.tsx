@@ -1,168 +1,56 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Editor } from '@tiptap/core';
-import { X, ArrowLeft, FileUp, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
-import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
-import { NotePaper } from '@/app/notebook/components/NotePaperWrapper';
-import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
 
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
+import { NotebookProvider } from '@/contexts/NotebookContext';
+import { SidebarProvider } from '@/contexts/SidebarContext';
 import { useCreateNote, useNoteContent } from '@/hooks/useNote';
-import { useIsMobile } from '@/hooks/useIsMobile';
-import { useGrantPublish } from '@/hooks/useGrantPublish';
 import {
   getDocumentTitle,
-  getDocumentTitleFromEditor,
+  getTemplatePlainText,
 } from '@/components/Editor/lib/utils/documentTitle';
 import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
-import {
-  publishingFormSchema,
-  type PublishingFormData,
-} from '@/app/notebook/components/PublishingForm/schema';
 
-import { GrantFormSections } from './GrantFormSections';
-import { DEFAULT_GRANT_TITLE, GRANT_FORM_DEFAULTS } from './lib/constants';
-
-function extractPlainText(template: typeof grantTemplate): string {
-  return (
-    template.content
-      ?.map((block) => block.content?.map((c) => c.text).join(' '))
-      .filter(Boolean)
-      .join('\n') || ''
-  );
-}
+import { NoteEditorLayout } from '@/app/notebook/components/NoteEditorLayout';
+import { DEFAULT_GRANT_TITLE } from './lib/constants';
 
 interface CreateGrantModalProps {
-  readonly isOpen: boolean;
-  readonly onClose: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-function EditorHeader({
-  onClose,
-  onPublish,
-  isDisabled,
-}: {
-  readonly onClose: () => void;
-  readonly onPublish: () => void;
-  readonly isDisabled: boolean;
-}) {
-  return (
-    <>
-      <button
-        onClick={onClose}
-        disabled={isDisabled}
-        className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500"
-      >
-        <X className="w-5 h-5" />
-      </button>
-      <h2 className="text-base font-semibold text-gray-900">Create RFP</h2>
-      <Button variant="default" size="sm" onClick={onPublish} disabled={isDisabled}>
-        <FileUp className="w-4 h-4 mr-1.5" />
-        Publish
-      </Button>
-    </>
-  );
-}
-
-function FormHeader({
-  onBack,
-  onPublish,
-  isDisabled,
-  isMobile,
-}: {
-  readonly onBack: () => void;
-  readonly onPublish: () => void;
-  readonly isDisabled: boolean;
-  readonly isMobile: boolean;
-}) {
-  return (
-    <>
-      <button
-        onClick={onBack}
-        disabled={isDisabled}
-        className="flex items-center gap-1 p-1.5 rounded-md hover:bg-gray-100 text-gray-500"
-      >
-        <ArrowLeft className="w-5 h-5" />
-        <span className="text-sm">Back</span>
-      </button>
-      <h2 className="text-base font-semibold text-gray-900">Publish Details</h2>
-      {isMobile ? (
-        <div className="w-16" />
-      ) : (
-        <Button variant="default" size="sm" onClick={onPublish} disabled={isDisabled}>
-          Publish
-        </Button>
-      )}
-    </>
-  );
-}
-
-function EditorContent({
-  isCreatingNote,
-  noteError,
-  noteId,
-  onClose,
-  setEditor,
-}: {
-  readonly isCreatingNote: boolean;
-  readonly noteError: string | null;
-  readonly noteId: number | null;
-  readonly onClose: () => void;
-  readonly setEditor: (editor: Editor | null) => void;
-}) {
-  if (isCreatingNote) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full gap-3">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-        <p className="text-sm text-gray-500">Setting up your RFP...</p>
-      </div>
-    );
-  }
-
-  if (noteError) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
-        <p className="text-sm text-red-500">{noteError}</p>
-        <Button variant="outlined" size="sm" onClick={onClose}>
-          Close
-        </Button>
-      </div>
-    );
-  }
-
-  if (!noteId) return null;
-
-  return (
-    <div className="max-w-4xl mx-auto pl-0 pr-4 py-2 sm:p-4 md:p-8">
-      <NotePaper minHeight="600px" className="pl-4 sm:pl-8 lg:pl-16 rounded-none sm:rounded-lg">
-        <BlockEditor
-          contentJson={JSON.stringify(grantTemplate)}
-          isLoading={false}
-          editable={true}
-          setEditor={setEditor}
-        />
-      </NotePaper>
-    </div>
-  );
-}
-
+/**
+ * Modal for creating a new RFP / Grant.
+ *
+ * 1. Creates a backend note from the grant template.
+ * 2. Renders the shared NoteEditorLayout (top bar + editor + PublishingForm)
+ *    inside NotebookProvider + SidebarProvider.
+ *
+ * No duplication of editor / publish-form logic with the full notebook route.
+ */
 export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
   const { selectedOrg } = useOrganizationContext();
-  const isMobile = useIsMobile();
 
-  const [editor, setEditor] = useState<Editor | null>(null);
   const [noteId, setNoteId] = useState<number | null>(null);
   const [isCreatingNote, setIsCreatingNote] = useState(false);
   const [noteError, setNoteError] = useState<string | null>(null);
   const [, createNote] = useCreateNote();
   const [, updateContent] = useNoteContent();
 
+  // Reset state when the modal closes so re-open starts fresh
+  useEffect(() => {
+    if (!isOpen) {
+      setNoteId(null);
+      setNoteError(null);
+    }
+  }, [isOpen]);
+
+  // Create the backing note when the modal first opens
   useEffect(() => {
     if (!isOpen || !selectedOrg?.slug || noteId) return;
 
@@ -181,9 +69,8 @@ export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
           await updateContent({
             note: newNote.id,
             fullJson: JSON.stringify(grantTemplate),
-            plainText: extractPlainText(grantTemplate),
+            plainText: getTemplatePlainText(grantTemplate),
           });
-
           setNoteId(newNote.id);
         }
       } catch (err) {
@@ -197,109 +84,43 @@ export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
     init();
   }, [isOpen, selectedOrg?.slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const [step, setStep] = useState<'editor' | 'form'>('editor');
-
-  const methods = useForm<PublishingFormData>({
-    defaultValues: GRANT_FORM_DEFAULTS,
-    resolver: zodResolver(publishingFormSchema),
-    mode: 'onChange',
-  });
-
-  const {
-    saveNoteContent,
-    handlePublishClick,
-    handleConfirmPublish,
-    isProcessing,
-    isPublishing,
-    showConfirmModal,
-    setShowConfirmModal,
-  } = useGrantPublish({ editor, noteId, methods });
-
-  const handleGoToForm = useCallback(() => {
-    setStep('form');
-    saveNoteContent().catch((err) => console.error('Auto-save failed:', err));
-  }, [saveNoteContent]);
-
-  const handleClose = isProcessing ? () => {} : onClose;
-
   return (
     <BaseModal
       isOpen={isOpen}
-      onClose={handleClose}
+      onClose={onClose}
       showCloseButton={false}
       padding="p-0"
       className="!max-h-screen md:!max-h-[calc(100vh-2rem)] md:!rounded-2xl"
     >
-      <div className="h-full flex flex-col relative">
-        {isProcessing && (
-          <div className="absolute inset-0 bg-white/60 z-50 flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      {/* overflow-hidden prevents BaseModal's content div from adding its own scrollbar.
+         NoteEditorLayout handles internal scrolling the same way the full notebook page does. */}
+      <div className="h-full overflow-hidden">
+        {/* Note creation / error states */}
+        {isCreatingNote && (
+          <div className="flex flex-col items-center justify-center h-full gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            <p className="text-sm text-gray-500">Setting up your RFP...</p>
           </div>
         )}
 
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
-          {step === 'editor' ? (
-            <EditorHeader
-              onClose={onClose}
-              onPublish={handleGoToForm}
-              isDisabled={isProcessing || isCreatingNote || !noteId}
-            />
-          ) : (
-            <FormHeader
-              onBack={() => setStep('editor')}
-              onPublish={handlePublishClick}
-              isDisabled={isProcessing}
-              isMobile={isMobile}
-            />
-          )}
-        </div>
-
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <FormProvider {...methods}>
-            <div className={`h-full overflow-y-auto ${step === 'editor' ? 'block' : 'hidden'}`}>
-              <EditorContent
-                isCreatingNote={isCreatingNote}
-                noteError={noteError}
-                noteId={noteId}
-                onClose={onClose}
-                setEditor={setEditor}
-              />
-            </div>
-
-            <div className={`h-full overflow-y-auto ${step === 'form' ? 'block' : 'hidden'}`}>
-              <div className="max-w-lg mx-auto pb-6">
-                <GrantFormSections />
-              </div>
-            </div>
-          </FormProvider>
-        </div>
-
-        {step === 'form' && isMobile && (
-          <div className="border-t bg-white p-2 flex-shrink-0">
-            <Button
-              variant="default"
-              onClick={handlePublishClick}
-              className="w-full"
-              disabled={isProcessing}
-            >
-              Publish
+        {noteError && (
+          <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
+            <p className="text-sm text-red-500">{noteError}</p>
+            <Button variant="outlined" size="sm" onClick={onClose}>
+              Close
             </Button>
           </div>
         )}
-      </div>
 
-      {showConfirmModal && (
-        <ConfirmPublishModal
-          isOpen={showConfirmModal}
-          onClose={() => setShowConfirmModal(false)}
-          onConfirm={handleConfirmPublish}
-          title={editor ? getDocumentTitleFromEditor(editor) : DEFAULT_GRANT_TITLE}
-          isPublishing={isPublishing}
-          editor={editor}
-          variant="rfp"
-          zIndex={10000}
-        />
-      )}
+        {/* Once the note is ready, render the shared editor layout */}
+        {noteId && !isCreatingNote && !noteError && (
+          <NotebookProvider noteId={noteId.toString()}>
+            <SidebarProvider>
+              <NoteEditorLayout defaultArticleType="grant" onClose={onClose} />
+            </SidebarProvider>
+          </NotebookProvider>
+        )}
+      </div>
     </BaseModal>
   );
 }

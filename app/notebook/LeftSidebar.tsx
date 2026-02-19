@@ -7,13 +7,16 @@ import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { FileText, Plus, Wallet, Lock } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
+import { FileText, Plus, Wallet, Lock, Loader2 } from 'lucide-react';
 import { Organization } from '@/types/organization';
 import { useRouter } from 'next/navigation';
 import { useCallback, useTransition } from 'react';
 import { useNoteContent, useCreateNote } from '@/hooks/useNote';
 import { getInitialContent } from '@/components/Editor/lib/data/initialContent';
+import {
+  getDocumentTitle,
+  getTemplatePlainText,
+} from '@/components/Editor/lib/utils/documentTitle';
 
 import toast from 'react-hot-toast';
 import { useNotebookContext } from '@/contexts/NotebookContext';
@@ -85,7 +88,7 @@ export const LeftSidebar = () => {
 
         // Create the note
         const newNote = await createNote({
-          title: contentTemplate.content[0]?.content?.[0]?.text || 'Untitled',
+          title: getDocumentTitle(contentTemplate) || 'Untitled',
           grouping: type.toUpperCase() as 'WORKSPACE' | 'PRIVATE',
           organizationSlug: selectedOrg.slug,
         });
@@ -94,10 +97,7 @@ export const LeftSidebar = () => {
         await updateNoteContent({
           note: newNote.id,
           fullJson: JSON.stringify(contentTemplate),
-          plainText: contentTemplate.content
-            .map((block) => block.content?.map((c) => c.text).join(' '))
-            .filter(Boolean)
-            .join('\n'),
+          plainText: getTemplatePlainText(contentTemplate),
         });
 
         refreshNotes();
@@ -150,23 +150,21 @@ export const LeftSidebar = () => {
         </div>
       </BaseMenuItem>
 
-      {
-        <BaseMenuItem
-          onClick={() => handleTemplateSelect(type, 'grant')}
-          className="flex items-center gap-2 py-2"
-          disabled={isCreatingNote || isUpdatingContent}
-        >
-          {isCreatingNote || isUpdatingContent ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <FileText className="h-4 w-4" />
-          )}
-          <div>
-            <div className="font-medium text-gray-900">RFP</div>
-            <div className="text-xs text-gray-500">Request for Proposals</div>
-          </div>
-        </BaseMenuItem>
-      }
+      <BaseMenuItem
+        onClick={() => handleTemplateSelect(type, 'grant')}
+        className="flex items-center gap-2 py-2"
+        disabled={isCreatingNote || isUpdatingContent}
+      >
+        {isCreatingNote || isUpdatingContent ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <FileText className="h-4 w-4" />
+        )}
+        <div>
+          <div className="font-medium text-gray-900">RFP</div>
+          <div className="text-xs text-gray-500">Request for Proposals</div>
+        </div>
+      </BaseMenuItem>
       <BaseMenuItem
         onClick={() => handleTemplateSelect(type, 'preregistration')}
         className="flex items-center gap-2 py-2"

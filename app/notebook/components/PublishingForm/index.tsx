@@ -41,6 +41,10 @@ const FEATURE_FLAG_JOURNAL = false;
 interface PublishingFormProps {
   bountyAmount: number | null;
   onBountyClick: () => void;
+  /** Pre-set article type when opened from a modal (e.g. 'grant'). */
+  defaultArticleType?: string;
+  /** When true, hides fields not relevant in modal context (Work Type, Application Deadline). */
+  isModal?: boolean;
 }
 
 const getButtonText = ({
@@ -74,7 +78,12 @@ const getButtonText = ({
   }
 };
 
-export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormProps) {
+export function PublishingForm({
+  bountyAmount,
+  onBountyClick,
+  defaultArticleType,
+  isModal,
+}: PublishingFormProps) {
   const { currentNote: note, editor } = useNotebookContext();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -236,9 +245,11 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
               ? 'grant'
               : 'discussion';
         methods.setValue('articleType', articleType);
+      } else if (defaultArticleType) {
+        methods.setValue('articleType', defaultArticleType as PublishingFormData['articleType']);
       }
     }
-  }, [note, methods, searchParams]);
+  }, [note, methods, searchParams, defaultArticleType]);
 
   // Add effect to save form data when it changes
   useEffect(() => {
@@ -466,7 +477,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
           className={`flex-1 ${isRedirecting ? 'overflow-hidden' : 'overflow-y-auto'} scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 relative`}
         >
           <div className="pb-6">
-            <WorkTypeSection />
+            {!isModal && <WorkTypeSection />}
             {(articleType === 'preregistration' || articleType === 'grant') && <WorkImageSection />}
             {articleType === 'grant' && (
               <>
@@ -482,7 +493,7 @@ export function PublishingForm({ bountyAmount, onBountyClick }: PublishingFormPr
               </div>
             )}
             {articleType === 'grant' && <GrantFundingAmountSection />}
-            {articleType === 'grant' && <GrantApplicationDeadlineSection />}
+            {articleType === 'grant' && !isModal && <GrantApplicationDeadlineSection />}
             {articleType === 'preregistration' && <FundingSection note={note} />}
             {FEATURE_FLAG_RESEARCH_COIN &&
               articleType !== 'preregistration' &&

@@ -2,14 +2,26 @@
 
 import { PublishingForm } from '@/app/notebook/components/PublishingForm';
 
+interface RightSidebarProps {
+  /** Pre-set article type (e.g. 'grant') when opened from a modal. */
+  defaultArticleType?: string;
+  /** When true, hides fields not relevant in modal context (Work Type, Application Deadline). */
+  isModal?: boolean;
+}
+
 /**
- * Right sidebar component for the notebook layout
- * Displays the publishing form for creating a new note
+ * Right sidebar component for the notebook layout.
+ * Displays the publishing form for creating / editing a note.
  */
-export const RightSidebar = () => {
+export const RightSidebar = ({ defaultArticleType, isModal }: RightSidebarProps) => {
   return (
     <div className="h-full overflow-y-auto">
-      <PublishingForm bountyAmount={null} onBountyClick={() => {}} />
+      <PublishingForm
+        bountyAmount={null}
+        onBountyClick={() => {}}
+        defaultArticleType={defaultArticleType}
+        isModal={isModal}
+      />
     </div>
   );
 };

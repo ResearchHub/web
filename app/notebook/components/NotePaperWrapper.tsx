@@ -10,7 +10,10 @@ interface NotePaperProps {
 
 export const NotePaper = ({ children, className, minHeight = '800px' }: NotePaperProps) => {
   return (
-    <div className={cn('bg-white rounded-lg pt-8 lg:pt-16 pl-16', className)} style={{ minHeight }}>
+    <div
+      className={cn('bg-white rounded-lg pt-8 lg:!pt-16 pl-16', className)}
+      style={{ minHeight }}
+    >
       {children}
     </div>
   );
@@ -37,7 +40,7 @@ export const NotePaperWrapper = ({
               {showBanner}
             </div>
           )}
-          <NotePaper className={`shadow-md ${className}`}>{children}</NotePaper>
+          <NotePaper className={cn('shadow-md', className)}>{children}</NotePaper>
         </div>
       </div>
     </div>
