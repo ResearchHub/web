@@ -50,9 +50,11 @@ export const FundingOpportunitiesSkeleton = () => (
 function OpportunityRow({
   opportunity,
   showUSD,
+  showImage,
 }: {
   readonly opportunity: FundingOpportunity;
   readonly showUSD: boolean;
+  readonly showImage: boolean;
 }) {
   const href = buildWorkUrl({
     id: opportunity.id,
@@ -65,21 +67,23 @@ function OpportunityRow({
       href={href}
       className="grid grid-cols-[40px_1fr_auto] gap-x-3 items-center px-1 py-2 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
     >
-      {/* Image */}
-      <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
-        {opportunity.previewImage ? (
-          <Image
-            src={opportunity.previewImage}
-            alt={opportunity.title}
-            width={40}
-            height={40}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Icon name="fund" size={18} className="text-gray-400" />
-          </div>
-        )}
+      {/* Image (only first item) */}
+      <div className="w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
+        {showImage ? (
+          opportunity.previewImage ? (
+            <Image
+              src={opportunity.previewImage}
+              alt={opportunity.title}
+              width={40}
+              height={40}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+              <Icon name="fund" size={18} className="text-gray-400" />
+            </div>
+          )
+        ) : null}
       </div>
 
       {/* Title + Organization */}
@@ -140,8 +144,13 @@ export const FundingOpportunities = () => {
         <p className="text-xs text-red-600">{error}</p>
       ) : opportunities.length > 0 ? (
         <div className="space-y-1">
-          {opportunities.map((opp) => (
-            <OpportunityRow key={opp.id} opportunity={opp} showUSD={showUSD} />
+          {opportunities.map((opp, index) => (
+            <OpportunityRow
+              key={opp.id}
+              opportunity={opp}
+              showUSD={showUSD}
+              showImage={index === 0}
+            />
           ))}
         </div>
       ) : (
