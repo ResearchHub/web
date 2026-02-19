@@ -29,9 +29,127 @@ import {
 import { GrantFormSections } from './GrantFormSections';
 import { DEFAULT_GRANT_TITLE, GRANT_FORM_DEFAULTS } from './lib/constants';
 
+function extractPlainText(template: typeof grantTemplate): string {
+  return (
+    template.content
+      ?.map((block) => block.content?.map((c) => c.text).join(' '))
+      .filter(Boolean)
+      .join('\n') || ''
+  );
+}
+
 interface CreateGrantModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+}
+
+function EditorHeader({
+  onClose,
+  onPublish,
+  isDisabled,
+}: {
+  readonly onClose: () => void;
+  readonly onPublish: () => void;
+  readonly isDisabled: boolean;
+}) {
+  return (
+    <>
+      <button
+        onClick={onClose}
+        disabled={isDisabled}
+        className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500"
+      >
+        <X className="w-5 h-5" />
+      </button>
+      <h2 className="text-base font-semibold text-gray-900">Create RFP</h2>
+      <Button variant="default" size="sm" onClick={onPublish} disabled={isDisabled}>
+        <FileUp className="w-4 h-4 mr-1.5" />
+        Publish
+      </Button>
+    </>
+  );
+}
+
+function FormHeader({
+  onBack,
+  onPublish,
+  isDisabled,
+  isMobile,
+}: {
+  readonly onBack: () => void;
+  readonly onPublish: () => void;
+  readonly isDisabled: boolean;
+  readonly isMobile: boolean;
+}) {
+  return (
+    <>
+      <button
+        onClick={onBack}
+        disabled={isDisabled}
+        className="flex items-center gap-1 p-1.5 rounded-md hover:bg-gray-100 text-gray-500"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        <span className="text-sm">Back</span>
+      </button>
+      <h2 className="text-base font-semibold text-gray-900">Publish Details</h2>
+      {isMobile ? (
+        <div className="w-16" />
+      ) : (
+        <Button variant="default" size="sm" onClick={onPublish} disabled={isDisabled}>
+          Publish
+        </Button>
+      )}
+    </>
+  );
+}
+
+function EditorContent({
+  isCreatingNote,
+  noteError,
+  noteId,
+  onClose,
+  setEditor,
+}: {
+  readonly isCreatingNote: boolean;
+  readonly noteError: string | null;
+  readonly noteId: number | null;
+  readonly onClose: () => void;
+  readonly setEditor: (editor: Editor | null) => void;
+}) {
+  if (isCreatingNote) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-3">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <p className="text-sm text-gray-500">Setting up your RFP...</p>
+      </div>
+    );
+  }
+
+  if (noteError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
+        <p className="text-sm text-red-500">{noteError}</p>
+        <Button variant="outlined" size="sm" onClick={onClose}>
+          Close
+        </Button>
+      </div>
+    );
+  }
+
+  if (!noteId) return null;
+
+  return (
+    <div className="max-w-4xl mx-auto pl-0 pr-4 py-2 sm:p-4 md:p-8">
+      <NotePaper minHeight="600px" className="pl-4 sm:pl-8 lg:pl-16 rounded-none sm:rounded-lg">
+        <BlockEditor
+          contentJson={JSON.stringify(grantTemplate)}
+          isLoading={false}
+          editable={true}
+          setEditor={setEditor}
+        />
+      </NotePaper>
+    </div>
+  );
 }
 
 export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
@@ -60,16 +178,10 @@ export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
         });
 
         if (newNote) {
-          const plainText =
-            grantTemplate.content
-              ?.map((block) => block.content?.map((c) => c.text).join(' '))
-              .filter(Boolean)
-              .join('\n') || '';
-
           await updateContent({
             note: newNote.id,
             fullJson: JSON.stringify(grantTemplate),
-            plainText,
+            plainText: extractPlainText(grantTemplate),
           });
 
           setNoteId(newNote.id);
@@ -127,82 +239,31 @@ export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
 
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
           {step === 'editor' ? (
-            <>
-              <button
-                onClick={onClose}
-                disabled={isProcessing}
-                className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              <h2 className="text-base font-semibold text-gray-900">Create RFP</h2>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleGoToForm}
-                disabled={isProcessing || isCreatingNote || !noteId}
-              >
-                <FileUp className="w-4 h-4 mr-1.5" />
-                Publish
-              </Button>
-            </>
+            <EditorHeader
+              onClose={onClose}
+              onPublish={handleGoToForm}
+              isDisabled={isProcessing || isCreatingNote || !noteId}
+            />
           ) : (
-            <>
-              <button
-                onClick={() => setStep('editor')}
-                disabled={isProcessing}
-                className="flex items-center gap-1 p-1.5 rounded-md hover:bg-gray-100 text-gray-500"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                <span className="text-sm">Back</span>
-              </button>
-              <h2 className="text-base font-semibold text-gray-900">Publish Details</h2>
-              {isMobile ? (
-                <div className="w-16" />
-              ) : (
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={handlePublishClick}
-                  disabled={isProcessing}
-                >
-                  Publish
-                </Button>
-              )}
-            </>
+            <FormHeader
+              onBack={() => setStep('editor')}
+              onPublish={handlePublishClick}
+              isDisabled={isProcessing}
+              isMobile={isMobile}
+            />
           )}
         </div>
 
         <div className="flex-1 min-h-0 overflow-hidden">
           <FormProvider {...methods}>
             <div className={`h-full overflow-y-auto ${step === 'editor' ? 'block' : 'hidden'}`}>
-              {isCreatingNote ? (
-                <div className="flex flex-col items-center justify-center h-full gap-3">
-                  <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                  <p className="text-sm text-gray-500">Setting up your RFP...</p>
-                </div>
-              ) : noteError ? (
-                <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
-                  <p className="text-sm text-red-500">{noteError}</p>
-                  <Button variant="outlined" size="sm" onClick={onClose}>
-                    Close
-                  </Button>
-                </div>
-              ) : noteId ? (
-                <div className="max-w-4xl mx-auto pl-0 pr-4 py-2 sm:p-4 md:p-8">
-                  <NotePaper
-                    minHeight="600px"
-                    className="pl-4 sm:pl-8 lg:pl-16 rounded-none sm:rounded-lg"
-                  >
-                    <BlockEditor
-                      contentJson={JSON.stringify(grantTemplate)}
-                      isLoading={false}
-                      editable={true}
-                      setEditor={setEditor}
-                    />
-                  </NotePaper>
-                </div>
-              ) : null}
+              <EditorContent
+                isCreatingNote={isCreatingNote}
+                noteError={noteError}
+                noteId={noteId}
+                onClose={onClose}
+                setEditor={setEditor}
+              />
             </div>
 
             <div className={`h-full overflow-y-auto ${step === 'form' ? 'block' : 'hidden'}`}>

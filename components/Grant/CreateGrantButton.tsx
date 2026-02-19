@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react';
 import { CreateGrantModal } from './CreateGrantModal';
 
 interface CreateGrantButtonProps {
-  className?: string;
+  readonly className?: string;
 }
 
 export function CreateGrantButton({ className }: CreateGrantButtonProps) {

@@ -92,7 +92,7 @@ export function useGrantPublish({ editor, noteId, methods }: UseGrantPublishPara
         assignDOI: true,
         topics: formData.topics.map((t) => t.value),
         authors: [],
-        contacts: formData.contacts.map((c) => Number(c.value)).filter((id) => !isNaN(id)),
+        contacts: formData.contacts.map((c) => Number(c.value)).filter((id) => !Number.isNaN(id)),
         articleType: 'GRANT',
         image: imagePath,
         organization: formData.organization,
