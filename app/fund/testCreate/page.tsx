@@ -6,23 +6,23 @@ import { Loader2 } from 'lucide-react';
 
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
-import { CreateRFPButton } from '@/components/RFP/CreateRFPButton';
-import { RFPModal } from '@/components/RFP/RFPModal';
+import { CreateGrantButton } from '@/components/Grant/CreateGrantButton';
+import { GrantModal } from '@/components/Grant/GrantModal';
 import { useUser } from '@/contexts/UserContext';
-import { useUserRFPs, UserRFP } from '@/hooks/useUserRFPs';
+import { useUserGrants, UserGrant } from '@/hooks/useUserGrants';
 import { cn } from '@/utils/styles';
 import Icon from '@/components/ui/icons/Icon';
 
-export default function RFPManagementPage() {
+export default function GrantManagementPage() {
   const searchParams = useSearchParams();
   const { user } = useUser();
 
   const overrideUserId = searchParams.get('user_id');
   const effectiveUserId = overrideUserId ? Number(overrideUserId) : user?.id;
 
-  const { rfps, isLoading, refetch } = useUserRFPs(effectiveUserId);
+  const { grants, isLoading, refetch } = useUserGrants(effectiveUserId);
 
-  const [editingRFP, setEditingRFP] = useState<UserRFP | null>(null);
+  const [editingGrant, setEditingGrant] = useState<UserGrant | null>(null);
 
   return (
     <PageLayout rightSidebar={false}>
@@ -40,30 +40,30 @@ export default function RFPManagementPage() {
             <span className="text-sm text-gray-400">Loading...</span>
           </div>
         ) : (
-          rfps.map((rfp) => (
-            <RFPTab
-              key={rfp.postId}
-              label={rfp.title || 'Untitled RFP'}
-              isActive={editingRFP?.postId === rfp.postId}
-              onClick={() => setEditingRFP(rfp)}
+          grants.map((grant) => (
+            <GrantTab
+              key={grant.postId}
+              label={grant.title || 'Untitled RFP'}
+              isActive={editingGrant?.postId === grant.postId}
+              onClick={() => setEditingGrant(grant)}
             />
           ))
         )}
       </div>
 
       <div className="mt-6 flex flex-col items-center gap-4">
-        {!isLoading && rfps.length === 0 && (
+        {!isLoading && grants.length === 0 && (
           <p className="text-sm text-gray-500">No RFPs found. Create one to get started.</p>
         )}
-        <CreateRFPButton />
+        <CreateGrantButton />
       </div>
 
-      <RFPModal
-        isOpen={!!editingRFP}
-        onClose={() => setEditingRFP(null)}
-        postId={editingRFP?.postId}
+      <GrantModal
+        isOpen={!!editingGrant}
+        onClose={() => setEditingGrant(null)}
+        postId={editingGrant?.postId}
         onSaved={() => {
-          setEditingRFP(null);
+          setEditingGrant(null);
           refetch();
         }}
       />
@@ -71,15 +71,13 @@ export default function RFPManagementPage() {
   );
 }
 
-/* ── Tab button ────────────────────────────────────────────────────── */
-
-interface RFPTabProps {
+interface GrantTabProps {
   label: string;
   isActive: boolean;
   onClick?: () => void;
 }
 
-function RFPTab({ label, isActive, onClick }: RFPTabProps) {
+function GrantTab({ label, isActive, onClick }: GrantTabProps) {
   return (
     <button
       type="button"

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { FeedService } from '@/services/feed.service';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 
-export interface UserRFP {
+export interface UserGrant {
   postId: number;
   title: string;
   slug: string;
@@ -12,7 +12,7 @@ export interface UserRFP {
   organization?: string;
 }
 
-function toUserRFP(entry: FeedEntry): UserRFP | null {
+function toUserGrant(entry: FeedEntry): UserGrant | null {
   if (entry.contentType !== 'GRANT') return null;
   const grant = entry.content as FeedGrantContent;
   return {
@@ -24,12 +24,12 @@ function toUserRFP(entry: FeedEntry): UserRFP | null {
   };
 }
 
-export function useUserRFPs(userId: number | undefined) {
-  const [rfps, setRfps] = useState<UserRFP[]>([]);
+export function useUserGrants(userId: number | undefined) {
+  const [grants, setGrants] = useState<UserGrant[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRFPs = useCallback(async () => {
+  const fetchGrants = useCallback(async () => {
     if (!userId) return;
     setIsLoading(true);
     setError(null);
@@ -39,9 +39,9 @@ export function useUserRFPs(userId: number | undefined) {
         createdBy: userId,
         pageSize: 50,
       });
-      setRfps(entries.map(toUserRFP).filter((r): r is UserRFP => r !== null));
+      setGrants(entries.map(toUserGrant).filter((g): g is UserGrant => g !== null));
     } catch (err) {
-      console.error('Failed to fetch user RFPs:', err);
+      console.error('Failed to fetch user grants:', err);
       setError('Failed to load RFPs.');
     } finally {
       setIsLoading(false);
@@ -49,8 +49,8 @@ export function useUserRFPs(userId: number | undefined) {
   }, [userId]);
 
   useEffect(() => {
-    fetchRFPs();
-  }, [fetchRFPs]);
+    fetchGrants();
+  }, [fetchGrants]);
 
-  return { rfps, isLoading, error, refetch: fetchRFPs };
+  return { grants, isLoading, error, refetch: fetchGrants };
 }

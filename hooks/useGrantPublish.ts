@@ -14,9 +14,9 @@ import { ApiError } from '@/services/types';
 import { getFieldErrorMessage } from '@/utils/form';
 import type { PublishingFormData } from '@/app/notebook/components/PublishingForm/schema';
 import type { ID } from '@/types/root';
-import { RFP_DEADLINE, DEFAULT_RFP_TITLE } from '@/components/RFP/lib/constants';
+import { GRANT_DEADLINE, DEFAULT_GRANT_TITLE } from '@/components/Grant/lib/constants';
 
-interface UseRFPPublishParams {
+interface UseGrantPublishParams {
   editor: Editor | null;
   noteId: number | null;
   methods: UseFormReturn<PublishingFormData>;
@@ -24,7 +24,13 @@ interface UseRFPPublishParams {
   onSuccess?: () => void;
 }
 
-export function useRFPPublish({ editor, noteId, methods, postId, onSuccess }: UseRFPPublishParams) {
+export function useGrantPublish({
+  editor,
+  noteId,
+  methods,
+  postId,
+  onSuccess,
+}: UseGrantPublishParams) {
   const router = useRouter();
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
   const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
@@ -37,7 +43,7 @@ export function useRFPPublish({ editor, noteId, methods, postId, onSuccess }: Us
 
   const saveNoteContent = useCallback(async () => {
     if (!editor || !noteId) return;
-    const title = getDocumentTitleFromEditor(editor) || DEFAULT_RFP_TITLE;
+    const title = getDocumentTitleFromEditor(editor) || DEFAULT_GRANT_TITLE;
     await Promise.all([
       NoteService.updateNoteTitle({ noteId, title }),
       NoteService.updateNoteContent({
@@ -68,6 +74,8 @@ export function useRFPPublish({ editor, noteId, methods, postId, onSuccess }: Us
     try {
       const title = getDocumentTitleFromEditor(editor);
       const formData = methods.getValues();
+
+      await saveNoteContent();
 
       let imagePath: string | null = null;
       if (formData.coverImage?.file) {
@@ -100,12 +108,10 @@ export function useRFPPublish({ editor, noteId, methods, postId, onSuccess }: Us
           image: imagePath,
           organization: formData.organization,
           description: formData.shortDescription,
-          applicationDeadline: RFP_DEADLINE,
+          applicationDeadline: GRANT_DEADLINE,
         },
         postId
       );
-
-      await saveNoteContent();
 
       onSuccess?.();
       setIsRedirecting(true);

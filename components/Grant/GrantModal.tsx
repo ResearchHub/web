@@ -15,7 +15,7 @@ import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useCreateNote, useNoteContent } from '@/hooks/useNote';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { useRFPPublish } from '@/hooks/useRFPPublish';
+import { useGrantPublish } from '@/hooks/useGrantPublish';
 import { PostService } from '@/services/post.service';
 import { NoteService } from '@/services/note.service';
 import {
@@ -28,17 +28,17 @@ import {
   type PublishingFormData,
 } from '@/app/notebook/components/PublishingForm/schema';
 
-import { RFPFormSections } from './RFPFormSections';
-import { DEFAULT_RFP_TITLE, RFP_FORM_DEFAULTS } from './lib/constants';
+import { GrantFormSections } from './GrantFormSections';
+import { DEFAULT_GRANT_TITLE, GRANT_FORM_DEFAULTS } from './lib/constants';
 
-interface RFPModalProps {
+interface GrantModalProps {
   isOpen: boolean;
   onClose: () => void;
   postId?: number;
   onSaved?: () => void;
 }
 
-export function RFPModal({ isOpen, onClose, postId, onSaved }: RFPModalProps) {
+export function GrantModal({ isOpen, onClose, postId, onSaved }: GrantModalProps) {
   const isEditMode = !!postId;
   const isMobile = useIsMobile();
   const { selectedOrg } = useOrganizationContext();
@@ -52,7 +52,7 @@ export function RFPModal({ isOpen, onClose, postId, onSaved }: RFPModalProps) {
   const [step, setStep] = useState<'editor' | 'form'>('editor');
 
   const methods = useForm<PublishingFormData>({
-    defaultValues: RFP_FORM_DEFAULTS,
+    defaultValues: GRANT_FORM_DEFAULTS,
     resolver: zodResolver(publishingFormSchema),
     mode: 'onChange',
   });
@@ -60,7 +60,7 @@ export function RFPModal({ isOpen, onClose, postId, onSaved }: RFPModalProps) {
   const [, createNote] = useCreateNote();
   const [, updateNoteContent] = useNoteContent();
 
-  // ── Create mode ──
+  // Create mode: create a blank note pre-filled with the grant template
   useEffect(() => {
     if (isEditMode || !isOpen || !selectedOrg?.slug || noteId) return;
 
@@ -68,7 +68,7 @@ export function RFPModal({ isOpen, onClose, postId, onSaved }: RFPModalProps) {
       setIsInitializing(true);
       setInitError(null);
       try {
-        const title = getDocumentTitle(grantTemplate) || DEFAULT_RFP_TITLE;
+        const title = getDocumentTitle(grantTemplate) || DEFAULT_GRANT_TITLE;
         const newNote = await createNote({
           organizationSlug: selectedOrg.slug,
           title,
@@ -101,7 +101,7 @@ export function RFPModal({ isOpen, onClose, postId, onSaved }: RFPModalProps) {
     init();
   }, [isEditMode, isOpen, selectedOrg?.slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Edit mode ──
+  // Edit mode: fetch existing work + note content and prepopulate form
   useEffect(() => {
     if (!isEditMode || !isOpen || !postId) return;
 
@@ -121,7 +121,7 @@ export function RFPModal({ isOpen, onClose, postId, onSaved }: RFPModalProps) {
 
         const workNoteId = work.note?.id;
         if (!workNoteId) {
-          setInitError('This RFP has no associated note.');
+          setInitError('This grant has no associated note.');
           return;
         }
 
@@ -167,7 +167,7 @@ export function RFPModal({ isOpen, onClose, postId, onSaved }: RFPModalProps) {
         }
       } catch (err) {
         if (!cancelled) {
-          console.error('Failed to load RFP:', err);
+          console.error('Failed to load grant:', err);
           setInitError('Failed to load RFP. Please try again.');
         }
       } finally {
@@ -189,20 +189,20 @@ export function RFPModal({ isOpen, onClose, postId, onSaved }: RFPModalProps) {
     isPublishing,
     showConfirmModal,
     setShowConfirmModal,
-  } = useRFPPublish({ editor, noteId, methods, postId, onSuccess: onSaved });
+  } = useGrantPublish({ editor, noteId, methods, postId, onSuccess: onSaved });
 
   const handleGoToForm = useCallback(() => {
     setStep('form');
     saveNoteContent().catch((err) => console.error('Auto-save failed:', err));
   }, [saveNoteContent]);
 
-  // Destroy editor before closing to avoid TipTap DOM errors during Headless UI leave transition
   const handleClose = useCallback(() => {
     if (isProcessing) return;
     editor?.destroy();
     onClose();
   }, [isProcessing, editor, onClose]);
 
+  // Reset all state when modal closes
   useEffect(() => {
     if (isOpen) return;
     setEditor(null);
@@ -212,7 +212,7 @@ export function RFPModal({ isOpen, onClose, postId, onSaved }: RFPModalProps) {
     setIsInitializing(true);
     setInitError(null);
     setStep('editor');
-    methods.reset(RFP_FORM_DEFAULTS);
+    methods.reset(GRANT_FORM_DEFAULTS);
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const headerTitle = isEditMode ? 'Edit RFP' : 'Create RFP';
@@ -324,7 +324,7 @@ export function RFPModal({ isOpen, onClose, postId, onSaved }: RFPModalProps) {
 
             <div className={`h-full overflow-y-auto ${step === 'form' ? 'block' : 'hidden'}`}>
               <div className="max-w-lg mx-auto pb-6">
-                <RFPFormSections />
+                <GrantFormSections />
               </div>
             </div>
           </FormProvider>
@@ -349,7 +349,7 @@ export function RFPModal({ isOpen, onClose, postId, onSaved }: RFPModalProps) {
           isOpen={showConfirmModal}
           onClose={() => setShowConfirmModal(false)}
           onConfirm={handleConfirmPublish}
-          title={editor ? getDocumentTitleFromEditor(editor) : DEFAULT_RFP_TITLE}
+          title={editor ? getDocumentTitleFromEditor(editor) : DEFAULT_GRANT_TITLE}
           isPublishing={isPublishing}
           editor={editor}
           variant="rfp"
