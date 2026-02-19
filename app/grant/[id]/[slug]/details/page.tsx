@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
-import { GrantPageServer, getGrant } from './GrantPageServer';
+import { GrantPageServer, getGrant } from '../GrantPageServer';
 
 interface Props {
   params: Promise<{
@@ -14,11 +14,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const grant = await getGrant(id);
   return getWorkMetadata({
     work: grant,
-    url: `/grant/${id}/${slug}`,
+    url: `/grant/${id}/${slug}/details`,
+    titleSuffix: 'Details',
   });
 }
 
-export default async function GrantPage({ params }: Props) {
+export default async function GrantDetailsPage({ params }: Props) {
   const { id } = await params;
-  return <GrantPageServer id={id} defaultTab="proposals" />;
+  return <GrantPageServer id={id} defaultTab="paper" />;
 }

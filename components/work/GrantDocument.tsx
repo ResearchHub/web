@@ -1,64 +1,102 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, use, Suspense } from 'react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { WorkLineItems } from './WorkLineItems';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkTabs, TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
-import { GrantApplications } from './GrantApplications';
 import { format } from 'date-fns';
 import { PostBlockEditor } from './PostBlockEditor';
 import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
 import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
+import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
+import { ProposalListProvider } from '@/contexts/ProposalListContext';
+import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
+
+function GrantDetailsContent({
+  work,
+  contentPromise,
+}: {
+  work: Work;
+  contentPromise: Promise<string | undefined>;
+}) {
+  const content = use(contentPromise);
+
+  if (work.previewContent) {
+    return <PostBlockEditor content={work.previewContent} />;
+  }
+
+  if (content) {
+    return (
+      <div
+        className="prose max-w-none bg-white rounded-lg shadow-sm border p-6 mb-6"
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
+    );
+  }
+
+  return <p className="text-gray-500">No content available</p>;
+}
+
+function GrantDetailsSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="h-4 bg-gray-200 rounded w-3/4" />
+      <div className="h-4 bg-gray-200 rounded w-full" />
+      <div className="h-4 bg-gray-200 rounded w-5/6" />
+      <div className="h-4 bg-gray-200 rounded w-2/3" />
+      <div className="h-4 bg-gray-200 rounded w-full" />
+      <div className="h-4 bg-gray-200 rounded w-4/5" />
+    </div>
+  );
+}
 
 interface GrantDocumentProps {
   work: Work;
   metadata: WorkMetadata;
   defaultTab?: TabType;
-  content?: string;
+  contentPromise?: Promise<string | undefined>;
 }
 
 export const GrantDocument = ({
   work,
   metadata,
-  content,
-  defaultTab = 'paper',
+  contentPromise,
+  defaultTab = 'proposals',
 }: GrantDocumentProps) => {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
   };
 
-  const renderGrantInfo = () => {
-    return (
-      <div className="space-y-6 mt-6">
-        {/* Content section */}
-        {work.previewContent ? (
-          <PostBlockEditor content={work.previewContent} />
-        ) : content ? (
-          <div
-            className="prose max-w-none bg-white rounded-lg shadow-sm border p-6 mb-6"
-            dangerouslySetInnerHTML={{ __html: content }}
-          />
-        ) : (
-          <p className="text-gray-500">No content available</p>
-        )}
-      </div>
-    );
-  };
+  const grantId = Number(work.note?.post?.grant?.id);
 
   const renderTabContent = useMemo(() => {
     switch (activeTab) {
-      case 'paper':
-      // return renderGrantInfo();
-      case 'applications':
-        // Applications tab
+      case 'proposals':
         return (
-          <div className="space-y-6" key="applications-tab">
-            <GrantApplications grantId={Number(work.note?.post?.grant?.id)} />
+          <div className="space-y-6" key="proposals-tab">
+            <ProposalListProvider grantId={grantId}>
+              <FundingProposalGrid />
+            </ProposalListProvider>
+          </div>
+        );
+      case 'paper':
+        return (
+          <div className="space-y-6 mt-6" key="details-tab">
+            {contentPromise ? (
+              <Suspense fallback={<GrantDetailsSkeleton />}>
+                <GrantDetailsContent work={work} contentPromise={contentPromise} />
+              </Suspense>
+            ) : work.previewContent ? (
+              <PostBlockEditor content={work.previewContent} />
+            ) : (
+              <p className="text-gray-500">No content available</p>
+            )}
           </div>
         );
       case 'conversation':
@@ -77,7 +115,7 @@ export const GrantDocument = ({
       default:
         return null;
     }
-  }, [activeTab, work, metadata]);
+  }, [activeTab, work, metadata, contentPromise, grantId]);
 
   const endDate = work.note?.post?.grant?.endDate
     ? new Date(work.note?.post?.grant?.endDate)
@@ -165,6 +203,13 @@ export const GrantDocument = ({
 
       {/* Tab content */}
       {renderTabContent}
+
+      <ApplyToGrantModal
+        isOpen={isApplyModalOpen}
+        onClose={() => setIsApplyModalOpen(false)}
+        onUseSelected={() => setIsApplyModalOpen(false)}
+        grantId={grantId.toString()}
+      />
     </div>
   );
 };

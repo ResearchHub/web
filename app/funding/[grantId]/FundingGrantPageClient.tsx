@@ -1,10 +1,11 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, use, Suspense } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundingTabs } from '@/components/Funding/FundingTabs';
 import { GrantPreview, GrantPreviewData } from '@/components/Funding/GrantPreview';
 import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
+import { ProposalListProvider } from '@/contexts/ProposalListContext';
 import { ActivityFeed } from '@/components/Funding/ActivityFeed';
 import { PostBlockEditor } from '@/components/work/PostBlockEditor';
 import { WorkPrimaryActions } from '@/components/work/WorkPrimaryActions';
@@ -15,17 +16,53 @@ import Link from 'next/link';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 
+function DetailsContent({
+  work,
+  htmlContentPromise,
+}: {
+  work: Work;
+  htmlContentPromise: Promise<string | undefined>;
+}) {
+  const htmlContent = use(htmlContentPromise);
+
+  if (work.previewContent) {
+    return <PostBlockEditor content={work.previewContent} />;
+  }
+
+  if (htmlContent) {
+    return (
+      <div
+        className="prose max-w-none bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+        dangerouslySetInnerHTML={{ __html: htmlContent }}
+      />
+    );
+  }
+
+  return <p className="text-gray-500">No content available</p>;
+}
+
+function DetailsSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="h-4 bg-gray-200 rounded w-3/4" />
+      <div className="h-4 bg-gray-200 rounded w-full" />
+      <div className="h-4 bg-gray-200 rounded w-5/6" />
+      <div className="h-4 bg-gray-200 rounded w-2/3" />
+    </div>
+  );
+}
+
 type GrantTab = 'proposals' | 'details';
 
 interface FundingGrantPageClientProps {
   work: Work;
-  htmlContent?: string;
+  htmlContentPromise?: Promise<string | undefined>;
   initialTab?: GrantTab;
 }
 
 export function FundingGrantPageClient({
   work,
-  htmlContent,
+  htmlContentPromise,
   initialTab = 'proposals',
 }: FundingGrantPageClientProps) {
   const grant = work.note?.post?.grant;
@@ -50,15 +87,18 @@ export function FundingGrantPageClient({
     };
   }, [work, grant]);
 
-  const metadata = useMemo((): WorkMetadata => ({
-    id: work.id,
-    score: work.metrics?.adjustedScore ?? 0,
-    topics: work.topics ?? [],
-    metrics: work.metrics ?? { votes: 0, adjustedScore: 0, comments: 0, saves: 0 },
-    bounties: [],
-    openBounties: 0,
-    closedBounties: 0,
-  }), [work]);
+  const metadata = useMemo(
+    (): WorkMetadata => ({
+      id: work.id,
+      score: work.metrics?.adjustedScore ?? 0,
+      topics: work.topics ?? [],
+      metrics: work.metrics ?? { votes: 0, adjustedScore: 0, comments: 0, saves: 0 },
+      bounties: [],
+      openBounties: 0,
+      closedBounties: 0,
+    }),
+    [work]
+  );
 
   if (!grantPreviewData || !grant) {
     return null;
@@ -94,17 +134,20 @@ export function FundingGrantPageClient({
         )}
       </div>
 
-      {initialTab === 'proposals' && <FundingProposalGrid />}
+      {initialTab === 'proposals' && (
+        <ProposalListProvider grantId={Number(grant.id)}>
+          <FundingProposalGrid />
+        </ProposalListProvider>
+      )}
 
       {initialTab === 'details' && (
         <div>
-          {work.previewContent ? (
+          {htmlContentPromise ? (
+            <Suspense fallback={<DetailsSkeleton />}>
+              <DetailsContent work={work} htmlContentPromise={htmlContentPromise} />
+            </Suspense>
+          ) : work.previewContent ? (
             <PostBlockEditor content={work.previewContent} />
-          ) : htmlContent ? (
-            <div
-              className="prose max-w-none bg-white rounded-lg shadow-sm border border-gray-200 p-6"
-              dangerouslySetInnerHTML={{ __html: htmlContent }}
-            />
           ) : (
             <p className="text-gray-500">No content available</p>
           )}

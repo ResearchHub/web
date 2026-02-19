@@ -9,10 +9,8 @@ import {
   useMemo,
   ReactNode,
 } from 'react';
-import { useParams } from 'next/navigation';
-import { FeedEntry, FeedGrantContent } from '@/types/feed';
+import { FeedEntry } from '@/types/feed';
 import { FeedService } from '@/services/feed.service';
-import { useGrants } from '@/contexts/GrantContext';
 import type {
   ProposalStatusFilter,
   ProposalSortOption,
@@ -37,25 +35,10 @@ const ProposalListContext = createContext<ProposalListContextValue | null>(null)
 
 interface ProposalListProviderProps {
   children: ReactNode;
+  grantId: number;
 }
 
-export function ProposalListProvider({ children }: ProposalListProviderProps) {
-  const params = useParams();
-  const { getGrantById } = useGrants();
-
-  // URL param is the content/work ID, not the grant ID.
-  // Resolve the actual grant ID via GrantContext.
-  const grantId = useMemo(() => {
-    const contentId = params?.grantId;
-    if (!contentId || Array.isArray(contentId)) return undefined;
-
-    const entry = getGrantById(contentId);
-    if (!entry) return undefined;
-
-    const content = entry.content as FeedGrantContent;
-    return content.grant?.id;
-  }, [params?.grantId, getGrantById]);
-
+export function ProposalListProvider({ children, grantId }: ProposalListProviderProps) {
   const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(false);
@@ -85,7 +68,7 @@ export function ProposalListProvider({ children }: ProposalListProviderProps) {
         pageSize: 20,
         contentType: 'PREREGISTRATION',
         endpoint: 'funding_feed',
-        grantId: grantId || undefined,
+        grantId,
         fundraiseStatus: feedParams.fundraiseStatus,
         ordering: feedParams.ordering,
       });
@@ -113,7 +96,7 @@ export function ProposalListProvider({ children }: ProposalListProviderProps) {
         pageSize: 20,
         contentType: 'PREREGISTRATION',
         endpoint: 'funding_feed',
-        grantId: grantId || undefined,
+        grantId,
         fundraiseStatus: feedParams.fundraiseStatus,
         ordering: feedParams.ordering,
       });
