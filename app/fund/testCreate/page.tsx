@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { CreateGrantButton } from '@/components/Grant/CreateGrantButton';
-import { GrantModal } from '@/components/Grant/GrantModal';
+import { GrantPublishModal } from '@/components/Grant/GrantPublishModal';
 import { useUser } from '@/contexts/UserContext';
 import { useUserGrants, UserGrant } from '@/hooks/useUserGrants';
 import { cn } from '@/utils/styles';
@@ -58,7 +58,7 @@ export default function GrantManagementPage() {
         <CreateGrantButton />
       </div>
 
-      <GrantModal
+      <GrantPublishModal
         isOpen={!!editingGrant}
         onClose={() => setEditingGrant(null)}
         postId={editingGrant?.postId}

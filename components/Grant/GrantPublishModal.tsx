@@ -31,14 +31,14 @@ import {
 import { GrantFormSections } from './GrantFormSections';
 import { DEFAULT_GRANT_TITLE, GRANT_FORM_DEFAULTS } from './lib/constants';
 
-interface GrantModalProps {
+interface GrantPublishModalProps {
   isOpen: boolean;
   onClose: () => void;
   postId?: number;
   onSaved?: () => void;
 }
 
-export function GrantModal({ isOpen, onClose, postId, onSaved }: GrantModalProps) {
+export function GrantPublishModal({ isOpen, onClose, postId, onSaved }: GrantPublishModalProps) {
   const isEditMode = !!postId;
   const isMobile = useIsMobile();
   const { selectedOrg } = useOrganizationContext();

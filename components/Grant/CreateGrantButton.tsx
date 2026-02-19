@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Plus } from 'lucide-react';
-import { GrantModal } from './GrantModal';
+import { GrantPublishModal } from './GrantPublishModal';
 
 interface CreateGrantButtonProps {
   className?: string;
@@ -19,7 +19,7 @@ export function CreateGrantButton({ className }: CreateGrantButtonProps) {
         Create RFP
       </Button>
 
-      <GrantModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <GrantPublishModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </>
   );
 }
