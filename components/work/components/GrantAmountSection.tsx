@@ -31,10 +31,10 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
   return (
     <>
       <div className="bg-primary-50 border border-primary-200 p-4 rounded-lg shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Total Funding Available</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">Available Funding</h3>
         <div className="flex flex-col gap-1 overflow-hidden">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="text-2xl sm:text-3xl font-bold text-orange-500 min-w-0 flex-shrink truncate flex items-center gap-1">
+            <div className="text-2xl sm:text-3xl font-bold text-primary-600 min-w-0 flex-shrink truncate flex items-center gap-1">
               <span>$</span>
               {usdAmount.toLocaleString()}
               <span className="text-lg font-medium">USD</span>
@@ -43,7 +43,7 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
         </div>
         {usdAmount > 0 && (
           <p className="text-sm text-gray-600 mt-2 mb-4">
-            Multiple qualified applicants may be selected.
+            Amount may be divided across multiple proposals.
           </p>
         )}
 
@@ -54,7 +54,7 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
           className="w-full mt-3 flex items-center justify-center gap-1"
           size="lg"
         >
-          <Plus className="h-4 w-4" /> Submit application
+          <Plus className="h-4 w-4" /> Submit proposal
         </Button>
       </div>
 

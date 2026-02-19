@@ -7,10 +7,8 @@ import { WorkLineItems } from './WorkLineItems';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { WorkTabs, TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
-import { format } from 'date-fns';
 import { PostBlockEditor } from './PostBlockEditor';
-import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
-import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
+import { isDeadlineInFuture } from '@/utils/date';
 import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
 import { ProposalListProvider } from '@/contexts/ProposalListContext';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
@@ -117,80 +115,41 @@ export const GrantDocument = ({
     }
   }, [activeTab, work, metadata, contentPromise, grantId]);
 
-  const endDate = work.note?.post?.grant?.endDate
-    ? new Date(work.note?.post?.grant?.endDate)
-    : undefined;
   const isActive =
     work.note?.post?.grant?.status === 'OPEN' &&
     (work.note?.post?.grant?.endDate ? isDeadlineInFuture(work.note?.post?.grant?.endDate) : true);
 
-  // Show countdown when grant expires within 24 hours
-  const expiringSoon = isExpiringSoon(work.note?.post?.grant?.endDate, 1);
-
   return (
     <div>
-      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
+      <div className="flex items-center gap-2 mb-2 mt-2">
+        <span
+          className={`inline-block w-2 h-2 rounded-full ${isActive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}
+        />
+        <span className={`text-sm font-medium ${isActive ? 'text-green-600' : 'text-gray-500'}`}>
+          {isActive ? 'Accepting Proposals' : 'Closed'}
+        </span>
+      </div>
+
+      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-0" />
       <WorkLineItems work={work} showClaimButton={false} metadata={metadata} />
 
-      {/* Top summary as line items */}
-      <div className="space-y-2 text-sm text-gray-600 mt-2">
-        {/* Funding */}
-        {work.note?.post?.grant?.amount && work.note?.post?.grant?.currency && (
-          <div className="flex items-start">
-            <span className="font-medium text-gray-900 w-28">Amount</span>
-            <div className="space-y-1 md:space-y-0 md:flex md:items-center md:gap-2">
-              <div className="font-semibold text-orange-500 flex items-center gap-1">
+      {/* Funding amount - hidden when right sidebar is visible since it shows there */}
+      {work.note?.post?.grant?.amount && work.note?.post?.grant?.currency && (
+        <div className="mt-2 text-sm text-gray-600 right-sidebar:hidden">
+          <div className="flex items-start gap-4 min-w-0">
+            <span className="font-medium text-gray-900 flex-shrink-0 w-16 tablet:w-28">Amount</span>
+            <div className="flex-1 min-w-0 space-y-1 md:space-y-0 md:flex md:items-center md:gap-2">
+              <div className="font-semibold text-primary-600 flex items-center gap-1">
                 <span>$</span>
                 {(work.note?.post?.grant?.amount.usd || 0).toLocaleString()}
                 <span>USD</span>
               </div>
               <div className="hidden md:block h-4 w-px bg-gray-300" />
-              <div className="text-sm text-gray-600">Multiple applicants can be selected</div>
-            </div>
-          </div>
-        )}
-
-        {/* Status */}
-        <div className="flex items-start">
-          <span className="font-medium text-gray-900 w-28">Status</span>
-          <div className="flex-1 text-sm">
-            <div className="space-y-2">
-              {/* Status line */}
-              <div className="flex items-center gap-2 text-gray-800">
-                <span
-                  className={`h-2 w-2 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-gray-400'} inline-block`}
-                />
-                <span>{isActive ? 'Accepting Applications' : 'Closed'}</span>
-              </div>
-
-              {/* Deadline and countdown - stack on mobile */}
-              {endDate && isActive && (
-                <div className="space-y-1 md:space-y-0 md:flex md:items-center md:gap-2">
-                  <span className="text-sm text-gray-600">
-                    Closes {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
-                  </span>
-                  {/* Show countdown when expiring soon */}
-                  {expiringSoon && work.note?.post?.grant?.endDate && (
-                    <>
-                      <div className="hidden md:block h-4 w-px bg-gray-300" />
-                      <span className="text-sm text-amber-600 font-medium block md:inline">
-                        {formatDeadline(work.note.post.grant.endDate)}
-                      </span>
-                    </>
-                  )}
-                </div>
-              )}
-
-              {/* Closed grant deadline */}
-              {!isActive && endDate && (
-                <span className="text-gray-600 text-sm">
-                  Closed on {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
-                </span>
-              )}
+              <div className="text-sm text-gray-600">May be divided across multiple proposals.</div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Tabs */}
       <WorkTabs
