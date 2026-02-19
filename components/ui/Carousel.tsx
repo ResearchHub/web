@@ -48,10 +48,11 @@ export const Carousel: FC<CarouselProps> = ({ children, className }) => {
 
   return (
     <div className={cn('group/carousel relative', className)}>
+      {/* Left edge overlay */}
       {canScrollLeft && (
         <button
           onClick={() => scroll('left')}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-white/90 shadow-md border border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-white transition-all opacity-0 group-hover/carousel:opacity-100"
+          className="absolute left-0 top-0 bottom-0 z-10 w-10 flex items-center justify-start pl-1 bg-gradient-to-r from-white/90 via-white/60 to-transparent text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
           aria-label="Scroll left"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -60,15 +61,16 @@ export const Carousel: FC<CarouselProps> = ({ children, className }) => {
 
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide pb-2"
+        className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide py-3 px-3 -mx-3"
       >
         {children}
       </div>
 
+      {/* Right edge overlay */}
       {canScrollRight && (
         <button
           onClick={() => scroll('right')}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-white/90 shadow-md border border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-white transition-all opacity-0 group-hover/carousel:opacity-100"
+          className="absolute right-0 top-0 bottom-0 z-10 w-10 flex items-center justify-end pr-1 bg-gradient-to-l from-white/90 via-white/60 to-transparent text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
           aria-label="Scroll right"
         >
           <ChevronRight className="h-5 w-5" />

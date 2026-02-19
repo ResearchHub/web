@@ -9,15 +9,12 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHouse as faHouseSolid,
-  faGrid3 as faGrid3Solid,
   faBookmark as faBookmarkSolid,
 } from '@fortawesome/pro-solid-svg-icons';
 import {
   faHouse as faHouseLight,
-  faGrid3 as faGrid3Light,
   faBookmark as faBookmarkLight,
 } from '@fortawesome/pro-light-svg-icons';
-import { ChartNoAxesColumnIncreasing } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 
 // Define icon mapping for navigation items with both light and solid variants
@@ -26,7 +23,7 @@ interface NavIcon {
   solid: IconName;
 }
 
-type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home' | 'leaderboard';
+type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home';
 
 interface NavigationItem {
   label: string;
@@ -66,10 +63,6 @@ const navIconMap: Record<NavIconKey, NavIcon> = {
     light: 'labNotebook2',
     solid: 'notebookBold',
   },
-  leaderboard: {
-    light: 'gold1',
-    solid: 'gold2',
-  },
 };
 
 export const Navigation: React.FC<NavigationProps> = ({
@@ -100,12 +93,6 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Navigate to the home page',
     },
     {
-      label: 'Browse',
-      href: '/browse',
-      description: 'Browse topics by category',
-      isFontAwesome: true,
-    },
-    {
       label: 'Earn',
       href: '/earn',
       iconKey: 'earn',
@@ -113,7 +100,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     },
     {
       label: 'Fund',
-      href: '/fund/grants',
+      href: '/funding',
       iconKey: 'fund',
       description: 'Browse grants and fundraising opportunities',
     },
@@ -137,11 +124,6 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'View and manage your saved lists',
       requiresAuth: true,
     },
-    {
-      label: 'Leaderboard',
-      href: '/leaderboard',
-      description: 'View the ResearchHub Leaderboard',
-    },
   ];
 
   const getButtonStyles = (path: string, currentPath: string) => {
@@ -163,24 +145,14 @@ export const Navigation: React.FC<NavigationProps> = ({
       return ['/popular', '/for-you', '/latest', '/following'].includes(currentPath);
     }
 
-    // Special case for fund page - match specific fund routes
-    if (path === '/fund/grants') {
-      return ['/fund/grants', '/fund/needs-funding'].includes(currentPath);
+    // Special case for fund page - match /funding and legacy /fund routes
+    if (path === '/funding') {
+      return currentPath.startsWith('/funding') || currentPath.startsWith('/fund');
     }
 
     // Special case for notebook page - match any route that starts with /notebook
     if (path === '/notebook') {
       return currentPath.startsWith('/notebook');
-    }
-
-    // Special case for leaderboard page
-    if (path === '/leaderboard') {
-      return currentPath.startsWith('/leaderboard');
-    }
-
-    // Special case for browse page
-    if (path === '/browse') {
-      return currentPath.startsWith('/browse');
     }
 
     // Special case for lists page - match /lists and /list/[id]
@@ -242,19 +214,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     return (
       <Link href={item.href} onClick={handleClick} className={buttonStyles} scroll={false}>
         <div className={iconContainerClass}>
-          {item.href === '/leaderboard' ? (
-            <ChartNoAxesColumnIncreasing
-              size={22}
-              color={iconColor}
-              strokeWidth={isActive ? 2.5 : 2}
-            />
-          ) : item.href === '/browse' ? (
-            <FontAwesomeIcon
-              icon={isActive ? faGrid3Solid : faGrid3Light}
-              fontSize={24}
-              color={iconColor}
-            />
-          ) : item.href === '/lists' ? (
+          {item.href === '/lists' ? (
             <FontAwesomeIcon
               icon={isActive ? faBookmarkSolid : faBookmarkLight}
               fontSize={24}

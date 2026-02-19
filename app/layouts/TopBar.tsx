@@ -44,7 +44,6 @@ interface TopBarProps {
 
 interface PageInfo {
   title: string;
-  subtitle?: string;
   icon?: React.ReactNode;
 }
 
@@ -78,7 +77,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (['/', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(pathname)) {
     return {
       title: 'Home',
-      subtitle: 'Explore cutting-edge research from leading preprint servers.',
       icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
     };
   }
@@ -87,7 +85,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname === '/browse') {
     return {
       title: 'Browse',
-      subtitle: 'Discover and follow research topics',
       icon: <FontAwesomeIcon icon={faGrid3Light} fontSize={24} color="#000" />,
     };
   }
@@ -96,7 +93,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname === '/search') {
     return {
       title: 'Search',
-      subtitle: 'Find papers, grants, authors, and peer reviews',
       icon: <FontAwesomeIcon icon={faMagnifyingGlass} fontSize={24} color="#000" />,
     };
   }
@@ -105,7 +101,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname === '/notifications') {
     return {
       title: 'Notifications',
-      subtitle: 'Stay updated with your latest activity',
       icon: <Icon name="notification" size={24} className="text-gray-900" />,
     };
   }
@@ -113,7 +108,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname === '/researchcoin') {
     return {
       title: 'My Wallet',
-      subtitle: 'Manage your wallet and view transactions',
       icon: <Icon name="rscThin" size={28} />,
     };
   }
@@ -128,7 +122,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/paper/create')) {
     return {
       title: 'Submit your paper',
-      subtitle: 'Submit your original work as a preprint or publication',
       icon: <Icon name="submit2" size={24} className="text-gray-900" />,
     };
   }
@@ -136,7 +129,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/bounty/create')) {
     return {
       title: 'Create Bounty',
-      subtitle: 'Incentivize the research economy',
       icon: <Icon name="earn1" size={24} className="text-gray-900" />,
     };
   }
@@ -144,7 +136,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/bounties')) {
     return {
       title: 'Bounties',
-      subtitle: 'Earn RSC for completing peer reviews',
       icon: <Icon name="earn1" size={24} className="text-gray-900" />,
     };
   }
@@ -152,15 +143,13 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/earn')) {
     return {
       title: 'Earn ResearchCoin',
-      subtitle: 'Earn RSC for completing peer reviews',
       icon: <Icon name="earn1" size={24} className="text-gray-900" />,
     };
   }
 
   if (pathname.startsWith('/funding')) {
     return {
-      title: 'Funding Marketplace',
-      subtitle: 'Participate in funding the future of science',
+      title: 'Fund',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
@@ -168,7 +157,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/journal')) {
     return {
       title: 'RH Journal',
-      subtitle: 'Read and publish peer-reviewed research',
       icon: <Icon name="rhJournal2" size={24} className="text-gray-900" />,
     };
   }
@@ -176,7 +164,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/leaderboard')) {
     return {
       title: 'Leaderboard',
-      subtitle: 'See top contributors in the ResearchHub community',
       icon: <ChartNoAxesColumnIncreasing size={24} color="#404040" strokeWidth={2} />,
     };
   }
@@ -184,7 +171,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/moderators')) {
     return {
       title: 'Moderation Dashboard',
-      subtitle: 'Review and moderate community content',
       icon: <Shield size={24} className="text-gray-900" />,
     };
   }
@@ -192,7 +178,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/fund/grants')) {
     return {
       title: 'Request for Proposals',
-      subtitle: 'Explore available funding opportunities',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
@@ -200,7 +185,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname === '/fund/needs-funding') {
     return {
       title: 'Research Proposals',
-      subtitle: 'Support research projects seeking funding',
       icon: <Icon name="createBounty" size={24} className="text-gray-900" />,
     };
   }
@@ -208,7 +192,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/fund')) {
     return {
       title: 'Funding',
-      subtitle: 'Fund breakthrough research shaping tomorrow',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
@@ -258,10 +241,8 @@ const getPageInfo = (pathname: string): PageInfo | null => {
       const preprintLogo = getSourceLogo(topicSlug);
 
       if (preprintLogo && preprintLogo !== 'rhJournal2') {
-        // Use preprint server logo only (no title)
         return {
           title: '',
-          subtitle: 'Explore research from this preprint server',
           icon: (
             <Image
               src={preprintLogo}
@@ -282,7 +263,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
 
       return {
         title: topicName,
-        subtitle: 'Explore research in this topic',
         icon: emoji ? (
           <span className="text-2xl">{emoji}</span>
         ) : (
@@ -568,11 +548,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                         >
                           {pageInfo.title}
                         </h1>
-                      )}
-                      {pageInfo.subtitle && !isCompact && (
-                        <p className="hidden wide:!block text-md text-gray-600 leading-tight mt-0.5">
-                          {pageInfo.subtitle}
-                        </p>
                       )}
                     </div>
                   </div>
