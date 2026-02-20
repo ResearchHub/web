@@ -11,7 +11,7 @@ interface EditGrantModalProps {
   noteId: number;
 }
 
-export function EditGrantModal({ isOpen, onClose, noteId }: EditGrantModalProps) {
+export function EditGrantModal({ isOpen, onClose, noteId }: Readonly<EditGrantModalProps>) {
   return (
     <BaseModal
       isOpen={isOpen}

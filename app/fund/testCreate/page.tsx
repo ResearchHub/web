@@ -37,9 +37,8 @@ export default function CreateGrantPage() {
   return (
     <PageLayout rightSidebar={false}>
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8">
-        {isLoading ? (
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-        ) : grants.length > 0 ? (
+        {isLoading && <Loader2 className="h-6 w-6 animate-spin text-gray-400" />}
+        {!isLoading && grants.length > 0 && (
           <div className="w-full max-w-4xl px-4">
             <div className="overflow-x-auto pb-2">
               <div className="flex gap-4 min-w-min">
@@ -57,9 +56,8 @@ export default function CreateGrantPage() {
               </div>
             </div>
           </div>
-        ) : (
-          <p className="text-sm text-gray-500">No RFPs yet</p>
         )}
+        {!isLoading && grants.length === 0 && <p className="text-sm text-gray-500">No RFPs yet</p>}
 
         <CreateGrantButton />
 
