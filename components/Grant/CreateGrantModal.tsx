@@ -73,8 +73,6 @@ export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
     };
 
     init();
-    // createNote and updateContent are excluded — they are not referentially
-    // stable across renders and the effect should only fire on open / org change.
   }, [isOpen, selectedOrg?.slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

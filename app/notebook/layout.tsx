@@ -43,9 +43,6 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Single grid — sidebar columns collapse to 0 on mobile, keeping
-          NoteEditorLayout at a stable 3rd-child position so React never
-          unmounts it on resize (preserving editor & form state). */}
       <div
         className="grid min-h-screen w-full"
         style={{

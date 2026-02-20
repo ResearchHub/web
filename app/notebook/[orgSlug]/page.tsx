@@ -86,8 +86,6 @@ export default function OrganizationPage() {
         queryValue: 'true',
       });
     }
-    // createNoteWithContent and router are excluded — they are not referentially
-    // stable across renders, and the effect should only fire when the route params change.
   }, [selectedOrg, isNewFunding, isNewResearch, isNewGrant]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return <NoteCreationPopover isOpen={isCreatingNote || isUpdatingContent} />;
