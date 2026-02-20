@@ -33,6 +33,7 @@ import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
+import { DEFAULT_GRANT_DEADLINE } from '@/components/Grant/lib/constants';
 
 // Feature flags for conditionally showing sections
 const FEATURE_FLAG_RESEARCH_COIN = false;
@@ -247,6 +248,10 @@ export function PublishingForm({
         methods.setValue('articleType', articleType);
       } else if (defaultArticleType) {
         methods.setValue('articleType', defaultArticleType as PublishingFormData['articleType']);
+        // Pre-populate hidden fields for modal grants
+        if (defaultArticleType === 'grant') {
+          methods.setValue('applicationDeadline', DEFAULT_GRANT_DEADLINE);
+        }
       }
     }
   }, [note, methods, searchParams, defaultArticleType]);
@@ -461,7 +466,7 @@ export function PublishingForm({
 
   return (
     <FormProvider {...methods}>
-      <div className="w-82 flex flex-col sticky right-0 top-0 bg-white relative h-[calc(100vh-64px)] lg:h-screen">
+      <div className="w-82 flex flex-col sticky right-0 top-0 bg-white relative h-full">
         {/* Processing overlay */}
         {(isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage) && (
           <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
@@ -550,6 +555,7 @@ export function PublishingForm({
           isUpdate={Boolean(methods.watch('workId'))}
           editor={editor}
           variant={articleType === 'grant' ? 'rfp' : 'default'}
+          zIndex={isModal ? 10000 : 100}
         />
       )}
     </FormProvider>

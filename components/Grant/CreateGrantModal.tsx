@@ -91,10 +91,9 @@ export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
       showCloseButton={false}
       padding="p-0"
       className="!max-h-screen md:!max-h-[calc(100vh-2rem)] md:!rounded-2xl"
+      contentClassName="!overflow-hidden"
     >
-      {/* overflow-hidden prevents BaseModal's content div from adding its own scrollbar.
-         NoteEditorLayout handles internal scrolling the same way the full notebook page does. */}
-      <div className="h-full overflow-hidden">
+      <div className="h-full">
         {/* Note creation / error states */}
         {isCreatingNote && (
           <div className="flex flex-col items-center justify-center h-full gap-3">

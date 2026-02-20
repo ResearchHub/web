@@ -15,7 +15,7 @@ interface RightSidebarProps {
  */
 export const RightSidebar = ({ defaultArticleType, isModal }: RightSidebarProps) => {
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-full">
       <PublishingForm
         bountyAmount={null}
         onBountyClick={() => {}}

@@ -19,6 +19,7 @@ interface BaseModalProps {
   footer?: ReactNode;
   headerAction?: ReactNode;
   className?: string; // Additional classes to override default styling
+  contentClassName?: string; // Additional classes for the scrollable content wrapper
 }
 
 export const BaseModal: FC<BaseModalProps> = ({
@@ -33,6 +34,7 @@ export const BaseModal: FC<BaseModalProps> = ({
   footer,
   headerAction,
   className,
+  contentClassName,
 }) => {
   const headerRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
@@ -161,7 +163,7 @@ export const BaseModal: FC<BaseModalProps> = ({
                 )}
                 {/* Modal Content */}
                 <div
-                  className={cn(padding, 'flex-1 overflow-y-auto')}
+                  className={cn(padding, 'flex-1 overflow-y-auto', contentClassName)}
                   style={
                     isFullScreen
                       ? undefined

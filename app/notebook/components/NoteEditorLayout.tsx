@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
 import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
@@ -170,26 +170,38 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayo
   if (isDesktop === null) return null;
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Top bar */}
-      {renderTopBar()}
+    <div className="flex flex-col h-full notebook-scrollbar">
+      {/* Thin scrollbar styling — in the full notebook route this comes from globals.css,
+          but when rendered inside a modal we need the styles injected here. */}
+      {isModal && (
+        <style>{`
+          .notebook-scrollbar ::-webkit-scrollbar { width: 4px; height: 4px; background: rgb(115 115 115 / 0.2); }
+          .notebook-scrollbar ::-webkit-scrollbar-thumb { background: rgb(115 115 115 / 0.5); border-radius: 9999px; }
+          .notebook-scrollbar { scrollbar-width: thin; scrollbar-color: rgb(115 115 115 / 0.5) transparent; }
+        `}</style>
+      )}
+      {/* Top bar — on mobile modal form step, show a "← Back / Publish Details" header instead */}
+      {isMobileSidebarInline ? (
+        <div className="h-16 border-b border-gray-200 sticky top-0 bg-white z-20 flex items-center justify-between px-4 flex-shrink-0">
+          <Button
+            onClick={closeRightSidebar}
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-1 text-gray-500"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span className="text-sm">Back</span>
+          </Button>
+          <h2 className="text-base font-semibold text-gray-900">Publish Details</h2>
+          <div className="w-16" />
+        </div>
+      ) : (
+        renderTopBar()
+      )}
 
       {/* Mobile in modal: sidebar replaces editor as a full-screen inline view */}
       {isMobileSidebarInline ? (
-        <div className="flex-1 min-h-0 flex flex-col overflow-y-auto">
-          <div className="sticky top-0 z-10 bg-white border-b border-gray-200 p-2">
-            <Button
-              onClick={closeRightSidebar}
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-1"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Back to editor
-            </Button>
-          </div>
-          {renderSidebar()}
-        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto">{renderSidebar()}</div>
       ) : (
         <>
           {/* Main content + right sidebar */}
@@ -207,7 +219,7 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayo
 
             {/* Desktop right sidebar (inline — mobile uses slide-out below) */}
             {isDesktop && shouldShowRightSidebar && isRightSidebarOpen && (
-              <div className="border-l border-gray-200 h-full overflow-y-auto">
+              <div className="border-l border-gray-200 h-full overflow-hidden">
                 {renderSidebar()}
               </div>
             )}
