@@ -1,5 +1,6 @@
 import { useFormContext } from 'react-hook-form';
 import { Upload, Image as ImageIcon, Gift } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Switch } from '@/components/ui/Switch';
 import Image from 'next/image';
@@ -187,10 +188,11 @@ export function FundingSection({ note }: FundingSectionProps) {
               NFT Art Upload Section
               <div className="pt-2">
                 <label className="block text-sm font-medium text-gray-900 mb-2">NFT Art</label>
-                <div
+                <Button
+                  variant="ghost"
                   onClick={() => fileInputRef.current?.click()}
                   className={cn(
-                    'relative w-full aspect-[4/2] rounded-xl border-2 border-dashed',
+                    'relative w-full h-auto aspect-[4/2] rounded-xl border-2 border-dashed p-0',
                     'transition-all cursor-pointer group',
                     previewUrl ? 'border-transparent' : 'border-gray-300 hover:border-gray-400'
                   )}
@@ -216,7 +218,7 @@ export function FundingSection({ note }: FundingSectionProps) {
                       <div className="text-sm font-medium text-gray-700">Click to upload</div>
                     </div>
                   )}
-                </div>
+                </Button>
                 <input
                   ref={fileInputRef}
                   type="file"

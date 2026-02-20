@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 interface SidebarSectionProps {
   title: React.ReactNode;
@@ -22,8 +23,9 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
 
   return (
     <div className="mb-2">
-      <div
-        className="flex items-center justify-between px-2 py-1 group cursor-pointer rounded"
+      <Button
+        variant="ghost"
+        className="flex items-center justify-between w-full h-auto px-2 py-1 group cursor-pointer rounded"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-2 flex-1">
@@ -38,7 +40,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
             {action}
           </div>
         )}
-      </div>
+      </Button>
       {isExpanded && children && <div className="mt-1 pl-2">{children}</div>}
     </div>
   );

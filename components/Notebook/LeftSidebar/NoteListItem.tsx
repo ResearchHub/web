@@ -2,6 +2,7 @@
 
 import { File, MoreHorizontal, Copy, Trash2, Loader2, Lock, Unlock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { cn } from '@/utils/styles';
 import { useRouter } from 'next/navigation';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import {
@@ -111,15 +112,18 @@ export const NoteListItem = ({ note, disabled, startTransition }: NoteListItemPr
   };
 
   const menuTriggerButton = (
-    <button
-      className={`p-1 rounded-md transition-opacity
-        bg-gray-50 hover:bg-gray-200 text-gray-500 hover:text-gray-700
-        ${isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+    <Button
+      variant="ghost"
+      size="icon"
+      className={cn(
+        'h-auto w-auto p-1 rounded-md transition-opacity bg-gray-50 hover:bg-gray-200 text-gray-500 hover:text-gray-700',
+        isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+      )}
       onClick={(e) => e.stopPropagation()}
       disabled={isProcessing || disabled}
     >
       <MoreHorizontal className="h-4 w-4" />
-    </button>
+    </Button>
   );
 
   return (

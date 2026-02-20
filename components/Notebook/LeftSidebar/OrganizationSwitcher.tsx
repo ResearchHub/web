@@ -35,7 +35,10 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
   };
 
   const trigger = (
-    <button className="w-full flex items-center justify-between px-2 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+    <Button
+      variant="ghost"
+      className="w-full flex items-center justify-between h-auto px-2 py-2 rounded-lg"
+    >
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <Avatar
           src={selectedOrg.coverImage}
@@ -48,7 +51,7 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
         </span>
       </div>
       <ChevronDown className="h-4 w-4 text-gray-500 flex-shrink-0 ml-1" />
-    </button>
+    </Button>
   );
 
   return (
