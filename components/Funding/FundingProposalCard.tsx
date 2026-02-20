@@ -55,12 +55,12 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
       )}
     >
       {/* Expanding hover background — sits behind content, bleeds beyond card bounds */}
-      <div className="absolute -inset-3 rounded-xl bg-blue-50/0 group-hover/card:bg-blue-50/70 transition-colors duration-200 pointer-events-none" />
+      <div className="absolute -inset-2 rounded-xl bg-blue-50/0 group-hover/card:bg-blue-50/70 transition-colors duration-200 pointer-events-none" />
 
       {/* Card content — sits above the hover bg */}
       <div className="relative">
         {/* Image */}
-        <div className="relative aspect-[16/9] bg-gray-100 rounded-lg overflow-hidden">
+        <div className="relative aspect-[16/9] bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-100">
           {content.previewImage ? (
             <Image
               src={content.previewImage}
@@ -94,7 +94,7 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
           </div>
 
           <div className="min-w-0 flex-1 flex flex-col">
-            <h3 className="font-semibold text-gray-900 text-sm leading-snug line-clamp-3 mb-0.5">
+            <h3 className="font-medium text-gray-900 text-sm leading-snug line-clamp-3 mb-0.5">
               {content.title}
             </h3>
             <span className="text-xs text-gray-500 truncate">{author?.fullName}</span>

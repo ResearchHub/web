@@ -34,7 +34,7 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({ grant, className }) => {
       {/* Title + badge */}
       <div className="flex items-center gap-2.5 flex-wrap">
         <Link href={grantHref} className="group">
-          <h2 className="text-lg font-semibold text-gray-900 group-hover:text-gray-600 transition-colors">
+          <h2 className="text-xl font-bold text-gray-900 group-hover:text-gray-600 transition-colors">
             {getShortTitle(content.title)}
           </h2>
         </Link>

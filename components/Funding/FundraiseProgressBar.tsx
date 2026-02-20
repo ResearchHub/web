@@ -34,7 +34,7 @@ export const FundraiseProgressBar: FC<FundraiseProgressBarProps> = ({
       <div
         className={cn(
           'h-full rounded-full transition-all',
-          isCompleted ? 'bg-green-500' : 'bg-primary-500'
+          isCompleted ? 'bg-green-600' : 'bg-green-600'
         )}
         style={{ width: `${progressPercent}%` }}
       />
