@@ -11,6 +11,21 @@ export const getDocumentTitleFromEditor = (editor: Editor | null): string => {
   return getDocumentTitle(editor.getJSON());
 };
 
+export const setDocumentTitle = (editor: Editor | null, newTitle: string): void => {
+  if (!editor) return;
+  editor
+    .chain()
+    .command(({ tr }) => {
+      const node = tr.doc.nodeAt(0);
+      if (node && node.type.name === 'heading') {
+        tr.insertText(newTitle, 1, node.nodeSize - 1);
+        return true;
+      }
+      return false;
+    })
+    .run();
+};
+
 export function removeTitleFromHTML(html: string): string {
   return html.replace(/<h1[^>]*>.*?<\/h1>/i, '');
 }

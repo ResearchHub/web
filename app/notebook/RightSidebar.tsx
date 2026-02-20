@@ -16,12 +16,7 @@ interface RightSidebarProps {
 export const RightSidebar = ({ defaultArticleType, isModal }: RightSidebarProps) => {
   return (
     <div className="h-full">
-      <PublishingForm
-        bountyAmount={null}
-        onBountyClick={() => {}}
-        defaultArticleType={defaultArticleType}
-        isModal={isModal}
-      />
+      <PublishingForm defaultArticleType={defaultArticleType} isModal={isModal} />
     </div>
   );
 };

@@ -1,6 +1,5 @@
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import { Fragment, useEffect, useState } from 'react';
-import { Editor } from '@tiptap/core';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
 import { GraduationCap, Scale, Users, FileText, type LucideIcon } from 'lucide-react';
@@ -11,10 +10,10 @@ type ConfirmPublishVariant = 'default' | 'rfp';
 interface ConfirmPublishModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (editedTitle: string) => void;
   title: string;
   isPublishing: boolean;
-  editor: Editor | null;
+  onTitleChange?: (title: string) => void;
   isUpdate?: boolean;
   variant?: ConfirmPublishVariant;
   zIndex?: number;
@@ -60,7 +59,7 @@ export function ConfirmPublishModal({
   onConfirm,
   title: initialTitle,
   isPublishing,
-  editor,
+  onTitleChange,
   isUpdate,
   variant = 'default',
   zIndex = 100,
@@ -82,21 +81,7 @@ export function ConfirmPublishModal({
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
-
-    if (editor) {
-      editor
-        .chain()
-        .command(({ tr }) => {
-          const pos = 0;
-          const node = tr.doc.nodeAt(pos);
-          if (node && node.type.name === 'heading') {
-            tr.insertText(newTitle, pos + 1, pos + node.nodeSize - 1);
-            return true;
-          }
-          return false;
-        })
-        .run();
-    }
+    onTitleChange?.(newTitle);
   };
 
   return (
@@ -180,7 +165,7 @@ export function ConfirmPublishModal({
                     </Button>
                     <Button
                       variant="default"
-                      onClick={onConfirm}
+                      onClick={() => onConfirm(title)}
                       disabled={!isPublishEnabled || isPublishing}
                       className="disabled:opacity-50 disabled:cursor-not-allowed"
                     >

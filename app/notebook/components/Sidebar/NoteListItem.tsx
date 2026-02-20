@@ -26,7 +26,7 @@ interface NoteListItemProps {
  */
 export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, startTransition }) => {
   const router = useRouter();
-  const { refreshNotes, setNotes, noteIdFromParams } = useNotebookContext();
+  const { refreshNotes, setNotes, activeNoteId } = useNotebookContext();
   const [{ isLoading: isDeleting }, deleteNote] = useDeleteNote();
   const [{ isLoading: isDuplicating }, duplicateNote] = useDuplicateNote();
   const [{ isLoading: isMakingPrivate }, makeNotePrivate] = useMakeNotePrivate();
@@ -36,7 +36,7 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, star
 
   const isPrivate = note.access === 'PRIVATE';
   const isProcessing = isDeleting || isDuplicating || isMakingPrivate || isUpdatingPermissions;
-  const isSelected = note.id.toString() === noteIdFromParams;
+  const isSelected = note.id.toString() === activeNoteId;
 
   useEffect(() => {
     if (isSelected && itemRef.current) {

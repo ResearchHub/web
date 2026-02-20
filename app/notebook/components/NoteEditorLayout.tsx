@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Fragment } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
+import { cn } from '@/utils/styles';
 
 import { Button } from '@/components/ui/Button';
 import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
@@ -20,6 +20,24 @@ import { useScreenSize } from '@/hooks/useScreenSize';
 import { useUpdateNote } from '@/hooks/useNote';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { LegacyNoteBanner } from '@/components/LegacyNoteBanner';
+
+function SidebarCloseHeader({ onClose, className }: { onClose: () => void; className?: string }) {
+  return (
+    <div className={cn('h-16 flex justify-start items-center p-4', className)}>
+      <Button
+        onClick={onClose}
+        className="p-2 rounded-md hover:bg-gray-100"
+        variant="ghost"
+        size="icon"
+      >
+        <div className="flex">
+          <ChevronRight className="h-5 w-5" />
+          <ChevronRight className="h-5 w-5 -ml-3" />
+        </div>
+      </Button>
+    </div>
+  );
+}
 
 interface NoteEditorLayoutProps {
   /** Pre-set article type when used inside a modal (e.g. 'grant'). */
@@ -46,13 +64,13 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayo
     noteError,
     setEditor,
     updateNoteTitle,
-    noteIdFromParams,
+    activeNoteId,
   } = useNotebookContext();
 
   const { isRightSidebarOpen, closeRightSidebar, openRightSidebar } = useSidebar();
 
   const { selectedOrg } = useOrganizationContext();
-  const { xlAndUp, lgAndUp, current } = useScreenSize();
+  const { xlAndUp, lgAndUp } = useScreenSize();
   const isDesktop = lgAndUp;
 
   // Legacy-note detection
@@ -69,7 +87,7 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayo
 
   // Debounced auto-save on every editor change
   const [, updateNote] = useUpdateNote(note?.id, {
-    onTitleUpdate: (newTitle) => updateNoteTitle(newTitle),
+    onTitleUpdate: updateNoteTitle,
   });
 
   const shouldShowRightSidebar = Boolean(note) && !isLegacyNote;
@@ -82,10 +100,7 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayo
     } else {
       closeRightSidebar();
     }
-  }, [xlAndUp, current, shouldShowRightSidebar, openRightSidebar, closeRightSidebar]);
-
-  // Mobile in modal: is the sidebar currently replacing the editor view?
-  const isMobileSidebarInline = isModal && !isDesktop && isRightSidebarOpen;
+  }, [xlAndUp, shouldShowRightSidebar, openRightSidebar, closeRightSidebar]);
 
   // ---------- Render helpers ----------
 
@@ -99,7 +114,7 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayo
     }
 
     // Error loading a specific note
-    if (noteError && noteIdFromParams) {
+    if (noteError && activeNoteId) {
       return (
         <NotePaperWrapper>
           <div className="flex flex-col items-center justify-center h-full p-8">
@@ -140,9 +155,10 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayo
 
     return (
       <NotePaperWrapper
-        className={`p-0 lg:!p-8 lg:!pl-16 ${
-          isLegacyNote ? 'opacity-70 blur-sm pointer-events-none select-none' : ''
-        }`}
+        className={cn(
+          'p-0 lg:!p-8 lg:!pl-16',
+          isLegacyNote && 'opacity-70 blur-sm pointer-events-none select-none'
+        )}
         showBanner={
           isLegacyNote && selectedOrg ? (
             <LegacyNoteBanner orgSlug={selectedOrg.slug} noteId={note.id.toString()} />
@@ -170,113 +186,112 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayo
   if (isDesktop === null) return null;
 
   return (
-    <div className="flex flex-col h-full notebook-scrollbar">
-      {/* Thin scrollbar styling — in the full notebook route this comes from globals.css,
-          but when rendered inside a modal we need the styles injected here. */}
-      {isModal && (
-        <style>{`
-          .notebook-scrollbar ::-webkit-scrollbar { width: 4px; height: 4px; background: rgb(115 115 115 / 0.2); }
-          .notebook-scrollbar ::-webkit-scrollbar-thumb { background: rgb(115 115 115 / 0.5); border-radius: 9999px; }
-          .notebook-scrollbar { scrollbar-width: thin; scrollbar-color: rgb(115 115 115 / 0.5) transparent; }
-        `}</style>
-      )}
-      {/* Top bar — on mobile modal form step, show a "← Back / Publish Details" header instead */}
-      {isMobileSidebarInline ? (
-        <div className="h-16 border-b border-gray-200 sticky top-0 bg-white z-20 flex items-center justify-between px-4 flex-shrink-0">
-          <Button
-            onClick={closeRightSidebar}
-            variant="ghost"
-            size="sm"
-            className="flex items-center gap-1 text-gray-500"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span className="text-sm">Back</span>
-          </Button>
-          <h2 className="text-base font-semibold text-gray-900">Publish Details</h2>
-          <div className="w-16" />
-        </div>
-      ) : (
-        renderTopBar()
-      )}
+    <div className="flex flex-col h-full relative">
+      {renderTopBar()}
 
-      {/* Mobile in modal: sidebar replaces editor as a full-screen inline view */}
-      {isMobileSidebarInline ? (
-        <div className="flex-1 min-h-0 overflow-y-auto">{renderSidebar()}</div>
-      ) : (
-        <>
-          {/* Main content + right sidebar */}
-          <div
-            className="flex-1 min-h-0 grid"
-            style={{
-              gridTemplateColumns:
-                isDesktop && shouldShowRightSidebar && isRightSidebarOpen
-                  ? 'minmax(0, 1fr) 300px'
-                  : 'minmax(0, 1fr)',
-            }}
-          >
-            {/* Editor area */}
-            <div className="overflow-auto">{renderEditor()}</div>
+      {/* Main content + right sidebar */}
+      <div
+        className="flex-1 min-h-0 grid"
+        style={{
+          gridTemplateColumns:
+            isDesktop && shouldShowRightSidebar
+              ? isRightSidebarOpen
+                ? 'minmax(0, 1fr) 300px'
+                : 'minmax(0, 1fr) 0px'
+              : 'minmax(0, 1fr)',
+          transition:
+            isDesktop && shouldShowRightSidebar
+              ? 'grid-template-columns 200ms ease-in-out'
+              : undefined,
+        }}
+      >
+        {/* Editor area */}
+        <div className="overflow-auto">{renderEditor()}</div>
 
-            {/* Desktop right sidebar (inline — mobile uses slide-out below) */}
-            {isDesktop && shouldShowRightSidebar && isRightSidebarOpen && (
-              <div className="border-l border-gray-200 h-full overflow-hidden">
-                {renderSidebar()}
-              </div>
-            )}
-          </div>
+        {/* Desktop right sidebar — always rendered so it can animate via grid transition */}
+        {isDesktop && shouldShowRightSidebar && (
+          <div className="border-l border-gray-200 h-full overflow-hidden">{renderSidebar()}</div>
+        )}
+      </div>
 
-          {/* Mobile slide-out right sidebar (full-page context only — modal uses inline swap above) */}
-          {!isDesktop && !isModal && (
-            <Transition show={isRightSidebarOpen} as={Fragment}>
-              <Dialog onClose={closeRightSidebar} className="relative z-50">
+      {/* Mobile slide-out right sidebar (full-page notebook — fixed Dialog overlay) */}
+      {!isDesktop && !isModal && (
+        <Transition show={isRightSidebarOpen} as={Fragment}>
+          <Dialog onClose={closeRightSidebar} className="relative z-50">
+            <Transition.Child
+              as={Fragment}
+              enter="transition-opacity duration-200"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="transition-opacity duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <div className="fixed inset-0 bg-black/[0.15]" aria-hidden="true" />
+            </Transition.Child>
+
+            <div className="fixed inset-0 overflow-y-auto">
+              <div className="flex h-full justify-end">
                 <Transition.Child
                   as={Fragment}
-                  enter="transition-opacity duration-200"
-                  enterFrom="opacity-0"
-                  enterTo="opacity-100"
-                  leave="transition-opacity duration-200"
-                  leaveFrom="opacity-100"
-                  leaveTo="opacity-0"
+                  enter="transform transition duration-200 ease-in-out"
+                  enterFrom="translate-x-full"
+                  enterTo="translate-x-0"
+                  leave="transform transition duration-200 ease-in-out"
+                  leaveFrom="translate-x-0"
+                  leaveTo="translate-x-full"
                 >
-                  <div className="fixed inset-0 bg-black/[0.15]" aria-hidden="true" />
+                  <Dialog.Panel className="w-full lg:w-72 h-full bg-white shadow-xl overflow-y-auto">
+                    <SidebarCloseHeader
+                      onClose={closeRightSidebar}
+                      className="sticky top-0 bg-white z-10"
+                    />
+                    <div className="h-[calc(100vh-64px)] overflow-y-auto">{renderSidebar()}</div>
+                  </Dialog.Panel>
                 </Transition.Child>
+              </div>
+            </div>
+          </Dialog>
+        </Transition>
+      )}
 
-                <div className="fixed inset-0 overflow-y-auto">
-                  <div className="flex h-full justify-end">
-                    <Transition.Child
-                      as={Fragment}
-                      enter="transform transition duration-200 ease-in-out"
-                      enterFrom="translate-x-full"
-                      enterTo="translate-x-0"
-                      leave="transform transition duration-200 ease-in-out"
-                      leaveFrom="translate-x-0"
-                      leaveTo="translate-x-full"
-                    >
-                      <Dialog.Panel className="w-full lg:w-72 h-full bg-white shadow-xl overflow-y-auto">
-                        <div className="h-16 flex justify-start items-center p-4 sticky top-0 bg-white z-10">
-                          <Button
-                            onClick={closeRightSidebar}
-                            className="p-2 rounded-md hover:bg-gray-100"
-                            variant="ghost"
-                            size="icon"
-                          >
-                            <div className="flex">
-                              <ChevronRight className="h-5 w-5" />
-                              <ChevronRight className="h-5 w-5 -ml-3" />
-                            </div>
-                          </Button>
-                        </div>
-                        <div className="h-[calc(100vh-64px)] overflow-y-auto">
-                          {renderSidebar()}
-                        </div>
-                      </Dialog.Panel>
-                    </Transition.Child>
-                  </div>
-                </div>
-              </Dialog>
-            </Transition>
-          )}
-        </>
+      {/* Mobile slide-out right sidebar (modal — absolute within modal bounds) */}
+      {!isDesktop && isModal && (
+        <Transition show={isRightSidebarOpen} as={Fragment}>
+          <Transition.Child
+            as={Fragment}
+            enter="transition-opacity duration-200"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="transition-opacity duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div
+              className="absolute inset-0 bg-black/[0.15] z-30"
+              onClick={closeRightSidebar}
+              aria-hidden="true"
+            />
+          </Transition.Child>
+
+          <Transition.Child
+            as={Fragment}
+            enter="transform transition duration-200 ease-in-out"
+            enterFrom="translate-x-full"
+            enterTo="translate-x-0"
+            leave="transform transition duration-200 ease-in-out"
+            leaveFrom="translate-x-0"
+            leaveTo="translate-x-full"
+          >
+            <div className="absolute right-0 top-0 bottom-0 w-full bg-white shadow-xl z-40 flex flex-col overflow-hidden">
+              <SidebarCloseHeader
+                onClose={closeRightSidebar}
+                className="border-b border-gray-200 flex-shrink-0"
+              />
+              <div className="flex-1 overflow-y-auto">{renderSidebar()}</div>
+            </div>
+          </Transition.Child>
+        </Transition>
       )}
     </div>
   );

@@ -34,7 +34,7 @@ import { NoteEditorLayout } from './components/NoteEditorLayout';
 function NotebookLayoutContent({ children }: { children: ReactNode }) {
   const { isLeftSidebarOpen, closeLeftSidebar, openLeftSidebar, closeBothSidebars } = useSidebar();
 
-  const { lgAndUp, mdAndDown, current } = useScreenSize();
+  const { lgAndUp } = useScreenSize();
   const isDesktop = lgAndUp;
 
   // Responsive left-sidebar management (right sidebar is handled by NoteEditorLayout)
@@ -44,7 +44,7 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
     } else {
       closeBothSidebars();
     }
-  }, [lgAndUp, mdAndDown, current, openLeftSidebar, closeBothSidebars]);
+  }, [lgAndUp, openLeftSidebar, closeBothSidebars]);
 
   if (isDesktop === null) {
     return null;

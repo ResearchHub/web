@@ -65,16 +65,18 @@ export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
           grouping: 'WORKSPACE',
         });
 
-        if (newNote) {
-          await updateContent({
-            note: newNote.id,
-            fullJson: JSON.stringify(grantTemplate),
-            plainText: getTemplatePlainText(grantTemplate),
-          });
-          setNoteId(newNote.id);
+        if (!newNote) {
+          setNoteError('Failed to create note. Please try again.');
+          return;
         }
+
+        await updateContent({
+          note: newNote.id,
+          fullJson: JSON.stringify(grantTemplate),
+          plainText: getTemplatePlainText(grantTemplate),
+        });
+        setNoteId(newNote.id);
       } catch (err) {
-        console.error('Failed to create note:', err);
         setNoteError('Failed to initialize. Please try again.');
       } finally {
         setIsCreatingNote(false);
@@ -82,6 +84,8 @@ export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
     };
 
     init();
+    // createNote and updateContent are excluded — they are not referentially
+    // stable across renders and the effect should only fire on open / org change.
   }, [isOpen, selectedOrg?.slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

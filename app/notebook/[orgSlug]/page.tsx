@@ -73,38 +73,27 @@ export default function OrganizationPage() {
   useEffect(() => {
     if (!selectedOrg) return;
 
-    const handleRouting = async () => {
-      try {
-        if (isNewFunding) {
-          await createNoteWithContent(selectedOrg.slug, {
-            template: proposalTemplate,
-            queryParam: 'newFunding',
-            queryValue: 'true',
-          });
-          return;
-        }
-        if (isNewResearch) {
-          await createNoteWithContent(selectedOrg.slug, {
-            template: getInitialContent('research'),
-            queryParam: 'newResearch',
-            queryValue: 'true',
-          });
-          return;
-        }
-        if (isNewGrant) {
-          await createNoteWithContent(selectedOrg.slug, {
-            template: grantTemplate,
-            queryParam: 'newGrant',
-            queryValue: 'true',
-          });
-          return;
-        }
-      } catch (err) {
-        console.error('Failed to handle routing:', err);
-      }
-    };
-
-    handleRouting();
+    if (isNewFunding) {
+      createNoteWithContent(selectedOrg.slug, {
+        template: proposalTemplate,
+        queryParam: 'newFunding',
+        queryValue: 'true',
+      });
+    } else if (isNewResearch) {
+      createNoteWithContent(selectedOrg.slug, {
+        template: getInitialContent('research'),
+        queryParam: 'newResearch',
+        queryValue: 'true',
+      });
+    } else if (isNewGrant) {
+      createNoteWithContent(selectedOrg.slug, {
+        template: grantTemplate,
+        queryParam: 'newGrant',
+        queryValue: 'true',
+      });
+    }
+    // createNoteWithContent and router are excluded — they are not referentially
+    // stable across renders, and the effect should only fire when the route params change.
   }, [selectedOrg, isNewFunding, isNewResearch, isNewGrant]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Only render the creation overlay; the welcome screen is in NoteEditorLayout.

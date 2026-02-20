@@ -13,8 +13,8 @@ interface TopBarDesktopProps {
 }
 
 export function TopBarDesktop({ onClose }: TopBarDesktopProps) {
-  const { toggleLeftSidebar, toggleRightSidebar, isRightSidebarOpen } = useSidebar();
-  const { currentNote: note, isLoading } = useNotebookContext();
+  const { toggleRightSidebar, isRightSidebarOpen } = useSidebar();
+  const { currentNote: note } = useNotebookContext();
 
   const isPublished = Boolean(note?.post?.id);
   const isLegacyNote = !note?.contentJson && isFeatureEnabled(FeatureFlag.LegacyNoteBanner);

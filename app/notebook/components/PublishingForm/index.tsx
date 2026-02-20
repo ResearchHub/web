@@ -14,11 +14,15 @@ import { GrantOrganizationSection } from './components/GrantOrganizationSection'
 import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
 import { GrantApplicationDeadlineSection } from './components/GrantApplicationDeadlineSection';
 import { Button } from '@/components/ui/Button';
+import { cn } from '@/utils/styles';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUpsertPost } from '@/hooks/useDocument';
 import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
-import { getDocumentTitleFromEditor } from '@/components/Editor/lib/utils/documentTitle';
+import {
+  getDocumentTitleFromEditor,
+  setDocumentTitle,
+} from '@/components/Editor/lib/utils/documentTitle';
 import { ResearchCoinSection } from './components/ResearchCoinSection';
 import { toast } from 'react-hot-toast';
 import {
@@ -39,9 +43,22 @@ import { DEFAULT_GRANT_DEADLINE } from '@/components/Grant/lib/constants';
 const FEATURE_FLAG_RESEARCH_COIN = false;
 const FEATURE_FLAG_JOURNAL = false;
 
+type ArticleTypeApi = 'DISCUSSION' | 'PREREGISTRATION' | 'GRANT';
+
+const ARTICLE_TYPE_API_MAP: Record<string, ArticleTypeApi> = {
+  preregistration: 'PREREGISTRATION',
+  grant: 'GRANT',
+  discussion: 'DISCUSSION',
+};
+
+const PUBLISH_LABEL: Record<string, string> = {
+  preregistration: 'RFP',
+  grant: 'Grant',
+};
+
 interface PublishingFormProps {
-  bountyAmount: number | null;
-  onBountyClick: () => void;
+  bountyAmount?: number | null;
+  onBountyClick?: () => void;
   /** Pre-set article type when opened from a modal (e.g. 'grant'). */
   defaultArticleType?: string;
   /** When true, hides fields not relevant in modal context (Work Type, Application Deadline). */
@@ -139,8 +156,7 @@ export function PublishingForm({
   useEffect(() => {
     if (!note) return;
 
-    // Priority 1: Check for existing post data
-    if (note?.post) {
+    if (note.post) {
       methods.setValue('workId', note.post.id.toString());
       methods.setValue(
         'articleType',
@@ -156,34 +172,29 @@ export function PublishingForm({
         methods.setValue('budget', note.post.fundraise?.goalAmount.usd.toString());
       }
 
-      // Set application deadline for grants
-      if (note.post.contentType === 'funding_request' && note.post.grant?.endDate) {
-        const deadline = new Date(note.post.grant.endDate);
-        methods.setValue('applicationDeadline', deadline);
-      }
-
-      if (note.post.contentType === 'funding_request' && note.post.grant?.description) {
-        methods.setValue('shortDescription', note.post.grant.description);
-      }
-
-      if (note.post.contentType === 'funding_request' && note.post.grant?.organization) {
-        methods.setValue('organization', note.post.grant.organization);
-      }
-
-      if (note.post.contentType === 'funding_request' && note.post.grant?.amount) {
-        methods.setValue('budget', note.post.grant.amount.usd.toString());
-      }
-
-      if (
-        note.post.contentType === 'funding_request' &&
-        note.post.grant?.contacts &&
-        note.post.grant.contacts.length > 0
-      ) {
-        const contactOptions = note.post.grant.contacts.map((contact) => ({
-          value: contact.id.toString(),
-          label: contact.authorProfile?.fullName || contact.name,
-        }));
-        methods.setValue('contacts', contactOptions);
+      if (note.post.contentType === 'funding_request') {
+        const { grant } = note.post;
+        if (grant?.endDate) {
+          methods.setValue('applicationDeadline', new Date(grant.endDate));
+        }
+        if (grant?.description) {
+          methods.setValue('shortDescription', grant.description);
+        }
+        if (grant?.organization) {
+          methods.setValue('organization', grant.organization);
+        }
+        if (grant?.amount) {
+          methods.setValue('budget', grant.amount.usd.toString());
+        }
+        if (grant?.contacts && grant.contacts.length > 0) {
+          methods.setValue(
+            'contacts',
+            grant.contacts.map((contact) => ({
+              value: contact.id.toString(),
+              label: contact.authorProfile?.fullName || contact.name,
+            }))
+          );
+        }
       }
 
       if (note.post.image) {
@@ -209,12 +220,11 @@ export function PublishingForm({
         methods.setValue('authors', authorOptions);
       }
 
-      // Set other relevant post data
       return;
     }
 
     // Priority 2: Check localStorage
-    const storedData = loadPublishingFormFromStorage(note?.id.toString() || '');
+    const storedData = loadPublishingFormFromStorage(note.id.toString());
     if (storedData) {
       Object.entries(storedData).forEach(([key, value]) => {
         if (key === 'applicationDeadline') {
@@ -231,7 +241,7 @@ export function PublishingForm({
     const isNewGrant = searchParams?.get('newGrant') === 'true';
     const template = searchParams?.get('template');
 
-    if (!note?.post && !storedData) {
+    if (!note.post && !storedData) {
       if (isNewFunding) {
         methods.setValue('articleType', 'preregistration');
       } else if (isNewResearch) {
@@ -289,7 +299,6 @@ export function PublishingForm({
 
       if (Object.keys(errors).length > 0) {
         Object.entries(errors).forEach(([field, error]) => {
-          // Cast the error to any to bypass the type checking issue
           const errorMessage = getFieldErrorMessage(error, `Invalid ${field}`);
           if (errorMessage) {
             toast.error(errorMessage, {
@@ -297,12 +306,7 @@ export function PublishingForm({
             });
           }
         });
-
-        // Log errors to console for debugging
-        console.error('Form validation errors:', errors);
       } else {
-        // Should never happen but wondering if we should log this somewhere for visibility
-        console.error('Unable to publish.');
         toast.error('Unable to publish. Please check all fields and try again.', {
           style: { width: '300px' },
         });
@@ -315,7 +319,6 @@ export function PublishingForm({
       articleType !== 'discussion' &&
       articleType !== 'grant'
     ) {
-      console.log('Publishing clicked for type:', articleType);
       return;
     }
 
@@ -333,16 +336,15 @@ export function PublishingForm({
     setShowConfirmModal(true);
   };
 
-  const handleConfirmPublish = async () => {
+  const handleConfirmPublish = async (editedTitle: string) => {
     try {
+      setDocumentTitle(editor, editedTitle);
+
       const text = editor?.getText();
       const json = editor?.getJSON();
       const html = editor?.getHTML();
-      const previewContent = html;
-      const title = getDocumentTitleFromEditor(editor);
       const formData = methods.getValues();
 
-      // Initialize imageUrl variable
       let imagePath = null;
 
       // Upload the image for proposal and grant posts
@@ -374,12 +376,12 @@ export function PublishingForm({
           budget: budgetValue,
           rewardFunders: formData.rewardFunders,
           nftSupply: formData.nftSupply || '1000',
-          title,
+          title: editedTitle,
           noteId: note?.id.toString(),
           renderableText: text || '',
           fullJSON: JSON.stringify(json),
-          fullSrc: previewContent || '',
-          assignDOI: formData.workId ? false : true,
+          fullSrc: html || '',
+          assignDOI: !formData.workId,
           topics: formData.topics.map((topic) => topic.value),
           authors: formData.authors
             .map((author) => author.value)
@@ -389,16 +391,7 @@ export function PublishingForm({
             .map((contact) => contact.value)
             .map(Number)
             .filter((id) => !isNaN(id)),
-          articleType: (() => {
-            switch (formData.articleType) {
-              case 'preregistration':
-                return 'PREREGISTRATION';
-              case 'grant':
-                return 'GRANT';
-              default:
-                return 'DISCUSSION';
-            }
-          })(),
+          articleType: ARTICLE_TYPE_API_MAP[formData.articleType] ?? 'DISCUSSION',
           image: imagePath,
           organization: formData.organization,
           description: formData.shortDescription,
@@ -444,6 +437,8 @@ export function PublishingForm({
 
       setIsRedirecting(true);
 
+      toast.success(`${PUBLISH_LABEL[formData.articleType] ?? 'Post'} published successfully!`);
+
       if (formData.articleType === 'preregistration') {
         router.push(`/fund/${response.id}/${response.slug}?new=true`);
       } else if (formData.articleType === 'grant') {
@@ -479,7 +474,10 @@ export function PublishingForm({
 
         {/* Scrollable content - conditionally disable scrolling */}
         <div
-          className={`flex-1 ${isRedirecting ? 'overflow-hidden' : 'overflow-y-auto'} scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 relative`}
+          className={cn(
+            'flex-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 relative',
+            isRedirecting ? 'overflow-hidden' : 'overflow-y-auto'
+          )}
         >
           <div className="pb-6">
             {!isModal && <WorkTypeSection />}
@@ -503,7 +501,10 @@ export function PublishingForm({
             {FEATURE_FLAG_RESEARCH_COIN &&
               articleType !== 'preregistration' &&
               articleType !== 'grant' && (
-                <ResearchCoinSection bountyAmount={bountyAmount} onBountyClick={onBountyClick} />
+                <ResearchCoinSection
+                  bountyAmount={bountyAmount ?? null}
+                  onBountyClick={onBountyClick ?? (() => {})}
+                />
               )}
             {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && <JournalSection />}
           </div>
@@ -553,7 +554,7 @@ export function PublishingForm({
           title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
           isPublishing={isLoadingUpsert || isRedirecting || isUploadingImage}
           isUpdate={Boolean(methods.watch('workId'))}
-          editor={editor}
+          onTitleChange={(title) => setDocumentTitle(editor, title)}
           variant={articleType === 'grant' ? 'rfp' : 'default'}
           zIndex={isModal ? 10000 : 100}
         />

@@ -1,11 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/Button';
-import { Menu, FileUp, ExternalLink, X } from 'lucide-react';
+import { Menu, FileUp, X } from 'lucide-react';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useNotebookContext } from '@/contexts/NotebookContext';
-import { Badge } from '@/components/ui/Badge';
-import Link from 'next/link';
 import { PublishedStatusSection } from './PublishingForm/components/PublishedStatusSection';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 
@@ -16,7 +14,7 @@ interface TopBarMobileProps {
 
 export function TopBarMobile({ onClose }: TopBarMobileProps) {
   const { toggleLeftSidebar, toggleRightSidebar } = useSidebar();
-  const { currentNote: note, isLoading } = useNotebookContext();
+  const { currentNote: note } = useNotebookContext();
 
   const isPublished = Boolean(note?.post?.id);
   const isLegacyNote = !note?.contentJson && isFeatureEnabled(FeatureFlag.LegacyNoteBanner);

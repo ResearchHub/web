@@ -49,7 +49,7 @@ interface NotebookContextType {
   // Fetch all data at once
   refreshAll: () => Promise<void>;
 
-  noteIdFromParams: string | null;
+  activeNoteId: string | null;
 }
 
 const NotebookContext = createContext<NotebookContextType | null>(null);
@@ -62,7 +62,7 @@ interface NotebookProviderProps {
 
 export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookProviderProps) {
   const params = useParams();
-  const noteIdFromParams = explicitNoteId ?? (params?.noteId as string) ?? null;
+  const activeNoteId = explicitNoteId ?? (params?.noteId as string) ?? null;
 
   const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
 
@@ -154,9 +154,8 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     await fetchNotes(selectedOrg.slug);
   }, [selectedOrg?.slug, fetchNotes]);
 
-  // Modify loadNote with logging
   const loadNote = useCallback(async (noteId: string) => {
-    if (noteId === lastLoadedNoteIdRef.current && currentNote) {
+    if (noteId === lastLoadedNoteIdRef.current) {
       return;
     }
 
@@ -176,14 +175,13 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     }
   }, []);
 
-  // Load a specific note
   const updateNoteTitle = useCallback(
     (newTitle: string) => {
-      if (!noteIdFromParams) return;
+      if (!activeNoteId) return;
 
       setNotes((prevNotes) =>
         prevNotes.map((note) =>
-          note.id.toString() === noteIdFromParams
+          note.id.toString() === activeNoteId
             ? {
                 ...note,
                 title: newTitle,
@@ -197,7 +195,7 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
         setCurrentNote((prev) => (prev ? { ...prev, title: newTitle } : null));
       }
     },
-    [noteIdFromParams, currentNote]
+    [activeNoteId, currentNote]
   );
 
   // Refresh all data at once
@@ -210,12 +208,12 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     const promises = [fetchNotes(selectedOrg.slug), fetchUsers(selectedOrg.id.toString())];
 
     // If we have a current note ID, also refresh that
-    if (noteIdFromParams) {
-      promises.push(loadNote(noteIdFromParams));
+    if (activeNoteId) {
+      promises.push(loadNote(activeNoteId));
     }
 
     await Promise.all(promises);
-  }, [selectedOrg?.slug, selectedOrg?.id, noteIdFromParams, fetchNotes, fetchUsers, loadNote]);
+  }, [selectedOrg?.slug, selectedOrg?.id, activeNoteId, fetchNotes, fetchUsers, loadNote]);
 
   // Initial data loading when organization changes
   useEffect(() => {
@@ -242,10 +240,10 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
 
   // Update currentNoteId when URL params change
   useEffect(() => {
-    if (noteIdFromParams) {
-      loadNote(noteIdFromParams);
+    if (activeNoteId) {
+      loadNote(activeNoteId);
     }
-  }, [noteIdFromParams, loadNote]);
+  }, [activeNoteId, loadNote]);
 
   // Calculate overall loading state ignoring isLoadingNote
   const isLoading = isLoadingNotes || isLoadingUsers || isLoadingOrg;
@@ -282,7 +280,7 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     // Fetch all data at once
     refreshAll,
 
-    noteIdFromParams,
+    activeNoteId,
   };
 
   return <NotebookContext.Provider value={value}>{children}</NotebookContext.Provider>;
