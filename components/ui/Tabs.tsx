@@ -42,7 +42,7 @@ const TabItem: React.FC<{
   };
 
   const styles = cn(
-    'text-sm font-medium flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 cursor-pointer transition-all duration-150',
+    'text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 cursor-pointer transition-all duration-150',
     variant === 'pill'
       ? [
           'px-4 py-2 rounded-full',

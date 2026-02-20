@@ -109,7 +109,7 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
         {/* Fixed TopBar starting from LeftSidebar edge */}
         <div
           className={`fixed top-0 right-0 z-[60] tablet:!z-50 tablet:!bg-white
-                        left-0 tablet:!left-72 tablet:sidebar-compact:!left-72 tablet:max-sidebar-compact:!left-[70px]
+                        left-0 tablet:!left-[240px] tablet:sidebar-compact:!left-[240px] tablet:max-sidebar-compact:!left-[70px]
                         transition-transform duration-300 ease-in-out tablet:!transform-none
                         ${isMobileTopNavHidden && !isLeftSidebarOpen ? '-translate-y-full' : 'translate-y-0'}`}
         >
@@ -139,15 +139,15 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
             tablet:!transition-none
 
             tablet:!translate-x-0
-            tablet:sidebar-compact:!w-72
+            tablet:sidebar-compact:!w-[240px]
             tablet:max-sidebar-compact:!w-[70px]
 
             fixed transition-all duration-150
             ${isCompact ? 'top-[48px] h-[calc(100vh-48px)]' : 'top-[64px] h-[calc(100vh-64px)]'}
-            w-[280px]
+            w-[240px]
             ${isLeftSidebarOpen ? '!translate-x-0' : '!-translate-x-full'}
 
-            tablet:!block tablet:!w-72
+            tablet:!block tablet:!w-[240px]
           `}
         >
           <Suspense fallback={<div className="w-full h-screen bg-gray-100 animate-pulse"></div>}>

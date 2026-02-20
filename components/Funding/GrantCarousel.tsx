@@ -1,12 +1,14 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FeedEntry, FeedGrantContent, transformFundraiseToFeedEntry } from '@/types/feed';
+import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { Carousel } from '@/components/ui/Carousel';
 import { FundingProposalCard } from './FundingProposalCard';
+import { ProposalCardSkeleton } from '@/components/skeletons/ProposalCardSkeleton';
 import { cn } from '@/utils/styles';
 import { ArrowRight, RefreshCw } from 'lucide-react';
+import { useFeed } from '@/hooks/useFeed';
 
 interface GrantCarouselProps {
   grant: FeedEntry;
@@ -26,11 +28,48 @@ function formatCompactUSD(usd: number): string {
 export const GrantCarousel: FC<GrantCarouselProps> = ({ grant, className }) => {
   const content = grant.content as FeedGrantContent;
   const grantData = content.grant;
-  const fundraises = content.fundraises ?? [];
   const grantHref = `/grant/${content.id}/${content.slug}`;
 
+  const sectionRef = useRef<HTMLElement>(null);
+  const [hasBeenVisible, setHasBeenVisible] = useState(false);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHasBeenVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const { entries, isLoading, hasMore, loadMore } = useFeed(
+    'all',
+    hasBeenVisible
+      ? {
+          endpoint: 'funding_feed',
+          contentType: 'PREREGISTRATION',
+          grantId: grantData.id,
+          ordering: 'best',
+        }
+      : {
+          endpoint: 'funding_feed',
+          contentType: 'PREREGISTRATION',
+          initialData: { entries: [], hasMore: false },
+        }
+  );
+
+  const showSkeleton = hasBeenVisible && isLoading && entries.length === 0;
+
   return (
-    <section className={cn('py-5', className)}>
+    <section ref={sectionRef} className={cn('py-5', className)}>
       {/* Title + badge */}
       <div className="flex items-center gap-2.5 flex-wrap">
         <Link href={grantHref} className="group">
@@ -57,48 +96,59 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({ grant, className }) => {
           <RefreshCw className="h-3 w-3" />
           Rolling fund
         </span>
-        <span className="text-gray-300 text-[22px]">•</span>
-        <span>
-          <span className="font-mono">{fundraises.length}</span> proposals
-        </span>
-        <span className="text-gray-300 text-[22px]">•</span>
-        <Link
-          href={grantHref}
-          className="font-semibold text-blue-600 hover:text-blue-700 underline underline-offset-2 inline-flex items-center gap-1 transition-colors"
-        >
-          Submit a proposal →
-        </Link>
+        {entries.length > 0 && (
+          <>
+            <span className="text-gray-300 text-[22px]">•</span>
+            <span>
+              <span className="font-mono">{entries.length}</span> proposals
+            </span>
+            <span className="ml-auto" />
+            <Link
+              href={grantHref}
+              className="font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition-colors"
+            >
+              Submit a proposal <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </>
+        )}
       </div>
 
       {/* Carousel of proposals */}
       <div className="mt-4">
-        {fundraises.length > 0 ? (
-          <Carousel>
-            {fundraises.map((fundraise) => (
-              <div
-                key={fundraise.postId ?? fundraise.id}
-                className="flex-shrink-0 w-[240px] sm:w-[260px] md:w-[240px]"
-              >
-                <FundingProposalCard
-                  entry={transformFundraiseToFeedEntry(fundraise)}
-                  showActions={false}
-                />
+        {showSkeleton ? (
+          <div className="flex gap-4 py-3 px-3 -mx-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex-shrink-0 w-[240px] sm:w-[260px] md:w-[240px]">
+                <ProposalCardSkeleton />
               </div>
             ))}
+          </div>
+        ) : entries.length > 0 ? (
+          <Carousel onReachEnd={hasMore ? loadMore : undefined}>
+            {entries.map((entry) => (
+              <div key={entry.id} className="flex-shrink-0 w-[240px] sm:w-[260px] md:w-[240px]">
+                <FundingProposalCard entry={entry} showActions={false} />
+              </div>
+            ))}
+            {isLoading && (
+              <div className="flex-shrink-0 w-[240px] sm:w-[260px] md:w-[240px]">
+                <ProposalCardSkeleton />
+              </div>
+            )}
           </Carousel>
-        ) : (
-          <div className="flex items-center justify-center py-6 rounded-lg border border-dashed border-gray-200 bg-gray-50">
+        ) : !isLoading ? (
+          <div className="flex items-center justify-center py-6 rounded-lg border border-dashed border-gray-200">
             <div className="text-center">
               <p className="text-sm text-gray-400">No proposals yet</p>
               <Link
                 href={grantHref}
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 mt-1 inline-block"
+                className="text-sm font-medium text-blue-600 hover:text-blue-700 mt-1 inline-flex items-center gap-1 transition-colors"
               >
-                Be the first to apply
+                Submit a proposal <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </section>
   );

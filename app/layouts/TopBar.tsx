@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   User,
-  ArrowLeft,
   ChartNoAxesColumnIncreasing,
   Search as SearchIcon,
   Shield,
@@ -27,6 +26,7 @@ import {
   faGrid3 as faGrid3Light,
   faMagnifyingGlass,
 } from '@fortawesome/pro-light-svg-icons';
+import { faArrowLeftLong } from '@fortawesome/pro-solid-svg-icons';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
 import { toTitleCase } from '@/utils/stringUtils';
@@ -44,6 +44,7 @@ interface TopBarProps {
 
 interface PageInfo {
   title: string;
+  subtitle?: string;
   icon?: React.ReactNode;
 }
 
@@ -78,6 +79,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (['/', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(pathname)) {
     return {
       title: 'Home',
+      subtitle: 'Preprint feed',
       icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
     };
   }
@@ -86,6 +88,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname === '/browse') {
     return {
       title: 'Browse',
+      subtitle: 'Explore topics',
       icon: <FontAwesomeIcon icon={faGrid3Light} fontSize={24} color="#000" />,
     };
   }
@@ -116,6 +119,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname === '/lists' || pathname.startsWith('/list/')) {
     return {
       title: 'Your Lists',
+      subtitle: 'Saved items',
       icon: <FontAwesomeIcon icon={faBookmarkLight} fontSize={24} color="#000" />,
     };
   }
@@ -123,6 +127,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/paper/create')) {
     return {
       title: 'Submit your paper',
+      subtitle: 'New submission',
       icon: <Icon name="submit2" size={24} className="text-gray-900" />,
     };
   }
@@ -130,34 +135,23 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/bounty/create')) {
     return {
       title: 'Create Bounty',
-      icon: <Icon name="earn1" size={24} className="text-gray-900" />,
-    };
-  }
-
-  if (pathname.startsWith('/bounties')) {
-    return {
-      title: 'Bounties',
+      subtitle: 'New bounty',
       icon: <Icon name="earn1" size={24} className="text-gray-900" />,
     };
   }
 
   if (pathname.startsWith('/earn')) {
     return {
-      title: 'Earn ResearchCoin',
+      title: 'Earn',
+      subtitle: 'ResearchCoin for peer review',
       icon: <Icon name="earn1" size={24} className="text-gray-900" />,
-    };
-  }
-
-  if (pathname.startsWith('/funding')) {
-    return {
-      title: 'Fund',
-      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
 
   if (pathname.startsWith('/journal')) {
     return {
-      title: 'RH Journal',
+      title: 'Journal',
+      subtitle: 'RH peer-reviewed journal',
       icon: <Icon name="rhJournal2" size={24} className="text-gray-900" />,
     };
   }
@@ -165,6 +159,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/leaderboard')) {
     return {
       title: 'Leaderboard',
+      subtitle: 'Top contributors',
       icon: <ChartNoAxesColumnIncreasing size={24} color="#404040" strokeWidth={2} />,
     };
   }
@@ -172,27 +167,15 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/moderators')) {
     return {
       title: 'Moderation Dashboard',
+      subtitle: 'Content review',
       icon: <Shield size={24} className="text-gray-900" />,
     };
   }
 
-  if (pathname.startsWith('/fund/grants')) {
+  if (['/funding', '/fund'].includes(pathname)) {
     return {
-      title: 'Request for Proposals',
-      icon: <Icon name="fund" size={24} className="text-gray-900" />,
-    };
-  }
-
-  if (pathname === '/fund/needs-funding') {
-    return {
-      title: 'Research Proposals',
-      icon: <Icon name="createBounty" size={24} className="text-gray-900" />,
-    };
-  }
-
-  if (pathname.startsWith('/fund')) {
-    return {
-      title: 'Funding',
+      title: 'Fund',
+      subtitle: 'Fund or get funding',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
@@ -201,6 +184,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/grant')) {
     return {
       title: 'RFP',
+      subtitle: 'Grant details',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
@@ -264,6 +248,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
 
       return {
         title: topicName,
+        subtitle: 'Topic',
         icon: emoji ? (
           <span className="text-2xl">{emoji}</span>
         ) : (
@@ -283,18 +268,15 @@ const useSmartBack = () => {
   const [previousRoute, setPreviousRoute] = useState<string | null>(null);
 
   useEffect(() => {
-    // Store the previous route for smart back navigation
     const handleRouteChange = (url: string) => {
       const currentPathBase = pathname.split('/').slice(0, 3).join('/');
       const newPathBase = url.split('/').slice(0, 3).join('/');
 
-      // Only update if it's a different base route
       if (currentPathBase !== newPathBase) {
         setPreviousRoute(pathname);
       }
     };
 
-    // Listen for route changes
     const originalPush = router.push;
     router.push = (...args) => {
       handleRouteChange(args[0].toString());
@@ -307,7 +289,6 @@ const useSmartBack = () => {
   }, [pathname, router]);
 
   const goBack = () => {
-    // If no history exists, always go to homepage
     if (window.history.length <= 1) {
       router.push('/');
       return;
@@ -317,7 +298,6 @@ const useSmartBack = () => {
     const isSpecialRoute = specialRoutes.some((route) => pathname.startsWith(route));
 
     if (isSpecialRoute) {
-      // For special routes, try to go back, with fallback to home
       if (previousRoute && previousRoute !== pathname) {
         router.push(previousRoute);
       } else {
@@ -344,7 +324,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   const scrollContainerRef = useScrollContainer();
   const [showFeedTabs, setShowFeedTabs] = useState(false);
-  const [isCompact, setIsCompact] = useState(false);
 
   const { tabs, activeTab, handleTabChange, isFeedPage } = useFeedTabs();
 
@@ -353,14 +332,12 @@ export function TopBar({ onMenuClick }: TopBarProps) {
       if (scrollContainerRef?.current) {
         const scrolled = scrollContainerRef.current.scrollTop > 100;
         setShowFeedTabs(scrolled);
-        setIsCompact(scrolled);
       }
     };
 
     const container = scrollContainerRef?.current;
     if (container) {
       container.addEventListener('scroll', handleScroll, { passive: true });
-      // Initial check
       handleScroll();
       return () => container.removeEventListener('scroll', handleScroll);
     }
@@ -446,114 +423,110 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   return (
     <>
-      <div
-        className={`border-b border-gray-200 bg-white transition-all duration-150 ${
-          isCompact ? 'h-[48px]' : 'h-[64px]'
-        }`}
-      >
+      <div className="border-b border-gray-200 bg-white h-[64px]">
         <div className="h-full flex items-center justify-between px-4 lg:px-8">
           {/* Left side - Back button + Page title OR FeedTabs */}
           <div className="flex items-center min-w-0 flex-1 mr-4 h-full">
-            {showFeedTabs && isFeedPage ? (
-              <div className="flex items-center w-full max-w-md h-full gap-4">
-                {pageInfo?.icon && (
-                  <div
-                    className={`${
-                      pageInfo.title ? 'hidden tablet:!block' : 'block'
-                    } flex-shrink-0 opacity-80 scale-90`}
-                  >
-                    {pageInfo.icon}
-                  </div>
+            {/* Mobile logo - leftmost position */}
+            <Link href="/" className="block tablet:!hidden mr-2">
+              <div className="rounded-full bg-gray-100 flex items-center justify-center w-11 h-11">
+                <Logo noText size={36} className="mt-[-2px]" />
+              </div>
+            </Link>
+
+            {/* Mobile back button - show when not on root navigation pages */}
+            {pageInfo && !isRootNavigationPage(pathname) && (
+              <div className="block tablet:!hidden mr-1">
+                <button
+                  onClick={goBack}
+                  className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <FontAwesomeIcon icon={faArrowLeftLong} className="text-gray-700" fontSize={18} />
+                </button>
+              </div>
+            )}
+
+            {/* Mobile page title - next to hamburger/back button */}
+            {pageInfo && (
+              <div className="flex tablet:!hidden items-center min-w-0">
+                <div>
+                  {pageInfo.title ? (
+                    <h1 className="font-semibold text-gray-900 leading-tight truncate text-lg flex items-baseline gap-2">
+                      {pageInfo.title}
+                      {pageInfo.subtitle && !(showFeedTabs && isFeedPage) && (
+                        <>
+                          <span className="text-gray-200 font-light text-xl">/</span>
+                          <span className="text-sm font-normal text-gray-600">
+                            {pageInfo.subtitle}
+                          </span>
+                        </>
+                      )}
+                    </h1>
+                  ) : (
+                    pageInfo.icon && (
+                      <div className="flex-shrink-0 opacity-90 scale-90 origin-left">
+                        {pageInfo.icon}
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Desktop back button - show when we have page info but not for root navigation pages */}
+            {pageInfo && !isRootNavigationPage(pathname) && (
+              <div className="hidden tablet:!block mr-1">
+                <button
+                  onClick={goBack}
+                  className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <FontAwesomeIcon
+                    icon={faArrowLeftLong}
+                    className="text-gray-700 mt-1"
+                    fontSize={23}
+                  />
+                </button>
+              </div>
+            )}
+
+            {/* Page title - only on desktop */}
+            {pageInfo && (
+              <div className="hidden tablet:!flex items-baseline min-w-0 flex-shrink-0 gap-2.5">
+                <div className="min-w-0">
+                  {pageInfo.title && (
+                    <h1
+                      className="font-semibold text-gray-900 leading-tight truncate"
+                      style={{ fontSize: '28px', letterSpacing: '-0.75px' }}
+                    >
+                      {pageInfo.title}
+                    </h1>
+                  )}
+                </div>
+                {pageInfo.subtitle && !(showFeedTabs && isFeedPage) && (
+                  <>
+                    <span className="text-gray-200 font-light" style={{ fontSize: '28px' }}>
+                      /
+                    </span>
+                    <span className="text-sm text-gray-600 whitespace-nowrap">
+                      {pageInfo.subtitle}
+                    </span>
+                  </>
                 )}
-                <div className="flex-1 h-full min-w-0">
+              </div>
+            )}
+
+            {/* Feed tabs - shown on scroll for feed pages */}
+            {showFeedTabs && isFeedPage && (
+              <div className="hidden tablet:!flex items-center h-full ml-6">
+                <div className="h-full min-w-0">
                   <FeedTabs
                     activeTab={activeTab}
                     tabs={tabs}
                     onTabChange={handleTabChange}
-                    isCompact={isCompact}
+                    isCompact={false}
                   />
                 </div>
               </div>
-            ) : (
-              <>
-                {/* Mobile logo - leftmost position */}
-                <Link href="/" className="block tablet:!hidden mr-2">
-                  <div
-                    className={`rounded-full bg-gray-100 flex items-center justify-center transition-all ${
-                      isCompact ? 'w-8 h-8' : 'w-11 h-11'
-                    }`}
-                  >
-                    <Logo noText size={isCompact ? 28 : 36} className="mt-[-2px]" />
-                  </div>
-                </Link>
-
-                {/* Mobile back button - show when not on root navigation pages */}
-                {pageInfo && !isRootNavigationPage(pathname) && (
-                  <div className="block tablet:!hidden mr-1">
-                    <button
-                      onClick={goBack}
-                      className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
-                    >
-                      <ArrowLeft className={`text-gray-600 ${isCompact ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                    </button>
-                  </div>
-                )}
-
-                {/* Mobile page title - next to hamburger/back button */}
-                {pageInfo && (
-                  <div className="flex tablet:!hidden items-center min-w-0">
-                    <div>
-                      {pageInfo.title ? (
-                        <h1
-                          className={`font-bold text-gray-900 leading-tight truncate transition-all ${
-                            isCompact ? 'text-md' : 'text-lg'
-                          }`}
-                        >
-                          {pageInfo.title}
-                        </h1>
-                      ) : (
-                        pageInfo.icon && (
-                          <div className="flex-shrink-0 opacity-90 scale-90 origin-left">
-                            {pageInfo.icon}
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Desktop back button - show when we have page info but not for root navigation pages */}
-                {pageInfo && !isRootNavigationPage(pathname) && (
-                  <div className="hidden tablet:!block mr-3">
-                    <button
-                      onClick={goBack}
-                      className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
-                    >
-                      <ArrowLeft className={`text-gray-600 ${isCompact ? 'h-5 w-5' : 'h-6 w-6'}`} />
-                    </button>
-                  </div>
-                )}
-
-                {/* Page title - only on desktop */}
-                {pageInfo && (
-                  <div className="hidden tablet:!flex items-center min-w-0">
-                    {pageInfo.icon && (
-                      <div className={`mr-3 flex-shrink-0 transition-all`}>{pageInfo.icon}</div>
-                    )}
-                    <div className="min-w-0">
-                      {pageInfo.title && (
-                        <h1
-                          className={`font-bold text-gray-900 leading-tight truncate transition-all ${
-                            isCompact ? 'text-lg' : 'text-xl'
-                          }`}
-                        >
-                          {pageInfo.title}
-                        </h1>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </>
             )}
           </div>
 
@@ -567,41 +540,17 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               {user && (
                 <>
                   <Link href="/researchcoin" className="flex items-center">
-                    <div
-                      className={`flex items-center justify-center hover:bg-gray-100 rounded-md transition-all ${
-                        isCompact ? 'p-1.5' : 'p-2'
-                      }`}
-                    >
-                      <Icon
-                        name="rscThin"
-                        size={isCompact ? 24 : 28}
-                        className="text-gray-500 transition-all"
-                      />
+                    <div className="flex items-center justify-center hover:bg-gray-100 rounded-md p-2">
+                      <Icon name="rscThin" size={28} className="text-gray-500" />
                     </div>
                   </Link>
 
                   <Link href="/notifications" className="flex items-center">
-                    <div
-                      className={`flex items-center justify-center hover:bg-gray-100 rounded-md transition-all relative ${
-                        isCompact ? 'p-1.5' : 'p-2'
-                      }`}
-                    >
-                      <Icon
-                        name="notification"
-                        size={isCompact ? 24 : 28}
-                        className="text-gray-500 transition-all"
-                      />
+                    <div className="flex items-center justify-center hover:bg-gray-100 rounded-md p-2 relative">
+                      <Icon name="notification" size={28} className="text-gray-500" />
                       {unreadCount > 0 && (
-                        <div
-                          className={`absolute rounded-full bg-primary-600 text-white flex items-center justify-center transition-all ${
-                            isCompact ? 'top-0.5 -right-0 h-3.5 w-3.5' : 'top-1 -right-0 h-4 w-4'
-                          }`}
-                        >
-                          <span
-                            className={`font-medium transition-all ${
-                              isCompact ? 'text-[8px]' : 'text-[9px]'
-                            }`}
-                          >
+                        <div className="absolute rounded-full bg-primary-600 text-white flex items-center justify-center top-1 -right-0 h-4 w-4">
+                          <span className="font-medium text-[9px]">
                             {unreadCount > 9 ? '9+' : unreadCount}
                           </span>
                         </div>
@@ -614,34 +563,30 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               {/* Avatar/Login buttons */}
               {isLoading ? (
                 <div className="flex items-center">
-                  <div
-                    className={`bg-gray-300 rounded-full animate-pulse transition-all ${
-                      isCompact ? 'w-8 h-8' : 'w-10 h-10'
-                    }`}
-                  ></div>
+                  <div className="bg-gray-300 rounded-full animate-pulse w-10 h-10"></div>
                 </div>
               ) : user ? (
                 <UserMenu
                   user={user}
                   onViewProfile={handleViewProfile}
-                  avatarSize={isCompact ? 28 : 32}
+                  avatarSize={32}
                   percent={calculatePercent()}
                 />
               ) : (
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="ghost"
-                    size={isCompact ? 'sm' : 'md'}
+                    size="md"
                     onClick={handleLogin}
-                    className="text-gray-700 hover:text-gray-900 whitespace-nowrap transition-all"
+                    className="text-gray-700 hover:text-gray-900 whitespace-nowrap"
                   >
                     Log in
                   </Button>
                   <Button
                     variant="default"
-                    size={isCompact ? 'sm' : 'md'}
+                    size="md"
                     onClick={handleSignUp}
-                    className="bg-rhBlue-500 hover:bg-rhBlue-600 text-white whitespace-nowrap transition-all"
+                    className="bg-rhBlue-500 hover:bg-rhBlue-600 text-white whitespace-nowrap"
                   >
                     Sign up
                   </Button>
@@ -654,36 +599,28 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               {/* Mobile search icon */}
               <button
                 onClick={() => setIsSearchModalOpen(true)}
-                className={`rounded-lg hover:bg-gray-100 transition-all ${
-                  isCompact ? 'p-1' : 'p-2'
-                }`}
+                className="rounded-lg hover:bg-gray-100 p-2"
               >
-                <SearchIcon
-                  className={`text-gray-600 transition-all ${isCompact ? 'h-5 w-5' : 'h-6 w-6'}`}
-                />
+                <SearchIcon className="text-gray-600 h-6 w-6" />
               </button>
 
               {isLoading ? (
                 <div className="flex items-center">
-                  <div
-                    className={`bg-gray-300 rounded-full animate-pulse transition-all ${
-                      isCompact ? 'w-8 h-8' : 'w-10 h-10'
-                    }`}
-                  ></div>
+                  <div className="bg-gray-300 rounded-full animate-pulse w-10 h-10"></div>
                 </div>
               ) : user ? (
                 <UserMenu
                   user={user}
                   onViewProfile={handleViewProfile}
-                  avatarSize={isCompact ? (calculatePercent() === 100 ? 32 : 24) : 40}
+                  avatarSize={40}
                   percent={calculatePercent()}
                 />
               ) : (
                 <Button
                   variant="default"
-                  size={isCompact ? 'sm' : 'md'}
+                  size="md"
                   onClick={handleSignUp}
-                  className="bg-rhBlue-500 hover:bg-rhBlue-600 text-white whitespace-nowrap transition-all"
+                  className="bg-rhBlue-500 hover:bg-rhBlue-600 text-white whitespace-nowrap"
                 >
                   Sign up
                 </Button>

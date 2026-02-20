@@ -7,18 +7,26 @@ import { cn } from '@/utils/styles';
 interface CarouselProps {
   children: ReactNode;
   className?: string;
+  onReachEnd?: () => void;
 }
 
-export const Carousel: FC<CarouselProps> = ({ children, className }) => {
+export const Carousel: FC<CarouselProps> = ({ children, className, onReachEnd }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const onReachEndRef = useRef(onReachEnd);
+  onReachEndRef.current = onReachEnd;
 
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
     setCanScrollLeft(el.scrollLeft > 1);
-    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    const nearEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 100;
+    setCanScrollRight(!nearEnd && el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    if (nearEnd && onReachEndRef.current) {
+      onReachEndRef.current();
+    }
   }, []);
 
   useEffect(() => {

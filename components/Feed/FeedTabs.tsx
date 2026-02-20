@@ -61,14 +61,14 @@ export const FeedTabs: FC<FeedTabsProps> = ({
 
   return (
     <div className="h-full">
-      <div className="flex items-center justify-between gap-2 h-full">
+      <div className="flex items-stretch justify-between gap-2 h-full">
         <div className="min-w-0 flex-1 h-full">
           <Tabs
             tabs={tabs}
             activeTab={activeTab}
             onTabChange={handleTabChange}
             disabled={isLoading}
-            className={`!border-b-0 h-full py-0 ${isCompact ? 'h-[48px]' : 'h-[56px]'}`}
+            className="!border-b-0 h-full py-0"
           />
         </div>
         {/* Sorting and gear icon for Following tab */}

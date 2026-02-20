@@ -83,7 +83,7 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
 
     if (isFundPage) {
       return [
-        { id: 'grants', label: 'RFPs', href: getHref('grants'), scroll: false },
+        { id: 'grants', label: 'Opportunities', href: getHref('grants'), scroll: false },
         { id: 'needs-funding', label: 'Proposals', href: getHref('needs-funding'), scroll: false },
       ];
     }
