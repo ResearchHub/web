@@ -4,12 +4,15 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { useGrants } from '@/contexts/GrantContext';
 import { GrantCarousel } from '@/components/Funding/GrantCarousel';
 import { ActivityFeed } from '@/components/Funding/ActivityFeed';
+import { FundingPageTabs } from '@/components/Funding/FundingPageTabs';
 
 export default function FundingPage() {
   const { grants, isLoading } = useGrants();
 
   return (
     <PageLayout rightSidebar={<ActivityFeed />}>
+      <FundingPageTabs />
+
       {isLoading ? (
         <div className="py-4">
           <div className="space-y-2 mb-8">
@@ -32,11 +35,9 @@ export default function FundingPage() {
         </div>
       ) : (
         <div className="py-4">
-          <div className="">
-            {grants.map((grant) => (
-              <GrantCarousel key={grant.id} grant={grant} />
-            ))}
-          </div>
+          {grants.map((grant) => (
+            <GrantCarousel key={grant.id} grant={grant} />
+          ))}
 
           {grants.length === 0 && (
             <p className="text-center text-gray-400 py-16">

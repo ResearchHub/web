@@ -35,7 +35,7 @@ const ProposalListContext = createContext<ProposalListContextValue | null>(null)
 
 interface ProposalListProviderProps {
   children: ReactNode;
-  grantId: number;
+  grantId?: number;
 }
 
 export function ProposalListProvider({ children, grantId }: ProposalListProviderProps) {
