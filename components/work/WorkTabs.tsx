@@ -2,6 +2,7 @@
 
 import {
   FileText,
+  LayoutDashboard,
   LayoutList,
   Star,
   MessageCircle,
@@ -29,6 +30,7 @@ import { colors } from '@/app/styles/colors';
 
 export type TabType =
   | 'paper'
+  | 'overview'
   | 'proposals'
   | 'updates'
   | 'reviews'
@@ -88,13 +90,13 @@ export const WorkTabs = ({
   const getActiveTabFromPath = (path: string): TabType => {
     if (path.includes('/updates')) return 'updates';
     if (path.includes('/conversation')) return 'conversation';
-    if (path.includes('/details') && contentType === 'grant') return 'paper';
+    if (path.includes('/details') && contentType === 'grant') return 'overview';
     if (path.includes('/applications') && contentType === 'grant') return 'proposals';
     if (path.includes('/applications')) return 'applications';
     if (path.includes('/reviews')) return 'reviews';
     if (path.includes('/bounties')) return 'bounties';
     if (path.includes('/history') && hasResearchHubJournalVersions) return 'history';
-    if (contentType === 'grant') return 'proposals';
+    if (contentType === 'grant') return 'overview';
     return 'paper';
   };
 
@@ -149,7 +151,7 @@ export const WorkTabs = ({
         applications: `${baseUrl}/applications`,
         bounties: `${baseUrl}/bounties`,
         history: `${baseUrl}/history`,
-        ...(contentType === 'grant' ? { paper: `${baseUrl}/details` } : {}),
+        ...(contentType === 'grant' ? { proposals: `${baseUrl}/applications` } : {}),
       };
       const newUrl = tabUrlMap[tab] || baseUrl;
 
@@ -167,23 +169,22 @@ export const WorkTabs = ({
     return 'Post';
   };
 
-  // Build grant-specific tabs: Proposals, Details, Conversation, Activity
   const grantTabs = [
+    {
+      id: 'overview',
+      label: (
+        <div className="flex items-center">
+          <LayoutDashboard className="h-4 w-4 mr-2" />
+          <span>Overview</span>
+        </div>
+      ),
+    },
     {
       id: 'proposals',
       label: (
         <div className="flex items-center">
           <LayoutList className="h-4 w-4 mr-2" />
           <span>Proposals</span>
-        </div>
-      ),
-    },
-    {
-      id: 'paper',
-      label: (
-        <div className="flex items-center">
-          <FileText className="h-4 w-4 mr-2" />
-          <span>Details</span>
         </div>
       ),
     },

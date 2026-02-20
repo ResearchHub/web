@@ -27,29 +27,14 @@ export async function getGrant(id: string): Promise<Work> {
   }
 }
 
-export function getWorkHTMLContent(work: Work): Promise<string | undefined> {
-  if (!work.contentUrl) return Promise.resolve(undefined);
-
-  return PostService.getContent(work.contentUrl).catch((error) => {
-    console.error('Failed to fetch content:', error);
-    return undefined;
-  });
-}
-
 export async function GrantPageServer({ id, defaultTab }: GrantPageServerProps) {
   const work = await getGrant(id);
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
-  const contentPromise = getWorkHTMLContent(work);
 
   return (
     <PageLayout rightSidebar={<GrantRightSidebar work={work} metadata={metadata} />}>
       <Suspense>
-        <GrantDocument
-          work={work}
-          metadata={metadata}
-          contentPromise={contentPromise}
-          defaultTab={defaultTab}
-        />
+        <GrantDocument work={work} metadata={metadata} defaultTab={defaultTab} />
         <SearchHistoryTracker work={work} />
         <WorkDocumentTracker work={work} metadata={metadata} tab={defaultTab} />
       </Suspense>
