@@ -12,7 +12,7 @@ import {
   getTemplatePlainText,
 } from '@/components/Editor/lib/utils/documentTitle';
 import { useCreateNote, useNoteContent } from '@/hooks/useNote';
-import { NoteCreationPopover } from '../components/NoteCreationPopover';
+import { NoteCreationPopover } from '@/components/Notebook/NoteCreationPopover';
 
 export default function OrganizationPage() {
   const router = useRouter();

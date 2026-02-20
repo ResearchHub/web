@@ -1,6 +1,6 @@
 'use client';
 
-import { PublishingForm } from '@/app/notebook/components/PublishingForm';
+import { PublishingForm } from '@/components/Notebook/PublishingForm';
 
 interface RightSidebarProps {
   defaultArticleType?: string;

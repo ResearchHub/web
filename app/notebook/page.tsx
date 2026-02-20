@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { NotePaperSkeleton } from './components/NotePaperSkeleton';
+import { NotePaperSkeleton } from '@/components/Notebook/NotePaperSkeleton';
 
 export default function NotebookPage() {
   const router = useRouter();

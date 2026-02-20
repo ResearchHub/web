@@ -1,6 +1,6 @@
 'use client';
 
-import { NoteListItem } from '@/app/notebook/components/LeftSidebar/NoteListItem';
+import { NoteListItem } from '@/components/Notebook/LeftSidebar/NoteListItem';
 import { Note } from '@/types/note';
 import { NoteListSkeleton } from '@/components/skeletons/NoteListSkeleton';
 import { useTransition } from 'react';

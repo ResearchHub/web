@@ -16,7 +16,7 @@ import {
 } from '@/components/Editor/lib/utils/documentTitle';
 import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
 
-import { NoteEditorLayout } from '@/app/notebook/components/NoteEditorLayout';
+import { NoteEditorLayout } from '@/components/Notebook/NoteEditorLayout';
 import { DEFAULT_GRANT_TITLE } from './lib/constants';
 
 interface CreateGrantModalProps {
