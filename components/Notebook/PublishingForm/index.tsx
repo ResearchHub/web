@@ -110,12 +110,102 @@ const FORM_DEFAULTS = {
   applicationDeadline: null,
 } satisfies Partial<PublishingFormData>;
 
+const mapContentTypeToArticleType = (contentType: string): PublishingFormData['articleType'] => {
+  if (contentType === 'preregistration') return 'preregistration';
+  if (contentType === 'funding_request') return 'grant';
+  return 'discussion';
+};
+
+const populateGrantFields = (grant: any, setValue: (name: any, value: any) => void) => {
+  if (!grant) return;
+  if (grant.endDate) setValue('applicationDeadline', new Date(grant.endDate));
+  if (grant.description) setValue('shortDescription', grant.description);
+  if (grant.organization) setValue('organization', grant.organization);
+  if (grant.amount) setValue('budget', grant.amount.usd.toString());
+  if (grant.contacts?.length > 0) {
+    setValue(
+      'contacts',
+      grant.contacts.map((c: any) => ({
+        value: c.id.toString(),
+        label: c.authorProfile?.fullName || c.name,
+      }))
+    );
+  }
+};
+
+const populateFromPost = (post: any, setValue: (name: any, value: any) => void) => {
+  setValue('workId', post.id.toString());
+  setValue('articleType', mapContentTypeToArticleType(post.contentType));
+
+  if (post.contentType === 'preregistration') {
+    setValue('budget', post.fundraise?.goalAmount.usd.toString());
+  }
+  if (post.contentType === 'funding_request') {
+    populateGrantFields(post.grant, setValue);
+  }
+  if (post.image) {
+    setValue('coverImage', { file: null, url: post.image });
+  }
+  if (post.topics?.length > 0) {
+    setValue(
+      'topics',
+      post.topics.map((t: any) => ({ value: t.id.toString(), label: t.name }))
+    );
+  }
+  if (post.authors?.length > 0) {
+    setValue(
+      'authors',
+      post.authors.map((a: any) => ({ value: a.authorId.toString(), label: a.name }))
+    );
+  }
+};
+
+const restoreFromStorage = (
+  data: Record<string, any>,
+  setValue: (name: any, value: any) => void
+) => {
+  for (const [key, value] of Object.entries(data)) {
+    setValue(key, key === 'applicationDeadline' ? new Date(value) : value);
+  }
+};
+
+interface ArticleTypeResult {
+  type: PublishingFormData['articleType'];
+  source: 'searchParam' | 'template' | 'default';
+}
+
+const resolveArticleType = (
+  params: { get(key: string): string | null } | null,
+  defaultArticleType?: string
+): ArticleTypeResult | null => {
+  if (params?.get('newFunding') === 'true')
+    return { type: 'preregistration', source: 'searchParam' };
+  if (params?.get('newResearch') === 'true') return { type: 'discussion', source: 'searchParam' };
+  if (params?.get('newGrant') === 'true') return { type: 'grant', source: 'searchParam' };
+
+  const template = params?.get('template');
+  if (template === 'preregistration') return { type: 'preregistration', source: 'template' };
+  if (template === 'grant') return { type: 'grant', source: 'template' };
+  if (template) return { type: 'discussion', source: 'template' };
+
+  if (defaultArticleType) {
+    return { type: defaultArticleType as PublishingFormData['articleType'], source: 'default' };
+  }
+  return null;
+};
+
+const getRedirectPath = (articleType: string, responseId: string, slug: string): string => {
+  if (articleType === 'preregistration') return `/fund/${responseId}/${slug}?new=true`;
+  if (articleType === 'grant') return `/grant/${responseId}/${slug}`;
+  return `/post/${responseId}/${slug}`;
+};
+
 export function PublishingForm({
   bountyAmount,
   onBountyClick,
   defaultArticleType,
   isModal,
-}: PublishingFormProps) {
+}: Readonly<PublishingFormProps>) {
   const { currentNote: note, editor } = useNotebookContext();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -135,117 +225,26 @@ export function PublishingForm({
     }
   }, [note?.id, methods]);
 
-  // Load data with priority:
-  // 1. note.post data
-  // 2. localStorage data
-  // 3. URL search params
   useEffect(() => {
     if (!note) return;
 
     if (note.post) {
-      methods.setValue('workId', note.post.id.toString());
-      methods.setValue(
-        'articleType',
-        note.post.contentType === 'preregistration'
-          ? 'preregistration'
-          : note.post.contentType === 'funding_request'
-            ? 'grant'
-            : 'discussion'
-      );
-
-      if (note.post.contentType === 'preregistration') {
-        methods.setValue('budget', note.post.fundraise?.goalAmount.usd.toString());
-      }
-
-      if (note.post.contentType === 'funding_request') {
-        const { grant } = note.post;
-        if (grant?.endDate) {
-          methods.setValue('applicationDeadline', new Date(grant.endDate));
-        }
-        if (grant?.description) {
-          methods.setValue('shortDescription', grant.description);
-        }
-        if (grant?.organization) {
-          methods.setValue('organization', grant.organization);
-        }
-        if (grant?.amount) {
-          methods.setValue('budget', grant.amount.usd.toString());
-        }
-        if (grant?.contacts && grant.contacts.length > 0) {
-          methods.setValue(
-            'contacts',
-            grant.contacts.map((contact) => ({
-              value: contact.id.toString(),
-              label: contact.authorProfile?.fullName || contact.name,
-            }))
-          );
-        }
-      }
-
-      if (note.post.image) {
-        methods.setValue('coverImage', {
-          file: null,
-          url: note.post.image,
-        });
-      }
-
-      if (note.post.topics && note.post.topics.length > 0) {
-        const topicOptions = note.post.topics.map((topic) => ({
-          value: topic.id.toString(),
-          label: topic.name,
-        }));
-        methods.setValue('topics', topicOptions);
-      }
-
-      if (note.post.authors && note.post.authors.length > 0) {
-        const authorOptions = note.post.authors.map((author) => ({
-          value: author.authorId.toString(),
-          label: author.name,
-        }));
-        methods.setValue('authors', authorOptions);
-      }
-
+      populateFromPost(note.post, methods.setValue);
       return;
     }
 
     const storedData = loadPublishingFormFromStorage(note.id.toString());
     if (storedData) {
-      Object.entries(storedData).forEach(([key, value]) => {
-        if (key === 'applicationDeadline') {
-          methods.setValue(key as keyof PublishingFormData, new Date(value));
-        } else {
-          methods.setValue(key as keyof PublishingFormData, value);
-        }
-      });
+      restoreFromStorage(storedData, methods.setValue);
+      return;
     }
 
-    const isNewFunding = searchParams?.get('newFunding') === 'true';
-    const isNewResearch = searchParams?.get('newResearch') === 'true';
-    const isNewGrant = searchParams?.get('newGrant') === 'true';
-    const template = searchParams?.get('template');
-
-    if (!note.post && !storedData) {
-      if (isNewFunding) {
-        methods.setValue('articleType', 'preregistration');
-      } else if (isNewResearch) {
-        methods.setValue('articleType', 'discussion');
-      } else if (isNewGrant) {
-        methods.setValue('articleType', 'grant');
-      } else if (template) {
-        const articleType =
-          template === 'preregistration'
-            ? 'preregistration'
-            : template === 'grant'
-              ? 'grant'
-              : 'discussion';
-        methods.setValue('articleType', articleType);
-      } else if (defaultArticleType) {
-        methods.setValue('articleType', defaultArticleType as PublishingFormData['articleType']);
-        // Pre-populate hidden fields for modal grants
-        if (defaultArticleType === 'grant') {
-          methods.setValue('applicationDeadline', DEFAULT_GRANT_DEADLINE);
-        }
-      }
+    const resolved = resolveArticleType(searchParams, defaultArticleType);
+    if (resolved) {
+      methods.setValue('articleType', resolved.type);
+    }
+    if (resolved?.type === 'grant' && resolved.source === 'default') {
+      methods.setValue('applicationDeadline', DEFAULT_GRANT_DEADLINE);
     }
   }, [note, methods, searchParams, defaultArticleType]);
 
@@ -317,6 +316,54 @@ export function PublishingForm({
     setShowConfirmModal(true);
   };
 
+  const uploadCoverImage = async (formData: PublishingFormData): Promise<string | null | false> => {
+    const needsUpload =
+      (formData.articleType === 'preregistration' || formData.articleType === 'grant') &&
+      formData.coverImage?.file;
+    if (!needsUpload) return null;
+
+    try {
+      const result = await uploadAsset(formData.coverImage!.file!, 'post');
+      return result.objectKey;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image. Please try again.');
+      return false;
+    }
+  };
+
+  const tryLinkNonprofit = async (
+    formData: PublishingFormData,
+    fundraiseId: string | number | undefined
+  ): Promise<boolean> => {
+    if (!formData.selectedNonprofit || !fundraiseId || formData.articleType !== 'preregistration') {
+      return true;
+    }
+
+    try {
+      await linkNonprofitToFundraise(
+        {
+          name: formData.selectedNonprofit.name,
+          ein: formData.selectedNonprofit.ein,
+          endaomentOrgId:
+            formData.selectedNonprofit.endaomentOrgId || formData.selectedNonprofit.id,
+          baseWalletAddress: formData.selectedNonprofit.baseWalletAddress,
+        },
+        fundraiseId,
+        formData.departmentLabName || ''
+      );
+      return true;
+    } catch (error: unknown) {
+      console.error('Error linking nonprofit:', error);
+      if (error instanceof Error && error.message.includes('Fundraise not found')) {
+        toast.error('The fundraise was not found. Please try publishing again.');
+        return false;
+      }
+      toast.error('Nonprofit organization was not linked successfully.');
+      return true;
+    }
+  };
+
   const handleConfirmPublish = async (editedTitle: string) => {
     try {
       setDocumentTitle(editor, editedTitle);
@@ -326,23 +373,11 @@ export function PublishingForm({
       const html = editor?.getHTML();
       const formData = methods.getValues();
 
-      let imagePath = null;
-
-      if (
-        (formData.articleType === 'preregistration' || formData.articleType === 'grant') &&
-        formData.coverImage?.file
-      ) {
-        try {
-          const uploadResult = await uploadAsset(formData.coverImage.file, 'post');
-          imagePath = uploadResult.objectKey;
-        } catch (uploadError) {
-          console.error('Error uploading image:', uploadError);
-          toast.error('Failed to upload image. Please try again.');
-          setShowConfirmModal(false);
-          return;
-        }
+      const imagePath = await uploadCoverImage(formData);
+      if (imagePath === false) {
+        setShowConfirmModal(false);
+        return;
       }
-      const existingFundraiseId = note?.post?.fundraise?.id;
 
       let budgetValue = '0';
       if (formData.articleType === 'preregistration' || formData.articleType === 'grant') {
@@ -364,11 +399,11 @@ export function PublishingForm({
           authors: formData.authors
             .map((author) => author.value)
             .map(Number)
-            .filter((id) => !isNaN(id)),
+            .filter((id) => !Number.isNaN(id)),
           contacts: formData.contacts
             .map((contact) => contact.value)
             .map(Number)
-            .filter((id) => !isNaN(id)),
+            .filter((id) => !Number.isNaN(id)),
           articleType: ARTICLE_TYPE_API_MAP[formData.articleType] ?? 'DISCUSSION',
           image: imagePath,
           organization: formData.organization,
@@ -378,48 +413,17 @@ export function PublishingForm({
         formData.workId
       );
 
-      const fundraiseId = response.fundraiseId || existingFundraiseId;
-
-      if (formData.selectedNonprofit && fundraiseId && formData.articleType === 'preregistration') {
-        try {
-          const nonprofitData = {
-            name: formData.selectedNonprofit.name,
-            ein: formData.selectedNonprofit.ein,
-            endaomentOrgId:
-              formData.selectedNonprofit.endaomentOrgId || formData.selectedNonprofit.id,
-            baseWalletAddress: formData.selectedNonprofit.baseWalletAddress,
-          };
-
-          await linkNonprofitToFundraise(
-            nonprofitData,
-            fundraiseId,
-            formData.departmentLabName || ''
-          );
-        } catch (error: unknown) {
-          console.error('Error linking nonprofit:', error);
-
-          if (error instanceof Error && error.message.includes('Fundraise not found')) {
-            toast.error('The fundraise was not found. Please try publishing again.');
-            setIsRedirecting(false);
-            setShowConfirmModal(false);
-            return;
-          }
-
-          toast.error('Nonprofit organization was not linked successfully.');
-        }
+      const fundraiseId = response.fundraiseId || note?.post?.fundraise?.id || undefined;
+      const linked = await tryLinkNonprofit(formData, fundraiseId);
+      if (!linked) {
+        setIsRedirecting(false);
+        setShowConfirmModal(false);
+        return;
       }
 
       setIsRedirecting(true);
-
       toast.success(`${PUBLISH_LABEL[formData.articleType] ?? 'Post'} published successfully!`);
-
-      if (formData.articleType === 'preregistration') {
-        router.push(`/fund/${response.id}/${response.slug}?new=true`);
-      } else if (formData.articleType === 'grant') {
-        router.push(`/grant/${response.id}/${response.slug}`);
-      } else {
-        router.push(`/post/${response.id}/${response.slug}`);
-      }
+      router.push(getRedirectPath(formData.articleType, String(response.id), response.slug));
     } catch (error: unknown) {
       const fallback = 'Error publishing. Please try again.';
       if (error instanceof ApiError) {

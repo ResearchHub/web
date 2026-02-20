@@ -11,7 +11,7 @@ interface TopBarDesktopProps {
   onClose?: () => void;
 }
 
-export function TopBarDesktop({ onClose }: TopBarDesktopProps) {
+export function TopBarDesktop({ onClose }: Readonly<TopBarDesktopProps>) {
   const { toggleRightSidebar, isRightSidebarOpen } = useSidebar();
   const { currentNote: note } = useNotebookContext();
 
@@ -37,37 +37,36 @@ export function TopBarDesktop({ onClose }: TopBarDesktopProps) {
         )}
 
         <PublishedStatusSection />
-        {shouldShowRightSidebar && !isLegacyNote ? (
-          isRightSidebarOpen ? (
-            <Button
-              onClick={toggleRightSidebar}
-              className="p-2 rounded-md hover:bg-gray-100"
-              variant="ghost"
-              size="icon"
-            >
+        {shouldShowRightSidebar && !isLegacyNote && isRightSidebarOpen && (
+          <Button
+            onClick={toggleRightSidebar}
+            className="p-2 rounded-md hover:bg-gray-100"
+            variant="ghost"
+            size="icon"
+          >
+            <div className="flex">
+              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-5 w-5 -ml-3" />
+            </div>
+          </Button>
+        )}
+        {shouldShowRightSidebar && !isLegacyNote && !isRightSidebarOpen && (
+          <Button
+            onClick={toggleRightSidebar}
+            className="p-2 rounded-md"
+            aria-label="Toggle right sidebar"
+            variant="default"
+            size="sm"
+          >
+            <div className="flex items-center gap-1">
               <div className="flex">
-                <ChevronRight className="h-5 w-5" />
-                <ChevronRight className="h-5 w-5 -ml-3" />
+                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-5 w-5 -ml-3" />
               </div>
-            </Button>
-          ) : (
-            <Button
-              onClick={toggleRightSidebar}
-              className="p-2 rounded-md"
-              aria-label="Toggle right sidebar"
-              variant="default"
-              size="sm"
-            >
-              <div className="flex items-center gap-1">
-                <div className="flex">
-                  <ChevronLeft className="h-5 w-5" />
-                  <ChevronLeft className="h-5 w-5 -ml-3" />
-                </div>
-                <span>{isPublished ? 'PUBLISH' : 'Publish'}</span>
-              </div>
-            </Button>
-          )
-        ) : null}
+              <span>{isPublished ? 'PUBLISH' : 'Publish'}</span>
+            </div>
+          </Button>
+        )}
       </div>
     </div>
   );

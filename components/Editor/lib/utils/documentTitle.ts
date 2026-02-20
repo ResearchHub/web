@@ -17,7 +17,7 @@ export const setDocumentTitle = (editor: Editor | null, newTitle: string): void 
     .chain()
     .command(({ tr }) => {
       const node = tr.doc.nodeAt(0);
-      if (node && node.type.name === 'heading') {
+      if (node?.type.name === 'heading') {
         tr.insertText(newTitle, 1, node.nodeSize - 1);
         return true;
       }

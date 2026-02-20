@@ -16,10 +16,9 @@ interface FundingSectionProps {
   note: Note;
 }
 
-// TODO: Remove this once we need to render the NFT rewards section
 const FEATURE_FLAG_NFT_REWARDS = false;
 
-export function FundingSection({ note }: FundingSectionProps) {
+export function FundingSection({ note }: Readonly<FundingSectionProps>) {
   const {
     register,
     watch,
@@ -29,8 +28,6 @@ export function FundingSection({ note }: FundingSectionProps) {
   const rewardFunders = watch('rewardFunders');
   const budget = watch('budget');
   const nftSupply = watch('nftSupply');
-  const selectedNonprofit = watch('selectedNonprofit');
-  const nonprofitNote = watch('departmentLabName');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isEditingNonprofit, setIsEditingNonprofit] = useState(false);
@@ -41,15 +38,11 @@ export function FundingSection({ note }: FundingSectionProps) {
     departmentLabName: existingNote,
     isLoading: isLoadingNonprofit,
   } = useNonprofitByFundraiseId(fundraise?.id);
-  const {
-    results: nonprofitSearchResults,
-    isLoading: isLoadingSearch,
-    searchNonprofits,
-  } = useNonprofitSearch();
+  const { results: nonprofitSearchResults, searchNonprofits } = useNonprofitSearch();
 
   // If we have a fundraise and a nonprofit with EIN, search for complete data
   useEffect(() => {
-    if (nonprofit && nonprofit.ein && !isEditingNonprofit) {
+    if (nonprofit?.ein && !isEditingNonprofit) {
       searchNonprofits(nonprofit.ein);
     }
   }, [nonprofit, searchNonprofits, isEditingNonprofit]);
@@ -97,13 +90,13 @@ export function FundingSection({ note }: FundingSectionProps) {
   };
 
   const formatNumberWithCommas = (value: string) => {
-    const numericValue = value.replace(/[^0-9]/g, '');
-    return numericValue ? parseInt(numericValue).toLocaleString() : '';
+    const numericValue = value.replaceAll(/\D/g, '');
+    return numericValue ? Number.parseInt(numericValue).toLocaleString() : '';
   };
 
   const calculateMinDonation = () => {
-    const funding = parseFloat(budget?.replace(/[^0-9.]/g, '') || '0');
-    const supply = parseInt(nftSupply?.replace(/[^0-9]/g, '') || '0');
+    const funding = Number.parseFloat(budget?.replaceAll(/[^0-9.]/g, '') || '0');
+    const supply = Number.parseInt(nftSupply?.replaceAll(/\D/g, '') || '0');
     if (!funding || !supply) return '0.00';
     return (funding / supply).toFixed(2);
   };
@@ -114,17 +107,17 @@ export function FundingSection({ note }: FundingSectionProps) {
         <>
           <FundraiseSection fundraise={fundraise} />
           <div className="pt-4 border-t border-gray-200">
-            {isLoadingNonprofit ? (
+            {isLoadingNonprofit && (
               <p className="text-sm text-gray-500 px-1">Loading nonprofit information...</p>
-            ) : isEditingNonprofit || !nonprofit ? (
+            )}
+            {!isLoadingNonprofit && (isEditingNonprofit || !nonprofit) && (
               <NonprofitSearchSection />
-            ) : (
+            )}
+            {!isLoadingNonprofit && !isEditingNonprofit && nonprofit && (
               <NonprofitSearchSection
                 readOnly={false}
                 allowClear={true}
-                onClear={() => {
-                  setIsEditingNonprofit(true);
-                }}
+                onClear={() => setIsEditingNonprofit(true)}
               />
             )}
           </div>
@@ -146,11 +139,13 @@ export function FundingSection({ note }: FundingSectionProps) {
               }
               helperText="Set your total funding goal for this research project"
               onChange={(e) => {
-                const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                const numericValue = e.target.value.replaceAll(/\D/g, '');
                 setValue('budget', numericValue, { shouldValidate: true });
 
                 if (numericValue) {
-                  e.target.value = new Intl.NumberFormat('en-US').format(parseInt(numericValue));
+                  e.target.value = new Intl.NumberFormat('en-US').format(
+                    Number.parseInt(numericValue)
+                  );
                 } else {
                   e.target.value = '';
                 }
@@ -187,7 +182,7 @@ export function FundingSection({ note }: FundingSectionProps) {
             <>
               NFT Art Upload Section
               <div className="pt-2">
-                <label className="block text-sm font-medium text-gray-900 mb-2">NFT Art</label>
+                <span className="block text-sm font-medium text-gray-900 mb-2">NFT Art</span>
                 <Button
                   variant="ghost"
                   onClick={() => fileInputRef.current?.click()}
@@ -248,9 +243,7 @@ export function FundingSection({ note }: FundingSectionProps) {
               <div className="pt-2">
                 <div className="flex items-center gap-2 mb-2">
                   <Gift className="h-4 w-4 text-gray-700" />
-                  <label className="block text-sm font-medium text-gray-900">
-                    Donation Rewards
-                  </label>
+                  <span className="block text-sm font-medium text-gray-900">Donation Rewards</span>
                 </div>
                 <div className="relative bg-gray-50 rounded-lg">
                   <input
@@ -258,7 +251,7 @@ export function FundingSection({ note }: FundingSectionProps) {
                     readOnly
                     disabled
                     value={
-                      parseFloat(calculateMinDonation()) > 0
+                      Number.parseFloat(calculateMinDonation()) > 0
                         ? `$${calculateMinDonation()} per NFT`
                         : '-'
                     }
@@ -266,7 +259,7 @@ export function FundingSection({ note }: FundingSectionProps) {
                   />
                 </div>
                 <p className="mt-2 text-xs text-gray-600">
-                  {parseFloat(calculateMinDonation()) > 0
+                  {Number.parseFloat(calculateMinDonation()) > 0
                     ? `Funders must donate at least $${calculateMinDonation()} USD to receive one research memento NFT`
                     : 'Set a funding goal and NFT supply to calculate the minimum donation per NFT'}
                 </p>

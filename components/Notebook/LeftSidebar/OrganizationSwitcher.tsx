@@ -90,7 +90,7 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
           className="w-full justify-between px-3 py-2 h-auto"
           onClick={() => setIsSettingsModalOpen(true)}
           disabled={!isCurrentUserAdmin}
-          tooltip={!isCurrentUserAdmin ? 'Only admins can manage organization settings' : undefined}
+          tooltip={isCurrentUserAdmin ? undefined : 'Only admins can manage organization settings'}
         >
           <div className="flex items-center gap-2">
             {isCurrentUserAdmin ? (

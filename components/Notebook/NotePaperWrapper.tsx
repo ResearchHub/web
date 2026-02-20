@@ -36,9 +36,9 @@ export const NotePaperWrapper = ({
       <div className="min-h-screen bg-gray-50">
         <div className="p-4 max-w-4xl mx-auto">
           {showBanner && (
-            <div className="sticky top-0 z-10" role="status" aria-live="polite">
+            <output className="block sticky top-0 z-10" aria-live="polite">
               {showBanner}
-            </div>
+            </output>
           )}
           <NotePaper className={cn('shadow-md', className)}>{children}</NotePaper>
         </div>

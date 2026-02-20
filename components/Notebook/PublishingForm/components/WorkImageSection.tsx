@@ -4,18 +4,13 @@ import { SectionHeader } from './SectionHeader';
 import { FileUpload } from '@/components/ui/form/FileUpload';
 import { useState } from 'react';
 import { PublishingFormData } from '../schema';
-import Image from 'next/image';
 
 export function WorkImageSection() {
   const {
     control,
     formState: { errors },
-    watch,
   } = useFormContext<PublishingFormData>();
 
-  const articleType = watch('articleType');
-  const workId = watch('workId');
-  const coverImage = watch('coverImage');
   const [error, setError] = useState<string | null>(null);
 
   const handleError = (error: Error) => {

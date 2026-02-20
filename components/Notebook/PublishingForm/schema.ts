@@ -1,10 +1,42 @@
 import { z } from 'zod';
-import { NonprofitOrg } from '@/types/nonprofit';
 
 const optionSchema = z.object({
   value: z.string(),
   label: z.string(),
 });
+
+const addIssue = (ctx: z.RefinementCtx, path: string, message: string) => {
+  ctx.addIssue({ code: z.ZodIssueCode.custom, message, path: [path] });
+};
+
+const parseBudget = (budget?: string): number =>
+  Number.parseFloat(budget?.replaceAll(/[^0-9.]/g, '') || '0');
+
+const validatePreregistration = (data: any, ctx: z.RefinementCtx) => {
+  if (parseBudget(data.budget) <= 0) {
+    addIssue(ctx, 'budget', 'Funding goal must be greater than 0');
+  }
+  if (!data.coverImage?.file && !data.coverImage?.url) {
+    addIssue(ctx, 'coverImage', 'Cover image is required for proposal');
+  }
+};
+
+const validateGrant = (data: any, ctx: z.RefinementCtx) => {
+  if (!data.shortDescription || data.shortDescription.trim().length === 0) {
+    addIssue(ctx, 'shortDescription', 'Short description is required for grants');
+  }
+  if (data.organization && data.organization.trim().length > 200) {
+    addIssue(ctx, 'organization', 'Organization name must be 200 characters or less');
+  }
+  if (parseBudget(data.budget) <= 0) {
+    addIssue(ctx, 'budget', 'Funding amount must be greater than 0');
+  }
+  if (!data.applicationDeadline) {
+    addIssue(ctx, 'applicationDeadline', 'Application deadline is required for grants');
+  } else if (data.applicationDeadline <= new Date()) {
+    addIssue(ctx, 'applicationDeadline', 'Application deadline must be in the future');
+  }
+};
 
 export const publishingFormSchema = z
   .object({
@@ -19,13 +51,11 @@ export const publishingFormSchema = z
     budget: z.string().optional(),
     rewardFunders: z.boolean(),
     nftArt: z.any().nullable(),
-    nftSupply: z.string().refine(
-      (val) => {
-        const num = parseInt(val.replace(/[^0-9]/g, '') || '0');
-        return num >= 100;
-      },
-      { message: 'NFT supply must be at least 100' }
-    ),
+    nftSupply: z
+      .string()
+      .refine((val) => Number.parseInt(val.replaceAll(/\D/g, '') || '0') >= 100, {
+        message: 'NFT supply must be at least 100',
+      }),
     coverImage: z
       .object({
         file: z.instanceof(File).nullable().optional(),
@@ -42,89 +72,22 @@ export const publishingFormSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.topics.length === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'At least one topic is required',
-        path: ['topics'],
-      });
+      addIssue(ctx, 'topics', 'At least one topic is required');
     }
 
     if (data.articleType === 'grant') {
       if (data.contacts.length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'At least one contact is required for grants',
-          path: ['contacts'],
-        });
+        addIssue(ctx, 'contacts', 'At least one contact is required for grants');
       }
-    } else {
-      if (data.authors.length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'At least one author is required',
-          path: ['authors'],
-        });
-      }
+    } else if (data.authors.length === 0) {
+      addIssue(ctx, 'authors', 'At least one author is required');
     }
 
     if (data.articleType === 'preregistration') {
-      const num = parseFloat(data.budget?.replace(/[^0-9.]/g, '') || '0');
-      if (num <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Funding goal must be greater than 0',
-          path: ['budget'],
-        });
-      }
-
-      if (!data.coverImage?.file && !data.coverImage?.url) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Cover image is required for proposal',
-          path: ['coverImage'],
-        });
-      }
+      validatePreregistration(data, ctx);
     }
-
     if (data.articleType === 'grant') {
-      if (!data.shortDescription || data.shortDescription.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Short description is required for grants',
-          path: ['shortDescription'],
-        });
-      }
-
-      if (data.organization && data.organization.trim().length > 200) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Organization name must be 200 characters or less',
-          path: ['organization'],
-        });
-      }
-
-      const num = parseFloat(data.budget?.replace(/[^0-9.]/g, '') || '0');
-      if (num <= 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Funding amount must be greater than 0',
-          path: ['budget'],
-        });
-      }
-
-      if (!data.applicationDeadline) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Application deadline is required for grants',
-          path: ['applicationDeadline'],
-        });
-      } else if (data.applicationDeadline <= new Date()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Application deadline must be in the future',
-          path: ['applicationDeadline'],
-        });
-      }
+      validateGrant(data, ctx);
     }
   });
 

@@ -34,7 +34,20 @@ export const NoteListItem = ({ note, disabled, startTransition }: NoteListItemPr
 
   const isPrivate = note.access === 'PRIVATE';
   const isProcessing = isDeleting || isDuplicating || isMakingPrivate || isUpdatingPermissions;
+  const isTogglingAccess = isMakingPrivate || isUpdatingPermissions;
   const isSelected = note.id.toString() === activeNoteId;
+
+  const getAccessIcon = () => {
+    if (isTogglingAccess) return <Loader2 className="h-4 w-4 animate-spin" />;
+    if (isPrivate) return <Unlock className="h-4 w-4" />;
+    return <Lock className="h-4 w-4" />;
+  };
+
+  const getAccessLabel = () => {
+    if (isTogglingAccess) return 'Updating...';
+    if (isPrivate) return 'Move to Workspace';
+    return 'Make Private';
+  };
 
   useEffect(() => {
     if (isSelected && itemRef.current) {
@@ -95,7 +108,9 @@ export const NoteListItem = ({ note, disabled, startTransition }: NoteListItemPr
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (
-      !window.confirm('Are you sure you want to delete this note? This action cannot be undone.')
+      !globalThis.confirm(
+        'Are you sure you want to delete this note? This action cannot be undone.'
+      )
     ) {
       return;
     }
@@ -106,7 +121,8 @@ export const NoteListItem = ({ note, disabled, startTransition }: NoteListItemPr
       if (isSelected) {
         router.replace(`/notebook/${note.organization.slug}`);
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Error deleting note:', error);
       toast.error('Failed to delete note. Please try again.');
     }
   };
@@ -167,20 +183,8 @@ export const NoteListItem = ({ note, disabled, startTransition }: NoteListItemPr
           </BaseMenuItem>
           <BaseMenuItem onClick={handleToggleAccess} disabled={isProcessing}>
             <div className="flex items-center gap-2">
-              {isMakingPrivate || isUpdatingPermissions ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : isPrivate ? (
-                <Unlock className="h-4 w-4" />
-              ) : (
-                <Lock className="h-4 w-4" />
-              )}
-              <span>
-                {isMakingPrivate || isUpdatingPermissions
-                  ? 'Updating...'
-                  : isPrivate
-                    ? 'Move to Workspace'
-                    : 'Make Private'}
-              </span>
+              {getAccessIcon()}
+              <span>{getAccessLabel()}</span>
             </div>
           </BaseMenuItem>
           <BaseMenuItem onClick={handleDelete} disabled={isProcessing}>

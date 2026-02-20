@@ -24,7 +24,7 @@ interface CreateGrantModalProps {
   onClose: () => void;
 }
 
-export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
+export function CreateGrantModal({ isOpen, onClose }: Readonly<CreateGrantModalProps>) {
   const { selectedOrg } = useOrganizationContext();
 
   const [noteId, setNoteId] = useState<number | null>(null);
@@ -65,7 +65,8 @@ export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
           plainText: getTemplatePlainText(grantTemplate),
         });
         setNoteId(newNote.id);
-      } catch (err) {
+      } catch (err: unknown) {
+        console.error('Failed to initialize grant:', err);
         setNoteError('Failed to initialize. Please try again.');
       } finally {
         setIsCreatingNote(false);

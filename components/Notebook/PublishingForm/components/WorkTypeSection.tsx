@@ -1,5 +1,5 @@
 import { useFormContext } from 'react-hook-form';
-import { FileText, ChevronDown, Wallet, Gift } from 'lucide-react';
+import { FileText, ChevronDown, Wallet } from 'lucide-react';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { cn } from '@/utils/styles';
 import { SectionHeader } from './SectionHeader';
@@ -44,8 +44,8 @@ export function WorkTypeSection() {
     watch,
     setValue,
     formState: { errors },
-  } = useFormContext();
-  const articleType = watch('articleType') as PublishingFormData['articleType'] | undefined;
+  } = useFormContext<PublishingFormData>();
+  const articleType = watch('articleType');
   const workId = watch('workId');
   const { currentNote: note } = useNotebookContext();
 

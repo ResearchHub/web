@@ -11,7 +11,7 @@ interface TopBarMobileProps {
   onClose?: () => void;
 }
 
-export function TopBarMobile({ onClose }: TopBarMobileProps) {
+export function TopBarMobile({ onClose }: Readonly<TopBarMobileProps>) {
   const { toggleLeftSidebar, toggleRightSidebar } = useSidebar();
   const { currentNote: note } = useNotebookContext();
 

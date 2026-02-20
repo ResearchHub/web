@@ -21,7 +21,10 @@ import { useUpdateNote } from '@/hooks/useNote';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { LegacyNoteBanner } from '@/components/LegacyNoteBanner';
 
-function SidebarCloseHeader({ onClose, className }: { onClose: () => void; className?: string }) {
+function SidebarCloseHeader({
+  onClose,
+  className,
+}: Readonly<{ onClose: () => void; className?: string }>) {
   return (
     <div className={cn('h-16 flex justify-start items-center p-4', className)}>
       <Button
@@ -44,7 +47,7 @@ interface NoteEditorLayoutProps {
   onClose?: () => void;
 }
 
-export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayoutProps) {
+export function NoteEditorLayout({ defaultArticleType, onClose }: Readonly<NoteEditorLayoutProps>) {
   const isModal = Boolean(onClose);
 
   const {
@@ -167,6 +170,13 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayo
 
   if (isDesktop === null) return null;
 
+  const hasDesktopSidebar = isDesktop && shouldShowRightSidebar;
+  const gridColumns = !hasDesktopSidebar
+    ? 'minmax(0, 1fr)'
+    : isRightSidebarOpen
+      ? 'minmax(0, 1fr) 300px'
+      : 'minmax(0, 1fr) 0px';
+
   return (
     <div className="flex flex-col h-full relative">
       {renderTopBar()}
@@ -174,16 +184,8 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayo
       <div
         className="flex-1 min-h-0 grid"
         style={{
-          gridTemplateColumns:
-            isDesktop && shouldShowRightSidebar
-              ? isRightSidebarOpen
-                ? 'minmax(0, 1fr) 300px'
-                : 'minmax(0, 1fr) 0px'
-              : 'minmax(0, 1fr)',
-          transition:
-            isDesktop && shouldShowRightSidebar
-              ? 'grid-template-columns 200ms ease-in-out'
-              : undefined,
+          gridTemplateColumns: gridColumns,
+          transition: hasDesktopSidebar ? 'grid-template-columns 200ms ease-in-out' : undefined,
         }}
       >
         <div className="overflow-auto">{renderEditor()}</div>

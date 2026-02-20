@@ -36,9 +36,14 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
           {Icon && iconPosition === 'after' && <Icon className="w-3.5 h-3.5 text-gray-400" />}
         </div>
         {action && (
-          <div className="flex items-center ml-2" onClick={(e) => e.stopPropagation()}>
+          <span
+            role="group"
+            className="flex items-center ml-2"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
             {action}
-          </div>
+          </span>
         )}
       </Button>
       {isExpanded && children && <div className="mt-1 pl-2">{children}</div>}
