@@ -9,7 +9,7 @@ interface CreateGrantButtonProps {
   className?: string;
 }
 
-export function CreateGrantButton({ className }: CreateGrantButtonProps) {
+export function CreateGrantButton({ className }: Readonly<CreateGrantButtonProps>) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (

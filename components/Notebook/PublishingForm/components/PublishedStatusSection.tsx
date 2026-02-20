@@ -15,22 +15,23 @@ export function PublishedStatusSection() {
     return null;
   }
 
+  const getWorkPath = () => {
+    if (articleType === 'preregistration') return `/fund/${workId}/${slug}`;
+    if (articleType === 'funding_request') return `/grant/${workId}/${slug}`;
+    return `/post/${workId}/${slug}`;
+  };
+
   return (
     <div className="flex-1 text-center">
-      {isLoading ? (
+      {isLoading && (
         <div className="h-5 w-14 inline-flex items-center bg-gray-100 animate-pulse rounded-full" />
-      ) : isPublished ? (
+      )}
+      {!isLoading && isPublished && (
         <Badge variant="success" size="sm">
           <span className="mr-1 text-sm">Published</span>
           {slug && (
             <Link
-              href={
-                articleType === 'preregistration'
-                  ? `/fund/${workId}/${slug}`
-                  : articleType === 'funding_request'
-                    ? `/grant/${workId}/${slug}`
-                    : `/post/${workId}/${slug}`
-              }
+              href={getWorkPath()}
               className="text-gray-400 hover:text-gray-600 transition-colors"
               target="_blank"
             >
@@ -38,7 +39,8 @@ export function PublishedStatusSection() {
             </Link>
           )}
         </Badge>
-      ) : (
+      )}
+      {!isLoading && !isPublished && (
         <Badge variant="default" size="sm">
           <span className="mr-1 text-sm">Draft</span>
         </Badge>
