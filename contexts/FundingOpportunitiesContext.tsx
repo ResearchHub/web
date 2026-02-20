@@ -55,7 +55,7 @@ export function FundingOpportunitiesProvider({ children }: FundingOpportunitiesP
       const result = await FeedService.getFeed({
         endpoint: 'grant_feed',
         fundraiseStatus: 'OPEN',
-        ordering: 'leaderboard',
+        ordering: 'funding_opportunities',
         pageSize: 5,
         page: 1,
       });
