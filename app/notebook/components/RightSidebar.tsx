@@ -10,8 +10,14 @@ interface RightSidebarProps {
 }
 
 /**
- * Right sidebar component for the notebook layout.
- * Displays the publishing form for creating / editing a note.
+ * Right sidebar for the notebook layout.
+ *
+ * Wraps the PublishingForm so NoteEditorLayout only deals with layout
+ * concerns. If additional right-sidebar content is needed in the future
+ * (e.g. tabs, preview), add it here.
+ *
+ * Used by:
+ *   - `NoteEditorLayout` (desktop inline sidebar + mobile slide-out)
  */
 export const RightSidebar = ({ defaultArticleType, isModal }: RightSidebarProps) => {
   return (

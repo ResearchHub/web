@@ -18,7 +18,7 @@ import '@fontsource/inter/400.css';
 import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
-import { LeftSidebar as NotebookLeftSidebar } from './LeftSidebar';
+import { LeftSidebar as NotebookLeftSidebar } from './components/LeftSidebar';
 import { LeftSidebar as MainLeftSidebar } from '../layouts/LeftSidebar';
 import { NotebookProvider } from '@/contexts/NotebookContext';
 import { useScreenSize } from '@/hooks/useScreenSize';

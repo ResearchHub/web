@@ -11,7 +11,7 @@ import { NotePaperWrapper } from './NotePaperWrapper';
 import { NotePaperSkeleton } from './NotePaperSkeleton';
 import { TopBarDesktop } from './TopBarDesktop';
 import { TopBarMobile } from './TopBarMobile';
-import { RightSidebar } from '../RightSidebar';
+import { RightSidebar } from './RightSidebar';
 
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useNotebookContext } from '@/contexts/NotebookContext';

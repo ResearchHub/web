@@ -10,22 +10,15 @@ import { useState } from 'react';
 import { OrganizationSettingsModal } from '@/components/modals/OrganizationSettingsModal';
 
 interface OrganizationSwitcherProps {
-  /** List of available organizations */
   organizations: Organization[];
-  /** Currently selected organization */
   selectedOrg: Organization | null;
-  /** Callback triggered when a new org is selected */
   onOrgSelect: (org: Organization) => Promise<void>;
-  /** Optional loading flag */
   isLoading?: boolean;
 }
 
 /**
- * OrganizationSwitcher is a dumb component that simply renders the organization switcher UI.
- * It shows a dropdown list of organizations and calls the provided `onOrgSelect` callback when a user selects a new organization.
- *
- * @param props - OrganizationSwitcherProps object containing organizations, selectedOrg, onOrgSelect, and an optional isLoading flag.
- * @returns React element for the organization switcher.
+ * Dropdown for switching between organizations.
+ * Also surfaces the "Manage" button for admins.
  */
 export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
   organizations,
@@ -41,12 +34,7 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
   }
 
   const handleOrgSelect = async (org: Organization) => {
-    // If the selected organization is already active, just close the list
-    if (org.slug === selectedOrg?.slug) {
-      return;
-    }
-
-    // Trigger callback to inform parent container about the organization change
+    if (org.slug === selectedOrg?.slug) return;
     await onOrgSelect(org);
   };
 

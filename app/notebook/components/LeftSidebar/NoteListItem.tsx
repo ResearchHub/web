@@ -22,7 +22,7 @@ interface NoteListItemProps {
 }
 
 /**
- * A single note item in the sidebar list
+ * A single note item in the sidebar list.
  */
 export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, startTransition }) => {
   const router = useRouter();
@@ -74,7 +74,6 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, star
     e.stopPropagation();
     try {
       if (isPrivate) {
-        // Make workspace
         await updateNotePermissions({
           noteId: note.id,
           organizationId: note.organization.id,
@@ -82,7 +81,6 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, star
         });
         toast.success('Note moved to workspace');
       } else {
-        // Make private
         await makeNotePrivate(note.id);
         toast.success('Note made private');
       }

@@ -11,7 +11,7 @@ interface SidebarSectionProps {
 }
 
 /**
- * A collapsible section in the sidebar with a title and optional action button
+ * A collapsible section in the left sidebar with a title and optional action button.
  */
 export const SidebarSection: React.FC<SidebarSectionProps> = ({
   title,
@@ -23,15 +23,11 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
-  const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
-  };
-
   return (
     <div className="mb-2">
       <div
         className="flex items-center justify-between px-2 py-1 group cursor-pointer rounded"
-        onClick={toggleExpanded}
+        onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-2 flex-1">
           {Icon && iconPosition === 'before' && <Icon className="w-3.5 h-3.5 text-gray-400" />}

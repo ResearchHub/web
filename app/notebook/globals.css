@@ -1,3 +1,11 @@
+/*
+ * Route-scoped styles for /notebook.
+ *
+ * Imported ONLY by app/notebook/layout.tsx — Next.js scopes these overrides
+ * to the notebook route. Do NOT import this file from individual components
+ * or modals, as it would bleed body/scrollbar styles into unrelated pages.
+ */
+
 @import './editor.css';
 
 @tailwind base;

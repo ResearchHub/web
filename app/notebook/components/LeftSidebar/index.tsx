@@ -1,8 +1,8 @@
 'use client';
 
-import { NoteList } from '@/app/notebook/components/Sidebar/NoteList';
-import { OrganizationSwitcher } from '@/app/notebook/components/Sidebar/OrganizationSwitcher';
-import { SidebarSection } from '@/app/notebook/components/Sidebar/SidebarSection';
+import { NoteList } from '@/app/notebook/components/LeftSidebar/NoteList';
+import { OrganizationSwitcher } from '@/app/notebook/components/LeftSidebar/OrganizationSwitcher';
+import { SidebarSection } from '@/app/notebook/components/LeftSidebar/SidebarSection';
 import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu } from '@/components/ui/form/BaseMenu';
@@ -24,8 +24,14 @@ import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
 import proposalTemplate from '@/components/Editor/lib/data/proposalTemplate';
 
 /**
- * Left sidebar component for the notebook layout
- * Displays organization information and lists of workspace and private notes
+ * Left sidebar for the notebook layout.
+ *
+ * Renders the organization switcher at the top, followed by collapsible
+ * "Workspace" and "Private" note lists. Each section has a template-picker
+ * menu for creating new notes.
+ *
+ * Used by:
+ *   - `app/notebook/layout.tsx` (full notebook route — desktop inline, mobile slide-out)
  */
 export const LeftSidebar = () => {
   const router = useRouter();
@@ -39,7 +45,7 @@ export const LeftSidebar = () => {
     setSelectedOrg,
     isLoading: isLoadingOrgs,
   } = useOrganizationContext();
-  const { notes, isLoading: isLoadingNotes, refreshNotes, currentNote } = useNotebookContext();
+  const { notes, isLoading: isLoadingNotes, refreshNotes } = useNotebookContext();
 
   const handleOrgSelect = useCallback(
     async (org: Organization) => {
@@ -47,8 +53,7 @@ export const LeftSidebar = () => {
 
       try {
         startTransition(() => {
-          const targetPath = `/notebook/${org.slug}`;
-          router.replace(targetPath);
+          router.replace(`/notebook/${org.slug}`);
         });
       } catch (error) {
         console.error('Error navigating to organization:', error);
@@ -66,7 +71,6 @@ export const LeftSidebar = () => {
       if (!selectedOrg) return;
 
       try {
-        // Get the appropriate template
         let contentTemplate;
         switch (template) {
           case 'research':
@@ -82,18 +86,16 @@ export const LeftSidebar = () => {
             contentTemplate = { content: [] };
             break;
           default:
-            contentTemplate = getInitialContent('research'); // fallback to research template
+            contentTemplate = getInitialContent('research');
             break;
         }
 
-        // Create the note
         const newNote = await createNote({
           title: getDocumentTitle(contentTemplate) || 'Untitled',
           grouping: type.toUpperCase() as 'WORKSPACE' | 'PRIVATE',
           organizationSlug: selectedOrg.slug,
         });
 
-        // Update the note content with the template
         await updateNoteContent({
           note: newNote.id,
           fullJson: JSON.stringify(contentTemplate),
@@ -112,6 +114,8 @@ export const LeftSidebar = () => {
     [createNote, updateNoteContent, router, selectedOrg, refreshNotes]
   );
 
+  const isBusy = isCreatingNote || isUpdatingContent;
+
   const renderTemplateMenu = (type: 'workspace' | 'private') => (
     <BaseMenu
       trigger={
@@ -119,9 +123,9 @@ export const LeftSidebar = () => {
           variant="ghost"
           size="icon"
           className="w-6 h-6 transition-opacity"
-          disabled={isCreatingNote || isUpdatingContent}
+          disabled={isBusy}
         >
-          {isCreatingNote || isUpdatingContent ? (
+          {isBusy ? (
             <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
           ) : (
             <Plus className="h-4 w-4 text-gray-500" />
@@ -137,13 +141,9 @@ export const LeftSidebar = () => {
       <BaseMenuItem
         onClick={() => handleTemplateSelect(type, 'research')}
         className="flex items-center gap-2 py-2"
-        disabled={isCreatingNote || isUpdatingContent}
+        disabled={isBusy}
       >
-        {isCreatingNote || isUpdatingContent ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <FileText className="h-4 w-4" />
-        )}
+        {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
         <div>
           <div className="font-medium text-gray-900">Research Article</div>
           <div className="text-xs text-gray-500">Standard research paper format</div>
@@ -153,13 +153,9 @@ export const LeftSidebar = () => {
       <BaseMenuItem
         onClick={() => handleTemplateSelect(type, 'grant')}
         className="flex items-center gap-2 py-2"
-        disabled={isCreatingNote || isUpdatingContent}
+        disabled={isBusy}
       >
-        {isCreatingNote || isUpdatingContent ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <FileText className="h-4 w-4" />
-        )}
+        {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
         <div>
           <div className="font-medium text-gray-900">RFP</div>
           <div className="text-xs text-gray-500">Request for Proposals</div>
@@ -168,13 +164,9 @@ export const LeftSidebar = () => {
       <BaseMenuItem
         onClick={() => handleTemplateSelect(type, 'preregistration')}
         className="flex items-center gap-2 py-2"
-        disabled={isCreatingNote || isUpdatingContent}
+        disabled={isBusy}
       >
-        {isCreatingNote || isUpdatingContent ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Wallet className="h-4 w-4" />
-        )}
+        {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
         <div>
           <div className="font-medium text-gray-900">Proposal</div>
           <div className="text-xs text-gray-500">Get funding for your research</div>
@@ -183,13 +175,9 @@ export const LeftSidebar = () => {
       <BaseMenuItem
         onClick={() => handleTemplateSelect(type, 'empty')}
         className="flex items-center gap-2 py-2"
-        disabled={isCreatingNote || isUpdatingContent}
+        disabled={isBusy}
       >
-        {isCreatingNote || isUpdatingContent ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <FileText className="h-4 w-4" />
-        )}
+        {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
         <div>
           <div className="font-medium text-gray-900">Empty</div>
           <div className="text-xs text-gray-500">Start with a blank page</div>
@@ -223,7 +211,7 @@ export const LeftSidebar = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => handleTemplateSelect('workspace', 'research')}
-                  disabled={isCreatingNote || isUpdatingContent}
+                  disabled={isBusy}
                   className="flex items-center gap-1"
                 >
                   <Plus className="h-3 w-3" />
@@ -254,7 +242,7 @@ export const LeftSidebar = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => handleTemplateSelect('private', 'research')}
-                  disabled={isCreatingNote || isUpdatingContent}
+                  disabled={isBusy}
                   className="flex items-center gap-1"
                 >
                   <Plus className="h-3 w-3" />
