@@ -10,7 +10,6 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { Button } from '@/components/ui/Button';
 
-// Import font styles
 import '@fontsource/inter/100.css';
 import '@fontsource/inter/200.css';
 import '@fontsource/inter/300.css';
@@ -24,20 +23,12 @@ import { NotebookProvider } from '@/contexts/NotebookContext';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { NoteEditorLayout } from './components/NoteEditorLayout';
 
-/**
- * Inner layout content – renders left sidebars + the shared NoteEditorLayout.
- *
- * `{children}` is still rendered (required by Next.js) but page components
- * are now minimal / return null because NoteEditorLayout handles the editor,
- * top bar, and right sidebar.
- */
 function NotebookLayoutContent({ children }: { children: ReactNode }) {
   const { isLeftSidebarOpen, closeLeftSidebar, openLeftSidebar, closeBothSidebars } = useSidebar();
 
   const { lgAndUp } = useScreenSize();
   const isDesktop = lgAndUp;
 
-  // Responsive left-sidebar management (right sidebar is handled by NoteEditorLayout)
   useEffect(() => {
     if (lgAndUp) {
       openLeftSidebar();
@@ -53,36 +44,25 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-white">
       {isDesktop ? (
-        /* Desktop: left sidebars + NoteEditorLayout (which contains top bar, editor, right sidebar) */
         <div
           className="grid min-h-screen w-full"
           style={{ gridTemplateColumns: '70px 300px minmax(0, 1fr)' }}
         >
-          {/* Main Left Sidebar – 70px, always minimized */}
           <div className="border-r border-gray-200 h-screen sticky top-0 overflow-y-auto">
             <MainLeftSidebar forceMinimize={true} />
           </div>
-
-          {/* Notebook Left Sidebar – 300px */}
           <div className="border-r border-gray-200 h-screen sticky top-0 overflow-y-auto">
             <NotebookLeftSidebar />
           </div>
-
-          {/* Main content area – NoteEditorLayout manages its own right sidebar */}
           <div className="h-screen flex flex-col">
             <NoteEditorLayout />
-            {/* Pages are still mounted for routing / side-effects */}
             {children}
           </div>
         </div>
       ) : (
-        /* Mobile: single column + slide-out left sidebars */
         <div className="flex flex-col min-h-screen">
           <NoteEditorLayout />
-          {/* Pages are still mounted for routing / side-effects */}
           {children}
-
-          {/* Left Sidebar slide-out */}
           <Transition show={isLeftSidebarOpen} as={Fragment}>
             <Dialog onClose={closeLeftSidebar} className="relative z-50">
               <Transition.Child
@@ -99,7 +79,6 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
 
               <div className="fixed inset-0 overflow-y-auto">
                 <div className="flex h-full">
-                  {/* Main Left Sidebar in mobile */}
                   <Transition.Child
                     as={Fragment}
                     enter="transform transition duration-200 ease-in-out"
@@ -114,7 +93,6 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
                     </Dialog.Panel>
                   </Transition.Child>
 
-                  {/* Notebook Left Sidebar */}
                   <Transition.Child
                     as={Fragment}
                     enter="transform transition duration-200 ease-in-out"

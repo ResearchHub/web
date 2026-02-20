@@ -40,21 +40,10 @@ function SidebarCloseHeader({ onClose, className }: { onClose: () => void; class
 }
 
 interface NoteEditorLayoutProps {
-  /** Pre-set article type when used inside a modal (e.g. 'grant'). */
   defaultArticleType?: string;
-  /** When provided (modal context), top bars show a close button instead of hamburger. */
   onClose?: () => void;
 }
 
-/**
- * Shared layout for the notebook editor.
- *
- * Desktop  → top bar + editor + right sidebar (2-column)
- * Mobile   → top bar + editor + slide-out right sidebar
- *
- * Used in both the full notebook route and the RFP creation modal.
- * This component only *consumes* context – providers must be supplied by the caller.
- */
 export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayoutProps) {
   const isModal = Boolean(onClose);
 
@@ -73,7 +62,6 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayo
   const { xlAndUp, lgAndUp } = useScreenSize();
   const isDesktop = lgAndUp;
 
-  // Legacy-note detection
   const [isLegacyNote, setIsLegacyNote] = useState<boolean | undefined>(undefined);
 
   useEffect(() => {
@@ -85,14 +73,12 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayo
     setIsLegacyNote(!note.contentJson && isFeatureEnabled(FeatureFlag.LegacyNoteBanner));
   }, [note, noteError, isLoadingNote]);
 
-  // Debounced auto-save on every editor change
   const [, updateNote] = useUpdateNote(note?.id, {
     onTitleUpdate: updateNoteTitle,
   });
 
   const shouldShowRightSidebar = Boolean(note) && !isLegacyNote;
 
-  // Responsive right-sidebar management
   useEffect(() => {
     if (!shouldShowRightSidebar) return;
     if (xlAndUp) {
@@ -101,8 +87,6 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayo
       closeRightSidebar();
     }
   }, [xlAndUp, shouldShowRightSidebar, openRightSidebar, closeRightSidebar]);
-
-  // ---------- Render helpers ----------
 
   const renderTopBar = () =>
     isDesktop ? <TopBarDesktop onClose={onClose} /> : <TopBarMobile onClose={onClose} />;
@@ -181,15 +165,12 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayo
     <RightSidebar defaultArticleType={defaultArticleType} isModal={isModal} />
   );
 
-  // ---------- Layout ----------
-
   if (isDesktop === null) return null;
 
   return (
     <div className="flex flex-col h-full relative">
       {renderTopBar()}
 
-      {/* Main content + right sidebar */}
       <div
         className="flex-1 min-h-0 grid"
         style={{
@@ -205,16 +186,12 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayo
               : undefined,
         }}
       >
-        {/* Editor area */}
         <div className="overflow-auto">{renderEditor()}</div>
-
-        {/* Desktop right sidebar — always rendered so it can animate via grid transition */}
         {isDesktop && shouldShowRightSidebar && (
           <div className="border-l border-gray-200 h-full overflow-hidden">{renderSidebar()}</div>
         )}
       </div>
 
-      {/* Mobile slide-out right sidebar (full-page notebook — fixed Dialog overlay) */}
       {!isDesktop && !isModal && (
         <Transition show={isRightSidebarOpen} as={Fragment}>
           <Dialog onClose={closeRightSidebar} className="relative z-50">
@@ -255,7 +232,6 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: NoteEditorLayo
         </Transition>
       )}
 
-      {/* Mobile slide-out right sidebar (modal — absolute within modal bounds) */}
       {!isDesktop && isModal && (
         <Transition show={isRightSidebarOpen} as={Fragment}>
           <Transition.Child

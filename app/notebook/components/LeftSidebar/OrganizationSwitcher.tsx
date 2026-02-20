@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import type { Organization } from '@/types/organization';
 import { OrganizationSwitcherSkeleton } from '@/components/skeletons/OrganizationSwitcherSkeleton';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { OrganizationSettingsModal } from '@/components/modals/OrganizationSettingsModal';
 
 interface OrganizationSwitcherProps {
@@ -16,10 +16,6 @@ interface OrganizationSwitcherProps {
   isLoading?: boolean;
 }
 
-/**
- * Dropdown for switching between organizations.
- * Also surfaces the "Manage" button for admins.
- */
 export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
   organizations,
   selectedOrg,
@@ -67,19 +63,17 @@ export const OrganizationSwitcher: React.FC<OrganizationSwitcherProps> = ({
                 onClick={() => handleOrgSelect(org)}
                 className={isSelected ? 'bg-gray-50 cursor-default' : ''}
               >
-                <div className="flex items-center gap-2 w-full justify-between">
-                  <div className="flex items-center gap-2 w-full">
-                    <Avatar
-                      src={org.coverImage}
-                      alt={org.name}
-                      size="sm"
-                      className="bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0"
-                    />
-                    <span className={`font-medium truncate ${isSelected ? 'text-indigo-600' : ''}`}>
-                      {org.name}
-                    </span>
-                    {isSelected && <Check className="h-4 w-4 text-indigo-600" />}
-                  </div>
+                <div className="flex items-center gap-2 w-full">
+                  <Avatar
+                    src={org.coverImage}
+                    alt={org.name}
+                    size="sm"
+                    className="bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0"
+                  />
+                  <span className={`font-medium truncate ${isSelected ? 'text-indigo-600' : ''}`}>
+                    {org.name}
+                  </span>
+                  {isSelected && <Check className="h-4 w-4 text-indigo-600" />}
                 </div>
               </BaseMenuItem>
             );

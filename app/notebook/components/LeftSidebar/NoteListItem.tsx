@@ -12,7 +12,7 @@ import {
 } from '@/hooks/useNote';
 import type { Note } from '@/types/note';
 import toast from 'react-hot-toast';
-import React, { useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface NoteListItemProps {
@@ -21,17 +21,14 @@ interface NoteListItemProps {
   startTransition: (callback: () => void) => void;
 }
 
-/**
- * A single note item in the sidebar list.
- */
-export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, startTransition }) => {
+export const NoteListItem = ({ note, disabled, startTransition }: NoteListItemProps) => {
   const router = useRouter();
   const { refreshNotes, setNotes, activeNoteId } = useNotebookContext();
   const [{ isLoading: isDeleting }, deleteNote] = useDeleteNote();
   const [{ isLoading: isDuplicating }, duplicateNote] = useDuplicateNote();
   const [{ isLoading: isMakingPrivate }, makeNotePrivate] = useMakeNotePrivate();
   const [{ isLoading: isUpdatingPermissions }, updateNotePermissions] = useUpdateNotePermissions();
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
 
   const isPrivate = note.access === 'PRIVATE';
@@ -51,7 +48,7 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, star
     }
   }, [isSelected]);
 
-  const handleClick = React.useCallback(() => {
+  const handleClick = useCallback(() => {
     startTransition(() => {
       router.push(`/notebook/${note.organization.slug}/${note.id}`, { scroll: false });
     });

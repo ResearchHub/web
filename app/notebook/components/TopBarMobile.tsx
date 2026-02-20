@@ -8,7 +8,6 @@ import { PublishedStatusSection } from './PublishingForm/components/PublishedSta
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 
 interface TopBarMobileProps {
-  /** When provided (modal context), shows a close button instead of the hamburger. */
   onClose?: () => void;
 }
 
@@ -22,7 +21,6 @@ export function TopBarMobile({ onClose }: TopBarMobileProps) {
   return (
     <div className="h-16 border-b border-gray-200 sticky top-0 bg-white z-20">
       <div className="h-full flex items-center px-4 justify-between">
-        {/* Left: close button (modal) or hamburger menu (full page) */}
         <Button
           onClick={onClose ?? toggleLeftSidebar}
           className="p-2 rounded-md hover:bg-gray-100"
@@ -33,10 +31,7 @@ export function TopBarMobile({ onClose }: TopBarMobileProps) {
           {onClose ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
 
-        {/* Center content - page title or logo */}
         <PublishedStatusSection />
-
-        {/* Right sidebar toggle button */}
         {note && !isLegacyNote && (
           <Button
             onClick={toggleRightSidebar}

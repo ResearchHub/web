@@ -86,7 +86,6 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
   // Editor state
   const [editor, setEditor] = useState<Editor | null>(null);
 
-  // Fetch notes list
   const fetchNotes = useCallback(async (slug?: string) => {
     if (!slug) {
       setNotesError(new Error('No organization slug provided'));
@@ -110,7 +109,6 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     }
   }, []);
 
-  // Fetch organization users
   const fetchUsers = useCallback(async (orgId: string, silently = false) => {
     if (!silently) {
       setIsLoadingUsers(true);
@@ -131,7 +129,6 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     }
   }, []);
 
-  // Refresh users
   const refreshUsers = useCallback(
     async (silently = false) => {
       if (!selectedOrg?.id) {
@@ -145,7 +142,6 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     [selectedOrg?.id, fetchUsers]
   );
 
-  // Refresh notes
   const refreshNotes = useCallback(async () => {
     if (!selectedOrg?.slug) {
       setNotesError(new Error('No organization slug provided'));
@@ -190,7 +186,6 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
         )
       );
 
-      // Also update the current note data if it exists
       if (currentNote) {
         setCurrentNote((prev) => (prev ? { ...prev, title: newTitle } : null));
       }
@@ -198,16 +193,10 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     [activeNoteId, currentNote]
   );
 
-  // Refresh all data at once
   const refreshAll = useCallback(async () => {
-    if (!selectedOrg?.slug || !selectedOrg?.id) {
-      return;
-    }
+    if (!selectedOrg?.slug || !selectedOrg?.id) return;
 
-    // Start all fetches in parallel
     const promises = [fetchNotes(selectedOrg.slug), fetchUsers(selectedOrg.id.toString())];
-
-    // If we have a current note ID, also refresh that
     if (activeNoteId) {
       promises.push(loadNote(activeNoteId));
     }
@@ -238,7 +227,6 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
     fetchUsers(selectedOrg.id.toString());
   }, [selectedOrg?.slug, selectedOrg?.id, isLoadingOrg, fetchNotes, fetchUsers]);
 
-  // Update currentNoteId when URL params change
   useEffect(() => {
     if (activeNoteId) {
       loadNote(activeNoteId);
@@ -249,37 +237,25 @@ export function NotebookProvider({ children, noteId: explicitNoteId }: NotebookP
   const isLoading = isLoadingNotes || isLoadingUsers || isLoadingOrg;
 
   const value = {
-    // Notes list state
     notes,
     setNotes,
     isLoadingNotes,
     notesError,
     totalCount,
     refreshNotes,
-
-    // Organization users state
     users,
     isLoadingUsers,
     usersError,
     refreshUsers,
-
-    // Current note state
     currentNote,
     isLoadingNote,
     noteError,
     loadNote,
     updateNoteTitle,
-
-    // Editor state
     editor,
     setEditor,
-
-    // General loading state
     isLoading,
-
-    // Fetch all data at once
     refreshAll,
-
     activeNoteId,
   };
 

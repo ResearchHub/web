@@ -22,7 +22,7 @@ export function PublishedStatusSection() {
       ) : isPublished ? (
         <Badge variant="success" size="sm">
           <span className="mr-1 text-sm">Published</span>
-          {isPublished && slug && (
+          {slug && (
             <Link
               href={
                 articleType === 'preregistration'

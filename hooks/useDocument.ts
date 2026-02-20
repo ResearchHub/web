@@ -117,8 +117,9 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         fundraiseId,
       };
     } catch (err) {
-      const { data = {} } = err instanceof ApiError ? JSON.parse(err.message) : {};
-      const errorMsg = data?.msg || 'An error occurred while saving the proposal post';
+      const errorData = err instanceof ApiError ? (err.errors as Record<string, any>) : {};
+      const errorMsg =
+        errorData?.msg || errorData?.message || 'An error occurred while saving the proposal post';
       setError(errorMsg);
       throw err;
     } finally {

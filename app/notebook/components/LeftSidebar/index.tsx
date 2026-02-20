@@ -3,9 +3,8 @@
 import { NoteList } from '@/app/notebook/components/LeftSidebar/NoteList';
 import { OrganizationSwitcher } from '@/app/notebook/components/LeftSidebar/OrganizationSwitcher';
 import { SidebarSection } from '@/app/notebook/components/LeftSidebar/SidebarSection';
-import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
-import { BaseMenu } from '@/components/ui/form/BaseMenu';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { FileText, Plus, Wallet, Lock, Loader2 } from 'lucide-react';
 import { Organization } from '@/types/organization';
@@ -23,16 +22,6 @@ import { useNotebookContext } from '@/contexts/NotebookContext';
 import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
 import proposalTemplate from '@/components/Editor/lib/data/proposalTemplate';
 
-/**
- * Left sidebar for the notebook layout.
- *
- * Renders the organization switcher at the top, followed by collapsible
- * "Workspace" and "Private" note lists. Each section has a template-picker
- * menu for creating new notes.
- *
- * Used by:
- *   - `app/notebook/layout.tsx` (full notebook route — desktop inline, mobile slide-out)
- */
 export const LeftSidebar = () => {
   const router = useRouter();
 
@@ -83,7 +72,20 @@ export const LeftSidebar = () => {
             contentTemplate = proposalTemplate;
             break;
           case 'empty':
-            contentTemplate = { content: [] };
+            contentTemplate = {
+              type: 'doc',
+              content: [
+                {
+                  type: 'heading',
+                  attrs: { textAlign: 'left', level: 1 },
+                  content: [{ type: 'text', text: 'Untitled' }],
+                },
+                {
+                  type: 'paragraph',
+                  attrs: { class: null, textAlign: 'left' },
+                },
+              ],
+            };
             break;
           default:
             contentTemplate = getInitialContent('research');

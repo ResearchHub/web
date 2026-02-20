@@ -22,7 +22,6 @@ export function WorkImageSection() {
     setError(error.message);
   };
 
-  // Helper function to check if file is valid
   const isValidFile = (file: any): file is File => {
     return Boolean(file instanceof File && file.name && file.size > 0);
   };
@@ -30,36 +29,33 @@ export function WorkImageSection() {
   return (
     <div className="py-3 px-6">
       <SectionHeader icon={ImageIcon}>Cover Image</SectionHeader>
-      <div className="mt-2">
-        <div className="mt-4">
-          <Controller
-            name="coverImage"
-            control={control}
-            render={({ field }) => {
-              // Check if file is a valid File object or null
-              const fileValue =
-                field.value?.file && isValidFile(field.value.file) ? field.value.file : null;
+      <div className="mt-4">
+        <Controller
+          name="coverImage"
+          control={control}
+          render={({ field }) => {
+            const fileValue =
+              field.value?.file && isValidFile(field.value.file) ? field.value.file : null;
 
-              return (
-                <FileUpload
-                  onFileSelect={(file) => {
-                    field.onChange({ file, url: null });
-                  }}
-                  onFileRemove={() => {
-                    field.onChange(null);
-                  }}
-                  onError={handleError}
-                  accept={['image/jpeg', 'image/png']}
-                  maxSizeMB={10}
-                  selectedFile={fileValue}
-                  existingImageUrl={field.value?.url || null}
-                  error={error || (errors.coverImage?.message as string) || null}
-                  dragDropTitle="Drag and drop your image here"
-                />
-              );
-            }}
-          />
-        </div>
+            return (
+              <FileUpload
+                onFileSelect={(file) => {
+                  field.onChange({ file, url: null });
+                }}
+                onFileRemove={() => {
+                  field.onChange(null);
+                }}
+                onError={handleError}
+                accept={['image/jpeg', 'image/png']}
+                maxSizeMB={10}
+                selectedFile={fileValue}
+                existingImageUrl={field.value?.url || null}
+                error={error || (errors.coverImage?.message as string) || null}
+                dragDropTitle="Drag and drop your image here"
+              />
+            );
+          }}
+        />
       </div>
     </div>
   );

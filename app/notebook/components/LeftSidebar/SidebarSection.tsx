@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
 
 interface SidebarSectionProps {
@@ -10,9 +10,6 @@ interface SidebarSectionProps {
   defaultExpanded?: boolean;
 }
 
-/**
- * A collapsible section in the left sidebar with a title and optional action button.
- */
 export const SidebarSection: React.FC<SidebarSectionProps> = ({
   title,
   children,

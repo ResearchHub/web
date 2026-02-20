@@ -41,7 +41,6 @@ export const publishingFormSchema = z
     applicationDeadline: z.date().nullable().optional(),
   })
   .superRefine((data, ctx) => {
-    // Validate topics
     if (data.topics.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -50,9 +49,7 @@ export const publishingFormSchema = z
       });
     }
 
-    // Conditional validation for authors vs contacts based on article type
     if (data.articleType === 'grant') {
-      // For grants: validate contacts
       if (data.contacts.length === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -61,7 +58,6 @@ export const publishingFormSchema = z
         });
       }
     } else {
-      // For non-grants: validate authors
       if (data.authors.length === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -71,9 +67,7 @@ export const publishingFormSchema = z
       }
     }
 
-    // Proposal-specific validations
     if (data.articleType === 'preregistration') {
-      // Validate budget
       const num = parseFloat(data.budget?.replace(/[^0-9.]/g, '') || '0');
       if (num <= 0) {
         ctx.addIssue({
@@ -83,7 +77,6 @@ export const publishingFormSchema = z
         });
       }
 
-      // Validate cover image
       if (!data.coverImage?.file && !data.coverImage?.url) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -93,9 +86,7 @@ export const publishingFormSchema = z
       }
     }
 
-    // Grant-specific validations
     if (data.articleType === 'grant') {
-      // Validate short description
       if (!data.shortDescription || data.shortDescription.trim().length === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -104,7 +95,6 @@ export const publishingFormSchema = z
         });
       }
 
-      // Validate organization (optional, but max 200 chars if provided)
       if (data.organization && data.organization.trim().length > 200) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -113,7 +103,6 @@ export const publishingFormSchema = z
         });
       }
 
-      // Validate funding amount
       const num = parseFloat(data.budget?.replace(/[^0-9.]/g, '') || '0');
       if (num <= 0) {
         ctx.addIssue({
@@ -123,7 +112,6 @@ export const publishingFormSchema = z
         });
       }
 
-      // Validate application deadline for grants
       if (!data.applicationDeadline) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,

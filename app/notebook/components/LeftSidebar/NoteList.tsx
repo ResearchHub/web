@@ -15,27 +15,19 @@ export const NoteList: React.FC<NoteListProps> = ({ notes, type, isLoading = fal
   const [isPending, startTransition] = useTransition();
 
   const filteredAndSortedNotes = notes
-    .filter((note: Note) => {
-      if (type === 'workspace') {
-        return note.access === 'WORKSPACE' || note.access === 'SHARED';
-      } else {
-        return note.access === 'PRIVATE';
-      }
-    })
-    .sort((a, b) => {
-      return new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime();
-    });
+    .filter((note) =>
+      type === 'workspace'
+        ? note.access === 'WORKSPACE' || note.access === 'SHARED'
+        : note.access === 'PRIVATE'
+    )
+    .sort((a, b) => new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime());
 
   if (isLoading || notes.length === 0) {
     return <NoteListSkeleton />;
   }
 
   if (filteredAndSortedNotes.length === 0) {
-    return (
-      <div className="text-sm text-gray-500 px-2.5">
-        No {type === 'workspace' ? 'workspace' : 'private'} notes
-      </div>
-    );
+    return <div className="text-sm text-gray-500 px-2.5">No {type} notes</div>;
   }
 
   return (

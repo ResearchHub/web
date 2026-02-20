@@ -24,15 +24,6 @@ interface CreateGrantModalProps {
   onClose: () => void;
 }
 
-/**
- * Modal for creating a new RFP / Grant.
- *
- * 1. Creates a backend note from the grant template.
- * 2. Renders the shared NoteEditorLayout (top bar + editor + PublishingForm)
- *    inside NotebookProvider + SidebarProvider.
- *
- * No duplication of editor / publish-form logic with the full notebook route.
- */
 export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
   const { selectedOrg } = useOrganizationContext();
 
@@ -42,7 +33,6 @@ export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
   const [, createNote] = useCreateNote();
   const [, updateContent] = useNoteContent();
 
-  // Reset state when the modal closes so re-open starts fresh
   useEffect(() => {
     if (!isOpen) {
       setNoteId(null);
@@ -50,7 +40,6 @@ export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
     }
   }, [isOpen]);
 
-  // Create the backing note when the modal first opens
   useEffect(() => {
     if (!isOpen || !selectedOrg?.slug || noteId) return;
 
@@ -98,7 +87,6 @@ export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
       contentClassName="!overflow-hidden"
     >
       <div className="h-full">
-        {/* Note creation / error states */}
         {isCreatingNote && (
           <div className="flex flex-col items-center justify-center h-full gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
@@ -115,7 +103,6 @@ export function CreateGrantModal({ isOpen, onClose }: CreateGrantModalProps) {
           </div>
         )}
 
-        {/* Once the note is ready, render the shared editor layout */}
         {noteId && !isCreatingNote && !noteError && (
           <NotebookProvider noteId={noteId.toString()}>
             <SidebarProvider>

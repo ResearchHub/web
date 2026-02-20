@@ -14,12 +14,6 @@ import {
 import { useCreateNote, useNoteContent } from '@/hooks/useNote';
 import { NoteCreationPopover } from '../components/NoteCreationPopover';
 
-/**
- * Organization page – the welcome UI is now in NoteEditorLayout.
- * This page only exists for:
- *   1. Next.js routing (so /notebook/[orgSlug] resolves).
- *   2. Auto-creating notes when landing with ?newFunding / ?newResearch / ?newGrant.
- */
 export default function OrganizationPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -96,6 +90,5 @@ export default function OrganizationPage() {
     // stable across renders, and the effect should only fire when the route params change.
   }, [selectedOrg, isNewFunding, isNewResearch, isNewGrant]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Only render the creation overlay; the welcome screen is in NoteEditorLayout.
   return <NoteCreationPopover isOpen={isCreatingNote || isUpdatingContent} />;
 }

@@ -8,7 +8,6 @@ import { PublishedStatusSection } from './PublishingForm/components/PublishedSta
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 
 interface TopBarDesktopProps {
-  /** When provided (modal context), shows a close button on the left. */
   onClose?: () => void;
 }
 
@@ -23,7 +22,6 @@ export function TopBarDesktop({ onClose }: TopBarDesktopProps) {
   return (
     <div className="h-16 border-b border-gray-200 sticky top-0 bg-white z-20">
       <div className="h-full flex items-center px-4 justify-between">
-        {/* Left: close button when in modal context */}
         {onClose ? (
           <Button
             onClick={onClose}
@@ -38,10 +36,7 @@ export function TopBarDesktop({ onClose }: TopBarDesktopProps) {
           <div />
         )}
 
-        {/* Center content - page title or logo */}
         <PublishedStatusSection />
-
-        {/* Right sidebar toggle button */}
         {shouldShowRightSidebar && !isLegacyNote ? (
           isRightSidebarOpen ? (
             <Button

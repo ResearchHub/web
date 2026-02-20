@@ -38,8 +38,8 @@ import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
 import { DEFAULT_GRANT_DEADLINE } from '@/components/Grant/lib/constants';
+import { ApiError } from '@/services/types';
 
-// Feature flags for conditionally showing sections
 const FEATURE_FLAG_RESEARCH_COIN = false;
 const FEATURE_FLAG_JOURNAL = false;
 
@@ -59,9 +59,7 @@ const PUBLISH_LABEL: Record<string, string> = {
 interface PublishingFormProps {
   bountyAmount?: number | null;
   onBountyClick?: () => void;
-  /** Pre-set article type when opened from a modal (e.g. 'grant'). */
   defaultArticleType?: string;
-  /** When true, hides fields not relevant in modal context (Work Type, Application Deadline). */
   isModal?: boolean;
 }
 
@@ -96,6 +94,22 @@ const getButtonText = ({
   }
 };
 
+const FORM_DEFAULTS = {
+  authors: [],
+  contacts: [],
+  topics: [],
+  rewardFunders: false,
+  nftSupply: '1000',
+  isJournalEnabled: false,
+  budget: '',
+  coverImage: null,
+  selectedNonprofit: null,
+  departmentLabName: '',
+  shortDescription: '',
+  organization: '',
+  applicationDeadline: null,
+} satisfies Partial<PublishingFormData>;
+
 export function PublishingForm({
   bountyAmount,
   onBountyClick,
@@ -110,42 +124,14 @@ export function PublishingForm({
   const [showNonprofitConfirmModal, setShowNonprofitConfirmModal] = useState(false);
 
   const methods = useForm<PublishingFormData>({
-    defaultValues: {
-      authors: [],
-      topics: [],
-      rewardFunders: false,
-      nftSupply: '1000',
-      isJournalEnabled: false,
-      budget: '',
-      selectedNonprofit: null,
-      departmentLabName: '',
-      shortDescription: '',
-      organization: '',
-      applicationDeadline: null,
-    },
+    defaultValues: FORM_DEFAULTS,
     resolver: zodResolver(publishingFormSchema),
     mode: 'onChange',
   });
 
-  // Reset form when switching between notes
   useEffect(() => {
     if (note?.id) {
-      // Reset form to default values when switching notes
-      methods.reset({
-        authors: [],
-        contacts: [],
-        topics: [],
-        rewardFunders: false,
-        nftSupply: '1000',
-        isJournalEnabled: false,
-        budget: '',
-        coverImage: null,
-        selectedNonprofit: null,
-        departmentLabName: '',
-        shortDescription: '',
-        organization: '',
-        applicationDeadline: null,
-      });
+      methods.reset(FORM_DEFAULTS);
     }
   }, [note?.id, methods]);
 
@@ -167,7 +153,6 @@ export function PublishingForm({
             : 'discussion'
       );
 
-      // Set budget fields based on article type
       if (note.post.contentType === 'preregistration') {
         methods.setValue('budget', note.post.fundraise?.goalAmount.usd.toString());
       }
@@ -223,7 +208,6 @@ export function PublishingForm({
       return;
     }
 
-    // Priority 2: Check localStorage
     const storedData = loadPublishingFormFromStorage(note.id.toString());
     if (storedData) {
       Object.entries(storedData).forEach(([key, value]) => {
@@ -235,7 +219,6 @@ export function PublishingForm({
       });
     }
 
-    // Priority 3: Check URL params
     const isNewFunding = searchParams?.get('newFunding') === 'true';
     const isNewResearch = searchParams?.get('newResearch') === 'true';
     const isNewGrant = searchParams?.get('newGrant') === 'true';
@@ -266,7 +249,6 @@ export function PublishingForm({
     }
   }, [note, methods, searchParams, defaultArticleType]);
 
-  // Add effect to save form data when it changes
   useEffect(() => {
     if (!note) return;
 
@@ -286,7 +268,8 @@ export function PublishingForm({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const router = useRouter();
 
-  // Reset form errors when article type changes
+  const isPublishing = isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage;
+
   useEffect(() => {
     clearErrors();
   }, [articleType, clearErrors]);
@@ -322,11 +305,9 @@ export function PublishingForm({
       return;
     }
 
-    // If nonprofit is selected, show the nonprofit confirmation first
     if (selectedNonprofit) {
       setShowNonprofitConfirmModal(true);
     } else {
-      // Otherwise show the regular publish confirmation
       setShowConfirmModal(true);
     }
   };
@@ -347,7 +328,6 @@ export function PublishingForm({
 
       let imagePath = null;
 
-      // Upload the image for proposal and grant posts
       if (
         (formData.articleType === 'preregistration' || formData.articleType === 'grant') &&
         formData.coverImage?.file
@@ -362,10 +342,8 @@ export function PublishingForm({
           return;
         }
       }
-      // Get the fundraiseId from the existing post if it exists (for updates)
       const existingFundraiseId = note?.post?.fundraise?.id;
 
-      // Determine the budget value based on article type
       let budgetValue = '0';
       if (formData.articleType === 'preregistration' || formData.articleType === 'grant') {
         budgetValue = formData.budget || '0';
@@ -400,12 +378,10 @@ export function PublishingForm({
         formData.workId
       );
 
-      // If a nonprofit is selected, link it to the fundraise (only for proposal)
       const fundraiseId = response.fundraiseId || existingFundraiseId;
 
       if (formData.selectedNonprofit && fundraiseId && formData.articleType === 'preregistration') {
         try {
-          // Create the nonprofit and link it to the fundraise using consistent camelCase naming
           const nonprofitData = {
             name: formData.selectedNonprofit.name,
             ein: formData.selectedNonprofit.ein,
@@ -422,15 +398,13 @@ export function PublishingForm({
         } catch (error: unknown) {
           console.error('Error linking nonprofit:', error);
 
-          // Handle specific error for "Fundraise not found"
           if (error instanceof Error && error.message.includes('Fundraise not found')) {
             toast.error('The fundraise was not found. Please try publishing again.');
             setIsRedirecting(false);
             setShowConfirmModal(false);
-            return; // Don't proceed with redirect
+            return;
           }
 
-          // Don't block the redirect if the nonprofit linking fails
           toast.error('Nonprofit organization was not linked successfully.');
         }
       }
@@ -446,15 +420,20 @@ export function PublishingForm({
       } else {
         router.push(`/post/${response.id}/${response.slug}`);
       }
-    } catch (error) {
-      toast.error('Error publishing. Please try again.');
+    } catch (error: unknown) {
+      const fallback = 'Error publishing. Please try again.';
+      if (error instanceof ApiError) {
+        const errorData = error.errors as Record<string, any> | undefined;
+        toast.error(errorData?.msg || errorData?.message || fallback);
+      } else {
+        toast.error(fallback);
+      }
       console.error('Error publishing:', error);
     } finally {
       setShowConfirmModal(false);
     }
   };
 
-  // Show skeleton while note is loading
   if (!note) {
     return <PublishingFormSkeleton />;
   }
@@ -462,8 +441,7 @@ export function PublishingForm({
   return (
     <FormProvider {...methods}>
       <div className="w-82 flex flex-col sticky right-0 top-0 bg-white relative h-full">
-        {/* Processing overlay */}
-        {(isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage) && (
+        {isPublishing && (
           <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
             <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mb-2" />
             {isLinkingNonprofit && (
@@ -472,7 +450,6 @@ export function PublishingForm({
           </div>
         )}
 
-        {/* Scrollable content - conditionally disable scrolling */}
         <div
           className={cn(
             'flex-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 relative',
@@ -510,7 +487,6 @@ export function PublishingForm({
           </div>
         </div>
 
-        {/* Sticky bottom section */}
         <div className="border-t bg-white p-2 lg:p-6 space-y-3 sticky bottom-0">
           {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled && (
             <div className="flex items-center justify-between text-sm">
@@ -522,7 +498,7 @@ export function PublishingForm({
             variant="default"
             onClick={handlePublishClick}
             className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage}
+            disabled={isPublishing}
           >
             {getButtonText({
               isLoadingUpsert: isLoadingUpsert || isUploadingImage,
@@ -552,7 +528,7 @@ export function PublishingForm({
           onClose={() => setShowConfirmModal(false)}
           onConfirm={handleConfirmPublish}
           title={getDocumentTitleFromEditor(editor) || 'Untitled Research'}
-          isPublishing={isLoadingUpsert || isRedirecting || isUploadingImage}
+          isPublishing={isPublishing}
           isUpdate={Boolean(methods.watch('workId'))}
           onTitleChange={(title) => setDocumentTitle(editor, title)}
           variant={articleType === 'grant' ? 'rfp' : 'default'}
