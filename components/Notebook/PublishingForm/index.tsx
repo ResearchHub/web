@@ -317,13 +317,13 @@ export function PublishingForm({
   };
 
   const uploadCoverImage = async (formData: PublishingFormData): Promise<string | null | false> => {
-    const needsUpload =
-      (formData.articleType === 'preregistration' || formData.articleType === 'grant') &&
-      formData.coverImage?.file;
-    if (!needsUpload) return null;
+    const needsImage =
+      formData.articleType === 'preregistration' || formData.articleType === 'grant';
+    const file = needsImage ? formData.coverImage?.file : null;
+    if (!file) return null;
 
     try {
-      const result = await uploadAsset(formData.coverImage!.file!, 'post');
+      const result = await uploadAsset(file, 'post');
       return result.objectKey;
     } catch (error) {
       console.error('Error uploading image:', error);

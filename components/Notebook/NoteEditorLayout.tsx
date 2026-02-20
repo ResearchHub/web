@@ -171,11 +171,8 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: Readonly<NoteE
   if (isDesktop === null) return null;
 
   const hasDesktopSidebar = isDesktop && shouldShowRightSidebar;
-  const gridColumns = !hasDesktopSidebar
-    ? 'minmax(0, 1fr)'
-    : isRightSidebarOpen
-      ? 'minmax(0, 1fr) 300px'
-      : 'minmax(0, 1fr) 0px';
+  const sidebarWidth = isRightSidebarOpen ? '300px' : '0px';
+  const gridColumns = hasDesktopSidebar ? `minmax(0, 1fr) ${sidebarWidth}` : 'minmax(0, 1fr)';
 
   return (
     <div className="flex flex-col h-full relative">
