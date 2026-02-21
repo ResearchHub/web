@@ -106,13 +106,14 @@ export function formatTransactionAmount(amount: string): string {
 export function formatUsdValue(
   amount: string,
   exchangeRate: number,
-  useExchangeRate = true
+  useExchangeRate = true,
+  fractionDigits = 2
 ): string {
   const parsedAmount = parseFloat(amount);
   const usdValue = useExchangeRate ? parsedAmount * exchangeRate : parsedAmount;
   const absValue = Math.abs(usdValue).toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
   });
   return `${usdValue < 0 ? '-$' : '$'}${absValue} USD`;
 }
