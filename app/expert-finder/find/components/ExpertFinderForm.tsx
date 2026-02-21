@@ -284,6 +284,7 @@ export function ExpertFinderForm() {
             <AdvancedConfig
               values={field.value}
               onChange={field.onChange}
+              errors={errors.advanced}
               availableInputTypes={availableInputTypes}
               contentType={fetchedWork?.contentType}
               onRerunSelect={handleRerunSelect}

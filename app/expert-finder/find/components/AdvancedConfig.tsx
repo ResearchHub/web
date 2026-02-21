@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import type { FieldErrors } from 'react-hook-form';
 import { ChevronDown, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
@@ -17,6 +18,7 @@ import {
   REGION_OPTIONS,
   getRegionLabel,
 } from '@/services/expertFinder.service';
+import { getFieldErrorMessage } from '@/utils/form';
 import { cn } from '@/utils/styles';
 import { SearchHistoryDropdown } from './SearchHistoryDropdown';
 import { ExcludeExpertsFromSearchesDropdown } from './ExcludeExpertsFromSearchesDropdown';
@@ -30,6 +32,7 @@ const INPUT_TYPE_OPTIONS: { value: InputType; label: string }[] = [
 interface AdvancedConfigProps {
   values: AdvancedConfigFormValues;
   onChange: (values: AdvancedConfigFormValues) => void;
+  errors?: FieldErrors<AdvancedConfigFormValues>;
   availableInputTypes?: InputType[];
   contentType?: ContentType;
   onRerunSelect: (search: ExpertSearchResult | null) => void;
@@ -39,6 +42,7 @@ interface AdvancedConfigProps {
 export function AdvancedConfig({
   values,
   onChange,
+  errors,
   availableInputTypes = ['abstract', 'full_content'],
   contentType,
   onRerunSelect,
@@ -85,6 +89,7 @@ export function AdvancedConfig({
           <div className="min-w-0">
             <Dropdown
               label="Input Type"
+              error={getFieldErrorMessage(errors?.inputType)}
               helperText={
                 contentType === 'paper'
                   ? 'Choose abstract or PDF (PDF only if the paper has one).'
@@ -138,6 +143,7 @@ export function AdvancedConfig({
         <div className="min-w-0">
           <Dropdown
             label="Number of Researchers"
+            error={getFieldErrorMessage(errors?.expertCount)}
             helperText={`Up to ${values.expertCount} researchers will be found`}
             trigger={
               <Button
@@ -175,6 +181,7 @@ export function AdvancedConfig({
         <div className="min-w-0">
           <MultiSelectDropdown<ExpertiseLevel>
             label="Expertise Level"
+            error={getFieldErrorMessage(errors?.expertiseLevel)}
             options={EXPERTISE_LEVEL_OPTIONS}
             collapseLabelAbove={2}
             value={values.expertiseLevel.length === 0 ? ['all_levels'] : values.expertiseLevel}
@@ -205,6 +212,7 @@ export function AdvancedConfig({
         <div className="min-w-0">
           <Dropdown
             label="Geographic Region"
+            error={getFieldErrorMessage(errors?.region)}
             trigger={
               <Button
                 type="button"
