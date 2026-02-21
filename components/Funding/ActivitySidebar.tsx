@@ -10,7 +10,7 @@ interface ActivitySidebarProps {
 
 export const ActivitySidebar: FC<ActivitySidebarProps> = ({ className }) => {
   return (
-    <div className={cn('bg-white rounded-xl border border-gray-200 p-6', className)}>
+    <div className={cn('bg-white rounded-xl border border-gray-200 p-6 h-full', className)}>
       <div className="flex items-center gap-2 mb-4">
         <Activity size={18} className="text-gray-400" />
         <h2 className="text-lg font-semibold text-gray-900">Activity</h2>

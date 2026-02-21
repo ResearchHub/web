@@ -189,7 +189,7 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
                     z-30 ${isCompact ? 'top-12 h-[calc(100vh-48px)]' : 'top-16 h-[calc(100vh-64px)]'}`}
             >
               {/* Sidebar Content */}
-              <div className="px-4 pt-4 pb-4">
+              <div className="px-4 pt-4 pb-4 h-full">
                 <Suspense fallback={<RightSidebarSkeleton />}>
                   {pathname.startsWith('/paper/create') ? (
                     <RHJRightSidebar showBanner={false} />

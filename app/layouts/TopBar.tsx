@@ -62,6 +62,7 @@ const isRootNavigationPage = (pathname: string): boolean => {
     '/fund/grants',
     '/fund/needs-funding', // Fundraises page
     '/dashboard',
+    '/dashboard/impact',
     '/funding', // Funding V2 page
     '/funding/proposals',
     '/journal',
@@ -173,7 +174,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
-  if (pathname === '/dashboard') {
+  if (pathname.startsWith('/dashboard')) {
     return {
       title: 'My Dashboard',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
@@ -504,7 +505,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                   {pageInfo.title && (
                     <h1
                       className="font-semibold text-gray-900 leading-tight truncate"
-                      style={{ fontSize: '28px', letterSpacing: '-0.75px' }}
+                      style={{ fontSize: '26px', letterSpacing: '-0.75px' }}
                     >
                       {pageInfo.title}
                     </h1>
