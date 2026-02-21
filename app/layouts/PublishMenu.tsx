@@ -19,35 +19,12 @@ interface PublishMenuProps {
 
 const PUBLISH_MENU_SECTIONS = [
   {
-    title: 'Your Research',
-    items: [
-      {
-        id: 'submit-paper',
-        title: 'Publish manuscript',
-        description: 'Submit a manuscript as a preprint or publication',
-        icon: <Icon name="submit1" size={24} color="#2563eb" />,
-        action: 'navigate',
-        path: '/paper/create',
-        requiresAuth: true,
-      },
-      {
-        id: 'write-note',
-        title: 'Write a research note',
-        description: 'Share insights, ideas, or work in progress',
-        icon: <PenLine size={24} color="#2563eb" />,
-        action: 'navigate',
-        path: '/notebook',
-        requiresAuth: true,
-      },
-    ],
-  },
-  {
-    title: 'ResearchCoin Economy',
+    title: 'Publish on ResearchHub',
     items: [
       {
         id: 'request-funding',
-        title: 'Request funding',
-        description: 'Get crowdfunding for your experiments',
+        title: 'Proposal',
+        description: 'Crowdfund your research',
         icon: <FundingIcon size={24} color="#2563eb" />,
         action: 'function',
         handler: 'handleFundResearch',
@@ -55,11 +32,20 @@ const PUBLISH_MENU_SECTIONS = [
       },
       {
         id: 'give-funding',
-        title: 'Give research funding',
+        title: 'Funding Opportunity',
         description: 'Fund specific research you care about',
         icon: <Icon name="fund" size={24} color="#2563eb" />,
         action: 'function',
         handler: 'handleOpenGrant',
+        requiresAuth: true,
+      },
+      {
+        id: 'submit-paper',
+        title: 'Paper',
+        description: 'Publish your research as a preprint',
+        icon: <Icon name="submit1" size={24} color="#2563eb" />,
+        action: 'navigate',
+        path: '/paper/create',
         requiresAuth: true,
       },
     ],
@@ -147,7 +133,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
       }}
     >
       <Plus className="h-[22px] w-[22px] stroke-[1.5]" />
-      <span>New</span>
+      <span>Publish</span>
     </button>
   );
 
@@ -275,7 +261,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
             trigger={standardTrigger}
             align="start"
             sideOffset={8}
-            className="w-80 p-2"
+            className="w-[340px] p-2"
             withOverlay={true}
             animate
           >
@@ -287,7 +273,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
             trigger={compactTrigger}
             align="start"
             sideOffset={8}
-            className="w-80 p-2"
+            className="w-[340px] p-2"
             withOverlay={true}
             animate
           >
