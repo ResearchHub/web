@@ -19,6 +19,8 @@ export interface BlockEditorProps {
   onUpdate?: (editor: Editor) => void;
   editable?: boolean;
   setEditor?: (editor: Editor | null) => void;
+  /** When true, the document schema requires a heading as the first node (default: true for editable). */
+  requireTitle?: boolean;
 }
 
 export const BlockEditor: React.FC<BlockEditorProps> = ({
@@ -28,6 +30,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   setEditor,
   isLoading = false,
   editable = true,
+  requireTitle,
 }) => {
   const menuContainerRef = useRef(null);
 
@@ -36,6 +39,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
     contentJson,
     onUpdate,
     editable,
+    includeTitle: requireTitle ?? editable,
   });
 
   useEffect(() => {

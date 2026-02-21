@@ -8,13 +8,17 @@ import { FeedContent } from '@/components/Feed/FeedContent';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { FundRightSidebar } from '@/components/Fund/FundRightSidebar';
 import { GrantRightSidebar } from '@/components/Fund/GrantRightSidebar';
+import { AllFundingRightSidebar } from '@/components/Fund/AllFundingRightSidebar';
+import { FundingMobileInfo } from '@/components/Fund/FundingMobileInfo';
+import { FundingPromotionCards } from '@/components/Fund/FundingPromotionCards';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { FundingSortOption } from '@/components/Fund/MarketplaceTabs';
 import Icon from '@/components/ui/icons/Icon';
 import { createTabConfig, getSortOptions } from '@/components/Fund/lib/FundingFeedConfig';
+import Link from 'next/link';
 
 interface FundPageContentProps {
-  marketplaceTab: 'grants' | 'needs-funding';
+  marketplaceTab: 'all' | 'grants' | 'needs-funding';
 }
 
 export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
@@ -25,7 +29,11 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
 
   const defaultSort = marketplaceTab === 'needs-funding' ? 'best' : 'newest';
   const sortBy = (searchParams.get('ordering') as FundingSortOption) || defaultSort;
-  const TAB_CONFIG = createTabConfig(<GrantRightSidebar />, <FundRightSidebar />);
+  const TAB_CONFIG = createTabConfig(
+    <GrantRightSidebar />,
+    <FundRightSidebar />,
+    <AllFundingRightSidebar />
+  );
   const config = TAB_CONFIG[marketplaceTab];
   const sortOptions = getSortOptions(marketplaceTab);
 
@@ -67,7 +75,12 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
         subtitle={config.subtitle}
         showTitle={false}
       />
-      <div className="mb-6 border-b">
+      {activeTab === 'all' && (
+        <div className="py-4">
+          <FundingPromotionCards />
+        </div>
+      )}
+      <div className="border-b">
         <FeedTabs
           activeTab={activeTab}
           tabs={feedTabsList}
@@ -79,6 +92,40 @@ export function FundPageContent({ marketplaceTab }: FundPageContentProps) {
           sortOptions={sortOptions}
         />
       </div>
+      {/* Mobile-only: Horizontal scrolling CTAs and info drawer */}
+      {activeTab === 'all' && (
+        <div className="lg:hidden mt-4 mb-4">
+          <FundingMobileInfo />
+        </div>
+      )}
+      {activeTab === 'needs-funding' && (
+        <div className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-lg px-4 py-2.5 mt-4 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-orange-500" />
+            <span className="text-sm text-gray-700">Explore available funding opportunities</span>
+          </div>
+          <Link
+            href="/notebook?newFunding=true"
+            className="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
+          >
+            Create a proposal →
+          </Link>
+        </div>
+      )}
+      {activeTab === 'grants' && (
+        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5 mt-4 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-blue-500" />
+            <span className="text-sm text-gray-700">Support research projects seeking funding</span>
+          </div>
+          <Link
+            href="/notebook?newFunding=true"
+            className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+          >
+            Create a proposal →
+          </Link>
+        </div>
+      )}
       <FeedContent
         entries={entries}
         isLoading={isLoading}

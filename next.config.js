@@ -2,11 +2,11 @@
 const nextConfig = {
   reactStrictMode: false,
   redirects: async () => [
-    {
-      source: '/fund',
-      destination: '/fund/grants',
-      permanent: false,
-    },
+    // {
+    //   source: '/fund',
+    //   destination: '/fund/grants',
+    //   permanent: false,
+    // },
     {
       source: '/researchhub-journal',
       destination: '/journal',

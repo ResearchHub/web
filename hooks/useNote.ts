@@ -169,6 +169,92 @@ export const useNoteContent = (): UseNoteContentReturn => {
   return [{ note, isLoading, error }, updateNoteContent];
 };
 
+// ── Create Note From Template ──────────────────────────────────────────────
+
+interface NoteTemplate {
+  type: 'doc';
+  content: Array<{
+    type: string;
+    attrs?: Record<string, any>;
+    content?: Array<{ type: string; text?: string; marks?: any[]; content?: any[] }>;
+  }>;
+}
+
+interface CreateNoteFromTemplateInput {
+  organizationSlug: string;
+  template: NoteTemplate;
+  /** Override the title derived from the template heading */
+  title?: string;
+}
+
+interface UseCreateNoteFromTemplateState {
+  note: NoteWithContent | null;
+  isLoading: boolean;
+  error: Error | null;
+}
+
+type CreateNoteFromTemplateFn = (params: CreateNoteFromTemplateInput) => Promise<NoteWithContent>;
+type UseCreateNoteFromTemplateReturn = [UseCreateNoteFromTemplateState, CreateNoteFromTemplateFn];
+
+/**
+ * Hook that creates a note, populates it with template content, and returns
+ * the fully-hydrated NoteWithContent (including HTML from latest_version).
+ *
+ * Consolidates the create → updateContent → getNote pattern used by
+ * the assistant and the notebook page.
+ */
+export const useCreateNoteFromTemplate = (): UseCreateNoteFromTemplateReturn => {
+  const [note, setNote] = useState<NoteWithContent | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const createNoteFromTemplate = async (params: CreateNoteFromTemplateInput) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // 1. Derive title from template heading if not provided
+      const firstHeading = params.template.content?.find((n) => n.type === 'heading');
+      const templateTitle = firstHeading?.content?.[0]?.text || '';
+      const title = params.title || templateTitle || 'Untitled';
+
+      // 2. Create the note
+      const newNote = await NoteService.createNote({
+        title,
+        grouping: 'WORKSPACE',
+        organization_slug: params.organizationSlug,
+      });
+
+      // 3. Populate with template content
+      const plainText = params.template.content
+        .map((block) => block.content?.map((c) => c.text).join(' '))
+        .filter(Boolean)
+        .join('\n');
+
+      await NoteService.updateNoteContent({
+        note: newNote.id,
+        full_json: JSON.stringify(params.template),
+        plain_text: plainText,
+      });
+
+      // 4. Load the full note with rendered HTML
+      const fullNote = await NoteService.getNote(String(newNote.id));
+      setNote(fullNote);
+      return fullNote;
+    } catch (err) {
+      const errorMsg =
+        err instanceof NoteError ? err.message : 'Failed to create note from template';
+      const error = new Error(errorMsg);
+      setError(error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return [{ note, isLoading, error }, createNoteFromTemplate];
+};
+
 interface UseDeleteNoteState {
   isLoading: boolean;
   error: Error | null;

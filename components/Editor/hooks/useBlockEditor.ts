@@ -65,7 +65,7 @@ export const useBlockEditor = ({
       extensions: [
         ...ExtensionKit({
           provider,
-          customDocument: editable ? CustomDocument : undefined,
+          customDocument: editable && includeTitle ? CustomDocument : undefined,
           placeholderConfig: {
             includeChildren: true,
             showOnlyCurrent: false,

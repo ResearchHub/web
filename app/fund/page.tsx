@@ -2,7 +2,7 @@
 
 import { FundPageContent } from './components/FundPageContent';
 
-// Show grants by default
+// Show all funding items by default
 export default function FundingPage() {
-  return <FundPageContent marketplaceTab="grants" />;
+  return <FundPageContent marketplaceTab="all" />;
 }

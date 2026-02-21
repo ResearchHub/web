@@ -17,7 +17,7 @@ import {
   faGrid3 as faGrid3Light,
   faBookmark as faBookmarkLight,
 } from '@fortawesome/pro-light-svg-icons';
-import { ChartNoAxesColumnIncreasing } from 'lucide-react';
+import { ChartNoAxesColumnIncreasing, Sparkles } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 
 // Define icon mapping for navigation items with both light and solid variants
@@ -36,6 +36,7 @@ interface NavigationItem {
   requiresAuth?: boolean;
   isUnimplemented?: boolean;
   isFontAwesome?: boolean;
+  isLucideIcon?: boolean;
 }
 
 interface NavigationProps {
@@ -118,6 +119,12 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Browse grants and fundraising opportunities',
     },
     {
+      label: 'Assistant',
+      href: '/assistant',
+      description: 'AI-powered research assistant',
+      isLucideIcon: true,
+    },
+    {
       label: 'RH Journal',
       href: '/journal',
       iconKey: 'journal',
@@ -183,6 +190,11 @@ export const Navigation: React.FC<NavigationProps> = ({
       return currentPath.startsWith('/browse');
     }
 
+    // Special case for assistant page
+    if (path === '/assistant') {
+      return currentPath.startsWith('/assistant');
+    }
+
     // Special case for lists page - match /lists and /list/[id]
     if (path === '/lists') {
       return currentPath === '/lists' || currentPath.startsWith('/list/');
@@ -242,7 +254,14 @@ export const Navigation: React.FC<NavigationProps> = ({
     return (
       <Link href={item.href} onClick={handleClick} className={buttonStyles} scroll={false}>
         <div className={iconContainerClass}>
-          {item.href === '/leaderboard' ? (
+          {item.isLucideIcon && item.href === '/assistant' ? (
+            <Sparkles
+              size={22}
+              color={iconColor}
+              strokeWidth={isActive ? 2.5 : 2}
+              className={isActive ? 'fill-primary-200' : ''}
+            />
+          ) : item.href === '/leaderboard' ? (
             <ChartNoAxesColumnIncreasing
               size={22}
               color={iconColor}
