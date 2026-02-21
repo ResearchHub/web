@@ -42,6 +42,8 @@ import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { useAddToList } from '@/components/UserList/lib/UserListsContext';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
+import { ImageUploadModal } from '@/components/modals/ImageUploadModal';
+import { Image as ImageIcon } from 'lucide-react';
 import { handleDownload } from '@/utils/download';
 
 interface WorkLineItemsProps {
@@ -77,6 +79,7 @@ export const WorkLineItems = ({
     work.metrics?.adjustedScore ?? work.metrics?.votes ?? 0
   );
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
+  const [isFigureUploadModalOpen, setIsFigureUploadModalOpen] = useState(false);
   const router = useRouter();
   const { selectedOrg } = useOrganizationContext();
   const { user } = useUser();
@@ -88,6 +91,28 @@ export const WorkLineItems = ({
     isInList,
     onOpenModal: () => setIsAddToListModalOpen(true),
   });
+
+  
+  const handleFigureUpload = async (imageBlob: Blob) => {
+    try {
+      const formData = new FormData();
+      formData.append('figure', imageBlob);
+      formData.append('paper_id', work.id.toString());
+      
+      const response = await fetch(`/api/paper/${work.id}/figure`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) throw new Error('Upload failed');
+      
+      toast.success('Figure uploaded successfully');
+      router.refresh();
+    } catch (error) {
+      console.error('Error uploading figure:', error);
+      toast.error('Failed to upload figure');
+    }
+  };
 
   // Extract PDF format for download
   const pdfFormat = work.formats?.find((format) => format.type === 'PDF');
@@ -596,6 +621,14 @@ export const WorkLineItems = ({
         onClose={() => setIsFlagModalOpen(false)}
         documentId={work.id.toString()}
         workType={work.contentType}
+      />
+
+      {/* Figure Upload Modal */}
+      <ImageUploadModal
+        isOpen={isFigureUploadModalOpen}
+        onClose={() => setIsFigureUploadModalOpen(false)}
+        onSave={handleFigureUpload}
+        title="Upload Figure"
       />
 
       {/* Tip Modal */}
