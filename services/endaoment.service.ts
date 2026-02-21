@@ -18,21 +18,15 @@ export async function connectEndaomentAccount(returnUrl: string): Promise<string
 
 interface EndaomentStatus {
   connected: boolean;
-  endaomentUserId: string | null;
 }
 
 /**
  * Provides the connection status of the Endaoment account.
- *
- * @returns The connection status and Endaoment user ID if connected.
  */
 export async function getEndaomentStatus(): Promise<EndaomentStatus> {
-  const response = await ApiClient.get<{ connected: boolean; endaoment_user_id: string | null }>(
-    '/api/endaoment/status/'
-  );
+  const response = await ApiClient.get<{ connected: boolean }>('/api/endaoment/status/');
   return {
     connected: response.connected,
-    endaomentUserId: response.endaoment_user_id,
   };
 }
 
