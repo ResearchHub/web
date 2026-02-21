@@ -30,6 +30,22 @@ export interface Grant {
   applicants?: AuthorProfile[];
 }
 
+export interface GrantForModal {
+  id: string;
+  title: string;
+  noteId: number | null;
+  createdDate: string;
+  status: 'published' | 'draft';
+}
+
+export const transformGrantForModal = (raw: any): GrantForModal => ({
+  id: raw.id.toString(),
+  title: raw.title || 'Untitled RFP',
+  noteId: raw.note?.id ?? null,
+  createdDate: raw.created_date,
+  status: raw.doi ? 'published' : 'draft',
+});
+
 export const transformGrant = createTransformer<any, Grant>((raw) => ({
   id: raw.id,
   createdBy: {

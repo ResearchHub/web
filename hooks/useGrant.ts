@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GrantService } from '@/services/grant.service';
+import { GrantForModal } from '@/types/grant';
 import { ApiError } from '@/services/types';
 
 interface CreateGrantPayload {
@@ -50,4 +51,36 @@ export const useCreateGrant = (): UseCreateGrantReturn => {
   };
 
   return [{ data, isLoading, error }, createGrant];
+};
+
+interface UseUserGrantsReturn {
+  grants: GrantForModal[];
+  isLoading: boolean;
+}
+
+export const useUserGrants = (userId?: number): UseUserGrantsReturn => {
+  const [grants, setGrants] = useState<GrantForModal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!userId) {
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchGrants = async () => {
+      try {
+        const results = await GrantService.getGrantsByUser(userId);
+        setGrants(results);
+      } catch (err) {
+        console.error('Failed to fetch grants:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchGrants();
+  }, [userId]);
+
+  return { grants, isLoading };
 };
