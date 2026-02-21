@@ -56,23 +56,13 @@ export function SearchSubmissionProgress({ searchId }: SearchSubmissionProgressP
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
       <h3 className="text-sm font-semibold text-gray-900 mb-3">{statusHeading}</h3>
 
-      {!isDone && (
-        <>
-          <div className="flex items-center gap-3 mb-4">
-            <Loader2 className="h-6 w-6 animate-spin text-primary-600 shrink-0" />
-            <p className="text-sm text-gray-600">
-              Finding experts… This usually takes up to 10 seconds.
-            </p>
-          </div>
-          <p className="text-sm text-gray-500 mb-4">
-            You can close this window and check progress on the search details page.
-          </p>
-        </>
-      )}
-
-      {isDone && (
-        <p className="text-sm text-gray-600 mb-4">Redirecting you to the search details…</p>
-      )}
+      <div className="flex items-center gap-3 mb-4">
+        <Loader2 className="h-6 w-6 animate-spin text-primary-600 shrink-0" />
+        <p className="text-sm text-gray-600">Finding experts… This can take a bit of time.</p>
+      </div>
+      <p className="text-sm text-gray-500 mb-4">
+        Feel free to close this window and check results later by visiting the search details page.
+      </p>
 
       {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 

@@ -50,7 +50,7 @@ export function ExpertResultCard({ expert }: ExpertResultCardProps) {
               <GraduationCap className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
               <span>Expertise:</span>
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 overflow-hidden">
               {expertiseTags.map((tag) => (
                 <Badge key={tag} variant="primary">
                   {tag}
