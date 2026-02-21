@@ -13,6 +13,7 @@ export interface GetGrantsParams {
   pageSize?: number;
   status?: 'OPEN' | 'CLOSED';
   ordering?: 'newest' | 'oldest' | 'best';
+  createdBy?: number | string;
 }
 
 export class GrantService {
@@ -41,6 +42,10 @@ export class GrantService {
 
     if (params?.ordering) {
       queryParams.append('ordering', params.ordering);
+    }
+
+    if (params?.createdBy) {
+      queryParams.append('created_by', params.createdBy.toString());
     }
 
     const url = `${this.GRANT_FEED_PATH}/?${queryParams.toString()}`;

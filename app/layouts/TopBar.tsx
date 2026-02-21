@@ -61,6 +61,7 @@ const isRootNavigationPage = (pathname: string): boolean => {
     '/fund',
     '/fund/grants',
     '/fund/needs-funding', // Fundraises page
+    '/dashboard',
     '/funding', // Funding V2 page
     '/funding/proposals',
     '/journal',
@@ -169,6 +170,13 @@ const getPageInfo = (pathname: string): PageInfo | null => {
       title: 'Moderation Dashboard',
       subtitle: 'Content review',
       icon: <Shield size={24} className="text-gray-900" />,
+    };
+  }
+
+  if (pathname === '/dashboard') {
+    return {
+      title: 'My Dashboard',
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
 
