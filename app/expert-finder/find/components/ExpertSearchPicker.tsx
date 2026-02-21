@@ -15,7 +15,6 @@ const LIST_LIMIT = 50;
 export interface ExpertSearchPickerProps {
   mode: 'single' | 'multi';
   value: number[];
-  /** selectedSearches is provided so the parent can derive data (e.g. excluded expert names) without holding the list. */
   onChange: (searchIds: number[], selectedSearches?: ExpertSearchListItem[]) => void;
   label: string;
   helperText?: string;

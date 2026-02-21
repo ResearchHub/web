@@ -25,26 +25,6 @@ export type ParsedResearchHubUrl = {
   documentId: string;
 };
 
-/**
- * Parses a ResearchHub URL and extracts the content type and document ID.
- *
- * Supported URL patterns (aligned with app routes):
- *   /paper/:id/..., /post/:id/..., /question/:id/..., /fund/:id/..., /grant/:id/...
- *
- * @throws {Error} if the URL is not from the current site or can't be parsed
- */
-export function parseResearchHubUrl(url: string): ParsedResearchHubUrl {
-  const result = validateResearchHubUrl(url);
-  if (!result.success) {
-    throw new Error(result.error);
-  }
-  return result.parsed;
-}
-
-/**
- * Validates a ResearchHub URL without throwing.
- * Use this for Zod refinements and when you need the parsed result or a user-facing error message.
- */
 export function validateResearchHubUrl(
   url: string
 ): { success: true; parsed: ParsedResearchHubUrl } | { success: false; error: string } {
