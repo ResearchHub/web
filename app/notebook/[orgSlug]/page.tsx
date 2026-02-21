@@ -13,12 +13,13 @@ import {
 } from '@/components/Editor/lib/utils/documentTitle';
 import { useCreateNote, useNoteContent } from '@/hooks/useNote';
 import { NoteCreationPopover } from '@/components/Notebook/NoteCreationPopover';
+import { NotePaperSkeleton } from '@/components/Notebook/NotePaperSkeleton';
 
 export default function OrganizationPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const { selectedOrg } = useOrganizationContext();
+  const { selectedOrg, isLoading: isLoadingOrg } = useOrganizationContext();
   const { refreshNotes } = useNotebookContext();
 
   const [{ isLoading: isCreatingNote }, createNote] = useCreateNote();
@@ -87,6 +88,10 @@ export default function OrganizationPage() {
       });
     }
   }, [selectedOrg, isNewFunding, isNewResearch, isNewGrant]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (isLoadingOrg) {
+    return <NotePaperSkeleton />;
+  }
 
   return <NoteCreationPopover isOpen={isCreatingNote || isUpdatingContent} />;
 }

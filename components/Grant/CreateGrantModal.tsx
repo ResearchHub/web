@@ -17,7 +17,8 @@ import {
 import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
 
 import { NoteEditorLayout } from '@/components/Notebook/NoteEditorLayout';
-import { DEFAULT_GRANT_TITLE } from './lib/constants';
+
+const DEFAULT_GRANT_TITLE = 'Untitled RFP';
 
 interface CreateGrantModalProps {
   isOpen: boolean;
@@ -28,15 +29,16 @@ export function CreateGrantModal({ isOpen, onClose }: Readonly<CreateGrantModalP
   const { selectedOrg } = useOrganizationContext();
 
   const [noteId, setNoteId] = useState<number | null>(null);
-  const [isCreatingNote, setIsCreatingNote] = useState(false);
-  const [noteError, setNoteError] = useState<string | null>(null);
-  const [, createNote] = useCreateNote();
-  const [, updateContent] = useNoteContent();
+  const [{ isLoading: isCreatingNote, error: createNoteError }, createNote] = useCreateNote();
+  const [{ isLoading: isUpdatingContent, error: updateContentError }, updateContent] =
+    useNoteContent();
+
+  const isInitializing = isCreatingNote || isUpdatingContent;
+  const noteError = createNoteError?.message || updateContentError?.message || null;
 
   useEffect(() => {
     if (!isOpen) {
       setNoteId(null);
-      setNoteError(null);
     }
   }, [isOpen]);
 
@@ -44,8 +46,6 @@ export function CreateGrantModal({ isOpen, onClose }: Readonly<CreateGrantModalP
     if (!isOpen || !selectedOrg?.slug || noteId) return;
 
     const init = async () => {
-      setIsCreatingNote(true);
-      setNoteError(null);
       try {
         const title = getDocumentTitle(grantTemplate) || DEFAULT_GRANT_TITLE;
         const newNote = await createNote({
@@ -55,8 +55,7 @@ export function CreateGrantModal({ isOpen, onClose }: Readonly<CreateGrantModalP
         });
 
         if (!newNote) {
-          setNoteError('Failed to create note. Please try again.');
-          return;
+          throw new Error('Failed to create note. Please try again.');
         }
 
         await updateContent({
@@ -67,9 +66,6 @@ export function CreateGrantModal({ isOpen, onClose }: Readonly<CreateGrantModalP
         setNoteId(newNote.id);
       } catch (err: unknown) {
         console.error('Failed to initialize grant:', err);
-        setNoteError('Failed to initialize. Please try again.');
-      } finally {
-        setIsCreatingNote(false);
       }
     };
 
@@ -86,14 +82,14 @@ export function CreateGrantModal({ isOpen, onClose }: Readonly<CreateGrantModalP
       contentClassName="!overflow-hidden"
     >
       <div className="h-full">
-        {isCreatingNote && (
+        {isInitializing && (
           <div className="flex flex-col items-center justify-center h-full gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
             <p className="text-sm text-gray-500">Setting up your RFP...</p>
           </div>
         )}
 
-        {noteError && (
+        {noteError && !isInitializing && (
           <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
             <p className="text-sm text-red-500">{noteError}</p>
             <Button variant="outlined" size="sm" onClick={onClose}>
@@ -102,7 +98,7 @@ export function CreateGrantModal({ isOpen, onClose }: Readonly<CreateGrantModalP
           </div>
         )}
 
-        {noteId && !isCreatingNote && !noteError && (
+        {noteId && !isInitializing && !noteError && (
           <NotebookProvider noteId={noteId.toString()}>
             <SidebarProvider>
               <NoteEditorLayout defaultArticleType="grant" onClose={onClose} />

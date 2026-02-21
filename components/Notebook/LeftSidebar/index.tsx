@@ -116,7 +116,7 @@ export const LeftSidebar = () => {
     [createNote, updateNoteContent, router, selectedOrg, refreshNotes]
   );
 
-  const isBusy = isCreatingNote || isUpdatingContent;
+  const processing = isCreatingNote || isUpdatingContent;
 
   const renderTemplateMenu = (type: 'workspace' | 'private') => (
     <BaseMenu
@@ -125,9 +125,9 @@ export const LeftSidebar = () => {
           variant="ghost"
           size="icon"
           className="w-6 h-6 transition-opacity"
-          disabled={isBusy}
+          disabled={processing}
         >
-          {isBusy ? (
+          {processing ? (
             <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
           ) : (
             <Plus className="h-4 w-4 text-gray-500" />
@@ -143,9 +143,13 @@ export const LeftSidebar = () => {
       <BaseMenuItem
         onClick={() => handleTemplateSelect(type, 'research')}
         className="flex items-center gap-2 py-2"
-        disabled={isBusy}
+        disabled={processing}
       >
-        {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+        {processing ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <FileText className="h-4 w-4" />
+        )}
         <div>
           <div className="font-medium text-gray-900">Research Article</div>
           <div className="text-xs text-gray-500">Standard research paper format</div>
@@ -155,9 +159,13 @@ export const LeftSidebar = () => {
       <BaseMenuItem
         onClick={() => handleTemplateSelect(type, 'grant')}
         className="flex items-center gap-2 py-2"
-        disabled={isBusy}
+        disabled={processing}
       >
-        {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+        {processing ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <FileText className="h-4 w-4" />
+        )}
         <div>
           <div className="font-medium text-gray-900">RFP</div>
           <div className="text-xs text-gray-500">Request for Proposals</div>
@@ -166,9 +174,9 @@ export const LeftSidebar = () => {
       <BaseMenuItem
         onClick={() => handleTemplateSelect(type, 'preregistration')}
         className="flex items-center gap-2 py-2"
-        disabled={isBusy}
+        disabled={processing}
       >
-        {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
+        {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
         <div>
           <div className="font-medium text-gray-900">Proposal</div>
           <div className="text-xs text-gray-500">Get funding for your research</div>
@@ -177,9 +185,13 @@ export const LeftSidebar = () => {
       <BaseMenuItem
         onClick={() => handleTemplateSelect(type, 'empty')}
         className="flex items-center gap-2 py-2"
-        disabled={isBusy}
+        disabled={processing}
       >
-        {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+        {processing ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <FileText className="h-4 w-4" />
+        )}
         <div>
           <div className="font-medium text-gray-900">Empty</div>
           <div className="text-xs text-gray-500">Start with a blank page</div>
@@ -213,7 +225,7 @@ export const LeftSidebar = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => handleTemplateSelect('workspace', 'research')}
-                  disabled={isBusy}
+                  disabled={processing}
                   className="flex items-center gap-1"
                 >
                   <Plus className="h-3 w-3" />
@@ -244,7 +256,7 @@ export const LeftSidebar = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => handleTemplateSelect('private', 'research')}
-                  disabled={isBusy}
+                  disabled={processing}
                   className="flex items-center gap-1"
                 >
                   <Plus className="h-3 w-3" />
