@@ -1,38 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { CreateGrantButton } from '@/components/Grant/CreateGrantButton';
 import { EditGrantModal } from '@/components/Grant/EditGrantModal';
-import { GrantModalService, GrantForModal } from '@/services/grantModal.service';
 import { useUser } from '@/contexts/UserContext';
+import { useUserGrants } from '@/hooks/useGrant';
 
 export default function CreateGrantPage() {
   const { user } = useUser();
-  const [grants, setGrants] = useState<GrantForModal[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { grants, isLoading } = useUserGrants(user?.id);
   const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!user?.id) {
-      setIsLoading(false);
-      return;
-    }
-
-    const fetchGrants = async () => {
-      try {
-        const results = await GrantModalService.getGrantsByUser(user.id);
-        setGrants(results);
-      } catch (err) {
-        console.error('Failed to fetch grants:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchGrants();
-  }, [user?.id]);
 
   return (
     <PageLayout rightSidebar={false}>

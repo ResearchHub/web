@@ -1,7 +1,9 @@
 import { ApiClient } from './client';
+import { GrantForModal, transformGrantForModal } from '@/types/grant';
 
 export class GrantService {
   private static readonly BASE_PATH = '/api/grant';
+  private static readonly POST_PATH = '/api/researchhubpost';
 
   /**
    * Creates a new grant
@@ -27,5 +29,12 @@ export class GrantService {
       preregistration_post_id: proposalPostId,
     });
     return response;
+  }
+
+  static async getGrantsByUser(userId: number): Promise<GrantForModal[]> {
+    const response = await ApiClient.get<{ results: any[] }>(
+      `${this.POST_PATH}/?created_by=${userId}&document_type=GRANT`
+    );
+    return response.results.map(transformGrantForModal);
   }
 }
