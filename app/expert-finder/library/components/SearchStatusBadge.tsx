@@ -1,7 +1,7 @@
 'use client';
 
 import { Badge } from '@/components/ui/Badge';
-import type { SearchStatus } from '@/types/expertFinder';
+import { SearchStatus } from '@/services/expertFinder.service';
 
 interface SearchStatusBadgeProps {
   status: SearchStatus;

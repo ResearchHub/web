@@ -1,63 +1,67 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { ChevronDown, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { Input } from '@/components/ui/form/Input';
 import { Textarea } from '@/components/ui/form/Textarea';
 import { Dropdown, DropdownItem, MultiSelectDropdown } from '@/components/ui/form/Dropdown';
-import type { ExpertiseLevel, Region, Gender } from '@/types/expertFinder';
+import type { ExpertSearchResult } from '@/types/expertFinder';
+import type { ContentType } from '@/types/work';
 import type { AdvancedConfigFormValues } from '../schema';
-import { EXPERTISE_LEVELS_SPECIFIC } from '../schema';
+import { EXPERT_COUNT_OPTIONS } from '../schema';
+import {
+  EXPERTISE_LEVEL_OPTIONS,
+  ExpertiseLevel,
+  InputType,
+  REGION_OPTIONS,
+  getRegionLabel,
+} from '@/services/expertFinder.service';
 import { cn } from '@/utils/styles';
+import { SearchHistoryDropdown } from './SearchHistoryDropdown';
+import { ExcludeExpertsFromSearchesDropdown } from './ExcludeExpertsFromSearchesDropdown';
 
-const EXPERTISE_LEVEL_LABELS: Record<ExpertiseLevel, string> = {
-  'All Levels': 'All Levels',
-  'PhD/PostDocs': 'PhD / PostDocs',
-  'Early Career Researchers': 'Early Career Researchers',
-  'Mid-Career Researchers': 'Mid-Career Researchers',
-  'Top Expert/World Renowned Expert': 'Top Expert / World Renowned',
-};
-
-const EXPERTISE_LEVEL_OPTIONS: { value: ExpertiseLevel; label: string }[] = [
-  { value: 'All Levels', label: 'All Levels' },
-  ...EXPERTISE_LEVELS_SPECIFIC.map((value) => ({
-    value,
-    label: EXPERTISE_LEVEL_LABELS[value],
-  })),
+const INPUT_TYPE_OPTIONS: { value: InputType; label: string }[] = [
+  { value: 'full_content', label: 'Full Content' },
+  { value: 'pdf', label: 'PDF' },
+  { value: 'abstract', label: 'Abstract' },
 ];
-
-const REGIONS: { value: Region; label: string }[] = [
-  { value: 'All Regions', label: 'All Regions' },
-  { value: 'US', label: 'US' },
-  { value: 'non-US', label: 'non-US' },
-  { value: 'Europe', label: 'Europe' },
-  { value: 'Asia-Pacific', label: 'Asia-Pacific' },
-  { value: 'Africa & MENA', label: 'Africa & MENA' },
-];
-
-const GENDERS: { value: Gender; label: string }[] = [
-  { value: 'All Genders', label: 'All Genders' },
-  { value: 'Male', label: 'Male' },
-  { value: 'Female', label: 'Female' },
-];
-
-const MIN_EXPERTS = 5;
-const MAX_EXPERTS = 20;
 
 interface AdvancedConfigProps {
   values: AdvancedConfigFormValues;
   onChange: (values: AdvancedConfigFormValues) => void;
+  availableInputTypes?: InputType[];
+  contentType?: ContentType;
+  onRerunSelect: (search: ExpertSearchResult | null) => void;
+  selectedSearchId: number | null;
 }
 
-export function AdvancedConfig({ values, onChange }: AdvancedConfigProps) {
+export function AdvancedConfig({
+  values,
+  onChange,
+  availableInputTypes = ['abstract', 'full_content'],
+  contentType,
+  onRerunSelect,
+  selectedSearchId,
+}: AdvancedConfigProps) {
+  const hideInputType = contentType !== 'paper';
   const [isExpanded, setIsExpanded] = useState(false);
   const [regionOpen, setRegionOpen] = useState(false);
-  const [genderOpen, setGenderOpen] = useState(false);
+  const [inputTypeOpen, setInputTypeOpen] = useState(false);
+  const [expertCountOpen, setExpertCountOpen] = useState(false);
 
-  const regionLabel = REGIONS.find((o) => o.value === values.region)?.label ?? 'All Regions';
-  const genderLabel = GENDERS.find((o) => o.value === values.gender)?.label ?? 'All Genders';
+  const regionLabel = getRegionLabel(values.region);
+  const inputTypeLabel =
+    INPUT_TYPE_OPTIONS.find((o) => o.value === values.inputType)?.label ?? 'Full Content';
+  const allowedSet = new Set(availableInputTypes);
+
+  const handleExcludeChange = useCallback(
+    (excludedExpertNames: string) => {
+      onChange({ ...values, excludedExpertNames });
+    },
+    [onChange, values]
+  );
 
   return (
     <CollapsibleSection
@@ -67,36 +71,106 @@ export function AdvancedConfig({ values, onChange }: AdvancedConfigProps) {
       onToggle={() => setIsExpanded(!isExpanded)}
       className="border border-gray-200 rounded-lg p-3 bg-gray-50/50"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="min-w-0">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        <div className="min-w-0 md:col-span-2">
           <Input
-            type="number"
-            label="Number of Experts"
-            min={MIN_EXPERTS}
-            max={MAX_EXPERTS}
-            value={values.expertCount}
-            onChange={(e) => {
-              const v = parseInt(e.target.value, 10);
-              if (!Number.isNaN(v)) {
-                const clamped = Math.min(MAX_EXPERTS, Math.max(MIN_EXPERTS, v));
-                onChange({ ...values, expertCount: clamped });
-              }
-            }}
-            onBlur={(e) => {
-              const v = parseInt(e.target.value, 10);
-              if (Number.isNaN(v) || v < MIN_EXPERTS || v > MAX_EXPERTS) {
-                onChange({
-                  ...values,
-                  expertCount: Math.min(
-                    MAX_EXPERTS,
-                    Math.max(MIN_EXPERTS, Number.isNaN(v) ? MIN_EXPERTS : v)
-                  ),
-                });
-              }
-            }}
-            helperText={`Between ${MIN_EXPERTS} and ${MAX_EXPERTS}`}
-            className="max-h-[36px]"
+            label="Name your search (Optional)"
+            placeholder="e.g. fMRI-based glymphatic system measurements in mice"
+            value={values.searchTitle ?? ''}
+            onChange={(e) => onChange({ ...values, searchTitle: e.target.value })}
+            helperText="Give this search a name to find it easily later."
           />
+        </div>
+
+        {!hideInputType && (
+          <div className="min-w-0">
+            <Dropdown
+              label="Input Type"
+              helperText={
+                contentType === 'paper'
+                  ? 'Choose abstract or PDF (PDF only if the paper has one).'
+                  : 'Choose which part of the document to use for finding experts.'
+              }
+              trigger={
+                <Button
+                  type="button"
+                  variant="outlined"
+                  size="md"
+                  className="w-full justify-between text-left text-gray-900 font-normal"
+                >
+                  {inputTypeLabel}
+                  <ChevronDown
+                    className={cn(
+                      'ml-2 h-4 w-4 shrink-0 transition-transform',
+                      inputTypeOpen && 'rotate-180'
+                    )}
+                  />
+                </Button>
+              }
+              className="max-h-60 overflow-y-auto py-1"
+              onOpenChange={setInputTypeOpen}
+            >
+              <div className="py-1 max-h-60 overflow-y-auto">
+                {(contentType === 'paper'
+                  ? INPUT_TYPE_OPTIONS.filter((o) => o.value === 'abstract' || o.value === 'pdf')
+                  : INPUT_TYPE_OPTIONS.filter((option) => allowedSet.has(option.value))
+                ).map((option) => {
+                  const enabled = allowedSet.has(option.value);
+                  return (
+                    <DropdownItem
+                      key={option.value}
+                      onClick={() => enabled && onChange({ ...values, inputType: option.value })}
+                      disabled={!enabled}
+                      className={cn(
+                        values.inputType === option.value && 'bg-primary-50 text-primary-900',
+                        !enabled && 'opacity-60 cursor-not-allowed'
+                      )}
+                    >
+                      {option.label}
+                      {!enabled && ' (no PDF)'}
+                    </DropdownItem>
+                  );
+                })}
+              </div>
+            </Dropdown>
+          </div>
+        )}
+
+        <div className="min-w-0">
+          <Dropdown
+            label="Number of Researchers"
+            helperText={`Up to ${values.expertCount} researchers will be found`}
+            trigger={
+              <Button
+                type="button"
+                variant="outlined"
+                size="md"
+                className="w-full justify-between text-left text-gray-900 font-normal"
+              >
+                {values.expertCount}
+                <ChevronDown
+                  className={cn(
+                    'ml-2 h-4 w-4 shrink-0 transition-transform',
+                    expertCountOpen && 'rotate-180'
+                  )}
+                />
+              </Button>
+            }
+            className="max-h-60 overflow-y-auto py-1"
+            onOpenChange={setExpertCountOpen}
+          >
+            <div className="py-1 max-h-60 overflow-y-auto">
+              {EXPERT_COUNT_OPTIONS.map((option) => (
+                <DropdownItem
+                  key={option}
+                  onClick={() => onChange({ ...values, expertCount: option })}
+                  className={values.expertCount === option ? 'bg-primary-50 text-primary-900' : ''}
+                >
+                  {option}
+                </DropdownItem>
+              ))}
+            </div>
+          </Dropdown>
         </div>
 
         <div className="min-w-0">
@@ -104,13 +178,13 @@ export function AdvancedConfig({ values, onChange }: AdvancedConfigProps) {
             label="Expertise Level"
             options={EXPERTISE_LEVEL_OPTIONS}
             collapseLabelAbove={2}
-            value={values.expertiseLevel.length === 0 ? ['All Levels'] : values.expertiseLevel}
+            value={values.expertiseLevel.length === 0 ? ['all_levels'] : values.expertiseLevel}
             onChange={(selected) => {
               const previousSelection =
-                values.expertiseLevel.length === 0 ? ['All Levels'] : values.expertiseLevel;
-              const prevHadAll = previousSelection.includes('All Levels');
-              const selectedHasAll = selected.includes('All Levels');
-              const rest = selected.filter((l) => l !== 'All Levels');
+                values.expertiseLevel.length === 0 ? ['all_levels'] : values.expertiseLevel;
+              const prevHadAll = previousSelection.includes('all_levels');
+              const selectedHasAll = selected.includes('all_levels');
+              const rest = selected.filter((l) => l !== 'all_levels');
 
               if (selectedHasAll && !prevHadAll) {
                 onChange({ ...values, expertiseLevel: [] });
@@ -119,7 +193,10 @@ export function AdvancedConfig({ values, onChange }: AdvancedConfigProps) {
               } else if (selectedHasAll && rest.length === 0) {
                 onChange({ ...values, expertiseLevel: [] });
               } else {
-                onChange({ ...values, expertiseLevel: selected });
+                onChange({
+                  ...values,
+                  expertiseLevel: selected.filter((l) => l !== 'all_levels'),
+                });
               }
             }}
             placeholder="All Levels"
@@ -149,7 +226,7 @@ export function AdvancedConfig({ values, onChange }: AdvancedConfigProps) {
             onOpenChange={setRegionOpen}
           >
             <div className="py-1 max-h-60 overflow-y-auto">
-              {REGIONS.map((option) => (
+              {REGION_OPTIONS.map((option) => (
                 <DropdownItem
                   key={option.value}
                   onClick={() => onChange({ ...values, region: option.value })}
@@ -162,51 +239,18 @@ export function AdvancedConfig({ values, onChange }: AdvancedConfigProps) {
           </Dropdown>
         </div>
 
-        <div className="min-w-0">
-          <Dropdown
-            label="Gender Preference"
-            trigger={
-              <Button
-                type="button"
-                variant="outlined"
-                size="md"
-                className="w-full justify-between text-left text-gray-900 font-normal"
-              >
-                {genderLabel}
-                <ChevronDown
-                  className={cn(
-                    'ml-2 h-4 w-4 shrink-0 transition-transform',
-                    genderOpen && 'rotate-180'
-                  )}
-                />
-              </Button>
-            }
-            className="max-h-60 overflow-y-auto py-1"
-            onOpenChange={setGenderOpen}
-          >
-            <div className="py-1 max-h-60 overflow-y-auto">
-              {GENDERS.map((option) => (
-                <DropdownItem
-                  key={option.value}
-                  onClick={() => onChange({ ...values, gender: option.value })}
-                  className={values.gender === option.value ? 'bg-primary-50 text-primary-900' : ''}
-                >
-                  {option.label}
-                </DropdownItem>
-              ))}
+        <div className="min-w-0 md:col-span-2 border-t border-gray-200 pt-4 mt-2 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="min-w-0">
+              <SearchHistoryDropdown
+                selectedSearchId={selectedSearchId}
+                onSearchSelect={onRerunSelect}
+              />
             </div>
-          </Dropdown>
-        </div>
-
-        <div className="min-w-0 md:col-span-2">
-          <Textarea
-            label="Exclude Expert Names"
-            placeholder="Comma-separated names (e.g. Jane Doe, John Smith)"
-            value={values.excludedExpertNames}
-            onChange={(e) => onChange({ ...values, excludedExpertNames: e.target.value })}
-            helperText="Optional. Experts with these names will be excluded from results."
-            rows={2}
-          />
+            <div className="min-w-0">
+              <ExcludeExpertsFromSearchesDropdown onExcludeChange={handleExcludeChange} />
+            </div>
+          </div>
         </div>
       </div>
     </CollapsibleSection>

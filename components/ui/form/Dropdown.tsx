@@ -185,7 +185,7 @@ export function MultiSelectDropdown<T extends string = string>({
                 type="button"
                 className={cn(
                   'flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-left focus:outline-none focus:ring-2 focus:ring-primary-500',
-                  'text-gray-900 font-normal',
+                  'text-gray-900 font-normal h-9',
                   error && 'border-red-500 focus:ring-red-500/20 focus:border-red-500',
                   disabled && 'cursor-not-allowed opacity-60'
                 )}
@@ -218,7 +218,9 @@ export function MultiSelectDropdown<T extends string = string>({
               >
                 <Listbox.Options
                   static
-                  className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-md focus:outline-none"
+                  portal
+                  anchor="bottom start"
+                  className="absolute z-50 mt-1 max-h-60 w-[var(--button-width)] overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-md focus:outline-none"
                 >
                   {options.map((option) => (
                     <Listbox.Option

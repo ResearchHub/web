@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ExpertFinderService } from '@/services/expertFinder.service';
-import { transformExpertSearchProgressEvent, type SearchStatus } from '@/types/expertFinder';
+import { transformExpertSearchProgressEvent } from '@/types/expertFinder';
+import { SearchStatus } from '@/services/expertFinder.service';
 
 interface UseExpertSearchProgressReturn {
   progress: number;

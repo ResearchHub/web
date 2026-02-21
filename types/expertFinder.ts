@@ -1,28 +1,6 @@
-// ── Enums (matching Django TextChoices; used in UI) ───────────────────────────
-
-export type ExpertiseLevel =
-  | 'PhD/PostDocs'
-  | 'Early Career Researchers'
-  | 'Mid-Career Researchers'
-  | 'Top Expert/World Renowned Expert'
-  | 'All Levels';
-
-export type Region = 'US' | 'non-US' | 'Europe' | 'Asia-Pacific' | 'Africa & MENA' | 'All Regions';
-
-export type Gender = 'Male' | 'Female' | 'All Genders';
-
-export type SearchStatus = 'pending' | 'processing' | 'completed' | 'failed';
-
-export type InputType = 'abstract' | 'pdf' | 'custom_query' | 'full_content';
-
-/** Form and UI config (camelCase); used in components. */
-export interface ExpertSearchConfig {
-  expertCount: number;
-  expertiseLevel: ExpertiseLevel[];
-  region: Region;
-  state: string;
-  gender: Gender;
-}
+import type { Work } from './work';
+import { transformWork } from './work';
+import { InputType, SearchStatus } from '@/services/expertFinder.service';
 
 /** Single expert as displayed in the app (detail/list rows). */
 export interface ExpertResult {
@@ -62,6 +40,7 @@ export interface ExpertSearchResult {
   createdAt: string;
   updatedAt: string;
   completedAt: string | null;
+  work: Work | null;
 }
 
 /** Search list item as used by the app (library table, etc.). */
@@ -137,6 +116,7 @@ export function transformExpertSearch(raw: Record<string, unknown>): ExpertSearc
     createdAt: (raw.created_at as string) || '',
     updatedAt: (raw.updated_at as string) || '',
     completedAt: (raw.completed_at as string | null) ?? null,
+    work: raw.work ? transformWork(raw.work as Record<string, unknown>) : null,
   };
 }
 
