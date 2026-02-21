@@ -161,7 +161,7 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
         ) : entries.length > 0 ? (
           <Carousel onReachEnd={hasMore ? loadMore : undefined}>
             {entries.map((entry) => (
-              <div key={entry.id} className="flex-shrink-0 w-[240px] sm:w-[260px] md:w-[240px]">
+              <div key={entry.id} className="flex-shrink-0 w-[200px] sm:w-[260px] md:w-[200px]">
                 <FundingProposalCard entry={entry} showActions={false} />
               </div>
             ))}
