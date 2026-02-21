@@ -21,6 +21,7 @@ export interface User {
   moderator: boolean;
   editorOfHubs?: Hub[];
   isModerator?: boolean;
+  isOfficialAccount?: boolean;
   referralCode?: string;
   authProvider?: 'google' | 'credentials';
 }
@@ -78,6 +79,7 @@ const baseTransformUser = (raw: any): User => {
     moderator: raw.moderator || false,
     editorOfHubs: editorOfHubs,
     isModerator: raw.moderator || false,
+    isOfficialAccount: raw.is_official_account || false,
     referralCode: raw.referral_code || undefined,
     authProvider: raw.auth_provider
       ? raw.auth_provider === 'google'

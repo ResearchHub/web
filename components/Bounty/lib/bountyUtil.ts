@@ -523,6 +523,7 @@ const getCreatorUserId = (bounty: Bounty): number | undefined => {
  * @returns True if the bounty was created by the Foundation account
  */
 export const isFoundationBounty = (bounty: Bounty): boolean => {
+  if (bounty.createdBy?.isOfficialAccount) return true;
   if (!FOUNDATION_USER_ID) return false;
 
   const creatorUserId = getCreatorUserId(bounty);
