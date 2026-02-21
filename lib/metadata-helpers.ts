@@ -23,6 +23,26 @@ export function getWorkMetadata({
     })),
   });
 
+  // Highwire Press metadata tags
+  const pdfFormat = work.formats?.find((f) => f.type.toUpperCase() === 'PDF');
+  const publicationType =
+    work.type === 'preprint' ? 'preprint' : work.type === 'review' ? 'review' : 'article';
+
+  const authorNames = work.authors?.map((a) => a.authorProfile?.fullName).filter(Boolean);
+
+  const highwireTags: Record<string, string | string[]> = {
+    citation_title: work.title,
+    citation_publication_date: work.publishedDate || work.createdDate,
+    citation_publisher: 'ResearchHub',
+    citation_type: publicationType,
+    ...(work.doi && { citation_doi: work.doi }),
+    ...(work.journal?.name && { citation_journal_title: work.journal.name }),
+    ...(pdfFormat?.url && { citation_pdf_url: pdfFormat.url }),
+    ...(authorNames?.length && {
+      citation_author: authorNames.length === 1 ? authorNames[0] : authorNames,
+    }),
+  };
+
   return {
     ...buildArticleMetadata({
       title,
@@ -36,7 +56,11 @@ export function getWorkMetadata({
     ...(structuredData && {
       other: {
         'application/ld+json': JSON.stringify(structuredData),
+        ...highwireTags,
       },
+    }),
+    ...(!structuredData && {
+      other: highwireTags,
     }),
   };
 }
