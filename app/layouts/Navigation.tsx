@@ -17,7 +17,6 @@ import {
   faGrid3 as faGrid3Light,
   faBookmark as faBookmarkLight,
 } from '@fortawesome/pro-light-svg-icons';
-import { ChartNoAxesColumnIncreasing } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 
 // Define icon mapping for navigation items with both light and solid variants
@@ -26,7 +25,7 @@ interface NavIcon {
   solid: IconName;
 }
 
-type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home' | 'leaderboard';
+type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home';
 
 interface NavigationItem {
   label: string;
@@ -65,10 +64,6 @@ const navIconMap: Record<NavIconKey, NavIcon> = {
   notebook: {
     light: 'labNotebook2',
     solid: 'notebookBold',
-  },
-  leaderboard: {
-    light: 'gold1',
-    solid: 'gold2',
   },
 };
 
@@ -137,11 +132,6 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'View and manage your saved lists',
       requiresAuth: true,
     },
-    {
-      label: 'Leaderboard',
-      href: '/leaderboard',
-      description: 'View the ResearchHub Leaderboard',
-    },
   ];
 
   const getButtonStyles = (path: string, currentPath: string) => {
@@ -171,11 +161,6 @@ export const Navigation: React.FC<NavigationProps> = ({
     // Special case for notebook page - match any route that starts with /notebook
     if (path === '/notebook') {
       return currentPath.startsWith('/notebook');
-    }
-
-    // Special case for leaderboard page
-    if (path === '/leaderboard') {
-      return currentPath.startsWith('/leaderboard');
     }
 
     // Special case for browse page
@@ -242,13 +227,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     return (
       <Link href={item.href} onClick={handleClick} className={buttonStyles} scroll={false}>
         <div className={iconContainerClass}>
-          {item.href === '/leaderboard' ? (
-            <ChartNoAxesColumnIncreasing
-              size={22}
-              color={iconColor}
-              strokeWidth={isActive ? 2.5 : 2}
-            />
-          ) : item.href === '/browse' ? (
+          {item.href === '/browse' ? (
             <FontAwesomeIcon
               icon={isActive ? faGrid3Solid : faGrid3Light}
               fontSize={24}

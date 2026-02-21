@@ -15,7 +15,6 @@ import {
   faBars,
 } from '@fortawesome/pro-light-svg-icons';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
-import { ChartNoAxesColumnIncreasing } from 'lucide-react';
 import { Icon } from '@/components/ui/icons';
 import { IconName } from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
@@ -40,7 +39,6 @@ const moreNavItems: NavItem[] = [
   { label: 'Browse', href: '/browse', iconKey: 'browse' },
   { label: 'Notebook', href: '/notebook', iconKey: 'notebook', requiresAuth: true },
   { label: 'Lists', href: '/lists', iconKey: 'lists', requiresAuth: true },
-  { label: 'Leaderboard', href: '/leaderboard', iconKey: 'leaderboard' },
 ];
 
 // Check if a path is active
@@ -53,9 +51,6 @@ const isPathActive = (path: string, currentPath: string): boolean => {
   }
   if (path === '/notebook') {
     return currentPath.startsWith('/notebook');
-  }
-  if (path === '/leaderboard') {
-    return currentPath.startsWith('/leaderboard');
   }
   if (path === '/browse') {
     return currentPath.startsWith('/browse');
@@ -196,14 +191,6 @@ export const MobileBottomNav: React.FC = () => {
             name={isActive ? 'notebookBold' : ('labNotebook2' as IconName)}
             size={iconSize}
             color={iconColor}
-          />
-        );
-      case 'leaderboard':
-        return (
-          <ChartNoAxesColumnIncreasing
-            size={iconSize}
-            color={iconColor}
-            strokeWidth={isActive ? 2.5 : 2}
           />
         );
       case 'lists':

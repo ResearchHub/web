@@ -24,6 +24,7 @@ import { ReferralProvider } from '@/contexts/ReferralContext';
 import { FeatureNotifications } from '@/components/FeatureNotifications';
 import { UserListsProvider } from '@/components/UserList/lib/UserListsContext';
 import { LeaderboardProvider } from '@/contexts/LeaderboardContext';
+import { FundingOpportunitiesProvider } from '@/contexts/FundingOpportunitiesContext';
 import { DismissedFeaturesProvider } from '@/contexts/DismissedFeaturesContext';
 
 interface ClientProvidersProps {
@@ -52,10 +53,12 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
                                   <PreferencesProvider>
                                     <UserListsProvider>
                                       <LeaderboardProvider>
-                                        <DismissedFeaturesProvider>
-                                          <FollowProvider>{children}</FollowProvider>
-                                          <FeatureNotifications />
-                                        </DismissedFeaturesProvider>
+                                        <FundingOpportunitiesProvider>
+                                          <DismissedFeaturesProvider>
+                                            <FollowProvider>{children}</FollowProvider>
+                                            <FeatureNotifications />
+                                          </DismissedFeaturesProvider>
+                                        </FundingOpportunitiesProvider>
                                       </LeaderboardProvider>
                                     </UserListsProvider>
                                   </PreferencesProvider>
