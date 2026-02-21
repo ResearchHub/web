@@ -14,8 +14,8 @@ interface SearchSubmissionProgressProps {
 }
 
 function getDetailPageUrl(searchId: number): string {
-  if (typeof window === 'undefined') return '';
-  return `${window.location.origin}${SEARCH_DETAIL_PATH}/${searchId}`;
+  if (typeof globalThis.window === 'undefined') return '';
+  return `${globalThis.window.location.origin}${SEARCH_DETAIL_PATH}/${searchId}`;
 }
 
 export function SearchSubmissionProgress({ searchId }: SearchSubmissionProgressProps) {
@@ -43,15 +43,18 @@ export function SearchSubmissionProgress({ searchId }: SearchSubmissionProgressP
     );
   };
 
+  let statusHeading: string;
+  if (!isDone) {
+    statusHeading = 'Search in progress';
+  } else if (status === 'completed') {
+    statusHeading = 'Search completed';
+  } else {
+    statusHeading = 'Search finished';
+  }
+
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">
-        {isDone
-          ? status === 'completed'
-            ? 'Search completed'
-            : 'Search finished'
-          : 'Search in progress'}
-      </h3>
+      <h3 className="text-sm font-semibold text-gray-900 mb-3">{statusHeading}</h3>
 
       {!isDone && (
         <>

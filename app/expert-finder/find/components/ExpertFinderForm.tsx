@@ -11,11 +11,17 @@ import { Input } from '@/components/ui/form/Input';
 import { LoadingButton } from '@/components/ui/LoadingButton';
 import { getFieldErrorMessage } from '@/utils/form';
 import { useCreateExpertSearch, useWorkByUnifiedDocumentId } from '@/hooks/useExpertFinder';
-import { ExpertFinderService, EXPERTISE_LEVEL_ALL } from '@/services/expertFinder.service';
 import { validateResearchHubUrl } from '@/utils/url';
-import type { ExpertSearchCreatePayload, InputType, Region } from '@/services/expertFinder.service';
+import {
+  type ExpertSearchCreatePayload,
+  type ExpertiseLevel,
+  type InputType,
+  type Region,
+  DEFAULT_REGION,
+  ExpertFinderService,
+  EXPERTISE_LEVEL_ALL,
+} from '@/services/expertFinder.service';
 import { expertFinderFormSchema, type ExpertFinderFormValues, DEFAULT_STATE } from '../schema';
-import { DEFAULT_REGION } from '@/services/expertFinder.service';
 import { AdvancedConfig } from './AdvancedConfig';
 import { SearchSubmissionProgress } from './SearchSubmissionProgress';
 import { WorkPreviewCard } from './WorkPreviewCard';
@@ -124,7 +130,7 @@ export function ExpertFinderForm() {
 
   useEffect(() => {
     const param = searchParams?.get('unifiedDocumentId');
-    const paramId = param ? parseInt(param, 10) : NaN;
+    const paramId = param ? Number.parseInt(param, 10) : Number.NaN;
     if (param && !Number.isNaN(paramId)) {
       setValue('unifiedDocumentId', paramId);
     }
@@ -132,7 +138,7 @@ export function ExpertFinderForm() {
       setIsEditingUrl(false);
       const params = new URLSearchParams(searchParams?.toString() ?? '');
       params.delete('unifiedDocumentId');
-      router.replace(params.toString() ? `?${params}` : window.location.pathname, {
+      router.replace(params.toString() ? `?${params}` : globalThis.window.location.pathname, {
         scroll: false,
       });
     }
@@ -145,11 +151,14 @@ export function ExpertFinderForm() {
       const config = search.config as Record<string, unknown>;
       const expertCount = (config.expert_count as number) ?? 25;
       const rawLevel = config.expertise_level;
-      const expertiseLevel = Array.isArray(rawLevel)
-        ? rawLevel
-        : rawLevel && rawLevel !== EXPERTISE_LEVEL_ALL
-          ? [rawLevel]
-          : [];
+      let expertiseLevel: ExpertiseLevel[];
+      if (Array.isArray(rawLevel)) {
+        expertiseLevel = rawLevel;
+      } else if (rawLevel && rawLevel !== EXPERTISE_LEVEL_ALL) {
+        expertiseLevel = [rawLevel as ExpertiseLevel];
+      } else {
+        expertiseLevel = [];
+      }
       const region = (config.region as Region) ?? DEFAULT_REGION;
       const state = (config.state as string) ?? DEFAULT_STATE;
       const inputType = search.inputType;
@@ -225,35 +234,42 @@ export function ExpertFinderForm() {
   }
 
   const urlRegister = register('url');
+
+  let documentInputContent: React.ReactNode;
+  if (isEditingUrl) {
+    documentInputContent = (
+      <div className="flex gap-2 items-start">
+        <Input
+          label=""
+          placeholder={DEFAULT_URL_PLACEHOLDER}
+          error={resolveOrFetchError ?? undefined}
+          className="flex-1 min-w-0"
+          {...urlRegister}
+        />
+        <Button
+          type="button"
+          variant="default"
+          size="icon"
+          onClick={handleFetchWork}
+          disabled={workLoading || !urlValue?.trim()}
+          className="shrink-0 mt-0.5"
+          aria-label="Fetch work"
+        >
+          <Check className="h-5 w-5" />
+        </Button>
+      </div>
+    );
+  } else if (workLoading) {
+    documentInputContent = <WorkPreviewCard isLoading />;
+  } else {
+    documentInputContent =
+      fetchedWork != null ? <WorkPreviewCard work={fetchedWork} onEdit={handleEditWork} /> : null;
+  }
+
   return (
     <div className="space-y-6 mb-[240px]">
       <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
-        {isEditingUrl ? (
-          <div className="flex gap-2 items-start">
-            <Input
-              label=""
-              placeholder={DEFAULT_URL_PLACEHOLDER}
-              error={resolveOrFetchError ?? undefined}
-              className="flex-1 min-w-0"
-              {...urlRegister}
-            />
-            <Button
-              type="button"
-              variant="default"
-              size="icon"
-              onClick={() => void handleFetchWork()}
-              disabled={workLoading || !urlValue?.trim()}
-              className="shrink-0 mt-0.5"
-              aria-label="Fetch work"
-            >
-              <Check className="h-5 w-5" />
-            </Button>
-          </div>
-        ) : workLoading ? (
-          <WorkPreviewCard isLoading />
-        ) : (
-          fetchedWork && <WorkPreviewCard work={fetchedWork} onEdit={handleEditWork} />
-        )}
+        {documentInputContent}
 
         {getFieldErrorMessage(errors.unifiedDocumentId) && (
           <p className="text-sm text-red-500 mt-1" role="alert">

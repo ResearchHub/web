@@ -1,7 +1,6 @@
 import { ApiClient } from './client';
 import { PaperService } from './paper.service';
 import { PostService } from './post.service';
-import type { ExpertSearchListResponse } from '@/types/expertFinder';
 import {
   transformExpertSearch,
   transformExpertSearchCreateResponse,
@@ -9,6 +8,7 @@ import {
   type ExpertSearchCreated,
   type ExpertSearchResult,
   type ExpertSearchListItem,
+  type ExpertSearchListResponse,
 } from '@/types/expertFinder';
 import type { ContentType, Work } from '@/types/work';
 import { transformWork } from '@/types/work';

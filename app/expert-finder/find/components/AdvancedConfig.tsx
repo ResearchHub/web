@@ -5,7 +5,6 @@ import { ChevronDown, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { Input } from '@/components/ui/form/Input';
-import { Textarea } from '@/components/ui/form/Textarea';
 import { Dropdown, DropdownItem, MultiSelectDropdown } from '@/components/ui/form/Dropdown';
 import type { ExpertSearchResult } from '@/types/expertFinder';
 import type { ContentType } from '@/types/work';

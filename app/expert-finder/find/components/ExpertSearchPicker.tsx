@@ -79,14 +79,15 @@ export function ExpertSearchPicker({
   const selectedSearch = value[0] != null ? searches.find((s) => s.searchId === value[0]) : null;
   const hasSelection = value.length > 0;
 
-  const triggerLabel =
-    mode === 'single'
-      ? selectedSearch
-        ? getSearchDisplayText(selectedSearch)
-        : placeholder
-      : value.length === 0
-        ? placeholder
-        : `${value.length} item${value.length !== 1 ? 's' : ''} selected`;
+  let triggerLabel: string;
+  if (mode === 'single') {
+    triggerLabel =
+      selectedSearch != null ? getSearchDisplayText(selectedSearch) : (placeholder ?? '');
+  } else if (value.length === 0) {
+    triggerLabel = placeholder ?? '';
+  } else {
+    triggerLabel = `${value.length} item${value.length !== 1 ? 's' : ''} selected`;
+  }
 
   const isItemSelected = (search: ExpertSearchListItem) => value.includes(search.searchId);
 

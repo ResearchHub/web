@@ -51,8 +51,8 @@ export function ExpertResultCard({ expert }: ExpertResultCardProps) {
               <span>Expertise:</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {expertiseTags.map((tag, i) => (
-                <Badge key={i} variant="primary">
+              {expertiseTags.map((tag) => (
+                <Badge key={tag} variant="primary">
                   {tag}
                 </Badge>
               ))}

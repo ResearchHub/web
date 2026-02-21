@@ -36,6 +36,81 @@ export default function ExpertFinderLibraryPage() {
     router.push(`/expert-finder/searches/${search.searchId}`);
   };
 
+  let mainContent: React.ReactNode;
+  if (isLoading && searches.length === 0) {
+    mainContent = (
+      <div className="p-4">
+        <SearchHistoryTableSkeleton rowCount={PAGE_SIZE} />
+      </div>
+    );
+  } else if (searches.length === 0) {
+    mainContent = (
+      <div className="px-6 py-12 text-center">
+        <p className="text-gray-600 mb-2">No searches yet</p>
+        <p className="text-sm text-gray-500">
+          Run a search from the Find Expert page to see results here.
+        </p>
+      </div>
+    );
+  } else {
+    mainContent = (
+      <>
+        <div className="overflow-x-auto">
+          <SearchHistoryTable searches={searches} onRowClick={handleRowClick} />
+        </div>
+
+        {totalPages > 1 && (
+          <div className="py-4 flex items-center justify-between">
+            <div className="text-sm text-gray-700">
+              Page {page} of {totalPages}
+              {pagination.total > 0 && (
+                <span className="ml-2 text-gray-500">({pagination.total} total)</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outlined"
+                size="sm"
+                className="gap-2"
+                onClick={() => {
+                  setNavigatingTo('prev');
+                  setPage((p) => Math.max(1, p - 1));
+                }}
+                disabled={!hasPrevPage || isLoading}
+              >
+                <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
+                  {isLoading && navigatingTo === 'prev' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  ) : null}
+                </span>
+                Previous
+                <span className="inline-block h-4 w-4 shrink-0" aria-hidden />
+              </Button>
+              <Button
+                variant="outlined"
+                size="sm"
+                className="gap-2"
+                onClick={() => {
+                  setNavigatingTo('next');
+                  setPage((p) => Math.min(totalPages, p + 1));
+                }}
+                disabled={!hasNextPage || isLoading}
+              >
+                <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
+                  {isLoading && navigatingTo === 'next' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  ) : null}
+                </span>
+                Next
+                <span className="inline-block h-4 w-4 shrink-0" aria-hidden />
+              </Button>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8">
       <h2 className="text-2xl font-semibold text-gray-900 mb-2">Library</h2>
@@ -47,75 +122,7 @@ export default function ExpertFinderLibraryPage() {
         </div>
       )}
 
-      <div className="overflow-hidden">
-        {isLoading && !searches.length ? (
-          <div className="p-4">
-            <SearchHistoryTableSkeleton rowCount={PAGE_SIZE} />
-          </div>
-        ) : searches.length === 0 ? (
-          <div className="px-6 py-12 text-center">
-            <p className="text-gray-600 mb-2">No searches yet</p>
-            <p className="text-sm text-gray-500">
-              Run a search from the Find Expert page to see results here.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <SearchHistoryTable searches={searches} onRowClick={handleRowClick} />
-            </div>
-
-            {totalPages > 1 && (
-              <div className="py-4 flex items-center justify-between">
-                <div className="text-sm text-gray-700">
-                  Page {page} of {totalPages}
-                  {pagination.total > 0 && (
-                    <span className="ml-2 text-gray-500">({pagination.total} total)</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outlined"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => {
-                      setNavigatingTo('prev');
-                      setPage((p) => Math.max(1, p - 1));
-                    }}
-                    disabled={!hasPrevPage || isLoading}
-                  >
-                    <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
-                      {isLoading && navigatingTo === 'prev' ? (
-                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                      ) : null}
-                    </span>
-                    Previous
-                    <span className="inline-block h-4 w-4 shrink-0" aria-hidden />
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => {
-                      setNavigatingTo('next');
-                      setPage((p) => Math.min(totalPages, p + 1));
-                    }}
-                    disabled={!hasNextPage || isLoading}
-                  >
-                    <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
-                      {isLoading && navigatingTo === 'next' ? (
-                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                      ) : null}
-                    </span>
-                    Next
-                    <span className="inline-block h-4 w-4 shrink-0" aria-hidden />
-                  </Button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+      <div className="overflow-hidden">{mainContent}</div>
     </div>
   );
 }
