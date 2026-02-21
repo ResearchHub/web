@@ -432,7 +432,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   return (
     <>
-      <div className="border-b border-gray-200 bg-white h-[64px]">
+      <div className="border-b border-gray-200 bg-white" style={{ height: '70px' }}>
         <div className="h-full flex items-center justify-between px-4 lg:px-8">
           {/* Left side - Back button + Page title OR FeedTabs */}
           <div className="flex items-center min-w-0 flex-1 mr-4 h-full">
@@ -505,7 +505,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                   {pageInfo.title && (
                     <h1
                       className="font-semibold text-gray-900 leading-tight truncate"
-                      style={{ fontSize: '26px', letterSpacing: '-0.75px' }}
+                      style={{ fontSize: '22px', letterSpacing: '-0.75px' }}
                     >
                       {pageInfo.title}
                     </h1>
@@ -513,10 +513,13 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                 </div>
                 {pageInfo.subtitle && !(showFeedTabs && isFeedPage) && (
                   <>
-                    <span className="text-gray-200 font-light" style={{ fontSize: '28px' }}>
+                    <span className="text-gray-300 font-light" style={{ fontSize: '22px' }}>
                       /
                     </span>
-                    <span className="text-sm text-gray-600 whitespace-nowrap">
+                    <span
+                      className="text-sm text-gray-700 whitespace-nowrap"
+                      style={{ letterSpacing: '-0.25px' }}
+                    >
                       {pageInfo.subtitle}
                     </span>
                   </>

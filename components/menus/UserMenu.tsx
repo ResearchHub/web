@@ -154,7 +154,7 @@ export default function UserMenu({
         >
           <div className="flex items-center">
             <UserIcon className="h-5 w-5 mr-3 text-gray-500" />
-            <span className="text-base text-gray-700">View Profile</span>
+            <span className="text-sm text-gray-700">View Profile</span>
           </div>
         </div>
 
@@ -166,7 +166,7 @@ export default function UserMenu({
           <div className="px-6 py-2 hover:bg-gray-50">
             <div className="flex items-center">
               <Bell className="h-5 w-5 mr-3 text-gray-500" />
-              <span className="text-base text-gray-700">Notifications</span>
+              <span className="text-sm text-gray-700">Notifications</span>
             </div>
           </div>
         </Link>
@@ -179,7 +179,7 @@ export default function UserMenu({
           <div className="px-6 py-2 hover:bg-gray-50">
             <div className="flex items-center">
               <ResearchCoinIcon outlined className="h-5 w-5 mr-3 text-gray-500" color="#676767" />
-              <span className="text-base text-gray-700">My ResearchCoin</span>
+              <span className="text-sm text-gray-700">My ResearchCoin</span>
             </div>
           </div>
         </Link>
@@ -188,7 +188,7 @@ export default function UserMenu({
           <div className="px-6 py-2 hover:bg-gray-50">
             <div className="flex items-center">
               <UserPlus className="h-5 w-5 mr-3 text-gray-500" />
-              <span className="text-base text-gray-700">Refer and earn 10%</span>
+              <span className="text-sm text-gray-700">Refer and earn 10%</span>
               <span className="ml-auto text-xs bg-blue-100 text-blue-600 font-semibold px-2 py-0.5 rounded-full">
                 New
               </span>
@@ -201,7 +201,7 @@ export default function UserMenu({
             <div className="px-6 py-2 hover:bg-gray-50">
               <div className="flex items-center">
                 <Shield className="h-5 w-5 mr-3 text-gray-500" />
-                <span className="text-base text-gray-700">Moderator Dashboard</span>
+                <span className="text-sm text-gray-700">Moderator Dashboard</span>
               </div>
             </div>
           </Link>
@@ -211,7 +211,7 @@ export default function UserMenu({
           <div className="px-6 py-2 hover:bg-gray-50">
             <div className="flex items-center">
               <FontAwesomeIcon icon={faBookmark} className="h-5 w-5 mr-3 text-gray-500" />
-              <span className="text-base text-gray-700">Your Lists</span>
+              <span className="text-sm text-gray-700">Your Lists</span>
             </div>
           </div>
         </Link>
@@ -237,7 +237,7 @@ export default function UserMenu({
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center">
                 <BadgeCheck className="h-5 w-5 mr-3 text-gray-500" />
-                <span className="text-base text-gray-700">Verify Account</span>
+                <span className="text-sm text-gray-700">Verify Account</span>
               </div>
             </div>
           </div>
@@ -258,7 +258,7 @@ export default function UserMenu({
         >
           <div className="flex items-center">
             <LogOut className="h-5 w-5 mr-3 text-gray-500" />
-            <span className="text-base text-gray-700">Sign Out</span>
+            <span className="text-sm text-gray-700">Sign Out</span>
           </div>
         </div>
       </div>
@@ -310,25 +310,13 @@ export default function UserMenu({
                 profileCompletionPercent={percent}
               />
               <div className="ml-3 flex-1">
-                <p className="text-sm font-medium text-gray-900 flex items-center gap-1 leading-tight">
+                <p className="text-base font-medium text-gray-900 flex items-center gap-1 leading-tight">
                   {user.authorProfile?.fullName ?? user.fullName}
                   {user.isVerified && <VerifiedBadge size="sm" />}
                 </p>
-                <p className="text-[11px] text-gray-500 mt-0.5">{user.email}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
               </div>
             </div>
-            <Button
-              onClick={() => {
-                navigateToAuthorProfile(user.authorProfile?.id, false);
-                setMenuOpenState(false);
-              }}
-              variant="outlined"
-              size="sm"
-              className="w-full mt-3"
-            >
-              <FontAwesomeIcon icon={faPen} className="h-3 w-3 mr-2" />
-              Edit Profile
-            </Button>
           </div>
 
           {/* Menu items */}
@@ -338,7 +326,7 @@ export default function UserMenu({
               className="w-full px-4 py-2"
             >
               <div className="flex items-center">
-                <UserIcon className="h-4 w-4 mr-3 text-gray-500" />
+                <UserIcon className="h-5 w-5 mr-3 text-gray-500" />
                 <span className="text-sm text-gray-700">View Profile</span>
               </div>
             </BaseMenuItem>
@@ -350,7 +338,7 @@ export default function UserMenu({
             >
               <div className="w-full px-4 py-2 hover:bg-gray-50">
                 <div className="flex items-center">
-                  <Bell className="h-4 w-4 mr-3 text-gray-500" />
+                  <Bell className="h-5 w-5 mr-3 text-gray-500" />
                   <span className="text-sm text-gray-700">Notifications</span>
                 </div>
               </div>
@@ -365,7 +353,7 @@ export default function UserMenu({
                 <div className="flex items-center">
                   <ResearchCoinIcon
                     outlined
-                    className="h-4 w-4 mr-3 text-gray-500"
+                    className="h-5 w-5 mr-3 text-gray-500"
                     color="#676767"
                   />
                   <span className="text-sm text-gray-700">My ResearchCoin</span>
@@ -376,7 +364,7 @@ export default function UserMenu({
             <Link href="/referral" className="block" onClick={() => setMenuOpenState(false)}>
               <div className="w-full px-4 py-2 hover:bg-gray-50">
                 <div className="flex items-center">
-                  <UserPlus className="h-4 w-4 mr-3 text-gray-500" />
+                  <UserPlus className="h-5 w-5 mr-3 text-gray-500" />
                   <span className="text-sm text-gray-700">Refer and earn 10%</span>
                   <span className="ml-auto text-xs bg-blue-100 text-blue-600 font-semibold px-2 py-0.5 rounded-full">
                     New
@@ -389,7 +377,7 @@ export default function UserMenu({
               <Link href="/moderators" className="block" onClick={() => setMenuOpenState(false)}>
                 <div className="w-full px-4 py-2 hover:bg-gray-50">
                   <div className="flex items-center">
-                    <Shield className="h-4 w-4 mr-3 text-gray-500" />
+                    <Shield className="h-5 w-5 mr-3 text-gray-500" />
                     <span className="text-sm text-gray-700">Moderator Dashboard</span>
                   </div>
                 </div>
@@ -399,7 +387,7 @@ export default function UserMenu({
             <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
               <div className="w-full px-4 py-2 hover:bg-gray-50">
                 <div className="flex items-center">
-                  <FontAwesomeIcon icon={faBookmark} className="h-4 w-4 mr-3 text-gray-500" />
+                  <FontAwesomeIcon icon={faBookmark} className="h-5 w-5 mr-3 text-gray-500" />
                   <span className="text-sm text-gray-700">Your Lists</span>
                 </div>
               </div>
@@ -409,7 +397,7 @@ export default function UserMenu({
               <BaseMenuItem onClick={openVerificationModal} className="w-full px-4 py-2">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center">
-                    <BadgeCheck className="h-4 w-4 mr-3 text-gray-500" />
+                    <BadgeCheck className="h-5 w-5 mr-3 text-gray-500" />
                     <span className="text-sm text-gray-700">Verify Account</span>
                   </div>
                 </div>
@@ -421,7 +409,7 @@ export default function UserMenu({
               className="w-full px-4 py-2"
             >
               <div className="flex items-center">
-                <LogOut className="h-4 w-4 mr-3 text-gray-500" />
+                <LogOut className="h-5 w-5 mr-3 text-gray-500" />
                 <span className="text-sm text-gray-700">Sign Out</span>
               </div>
             </BaseMenuItem>

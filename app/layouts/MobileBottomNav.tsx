@@ -5,17 +5,14 @@ import { useRouter, usePathname } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHouse as faHouseSolid,
-  faGrid3 as faGrid3Solid,
   faBookmark as faBookmarkSolid,
 } from '@fortawesome/pro-solid-svg-icons';
 import {
   faHouse as faHouseLight,
-  faGrid3 as faGrid3Light,
   faBookmark as faBookmarkLight,
   faBars,
 } from '@fortawesome/pro-light-svg-icons';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
-import { ChartNoAxesColumnIncreasing } from 'lucide-react';
 import { Icon } from '@/components/ui/icons';
 import { IconName } from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
@@ -36,11 +33,9 @@ interface NavItem {
 
 // Additional navigation items not in the bottom bar
 const moreNavItems: NavItem[] = [
-  { label: 'RH Journal', href: '/journal', iconKey: 'journal' },
-  { label: 'Browse', href: '/browse', iconKey: 'browse' },
+  { label: 'Journal', href: '/journal', iconKey: 'journal' },
   { label: 'Notebook', href: '/notebook', iconKey: 'notebook', requiresAuth: true },
   { label: 'Lists', href: '/lists', iconKey: 'lists', requiresAuth: true },
-  { label: 'Leaderboard', href: '/leaderboard', iconKey: 'leaderboard' },
 ];
 
 // Check if a path is active
@@ -53,12 +48,6 @@ const isPathActive = (path: string, currentPath: string): boolean => {
   }
   if (path === '/notebook') {
     return currentPath.startsWith('/notebook');
-  }
-  if (path === '/leaderboard') {
-    return currentPath.startsWith('/leaderboard');
-  }
-  if (path === '/browse') {
-    return currentPath.startsWith('/browse');
   }
   if (path === '/journal') {
     return currentPath.startsWith('/journal');
@@ -182,28 +171,12 @@ export const MobileBottomNav: React.FC = () => {
             color={iconColor}
           />
         );
-      case 'browse':
-        return (
-          <FontAwesomeIcon
-            icon={isActive ? faGrid3Solid : faGrid3Light}
-            fontSize={iconSize}
-            color={iconColor}
-          />
-        );
       case 'notebook':
         return (
           <Icon
             name={isActive ? 'notebookBold' : ('labNotebook2' as IconName)}
             size={iconSize}
             color={iconColor}
-          />
-        );
-      case 'leaderboard':
-        return (
-          <ChartNoAxesColumnIncreasing
-            size={iconSize}
-            color={iconColor}
-            strokeWidth={isActive ? 2.5 : 2}
           />
         );
       case 'lists':
