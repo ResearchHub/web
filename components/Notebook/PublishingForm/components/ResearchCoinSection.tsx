@@ -7,7 +7,10 @@ interface ResearchCoinSectionProps {
   onBountyClick: () => void;
 }
 
-export function ResearchCoinSection({ bountyAmount, onBountyClick }: ResearchCoinSectionProps) {
+export function ResearchCoinSection({
+  bountyAmount,
+  onBountyClick,
+}: Readonly<ResearchCoinSectionProps>) {
   return (
     <div className="py-3 px-6">
       <SectionHeader icon={Coins}>ResearchCoin</SectionHeader>

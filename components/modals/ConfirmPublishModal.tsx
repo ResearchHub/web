@@ -2,18 +2,56 @@ import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@
 import { Fragment, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
-import { GraduationCap, Scale, Users, FileText } from 'lucide-react';
+import { GraduationCap, Scale, Users, FileText, type LucideIcon } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
-import { useNotebookContext } from '@/contexts/NotebookContext';
+
+type ConfirmPublishVariant = 'default' | 'rfp';
 
 interface ConfirmPublishModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (editedTitle: string) => void;
   title: string;
   isPublishing: boolean;
+  onTitleChange?: (title: string) => void;
   isUpdate?: boolean;
+  variant?: ConfirmPublishVariant;
+  zIndex?: number;
 }
+
+interface GuidelineItem {
+  icon: LucideIcon;
+  text: string;
+}
+
+interface GuidelineConfig {
+  heading: string;
+  items: GuidelineItem[];
+}
+
+const GUIDELINES: Record<ConfirmPublishVariant, GuidelineConfig> = {
+  default: {
+    heading: 'Guidelines for posts',
+    items: [
+      { icon: GraduationCap, text: 'Stick to academically appropriate topics' },
+      {
+        icon: Scale,
+        text: 'Focus on presenting objective results and remain unbiased in your commentary',
+      },
+      { icon: Users, text: 'Be respectful of differing opinions, viewpoints, and experiences' },
+      { icon: FileText, text: 'Do not plagiarize any content, keep it original' },
+    ],
+  },
+  rfp: {
+    heading: 'Guidelines for RFPs',
+    items: [
+      { icon: GraduationCap, text: 'Stick to academically appropriate topics' },
+      { icon: Scale, text: 'Clearly describe the scope and expectations for proposals' },
+      { icon: Users, text: 'Be transparent about funding amounts and timelines' },
+      { icon: FileText, text: 'Include evaluation criteria for submitted proposals' },
+    ],
+  },
+};
 
 export function ConfirmPublishModal({
   isOpen,
@@ -21,43 +59,34 @@ export function ConfirmPublishModal({
   onConfirm,
   title: initialTitle,
   isPublishing,
+  onTitleChange,
   isUpdate,
+  variant = 'default',
+  zIndex = 100,
 }: ConfirmPublishModalProps) {
   const [title, setTitle] = useState(initialTitle);
   const [hasAgreed, setHasAgreed] = useState(false);
-  const { editor } = useNotebookContext();
 
   const isTitleValid = title.trim().length >= 20;
   const isPublishEnabled = isTitleValid && hasAgreed;
 
+  const guidelines = GUIDELINES[variant];
+  const documentLabel = variant === 'rfp' ? 'RFP' : 'research proposal';
+
   useEffect(() => {
     setTitle(initialTitle);
     setHasAgreed(false);
-  }, []);
+  }, [initialTitle]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
-
-    if (editor) {
-      editor
-        .chain()
-        .command(({ tr }) => {
-          const pos = 0;
-          const node = tr.doc.nodeAt(pos);
-          if (node && node.type.name === 'heading') {
-            tr.insertText(newTitle, pos + 1, pos + node.nodeSize - 1);
-            return true;
-          }
-          return false;
-        })
-        .run();
-    }
+    onTitleChange?.(newTitle);
   };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-[100]" onClose={onClose}>
+      <Dialog as="div" className="relative" style={{ zIndex }} onClose={onClose}>
         <TransitionChild
           as={Fragment}
           enter="ease-out duration-300"
@@ -87,7 +116,7 @@ export function ConfirmPublishModal({
                     {isUpdate ? 'Confirm Re-publication' : 'Confirm Publication'}
                   </DialogTitle>
                   <p className="text-sm text-gray-600 mb-4">
-                    You are about to {isUpdate ? 'republish' : 'publish'} your research proposal:
+                    You are about to {isUpdate ? 'republish' : 'publish'} your {documentLabel}:
                   </p>
                   <input
                     type="text"
@@ -98,55 +127,28 @@ export function ConfirmPublishModal({
                   />
 
                   <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                    <h4 className="font-medium text-sm text-gray-900 mb-3">Guidelines for posts</h4>
+                    <h4 className="font-medium text-sm text-gray-900 mb-3">{guidelines.heading}</h4>
                     <ul className="space-y-3">
-                      <li className="flex items-start gap-2">
-                        <GraduationCap
-                          className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
-                          strokeWidth={2}
-                        />
-                        <span className="text-sm text-gray-600">
-                          Stick to academically appropriate topics
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <Scale
-                          className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
-                          strokeWidth={2}
-                        />
-                        <span className="text-sm text-gray-600">
-                          Focus on presenting objective results and remain unbiased in your
-                          commentary
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <Users
-                          className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
-                          strokeWidth={2}
-                        />
-                        <span className="text-sm text-gray-600">
-                          Be respectful of differing opinions, viewpoints, and experiences
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <FileText
-                          className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
-                          strokeWidth={2}
-                        />
-                        <span className="text-sm text-gray-600">
-                          Do not plagiarize any content, keep it original
-                        </span>
-                      </li>
+                      {guidelines.items.map((item) => (
+                        <li key={item.text} className="flex items-start gap-2">
+                          <item.icon
+                            className="h-[18px] w-[18px] mt-0.5 text-indigo-600 flex-shrink-0"
+                            strokeWidth={2}
+                          />
+                          <span className="text-sm text-gray-600">{item.text}</span>
+                        </li>
+                      ))}
                     </ul>
                   </div>
+
                   <div className="flex items-start gap-2 mb-6">
                     <Checkbox
-                      id="guidelines"
+                      id="publish-guidelines"
                       checked={hasAgreed}
                       disabled={isPublishing}
                       onCheckedChange={(checked) => setHasAgreed(checked as boolean)}
                     />
-                    <label htmlFor="guidelines" className="text-sm text-gray-600">
+                    <label htmlFor="publish-guidelines" className="text-sm text-gray-600">
                       I have adhered to the ResearchHub posting guidelines
                     </label>
                   </div>
@@ -163,7 +165,7 @@ export function ConfirmPublishModal({
                     </Button>
                     <Button
                       variant="default"
-                      onClick={onConfirm}
+                      onClick={() => onConfirm(title)}
                       disabled={!isPublishEnabled || isPublishing}
                       className="disabled:opacity-50 disabled:cursor-not-allowed"
                     >
