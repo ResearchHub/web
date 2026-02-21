@@ -37,22 +37,14 @@ import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
-import { DEFAULT_GRANT_DEADLINE } from '@/components/Grant/lib/constants';
 import { ApiError } from '@/services/types';
+import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
 const FEATURE_FLAG_JOURNAL = false;
 
-type ArticleTypeApi = 'DISCUSSION' | 'PREREGISTRATION' | 'GRANT';
-
-const ARTICLE_TYPE_API_MAP: Record<string, ArticleTypeApi> = {
-  preregistration: 'PREREGISTRATION',
-  grant: 'GRANT',
-  discussion: 'DISCUSSION',
-};
-
 const PUBLISH_LABEL: Record<string, string> = {
-  preregistration: 'RFP',
+  preregistration: 'Proposal',
   grant: 'Grant',
 };
 
@@ -108,7 +100,7 @@ const FORM_DEFAULTS = {
   shortDescription: '',
   organization: '',
   applicationDeadline: null,
-} satisfies Partial<PublishingFormData>;
+};
 
 const mapContentTypeToArticleType = (contentType: string): PublishingFormData['articleType'] => {
   if (contentType === 'preregistration') return 'preregistration';
@@ -244,7 +236,7 @@ export function PublishingForm({
       methods.setValue('articleType', resolved.type);
     }
     if (resolved?.type === 'grant' && resolved.source === 'default') {
-      methods.setValue('applicationDeadline', DEFAULT_GRANT_DEADLINE);
+      methods.setValue('applicationDeadline', new Date('2029-12-31'));
     }
   }, [note, methods, searchParams, defaultArticleType]);
 

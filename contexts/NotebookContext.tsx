@@ -56,7 +56,6 @@ const NotebookContext = createContext<NotebookContextType | null>(null);
 
 interface NotebookProviderProps {
   readonly children: ReactNode;
-  /** Pass an explicit noteId (e.g. from a modal) instead of reading URL params. */
   readonly noteId?: string;
 }
 

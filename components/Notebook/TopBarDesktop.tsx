@@ -63,7 +63,7 @@ export function TopBarDesktop({ onClose }: Readonly<TopBarDesktopProps>) {
                 <ChevronLeft className="h-5 w-5" />
                 <ChevronLeft className="h-5 w-5 -ml-3" />
               </div>
-              <span>{isPublished ? 'PUBLISH' : 'Publish'}</span>
+              <span>{isPublished ? 'Republish' : 'Publish'}</span>
             </div>
           </Button>
         )}
