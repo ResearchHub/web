@@ -117,6 +117,18 @@ export function PaymentWidget({
     paymentMethod: 'rsc', // Always calculate for RSC to check balance
   });
 
+  // Preselect the DAF with highest balance
+  useEffect(() => {
+    if (funds.length > 0 && !selectedDafAccountId) {
+      const fundWithHighestBalance = funds.reduce((best, fund) => {
+        const bestBalance = parseFloat(best.usdcBalance) || 0;
+        const fundBalance = parseFloat(fund.usdcBalance) || 0;
+        return fundBalance > bestBalance ? fund : best;
+      }, funds[0]);
+      setSelectedDafAccountId(fundWithHighestBalance.id);
+    }
+  }, [funds, selectedDafAccountId]);
+
   // Resolve the selected Endaoment fund and notify parent
   const selectedEndaomentFund = funds.find((f) => f.id === selectedDafAccountId) ?? null;
 
