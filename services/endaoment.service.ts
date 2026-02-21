@@ -16,6 +16,13 @@ export async function connectEndaomentAccount(returnUrl: string): Promise<string
   return response.auth_url;
 }
 
+/**
+ * Disconnects the user's Endaoment account from the application.
+ */
+export async function disconnectEndaomentAccount(): Promise<void> {
+  await ApiClient.post('/api/endaoment/disconnect/');
+}
+
 interface EndaomentStatus {
   connected: boolean;
 }
