@@ -18,6 +18,7 @@ import {
 import { CreditCardForm, type StripePaymentContext } from './CreditCardForm';
 import { useEndaoment } from '@/contexts/EndaomentContext';
 import { EndaomentFundSelector } from '@/components/Endaoment/EndaomentFundSelector';
+import { useDisconnectEndaoment } from '@/components/Endaoment/lib/hooks/useDisconnectEndaoment';
 import { EndaomentFund } from '@/services/endaoment.service';
 import { formatUsdValue } from '@/utils/number';
 
@@ -97,6 +98,7 @@ export function PaymentWidget({
 
   // Endaoment connection status and funds from context
   const { connected, funds } = useEndaoment();
+  const { disconnect, isDisconnecting } = useDisconnectEndaoment();
 
   // State for selected DAF fund (Endaoment)
   const [selectedDafAccountId, setSelectedDafAccountId] = useState<string | null>(null);
@@ -383,6 +385,18 @@ export function PaymentWidget({
             onSelectFund={setSelectedDafAccountId}
             requiredAmountUsd={amountInUsd}
           />
+          <div className="mt-2 text-center text-sm text-gray-500">
+            Connected to Endaoment
+            <span className="mx-1">·</span>
+            <button
+              type="button"
+              onClick={disconnect}
+              disabled={isDisconnecting}
+              className="text-primary-600 hover:underline disabled:opacity-50"
+            >
+              {isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
+            </button>
+          </div>
         </div>
       )}
 
