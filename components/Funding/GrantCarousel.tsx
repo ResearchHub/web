@@ -7,12 +7,16 @@ import { Carousel } from '@/components/ui/Carousel';
 import { FundingProposalCard } from './FundingProposalCard';
 import { ProposalCardSkeleton } from '@/components/skeletons/ProposalCardSkeleton';
 import { cn } from '@/utils/styles';
-import { ArrowRight, RefreshCw } from 'lucide-react';
+import { ArrowRight, MoreHorizontal, Pencil, RefreshCw, UserPlus } from 'lucide-react';
 import { useFeed } from '@/hooks/useFeed';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 
 interface GrantCarouselProps {
   grant: FeedEntry;
   className?: string;
+  isDashboard?: boolean;
+  onInviteExperts?: () => void;
+  onEditGrant?: () => void;
 }
 
 function getShortTitle(title: string): string {
@@ -25,7 +29,13 @@ function formatCompactUSD(usd: number): string {
   return `$${Math.round(usd).toLocaleString()}`;
 }
 
-export const GrantCarousel: FC<GrantCarouselProps> = ({ grant, className }) => {
+export const GrantCarousel: FC<GrantCarouselProps> = ({
+  grant,
+  className,
+  isDashboard,
+  onInviteExperts,
+  onEditGrant,
+}) => {
   const content = grant.content as FeedGrantContent;
   const grantData = content.grant;
   const grantHref = `/grant/${content.id}/${content.slug}`;
@@ -102,14 +112,39 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({ grant, className }) => {
             <span>
               <span className="font-mono">{entries.length}</span> proposals
             </span>
-            <span className="ml-auto" />
-            <Link
-              href={grantHref}
-              className="font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition-colors"
-            >
-              Submit a proposal <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
           </>
+        )}
+        <span className="ml-auto" />
+        {isDashboard ? (
+          <>
+            <button
+              onClick={onInviteExperts}
+              className="font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              Invite experts
+            </button>
+            <BaseMenu
+              align="end"
+              trigger={
+                <button className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors cursor-pointer">
+                  <MoreHorizontal className="h-4.5 w-4.5" />
+                </button>
+              }
+            >
+              <BaseMenuItem onSelect={onEditGrant}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit opportunity
+              </BaseMenuItem>
+            </BaseMenu>
+          </>
+        ) : (
+          <Link
+            href={grantHref}
+            className="font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition-colors"
+          >
+            Submit a proposal <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
         )}
       </div>
 
@@ -137,16 +172,40 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({ grant, className }) => {
             )}
           </Carousel>
         ) : !isLoading ? (
-          <div className="flex items-center justify-center py-6 rounded-lg border border-dashed border-gray-200">
-            <div className="text-center">
-              <p className="text-sm text-gray-400">No proposals yet</p>
-              <Link
-                href={grantHref}
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 mt-1 inline-flex items-center gap-1 transition-colors"
-              >
-                Submit a proposal <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
+          <div className="flex items-center justify-center py-8 rounded-lg border border-dashed border-gray-200">
+            {isDashboard ? (
+              <div className="text-center">
+                <p className="text-sm text-gray-500">
+                  No proposals yet — get started by inviting experts
+                </p>
+                <div className="flex items-center justify-center gap-3 mt-3">
+                  <button
+                    onClick={onInviteExperts}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors cursor-pointer"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    Invite experts
+                  </button>
+                  <button
+                    onClick={onEditGrant}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium transition-colors cursor-pointer"
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Edit opportunity
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center">
+                <p className="text-sm text-gray-400">No proposals yet</p>
+                <Link
+                  href={grantHref}
+                  className="text-sm font-medium text-blue-600 hover:text-blue-700 mt-1 inline-flex items-center gap-1 transition-colors"
+                >
+                  Submit a proposal <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            )}
           </div>
         ) : null}
       </div>

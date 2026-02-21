@@ -93,19 +93,19 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Navigate to the home page',
     },
     {
-      label: 'Earn',
-      href: '/earn',
-      iconKey: 'earn',
-      description: 'Earn RSC for completing peer reviews',
-    },
-    {
       label: 'Fund',
       href: '/funding',
       iconKey: 'fund',
       description: 'Browse grants and fundraising opportunities',
     },
     {
-      label: 'RH Journal',
+      label: 'Earn',
+      href: '/earn',
+      iconKey: 'earn',
+      description: 'Earn RSC for completing peer reviews',
+    },
+    {
+      label: 'Journal',
       href: '/journal',
       iconKey: 'journal',
       description: 'Read and publish research papers',
