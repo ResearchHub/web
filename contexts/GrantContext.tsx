@@ -61,7 +61,7 @@ export function GrantProvider({ children, initialGrants, initialGrant }: GrantPr
         page: 1,
         pageSize: 20,
         status: 'OPEN',
-        ordering: 'newest',
+        ordering: 'most_applicants',
       });
 
       setGrants(result.grants);

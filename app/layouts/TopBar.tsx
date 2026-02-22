@@ -517,7 +517,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                       /
                     </span>
                     <span
-                      className="text-sm text-gray-700 whitespace-nowrap"
+                      className="text-sm text-gray-800 whitespace-nowrap"
                       style={{ letterSpacing: '-0.25px' }}
                     >
                       {pageInfo.subtitle}

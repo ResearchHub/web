@@ -12,7 +12,7 @@ export interface GetGrantsParams {
   page?: number;
   pageSize?: number;
   status?: 'OPEN' | 'CLOSED';
-  ordering?: 'newest' | 'oldest' | 'best';
+  ordering?: 'newest' | 'oldest' | 'best' | 'most_applicants' | 'upvotes' | 'amount_raised';
   createdBy?: number | string;
 }
 
