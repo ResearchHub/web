@@ -16,7 +16,7 @@ export function CreateGrantButton({ className }: Readonly<CreateGrantButtonProps
     <>
       <Button variant="default" onClick={() => setIsModalOpen(true)} className={className}>
         <Plus className="w-4 h-4 mr-2" />
-        Create RFP
+        Create Opportunity
       </Button>
 
       <CreateGrantModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
