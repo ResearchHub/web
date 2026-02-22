@@ -9,6 +9,7 @@ export type ExpertCountOption = (typeof EXPERT_COUNT_OPTIONS)[number];
 export const DEFAULT_STATE = 'All States';
 
 export const EXPERTISE_LEVELS_SPECIFIC: [ExpertiseLevel, ...ExpertiseLevel[]] = [
+  'all_levels',
   'phd_postdocs',
   'early_career',
   'mid_career',
