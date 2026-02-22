@@ -4,34 +4,46 @@ import { FC } from 'react';
 import Link from 'next/link';
 import type { Note } from '@/types/note';
 import { cn } from '@/utils/styles';
-import { ArrowRight, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { buildWorkUrl } from '@/utils/url';
+import { MoreHorizontal, Pencil, Trash2, UserPlus } from 'lucide-react';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { getShortTitle } from './GrantCarousel';
 
 interface GrantDraftCarouselProps {
   note: Note;
-  orgSlug: string;
   className?: string;
+  onContinueEditing?: () => void;
   onDeleteGrant?: () => void;
 }
 
 export const GrantDraftCarousel: FC<GrantDraftCarouselProps> = ({
   note,
-  orgSlug,
   className,
+  onContinueEditing,
   onDeleteGrant,
 }) => {
-  const noteHref = `/notebook/${orgSlug}/${note.id}`;
-
   return (
     <section className={cn('py-5', className)}>
       {/* Title + draft badge */}
       <div className="flex items-center gap-2.5 flex-wrap">
-        <Link href={noteHref} className="group">
-          <h2 className="text-xl font-bold text-gray-900 group-hover:text-gray-600 transition-colors">
+        {note.post ? (
+          <Link
+            href={buildWorkUrl({
+              id: note.post.id,
+              contentType: note.post.contentType,
+              slug: note.post.slug,
+            })}
+            className="group"
+          >
+            <h2 className="text-xl font-bold text-gray-900 group-hover:text-gray-600 transition-colors">
+              {getShortTitle(note.title || 'Untitled Grant')}
+            </h2>
+          </Link>
+        ) : (
+          <h2 className="text-xl font-bold text-gray-900">
             {getShortTitle(note.title || 'Untitled Grant')}
           </h2>
-        </Link>
+        )}
         <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-xs font-bold text-amber-700">
           Draft
         </span>
@@ -62,19 +74,19 @@ export const GrantDraftCarousel: FC<GrantDraftCarouselProps> = ({
         </BaseMenu>
       </div>
 
-      {/* CTA body */}
+      {/* CTA zone */}
       <div className="mt-4">
-        <div className="flex flex-col items-center py-6 rounded-lg border border-dashed border-gray-200">
-          <Link
-            href={noteHref}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
-          >
-            <Pencil className="h-4 w-4" />
-            Continue editing
-          </Link>
-          <span className="self-end inline-flex items-center gap-1.5 text-xs text-gray-400 mt-3 mr-4">
+        <button
+          onClick={onContinueEditing}
+          className="w-full flex items-center justify-center gap-2 py-6 rounded-lg border border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-600 text-sm font-medium transition-colors cursor-pointer"
+        >
+          <Pencil className="h-4 w-4" />
+          Continue editing
+        </button>
+        <div className="flex justify-end mt-2 mr-1">
+          <span className="inline-flex items-center gap-1.5 text-xs text-gray-500">
             Next step: Invite experts
-            <ArrowRight className="h-3 w-3" />
+            <UserPlus className="h-3 w-3" />
           </span>
         </div>
       </div>
