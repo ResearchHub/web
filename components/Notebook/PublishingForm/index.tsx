@@ -108,6 +108,17 @@ const mapContentTypeToArticleType = (contentType: string): PublishingFormData['a
   return 'discussion';
 };
 
+const mapDocumentTypeToArticleType = (
+  documentType: string
+): PublishingFormData['articleType'] | null => {
+  const map: Record<string, PublishingFormData['articleType']> = {
+    DISCUSSION: 'discussion',
+    GRANT: 'grant',
+    PREREGISTRATION: 'preregistration',
+  };
+  return map[documentType] ?? null;
+};
+
 const populateGrantFields = (grant: any, setValue: (name: any, value: any) => void) => {
   if (!grant) return;
   if (grant.endDate) setValue('applicationDeadline', new Date(grant.endDate));
@@ -213,7 +224,13 @@ export function PublishingForm({
 
   useEffect(() => {
     if (note?.id) {
-      methods.reset(FORM_DEFAULTS);
+      const initialType = note.documentType
+        ? mapDocumentTypeToArticleType(note.documentType)
+        : undefined;
+      methods.reset({
+        ...FORM_DEFAULTS,
+        ...(initialType ? { articleType: initialType } : {}),
+      });
     }
   }, [note?.id, methods]);
 
@@ -225,18 +242,29 @@ export function PublishingForm({
       return;
     }
 
-    const storedData = loadPublishingFormFromStorage(note.id.toString());
-    if (storedData) {
-      restoreFromStorage(storedData, methods.setValue);
-      return;
+    if (note.documentType) {
+      const mapped = mapDocumentTypeToArticleType(note.documentType);
+      if (mapped) {
+        methods.setValue('articleType', mapped);
+      }
     }
 
-    const resolved = resolveArticleType(searchParams, defaultArticleType);
-    if (resolved) {
-      methods.setValue('articleType', resolved.type);
-    }
-    if (resolved?.type === 'grant' && resolved.source === 'default') {
-      methods.setValue('applicationDeadline', new Date('2029-12-31'));
+    const storedData = loadPublishingFormFromStorage(note.id.toString());
+    if (storedData) {
+      const { articleType: _storedType, ...otherStoredData } = storedData;
+      if (note.documentType) {
+        restoreFromStorage(otherStoredData, methods.setValue);
+      } else {
+        restoreFromStorage(storedData, methods.setValue);
+      }
+    } else {
+      const resolved = resolveArticleType(searchParams, defaultArticleType);
+      if (resolved) {
+        methods.setValue('articleType', resolved.type);
+      }
+      if (resolved?.type === 'grant' && resolved.source === 'default') {
+        methods.setValue('applicationDeadline', new Date('2029-12-31'));
+      }
     }
   }, [note, methods, searchParams, defaultArticleType]);
 
@@ -254,6 +282,7 @@ export function PublishingForm({
   const articleType = watch('articleType');
   const isJournalEnabled = watch('isJournalEnabled');
   const selectedNonprofit = watch('selectedNonprofit');
+
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);

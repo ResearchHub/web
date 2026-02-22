@@ -7,6 +7,13 @@ import { PublishingFormData } from '../schema';
 import { Button } from '@/components/ui/Button';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { Icon } from '@/components/ui/icons/Icon';
+import { NoteService } from '@/services/note.service';
+
+const ARTICLE_TYPE_TO_DOCUMENT_TYPE: Record<PublishingFormData['articleType'], string> = {
+  discussion: 'DISCUSSION',
+  preregistration: 'PREREGISTRATION',
+  grant: 'GRANT',
+};
 
 const articleTypes: Record<
   PublishingFormData['articleType'],
@@ -90,7 +97,16 @@ export function WorkTypeSection() {
           {Object.entries(articleTypes).map(([type, info]) => (
             <BaseMenuItem
               key={type}
-              onClick={() => setValue('articleType', type as PublishingFormData['articleType'])}
+              onClick={() => {
+                const newType = type as PublishingFormData['articleType'];
+                setValue('articleType', newType);
+                if (note && !note.post) {
+                  NoteService.updateNote({
+                    noteId: note.id,
+                    document_type: ARTICLE_TYPE_TO_DOCUMENT_TYPE[newType],
+                  });
+                }
+              }}
               className={cn(
                 'flex flex-col items-start py-3',
                 articleType === type ? 'bg-gray-100' : ''
