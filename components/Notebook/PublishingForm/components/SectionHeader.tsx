@@ -3,7 +3,7 @@ interface SectionHeaderProps {
   children: React.ReactNode;
 }
 
-export function SectionHeader({ icon: Icon, children }: SectionHeaderProps) {
+export function SectionHeader({ icon: Icon, children }: Readonly<SectionHeaderProps>) {
   return (
     <div className="mb-2">
       <div className="flex items-center gap-1.5 mb-1.5">

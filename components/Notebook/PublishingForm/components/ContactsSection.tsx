@@ -6,7 +6,6 @@ import {
 } from '@/components/ui/form/SearchableMultiSelect';
 import { useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { useNotebookContext } from '@/contexts/NotebookContext';
 import { getFieldErrorMessage } from '@/utils/form';
 import { SearchService } from '@/services/search.service';
 import { UserSuggestion } from '@/types/search';

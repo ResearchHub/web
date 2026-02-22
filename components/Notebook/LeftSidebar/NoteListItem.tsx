@@ -2,6 +2,7 @@
 
 import { File, MoreHorizontal, Copy, Trash2, Loader2, Lock, Unlock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { cn } from '@/utils/styles';
 import { useRouter } from 'next/navigation';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import {
@@ -12,7 +13,7 @@ import {
 } from '@/hooks/useNote';
 import type { Note } from '@/types/note';
 import toast from 'react-hot-toast';
-import React, { useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface NoteListItemProps {
@@ -21,22 +22,32 @@ interface NoteListItemProps {
   startTransition: (callback: () => void) => void;
 }
 
-/**
- * A single note item in the sidebar list
- */
-export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, startTransition }) => {
+export const NoteListItem = ({ note, disabled, startTransition }: NoteListItemProps) => {
   const router = useRouter();
-  const { refreshNotes, setNotes, noteIdFromParams } = useNotebookContext();
+  const { refreshNotes, setNotes, activeNoteId } = useNotebookContext();
   const [{ isLoading: isDeleting }, deleteNote] = useDeleteNote();
   const [{ isLoading: isDuplicating }, duplicateNote] = useDuplicateNote();
   const [{ isLoading: isMakingPrivate }, makeNotePrivate] = useMakeNotePrivate();
   const [{ isLoading: isUpdatingPermissions }, updateNotePermissions] = useUpdateNotePermissions();
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
 
   const isPrivate = note.access === 'PRIVATE';
   const isProcessing = isDeleting || isDuplicating || isMakingPrivate || isUpdatingPermissions;
-  const isSelected = note.id.toString() === noteIdFromParams;
+  const isTogglingAccess = isMakingPrivate || isUpdatingPermissions;
+  const isSelected = note.id.toString() === activeNoteId;
+
+  const getAccessIcon = () => {
+    if (isTogglingAccess) return <Loader2 className="h-4 w-4 animate-spin" />;
+    if (isPrivate) return <Unlock className="h-4 w-4" />;
+    return <Lock className="h-4 w-4" />;
+  };
+
+  const getAccessLabel = () => {
+    if (isTogglingAccess) return 'Updating...';
+    if (isPrivate) return 'Move to Workspace';
+    return 'Make Private';
+  };
 
   useEffect(() => {
     if (isSelected && itemRef.current) {
@@ -51,7 +62,7 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, star
     }
   }, [isSelected]);
 
-  const handleClick = React.useCallback(() => {
+  const handleClick = useCallback(() => {
     startTransition(() => {
       router.push(`/notebook/${note.organization.slug}/${note.id}`, { scroll: false });
     });
@@ -74,7 +85,6 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, star
     e.stopPropagation();
     try {
       if (isPrivate) {
-        // Make workspace
         await updateNotePermissions({
           noteId: note.id,
           organizationId: note.organization.id,
@@ -82,7 +92,6 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, star
         });
         toast.success('Note moved to workspace');
       } else {
-        // Make private
         await makeNotePrivate(note.id);
         toast.success('Note made private');
       }
@@ -99,7 +108,9 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, star
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (
-      !window.confirm('Are you sure you want to delete this note? This action cannot be undone.')
+      !globalThis.confirm(
+        'Are you sure you want to delete this note? This action cannot be undone.'
+      )
     ) {
       return;
     }
@@ -110,21 +121,25 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, star
       if (isSelected) {
         router.replace(`/notebook/${note.organization.slug}`);
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Error deleting note:', error);
       toast.error('Failed to delete note. Please try again.');
     }
   };
 
   const menuTriggerButton = (
-    <button
-      className={`p-1 rounded-md transition-opacity
-        bg-gray-50 hover:bg-gray-200 text-gray-500 hover:text-gray-700
-        ${isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+    <Button
+      variant="ghost"
+      size="icon"
+      className={cn(
+        'h-auto w-auto p-1 rounded-md transition-opacity bg-gray-50 hover:bg-gray-200 text-gray-500 hover:text-gray-700',
+        isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+      )}
       onClick={(e) => e.stopPropagation()}
       disabled={isProcessing || disabled}
     >
       <MoreHorizontal className="h-4 w-4" />
-    </button>
+    </Button>
   );
 
   return (
@@ -168,20 +183,8 @@ export const NoteListItem: React.FC<NoteListItemProps> = ({ note, disabled, star
           </BaseMenuItem>
           <BaseMenuItem onClick={handleToggleAccess} disabled={isProcessing}>
             <div className="flex items-center gap-2">
-              {isMakingPrivate || isUpdatingPermissions ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : isPrivate ? (
-                <Unlock className="h-4 w-4" />
-              ) : (
-                <Lock className="h-4 w-4" />
-              )}
-              <span>
-                {isMakingPrivate || isUpdatingPermissions
-                  ? 'Updating...'
-                  : isPrivate
-                    ? 'Move to Workspace'
-                    : 'Make Private'}
-              </span>
+              {getAccessIcon()}
+              <span>{getAccessLabel()}</span>
             </div>
           </BaseMenuItem>
           <BaseMenuItem onClick={handleDelete} disabled={isProcessing}>

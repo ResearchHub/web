@@ -27,11 +27,11 @@ export function GrantFundingAmountSection() {
           helperText="How much money you are giving for this RFP"
           required
           onChange={(e) => {
-            const numericValue = e.target.value.replace(/[^0-9]/g, '');
+            const numericValue = e.target.value.replaceAll(/\D/g, '');
             setValue('budget', numericValue, { shouldValidate: true });
 
             if (numericValue) {
-              e.target.value = new Intl.NumberFormat('en-US').format(parseInt(numericValue));
+              e.target.value = new Intl.NumberFormat('en-US').format(Number.parseInt(numericValue));
             } else {
               e.target.value = '';
             }
