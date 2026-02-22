@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { FieldErrors } from 'react-hook-form';
 import { ChevronDown, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -43,7 +43,7 @@ export function AdvancedConfig({
   values,
   onChange,
   errors,
-  availableInputTypes = ['abstract', 'full_content'],
+  availableInputTypes = ['full_content'],
   contentType,
   onRerunSelect,
   selectedSearchId,
@@ -54,10 +54,19 @@ export function AdvancedConfig({
   const [inputTypeOpen, setInputTypeOpen] = useState(false);
   const [expertCountOpen, setExpertCountOpen] = useState(false);
 
-  const regionLabel = getRegionLabel(values.region);
-  const inputTypeLabel =
-    INPUT_TYPE_OPTIONS.find((o) => o.value === values.inputType)?.label ?? 'Full Content';
   const allowedSet = new Set(availableInputTypes);
+  const currentInputTypeValid = allowedSet.has(values.inputType);
+  const effectiveInputType = currentInputTypeValid ? values.inputType : availableInputTypes[0];
+  const inputTypeLabel =
+    INPUT_TYPE_OPTIONS.find((o) => o.value === effectiveInputType)?.label ?? 'Full Content';
+
+  useEffect(() => {
+    if (availableInputTypes.length > 0 && !allowedSet.has(values.inputType)) {
+      onChange({ ...values, inputType: availableInputTypes[0] });
+    }
+  }, [availableInputTypes, values.inputType]);
+
+  const regionLabel = getRegionLabel(values.region);
 
   const handleExcludeChange = useCallback(
     (excludedExpertNames: string) => {
@@ -79,8 +88,8 @@ export function AdvancedConfig({
           <Input
             label="Name your search (Optional)"
             placeholder="e.g. fMRI-based glymphatic system measurements in mice"
-            value={values.searchTitle ?? ''}
-            onChange={(e) => onChange({ ...values, searchTitle: e.target.value })}
+            value={values.searchName ?? ''}
+            onChange={(e) => onChange({ ...values, searchName: e.target.value })}
             helperText="Give this search a name to find it easily later."
           />
         </div>

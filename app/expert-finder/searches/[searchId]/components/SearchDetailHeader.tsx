@@ -16,11 +16,11 @@ export function SearchDetailHeader({ search }: SearchDetailHeaderProps) {
         <div className="min-w-0 flex-1">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Expert Search</h2>
           <p className="text-sm text-gray-600 break-words">
-            {search.query
-              ? search.query.length > 200
-                ? `${search.query.slice(0, 200)}…`
-                : search.query
-              : 'No query'}
+            {search.name || search.query
+              ? (search.name || search.query).length > 200
+                ? `${(search.name || search.query).slice(0, 200)}…`
+                : search.name || search.query
+              : 'No name'}
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Badge variant="default" size="sm">

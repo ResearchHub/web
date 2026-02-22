@@ -9,15 +9,14 @@ import type { ExpertSearchListItem } from '@/types/expertFinder';
 const SEARCH_DETAIL_PATH = '/expert-finder/searches';
 const QUERY_TRUNCATE_LENGTH = 60;
 
-function truncateQuery(query: string): string {
-  if (!query) return '—';
-  return query.length <= QUERY_TRUNCATE_LENGTH
-    ? query
-    : `${query.slice(0, QUERY_TRUNCATE_LENGTH)}…`;
+function getDisplayText(search: ExpertSearchListItem): string {
+  const text = (search.name || search.query || '').trim();
+  if (!text) return '—';
+  return text.length <= QUERY_TRUNCATE_LENGTH ? text : `${text.slice(0, QUERY_TRUNCATE_LENGTH)}…`;
 }
 
 const COLUMNS: SortableColumn[] = [
-  { key: 'query', label: 'Query', sortable: false },
+  { key: 'name', label: 'Name', sortable: false },
   { key: 'expertCount', label: 'Expert Count', sortable: false },
   { key: 'createdAt', label: 'Created At', sortable: false },
   { key: 'status', label: 'Status', sortable: false },
@@ -32,7 +31,7 @@ interface SearchHistoryTableProps {
 export function SearchHistoryTable({ searches, onRowClick }: SearchHistoryTableProps) {
   const data = searches.map((search) => ({
     searchId: search.searchId,
-    query: truncateQuery(search.query),
+    name: getDisplayText(search),
     status: <SearchStatusBadge status={search.status} />,
     expertCount: search.status === 'completed' ? search.expertCount : '—',
     createdAt: formatTimestamp(search.createdAt, false),

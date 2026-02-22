@@ -6,11 +6,9 @@ import type { ExpertSearchListItem } from '@/types/expertFinder';
 const QUERY_TRUNCATE_LEN = 80;
 
 export function getSearchDisplayText(search: ExpertSearchListItem): string {
-  const trimmed = (search.query || '').trim();
-  if (!trimmed) return 'Untitled search';
-  return trimmed.length <= QUERY_TRUNCATE_LEN
-    ? trimmed
-    : trimmed.slice(0, QUERY_TRUNCATE_LEN) + '...';
+  const text = (search.name || search.query || '').trim();
+  if (!text) return 'Untitled search';
+  return text.length <= QUERY_TRUNCATE_LEN ? text : text.slice(0, QUERY_TRUNCATE_LEN) + '...';
 }
 
 export interface ExpertSearchListItemDetailProps {

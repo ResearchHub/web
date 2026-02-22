@@ -21,6 +21,7 @@ export interface ReportUrls {
 /** Full search detail as used by the app (detail page, etc.). */
 export interface ExpertSearchResult {
   searchId: number;
+  name: string;
   query: string;
   inputType: InputType;
   config: Record<string, unknown>;
@@ -46,6 +47,7 @@ export interface ExpertSearchResult {
 /** Search list item as used by the app (library table, etc.). */
 export interface ExpertSearchListItem {
   searchId: number;
+  name: string;
   query: string;
   status: SearchStatus;
   expertCount: number;
@@ -95,6 +97,7 @@ function transformExpertResult(raw: Record<string, unknown>): ExpertResult {
 export function transformExpertSearch(raw: Record<string, unknown>): ExpertSearchResult {
   return {
     searchId: (raw.search_id ?? raw.searchId ?? 0) as number,
+    name: (raw.name ?? '') as string,
     query: (raw.query as string) || '',
     inputType: (raw.input_type as InputType) || 'abstract',
     config: (raw.config as Record<string, unknown>) || {},
@@ -123,6 +126,7 @@ export function transformExpertSearch(raw: Record<string, unknown>): ExpertSearc
 export function transformExpertSearchListItem(raw: Record<string, unknown>): ExpertSearchListItem {
   return {
     searchId: (raw.search_id ?? raw.searchId ?? 0) as number,
+    name: (raw.name ?? '') as string,
     query: (raw.query as string) || '',
     status: (raw.status as SearchStatus) || 'pending',
     expertCount: (raw.expert_count as number) ?? 0,

@@ -33,7 +33,7 @@ const DEFAULT_URL_PLACEHOLDER = 'e.g., https://researchhub.com/paper/123/...';
 function getAvailableInputTypes(work: Work | null): InputType[] {
   if (work?.contentType === 'paper') {
     const hasPdf = (work.formats ?? []).some((f) => f.type === 'PDF');
-    return hasPdf ? ['abstract', 'pdf'] : ['abstract'];
+    return hasPdf ? ['pdf', 'abstract'] : ['abstract'];
   }
 
   return ['full_content'];
@@ -49,7 +49,7 @@ const defaultValues: ExpertFinderFormValues = {
     state: DEFAULT_STATE,
     excludedExpertNames: '',
     inputType: 'full_content',
-    searchTitle: '',
+    searchName: '',
   },
 };
 
@@ -107,7 +107,7 @@ export function ExpertFinderForm() {
     setValue('unifiedDocumentId', null);
     try {
       const work = await ExpertFinderService.fetchWork(contentType, documentId);
-      setValue('unifiedDocumentId', work.unifiedDocumentId ?? null);
+      setValue('unifiedDocumentId', work.unifiedDocumentId ?? null, { shouldValidate: true });
       setIsEditingUrl(false);
     } catch {
       setResolveError('Failed to load document. Please check the URL and try again.');
@@ -132,7 +132,7 @@ export function ExpertFinderForm() {
     const param = searchParams?.get('unifiedDocumentId');
     const paramId = param ? Number.parseInt(param, 10) : Number.NaN;
     if (param && !Number.isNaN(paramId)) {
-      setValue('unifiedDocumentId', paramId);
+      setValue('unifiedDocumentId', paramId, { shouldValidate: true });
     }
     if (fetchedWork && !Number.isNaN(paramId) && fetchedWork.unifiedDocumentId === paramId) {
       setIsEditingUrl(false);
@@ -175,7 +175,7 @@ export function ExpertFinderForm() {
           state,
           excludedExpertNames: current.advanced.excludedExpertNames ?? '',
           inputType,
-          searchTitle: current.advanced.searchTitle ?? '',
+          searchName: current.advanced.searchName ?? '',
         },
       });
       if (search.work) {
@@ -217,7 +217,7 @@ export function ExpertFinderForm() {
           state: adv.state,
         },
         excluded_expert_names: excludedNames.length > 0 ? excludedNames : undefined,
-        ...(adv.searchTitle?.trim() && { title: adv.searchTitle.trim() }),
+        ...(adv.searchName?.trim() && { name: adv.searchName.trim() }),
       };
 
       const response = await createSearch(payload);

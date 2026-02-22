@@ -31,7 +31,7 @@ export const advancedConfigSchema = z.object({
   state: z.string(),
   excludedExpertNames: z.string(),
   inputType: z.enum(INPUT_TYPES as [InputType, ...InputType[]]).default('full_content'),
-  searchTitle: z.string().optional().default(''),
+  searchName: z.string().optional().default(''),
 });
 
 export const DOCUMENT_REQUIRED_MESSAGE =

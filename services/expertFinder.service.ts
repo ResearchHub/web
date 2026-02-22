@@ -11,7 +11,7 @@ import {
   type ExpertSearchListResponse,
 } from '@/types/expertFinder';
 import type { ContentType, Work } from '@/types/work';
-import { transformWork } from '@/types/work';
+import { transformUnifiedDocument } from '@/types/work';
 import { assertNever } from '@/utils/assertNever';
 
 // ── API enum values and display labels ─────────────
@@ -62,7 +62,7 @@ export interface ExpertSearchCreatePayload {
   unified_document_id?: number | null;
   query?: string;
   input_type?: InputType;
-  title?: string;
+  name?: string;
   config: {
     expert_count: number;
     expertise_level: ExpertiseLevel[];
@@ -209,6 +209,6 @@ export class ExpertFinderService {
       `${this.BASE_PATH}/work/${unifiedDocumentId}/`
     );
     if (!response.work) return null;
-    return transformWork(response.work);
+    return transformUnifiedDocument(response.work);
   }
 }
