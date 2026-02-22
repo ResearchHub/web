@@ -159,3 +159,91 @@ export function transformExpertSearchProgressEvent(
     error: raw.error as string | undefined,
   };
 }
+
+// ── Generated emails (app-level, camelCase) ─────────────────────────────────
+
+export interface GeneratedEmail {
+  id: number;
+  expertSearch: number | null;
+  expertName: string;
+  expertTitle: string;
+  expertAffiliation: string;
+  expertEmail: string;
+  expertise: string;
+  emailSubject: string;
+  emailBody: string;
+  template: string;
+  status: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GeneratedEmailListResponse {
+  emails: GeneratedEmail[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export function transformGeneratedEmail(raw: Record<string, unknown>): GeneratedEmail {
+  return {
+    id: (raw.id ?? 0) as number,
+    expertSearch: (raw.expert_search ?? null) as number | null,
+    expertName: (raw.expert_name ?? '') as string,
+    expertTitle: (raw.expert_title ?? '') as string,
+    expertAffiliation: (raw.expert_affiliation ?? '') as string,
+    expertEmail: (raw.expert_email ?? '') as string,
+    expertise: (raw.expertise ?? '') as string,
+    emailSubject: (raw.email_subject ?? '') as string,
+    emailBody: (raw.email_body ?? '') as string,
+    template: (raw.template ?? '') as string,
+    status: (raw.status ?? 'draft') as string,
+    notes: (raw.notes ?? '') as string,
+    createdAt: (raw.created_at as string) ?? '',
+    updatedAt: (raw.updated_at as string) ?? '',
+  };
+}
+
+// ── Saved templates (app-level, camelCase) ───────────────────────────────────
+
+export interface SavedTemplate {
+  id: number;
+  createdBy: number;
+  name: string;
+  contactName: string;
+  contactTitle: string;
+  contactInstitution: string;
+  contactEmail: string;
+  contactPhone: string;
+  contactWebsite: string;
+  outreachContext: string;
+  isActive: boolean;
+  createdDate: string;
+  updatedDate: string;
+}
+
+export interface SavedTemplateListResponse {
+  templates: SavedTemplate[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export function transformSavedTemplate(raw: Record<string, unknown>): SavedTemplate {
+  return {
+    id: (raw.id ?? 0) as number,
+    createdBy: (raw.created_by ?? 0) as number,
+    name: (raw.name ?? '') as string,
+    contactName: (raw.contact_name ?? '') as string,
+    contactTitle: (raw.contact_title ?? '') as string,
+    contactInstitution: (raw.contact_institution ?? '') as string,
+    contactEmail: (raw.contact_email ?? '') as string,
+    contactPhone: (raw.contact_phone ?? '') as string,
+    contactWebsite: (raw.contact_website ?? '') as string,
+    outreachContext: (raw.outreach_context ?? '') as string,
+    isActive: (raw.is_active ?? false) as boolean,
+    createdDate: (raw.created_date as string) ?? '',
+    updatedDate: (raw.updated_date as string) ?? '',
+  };
+}

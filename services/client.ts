@@ -243,4 +243,23 @@ export class ApiClient {
       throw error;
     }
   }
+
+  /**
+   * DELETE that expects 204 No Content (no response body).
+   * Use for endpoints that return 204 on success to avoid parsing empty body as JSON.
+   */
+  static async deleteNoContent(path: string): Promise<void> {
+    const headers = await this.getHeaders('DELETE');
+    const response = await fetch(`${this.baseURL}${path}`, this.getFetchOptions('DELETE', headers));
+
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: 'Invalid JSON response from server' };
+      }
+      throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
+    }
+  }
 }
