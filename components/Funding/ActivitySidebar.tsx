@@ -32,15 +32,28 @@ const CONTENT_TYPE_MAP: Record<string, ContentType> = {
 };
 
 function getEntryMeta(entry: FeedEntry) {
-  const content = entry.content as FeedPostContent | FeedPaperContent | FeedGrantContent;
+  const content = entry.content;
+  const author = content.createdBy;
+
+  if (entry.contentType === 'COMMENT' || entry.contentType === 'BOUNTY') {
+    const work = entry.relatedWork;
+    return {
+      title: work?.title,
+      author,
+      href: work
+        ? buildWorkUrl({ id: work.id, slug: work.slug, contentType: work.contentType })
+        : undefined,
+    };
+  }
+
+  const titled = content as FeedPostContent | FeedPaperContent | FeedGrantContent;
   return {
-    title: 'title' in content ? content.title : undefined,
-    slug: 'slug' in content ? content.slug : undefined,
-    author: content.createdBy,
+    title: titled.title,
+    author,
     href: CONTENT_TYPE_MAP[entry.contentType]
       ? buildWorkUrl({
-          id: content.id,
-          slug: 'slug' in content ? content.slug : undefined,
+          id: titled.id,
+          slug: titled.slug,
           contentType: CONTENT_TYPE_MAP[entry.contentType],
         })
       : undefined,
