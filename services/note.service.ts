@@ -46,6 +46,11 @@ export interface UpdateNoteTitleParams {
   title: string;
 }
 
+export interface GetOrganizationNotesParams {
+  status?: 'DRAFT' | 'PUBLISHED';
+  documentType?: 'PREREGISTRATION' | 'GRANT' | 'DISCUSSION';
+}
+
 export class NoteService {
   private static readonly BASE_PATH = '/api';
 
@@ -74,14 +79,22 @@ export class NoteService {
    * @param orgSlug - The slug of the organization
    * @throws {NoteError} When the request fails or parameters are invalid
    */
-  static async getOrganizationNotes(orgSlug: string): Promise<NoteListResponse> {
+  static async getOrganizationNotes(
+    orgSlug: string,
+    params?: GetOrganizationNotesParams
+  ): Promise<NoteListResponse> {
     if (!orgSlug) {
       throw new NoteError('Missing organization slug', 'INVALID_PARAMS');
     }
 
     try {
+      const queryParams = new URLSearchParams();
+      if (params?.status) queryParams.append('status', params.status);
+      if (params?.documentType) queryParams.append('document_type', params.documentType);
+      const qs = queryParams.toString();
+
       const response = await ApiClient.get<any>(
-        `${this.BASE_PATH}/organization/${orgSlug}/get_organization_notes/`
+        `${this.BASE_PATH}/organization/${orgSlug}/get_organization_notes/${qs ? `?${qs}` : ''}`
       );
 
       if (!response || !Array.isArray(response.results)) {

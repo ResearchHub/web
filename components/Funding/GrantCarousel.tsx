@@ -19,7 +19,7 @@ interface GrantCarouselProps {
   onEditGrant?: () => void;
 }
 
-function getShortTitle(title: string): string {
+export function getShortTitle(title: string): string {
   return title.replace(/^Request for Proposals\s*[-–—:]\s*/i, '');
 }
 
