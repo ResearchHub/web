@@ -1,15 +1,17 @@
 'use client';
 
+// Client component because it depends on OrganizationContext for the org slug.
+// Cannot be a server component like DashboardGrants.
+
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { NoteService } from '@/services/note.service';
 import { GrantDraftCarousel } from '@/components/Funding/GrantDraftCarousel';
+import { GrantCarouselSkeleton } from '@/components/skeletons/GrantCarouselSkeleton';
 import type { Note } from '@/types/note';
 
 export function DashboardDraftGrants() {
   const { selectedOrg } = useOrganizationContext();
-  const router = useRouter();
   const [drafts, setDrafts] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -42,7 +44,17 @@ export function DashboardDraftGrants() {
     };
   }, [selectedOrg?.slug]);
 
-  if (isLoading || drafts.length === 0) return null;
+  const handleDelete = async (noteId: number) => {
+    try {
+      await NoteService.deleteNote(noteId);
+      setDrafts((prev) => prev.filter((n) => n.id !== noteId));
+    } catch {
+      // Silently fail -- the note stays in the list
+    }
+  };
+
+  if (isLoading) return <GrantCarouselSkeleton count={1} />;
+  if (drafts.length === 0) return null;
 
   return (
     <div className="py-4">
@@ -51,7 +63,7 @@ export function DashboardDraftGrants() {
           key={note.id}
           note={note}
           orgSlug={selectedOrg!.slug}
-          onEditGrant={() => router.push(`/notebook/${selectedOrg!.slug}/${note.id}`)}
+          onDeleteGrant={() => handleDelete(note.id)}
         />
       ))}
     </div>
