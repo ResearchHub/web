@@ -16,7 +16,8 @@ import { FundraiseProgressBar } from './FundraiseProgressBar';
 import { differenceInDays } from 'date-fns';
 
 const HOVER_DELAY = 100;
-const EXPAND_PX = 24;
+const EXPAND_PX = 28;
+const EASE_OUT = 'cubic-bezier(0.16, 1, 0.3, 1)';
 
 interface FundingProposalCardProps {
   entry: FeedEntry;
@@ -33,7 +34,7 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
   const { exchangeRate } = useExchangeRate();
   const cardRef = useRef<HTMLDivElement>(null);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [overlayStyle, setOverlayStyle] = useState<React.CSSProperties>({ display: 'none' });
+  const [overlayStyle, setOverlayStyle] = useState<React.CSSProperties | null>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -55,13 +56,16 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
         width: rect.width + EXPAND_PX * 2,
         zIndex: 9999,
       });
-      setVisible(true);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setVisible(true));
+      });
     }, HOVER_DELAY);
   }, []);
 
   const hideOverlay = useCallback(() => {
     if (hoverTimer.current) clearTimeout(hoverTimer.current);
     setVisible(false);
+    setTimeout(() => setOverlayStyle(null), 150);
   }, []);
 
   const content = entry.content as FeedPostContent;
@@ -201,9 +205,17 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
       </Link>
 
       {/* Expanded overlay */}
-      {visible && (
+      {overlayStyle && (
         <div
-          style={overlayStyle}
+          style={{
+            ...overlayStyle,
+            opacity: visible ? 1 : 0,
+            transform: visible ? 'scale(1) translateY(0)' : 'scale(0.96) translateY(6px)',
+            transition: visible
+              ? `opacity 180ms ${EASE_OUT}, transform 180ms ${EASE_OUT}`
+              : `opacity 120ms ${EASE_OUT}, transform 120ms ${EASE_OUT}`,
+            pointerEvents: visible ? 'auto' : 'none',
+          }}
           onMouseEnter={() => {
             if (hoverTimer.current) clearTimeout(hoverTimer.current);
             setVisible(true);
