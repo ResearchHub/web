@@ -9,7 +9,6 @@ import {
 
 interface EndaomentContextType {
   connected: boolean;
-  endaomentUserId: string | null;
   isLoading: boolean;
   error: string | null;
   funds: EndaomentFund[];
@@ -19,7 +18,6 @@ interface EndaomentContextType {
 
 const EndaomentContext = createContext<EndaomentContextType>({
   connected: false,
-  endaomentUserId: null,
   isLoading: true,
   error: null,
   funds: [],
@@ -29,7 +27,6 @@ const EndaomentContext = createContext<EndaomentContextType>({
 
 export function EndaomentProvider({ children }: { children: React.ReactNode }) {
   const [connected, setConnected] = useState(false);
-  const [endaomentUserId, setEndaomentUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [funds, setFunds] = useState<EndaomentFund[]>([]);
@@ -54,7 +51,6 @@ export function EndaomentProvider({ children }: { children: React.ReactNode }) {
     try {
       const status = await getEndaomentStatus();
       setConnected(status.connected);
-      setEndaomentUserId(status.endaomentUserId);
 
       // Fetch funds when connected
       if (status.connected) {
@@ -77,7 +73,6 @@ export function EndaomentProvider({ children }: { children: React.ReactNode }) {
     <EndaomentContext.Provider
       value={{
         connected,
-        endaomentUserId,
         isLoading,
         error,
         funds,
