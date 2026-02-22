@@ -41,11 +41,13 @@ export function ExpertSearchPicker({
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
-      if (open && searches.length === 0 && !isLoading && !hasFetchedWhenOpenRef.current) {
+      if (!open) {
+        hasFetchedWhenOpenRef.current = false;
+        return;
+      }
+      if (!hasFetchedWhenOpenRef.current && !isLoading && searches.length === 0) {
+        hasFetchedWhenOpenRef.current = true;
         fetchSearches();
-        hasFetchedWhenOpenRef.current = true;
-      } else if (!hasFetchedWhenOpenRef.current) {
-        hasFetchedWhenOpenRef.current = true;
       }
     },
     [fetchSearches, isLoading, searches.length]
