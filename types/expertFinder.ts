@@ -1,28 +1,6 @@
-// ── Enums (matching Django TextChoices; used in UI) ───────────────────────────
-
-export type ExpertiseLevel =
-  | 'PhD/PostDocs'
-  | 'Early Career Researchers'
-  | 'Mid-Career Researchers'
-  | 'Top Expert/World Renowned Expert'
-  | 'All Levels';
-
-export type Region = 'US' | 'non-US' | 'Europe' | 'Asia-Pacific' | 'Africa & MENA' | 'All Regions';
-
-export type Gender = 'Male' | 'Female' | 'All Genders';
-
-export type SearchStatus = 'pending' | 'processing' | 'completed' | 'failed';
-
-export type InputType = 'abstract' | 'pdf' | 'custom_query' | 'full_content';
-
-/** Form and UI config (camelCase); used in components. */
-export interface ExpertSearchConfig {
-  expertCount: number;
-  expertiseLevel: ExpertiseLevel;
-  region: Region;
-  state: string;
-  gender: Gender;
-}
+import type { Work } from './work';
+import { transformWork } from './work';
+import { InputType, SearchStatus } from '@/services/expertFinder.service';
 
 /** Single expert as displayed in the app (detail/list rows). */
 export interface ExpertResult {
@@ -43,6 +21,7 @@ export interface ReportUrls {
 /** Full search detail as used by the app (detail page, etc.). */
 export interface ExpertSearchResult {
   searchId: number;
+  name: string;
   query: string;
   inputType: InputType;
   config: Record<string, unknown>;
@@ -62,11 +41,13 @@ export interface ExpertSearchResult {
   createdAt: string;
   updatedAt: string;
   completedAt: string | null;
+  work: Work | null;
 }
 
 /** Search list item as used by the app (library table, etc.). */
 export interface ExpertSearchListItem {
   searchId: number;
+  name: string;
   query: string;
   status: SearchStatus;
   expertCount: number;
@@ -101,9 +82,22 @@ export interface ExpertSearchProgress {
   error?: string;
 }
 
+function transformExpertResult(raw: Record<string, unknown>): ExpertResult {
+  return {
+    name: (raw.name ?? raw.first_name ?? raw.full_name ?? '') as string,
+    title: (raw.title ?? raw.job_title ?? raw.position ?? '') as string,
+    affiliation: (raw.affiliation ?? raw.organization ?? raw.institution ?? '') as string,
+    expertise: (raw.expertise ?? raw.expertise_areas ?? '') as string,
+    email: (raw.email ?? '') as string,
+    notes: (raw.notes ?? raw.recommendation_notes) as string | undefined,
+    sources: Array.isArray(raw.sources) ? (raw.sources as string[]) : null,
+  };
+}
+
 export function transformExpertSearch(raw: Record<string, unknown>): ExpertSearchResult {
   return {
     searchId: (raw.search_id ?? raw.searchId ?? 0) as number,
+    name: (raw.name ?? '') as string,
     query: (raw.query as string) || '',
     inputType: (raw.input_type as InputType) || 'abstract',
     config: (raw.config as Record<string, unknown>) || {},
@@ -112,7 +106,9 @@ export function transformExpertSearch(raw: Record<string, unknown>): ExpertSearc
     status: (raw.status as SearchStatus) || 'pending',
     progress: (raw.progress as number) ?? 0,
     currentStep: (raw.current_step as string) || '',
-    expertResults: Array.isArray(raw.expert_results) ? raw.expert_results : [],
+    expertResults: Array.isArray(raw.expert_results)
+      ? (raw.expert_results as Record<string, unknown>[]).map(transformExpertResult)
+      : [],
     expertCount: (raw.expert_count as number) ?? 0,
     expertNames: Array.isArray(raw.expert_names) ? raw.expert_names : [],
     reportUrls: (raw.report_urls as ReportUrls | null) || null,
@@ -123,12 +119,14 @@ export function transformExpertSearch(raw: Record<string, unknown>): ExpertSearc
     createdAt: (raw.created_at as string) || '',
     updatedAt: (raw.updated_at as string) || '',
     completedAt: (raw.completed_at as string | null) ?? null,
+    work: raw.work ? transformWork(raw.work as Record<string, unknown>) : null,
   };
 }
 
 export function transformExpertSearchListItem(raw: Record<string, unknown>): ExpertSearchListItem {
   return {
     searchId: (raw.search_id ?? raw.searchId ?? 0) as number,
+    name: (raw.name ?? '') as string,
     query: (raw.query as string) || '',
     status: (raw.status as SearchStatus) || 'pending',
     expertCount: (raw.expert_count as number) ?? 0,

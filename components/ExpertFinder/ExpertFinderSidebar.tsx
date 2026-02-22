@@ -6,30 +6,28 @@ import { SidebarNav, SidebarNavMenu, type SidebarNavItem } from '@/components/Si
 
 const navigationItems: SidebarNavItem[] = [
   {
-    name: 'Library',
-    href: '/expert-finder/library',
-    icon: BookOpen,
-    description: 'Search history',
-  },
-  {
     name: 'Find Expert',
     href: '/expert-finder/find',
     icon: Search,
     description: 'Find domain experts',
   },
   {
+    name: 'Library',
+    href: '/expert-finder/library',
+    icon: BookOpen,
+    description: 'Search history',
+  },
+  {
     name: 'Templates',
     href: '/expert-finder/templates',
     icon: FileText,
     description: 'Coming soon',
-    disabled: true,
   },
   {
     name: 'Outreach',
     href: '/expert-finder/outreach',
     icon: Send,
     description: 'Coming soon',
-    disabled: true,
   },
 ];
 

@@ -25,25 +25,22 @@ export type ParsedResearchHubUrl = {
   documentId: string;
 };
 
-/**
- * Parses a ResearchHub URL and extracts the content type and document ID.
- *
- * Supported URL patterns (aligned with app routes):
- *   /paper/:id/..., /post/:id/..., /question/:id/..., /fund/:id/..., /grant/:id/...
- *
- * @throws {Error} if the URL is not from the current site or can't be parsed
- */
-export function parseResearchHubUrl(url: string): ParsedResearchHubUrl {
+export function validateResearchHubUrl(
+  url: string
+): { success: true; parsed: ParsedResearchHubUrl } | { success: false; error: string } {
   const trimmedUrl = url.trim();
   if (!trimmedUrl) {
-    throw new Error('URL is required');
+    return { success: false, error: 'URL is required' };
   }
 
   let parsed: URL;
   try {
     parsed = new URL(trimmedUrl);
   } catch {
-    throw new Error('Invalid URL format');
+    return {
+      success: false,
+      error: 'Invalid URL format, e.g., https://researchhub.com/paper/123/...',
+    };
   }
 
   const siteUrl =
@@ -58,13 +55,19 @@ export function parseResearchHubUrl(url: string): ParsedResearchHubUrl {
       siteOrigin = siteUrl;
     }
     if (parsed.origin !== siteOrigin) {
-      throw new Error(`URL must be from ${siteOrigin}. Received a URL from ${parsed.origin}`);
+      return {
+        success: false,
+        error: `URL must be from ${siteOrigin}. Received a URL from ${parsed.origin}`,
+      };
     }
   }
 
   const segments = parsed.pathname.split('/').filter(Boolean);
   if (segments.length < 2) {
-    throw new Error('URL must include a content type and ID (e.g., /paper/123/...)');
+    return {
+      success: false,
+      error: 'URL must include a content type and ID (e.g., /paper/123/...)',
+    };
   }
 
   const segmentRaw = segments[0].toLowerCase();
@@ -72,16 +75,20 @@ export function parseResearchHubUrl(url: string): ParsedResearchHubUrl {
 
   const contentType = ROUTE_SEGMENT_TO_CONTENT_TYPE[segmentRaw];
   if (!contentType) {
-    throw new Error(
-      `Unsupported content type "${segmentRaw}". Supported route segments: ${SUPPORTED_ROUTE_SEGMENTS}`
-    );
+    return {
+      success: false,
+      error: `Unsupported content type "${segmentRaw}". Supported route segments: ${SUPPORTED_ROUTE_SEGMENTS}`,
+    };
   }
 
   if (!/^\d+$/.test(documentId)) {
-    throw new Error(`Invalid document ID "${documentId}". Expected a numeric ID`);
+    return {
+      success: false,
+      error: `Invalid document ID "${documentId}". Expected a numeric ID`,
+    };
   }
 
-  return { contentType, documentId };
+  return { success: true, parsed: { contentType, documentId } };
 }
 
 /**
