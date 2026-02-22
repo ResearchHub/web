@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
@@ -37,10 +37,16 @@ export function ExpertSearchPicker({
     immediate: false,
   });
   const [filterText, setFilterText] = useState('');
+  const hasFetchedWhenOpenRef = useRef(false);
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
-      if (open && searches.length === 0 && !isLoading) {
+      if (!open) {
+        hasFetchedWhenOpenRef.current = false;
+        return;
+      }
+      if (!hasFetchedWhenOpenRef.current && !isLoading && searches.length === 0) {
+        hasFetchedWhenOpenRef.current = true;
         fetchSearches();
       }
     },
