@@ -31,11 +31,6 @@ const validateGrant = (data: any, ctx: z.RefinementCtx) => {
   if (parseBudget(data.budget) <= 0) {
     addIssue(ctx, 'budget', 'Funding amount must be greater than 0');
   }
-  if (!data.applicationDeadline) {
-    addIssue(ctx, 'applicationDeadline', 'Application deadline is required for grants');
-  } else if (data.applicationDeadline <= new Date()) {
-    addIssue(ctx, 'applicationDeadline', 'Application deadline must be in the future');
-  }
 };
 
 export const publishingFormSchema = z

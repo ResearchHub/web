@@ -12,7 +12,6 @@ import { JournalSection } from './components/JournalSection';
 import { GrantDescriptionSection } from './components/GrantDescriptionSection';
 import { GrantOrganizationSection } from './components/GrantOrganizationSection';
 import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
-import { GrantApplicationDeadlineSection } from './components/GrantApplicationDeadlineSection';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { useState, useEffect } from 'react';
@@ -262,9 +261,6 @@ export function PublishingForm({
       if (resolved) {
         methods.setValue('articleType', resolved.type);
       }
-      if (resolved?.type === 'grant' && resolved.source === 'default') {
-        methods.setValue('applicationDeadline', new Date('2029-12-31'));
-      }
     }
   }, [note, methods, searchParams, defaultArticleType]);
 
@@ -429,7 +425,10 @@ export function PublishingForm({
           image: imagePath,
           organization: formData.organization,
           description: formData.shortDescription,
-          applicationDeadline: formData.applicationDeadline,
+          applicationDeadline:
+            formData.articleType === 'grant'
+              ? new Date('2029-12-31')
+              : formData.applicationDeadline,
         },
         formData.workId
       );
@@ -498,7 +497,6 @@ export function PublishingForm({
               </div>
             )}
             {articleType === 'grant' && <GrantFundingAmountSection />}
-            {articleType === 'grant' && !isModal && <GrantApplicationDeadlineSection />}
             {articleType === 'preregistration' && <FundingSection note={note} />}
             {FEATURE_FLAG_RESEARCH_COIN &&
               articleType !== 'preregistration' &&
