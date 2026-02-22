@@ -80,7 +80,7 @@ export function TopPeerReviewers({
   }
 
   if (reviewers.length === 0) {
-    return <SearchEmpty title="No reviewers found for this period." className="py-10" />;
+    return <SearchEmpty title="No results found" className="py-10" />;
   }
 
   const amountLabel = showUSD ? 'USD Earned' : 'RSC Earned';

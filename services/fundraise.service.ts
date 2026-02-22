@@ -70,4 +70,27 @@ export class FundraiseService {
   static async createContribution(id: ID, payload: any): Promise<Fundraise> {
     return this.contributeToFundraise(id, payload.amount, payload.currency || 'rsc');
   }
+
+  /**
+   * Create a contribution to a fundraise via Endaoment (DAF).
+   * @param fundraiseId The ID of the fundraise to contribute to
+   * @param originFundId The ID of the Endaoment DAF to pay from
+   * @param amount The contribution amount in USD
+   * @returns The updated fundraise
+   */
+  static async createEndaomentContribution(
+    fundraiseId: ID,
+    originFundId: string,
+    amount: number
+  ): Promise<Fundraise> {
+    const response = await ApiClient.post<any>(
+      `${this.BASE_PATH}/${fundraiseId}/create_contribution/`,
+      {
+        origin_fund_id: originFundId,
+        amount,
+        amount_currency: 'USD',
+      }
+    );
+    return transformFundraise(response);
+  }
 }
