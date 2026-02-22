@@ -10,6 +10,7 @@ import type {
   ExpertSearchResult,
   ExpertSearchListItem,
 } from '@/types/expertFinder';
+import type { Work } from '@/types/work';
 
 // ── useExpertSearchDetail ────────────────────────────────────────────────────
 
@@ -78,6 +79,7 @@ interface UseExpertSearchesState {
 interface UseExpertSearchesParams {
   limit?: number;
   offset?: number;
+  immediate?: boolean;
 }
 
 type FetchExpertSearchesFn = (params?: UseExpertSearchesParams) => Promise<void>;
@@ -121,9 +123,10 @@ export function useExpertSearches(params?: UseExpertSearchesParams): UseExpertSe
     [params?.limit, params?.offset]
   );
 
+  const immediate = params?.immediate !== false;
   useEffect(() => {
-    fetch();
-  }, [fetch]);
+    if (immediate) fetch();
+  }, [immediate, fetch]);
 
   return [{ searches, pagination, isLoading, error }, fetch];
 }
@@ -167,4 +170,56 @@ export function useCreateExpertSearch(): UseCreateExpertSearchReturn {
   );
 
   return [{ created, isLoading, error }, createSearch];
+}
+
+// ── useWorkByUnifiedDocumentId ───────────────────────────────────────────────
+
+interface UseWorkByUnifiedDocumentIdState {
+  work: Work | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+type FetchWorkByUnifiedDocumentIdFn = () => Promise<void>;
+type UseWorkByUnifiedDocumentIdReturn = [
+  UseWorkByUnifiedDocumentIdState,
+  FetchWorkByUnifiedDocumentIdFn,
+];
+
+/**
+ * Fetches a work by unified document ID.
+ */
+export function useWorkByUnifiedDocumentId(
+  unifiedDocumentId: number | null
+): UseWorkByUnifiedDocumentIdReturn {
+  const [work, setWork] = useState<Work | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetch = useCallback(async () => {
+    if (unifiedDocumentId == null) return;
+    try {
+      setIsLoading(true);
+      setError(null);
+      const result = await ExpertFinderService.fetchWorkByUnifiedDocumentId(unifiedDocumentId);
+      setWork(result);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch work';
+      setError(message);
+      setWork(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [unifiedDocumentId]);
+
+  useEffect(() => {
+    if (unifiedDocumentId != null) {
+      fetch();
+    } else {
+      setWork(null);
+      setError(null);
+    }
+  }, [unifiedDocumentId, fetch]);
+
+  return [{ work, isLoading, error }, fetch];
 }

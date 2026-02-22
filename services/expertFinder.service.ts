@@ -1,13 +1,6 @@
 import { ApiClient } from './client';
 import { PaperService } from './paper.service';
 import { PostService } from './post.service';
-import type {
-  ExpertSearchListResponse,
-  ExpertiseLevel,
-  Region,
-  Gender,
-  InputType,
-} from '@/types/expertFinder';
 import {
   transformExpertSearch,
   transformExpertSearchCreateResponse,
@@ -15,20 +8,66 @@ import {
   type ExpertSearchCreated,
   type ExpertSearchResult,
   type ExpertSearchListItem,
+  type ExpertSearchListResponse,
 } from '@/types/expertFinder';
-import type { ContentType } from '@/types/work';
+import type { ContentType, Work } from '@/types/work';
+import { transformUnifiedDocument } from '@/types/work';
 import { assertNever } from '@/utils/assertNever';
+
+// ── API enum values and display labels ─────────────
+
+export type ExpertiseLevel =
+  | 'all_levels'
+  | 'phd_postdocs'
+  | 'early_career'
+  | 'mid_career'
+  | 'top_expert';
+
+export type Region = 'all_regions' | 'us' | 'non_us' | 'europe' | 'asia_pacific' | 'africa_mena';
+
+export type SearchStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
+export type InputType = 'abstract' | 'pdf' | 'full_content';
+
+export const EXPERTISE_LEVEL_ALL = 'all_levels' as const;
+
+export const EXPERTISE_LEVEL_OPTIONS: { value: ExpertiseLevel; label: string }[] = [
+  { value: 'all_levels', label: 'All Levels' },
+  { value: 'phd_postdocs', label: 'PhD/PostDocs' },
+  { value: 'early_career', label: 'Early Career Researchers' },
+  { value: 'mid_career', label: 'Mid-Career Researchers' },
+  { value: 'top_expert', label: 'Top Expert/World Renowned Expert' },
+];
+
+export const REGION_OPTIONS: { value: Region; label: string }[] = [
+  { value: 'all_regions', label: 'All Regions' },
+  { value: 'us', label: 'US' },
+  { value: 'non_us', label: 'non-US' },
+  { value: 'europe', label: 'Europe' },
+  { value: 'asia_pacific', label: 'Asia-Pacific' },
+  { value: 'africa_mena', label: 'Africa & MENA' },
+];
+
+export const DEFAULT_REGION: Region = 'all_regions';
+
+export function getExpertiseLevelLabel(value: ExpertiseLevel): string {
+  return EXPERTISE_LEVEL_OPTIONS.find((o) => o.value === value)?.label ?? value;
+}
+
+export function getRegionLabel(value: Region): string {
+  return REGION_OPTIONS.find((o) => o.value === value)?.label ?? value;
+}
 
 export interface ExpertSearchCreatePayload {
   unified_document_id?: number | null;
   query?: string;
   input_type?: InputType;
+  name?: string;
   config: {
     expert_count: number;
-    expertise_level: ExpertiseLevel;
+    expertise_level: ExpertiseLevel[];
     region: Region;
     state: string;
-    gender: Gender;
   };
   excluded_expert_names?: string[];
 }
@@ -91,8 +130,30 @@ export class ExpertFinderService {
   static openProgressStream(searchId: number | string, signal?: AbortSignal): Promise<Response> {
     return ApiClient.getStream(`${this.BASE_PATH}/progress/${searchId}/`, {
       signal,
-      accept: 'text/event-stream',
     });
+  }
+
+  /**
+   * Fetches a work by content type and document ID (for preview, etc.).
+   *
+   * @throws {Error} if the document cannot be fetched
+   */
+  static async fetchWork(contentType: ContentType, documentId: string): Promise<Work> {
+    switch (contentType) {
+      case 'paper': {
+        return PaperService.get(documentId);
+      }
+      case 'post':
+      case 'question':
+      case 'discussion':
+      case 'preregistration':
+      case 'funding_request': {
+        return PostService.get(documentId);
+      }
+      default: {
+        assertNever(contentType, true);
+      }
+    }
   }
 
   /**
@@ -108,24 +169,29 @@ export class ExpertFinderService {
   ): Promise<number> {
     let unifiedDocumentId: number | null | undefined;
 
-    switch (contentType) {
-      case 'paper': {
-        const work = await PaperService.get(documentId);
-        unifiedDocumentId = work.unifiedDocumentId;
-        break;
+    try {
+      switch (contentType) {
+        case 'paper': {
+          const work = await PaperService.get(documentId);
+          unifiedDocumentId = work.unifiedDocumentId;
+          break;
+        }
+        case 'post':
+        case 'question':
+        case 'discussion':
+        case 'preregistration':
+        case 'funding_request': {
+          const work = await PostService.get(documentId);
+          unifiedDocumentId = work.unifiedDocumentId;
+          break;
+        }
+        default: {
+          assertNever(contentType, true);
+        }
       }
-      case 'post':
-      case 'question':
-      case 'discussion':
-      case 'preregistration':
-      case 'funding_request': {
-        const work = await PostService.get(documentId);
-        unifiedDocumentId = work.unifiedDocumentId;
-        break;
-      }
-      default: {
-        assertNever(contentType, true);
-      }
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : 'Unknown error';
+      throw new Error(`Could not load the document (${contentType}/${documentId}). ${detail}`);
     }
 
     if (!unifiedDocumentId) {
@@ -133,5 +199,16 @@ export class ExpertFinderService {
     }
 
     return unifiedDocumentId;
+  }
+
+  /**
+   * Fetch a work by unified document ID.
+   */
+  static async fetchWorkByUnifiedDocumentId(unifiedDocumentId: number): Promise<Work | null> {
+    const response = await ApiClient.get<{ work: Record<string, unknown> | null }>(
+      `${this.BASE_PATH}/work/${unifiedDocumentId}/`
+    );
+    if (!response.work) return null;
+    return transformUnifiedDocument(response.work);
   }
 }

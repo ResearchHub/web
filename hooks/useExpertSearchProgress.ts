@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ExpertFinderService } from '@/services/expertFinder.service';
-import { transformExpertSearchProgressEvent, type SearchStatus } from '@/types/expertFinder';
+import { transformExpertSearchProgressEvent } from '@/types/expertFinder';
+import { SearchStatus, ExpertFinderService } from '@/services/expertFinder.service';
 
 interface UseExpertSearchProgressReturn {
   progress: number;
@@ -29,8 +29,13 @@ export const useExpertSearchProgress = (
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
 
   const cleanup = useCallback(() => {
+    if (readerRef.current) {
+      readerRef.current.releaseLock();
+      readerRef.current = null;
+    }
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
@@ -62,6 +67,7 @@ export const useExpertSearchProgress = (
         setIsConnected(true);
 
         const reader = response.body.getReader();
+        readerRef.current = reader;
         const decoder = new TextDecoder();
         let buffer = '';
 
@@ -104,6 +110,7 @@ export const useExpertSearchProgress = (
               }
 
               if (eventType === 'complete') {
+                setStatus('completed');
                 cleanup();
                 return;
               }
