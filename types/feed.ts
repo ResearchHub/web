@@ -763,7 +763,17 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               content_object.authors && content_object.authors.length > 0
                 ? content_object.authors.map(transformAuthorProfile)
                 : [transformAuthorProfile(author)],
-            topics: [Array.isArray(content_object.hub) || content_object.hub].map(transformTopic),
+            topics: content_object.hub
+              ? [
+                  content_object.hub.id
+                    ? transformTopic(content_object.hub)
+                    : {
+                        id: 0,
+                        name: content_object.hub.name || '',
+                        slug: content_object.hub.slug || '',
+                      },
+                ]
+              : [],
             createdBy: transformAuthorProfile(author),
             category: content_object.category ? transformTopic(content_object.category) : undefined,
             subcategory: content_object.subcategory
