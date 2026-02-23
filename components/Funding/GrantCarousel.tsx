@@ -76,7 +76,8 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
         }
   );
 
-  const showSkeleton = hasBeenVisible && isLoading && entries.length === 0;
+  const hasFetchedProposals = hasBeenVisible && !isLoading;
+  const showSkeleton = !hasFetchedProposals;
 
   return (
     <section ref={sectionRef} className={cn('py-5', className)}>
@@ -171,7 +172,7 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
               </div>
             )}
           </Carousel>
-        ) : !isLoading ? (
+        ) : (
           <div className="flex items-center justify-center py-8 rounded-lg border border-dashed border-gray-200">
             {isDashboard ? (
               <div className="text-center">
@@ -207,7 +208,7 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
               </div>
             )}
           </div>
-        ) : null}
+        )}
       </div>
     </section>
   );

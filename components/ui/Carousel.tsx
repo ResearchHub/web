@@ -17,14 +17,17 @@ export const Carousel: FC<CarouselProps> = ({ children, className, onReachEnd })
 
   const onReachEndRef = useRef(onReachEnd);
   onReachEndRef.current = onReachEnd;
+  const hasScrolledRef = useRef(false);
 
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
     setCanScrollLeft(el.scrollLeft > 1);
+    const isScrollable = el.scrollWidth > el.clientWidth + 1;
     const nearEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 100;
-    setCanScrollRight(!nearEnd && el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
-    if (nearEnd && onReachEndRef.current) {
+    setCanScrollRight(!nearEnd && isScrollable);
+    if (el.scrollLeft > 0) hasScrolledRef.current = true;
+    if (nearEnd && hasScrolledRef.current && onReachEndRef.current) {
       onReachEndRef.current();
     }
   }, []);

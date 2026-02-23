@@ -97,18 +97,13 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       options.filter !== currentOptions.filter ||
       options.userId !== currentOptions.userId;
 
-    const tabIsChanging = currentTab !== activeTab;
-
-    if (relevantOptionsChanged && !tabIsChanging) {
-      setCurrentOptions(options);
-      setHasAttemptedLoad(false);
-      loadFeed();
-    } else if (relevantOptionsChanged && tabIsChanging) {
+    if (relevantOptionsChanged) {
       setCurrentOptions(options);
     }
   }, [options, currentTab, activeTab]);
 
   const loadFeed = async () => {
+    setHasAttemptedLoad(true);
     setIsLoading(true);
 
     try {
@@ -144,11 +139,9 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       setEntries(result.entries);
       setHasMore(result.hasMore);
       setPage(1);
-      setHasAttemptedLoad(true);
     } catch (error) {
       console.error('Error loading feed:', error);
       setPage(1);
-      setHasAttemptedLoad(true);
     } finally {
       setIsLoading(false);
     }
