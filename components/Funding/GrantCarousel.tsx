@@ -76,7 +76,7 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
         }
   );
 
-  const hasFetchedProposals = hasBeenVisible && !isLoading;
+  const hasFetchedProposals = hasBeenVisible && (entries.length > 0 || !isLoading);
   const showSkeleton = !hasFetchedProposals;
 
   return (
@@ -153,8 +153,8 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
       <div className="mt-4">
         {showSkeleton ? (
           <div className="flex gap-4 py-3 px-3 -mx-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex-shrink-0 w-[240px] sm:w-[260px] md:w-[240px]">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex-shrink-0 w-[205px] sm:w-[260px] md:w-[205px]">
                 <ProposalCardSkeleton />
               </div>
             ))}
@@ -162,12 +162,12 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
         ) : entries.length > 0 ? (
           <Carousel onReachEnd={hasMore ? loadMore : undefined}>
             {entries.map((entry) => (
-              <div key={entry.id} className="flex-shrink-0 w-[200px] sm:w-[260px] md:w-[200px]">
+              <div key={entry.id} className="flex-shrink-0 w-[205px] sm:w-[260px] md:w-[205px]">
                 <FundingProposalCard entry={entry} showActions={false} />
               </div>
             ))}
             {isLoading && (
-              <div className="flex-shrink-0 w-[240px] sm:w-[260px] md:w-[240px]">
+              <div className="flex-shrink-0 w-[205px] sm:w-[260px] md:w-[205px]">
                 <ProposalCardSkeleton />
               </div>
             )}

@@ -90,7 +90,7 @@ export class NoteService {
     try {
       const queryParams = new URLSearchParams();
       if (params?.status) queryParams.append('status', params.status);
-      if (params?.documentType) queryParams.append('document_type', params.documentType);
+      if (params?.documentType) queryParams.append('type', params.documentType);
       const qs = queryParams.toString();
 
       const response = await ApiClient.get<any>(

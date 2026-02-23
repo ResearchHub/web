@@ -59,11 +59,10 @@ export const Carousel: FC<CarouselProps> = ({ children, className, onReachEnd })
 
   return (
     <div className={cn('group/carousel relative', className)}>
-      {/* Left edge overlay */}
       {canScrollLeft && (
         <button
           onClick={() => scroll('left')}
-          className="absolute left-0 top-0 bottom-0 z-10 w-10 flex items-center justify-start pl-1 bg-gradient-to-r from-white/90 via-white/60 to-transparent text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+          className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-md border border-gray-200 text-gray-800 hover:bg-gray-50 active:scale-95 transition-all cursor-pointer"
           aria-label="Scroll left"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -77,16 +76,19 @@ export const Carousel: FC<CarouselProps> = ({ children, className, onReachEnd })
         {children}
       </div>
 
-      {/* Right edge overlay */}
-      {canScrollRight && (
-        <button
-          onClick={() => scroll('right')}
-          className="absolute right-0 top-0 bottom-0 z-10 w-10 flex items-center justify-end pr-1 bg-gradient-to-l from-white/90 via-white/60 to-transparent text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
-          aria-label="Scroll right"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </button>
-      )}
+      <button
+        onClick={() => scroll('right')}
+        disabled={!canScrollRight}
+        className={cn(
+          'absolute -right-7 top-1/2 -translate-y-1/2 z-10 h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-lg border border-gray-200 transition-all',
+          canScrollRight
+            ? 'text-gray-900 hover:bg-gray-200 active:scale-95 cursor-pointer'
+            : 'text-gray-300 opacity-50 cursor-default'
+        )}
+        aria-label="Scroll right"
+      >
+        <ChevronRight className="h-6 w-6" />
+      </button>
     </div>
   );
 };
