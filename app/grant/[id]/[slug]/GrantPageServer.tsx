@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
+import { ActivityService } from '@/services/activity.service';
 import { Work } from '@/types/work';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
@@ -29,10 +30,21 @@ export async function getGrant(id: string): Promise<Work> {
 
 export async function GrantPageServer({ id, defaultTab }: GrantPageServerProps) {
   const work = await getGrant(id);
-  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
+  const grantId = work.note?.post?.grant?.id;
+
+  const [metadata, activity] = await Promise.all([
+    MetadataService.get(work.unifiedDocumentId?.toString() || ''),
+    grantId
+      ? ActivityService.getActivity({ grantId, documentType: 'GRANT' })
+      : Promise.resolve({ entries: [], hasMore: false }),
+  ]);
 
   return (
-    <PageLayout rightSidebar={<GrantRightSidebar work={work} metadata={metadata} />}>
+    <PageLayout
+      rightSidebar={
+        <GrantRightSidebar work={work} metadata={metadata} activityEntries={activity.entries} />
+      }
+    >
       <Suspense>
         <GrantDocument work={work} metadata={metadata} defaultTab={defaultTab} />
         <SearchHistoryTracker work={work} />

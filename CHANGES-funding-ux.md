@@ -69,3 +69,44 @@
 **File:** `app/funding/FundingPageContent.tsx`
 
 - Removed `FundingPageTabs` ("Opportunities | Proposals") since the tabs now live in the TopBar
+
+## 9. Grant right sidebar — replaced detail sections with activity feed
+
+**File:** `components/work/GrantRightSidebar.tsx`
+
+- Removed `GrantDetailsSection`, `ApplicantsSection`, `TopicsSection`, and `DOISection`
+- Kept `GrantAmountSection` at the top
+- Added "Recent activity" heading (icon + title) and `ActivityFeedOverview` below it
+- Added optional `activityEntries` prop to receive feed data from the server
+
+## 10. Wired activity feed data into grant page
+
+**File:** `app/grant/[id]/[slug]/GrantPageServer.tsx`
+
+- Imports `ActivityService` and fetches activity entries scoped to the grant via `ActivityService.getActivity({ grantId, documentType: 'GRANT' })`
+- Fetches metadata and activity in parallel with `Promise.all` for performance
+- Passes `activity.entries` down to `GrantRightSidebar`
+- Gracefully falls back to empty entries when no grant ID is available
+
+## 11. Extracted `ActivityFeedOverview` component
+
+**File:** `components/Funding/ActivityFeedOverview.tsx` (new)
+
+- Contains the feed content (entry list or empty state) without heading or padding
+- Accepts `entries` and `className` props
+- Reusable in any context — sidebar, inline, embedded panels
+
+## 12. Simplified `ActivitySidebar` to compose `ActivityFeedOverview`
+
+**File:** `components/Funding/ActivitySidebar.tsx`
+
+- Now a thin wrapper: heading (icon + "Recent activity" title) + padding + `ActivityFeedOverview`
+- No longer duplicates feed rendering logic
+
+## 13. Removed "Activity" tab from grant page tabs
+
+**File:** `components/work/WorkTabs.tsx`
+
+- Removed the `{ id: 'history', label: 'Activity' }` entry from `grantTabs`
+- Cleaned up unused `Activity` import from lucide-react
+- Grant tabs now show: Overview, Proposals, Conversation

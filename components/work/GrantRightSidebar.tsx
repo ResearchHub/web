@@ -2,28 +2,28 @@
 
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
-import { ApplicantsSection } from './components/ApplicantsSection';
-import { TopicsSection } from './components/TopicsSection';
+import { Activity } from 'lucide-react';
 import { GrantAmountSection } from './components/GrantAmountSection';
-import { GrantDetailsSection } from './components/GrantStatusSection';
-import { DOISection } from './components/DOISection';
+import { ActivityFeedOverview } from '@/components/Funding/ActivityFeedOverview';
+import type { FeedEntry } from '@/types/feed';
 
 interface GrantRightSidebarProps {
   work: Work;
   metadata: WorkMetadata;
+  activityEntries?: FeedEntry[];
 }
 
-export const GrantRightSidebar = ({ work, metadata }: GrantRightSidebarProps) => {
-  // Extract applicants from the grant data
-  const applicants = work.note?.post?.grant?.applicants || [];
-
+export const GrantRightSidebar = ({ work, metadata, activityEntries }: GrantRightSidebarProps) => {
   return (
     <div className="space-y-8">
       <GrantAmountSection work={work} />
-      <GrantDetailsSection work={work} />
-      <ApplicantsSection applicants={applicants} />
-      {metadata.topics && metadata.topics.length > 0 && <TopicsSection topics={metadata.topics} />}
-      {work.doi && <DOISection doi={work.doi} />}
+      <div className="px-2">
+        <div className="flex items-center gap-2 mb-8">
+          <Activity size={18} className="text-gray-800" />
+          <h2 className="text-lg font-semibold text-gray-900">Recent activity</h2>
+        </div>
+        <ActivityFeedOverview entries={activityEntries} />
+      </div>
     </div>
   );
 };

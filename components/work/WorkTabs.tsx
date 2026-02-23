@@ -7,7 +7,6 @@ import {
   Star,
   MessageCircle,
   History,
-  Activity,
   Bell,
   MessageCircleQuestion,
 } from 'lucide-react';
@@ -203,15 +202,6 @@ export const WorkTabs = ({
           >
             {metadata.metrics.conversationComments || 0}
           </span>
-        </div>
-      ),
-    },
-    {
-      id: 'history',
-      label: (
-        <div className="flex items-center">
-          <Activity className="h-4 w-4 mr-2" />
-          <span>Activity</span>
         </div>
       ),
     },
