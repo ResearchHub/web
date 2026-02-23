@@ -4,6 +4,7 @@ import { Work } from '@/types/work';
 import { format } from 'date-fns';
 import { Clock } from 'lucide-react';
 import { isDeadlineInFuture } from '@/utils/date';
+import { RadiatingDot } from '@/components/ui/RadiatingDot';
 
 interface GrantStatusSectionProps {
   work: Work;
@@ -16,7 +17,7 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
       <div>
         <h3 className="text-base font-semibold text-gray-900 mb-2">Status</h3>
         <div className="flex items-center gap-2 text-gray-800 text-sm">
-          <span className="h-2 w-2 rounded-full bg-gray-400 inline-block" />
+          <RadiatingDot color="bg-gray-400" isRadiating={false} dotSize={8} />
           <span>Unknown</span>
         </div>
       </div>
@@ -32,8 +33,13 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
     <div>
       <h3 className="text-base font-semibold text-gray-900 mb-2">Status</h3>
       <div className="flex items-center gap-2 text-gray-800 text-sm">
-        <span
-          className={`h-2 w-2 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-gray-400'} inline-block`}
+        <RadiatingDot
+          color={isActive ? 'bg-emerald-500' : 'bg-gray-400'}
+          radiateColor="bg-emerald-400"
+          ringColor="border-emerald-200"
+          isRadiating={isActive}
+          size={12}
+          dotSize={8}
         />
         <span>{isActive ? 'Accepting Applications' : 'Closed'}</span>
       </div>

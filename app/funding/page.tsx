@@ -22,8 +22,22 @@ async function getOpenGrants() {
   }
 }
 
+async function getClosedGrants() {
+  try {
+    const { grants } = await GrantService.getGrants({
+      page: 1,
+      pageSize: 20,
+      status: 'CLOSED',
+      ordering: 'most_applicants',
+    });
+    return grants;
+  } catch {
+    return [];
+  }
+}
+
 export default async function FundingPage() {
-  const { grants, error } = await getOpenGrants();
+  const [{ grants, error }, closedGrants] = await Promise.all([getOpenGrants(), getClosedGrants()]);
 
   return (
     <PageLayout
@@ -33,7 +47,7 @@ export default async function FundingPage() {
         </Suspense>
       }
     >
-      <FundingPageContent initialGrants={grants} error={error} />
+      <FundingPageContent initialGrants={grants} closedGrants={closedGrants} error={error} />
     </PageLayout>
   );
 }

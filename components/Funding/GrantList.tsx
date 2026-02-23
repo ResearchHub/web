@@ -8,6 +8,7 @@ import { FeedEntry } from '@/types/feed';
 
 interface GrantListProps {
   grants: FeedEntry[];
+  closedGrants?: FeedEntry[];
   emptyMessage?: string;
   showCreateCTA?: boolean;
   isDashboard?: boolean;
@@ -17,13 +18,16 @@ interface GrantListProps {
 
 export const GrantList: FC<GrantListProps> = ({
   grants,
+  closedGrants,
   emptyMessage = 'No grants found.',
   showCreateCTA = false,
   isDashboard,
   onInviteExperts,
   onEditGrant,
 }) => {
-  if (grants.length === 0) {
+  const hasClosedGrants = closedGrants && closedGrants.length > 0;
+
+  if (grants.length === 0 && !hasClosedGrants) {
     return (
       <div className="py-16 text-center">
         <p className="text-gray-400">{emptyMessage}</p>
@@ -65,6 +69,9 @@ export const GrantList: FC<GrantListProps> = ({
           </div>
         </div>
       )}
+
+      {hasClosedGrants &&
+        closedGrants.map((grant) => <GrantCarousel key={grant.id} grant={grant} isClosed />)}
     </div>
   );
 };

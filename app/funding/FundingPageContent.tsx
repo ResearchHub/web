@@ -8,10 +8,17 @@ import { FeedEntry } from '@/types/feed';
 
 interface FundingPageContentProps {
   initialGrants?: FeedEntry[];
+  closedGrants?: FeedEntry[];
   error?: string | null;
 }
 
-function FundingPageInner({ error }: { error?: string | null }) {
+function FundingPageInner({
+  closedGrants,
+  error,
+}: {
+  closedGrants?: FeedEntry[];
+  error?: string | null;
+}) {
   const { grants, isLoading } = useGrants();
 
   if (error) {
@@ -29,16 +36,24 @@ function FundingPageInner({ error }: { error?: string | null }) {
       {isLoading ? (
         <GrantCarouselSkeleton />
       ) : (
-        <GrantList grants={grants} emptyMessage="No funding opportunities available right now." />
+        <GrantList
+          grants={grants}
+          closedGrants={closedGrants}
+          emptyMessage="No funding opportunities available right now."
+        />
       )}
     </>
   );
 }
 
-export function FundingPageContent({ initialGrants, error }: FundingPageContentProps) {
+export function FundingPageContent({
+  initialGrants,
+  closedGrants,
+  error,
+}: FundingPageContentProps) {
   return (
     <GrantProvider initialGrants={initialGrants}>
-      <FundingPageInner error={error} />
+      <FundingPageInner closedGrants={closedGrants} error={error} />
     </GrantProvider>
   );
 }

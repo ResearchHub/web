@@ -8,12 +8,14 @@ import { FundingProposalCard } from './FundingProposalCard';
 import { ProposalCardSkeleton } from '@/components/skeletons/ProposalCardSkeleton';
 import { cn } from '@/utils/styles';
 import { ArrowRight, MoreHorizontal, Pencil, RefreshCw, UserPlus } from 'lucide-react';
+import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { useFeed } from '@/hooks/useFeed';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 
 interface GrantCarouselProps {
   grant: FeedEntry;
   className?: string;
+  isClosed?: boolean;
   isDashboard?: boolean;
   onInviteExperts?: () => void;
   onEditGrant?: () => void;
@@ -32,6 +34,7 @@ function formatCompactUSD(usd: number): string {
 export const GrantCarousel: FC<GrantCarouselProps> = ({
   grant,
   className,
+  isClosed,
   isDashboard,
   onInviteExperts,
   onEditGrant,
@@ -89,7 +92,14 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
           </h2>
         </Link>
         {grantData.amount?.usd && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-green-50 border border-green-200 text-xs font-bold text-green-700 font-mono">
+          <span
+            className={cn(
+              'inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold font-mono',
+              isClosed
+                ? 'bg-gray-50 border border-gray-200 text-gray-500'
+                : 'bg-green-50 border border-green-200 text-green-700'
+            )}
+          >
             {formatCompactUSD(grantData.amount.usd)} pool
           </span>
         )}
@@ -103,10 +113,17 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
             <span className="text-gray-300 text-[22px]">•</span>
           </>
         )}
-        <span className="flex items-center gap-1">
-          <RefreshCw className="h-3 w-3" />
-          Rolling fund
-        </span>
+        {isClosed ? (
+          <span className="flex items-center gap-1.5 text-gray-500">
+            <RadiatingDot color="bg-gray-400" isRadiating={false} dotSize={8} />
+            Closed
+          </span>
+        ) : (
+          <span className="flex items-center gap-1">
+            <RefreshCw className="h-3 w-3" />
+            Rolling fund
+          </span>
+        )}
         {entries.length > 0 && (
           <>
             <span className="text-gray-300 text-[22px]">•</span>
@@ -116,37 +133,38 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
           </>
         )}
         <span className="ml-auto" />
-        {isDashboard ? (
-          <>
-            <button
-              onClick={onInviteExperts}
-              className="font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition-colors cursor-pointer"
+        {!isClosed &&
+          (isDashboard ? (
+            <>
+              <button
+                onClick={onInviteExperts}
+                className="font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                Invite experts
+              </button>
+              <BaseMenu
+                align="end"
+                trigger={
+                  <button className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors cursor-pointer">
+                    <MoreHorizontal className="h-4.5 w-4.5" />
+                  </button>
+                }
+              >
+                <BaseMenuItem onSelect={onEditGrant}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit opportunity
+                </BaseMenuItem>
+              </BaseMenu>
+            </>
+          ) : (
+            <Link
+              href={grantHref}
+              className="font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition-colors"
             >
-              <UserPlus className="h-3.5 w-3.5" />
-              Invite experts
-            </button>
-            <BaseMenu
-              align="end"
-              trigger={
-                <button className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors cursor-pointer">
-                  <MoreHorizontal className="h-4.5 w-4.5" />
-                </button>
-              }
-            >
-              <BaseMenuItem onSelect={onEditGrant}>
-                <Pencil className="h-4 w-4 mr-2" />
-                Edit opportunity
-              </BaseMenuItem>
-            </BaseMenu>
-          </>
-        ) : (
-          <Link
-            href={grantHref}
-            className="font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition-colors"
-          >
-            Submit a proposal <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        )}
+              Submit a proposal <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          ))}
       </div>
 
       {/* Carousel of proposals */}
