@@ -385,7 +385,11 @@ function ContributeToFundraiseModalInner({
         setIsContributing(true);
         setError(null);
 
-        await FundraiseService.createEndaomentContribution(fundraise.id, originFundId, amountUsd);
+        await FundraiseService.createEndaomentContribution(
+          fundraise.id,
+          originFundId,
+          Math.round(amountUsd * 100) // must be in cents
+        );
 
         // Track successful payment
         AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
