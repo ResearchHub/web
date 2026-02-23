@@ -13,7 +13,6 @@ interface GrantListProps {
   showCreateCTA?: boolean;
   isDashboard?: boolean;
   onInviteExperts?: (grantId: number) => void;
-  onEditGrant?: (grantId: number) => void;
 }
 
 export const GrantList: FC<GrantListProps> = ({
@@ -23,7 +22,6 @@ export const GrantList: FC<GrantListProps> = ({
   showCreateCTA = false,
   isDashboard,
   onInviteExperts,
-  onEditGrant,
 }) => {
   const hasClosedGrants = closedGrants && closedGrants.length > 0;
 
@@ -52,7 +50,6 @@ export const GrantList: FC<GrantListProps> = ({
           grant={grant}
           isDashboard={isDashboard}
           onInviteExperts={onInviteExperts ? () => onInviteExperts(Number(grant.id)) : undefined}
-          onEditGrant={onEditGrant ? () => onEditGrant(Number(grant.id)) : undefined}
         />
       ))}
 

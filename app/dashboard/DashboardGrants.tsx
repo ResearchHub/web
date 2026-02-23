@@ -12,5 +12,5 @@ export async function DashboardGrants({ userId }: DashboardGrantsProps) {
     ordering: 'newest',
   });
 
-  return <GrantList grants={grants} showCreateCTA isDashboard />;
+  return <GrantList grants={grants} showCreateCTA={grants.length === 0} isDashboard />;
 }

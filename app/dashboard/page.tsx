@@ -29,10 +29,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   return (
     <DashboardPageClient>
+      <DashboardDraftGrants />
       <Suspense fallback={<GrantCarouselSkeleton />}>
         <DashboardGrants userId={userId} />
       </Suspense>
-      <DashboardDraftGrants />
     </DashboardPageClient>
   );
 }

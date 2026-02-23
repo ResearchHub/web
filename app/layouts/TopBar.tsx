@@ -121,7 +121,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname === '/lists' || pathname.startsWith('/list/')) {
     return {
       title: 'Your Lists',
-      subtitle: 'Saved items',
       icon: <FontAwesomeIcon icon={faBookmarkLight} fontSize={24} color="#000" />,
     };
   }
@@ -200,8 +199,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   // Grant routes
   if (pathname.startsWith('/grant')) {
     return {
-      title: 'RFP',
-      subtitle: 'Grant details',
+      title: 'Fund',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }

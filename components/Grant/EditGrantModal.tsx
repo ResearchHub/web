@@ -18,6 +18,7 @@ export function EditGrantModal({ isOpen, onClose, noteId }: Readonly<EditGrantMo
       onClose={onClose}
       showCloseButton={false}
       padding="p-0"
+      maxWidth="max-w-[900px]"
       className="!max-h-screen md:!max-h-[calc(100vh-2rem)] md:!rounded-2xl"
       contentClassName="!overflow-hidden"
     >

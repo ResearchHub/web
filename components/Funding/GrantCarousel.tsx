@@ -7,18 +7,15 @@ import { Carousel } from '@/components/ui/Carousel';
 import { FundingProposalCard } from './FundingProposalCard';
 import { ProposalCardSkeleton } from '@/components/skeletons/ProposalCardSkeleton';
 import { cn } from '@/utils/styles';
-import { ArrowRight, MoreHorizontal, Pencil, RefreshCw, UserPlus } from 'lucide-react';
+import { ArrowRight, RefreshCw, UserPlus } from 'lucide-react';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { useFeed } from '@/hooks/useFeed';
-import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-
 interface GrantCarouselProps {
   grant: FeedEntry;
   className?: string;
   isClosed?: boolean;
   isDashboard?: boolean;
   onInviteExperts?: () => void;
-  onEditGrant?: () => void;
 }
 
 export function getShortTitle(title: string): string {
@@ -37,7 +34,6 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
   isClosed,
   isDashboard,
   onInviteExperts,
-  onEditGrant,
 }) => {
   const content = grant.content as FeedGrantContent;
   const grantData = content.grant;
@@ -136,28 +132,13 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
         {!isClosed &&
           entries.length > 0 &&
           (isDashboard ? (
-            <>
-              <button
-                onClick={onInviteExperts}
-                className="font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition-colors cursor-pointer"
-              >
-                <UserPlus className="h-3.5 w-3.5" />
-                Invite experts
-              </button>
-              <BaseMenu
-                align="end"
-                trigger={
-                  <button className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors cursor-pointer">
-                    <MoreHorizontal className="h-4.5 w-4.5" />
-                  </button>
-                }
-              >
-                <BaseMenuItem onSelect={onEditGrant}>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Edit opportunity
-                </BaseMenuItem>
-              </BaseMenu>
-            </>
+            <button
+              onClick={onInviteExperts}
+              className="font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              Invite experts
+            </button>
           ) : (
             <Link
               href={grantHref}
@@ -197,22 +178,13 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
               <p className="text-sm text-gray-500">
                 No proposals yet — get started by inviting experts
               </p>
-              <div className="flex items-center justify-center gap-3 mt-3">
-                <button
-                  onClick={onInviteExperts}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors cursor-pointer"
-                >
-                  <UserPlus className="h-4 w-4" />
-                  Invite experts
-                </button>
-                <button
-                  onClick={onEditGrant}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium transition-colors cursor-pointer"
-                >
-                  <Pencil className="h-4 w-4" />
-                  Edit opportunity
-                </button>
-              </div>
+              <button
+                onClick={onInviteExperts}
+                className="inline-flex items-center gap-2 px-4 py-2 mt-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors cursor-pointer"
+              >
+                <UserPlus className="h-4 w-4" />
+                Invite experts
+              </button>
             </div>
           </div>
         ) : (
