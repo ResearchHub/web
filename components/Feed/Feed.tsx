@@ -13,6 +13,8 @@ import Icon from '@/components/ui/icons/Icon';
 import { useUser } from '@/contexts/UserContext';
 import { ManageTopicsModal } from '@/components/modals/ManageTopicsModal';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
+import { TopicFilterBar } from './TopicFilterBar';
+import { useTopicFilters } from '@/hooks/useTopicFilters';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
 
@@ -51,6 +53,8 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     orderingParam || getDefaultOrdering(defaultTab)
   );
   const [isManageTopicsModalOpen, setIsManageTopicsModalOpen] = useState(false);
+  const [hubSlug, setHubSlug] = useState<string | undefined>(undefined);
+  const { topics: filterTopics } = useTopicFilters();
 
   const isDebugMode = searchParams?.get('debug') !== null;
 
@@ -61,6 +65,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
     ordering,
     filter: filterParam || undefined,
     userId: userIdParam || undefined,
+    hubSlug,
   };
 
   const {
@@ -124,6 +129,15 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
   // Show ForYouFeedBanner when on "for-you" tab
   const banner = activeTab === 'for-you' ? <ForYouFeedBanner /> : undefined;
 
+  const topicFilters =
+    activeTab === 'for-you' ? (
+      <TopicFilterBar
+        topics={filterTopics}
+        activeTopicSlug={hubSlug ?? null}
+        onSelectTopic={(slug) => setHubSlug(slug ?? undefined)}
+      />
+    ) : undefined;
+
   const sourceFilters = showSourceFilter ? (
     <div className="flex justify-end">
       <div className="inline-flex items-center text-sm">
@@ -171,6 +185,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
         loadMore={loadMore}
         header={renderHeader()}
         tabs={feedTabs}
+        filters={topicFilters}
         banner={banner}
         activeTab={activeTab}
         ordering={ordering}

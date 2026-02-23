@@ -99,6 +99,8 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
 
     if (relevantOptionsChanged) {
       setCurrentOptions(options);
+      setHasAttemptedLoad(false);
+      setPage(1);
     }
   }, [options, currentTab, activeTab]);
 
