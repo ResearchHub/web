@@ -87,7 +87,7 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
       {/* Title + badge */}
       <div className="flex items-center gap-2.5 flex-wrap">
         <Link href={grantHref} className="group">
-          <h2 className="text-xl font-bold text-gray-900 group-hover:text-gray-600 transition-colors">
+          <h2 className="text-xl font-bold text-gray-900 group-hover:underline">
             {getShortTitle(content.title)}
           </h2>
         </Link>
@@ -134,6 +134,7 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
         )}
         <span className="ml-auto" />
         {!isClosed &&
+          entries.length > 0 &&
           (isDashboard ? (
             <>
               <button
@@ -160,7 +161,7 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
           ) : (
             <Link
               href={grantHref}
-              className="font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition-colors"
+              className="font-medium text-blue-600 hover:underline inline-flex items-center gap-1"
             >
               Submit a proposal <ArrowRight className="h-3.5 w-3.5" />
             </Link>
@@ -190,42 +191,42 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
               </div>
             )}
           </Carousel>
-        ) : (
+        ) : isDashboard ? (
           <div className="flex items-center justify-center py-8 rounded-lg border border-dashed border-gray-200">
-            {isDashboard ? (
-              <div className="text-center">
-                <p className="text-sm text-gray-500">
-                  No proposals yet — get started by inviting experts
-                </p>
-                <div className="flex items-center justify-center gap-3 mt-3">
-                  <button
-                    onClick={onInviteExperts}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors cursor-pointer"
-                  >
-                    <UserPlus className="h-4 w-4" />
-                    Invite experts
-                  </button>
-                  <button
-                    onClick={onEditGrant}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium transition-colors cursor-pointer"
-                  >
-                    <Pencil className="h-4 w-4" />
-                    Edit opportunity
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center">
-                <p className="text-sm text-gray-400">No proposals yet</p>
-                <Link
-                  href={grantHref}
-                  className="text-sm font-medium text-blue-600 hover:text-blue-700 mt-1 inline-flex items-center gap-1 transition-colors"
+            <div className="text-center">
+              <p className="text-sm text-gray-500">
+                No proposals yet — get started by inviting experts
+              </p>
+              <div className="flex items-center justify-center gap-3 mt-3">
+                <button
+                  onClick={onInviteExperts}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors cursor-pointer"
                 >
-                  Submit a proposal <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
+                  <UserPlus className="h-4 w-4" />
+                  Invite experts
+                </button>
+                <button
+                  onClick={onEditGrant}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium transition-colors cursor-pointer"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Edit opportunity
+                </button>
               </div>
-            )}
+            </div>
           </div>
+        ) : (
+          <Link
+            href={grantHref}
+            className="flex items-center justify-center py-8 rounded-lg border border-dashed border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+          >
+            <div className="text-center">
+              <p className="text-sm text-gray-400">No proposals yet</p>
+              <span className="text-sm font-medium text-blue-600 mt-1 inline-flex items-center gap-1">
+                Submit a proposal <ArrowRight className="h-3.5 w-3.5" />
+              </span>
+            </div>
+          </Link>
         )}
       </div>
     </section>

@@ -63,7 +63,7 @@ const isRootNavigationPage = (pathname: string): boolean => {
     '/fund/needs-funding', // Fundraises page
     '/dashboard',
     '/dashboard/impact',
-    '/funding', // Funding V2 page
+    '/funding',
     '/funding/proposals',
     '/journal',
     '/notebook',
@@ -177,6 +177,14 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/dashboard')) {
     return {
       title: 'My Dashboard',
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
+    };
+  }
+
+  if (pathname === '/funding/proposals') {
+    return {
+      title: 'Fund',
+      subtitle: 'Research Proposals',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
