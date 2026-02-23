@@ -15,7 +15,7 @@ interface GrantRightSidebarProps {
 
 export const GrantRightSidebar = ({ work, metadata, activityEntries }: GrantRightSidebarProps) => {
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 mt-2">
       <GrantAmountSection work={work} />
       <div className="px-2">
         <div className="flex items-center gap-2 mb-8">

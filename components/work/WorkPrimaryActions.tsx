@@ -37,7 +37,6 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { useIsInList } from '@/components/UserList/lib/hooks/useIsInList';
 import { useAddToList } from '@/components/UserList/lib/UserListsContext';
-import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { handleDownload } from '@/utils/download';
 
@@ -48,6 +47,7 @@ interface WorkPrimaryActionsProps {
   metadata: WorkMetadata;
   onEditClick?: () => void;
   className?: string;
+  compact?: boolean;
 }
 
 export const WorkPrimaryActions = ({
@@ -57,6 +57,7 @@ export const WorkPrimaryActions = ({
   metadata,
   onEditClick,
   className,
+  compact = false,
 }: WorkPrimaryActionsProps) => {
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -347,10 +348,14 @@ export const WorkPrimaryActions = ({
 
   const modalConfig = getModalConfig();
 
+  const iconSize = compact ? 'h-5 w-5' : 'h-6 w-6';
+  const btnPad = compact ? 'px-2.5 py-2' : 'px-3 py-2';
+  const actionBtnPad = compact ? 'px-2.5 py-2' : 'px-4 py-2';
+
   return (
     <div className={className}>
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-3">
+      <div className={cn('flex items-center', compact ? 'space-x-2' : 'space-x-4')}>
+        <div className={cn('flex items-center', compact ? 'space-x-2' : 'space-x-3')}>
           <div
             className={cn(
               'flex items-center rounded-lg bg-gray-50',
@@ -361,46 +366,56 @@ export const WorkPrimaryActions = ({
               onClick={() => executeAuthenticatedAction(() => handleVote('up'))}
               disabled={isVoting || isLoadingVotes}
               className={cn(
-                'px-3 py-2 rounded-l-lg transition-colors',
+                btnPad,
+                'rounded-l-lg transition-colors',
                 isUpvoted ? 'text-green-600 hover:bg-green-100' : 'text-gray-600 hover:bg-gray-100',
                 isVoting || isLoadingVotes ? 'cursor-not-allowed' : 'cursor-pointer'
               )}
               aria-label="Upvote"
             >
-              <ArrowUp className="h-6 w-6" />
+              <ArrowUp className={iconSize} />
             </button>
-            <span className="text-sm font-medium text-gray-700 min-w-[2rem] text-center">
+            <span
+              className={cn(
+                'font-medium text-gray-700 text-center',
+                compact ? 'text-xs min-w-[1.5rem]' : 'text-sm min-w-[2rem]'
+              )}
+            >
               {voteCount}
             </span>
             <button
               onClick={() => executeAuthenticatedAction(() => handleVote('down'))}
               disabled={isVoting || isLoadingVotes}
               className={cn(
-                'px-3 py-2 rounded-r-lg transition-colors',
+                btnPad,
+                'rounded-r-lg transition-colors',
                 isDownvoted ? 'text-red-600 hover:bg-red-100' : 'text-gray-600 hover:bg-gray-100',
                 isVoting || isLoadingVotes ? 'cursor-not-allowed' : 'cursor-pointer'
               )}
               aria-label="Downvote"
             >
-              <ArrowDown className="h-6 w-6" />
+              <ArrowDown className={iconSize} />
             </button>
           </div>
 
           {work.unifiedDocumentId && work.postType !== 'QUESTION' && (
-            <Button
-              variant="ghost"
+            <button
               onClick={handleAddToList}
               disabled={isTogglingDefaultList}
               className={cn(
-                'flex items-center justify-center !px-4 !min-w-0 rounded-lg',
+                'flex items-center justify-center rounded-lg',
+                actionBtnPad,
                 isInList
                   ? 'bg-green-50 text-green-600 hover:bg-green-100'
                   : 'bg-gray-50 text-gray-600 hover:bg-gray-100',
                 isTogglingDefaultList && 'opacity-50 cursor-not-allowed'
               )}
             >
-              <FontAwesomeIcon icon={isInList ? faBookmarkSolid : faBookmark} className="h-5 w-5" />
-            </Button>
+              <FontAwesomeIcon
+                icon={isInList ? faBookmarkSolid : faBookmark}
+                className={iconSize}
+              />
+            </button>
           )}
 
           <button
@@ -412,9 +427,12 @@ export const WorkPrimaryActions = ({
                 shouldShowConfetti: false,
               })
             }
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+            className={cn(
+              'flex items-center bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100',
+              actionBtnPad
+            )}
           >
-            <Share2 className="h-6 w-6" />
+            <Share2 className={iconSize} />
           </button>
 
           {insightsButton}

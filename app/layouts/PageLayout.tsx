@@ -67,7 +67,10 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
   const mainContentRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
-  const hasFundingTabs = pathname === '/funding' || pathname === '/funding/proposals';
+  const hasFundingTabs =
+    pathname === '/funding' ||
+    pathname === '/funding/proposals' ||
+    (pathname.startsWith('/grant/') && !pathname.startsWith('/grant/create'));
 
   // Mobile top nav scroll hide/show
   const { isHidden: isMobileTopNavHidden } = useMobileNavScroll({
@@ -147,8 +150,8 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
             ${
               hasFundingTabs
                 ? isCompact
-                  ? 'top-[78px] h-[calc(100vh-78px)]'
-                  : 'top-[94px] h-[calc(100vh-94px)]'
+                  ? 'top-[88px] h-[calc(100vh-88px)]'
+                  : 'top-[104px] h-[calc(100vh-104px)]'
                 : isCompact
                   ? 'top-[48px] h-[calc(100vh-48px)]'
                   : 'top-[64px] h-[calc(100vh-64px)]'
@@ -169,7 +172,13 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
           ref={scrollContainerRef}
           className={cn(
             'flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative transition-all duration-150',
-            hasFundingTabs ? (isCompact ? 'pt-[78px]' : 'pt-[94px]') : isCompact ? 'pt-12' : 'pt-16'
+            hasFundingTabs
+              ? isCompact
+                ? 'pt-[88px]'
+                : 'pt-[104px]'
+              : isCompact
+                ? 'pt-12'
+                : 'pt-16'
           )}
         >
           {/* Main Content */}
@@ -199,8 +208,8 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
                     z-30 ${
                       hasFundingTabs
                         ? isCompact
-                          ? 'top-[78px] h-[calc(100vh-78px)]'
-                          : 'top-[94px] h-[calc(100vh-94px)]'
+                          ? 'top-[88px] h-[calc(100vh-88px)]'
+                          : 'top-[104px] h-[calc(100vh-104px)]'
                         : isCompact
                           ? 'top-12 h-[calc(100vh-48px)]'
                           : 'top-16 h-[calc(100vh-64px)]'

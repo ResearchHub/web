@@ -5,85 +5,125 @@ import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { WorkLineItems } from './WorkLineItems';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { WorkTabs, TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
-import { isDeadlineInFuture } from '@/utils/date';
-import { RadiatingDot } from '@/components/ui/RadiatingDot';
+import { WorkPrimaryActions } from './WorkPrimaryActions';
 import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
-import { ProposalListProvider } from '@/contexts/ProposalListContext';
+import { ProposalListProvider, useProposalList } from '@/contexts/ProposalListContext';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
+import { stripHtml } from '@/utils/stringUtils';
+import { cn } from '@/utils/styles';
+
+const PREVIEW_LENGTH = 180;
+
+type GrantTab = 'proposals' | 'conversation';
+
+const DescriptionCallout = ({ content }: { content: string }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const plainText = useMemo(() => stripHtml(content), [content]);
+  const isTruncated = plainText.length > PREVIEW_LENGTH;
+
+  return (
+    <div className="mt-4 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-700">
+      {isExpanded ? (
+        <>
+          <div className="post-callout-content">
+            <PostBlockEditor content={content} />
+          </div>
+          <button
+            onClick={() => setIsExpanded(false)}
+            className="font-semibold text-gray-900 hover:text-gray-700 mt-1"
+          >
+            Show less
+          </button>
+        </>
+      ) : (
+        <p className="leading-relaxed">
+          {isTruncated ? plainText.slice(0, PREVIEW_LENGTH).trimEnd() : plainText}
+          {isTruncated && (
+            <button
+              onClick={() => setIsExpanded(true)}
+              className="font-semibold text-gray-900 hover:text-gray-700 ml-1"
+            >
+              ...more
+            </button>
+          )}
+        </p>
+      )}
+    </div>
+  );
+};
+
+const GrantTabBar = ({
+  activeTab,
+  onTabChange,
+  commentCount,
+}: {
+  activeTab: GrantTab;
+  onTabChange: (tab: GrantTab) => void;
+  commentCount: number;
+}) => {
+  const { proposalCount } = useProposalList();
+
+  const tabs: { id: GrantTab; label: string }[] = [
+    { id: 'proposals', label: `Proposals (${proposalCount})` },
+    { id: 'conversation', label: `Conversation (${commentCount})` },
+  ];
+
+  return (
+    <div className="flex items-center border-b border-gray-200">
+      <div className="flex items-center gap-6">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => onTabChange(tab.id)}
+            className={cn(
+              'pb-3 text-sm font-medium transition-colors border-b-2 -mb-px',
+              activeTab === tab.id
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 interface GrantDocumentProps {
   work: Work;
   metadata: WorkMetadata;
-  defaultTab?: TabType;
 }
 
-export const GrantDocument = ({ work, metadata, defaultTab = 'overview' }: GrantDocumentProps) => {
-  const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
+export const GrantDocument = ({ work, metadata }: GrantDocumentProps) => {
+  const [activeTab, setActiveTab] = useState<GrantTab>('proposals');
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 
-  const handleTabChange = (tab: TabType) => {
-    setActiveTab(tab);
-  };
-
   const grantId = Number(work.note?.post?.grant?.id);
-
-  const detailsContent = work.previewContent ? (
-    <PostBlockEditor content={work.previewContent} />
-  ) : (
-    <p className="text-gray-500">No content available</p>
-  );
-
-  const renderTabContent = useMemo(() => {
-    switch (activeTab) {
-      case 'overview':
-        return (
-          <div className="space-y-6 mt-6" key="overview-tab">
-            {detailsContent}
-          </div>
-        );
-      case 'proposals':
-        return (
-          <div className="space-y-6" key="proposals-tab">
-            <FundingProposalGrid />
-          </div>
-        );
-      case 'conversation':
-        return (
-          <div className="space-y-6" key="conversation-tab">
-            <CommentFeed
-              unifiedDocumentId={work.unifiedDocumentId || null}
-              documentId={work.id}
-              contentType={work.contentType}
-              commentType="GENERIC_COMMENT"
-              key={`comment-feed-${work.id}`}
-              work={work}
-            />
-          </div>
-        );
-      default:
-        return null;
-    }
-  }, [activeTab, work, metadata, grantId, detailsContent]);
-
-  const isActive =
-    work.note?.post?.grant?.status === 'OPEN' &&
-    (work.note?.post?.grant?.endDate ? isDeadlineInFuture(work.note?.post?.grant?.endDate) : true);
 
   return (
     <ProposalListProvider grantId={grantId}>
       <div>
-        <div className="flex items-center gap-2 mb-2 mt-2">
-          <RadiatingDot color={isActive ? 'bg-green-500' : 'bg-gray-400'} isRadiating={isActive} />
-          <span className={`text-sm font-medium ${isActive ? 'text-green-600' : 'text-gray-500'}`}>
-            {isActive ? 'Accepting Proposals' : 'Closed'}
-          </span>
-        </div>
+        <WorkPrimaryActions
+          work={work}
+          showClaimButton={false}
+          metadata={metadata}
+          compact
+          className="mt-2 mb-2"
+        />
 
         <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-0" />
-        <WorkLineItems work={work} showClaimButton={false} metadata={metadata} />
+        <WorkLineItems
+          work={work}
+          showClaimButton={false}
+          metadata={metadata}
+          hideActions
+          calloutContent={
+            work.previewContent ? <DescriptionCallout content={work.previewContent} /> : undefined
+          }
+        />
 
         {work.note?.post?.grant?.amount && work.note?.post?.grant?.currency && (
           <div className="mt-2 text-sm text-gray-600 right-sidebar:hidden">
@@ -106,15 +146,28 @@ export const GrantDocument = ({ work, metadata, defaultTab = 'overview' }: Grant
           </div>
         )}
 
-        <WorkTabs
-          work={work}
-          metadata={metadata}
-          defaultTab={defaultTab}
-          contentType="grant"
-          onTabChange={handleTabChange}
-        />
+        <div className="mt-8">
+          <GrantTabBar
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            commentCount={metadata.metrics.conversationComments || 0}
+          />
 
-        {renderTabContent}
+          <div className="mt-6">
+            {activeTab === 'proposals' ? (
+              <FundingProposalGrid hideFilters />
+            ) : (
+              <CommentFeed
+                unifiedDocumentId={work.unifiedDocumentId || null}
+                documentId={work.id}
+                contentType={work.contentType}
+                commentType="GENERIC_COMMENT"
+                key={`comment-feed-${work.id}`}
+                work={work}
+              />
+            )}
+          </div>
+        </div>
 
         <ApplyToGrantModal
           isOpen={isApplyModalOpen}

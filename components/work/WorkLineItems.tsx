@@ -12,6 +12,8 @@ interface WorkLineItemsProps {
   insightsButton?: React.ReactNode;
   metadata: WorkMetadata;
   onEditClick?: () => void;
+  calloutContent?: React.ReactNode;
+  hideActions?: boolean;
 }
 
 export const WorkLineItems = ({
@@ -20,6 +22,8 @@ export const WorkLineItems = ({
   insightsButton,
   metadata,
   onEditClick,
+  calloutContent,
+  hideActions = false,
 }: WorkLineItemsProps) => {
   return (
     <div>
@@ -84,14 +88,18 @@ export const WorkLineItems = ({
         )}
       </div>
 
-      <WorkPrimaryActions
-        work={work}
-        showClaimButton={showClaimButton}
-        insightsButton={insightsButton}
-        metadata={metadata}
-        onEditClick={onEditClick}
-        className="mt-4"
-      />
+      {!hideActions && (
+        <WorkPrimaryActions
+          work={work}
+          showClaimButton={showClaimButton}
+          insightsButton={insightsButton}
+          metadata={metadata}
+          onEditClick={onEditClick}
+          className="mt-4"
+        />
+      )}
+
+      {calloutContent}
     </div>
   );
 };

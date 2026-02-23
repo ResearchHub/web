@@ -9,11 +9,9 @@ import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { GrantDocument } from '@/components/work/GrantDocument';
 import { GrantRightSidebar } from '@/components/work/GrantRightSidebar';
-import { TabType } from '@/components/work/WorkTabs';
 
 interface GrantPageServerProps {
   id: string;
-  defaultTab: TabType;
 }
 
 export async function getGrant(id: string): Promise<Work> {
@@ -28,7 +26,7 @@ export async function getGrant(id: string): Promise<Work> {
   }
 }
 
-export async function GrantPageServer({ id, defaultTab }: GrantPageServerProps) {
+export async function GrantPageServer({ id }: GrantPageServerProps) {
   const work = await getGrant(id);
   const grantId = work.note?.post?.grant?.id;
 
@@ -46,9 +44,9 @@ export async function GrantPageServer({ id, defaultTab }: GrantPageServerProps) 
       }
     >
       <Suspense>
-        <GrantDocument work={work} metadata={metadata} defaultTab={defaultTab} />
+        <GrantDocument work={work} metadata={metadata} />
         <SearchHistoryTracker work={work} />
-        <WorkDocumentTracker work={work} metadata={metadata} tab={defaultTab} />
+        <WorkDocumentTracker work={work} metadata={metadata} />
       </Suspense>
     </PageLayout>
   );

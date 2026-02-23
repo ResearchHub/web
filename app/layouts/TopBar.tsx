@@ -347,19 +347,29 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { tabs, activeTab, handleTabChange, isFeedPage } = useFeedTabs();
 
   const isFundingPage = pathname === '/funding' || pathname === '/funding/proposals';
+  const isGrantPage = pathname.startsWith('/grant/') && !pathname.startsWith('/grant/create');
+  const showGrantTabs = isFundingPage || isGrantPage;
   const grantsCtx = useGrantsOptional();
 
   useEffect(() => {
-    if (isFundingPage) grantsCtx?.ensureLoaded();
-  }, [isFundingPage, grantsCtx?.ensureLoaded]);
+    if (showGrantTabs) grantsCtx?.ensureLoaded();
+  }, [showGrantTabs, grantsCtx?.ensureLoaded]);
 
   const grantTabs = useMemo(() => {
-    if (!isFundingPage || !grantsCtx?.grants.length) return [];
+    if (!showGrantTabs || !grantsCtx?.grants.length) return [];
     return [
       { id: 'all', label: 'All', href: '/funding' },
       ...buildGrantTabs(grantsCtx.grants.map((g) => ({ content: g.content as FeedGrantContent }))),
     ];
-  }, [isFundingPage, grantsCtx?.grants]);
+  }, [showGrantTabs, grantsCtx?.grants]);
+
+  const activeGrantTab = useMemo(() => {
+    if (isGrantPage) {
+      const grantId = pathname.split('/')[2];
+      if (grantId) return `grant-${grantId}`;
+    }
+    return 'all';
+  }, [isGrantPage, pathname]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -461,7 +471,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         <div
           className={cn(
             'flex items-center justify-between px-4 lg:px-8',
-            isFundingPage && grantTabs.length > 0 ? 'h-[58px]' : 'h-[70px]'
+            showGrantTabs && grantTabs.length > 0 ? 'h-[58px]' : 'h-[70px]'
           )}
         >
           {/* Left side - Back button + Page title OR FeedTabs */}
@@ -671,10 +681,10 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           </div>
         </div>
 
-        {/* Grant tabs row — scrollable second row on funding pages */}
-        {isFundingPage && grantTabs.length > 0 && (
+        {/* Grant tabs row — scrollable second row on funding/grant pages */}
+        {showGrantTabs && grantTabs.length > 0 && (
           <div className="px-4 lg:px-8 -mb-px">
-            <Tabs tabs={grantTabs} activeTab="all" onTabChange={() => {}} size="md" />
+            <Tabs tabs={grantTabs} activeTab={activeGrantTab} onTabChange={() => {}} size="md" />
           </div>
         )}
       </div>

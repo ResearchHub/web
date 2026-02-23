@@ -9,14 +9,18 @@ import { cn } from '@/utils/styles';
 
 interface FundingProposalGridProps {
   className?: string;
+  hideFilters?: boolean;
 }
 
-export const FundingProposalGrid: FC<FundingProposalGridProps> = ({ className }) => {
+export const FundingProposalGrid: FC<FundingProposalGridProps> = ({
+  className,
+  hideFilters = false,
+}) => {
   const { entries, isLoading, hasMore, loadMore } = useProposalList();
 
   return (
     <div className={cn('', className)}>
-      <ProposalSortAndFilters className="mb-8" />
+      {!hideFilters && <ProposalSortAndFilters className="mb-8" />}
 
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
