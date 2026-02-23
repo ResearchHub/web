@@ -107,9 +107,9 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
 
       {/* Metadata row */}
       <div className="flex items-center gap-3 mt-1.5 text-sm text-gray-600 flex-wrap">
-        {grantData.organization && (
+        {(grantData.organization || content.createdBy?.fullName) && (
           <>
-            <span>{grantData.organization}</span>
+            <span>{grantData.organization || content.createdBy.fullName}</span>
             <span className="text-gray-300 text-[22px]">•</span>
           </>
         )}

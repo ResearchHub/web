@@ -19,17 +19,17 @@ import type { CommentType } from '@/types/comment';
 
 const COMMENT_ACTION_LABELS: Record<CommentType, string> = {
   GENERIC_COMMENT: 'commented on',
-  REVIEW: 'reviewed',
+  REVIEW: 'peer reviewed',
   AUTHOR_UPDATE: 'posted an update on',
   ANSWER: 'answered on',
   BOUNTY: 'contributed to',
 };
 
 const DOC_ACTION_LABELS: Record<string, string> = {
-  GRANT: 'created a grant',
-  PREREGISTRATION: 'submitted a proposal',
-  POST: 'posted a discussion',
-  PAPER: 'published a paper',
+  GRANT: 'opened funding opportunity',
+  PREREGISTRATION: 'submitted proposal',
+  POST: 'posted discussion',
+  PAPER: 'published preprint',
 };
 
 const CONTENT_TYPE_MAP: Record<string, ContentType> = {
