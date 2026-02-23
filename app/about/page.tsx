@@ -5,15 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ShieldCheck,
-  Globe,
-  ExternalLink,
-  Mail,
-  ArrowRight,
-  Clock,
-  DollarSign,
-} from 'lucide-react';
+import { ShieldCheck, Globe, ExternalLink, Mail, Clock, DollarSign } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { useUser } from '@/contexts/UserContext';
@@ -183,29 +175,25 @@ const processSteps: ProcessStep[] = [
     step: '01',
     title: 'Public Preregistration',
     content: 'Researchers post study designs, methods, and hypotheses before experiments begin.',
-    image:
-      'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1200&auto=format&fit=crop',
+    image: '/about/step-01.png',
   },
   {
     step: '02',
     title: 'Open Peer Critique',
     content: 'Expert peer scientists openly critique and improve those plans on ResearchHub.',
-    image:
-      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop',
+    image: '/about/step-02.png',
   },
   {
     step: '03',
     title: 'Capital Commitment',
     content: 'Funders commit capital at preregistration and track progress in real time.',
-    image:
-      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1200&auto=format&fit=crop',
+    image: '/about/step-03.png',
   },
   {
     step: '04',
     title: 'Linked Results',
     content: 'All results are published and permanently linked to each contribution.',
-    image:
-      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1200&auto=format&fit=crop',
+    image: '/about/step-04.png',
   },
 ];
 
@@ -218,6 +206,18 @@ const FadeIn = ({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
   >
     {children}
   </motion.div>
+);
+
+const CiteSup = ({ num, citation }: { num: number; citation: string }) => (
+  <sup className="group relative ml-0.5 cursor-help text-xs font-medium">
+    {num}
+    <span
+      className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-64 -translate-x-1/2 rounded-lg border bg-white p-3 text-left text-[11px] font-normal leading-relaxed opacity-0 shadow-lg transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
+      style={{ color: colors.gray[600], borderColor: colors.gray[200] }}
+    >
+      {citation}
+    </span>
+  </sup>
 );
 
 const AboutPage = () => {
@@ -258,7 +258,7 @@ const AboutPage = () => {
         className="fixed left-0 right-0 top-0 z-50 border-b backdrop-blur-md"
         style={{ backgroundColor: 'rgba(255, 255, 255, 0.88)', borderColor: colors.gray[100] }}
       >
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center">
             <Logo size={38} />
           </Link>
@@ -294,25 +294,48 @@ const AboutPage = () => {
               {isLoading ? 'Loading...' : ctaLabel}
             </button>
           </div>
+          <button
+            type="button"
+            onClick={onJoinClick}
+            disabled={isLoading}
+            className="rounded-full px-3 py-2 text-xs font-semibold text-white transition-colors md:hidden"
+            style={{ backgroundColor: colors.rhBlue[500] }}
+          >
+            {isLoading ? 'Loading...' : ctaLabel}
+          </button>
+        </div>
+        <div
+          className="mx-auto flex h-10 max-w-7xl items-center gap-4 overflow-x-auto px-4 text-xs font-semibold md:hidden sm:px-6"
+          style={{ borderTop: `1px solid ${colors.gray[100]}`, color: colors.gray[600] }}
+        >
+          <a href="#problem" className="whitespace-nowrap transition-colors hover:text-black">
+            The Problem
+          </a>
+          <a href="#solution" className="whitespace-nowrap transition-colors hover:text-black">
+            Our Approach
+          </a>
+          <a href="#team" className="whitespace-nowrap transition-colors hover:text-black">
+            Team
+          </a>
         </div>
       </nav>
 
-      <section className="overflow-hidden px-6 pb-20 pt-32">
+      <section className="overflow-hidden px-4 pb-14 pt-28 sm:px-6 sm:pb-16 sm:pt-32 lg:px-8 lg:pb-20">
         <div className="mx-auto max-w-7xl">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
+          <div className="grid items-center gap-8 sm:gap-12 lg:grid-cols-2">
             <FadeIn>
-              <h1 className="mb-6 text-5xl font-extrabold leading-tight tracking-tight lg:text-7xl">
-                A Better Way to <br />
-                <span style={{ color: colors.rhBlue[500] }}>Fund Research.</span>
+              <h1 className="mb-5 text-3xl font-extrabold leading-tight tracking-tight sm:mb-6 sm:text-4xl md:text-5xl lg:text-6xl">
+                New incentives for <br />
+                <span style={{ color: colors.rhBlue[500] }}>better science</span>
               </h1>
               <p
-                className="mb-8 max-w-xl text-xl leading-relaxed"
+                className="mb-6 hidden max-w-xl text-base leading-relaxed sm:mb-8 sm:block sm:text-lg md:text-xl"
                 style={{ color: colors.gray[600] }}
               >
-                At ResearchHub, we help you fund research that is transparent, reproducible, and
-                accountable. Move from funding and praying to real-time impact tracking.
+                We create better incentives that reward open critique, transparent updates, and
+                reproducible outcomes so researchers can produce higher-quality science.
               </p>
-              <div className="mb-8 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-3 text-sm font-medium sm:grid-cols-2">
+              <div className="mb-6 grid max-w-2xl grid-cols-1 gap-x-6 gap-y-3 text-sm font-medium sm:mb-8 sm:grid-cols-2 sm:gap-x-8">
                 <div className="flex items-center gap-2" style={{ color: colors.gray[700] }}>
                   <div
                     className="h-1.5 w-1.5 rounded-full"
@@ -342,32 +365,12 @@ const AboutPage = () => {
                   Fast applications and processing
                 </div>
               </div>
-              <div className="flex flex-wrap gap-4">
-                <button
-                  type="button"
-                  onClick={onJoinClick}
-                  className="flex items-center gap-2 rounded-xl px-8 py-4 font-bold text-white shadow-lg"
-                  style={{
-                    backgroundColor: colors.gray[900],
-                    boxShadow: `0 16px 40px ${colors.gray[200]}`,
-                  }}
-                >
-                  {user ? 'Explore Marketplace' : 'Join Now'} <ArrowRight className="h-5 w-5" />
-                </button>
-                <a
-                  href="mailto:tyler@researchhub.foundation"
-                  className="rounded-xl border bg-white px-8 py-4 font-bold transition-colors hover:bg-gray-50"
-                  style={{ borderColor: colors.gray[200], color: colors.gray[900] }}
-                >
-                  Request a Demo
-                </a>
-              </div>
             </FadeIn>
 
             <div className="relative">
               <FadeIn delay={0.2}>
                 <div
-                  className="group relative z-10 overflow-hidden rounded-3xl border bg-white p-8 shadow-2xl"
+                  className="group relative z-10 overflow-hidden rounded-3xl border bg-white p-5 shadow-2xl sm:p-8"
                   style={{ borderColor: colors.gray[100] }}
                 >
                   <div className="mb-6 flex flex-col gap-4 sm:flex-row">
@@ -412,43 +415,56 @@ const AboutPage = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="shrink-0 sm:w-44">
+                    <div className="shrink-0 w-full sm:w-44">
                       <Image
                         src="/people/psilocybin-preregistration.png"
                         alt="Preregistration visual"
                         width={360}
                         height={260}
-                        className="h-32 w-full rounded-xl border object-cover"
+                        className="h-24 w-full rounded-xl border object-cover sm:h-32"
                         style={{ borderColor: colors.gray[100] }}
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-2.5 sm:gap-3 md:grid-cols-3">
                     <div
-                      className="flex flex-col justify-start rounded-xl border p-3"
+                      className="flex min-h-[82px] flex-col justify-start rounded-xl border p-3 sm:min-h-[88px]"
                       style={{ backgroundColor: colors.gray[50], borderColor: colors.gray[100] }}
                     >
                       <div
-                        className="mb-2 text-xs font-bold uppercase"
+                        className="mb-2 text-[11px] font-bold uppercase tracking-wide sm:text-xs"
                         style={{ color: colors.gray[500] }}
                       >
                         Preregistration
                       </div>
-                      <div className="flex items-center gap-1 text-sm font-bold text-green-600">
+                      <div className="mb-2 flex items-center gap-1 text-sm font-bold text-green-600 sm:text-[15px]">
                         <ShieldCheck className="h-4 w-4" /> Verified
                       </div>
                     </div>
                     <div
-                      className="flex flex-col justify-between rounded-xl border p-3"
+                      className="flex min-h-[82px] flex-col justify-between rounded-xl border p-3 sm:min-h-[88px]"
                       style={{ backgroundColor: colors.gray[50], borderColor: colors.gray[100] }}
                     >
                       <div
-                        className="mb-2 text-xs font-bold uppercase"
+                        className="mb-2 text-[11px] font-bold uppercase tracking-wide sm:text-xs"
                         style={{ color: colors.gray[500] }}
                       >
                         Peer Reviews
                       </div>
-                      <div className="mb-2">
+                      <div className="mb-1 sm:hidden">
+                        <AvatarStack
+                          items={heroExpertItems}
+                          size="xxs"
+                          maxItems={2}
+                          spacing={-4}
+                          showExtraCount={true}
+                          totalItemsCount={heroExpertItems.length}
+                          allItems={heroExpertItems}
+                          extraCountLabel="Reviewers"
+                          showLabel={false}
+                        />
+                      </div>
+                      <div className="mb-2 hidden sm:block">
                         <AvatarStack
                           items={heroExpertItems}
                           size="xs"
@@ -458,18 +474,37 @@ const AboutPage = () => {
                           showLabel={false}
                         />
                       </div>
+                      <p
+                        className="text-[10px] font-semibold sm:hidden"
+                        style={{ color: colors.gray[500] }}
+                      >
+                        Paid expert critique
+                      </p>
                     </div>
                     <div
-                      className="flex flex-col justify-between rounded-xl border p-3"
+                      className="flex min-h-[82px] flex-col justify-between rounded-xl border p-3 sm:min-h-[88px]"
                       style={{ backgroundColor: colors.gray[50], borderColor: colors.gray[100] }}
                     >
                       <div
-                        className="mb-2 text-xs font-bold uppercase"
+                        className="mb-2 text-[11px] font-bold uppercase tracking-wide sm:text-xs"
                         style={{ color: colors.gray[500] }}
                       >
                         Funders
                       </div>
-                      <div className="mb-2">
+                      <div className="mb-1 sm:hidden">
+                        <AvatarStack
+                          items={heroFunderItems}
+                          size="xxs"
+                          maxItems={4}
+                          spacing={-4}
+                          showExtraCount={true}
+                          totalItemsCount={18}
+                          allItems={heroFunderItems}
+                          extraCountLabel="Funders"
+                          showLabel={false}
+                        />
+                      </div>
+                      <div className="mb-2 hidden sm:block">
                         <AvatarStack
                           items={heroFunderItems}
                           size="xs"
@@ -482,6 +517,12 @@ const AboutPage = () => {
                           showLabel={false}
                         />
                       </div>
+                      <p
+                        className="text-[10px] font-semibold sm:hidden"
+                        style={{ color: colors.gray[500] }}
+                      >
+                        18 active contributors
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -499,59 +540,110 @@ const AboutPage = () => {
         </div>
       </section>
 
-      <section id="problem" className="py-24" style={{ backgroundColor: colors.gray[50] }}>
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="mb-16 text-center">
-            <h2 className="mb-4 text-3xl font-bold">Why the Status Quo Fails</h2>
+      <section
+        id="problem"
+        className="py-16 sm:py-20 lg:py-24"
+        style={{ backgroundColor: colors.gray[50] }}
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-10 text-center sm:mb-16">
+            <h2 className="mb-4 text-3xl font-bold italic">
+              When a measure becomes a target, it ceases to be a good measure
+            </h2>
+            <p
+              className="mx-auto mb-4 max-w-2xl text-lg italic"
+              style={{ color: colors.gray[500] }}
+            >
+              - Goodhart&apos;s Law
+            </p>
             <p className="mx-auto max-w-2xl text-lg" style={{ color: colors.gray[600] }}>
-              Current scientific funding models are slow, opaque, and prioritize novelty over truth.
+              Science rewards publication count, journal prestige, and citation metrics — not
+              whether findings hold up. When careers depend on novel, positive results, rigor
+              becomes a liability and reproducibility collapses.
             </p>
           </div>
-          <div className="grid gap-8 md:grid-cols-3">
-            {[
-              {
-                stat: '50%+',
-                label: 'Replication Crisis',
-                sub: 'of biomedical findings cannot be reproduced by other labs.',
-              },
-              {
-                stat: '50%+',
-                label: 'Invisible Outcomes',
-                sub: 'of funded studies are never reported, especially negative results.',
-              },
-              {
-                stat: '$200B',
-                label: 'Wasted Per Year',
-                sub: 'due to duplication, opaque reporting, and irreproducible work.',
-              },
-            ].map((item, idx) => (
-              <FadeIn key={item.label} delay={idx * 0.08}>
+          <div className="grid gap-6 sm:gap-8 md:grid-cols-3">
+            <FadeIn delay={0}>
+              <div
+                className="rounded-2xl border bg-white p-6 text-center transition-shadow hover:shadow-xl sm:p-8"
+                style={{ borderColor: colors.gray[100] }}
+              >
                 <div
-                  className="rounded-2xl border bg-white p-8 text-center transition-shadow hover:shadow-xl"
-                  style={{ borderColor: colors.gray[100] }}
+                  className="mb-2 text-3xl font-extrabold sm:text-4xl"
+                  style={{ color: colors.rhBlue[500] }}
                 >
-                  <div
-                    className="mb-2 text-4xl font-extrabold"
-                    style={{ color: colors.rhBlue[500] }}
-                  >
-                    {item.stat}
-                  </div>
-                  <div className="mb-3 text-lg font-bold">{item.label}</div>
-                  <p className="text-sm leading-relaxed" style={{ color: colors.gray[500] }}>
-                    {item.sub}
-                  </p>
+                  85%
                 </div>
-              </FadeIn>
-            ))}
+                <div className="mb-3 text-lg font-bold">
+                  Research Waste
+                  <CiteSup
+                    num={1}
+                    citation="Chalmers I, Glasziou P. Avoidable waste in the production and reporting of research evidence. The Lancet. 2009;374(9683):86–89."
+                  />
+                </div>
+                <p className="text-sm leading-relaxed" style={{ color: colors.gray[500] }}>
+                  An estimated 85% of biomedical research investment is avoidably wasted due to poor
+                  study design, non-publication of results, and inadequate reporting.
+                </p>
+              </div>
+            </FadeIn>
+            <FadeIn delay={0.08}>
+              <div
+                className="rounded-2xl border bg-white p-6 text-center transition-shadow hover:shadow-xl sm:p-8"
+                style={{ borderColor: colors.gray[100] }}
+              >
+                <div
+                  className="mb-2 text-3xl font-extrabold sm:text-4xl"
+                  style={{ color: colors.rhBlue[500] }}
+                >
+                  70%+
+                </div>
+                <div className="mb-3 text-lg font-bold">
+                  Can&apos;t Reproduce
+                  <CiteSup
+                    num={2}
+                    citation="Baker M. 1,500 scientists lift the lid on reproducibility. Nature. 2016;533(7604):452–454."
+                  />
+                </div>
+                <p className="text-sm leading-relaxed" style={{ color: colors.gray[500] }}>
+                  More than 70% of researchers have tried and failed to reproduce another
+                  scientist&apos;s experiments, and over half could not reproduce their own.
+                </p>
+              </div>
+            </FadeIn>
+            <FadeIn delay={0.16}>
+              <div
+                className="rounded-2xl border bg-white p-6 text-center transition-shadow hover:shadow-xl sm:p-8"
+                style={{ borderColor: colors.gray[100] }}
+              >
+                <div
+                  className="mb-2 text-3xl font-extrabold sm:text-4xl"
+                  style={{ color: colors.rhBlue[500] }}
+                >
+                  $28B
+                </div>
+                <div className="mb-3 text-lg font-bold">
+                  Lost Per Year in the US
+                  <CiteSup
+                    num={3}
+                    citation="Freedman LP, Cockburn IM, Simcoe TS. The Economics of Reproducibility in Preclinical Research. PLOS Biology. 2015;13(6):e1002165."
+                  />
+                </div>
+                <p className="text-sm leading-relaxed" style={{ color: colors.gray[500] }}>
+                  The US alone spends an estimated $28 billion per year on preclinical research that
+                  cannot be reproduced.
+                </p>
+              </div>
+            </FadeIn>
           </div>
         </div>
       </section>
 
-      <section id="solution" className="px-6 py-24">
+      <section id="solution" className="px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
         <div className="mx-auto max-w-7xl">
-          <div className="grid items-start gap-16 lg:grid-cols-2">
+          <div className="grid items-start gap-10 sm:gap-16 lg:grid-cols-2 lg:items-end">
             <div>
-              <h2 className="mb-8 text-4xl font-bold leading-tight">
+              <h2 className="mb-6 text-2xl font-bold leading-tight sm:mb-8 sm:text-3xl lg:text-4xl">
                 Our Fix: <br />
                 Preregistration-Based Funding
               </h2>
@@ -559,7 +651,7 @@ const AboutPage = () => {
                 {processSteps.map((item, idx) => (
                   <motion.div
                     key={item.step}
-                    className="group flex cursor-pointer gap-6"
+                    className="group flex cursor-pointer gap-4 sm:gap-6"
                     onHoverStart={() => setActiveStep(idx)}
                     onClick={() => setActiveStep(idx)}
                   >
@@ -586,27 +678,28 @@ const AboutPage = () => {
               </div>
             </div>
 
-            <div className="sticky top-24">
+            <div className="mt-8 lg:mt-0">
               <div
-                className="relative aspect-[4/3] overflow-hidden rounded-3xl border shadow-2xl"
-                style={{ borderColor: colors.gray[100], backgroundColor: colors.gray[900] }}
+                className="relative aspect-[15/8] overflow-hidden rounded-3xl border shadow-2xl"
+                style={{ borderColor: colors.gray[100], backgroundColor: '#FFFFFF' }}
               >
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeStep}
-                    className="absolute inset-0"
+                    className="absolute inset-3 sm:inset-4"
                     style={{
                       backgroundImage: `url(${processSteps[activeStep].image})`,
-                      backgroundSize: 'cover',
+                      backgroundSize: 'contain',
+                      backgroundRepeat: 'no-repeat',
                       backgroundPosition: 'center',
                     }}
-                    initial={{ opacity: 0, scale: 1.08 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.45 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.1 }}
                   />
                 </AnimatePresence>
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 sm:p-6">
                   <motion.div
                     key={`step-content-${activeStep}`}
                     initial={{ opacity: 0, y: 10 }}
@@ -626,20 +719,20 @@ const AboutPage = () => {
         </div>
       </section>
 
-      <section className="px-6 py-24">
+      <section className="px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-16 text-center">
+          <div className="mb-10 text-center sm:mb-16">
             <h2 className="mb-4 text-3xl font-bold">What You Gain</h2>
             <p className="mx-auto max-w-2xl" style={{ color: colors.gray[600] }}>
               Transforming platform costs into direct incentives that accelerate science and
               maximize philanthropic impact.
             </p>
           </div>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-4">
             {benefits.map((benefit, idx) => (
               <FadeIn key={benefit.title} delay={idx * 0.05}>
                 <div
-                  className="flex h-full min-h-[250px] flex-col rounded-2xl border bg-white p-8 transition-all hover:shadow-lg"
+                  className="flex h-full min-h-[220px] flex-col rounded-2xl border bg-white p-6 transition-all hover:shadow-lg sm:min-h-[250px] sm:p-8"
                   style={{ borderColor: colors.gray[200] }}
                 >
                   <div
@@ -648,7 +741,9 @@ const AboutPage = () => {
                   >
                     {benefit.icon}
                   </div>
-                  <h4 className="mb-1 min-h-[64px] text-2xl font-bold">{benefit.title}</h4>
+                  <h4 className="mb-1 min-h-[48px] text-xl font-bold sm:min-h-[64px] sm:text-2xl">
+                    {benefit.title}
+                  </h4>
                   <div
                     className="mb-3 min-h-[16px] text-xs font-bold uppercase"
                     style={{ color: colors.rhBlue[500] }}
@@ -669,17 +764,19 @@ const AboutPage = () => {
       </section>
 
       <section
-        className="relative overflow-hidden px-6 py-24 text-white"
+        className="relative overflow-hidden px-4 py-16 text-white sm:px-6 sm:py-20 lg:px-8 lg:py-24"
         style={{ backgroundColor: colors.rhBlue[500] }}
       >
         <div className="relative z-10 mx-auto max-w-7xl">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
+          <div className="grid items-center gap-8 sm:gap-12 lg:grid-cols-2">
             <div>
               <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-semibold">
                 <ShieldCheck className="h-4 w-4" /> Nonprofit Partner
               </div>
-              <h2 className="mb-6 text-4xl font-bold">Partnership with Endaoment</h2>
-              <p className="mb-8 text-lg leading-relaxed text-blue-100">
+              <h2 className="mb-4 text-2xl font-bold sm:mb-6 sm:text-3xl lg:text-4xl">
+                Partnership with Endaoment
+              </h2>
+              <p className="mb-6 text-base leading-relaxed text-blue-100 sm:mb-8 sm:text-lg">
                 We partner with Endaoment, a leading 501(c)(3) nonprofit, to process fundraises into
                 cash donations to universities.
               </p>
@@ -710,15 +807,18 @@ const AboutPage = () => {
             </div>
 
             <div className="relative">
-              <div className="rounded-3xl bg-white p-12 text-center shadow-2xl">
+              <div className="rounded-3xl bg-white p-6 text-center shadow-2xl sm:p-8 md:p-12">
                 <Image
                   src="/logos/endaoment_color.svg"
                   alt="Endaoment"
                   width={220}
                   height={64}
-                  className="mx-auto mb-8 h-16 w-auto"
+                  className="mx-auto mb-6 h-14 w-auto sm:mb-8 sm:h-16"
                 />
-                <div className="mb-2 text-6xl font-extrabold" style={{ color: colors.rhBlue[500] }}>
+                <div
+                  className="mb-2 text-4xl font-extrabold sm:text-5xl lg:text-6xl"
+                  style={{ color: colors.rhBlue[500] }}
+                >
                   $124M+
                 </div>
                 <div className="mb-2 text-lg font-bold" style={{ color: colors.gray[900] }}>
@@ -736,9 +836,12 @@ const AboutPage = () => {
         <div className="absolute bottom-0 left-0 h-96 w-96 -translate-x-1/2 translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
       </section>
 
-      <section className="overflow-hidden px-6 py-24" style={{ backgroundColor: colors.gray[50] }}>
+      <section
+        className="overflow-hidden px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24"
+        style={{ backgroundColor: colors.gray[50] }}
+      >
         <div className="mx-auto max-w-7xl">
-          <div className="mb-16 flex flex-col items-end justify-between gap-4 md:flex-row">
+          <div className="mb-10 flex flex-col items-start justify-between gap-4 sm:mb-16 md:flex-row md:items-end">
             <div>
               <h2 className="mb-4 text-3xl font-bold">Universities We&apos;ve Funded</h2>
               <p style={{ color: colors.gray[600] }}>
@@ -800,9 +903,9 @@ const AboutPage = () => {
         </div>
       </section>
 
-      <section id="team" className="px-6 py-24">
+      <section id="team" className="px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-16 text-center">
+          <div className="mb-10 text-center sm:mb-16">
             <h2 className="mb-4 text-3xl font-bold">The Team</h2>
             <p style={{ color: colors.gray[600] }}>
               A dedicated group of mission-driven builders and operators advancing scientific
@@ -860,26 +963,26 @@ const AboutPage = () => {
         </div>
       </section>
 
-      <section id="funders" className="px-6 py-24">
+      <section id="funders" className="px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
         <div
-          className="relative mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] p-12 text-center text-white shadow-2xl md:p-20"
+          className="relative mx-auto max-w-5xl overflow-hidden rounded-[2rem] p-6 text-center text-white shadow-2xl sm:rounded-[2.5rem] sm:p-10 md:p-20"
           style={{
             backgroundColor: colors.rhBlue[500],
             boxShadow: `0 32px 64px ${colors.rhBlue[200]}`,
           }}
         >
           <div className="relative z-10">
-            <h2 className="mb-6 text-4xl font-bold md:text-5xl">
+            <h2 className="mb-4 text-2xl font-bold sm:mb-6 sm:text-4xl md:text-5xl">
               Ready to Shape the Future of Science?
             </h2>
-            <p className="mx-auto mb-10 max-w-2xl text-lg text-blue-100">
+            <p className="mx-auto mb-8 max-w-2xl text-base text-blue-100 sm:mb-10 sm:text-lg">
               We are partnering with visionary philanthropists, foundations, and research-aligned
               donors to build a more reproducible world.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <a
                 href="mailto:tyler@researchhub.foundation"
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-10 py-5 text-lg font-bold shadow-xl transition-colors hover:bg-blue-50 sm:w-auto"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-6 py-4 text-base font-bold shadow-xl transition-colors hover:bg-blue-50 sm:w-auto sm:px-10 sm:py-5 sm:text-lg"
                 style={{ color: colors.rhBlue[500] }}
               >
                 Email Tyler Diorio <Mail className="h-5 w-5" />
@@ -888,13 +991,13 @@ const AboutPage = () => {
                 type="button"
                 onClick={onJoinClick}
                 disabled={isLoading}
-                className="w-full rounded-2xl border px-10 py-5 text-lg font-bold transition-colors sm:w-auto"
+                className="w-full rounded-2xl border px-6 py-4 text-base font-bold transition-colors sm:w-auto sm:px-10 sm:py-5 sm:text-lg"
                 style={{ backgroundColor: colors.rhBlue[700], borderColor: colors.rhBlue[400] }}
               >
                 {isLoading ? 'Loading...' : user ? 'Explore' : 'Join Now'}
               </button>
             </div>
-            <div className="mt-12 flex flex-col items-center gap-4">
+            <div className="mt-10 flex flex-col items-center gap-4 sm:mt-12">
               <AvatarStack
                 items={avatarItems}
                 size="sm"
@@ -913,17 +1016,20 @@ const AboutPage = () => {
       </section>
 
       <footer
-        className="border-t py-12 text-center text-sm"
+        className="border-t py-10 text-center text-sm sm:py-12"
         style={{ borderColor: colors.gray[100] }}
       >
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-6 md:flex-row">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:gap-6 sm:px-6 lg:px-8 md:flex-row">
           <Link href="/" className="flex items-center gap-2">
             <Logo noText size={20} />
             <span className="font-bold" style={{ color: colors.gray[900] }}>
               ResearchHub
             </span>
           </Link>
-          <div className="flex gap-8" style={{ color: colors.gray[500] }}>
+          <div
+            className="flex flex-wrap justify-center gap-4 sm:gap-8"
+            style={{ color: colors.gray[500] }}
+          >
             <Link href="/privacy" className="hover:opacity-80">
               Privacy
             </Link>
