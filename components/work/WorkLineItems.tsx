@@ -76,7 +76,7 @@ export const WorkLineItems = ({
           </div>
         )}
 
-        {work.publishedDate && (
+        {/* {work.publishedDate && (
           <div className="text-gray-500">
             {`Published ` +
               new Date(work.publishedDate).toLocaleDateString('en-US', {
@@ -85,7 +85,7 @@ export const WorkLineItems = ({
                 year: 'numeric',
               })}
           </div>
-        )}
+        )} */}
       </div>
 
       {!hideActions && (

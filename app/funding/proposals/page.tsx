@@ -15,8 +15,6 @@ export default function ProposalsPage() {
         </Suspense>
       }
     >
-      <FundingPageTabs />
-
       <div className="py-4">
         <ProposalListProvider>
           <FundingProposalGrid />

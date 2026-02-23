@@ -16,10 +16,14 @@ export const FundingProposalGrid: FC<FundingProposalGridProps> = ({
   className,
   hideFilters = false,
 }) => {
-  const { entries, isLoading, hasMore, loadMore } = useProposalList();
+  const { entries, isLoading, hasMore, loadMore, proposalCount } = useProposalList();
 
   return (
     <div className={cn('', className)}>
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        {isLoading ? 'Proposals' : `${proposalCount} Proposals`}
+      </h2>
+
       {!hideFilters && <ProposalSortAndFilters className="mb-8" />}
 
       {/* Grid */}

@@ -69,7 +69,6 @@ const isRootNavigationPage = (pathname: string): boolean => {
     '/dashboard',
     '/dashboard/impact',
     '/funding',
-    '/funding/proposals',
     '/journal',
     '/notebook',
     '/browse',
@@ -181,14 +180,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/dashboard')) {
     return {
       title: 'My Dashboard',
-      icon: <Icon name="fund" size={24} className="text-gray-900" />,
-    };
-  }
-
-  if (pathname === '/funding/proposals') {
-    return {
-      title: 'Fund',
-      subtitle: 'Research Proposals',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
@@ -346,7 +337,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   const { tabs, activeTab, handleTabChange, isFeedPage } = useFeedTabs();
 
-  const isFundingPage = pathname === '/funding' || pathname === '/funding/proposals';
+  const isFundingPage = pathname === '/funding';
   const isGrantPage = pathname.startsWith('/grant/') && !pathname.startsWith('/grant/create');
   const showGrantTabs = isFundingPage || isGrantPage;
   const grantsCtx = useGrantsOptional();
@@ -568,7 +559,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             )}
 
             {/* Feed tabs - shown on scroll for feed pages */}
-            {showFeedTabs && isFeedPage && !isFundingPage && (
+            {isFeedPage && !isFundingPage && (
               <div className="hidden tablet:!flex items-center h-full ml-6">
                 <div className="h-full min-w-0">
                   <FeedTabs

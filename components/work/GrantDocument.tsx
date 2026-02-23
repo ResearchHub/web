@@ -7,7 +7,6 @@ import { WorkLineItems } from './WorkLineItems';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
-import { WorkPrimaryActions } from './WorkPrimaryActions';
 import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
 import { ProposalListProvider, useProposalList } from '@/contexts/ProposalListContext';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
@@ -24,7 +23,7 @@ const DescriptionCallout = ({ content }: { content: string }) => {
   const isTruncated = plainText.length > PREVIEW_LENGTH;
 
   return (
-    <div className="mt-4 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-700">
+    <div className="mt-4 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-700 border border-transparent hover:border-gray-300 transition-colors cursor-pointer">
       {isExpanded ? (
         <>
           <div className="post-callout-content">
@@ -106,20 +105,11 @@ export const GrantDocument = ({ work, metadata }: GrantDocumentProps) => {
   return (
     <ProposalListProvider grantId={grantId}>
       <div>
-        <WorkPrimaryActions
-          work={work}
-          showClaimButton={false}
-          metadata={metadata}
-          compact
-          className="mt-2 mb-2"
-        />
-
         <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-0" />
         <WorkLineItems
           work={work}
           showClaimButton={false}
           metadata={metadata}
-          hideActions
           calloutContent={
             work.previewContent ? <DescriptionCallout content={work.previewContent} /> : undefined
           }
@@ -147,11 +137,11 @@ export const GrantDocument = ({ work, metadata }: GrantDocumentProps) => {
         )}
 
         <div className="mt-8">
-          <GrantTabBar
+          {/* <GrantTabBar
             activeTab={activeTab}
             onTabChange={setActiveTab}
             commentCount={metadata.metrics.conversationComments || 0}
-          />
+          /> */}
 
           <div className="mt-6">
             {activeTab === 'proposals' ? (

@@ -5,14 +5,13 @@ import { usePathname } from 'next/navigation';
 import { Tabs } from '@/components/ui/Tabs';
 
 const fundingTabs = [
-  { id: 'opportunities', label: 'Opportunities', href: '/funding' },
-  { id: 'proposals', label: 'Proposals', href: '/funding/proposals' },
+  { id: 'proposals', label: 'Proposals', href: '/funding' },
 ];
 
 export const FundingPageTabs: FC = () => {
   const pathname = usePathname();
 
-  const activeTab = pathname === '/funding/proposals' ? 'proposals' : 'opportunities';
+  const activeTab = 'proposals';
 
   return (
     <div className="pt-2 border-b border-gray-200">

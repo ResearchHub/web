@@ -19,13 +19,13 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
     () =>
       ['/', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(pathname) ||
       pathname.startsWith('/topic/') ||
-      pathname.startsWith('/fund') ||
+      (pathname.startsWith('/fund') && !pathname.startsWith('/funding')) ||
       pathname.startsWith('/journal'),
     [pathname]
   );
 
   const isTopicPage = pathname.startsWith('/topic/');
-  const isFundPage = pathname.startsWith('/fund');
+  const isFundPage = pathname.startsWith('/fund') && !pathname.startsWith('/funding');
   const isJournalPage = pathname.startsWith('/journal');
 
   const topicSlug = isTopicPage ? pathname.split('/')[2] : null;

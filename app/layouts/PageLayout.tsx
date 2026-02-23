@@ -69,7 +69,6 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
   const pathname = usePathname();
   const hasFundingTabs =
     pathname === '/funding' ||
-    pathname === '/funding/proposals' ||
     (pathname.startsWith('/grant/') && !pathname.startsWith('/grant/create'));
 
   // Mobile top nav scroll hide/show

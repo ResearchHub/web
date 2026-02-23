@@ -41,7 +41,7 @@ export const PostBlockEditor = ({
   }, []);
 
   return (
-    <div className="post-content bg-white rounded-lg shadow-sm border p-6 mb-6">
+    <div className="post-content bg-white rounded-lg shadow-sm border p-6 mb-6 -mx-4 -my-4">
       <BlockEditorClientWrapper content={content} editable={editable} setEditor={onEditorReady} />
     </div>
   );
