@@ -18,8 +18,10 @@ interface GrantCarouselProps {
   onInviteExperts?: () => void;
 }
 
-export function getShortTitle(title: string): string {
-  return title.replace(/^Request for Proposals\s*[-–—:]\s*/i, '');
+export function getShortTitle(title: string, maxWords?: number): string {
+  const stripped = title.replace(/^Request for Proposals\s*[-–—:]\s*/i, '');
+  if (!maxWords) return stripped;
+  return stripped.split(' ').slice(0, maxWords).join(' ');
 }
 
 function formatCompactUSD(usd: number): string {

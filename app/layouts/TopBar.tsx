@@ -37,6 +37,11 @@ import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { useFeedTabs } from '@/hooks/useFeedTabs';
 import { FeedTab } from '@/hooks/useFeed';
+import { useGrantsOptional } from '@/contexts/GrantContext';
+import { buildGrantTabs } from '@/components/Funding/FundingTabs';
+import { FeedGrantContent } from '@/types/feed';
+import { cn } from '@/utils/styles';
+import { Tabs } from '@/components/ui/Tabs';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -191,7 +196,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (['/funding', '/fund'].includes(pathname)) {
     return {
       title: 'Fund',
-      subtitle: 'Fund or get funding',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
@@ -342,6 +346,21 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   const { tabs, activeTab, handleTabChange, isFeedPage } = useFeedTabs();
 
+  const isFundingPage = pathname === '/funding' || pathname === '/funding/proposals';
+  const grantsCtx = useGrantsOptional();
+
+  useEffect(() => {
+    if (isFundingPage) grantsCtx?.ensureLoaded();
+  }, [isFundingPage, grantsCtx?.ensureLoaded]);
+
+  const grantTabs = useMemo(() => {
+    if (!isFundingPage || !grantsCtx?.grants.length) return [];
+    return [
+      { id: 'all', label: 'All', href: '/funding' },
+      ...buildGrantTabs(grantsCtx.grants.map((g) => ({ content: g.content as FeedGrantContent }))),
+    ];
+  }, [isFundingPage, grantsCtx?.grants]);
+
   useEffect(() => {
     const handleScroll = () => {
       if (scrollContainerRef?.current) {
@@ -438,8 +457,13 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   return (
     <>
-      <div className="border-b border-gray-200 bg-white" style={{ height: '70px' }}>
-        <div className="h-full flex items-center justify-between px-4 lg:px-8">
+      <div className="border-b border-gray-200 bg-white">
+        <div
+          className={cn(
+            'flex items-center justify-between px-4 lg:px-8',
+            isFundingPage && grantTabs.length > 0 ? 'h-[58px]' : 'h-[70px]'
+          )}
+        >
           {/* Left side - Back button + Page title OR FeedTabs */}
           <div className="flex items-center min-w-0 flex-1 mr-4 h-full">
             {/* Mobile logo - leftmost position */}
@@ -511,7 +535,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                   {pageInfo.title && (
                     <h1
                       className="font-semibold text-gray-900 leading-tight truncate"
-                      style={{ fontSize: '22px', letterSpacing: '-0.75px' }}
+                      style={{ fontSize: '24px', letterSpacing: '-0.75px' }}
                     >
                       {pageInfo.title}
                     </h1>
@@ -534,7 +558,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             )}
 
             {/* Feed tabs - shown on scroll for feed pages */}
-            {showFeedTabs && isFeedPage && (
+            {showFeedTabs && isFeedPage && !isFundingPage && (
               <div className="hidden tablet:!flex items-center h-full ml-6">
                 <div className="h-full min-w-0">
                   <FeedTabs
@@ -646,6 +670,13 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             </div>
           </div>
         </div>
+
+        {/* Grant tabs row — scrollable second row on funding pages */}
+        {isFundingPage && grantTabs.length > 0 && (
+          <div className="px-4 lg:px-8 -mb-px">
+            <Tabs tabs={grantTabs} activeTab="all" onTabChange={() => {}} size="md" />
+          </div>
+        )}
       </div>
 
       {/* Search Modal */}

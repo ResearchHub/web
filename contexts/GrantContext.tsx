@@ -27,6 +27,8 @@ interface GrantContextValue {
   getGrantById: (grantId: number | string) => FeedEntry | undefined;
   /** Refresh grants data */
   refresh: () => Promise<void>;
+  /** Trigger initial fetch (for lazy loading when provider is global) */
+  ensureLoaded: () => void;
 }
 
 const GrantContext = createContext<GrantContextValue | null>(null);
@@ -40,11 +42,9 @@ interface GrantProviderProps {
 }
 
 export function GrantProvider({ children, initialGrants, initialGrant }: GrantProviderProps) {
-  // Use initialGrants if provided (SSR), otherwise start empty
   const [grants, setGrants] = useState<FeedEntry[]>(initialGrants || []);
   const [selectedGrant, setSelectedGrant] = useState<FeedEntry | null>(initialGrant || null);
-  // If we have initial grants, we're not loading
-  const [isLoading, setIsLoading] = useState(!initialGrants || initialGrants.length === 0);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const hasAttemptedRef = useRef(!!initialGrants && initialGrants.length > 0);
@@ -73,11 +73,17 @@ export function GrantProvider({ children, initialGrants, initialGrant }: GrantPr
     }
   }, []);
 
-  // Fetch grants on mount only if we don't have initial grants
-  useEffect(() => {
-    if (!initialGrants || initialGrants.length === 0) {
+  const ensureLoaded = useCallback(() => {
+    if (!hasAttemptedRef.current) {
       fetchGrants();
     }
+  }, [fetchGrants]);
+
+  // Auto-fetch when initialGrants are provided (SSR hydration path)
+  useEffect(() => {
+    if (initialGrants && initialGrants.length > 0) return;
+    // Don't auto-fetch when used as a global provider (no initialGrants)
+    // Consumers call ensureLoaded() to trigger the fetch lazily
   }, [fetchGrants, initialGrants]);
 
   const getGrantById = useCallback(
@@ -121,6 +127,7 @@ export function GrantProvider({ children, initialGrants, initialGrant }: GrantPr
         selectGrant,
         getGrantById,
         refresh,
+        ensureLoaded,
       }}
     >
       {children}
@@ -134,4 +141,9 @@ export function useGrants() {
     throw new Error('useGrants must be used within a GrantProvider');
   }
   return context;
+}
+
+/** Safe version that returns null outside the provider (e.g. TopBar before GrantProvider mounts) */
+export function useGrantsOptional(): GrantContextValue | null {
+  return useContext(GrantContext);
 }

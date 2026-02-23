@@ -14,12 +14,22 @@ interface Tab {
   onClick?: (e: React.MouseEvent) => void;
 }
 
+type TabSize = 'xs' | 'sm' | 'md' | 'lg';
+
+const sizeClasses: Record<TabSize, string> = {
+  xs: 'text-xs',
+  sm: 'text-sm',
+  md: 'text-base',
+  lg: 'text-lg',
+};
+
 interface TabsProps {
   tabs: Tab[];
   activeTab: string;
   onTabChange: (tabId: string, e?: React.MouseEvent) => void;
   className?: string;
   variant?: 'primary' | 'pill';
+  size?: TabSize;
   disabled?: boolean;
 }
 
@@ -28,8 +38,9 @@ const TabItem: React.FC<{
   isActive: boolean;
   disabled: boolean;
   variant: 'primary' | 'pill';
+  size: TabSize;
   onTabChange: (id: string, e: React.MouseEvent) => void;
-}> = ({ tab, isActive, disabled, variant, onTabChange }) => {
+}> = ({ tab, isActive, disabled, variant, size, onTabChange }) => {
   const handleClick = (e: React.MouseEvent) => {
     if (disabled) {
       e.preventDefault();
@@ -42,7 +53,8 @@ const TabItem: React.FC<{
   };
 
   const styles = cn(
-    'text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 cursor-pointer transition-all duration-150',
+    sizeClasses[size],
+    'font-semibold flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 cursor-pointer transition-all duration-150',
     variant === 'pill'
       ? [
           'px-4 py-2 rounded-full',
@@ -93,6 +105,7 @@ export const Tabs: React.FC<TabsProps> = ({
   onTabChange,
   className,
   variant = 'primary',
+  size = 'sm',
   disabled = false,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -166,6 +179,7 @@ export const Tabs: React.FC<TabsProps> = ({
               isActive={activeTab === tab.id}
               disabled={disabled}
               variant={variant}
+              size={size}
               onTabChange={onTabChange}
             />
           </React.Fragment>

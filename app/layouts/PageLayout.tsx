@@ -67,6 +67,7 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
   const mainContentRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const hasFundingTabs = pathname === '/funding' || pathname === '/funding/proposals';
 
   // Mobile top nav scroll hide/show
   const { isHidden: isMobileTopNavHidden } = useMobileNavScroll({
@@ -143,7 +144,15 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
             tablet:max-sidebar-compact:!w-[70px]
 
             fixed transition-all duration-150
-            ${isCompact ? 'top-[48px] h-[calc(100vh-48px)]' : 'top-[64px] h-[calc(100vh-64px)]'}
+            ${
+              hasFundingTabs
+                ? isCompact
+                  ? 'top-[78px] h-[calc(100vh-78px)]'
+                  : 'top-[94px] h-[calc(100vh-94px)]'
+                : isCompact
+                  ? 'top-[48px] h-[calc(100vh-48px)]'
+                  : 'top-[64px] h-[calc(100vh-64px)]'
+            }
             w-[240px]
             ${isLeftSidebarOpen ? '!translate-x-0' : '!-translate-x-full'}
 
@@ -158,9 +167,10 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
         {/* Center Content Area (Scrolling) */}
         <div
           ref={scrollContainerRef}
-          className={`flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative transition-all duration-150 ${
-            isCompact ? 'pt-12' : 'pt-16'
-          }`}
+          className={cn(
+            'flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative transition-all duration-150',
+            hasFundingTabs ? (isCompact ? 'pt-[78px]' : 'pt-[94px]') : isCompact ? 'pt-12' : 'pt-16'
+          )}
         >
           {/* Main Content */}
           <main
@@ -186,7 +196,15 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
             <aside
               className={`fixed right-0 overflow-y-auto transition-all duration-150
                     lg:!block !hidden right-sidebar:!block w-80 bg-gray-50/75 border-l border-gray-200
-                    z-30 ${isCompact ? 'top-12 h-[calc(100vh-48px)]' : 'top-16 h-[calc(100vh-64px)]'}`}
+                    z-30 ${
+                      hasFundingTabs
+                        ? isCompact
+                          ? 'top-[78px] h-[calc(100vh-78px)]'
+                          : 'top-[94px] h-[calc(100vh-94px)]'
+                        : isCompact
+                          ? 'top-12 h-[calc(100vh-48px)]'
+                          : 'top-16 h-[calc(100vh-64px)]'
+                    }`}
             >
               {/* Sidebar Content */}
               <div className="px-4 pt-4 pb-4 h-full">

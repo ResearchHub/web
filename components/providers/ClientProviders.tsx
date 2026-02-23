@@ -25,6 +25,7 @@ import { FeatureNotifications } from '@/components/FeatureNotifications';
 import { UserListsProvider } from '@/components/UserList/lib/UserListsContext';
 import { LeaderboardProvider } from '@/contexts/LeaderboardContext';
 import { DismissedFeaturesProvider } from '@/contexts/DismissedFeaturesContext';
+import { GrantProvider } from '@/contexts/GrantContext';
 
 interface ClientProvidersProps {
   readonly children: ReactNode;
@@ -53,7 +54,9 @@ export function ClientProviders({ children, session }: ClientProvidersProps) {
                                     <UserListsProvider>
                                       <LeaderboardProvider>
                                         <DismissedFeaturesProvider>
-                                          <FollowProvider>{children}</FollowProvider>
+                                          <GrantProvider>
+                                            <FollowProvider>{children}</FollowProvider>
+                                          </GrantProvider>
                                           <FeatureNotifications />
                                         </DismissedFeaturesProvider>
                                       </LeaderboardProvider>

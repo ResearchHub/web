@@ -2,7 +2,6 @@
 
 import { GrantProvider, useGrants } from '@/contexts/GrantContext';
 import { GrantList } from '@/components/Funding/GrantList';
-import { FundingPageTabs } from '@/components/Funding/FundingPageTabs';
 import { GrantCarouselSkeleton } from '@/components/skeletons/GrantCarouselSkeleton';
 import { FeedEntry } from '@/types/feed';
 
@@ -22,27 +21,17 @@ function FundingPageInner({
   const { grants, isLoading } = useGrants();
 
   if (error) {
-    return (
-      <>
-        <FundingPageTabs />
-        <div className="py-16 text-center text-red-500">{error}</div>
-      </>
-    );
+    return <div className="py-16 text-center text-red-500">{error}</div>;
   }
 
-  return (
-    <>
-      <FundingPageTabs />
-      {isLoading ? (
-        <GrantCarouselSkeleton />
-      ) : (
-        <GrantList
-          grants={grants}
-          closedGrants={closedGrants}
-          emptyMessage="No funding opportunities available right now."
-        />
-      )}
-    </>
+  return isLoading ? (
+    <GrantCarouselSkeleton />
+  ) : (
+    <GrantList
+      grants={grants}
+      closedGrants={closedGrants}
+      emptyMessage="No funding opportunities available right now."
+    />
   );
 }
 
