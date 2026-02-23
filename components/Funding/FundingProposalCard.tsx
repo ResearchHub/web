@@ -73,24 +73,26 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
 
   if (!fundraise) return null;
 
-  const isCompleted = fundraise.status === 'COMPLETED' || fundraise.status === 'CLOSED';
+  const isCompleted = fundraise.status === 'COMPLETED';
+  const isClosed = fundraise.status === 'CLOSED';
   const author = fundraise.createdBy?.authorProfile;
   const href = `/fund/${content.id}/${content.slug}`;
 
   const goalAmount = showUSD ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc;
-  const raisedAmount = showUSD ? fundraise.amountRaised.usd : fundraise.amountRaised.rsc;
+  const isFinished = isCompleted || isClosed;
+  const raisedAmount = isFinished
+    ? goalAmount
+    : showUSD
+      ? fundraise.amountRaised.usd
+      : fundraise.amountRaised.rsc;
 
   const daysRemaining = fundraise.endDate
     ? differenceInDays(new Date(fundraise.endDate), new Date())
     : null;
   const isEndingSoon =
-    !isCompleted && daysRemaining !== null && daysRemaining <= 14 && daysRemaining >= 0;
+    !isFinished && daysRemaining !== null && daysRemaining <= 7 && daysRemaining >= 0;
 
-  const statusBadge = isCompleted ? (
-    <div className="absolute top-2 left-2 bg-green-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
-      Fully funded
-    </div>
-  ) : isEndingSoon ? (
+  const statusBadge = isEndingSoon ? (
     <div className="absolute top-2 left-2 bg-amber-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
       Ending soon
     </div>
@@ -127,6 +129,7 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
           raisedAmount={raisedAmount}
           goalAmount={goalAmount}
           isCompleted={isCompleted}
+          isClosed={isClosed}
         />
       </div>
       <div className="flex-shrink-0 flex items-baseline gap-1 text-xs font-mono">
@@ -159,7 +162,7 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
         href={href}
         className={cn(
           'relative block rounded-xl flex flex-col',
-          isCompleted && 'opacity-75',
+          isFinished && 'opacity-75',
           className
         )}
       >
@@ -225,7 +228,7 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
           <div
             className={cn(
               'rounded-xl bg-white shadow-xl border border-gray-200 overflow-hidden',
-              isCompleted && 'opacity-90'
+              isFinished && 'opacity-90'
             )}
           >
             <Link href={href}>

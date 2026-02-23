@@ -30,7 +30,7 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
 
   return (
     <>
-      <div className="bg-primary-50 border border-primary-200 p-4 rounded-lg shadow-sm">
+      <div className="-mx-4 px-4 py-4 border-b border-gray-200">
         <div className="flex flex-col gap-1 overflow-hidden">
           <div className="flex items-center gap-2 min-w-0">
             <div className="text-2xl sm:text-3xl font-bold font-mono text-primary-600 min-w-0 flex-shrink truncate flex items-center gap-1">

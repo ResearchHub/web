@@ -115,7 +115,7 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
         )}
         {isClosed ? (
           <span className="flex items-center gap-1.5 text-gray-500">
-            <RadiatingDot color="bg-gray-400" isRadiating={false} dotSize={8} />
+            <RadiatingDot color="bg-gray-400" isRadiating={false} />
             Closed
           </span>
         ) : (

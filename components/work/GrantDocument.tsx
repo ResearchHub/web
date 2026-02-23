@@ -9,6 +9,7 @@ import { WorkTabs, TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { isDeadlineInFuture } from '@/utils/date';
+import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
 import { ProposalListProvider } from '@/contexts/ProposalListContext';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
@@ -75,9 +76,7 @@ export const GrantDocument = ({ work, metadata, defaultTab = 'overview' }: Grant
     <ProposalListProvider grantId={grantId}>
       <div>
         <div className="flex items-center gap-2 mb-2 mt-2">
-          <span
-            className={`inline-block w-2 h-2 rounded-full ${isActive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}
-          />
+          <RadiatingDot color={isActive ? 'bg-green-500' : 'bg-gray-400'} isRadiating={isActive} />
           <span className={`text-sm font-medium ${isActive ? 'text-green-600' : 'text-gray-500'}`}>
             {isActive ? 'Accepting Proposals' : 'Closed'}
           </span>

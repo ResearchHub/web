@@ -5,7 +5,7 @@ import { WorkMetadata } from '@/services/metadata.service';
 import { ApplicantsSection } from './components/ApplicantsSection';
 import { TopicsSection } from './components/TopicsSection';
 import { GrantAmountSection } from './components/GrantAmountSection';
-import { GrantStatusSection } from './components/GrantStatusSection';
+import { GrantDetailsSection } from './components/GrantStatusSection';
 import { DOISection } from './components/DOISection';
 
 interface GrantRightSidebarProps {
@@ -20,7 +20,7 @@ export const GrantRightSidebar = ({ work, metadata }: GrantRightSidebarProps) =>
   return (
     <div className="space-y-8">
       <GrantAmountSection work={work} />
-      <GrantStatusSection work={work} />
+      <GrantDetailsSection work={work} />
       <ApplicantsSection applicants={applicants} />
       {metadata.topics && metadata.topics.length > 0 && <TopicsSection topics={metadata.topics} />}
       {work.doi && <DOISection doi={work.doi} />}

@@ -82,15 +82,7 @@ export const FooterLinks: React.FC = () => {
           className={`flex items-center gap-1 ${hasSeenChangelog ? 'hover:text-gray-700' : 'text-orange-500 hover:text-orange-600'}`}
           onClick={handleChangelogClick}
         >
-          {!hasSeenChangelog && (
-            <RadiatingDot
-              size={12}
-              dotSize={6}
-              color="bg-orange-500"
-              radiateColor="bg-orange-400"
-              ringColor="border-orange-200"
-            />
-          )}
+          {!hasSeenChangelog && <RadiatingDot color="bg-orange-500" size="sm" />}
           Changelog
         </a>
         <a href="https://www.researchhub.com/about/tos" className="hover:text-gray-700">
