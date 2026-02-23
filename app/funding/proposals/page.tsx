@@ -1,14 +1,20 @@
-'use client';
-
+import { Suspense } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { ActivityFeed } from '@/components/Funding/ActivityFeed';
 import { FundingPageTabs } from '@/components/Funding/FundingPageTabs';
 import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
 import { ProposalListProvider } from '@/contexts/ProposalListContext';
+import { ActivitySidebarServer } from '@/components/Funding/ActivitySidebarServer';
+import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
 
 export default function ProposalsPage() {
   return (
-    <PageLayout rightSidebar={<ActivityFeed />}>
+    <PageLayout
+      rightSidebar={
+        <Suspense fallback={<ActivitySidebarSkeleton />}>
+          <ActivitySidebarServer />
+        </Suspense>
+      }
+    >
       <FundingPageTabs />
 
       <div className="py-4">

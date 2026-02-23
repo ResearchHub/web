@@ -7,9 +7,9 @@ export type ProposalSortOption =
   | 'amount_raised';
 
 export const STATUS_OPTIONS: { label: string; value: ProposalStatusFilter }[] = [
-  { label: 'All', value: 'all' },
+  { label: 'All proposals', value: 'all' },
   { label: 'Open', value: 'open' },
-  { label: 'Funding completed', value: 'completed' },
+  { label: 'Ended', value: 'completed' },
 ];
 
 export const SORT_OPTIONS: { label: string; value: ProposalSortOption }[] = [

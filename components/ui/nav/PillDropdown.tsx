@@ -30,7 +30,7 @@ export function PillDropdown<T extends string = string>({
 
   const selectedOption = options.find((o) => o.value === value);
   const isDefault = value === options[0]?.value;
-  const displayLabel = label && isDefault ? label : selectedOption?.label;
+  const displayLabel = selectedOption?.label ?? label;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -48,7 +48,7 @@ export function PillDropdown<T extends string = string>({
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className={cn(
-          'inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all duration-150 select-none whitespace-nowrap',
+          'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150 select-none whitespace-nowrap',
           !isDefault
             ? 'bg-gray-900 text-white shadow-sm'
             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
