@@ -386,13 +386,13 @@ export function PaymentWidget({
             requiredAmountUsd={amountInUsd}
           />
           <div className="mt-2 text-center text-sm text-gray-500">
-            Connected to Endaoment
-            <span className="mx-1">·</span>
+            <span>Connected to Endaoment</span>
+            <span className="mx-1">&middot;</span>
             <button
               type="button"
               onClick={disconnect}
               disabled={isDisconnecting}
-              className="text-primary-600 hover:underline disabled:opacity-50"
+              className="text-gray-400 hover:text-gray-600 hover:underline disabled:opacity-50"
             >
               {isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
             </button>
