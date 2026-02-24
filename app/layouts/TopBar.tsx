@@ -491,7 +491,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                   {pageInfo.title && (
                     <h1
                       className="font-semibold text-gray-900 leading-tight truncate"
-                      style={{ fontSize: '22px', letterSpacing: '-0.75px' }}
+                      style={{ fontSize: '24px', letterSpacing: '-0.75px' }}
                     >
                       {pageInfo.title}
                     </h1>

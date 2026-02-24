@@ -68,6 +68,7 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
   const mainContentRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const isFundPage = pathname === '/fund' || pathname === '/fund/opportunities';
 
   // Mobile top nav scroll hide/show
   const { isHidden: isMobileTopNavHidden } = useMobileNavScroll({
@@ -162,7 +163,7 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
             ref={scrollContainerRef}
             className={`flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative transition-all duration-150 ${
               isCompact ? 'pt-12' : 'pt-16'
-            }`}
+            } ${isFundPage ? 'pt-[108px]' : ''}`}
           >
             {/* Main Content */}
             <main
@@ -191,7 +192,7 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
                     z-30 ${isCompact ? 'top-12 h-[calc(100vh-48px)]' : 'top-16 h-[calc(100vh-64px)]'}`}
               >
                 {/* Sidebar Content */}
-                <div className="px-4 pt-4 pb-4 h-full">
+                <div className={`px-4 pt-4 pb-4 h-full ${isFundPage ? 'mt-10' : ''}`}>
                   <Suspense fallback={<RightSidebarSkeleton />}>
                     {pathname.startsWith('/paper/create') ? (
                       <RHJRightSidebar showBanner={false} />
