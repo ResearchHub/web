@@ -18,11 +18,13 @@ export const ProposalSortAndFilters: FC<ProposalSortAndFiltersProps> = ({ classN
       <PillDropdown<ProposalStatusFilter>
         options={STATUS_OPTIONS}
         value={statusFilter}
+        size="md"
         onChange={setStatusFilter}
       />
       <PillDropdown<ProposalSortOption>
         options={SORT_OPTIONS}
         value={sortBy}
+        size="md"
         onChange={setSortBy}
       />
     </div>

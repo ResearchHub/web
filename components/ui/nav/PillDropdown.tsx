@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/utils/styles';
+import { PillSize, pillSizeClasses } from './pillSize';
 
 export interface PillDropdownOption<T extends string = string> {
   label: string;
@@ -15,6 +16,7 @@ export interface PillDropdownProps<T extends string = string> {
   options: PillDropdownOption<T>[];
   value: T;
   onChange: (value: T) => void;
+  size?: PillSize;
   className?: string;
 }
 
@@ -23,6 +25,7 @@ export function PillDropdown<T extends string = string>({
   options,
   value,
   onChange,
+  size = 'xs',
   className,
 }: PillDropdownProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
@@ -48,7 +51,8 @@ export function PillDropdown<T extends string = string>({
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className={cn(
-          'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150 select-none whitespace-nowrap',
+          'inline-flex items-center rounded-full font-semibold transition-all duration-150 select-none whitespace-nowrap',
+          pillSizeClasses[size],
           !isDefault
             ? 'bg-gray-900 text-white shadow-sm'
             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
