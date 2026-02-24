@@ -21,12 +21,6 @@ import { TransactionFooter } from './shared/TransactionFooter';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import toast from 'react-hot-toast';
 
-const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
-if (!HOT_WALLET_ADDRESS_ENV || HOT_WALLET_ADDRESS_ENV.trim() === '') {
-  throw new Error('Missing environment variable: NEXT_PUBLIC_WEB3_WALLET_ADDRESS');
-}
-const HOT_WALLET_ADDRESS = HOT_WALLET_ADDRESS_ENV as `0x${string}`;
-
 // Define types for blockchain transaction call
 type Call = {
   to: `0x${string}`;
@@ -53,6 +47,8 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const [amount, setAmount] = useState<string>('');
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkType>('BASE');
   const [isInitiating, isDepositButtonDisabled] = useState(false);
+  const [depositAddress, setDepositAddress] = useState<`0x${string}` | null>(null);
+  const [isLoadingDepositAddress, setIsLoadingDepositAddress] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const { address } = useAccount();
 
@@ -80,14 +76,23 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const networkConfig = NETWORK_CONFIG[selectedNetwork];
   const blockExplorerUrl = networkConfig.explorerUrl;
 
-  // Trigger wallet creation when modal opens (lazy provisioning)
+  // Fetch deposit address when modal opens (lazy wallet provisioning)
   useEffect(() => {
-    if (isOpen) {
-      WalletService.getDepositAddress().catch((error) => {
-        console.error('Failed to provision wallet:', error);
-      });
+    if (isOpen && !depositAddress) {
+      setIsLoadingDepositAddress(true);
+      WalletService.getDepositAddress()
+        .then((response) => {
+          setDepositAddress(response.address as `0x${string}`);
+        })
+        .catch((error) => {
+          console.error('Failed to provision wallet:', error);
+          toast.error('Failed to get deposit address');
+        })
+        .finally(() => {
+          setIsLoadingDepositAddress(false);
+        });
     }
-  }, [isOpen]);
+  }, [isOpen, depositAddress]);
 
   useEffect(() => {
     if (isOpen) {
@@ -159,8 +164,19 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
       depositAmount <= 0 ||
       depositAmount > walletBalance ||
       isInitiating ||
+      isMobile ||
+      !depositAddress ||
+      isLoadingDepositAddress,
+    [
+      address,
+      amount,
+      depositAmount,
+      walletBalance,
+      isInitiating,
       isMobile,
-    [address, amount, depositAmount, walletBalance, isInitiating, isMobile]
+      depositAddress,
+      isLoadingDepositAddress,
+    ]
   );
 
   const isInputDisabled = useCallback(() => {
@@ -258,12 +274,15 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     if (depositAmount > walletBalance) {
       throw new Error('Deposit amount exceeds wallet balance');
     }
+    if (!depositAddress) {
+      throw new Error('Deposit address not available');
+    }
 
     const amountInWei = BigInt(depositAmount) * BigInt(10 ** 18);
 
     const transferInterface = new Interface(TRANSFER_ABI);
     const encodedData = transferInterface.encodeFunctionData('transfer', [
-      HOT_WALLET_ADDRESS,
+      depositAddress,
       amountInWei.toString(),
     ]);
 
@@ -274,7 +293,7 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
     };
 
     return [transferCall];
-  }, [amount, depositAmount, walletBalance, rscToken.address]);
+  }, [amount, depositAmount, walletBalance, rscToken.address, depositAddress]);
 
   const footer = useMemo(() => {
     const txHash = txStatus.state === 'success' ? txStatus.txHash : undefined;
