@@ -1,5 +1,4 @@
 import { Notification } from '@/types/notification';
-import Link from 'next/link';
 import { formatTimestamp } from '@/utils/date';
 import {
   getNotificationInfo,
@@ -12,9 +11,11 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Icon } from '@/components/ui/icons/Icon';
 import clsx from 'clsx';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Info } from 'lucide-react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { useRouter } from 'next/navigation';
 
 interface NotificationItemProps {
@@ -25,7 +26,8 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const router = useRouter();
   const notificationInfo = getNotificationInfo(notification);
   const { exchangeRate } = useExchangeRate();
-  const message = formatNotificationMessage(notification, exchangeRate);
+  const { showUSD } = useCurrencyPreference();
+  const message = formatNotificationMessage(notification, exchangeRate, showUSD);
   const formattedNavigationUrl = formatNavigationUrl(notification);
   const hasNavigationUrl = !!formattedNavigationUrl && formattedNavigationUrl.trim() !== '';
   const rscAmount = getRSCAmountFromNotification(notification);
@@ -92,7 +94,27 @@ export function NotificationItem({ notification }: NotificationItemProps) {
           </div>
         )}
       </div>
-      <div className="text-sm font-medium text-gray-900">{message}</div>
+      <div className="text-sm font-medium text-gray-900">
+        {message}
+        {notification.type === 'PREREGISTRATION_UPDATE_REMINDER' && (
+          <span className="inline-flex ml-1 align-middle" onClick={(e) => e.stopPropagation()}>
+            <Tooltip
+              content={
+                <p className="text-xs text-left p-1">
+                  ResearchHub incentivizes scientists to share ongoing updates as their experiments
+                  progress. There are no format or length requirements - interesting insights
+                  described with brevity are preferred for keeping our community of funders informed
+                  and interested in your work.
+                </p>
+              }
+              position="bottom"
+              width="w-72"
+            >
+              <Info className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 cursor-help transition-colors relative -top-[1px]" />
+            </Tooltip>
+          </span>
+        )}
+      </div>
       <div className="text-xs text-gray-500 mt-1">
         {formatTimestamp(notification.createdDate.toISOString())}
       </div>

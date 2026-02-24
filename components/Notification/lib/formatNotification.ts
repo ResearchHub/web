@@ -1,11 +1,13 @@
-import { Icon, type IconName } from '@/components/ui/icons/Icon';
+import { type IconName } from '@/components/ui/icons/Icon';
 import { Notification } from '@/types/notification';
-import { formatUsdValue } from '@/utils/number';
+import { formatUsdValue, formatRSC } from '@/utils/number';
 
 export interface NotificationTypeInfo {
   icon: IconName;
   useAvatar: boolean;
 }
+
+const PROPOSAL_UPDATE_REWARD_USD = 50;
 
 export interface HubDetails {
   name: string;
@@ -67,10 +69,6 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
     icon: 'submit2',
     useAvatar: false,
   },
-  PREREGISTRATION_UPDATE: {
-    icon: 'edit',
-    useAvatar: true,
-  },
   PUBLICATIONS_ADDED: {
     icon: 'claimPaper',
     useAvatar: false,
@@ -121,6 +119,10 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
   },
 
   // Proposal notifications
+  PREREGISTRATION_UPDATE: {
+    icon: 'edit',
+    useAvatar: true,
+  },
   PREREGISTRATION_UPDATE_REMINDER: {
     icon: 'earn1',
     useAvatar: false,
@@ -259,7 +261,8 @@ function getBountyTypeAction(bountyType: string): string {
 
 export function formatNotificationMessage(
   notification: Notification,
-  exchangeRate: number = 0
+  exchangeRate: number = 0,
+  showUSD: boolean = true
 ): string {
   const { type, actionUser, work } = notification;
 
@@ -347,7 +350,11 @@ export function formatNotificationMessage(
       return `${userName} made an update to "${truncatedTitle}"`;
 
     case 'PREREGISTRATION_UPDATE_REMINDER': {
-      return `Share a meaningful update on your proposal "${truncatedTitle}" and earn $50 in RSC`;
+      const formattedAmount =
+        showUSD || exchangeRate <= 0
+          ? `$${PROPOSAL_UPDATE_REWARD_USD} USD`
+          : `${formatRSC({ amount: PROPOSAL_UPDATE_REWARD_USD / exchangeRate, round: true })} RSC`;
+      return `Share a meaningful update on your proposal "${truncatedTitle}" and earn ${formattedAmount}`;
     }
 
     default:
