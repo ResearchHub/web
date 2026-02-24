@@ -3,8 +3,13 @@ const nextConfig = {
   reactStrictMode: false,
   redirects: async () => [
     {
-      source: '/fund',
-      destination: '/fund/grants',
+      source: '/funding',
+      destination: '/fund',
+      permanent: false,
+    },
+    {
+      source: '/funding/:path*',
+      destination: '/fund/:path*',
       permanent: false,
     },
     {

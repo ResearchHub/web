@@ -39,7 +39,7 @@ export const FundingTabs: FC<FundingTabsProps> = ({ selectedGrantId, className, 
       return {
         id: `grant-${content.id}`,
         label: `${getShortTitle(content.title, 3)}${amountLabel}`,
-        href: `/funding/${content.id}`,
+        href: `/fund/${content.id}`,
       };
     });
 
@@ -47,7 +47,7 @@ export const FundingTabs: FC<FundingTabsProps> = ({ selectedGrantId, className, 
       {
         id: 'all',
         label: 'All',
-        href: '/funding',
+        href: '/fund',
       },
       ...grantTabs,
     ];
@@ -59,7 +59,7 @@ export const FundingTabs: FC<FundingTabsProps> = ({ selectedGrantId, className, 
       return `grant-${selectedGrantId}`;
     }
     // Check if we're on the main /funding page
-    if (pathname === '/funding') {
+    if (pathname === '/fund') {
       return 'all';
     }
     return 'all';

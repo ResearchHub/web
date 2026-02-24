@@ -94,7 +94,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     },
     {
       label: 'Fund',
-      href: '/funding',
+      href: '/fund',
       iconKey: 'fund',
       description: 'Browse grants and fundraising opportunities',
     },
@@ -145,9 +145,8 @@ export const Navigation: React.FC<NavigationProps> = ({
       return ['/popular', '/for-you', '/latest', '/following'].includes(currentPath);
     }
 
-    // Special case for fund page - match /funding and legacy /fund routes
-    if (path === '/funding') {
-      return currentPath.startsWith('/funding') || currentPath.startsWith('/fund');
+    if (path === '/fund') {
+      return currentPath.startsWith('/fund');
     }
 
     // Special case for notebook page - match any route that starts with /notebook

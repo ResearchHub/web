@@ -16,17 +16,15 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
 
   const isTopicPage = pathname.startsWith('/topic/');
-  const isFundPage = pathname.startsWith('/fund') && !pathname.startsWith('/funding');
+  const isJournalPage = pathname.startsWith('/journal');
 
   const isFeedPage = useMemo(
     () =>
       ['/', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(pathname) ||
       pathname.startsWith('/topic/') ||
-      isFundPage ||
       pathname.startsWith('/journal'),
-    [pathname, isFundPage]
+    [pathname]
   );
-  const isJournalPage = pathname.startsWith('/journal');
 
   const topicSlug = isTopicPage ? pathname.split('/')[2] : null;
 
@@ -40,12 +38,6 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
       return 'popular';
     }
 
-    if (isFundPage) {
-      if (pathname.includes('/grants')) return 'grants';
-      if (pathname.includes('/needs-funding')) return 'needs-funding';
-      return 'grants';
-    }
-
     if (isJournalPage) {
       return searchParams.get('tab') || 'all';
     }
@@ -57,14 +49,12 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
     if (pathname === '/popular') return 'popular';
     if (pathname === '/for-you') return 'for-you';
     return 'popular';
-  }, [pathname, isTopicPage, isFundPage, isJournalPage, searchParams]);
+  }, [pathname, isTopicPage, isJournalPage, searchParams]);
 
   const tabs = useMemo(() => {
     const getHref = (id: string) => {
       if (isTopicPage && topicSlug) {
         return `/topic/${topicSlug}/${id}`;
-      } else if (isFundPage) {
-        return `/fund/${id}`;
       } else if (isJournalPage) {
         const params = new URLSearchParams(searchParams.toString());
         params.set('tab', id);
@@ -78,13 +68,6 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
       return [
         { id: 'popular', label: 'Popular', href: getHref('popular'), scroll: false },
         { id: 'latest', label: 'Latest', href: getHref('latest'), scroll: false },
-      ];
-    }
-
-    if (isFundPage) {
-      return [
-        { id: 'grants', label: 'Opportunities', href: getHref('grants'), scroll: false },
-        { id: 'needs-funding', label: 'Proposals', href: getHref('needs-funding'), scroll: false },
       ];
     }
 
@@ -116,7 +99,7 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
       href: getHref(tab.id),
       scroll: false,
     }));
-  }, [status, isTopicPage, isFundPage, isJournalPage, topicSlug, pathname, searchParams]);
+  }, [status, isTopicPage, isJournalPage, topicSlug, pathname, searchParams]);
 
   const handleTabChange = (tab: string, e?: React.MouseEvent) => {
     if (tab === activeTab) {
@@ -128,8 +111,6 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
       onBeforeNavigate?.();
       if (isTopicPage && topicSlug) {
         router.push(`/topic/${topicSlug}/${tab}`, { scroll: false });
-      } else if (isFundPage) {
-        router.push(`/fund/${tab}`, { scroll: false });
       } else if (isJournalPage) {
         const params = new URLSearchParams(window.location.search);
         params.set('tab', tab);
@@ -140,7 +121,7 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
     };
 
     const protectedTabs = ['following', 'for-you'];
-    if (protectedTabs.includes(tab) && !user && !isTopicPage && !isFundPage && !isJournalPage) {
+    if (protectedTabs.includes(tab) && !user && !isTopicPage && !isJournalPage) {
       e?.preventDefault();
       executeAuthenticatedAction(navigate);
       return;

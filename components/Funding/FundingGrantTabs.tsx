@@ -10,7 +10,7 @@ import { buildWorkUrl } from '@/utils/url';
 export const FundingGrantTabs: FC = () => {
   const pathname = usePathname();
   const { grants, fetchGrants } = useGrants();
-  const isFundingPage = pathname === '/funding' || pathname === '/funding/proposals';
+  const isFundingPage = pathname === '/fund' || pathname === '/fund/proposals';
 
   useEffect(() => {
     if (isFundingPage) {
@@ -28,7 +28,7 @@ export const FundingGrantTabs: FC = () => {
       };
     });
 
-    return [{ id: 'all', label: 'All', href: '/funding' }, ...grantTabs];
+    return [{ id: 'all', label: 'All', href: '/fund' }, ...grantTabs];
   }, [grants]);
 
   if (!isFundingPage || grants.length === 0) return null;
