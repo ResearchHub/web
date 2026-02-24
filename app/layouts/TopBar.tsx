@@ -395,16 +395,16 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   };
 
   const renderSearchbarButton = () => {
-    const displayText = currentSearchQuery || 'Search...';
-    const displayTextTablet = currentSearchQuery || 'Search ResearchHub...';
+    const displayText = currentSearchQuery || 'Search';
+    const displayTextTablet = currentSearchQuery || 'Search';
 
     return (
       <div className="relative">
         <button
           onClick={() => setIsSearchModalOpen(true)}
-          className="flex items-center w-full md:!w-80 max-w-md mx-auto h-8 px-4 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors text-left group"
+          className="flex items-center w-full md:!w-60 max-w-md mx-auto h-9 px-4 py-1.5 bg-gray-100/75 hover:bg-gray-200 rounded-full transition-colors text-left group"
         >
-          <SearchIcon className="h-4 w-4 text-gray-400 mr-3 flex-shrink-0" />
+          <SearchIcon className="h-4 w-4 text-gray-600 mr-3 flex-shrink-0" />
           <span
             className={`text-sm flex-1 truncate ${currentSearchQuery ? 'text-gray-900' : 'text-gray-500'}`}
           >
@@ -412,7 +412,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             <span className="hidden tablet:!inline">{displayTextTablet}</span>
           </span>
           <div className="hidden md:!flex items-center space-x-1 ml-2 flex-shrink-0">
-            <span className="text-[10px] text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded font-medium">
+            <span className="text-[12px] -mr-1 text-gray-600 bg-gray-200 px-2 py-0.5 rounded-full font-medium">
               {shortcutText}
             </span>
           </div>
@@ -617,7 +617,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         {/* Funding grant tabs - second row below title */}
         {isFundingPage && (
           <div
-            className="border-b border-gray-200 px-4 lg:px-8 overflow-hidden transition-all duration-300 ease-in-out"
+            className="border-b border-gray-200 px-4 lg:px-8 overflow-hidden transition-all duration-300 ease-in-out -mt-3"
             style={{
               maxHeight: hasFundingTabs ? '48px' : '0px',
               opacity: hasFundingTabs ? 1 : 0,
