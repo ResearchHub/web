@@ -181,6 +181,7 @@ export interface FeedGrantContent extends BaseFeedContent {
     };
     organization: string;
     description: string;
+    shortTitle: string;
     status: 'OPEN' | 'CLOSED';
     startDate: string;
     endDate: string;
@@ -796,6 +797,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               isExpired: content_object.grant.is_expired,
               isActive: content_object.grant.is_active,
               currency: content_object.grant.currency,
+              shortTitle: content_object.grant.short_title || '',
               createdBy: content_object.grant.created_by,
               applicants: (content_object.grant.applications || [])
                 .map((application: any) => application.applicant)

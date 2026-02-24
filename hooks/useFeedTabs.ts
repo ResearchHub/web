@@ -15,17 +15,17 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
   const searchParams = useSearchParams();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
 
+  const isTopicPage = pathname.startsWith('/topic/');
+  const isFundPage = pathname.startsWith('/fund') && !pathname.startsWith('/funding');
+
   const isFeedPage = useMemo(
     () =>
       ['/', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(pathname) ||
       pathname.startsWith('/topic/') ||
-      pathname.startsWith('/fund') ||
+      isFundPage ||
       pathname.startsWith('/journal'),
-    [pathname]
+    [pathname, isFundPage]
   );
-
-  const isTopicPage = pathname.startsWith('/topic/');
-  const isFundPage = pathname.startsWith('/fund');
   const isJournalPage = pathname.startsWith('/journal');
 
   const topicSlug = isTopicPage ? pathname.split('/')[2] : null;

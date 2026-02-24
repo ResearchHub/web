@@ -1,31 +1,20 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useRef,
-  useEffect,
-  ReactNode,
-} from 'react';
+import { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react';
 import { GrantService } from '@/services/grant.service';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 
 interface GrantContextValue {
-  /** All open grants fetched from the API */
   grants: FeedEntry[];
-  /** Currently selected grant (for /funding/[grantId] pages) */
   selectedGrant: FeedEntry | null;
-  /** Loading state for initial grants fetch */
   isLoading: boolean;
-  /** Error message if fetch failed */
   error: string | null;
-  /** Select a grant by its ID */
+  /** Lazy fetch -- only fires one API call, then caches. Safe to call repeatedly. */
+  fetchGrants: () => Promise<void>;
+  /** Seed grants from SSR data without triggering a fetch */
+  setInitialGrants: (grants: FeedEntry[]) => void;
   selectGrant: (grantId: number | string | null) => void;
-  /** Get a grant by ID from the cached grants */
   getGrantById: (grantId: number | string) => FeedEntry | undefined;
-  /** Refresh grants data */
   refresh: () => Promise<void>;
 }
 
@@ -33,25 +22,19 @@ const GrantContext = createContext<GrantContextValue | null>(null);
 
 interface GrantProviderProps {
   children: ReactNode;
-  /** Initial grants from server-side fetch (for static rendering) */
-  initialGrants?: FeedEntry[];
-  /** Optional initial selected grant for server-side rendered pages */
-  initialGrant?: FeedEntry | null;
 }
 
-export function GrantProvider({ children, initialGrants, initialGrant }: GrantProviderProps) {
-  // Use initialGrants if provided (SSR), otherwise start empty
-  const [grants, setGrants] = useState<FeedEntry[]>(initialGrants || []);
-  const [selectedGrant, setSelectedGrant] = useState<FeedEntry | null>(initialGrant || null);
-  // If we have initial grants, we're not loading
-  const [isLoading, setIsLoading] = useState(!initialGrants || initialGrants.length === 0);
+export function GrantProvider({ children }: GrantProviderProps) {
+  const [grants, setGrants] = useState<FeedEntry[]>([]);
+  const [selectedGrant, setSelectedGrant] = useState<FeedEntry | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const hasAttemptedRef = useRef(!!initialGrants && initialGrants.length > 0);
+  const hasDataRef = useRef(false);
 
   const fetchGrants = useCallback(async () => {
-    if (hasAttemptedRef.current) return;
-    hasAttemptedRef.current = true;
+    if (hasDataRef.current) return;
+    hasDataRef.current = true;
 
     setIsLoading(true);
     setError(null);
@@ -73,12 +56,11 @@ export function GrantProvider({ children, initialGrants, initialGrant }: GrantPr
     }
   }, []);
 
-  // Fetch grants on mount only if we don't have initial grants
-  useEffect(() => {
-    if (!initialGrants || initialGrants.length === 0) {
-      fetchGrants();
-    }
-  }, [fetchGrants, initialGrants]);
+  const setInitialGrants = useCallback((initialGrants: FeedEntry[]) => {
+    if (hasDataRef.current) return;
+    hasDataRef.current = true;
+    setGrants(initialGrants);
+  }, []);
 
   const getGrantById = useCallback(
     (grantId: number | string): FeedEntry | undefined => {
@@ -107,7 +89,7 @@ export function GrantProvider({ children, initialGrants, initialGrant }: GrantPr
   );
 
   const refresh = useCallback(async () => {
-    hasAttemptedRef.current = false;
+    hasDataRef.current = false;
     await fetchGrants();
   }, [fetchGrants]);
 
@@ -118,6 +100,8 @@ export function GrantProvider({ children, initialGrants, initialGrant }: GrantPr
         selectedGrant,
         isLoading,
         error,
+        fetchGrants,
+        setInitialGrants,
         selectGrant,
         getGrantById,
         refresh,

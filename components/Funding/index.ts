@@ -11,8 +11,8 @@ export { QuickAmountSelector } from './QuickAmountSelector';
 // Funding feed components
 export { FundingProposalCard } from './FundingProposalCard';
 export { FundingProposalGrid } from './FundingProposalGrid';
-export { FundingPageTabs } from './FundingPageTabs';
 export { FundingTabs } from './FundingTabs';
+export { FundingGrantTabs } from './FundingGrantTabs';
 export { ActivityFeed } from './ActivityFeed';
 export { FundraiseProgressBar } from './FundraiseProgressBar';
 

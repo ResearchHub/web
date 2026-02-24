@@ -37,6 +37,8 @@ import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { useFeedTabs } from '@/hooks/useFeedTabs';
 import { FeedTab } from '@/hooks/useFeed';
+import { FundingGrantTabs } from '@/components/Funding/FundingGrantTabs';
+import { useGrants } from '@/contexts/GrantContext';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -44,7 +46,6 @@ interface TopBarProps {
 
 interface PageInfo {
   title: string;
-  subtitle?: string;
   icon?: React.ReactNode;
 }
 
@@ -81,7 +82,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (['/', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(pathname)) {
     return {
       title: 'Home',
-      subtitle: 'Preprint feed',
       icon: <FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#000" />,
     };
   }
@@ -90,7 +90,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname === '/browse') {
     return {
       title: 'Browse',
-      subtitle: 'Explore topics',
       icon: <FontAwesomeIcon icon={faGrid3Light} fontSize={24} color="#000" />,
     };
   }
@@ -128,7 +127,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/paper/create')) {
     return {
       title: 'Submit your paper',
-      subtitle: 'New submission',
       icon: <Icon name="submit2" size={24} className="text-gray-900" />,
     };
   }
@@ -136,7 +134,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/bounty/create')) {
     return {
       title: 'Create Bounty',
-      subtitle: 'New bounty',
       icon: <Icon name="earn1" size={24} className="text-gray-900" />,
     };
   }
@@ -144,7 +141,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/earn')) {
     return {
       title: 'Earn',
-      subtitle: 'ResearchCoin for peer review',
       icon: <Icon name="earn1" size={24} className="text-gray-900" />,
     };
   }
@@ -152,7 +148,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/journal')) {
     return {
       title: 'Journal',
-      subtitle: 'RH peer-reviewed journal',
       icon: <Icon name="rhJournal2" size={24} className="text-gray-900" />,
     };
   }
@@ -160,7 +155,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/leaderboard')) {
     return {
       title: 'Leaderboard',
-      subtitle: 'Top contributors',
       icon: <ChartNoAxesColumnIncreasing size={24} color="#404040" strokeWidth={2} />,
     };
   }
@@ -168,7 +162,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   if (pathname.startsWith('/moderators')) {
     return {
       title: 'Moderation Dashboard',
-      subtitle: 'Content review',
       icon: <Shield size={24} className="text-gray-900" />,
     };
   }
@@ -180,18 +173,9 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
-  if (pathname === '/funding/proposals') {
+  if (pathname === '/funding/proposals' || ['/funding', '/fund'].includes(pathname)) {
     return {
       title: 'Fund',
-      subtitle: 'Research Proposals',
-      icon: <Icon name="fund" size={24} className="text-gray-900" />,
-    };
-  }
-
-  if (['/funding', '/fund'].includes(pathname)) {
-    return {
-      title: 'Fund',
-      subtitle: 'Fund or get funding',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
@@ -263,7 +247,6 @@ const getPageInfo = (pathname: string): PageInfo | null => {
 
       return {
         title: topicName,
-        subtitle: 'Topic',
         icon: emoji ? (
           <span className="text-2xl">{emoji}</span>
         ) : (
@@ -341,6 +324,10 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const [showFeedTabs, setShowFeedTabs] = useState(false);
 
   const { tabs, activeTab, handleTabChange, isFeedPage } = useFeedTabs();
+  const { grants } = useGrants();
+
+  const isFundingPage = pathname === '/funding' || pathname === '/funding/proposals';
+  const hasFundingTabs = isFundingPage && grants.length > 0;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -438,8 +425,11 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   return (
     <>
-      <div className="border-b border-gray-200 bg-white" style={{ height: '70px' }}>
-        <div className="h-full flex items-center justify-between px-4 lg:px-8">
+      <div
+        className={`bg-white ${isFundingPage && hasFundingTabs ? '' : 'border-b border-gray-200'}`}
+      >
+        {/* Title row */}
+        <div className="flex items-center justify-between px-4 lg:px-8" style={{ height: '70px' }}>
           {/* Left side - Back button + Page title OR FeedTabs */}
           <div className="flex items-center min-w-0 flex-1 mr-4 h-full">
             {/* Mobile logo - leftmost position */}
@@ -466,16 +456,8 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               <div className="flex tablet:!hidden items-center min-w-0">
                 <div>
                   {pageInfo.title ? (
-                    <h1 className="font-semibold text-gray-900 leading-tight truncate text-lg flex items-baseline gap-2">
+                    <h1 className="font-semibold text-gray-900 leading-tight truncate text-lg">
                       {pageInfo.title}
-                      {pageInfo.subtitle && !(showFeedTabs && isFeedPage) && (
-                        <>
-                          <span className="text-gray-200 font-light text-xl">/</span>
-                          <span className="text-sm font-normal text-gray-600">
-                            {pageInfo.subtitle}
-                          </span>
-                        </>
-                      )}
                     </h1>
                   ) : (
                     pageInfo.icon && (
@@ -506,7 +488,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
             {/* Page title - only on desktop */}
             {pageInfo && (
-              <div className="hidden tablet:!flex items-baseline min-w-0 flex-shrink-0 gap-2.5">
+              <div className="hidden tablet:!flex items-baseline min-w-0 flex-shrink-0">
                 <div className="min-w-0">
                   {pageInfo.title && (
                     <h1
@@ -517,19 +499,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                     </h1>
                   )}
                 </div>
-                {pageInfo.subtitle && !(showFeedTabs && isFeedPage) && (
-                  <>
-                    <span className="text-gray-300 font-light" style={{ fontSize: '22px' }}>
-                      /
-                    </span>
-                    <span
-                      className="text-sm text-gray-800 whitespace-nowrap"
-                      style={{ letterSpacing: '-0.25px' }}
-                    >
-                      {pageInfo.subtitle}
-                    </span>
-                  </>
-                )}
               </div>
             )}
 
@@ -646,6 +615,20 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             </div>
           </div>
         </div>
+
+        {/* Funding grant tabs - second row below title */}
+        {isFundingPage && (
+          <div
+            className="border-b border-gray-200 px-4 lg:px-8 overflow-hidden transition-all duration-300 ease-in-out"
+            style={{
+              maxHeight: hasFundingTabs ? '48px' : '0px',
+              opacity: hasFundingTabs ? 1 : 0,
+              borderBottomColor: hasFundingTabs ? undefined : 'transparent',
+            }}
+          >
+            <FundingGrantTabs />
+          </div>
+        )}
       </div>
 
       {/* Search Modal */}

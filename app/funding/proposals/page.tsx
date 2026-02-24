@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FundingPageTabs } from '@/components/Funding/FundingPageTabs';
 import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
 import { ProposalListProvider } from '@/contexts/ProposalListContext';
 import { ActivitySidebarServer } from '@/components/Funding/ActivitySidebarServer';
@@ -15,8 +14,6 @@ export default function ProposalsPage() {
         </Suspense>
       }
     >
-      <FundingPageTabs />
-
       <div className="py-4">
         <ProposalListProvider>
           <FundingProposalGrid />
