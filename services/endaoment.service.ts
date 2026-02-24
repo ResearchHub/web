@@ -46,6 +46,14 @@ export interface EndaomentFund {
 }
 
 /**
+ * Converts USDC micros to dollars.
+ */
+function microsToDollars(micros: string | number): string {
+  const balanceInMicros = Number(micros) || 0;
+  return (balanceInMicros / 1_000_000).toString();
+}
+
+/**
  * Transforms a raw Endaoment fund API response into an EndaomentFund.
  */
 function transformEndaomentFund(raw: Record<string, any>): EndaomentFund {
@@ -54,7 +62,7 @@ function transformEndaomentFund(raw: Record<string, any>): EndaomentFund {
     name: raw.name,
     type: raw.type,
     description: raw.description,
-    usdcBalance: raw.usdcBalance,
+    usdcBalance: microsToDollars(raw.usdcBalance),
   };
 }
 
