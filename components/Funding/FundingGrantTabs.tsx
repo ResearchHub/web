@@ -10,7 +10,7 @@ import { buildWorkUrl } from '@/utils/url';
 export const FundingGrantTabs: FC = () => {
   const pathname = usePathname();
   const { grants, fetchGrants } = useGrants();
-  const isFundingPage = pathname === '/fund' || pathname === '/fund/proposals';
+  const isFundingPage = pathname === '/fund' || pathname === '/fund/opportunities';
 
   useEffect(() => {
     if (isFundingPage) {

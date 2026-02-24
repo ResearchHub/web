@@ -100,7 +100,7 @@ export function FeaturesSection() {
   };
 
   const handleRequestFunding = () => {
-    router.push('/fund/proposals');
+    router.push('/fund');
   };
 
   const handleStartReviewing = () => {

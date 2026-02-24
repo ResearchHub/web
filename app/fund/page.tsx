@@ -1,44 +1,11 @@
 import { Suspense } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FundingPageContent } from './components/FundingPageContent';
+import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
+import { ProposalListProvider } from '@/contexts/ProposalListContext';
 import { ActivitySidebarServer } from '@/components/Funding/ActivitySidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
-import { GrantService } from '@/services/grant.service';
 
-export const revalidate = 3600;
-
-async function getOpenGrants() {
-  try {
-    const { grants } = await GrantService.getGrants({
-      page: 1,
-      pageSize: 20,
-      status: 'OPEN',
-      ordering: 'most_applicants',
-    });
-    return { grants, error: null };
-  } catch (error) {
-    console.error('Failed to fetch grants:', error);
-    return { grants: [], error: 'Failed to load funding opportunities.' };
-  }
-}
-
-async function getClosedGrants() {
-  try {
-    const { grants } = await GrantService.getGrants({
-      page: 1,
-      pageSize: 20,
-      status: 'CLOSED',
-      ordering: 'most_applicants',
-    });
-    return grants;
-  } catch {
-    return [];
-  }
-}
-
-export default async function FundPage() {
-  const [{ grants, error }, closedGrants] = await Promise.all([getOpenGrants(), getClosedGrants()]);
-
+export default function FundPage() {
   return (
     <PageLayout
       rightSidebar={
@@ -47,7 +14,11 @@ export default async function FundPage() {
         </Suspense>
       }
     >
-      <FundingPageContent initialGrants={grants} closedGrants={closedGrants} error={error} />
+      <div className="py-4">
+        <ProposalListProvider>
+          <FundingProposalGrid />
+        </ProposalListProvider>
+      </div>
     </PageLayout>
   );
 }

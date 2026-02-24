@@ -63,7 +63,7 @@ const isRootNavigationPage = (pathname: string): boolean => {
     '/dashboard',
     '/dashboard/impact',
     '/fund',
-    '/fund/proposals',
+    '/fund/opportunities',
     '/journal',
     '/notebook',
     '/browse',
@@ -171,7 +171,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
-  if (pathname === '/fund/proposals' || pathname === '/fund') {
+  if (pathname === '/fund/opportunities' || pathname === '/fund') {
     return {
       title: 'Fund',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
@@ -324,7 +324,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { tabs, activeTab, handleTabChange, isFeedPage } = useFeedTabs();
   const { grants } = useGrants();
 
-  const isFundingPage = pathname === '/fund' || pathname === '/fund/proposals';
+  const isFundingPage = pathname === '/fund' || pathname === '/fund/opportunities';
   const hasFundingTabs = isFundingPage && grants.length > 0;
 
   useEffect(() => {
