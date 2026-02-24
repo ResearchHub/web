@@ -347,7 +347,7 @@ export function formatNotificationMessage(
       return `${userName} made an update to "${truncatedTitle}"`;
 
     case 'PREREGISTRATION_UPDATE_REMINDER': {
-      return `Share an update on your proposal "${truncatedTitle}" and earn $50 USD`;
+      return `Share a meaningful update on your proposal "${truncatedTitle}" and earn $50 in RSC`;
     }
 
     default:
