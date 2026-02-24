@@ -121,7 +121,7 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
   },
 
   // Proposal notifications
-  PROPOSAL_UPDATE_REMINDER: {
+  PREREGISTRATION_UPDATE_REMINDER: {
     icon: 'earn1',
     useAvatar: false,
   },
@@ -192,7 +192,7 @@ export function getRSCAmountFromNotification(notification: Notification): number
 export function formatNavigationUrl(notification: Notification): string | undefined {
   if (
     (notification.type === 'PREREGISTRATION_UPDATE' ||
-      notification.type === 'PROPOSAL_UPDATE_REMINDER') &&
+      notification.type === 'PREREGISTRATION_UPDATE_REMINDER') &&
     notification.work
   ) {
     const { id, slug } = notification.work;
@@ -346,7 +346,7 @@ export function formatNotificationMessage(
     case 'PREREGISTRATION_UPDATE':
       return `${userName} made an update to "${truncatedTitle}"`;
 
-    case 'PROPOSAL_UPDATE_REMINDER': {
+    case 'PREREGISTRATION_UPDATE_REMINDER': {
       return `Share an update on your proposal "${truncatedTitle}" and earn $50 USD`;
     }
 
