@@ -119,6 +119,12 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
     icon: 'fund',
     useAvatar: true,
   },
+
+  // Proposal notifications
+  PROPOSAL_UPDATE_REMINDER: {
+    icon: 'earn1',
+    useAvatar: false,
+  },
 };
 
 export function getNotificationInfo(notification: Notification): NotificationTypeInfo {
@@ -335,6 +341,10 @@ export function formatNotificationMessage(
 
     case 'PREREGISTRATION_UPDATE':
       return `${userName} made an update to "${truncatedTitle}"`;
+
+    case 'PROPOSAL_UPDATE_REMINDER': {
+      return `Share an update on your proposal "${truncatedTitle}" and earn $50 USD`;
+    }
 
     default:
       console.warn(`Unhandled notification type: ${type}`);
