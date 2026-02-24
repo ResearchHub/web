@@ -11,6 +11,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Icon } from '@/components/ui/icons/Icon';
 import clsx from 'clsx';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { Button } from '@/components/ui/Button';
 import { ChevronRight, Info } from 'lucide-react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -97,7 +98,11 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       <div className="text-sm font-medium text-gray-900">
         {message}
         {notification.type === 'PREREGISTRATION_UPDATE_REMINDER' && (
-          <span className="inline-flex ml-1 align-middle" onClick={(e) => e.stopPropagation()}>
+          <Button
+            variant="ghost"
+            className="inline-flex ml-1 align-middle h-auto w-auto p-0 rounded-none"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Tooltip
               content={
                 <p className="text-xs text-left p-1">
@@ -112,7 +117,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
             >
               <Info className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 cursor-help transition-colors relative -top-[1px]" />
             </Tooltip>
-          </span>
+          </Button>
         )}
       </div>
       <div className="text-xs text-gray-500 mt-1">
