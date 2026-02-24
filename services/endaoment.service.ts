@@ -47,10 +47,14 @@ export interface EndaomentFund {
 
 /**
  * Converts USDC micros to dollars.
+ *
+ * Round down to the nearest cent to avoid displaying amounts larger
+ * than the actual balance. E.g., if the balance is 12345678 micros
+ * (which is $123.45678), this will return "123.45".
  */
 function microsToDollars(micros: string | number): string {
   const balanceInMicros = Number(micros) || 0;
-  return (balanceInMicros / 1_000_000).toString();
+  return (Math.floor(balanceInMicros / 10_000) / 100).toString();
 }
 
 /**
