@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
-import { Button } from '@/components/ui/Button';
+import { PaginationButton } from '@/components/ui/PaginationButton';
 import { useGeneratedEmails } from '@/hooks/useExpertFinder';
 import { OutreachTable } from './OutreachTable';
 import { OutreachTableSkeleton } from './OutreachTableSkeleton';
@@ -63,32 +62,18 @@ export function OutreachPageContent() {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outlined"
-                size="sm"
-                className="gap-2"
+              <PaginationButton
+                label="Previous"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={!hasPrevPage || isLoading}
-              >
-                <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
-                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
-                </span>
-                Previous
-                <span className="inline-block h-4 w-4 shrink-0" aria-hidden />
-              </Button>
-              <Button
-                variant="outlined"
-                size="sm"
-                className="gap-2"
+                isLoading={isLoading}
+              />
+              <PaginationButton
+                label="Next"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={!hasNextPage || isLoading}
-              >
-                <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
-                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
-                </span>
-                Next
-                <span className="inline-block h-4 w-4 shrink-0" aria-hidden />
-              </Button>
+                isLoading={isLoading}
+              />
             </div>
           </div>
         )}

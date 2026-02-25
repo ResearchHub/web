@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
+import { PaginationButton } from '@/components/ui/PaginationButton';
 import { useSavedTemplates } from '@/hooks/useExpertFinder';
 import { TemplatesTable } from './TemplatesTable';
 import { TemplatesTableSkeleton } from './TemplatesTableSkeleton';
@@ -70,32 +71,18 @@ export function TemplatesPageContent() {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outlined"
-                size="sm"
-                className="gap-2"
+              <PaginationButton
+                label="Previous"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={!hasPrevPage || isLoading}
-              >
-                <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
-                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
-                </span>
-                Previous
-                <span className="inline-block h-4 w-4 shrink-0" aria-hidden />
-              </Button>
-              <Button
-                variant="outlined"
-                size="sm"
-                className="gap-2"
+                isLoading={isLoading}
+              />
+              <PaginationButton
+                label="Next"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={!hasNextPage || isLoading}
-              >
-                <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center">
-                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
-                </span>
-                Next
-                <span className="inline-block h-4 w-4 shrink-0" aria-hidden />
-              </Button>
+                isLoading={isLoading}
+              />
             </div>
           </div>
         )}
