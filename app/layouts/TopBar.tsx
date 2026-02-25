@@ -325,7 +325,8 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { grants } = useGrants();
 
   const isFundingPage = pathname === '/fund' || pathname === '/fund/opportunities';
-  const hasFundingTabs = isFundingPage && grants.length > 0;
+  const isGrantPage = pathname.startsWith('/grant/');
+  const showGrantTabs = (isFundingPage || isGrantPage) && grants.length > 0;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -423,9 +424,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   return (
     <>
-      <div
-        className={`bg-white ${isFundingPage && hasFundingTabs ? '' : 'border-b border-gray-200'}`}
-      >
+      <div className={`bg-white ${showGrantTabs ? '' : 'border-b border-gray-200'}`}>
         {/* Title row */}
         <div className="flex items-center justify-between px-4 lg:px-8" style={{ height: '70px' }}>
           {/* Left side - Back button + Page title OR FeedTabs */}
@@ -615,13 +614,13 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         </div>
 
         {/* Funding grant tabs - second row below title */}
-        {isFundingPage && (
+        {(isFundingPage || isGrantPage) && (
           <div
             className="border-b border-gray-200 px-4 lg:px-8 overflow-hidden transition-all duration-300 ease-in-out -mt-3"
             style={{
-              maxHeight: hasFundingTabs ? '48px' : '0px',
-              opacity: hasFundingTabs ? 1 : 0,
-              borderBottomColor: hasFundingTabs ? undefined : 'transparent',
+              maxHeight: showGrantTabs ? '48px' : '0px',
+              opacity: showGrantTabs ? 1 : 0,
+              borderBottomColor: showGrantTabs ? undefined : 'transparent',
             }}
           >
             <FundingGrantTabs />

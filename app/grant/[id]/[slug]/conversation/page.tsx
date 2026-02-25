@@ -21,5 +21,5 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function GrantConversationPage({ params }: Props) {
   const { id } = await params;
-  return <GrantPageServer id={id} defaultTab="conversation" />;
+  return <GrantPageServer id={id} />;
 }

@@ -5,8 +5,6 @@ import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { WorkLineItems } from './WorkLineItems';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { WorkTabs, TabType } from './WorkTabs';
-import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { isDeadlineInFuture } from '@/utils/date';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
@@ -14,59 +12,63 @@ import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
 import { ProposalListProvider } from '@/contexts/ProposalListContext';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
 
+function stripHtml(html: string): string {
+  if (typeof document !== 'undefined') {
+    const el = document.createElement('div');
+    el.innerHTML = html;
+    return el.textContent || '';
+  }
+  return html.replace(/<[^>]*>/g, '');
+}
+
+interface GrantDetailsCalloutProps {
+  content: string;
+}
+
+const GrantDetailsCallout = ({ content }: GrantDetailsCalloutProps) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const preview = useMemo(() => {
+    const plain = stripHtml(content).trim();
+    return plain.length > 200 ? plain.slice(0, 200).trimEnd() : plain;
+  }, [content]);
+  const isTruncated = stripHtml(content).trim().length > 200;
+
+  if (isExpanded) {
+    return (
+      <div className="mt-4">
+        <PostBlockEditor content={content} />
+        <button
+          onClick={() => setIsExpanded(false)}
+          className="text-sm font-medium text-gray-500 hover:text-gray-700 cursor-pointer"
+        >
+          Show less
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => setIsExpanded(true)}
+      className="mt-4 w-full text-left rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors duration-150 px-4 py-3 cursor-pointer"
+    >
+      <span className="text-sm font-semibold text-gray-900">Funding details</span>
+      <p className="text-sm text-gray-700 leading-relaxed mt-1">
+        {preview}
+        {isTruncated && <span className="text-sm font-bold text-gray-900 ml-0.5">...more</span>}
+      </p>
+    </button>
+  );
+};
+
 interface GrantDocumentProps {
   work: Work;
   metadata: WorkMetadata;
-  defaultTab?: TabType;
 }
 
-export const GrantDocument = ({ work, metadata, defaultTab = 'overview' }: GrantDocumentProps) => {
-  const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
+export const GrantDocument = ({ work, metadata }: GrantDocumentProps) => {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
-
-  const handleTabChange = (tab: TabType) => {
-    setActiveTab(tab);
-  };
-
   const grantId = Number(work.note?.post?.grant?.id);
-
-  const detailsContent = work.previewContent ? (
-    <PostBlockEditor content={work.previewContent} />
-  ) : (
-    <p className="text-gray-500">No content available</p>
-  );
-
-  const renderTabContent = useMemo(() => {
-    switch (activeTab) {
-      case 'overview':
-        return (
-          <div className="space-y-6 mt-6" key="overview-tab">
-            {detailsContent}
-          </div>
-        );
-      case 'proposals':
-        return (
-          <div className="space-y-6" key="proposals-tab">
-            <FundingProposalGrid />
-          </div>
-        );
-      case 'conversation':
-        return (
-          <div className="space-y-6" key="conversation-tab">
-            <CommentFeed
-              unifiedDocumentId={work.unifiedDocumentId || null}
-              documentId={work.id}
-              contentType={work.contentType}
-              commentType="GENERIC_COMMENT"
-              key={`comment-feed-${work.id}`}
-              work={work}
-            />
-          </div>
-        );
-      default:
-        return null;
-    }
-  }, [activeTab, work, metadata, grantId, detailsContent]);
 
   const isActive =
     work.note?.post?.grant?.status === 'OPEN' &&
@@ -84,6 +86,12 @@ export const GrantDocument = ({ work, metadata, defaultTab = 'overview' }: Grant
 
         <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-0" />
         <WorkLineItems work={work} showClaimButton={false} metadata={metadata} />
+
+        {work.previewContent ? (
+          <GrantDetailsCallout content={work.previewContent} />
+        ) : (
+          <p className="mt-4 text-gray-500">No content available</p>
+        )}
 
         {work.note?.post?.grant?.amount && work.note?.post?.grant?.currency && (
           <div className="mt-2 text-sm text-gray-600 right-sidebar:hidden">
@@ -106,15 +114,7 @@ export const GrantDocument = ({ work, metadata, defaultTab = 'overview' }: Grant
           </div>
         )}
 
-        <WorkTabs
-          work={work}
-          metadata={metadata}
-          defaultTab={defaultTab}
-          contentType="grant"
-          onTabChange={handleTabChange}
-        />
-
-        {renderTabContent}
+        <FundingProposalGrid className="mt-6" />
 
         <ApplyToGrantModal
           isOpen={isApplyModalOpen}

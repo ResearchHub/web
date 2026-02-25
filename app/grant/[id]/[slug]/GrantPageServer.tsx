@@ -10,11 +10,9 @@ import { GrantDocument } from '@/components/work/GrantDocument';
 import { GrantAmountSection } from '@/components/work/components/GrantAmountSection';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
-import { TabType } from '@/components/work/WorkTabs';
 
 interface GrantPageServerProps {
   id: string;
-  defaultTab: TabType;
 }
 
 export async function getGrant(id: string): Promise<Work> {
@@ -29,7 +27,7 @@ export async function getGrant(id: string): Promise<Work> {
   }
 }
 
-export async function GrantPageServer({ id, defaultTab }: GrantPageServerProps) {
+export async function GrantPageServer({ id }: GrantPageServerProps) {
   const work = await getGrant(id);
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
   const grantId = work.note?.post?.grant?.id ?? undefined;
@@ -41,11 +39,12 @@ export async function GrantPageServer({ id, defaultTab }: GrantPageServerProps) 
           <FundingSidebarServer topSection={<GrantAmountSection work={work} />} grantId={grantId} />
         </Suspense>
       }
+      scrollContainerClassName="pt-[108px]"
     >
       <Suspense>
-        <GrantDocument work={work} metadata={metadata} defaultTab={defaultTab} />
+        <GrantDocument work={work} metadata={metadata} />
         <SearchHistoryTracker work={work} />
-        <WorkDocumentTracker work={work} metadata={metadata} tab={defaultTab} />
+        <WorkDocumentTracker work={work} metadata={metadata} />
       </Suspense>
     </PageLayout>
   );

@@ -10,13 +10,16 @@ import { buildWorkUrl } from '@/utils/url';
 export const FundingGrantTabs: FC = () => {
   const pathname = usePathname();
   const { grants, fetchGrants } = useGrants();
-  const isFundingPage = pathname === '/fund' || pathname === '/fund/opportunities';
 
   useEffect(() => {
-    if (isFundingPage) {
-      fetchGrants();
-    }
-  }, [isFundingPage, fetchGrants]);
+    fetchGrants();
+  }, [fetchGrants]);
+
+  const activeTab = useMemo(() => {
+    const grantMatch = pathname.match(/^\/grant\/(\d+)/);
+    if (grantMatch) return `grant-${grantMatch[1]}`;
+    return 'all';
+  }, [pathname]);
 
   const tabs = useMemo(() => {
     const grantTabs = grants.map((grant) => {
@@ -31,13 +34,13 @@ export const FundingGrantTabs: FC = () => {
     return [{ id: 'all', label: 'All', href: '/fund' }, ...grantTabs];
   }, [grants]);
 
-  if (!isFundingPage || grants.length === 0) return null;
+  if (grants.length === 0) return null;
 
   return (
     <div className="h-full [&_.text-sm]:!text-base">
       <Tabs
         tabs={tabs}
-        activeTab="all"
+        activeTab={activeTab}
         onTabChange={() => {}}
         className="!border-b-0 h-full py-0"
       />
