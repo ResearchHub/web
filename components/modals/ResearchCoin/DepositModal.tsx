@@ -10,6 +10,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction';
 import { Interface } from 'ethers';
 import { TransactionService } from '@/services/transaction.service';
+import { WalletService } from '@/services/wallet.service';
 import { getRSCForNetwork, NetworkType, TRANSFER_ABI, NETWORK_CONFIG } from '@/constants/tokens';
 import { Alert } from '@/components/ui/Alert';
 import { DepositSuccessView } from './DepositSuccessView';
@@ -78,6 +79,15 @@ export function DepositModal({ isOpen, onClose, currentBalance, onSuccess }: Dep
   const rscToken = useMemo(() => getRSCForNetwork(selectedNetwork), [selectedNetwork]);
   const networkConfig = NETWORK_CONFIG[selectedNetwork];
   const blockExplorerUrl = networkConfig.explorerUrl;
+
+  // Trigger wallet creation when modal opens (lazy provisioning)
+  useEffect(() => {
+    if (isOpen) {
+      WalletService.getDepositAddress().catch((error) => {
+        console.error('Failed to provision wallet:', error);
+      });
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
