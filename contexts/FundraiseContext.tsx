@@ -7,6 +7,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   ReactNode,
 } from 'react';
 import { FeedEntry } from '@/types/feed';
@@ -16,7 +17,7 @@ import type {
   ProposalSortOption,
 } from '@/components/Funding/lib/proposalSortAndFilterConfig';
 
-interface ProposalListContextValue {
+interface FundraiseContextValue {
   entries: FeedEntry[];
   isLoading: boolean;
   hasMore: boolean;
@@ -29,16 +30,20 @@ interface ProposalListContextValue {
   setTaxDeductible: (value: boolean) => void;
   sortBy: ProposalSortOption;
   setSortBy: (value: ProposalSortOption) => void;
+
+  sidebarFundraises: FeedEntry[];
+  isSidebarLoading: boolean;
+  fetchSidebarFundraises: () => Promise<void>;
 }
 
-const ProposalListContext = createContext<ProposalListContextValue | null>(null);
+const FundraiseContext = createContext<FundraiseContextValue | null>(null);
 
-interface ProposalListProviderProps {
+interface FundraiseProviderProps {
   children: ReactNode;
   grantId?: number;
 }
 
-export function ProposalListProvider({ children, grantId }: ProposalListProviderProps) {
+export function FundraiseProvider({ children, grantId }: FundraiseProviderProps) {
   const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(false);
@@ -47,6 +52,11 @@ export function ProposalListProvider({ children, grantId }: ProposalListProvider
   const [statusFilter, setStatusFilter] = useState<ProposalStatusFilter>('all');
   const [taxDeductible, setTaxDeductible] = useState(false);
   const [sortBy, setSortBy] = useState<ProposalSortOption>('best');
+
+  // Sidebar lazy-loaded data (ref-guarded, fetched at most once)
+  const [sidebarFundraises, setSidebarFundraises] = useState<FeedEntry[]>([]);
+  const [isSidebarLoading, setIsSidebarLoading] = useState(false);
+  const hasSidebarDataRef = useRef(false);
 
   const feedParams = useMemo(() => {
     const isCompleted = statusFilter === 'completed';
@@ -76,7 +86,7 @@ export function ProposalListProvider({ children, grantId }: ProposalListProvider
       setHasMore(result.hasMore);
       setPage(1);
     } catch (error) {
-      console.error('Error fetching proposals:', error);
+      console.error('Error fetching fundraises:', error);
     } finally {
       setIsLoading(false);
     }
@@ -104,11 +114,33 @@ export function ProposalListProvider({ children, grantId }: ProposalListProvider
       setHasMore(result.hasMore);
       setPage(nextPage);
     } catch (error) {
-      console.error('Error loading more proposals:', error);
+      console.error('Error loading more fundraises:', error);
     }
   }, [isLoading, hasMore, page, grantId, feedParams]);
 
-  const value = useMemo<ProposalListContextValue>(
+  const fetchSidebarFundraises = useCallback(async () => {
+    if (hasSidebarDataRef.current) return;
+    hasSidebarDataRef.current = true;
+
+    setIsSidebarLoading(true);
+    try {
+      const result = await FeedService.getFeed({
+        page: 1,
+        pageSize: 5,
+        contentType: 'PREREGISTRATION',
+        endpoint: 'funding_feed',
+        fundraiseStatus: 'OPEN',
+        ordering: 'best',
+      });
+      setSidebarFundraises(result.entries);
+    } catch (error) {
+      console.error('Error fetching sidebar fundraises:', error);
+    } finally {
+      setIsSidebarLoading(false);
+    }
+  }, []);
+
+  const value = useMemo<FundraiseContextValue>(
     () => ({
       entries,
       isLoading,
@@ -121,17 +153,31 @@ export function ProposalListProvider({ children, grantId }: ProposalListProvider
       setTaxDeductible,
       sortBy,
       setSortBy,
+      sidebarFundraises,
+      isSidebarLoading,
+      fetchSidebarFundraises,
     }),
-    [entries, isLoading, hasMore, loadMore, statusFilter, taxDeductible, sortBy]
+    [
+      entries,
+      isLoading,
+      hasMore,
+      loadMore,
+      statusFilter,
+      taxDeductible,
+      sortBy,
+      sidebarFundraises,
+      isSidebarLoading,
+      fetchSidebarFundraises,
+    ]
   );
 
-  return <ProposalListContext.Provider value={value}>{children}</ProposalListContext.Provider>;
+  return <FundraiseContext.Provider value={value}>{children}</FundraiseContext.Provider>;
 }
 
-export function useProposalList() {
-  const context = useContext(ProposalListContext);
+export function useFundraises() {
+  const context = useContext(FundraiseContext);
   if (!context) {
-    throw new Error('useProposalList must be used within a ProposalListProvider');
+    throw new Error('useFundraises must be used within a FundraiseProvider');
   }
   return context;
 }

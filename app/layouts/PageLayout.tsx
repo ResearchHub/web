@@ -9,6 +9,7 @@ import { OnboardingModalWrapper } from '@/components/Onboarding/NewUserOnboardin
 import { cn } from '@/lib/utils';
 import { ScrollContainerProvider } from '@/contexts/ScrollContainerContext';
 import { GrantProvider } from '@/contexts/GrantContext';
+import { FundraiseProvider } from '@/contexts/FundraiseContext';
 // Dynamically import sidebar components
 const LeftSidebar = dynamic(() => import('./LeftSidebar').then((mod) => mod.LeftSidebar), {
   ssr: true,
@@ -112,35 +113,36 @@ export function PageLayout({
 
   return (
     <GrantProvider>
-      <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
-        <div className="flex h-screen">
-          <OnboardingModalWrapper />
+      <FundraiseProvider>
+        <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
+          <div className="flex h-screen">
+            <OnboardingModalWrapper />
 
-          {/* Fixed TopBar starting from LeftSidebar edge */}
-          <div
-            className={`fixed top-0 right-0 z-[60] tablet:!z-50 tablet:!bg-white
+            {/* Fixed TopBar starting from LeftSidebar edge */}
+            <div
+              className={`fixed top-0 right-0 z-[60] tablet:!z-50 tablet:!bg-white
                         left-0 tablet:!left-[240px] tablet:sidebar-compact:!left-[240px] tablet:max-sidebar-compact:!left-[70px]
                         transition-transform duration-300 ease-in-out tablet:!transform-none
                         ${isMobileTopNavHidden && !isLeftSidebarOpen ? '-translate-y-full' : 'translate-y-0'}`}
-          >
-            <Suspense fallback={<TopBarSkeleton />}>
-              <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
-            </Suspense>
-          </div>
+            >
+              <Suspense fallback={<TopBarSkeleton />}>
+                <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
+              </Suspense>
+            </div>
 
-          {/* Mobile overlay */}
-          {showOverlay && (
+            {/* Mobile overlay */}
+            {showOverlay && (
+              <div
+                className={`fixed inset-0 bg-black ${
+                  overlayVisible ? 'opacity-50' : 'opacity-0'
+                } z-40 tablet:!hidden transition-opacity duration-300 ease-in-out`}
+                onClick={() => setIsLeftSidebarOpen(false)}
+              />
+            )}
+
+            {/* Left Sidebar Container (Sticky) */}
             <div
-              className={`fixed inset-0 bg-black ${
-                overlayVisible ? 'opacity-50' : 'opacity-0'
-              } z-40 tablet:!hidden transition-opacity duration-300 ease-in-out`}
-              onClick={() => setIsLeftSidebarOpen(false)}
-            />
-          )}
-
-          {/* Left Sidebar Container (Sticky) */}
-          <div
-            className={`
+              className={`
             tablet:!sticky tablet:!top-0 tablet:!h-screen bg-white border-r border-gray-200
             z-50 tablet:!z-30
             flex-shrink-0
@@ -159,58 +161,61 @@ export function PageLayout({
 
             tablet:!block tablet:!w-[240px]
           `}
-          >
-            <Suspense fallback={<div className="w-full h-screen bg-gray-100 animate-pulse"></div>}>
-              <LeftSidebar />
-            </Suspense>
-          </div>
-
-          {/* Center Content Area (Scrolling) */}
-          <div
-            ref={scrollContainerRef}
-            className={cn(
-              'flex-1 overflow-y-auto overflow-x-hidden relative transition-all duration-150',
-              isCompact ? 'pt-12' : 'pt-16',
-              scrollContainerClassName
-            )}
-          >
-            <div className="flex mx-auto w-full max-w-[1180px]">
-              {/* Main Content */}
-              <main
-                ref={mainContentRef}
-                className="flex-1 min-w-0 px-4 tablet:!px-8 py-6 pb-20 tablet:!pb-4"
+            >
+              <Suspense
+                fallback={<div className="w-full h-screen bg-gray-100 animate-pulse"></div>}
               >
-                <div className={cn('w-full', 'max-w-full tablet:!max-w-[860px]', className)}>
-                  {children}
-                </div>
-              </main>
+                <LeftSidebar />
+              </Suspense>
+            </div>
 
-              {/* Right Sidebar (positioned relative to content) */}
-              {rightSidebar && (
-                <aside
-                  className={`sticky top-10 overflow-y-auto
+            {/* Center Content Area (Scrolling) */}
+            <div
+              ref={scrollContainerRef}
+              className={cn(
+                'flex-1 overflow-y-auto overflow-x-hidden relative transition-all duration-150',
+                isCompact ? 'pt-12' : 'pt-16',
+                scrollContainerClassName
+              )}
+            >
+              <div className="flex mx-auto w-full max-w-[1180px]">
+                {/* Main Content */}
+                <main
+                  ref={mainContentRef}
+                  className="flex-1 min-w-0 px-4 tablet:!px-8 py-6 pb-20 tablet:!pb-4"
+                >
+                  <div className={cn('w-full', 'max-w-full tablet:!max-w-[860px]', className)}>
+                    {children}
+                  </div>
+                </main>
+
+                {/* Right Sidebar (positioned relative to content) */}
+                {rightSidebar && (
+                  <aside
+                    className={`sticky top-10 overflow-y-auto
                     lg:!block !hidden right-sidebar:!block w-80 flex-shrink-0 bg-gray-50 rounded-l-xl
                     z-30 ${isCompact ? 'h-[calc(100vh-48px)]' : 'h-[calc(100vh-64px)]'}`}
-                >
-                  <div className={cn('pt-4 pb-4 h-full', sidebarContentClassName)}>
-                    <Suspense fallback={<RightSidebarSkeleton />}>
-                      {pathname.startsWith('/paper/create') ? (
-                        <RHJRightSidebar showBanner={false} />
-                      ) : typeof rightSidebar === 'boolean' ? (
-                        <RightSidebar />
-                      ) : (
-                        rightSidebar
-                      )}
-                    </Suspense>
-                  </div>
-                </aside>
-              )}
+                  >
+                    <div className={cn('pt-4 pb-4 h-full', sidebarContentClassName)}>
+                      <Suspense fallback={<RightSidebarSkeleton />}>
+                        {pathname.startsWith('/paper/create') ? (
+                          <RHJRightSidebar showBanner={false} />
+                        ) : typeof rightSidebar === 'boolean' ? (
+                          <RightSidebar />
+                        ) : (
+                          rightSidebar
+                        )}
+                      </Suspense>
+                    </div>
+                  </aside>
+                )}
+              </div>
+              {/* Mobile Bottom Navigation */}
+              <MobileBottomNav />
             </div>
-            {/* Mobile Bottom Navigation */}
-            <MobileBottomNav />
           </div>
-        </div>
-      </ScrollContainerProvider>
+        </ScrollContainerProvider>
+      </FundraiseProvider>
     </GrantProvider>
   );
 }

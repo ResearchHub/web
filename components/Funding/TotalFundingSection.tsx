@@ -10,7 +10,7 @@ interface TotalFundingSectionProps {
 export const TotalFundingSection = ({ totalUsd }: TotalFundingSectionProps) => {
   return (
     <div>
-      <div className="text-2xl sm:text-3xl font-bold font-mono text-primary-600 flex items-center gap-1">
+      <div className="text-2xl sm:text-3xl font-bold font-mono text-gray-900 flex items-center gap-1">
         <span>$</span>
         {totalUsd.toLocaleString()}
         <span className="text-lg font-medium">USD</span>

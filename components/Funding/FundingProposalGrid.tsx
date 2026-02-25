@@ -4,7 +4,7 @@ import { FC } from 'react';
 import { FundingProposalCard } from './FundingProposalCard';
 import { ProposalCardSkeleton } from '@/components/skeletons/ProposalCardSkeleton';
 import { ProposalSortAndFilters } from './ProposalSortAndFilters';
-import { useProposalList } from '@/contexts/ProposalListContext';
+import { useFundraises } from '@/contexts/FundraiseContext';
 import { cn } from '@/utils/styles';
 
 interface FundingProposalGridProps {
@@ -12,7 +12,7 @@ interface FundingProposalGridProps {
 }
 
 export const FundingProposalGrid: FC<FundingProposalGridProps> = ({ className }) => {
-  const { entries, isLoading, hasMore, loadMore } = useProposalList();
+  const { entries, isLoading, hasMore, loadMore } = useFundraises();
 
   return (
     <div className={cn('', className)}>

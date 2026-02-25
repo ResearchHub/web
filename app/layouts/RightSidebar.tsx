@@ -1,188 +1,255 @@
 'use client';
 
-import { memo } from 'react';
-import dynamic from 'next/dynamic';
+import { memo, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { Avatar } from '@/components/ui/Avatar';
-import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
-import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
-import { JournalStatusBadge } from '@/components/ui/JournalStatusBadge';
-import { AuthorList, Author } from '@/components/ui/AuthorList';
-import { AvatarStack } from '@/components/ui/AvatarStack';
-import { Icon } from '@/components/ui/icons/Icon';
-import { Progress } from '@/components/ui/Progress';
-import type { FeedEntry } from '@/types/feed';
+import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRightIcon } from 'lucide-react';
-import { LeaderboardSkeleton } from '@/components/Leaderboard/LeaderboardOverview';
+import { Building, Users } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowRightLong } from '@fortawesome/pro-solid-svg-icons';
+import { SidebarHeader } from '@/components/ui/SidebarHeader';
+import { Avatar } from '@/components/ui/Avatar';
+import { FundraiseProgressBar } from '@/components/Funding/FundraiseProgressBar';
+import { useGrants } from '@/contexts/GrantContext';
+import { useFundraises } from '@/contexts/FundraiseContext';
+import { FeedGrantContent, FeedPostContent } from '@/types/feed';
+import { buildWorkUrl } from '@/utils/url';
 import { PersonalizeFeedBanner } from './components/PersonalizeFeedBanner';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { formatCurrency } from '@/utils/currency';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 
-const LeaderboardOverview = dynamic(
-  () =>
-    import('@/components/Leaderboard/LeaderboardOverview').then((mod) => mod.LeaderboardOverview),
-  {
-    ssr: false,
-    loading: () => <LeaderboardSkeleton />,
-  }
+const ViewAllLink = ({ href }: { href: string }) => (
+  <Link
+    href={href}
+    className="text-xs font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1"
+  >
+    View all
+    <FontAwesomeIcon icon={faArrowRightLong} fontSize={12} />
+  </Link>
 );
 
-// Dynamically import InfoBanner component
-const InfoBanner = dynamic(() => import('./components/InfoBanner').then((mod) => mod.InfoBanner), {
-  ssr: true,
-  loading: () => (
-    <div className="bg-gray-100 rounded-lg p-5 mb-6 animate-pulse">
-      <div className="flex flex-col items-center mb-4">
-        <div className="w-8 h-8 bg-gray-200 rounded-full mb-2"></div>
-        <div className="h-6 bg-gray-200 rounded w-48 mb-1"></div>
+const SidebarSectionSkeleton = ({ rows = 3 }: { rows?: number }) => (
+  <div className="space-y-3 animate-pulse px-4">
+    {Array.from({ length: rows }).map((_, i) => (
+      <div key={i} className="space-y-2 py-2">
+        <div className="h-4 bg-gray-200 rounded w-3/4" />
+        <div className="h-3 bg-gray-200 rounded w-1/2" />
       </div>
-      <div className="space-y-2.5 mb-5">
-        {[1, 2, 3].map((_, i) => (
-          <div key={i} className="flex items-center space-x-2.5">
-            <div className="w-4 h-4 bg-gray-200 rounded-full"></div>
-            <div className="h-4 bg-gray-200 rounded w-32"></div>
-          </div>
-        ))}
-      </div>
-      <div className="h-10 bg-gray-200 rounded-md w-full"></div>
-    </div>
-  ),
-});
-
-// Follow recommendations removed from sidebar
-
-const NextStepsPanel = dynamic(
-  () => import('./components/NextStepsPanel').then((mod) => mod.NextStepsPanel),
-  {
-    ssr: false,
-    loading: () => null, // No loading state needed, component handles its own visibility
-  }
-);
-
-// Sample journal contributors for social proof (similar to JournalFeed)
-const journalContributors = [
-  {
-    src: 'https://www.researchhub.com/static/editorial-board/MaulikDhandha.jpeg',
-    alt: 'Maulik Dhandha',
-    tooltip: 'Maulik Dhandha, Editor',
-  },
-  {
-    src: 'https://www.researchhub.com/static/editorial-board/EmilioMerheb.jpeg',
-    alt: 'Emilio Merheb',
-    tooltip: 'Emilio Merheb, Editor',
-  },
-  {
-    src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/05/07/blob_48esqmw',
-    alt: 'Journal Editor',
-    tooltip: 'Editorial Board Member',
-  },
-  {
-    src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2025/03/04/blob_pxj9rsH',
-    alt: 'Journal Editor',
-    tooltip: 'Editorial Board Member',
-  },
-  {
-    src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/04/01/blob_Ut50nMY',
-    alt: 'Journal Editor',
-    tooltip: 'Editorial Board Member',
-  },
-  {
-    src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2024/12/23/blob_oVmwyhP',
-    alt: 'Journal Editor',
-    tooltip: 'Editorial Board Member',
-  },
-  {
-    src: 'https://storage.prod.researchhub.com/uploads/author_profile_images/2023/06/25/blob',
-    alt: 'Journal Editor',
-    tooltip: 'Editorial Board Member',
-  },
-];
-
-// RH Journal Spotlight Component
-const JournalSpotlight = () => {
-  const authors: Author[] = [
-    { name: 'Salih Kumru' },
-    { name: 'Seong Won Nho' },
-    { name: 'Hossam Abdelhamed' },
-    { name: 'Mark Lawrence' },
-    { name: 'Attila Karsi', authorUrl: '/author/984218' },
-  ];
-
-  // The specific paper URL from the request
-  const paperUrl =
-    'https://new.researchhub.com/paper/9324244/analysis-of-unique-genes-reveals-potential-role-of-essential-amino-acid-synthesis-pathway-in-flavobacterium-covae-virulence';
-
-  return (
-    <Link href={paperUrl} className="block">
-      <div className="relative bg-white rounded-lg mb-4 border border-gray-200 hover:bg-gray-50 transition-colors duration-150 overflow-hidden cursor-pointer">
-        <h2 className="absolute top-[-1px] left-[-1px] z-10 bg-primary-50 text-primary-600 rounded-lg py-2 px-4 text-sm font-medium flex items-center">
-          <Icon name="rhJournal1" size={16} className="mr-1.5" color="#3971ff" />
-          RH Journal Spotlight
-        </h2>
-        <div className="space-y-3 px-4 pb-4 pt-12">
-          <img
-            src="/promos/biosynthesis2.png"
-            alt="Biosynthesis pathway diagram"
-            className="w-full max-h-[100px] rounded-md my-2 object-cover"
-          />
-          <h3 className="font-bold text-md text-gray-900 leading-tight">
-            Analysis of Unique Genes Reveals Potential Role of Essential Amino Acid Synthesis
-            Pathway in Flavobacterium covae Virulence
-          </h3>
-          <AuthorList
-            authors={authors}
-            size="xs"
-            delimiter=", "
-            className="text-gray-500 font-normal [text-wrap:inherit]"
-          />
-        </div>
-
-        {/* Condensed Journal Promotional Section - Simplified */}
-        <div className="mb-2 text-center">
-          <div className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium flex items-center justify-center gap-2 px-4 py-2">
-            Learn more about the RH Journal
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-};
-
-// Funding Spotlight Skeleton Loader - updated to include progress bar
-const FundingSpotlightSkeleton = () => (
-  <div className="space-y-3 animate-pulse">
-    <div className="flex items-center gap-2">
-      <div className="h-4 bg-gray-200 rounded w-16"></div>
-    </div>
-    <div className="h-6 bg-gray-200 rounded w-3/4 mb-1"></div>
-    <div className="flex items-center gap-2">
-      <div className="w-4 h-4 bg-gray-200 rounded-full"></div>
-      <div className="h-4 bg-gray-200 rounded w-24"></div>
-    </div>
-    <div className="h-4 bg-gray-200 rounded w-full mt-3"></div>
-    <div className="h-2 bg-gray-200 rounded-lg w-full"></div>
-    <div className="h-8 bg-gray-200 rounded-md w-full mt-3"></div>
+    ))}
   </div>
 );
 
-// Main RightSidebar Component - memoized to prevent re-renders when parent components change
+const AvailableFundingSection = () => {
+  const { grants, fetchGrants, isLoading } = useGrants();
+  const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
+
+  useEffect(() => {
+    fetchGrants();
+  }, [fetchGrants]);
+
+  if (!isLoading && grants.length === 0) return null;
+
+  const visibleGrants = grants.slice(0, 3);
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <SidebarHeader
+        title="Available Funding"
+        action={<ViewAllLink href="/fund" />}
+        className="px-4 pt-4 pb-2"
+      />
+
+      {isLoading ? (
+        <SidebarSectionSkeleton />
+      ) : (
+        <div className="divide-y divide-gray-100">
+          {visibleGrants.map((entry) => {
+            const content = entry.content as FeedGrantContent;
+            const grant = content.grant;
+            const href = buildWorkUrl({
+              id: content.id,
+              contentType: 'funding_request',
+              slug: content.slug,
+            });
+            const amount = showUSD ? grant.amount.usd : grant.amount.rsc;
+
+            return (
+              <Link
+                key={entry.id}
+                href={href}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+              >
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-sm font-medium text-gray-900 leading-snug line-clamp-2">
+                    {grant.shortTitle || content.title}
+                  </h4>
+                  <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500">
+                    {grant.organization && (
+                      <span className="flex items-center gap-1 truncate">
+                        <Building size={12} className="flex-shrink-0" />
+                        <span className="truncate">{grant.organization}</span>
+                      </span>
+                    )}
+                    {grant.applicants?.length > 0 && (
+                      <span className="flex items-center gap-1 flex-shrink-0">
+                        <Users size={12} />
+                        {grant.applicants.length}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-1.5 text-sm font-semibold font-mono text-gray-900">
+                    {formatCurrency({
+                      amount,
+                      showUSD,
+                      exchangeRate,
+                      shorten: true,
+                      skipConversion: true,
+                    })}
+                  </div>
+                </div>
+                {content.previewImage && (
+                  <div className="relative w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                    <Image
+                      src={content.previewImage}
+                      alt={grant.shortTitle || content.title}
+                      fill
+                      className="object-cover"
+                      sizes="56px"
+                    />
+                  </div>
+                )}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const NeedsFundingSection = () => {
+  const { sidebarFundraises, isSidebarLoading, fetchSidebarFundraises } = useFundraises();
+  const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
+
+  useEffect(() => {
+    fetchSidebarFundraises();
+  }, [fetchSidebarFundraises]);
+
+  if (!isSidebarLoading && sidebarFundraises.length === 0) return null;
+
+  const visibleFundraises = sidebarFundraises.slice(0, 3);
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <SidebarHeader
+        title="Needs Funding"
+        action={<ViewAllLink href="/fund" />}
+        className="px-4 pt-4 pb-2"
+      />
+
+      {isSidebarLoading ? (
+        <SidebarSectionSkeleton />
+      ) : (
+        <div className="divide-y divide-gray-100">
+          {visibleFundraises.map((entry) => {
+            const content = entry.content as FeedPostContent;
+            const fundraise = content.fundraise;
+            if (!fundraise) return null;
+
+            const author = fundraise.createdBy?.authorProfile;
+            const href = buildWorkUrl({
+              id: content.id,
+              contentType: 'preregistration',
+              slug: content.slug,
+            });
+
+            const goalAmount = showUSD ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc;
+            const raisedAmount = showUSD ? fundraise.amountRaised.usd : fundraise.amountRaised.rsc;
+
+            return (
+              <Link
+                key={entry.id}
+                href={href}
+                className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm font-medium text-gray-900 leading-snug line-clamp-2">
+                      {content.title}
+                    </h4>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <Avatar
+                        src={author?.profileImage}
+                        alt={author?.fullName || 'Author'}
+                        size={16}
+                      />
+                      <span className="text-xs text-gray-500 truncate">{author?.fullName}</span>
+                    </div>
+                  </div>
+                  {content.previewImage && (
+                    <div className="relative w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                      <Image
+                        src={content.previewImage}
+                        alt={content.title}
+                        fill
+                        className="object-cover"
+                        sizes="56px"
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="flex-1 min-w-0">
+                    <FundraiseProgressBar
+                      raisedAmount={raisedAmount}
+                      goalAmount={goalAmount}
+                      height="h-1"
+                    />
+                  </div>
+                  <div className="flex-shrink-0 flex items-baseline gap-0.5 text-[11px] font-mono">
+                    <span className="font-bold text-gray-900">
+                      {formatCurrency({
+                        amount: raisedAmount,
+                        showUSD,
+                        exchangeRate,
+                        shorten: true,
+                        skipConversion: true,
+                      })}
+                    </span>
+                    <span className="text-gray-300">/</span>
+                    <span className="text-gray-500">
+                      {formatCurrency({
+                        amount: goalAmount,
+                        showUSD,
+                        exchangeRate,
+                        shorten: true,
+                        skipConversion: true,
+                      })}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const SidebarComponent = () => {
   const pathname = usePathname();
   const isFollowingPage = pathname === '/following';
 
   return (
     <div className="space-y-4">
-      {/* Personalize Feed Banner - show logged-in variant on /following page */}
       <PersonalizeFeedBanner variant={isFollowingPage ? 'logged-in' : 'logged-out'} />
 
-      {/* Next Steps Panel for new users */}
-      {/* <NextStepsPanel /> */}
-
-      <div className="bg-white rounded-lg p-2">
-        {/* Dynamic Leaderboard Section */}
-        {/* <LeaderboardOverview /> */}
-      </div>
-
-      {/* Follow recommendations removed */}
+      <AvailableFundingSection />
+      <NeedsFundingSection />
     </div>
   );
 };

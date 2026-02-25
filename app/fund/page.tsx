@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
-import { ProposalListProvider } from '@/contexts/ProposalListContext';
+import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { TotalFundingSection } from '@/components/Funding/TotalFundingSection';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
@@ -22,9 +22,9 @@ export default async function FundPage() {
     >
       <div className="py-4">
         <PageHeader title="All Proposals" className="text-2xl md:!text-3xl mt-0" />
-        <ProposalListProvider>
+        <FundraiseProvider>
           <FundingProposalGrid />
-        </ProposalListProvider>
+        </FundraiseProvider>
       </div>
     </PageLayout>
   );

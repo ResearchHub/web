@@ -9,7 +9,7 @@ import { PostBlockEditor } from './PostBlockEditor';
 import { isDeadlineInFuture } from '@/utils/date';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
-import { ProposalListProvider } from '@/contexts/ProposalListContext';
+import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
 
 function stripHtml(html: string): string {
@@ -75,7 +75,7 @@ export const GrantDocument = ({ work, metadata }: GrantDocumentProps) => {
     (work.note?.post?.grant?.endDate ? isDeadlineInFuture(work.note?.post?.grant?.endDate) : true);
 
   return (
-    <ProposalListProvider grantId={grantId}>
+    <FundraiseProvider grantId={grantId}>
       <div>
         <div className="flex items-center gap-2 mb-2 mt-2">
           <RadiatingDot color={isActive ? 'bg-green-500' : 'bg-gray-400'} isRadiating={isActive} />
@@ -123,6 +123,6 @@ export const GrantDocument = ({ work, metadata }: GrantDocumentProps) => {
           grantId={grantId.toString()}
         />
       </div>
-    </ProposalListProvider>
+    </FundraiseProvider>
   );
 };

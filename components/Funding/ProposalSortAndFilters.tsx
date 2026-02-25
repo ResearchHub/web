@@ -2,7 +2,7 @@
 
 import { FC } from 'react';
 import { PillDropdown } from '@/components/ui/nav/PillDropdown';
-import { useProposalList } from '@/contexts/ProposalListContext';
+import { useFundraises } from '@/contexts/FundraiseContext';
 import { SORT_OPTIONS, STATUS_OPTIONS } from './lib/proposalSortAndFilterConfig';
 import type { ProposalSortOption, ProposalStatusFilter } from './lib/proposalSortAndFilterConfig';
 
@@ -11,7 +11,7 @@ interface ProposalSortAndFiltersProps {
 }
 
 export const ProposalSortAndFilters: FC<ProposalSortAndFiltersProps> = ({ className }) => {
-  const { sortBy, setSortBy, statusFilter, setStatusFilter } = useProposalList();
+  const { sortBy, setSortBy, statusFilter, setStatusFilter } = useFundraises();
 
   return (
     <div className={`flex items-center gap-2 ${className ?? ''}`}>
