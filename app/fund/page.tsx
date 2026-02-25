@@ -13,6 +13,7 @@ export default function FundPage() {
           <ActivitySidebarServer />
         </Suspense>
       }
+      scrollContainerClassName="pt-[108px]"
     >
       <div className="py-4">
         <ProposalListProvider>

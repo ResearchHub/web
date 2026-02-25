@@ -46,6 +46,7 @@ export default async function OpportunitiesPage() {
           <ActivitySidebarServer />
         </Suspense>
       }
+      scrollContainerClassName="pt-[108px]"
     >
       <FundingPageContent initialGrants={grants} closedGrants={closedGrants} error={error} />
     </PageLayout>

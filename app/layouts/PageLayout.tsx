@@ -59,16 +59,23 @@ interface PageLayoutProps {
   children: ReactNode;
   rightSidebar?: boolean | ReactNode;
   className?: string;
+  scrollContainerClassName?: string;
+  sidebarContentClassName?: string;
 }
 
-export function PageLayout({ children, rightSidebar = true, className }: PageLayoutProps) {
+export function PageLayout({
+  children,
+  rightSidebar = true,
+  className,
+  scrollContainerClassName,
+  sidebarContentClassName,
+}: PageLayoutProps) {
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
-  const isFundPage = pathname === '/fund' || pathname === '/fund/opportunities';
 
   // Mobile top nav scroll hide/show
   const { isHidden: isMobileTopNavHidden } = useMobileNavScroll({
@@ -161,50 +168,44 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
           {/* Center Content Area (Scrolling) */}
           <div
             ref={scrollContainerRef}
-            className={`flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative transition-all duration-150 ${
-              isCompact ? 'pt-12' : 'pt-16'
-            } ${isFundPage ? 'pt-[108px]' : ''}`}
-          >
-            {/* Main Content */}
-            <main
-              ref={mainContentRef}
-              className={`flex-1 px-4 tablet:!px-8 py-6 pb-20 tablet:!pb-4 flex justify-center ${
-                rightSidebar ? 'lg:!pr-80 right-sidebar:!pr-80' : ''
-              }`}
-              style={{ maxWidth: '100vw' }}
-            >
-              <div
-                className={cn(
-                  'w-full',
-                  'max-w-full tablet:!max-w-[860px] content-md:!max-w-[860px] content-lg:!max-w-[860px] content-xl:!max-w-[860px]',
-                  className
-                )}
-              >
-                {children}
-              </div>
-            </main>
-
-            {/* Right Sidebar (Fixed to viewport edge) */}
-            {rightSidebar && (
-              <aside
-                className={`fixed right-0 overflow-y-auto transition-all duration-150
-                    lg:!block !hidden right-sidebar:!block w-80 bg-gray-50/75 border-l border-gray-200
-                    z-30 ${isCompact ? 'top-12 h-[calc(100vh-48px)]' : 'top-16 h-[calc(100vh-64px)]'}`}
-              >
-                {/* Sidebar Content */}
-                <div className={`px-4 pt-4 pb-4 h-full ${isFundPage ? 'mt-10' : ''}`}>
-                  <Suspense fallback={<RightSidebarSkeleton />}>
-                    {pathname.startsWith('/paper/create') ? (
-                      <RHJRightSidebar showBanner={false} />
-                    ) : typeof rightSidebar === 'boolean' ? (
-                      <RightSidebar />
-                    ) : (
-                      rightSidebar
-                    )}
-                  </Suspense>
-                </div>
-              </aside>
+            className={cn(
+              'flex-1 overflow-y-auto overflow-x-hidden relative transition-all duration-150',
+              isCompact ? 'pt-12' : 'pt-16',
+              scrollContainerClassName
             )}
+          >
+            <div className="flex mx-auto w-full max-w-[1180px]">
+              {/* Main Content */}
+              <main
+                ref={mainContentRef}
+                className="flex-1 min-w-0 px-4 tablet:!px-8 py-6 pb-20 tablet:!pb-4"
+              >
+                <div className={cn('w-full', 'max-w-full tablet:!max-w-[860px]', className)}>
+                  {children}
+                </div>
+              </main>
+
+              {/* Right Sidebar (positioned relative to content) */}
+              {rightSidebar && (
+                <aside
+                  className={`sticky top-10 overflow-y-auto
+                    lg:!block !hidden right-sidebar:!block w-80 flex-shrink-0 bg-gray-50 rounded-l-xl
+                    z-30 ${isCompact ? 'h-[calc(100vh-48px)]' : 'h-[calc(100vh-64px)]'}`}
+                >
+                  <div className={cn('px-4 pt-4 pb-4 h-full', sidebarContentClassName)}>
+                    <Suspense fallback={<RightSidebarSkeleton />}>
+                      {pathname.startsWith('/paper/create') ? (
+                        <RHJRightSidebar showBanner={false} />
+                      ) : typeof rightSidebar === 'boolean' ? (
+                        <RightSidebar />
+                      ) : (
+                        rightSidebar
+                      )}
+                    </Suspense>
+                  </div>
+                </aside>
+              )}
+            </div>
             {/* Mobile Bottom Navigation */}
             <MobileBottomNav />
           </div>
