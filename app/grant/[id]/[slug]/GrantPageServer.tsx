@@ -7,7 +7,9 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { GrantDocument } from '@/components/work/GrantDocument';
-import { GrantRightSidebar } from '@/components/work/GrantRightSidebar';
+import { GrantAmountSection } from '@/components/work/components/GrantAmountSection';
+import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
+import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
 import { TabType } from '@/components/work/WorkTabs';
 
 interface GrantPageServerProps {
@@ -30,9 +32,16 @@ export async function getGrant(id: string): Promise<Work> {
 export async function GrantPageServer({ id, defaultTab }: GrantPageServerProps) {
   const work = await getGrant(id);
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
+  const grantId = work.note?.post?.grant?.id ?? undefined;
 
   return (
-    <PageLayout rightSidebar={<GrantRightSidebar work={work} metadata={metadata} />}>
+    <PageLayout
+      rightSidebar={
+        <Suspense fallback={<ActivitySidebarSkeleton />}>
+          <FundingSidebarServer topSection={<GrantAmountSection work={work} />} grantId={grantId} />
+        </Suspense>
+      }
+    >
       <Suspense>
         <GrantDocument work={work} metadata={metadata} defaultTab={defaultTab} />
         <SearchHistoryTracker work={work} />

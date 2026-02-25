@@ -8,6 +8,16 @@ interface GrantFeedResponse {
   results: RawApiFeedEntry[];
 }
 
+interface AvailableFundingResponse {
+  available_funding_in_rsc: number;
+  available_funding_in_usd: number;
+}
+
+export interface AvailableFunding {
+  rsc: number;
+  usd: number;
+}
+
 export interface GetGrantsParams {
   page?: number;
   pageSize?: number;
@@ -87,6 +97,21 @@ export class GrantService {
   static async createGrant(payload: any): Promise<any> {
     const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, payload);
     return response;
+  }
+
+  static async getAvailableFunding(): Promise<AvailableFunding> {
+    try {
+      const response = await ApiClient.get<AvailableFundingResponse>(
+        `${this.BASE_PATH}/available_funding/`
+      );
+      return {
+        rsc: response.available_funding_in_rsc,
+        usd: response.available_funding_in_usd,
+      };
+    } catch (error) {
+      console.error('Error fetching available funding:', error);
+      return { rsc: 0, usd: 0 };
+    }
   }
 
   /**

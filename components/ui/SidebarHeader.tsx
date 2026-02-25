@@ -9,7 +9,7 @@ interface SidebarHeaderProps {
 export const SidebarHeader: FC<SidebarHeaderProps> = ({ title, className }) => {
   return (
     <h3
-      className={cn('text-md font-semibold text-gray-900 capitalize tracking-wide mb-2', className)}
+      className={cn('text-md font-semibold text-gray-800 capitalize tracking-wide mb-2', className)}
     >
       {title}
     </h3>

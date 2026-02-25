@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { WorkMetadata } from '@/services/metadata.service';
 import { Button } from '@/components/ui/Button';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
 import { ProposalForModal } from '@/services/post.service';
@@ -23,34 +22,27 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
   }
 
   const handleUseSelectedProposal = (proposal: ProposalForModal) => {
-    console.log('Apply using selected proposal from GrantAmountSection:', proposal);
     setIsApplyModalOpen(false);
     router.refresh();
   };
 
   return (
     <>
-      <div className="-mx-4 px-4 py-4 border-b border-gray-200">
-        <div className="flex flex-col gap-1 overflow-hidden">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="text-2xl sm:text-3xl font-bold font-mono text-primary-600 min-w-0 flex-shrink truncate flex items-center gap-1">
-              <span>$</span>
-              {usdAmount.toLocaleString()}
-              <span className="text-lg font-medium">USD</span>
-            </div>
-          </div>
+      <div>
+        <div className="text-2xl sm:text-3xl font-bold font-mono text-primary-600 flex items-center gap-1">
+          <span>$</span>
+          {usdAmount.toLocaleString()}
+          <span className="text-lg font-medium">USD</span>
         </div>
         {usdAmount > 0 && (
-          <p className="text-sm text-gray-600 mt-2 mb-4">
+          <p className="text-sm text-gray-500 mt-1">
             Amount may be divided across multiple proposals.
           </p>
         )}
 
         <Button
-          onClick={() => {
-            setIsApplyModalOpen(true);
-          }}
-          className="w-full mt-3 flex items-center justify-center gap-1"
+          onClick={() => setIsApplyModalOpen(true)}
+          className="w-full mt-4 flex items-center justify-center gap-1"
           size="lg"
         >
           <Plus className="h-4 w-4" /> Submit proposal
