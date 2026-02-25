@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Copy, Mail, Trash2, Send, Loader2 } from 'lucide-react';
+import { Copy, Mail, Trash2, Send, Loader2, Save } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { BaseSection } from '@/components/ui/BaseSection';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
+import { Textarea } from '@/components/ui/form/Textarea';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/form/Modal';
 import {
@@ -29,6 +30,35 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [editSubject, setEditSubject] = useState('');
+  const [editBody, setEditBody] = useState('');
+
+  useEffect(() => {
+    if (email) {
+      setEditSubject(email.emailSubject ?? '');
+      setEditBody(email.emailBody ?? '');
+    }
+  }, [email?.id, email?.emailSubject, email?.emailBody]);
+
+  const isDraft = email?.status !== 'sent';
+  const hasEdits =
+    isDraft &&
+    (editSubject !== (email?.emailSubject ?? '') || editBody !== (email?.emailBody ?? ''));
+
+  const handleSaveDraft = async () => {
+    if (!emailId || !hasEdits) return;
+    setActionError(null);
+    try {
+      await updateEmail(emailId, {
+        email_subject: editSubject,
+        email_body: editBody,
+      });
+      refetch();
+      toast.success('Draft saved');
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Failed to save draft');
+    }
+  };
 
   const handleMarkSent = async () => {
     setActionError(null);
@@ -52,9 +82,12 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
     }
   };
 
+  const displaySubject = isDraft ? editSubject : (email?.emailSubject ?? '');
+  const displayBody = isDraft ? editBody : (email?.emailBody ?? '');
+
   const handleCopy = () => {
     if (!email) return;
-    const text = `Subject: ${email.emailSubject}\n\n${email.emailBody}`;
+    const text = `Subject: ${displaySubject}\n\n${displayBody}`;
     navigator.clipboard.writeText(text).then(
       () => {
         toast.success('Email copied to clipboard');
@@ -65,8 +98,8 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
 
   const handleSend = () => {
     if (!email) return;
-    const subject = encodeURIComponent(email.emailSubject);
-    const body = encodeURIComponent(email.emailBody);
+    const subject = encodeURIComponent(displaySubject);
+    const body = encodeURIComponent(displayBody);
     window.location.href = `mailto:${email.expertEmail || ''}?subject=${subject}&body=${body}`;
   };
 
@@ -97,7 +130,7 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
 
   if (!email) return null;
 
-  const displayTitle = email.emailSubject || `Email for ${email.expertName}`;
+  const displayTitle = displaySubject || `Email for ${email.expertName}`;
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-8 space-y-6">
@@ -154,14 +187,54 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
       </div>
 
       <BaseSection>
-        <Input label="Subject" value={email.emailSubject} readOnly className="bg-gray-50" />
+        {isDraft ? (
+          <Input
+            label="Subject"
+            value={editSubject}
+            onChange={(e) => setEditSubject(e.target.value)}
+            placeholder="Email subject"
+          />
+        ) : (
+          <Input label="Subject" value={email.emailSubject} readOnly className="bg-gray-50" />
+        )}
       </BaseSection>
 
       <BaseSection>
-        <label className="block text-sm font-semibold text-gray-700">Email Body</label>
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-800 whitespace-pre-wrap">
-          {email.emailBody || '—'}
-        </div>
+        {isDraft ? (
+          <>
+            <Textarea
+              label="Email Body"
+              value={editBody}
+              onChange={(e) => setEditBody(e.target.value)}
+              placeholder="Email body"
+              rows={12}
+              className="min-h-[200px]"
+            />
+            {hasEdits && (
+              <Button
+                variant="default"
+                size="sm"
+                className="mt-3 gap-2"
+                onClick={handleSaveDraft}
+                disabled={isUpdating}
+              >
+                {isUpdating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <Save className="h-4 w-4" aria-hidden />
+                )}
+                Save draft
+              </Button>
+            )}
+          </>
+        ) : (
+          <>
+            <label className="block text-sm font-semibold text-gray-700">Email Body</label>
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-800 whitespace-pre-wrap">
+              {email.emailBody || '—'}
+            </div>
+          </>
+        )}
       </BaseSection>
 
       <div className="flex justify-end pt-2">
