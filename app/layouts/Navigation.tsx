@@ -204,7 +204,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     // Conditionally apply minimized classes
     const iconContainerClass = forceMinimize
       ? 'h-[26px] w-[26px] mr-0 flex items-center justify-center flex-shrink-0'
-      : 'h-[26px] w-[26px] mr-2.5 tablet:max-sidebar-compact:!mr-0 flex items-center justify-center flex-shrink-0';
+      : 'h-[26px] w-[26px] mr-4 tablet:max-sidebar-compact:!mr-0 flex items-center justify-center flex-shrink-0';
 
     const textContainerClass = forceMinimize
       ? 'flex items-center justify-between w-full min-w-0 !hidden'
@@ -232,7 +232,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           )}
         </div>
         <div className={textContainerClass}>
-          <span className="truncate text-[18px]">{item.label}</span>
+          <span className="truncate text-[16px] font-semibold">{item.label}</span>
         </div>
       </Link>
     );

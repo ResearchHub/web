@@ -6,6 +6,7 @@ import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer'
 import { TotalFundingSection } from '@/components/Funding/TotalFundingSection';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
 import { GrantService } from '@/services/grant.service';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default async function FundPage() {
   const { usd } = await GrantService.getAvailableFunding();
@@ -20,6 +21,7 @@ export default async function FundPage() {
       scrollContainerClassName="pt-[108px]"
     >
       <div className="py-4">
+        <PageHeader title="All Proposals" className="text-2xl md:!text-3xl mt-0" />
         <ProposalListProvider>
           <FundingProposalGrid />
         </ProposalListProvider>

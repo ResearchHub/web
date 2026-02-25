@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   User,
   ChartNoAxesColumnIncreasing,
@@ -33,10 +33,8 @@ import { toTitleCase } from '@/utils/stringUtils';
 import { Hash } from 'lucide-react';
 import { getSourceLogo, getPreprintDisplayName } from '@/utils/preprintUtil';
 import { Logo } from '@/components/ui/Logo';
-import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { useFeedTabs } from '@/hooks/useFeedTabs';
-import { FeedTab } from '@/hooks/useFeed';
 import { FundingGrantTabs } from '@/components/Funding/FundingGrantTabs';
 import { useGrants } from '@/contexts/GrantContext';
 
@@ -318,31 +316,22 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const [shortcutText, setShortcutText] = useState('Ctrl+K');
   const { showAuthModal } = useAuthModalContext();
 
-  const scrollContainerRef = useScrollContainer();
-  const [showFeedTabs, setShowFeedTabs] = useState(false);
-
-  const { tabs, activeTab, handleTabChange, isFeedPage } = useFeedTabs();
+  const {
+    tabs,
+    activeTab,
+    highlightedTab,
+    handleTabChange,
+    isFeedPage,
+    isTopicPage,
+    topicSubTabs,
+    handleTopicSubTabChange,
+  } = useFeedTabs();
   const { grants } = useGrants();
 
   const isFundingPage = pathname === '/fund' || pathname === '/fund/opportunities';
   const isGrantPage = pathname.startsWith('/grant/');
   const showGrantTabs = (isFundingPage || isGrantPage) && grants.length > 0;
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (scrollContainerRef?.current) {
-        const scrolled = scrollContainerRef.current.scrollTop > 100;
-        setShowFeedTabs(scrolled);
-      }
-    };
-
-    const container = scrollContainerRef?.current;
-    if (container) {
-      container.addEventListener('scroll', handleScroll, { passive: true });
-      handleScroll();
-      return () => container.removeEventListener('scroll', handleScroll);
-    }
-  }, [scrollContainerRef]);
+  const showTopicSubTabs = isTopicPage && topicSubTabs !== null;
 
   // Get current search query from URL if on search page
   const currentSearchQuery = pathname === '/search' ? searchParams.get('q') : null;
@@ -424,7 +413,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   return (
     <>
-      <div className={`bg-white ${showGrantTabs ? '' : 'border-b border-gray-200'}`}>
+      <div
+        className={`bg-white ${isFeedPage || showGrantTabs || showTopicSubTabs ? '' : 'border-b border-gray-200'}`}
+      >
         {/* Title row */}
         <div className="flex items-center justify-between px-4 lg:px-8" style={{ height: '70px' }}>
           {/* Left side - Back button + Page title OR FeedTabs */}
@@ -495,20 +486,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                       {pageInfo.title}
                     </h1>
                   )}
-                </div>
-              </div>
-            )}
-
-            {/* Feed tabs - shown on scroll for feed pages */}
-            {showFeedTabs && isFeedPage && (
-              <div className="hidden tablet:!flex items-center h-full ml-6">
-                <div className="h-full min-w-0">
-                  <FeedTabs
-                    activeTab={activeTab}
-                    tabs={tabs}
-                    onTabChange={handleTabChange}
-                    isCompact={false}
-                  />
                 </div>
               </div>
             )}
@@ -613,17 +590,41 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           </div>
         </div>
 
+        {/* Feed tabs - second row below title */}
+        {isFeedPage && (
+          <div className="border-b border-gray-200 px-4 lg:px-8 -mt-3">
+            <FeedTabs
+              activeTab={highlightedTab}
+              tabs={tabs}
+              onTabChange={handleTabChange}
+              isCompact={false}
+            />
+          </div>
+        )}
+
         {/* Funding grant tabs - second row below title */}
         {(isFundingPage || isGrantPage) && (
           <div
             className="border-b border-gray-200 px-4 lg:px-8 overflow-hidden transition-all duration-300 ease-in-out -mt-3"
             style={{
-              maxHeight: showGrantTabs ? '48px' : '0px',
+              maxHeight: showGrantTabs ? '52px' : '0px',
               opacity: showGrantTabs ? 1 : 0,
               borderBottomColor: showGrantTabs ? undefined : 'transparent',
             }}
           >
             <FundingGrantTabs />
+          </div>
+        )}
+
+        {/* Topic sub-tabs (Popular / Latest) - second row on topic pages */}
+        {showTopicSubTabs && topicSubTabs && (
+          <div className="border-b border-gray-200 px-4 lg:px-8 -mt-3">
+            <FeedTabs
+              activeTab={activeTab}
+              tabs={topicSubTabs}
+              onTabChange={handleTopicSubTabChange}
+              isCompact={false}
+            />
           </div>
         )}
       </div>

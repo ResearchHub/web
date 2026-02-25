@@ -1,31 +1,20 @@
 'use client';
 
-import { FC, useState, useEffect } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { FC, useEffect } from 'react';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { JournalFeed } from './JournalFeed';
 import { JournalAboutTab } from './JournalAboutTab';
 import Icon from '@/components/ui/icons/Icon';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
-import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { useFeedTabs } from '@/hooks/useFeedTabs';
 
 const DEFAULT_TAB = 'all';
 
 export const JournalPage: FC = () => {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isNavigating, setIsNavigating] = useState(false);
 
-  const {
-    tabs: feedTabsList,
-    activeTab,
-    handleTabChange,
-  } = useFeedTabs(() => setIsNavigating(true));
-
-  useEffect(() => {
-    setIsNavigating(false);
-  }, [pathname, searchParams]);
+  const { activeTab } = useFeedTabs();
 
   useEffect(() => {
     if (!searchParams.get('tab')) {
@@ -47,16 +36,6 @@ export const JournalPage: FC = () => {
   return (
     <div className="space-y-1">
       {header}
-
-      <div className="mb-6 border-b">
-        <FeedTabs
-          activeTab={activeTab as any}
-          tabs={feedTabsList}
-          onTabChange={handleTabChange}
-          isLoading={isNavigating}
-        />
-      </div>
-
       {activeTab === 'about' ? <JournalAboutTab /> : <JournalFeed activeTab={activeTab as any} />}
     </div>
   );

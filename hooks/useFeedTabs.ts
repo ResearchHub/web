@@ -6,6 +6,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useSession } from 'next-auth/react';
 import { FeedTab } from './useFeed';
+import { useTopicFilters } from './useTopicFilters';
 
 export const useFeedTabs = (onBeforeNavigate?: () => void) => {
   const { user } = useUser();
@@ -14,20 +15,22 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
+  const { topics: filterTopics } = useTopicFilters();
 
   const isTopicPage = pathname.startsWith('/topic/');
   const isJournalPage = pathname.startsWith('/journal');
+  const isHomeFeedPage = ['/', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(
+    pathname
+  );
 
   const isFeedPage = useMemo(
-    () =>
-      ['/', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(pathname) ||
-      pathname.startsWith('/topic/') ||
-      pathname.startsWith('/journal'),
-    [pathname]
+    () => isHomeFeedPage || isTopicPage || isJournalPage,
+    [isHomeFeedPage, isTopicPage, isJournalPage]
   );
 
   const topicSlug = isTopicPage ? pathname.split('/')[2] : null;
 
+  // The feed-level active tab (used for data fetching in Feed/TopicFeed)
   const activeTab = useMemo((): FeedTab | any => {
     if (isTopicPage) {
       const segments = pathname.split('/');
@@ -51,38 +54,43 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
     return 'popular';
   }, [pathname, isTopicPage, isJournalPage, searchParams]);
 
+  // The highlighted tab ID in the TopBar (accounts for topic pages)
+  const highlightedTab = useMemo(() => {
+    if (isTopicPage && topicSlug) {
+      return `topic-${topicSlug}`;
+    }
+    return activeTab;
+  }, [isTopicPage, topicSlug, activeTab]);
+
   const tabs = useMemo(() => {
-    const getHref = (id: string) => {
-      if (isTopicPage && topicSlug) {
-        return `/topic/${topicSlug}/${id}`;
-      } else if (isJournalPage) {
+    if (isJournalPage) {
+      const getJournalHref = (id: string) => {
         const params = new URLSearchParams(searchParams.toString());
         params.set('tab', id);
         return `${pathname}?${params.toString()}`;
-      } else {
-        return id === 'popular' ? '/popular' : `/${id}`;
-      }
-    };
-
-    if (isTopicPage) {
+      };
       return [
-        { id: 'popular', label: 'Popular', href: getHref('popular'), scroll: false },
-        { id: 'latest', label: 'Latest', href: getHref('latest'), scroll: false },
+        { id: 'all', label: 'All', href: getJournalHref('all'), scroll: false },
+        { id: 'in-review', label: 'In Review', href: getJournalHref('in-review'), scroll: false },
+        {
+          id: 'published',
+          label: 'Published',
+          href: getJournalHref('published'),
+          scroll: false,
+        },
+        {
+          id: 'about',
+          label: 'About this journal',
+          href: getJournalHref('about'),
+          scroll: false,
+        },
       ];
     }
 
-    if (isJournalPage) {
-      return [
-        { id: 'all', label: 'All', href: getHref('all'), scroll: false },
-        { id: 'in-review', label: 'In Review', href: getHref('in-review'), scroll: false },
-        { id: 'published', label: 'Published', href: getHref('published'), scroll: false },
-        { id: 'about', label: 'About this journal', href: getHref('about'), scroll: false },
-      ];
-    }
-
+    // Home feed pages and topic pages share the same unified tab set
     const isLoggedOut = status === 'unauthenticated';
 
-    const feedTabs = isLoggedOut
+    const coreTabs = isLoggedOut
       ? [
           { id: 'popular', label: 'Popular' },
           { id: 'for-you', label: 'For You' },
@@ -94,23 +102,53 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
           { id: 'popular', label: 'Popular' },
         ];
 
-    return feedTabs.map((tab) => ({
-      ...tab,
-      href: getHref(tab.id),
-      scroll: false,
+    const topicTabs = filterTopics.map((topic, index) => ({
+      id: `topic-${topic.slug}`,
+      label: topic.name,
+      separator: index === 0,
     }));
-  }, [status, isTopicPage, isJournalPage, topicSlug, pathname, searchParams]);
+
+    return [...coreTabs, ...topicTabs].map((tab) => {
+      const href = tab.id.startsWith('topic-')
+        ? `/topic/${tab.id.replace('topic-', '')}`
+        : tab.id === 'popular'
+          ? '/popular'
+          : `/${tab.id}`;
+      return { ...tab, href, scroll: false };
+    });
+  }, [status, isJournalPage, filterTopics, searchParams, pathname]);
+
+  // Sub-tabs for topic pages (Popular / Latest within a topic)
+  const topicSubTabs = useMemo(() => {
+    if (!isTopicPage || !topicSlug) return null;
+    return [
+      {
+        id: 'popular',
+        label: 'Popular',
+        href: `/topic/${topicSlug}/popular`,
+        scroll: false,
+      },
+      {
+        id: 'latest',
+        label: 'Latest',
+        href: `/topic/${topicSlug}/latest`,
+        scroll: false,
+      },
+    ];
+  }, [isTopicPage, topicSlug]);
 
   const handleTabChange = (tab: string, e?: React.MouseEvent) => {
-    if (tab === activeTab) {
+    if (tab === highlightedTab) {
       e?.preventDefault();
       return;
     }
 
     const navigate = () => {
       onBeforeNavigate?.();
-      if (isTopicPage && topicSlug) {
-        router.push(`/topic/${topicSlug}/${tab}`, { scroll: false });
+
+      if (tab.startsWith('topic-')) {
+        const slug = tab.replace('topic-', '');
+        router.push(`/topic/${slug}`, { scroll: false });
       } else if (isJournalPage) {
         const params = new URLSearchParams(window.location.search);
         params.set('tab', tab);
@@ -121,18 +159,35 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
     };
 
     const protectedTabs = ['following', 'for-you'];
-    if (protectedTabs.includes(tab) && !user && !isTopicPage && !isJournalPage) {
+    if (protectedTabs.includes(tab) && !user && !isJournalPage) {
       e?.preventDefault();
       executeAuthenticatedAction(navigate);
       return;
     }
 
-    // If we have an event and it's a normal link navigation, let the browser handle it
-    // but still call onBeforeNavigate
     if (e && !e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) {
       onBeforeNavigate?.();
     } else if (!e) {
-      // If no event (programmatic change), navigate manually
+      navigate();
+    }
+  };
+
+  const handleTopicSubTabChange = (tab: string, e?: React.MouseEvent) => {
+    if (tab === activeTab) {
+      e?.preventDefault();
+      return;
+    }
+
+    const navigate = () => {
+      onBeforeNavigate?.();
+      if (topicSlug) {
+        router.push(`/topic/${topicSlug}/${tab}`, { scroll: false });
+      }
+    };
+
+    if (e && !e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0) {
+      onBeforeNavigate?.();
+    } else if (!e) {
       navigate();
     }
   };
@@ -140,7 +195,11 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
   return {
     tabs,
     activeTab,
+    highlightedTab,
     handleTabChange,
     isFeedPage,
+    isTopicPage,
+    topicSubTabs,
+    handleTopicSubTabChange,
   };
 };

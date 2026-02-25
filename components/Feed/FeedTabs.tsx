@@ -2,7 +2,6 @@
 
 import { FC } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
-import { FeedTab } from '@/hooks/useFeed';
 import { Settings } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
@@ -12,13 +11,14 @@ interface TabItem {
   label: string | React.ReactNode;
   href?: string;
   scroll?: boolean;
+  separator?: boolean;
   customAction?: () => void;
 }
 
 export type FeedSortOption = 'hot_score_v2' | 'latest';
 
 interface FeedTabsProps {
-  activeTab: FeedTab;
+  activeTab: string;
   tabs: TabItem[];
   onTabChange: (tab: string, e?: React.MouseEvent) => void;
   isLoading?: boolean;
@@ -60,7 +60,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   };
 
   return (
-    <div className="h-full">
+    <div className="h-full [&_.text-sm]:!text-base">
       <div className="flex items-stretch justify-between gap-2 h-full">
         <div className="min-w-0 flex-1 h-full">
           <Tabs
