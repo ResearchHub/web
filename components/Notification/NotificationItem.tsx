@@ -110,9 +110,12 @@ export function NotificationItem({ notification }: NotificationItemProps) {
             width="w-72"
           >
             <span
+              role="button"
+              tabIndex={0}
               className="text-xs font-medium text-gray-600 cursor-help ml-1"
               style={{ borderBottom: '1px dotted currentColor' }}
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
             >
               Learn more
             </span>
