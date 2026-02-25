@@ -592,7 +592,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
         {/* Feed tabs - second row below title */}
         {isFeedPage && (
-          <div className="border-b border-gray-200 px-4 lg:px-8 -mt-3">
+          <div className="border-b border-gray-200 px-4 lg:px-8 -mt-2 pb-1">
             <FeedTabs
               activeTab={highlightedTab}
               tabs={tabs}
@@ -605,7 +605,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         {/* Funding grant tabs - second row below title */}
         {(isFundingPage || isGrantPage) && (
           <div
-            className="border-b border-gray-200 px-4 lg:px-8 overflow-hidden transition-all duration-300 ease-in-out -mt-3"
+            className="border-b border-gray-200 px-4 lg:px-8 overflow-hidden transition-all duration-300 ease-in-out -mt-2 pb-1"
             style={{
               maxHeight: showGrantTabs ? '52px' : '0px',
               opacity: showGrantTabs ? 1 : 0,
@@ -618,7 +618,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
         {/* Topic sub-tabs (Popular / Latest) - second row on topic pages */}
         {showTopicSubTabs && topicSubTabs && (
-          <div className="border-b border-gray-200 px-4 lg:px-8 -mt-3">
+          <div className="border-b border-gray-200 px-4 lg:px-8 -mt-2 pb-1">
             <FeedTabs
               activeTab={activeTab}
               tabs={topicSubTabs}

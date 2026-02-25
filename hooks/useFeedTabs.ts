@@ -7,6 +7,7 @@ import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useSession } from 'next-auth/react';
 import { FeedTab } from './useFeed';
 import { useTopicFilters } from './useTopicFilters';
+import { Sparkles, Users, TrendingUp } from 'lucide-react';
 
 export const useFeedTabs = (onBeforeNavigate?: () => void) => {
   const { user } = useUser();
@@ -92,14 +93,14 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
 
     const coreTabs = isLoggedOut
       ? [
-          { id: 'popular', label: 'Popular' },
-          { id: 'for-you', label: 'For You' },
-          { id: 'following', label: 'Following' },
+          { id: 'popular', label: 'Popular', icon: TrendingUp },
+          { id: 'for-you', label: 'For You', icon: Sparkles },
+          { id: 'following', label: 'Following', icon: Users },
         ]
       : [
-          { id: 'for-you', label: 'For You' },
-          { id: 'following', label: 'Following' },
-          { id: 'popular', label: 'Popular' },
+          { id: 'for-you', label: 'For You', icon: Sparkles },
+          { id: 'following', label: 'Following', icon: Users },
+          { id: 'popular', label: 'Popular', icon: TrendingUp },
         ];
 
     const topicTabs = filterTopics.map((topic, index) => ({
