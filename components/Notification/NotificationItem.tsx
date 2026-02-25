@@ -11,8 +11,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Icon } from '@/components/ui/icons/Icon';
 import clsx from 'clsx';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
-import { Button } from '@/components/ui/Button';
-import { ChevronRight, Info } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -98,26 +97,26 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       <div className="text-sm font-medium text-gray-900">
         {message}
         {notification.type === 'PREREGISTRATION_UPDATE_REMINDER' && (
-          <Button
-            variant="ghost"
-            className="inline-flex ml-1 align-middle h-auto w-auto p-0 rounded-none"
-            onClick={(e) => e.stopPropagation()}
+          <Tooltip
+            content={
+              <p className="text-xs text-left p-1">
+                ResearchHub incentivizes scientists to share ongoing updates as their experiments
+                progress. There are no format or length requirements - interesting insights
+                described with brevity are preferred for keeping our community of funders informed
+                and interested in your work.
+              </p>
+            }
+            position="bottom"
+            width="w-72"
           >
-            <Tooltip
-              content={
-                <p className="text-xs text-left p-1">
-                  ResearchHub incentivizes scientists to share ongoing updates as their experiments
-                  progress. There are no format or length requirements - interesting insights
-                  described with brevity are preferred for keeping our community of funders informed
-                  and interested in your work.
-                </p>
-              }
-              position="bottom"
-              width="w-72"
+            <span
+              className="text-xs font-medium text-gray-600 cursor-help ml-1"
+              style={{ borderBottom: '1px dotted currentColor' }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <Info className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 cursor-help transition-colors relative -top-[1px]" />
-            </Tooltip>
-          </Button>
+              Learn more
+            </span>
+          </Tooltip>
         )}
       </div>
       <div className="text-xs text-gray-500 mt-1">
