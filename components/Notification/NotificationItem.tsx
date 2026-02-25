@@ -11,6 +11,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Icon } from '@/components/ui/icons/Icon';
 import clsx from 'clsx';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { Button } from '@/components/ui/Button';
 import { ChevronRight } from 'lucide-react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -109,16 +110,14 @@ export function NotificationItem({ notification }: NotificationItemProps) {
             position="bottom"
             width="w-72"
           >
-            <span
-              role="button"
-              tabIndex={0}
-              className="text-xs font-medium text-gray-600 cursor-help ml-1"
+            <Button
+              variant="ghost"
+              className="text-xs font-medium text-gray-600 cursor-help ml-1 h-auto w-auto p-0 rounded-none"
               style={{ borderBottom: '1px dotted currentColor' }}
               onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => e.stopPropagation()}
             >
               Learn more
-            </span>
+            </Button>
           </Tooltip>
         )}
       </div>
