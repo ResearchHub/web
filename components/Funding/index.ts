@@ -13,7 +13,6 @@ export { FundingProposalCard } from './FundingProposalCard';
 export { FundingProposalGrid } from './FundingProposalGrid';
 export { FundingTabs } from './FundingTabs';
 export { FundingGrantTabs } from './FundingGrantTabs';
-export { ActivityFeed } from './ActivityFeed';
 export { FundraiseProgressBar } from './FundraiseProgressBar';
 
 // Lib exports (constants, hooks, types)

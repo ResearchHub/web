@@ -232,7 +232,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           )}
         </div>
         <div className={textContainerClass}>
-          <span className="truncate text-[16px]">{item.label}</span>
+          <span className="truncate text-[18px]">{item.label}</span>
         </div>
       </Link>
     );

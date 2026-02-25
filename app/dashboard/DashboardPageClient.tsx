@@ -2,7 +2,6 @@
 
 import { ReactNode } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { ActivitySidebar } from '@/components/Funding/ActivitySidebar';
 import { DashboardStats } from '@/components/Funding/DashboardStats';
 import { FundingDashboardTabs } from '@/components/Funding/FundingDashboardTabs';
 
@@ -12,7 +11,7 @@ interface DashboardPageClientProps {
 
 export function DashboardPageClient({ children }: DashboardPageClientProps) {
   return (
-    <PageLayout rightSidebar={<ActivitySidebar />}>
+    <PageLayout rightSidebar={<div></div>}>
       <DashboardStats className="mt-4" />
       <FundingDashboardTabs />
       {children}
