@@ -21,13 +21,13 @@ const navigationItems: SidebarNavItem[] = [
     name: 'Templates',
     href: '/expert-finder/templates',
     icon: FileText,
-    description: 'Coming soon',
+    description: 'Contact & context templates',
   },
   {
     name: 'Outreach',
     href: '/expert-finder/outreach',
     icon: Send,
-    description: 'Coming soon',
+    description: 'Generated emails',
   },
 ];
 

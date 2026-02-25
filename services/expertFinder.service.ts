@@ -5,10 +5,16 @@ import {
   transformExpertSearch,
   transformExpertSearchCreateResponse,
   transformExpertSearchListItem,
+  transformGeneratedEmail,
+  transformSavedTemplate,
   type ExpertSearchCreated,
   type ExpertSearchResult,
   type ExpertSearchListItem,
   type ExpertSearchListResponse,
+  type GeneratedEmail,
+  type GeneratedEmailListResponse,
+  type SavedTemplate,
+  type SavedTemplateListResponse,
 } from '@/types/expertFinder';
 import type { ContentType, Work } from '@/types/work';
 import { transformUnifiedDocument } from '@/types/work';
@@ -70,6 +76,85 @@ export interface ExpertSearchCreatePayload {
     state: string;
   };
   excluded_expert_names?: string[];
+}
+
+// ── Email template kind (purpose) ───────────────────
+
+export type EmailTemplateKind =
+  | 'collaboration'
+  | 'consultation'
+  | 'conference'
+  | 'peer-review'
+  | 'publication'
+  | 'rfp-outreach'
+  | 'custom';
+
+// ── Generated emails API ───────────────────────────────────────────────────
+
+export type GeneratedEmailStatus = 'draft' | 'sent';
+
+export interface TemplateData {
+  contact_name?: string;
+  contact_title?: string;
+  contact_institution?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  contact_website?: string;
+}
+
+export interface GenerateEmailPayload {
+  expert_name: string;
+  template: string;
+  expert_title?: string;
+  expert_affiliation?: string;
+  expert_email?: string;
+  expertise?: string;
+  notes?: string;
+  expert_search_id?: number | null;
+  outreach_context?: string;
+  template_data?: TemplateData;
+  template_id?: number | null;
+}
+
+export interface CreateDraftEmailPayload {
+  expert_search?: number | null;
+  expert_name?: string;
+  expert_title?: string;
+  expert_affiliation?: string;
+  expert_email?: string;
+  expertise?: string;
+  email_subject?: string;
+  email_body?: string;
+  template?: string;
+  status?: GeneratedEmailStatus;
+  notes?: string;
+}
+
+export type UpdateGeneratedEmailPayload = Partial<CreateDraftEmailPayload>;
+
+// ── Saved templates API ─────────────────────────────────────────────────────
+
+export interface CreateSavedTemplatePayload {
+  name: string;
+  contact_name?: string;
+  contact_title?: string;
+  contact_institution?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  contact_website?: string;
+  outreach_context?: string;
+}
+
+export interface UpdateSavedTemplatePayload {
+  name?: string;
+  contact_name?: string;
+  contact_title?: string;
+  contact_institution?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  contact_website?: string;
+  outreach_context?: string;
+  is_active?: boolean;
 }
 
 export class ExpertFinderService {
@@ -210,5 +295,131 @@ export class ExpertFinderService {
     );
     if (!response.work) return null;
     return transformUnifiedDocument(response.work);
+  }
+
+  // ── Generated emails ─────────────────────────────────────────────────────
+
+  static async generateEmail(
+    payload: GenerateEmailPayload,
+    options?: { save?: boolean; action?: 'generate' }
+  ): Promise<any | GeneratedEmail> {
+    const preview = options?.save === false || options?.action === 'generate';
+    const query = preview
+      ? `?${options?.action === 'generate' ? 'action=generate' : 'save=false'}`
+      : '';
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/generate-email/${query}`,
+      payload
+    );
+    if (preview) {
+      return {
+        subject: (raw.subject as string) ?? '',
+        body: (raw.body as string) ?? '',
+      };
+    }
+    return transformGeneratedEmail(raw);
+  }
+
+  static async listEmails(params?: {
+    limit?: number;
+    offset?: number;
+  }): Promise<GeneratedEmailListResponse> {
+    const limit = Math.min(params?.limit ?? 20, 100);
+    const offset = params?.offset ?? 0;
+    const response = await ApiClient.get<{
+      emails: Record<string, unknown>[];
+      total: number;
+      limit: number;
+      offset: number;
+    }>(`${this.BASE_PATH}/emails/?limit=${limit}&offset=${offset}`);
+    return {
+      emails: Array.isArray(response.emails)
+        ? response.emails.map((item) => transformGeneratedEmail(item))
+        : [],
+      total: response.total ?? 0,
+      limit: response.limit ?? limit,
+      offset: response.offset ?? offset,
+    };
+  }
+
+  static async getEmail(emailId: number | string): Promise<GeneratedEmail> {
+    const raw = await ApiClient.get<Record<string, unknown>>(
+      `${this.BASE_PATH}/emails/${emailId}/`
+    );
+    return transformGeneratedEmail(raw);
+  }
+
+  static async createDraftEmail(payload: CreateDraftEmailPayload = {}): Promise<GeneratedEmail> {
+    const raw = await ApiClient.post<Record<string, unknown>>(`${this.BASE_PATH}/emails/`, payload);
+    return transformGeneratedEmail(raw);
+  }
+
+  static async updateEmail(
+    emailId: number | string,
+    payload: UpdateGeneratedEmailPayload
+  ): Promise<GeneratedEmail> {
+    const raw = await ApiClient.patch<Record<string, unknown>>(
+      `${this.BASE_PATH}/emails/${emailId}/`,
+      payload
+    );
+    return transformGeneratedEmail(raw);
+  }
+
+  static async deleteEmail(emailId: number | string): Promise<void> {
+    return ApiClient.deleteNoContent(`${this.BASE_PATH}/emails/${emailId}/`);
+  }
+
+  // ── Saved templates ──────────────────────────────────────────────────────
+
+  static async listTemplates(params?: {
+    limit?: number;
+    offset?: number;
+  }): Promise<SavedTemplateListResponse> {
+    const limit = Math.min(params?.limit ?? 20, 100);
+    const offset = params?.offset ?? 0;
+    const response = await ApiClient.get<{
+      templates: Record<string, unknown>[];
+      total: number;
+      limit: number;
+      offset: number;
+    }>(`${this.BASE_PATH}/templates/?limit=${limit}&offset=${offset}`);
+    return {
+      templates: Array.isArray(response.templates)
+        ? response.templates.map((item) => transformSavedTemplate(item))
+        : [],
+      total: response.total ?? 0,
+      limit: response.limit ?? limit,
+      offset: response.offset ?? offset,
+    };
+  }
+
+  static async getTemplate(templateId: number | string): Promise<SavedTemplate> {
+    const raw = await ApiClient.get<Record<string, unknown>>(
+      `${this.BASE_PATH}/templates/${templateId}/`
+    );
+    return transformSavedTemplate(raw);
+  }
+
+  static async createTemplate(payload: CreateSavedTemplatePayload): Promise<SavedTemplate> {
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/templates/`,
+      payload
+    );
+    return transformSavedTemplate(raw);
+  }
+
+  static async updateTemplate(
+    templateId: number | string,
+    payload: UpdateSavedTemplatePayload
+  ): Promise<SavedTemplate> {
+    const raw = await ApiClient.patch<Record<string, unknown>>(
+      `${this.BASE_PATH}/templates/${templateId}/`,
+      payload
+    );
+    return transformSavedTemplate(raw);
+  }
+
+  static async deleteTemplate(templateId: number | string): Promise<void> {
+    return ApiClient.deleteNoContent(`${this.BASE_PATH}/templates/${templateId}/`);
   }
 }
