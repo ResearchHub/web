@@ -132,8 +132,6 @@ export interface CreateDraftEmailPayload {
 
 export type UpdateGeneratedEmailPayload = Partial<CreateDraftEmailPayload>;
 
-// ── Saved templates API ─────────────────────────────────────────────────────
-
 export interface CreateSavedTemplatePayload {
   name: string;
   contact_name?: string;
