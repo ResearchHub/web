@@ -5,6 +5,8 @@ import { cn } from '@/utils/styles';
 import { Avatar } from '@/components/ui/Avatar';
 import { FunderService } from '@/services/funder.service';
 import { FunderOverview as FunderOverviewType } from '@/types/funder';
+import { FundingChart } from '@/components/Funding/FundingChart';
+import { useImpactData } from '@/app/funding/dashboard/lib/useImpactData';
 import { formatCurrency } from '@/utils/currency';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -18,6 +20,7 @@ export const FunderOverview: FC<FunderOverviewProps> = ({ className }) => {
   const [isLoading, setIsLoading] = useState(true);
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
+  const { data: impactData } = useImpactData();
 
   useEffect(() => {
     let cancelled = false;
@@ -55,40 +58,54 @@ export const FunderOverview: FC<FunderOverviewProps> = ({ className }) => {
   return (
     <div className={cn('rounded-xl border border-gray-200 p-6', className)}>
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Funding Overview</h2>
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 gap-8">
+        {/* Left column */}
         <div className="flex flex-col gap-4">
-          <Stat
-            label="Matched Funds"
-            rsc={overview.matchedFunds.rsc}
-            showUSD={showUSD}
-            exchangeRate={exchangeRate}
-          />
+          <div>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Supported Researchers
+            </span>
+            {overview.supportedResearchers.length > 0 ? (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {overview.supportedResearchers.map((r) => (
+                  <Avatar
+                    key={r.id}
+                    src={r.authorProfile.profileImage}
+                    alt={r.authorProfile.fullName}
+                    size="sm"
+                    authorId={r.authorProfile.id}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 mt-2">None yet</p>
+            )}
+          </div>
           <Stat
             label="Distributed Funds"
             rsc={overview.distributedFunds.rsc}
             showUSD={showUSD}
             exchangeRate={exchangeRate}
           />
+          <Stat
+            label="Matched Funds"
+            rsc={overview.matchedFunds.rsc}
+            showUSD={showUSD}
+            exchangeRate={exchangeRate}
+          />
         </div>
 
-        <div>
+        {/* Right column */}
+        <div className="min-w-0">
           <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-            Supported Researchers
+            Funding Over Time
           </span>
-          {overview.supportedResearchers.length > 0 ? (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {overview.supportedResearchers.map((r) => (
-                <Avatar
-                  key={r.id}
-                  src={r.authorProfile.profileImage}
-                  alt={r.authorProfile.fullName}
-                  size="sm"
-                  authorId={r.authorProfile.id}
-                />
-              ))}
+          {impactData && impactData.fundingOverTime.length > 0 ? (
+            <div className="mt-2">
+              <FundingChart data={impactData.fundingOverTime} />
             </div>
           ) : (
-            <p className="text-sm text-gray-400 mt-2">None yet</p>
+            <p className="text-sm text-gray-400 mt-2">No data yet</p>
           )}
         </div>
       </div>
