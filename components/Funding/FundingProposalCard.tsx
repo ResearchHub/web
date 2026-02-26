@@ -73,10 +73,7 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
 
   const imageBlock = (aspectClass: string) => (
     <div
-      className={cn(
-        'relative bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-100',
-        aspectClass
-      )}
+      className={cn('relative bg-gray-100 rounded-lg rounded-b-none overflow-hidden', aspectClass)}
     >
       {content.previewImage ? (
         <Image
@@ -164,7 +161,7 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
 
       {showActions && (
         <div
-          className="py-1.5 px-2 border-t border-gray-100 bg-gray-50 cursor-default"
+          className="py-1.5 px-2 border-t bg-gray-50 cursor-default"
           onClick={(e) => e.preventDefault()}
           onMouseDown={(e) => e.stopPropagation()}
         >
