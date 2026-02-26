@@ -4,7 +4,7 @@ import { memo, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Building, Users } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRightLong } from '@fortawesome/pro-solid-svg-icons';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
@@ -54,17 +54,17 @@ const AvailableFundingSection = () => {
   const visibleGrants = grants.slice(0, 3);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div>
       <SidebarHeader
         title="Available Funding"
         action={<ViewAllLink href="/fund" />}
-        className="px-4 pt-4 pb-2"
+        className="pb-2"
       />
 
       {isLoading ? (
         <SidebarSectionSkeleton />
       ) : (
-        <div className="divide-y divide-gray-100">
+        <div className="space-y-1">
           {visibleGrants.map((entry) => {
             const content = entry.content as FeedGrantContent;
             const grant = content.grant;
@@ -79,19 +79,16 @@ const AvailableFundingSection = () => {
               <Link
                 key={entry.id}
                 href={href}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors px-1"
               >
                 <div className="min-w-0 flex-1">
                   <h4 className="text-sm font-medium text-gray-900 leading-snug line-clamp-2">
                     {grant.shortTitle || content.title}
                   </h4>
                   <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500">
-                    {grant.organization && (
-                      <span className="flex items-center gap-1 truncate">
-                        <Building size={12} className="flex-shrink-0" />
-                        <span className="truncate">{grant.organization}</span>
-                      </span>
-                    )}
+                    <span className="truncate">
+                      {grant.organization || content.createdBy?.fullName}
+                    </span>
                     {grant.applicants?.length > 0 && (
                       <span className="flex items-center gap-1 flex-shrink-0">
                         <Users size={12} />
@@ -110,13 +107,13 @@ const AvailableFundingSection = () => {
                   </div>
                 </div>
                 {content.previewImage && (
-                  <div className="relative w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                  <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
                     <Image
                       src={content.previewImage}
                       alt={grant.shortTitle || content.title}
                       fill
                       className="object-cover"
-                      sizes="56px"
+                      sizes="64px"
                     />
                   </div>
                 )}
@@ -143,17 +140,13 @@ const NeedsFundingSection = () => {
   const visibleFundraises = sidebarFundraises.slice(0, 3);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <SidebarHeader
-        title="Needs Funding"
-        action={<ViewAllLink href="/fund" />}
-        className="px-4 pt-4 pb-2"
-      />
+    <div>
+      <SidebarHeader title="Needs Funding" action={<ViewAllLink href="/fund" />} className="pb-2" />
 
       {isSidebarLoading ? (
         <SidebarSectionSkeleton />
       ) : (
-        <div className="divide-y divide-gray-100">
+        <div className="space-y-1">
           {visibleFundraises.map((entry) => {
             const content = entry.content as FeedPostContent;
             const fundraise = content.fundraise;
@@ -173,7 +166,7 @@ const NeedsFundingSection = () => {
               <Link
                 key={entry.id}
                 href={href}
-                className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                className="block py-2.5 rounded-lg hover:bg-gray-100 transition-colors px-1"
               >
                 <div className="flex gap-3">
                   <div className="min-w-0 flex-1">
@@ -190,13 +183,13 @@ const NeedsFundingSection = () => {
                     </div>
                   </div>
                   {content.previewImage && (
-                    <div className="relative w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                    <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
                       <Image
                         src={content.previewImage}
                         alt={content.title}
                         fill
                         className="object-cover"
-                        sizes="56px"
+                        sizes="64px"
                       />
                     </div>
                   )}
@@ -245,7 +238,7 @@ const SidebarComponent = () => {
   const isFollowingPage = pathname === '/following';
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       <PersonalizeFeedBanner variant={isFollowingPage ? 'logged-in' : 'logged-out'} />
 
       <AvailableFundingSection />

@@ -7,12 +7,13 @@ import { FundingDashboardTabs } from '@/components/Funding/FundingDashboardTabs'
 
 interface DashboardPageClientProps {
   children: ReactNode;
+  userId?: number;
 }
 
-export function DashboardPageClient({ children }: DashboardPageClientProps) {
+export function DashboardPageClient({ children, userId }: DashboardPageClientProps) {
   return (
     <PageLayout rightSidebar={false}>
-      <FunderOverview className="mt-4" />
+      <FunderOverview className="mt-4" userId={userId} />
       <FundingDashboardTabs />
       {children}
     </PageLayout>

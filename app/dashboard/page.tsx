@@ -28,7 +28,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   }
 
   return (
-    <DashboardPageClient>
+    <DashboardPageClient userId={userIdParam ? Number(userIdParam) : undefined}>
       <DashboardDraftGrants />
       <Suspense fallback={<GrantCarouselSkeleton />}>
         <DashboardGrants userId={userId} />

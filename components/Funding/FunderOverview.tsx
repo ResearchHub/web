@@ -13,19 +13,20 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 
 interface FunderOverviewProps {
   className?: string;
+  userId?: number;
 }
 
-export const FunderOverview: FC<FunderOverviewProps> = ({ className }) => {
+export const FunderOverview: FC<FunderOverviewProps> = ({ className, userId }) => {
   const [overview, setOverview] = useState<FunderOverviewType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
-  const { data: impactData } = useImpactData();
+  const { data: impactData } = useImpactData(userId);
 
   useEffect(() => {
     let cancelled = false;
 
-    FunderService.getFundingOverview()
+    FunderService.getFundingOverview(userId)
       .then((data) => {
         if (!cancelled) setOverview(data);
       })
@@ -39,7 +40,7 @@ export const FunderOverview: FC<FunderOverviewProps> = ({ className }) => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [userId]);
 
   if (isLoading) {
     return (
