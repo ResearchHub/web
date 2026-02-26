@@ -927,7 +927,11 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         throw new Error(`Failed to transform ${content_type}: ${error}`);
       }
   }
-
+  console.log('baseFeedEntry', baseFeedEntry);
+  console.log(
+    'getReviewScore(processedMetrics, contentType, content)',
+    getReviewScore(processedMetrics, contentType, content)
+  );
   // Complete the feed entry
   return {
     ...baseFeedEntry,

@@ -12,6 +12,23 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { cn } from '@/utils/styles';
 import { FundraiseProgressBar } from './FundraiseProgressBar';
 import { differenceInDays } from 'date-fns';
+import { Star } from 'lucide-react';
+
+interface ProposalBadgeProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+const ProposalBadge: FC<ProposalBadgeProps> = ({ children, className }) => (
+  <div
+    className={cn(
+      'bg-white/95  text-gray-900 text-[12px] border  border-white font-semibold px-2.5 py-1 rounded-full shadow-sm',
+      className
+    )}
+  >
+    {children}
+  </div>
+);
 
 interface FundingProposalCardProps {
   entry: FeedEntry;
@@ -51,11 +68,8 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
   const isEndingSoon =
     !isFinished && daysRemaining !== null && daysRemaining <= 7 && daysRemaining >= 0;
 
-  const statusBadge = isEndingSoon ? (
-    <div className="absolute top-2 left-2 bg-amber-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
-      Ending soon
-    </div>
-  ) : null;
+  const reviewScore = entry.metrics?.reviewScore;
+  const hasReviewScore = reviewScore !== undefined && reviewScore > 0;
 
   const imageBlock = (aspectClass: string) => (
     <div
@@ -77,7 +91,15 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
           <span className="text-primary-400 text-3xl font-mono">$</span>
         </div>
       )}
-      {statusBadge}
+      <div className="absolute top-2 left-2 flex gap-1.5">
+        {hasReviewScore && (
+          <ProposalBadge className="flex items-center gap-1">
+            <Star size={10} className="fill-amber-400 text-amber-400" />
+            {reviewScore.toFixed(1)}
+          </ProposalBadge>
+        )}
+        {isEndingSoon && <ProposalBadge>Ending soon</ProposalBadge>}
+      </div>
     </div>
   );
 
@@ -142,7 +164,7 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
 
       {showActions && (
         <div
-          className="py-1.5 px-2 border-t border-gray-100 cursor-default"
+          className="py-1.5 px-2 border-t border-gray-100 bg-gray-50 cursor-default"
           onClick={(e) => e.preventDefault()}
           onMouseDown={(e) => e.stopPropagation()}
         >
