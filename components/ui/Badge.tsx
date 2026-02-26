@@ -11,7 +11,7 @@ const badgeVariants = cva(
         success: 'bg-green-100 text-green-800 border border-green-200',
         warning: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
         error: 'bg-red-100 text-red-800 border border-red-200',
-        orange: 'bg-orange-50 text-orange-800 border border-orange-200',
+        orange: 'bg-primary-50 text-primary-800 border border-primary-200',
         bounty: 'bg-gray-100 text-gray-700 border border-gray-200',
       },
       size: {
@@ -29,8 +29,7 @@ const badgeVariants = cva(
 );
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {
+  extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {
   children: React.ReactNode;
 }
 

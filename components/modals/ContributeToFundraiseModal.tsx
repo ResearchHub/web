@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { FundraiseService } from '@/services/fundraise.service';
 import { PaymentService } from '@/services/payment.service';
@@ -14,6 +15,8 @@ import {
   PaymentStep,
   FundingImpactPreview,
   QuickAmountSelector,
+  StripeProvider,
+  useWalletAvailability,
   type PaymentMethodType,
   type StripePaymentContext,
 } from '@/components/Funding';
@@ -22,11 +25,13 @@ import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { EndaomentProvider } from '@/contexts/EndaomentContext';
 
 // Import inline deposit views
 import { DepositRSCView } from './DepositRSCView';
 import { BuyModal } from './ResearchCoin/BuyModal';
 import AuthContent from '@/components/Auth/AuthContent';
+import { UserService } from '@/services/user.service';
 
 interface ContributeToFundraiseModalProps {
   isOpen: boolean;
@@ -41,15 +46,58 @@ interface ContributeToFundraiseModalProps {
 
 type ModalView = 'funding' | 'auth' | 'payment' | 'deposit-rsc';
 
-export function ContributeToFundraiseModal({
+/**
+ * Outer wrapper that lazily provides StripeProvider context.
+ *
+ * StripeProvider (and Stripe.js) are only mounted the first time the modal
+ * opens. Once mounted, they stay mounted so the wallet availability check
+ * persists across open/close cycles and exit animations still work.
+ *
+ * This prevents unnecessary Stripe.js loading and API calls on pages
+ * where the modal is rendered but never opened.
+ */
+export function ContributeToFundraiseModal(props: ContributeToFundraiseModalProps) {
+  // Feature flag: Endaoment is only visible when ?exp_endaoment=true
+  const searchParams = useSearchParams();
+  const isEndaomentEnabled = searchParams.get('exp_endaoment') === 'true';
+
+  // Track whether the modal has been opened at least once.
+  // Using a ref for the flag (no extra render) and state to trigger the
+  // initial mount when isOpen first becomes true.
+  const hasBeenOpenedRef = useRef(false);
+  const [mountStripe, setMountStripe] = useState(false);
+
+  if (props.isOpen && !hasBeenOpenedRef.current) {
+    hasBeenOpenedRef.current = true;
+    if (!mountStripe) setMountStripe(true);
+  }
+
+  // Before modal has ever been opened, render nothing.
+  // BaseModal/SwipeableDrawer aren't needed when isOpen has never been true.
+  if (!mountStripe) return null;
+
+  const inner = (
+    <ContributeToFundraiseModalInner {...props} isEndaomentEnabled={isEndaomentEnabled} />
+  );
+
+  return (
+    <StripeProvider>
+      {isEndaomentEnabled ? <EndaomentProvider>{inner}</EndaomentProvider> : inner}
+    </StripeProvider>
+  );
+}
+
+function ContributeToFundraiseModalInner({
   isOpen,
   onClose,
   onContributeSuccess,
   fundraise,
   proposalTitle,
   work,
-}: ContributeToFundraiseModalProps) {
+  isEndaomentEnabled,
+}: ContributeToFundraiseModalProps & { isEndaomentEnabled: boolean }) {
   const { user, refreshUser } = useUser();
+  const walletAvailability = useWalletAvailability();
   const { exchangeRate } = useExchangeRate();
   const isMobile = useIsMobile();
   const [amountUsd, setAmountUsd] = useState(100);
@@ -151,7 +199,10 @@ export function ContributeToFundraiseModal({
     }
   }, [user, fundraise.id, amountUsd, amountInRsc]);
 
-  const handleAuthSuccess = useCallback(() => {
+  const handleAuthSuccess = useCallback(async () => {
+    // Skip onboarding for users who sign up through the fundraise flow
+    await UserService.setCompletedOnboarding();
+
     // Track funnel step: user reached payment step after auth
     AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP, {
       fundraise_id: fundraise.id,
@@ -328,6 +379,44 @@ export function ContributeToFundraiseModal({
     onClose();
   }, [onClose]);
 
+  const handleEndaomentPaymentConfirm = useCallback(
+    async (originFundId: string) => {
+      try {
+        setIsContributing(true);
+        setError(null);
+
+        await FundraiseService.createEndaomentContribution(fundraise.id, originFundId, amountUsd);
+
+        // Track successful payment
+        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_SUCCESSFUL, {
+          fundraise_id: fundraise.id,
+          payment_method: 'endaoment',
+          amount_usd: amountUsd,
+          amount_rsc: amountInRsc,
+        });
+
+        toast.success('Your contribution has been successfully added to the fundraise.');
+        refreshUser?.();
+        if (onContributeSuccess) {
+          onContributeSuccess();
+        }
+        handleClose();
+      } catch (err) {
+        console.error('Failed to contribute via Endaoment:', err);
+        AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_ERROR, {
+          fundraise_id: fundraise.id,
+          payment_method: 'endaoment',
+          error_type: 'api',
+          error_message: 'Request failed',
+        });
+        setError('Something went wrong with your Endaoment payment. Please try again.');
+      } finally {
+        setIsContributing(false);
+      }
+    },
+    [fundraise.id, amountUsd, amountInRsc, refreshUser, onContributeSuccess, handleClose]
+  );
+
   // Handle Apple Pay / Google Pay success
   const handlePaymentRequestSuccess = useCallback(
     (paymentMethod?: 'apple_pay' | 'google_pay') => {
@@ -394,11 +483,14 @@ export function ContributeToFundraiseModal({
             fundraiseId={fundraise.id}
             isProcessing={isContributing}
             error={error}
+            walletAvailability={walletAvailability}
             onConfirmPayment={handleConfirmPayment}
             onPaymentRequestSuccess={handlePaymentRequestSuccess}
+            onEndaomentPaymentConfirm={handleEndaomentPaymentConfirm}
             onDepositRsc={handleOpenDeposit}
             onBuyRsc={handleBuyRsc}
             onStripeReady={handleStripeReady}
+            isEndaomentEnabled={isEndaomentEnabled}
           />
         );
 

@@ -1,14 +1,19 @@
 // Active components
 export { InsufficientBalanceAlert } from './InsufficientBalanceAlert';
-export { InsufficientDAFFundsAlert } from './InsufficientDAFFundsAlert';
 export { PaymentWidget } from './PaymentWidget';
 export { PaymentStep } from './PaymentStep';
 export { CreditCardForm, type StripePaymentContext } from './CreditCardForm';
 export { PaymentRequestButton } from './PaymentRequestButton';
 export { StripeProvider } from './StripeProvider';
-export { DAFAccountSelector } from './DAFAccountSelector';
 export { FundingImpactPreview } from './FundingImpactPreview';
 export { QuickAmountSelector } from './QuickAmountSelector';
+
+// Funding feed components
+export { FundingProposalCard } from './FundingProposalCard';
+export { FundingProposalGrid } from './FundingProposalGrid';
+export { FundingTabs } from './FundingTabs';
+export { FundingGrantTabs } from './FundingGrantTabs';
+export { FundraiseProgressBar } from './FundraiseProgressBar';
 
 // Lib exports (constants, hooks, types)
 export {
@@ -17,4 +22,6 @@ export {
   type PaymentMethodType,
   usePaymentMethod,
   usePaymentCalculations,
+  useWalletAvailability,
+  type WalletAvailability,
 } from './lib';

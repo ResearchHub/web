@@ -2,10 +2,12 @@
 
 import {
   FileText,
+  LayoutDashboard,
+  LayoutList,
   Star,
   MessageCircle,
   History,
-  Users,
+  Activity,
   Bell,
   MessageCircleQuestion,
 } from 'lucide-react';
@@ -21,11 +23,15 @@ import { useDeviceType } from '@/hooks/useDeviceType';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import Icon from '@/components/ui/icons/Icon';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { getOpenBounties, getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import { formatCurrency } from '@/utils/currency';
+import { colors } from '@/app/styles/colors';
 
 export type TabType =
   | 'paper'
+  | 'overview'
+  | 'proposals'
   | 'updates'
   | 'reviews'
   | 'bounties'
@@ -84,10 +90,13 @@ export const WorkTabs = ({
   const getActiveTabFromPath = (path: string): TabType => {
     if (path.includes('/updates')) return 'updates';
     if (path.includes('/conversation')) return 'conversation';
+    if (path.includes('/details') && contentType === 'grant') return 'overview';
+    if (path.includes('/applications') && contentType === 'grant') return 'proposals';
     if (path.includes('/applications')) return 'applications';
     if (path.includes('/reviews')) return 'reviews';
     if (path.includes('/bounties')) return 'bounties';
     if (path.includes('/history') && hasResearchHubJournalVersions) return 'history';
+    if (contentType === 'grant') return 'overview';
     return 'paper';
   };
 
@@ -128,27 +137,23 @@ export const WorkTabs = ({
         contentType === 'paper'
           ? `/paper/${work.id}/${work.slug}`
           : contentType === 'fund'
-            ? `/fund/${work.id}/${work.slug}`
+            ? `/proposal/${work.id}/${work.slug}`
             : contentType === 'grant'
               ? `/grant/${work.id}/${work.slug}`
               : work.postType === 'QUESTION'
                 ? `/question/${work.id}/${work.slug}`
                 : `/post/${work.id}/${work.slug}`;
 
-      const newUrl =
-        tab === 'updates'
-          ? `${baseUrl}/updates`
-          : tab === 'conversation'
-            ? `${baseUrl}/conversation`
-            : tab === 'reviews'
-              ? `${baseUrl}/reviews`
-              : tab === 'applications'
-                ? `${baseUrl}/applications`
-                : tab === 'bounties'
-                  ? `${baseUrl}/bounties`
-                  : tab === 'history'
-                    ? `${baseUrl}/history`
-                    : baseUrl;
+      const tabUrlMap: Partial<Record<TabType, string>> = {
+        updates: `${baseUrl}/updates`,
+        conversation: `${baseUrl}/conversation`,
+        reviews: `${baseUrl}/reviews`,
+        applications: `${baseUrl}/applications`,
+        bounties: `${baseUrl}/bounties`,
+        history: `${baseUrl}/history`,
+        ...(contentType === 'grant' ? { proposals: `${baseUrl}/applications` } : {}),
+      };
+      const newUrl = tabUrlMap[tab] || baseUrl;
 
       // Use history.replaceState to update URL without navigation
       window.history.replaceState(null, '', newUrl);
@@ -159,12 +164,60 @@ export const WorkTabs = ({
   const getMainTabLabel = () => {
     if (contentType === 'paper') return 'Paper';
     if (contentType === 'fund') return 'Project';
-    if (contentType === 'grant') return 'RFP';
+    if (contentType === 'grant') return 'Details';
     if (work.postType === 'QUESTION') return 'Question';
     return 'Post';
   };
 
-  // Define base tabs
+  const grantTabs = [
+    {
+      id: 'overview',
+      label: (
+        <div className="flex items-center">
+          <LayoutDashboard className="h-4 w-4 mr-2" />
+          <span>Overview</span>
+        </div>
+      ),
+    },
+    {
+      id: 'proposals',
+      label: (
+        <div className="flex items-center">
+          <LayoutList className="h-4 w-4 mr-2" />
+          <span>Proposals</span>
+        </div>
+      ),
+    },
+    {
+      id: 'conversation',
+      label: (
+        <div className="flex items-center">
+          <MessageCircle className="h-4 w-4 mr-2" />
+          <span>Conversation</span>
+          <span
+            className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+              activeTab === 'conversation'
+                ? 'bg-primary-100 text-primary-600'
+                : 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            {metadata.metrics.conversationComments || 0}
+          </span>
+        </div>
+      ),
+    },
+    {
+      id: 'history',
+      label: (
+        <div className="flex items-center">
+          <Activity className="h-4 w-4 mr-2" />
+          <span>Activity</span>
+        </div>
+      ),
+    },
+  ];
+
+  // Define base tabs (non-grant content types)
   const baseTabs = [
     {
       id: 'paper',
@@ -220,90 +273,81 @@ export const WorkTabs = ({
         </div>
       ),
     },
-    // Show Reviews/Applications tab only if not a question
+    // Show Reviews tab only if not a question
     ...(work.postType === 'QUESTION'
       ? []
       : [
           {
-            id: contentType === 'grant' ? 'applications' : 'reviews',
+            id: 'reviews',
             label: (
               <div className="flex items-center">
-                {contentType === 'grant' ? (
-                  <>
-                    <Users className="h-4 w-4 mr-2" />
-                    <span>Applications</span>
-                    <span
-                      className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                        activeTab === 'applications'
-                          ? 'bg-primary-100 text-primary-600'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {work.note?.post?.grant?.applicants?.length || 0}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <Star
-                      className={`h-4 w-4 mr-2 ${
-                        activeTab === 'reviews' ? 'text-primary-500' : 'text-gray-500'
-                      }`}
-                    />
-                    <span>Reviews</span>
-                    <span
-                      className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                        activeTab === 'reviews'
-                          ? 'bg-primary-100 text-primary-600'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {metadata.metrics.reviewScore ? formatScore(metadata.metrics.reviewScore) : 0}
-                    </span>
-                  </>
-                )}
-              </div>
-            ),
-          },
-        ]),
-    // Show Bounties tab only if not grant
-    ...(contentType === 'grant'
-      ? []
-      : [
-          {
-            id: 'bounties',
-            label: (
-              <div className="flex items-center">
-                <Icon
-                  name={activeTab === 'bounties' ? 'solidEarn' : 'earn1'}
-                  size={16}
-                  color={activeTab === 'bounties' ? '#3971ff' : '#6B7280'}
+                <Star
+                  className={`h-4 w-4 mr-2 ${
+                    activeTab === 'reviews' ? 'text-primary-500' : 'text-gray-500'
+                  }`}
                 />
-                <span className="ml-2">Bounties</span>
+                <span>Reviews</span>
                 <span
                   className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-                    activeTab === 'bounties'
+                    activeTab === 'reviews'
                       ? 'bg-primary-100 text-primary-600'
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {hasOpenBounties && canDisplayBountyAmount
-                    ? formatCurrency({
-                        amount: totalBountyAmount,
-                        showUSD,
-                        exchangeRate,
-                        shorten: true,
-                        skipConversion: showUSD,
-                      })
-                    : 0}
+                  {metadata.metrics.reviewScore ? formatScore(metadata.metrics.reviewScore) : 0}
                 </span>
               </div>
             ),
           },
         ]),
+    {
+      id: 'bounties',
+      label: (
+        <div className="flex items-center">
+          <Icon
+            name={activeTab === 'bounties' ? 'solidEarn' : 'earn1'}
+            size={16}
+            color={activeTab === 'bounties' ? colors.primary[500] : colors.gray[500]}
+          />
+          <span className="ml-2">Bounties</span>
+          <span
+            className={`ml-2 py-0.5 px-2 rounded-full text-xs flex items-center gap-0.5 ${
+              activeTab === 'bounties'
+                ? 'bg-primary-100 text-primary-600'
+                : 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            {hasOpenBounties && canDisplayBountyAmount ? (
+              <>
+                {!showUSD && (
+                  <ResearchCoinIcon
+                    size={12}
+                    color={activeTab === 'bounties' ? colors.primary[500] : colors.gray[500]}
+                    outlined
+                  />
+                )}
+                {formatCurrency({
+                  amount: totalBountyAmount,
+                  showUSD,
+                  exchangeRate,
+                  shorten: true,
+                  skipConversion: showUSD,
+                })}
+              </>
+            ) : (
+              0
+            )}
+          </span>
+        </div>
+      ),
+    },
   ];
 
-  // Add history tab only if any version is part of ResearchHub Journal
   const tabs = useMemo(() => {
+    if (contentType === 'grant') {
+      return grantTabs;
+    }
+
     if (hasResearchHubJournalVersions) {
       return [
         ...baseTabs,
@@ -328,7 +372,14 @@ export const WorkTabs = ({
       ];
     }
     return baseTabs;
-  }, [baseTabs, hasResearchHubJournalVersions, activeTab, work.versions?.length]);
+  }, [
+    baseTabs,
+    grantTabs,
+    contentType,
+    hasResearchHubJournalVersions,
+    activeTab,
+    work.versions?.length,
+  ]);
 
   return (
     <div className="border-b mb-6">

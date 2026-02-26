@@ -25,6 +25,7 @@ export interface CreateNoteParams {
   title: string;
   grouping: NoteAccess;
   organization_slug: string;
+  document_type?: string;
 }
 
 export interface UpdateNoteContentParams {
@@ -34,9 +35,20 @@ export interface UpdateNoteContentParams {
   full_json?: string;
 }
 
+export interface UpdateNoteParams {
+  noteId: ID;
+  title?: string;
+  document_type?: string;
+}
+
 export interface UpdateNoteTitleParams {
   noteId: ID;
   title: string;
+}
+
+export interface GetOrganizationNotesParams {
+  status?: 'DRAFT' | 'PUBLISHED';
+  documentType?: 'PREREGISTRATION' | 'GRANT' | 'DISCUSSION';
 }
 
 export class NoteService {
@@ -67,14 +79,22 @@ export class NoteService {
    * @param orgSlug - The slug of the organization
    * @throws {NoteError} When the request fails or parameters are invalid
    */
-  static async getOrganizationNotes(orgSlug: string): Promise<NoteListResponse> {
+  static async getOrganizationNotes(
+    orgSlug: string,
+    params?: GetOrganizationNotesParams
+  ): Promise<NoteListResponse> {
     if (!orgSlug) {
       throw new NoteError('Missing organization slug', 'INVALID_PARAMS');
     }
 
     try {
+      const queryParams = new URLSearchParams();
+      if (params?.status) queryParams.append('status', params.status);
+      if (params?.documentType) queryParams.append('type', params.documentType);
+      const qs = queryParams.toString();
+
       const response = await ApiClient.get<any>(
-        `${this.BASE_PATH}/organization/${orgSlug}/get_organization_notes/`
+        `${this.BASE_PATH}/organization/${orgSlug}/get_organization_notes/${qs ? `?${qs}` : ''}`
       );
 
       if (!response || !Array.isArray(response.results)) {
@@ -161,27 +181,26 @@ export class NoteService {
     }
   }
 
-  /**
-   * Updates a note's title
-   * @param params - The note title update parameters
-   * @throws {NoteError} When the request fails or parameters are invalid
-   */
-  static async updateNoteTitle(params: UpdateNoteTitleParams): Promise<NoteWithContent> {
+  static async updateNote(params: UpdateNoteParams): Promise<NoteWithContent> {
     if (!params.noteId) {
-      throw new NoteError('Missing required parameters', 'INVALID_PARAMS');
+      throw new NoteError('Missing note ID', 'INVALID_PARAMS');
     }
 
+    const { noteId, ...fields } = params;
+
     try {
-      const response = await ApiClient.patch<any>(`${this.BASE_PATH}/note/${params.noteId}/`, {
-        title: params.title,
-      });
+      const response = await ApiClient.patch<any>(`${this.BASE_PATH}/note/${noteId}/`, fields);
       return transformNoteWithContent(response);
     } catch (error) {
       throw new NoteError(
-        'Failed to update note title',
+        'Failed to update note',
         error instanceof Error ? error.message : 'UNKNOWN_ERROR'
       );
     }
+  }
+
+  static async updateNoteTitle(params: UpdateNoteTitleParams): Promise<NoteWithContent> {
+    return this.updateNote({ noteId: params.noteId, title: params.title });
   }
 
   /**

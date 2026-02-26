@@ -14,6 +14,8 @@ import { AssistantNoteEditorModal } from './AssistantNoteEditorModal';
 
 interface AssistantSessionProps {
   sessionId: string;
+  /** When true, renders without PageLayout (for use inside modals). */
+  embedded?: boolean;
 }
 
 /* ------------------------------------------------------------------ */
@@ -60,7 +62,7 @@ function dispatchChatResponse(response: AssistantChatResponse, dispatch: React.D
 /* ================================================================== */
 /*  AssistantSession                                                   */
 /* ================================================================== */
-export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId }) => {
+export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId, embedded }) => {
   const [state, dispatch] = useReducer(chatReducer, createInitialState());
   const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [isSavingEditor, setIsSavingEditor] = useState(false);
@@ -270,30 +272,31 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
 
   // ── Render ────────────────────────────────────────────────────────────
 
-  if (isLoadingSession) {
-    return (
-      <PageLayout rightSidebar={false}>
-        <div className="flex items-center justify-center h-[60vh]">
-          <div className="flex flex-col items-center gap-3">
-            <div className="flex gap-1">
-              <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce [animation-delay:0ms]" />
-              <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce [animation-delay:150ms]" />
-              <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce [animation-delay:300ms]" />
-            </div>
-            <p className="text-sm text-gray-500">Loading session...</p>
-          </div>
+  const loadingIndicator = (
+    <div className="flex items-center justify-center h-[60vh]">
+      <div className="flex flex-col items-center gap-3">
+        <div className="flex gap-1">
+          <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce [animation-delay:0ms]" />
+          <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce [animation-delay:150ms]" />
+          <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce [animation-delay:300ms]" />
         </div>
-      </PageLayout>
-    );
+        <p className="text-sm text-gray-500">Loading session...</p>
+      </div>
+    </div>
+  );
+
+  if (isLoadingSession) {
+    if (embedded) return loadingIndicator;
+    return <PageLayout rightSidebar={false}>{loadingIndicator}</PageLayout>;
   }
 
   if (!role) {
-    router.replace('/assistant');
+    if (!embedded) router.replace('/assistant');
     return null;
   }
 
-  return (
-    <PageLayout rightSidebar={rightSidebar}>
+  const content = (
+    <>
       <ChatScreen
         role={role}
         state={state}
@@ -314,6 +317,9 @@ export const AssistantSession: React.FC<AssistantSessionProps> = ({ sessionId })
           onClose={handleEditorClose}
         />
       )}
-    </PageLayout>
+    </>
   );
+
+  if (embedded) return content;
+  return <PageLayout rightSidebar={rightSidebar}>{content}</PageLayout>;
 };

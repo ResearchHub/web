@@ -187,7 +187,7 @@ export function formatNavigationUrl(notification: Notification): string | undefi
   if (notification.type === 'PREREGISTRATION_UPDATE' && notification.work) {
     const { id, slug } = notification.work;
     if (id && slug) {
-      return `/fund/${id}/${slug}/updates`;
+      return `/proposal/${id}/${slug}/updates`;
     }
   }
 

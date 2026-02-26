@@ -1,26 +1,25 @@
 import { ApiClient } from './client';
 import {
   LeaderboardOverviewResponse,
-  LeaderboardReviewersResponse,
-  LeaderboardFundersResponse,
+  LeaderboardReviewersListResponse,
+  LeaderboardFundersListResponse,
+  LeaderboardMeResponse,
   TopReviewer,
   TopFunder,
   transformTopReviewer,
   transformTopFunder,
-  RawTopReviewer,
-  RawTopFunder,
 } from '@/types/leaderboard';
+
+/** Period values supported by the leaderboard API. */
+export type LeaderboardPeriod = '7_days' | '30_days' | '6_months' | '1_year' | 'all_time';
 
 interface TransformedLeaderboardOverview {
   reviewers: TopReviewer[];
   funders: TopFunder[];
 }
 
-// Define structure for paginated/structured list responses
-interface ListApiResponse<T> {
-  results: T[];
-  // Add other pagination fields like count, next, previous if they exist
-}
+/** Default page size for leaderboard list endpoints. */
+export const LEADERBOARD_PAGE_SIZE = 8;
 
 export class LeaderboardService {
   private static readonly BASE_PATH = '/api/leaderboard';
@@ -42,40 +41,77 @@ export class LeaderboardService {
   }
 
   /**
-   * Fetch the detailed list of top reviewers within a date range.
+   * Fetch a page of top reviewers for a given period.
+   * @param period - One of: 7_days, 30_days, 6_months, 1_year, all_time
+   * @param page - 1-based page number (default 1)
+   * @returns Paginated result with list and total count.
    */
-  static async fetchReviewers(startDate: string, endDate: string): Promise<TopReviewer[]> {
+  static async fetchReviewers(
+    period: string,
+    page: number = 1
+  ): Promise<{ results: TopReviewer[]; count: number }> {
     const params = new URLSearchParams({
-      start_date: startDate,
-      end_date: endDate,
+      period,
+      page: page.toString(),
+      page_size: LEADERBOARD_PAGE_SIZE.toString(),
     });
-    const rawData = await ApiClient.get<ListApiResponse<RawTopReviewer>>(
+    const rawData = await ApiClient.get<LeaderboardReviewersListResponse>(
       `${this.BASE_PATH}/reviewers/?${params.toString()}`
     );
     if (rawData && Array.isArray(rawData.results)) {
-      return rawData.results.map(transformTopReviewer);
-    } else {
-      console.error('Unexpected response structure for reviewers:', rawData);
-      return [];
+      const results = rawData.results.map(transformTopReviewer).filter((r) => r.earnedRsc > 0);
+      const count = typeof rawData.count === 'number' ? rawData.count : 0;
+      return { results, count };
     }
+    console.error('Unexpected response structure for reviewers:', rawData);
+    return { results: [], count: 0 };
   }
 
   /**
-   * Fetch the detailed list of top funders within a date range.
+   * Fetch a page of top funders for a given period.
+   * @param period - One of: 7_days, 30_days, 6_months, 1_year, all_time
+   * @param page - 1-based page number (default 1)
+   * @returns Paginated result with list and total count.
    */
-  static async fetchFunders(startDate: string, endDate: string): Promise<TopFunder[]> {
+  static async fetchFunders(
+    period: string,
+    page: number = 1
+  ): Promise<{ results: TopFunder[]; count: number }> {
     const params = new URLSearchParams({
-      start_date: startDate,
-      end_date: endDate,
+      period,
+      page: page.toString(),
+      page_size: LEADERBOARD_PAGE_SIZE.toString(),
     });
-    const rawData = await ApiClient.get<ListApiResponse<RawTopFunder>>(
+    const rawData = await ApiClient.get<LeaderboardFundersListResponse>(
       `${this.BASE_PATH}/funders/?${params.toString()}`
     );
     if (rawData && Array.isArray(rawData.results)) {
-      return rawData.results.map(transformTopFunder);
-    } else {
-      console.error('Unexpected response structure for funders:', rawData);
-      return [];
+      const results = rawData.results.map(transformTopFunder).filter((f) => f.totalFunding > 0);
+      const count = typeof rawData.count === 'number' ? rawData.count : 0;
+      return { results, count };
+    }
+    console.error('Unexpected response structure for funders:', rawData);
+    return { results: [], count: 0 };
+  }
+
+  /**
+   * Fetch current user's leaderboard entries for a period (reviewer and funder).
+   * @param period - One of: 7_days, 30_days, 6_months, 1_year, all_time
+   */
+  static async fetchCurrentUserLeaderboard(
+    period: string
+  ): Promise<{ reviewer: TopReviewer | null; funder: TopFunder | null }> {
+    try {
+      const params = new URLSearchParams({ period });
+      const rawData = await ApiClient.get<LeaderboardMeResponse>(
+        `${this.BASE_PATH}/me?${params.toString()}`
+      );
+      if (!rawData) return { reviewer: null, funder: null };
+      const reviewer = rawData.reviewer != null ? transformTopReviewer(rawData.reviewer) : null;
+      const funder = rawData.funder != null ? transformTopFunder(rawData.funder) : null;
+      return { reviewer, funder };
+    } catch {
+      return { reviewer: null, funder: null };
     }
   }
 }

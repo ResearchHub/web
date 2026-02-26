@@ -99,6 +99,8 @@ export default function EarnPage() {
         header={header}
         filters={renderFilters()}
         showBountyFooter={false}
+        showPostHeaders={false}
+        showFundraiseHeaders={false}
         restoredScrollPosition={restoredScrollPosition}
         page={page}
         lastClickedEntryId={lastClickedEntryId ?? undefined}

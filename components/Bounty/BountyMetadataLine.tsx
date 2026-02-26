@@ -62,7 +62,7 @@ export const BountyMetadataLine = ({
         {showDeadline && (
           <div className="flex items-center gap-2 text-sm">
             {isOpen ? (
-              <RadiatingDot size={12} dotSize={6} isRadiating={isOpen} className="flex-shrink-0" />
+              <RadiatingDot isRadiating={isOpen} className="flex-shrink-0" />
             ) : (
               <Check size={14} className="text-green-600 flex-shrink-0" />
             )}

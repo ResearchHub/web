@@ -1,9 +1,10 @@
 'use client';
 
-import { ChevronDown, Tags } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
 import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
+import { SidebarHeader } from '@/components/ui/SidebarHeader';
 
 interface Topic {
   id: string | number;
@@ -65,10 +66,7 @@ export const TopicsSection = ({ topics }: TopicsSectionProps) => {
 
   return (
     <section>
-      <div className="flex items-center space-x-2 mb-4">
-        <Tags className="h-6 w-6 text-gray-500" />
-        <h2 className="text-base font-semibold text-gray-900">Topics</h2>
-      </div>
+      <SidebarHeader title="Topics" className="mb-3" />
       {/* Show the same topics UI across breakpoints (do not hide on mobile) */}
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">

@@ -107,11 +107,11 @@ export const ActionButton: FC<ActionButtonProps> = ({
     variant="ghost"
     size="sm"
     className={cn(
-      `flex items-center space-x-1 border border-gray-200 rounded-full transition-all`,
+      'flex items-center space-x-1 rounded-md transition-all',
       // Responsive padding
       'py-0.5 px-2 md:!py-1 md:!px-3',
-      isActive ? 'text-green-600 border-green-300' : 'text-gray-900',
-      'bg-white hover:text-gray-900 hover:bg-gray-100',
+      isActive ? 'text-green-600' : 'text-gray-900',
+      'bg-transparent hover:text-gray-900 hover:bg-gray-100',
       className
     )}
     tooltip={showTooltip ? tooltip : undefined}
@@ -425,12 +425,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         <div className="flex items-center space-x-3 md:space-x-4 flex-nowrap overflow-visible">
           <div
             className={cn(
-              'flex items-center h-8 border rounded-full bg-white transition-all',
-              localUserVote === 'UPVOTE'
-                ? 'border-green-300'
-                : localUserVote === 'DOWNVOTE'
-                  ? 'border-red-300'
-                  : 'border-gray-200',
+              'flex items-center h-8 rounded-md bg-transparent transition-all',
               isVoting ? 'opacity-50' : ''
             )}
           >
@@ -438,7 +433,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               onClick={(e) => handleVote(e, 'up')}
               disabled={isVoting}
               className={cn(
-                'py-0.5 px-2 md:!py-1 md:!px-2 rounded-l-full transition-colors',
+                'py-0.5 px-2 md:!py-1 md:!px-2 rounded-l-md transition-colors',
                 localUserVote === 'UPVOTE' ? 'text-green-600' : 'text-gray-900 hover:bg-gray-100',
                 isVoting ? 'cursor-not-allowed' : 'cursor-pointer'
               )}
@@ -453,7 +448,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               onClick={(e) => handleVote(e, 'down')}
               disabled={isVoting}
               className={cn(
-                'py-0.5 px-2 md:!py-1 md:!px-2 rounded-r-full transition-colors',
+                'py-0.5 px-2 md:!py-1 md:!px-2 rounded-r-md transition-colors',
                 localUserVote === 'DOWNVOTE' ? 'text-red-600' : 'text-gray-900 hover:bg-gray-100',
                 isVoting ? 'cursor-not-allowed' : 'cursor-pointer'
               )}
@@ -493,9 +488,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      'flex items-center space-x-1 border border-gray-200 rounded-full transition-all',
+                      'flex items-center space-x-1 rounded-md transition-all',
                       'py-0.5 px-2 md:!py-1 md:!px-3',
-                      'text-gray-900 bg-white hover:text-gray-900 hover:bg-gray-100'
+                      'text-gray-900 bg-transparent hover:text-gray-900 hover:bg-gray-100'
                     )}
                     onClick={handleTip}
                   >
@@ -516,9 +511,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 ) : (
                   <div
                     className={cn(
-                      'flex items-center space-x-1 border border-gray-200 rounded-full',
+                      'flex items-center space-x-1 rounded-md',
                       'py-0.5 px-2 md:!py-1 md:!px-3',
-                      'text-gray-900 bg-white cursor-default'
+                      'text-gray-900 bg-transparent cursor-default'
                     )}
                   >
                     <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
@@ -542,9 +537,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  'flex items-center space-x-1 border border-gray-200 rounded-full transition-all',
+                  'flex items-center space-x-1 rounded-md transition-all',
                   'py-0.5 px-2 md:!py-1 md:!px-3',
-                  'text-gray-900 bg-white hover:text-gray-900 hover:bg-gray-100'
+                  'text-gray-900 bg-transparent hover:text-gray-900 hover:bg-gray-100'
                 )}
                 tooltip={showTooltips ? 'Tip' : undefined}
                 onClick={handleTip}
@@ -561,9 +556,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
             ) : (
               <div
                 className={cn(
-                  'flex items-center space-x-1 border border-gray-200 rounded-full',
+                  'flex items-center space-x-1 rounded-md',
                   'py-0.5 px-2 md:!py-1 md:!px-3',
-                  'text-gray-900 bg-white cursor-default'
+                  'text-gray-900 bg-transparent cursor-default'
                 )}
               >
                 <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />

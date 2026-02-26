@@ -96,34 +96,31 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
 
   // Convert amount based on desired currency display
   // If currency is USD but amount is in RSC, convert it (unless skipConversion is true)
+  const rawUsdValue = isUSD && exchangeRate > 0 && !skipConversion ? amount * exchangeRate : amount;
   const displayValue =
-    isUSD && exchangeRate > 0 && !skipConversion ? Math.round(amount * exchangeRate) : amount;
+    isUSD && exchangeRate > 0 && !skipConversion ? Math.round(rawUsdValue) : amount;
 
-  // Define orange theme colors
   const colors = {
-    bg: 'bg-orange-50',
-    border: 'border-orange-200',
-    hoverBorder: 'hover:border-orange-300',
-    hoverBg: 'hover:bg-orange-50',
-    text: textColor || 'text-orange-500',
-    textDark: textColor || 'text-orange-600',
+    bg: 'bg-primary-50',
+    border: 'border-primary-200',
+    hoverBorder: 'hover:border-primary-300',
+    hoverBg: 'hover:bg-primary-50',
+    text: textColor || 'text-primary-600',
+    textDark: textColor || 'text-primary-700',
     textMedium: 'text-gray-600',
-    iconColor: undefined, // Always let gold2 icon use its natural color - don't override with Tailwind classes
-    rscLabel: currencyLabelColor || textColor || 'text-amber-600',
-    // Add gold colors for award variant
+    iconColor: undefined,
+    rscLabel: currencyLabelColor || textColor || 'text-primary-600',
     awardBg: 'bg-amber-100',
     awardBorder: 'border-amber-300',
     awardText: 'text-amber-700',
-    awardIconColor: '#F59E0B', // amber-500
-    // Add green colors for received variant
+    awardIconColor: '#F59E0B',
     receivedBg: 'bg-green-50',
     receivedBorder: 'border-green-200',
     receivedText: 'text-green-700',
-    // Add gray colors for disabled variant
     disabledBg: 'bg-gray-100',
     disabledBorder: 'border-gray-300',
     disabledText: 'text-gray-500',
-    disabledIconColor: '#6B7280', // gray-500
+    disabledIconColor: '#6B7280',
   };
 
   // Map our custom variants to classes
@@ -154,14 +151,18 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
 
   const formatNumber = (num: number, useShorten: boolean | undefined) => {
     if (useShorten) {
-      // Assuming formatRSC can handle generic number shortening.
-      // If formatRSC specifically adds "RSC" text, this needs adjustment.
-      return formatRSC({ amount: num, shorten: true });
+      return formatRSC({ amount: num, shorten: true, round: true });
     }
     return Math.round(num).toLocaleString();
   };
 
-  const displayAmount = formatNumber(displayValue, shorten);
+  const displayAmount =
+    isUSD && rawUsdValue > 0 && rawUsdValue < 1
+      ? rawUsdValue.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
+      : formatNumber(displayValue, shorten);
   const currencyText = isUSD ? 'USD' : 'RSC';
 
   // Determine whether to show currency text based on currency and hideUSDText setting
@@ -176,30 +177,30 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
       return <div className="text-gray-500 italic text-xs p-1">Exchange rate unavailable</div>;
     }
 
+    const formatTooltipAmount = (value: number) =>
+      value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
     if (isUSD) {
-      // Main display is USD, tooltip shows RSC equivalent
-      const rscAmount =
-        skipConversion && exchangeRate > 0 ? Math.round(amount / exchangeRate) : Math.round(amount);
+      const rscAmount = skipConversion && exchangeRate > 0 ? amount / exchangeRate : amount;
 
       return (
         <div className="p-1">
-          <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1">
+          <div className="font-semibold text-primary-700 mb-0.5 flex items-center gap-1">
             <ResearchCoinIcon size={14} outlined />
-            <span>{rscAmount.toLocaleString()} RSC</span>
+            <span>{Math.round(rscAmount).toLocaleString()} RSC</span>
           </div>
-          <div className="text-gray-700 text-xs">≈ ${formatNumber(displayValue, shorten)} USD</div>
+          <div className="text-gray-700 text-xs">≈ ${displayAmount} USD</div>
         </div>
       );
     } else {
-      // Main display is RSC, tooltip shows RSC and USD equivalent
-      const usdEquivalent = Math.round(amount * exchangeRate); // Assumes exchangeRate is USD_PER_RSC
+      const usdEquivalent = amount * exchangeRate;
       return (
         <div className="p-1">
-          <div className="font-semibold text-orange-700 mb-0.5 flex items-center gap-1">
+          <div className="font-semibold text-primary-700 mb-0.5 flex items-center gap-1">
             <ResearchCoinIcon size={14} outlined />
             <span>{Math.round(amount).toLocaleString()} RSC</span>
           </div>
-          <div className="text-gray-700 text-xs">≈ ${usdEquivalent.toLocaleString()} USD</div>
+          <div className="text-gray-700 text-xs">≈ ${formatTooltipAmount(usdEquivalent)} USD</div>
         </div>
       );
     }
@@ -212,7 +213,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
         <Tooltip
           content={renderTooltipContent()}
           position={tooltipPosition}
-          className="bg-orange-50 border-orange-200 shadow-md"
+          className="bg-primary-50 border-primary-200 shadow-md pointer-events-none"
           delay={50}
         >
           {content}

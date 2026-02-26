@@ -128,7 +128,7 @@ export const useBlockEditor = ({
         ? JSON.parse(contentJson)
         : content || {
             type: 'doc',
-            content: false
+            content: includeTitle
               ? [
                   {
                     type: 'heading',
@@ -136,7 +136,7 @@ export const useBlockEditor = ({
                     content: [{ type: 'text', text: '' }],
                   },
                 ]
-              : [],
+              : [{ type: 'paragraph' }],
           },
       onUpdate: ({ editor }) => {
         onUpdate?.(editor);

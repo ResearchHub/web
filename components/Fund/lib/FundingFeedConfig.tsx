@@ -1,4 +1,3 @@
-import { ReactNode } from 'react';
 import { MarketplaceTab, FundingSortOption } from '../MarketplaceTabs';
 import { Clock, Star, ArrowUp, DollarSign, Users, CheckCircle } from 'lucide-react';
 
@@ -36,13 +35,13 @@ export const getSortOptions = (activeTab: MarketplaceTab): SortOption[] => {
     { label: 'Completed', value: 'completed', icon: CheckCircle },
   ];
 
-  // Hide "Best" and "Completed" options on the RFPs (grants) tab
   if (activeTab === 'grants') {
     return allOptions.filter((option) => option.value !== 'best' && option.value !== 'completed');
   }
 
   return allOptions;
 };
+<<<<<<< HEAD
 
 export type TabConfig = {
   title: string;
@@ -84,3 +83,5 @@ export const createTabConfig = (
     fundraiseStatus: 'OPEN',
   },
 });
+=======
+>>>>>>> 97a1bb28de16b1cca4f7980cfae52129a7774c0f

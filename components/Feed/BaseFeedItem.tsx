@@ -128,25 +128,20 @@ export const TitleSection: FC<TitleSectionProps> = ({
   href,
   onClick,
 }) => {
+  const titleStyles = cn(
+    'text-md md:!text-lg font-semibold text-gray-900 mb-1 hover:underline',
+    className
+  );
+
   const content = highlightedTitle ? (
     <h2
-      className={cn(
-        'text-md md:!text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors',
-        className
-      )}
+      className={titleStyles}
       dangerouslySetInnerHTML={{
         __html: sanitizeHighlightHtml(highlightedTitle),
       }}
     />
   ) : (
-    <h2
-      className={cn(
-        'text-md md:!text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors',
-        className
-      )}
-    >
-      {title}
-    </h2>
+    <h2 className={titleStyles}>{title}</h2>
   );
 
   if (href) {

@@ -115,8 +115,9 @@ export function OnboardingModalWrapper() {
       return;
     }
 
-    // Skip old onboarding for /feed page - they'll use the new onboarding
-    if (pathname === '/feed') {
+    // Skip onboarding for /feed page - they'll use the new onboarding
+    // Skip onboarding for /fund/* pages - users signing up via fundraise flow shouldn't be interrupted
+    if (pathname === '/feed' || pathname.startsWith('/fund')) {
       return;
     }
 

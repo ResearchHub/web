@@ -1,24 +1,27 @@
 'use client';
 
 import { FC } from 'react';
-import { Tabs } from '@/components/ui/Tabs';
-import { FeedTab } from '@/hooks/useFeed';
 import { Settings } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
+import { Tabs } from '@/components/ui/Tabs';
+import { PillTabs } from '@/components/ui/PillTabs';
 
 interface TabItem {
   id: string;
   label: string | React.ReactNode;
   href?: string;
   scroll?: boolean;
+  separator?: boolean;
+  icon?: import('lucide-react').LucideIcon;
   customAction?: () => void;
 }
 
 export type FeedSortOption = 'hot_score_v2' | 'latest';
 
 interface FeedTabsProps {
-  activeTab: FeedTab;
+  activeTab: string;
   tabs: TabItem[];
   onTabChange: (tab: string, e?: React.MouseEvent) => void;
   isLoading?: boolean;
@@ -46,34 +49,40 @@ export const FeedTabs: FC<FeedTabsProps> = ({
   showSorting = false,
   sortOption = 'hot_score_v2',
   onSortChange,
-  isCompact = false,
   sortOptions = defaultSortOptions,
 }) => {
-  const handleTabChange = (tabId: string, e?: React.MouseEvent) => {
-    onTabChange(tabId, e);
-  };
+  const searchParams = useSearchParams();
+  const useLegacyTabs = searchParams.get('exp') === 'tabs';
 
   const handleSortChange = (option: SortOption) => {
-    if (onSortChange) {
-      onSortChange(option.value);
-    }
+    onSortChange?.(option.value);
   };
+
+  const tabContent = useLegacyTabs ? (
+    <Tabs
+      tabs={tabs}
+      activeTab={activeTab}
+      onTabChange={onTabChange}
+      disabled={isLoading}
+      className="!border-b-0 h-full py-0"
+    />
+  ) : (
+    <PillTabs
+      tabs={tabs}
+      activeTab={activeTab}
+      onTabChange={onTabChange}
+      disabled={!!isLoading}
+      size="md"
+    />
+  );
 
   return (
     <div className="h-full">
       <div className="flex items-center justify-between gap-2 h-full">
-        <div className="min-w-0 flex-1 h-full">
-          <Tabs
-            tabs={tabs}
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            disabled={isLoading}
-            className={`!border-b-0 h-full py-0 ${isCompact ? 'h-[48px]' : 'h-[64px]'}`}
-          />
-        </div>
-        {/* Sorting and gear icon for Following tab */}
+        <div className="min-w-0 flex-1 h-full">{tabContent}</div>
+
         {(showSorting || showGearIcon) && (
-          <div className="flex items-center gap-2 flex-shrink-0 self-center">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {showSorting && onSortChange && (
               <SortDropdown
                 value={sortOption}

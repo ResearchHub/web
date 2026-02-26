@@ -3,7 +3,8 @@
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { NotePaperSkeleton } from './components/NotePaperSkeleton';
+import { NotePaperSkeleton } from '@/components/Notebook/NotePaperSkeleton';
+import { Button } from '@/components/ui/Button';
 
 export default function NotebookPage() {
   const router = useRouter();
@@ -33,12 +34,7 @@ export default function NotebookPage() {
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Something went wrong</h2>
           <p className="text-gray-600 mb-4">{orgError.message}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Try Again
-          </button>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
         </div>
       </div>
     );

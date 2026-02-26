@@ -81,6 +81,7 @@ interface CreateNoteInput {
   title: string;
   grouping: NoteAccess;
   organizationSlug: string;
+  documentType?: string;
 }
 
 interface UseCreateNoteState {
@@ -106,6 +107,7 @@ export const useCreateNote = (): UseCreateNoteReturn => {
         title: params.title,
         grouping: params.grouping,
         organization_slug: params.organizationSlug,
+        document_type: params.documentType,
       });
       setNote(response);
       return response;

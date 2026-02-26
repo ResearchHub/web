@@ -31,7 +31,7 @@ export const navigateToAuthorProfile = (authorId: number | string | undefined, n
  */
 export function handleFundraiseRedirect(work: Work, id: string, slug: string) {
   if (work.note?.post?.fundraise) {
-    redirect(`/fund/${id}/${slug}`);
+    redirect(`/proposal/${id}/${slug}`);
   }
 }
 

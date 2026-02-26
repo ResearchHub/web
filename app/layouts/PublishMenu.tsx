@@ -19,35 +19,12 @@ interface PublishMenuProps {
 
 const PUBLISH_MENU_SECTIONS = [
   {
-    title: 'Your Research',
-    items: [
-      {
-        id: 'submit-paper',
-        title: 'Publish manuscript',
-        description: 'Submit a manuscript as a preprint or publication',
-        icon: <Icon name="submit1" size={24} color="#2563eb" />,
-        action: 'navigate',
-        path: '/paper/create',
-        requiresAuth: true,
-      },
-      {
-        id: 'write-note',
-        title: 'Write a research note',
-        description: 'Share insights, ideas, or work in progress',
-        icon: <PenLine size={24} color="#2563eb" />,
-        action: 'navigate',
-        path: '/notebook',
-        requiresAuth: true,
-      },
-    ],
-  },
-  {
-    title: 'ResearchCoin Economy',
+    title: 'Publish on ResearchHub',
     items: [
       {
         id: 'request-funding',
-        title: 'Request funding',
-        description: 'Get crowdfunding for your experiments',
+        title: 'Proposal',
+        description: 'Crowdfund your research',
         icon: <FundingIcon size={24} color="#2563eb" />,
         action: 'function',
         handler: 'handleFundResearch',
@@ -55,7 +32,7 @@ const PUBLISH_MENU_SECTIONS = [
       },
       {
         id: 'give-funding',
-        title: 'Give research funding',
+        title: 'Funding Opportunity',
         description: 'Fund specific research you care about',
         icon: <Icon name="fund" size={24} color="#2563eb" />,
         action: 'function',
@@ -63,12 +40,12 @@ const PUBLISH_MENU_SECTIONS = [
         requiresAuth: true,
       },
       {
-        id: 'post-bounty',
-        title: 'Post a bounty',
-        description: 'Pay experts to solve your problems',
-        icon: <Icon name="earn1" size={24} color="#2563eb" />,
-        action: 'function',
-        handler: 'handleCreateBounty',
+        id: 'submit-paper',
+        title: 'Preprint',
+        description: 'Publish your research as a preprint',
+        icon: <Icon name="submit1" size={24} color="#2563eb" />,
+        action: 'navigate',
+        path: '/paper/create',
         requiresAuth: true,
       },
     ],
@@ -112,10 +89,6 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
     router.push('/notebook?newGrant=true');
   };
 
-  const handleCreateBounty = () => {
-    router.push('/bounty/create');
-  };
-
   const handleViewProfile = () => {
     navigateToAuthorProfile(user?.id, false);
   };
@@ -132,9 +105,6 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
               break;
             case 'handleOpenGrant':
               handleOpenGrant();
-              break;
-            case 'handleCreateBounty':
-              handleCreateBounty();
               break;
           }
         }
@@ -163,7 +133,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
       }}
     >
       <Plus className="h-[22px] w-[22px] stroke-[1.5]" />
-      <span>New</span>
+      <span>Publish</span>
     </button>
   );
 
@@ -291,7 +261,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
             trigger={standardTrigger}
             align="start"
             sideOffset={8}
-            className="w-80 p-2"
+            className="w-[340px] p-2"
             withOverlay={true}
             animate
           >
@@ -303,7 +273,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
             trigger={compactTrigger}
             align="start"
             sideOffset={8}
-            className="w-80 p-2"
+            className="w-[340px] p-2"
             withOverlay={true}
             animate
           >
