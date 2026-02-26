@@ -20,6 +20,7 @@ import type {
 interface FundraiseContextValue {
   entries: FeedEntry[];
   isLoading: boolean;
+  isLoadingMore: boolean;
   hasMore: boolean;
   loadMore: () => Promise<void>;
   proposalCount: number;
@@ -36,6 +37,7 @@ interface FundraiseContextValue {
   fetchSidebarFundraises: () => Promise<void>;
 }
 
+const PAGE_SIZE = 20;
 const FundraiseContext = createContext<FundraiseContextValue | null>(null);
 
 interface FundraiseProviderProps {
@@ -46,6 +48,7 @@ interface FundraiseProviderProps {
 export function FundraiseProvider({ children, grantId }: FundraiseProviderProps) {
   const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
 
@@ -75,7 +78,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
     try {
       const result = await FeedService.getFeed({
         page: 1,
-        pageSize: 20,
+        pageSize: PAGE_SIZE,
         contentType: 'PREREGISTRATION',
         endpoint: 'funding_feed',
         grantId,
@@ -83,7 +86,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
         ordering: feedParams.ordering,
       });
       setEntries(result.entries);
-      setHasMore(result.hasMore);
+      setHasMore(result.hasMore && result.entries.length >= PAGE_SIZE);
       setPage(1);
     } catch (error) {
       console.error('Error fetching fundraises:', error);
@@ -97,13 +100,14 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
   }, [fetchProposals]);
 
   const loadMore = useCallback(async () => {
-    if (isLoading || !hasMore) return;
+    if (isLoading || isLoadingMore || !hasMore) return;
 
+    setIsLoadingMore(true);
     const nextPage = page + 1;
     try {
       const result = await FeedService.getFeed({
         page: nextPage,
-        pageSize: 20,
+        pageSize: PAGE_SIZE,
         contentType: 'PREREGISTRATION',
         endpoint: 'funding_feed',
         grantId,
@@ -111,12 +115,14 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
         ordering: feedParams.ordering,
       });
       setEntries((prev) => [...prev, ...result.entries]);
-      setHasMore(result.hasMore);
+      setHasMore(result.hasMore && result.entries.length >= PAGE_SIZE);
       setPage(nextPage);
     } catch (error) {
       console.error('Error loading more fundraises:', error);
+    } finally {
+      setIsLoadingMore(false);
     }
-  }, [isLoading, hasMore, page, grantId, feedParams]);
+  }, [isLoading, isLoadingMore, hasMore, page, grantId, feedParams]);
 
   const fetchSidebarFundraises = useCallback(async () => {
     if (hasSidebarDataRef.current) return;
@@ -144,6 +150,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
     () => ({
       entries,
       isLoading,
+      isLoadingMore,
       hasMore,
       loadMore,
       proposalCount: entries.length,
@@ -160,6 +167,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
     [
       entries,
       isLoading,
+      isLoadingMore,
       hasMore,
       loadMore,
       statusFilter,

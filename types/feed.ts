@@ -460,7 +460,6 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       try {
         // Check if required fields exist
         if (!content_object) {
-          console.error('Bounty content_object is missing');
           throw new Error('Bounty content_object is missing');
         }
 
@@ -927,11 +926,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         throw new Error(`Failed to transform ${content_type}: ${error}`);
       }
   }
-  console.log('baseFeedEntry', baseFeedEntry);
-  console.log(
-    'getReviewScore(processedMetrics, contentType, content)',
-    getReviewScore(processedMetrics, contentType, content)
-  );
+
   // Complete the feed entry
   return {
     ...baseFeedEntry,
