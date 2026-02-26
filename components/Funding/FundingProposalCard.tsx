@@ -1,23 +1,17 @@
 'use client';
 
-import { FC, useRef, useState, useCallback, useEffect } from 'react';
+import { FC } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
 import { FeedEntry, FeedPostContent } from '@/types/feed';
 import { Avatar } from '@/components/ui/Avatar';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
-import { Button } from '@/components/ui/Button';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { formatCurrency } from '@/utils/currency';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { cn } from '@/utils/styles';
 import { FundraiseProgressBar } from './FundraiseProgressBar';
 import { differenceInDays } from 'date-fns';
-
-const HOVER_DELAY = 100;
-const EXPAND_PX = 28;
-const EASE_OUT = 'cubic-bezier(0.16, 1, 0.3, 1)';
 
 interface FundingProposalCardProps {
   entry: FeedEntry;
@@ -32,41 +26,6 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
 }) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
-  const cardRef = useRef<HTMLDivElement>(null);
-  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [overlayStyle, setOverlayStyle] = useState<React.CSSProperties | null>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    return () => {
-      if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    };
-  }, []);
-
-  const showOverlay = useCallback(() => {
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    hoverTimer.current = setTimeout(() => {
-      const el = cardRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      setOverlayStyle({
-        position: 'fixed',
-        top: rect.top - EXPAND_PX,
-        left: rect.left - EXPAND_PX,
-        width: rect.width + EXPAND_PX * 2,
-        zIndex: 9999,
-      });
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setVisible(true));
-      });
-    }, HOVER_DELAY);
-  }, []);
-
-  const hideOverlay = useCallback(() => {
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    setVisible(false);
-    setTimeout(() => setOverlayStyle(null), 150);
-  }, []);
 
   const content = entry.content as FeedPostContent;
   const fundraise = content.fundraise;
@@ -157,114 +116,51 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
   );
 
   return (
-    <div ref={cardRef} onMouseEnter={showOverlay} onMouseLeave={hideOverlay}>
-      <Link
-        href={href}
-        className={cn(
-          'relative block rounded-xl flex flex-col',
-          isFinished && 'opacity-75',
-          className
-        )}
-      >
-        <div className="relative">
-          {imageBlock('aspect-[16/9]')}
+    <Link
+      href={href}
+      className={cn(
+        'relative block rounded-xl flex flex-col border border-gray-200 overflow-hidden hover:bg-gray-50 transition-colors',
+        isFinished && 'opacity-75',
+        className
+      )}
+    >
+      {imageBlock('aspect-[16/9]')}
 
-          <div className="pt-2 pb-1 flex-1 flex gap-2">
-            <div className="flex-shrink-0 pt-0.5">
-              <Avatar src={author?.profileImage} alt={author?.fullName || 'Author'} size={24} />
-            </div>
-            <div className="min-w-0 flex-1 flex flex-col">
-              <h3 className="font-medium text-gray-900 text-sm leading-snug line-clamp-3 mb-0.5">
-                {content.title}
-              </h3>
-              <span className="text-xs text-gray-500 truncate">{author?.fullName}</span>
-              <div className="flex-1" />
-              {fundingRow}
-            </div>
-          </div>
-
-          {showActions && (
-            <div
-              className="py-1.5 border-t border-gray-100 cursor-default"
-              onClick={(e) => e.preventDefault()}
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <FeedItemActions
-                metrics={entry.metrics}
-                feedContentType={entry.contentType}
-                votableEntityId={content.id}
-                relatedDocumentId={content.id.toString()}
-                relatedDocumentContentType="post"
-                userVote={entry.userVote}
-                href={href}
-                hideCommentButton={true}
-                hideReportButton={true}
-                showPeerReviews={true}
-                relatedDocumentUnifiedDocumentId={content.unifiedDocumentId}
-              />
-            </div>
-          )}
+      <div className="px-3 pt-2 pb-2 flex-1 flex gap-2">
+        <div className="flex-shrink-0 pt-0.5">
+          <Avatar src={author?.profileImage} alt={author?.fullName || 'Author'} size={24} />
         </div>
-      </Link>
+        <div className="min-w-0 flex-1 flex flex-col">
+          <h3 className="font-semibold text-gray-900 text-sm leading-snug line-clamp-3 mb-0.5">
+            {content.title}
+          </h3>
+          <span className="text-xs text-gray-500 truncate">{author?.fullName}</span>
+          <div className="flex-1" />
+          {fundingRow}
+        </div>
+      </div>
 
-      {/* Expanded overlay */}
-      {overlayStyle && (
+      {showActions && (
         <div
-          style={{
-            ...overlayStyle,
-            opacity: visible ? 1 : 0,
-            transform: visible ? 'scale(1) translateY(0)' : 'scale(0.96) translateY(6px)',
-            transition: visible
-              ? `opacity 180ms ${EASE_OUT}, transform 180ms ${EASE_OUT}`
-              : `opacity 120ms ${EASE_OUT}, transform 120ms ${EASE_OUT}`,
-            pointerEvents: visible ? 'auto' : 'none',
-          }}
-          onMouseEnter={() => {
-            if (hoverTimer.current) clearTimeout(hoverTimer.current);
-            setVisible(true);
-          }}
-          onMouseLeave={hideOverlay}
+          className="py-1.5 px-2 border-t border-gray-100 cursor-default"
+          onClick={(e) => e.preventDefault()}
+          onMouseDown={(e) => e.stopPropagation()}
         >
-          <div
-            className={cn(
-              'rounded-xl bg-white shadow-xl border border-gray-200 overflow-hidden',
-              isFinished && 'opacity-90'
-            )}
-          >
-            <Link href={href}>
-              {imageBlock('aspect-[16/8]')}
-
-              <div className="p-3">
-                <div className="flex gap-2">
-                  <div className="flex-shrink-0 pt-0.5">
-                    <Avatar
-                      src={author?.profileImage}
-                      alt={author?.fullName || 'Author'}
-                      size={28}
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-gray-900 text-sm leading-snug mb-0.5">
-                      {content.title}
-                    </h3>
-                    <span className="text-xs text-gray-500">{author?.fullName}</span>
-                  </div>
-                </div>
-                {fundingRow}
-              </div>
-            </Link>
-
-            <div className="px-3 pb-3">
-              <Link href={href}>
-                <Button size="sm" className="w-full gap-1.5">
-                  Fund Proposal
-                  <ArrowRight size={14} />
-                </Button>
-              </Link>
-            </div>
-          </div>
+          <FeedItemActions
+            metrics={entry.metrics}
+            feedContentType={entry.contentType}
+            votableEntityId={content.id}
+            relatedDocumentId={content.id.toString()}
+            relatedDocumentContentType="post"
+            userVote={entry.userVote}
+            href={href}
+            hideCommentButton={true}
+            hideReportButton={true}
+            showPeerReviews={true}
+            relatedDocumentUnifiedDocumentId={content.unifiedDocumentId}
+          />
         </div>
       )}
-    </div>
+    </Link>
   );
 };

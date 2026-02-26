@@ -19,7 +19,7 @@ export const FundingProposalGrid: FC<FundingProposalGridProps> = ({ className })
       <ProposalSortAndFilters className="mb-8" />
 
       {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {isLoading ? (
           <>
             <ProposalCardSkeleton />
@@ -31,7 +31,7 @@ export const FundingProposalGrid: FC<FundingProposalGridProps> = ({ className })
           </>
         ) : entries.length > 0 ? (
           entries.map((entry) => (
-            <FundingProposalCard key={entry.id} entry={entry} showActions={false} />
+            <FundingProposalCard key={entry.id} entry={entry} showActions={true} />
           ))
         ) : (
           <div className="col-span-full py-12 text-center">
