@@ -32,6 +32,16 @@ const nextConfig = {
       destination: '/popular',
       permanent: true,
     },
+    {
+      source: '/fund/:id(\\d+)',
+      destination: '/proposal/:id',
+      permanent: true,
+    },
+    {
+      source: '/fund/:id(\\d+)/:path*',
+      destination: '/proposal/:id/:path*',
+      permanent: true,
+    },
   ],
   headers: async () => [
     {

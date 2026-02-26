@@ -48,29 +48,26 @@ interface PageInfo {
 }
 
 // Function to check if a pathname is a root navigation page (that shouldn't have back button)
-const isRootNavigationPage = (pathname: string): boolean => {
-  const rootNavigationPaths = [
-    '/',
-    '/following',
-    '/latest',
-    '/popular', // Home variants
-    '/for-you',
-    '/feed',
-    '/earn',
-    '/fund',
-    '/dashboard',
-    '/dashboard/impact',
-    '/fund',
-    '/fund/browse',
-    '/journal',
-    '/notebook',
-    '/browse',
-    '/leaderboard',
-    '/lists',
-  ];
+const ROOT_NAVIGATION_PATHS = new Set([
+  '/',
+  '/following',
+  '/latest',
+  '/popular',
+  '/for-you',
+  '/feed',
+  '/earn',
+  '/fund',
+  '/fund/browse',
+  '/dashboard',
+  '/dashboard/impact',
+  '/journal',
+  '/notebook',
+  '/browse',
+  '/leaderboard',
+  '/lists',
+]);
 
-  return rootNavigationPaths.includes(pathname);
-};
+const isRootNavigationPage = (pathname: string): boolean => ROOT_NAVIGATION_PATHS.has(pathname);
 
 // Function to get page info based on current route
 const getPageInfo = (pathname: string): PageInfo | null => {
@@ -176,7 +173,13 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
-  // Grant routes
+  if (pathname.startsWith('/proposal')) {
+    return {
+      title: 'Proposal',
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
+    };
+  }
+
   if (pathname.startsWith('/grant')) {
     return {
       title: 'Fund',
@@ -288,7 +291,7 @@ const useSmartBack = () => {
       return;
     }
 
-    const specialRoutes = ['/fund/', '/post/', '/paper/', '/author/', '/question/'];
+    const specialRoutes = ['/proposal/', '/grant/', '/post/', '/paper/', '/author/', '/question/'];
     const isSpecialRoute = specialRoutes.some((route) => pathname.startsWith(route));
 
     if (isSpecialRoute) {
@@ -329,8 +332,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { grants } = useGrants();
 
   const isFundingPage = pathname === '/fund' || pathname === '/fund/browse';
+  const isProposalPage = pathname.startsWith('/proposal/');
   const isGrantPage = pathname.startsWith('/grant/');
-  const showGrantTabs = (isFundingPage || isGrantPage) && grants.length > 0;
+  const showGrantTabs = (isFundingPage || isProposalPage || isGrantPage) && grants.length > 0;
   const showTopicSubTabs = isTopicPage && topicSubTabs !== null;
 
   // Get current search query from URL if on search page
@@ -603,7 +607,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         )}
 
         {/* Funding grant tabs - second row below title */}
-        {(isFundingPage || isGrantPage) && (
+        {(isFundingPage || isProposalPage || isGrantPage) && (
           <div
             className="border-b border-gray-200 px-4 lg:px-8 overflow-hidden transition-all duration-300 ease-in-out -mt-2 pb-1"
             style={{

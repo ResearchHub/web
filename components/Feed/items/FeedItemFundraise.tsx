@@ -15,7 +15,7 @@ import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
 import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
-import { FundraiseProgress } from '@/components/Fund/FundraiseProgressV2';
+import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { Users, Building, Pin } from 'lucide-react';
 import { formatTimestamp } from '@/utils/date';
 import { useRouter } from 'next/navigation';

@@ -1,6 +1,7 @@
 'use client';
 
-import { Building, HelpCircle } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
+import { SidebarHeader } from '@/components/ui/SidebarHeader';
 import { NonprofitDisplay } from '@/components/Nonprofit';
 import { NonprofitSkeleton } from '@/components/skeletons/NonprofitSkeleton';
 import { ID } from '@/types/root';
@@ -38,18 +39,19 @@ export function NonprofitSection({ fundraiseId, className }: NonprofitSectionPro
 
   return (
     <section className={className}>
-      <div className="flex items-center space-x-2 mb-4">
-        <Building className="h-5 w-5 text-gray-500" />
-        <h2 className="text-base font-semibold text-gray-900">Nonprofit Recipient</h2>
-        <Button
-          className="text-gray-400 hover:text-gray-600"
-          onClick={() => setShowEndaomentInfo(true)}
-          variant="ghost"
-          size="icon"
-        >
-          <HelpCircle className="h-4 w-4" />
-        </Button>
-      </div>
+      <SidebarHeader
+        title="Nonprofit Recipient"
+        action={
+          <Button
+            className="text-gray-400 hover:text-gray-600"
+            onClick={() => setShowEndaomentInfo(true)}
+            variant="ghost"
+            size="icon"
+          >
+            <HelpCircle className="h-4 w-4" />
+          </Button>
+        }
+      />
 
       {isLoading || !isMounted ? (
         <NonprofitSkeleton showHeader={false} />

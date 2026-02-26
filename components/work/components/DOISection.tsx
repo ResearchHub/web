@@ -15,7 +15,7 @@ export const DOISection = ({ doi }: DOISectionProps) => {
         href={`https://doi.org/${doi}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800"
+        className="flex items-center space-x-2 text-sm text-primary-600 hover:text-blue-800 hover:underline"
       >
         <span>{doi}</span>
       </Link>

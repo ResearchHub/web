@@ -6,7 +6,7 @@ import { MetadataService } from '@/services/metadata.service';
 import { CommentService } from '@/services/comment.service';
 import { Work } from '@/types/work';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FundingRightSidebar } from '@/components/work/FundingRightSidebar';
+import { ProposalSidebar } from '@/components/work/ProposalSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { FundDocument } from '@/components/work/FundDocument';
@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return getWorkMetadata({
     work: project,
-    url: `/fund/${resolvedParams.id}/${resolvedParams.slug}`,
+    url: `/proposal/${resolvedParams.id}/${resolvedParams.slug}`,
   });
 }
 
@@ -71,7 +71,10 @@ export default async function FundingProjectPage({ params }: Props) {
   ]);
 
   return (
-    <PageLayout rightSidebar={<FundingRightSidebar work={work} metadata={metadata} />}>
+    <PageLayout
+      rightSidebar={<ProposalSidebar work={work} metadata={metadata} />}
+      scrollContainerClassName="pt-[108px]"
+    >
       <Suspense>
         <FundDocument
           work={work}

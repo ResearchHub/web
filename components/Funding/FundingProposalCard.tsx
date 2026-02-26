@@ -52,7 +52,7 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
   const isCompleted = fundraise.status === 'COMPLETED';
   const isClosed = fundraise.status === 'CLOSED';
   const author = fundraise.createdBy?.authorProfile;
-  const href = `/fund/${content.id}/${content.slug}`;
+  const href = `/proposal/${content.id}/${content.slug}`;
 
   const goalAmount = showUSD ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc;
   const isFinished = isCompleted || isClosed;

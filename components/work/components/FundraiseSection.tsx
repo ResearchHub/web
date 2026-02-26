@@ -1,11 +1,10 @@
 'use client';
 
 import { Fundraise } from '@/types/funding';
-import { BarChart3, Users } from 'lucide-react';
-import { Icon } from '@/components/ui/icons/Icon';
-import { formatRSC } from '@/utils/number';
+import { Users } from 'lucide-react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { SidebarHeader } from '@/components/ui/SidebarHeader';
 
 interface FundraiseSectionProps {
   fundraise: Fundraise;
@@ -13,66 +12,53 @@ interface FundraiseSectionProps {
 
 export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
   const { showUSD } = useCurrencyPreference();
-  const progress = (fundraise.amountRaised.rsc / fundraise.goalAmount.rsc) * 100;
+  const percentage = Math.min(
+    100,
+    Math.round((fundraise.amountRaised.rsc / fundraise.goalAmount.rsc) * 100)
+  );
 
   return (
     <section>
-      <div className="flex items-center space-x-2 mb-4">
-        <Icon name="rscIcon" size={26} className="text-gray-500" />
-        <h2 className="text-base font-semibold text-gray-900">Funding Progress</h2>
-      </div>
+      <SidebarHeader title="Funding Progress" />
       <div className="space-y-4">
-        {/* Progress Bar */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
+        <div className="flex items-baseline justify-between">
+          <span className="text-2xl font-bold font-mono text-gray-900">{percentage}%</span>
+          <div className="flex items-center gap-1 text-sm font-mono">
             <CurrencyBadge
               amount={showUSD ? fundraise.amountRaised.usd : fundraise.amountRaised.rsc}
               variant="text"
               size="xs"
               currency={showUSD ? 'USD' : 'RSC'}
-              showText={true}
-              className="text-orange-500"
+              showText={false}
+              className="text-primary-600"
               skipConversion={showUSD}
+              shorten
             />
+            <span className="text-gray-500">/</span>
             <CurrencyBadge
               amount={showUSD ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc}
               variant="text"
               size="xs"
               currency={showUSD ? 'USD' : 'RSC'}
               showText={true}
-              className="text-orange-500"
+              className="text-primary-600"
               skipConversion={showUSD}
-            />
-          </div>
-          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full ${
-                fundraise.status === 'COMPLETED' ? 'bg-green-500' : 'bg-orange-500'
-              }`}
-              style={{
-                width: `${fundraise.status === 'COMPLETED' ? 100 : progress}%`,
-              }}
+              shorten
             />
           </div>
         </div>
 
-        {/* Contributors */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Users className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-600">Contributors</span>
+            <span className="text-sm text-gray-700">Contributors</span>
           </div>
-          <span className="text-sm font-medium text-gray-900">
+          <span className="text-sm font-medium font-mono text-gray-900">
             {fundraise.contributors.numContributors}
           </span>
         </div>
 
-        {/* Status */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <BarChart3 className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-600">Status</span>
-          </div>
+          <span className="text-sm text-gray-700">Status</span>
           <span className="text-sm font-medium text-gray-900">{fundraise.status}</span>
         </div>
       </div>

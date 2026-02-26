@@ -66,7 +66,7 @@ export const SHARE_CONFIGS: Record<ShareAction, ShareConfig> = {
       const getShareType = (url: string): string => {
         if (url.includes('/post/')) return 'Preprint';
         if (url.includes('/paper/')) return 'Paper';
-        if (url.includes('/fund/')) return 'Proposal';
+        if (url.includes('/proposal/')) return 'Proposal';
         if (url.includes('/grant/')) return 'RFP';
         return '';
       };

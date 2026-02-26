@@ -23,7 +23,7 @@ export const FundingSidebar: FC<FundingSidebarProps> = ({ topSection, entries })
         </>
       )}
 
-      <div className="px-6 pb-6">
+      <div className="px-4 pb-6">
         <div className="flex items-center gap-2 mb-6">
           <SidebarHeader title="Recent activity" />
         </div>

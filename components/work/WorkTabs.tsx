@@ -137,7 +137,7 @@ export const WorkTabs = ({
         contentType === 'paper'
           ? `/paper/${work.id}/${work.slug}`
           : contentType === 'fund'
-            ? `/fund/${work.id}/${work.slug}`
+            ? `/proposal/${work.id}/${work.slug}`
             : contentType === 'grant'
               ? `/grant/${work.id}/${work.slug}`
               : work.postType === 'QUESTION'

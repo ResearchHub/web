@@ -24,5 +24,5 @@ export default async function FundRedirectPage({ params }: Props) {
   }
 
   // Redirect to the full URL with slug (outside try-catch)
-  handleMissingSlugRedirect(fund, id, 'fund');
+  handleMissingSlugRedirect(fund, id, 'proposal');
 }

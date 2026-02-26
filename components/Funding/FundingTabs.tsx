@@ -39,7 +39,7 @@ export const FundingTabs: FC<FundingTabsProps> = ({ selectedGrantId, className, 
       return {
         id: `grant-${content.id}`,
         label: `${getShortTitle(content.title, 3)}${amountLabel}`,
-        href: `/fund/${content.id}`,
+        href: `/proposal/${content.id}`,
       };
     });
 

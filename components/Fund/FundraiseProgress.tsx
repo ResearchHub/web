@@ -25,12 +25,10 @@ interface FundraiseProgressProps {
   onContribute?: () => void;
   showContribute?: boolean;
   className?: string;
-  /** Whether to show percentage funded instead of amounts */
   showPercentage?: boolean;
-  /** Render in minimal mode with just percentage and days left */
   variant?: 'default' | 'minimal';
-  /** Work object containing author information */
   work?: Work;
+  onDetailsClick?: () => void;
 }
 
 export const FundraiseProgress: FC<FundraiseProgressProps> = ({
@@ -43,6 +41,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   showPercentage = false,
   variant = 'default',
   work,
+  onDetailsClick,
 }) => {
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
   const { showUSD } = useCurrencyPreference();
@@ -228,20 +227,31 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
             <Progress value={progressPercentage} variant={getProgressVariant()} size="xs" />
           </div>
 
-          {/* Bottom row: Fund CTA on left, contributors on right - Always in row on mobile and desktop */}
+          {/* Bottom row: Fund CTA on left, contributors on right */}
           <div className="flex items-center justify-between gap-3">
-            {showContribute && (
+            {isActive && showContribute ? (
               <Button
                 variant="contribute"
                 size="sm"
-                disabled={!isActive}
-                className="flex items-center gap-1 py-1.5 px-3 bg-orange-400 hover:bg-orange-500 text-white font-semibold transition-all duration-200 border-0 text-xs"
+                className="flex items-center gap-1 py-1.5 px-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold transition-all duration-200 border-0 text-xs"
                 onClick={handleContributeClick}
               >
                 <Icon name="giveRSC" size={16} color="white" />
                 Fund
               </Button>
-            )}
+            ) : onDetailsClick ? (
+              <Button
+                variant="outlined"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDetailsClick();
+                }}
+                className="!py-1.5 !px-2.5 text-gray-600 hover:text-gray-800 text-xs"
+              >
+                Details
+              </Button>
+            ) : null}
 
             {contributors.length > 0 && (
               <div className="cursor-pointer flex-shrink-0" onClick={handleContributeClick}>
@@ -258,7 +268,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   showExtraCount={contributors.length > 3}
                   totalItemsCount={contributors.length}
                   extraCountLabel="Funders"
-                  ringColorClass="ring-orange-50"
+                  ringColorClass="ring-primary-50"
                 />
               </div>
             )}
@@ -302,7 +312,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     size="md"
                     showText={false}
                     currency={showUSD ? 'USD' : 'RSC'}
-                    className="font-medium text-orange-500 text-base mobile:!text-lg pl-0"
+                    className="font-medium text-primary-600 text-base mobile:!text-lg pl-0"
                     skipConversion={showUSD}
                   />
                   <span className="text-gray-500 text-base mobile:!text-lg">raised of</span>
@@ -317,10 +327,10 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     showText={true}
                     showIcon={true}
                     currency={showUSD ? 'USD' : 'RSC'}
-                    className="text-orange-500 text-base mobile:!text-lg"
+                    className="text-primary-600 text-base mobile:!text-lg"
                     skipConversion={showUSD}
                   />
-                  <span className="text-orange-500 text-base mobile:!text-lg">goal</span>
+                  <span className="text-primary-600 text-base mobile:!text-lg">goal</span>
                 </div>
               )}
               <div className="mobile:!flex-shrink-0 hidden mobile:!block">{getStatusDisplay()}</div>
@@ -344,18 +354,28 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
           </div>
 
           <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between gap-4 mobile:!gap-0">
-            {showContribute && (
+            {isActive && showContribute ? (
               <Button
                 variant="contribute"
                 size="md"
-                disabled={!isActive}
-                className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-all duration-200 border-0"
+                className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold transition-all duration-200 border-0"
                 onClick={handleContributeClick}
               >
                 <Icon name="giveRSC" size={20} color="white" />
                 Fund this research
               </Button>
-            )}
+            ) : onDetailsClick ? (
+              <Button
+                variant="outlined"
+                size="md"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDetailsClick();
+                }}
+              >
+                Details
+              </Button>
+            ) : null}
 
             {/* Desktop: Contributors button at bottom */}
             {contributors.length > 0 && (

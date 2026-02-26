@@ -6,7 +6,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundDocument } from '@/components/work/FundDocument';
-import { FundingRightSidebar } from '@/components/work/FundingRightSidebar';
+import { ProposalSidebar } from '@/components/work/ProposalSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return getWorkMetadata({
     work: project,
-    url: `/fund/${resolvedParams.id}/${resolvedParams.slug}/reviews`,
+    url: `/proposal/${resolvedParams.id}/${resolvedParams.slug}/reviews`,
     titleSuffix: 'Reviews',
   });
 }
@@ -67,7 +67,7 @@ export default async function FundReviewsPage({ params }: Props) {
   ]);
 
   return (
-    <PageLayout rightSidebar={<FundingRightSidebar work={work} metadata={metadata} />}>
+    <PageLayout rightSidebar={<ProposalSidebar work={work} metadata={metadata} />}>
       <Suspense>
         <FundDocument work={work} metadata={metadata} content={content} defaultTab="reviews" />
         <SearchHistoryTracker work={work} />

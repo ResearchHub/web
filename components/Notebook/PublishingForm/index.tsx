@@ -197,7 +197,7 @@ const resolveArticleType = (
 };
 
 const getRedirectPath = (articleType: string, responseId: string, slug: string): string => {
-  if (articleType === 'preregistration') return `/fund/${responseId}/${slug}?new=true`;
+  if (articleType === 'preregistration') return `/proposal/${responseId}/${slug}?new=true`;
   if (articleType === 'grant') return `/grant/${responseId}/${slug}`;
   return `/post/${responseId}/${slug}`;
 };
