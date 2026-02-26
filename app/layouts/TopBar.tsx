@@ -319,23 +319,14 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const [shortcutText, setShortcutText] = useState('Ctrl+K');
   const { showAuthModal } = useAuthModalContext();
 
-  const {
-    tabs,
-    activeTab,
-    highlightedTab,
-    handleTabChange,
-    isFeedPage,
-    isTopicPage,
-    topicSubTabs,
-    handleTopicSubTabChange,
-  } = useFeedTabs();
+  const { tabs, activeTab, highlightedTab, handleTabChange, isFeedPage, isTopicPage } =
+    useFeedTabs();
   const { grants } = useGrants();
 
   const isFundingPage = pathname === '/fund' || pathname === '/fund/browse';
   const isProposalPage = pathname.startsWith('/proposal/');
   const isGrantPage = pathname.startsWith('/grant/');
   const showGrantTabs = (isFundingPage || isProposalPage || isGrantPage) && grants.length > 0;
-  const showTopicSubTabs = isTopicPage && topicSubTabs !== null;
 
   // Get current search query from URL if on search page
   const currentSearchQuery = pathname === '/search' ? searchParams.get('q') : null;
@@ -417,9 +408,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   return (
     <>
-      <div
-        className={`bg-white ${isFeedPage || showGrantTabs || showTopicSubTabs ? '' : 'border-b border-gray-200'}`}
-      >
+      <div className={`bg-white ${isFeedPage || showGrantTabs ? '' : 'border-b border-gray-200'}`}>
         {/* Title row */}
         <div className="flex items-center justify-between px-4 lg:px-8" style={{ height: '70px' }}>
           {/* Left side - Back button + Page title OR FeedTabs */}
@@ -617,18 +606,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             }}
           >
             <FundingGrantTabs />
-          </div>
-        )}
-
-        {/* Topic sub-tabs (Popular / Latest) - second row on topic pages */}
-        {showTopicSubTabs && topicSubTabs && (
-          <div className="border-b border-gray-200 px-4 lg:px-8 -mt-2 pb-1">
-            <FeedTabs
-              activeTab={activeTab}
-              tabs={topicSubTabs}
-              onTabChange={handleTopicSubTabChange}
-              isCompact={false}
-            />
           </div>
         )}
       </div>

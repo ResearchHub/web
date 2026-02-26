@@ -50,7 +50,7 @@ const GrantDetailsCallout = ({ content }: GrantDetailsCalloutProps) => {
   return (
     <button
       onClick={() => setIsExpanded(true)}
-      className="mt-4 w-full text-left rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors duration-150 px-4 py-3 cursor-pointer"
+      className="mt-4 w-full text-left rounded-xl bg-gray-100/75 hover:bg-gray-200 transition-colors duration-150 px-4 py-3 cursor-pointer"
     >
       <span className="text-sm font-semibold text-gray-900">Funding details</span>
       <p className="text-sm text-gray-700 leading-relaxed mt-1">

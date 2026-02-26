@@ -192,7 +192,7 @@ export function PageLayout({
                 {/* Right Sidebar (positioned relative to content) */}
                 {rightSidebar && (
                   <aside
-                    className={`sticky top-10 overflow-y-auto
+                    className={`sticky top-10 overflow-y-auto mt-10
                     lg:!block !hidden right-sidebar:!block w-80 flex-shrink-0 bg-gray-50 rounded-xl
                     z-30 ${isCompact ? 'h-[calc(100vh-48px)]' : 'h-[calc(100vh-64px)]'}`}
                   >

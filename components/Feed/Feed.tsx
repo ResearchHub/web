@@ -10,6 +10,7 @@ import { FeedEntry } from '@/types/feed';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
+import { DocumentFeedSortAndFilters } from './DocumentFeedSortAndFilters';
 
 interface FeedProps {
   defaultTab: FeedTab;
@@ -95,6 +96,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData }) => {
       hasMore={hasMore}
       loadMore={loadMore}
       header={renderHeader()}
+      filters={<DocumentFeedSortAndFilters variant="home" />}
       banner={banner}
       activeTab={activeTab}
       ordering={ordering}

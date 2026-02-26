@@ -6,6 +6,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { useFeed, FeedTab } from '@/hooks/useFeed';
 import { useHub } from '@/hooks/useHub';
 import { FeedContent } from '@/components/Feed/FeedContent';
+import { DocumentFeedSortAndFilters } from '@/components/Feed/DocumentFeedSortAndFilters';
 
 interface TopicFeedProps {
   defaultTab: FeedTab;
@@ -49,13 +50,17 @@ export const TopicFeed: FC<TopicFeedProps> = ({ defaultTab }) => {
   const isLoading = isHubLoading || isFeedLoading || isNavigating;
 
   return (
-    <PageLayout>
+    <PageLayout scrollContainerClassName="pt-[108px]">
       <FeedContent
         entries={entries}
         isLoading={isLoading}
         hasMore={hasMore}
         loadMore={loadMore}
         activeTab={defaultTab}
+        filters={
+          hub ? <DocumentFeedSortAndFilters variant="topic" topicName={hub.name} /> : undefined
+        }
+        ordering={getTopicOrdering(defaultTab)}
         restoredScrollPosition={restoredScrollPosition}
         page={page}
         lastClickedEntryId={lastClickedEntryId ?? undefined}
