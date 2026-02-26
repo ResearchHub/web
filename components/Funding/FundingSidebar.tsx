@@ -18,8 +18,8 @@ export const FundingSidebar: FC<FundingSidebarProps> = ({ topSection, entries })
     <div data-activity-sidebar className="h-full">
       {topSection && (
         <>
-          <div className="px-6 pt-2">{topSection}</div>
-          <div className="border-b border-gray-200 my-6" />
+          <div className="px-2 pt-2">{topSection}</div>
+          <div className="border-b border-gray-200 -ml-4 -mr-4 my-6" />
         </>
       )}
 
