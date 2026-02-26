@@ -16,7 +16,7 @@ export function PublishedStatusSection() {
   }
 
   const getWorkPath = () => {
-    if (articleType === 'preregistration') return `/fund/${workId}/${slug}`;
+    if (articleType === 'preregistration') return `/proposal/${workId}/${slug}`;
     if (articleType === 'funding_request') return `/grant/${workId}/${slug}`;
     return `/post/${workId}/${slug}`;
   };

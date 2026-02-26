@@ -8,5 +8,5 @@ interface FeedLayoutProps {
 }
 
 export default function FeedLayout({ children }: FeedLayoutProps) {
-  return <PageLayout>{children}</PageLayout>;
+  return <PageLayout scrollContainerClassName="pt-[108px]">{children}</PageLayout>;
 }

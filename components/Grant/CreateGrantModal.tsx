@@ -1,24 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
 
-import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
-
-import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { NotebookProvider } from '@/contexts/NotebookContext';
-import { SidebarProvider } from '@/contexts/SidebarContext';
-import { useCreateNote, useNoteContent } from '@/hooks/useNote';
-import {
-  getDocumentTitle,
-  getTemplatePlainText,
-} from '@/components/Editor/lib/utils/documentTitle';
-import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
-
-import { NoteEditorLayout } from '@/components/Notebook/NoteEditorLayout';
-
-const DEFAULT_GRANT_TITLE = 'Untitled RFP';
+import { AssistantSession } from '@/components/Assistant/AssistantSession';
+import { AssistantService } from '@/services/assistant.service';
 
 interface CreateGrantModalProps {
   isOpen: boolean;
@@ -26,84 +13,77 @@ interface CreateGrantModalProps {
 }
 
 export function CreateGrantModal({ isOpen, onClose }: Readonly<CreateGrantModalProps>) {
-  const { selectedOrg } = useOrganizationContext();
-
-  const [noteId, setNoteId] = useState<number | null>(null);
-  const [{ isLoading: isCreatingNote, error: createNoteError }, createNote] = useCreateNote();
-  const [{ isLoading: isUpdatingContent, error: updateContentError }, updateContent] =
-    useNoteContent();
-
-  const isInitializing = isCreatingNote || isUpdatingContent;
-  const noteError = createNoteError?.message || updateContentError?.message || null;
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
-      setNoteId(null);
+      setSessionId(null);
+      setError(null);
+      return;
     }
+
+    let cancelled = false;
+    setIsCreating(true);
+
+    AssistantService.createSession({ role: 'funder' })
+      .then(({ session_id }) => {
+        if (!cancelled) setSessionId(session_id);
+      })
+      .catch(() => {
+        if (!cancelled) setError('Failed to start session. Please try again.');
+      })
+      .finally(() => {
+        if (!cancelled) setIsCreating(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!isOpen || !selectedOrg?.slug || noteId) return;
-
-    const init = async () => {
-      try {
-        const title = getDocumentTitle(grantTemplate) || DEFAULT_GRANT_TITLE;
-        const newNote = await createNote({
-          organizationSlug: selectedOrg.slug,
-          title,
-          grouping: 'WORKSPACE',
-        });
-
-        if (!newNote) {
-          throw new Error('Failed to create note. Please try again.');
-        }
-
-        await updateContent({
-          note: newNote.id,
-          fullJson: JSON.stringify(grantTemplate),
-          plainText: getTemplatePlainText(grantTemplate),
-        });
-        setNoteId(newNote.id);
-      } catch (err: unknown) {
-        console.error('Failed to initialize grant:', err);
-      }
-    };
-
-    init();
-  }, [isOpen, selectedOrg?.slug]); // eslint-disable-line react-hooks/exhaustive-deps
+  const handleRetry = useCallback(() => {
+    setError(null);
+    setIsCreating(true);
+    AssistantService.createSession({ role: 'funder' })
+      .then(({ session_id }) => setSessionId(session_id))
+      .catch(() => setError('Failed to start session. Please try again.'))
+      .finally(() => setIsCreating(false));
+  }, []);
 
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      showCloseButton={false}
+      title="Create Funding Opportunity"
       padding="p-0"
+      maxWidth="max-w-3xl"
       className="!max-h-screen md:!max-h-[calc(100vh-2rem)] md:!rounded-2xl"
       contentClassName="!overflow-hidden"
     >
-      <div className="h-full">
-        {isInitializing && (
-          <div className="flex flex-col items-center justify-center h-full gap-3">
+      <div className="h-full min-h-[60vh]">
+        {isCreating && (
+          <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-            <p className="text-sm text-gray-500">Setting up your RFP...</p>
+            <p className="text-sm text-gray-500">Starting assistant...</p>
           </div>
         )}
 
-        {noteError && !isInitializing && (
-          <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
-            <p className="text-sm text-red-500">{noteError}</p>
-            <Button variant="outlined" size="sm" onClick={onClose}>
-              Close
-            </Button>
+        {error && !isCreating && (
+          <div className="flex flex-col items-center justify-center h-[60vh] gap-3 px-4">
+            <p className="text-sm text-red-500">{error}</p>
+            <button
+              onClick={handleRetry}
+              className="text-sm font-medium text-primary-600 hover:text-primary-700"
+            >
+              Try again
+            </button>
           </div>
         )}
 
-        {noteId && !isInitializing && !noteError && (
-          <NotebookProvider noteId={noteId.toString()}>
-            <SidebarProvider>
-              <NoteEditorLayout defaultArticleType="grant" onClose={onClose} />
-            </SidebarProvider>
-          </NotebookProvider>
+        {sessionId && !isCreating && !error && (
+          <AssistantSession sessionId={sessionId} embedded />
         )}
       </div>
     </BaseModal>

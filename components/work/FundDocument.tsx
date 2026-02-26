@@ -13,14 +13,17 @@ import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { useStorageKey } from '@/utils/storageKeys';
-import { FundingRightSidebar } from './FundingRightSidebar';
+import { ProposalSidebar } from './ProposalSidebar';
 import { useUser } from '@/contexts/UserContext';
-import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '../ui/Button';
+import { RadiatingDot } from '@/components/ui/RadiatingDot';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { buildWorkUrl } from '@/utils/url';
+import Link from 'next/link';
 
 interface FundDocumentProps {
   work: Work;
@@ -191,11 +194,44 @@ export const FundDocument = ({
 
   return (
     <div>
-      {/* Show on mobile only - desktop shows in right sidebar */}
-      <div className="lg:hidden mb-3">
-        <EarningOpportunityBanner work={work} metadata={metadata} />
-      </div>
-      {/* Title & Actions */}
+      {metadata.openBounties > 0 && (
+        <div className="flex items-center gap-2 mb-2 mt-2">
+          <RadiatingDot color="bg-green-500" isRadiating />
+          <span className="text-sm font-medium text-green-600">
+            Peer review for{' '}
+            <span className="font-mono">
+              $
+              {metadata.bounties?.[0]?.amount
+                ? Math.round(parseFloat(metadata.bounties[0].amount))
+                : 150}
+            </span>
+          </span>
+          <Tooltip
+            content={
+              <div className="p-1 text-xs">
+                <p className="mb-1">Earn RSC by submitting a peer review.</p>
+                <Link
+                  href={buildWorkUrl({
+                    id: work.id,
+                    contentType: work.contentType === 'paper' ? 'paper' : 'post',
+                    slug: work.slug,
+                    tab: 'bounties',
+                  })}
+                  className="text-primary-600 hover:underline font-medium"
+                >
+                  View bounties →
+                </Link>
+              </div>
+            }
+            position="bottom"
+            width="w-48"
+          >
+            <span className="text-xs text-gray-400 hover:text-gray-600 cursor-help underline decoration-dotted">
+              Learn more
+            </span>
+          </Tooltip>
+        </div>
+      )}
       {work.type === 'preprint' && (
         <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
           Preprint
@@ -289,7 +325,7 @@ export const FundDocument = ({
           >
             <FontAwesomeIcon icon={faXmark} className="w-4 h-4 text-gray-600" />
           </Button>
-          <FundingRightSidebar work={work} metadata={metadata} />
+          <ProposalSidebar work={work} metadata={metadata} />
         </div>
       </div>
     </div>

@@ -93,14 +93,7 @@ const NextStepsPanelComponent = () => {
       </button>
 
       <div className="flex items-center gap-2 mb-3 pr-8">
-        <RadiatingDot
-          size={24}
-          dotSize={8}
-          color="bg-blue-600"
-          radiateColor="bg-blue-400"
-          ringColor="border-transparent"
-          isRadiating={true}
-        />
+        <RadiatingDot color="bg-blue-600" />
         <h3 className="text-sm font-semibold text-blue-900">Complete your Profile</h3>
       </div>
 

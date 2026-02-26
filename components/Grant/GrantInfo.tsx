@@ -1,22 +1,39 @@
 'use client';
 
 import { FC } from 'react';
-import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { formatDate, isDeadlineInFuture } from '@/utils/date';
 import { FeedGrantContent } from '@/types/feed';
 import { useRouter } from 'next/navigation';
-import { colors } from '@/app/styles/colors';
 import { StatusCard } from '@/components/ui/StatusCard';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import { Clock } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 interface GrantInfoProps {
   grant: FeedGrantContent;
   className?: string;
   onFeedItemClick?: () => void;
 }
+
+// Helper to format currency
+const formatCurrency = (amount: number, showUSD: boolean): string => {
+  if (showUSD) {
+    if (amount >= 1000000) {
+      return `$${(amount / 1000000).toFixed(1)}M`;
+    } else if (amount >= 1000) {
+      return `$${(amount / 1000).toFixed(0)}K`;
+    }
+    return `$${amount.toLocaleString()}`;
+  }
+  // RSC formatting
+  if (amount >= 1000000) {
+    return `${(amount / 1000000).toFixed(1)}M RSC`;
+  } else if (amount >= 1000) {
+    return `${(amount / 1000).toFixed(0)}K RSC`;
+  }
+  return `${amount.toLocaleString()} RSC`;
+};
 
 export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClick }) => {
   const router = useRouter();
@@ -51,14 +68,6 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
     router.push(`/grant/${grant.id}/${grant.slug}/applications`);
   };
 
-  const handleDetailsClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onFeedItemClick) {
-      onFeedItemClick();
-    }
-    router.push(`/grant/${grant.id}/${grant.slug}`);
-  };
-
   const handleApplyClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onFeedItemClick) {
@@ -73,91 +82,94 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
   return (
     <StatusCard variant={isActive ? 'active' : 'inactive'} className={className}>
       <div className="flex items-center justify-between gap-3">
-        {/* Left: Amount + Deadline + Applicants */}
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          <CurrencyBadge
-            amount={Math.round(budgetAmount)}
-            variant="text"
-            size="md"
-            showText={true}
-            currency={showUSD ? 'USD' : 'RSC'}
-            className="p-0 gap-0"
-            textColor={isActive ? 'text-primary-700' : 'text-gray-600'}
-            fontWeight="font-bold"
-            showExchangeRate={false}
-            iconColor={isActive ? colors.primary[600] : colors.gray[500]}
-            iconSize={18}
-            shorten={false}
-          />
-
-          {/* Close date */}
-          {deadline && isActive && (
-            <div className="hidden sm:!flex items-center gap-1.5 text-xs text-gray-500">
-              <Clock size={14} className="text-gray-400" />
-              <span className="whitespace-nowrap">Closes {deadline}</span>
-            </div>
-          )}
-
-          {/* Status badges */}
-          {isActive && (
-            <span className="text-xs font-medium text-primary-700 bg-primary-100 px-2 py-0.5 rounded-full">
-              Open
+        {/* Stats Section */}
+        <div className="flex items-center gap-4 sm:gap-8 min-w-0 flex-1">
+          {/* Funding Amount */}
+          <div className="flex flex-col flex-shrink-0">
+            <span className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wide mb-0.5">
+              Funding
             </span>
-          )}
-          {!isActive && (
-            <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
-              Closed
-            </span>
-          )}
-
-          {/* Applicants section */}
-          {applicantCount > 0 && (
-            <div
-              className="cursor-pointer hidden sm:!flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 transition-colors"
-              onClick={handleApplicantsClick}
+            <span
+              className={`text-base sm:text-lg font-bold ${isActive ? 'text-green-600' : 'text-gray-500'}`}
             >
-              <AvatarStack
-                items={applicants.map((applicant) => ({
-                  src: applicant.profile.profileImage || '',
-                  alt: applicant.profile.fullName,
-                  tooltip: applicant.profile.fullName,
-                  authorId: applicant.profile.id,
-                }))}
-                size="xs"
-                maxItems={3}
-                spacing={-6}
-                showExtraCount={false}
-                totalItemsCount={applicantCount}
-                extraCountLabel="Applicants"
-                showLabel={false}
-              />
-              <span className="text-xs text-gray-600 whitespace-nowrap">
-                {applicantCount} {applicantCount === 1 ? 'Applicant' : 'Applicants'}
-              </span>
+              {formatCurrency(Math.round(budgetAmount), showUSD)}
+            </span>
+          </div>
+
+          {/* Divider */}
+          <div className="hidden sm:block w-px h-8 bg-gray-200" />
+
+          {/* Deadline */}
+          {deadline && (
+            <div className="hidden sm:flex flex-col flex-shrink-0">
+              <span className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Deadline</span>
+              <span className="text-base font-semibold text-gray-800">{deadline}</span>
             </div>
           )}
+
+          {/* Divider */}
+          {deadline && <div className="hidden sm:block w-px h-8 bg-gray-200" />}
+
+          {/* Applicants with AvatarStack */}
+          <div
+            className={`hidden sm:flex flex-col flex-shrink-0 ${applicantCount > 0 ? 'cursor-pointer' : ''}`}
+            onClick={applicantCount > 0 ? handleApplicantsClick : undefined}
+          >
+            <span className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Applicants</span>
+            <div className="flex items-center gap-2">
+              {applicantCount > 0 ? (
+                <>
+                  <AvatarStack
+                    items={applicants.map((applicant) => ({
+                      src: applicant.profile.profileImage || '',
+                      alt: applicant.profile.fullName,
+                      tooltip: applicant.profile.fullName,
+                      authorId: applicant.profile.id,
+                    }))}
+                    size="xs"
+                    maxItems={3}
+                    spacing={-6}
+                    showExtraCount={false}
+                    totalItemsCount={applicantCount}
+                    extraCountLabel="Applicants"
+                    showLabel={false}
+                  />
+                  <span className="text-base font-semibold text-gray-800">{applicantCount}</span>
+                </>
+              ) : (
+                <span className="text-base font-semibold text-gray-800">0</span>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile: Status badge */}
+          <div className="sm:hidden flex-shrink-0">
+            {isActive ? (
+              <span className="text-xs font-medium text-primary-700 bg-primary-100 px-2 py-0.5 rounded-full">
+                Open
+              </span>
+            ) : (
+              <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+                Closed
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Right: CTA Buttons */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        {/* Right: CTA Button */}
+        <div className="flex items-center flex-shrink-0">
           <Button
-            variant="outlined"
+            variant="default"
             size="sm"
-            onClick={handleDetailsClick}
-            className="!py-1.5 !px-2.5 text-gray-600 hover:text-gray-800"
+            onClick={isActive ? handleApplyClick : undefined}
+            disabled={!isActive}
+            className={`!py-2 !px-5 ${isActive ? 'bg-primary-600 hover:bg-primary-700 text-white' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
           >
-            <span className="text-xs font-medium">Details</span>
+            <span className="text-sm font-semibold flex items-center gap-1.5">
+              {isActive ? 'Apply now' : 'Closed'}
+              {isActive && <ArrowRight size={16} />}
+            </span>
           </Button>
-          {isActive && (
-            <Button
-              variant="default"
-              size="sm"
-              onClick={handleApplyClick}
-              className="bg-primary-600 hover:bg-primary-700 text-white !py-1.5 !px-2.5"
-            >
-              <span className="text-xs font-medium">Apply</span>
-            </Button>
-          )}
         </div>
       </div>
     </StatusCard>

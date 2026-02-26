@@ -1,4 +1,3 @@
-import { ReactNode } from 'react';
 import { MarketplaceTab, FundingSortOption } from '../MarketplaceTabs';
 import { Clock, Star, ArrowUp, DollarSign, Users, CheckCircle } from 'lucide-react';
 
@@ -19,7 +18,7 @@ export const getSortOptions = (activeTab: MarketplaceTab): SortOption[] => {
     { label: 'Best', value: 'best', icon: Star },
     {
       label: 'Newest',
-      value: activeTab === 'needs-funding' ? 'newest' : '',
+      value: activeTab === 'needs-funding' || activeTab === 'all' ? 'newest' : '',
       icon: Clock,
     },
     { label: 'Most upvoted', value: 'upvotes', icon: ArrowUp },
@@ -36,13 +35,13 @@ export const getSortOptions = (activeTab: MarketplaceTab): SortOption[] => {
     { label: 'Completed', value: 'completed', icon: CheckCircle },
   ];
 
-  // Hide "Best" and "Completed" options on the RFPs (grants) tab
   if (activeTab === 'grants') {
     return allOptions.filter((option) => option.value !== 'best' && option.value !== 'completed');
   }
 
   return allOptions;
 };
+<<<<<<< HEAD
 
 export type TabConfig = {
   title: string;
@@ -56,8 +55,17 @@ export type TabConfig = {
 // This will be populated with actual sidebar components when imported
 export const createTabConfig = (
   GrantRightSidebar: ReactNode,
-  FundRightSidebar: ReactNode
+  FundRightSidebar: ReactNode,
+  AllFundingRightSidebar: ReactNode
 ): Record<MarketplaceTab, TabConfig> => ({
+  all: {
+    title: 'Funding',
+    subtitle: 'Explore all funding opportunities and proposals',
+    contentType: 'PREREGISTRATION',
+    endpoint: 'funding_feed',
+    sidebar: AllFundingRightSidebar,
+    fundraiseStatus: 'OPEN',
+  },
   grants: {
     title: 'Request for Proposals',
     subtitle: 'Explore available funding opportunities',
@@ -75,3 +83,5 @@ export const createTabConfig = (
     fundraiseStatus: 'OPEN',
   },
 });
+=======
+>>>>>>> 97a1bb28de16b1cca4f7980cfae52129a7774c0f

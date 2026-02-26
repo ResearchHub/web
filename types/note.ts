@@ -43,6 +43,7 @@ export interface Note {
   title: string;
   isRemoved: boolean;
   post: Post | null;
+  documentType: string | null;
 }
 
 export interface NoteWithContent extends Note {
@@ -114,6 +115,7 @@ export const transformNote = createTransformer<any, Note>((raw) => ({
   title: raw.title,
   isRemoved: raw.unifiedDocument?.isRemoved || false,
   post: raw.post ? transformPost(raw.post) : null,
+  documentType: raw.document_type ?? null,
 }));
 
 export const transformNoteWithContent = createTransformer<any, NoteWithContent>((raw) => ({

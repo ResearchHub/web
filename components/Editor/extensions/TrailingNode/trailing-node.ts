@@ -3,6 +3,7 @@ import { Plugin, PluginKey } from '@tiptap/pm/state';
 
 // @ts-ignore
 function nodeEqualsType({ types, node }) {
+  if (!node) return false;
   return (Array.isArray(types) && types.includes(node.type)) || node.type === types;
 }
 

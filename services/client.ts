@@ -66,7 +66,7 @@ export class ApiClient {
     const authToken = await this.getAuthToken();
     if (authToken) {
       headers['Authorization'] = `Token ${authToken}`;
-    } else {
+    } else if (typeof window !== 'undefined') {
       console.warn('No auth token available for request');
     }
 

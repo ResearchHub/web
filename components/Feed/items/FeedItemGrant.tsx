@@ -13,7 +13,7 @@ import {
 import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
 import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
 import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
-import { GrantInfo } from '@/components/Grant/GrantInfo';
+import { GrantInfo } from '@/components/Fund/GrantInfo';
 import { AuthorList } from '@/components/ui/AuthorList';
 
 import { Highlight } from '@/components/Feed/FeedEntryItem';

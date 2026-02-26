@@ -40,9 +40,9 @@ export const FundRightSidebar = () => {
         buttonText="Request funding"
         buttonLink="/notebook?newFunding=true"
         iconName="fundYourRsc2"
-        iconColor="#2563eb"
+        iconColor="#ea580c"
         iconSize={20}
-        variant="blue"
+        variant="orange"
       />
 
       {/* Resources */}

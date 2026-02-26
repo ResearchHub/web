@@ -12,7 +12,6 @@ import { JournalSection } from './components/JournalSection';
 import { GrantDescriptionSection } from './components/GrantDescriptionSection';
 import { GrantOrganizationSection } from './components/GrantOrganizationSection';
 import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
-import { GrantApplicationDeadlineSection } from './components/GrantApplicationDeadlineSection';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { useState, useEffect } from 'react';
@@ -108,6 +107,17 @@ const mapContentTypeToArticleType = (contentType: string): PublishingFormData['a
   return 'discussion';
 };
 
+const mapDocumentTypeToArticleType = (
+  documentType: string
+): PublishingFormData['articleType'] | null => {
+  const map: Record<string, PublishingFormData['articleType']> = {
+    DISCUSSION: 'discussion',
+    GRANT: 'grant',
+    PREREGISTRATION: 'preregistration',
+  };
+  return map[documentType] ?? null;
+};
+
 const populateGrantFields = (grant: any, setValue: (name: any, value: any) => void) => {
   if (!grant) return;
   if (grant.endDate) setValue('applicationDeadline', new Date(grant.endDate));
@@ -187,7 +197,7 @@ const resolveArticleType = (
 };
 
 const getRedirectPath = (articleType: string, responseId: string, slug: string): string => {
-  if (articleType === 'preregistration') return `/fund/${responseId}/${slug}?new=true`;
+  if (articleType === 'preregistration') return `/proposal/${responseId}/${slug}?new=true`;
   if (articleType === 'grant') return `/grant/${responseId}/${slug}`;
   return `/post/${responseId}/${slug}`;
 };
@@ -213,7 +223,13 @@ export function PublishingForm({
 
   useEffect(() => {
     if (note?.id) {
-      methods.reset(FORM_DEFAULTS);
+      const initialType = note.documentType
+        ? mapDocumentTypeToArticleType(note.documentType)
+        : undefined;
+      methods.reset({
+        ...FORM_DEFAULTS,
+        ...(initialType ? { articleType: initialType } : {}),
+      });
     }
   }, [note?.id, methods]);
 
@@ -225,18 +241,26 @@ export function PublishingForm({
       return;
     }
 
-    const storedData = loadPublishingFormFromStorage(note.id.toString());
-    if (storedData) {
-      restoreFromStorage(storedData, methods.setValue);
-      return;
+    if (note.documentType) {
+      const mapped = mapDocumentTypeToArticleType(note.documentType);
+      if (mapped) {
+        methods.setValue('articleType', mapped);
+      }
     }
 
-    const resolved = resolveArticleType(searchParams, defaultArticleType);
-    if (resolved) {
-      methods.setValue('articleType', resolved.type);
-    }
-    if (resolved?.type === 'grant' && resolved.source === 'default') {
-      methods.setValue('applicationDeadline', new Date('2029-12-31'));
+    const storedData = loadPublishingFormFromStorage(note.id.toString());
+    if (storedData) {
+      const { articleType: _storedType, ...otherStoredData } = storedData;
+      if (note.documentType) {
+        restoreFromStorage(otherStoredData, methods.setValue);
+      } else {
+        restoreFromStorage(storedData, methods.setValue);
+      }
+    } else {
+      const resolved = resolveArticleType(searchParams, defaultArticleType);
+      if (resolved) {
+        methods.setValue('articleType', resolved.type);
+      }
     }
   }, [note, methods, searchParams, defaultArticleType]);
 
@@ -254,6 +278,7 @@ export function PublishingForm({
   const articleType = watch('articleType');
   const isJournalEnabled = watch('isJournalEnabled');
   const selectedNonprofit = watch('selectedNonprofit');
+
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -400,7 +425,10 @@ export function PublishingForm({
           image: imagePath,
           organization: formData.organization,
           description: formData.shortDescription,
-          applicationDeadline: formData.applicationDeadline,
+          applicationDeadline:
+            formData.articleType === 'grant'
+              ? new Date('2029-12-31')
+              : formData.applicationDeadline,
         },
         formData.workId
       );
@@ -469,7 +497,6 @@ export function PublishingForm({
               </div>
             )}
             {articleType === 'grant' && <GrantFundingAmountSection />}
-            {articleType === 'grant' && !isModal && <GrantApplicationDeadlineSection />}
             {articleType === 'preregistration' && <FundingSection note={note} />}
             {FEATURE_FLAG_RESEARCH_COIN &&
               articleType !== 'preregistration' &&

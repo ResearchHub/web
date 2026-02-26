@@ -3,8 +3,18 @@ const nextConfig = {
   reactStrictMode: false,
   redirects: async () => [
     {
-      source: '/fund',
-      destination: '/fund/grants',
+      source: '/funding',
+      destination: '/fund',
+      permanent: false,
+    },
+    {
+      source: '/funding/:path*',
+      destination: '/fund/:path*',
+      permanent: false,
+    },
+    {
+      source: '/fund/proposals',
+      destination: '/fund',
       permanent: false,
     },
     {
@@ -20,6 +30,16 @@ const nextConfig = {
     {
       source: '/trending',
       destination: '/popular',
+      permanent: true,
+    },
+    {
+      source: '/fund/:id(\\d+)',
+      destination: '/proposal/:id',
+      permanent: true,
+    },
+    {
+      source: '/fund/:id(\\d+)/:path*',
+      destination: '/proposal/:id/:path*',
       permanent: true,
     },
   ],

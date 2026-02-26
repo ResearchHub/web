@@ -181,6 +181,7 @@ export interface FeedGrantContent extends BaseFeedContent {
     };
     organization: string;
     description: string;
+    shortTitle: string;
     status: 'OPEN' | 'CLOSED';
     startDate: string;
     endDate: string;
@@ -459,7 +460,6 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       try {
         // Check if required fields exist
         if (!content_object) {
-          console.error('Bounty content_object is missing');
           throw new Error('Bounty content_object is missing');
         }
 
@@ -763,7 +763,17 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               content_object.authors && content_object.authors.length > 0
                 ? content_object.authors.map(transformAuthorProfile)
                 : [transformAuthorProfile(author)],
-            topics: [Array.isArray(content_object.hub) || content_object.hub].map(transformTopic),
+            topics: content_object.hub
+              ? [
+                  content_object.hub.id
+                    ? transformTopic(content_object.hub)
+                    : {
+                        id: 0,
+                        name: content_object.hub.name || '',
+                        slug: content_object.hub.slug || '',
+                      },
+                ]
+              : [],
             createdBy: transformAuthorProfile(author),
             category: content_object.category ? transformTopic(content_object.category) : undefined,
             subcategory: content_object.subcategory
@@ -786,6 +796,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               isExpired: content_object.grant.is_expired,
               isActive: content_object.grant.is_active,
               currency: content_object.grant.currency,
+              shortTitle: content_object.grant.short_title || '',
               createdBy: content_object.grant.created_by,
               applicants: (content_object.grant.applications || [])
                 .map((application: any) => application.applicant)

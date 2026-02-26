@@ -9,15 +9,12 @@ import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faHouse as faHouseSolid,
-  faGrid3 as faGrid3Solid,
   faBookmark as faBookmarkSolid,
 } from '@fortawesome/pro-solid-svg-icons';
 import {
   faHouse as faHouseLight,
-  faGrid3 as faGrid3Light,
   faBookmark as faBookmarkLight,
 } from '@fortawesome/pro-light-svg-icons';
-import { ChartNoAxesColumnIncreasing } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 
 // Define icon mapping for navigation items with both light and solid variants
@@ -26,7 +23,7 @@ interface NavIcon {
   solid: IconName;
 }
 
-type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home' | 'leaderboard';
+type NavIconKey = 'earn' | 'fund' | 'journal' | 'notebook' | 'home';
 
 interface NavigationItem {
   label: string;
@@ -36,6 +33,7 @@ interface NavigationItem {
   requiresAuth?: boolean;
   isUnimplemented?: boolean;
   isFontAwesome?: boolean;
+  isLucideIcon?: boolean;
 }
 
 interface NavigationProps {
@@ -65,10 +63,6 @@ const navIconMap: Record<NavIconKey, NavIcon> = {
   notebook: {
     light: 'labNotebook2',
     solid: 'notebookBold',
-  },
-  leaderboard: {
-    light: 'gold1',
-    solid: 'gold2',
   },
 };
 
@@ -100,10 +94,10 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Navigate to the home page',
     },
     {
-      label: 'Browse',
-      href: '/browse',
-      description: 'Browse topics by category',
-      isFontAwesome: true,
+      label: 'Fund',
+      href: '/fund',
+      iconKey: 'fund',
+      description: 'Browse grants and fundraising opportunities',
     },
     {
       label: 'Earn',
@@ -112,13 +106,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Earn RSC for completing peer reviews',
     },
     {
-      label: 'Fund',
-      href: '/fund/grants',
-      iconKey: 'fund',
-      description: 'Browse grants and fundraising opportunities',
-    },
-    {
-      label: 'RH Journal',
+      label: 'Journal',
       href: '/journal',
       iconKey: 'journal',
       description: 'Read and publish research papers',
@@ -136,11 +124,6 @@ export const Navigation: React.FC<NavigationProps> = ({
       isFontAwesome: true,
       description: 'View and manage your saved lists',
       requiresAuth: true,
-    },
-    {
-      label: 'Leaderboard',
-      href: '/leaderboard',
-      description: 'View the ResearchHub Leaderboard',
     },
   ];
 
@@ -163,24 +146,13 @@ export const Navigation: React.FC<NavigationProps> = ({
       return ['/popular', '/for-you', '/latest', '/following'].includes(currentPath);
     }
 
-    // Special case for fund page - match specific fund routes
-    if (path === '/fund/grants') {
-      return ['/fund/grants', '/fund/needs-funding'].includes(currentPath);
+    if (path === '/fund') {
+      return currentPath.startsWith('/fund');
     }
 
     // Special case for notebook page - match any route that starts with /notebook
     if (path === '/notebook') {
       return currentPath.startsWith('/notebook');
-    }
-
-    // Special case for leaderboard page
-    if (path === '/leaderboard') {
-      return currentPath.startsWith('/leaderboard');
-    }
-
-    // Special case for browse page
-    if (path === '/browse') {
-      return currentPath.startsWith('/browse');
     }
 
     // Special case for lists page - match /lists and /list/[id]
@@ -233,7 +205,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     // Conditionally apply minimized classes
     const iconContainerClass = forceMinimize
       ? 'h-[26px] w-[26px] mr-0 flex items-center justify-center flex-shrink-0'
-      : 'h-[26px] w-[26px] mr-2.5 tablet:max-sidebar-compact:!mr-0 flex items-center justify-center flex-shrink-0';
+      : 'h-[26px] w-[26px] mr-4 tablet:max-sidebar-compact:!mr-0 flex items-center justify-center flex-shrink-0';
 
     const textContainerClass = forceMinimize
       ? 'flex items-center justify-between w-full min-w-0 !hidden'
@@ -242,19 +214,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     return (
       <Link href={item.href} onClick={handleClick} className={buttonStyles} scroll={false}>
         <div className={iconContainerClass}>
-          {item.href === '/leaderboard' ? (
-            <ChartNoAxesColumnIncreasing
-              size={22}
-              color={iconColor}
-              strokeWidth={isActive ? 2.5 : 2}
-            />
-          ) : item.href === '/browse' ? (
-            <FontAwesomeIcon
-              icon={isActive ? faGrid3Solid : faGrid3Light}
-              fontSize={24}
-              color={iconColor}
-            />
-          ) : item.href === '/lists' ? (
+          {item.href === '/lists' ? (
             <FontAwesomeIcon
               icon={isActive ? faBookmarkSolid : faBookmarkLight}
               fontSize={24}
@@ -273,7 +233,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           )}
         </div>
         <div className={textContainerClass}>
-          <span className="truncate text-[16px]">{item.label}</span>
+          <span className="truncate text-[16px] font-semibold">{item.label}</span>
         </div>
       </Link>
     );

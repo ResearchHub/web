@@ -9,7 +9,7 @@ import { ChevronDown } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { getSortOptions } from './lib/FundingFeedConfig';
 
-export type MarketplaceTab = 'grants' | 'needs-funding';
+export type MarketplaceTab = 'all' | 'grants' | 'needs-funding';
 export type FundingSortOption =
   | ''
   | 'newest'
@@ -25,6 +25,7 @@ const getTabs = (isMobile: boolean) => [
 ];
 
 const TAB_ROUTES: Record<MarketplaceTab, string> = {
+  all: '/fund',
   grants: '/fund/grants',
   'needs-funding': '/fund/needs-funding',
 };
