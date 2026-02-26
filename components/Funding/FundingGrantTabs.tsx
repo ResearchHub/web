@@ -7,6 +7,7 @@ import { PillTabs } from '@/components/ui/PillTabs';
 import { useGrants } from '@/contexts/GrantContext';
 import { FeedGrantContent } from '@/types/feed';
 import { buildWorkUrl } from '@/utils/url';
+import { LayoutList } from 'lucide-react';
 
 export const FundingGrantTabs: FC = () => {
   const pathname = usePathname();
@@ -19,6 +20,7 @@ export const FundingGrantTabs: FC = () => {
   }, [fetchGrants]);
 
   const activeTab = useMemo(() => {
+    if (pathname === '/fund/browse') return 'browse';
     const grantMatch = pathname.match(/^\/grant\/(\d+)/);
     if (grantMatch) return `grant-${grantMatch[1]}`;
     return 'all';
@@ -34,7 +36,12 @@ export const FundingGrantTabs: FC = () => {
       };
     });
 
-    return [{ id: 'all', label: 'All', href: '/fund' }, ...grantTabs];
+    return [
+      { id: 'browse', label: 'Browse', href: '/fund/browse', icon: LayoutList },
+      { id: 'all', label: 'All', href: '/fund' },
+      ...(grantTabs.length > 0 ? [{ ...grantTabs[0], separator: true }] : []),
+      ...grantTabs.slice(1),
+    ];
   }, [grants]);
 
   if (grants.length === 0) return null;

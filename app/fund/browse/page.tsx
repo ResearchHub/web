@@ -37,7 +37,7 @@ async function getClosedGrants() {
   }
 }
 
-export default async function OpportunitiesPage() {
+export default async function BrowsePage() {
   const [{ grants, error }, closedGrants, { usd }] = await Promise.all([
     getOpenGrants(),
     getClosedGrants(),
