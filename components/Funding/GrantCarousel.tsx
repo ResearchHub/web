@@ -144,7 +144,7 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
               href={grantHref}
               className="font-medium text-blue-600 hover:underline inline-flex items-center gap-1"
             >
-              Submit a proposal <ArrowRight className="h-3.5 w-3.5" />
+              Learn more <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           ))}
       </div>
@@ -153,8 +153,8 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
       <div className="mt-4">
         {showSkeleton ? (
           <div className="flex gap-4 py-3 px-3 -mx-3">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex-shrink-0 w-[205px] sm:w-[260px] md:w-[205px]">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex-shrink-0 w-[260px] sm:w-[280px]">
                 <ProposalCardSkeleton />
               </div>
             ))}
@@ -162,12 +162,12 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
         ) : entries.length > 0 ? (
           <Carousel onReachEnd={hasMore ? loadMore : undefined}>
             {entries.map((entry) => (
-              <div key={entry.id} className="flex-shrink-0 w-[205px] sm:w-[260px] md:w-[205px]">
-                <FundingProposalCard entry={entry} showActions={false} />
+              <div key={entry.id} className="flex-shrink-0 w-[260px] sm:w-[280px]">
+                <FundingProposalCard entry={entry} showActions={true} />
               </div>
             ))}
             {isLoading && (
-              <div className="flex-shrink-0 w-[205px] sm:w-[260px] md:w-[205px]">
+              <div className="flex-shrink-0 w-[260px] sm:w-[280px]">
                 <ProposalCardSkeleton />
               </div>
             )}
@@ -195,7 +195,7 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
             <div className="text-center">
               <p className="text-sm text-gray-400">No proposals yet</p>
               <span className="text-sm font-medium text-blue-600 mt-1 inline-flex items-center gap-1">
-                Submit a proposal <ArrowRight className="h-3.5 w-3.5" />
+                Learn more <ArrowRight className="h-3.5 w-3.5" />
               </span>
             </div>
           </Link>
