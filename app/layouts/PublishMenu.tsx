@@ -41,7 +41,7 @@ const PUBLISH_MENU_SECTIONS = [
       },
       {
         id: 'submit-paper',
-        title: 'Paper',
+        title: 'Preprint',
         description: 'Publish your research as a preprint',
         icon: <Icon name="submit1" size={24} color="#2563eb" />,
         action: 'navigate',

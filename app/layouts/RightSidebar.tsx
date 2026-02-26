@@ -51,7 +51,18 @@ const AvailableFundingSection = () => {
 
   if (!isLoading && grants.length === 0) return null;
 
-  const visibleGrants = grants.slice(0, 3);
+  const sortedGrants = [...grants].sort((a, b) => {
+    const aContent = a.content as FeedGrantContent;
+    const bContent = b.content as FeedGrantContent;
+    const aName = (aContent.grant.shortTitle || aContent.title).toLowerCase();
+    const bName = (bContent.grant.shortTitle || bContent.title).toLowerCase();
+    const aIsGigabrain = aName.includes('gigabrain');
+    const bIsGigabrain = bName.includes('gigabrain');
+    if (aIsGigabrain && !bIsGigabrain) return -1;
+    if (!aIsGigabrain && bIsGigabrain) return 1;
+    return 0;
+  });
+  const visibleGrants = sortedGrants.slice(0, 3);
 
   return (
     <div>

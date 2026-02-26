@@ -7,7 +7,7 @@ import { Carousel } from '@/components/ui/Carousel';
 import { FundingProposalCard } from './FundingProposalCard';
 import { ProposalCardSkeleton } from '@/components/skeletons/ProposalCardSkeleton';
 import { cn } from '@/utils/styles';
-import { ArrowRight, RefreshCw, UserPlus } from 'lucide-react';
+import { ArrowRight, RefreshCw } from 'lucide-react';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { useFeed } from '@/hooks/useFeed';
 interface GrantCarouselProps {
@@ -15,7 +15,6 @@ interface GrantCarouselProps {
   className?: string;
   isClosed?: boolean;
   isDashboard?: boolean;
-  onInviteExperts?: () => void;
 }
 
 export function getShortTitle(title: string): string {
@@ -33,7 +32,6 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
   className,
   isClosed,
   isDashboard,
-  onInviteExperts,
 }) => {
   const content = grant.content as FeedGrantContent;
   const grantData = content.grant;
@@ -129,24 +127,14 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
           </>
         )}
         <span className="ml-auto" />
-        {!isClosed &&
-          entries.length > 0 &&
-          (isDashboard ? (
-            <button
-              onClick={onInviteExperts}
-              className="font-medium text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 transition-colors cursor-pointer"
-            >
-              <UserPlus className="h-3.5 w-3.5" />
-              Invite experts
-            </button>
-          ) : (
-            <Link
-              href={grantHref}
-              className="font-medium text-blue-600 hover:underline inline-flex items-center gap-1"
-            >
-              Learn more <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          ))}
+        {!isClosed && entries.length > 0 && !isDashboard && (
+          <Link
+            href={grantHref}
+            className="font-medium text-blue-600 hover:underline inline-flex items-center gap-1"
+          >
+            Learn more <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        )}
       </div>
 
       {/* Carousel of proposals */}
@@ -174,18 +162,7 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
           </Carousel>
         ) : isDashboard ? (
           <div className="flex items-center justify-center py-8 rounded-lg border border-dashed border-gray-200">
-            <div className="text-center">
-              <p className="text-sm text-gray-500">
-                No proposals yet — get started by inviting experts
-              </p>
-              <button
-                onClick={onInviteExperts}
-                className="inline-flex items-center gap-2 px-4 py-2 mt-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors cursor-pointer"
-              >
-                <UserPlus className="h-4 w-4" />
-                Invite experts
-              </button>
-            </div>
+            <p className="text-sm text-gray-500">No proposals yet</p>
           </div>
         ) : (
           <Link

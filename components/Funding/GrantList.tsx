@@ -12,7 +12,6 @@ interface GrantListProps {
   emptyMessage?: string;
   showCreateCTA?: boolean;
   isDashboard?: boolean;
-  onInviteExperts?: (grantId: number) => void;
 }
 
 export const GrantList: FC<GrantListProps> = ({
@@ -21,7 +20,6 @@ export const GrantList: FC<GrantListProps> = ({
   emptyMessage = 'No grants found.',
   showCreateCTA = false,
   isDashboard,
-  onInviteExperts,
 }) => {
   const hasClosedGrants = closedGrants && closedGrants.length > 0;
 
@@ -45,12 +43,7 @@ export const GrantList: FC<GrantListProps> = ({
   return (
     <div className="py-4">
       {grants.map((grant) => (
-        <GrantCarousel
-          key={grant.id}
-          grant={grant}
-          isDashboard={isDashboard}
-          onInviteExperts={onInviteExperts ? () => onInviteExperts(Number(grant.id)) : undefined}
-        />
+        <GrantCarousel key={grant.id} grant={grant} isDashboard={isDashboard} />
       ))}
 
       {showCreateCTA && (

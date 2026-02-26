@@ -17,6 +17,9 @@ import { FundingPoint } from '@/types/fundingImpactData';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
+const formatTick = (value: number | string) =>
+  +value >= 1000 ? `${+value / 1000}k` : String(value);
+
 const CHART_OPTIONS = {
   responsive: true,
   plugins: {
@@ -30,12 +33,16 @@ const CHART_OPTIONS = {
     y: {
       beginAtZero: true,
       grid: { display: false },
-      ticks: {
-        callback: (value: number | string) => (+value >= 1000 ? `${+value / 1000}k` : value),
-      },
+      ticks: { callback: formatTick },
+    },
+    y1: {
+      beginAtZero: true,
+      position: 'right' as const,
+      grid: { display: false },
+      ticks: { callback: formatTick },
     },
   },
-} as const;
+};
 
 interface FundingChartProps {
   readonly data: FundingPoint[];
@@ -53,6 +60,7 @@ export function FundingChart({ data }: FundingChartProps) {
           backgroundColor: 'rgba(59, 130, 246, 0.4)',
           borderColor: 'rgb(59, 130, 246)',
           tension: 0.4,
+          yAxisID: 'y',
         },
         {
           label: 'Matched by others',
@@ -61,6 +69,7 @@ export function FundingChart({ data }: FundingChartProps) {
           backgroundColor: 'rgba(34, 197, 94, 0.3)',
           borderColor: 'rgb(34, 197, 94)',
           tension: 0.4,
+          yAxisID: 'y1',
         },
       ],
     }),

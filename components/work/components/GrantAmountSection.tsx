@@ -29,7 +29,7 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
   return (
     <>
       <div>
-        <div className="text-2xl sm:text-3xl font-bold font-mono text-primary-600 flex items-center gap-1">
+        <div className="text-2xl sm:text-3xl font-bold font-mono text-gray-900  flex items-center gap-1">
           <span>$</span>
           {usdAmount.toLocaleString()}
           <span className="text-lg font-medium">USD</span>
