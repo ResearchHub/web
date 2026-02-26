@@ -1,16 +1,30 @@
 import { GrantService } from '@/services/grant.service';
-import { GrantList } from '@/components/Funding/GrantList';
+import { GrantCarousel } from '@/components/Funding/GrantCarousel';
 
 interface DashboardGrantsProps {
   userId: string | number;
 }
 
 export async function DashboardGrants({ userId }: DashboardGrantsProps) {
-  const { grants } = await GrantService.getGrants({
-    createdBy: userId,
-    status: 'OPEN',
-    ordering: 'newest',
-  });
+  const [{ grants: published }, { grants: past }] = await Promise.all([
+    GrantService.getGrants({ createdBy: userId, status: 'OPEN', ordering: 'most_applicants' }),
+    GrantService.getGrants({ createdBy: userId, status: 'CLOSED', ordering: 'newest' }),
+  ]);
 
-  return <GrantList grants={grants} showCreateCTA={grants.length === 0} isDashboard />;
+  return (
+    <>
+      {published.map((grant) => (
+        <GrantCarousel key={grant.id} grant={grant} isDashboard />
+      ))}
+
+      {past.length > 0 && (
+        <section>
+          <h2 className="text-sm font-medium text-gray-500 pt-6 pb-1">Past Opportunities</h2>
+          {past.map((grant) => (
+            <GrantCarousel key={grant.id} grant={grant} isClosed />
+          ))}
+        </section>
+      )}
+    </>
+  );
 }

@@ -4,7 +4,6 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/auth.config';
 import { DashboardGrants } from './DashboardGrants';
 import { DashboardPageClient } from './DashboardPageClient';
 import { GrantCarouselSkeleton } from '@/components/skeletons/GrantCarouselSkeleton';
-import { DashboardDraftGrants } from './DashboardDraftGrants';
 
 interface DashboardPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -29,7 +28,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   return (
     <DashboardPageClient userId={userIdParam ? Number(userIdParam) : undefined}>
-      <DashboardDraftGrants />
       <Suspense fallback={<GrantCarouselSkeleton />}>
         <DashboardGrants userId={userId} />
       </Suspense>
