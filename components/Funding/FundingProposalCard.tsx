@@ -143,7 +143,7 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
         className
       )}
     >
-      {imageBlock('aspect-[16/9]')}
+      {imageBlock('aspect-[4/3]')}
 
       <div className="px-3 pt-2 pb-2 flex-1 flex gap-2">
         <div className="flex-shrink-0 pt-0.5">
