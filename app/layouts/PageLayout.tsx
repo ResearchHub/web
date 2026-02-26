@@ -182,7 +182,7 @@ export function PageLayout({
                 {/* Main Content */}
                 <main
                   ref={mainContentRef}
-                  className="flex-1 min-w-0 px-4 tablet:!px-8 py-6 pb-20 tablet:!pb-4"
+                  className="flex-1 min-w-0 px-4 tablet:!px-8 py-6 pb-20 tablet:!pb-4 mt-4"
                 >
                   <div className={cn('w-full', 'max-w-full tablet:!max-w-[860px]', className)}>
                     {children}

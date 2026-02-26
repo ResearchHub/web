@@ -6,5 +6,9 @@ interface PageHeaderProps {
 }
 
 export function PageHeader({ title, className }: PageHeaderProps) {
-  return <h1 className={cn('text-4xl font-bold text-gray-900 mb-3', className)}>{title}</h1>;
+  return (
+    <h1 className={cn('text-4xl font-semibold tracking-tight text-gray-900 mb-3', className)}>
+      {title}
+    </h1>
+  );
 }
