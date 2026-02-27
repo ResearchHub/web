@@ -18,6 +18,7 @@ interface CardTabsProps {
   onTabChange: (tabId: string, e?: React.MouseEvent) => void;
   disabled?: boolean;
   className?: string;
+  rightContent?: React.ReactNode;
 }
 
 const CardTabItem: React.FC<{
@@ -95,6 +96,7 @@ export const CardTabs: React.FC<CardTabsProps> = ({
   onTabChange,
   disabled = false,
   className,
+  rightContent,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -124,53 +126,57 @@ export const CardTabs: React.FC<CardTabsProps> = ({
   };
 
   return (
-    <div className={cn('w-full relative', className)}>
-      <div
-        className={cn(
-          'absolute left-0 top-0 bottom-0 z-10 flex items-center pr-2 transition-opacity duration-200',
-          canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        )}
-        style={{ background: 'linear-gradient(to left, transparent, white 40%)' }}
-      >
-        <button
-          onClick={() => scroll('left')}
-          className="p-1 rounded-full hover:bg-gray-200/80 text-gray-500 hover:text-gray-700"
+    <div className={cn('w-full flex items-center gap-3', className)}>
+      <div className="relative min-w-0 flex-1">
+        <div
+          className={cn(
+            'absolute left-0 top-0 bottom-0 z-10 flex items-center pr-2 transition-opacity duration-200',
+            canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          )}
+          style={{ background: 'linear-gradient(to left, transparent, white 40%)' }}
         >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
+          <button
+            onClick={() => scroll('left')}
+            className="p-1 rounded-full hover:bg-gray-200/80 text-gray-500 hover:text-gray-700"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div
+          ref={scrollContainerRef}
+          onScroll={checkScrollability}
+          className="flex items-center gap-2 flex-nowrap overflow-x-auto scrollbar-none py-2"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {tabs.map((tab) => (
+            <CardTabItem
+              key={tab.id}
+              tab={tab}
+              isActive={activeTab === tab.id}
+              disabled={disabled}
+              onTabChange={onTabChange}
+            />
+          ))}
+        </div>
+
+        <div
+          className={cn(
+            'absolute right-0 top-0 bottom-0 z-10 flex items-center pl-2 transition-opacity duration-200',
+            canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          )}
+          style={{ background: 'linear-gradient(to right, transparent, white 40%)' }}
+        >
+          <button
+            onClick={() => scroll('right')}
+            className="p-1 rounded-full hover:bg-gray-200/80 text-gray-500 hover:text-gray-700"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      <div
-        ref={scrollContainerRef}
-        onScroll={checkScrollability}
-        className="flex items-center gap-2 flex-nowrap overflow-x-auto scrollbar-none py-2"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        {tabs.map((tab) => (
-          <CardTabItem
-            key={tab.id}
-            tab={tab}
-            isActive={activeTab === tab.id}
-            disabled={disabled}
-            onTabChange={onTabChange}
-          />
-        ))}
-      </div>
-
-      <div
-        className={cn(
-          'absolute right-0 top-0 bottom-0 z-10 flex items-center pl-2 transition-opacity duration-200',
-          canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        )}
-        style={{ background: 'linear-gradient(to right, transparent, white 40%)' }}
-      >
-        <button
-          onClick={() => scroll('right')}
-          className="p-1 rounded-full hover:bg-gray-200/80 text-gray-500 hover:text-gray-700"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
+      {rightContent && <div className="flex-shrink-0">{rightContent}</div>}
     </div>
   );
 };

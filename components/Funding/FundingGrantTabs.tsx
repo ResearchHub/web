@@ -2,6 +2,8 @@
 
 import { FC, useMemo, useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { Plus } from 'lucide-react';
+import Link from 'next/link';
 import { Tabs } from '@/components/ui/Tabs';
 import { CardTabs } from '@/components/ui/CardTabs';
 import { useGrants } from '@/contexts/GrantContext';
@@ -87,5 +89,20 @@ export const FundingGrantTabs: FC = () => {
     );
   }
 
-  return <CardTabs tabs={tabs} activeTab={activeTab} onTabChange={() => {}} />;
+  return (
+    <CardTabs
+      tabs={tabs}
+      activeTab={activeTab}
+      onTabChange={() => {}}
+      rightContent={
+        <Link
+          href="/fund/new"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-[13px] font-semibold text-white hover:bg-indigo-700 transition-colors whitespace-nowrap"
+        >
+          <Plus className="w-4 h-4" />
+          New Award
+        </Link>
+      }
+    />
+  );
 };
