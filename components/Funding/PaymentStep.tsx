@@ -333,7 +333,7 @@ export function PaymentStep({
             <EndaomentPaymentButton
               isProcessing={isProcessing}
               selectedFund={selectedEndaomentFund}
-              insufficientFunds={isEndaomentInsufficientBalance}
+              hasSufficientFunds={!isEndaomentInsufficientBalance}
               onConfirm={handleEndaomentConfirm}
             />
           ) : (
