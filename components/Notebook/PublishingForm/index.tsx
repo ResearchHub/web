@@ -34,6 +34,7 @@ import { Loader2 } from 'lucide-react';
 import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
 import { useNotebookContext } from '@/contexts/NotebookContext';
+import { useUser } from '@/contexts/UserContext';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
@@ -199,6 +200,7 @@ export function PublishingForm({
   isModal,
 }: Readonly<PublishingFormProps>) {
   const { currentNote: note, editor } = useNotebookContext();
+  const { user: currentUser } = useUser();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
@@ -222,23 +224,32 @@ export function PublishingForm({
 
     if (note.post) {
       populateFromPost(note.post, methods.setValue);
-      return;
+    } else {
+      const storedData = loadPublishingFormFromStorage(note.id.toString());
+      if (storedData) {
+        restoreFromStorage(storedData, methods.setValue);
+      } else {
+        const resolved = resolveArticleType(searchParams, defaultArticleType);
+        if (resolved) {
+          methods.setValue('articleType', resolved.type);
+        }
+        if (resolved?.type === 'grant' && resolved.source === 'default') {
+          methods.setValue('applicationDeadline', new Date('2029-12-31'));
+        }
+      }
     }
 
-    const storedData = loadPublishingFormFromStorage(note.id.toString());
-    if (storedData) {
-      restoreFromStorage(storedData, methods.setValue);
-      return;
+    const authors = methods.getValues('authors');
+    if (authors.length === 0 && currentUser) {
+      const profile = currentUser.authorProfile;
+      methods.setValue('authors', [
+        {
+          value: profile?.id?.toString() || currentUser.id.toString(),
+          label: currentUser.fullName || currentUser.email || 'Unknown User',
+        },
+      ]);
     }
-
-    const resolved = resolveArticleType(searchParams, defaultArticleType);
-    if (resolved) {
-      methods.setValue('articleType', resolved.type);
-    }
-    if (resolved?.type === 'grant' && resolved.source === 'default') {
-      methods.setValue('applicationDeadline', new Date('2029-12-31'));
-    }
-  }, [note, methods, searchParams, defaultArticleType]);
+  }, [note, methods, searchParams, defaultArticleType, currentUser]);
 
   useEffect(() => {
     if (!note) return;

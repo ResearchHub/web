@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/Button';
 export interface MultiSelectOption {
   value: string;
   label: string;
+  avatarUrl?: string;
+  description?: string;
 }
 
 export interface SearchableMultiSelectProps {
@@ -31,6 +33,10 @@ export interface SearchableMultiSelectProps {
   debounceMs?: number;
   disabled?: boolean;
   minSearchLength?: number;
+  renderOption?: (
+    option: MultiSelectOption,
+    context: { focus: boolean; selected: boolean }
+  ) => React.ReactElement;
 }
 
 export function SearchableMultiSelect({
@@ -47,6 +53,7 @@ export function SearchableMultiSelect({
   debounceMs = 300,
   disabled,
   minSearchLength = 2,
+  renderOption,
 }: SearchableMultiSelectProps) {
   const id = useId();
   const [query, setQuery] = useState('');
@@ -168,7 +175,7 @@ export function SearchableMultiSelect({
           {label} {required && <span className="text-gray-700">*</span>}
         </label>
       )}
-      <Combobox value={value} onChange={handleChange} multiple disabled={disabled}>
+      <Combobox value={value} onChange={handleChange} by="value" multiple disabled={disabled}>
         <label htmlFor={id} className="relative">
           <div
             ref={comboboxRef}
@@ -219,7 +226,10 @@ export function SearchableMultiSelect({
           </div>
 
           <ComboboxOptions
-            className="absolute z-10 mt-1 p-2 overflow-auto rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none max-h-60"
+            className={cn(
+              'absolute z-10 mt-1 overflow-auto rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none max-h-60',
+              renderOption ? 'py-1' : 'p-2'
+            )}
             style={{ width: `${dropdownWidth}px` }}
           >
             {(() => {
@@ -237,6 +247,18 @@ export function SearchableMultiSelect({
 
               if (!isLoading && filteredOptions.length === 0) {
                 return <div className="px-4 py-2 text-sm text-gray-500">No options found</div>;
+              }
+
+              if (renderOption) {
+                return (
+                  <div className="divide-y divide-gray-100">
+                    {filteredOptions.map((option) => (
+                      <ComboboxOption key={option.value} value={option} as="div">
+                        {({ focus, selected }) => renderOption(option, { focus, selected })}
+                      </ComboboxOption>
+                    ))}
+                  </div>
+                );
               }
 
               return (
