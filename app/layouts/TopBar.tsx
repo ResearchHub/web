@@ -600,7 +600,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           <div
             className="border-b border-gray-200 px-4 lg:px-8 overflow-hidden transition-all duration-300 ease-in-out -mt-2 pb-1"
             style={{
-              maxHeight: showGrantTabs ? '52px' : '0px',
+              maxHeight: showGrantTabs ? '62px' : '0px',
               opacity: showGrantTabs ? 1 : 0,
               borderBottomColor: showGrantTabs ? undefined : 'transparent',
             }}

@@ -3,11 +3,16 @@
 import { FC, useMemo, useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { Tabs } from '@/components/ui/Tabs';
-import { PillTabs } from '@/components/ui/PillTabs';
+import { CardTabs } from '@/components/ui/CardTabs';
 import { useGrants } from '@/contexts/GrantContext';
 import { FeedGrantContent } from '@/types/feed';
 import { buildWorkUrl } from '@/utils/url';
-import { LayoutList } from 'lucide-react';
+
+function formatCompactAmount(usd: number): string {
+  if (usd >= 1_000_000) return `$${Math.round(usd / 1_000_000)}M`;
+  if (usd >= 1_000) return `$${Math.round(usd / 1_000)}K`;
+  return `$${Math.round(usd).toLocaleString()}`;
+}
 
 export const FundingGrantTabs: FC = () => {
   const pathname = usePathname();
@@ -20,37 +25,60 @@ export const FundingGrantTabs: FC = () => {
   }, [fetchGrants]);
 
   const activeTab = useMemo(() => {
-    if (pathname === '/fund/browse') return 'browse';
     const grantMatch = pathname.match(/^\/grant\/(\d+)/);
     if (grantMatch) return `grant-${grantMatch[1]}`;
     return 'all';
   }, [pathname]);
 
   const tabs = useMemo(() => {
+    const totalUsd = grants.reduce((sum, grant) => {
+      const content = grant.content as FeedGrantContent;
+      return sum + (content.grant.amount?.usd ?? 0);
+    }, 0);
+
     const grantTabs = grants.map((grant) => {
       const content = grant.content as FeedGrantContent;
+      const proposalCount = content.grant.applicants?.length ?? 0;
+      const amount = content.grant.amount?.usd;
+      const amountFormatted = amount ? formatCompactAmount(amount) : null;
+
+      const subtitle =
+        proposalCount > 0
+          ? `${proposalCount} proposal${proposalCount !== 1 ? 's' : ''}`
+          : undefined;
+
       return {
         id: `grant-${content.id}`,
-        label: content.grant.shortTitle,
+        amount: amountFormatted,
+        title: content.grant.shortTitle,
+        subtitle,
         href: buildWorkUrl({ id: content.id, contentType: 'funding_request', slug: content.slug }),
       };
     });
 
-    return [
-      { id: 'browse', label: 'Browse', href: '/fund/browse', icon: LayoutList },
-      { id: 'all', label: 'All', href: '/fund' },
-      ...(grantTabs.length > 0 ? [{ ...grantTabs[0], separator: true }] : []),
-      ...grantTabs.slice(1),
-    ];
+    const allTab = {
+      id: 'all',
+      amount: totalUsd > 0 ? formatCompactAmount(totalUsd) : null,
+      title: 'All awards',
+      href: '/fund',
+    };
+
+    return [allTab, ...grantTabs];
   }, [grants]);
 
   if (grants.length === 0) return null;
 
   if (useLegacyTabs) {
+    const legacyTabs = tabs.map((t) => ({
+      id: t.id,
+      label: t.amount ? `${t.title} · ${t.amount}` : t.title,
+      href: t.href,
+    }));
+
     return (
       <div className="h-full [&_.text-sm]:!text-base">
         <Tabs
-          tabs={tabs}
+          tabs={legacyTabs}
           activeTab={activeTab}
           onTabChange={() => {}}
           className="!border-b-0 h-full py-0"
@@ -59,5 +87,5 @@ export const FundingGrantTabs: FC = () => {
     );
   }
 
-  return <PillTabs tabs={tabs} activeTab={activeTab} onTabChange={() => {}} />;
+  return <CardTabs tabs={tabs} activeTab={activeTab} onTabChange={() => {}} />;
 };
