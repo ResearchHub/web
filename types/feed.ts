@@ -260,6 +260,15 @@ export interface HotScoreBreakdown {
   };
 }
 
+export interface AssociatedGrant {
+  id: number;
+  organization: string;
+  shortTitle: string;
+  amount: string;
+  currency: string;
+  status: string;
+}
+
 export interface FeedEntry {
   id: string;
   recommendationId: string | null;
@@ -277,6 +286,7 @@ export interface FeedEntry {
   hotScoreV2?: number;
   hotScoreBreakdown?: HotScoreBreakdown;
   externalMetrics?: ExternalMetrics;
+  associatedGrants?: AssociatedGrant[];
   searchMetadata?: {
     highlightedTitle?: string;
     highlightedSnippet?: string;
@@ -294,6 +304,14 @@ export interface RawApiFeedEntry {
   action_date: string;
   is_nonprofit?: boolean;
   hot_score_v2?: number;
+  associated_grants?: Array<{
+    id: number;
+    organization: string;
+    short_title: string;
+    amount: string;
+    currency: string;
+    status: string;
+  }>;
   hot_score_breakdown?: {
     steps: string[];
     signals: {
@@ -426,6 +444,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     hot_score_breakdown,
     external_metadata,
     recommendation_id,
+    associated_grants,
   } = feedEntry;
 
   // Base feed entry properties
@@ -963,6 +982,14 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     tips: [], // Default empty tips
     awardedBountyAmount: (content as any)?.awardedBountyAmount,
     isAwardedForFoundationBounty: (content as any)?.bounty_creator_id,
+    associatedGrants: associated_grants?.map((g) => ({
+      id: g.id,
+      organization: g.organization,
+      shortTitle: g.short_title,
+      amount: g.amount,
+      currency: g.currency,
+      status: g.status,
+    })),
   } as FeedEntry;
 };
 

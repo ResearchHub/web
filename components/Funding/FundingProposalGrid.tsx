@@ -12,7 +12,7 @@ interface FundingProposalGridProps {
   className?: string;
 }
 
-const SKELETON_COUNT = 6;
+const SKELETON_COUNT = 5;
 
 export const FundingProposalGrid: FC<FundingProposalGridProps> = ({ className }) => {
   const { entries, isLoading, isLoadingMore, hasMore, loadMore } = useFundraises();
@@ -32,7 +32,7 @@ export const FundingProposalGrid: FC<FundingProposalGridProps> = ({ className })
     <div className={cn('', className)}>
       <PageHeader title="Fund Research" className="mb-8" />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="flex flex-col gap-3">
         {isLoading ? (
           [...Array(SKELETON_COUNT)].map((_, i) => <ProposalCardSkeleton key={i} />)
         ) : entries.length > 0 ? (
@@ -44,7 +44,7 @@ export const FundingProposalGrid: FC<FundingProposalGridProps> = ({ className })
               [...Array(3)].map((_, i) => <ProposalCardSkeleton key={`more-${i}`} />)}
           </>
         ) : (
-          <div className="col-span-full py-12 text-center">
+          <div className="py-12 text-center">
             <p className="text-gray-500">No proposals found</p>
           </div>
         )}

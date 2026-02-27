@@ -12,7 +12,6 @@ import { cn } from '@/utils/styles';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { Icon } from '../ui/icons';
-import { AvatarStack } from '@/components/ui/AvatarStack';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useRouter } from 'next/navigation';
@@ -21,7 +20,6 @@ import { Tooltip } from '@/components/ui/Tooltip';
 interface FundraiseProgressProps {
   fundraise: Fundraise;
   fundraiseTitle: string;
-  compact?: boolean;
   onContribute?: () => void;
   showContribute?: boolean;
   className?: string;
@@ -34,7 +32,6 @@ interface FundraiseProgressProps {
 export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   fundraise,
   fundraiseTitle,
-  compact = false,
   onContribute,
   showContribute = true,
   className,
@@ -86,29 +83,17 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   const getStatusDisplay = () => {
     switch (fundraise.status) {
       case 'COMPLETED':
-        return (
-          <span className={`${compact ? 'text-xs' : 'text-sm'} text-green-500 font-medium`}>
-            Fundraise Completed
-          </span>
-        );
+        return <span className="text-sm text-green-500 font-medium">Fundraise Completed</span>;
       case 'CLOSED':
-        return (
-          <span className={`${compact ? 'text-xs' : 'text-sm'} text-gray-500 font-medium`}>
-            Fundraise Closed
-          </span>
-        );
+        return <span className="text-sm text-gray-500 font-medium">Fundraise Closed</span>;
       case 'OPEN':
         return deadlineText?.includes('Ended') ? (
-          <span className={`${compact ? 'text-xs' : 'text-sm'} text-gray-500 font-medium`}>
-            Ended
-          </span>
+          <span className="text-sm text-gray-500 font-medium">Ended</span>
         ) : deadlineText ? (
           <div className="flex items-center gap-1.5 text-gray-800">
-            <Clock className={compact ? 'h-3 w-3' : 'h-4 w-4'} />
+            <Clock className="h-4 w-4" />
             <Tooltip content={formatExactTime(fundraise.endDate!)} position="top" width="w-48">
-              <span className={`${compact ? 'text-xs' : 'text-sm'} cursor-help`}>
-                {deadlineText}
-              </span>
+              <span className="text-sm cursor-help">{deadlineText}</span>
             </Tooltip>
           </div>
         ) : null;
@@ -157,7 +142,9 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
         <div className={cn('rounded-lg', className)}>
           {/* Top row: Percentage on left, days left on right */}
           <div className="flex items-center justify-between mb-2">
-            <div className="font-medium text-sm text-gray-700">{actualPercentage}% funded</div>
+            <div className="font-mono font-medium text-sm text-gray-700">
+              {actualPercentage}% funded
+            </div>
             {getStatusDisplay()}
           </div>
 
@@ -168,23 +155,19 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
     );
   }
 
-  const defaultContainerClasses = compact
-    ? 'p-3  bg-white rounded-lg border border-gray-200'
-    : 'p-4 bg-white rounded-lg border border-gray-200';
+  const defaultContainerClasses = 'p-4 bg-white rounded-lg border border-gray-200';
 
-  if (compact) {
-    // Compact mode modifications for carousel
-    return (
-      <>
-        <div className={cn(defaultContainerClasses, className)}>
-          {/* Top row: Amount on left, status/time on right - Stack on mobile */}
-          <div className="flex flex-row flex-wrap items-center justify-between gap-x-2 mb-3">
+  return (
+    <>
+      <div className={cn(defaultContainerClasses, className)}>
+        <div className="mb-6">
+          <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between mb-4 mobile:!mb-3 gap-3 mobile:!gap-0">
             {showPercentage ? (
-              <div className="font-medium text-gray-700 text-sm mobile:!text-base min-w-0 truncate">
+              <div className="font-mono text-lg mobile:!text-xl font-medium text-gray-700">
                 {actualPercentage}% funded
               </div>
             ) : (
-              <div className="flex items-center gap-1 flex-wrap min-w-0 truncate">
+              <div className="flex items-center flex-wrap gap-1 font-mono">
                 <CurrencyBadge
                   amount={
                     showUSD
@@ -192,16 +175,13 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                       : Math.round(fundraise.amountRaised.rsc)
                   }
                   variant="text"
-                  size="xs"
+                  size="md"
                   showText={false}
                   currency={showUSD ? 'USD' : 'RSC'}
-                  shorten
-                  className="pl-0"
+                  className="font-medium text-primary-600 text-base mobile:!text-lg pl-0"
                   skipConversion={showUSD}
                 />
-                <span className="font-medium text-gray-700 mx-0.5 text-sm mobile:!text-base">
-                  /
-                </span>
+                <span className="text-gray-500 text-base mobile:!text-lg">raised of</span>
                 <CurrencyBadge
                   amount={
                     showUSD
@@ -209,204 +189,86 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                       : Math.round(fundraise.goalAmount.rsc)
                   }
                   variant="text"
-                  size="xs"
+                  size="md"
                   showText={true}
+                  showIcon={true}
                   currency={showUSD ? 'USD' : 'RSC'}
-                  shorten
+                  className="text-primary-600 text-base mobile:!text-lg"
                   skipConversion={showUSD}
                 />
+                <span className="text-primary-600 text-base mobile:!text-lg">goal</span>
               </div>
             )}
-
-            {/* Status/Time Display - Will wrap to new line if needed */}
-            <div className="flex-shrink-0 whitespace-nowrap">{getStatusDisplay()}</div>
+            <div className="mobile:!flex-shrink-0 hidden mobile:!block">{getStatusDisplay()}</div>
           </div>
 
-          {/* Progress bar - Keep as is but with better mobile spacing */}
-          <div className="mb-3">
-            <Progress value={progressPercentage} variant={getProgressVariant()} size="xs" />
-          </div>
+          <Progress value={progressPercentage} variant={getProgressVariant()} className="h-3" />
 
-          {/* Bottom row: Fund CTA on left, contributors on right */}
-          <div className="flex items-center justify-between gap-3">
-            {isActive && showContribute ? (
-              <Button
-                variant="contribute"
-                size="sm"
-                className="flex items-center gap-1 py-1.5 px-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold transition-all duration-200 border-0 text-xs"
-                onClick={handleContributeClick}
-              >
-                <Icon name="giveRSC" size={16} color="white" />
-                Fund
-              </Button>
-            ) : onDetailsClick ? (
-              <Button
-                variant="outlined"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDetailsClick();
-                }}
-                className="!py-1.5 !px-2.5 text-gray-600 hover:text-gray-800 text-xs"
-              >
-                Details
-              </Button>
-            ) : null}
-
+          {/* Mobile: Status and Contributors in same row */}
+          <div className="flex mobile:!hidden items-center justify-between mt-3">
+            <div>{getStatusDisplay()}</div>
             {contributors.length > 0 && (
-              <div className="cursor-pointer flex-shrink-0" onClick={handleContributeClick}>
-                <AvatarStack
-                  items={contributors.map((contributor) => ({
-                    src: contributor.profile.profileImage || '',
-                    alt: contributor.profile.fullName,
-                    tooltip: `Funded by ${contributor.profile.fullName}`,
-                    authorId: contributor.profile.id,
-                  }))}
-                  size="xs"
-                  maxItems={3}
-                  spacing={-6}
-                  showExtraCount={contributors.length > 3}
-                  totalItemsCount={contributors.length}
-                  extraCountLabel="Funders"
-                  ringColorClass="ring-primary-50"
-                />
-              </div>
-            )}
-
-            {/* Spacer to maintain layout when no contributors */}
-            {contributors.length === 0 && showContribute && <div className="flex-shrink-0"></div>}
-          </div>
-        </div>
-
-        {/* Contribute Modal - Keep as is */}
-        <ContributeToFundraiseModal
-          isOpen={isContributeModalOpen}
-          onClose={() => setIsContributeModalOpen(false)}
-          onContributeSuccess={handleContributeSuccess}
-          fundraise={fundraise}
-          proposalTitle={fundraiseTitle}
-          work={work}
-        />
-      </>
-    );
-  } else {
-    // Default mode with original style but mobile improvements
-    return (
-      <>
-        <div className={cn(defaultContainerClasses, className)}>
-          <div className="mb-6">
-            <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between mb-4 mobile:!mb-3 gap-3 mobile:!gap-0">
-              {showPercentage ? (
-                <div className="text-lg mobile:!text-xl font-medium text-gray-700">
-                  {actualPercentage}% funded
-                </div>
-              ) : (
-                <div className="flex items-center flex-wrap gap-1">
-                  <CurrencyBadge
-                    amount={
-                      showUSD
-                        ? Math.round(fundraise.amountRaised.usd)
-                        : Math.round(fundraise.amountRaised.rsc)
-                    }
-                    variant="text"
-                    size="md"
-                    showText={false}
-                    currency={showUSD ? 'USD' : 'RSC'}
-                    className="font-medium text-primary-600 text-base mobile:!text-lg pl-0"
-                    skipConversion={showUSD}
-                  />
-                  <span className="text-gray-500 text-base mobile:!text-lg">raised of</span>
-                  <CurrencyBadge
-                    amount={
-                      showUSD
-                        ? Math.round(fundraise.goalAmount.usd)
-                        : Math.round(fundraise.goalAmount.rsc)
-                    }
-                    variant="text"
-                    size="md"
-                    showText={true}
-                    showIcon={true}
-                    currency={showUSD ? 'USD' : 'RSC'}
-                    className="text-primary-600 text-base mobile:!text-lg"
-                    skipConversion={showUSD}
-                  />
-                  <span className="text-primary-600 text-base mobile:!text-lg">goal</span>
-                </div>
-              )}
-              <div className="mobile:!flex-shrink-0 hidden mobile:!block">{getStatusDisplay()}</div>
-            </div>
-
-            <Progress value={progressPercentage} variant={getProgressVariant()} className="h-3" />
-
-            {/* Mobile: Status and Contributors in same row */}
-            <div className="flex mobile:!hidden items-center justify-between mt-3">
-              <div>{getStatusDisplay()}</div>
-              {contributors.length > 0 && (
-                <ContributorsButton
-                  contributors={contributors}
-                  onContribute={handleContributeClick}
-                  label={`Funders`}
-                  size="sm"
-                  disableContribute={!isActive}
-                />
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between gap-4 mobile:!gap-0">
-            {isActive && showContribute ? (
-              <Button
-                variant="contribute"
-                size="md"
-                className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold transition-all duration-200 border-0"
-                onClick={handleContributeClick}
-              >
-                <Icon name="giveRSC" size={20} color="white" />
-                Fund this research
-              </Button>
-            ) : onDetailsClick ? (
-              <Button
-                variant="outlined"
-                size="md"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDetailsClick();
-                }}
-              >
-                Details
-              </Button>
-            ) : null}
-
-            {/* Desktop: Contributors button at bottom */}
-            {contributors.length > 0 && (
-              <div
-                className={cn(
-                  'hidden mobile:!flex',
-                  showContribute ? 'justify-end' : 'mobile:!ml-auto justify-end'
-                )}
-              >
-                <ContributorsButton
-                  contributors={contributors}
-                  onContribute={handleContributeClick}
-                  label={`Funders`}
-                  size={22}
-                  disableContribute={!isActive}
-                />
-              </div>
+              <ContributorsButton
+                contributors={contributors}
+                onContribute={handleContributeClick}
+                label={`Funders`}
+                size="sm"
+                disableContribute={!isActive}
+              />
             )}
           </div>
         </div>
 
-        {/* Contribute Modal */}
-        <ContributeToFundraiseModal
-          isOpen={isContributeModalOpen}
-          onClose={() => setIsContributeModalOpen(false)}
-          onContributeSuccess={handleContributeSuccess}
-          fundraise={fundraise}
-          proposalTitle={fundraiseTitle}
-          work={work}
-        />
-      </>
-    );
-  }
+        <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between gap-4 mobile:!gap-0">
+          {/* Desktop: Contributors on the left */}
+          {contributors.length > 0 ? (
+            <div className="hidden mobile:!flex">
+              <ContributorsButton
+                contributors={contributors}
+                onContribute={handleContributeClick}
+                label={`Funders`}
+                size={22}
+                disableContribute={!isActive}
+              />
+            </div>
+          ) : (
+            <div className="hidden mobile:!block flex-shrink-0" />
+          )}
+
+          {isActive && showContribute ? (
+            <Button
+              variant="contribute"
+              size="md"
+              className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold transition-all duration-200 border-0"
+              onClick={handleContributeClick}
+            >
+              <Icon name="giveRSC" size={20} color="white" />
+              Fund this research
+            </Button>
+          ) : onDetailsClick ? (
+            <Button
+              variant="outlined"
+              size="md"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDetailsClick();
+              }}
+            >
+              Details
+            </Button>
+          ) : null}
+        </div>
+      </div>
+
+      {/* Contribute Modal */}
+      <ContributeToFundraiseModal
+        isOpen={isContributeModalOpen}
+        onClose={() => setIsContributeModalOpen(false)}
+        onContributeSuccess={handleContributeSuccess}
+        fundraise={fundraise}
+        proposalTitle={fundraiseTitle}
+        work={work}
+      />
+    </>
+  );
 };

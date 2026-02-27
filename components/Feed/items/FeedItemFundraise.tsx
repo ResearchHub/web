@@ -217,7 +217,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
           <FundraiseProgress
             fundraiseTitle={post.title}
             fundraise={post.fundraise}
-            compact={true}
             onDetailsClick={handleFundDetailsClick}
           />
         </div>

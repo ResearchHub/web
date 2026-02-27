@@ -3,7 +3,15 @@
 import { FC, useState, ReactNode, useEffect } from 'react';
 import React from 'react';
 import { FeedContentType, Review } from '@/types/feed';
-import { MessageCircle, Flag, MoreHorizontal, Star, ArrowUp, ArrowDown } from 'lucide-react';
+import {
+  MessageCircle,
+  Flag,
+  MoreHorizontal,
+  Star,
+  ArrowUp,
+  ArrowDown,
+  ChevronsUpDown,
+} from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
@@ -171,6 +179,8 @@ interface FeedItemActionsProps {
   relatedDocumentUnifiedDocumentId?: string;
   showPeerReviews?: boolean;
   onFeedItemClick?: () => void;
+  onExpand?: (e?: React.MouseEvent) => void;
+  isExpanded?: boolean;
 }
 
 // Define interface for avatar items used in local state
@@ -206,6 +216,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   relatedDocumentUnifiedDocumentId,
   showPeerReviews = true,
   onFeedItemClick,
+  onExpand,
+  isExpanded = false,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD } = useCurrencyPreference();
@@ -674,6 +686,18 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 onClick={handleBountyClick}
               />
             ))}
+          {onExpand && (
+            <ActionButton
+              icon={ChevronsUpDown}
+              tooltip={isExpanded ? 'Collapse' : 'Expand'}
+              label={isExpanded ? 'Collapse' : 'Expand'}
+              onClick={(e) => {
+                e?.stopPropagation();
+                onExpand(e);
+              }}
+              showTooltip={showTooltips}
+            />
+          )}
           {children}
         </div>
 
