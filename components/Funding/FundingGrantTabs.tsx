@@ -2,7 +2,7 @@
 
 import { FC, useMemo, useEffect, ReactNode } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Plus } from 'lucide-react';
+import { Plus, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { Tabs } from '@/components/ui/Tabs';
 import { CardTabs } from '@/components/ui/CardTabs';
@@ -81,7 +81,7 @@ export const FundingGrantTabs: FC = () => {
     const allTab = {
       id: 'all',
       amount: totalUsd > 0 ? formatCompactAmount(totalUsd) : null,
-      title: 'All awards',
+      title: 'All',
       href: '/fund',
       variant: 'grant-summary' as const,
     };
@@ -116,13 +116,22 @@ export const FundingGrantTabs: FC = () => {
       activeTab={activeTab}
       onTabChange={() => {}}
       rightContent={
-        <Link
-          href="/fund/new"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-[13px] font-semibold text-white hover:bg-indigo-700 transition-colors whitespace-nowrap"
-        >
-          <Plus className="w-4 h-4" />
-          New Award
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/grants"
+            className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-[13px] font-medium text-gray-700 hover:bg-gray-50 transition-colors whitespace-nowrap"
+          >
+            Browse Awards
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+          <Link
+            href="/fund/new"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-[13px] font-semibold text-white hover:bg-indigo-700 transition-colors whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4" />
+            New Award
+          </Link>
+        </div>
       }
     />
   );

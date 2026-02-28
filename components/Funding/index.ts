@@ -10,6 +10,7 @@ export { QuickAmountSelector } from './QuickAmountSelector';
 
 // Funding feed components
 export { FundingProposalCard } from './FundingProposalCard';
+export { GrantCard } from './GrantCard';
 export { FundingProposalGrid } from './FundingProposalGrid';
 export { FundingTabs } from './FundingTabs';
 export { FundingGrantTabs } from './FundingGrantTabs';
