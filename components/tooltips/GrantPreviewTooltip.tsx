@@ -87,7 +87,7 @@ export const GrantPreviewTooltip: FC<GrantPreviewTooltipProps> = ({
                 <Link
                   href={href}
                   onClick={(e) => e.stopPropagation()}
-                  className="font-semibold text-sm text-gray-900 leading-snug hover:underline"
+                  className="font-semibold text-md text-gray-900 leading-snug hover:underline"
                 >
                   {title}
                 </Link>
