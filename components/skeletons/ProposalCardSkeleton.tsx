@@ -12,20 +12,22 @@ export function ProposalCardSkeleton({ className }: ProposalCardSkeletonProps) {
         className
       )}
     >
-      <div className="flex gap-3 p-3">
-        <div className="flex-shrink-0 w-[120px] h-[90px] bg-gray-200 rounded-lg" />
-        <div className="flex-1 min-w-0 flex flex-col">
-          <div className="h-3 bg-gray-200 rounded w-20 mb-2" />
-          <div className="h-4 bg-gray-200 rounded w-full mb-1.5" />
-          <div className="h-4 bg-gray-200 rounded w-3/4 mb-auto" />
-          <div className="flex items-center justify-between mt-2">
-            <div className="flex items-center gap-1.5">
-              <div className="w-[18px] h-[18px] bg-gray-200 rounded-full" />
-              <div className="h-3 bg-gray-200 rounded w-24" />
-            </div>
-            <div className="h-4 bg-gray-200 rounded w-16" />
+      <div className="flex flex-wrap p-3 gap-3">
+        <div className="flex-1 basis-60 min-w-0 flex flex-col gap-2">
+          <div className="h-3 bg-gray-200 rounded w-20" />
+          <div className="h-4 bg-gray-200 rounded w-full" />
+          <div className="h-4 bg-gray-200 rounded w-3/4" />
+          <div className="flex items-center gap-1.5 mt-auto">
+            <div className="w-[18px] h-[18px] bg-gray-200 rounded-full" />
+            <div className="h-3 bg-gray-200 rounded w-24" />
+          </div>
+          <div className="flex items-center gap-2 pt-1">
+            <div className="h-7 bg-gray-200 rounded-md w-16" />
+            <div className="h-7 bg-gray-200 rounded-md w-12" />
+            <div className="h-7 bg-gray-200 rounded-md w-12" />
           </div>
         </div>
+        <div className="w-[190px] flex-shrink-0 self-stretch min-h-[100px] bg-gray-200 rounded-lg" />
       </div>
     </div>
   );

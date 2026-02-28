@@ -56,24 +56,6 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
   const reviewScore = entry.metrics?.reviewScore;
   const hasReviewScore = reviewScore !== undefined && reviewScore > 0;
 
-  const thumbnail = (
-    <div className="relative flex-shrink-0 w-[120px] h-[90px] rounded-lg overflow-hidden bg-gray-100">
-      {content.previewImage ? (
-        <Image
-          src={content.previewImage}
-          alt={content.title}
-          fill
-          className="object-cover"
-          sizes="120px"
-        />
-      ) : (
-        <div className="w-full h-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
-          <span className="text-primary-400 text-2xl font-mono">$</span>
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <div
       className={cn(
@@ -82,11 +64,9 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
         className
       )}
     >
-      <Link href={href} className="block hover:bg-gray-50 transition-colors">
-        <div className="flex gap-3 p-3">
-          {thumbnail}
-
-          <div className="min-w-0 flex-1 flex flex-col">
+      <div className="flex flex-wrap p-3 gap-3">
+        <div className="min-w-0 flex-1 basis-60 flex flex-col">
+          <Link href={href} className="block hover:bg-gray-50 transition-colors -m-3 p-3">
             <div className="flex flex-wrap items-center gap-1.5 mb-1">
               {grants.map((grant) => (
                 <GrantBadge key={grant.id} grant={grant} />
@@ -120,54 +100,68 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
               {content.title}
             </h3>
 
-            <div className="flex items-center justify-between gap-3 mt-auto pt-1.5">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <Avatar src={author?.profileImage} alt={author?.fullName || 'Author'} size={18} />
-                <span className="text-xs text-gray-500 truncate">{author?.fullName}</span>
-              </div>
-              <div className="flex-shrink-0 text-right">
-                <span className="text-sm font-bold font-mono text-gray-900">
-                  {formatCurrency({
-                    amount: goalAmount,
-                    showUSD,
-                    exchangeRate,
-                    shorten: true,
-                    skipConversion: true,
-                  })}
-                </span>
-                <span className="text-[11px] text-gray-400 ml-1">needed</span>
-              </div>
+            <div className="flex items-center gap-1.5 mt-auto pt-1.5">
+              <Avatar src={author?.profileImage} alt={author?.fullName || 'Author'} size={18} />
+              <span className="text-xs text-gray-500 truncate">{author?.fullName}</span>
             </div>
+          </Link>
+
+          {showActions && (
+            <div
+              className="py-1.5 cursor-default"
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <FeedItemActions
+                metrics={entry.metrics}
+                feedContentType={entry.contentType}
+                votableEntityId={content.id}
+                relatedDocumentId={content.id.toString()}
+                relatedDocumentContentType="post"
+                userVote={entry.userVote}
+                href={href}
+                hideCommentButton={true}
+                hideReportButton={true}
+                showPeerReviews={true}
+                relatedDocumentUnifiedDocumentId={content.unifiedDocumentId}
+                onExpand={() => {
+                  setIsExpanded((prev) => !prev);
+                  setHasBeenExpanded(true);
+                }}
+                isExpanded={isExpanded}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="relative w-[190px] flex-shrink-0 self-stretch min-h-[100px] rounded-lg overflow-hidden bg-gray-100">
+          {content.previewImage ? (
+            <Image
+              src={content.previewImage}
+              alt={content.title}
+              fill
+              className="object-cover"
+              sizes="190px"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
+              <span className="text-primary-400 text-2xl font-mono">$</span>
+            </div>
+          )}
+          <div className="absolute inset-x-0 bottom-0 bg-primary-600/85 backdrop-blur-sm px-2.5 py-1.5 flex items-center justify-center gap-1 rounded-b-lg">
+            <span className="text-sm font-bold font-mono text-white">
+              {formatCurrency({
+                amount: goalAmount,
+                showUSD,
+                exchangeRate,
+                shorten: true,
+                skipConversion: true,
+              })}
+            </span>
+            <span className="text-[11px] text-white/80 font-medium">needed</span>
           </div>
         </div>
-      </Link>
-
-      {showActions && (
-        <div
-          className="py-1.5 px-3 border-t bg-gray-50 cursor-default"
-          onClick={(e) => e.stopPropagation()}
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          <FeedItemActions
-            metrics={entry.metrics}
-            feedContentType={entry.contentType}
-            votableEntityId={content.id}
-            relatedDocumentId={content.id.toString()}
-            relatedDocumentContentType="post"
-            userVote={entry.userVote}
-            href={href}
-            hideCommentButton={true}
-            hideReportButton={true}
-            showPeerReviews={true}
-            relatedDocumentUnifiedDocumentId={content.unifiedDocumentId}
-            onExpand={() => {
-              setIsExpanded((prev) => !prev);
-              setHasBeenExpanded(true);
-            }}
-            isExpanded={isExpanded}
-          />
-        </div>
-      )}
+      </div>
 
       {hasBeenExpanded && (
         <div className={isExpanded ? '' : 'hidden'}>

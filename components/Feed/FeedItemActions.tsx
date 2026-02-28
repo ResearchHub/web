@@ -11,10 +11,8 @@ import {
   ArrowUp,
   ArrowDown,
   Maximize2,
+  Bookmark,
 } from 'lucide-react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark } from '@fortawesome/free-regular-svg-icons';
-import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
@@ -119,7 +117,7 @@ export const ActionButton: FC<ActionButtonProps> = ({
       // Responsive padding
       'py-0.5 px-2 md:!py-1 md:!px-3',
       isActive ? 'text-green-600' : 'text-gray-900',
-      'bg-transparent hover:text-gray-900 hover:bg-gray-100',
+      'bg-gray-100 hover:text-gray-900 hover:bg-gray-200',
       className
     )}
     tooltip={showTooltip ? tooltip : undefined}
@@ -437,7 +435,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         <div className="flex items-center space-x-3 md:space-x-4 flex-nowrap overflow-visible">
           <div
             className={cn(
-              'flex items-center h-8 rounded-md bg-transparent transition-all',
+              'flex items-center h-8 rounded-md bg-gray-100 transition-all',
               isVoting ? 'opacity-50' : ''
             )}
           >
@@ -502,7 +500,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     className={cn(
                       'flex items-center space-x-1 rounded-md transition-all',
                       'py-0.5 px-2 md:!py-1 md:!px-3',
-                      'text-gray-900 bg-transparent hover:text-gray-900 hover:bg-gray-100'
+                      'text-gray-900 bg-gray-100 hover:text-gray-900 hover:bg-gray-200'
                     )}
                     onClick={handleTip}
                   >
@@ -525,7 +523,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     className={cn(
                       'flex items-center space-x-1 rounded-md',
                       'py-0.5 px-2 md:!py-1 md:!px-3',
-                      'text-gray-900 bg-transparent cursor-default'
+                      'text-gray-900 bg-gray-100 cursor-default'
                     )}
                   >
                     <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
@@ -551,7 +549,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 className={cn(
                   'flex items-center space-x-1 rounded-md transition-all',
                   'py-0.5 px-2 md:!py-1 md:!px-3',
-                  'text-gray-900 bg-transparent hover:text-gray-900 hover:bg-gray-100'
+                  'text-gray-900 bg-gray-100 hover:text-gray-900 hover:bg-gray-200'
                 )}
                 tooltip={showTooltips ? 'Tip' : undefined}
                 onClick={handleTip}
@@ -570,7 +568,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 className={cn(
                   'flex items-center space-x-1 rounded-md',
                   'py-0.5 px-2 md:!py-1 md:!px-3',
-                  'text-gray-900 bg-transparent cursor-default'
+                  'text-gray-900 bg-gray-100 cursor-default'
                 )}
               >
                 <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
@@ -698,37 +696,27 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               showTooltip={showTooltips}
             />
           )}
-          {children}
-        </div>
-
-        <div className="flex-grow flex justify-end items-center gap-3">
-          {rightSideActionButton}
-
-          {/* Show "Add to List" button in right section when hideReportButton is true */}
           {relatedDocumentUnifiedDocumentId &&
             feedContentType !== 'COMMENT' &&
             feedContentType !== 'BOUNTY' &&
             feedContentType !== 'APPLICATION' &&
             showPeerReviews && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  'p-1.5 transition-colors hover:bg-gray-0',
-                  isDocumentInList
-                    ? 'text-green-600 hover:text-green-600'
-                    : 'text-gray-900 hover:text-gray-600'
-                )}
-                tooltip={'Save'}
+              <ActionButton
+                icon={Bookmark}
+                tooltip="Save"
+                label="Save"
                 onClick={handleAddToList}
-                disabled={isTogglingDefaultList}
-              >
-                <FontAwesomeIcon
-                  icon={isDocumentInList ? faBookmarkSolid : faBookmark}
-                  className="w-5 h-5"
-                />
-              </Button>
+                isActive={isDocumentInList}
+                isDisabled={isTogglingDefaultList}
+                showTooltip={showTooltips}
+                className={isDocumentInList ? '!text-green-600' : ''}
+              />
             )}
+          {children}
+        </div>
+
+        <div className="flex-grow flex justify-end items-center gap-3">
+          {rightSideActionButton}
 
           {(!hideReportButton || menuItems.length > 0) && (
             <BaseMenu
