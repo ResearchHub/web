@@ -61,6 +61,7 @@ export const FundingGrantTabs: FC = () => {
         title: content.grant.shortTitle,
         subtitle,
         href: grantHref,
+        variant: 'grant' as const,
         renderWrapper: (children: ReactNode) => (
           <GrantPreviewTooltip
             href={grantHref}
