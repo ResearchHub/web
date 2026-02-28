@@ -10,7 +10,7 @@ import {
   Star,
   ArrowUp,
   ArrowDown,
-  ChevronsUpDown,
+  Maximize2,
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
@@ -688,7 +688,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
             ))}
           {onExpand && (
             <ActionButton
-              icon={ChevronsUpDown}
+              icon={Maximize2}
               tooltip={isExpanded ? 'Collapse' : 'Expand'}
               label={isExpanded ? 'Collapse' : 'Expand'}
               onClick={(e) => {

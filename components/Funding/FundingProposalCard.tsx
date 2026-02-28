@@ -12,6 +12,8 @@ import { formatCurrency } from '@/utils/currency';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { cn } from '@/utils/styles';
 import { ProposalPeekView } from './ProposalPeekView';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { differenceInDays } from 'date-fns';
 import { Star } from 'lucide-react';
 
@@ -90,10 +92,22 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
                 <GrantBadge key={grant.id} grant={grant} />
               ))}
               {hasReviewScore && (
-                <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-amber-700 bg-amber-50 rounded-full px-2 py-0.5">
-                  <Star size={10} className="fill-amber-400 text-amber-400" />
-                  {reviewScore.toFixed(1)}
-                </span>
+                <Tooltip
+                  content={
+                    <PeerReviewTooltip
+                      reviews={content.reviews ?? []}
+                      averageScore={reviewScore}
+                      href={href}
+                    />
+                  }
+                  width="w-72"
+                  delay={200}
+                >
+                  <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-full px-2 py-0.5 transition-colors cursor-pointer">
+                    <Star size={10} className="fill-amber-400 text-amber-400" />
+                    {reviewScore.toFixed(1)}
+                  </span>
+                </Tooltip>
               )}
               {isEndingSoon && (
                 <span className="text-[11px] font-medium text-red-600 bg-red-50 rounded-full px-2 py-0.5">
