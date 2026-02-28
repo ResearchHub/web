@@ -11,7 +11,7 @@ export interface CardTab {
   href?: string;
   scroll?: boolean;
   renderWrapper?: (children: React.ReactNode) => React.ReactNode;
-  variant?: 'default' | 'grant';
+  variant?: 'default' | 'grant' | 'grant-summary';
 }
 
 interface CardTabsProps {
@@ -37,28 +37,34 @@ const CardTabItem: React.FC<{
     onTabChange(tab.id, e);
   };
 
-  const isGrant = tab.variant === 'grant';
+  const isGrantVariant = tab.variant === 'grant' || tab.variant === 'grant-summary';
+  const showIcon = tab.variant === 'grant';
 
   const styles = cn(
     'inline-flex rounded-lg px-3 py-1.5',
-    isGrant ? 'flex-row items-center gap-2' : 'flex-col',
+    isGrantVariant ? 'flex-row items-center gap-2' : 'flex-col',
     'font-medium transition-all duration-150 select-none flex-shrink-0 cursor-pointer',
-    isGrant
+    isGrantVariant
       ? isActive
-        ? 'bg-indigo-600 text-white'
-        : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+        ? 'bg-indigo-200/80 text-indigo-800'
+        : 'bg-indigo-50/60 text-indigo-700 hover:bg-indigo-100/70'
       : isActive
         ? 'bg-gray-900 text-white'
         : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
     disabled && 'cursor-not-allowed pointer-events-none opacity-50'
   );
 
-  const content = isGrant ? (
+  const content = isGrantVariant ? (
     <>
-      <span className="flex-shrink-0 text-[18px] leading-none">💰</span>
+      {showIcon && <span className="flex-shrink-0 text-[14px] leading-none">💰</span>}
       <span className="text-[13px] font-medium truncate">{tab.title}</span>
       {tab.amount && (
-        <span className="font-semibold font-mono text-[13px] tabular-nums flex-shrink-0">
+        <span
+          className={cn(
+            'font-semibold font-mono text-[13px] tabular-nums flex-shrink-0',
+            isActive ? 'text-indigo-600' : 'text-indigo-500'
+          )}
+        >
           {tab.amount}
         </span>
       )}

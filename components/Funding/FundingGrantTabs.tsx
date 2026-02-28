@@ -83,6 +83,7 @@ export const FundingGrantTabs: FC = () => {
       amount: totalUsd > 0 ? formatCompactAmount(totalUsd) : null,
       title: 'All awards',
       href: '/fund',
+      variant: 'grant-summary' as const,
     };
 
     return [allTab, ...grantTabs];
