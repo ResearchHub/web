@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useMemo, useEffect } from 'react';
+import { FC, useMemo, useEffect, ReactNode } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
@@ -9,6 +9,7 @@ import { CardTabs } from '@/components/ui/CardTabs';
 import { useGrants } from '@/contexts/GrantContext';
 import { FeedGrantContent } from '@/types/feed';
 import { buildWorkUrl } from '@/utils/url';
+import { GrantPreviewTooltip } from '@/components/tooltips/GrantPreviewTooltip';
 
 function formatCompactAmount(usd: number): string {
   if (usd >= 1_000_000) return `$${Math.round(usd / 1_000_000)}M`;
@@ -43,6 +44,11 @@ export const FundingGrantTabs: FC = () => {
       const proposalCount = content.grant.applicants?.length ?? 0;
       const amount = content.grant.amount?.usd;
       const amountFormatted = amount ? formatCompactAmount(amount) : null;
+      const grantHref = buildWorkUrl({
+        id: content.id,
+        contentType: 'funding_request',
+        slug: content.slug,
+      });
 
       const subtitle =
         proposalCount > 0
@@ -54,7 +60,20 @@ export const FundingGrantTabs: FC = () => {
         amount: amountFormatted,
         title: content.grant.shortTitle,
         subtitle,
-        href: buildWorkUrl({ id: content.id, contentType: 'funding_request', slug: content.slug }),
+        href: grantHref,
+        renderWrapper: (children: ReactNode) => (
+          <GrantPreviewTooltip
+            href={grantHref}
+            title={content.grant.shortTitle}
+            description={content.grant.description}
+            image={content.previewImage ?? null}
+            amount={String(content.grant.amount?.usd ?? 0)}
+            currency="USD"
+            numApplicants={proposalCount}
+          >
+            {children}
+          </GrantPreviewTooltip>
+        ),
       };
     });
 

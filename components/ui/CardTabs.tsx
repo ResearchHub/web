@@ -10,6 +10,7 @@ export interface CardTab {
   subtitle?: string;
   href?: string;
   scroll?: boolean;
+  renderWrapper?: (children: React.ReactNode) => React.ReactNode;
 }
 
 interface CardTabsProps {
@@ -63,8 +64,10 @@ const CardTabItem: React.FC<{
     </>
   );
 
+  let element: React.ReactNode;
+
   if (tab.href && !disabled) {
-    return (
+    element = (
       <Link
         href={tab.href}
         scroll={tab.scroll ?? false}
@@ -75,19 +78,21 @@ const CardTabItem: React.FC<{
         {content}
       </Link>
     );
+  } else {
+    element = (
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={handleClick}
+        className={styles}
+        title={tab.title}
+      >
+        {content}
+      </button>
+    );
   }
 
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={handleClick}
-      className={styles}
-      title={tab.title}
-    >
-      {content}
-    </button>
-  );
+  return tab.renderWrapper ? <>{tab.renderWrapper(element)}</> : <>{element}</>;
 };
 
 export const CardTabs: React.FC<CardTabsProps> = ({

@@ -267,6 +267,9 @@ export interface AssociatedGrant {
   amount: string;
   currency: string;
   status: string;
+  description: string | null;
+  image: string | null;
+  numApplicants: number;
 }
 
 export interface FeedEntry {
@@ -311,6 +314,9 @@ export interface RawApiFeedEntry {
     amount: string;
     currency: string;
     status: string;
+    description: string | null;
+    image: string | null;
+    num_applicants: number;
   }>;
   hot_score_breakdown?: {
     steps: string[];
@@ -989,6 +995,9 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       amount: g.amount,
       currency: g.currency,
       status: g.status,
+      description: g.description ?? null,
+      image: g.image ?? null,
+      numApplicants: g.num_applicants ?? 0,
     })),
   } as FeedEntry;
 };

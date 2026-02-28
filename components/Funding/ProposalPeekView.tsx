@@ -60,7 +60,7 @@ export const ProposalPeekView: FC<ProposalPeekViewProps> = ({
 
   return (
     <div
-      className={cn('border-t border-gray-200', className)}
+      className={cn('border-t border-gray-200 bg-gray-50', className)}
       onClick={(e) => e.preventDefault()}
       onMouseDown={(e) => e.stopPropagation()}
     >
@@ -91,7 +91,7 @@ export const ProposalPeekView: FC<ProposalPeekViewProps> = ({
                 />
               ) : null}
             </div>
-            <div className="sticky bottom-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+            <div className="sticky bottom-0 h-16 bg-gradient-to-t from-gray-50 to-transparent pointer-events-none" />
           </div>
         )}
 

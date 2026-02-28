@@ -3,30 +3,17 @@
 import { FC, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FeedEntry, FeedPostContent, AssociatedGrant } from '@/types/feed';
+import { FeedEntry, FeedPostContent } from '@/types/feed';
 import { Avatar } from '@/components/ui/Avatar';
+import { GrantBadge } from '@/components/ui/GrantBadge';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { formatCurrency } from '@/utils/currency';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { cn } from '@/utils/styles';
-import { generateSlug } from '@/utils/url';
 import { ProposalPeekView } from './ProposalPeekView';
 import { differenceInDays } from 'date-fns';
 import { Star } from 'lucide-react';
-
-const GrantBadge: FC<{ grant: AssociatedGrant }> = ({ grant }) => {
-  const href = `/grant/${grant.id}/${generateSlug(grant.shortTitle || grant.organization)}`;
-  return (
-    <Link
-      href={href}
-      onClick={(e) => e.stopPropagation()}
-      className="inline-flex items-center gap-1 max-w-full text-[11px] font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-full px-2 py-0.5 transition-colors truncate"
-    >
-      <span className="truncate">{grant.shortTitle || grant.organization}</span>
-    </Link>
-  );
-};
 
 interface FundingProposalCardProps {
   entry: FeedEntry;
