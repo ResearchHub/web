@@ -446,12 +446,14 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               </div>
             )}
 
-            {/* Mobile page title - next to hamburger/back button */}
+            {/* Mobile breadcrumb title - next to hamburger/back button */}
             {pageInfo && (
               <div className="flex tablet:!hidden items-center min-w-0">
-                <div className="flex items-baseline gap-1.5 min-w-0">
+                <div className="flex items-center gap-1.5 min-w-0">
                   {pageInfo.title ? (
-                    <h1 className="font-semibold text-gray-900 leading-tight text-lg flex-shrink-0">
+                    <h1
+                      className={`leading-tight flex-shrink-0 ${activeGrantTitle ? 'text-gray-400 font-medium text-base' : 'font-semibold text-gray-900 text-lg'}`}
+                    >
                       {pageInfo.title}
                     </h1>
                   ) : (
@@ -463,10 +465,15 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                   )}
                   {activeGrantTitle && (
                     <>
-                      <div className="text-gray-300 font-light text-lg">\</div>
-                      <div className="text-gray-500 font-normal truncate text-sm">
-                        {activeGrantTitle}
-                      </div>
+                      <span className="text-gray-300 flex-shrink-0 text-sm">/</span>
+                      <h1
+                        className="text-gray-900 font-semibold truncate text-base"
+                        title={activeGrantTitle}
+                      >
+                        {activeGrantTitle.length > 50
+                          ? `${activeGrantTitle.slice(0, 50)}…`
+                          : activeGrantTitle}
+                      </h1>
                     </>
                   )}
                 </div>
@@ -489,29 +496,35 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               </div>
             )}
 
-            {/* Page title - only on desktop */}
+            {/* Breadcrumb title - only on desktop */}
             {pageInfo && (
-              <div className="hidden tablet:!flex items-baseline min-w-0 flex-shrink-0">
-                <div className="min-w-0 flex items-baseline gap-2">
+              <div className="hidden tablet:!flex items-center min-w-0">
+                <div className="min-w-0 flex items-center gap-1.5">
                   {pageInfo.title && (
                     <h1
-                      className="font-semibold text-gray-900 leading-tight flex-shrink-0"
-                      style={{ fontSize: '24px', letterSpacing: '-0.75px' }}
+                      className={`leading-tight flex-shrink-0 ${activeGrantTitle ? 'text-gray-400 font-medium' : 'font-semibold text-gray-900'}`}
+                      style={{
+                        fontSize: activeGrantTitle ? '20px' : '24px',
+                        letterSpacing: '-0.5px',
+                      }}
                     >
                       {pageInfo.title}
                     </h1>
                   )}
                   {activeGrantTitle && (
                     <>
-                      <div className="text-gray-300 font-light" style={{ fontSize: '22px' }}>
-                        \
-                      </div>
-                      <div
-                        className="text-gray-500 font-normal truncate"
-                        style={{ fontSize: '20px' }}
+                      <span className="text-gray-300 flex-shrink-0" style={{ fontSize: '18px' }}>
+                        /
+                      </span>
+                      <h1
+                        className="text-gray-900 font-semibold truncate"
+                        style={{ fontSize: '20px', letterSpacing: '-0.5px' }}
+                        title={activeGrantTitle}
                       >
-                        {activeGrantTitle}
-                      </div>
+                        {activeGrantTitle.length > 50
+                          ? `${activeGrantTitle.slice(0, 50)}…`
+                          : activeGrantTitle}
+                      </h1>
                     </>
                   )}
                 </div>

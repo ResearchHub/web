@@ -4,7 +4,6 @@ import { FC, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { FundingProposalCard } from './FundingProposalCard';
 import { ProposalCardSkeleton } from '@/components/skeletons/ProposalCardSkeleton';
-import { PageHeader } from '@/components/ui/PageHeader';
 import { useFundraises } from '@/contexts/FundraiseContext';
 import { cn } from '@/utils/styles';
 
@@ -30,7 +29,11 @@ export const FundingProposalGrid: FC<FundingProposalGridProps> = ({ className })
 
   return (
     <div className={cn('', className)}>
-      <PageHeader title="Fund Research" className="mb-8" />
+      <p className="text-sm text-gray-500 mb-4">
+        {isLoading
+          ? '\u00A0'
+          : `${entries.length} proposal${entries.length !== 1 ? 's' : ''} competing for award`}
+      </p>
 
       <div className="flex flex-col gap-3">
         {isLoading ? (

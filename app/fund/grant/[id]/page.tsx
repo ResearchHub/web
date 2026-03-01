@@ -45,7 +45,7 @@ export default async function FundGrantPage({ params }: Props) {
       }
       scrollContainerClassName="pt-[108px]"
     >
-      <div className="py-4">
+      <div>
         {grant?.description ? (
           <GrantDetailsCallout
             description={grant.description}

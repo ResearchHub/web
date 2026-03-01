@@ -36,7 +36,7 @@ export const GrantDetailsCallout = ({
 
   return (
     <>
-      <div className="mt-4 w-full rounded-xl bg-gray-50 px-4 py-3">
+      <div className="w-full rounded-xl bg-gray-50 px-4 py-3">
         <div className="flex items-center gap-2 mb-1.5">
           <span className="text-base leading-none">🏆</span>
           <span className="text-sm font-semibold text-gray-900">Award Details</span>

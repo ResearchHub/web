@@ -38,7 +38,6 @@ const CardTabItem: React.FC<{
   };
 
   const isGrantVariant = tab.variant === 'grant' || tab.variant === 'grant-summary';
-  const showIcon = tab.variant === 'grant';
 
   const styles = cn(
     'inline-flex rounded-lg px-3 py-1.5',
@@ -56,13 +55,12 @@ const CardTabItem: React.FC<{
 
   const content = isGrantVariant ? (
     <>
-      {showIcon && <span className="flex-shrink-0 text-[14px] leading-none">💰</span>}
       <span className="text-[13px] font-medium truncate">{tab.title}</span>
       {tab.amount && (
         <span
           className={cn(
-            'font-semibold font-mono text-[13px] tabular-nums flex-shrink-0',
-            isActive ? 'text-indigo-600' : 'text-indigo-500'
+            'font-mono text-[12px] tabular-nums flex-shrink-0',
+            isActive ? 'text-gray-500' : 'text-gray-500'
           )}
         >
           {tab.amount}
