@@ -6,9 +6,8 @@ import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
 import { GrantDetailsCallout } from '@/components/Funding/GrantDetailsCallout';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
-import { TotalFundingSection } from '@/components/Funding/TotalFundingSection';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
-import { GrantService } from '@/services/grant.service';
+import { isDeadlineInFuture } from '@/utils/date';
 
 interface Props {
   params: Promise<{
@@ -30,24 +29,31 @@ export default async function FundGrantPage({ params }: Props) {
     notFound();
   }
 
-  const grantId = work.note?.post?.grant?.id;
-  const { usd } = await GrantService.getAvailableFunding();
+  const grant = work.note?.post?.grant;
+  const grantId = grant?.id ?? undefined;
+  const amountUsd = grant?.amount?.usd;
+  const grantTitle = grant?.shortTitle || work.title;
+  const isActive =
+    grant?.status === 'OPEN' && (grant?.endDate ? isDeadlineInFuture(grant.endDate) : true);
 
   return (
     <PageLayout
       rightSidebar={
         <Suspense fallback={<ActivitySidebarSkeleton />}>
-          <FundingSidebarServer
-            topSection={<TotalFundingSection totalUsd={usd} />}
-            grantId={grantId as number}
-          />
+          <FundingSidebarServer grantId={grantId} grantTitle={grantTitle} />
         </Suspense>
       }
       scrollContainerClassName="pt-[108px]"
     >
       <div className="py-4">
-        {work.previewContent ? (
-          <GrantDetailsCallout content={work.previewContent} />
+        {grant?.description ? (
+          <GrantDetailsCallout
+            description={grant.description}
+            content={work.previewContent}
+            amountUsd={amountUsd}
+            grantId={grantId?.toString()}
+            isActive={isActive}
+          />
         ) : (
           <p className="mt-4 text-gray-500">No content available</p>
         )}

@@ -7,7 +7,6 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { GrantDocument } from '@/components/work/GrantDocument';
-import { GrantAmountSection } from '@/components/work/components/GrantAmountSection';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
 
@@ -31,12 +30,13 @@ export async function GrantPageServer({ id }: GrantPageServerProps) {
   const work = await getGrant(id);
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
   const grantId = work.note?.post?.grant?.id ?? undefined;
+  const grantTitle = work.note?.post?.grant?.shortTitle || work.title;
 
   return (
     <PageLayout
       rightSidebar={
         <Suspense fallback={<ActivitySidebarSkeleton />}>
-          <FundingSidebarServer topSection={<GrantAmountSection work={work} />} grantId={grantId} />
+          <FundingSidebarServer grantId={grantId} grantTitle={grantTitle} />
         </Suspense>
       }
       scrollContainerClassName="pt-[108px]"

@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, ReactNode } from 'react';
-import { Activity } from 'lucide-react';
+import { Activity, Reply } from 'lucide-react';
 import { ActivityCard } from './ActivityCard';
 import type { FeedEntry } from '@/types/feed';
 import { SidebarHeader } from '../ui/SidebarHeader';
@@ -9,9 +9,10 @@ import { SidebarHeader } from '../ui/SidebarHeader';
 interface FundingSidebarProps {
   topSection?: ReactNode;
   entries?: FeedEntry[];
+  grantTitle?: string;
 }
 
-export const FundingSidebar: FC<FundingSidebarProps> = ({ topSection, entries }) => {
+export const FundingSidebar: FC<FundingSidebarProps> = ({ topSection, entries, grantTitle }) => {
   const hasEntries = entries && entries.length > 0;
 
   return (
@@ -24,8 +25,14 @@ export const FundingSidebar: FC<FundingSidebarProps> = ({ topSection, entries })
       )}
 
       <div className="px-4 pb-6">
-        <div className="flex items-center gap-2 mb-6">
-          <SidebarHeader title="Recent activity" />
+        <div className="mb-6">
+          <SidebarHeader title="Recent Activity" />
+          {grantTitle && (
+            <div className="flex items-start gap-1.5 mt-1">
+              <Reply className="w-4 h-4 text-gray-400 rotate-180 flex-shrink-0" />
+              <span className="text-sm text-gray-500">{grantTitle}</span>
+            </div>
+          )}
         </div>
 
         {!hasEntries ? (
