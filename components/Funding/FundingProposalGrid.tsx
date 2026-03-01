@@ -29,10 +29,19 @@ export const FundingProposalGrid: FC<FundingProposalGridProps> = ({ className })
 
   return (
     <div className={cn('', className)}>
-      <p className="text-sm text-gray-500 mb-4">
-        {isLoading
-          ? '\u00A0'
-          : `${entries.length} proposal${entries.length !== 1 ? 's' : ''} competing for award`}
+      <p className="text-sm text-gray-600 mb-4">
+        {isLoading ? (
+          '\u00A0'
+        ) : (
+          <div>
+            <span className="font-semibold">
+              {entries.length}
+              {` `}
+              proposal{entries.length !== 1 ? 's' : ''}
+            </span>{' '}
+            competing for award
+          </div>
+        )}
       </p>
 
       <div className="flex flex-col gap-3">
