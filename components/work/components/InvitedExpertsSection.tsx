@@ -43,10 +43,19 @@ export const InvitedExpertsSection = ({ unifiedDocumentId }: InvitedExpertsSecti
           const authorId = item.author?.id;
           const displayName = item.author?.fullName ?? 'Unknown';
 
+          const handleActivate = () => authorId && navigateToAuthorProfile(authorId);
           return (
             <div
               key={item.generatedEmailId ?? `${authorId}-${index}`}
-              onClick={() => authorId && navigateToAuthorProfile(authorId)}
+              role="button"
+              tabIndex={0}
+              onClick={handleActivate}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleActivate();
+                }
+              }}
               className="grid grid-cols-[40px_1fr] gap-x-2 items-center px-1 py-2 rounded-md cursor-pointer hover:bg-gray-50"
             >
               <div className="w-10 flex-shrink-0 flex items-center">
