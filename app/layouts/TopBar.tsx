@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   User,
   ChartNoAxesColumnIncreasing,
@@ -37,6 +37,7 @@ import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { useFeedTabs } from '@/hooks/useFeedTabs';
 import { FundingGrantTabs } from '@/components/Funding/FundingGrantTabs';
 import { useGrants } from '@/contexts/GrantContext';
+import { FeedGrantContent } from '@/types/feed';
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -166,7 +167,7 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
-  if (pathname === '/fund/browse' || pathname === '/fund') {
+  if (pathname === '/fund/browse' || pathname === '/fund' || pathname.startsWith('/fund/grant/')) {
     return {
       title: 'Fund',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
@@ -323,10 +324,23 @@ export function TopBar({ onMenuClick }: TopBarProps) {
     useFeedTabs();
   const { grants } = useGrants();
 
-  const isFundingPage = pathname === '/fund' || pathname === '/fund/browse';
+  const isFundingPage =
+    pathname === '/fund' || pathname === '/fund/browse' || pathname.startsWith('/fund/grant/');
   const isProposalPage = pathname.startsWith('/proposal/');
   const isGrantPage = pathname.startsWith('/grant/');
   const showGrantTabs = (isFundingPage || isProposalPage || isGrantPage) && grants.length > 0;
+
+  const activeGrantTitle = useMemo(() => {
+    const match = pathname.match(/^\/(?:fund\/)?grant\/(\d+)/);
+    if (!match) return null;
+    const postId = Number(match[1]);
+    const grant = grants.find((g) => {
+      const content = g.content as FeedGrantContent;
+      return content.id === postId;
+    });
+    if (!grant) return null;
+    return (grant.content as FeedGrantContent).grant.shortTitle;
+  }, [pathname, grants]);
 
   // Get current search query from URL if on search page
   const currentSearchQuery = pathname === '/search' ? searchParams.get('q') : null;
@@ -435,9 +449,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             {/* Mobile page title - next to hamburger/back button */}
             {pageInfo && (
               <div className="flex tablet:!hidden items-center min-w-0">
-                <div>
+                <div className="flex items-baseline gap-1.5 min-w-0">
                   {pageInfo.title ? (
-                    <h1 className="font-semibold text-gray-900 leading-tight truncate text-lg">
+                    <h1 className="font-semibold text-gray-900 leading-tight text-lg flex-shrink-0">
                       {pageInfo.title}
                     </h1>
                   ) : (
@@ -446,6 +460,14 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                         {pageInfo.icon}
                       </div>
                     )
+                  )}
+                  {activeGrantTitle && (
+                    <>
+                      <div className="text-gray-300 font-light text-lg">\</div>
+                      <div className="text-gray-500 font-normal truncate text-sm">
+                        {activeGrantTitle}
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -470,14 +492,27 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             {/* Page title - only on desktop */}
             {pageInfo && (
               <div className="hidden tablet:!flex items-baseline min-w-0 flex-shrink-0">
-                <div className="min-w-0">
+                <div className="min-w-0 flex items-baseline gap-2">
                   {pageInfo.title && (
                     <h1
-                      className="font-semibold text-gray-900 leading-tight truncate"
+                      className="font-semibold text-gray-900 leading-tight flex-shrink-0"
                       style={{ fontSize: '24px', letterSpacing: '-0.75px' }}
                     >
                       {pageInfo.title}
                     </h1>
+                  )}
+                  {activeGrantTitle && (
+                    <>
+                      <div className="text-gray-300 font-light" style={{ fontSize: '22px' }}>
+                        \
+                      </div>
+                      <div
+                        className="text-gray-500 font-normal truncate"
+                        style={{ fontSize: '20px' }}
+                      >
+                        {activeGrantTitle}
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -598,12 +633,18 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         {/* Funding grant tabs - second row below title */}
         {(isFundingPage || isProposalPage || isGrantPage) && (
           <div
-            className="border-b border-gray-200 px-4 lg:px-8 overflow-hidden transition-all duration-300 ease-in-out -mt-2 pb-1"
-            style={{
-              maxHeight: showGrantTabs ? '62px' : '0px',
-              opacity: showGrantTabs ? 1 : 0,
-              borderBottomColor: showGrantTabs ? undefined : 'transparent',
-            }}
+            className={`border-b border-gray-200 px-4 lg:px-8 -mt-2 pb-1${
+              !isFundingPage ? ' overflow-hidden transition-all duration-300 ease-in-out' : ''
+            }`}
+            style={
+              isFundingPage
+                ? undefined
+                : {
+                    maxHeight: showGrantTabs ? '62px' : '0px',
+                    opacity: showGrantTabs ? 1 : 0,
+                    borderBottomColor: showGrantTabs ? undefined : 'transparent',
+                  }
+            }
           >
             <FundingGrantTabs />
           </div>

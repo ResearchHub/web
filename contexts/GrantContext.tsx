@@ -20,17 +20,24 @@ interface GrantContextValue {
 
 const GrantContext = createContext<GrantContextValue | null>(null);
 
+let _grantsCache: FeedEntry[] = [];
+
 interface GrantProviderProps {
   children: ReactNode;
 }
 
 export function GrantProvider({ children }: GrantProviderProps) {
-  const [grants, setGrants] = useState<FeedEntry[]>([]);
+  const [grants, setGrantsRaw] = useState<FeedEntry[]>(_grantsCache);
   const [selectedGrant, setSelectedGrant] = useState<FeedEntry | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const hasDataRef = useRef(false);
+  const setGrants = useCallback((newGrants: FeedEntry[]) => {
+    _grantsCache = newGrants;
+    setGrantsRaw(newGrants);
+  }, []);
+
+  const hasDataRef = useRef(_grantsCache.length > 0);
 
   const fetchGrants = useCallback(async () => {
     if (hasDataRef.current) return;

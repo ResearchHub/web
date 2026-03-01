@@ -28,7 +28,7 @@ export const FundingGrantTabs: FC = () => {
   }, [fetchGrants]);
 
   const activeTab = useMemo(() => {
-    const grantMatch = pathname.match(/^\/grant\/(\d+)/);
+    const grantMatch = pathname.match(/^\/(?:fund\/)?grant\/(\d+)/);
     if (grantMatch) return `grant-${grantMatch[1]}`;
     return 'all';
   }, [pathname]);
@@ -44,11 +44,12 @@ export const FundingGrantTabs: FC = () => {
       const proposalCount = content.grant.applicants?.length ?? 0;
       const amount = content.grant.amount?.usd;
       const amountFormatted = amount ? formatCompactAmount(amount) : null;
-      const grantHref = buildWorkUrl({
+      const grantDetailHref = buildWorkUrl({
         id: content.id,
         contentType: 'funding_request',
         slug: content.slug,
       });
+      const tabHref = `/fund/grant/${content.id}`;
 
       const subtitle =
         proposalCount > 0
@@ -60,11 +61,11 @@ export const FundingGrantTabs: FC = () => {
         amount: amountFormatted,
         title: content.grant.shortTitle,
         subtitle,
-        href: grantHref,
+        href: tabHref,
         variant: 'grant' as const,
         renderWrapper: (children: ReactNode) => (
           <GrantPreviewTooltip
-            href={grantHref}
+            href={grantDetailHref}
             title={content.grant.shortTitle}
             description={content.grant.description}
             image={content.previewImage ?? null}
