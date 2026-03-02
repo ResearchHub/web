@@ -1,5 +1,5 @@
 import type { Work } from './work';
-import { transformWork } from './work';
+import { transformUnifiedDocument, transformWork } from './work';
 import { createTransformer } from './transformer';
 import { InputType, SearchStatus } from '@/services/expertFinder.service';
 import type { AuthorProfile } from './authorProfile';
@@ -121,7 +121,7 @@ export const transformExpertSearch = createTransformer<any, ExpertSearchResult>(
   createdAt: raw.created_at ?? '',
   updatedAt: raw.updated_at ?? '',
   completedAt: raw.completed_at ?? null,
-  work: raw.work ? transformWork(raw.work) : null,
+  work: raw.work ? transformUnifiedDocument(raw.work) : null,
 }));
 
 export const transformExpertSearchListItem = createTransformer<any, ExpertSearchListItem>(
@@ -243,7 +243,6 @@ export interface SavedTemplate {
   contactPhone: string;
   contactWebsite: string;
   outreachContext: string;
-  isActive: boolean;
   createdDate: string;
   updatedDate: string;
 }
@@ -266,7 +265,6 @@ export const transformSavedTemplate = createTransformer<any, SavedTemplate>((raw
   contactPhone: raw.contact_phone ?? '',
   contactWebsite: raw.contact_website ?? '',
   outreachContext: raw.outreach_context ?? '',
-  isActive: raw.is_active ?? false,
   createdDate: raw.created_date ?? '',
   updatedDate: raw.updated_date ?? '',
 }));

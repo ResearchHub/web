@@ -6,10 +6,10 @@ import { SearchStatusBadge } from './SearchStatusBadge';
 import { formatTimestamp } from '@/utils/date';
 import type { ExpertSearchListItem } from '@/types/expertFinder';
 
-const SEARCH_DETAIL_PATH = '/expert-finder/searches';
+const SEARCH_DETAIL_PATH = '/expert-finder/library';
 const QUERY_TRUNCATE_LENGTH = 60;
 
-function getDisplayText(search: ExpertSearchListItem): string {
+export function getDisplayText(search: ExpertSearchListItem): string {
   const text = (search.name || search.query || '').trim();
   if (!text) return '—';
   return text.length <= QUERY_TRUNCATE_LENGTH ? text : `${text.slice(0, QUERY_TRUNCATE_LENGTH)}…`;

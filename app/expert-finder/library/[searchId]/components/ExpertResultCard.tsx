@@ -46,21 +46,22 @@ export function ExpertResultCard({
         selected ? 'border-primary-600 ring-2 ring-primary-200' : 'border-gray-200'
       )}
     >
-      {onToggleSelect && (
-        <div className="flex items-center justify-end mb-2">
-          <Checkbox
-            checked={selected ?? false}
-            onCheckedChange={() => onToggleSelect(index)}
-            aria-label={`Select ${name || 'expert'}`}
-          />
-        </div>
-      )}
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <div className="flex items-start justify-between mb-2">
         <header>
           <h3 className="text-base font-semibold text-gray-900">{name || '—'}</h3>
           {title ? <p className="text-sm text-gray-500 mt-0.5">{title}</p> : null}
         </header>
-
+        {onToggleSelect && (
+          <div className="flex items-center justify-end mb-2 mt-1">
+            <Checkbox
+              checked={selected ?? false}
+              onCheckedChange={() => onToggleSelect(index)}
+              aria-label={`Select ${name || 'expert'}`}
+            />
+          </div>
+        )}
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col gap-3">
         {affiliation ? (
           <div className="flex items-start gap-2 text-sm text-gray-600">
             <Building2 className="h-4 w-4 shrink-0 text-gray-400 mt-0.5" aria-hidden />

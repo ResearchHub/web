@@ -499,7 +499,9 @@ export const WorkLineItems = ({
             {isModerator && work.unifiedDocumentId != null && (
               <BaseMenuItem
                 onSelect={() =>
-                  router.push(`/expert-finder/find?unifiedDocumentId=${work.unifiedDocumentId}`)
+                  router.push(
+                    `/expert-finder/library/new?unifiedDocumentId=${work.unifiedDocumentId}`
+                  )
                 }
               >
                 <Search className="h-4 w-4 mr-2" />
