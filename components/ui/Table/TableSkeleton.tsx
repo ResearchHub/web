@@ -7,19 +7,26 @@ import { TableBody } from '@/components/ui/Table/TableBody';
 import { TableRow } from '@/components/ui/Table/TableRow';
 import { TableCell } from '@/components/ui/Table/TableCell';
 import { TableHeader } from '@/components/ui/Table/TableHeader';
-import { SEARCH_HISTORY_COLUMNS } from './SearchHistoryTable';
+import type { SortableColumn } from '@/components/ui/Table/TableContainer';
 
-interface SearchHistoryTableSkeletonProps {
+export interface TableSkeletonProps {
+  /** Column definitions (key + label); headers and cell count match this. */
+  columns: SortableColumn[];
+  /** Number of skeleton rows (default 10). */
   rowCount?: number;
 }
 
-export function SearchHistoryTableSkeleton({ rowCount = 10 }: SearchHistoryTableSkeletonProps) {
+/**
+ * Generic table loading skeleton. Use with the same columns as the real table
+ * (e.g. SEARCH_HISTORY_COLUMNS, OUTREACH_TABLE_COLUMNS) for consistent header labels.
+ */
+export function TableSkeleton({ columns, rowCount = 10 }: TableSkeletonProps) {
   return (
     <div className="w-full">
       <Table>
         <TableHead>
           <TableRow>
-            {SEARCH_HISTORY_COLUMNS.map((column) => (
+            {columns.map((column) => (
               <TableHeader key={column.key} sortable={false}>
                 {column.label}
               </TableHeader>
@@ -29,7 +36,7 @@ export function SearchHistoryTableSkeleton({ rowCount = 10 }: SearchHistoryTable
         <TableBody>
           {Array.from({ length: rowCount }).map((_, index) => (
             <TableRow key={`skeleton-${index}`}>
-              {SEARCH_HISTORY_COLUMNS.map((column) => (
+              {columns.map((column) => (
                 <TableCell key={column.key}>
                   <Skeleton className="h-4 w-full max-w-[120px]" />
                 </TableCell>

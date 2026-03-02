@@ -2,7 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Copy, Mail, Trash2, Send, Loader2, Save } from 'lucide-react';
+import {
+  Copy,
+  Mail,
+  Trash2,
+  Send,
+  Loader2,
+  Save,
+  User,
+  Building2,
+  Briefcase,
+  Lightbulb,
+  FileText,
+  Calendar,
+} from 'lucide-react';
+import { getTemplateDisplayLabel } from '@/app/expert-finder/library/[searchId]/components/GenerateEmailModal';
 import { Alert } from '@/components/ui/Alert';
 import { BaseSection } from '@/components/ui/BaseSection';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
@@ -144,29 +158,44 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
 
       {actionError && <Alert variant="error">{actionError}</Alert>}
 
-      <div className="grid grid-cols-1 md:!grid-cols-2 gap-4 items-start">
+      <div className="grid grid-cols-1 md:!grid-cols-2 items-start gap-4">
         <div className="min-w-0">
-          <h1 className="text-2xl font-semibold text-gray-900">{email.expertName || '—'}</h1>
-          {email.expertEmail && <p className="text-sm text-gray-600 mt-0.5">{email.expertEmail}</p>}
-          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
-            {email.expertTitle && <span>Title: {email.expertTitle}</span>}
-            {email.expertAffiliation && <span>Affiliation: {email.expertAffiliation}</span>}
+          <div className="flex gap-3">
+            <div className="min-w-0">
+              <h1 className="text-base font-semibold text-gray-900 sm:!text-lg md:!text-xl mt-0.5">
+                {email.expertName || '—'}
+              </h1>
+            </div>
           </div>
-          {email.expertise && (
-            <p className="text-sm text-gray-600 mt-1">Expertise: {email.expertise}</p>
+          {email.expertEmail && (
+            <div className="flex gap-3">
+              <div className="min-w-0">
+                <p className="text-sm text-gray-700 mt-0.5 break-all">{email.expertEmail}</p>
+              </div>
+            </div>
           )}
-          <p className="text-sm text-gray-500 mt-2">
-            Template: {email.template || '—'} · Created: {formatTimestamp(email.createdAt, false)}
-          </p>
         </div>
-        <div className="min-w-0 flex flex-wrap items-center gap-2">
-          <Button variant="outlined" size="sm" className="gap-2" onClick={handleCopy}>
+        <div className="min-w-0 flex flex-wrap items-center gap-2 justify-start md:!justify-end">
+          <Badge variant={email.status === 'sent' ? 'success' : 'warning'}>
+            {email.status === 'sent' ? 'Sent' : 'Draft'}
+          </Badge>
+          <Button
+            variant="outlined"
+            size="sm"
+            className="gap-2"
+            onClick={handleCopy}
+            title="Copy email"
+          >
             <Copy className="h-4 w-4" aria-hidden />
-            Copy
           </Button>
-          <Button variant="outlined" size="sm" className="gap-2" onClick={handleSend}>
-            <Mail className="h-4 w-4" aria-hidden />
-            Send
+          <Button
+            variant="outlined"
+            size="sm"
+            className="gap-2"
+            onClick={handleSend}
+            title="Send email"
+          >
+            <Send className="h-4 w-4" aria-hidden />
           </Button>
           {email.status !== 'sent' && (
             <Button
@@ -175,14 +204,11 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
               className="gap-2 bg-amber-500 hover:bg-amber-600"
               onClick={handleMarkSent}
               disabled={isUpdating}
+              title="Mark as sent"
             >
-              <Send className="h-4 w-4" aria-hidden />
-              Mark Sent
+              <Mail className="h-4 w-4" aria-hidden />
             </Button>
           )}
-          <Badge variant={email.status === 'sent' ? 'success' : 'warning'}>
-            {email.status === 'sent' ? 'Sent' : 'Draft'}
-          </Badge>
         </div>
       </div>
 
@@ -260,7 +286,7 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
           <Button variant="outlined" size="sm" onClick={() => setShowDeleteConfirm(false)}>
             Cancel
           </Button>
-          <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isDeleting}>
+          <Button variant="default" size="sm" onClick={handleDelete} disabled={isDeleting}>
             Delete
           </Button>
         </div>

@@ -10,7 +10,6 @@ import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Textarea } from '@/components/ui/form/Textarea';
-import { Switch } from '@/components/ui/Switch';
 import { Modal } from '@/components/ui/form/Modal';
 import {
   useSavedTemplateDetail,
@@ -31,7 +30,6 @@ export interface TemplateFormState {
   contactPhone: string;
   contactWebsite: string;
   outreachContext: string;
-  isActive: boolean;
 }
 
 const emptyForm: TemplateFormState = {
@@ -43,7 +41,6 @@ const emptyForm: TemplateFormState = {
   contactPhone: '',
   contactWebsite: '',
   outreachContext: '',
-  isActive: false,
 };
 
 function templateToForm(t: SavedTemplate): TemplateFormState {
@@ -56,7 +53,6 @@ function templateToForm(t: SavedTemplate): TemplateFormState {
     contactPhone: t.contactPhone,
     contactWebsite: t.contactWebsite,
     outreachContext: t.outreachContext,
-    isActive: t.isActive,
   };
 }
 
@@ -83,7 +79,6 @@ function formToUpdatePayload(form: TemplateFormState) {
     contact_phone: form.contactPhone.trim() || undefined,
     contact_website: form.contactWebsite.trim() || undefined,
     outreach_context: form.outreachContext.trim() || undefined,
-    is_active: form.isActive,
   };
 }
 
@@ -268,18 +263,6 @@ export function TemplateFormContent({ templateId }: TemplateFormContentProps) {
           />
         </BaseSection>
 
-        {isEdit && (
-          <BaseSection>
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Active Template</h3>
-                <p className="text-sm text-gray-500">Only one template can be active at a time.</p>
-              </div>
-              <Switch checked={form.isActive} onCheckedChange={(v) => setField('isActive', v)} />
-            </div>
-          </BaseSection>
-        )}
-
         <div className="flex flex-wrap items-center justify-between gap-4">
           {isEdit ? (
             <Button
@@ -325,14 +308,13 @@ export function TemplateFormContent({ templateId }: TemplateFormContentProps) {
           onClose={() => setShowDeleteConfirm(false)}
           title="Delete template?"
         >
-          <p className="text-sm text-gray-600 mb-4">
-            This action cannot be undone. The template will be permanently removed.
-          </p>
+          <p className="text-sm text-gray-600">The template will be permanently removed.</p>
+          <p className="text-sm text-red-600 mb-4 italic">*This action cannot be undone.</p>
           <div className="flex justify-end gap-2">
             <Button variant="outlined" size="sm" onClick={() => setShowDeleteConfirm(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isDeleting}>
+            <Button variant="default" size="sm" onClick={handleDelete} disabled={isDeleting}>
               {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : 'Delete'}
             </Button>
           </div>

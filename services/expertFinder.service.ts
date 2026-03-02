@@ -7,6 +7,8 @@ import {
   transformExpertSearchListItem,
   transformGeneratedEmail,
   transformSavedTemplate,
+  transformInvitedExperts,
+  type InvitedExperts,
   type ExpertSearchCreated,
   type ExpertSearchResult,
   type ExpertSearchListItem,
@@ -152,7 +154,6 @@ export interface UpdateSavedTemplatePayload {
   contact_phone?: string;
   contact_website?: string;
   outreach_context?: string;
-  is_active?: boolean;
 }
 
 export class ExpertFinderService {
@@ -293,6 +294,17 @@ export class ExpertFinderService {
     );
     if (!response.work) return null;
     return transformUnifiedDocument(response.work);
+  }
+
+  /**
+   * Fetch invited experts for a unified document.
+   * GET /api/research_ai/expert-finder/documents/:unifiedDocumentId/invited/
+   */
+  static async getDocumentInvited(unifiedDocumentId: number): Promise<InvitedExperts> {
+    const raw = await ApiClient.get<Record<string, unknown>>(
+      `${this.BASE_PATH}/documents/${unifiedDocumentId}/invited/`
+    );
+    return transformInvitedExperts(raw);
   }
 
   // ── Generated emails ─────────────────────────────────────────────────────

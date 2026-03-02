@@ -122,7 +122,7 @@ export function GenerateEmailProgressModal({
       isOpen={isOpen}
       onClose={onClose}
       title={isComplete ? 'Emails Generated' : 'Generating Emails'}
-      maxWidth="max-w-md"
+      size="lg"
       showCloseButton={true}
     >
       {isComplete ? (
@@ -157,15 +157,17 @@ export function GenerateEmailProgressModal({
             ))}
           </ul>
 
-          {successCount > 0 && (
-            <Link
-              href="/expert-finder/outreach"
-              className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-              onClick={onClose}
-            >
-              Go to Outreach
-            </Link>
-          )}
+          <div className="flex justify-end">
+            {successCount > 0 && (
+              <Link
+                href="/expert-finder/outreach"
+                className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                onClick={onClose}
+              >
+                Go to Outreach
+              </Link>
+            )}
+          </div>
         </>
       ) : (
         <>

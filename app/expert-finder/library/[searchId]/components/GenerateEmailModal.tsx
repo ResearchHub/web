@@ -64,6 +64,20 @@ export const EMAIL_TEMPLATE_OPTIONS: EmailTemplateOption[] = [
   },
 ];
 
+/** Resolve template value to display label (e.g. "rfp-outreach" → "Call for Proposals"). Unknown values return "Unknown". */
+export function getTemplateDisplayLabel(value: string | null | undefined): string {
+  if (value == null || value.trim() === '') return '—';
+  const opt = EMAIL_TEMPLATE_OPTIONS.find((o) => o.value === value.trim());
+  return opt ? opt.label : 'Unknown';
+}
+
+/** Resolve template value to description (for tooltips). Returns empty string for unknown or empty. */
+export function getTemplateDescription(value: string | null | undefined): string {
+  if (value == null || value.trim() === '') return '';
+  const opt = EMAIL_TEMPLATE_OPTIONS.find((o) => o.value === value.trim());
+  return opt ? opt.description : '';
+}
+
 const RADIO_OPTIONS = EMAIL_TEMPLATE_OPTIONS.map((opt) => ({
   value: opt.value,
   label: opt.label,
@@ -113,7 +127,7 @@ export function GenerateEmailModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Generate Outreach Emails"
-      maxWidth="max-w-lg"
+      size="lg"
       footer={
         <div className="flex items-center justify-end gap-2">
           <Button variant="outlined" size="sm" onClick={onClose}>

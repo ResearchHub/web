@@ -2,27 +2,27 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus } from 'lucide-react';
-import Link from 'next/link';
 import { Alert } from '@/components/ui/Alert';
-import { Button } from '@/components/ui/Button';
 import { PaginationButton } from '@/components/ui/PaginationButton';
-import { useSavedTemplates } from '@/hooks/useExpertFinder';
+import { useExpertSearches } from '@/hooks/useExpertFinder';
 import { useScreenSize } from '@/hooks/useScreenSize';
-import { TemplatesTable, TEMPLATES_TABLE_COLUMNS } from './TemplatesTable';
-import { TemplateMobileCard } from './TemplateMobileCard';
+import { SearchHistoryTable, SEARCH_HISTORY_COLUMNS } from './SearchHistoryTable';
+import { SearchHistoryMobileCard } from './SearchHistoryMobileCard';
 import { TableSkeleton } from '@/components/ui/Table/TableSkeleton';
 import { ListCardSkeleton } from '@/components/ui/ListCardSkeleton';
-import type { SavedTemplate } from '@/types/expertFinder';
+import type { ExpertSearchListItem } from '@/types/expertFinder';
+import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import Link from 'next/link';
 
 const PAGE_SIZE = 10;
 
-export function TemplatesPageContent() {
+export function LibraryPageContent() {
   const router = useRouter();
   const { mdAndUp } = useScreenSize();
   const [page, setPage] = useState(1);
   const offset = (page - 1) * PAGE_SIZE;
-  const [{ templates, pagination, isLoading, error }] = useSavedTemplates({
+  const [{ searches, pagination, isLoading, error }] = useExpertSearches({
     limit: PAGE_SIZE,
     offset,
   });
@@ -31,33 +31,33 @@ export function TemplatesPageContent() {
   const hasNextPage = page < totalPages;
   const hasPrevPage = page > 1;
 
-  const handleRowClick = (template: SavedTemplate) => {
-    router.push(`/expert-finder/templates/${template.id}`);
+  const handleRowClick = (search: ExpertSearchListItem) => {
+    router.push(`/expert-finder/library/${search.searchId}`);
   };
 
   function renderContent(): React.ReactNode {
-    if (isLoading && templates.length === 0) {
+    if (isLoading && searches.length === 0) {
       return (
         <div className="p-4">
           {mdAndUp ? (
-            <TableSkeleton columns={TEMPLATES_TABLE_COLUMNS} rowCount={PAGE_SIZE} />
+            <TableSkeleton columns={SEARCH_HISTORY_COLUMNS} rowCount={PAGE_SIZE} />
           ) : (
             <ListCardSkeleton rowCount={PAGE_SIZE} />
           )}
         </div>
       );
-    } else if (templates.length === 0) {
+    }
+    if (searches.length === 0) {
       return (
-        <div className="px-6 py-12 text-center">
-          <p className="text-gray-600 mb-2">No templates yet</p>
-          <p className="text-sm text-gray-500 mb-4">
-            Create a template to save your contact details and outreach context for generating
-            emails.
+        <div className="px-6 py-12 text-center flex flex-col items-center justify-center gap-4">
+          <p className="text-gray-600">No searches yet</p>
+          <p className="text-sm text-gray-500">
+            Run a search from the Find Expert page to see results here.
           </p>
-          <Link href="/expert-finder/templates/new">
+          <Link href="/expert-finder/library/new">
             <Button variant="default" size="sm" className="gap-2">
               <Plus className="h-4 w-4" aria-hidden />
-              Create template
+              Run a search
             </Button>
           </Link>
         </div>
@@ -68,15 +68,15 @@ export function TemplatesPageContent() {
       <>
         {mdAndUp ? (
           <div className="overflow-x-auto">
-            <TemplatesTable templates={templates} onRowClick={handleRowClick} />
+            <SearchHistoryTable searches={searches} onRowClick={handleRowClick} />
           </div>
         ) : (
           <div className="space-y-4">
-            {templates.map((template, index) => (
-              <TemplateMobileCard
-                key={template.id ?? index}
-                template={template}
-                onClick={() => handleRowClick(template)}
+            {searches.map((search, index) => (
+              <SearchHistoryMobileCard
+                key={search.searchId ?? index}
+                search={search}
+                onClick={() => handleRowClick(search)}
                 className="shadow-sm"
               />
             ))}
@@ -116,17 +116,15 @@ export function TemplatesPageContent() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="text-base font-semibold text-gray-900 mb-2 sm:!text-lg md:!text-2xl">
-            Templates
+            Library
           </h2>
-          <p className="text-sm text-gray-600">
-            Save your contact details and outreach context to reuse when generating emails.
-          </p>
+          <p className="text-sm text-gray-600">View your expert search history.</p>
         </div>
-        {templates.length > 0 && (
-          <Link href="/expert-finder/templates/new">
+        {searches.length > 0 && (
+          <Link href="/expert-finder/library/new">
             <Button variant="default" size="md" className="gap-2">
               <Plus className="h-4 w-4" aria-hidden />
-              Create template
+              Run a new search
             </Button>
           </Link>
         )}

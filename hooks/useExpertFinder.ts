@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   ExpertFinderService,
-  type CreateDraftEmailPayload,
   type CreateSavedTemplatePayload,
   type ExpertSearchCreatePayload,
   type GenerateEmailPayload,
@@ -12,6 +11,7 @@ import {
 } from '@/services/expertFinder.service';
 import type {
   ExpertSearchCreated,
+  InvitedExperts,
   ExpertSearchResult,
   ExpertSearchListItem,
   GeneratedEmail,
@@ -229,6 +229,73 @@ export function useWorkByUnifiedDocumentId(
   }, [unifiedDocumentId, fetch]);
 
   return [{ work, isLoading, error }, fetch];
+}
+
+// ── useDocumentInvited ─────────────────────────────────────────────────────
+
+export interface UseDocumentInvitedReturn {
+  data: InvitedExperts | null;
+  isLoading: boolean;
+  error: Error | null;
+  refresh: () => void;
+}
+
+/**
+ * Fetches invited experts for a unified document.
+ */
+export function useDocumentInvited(
+  unifiedDocumentId: number | null | undefined
+): UseDocumentInvitedReturn {
+  const [data, setData] = useState<InvitedExperts | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const load = useCallback(
+    async (signal?: { cancelled: boolean }) => {
+      if (unifiedDocumentId == null) return;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const result = await ExpertFinderService.getDocumentInvited(unifiedDocumentId);
+        if (signal?.cancelled) return;
+        setData(result);
+      } catch (err) {
+        if (signal?.cancelled) return;
+        setError(err instanceof Error ? err : new Error('Failed to load invited experts'));
+        setData(null);
+      } finally {
+        if (!signal?.cancelled) setIsLoading(false);
+      }
+    },
+    [unifiedDocumentId]
+  );
+
+  useEffect(() => {
+    if (unifiedDocumentId == null) {
+      setData(null);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
+    const signal = { cancelled: false };
+    load(signal);
+    return () => {
+      signal.cancelled = true;
+    };
+  }, [unifiedDocumentId, load]);
+
+  const refresh = useCallback(() => {
+    if (unifiedDocumentId != null) load();
+  }, [unifiedDocumentId, load]);
+
+  if (unifiedDocumentId == null) {
+    return { data: null, isLoading: false, error: null, refresh: () => {} };
+  }
+
+  return { data, isLoading, error, refresh };
 }
 
 // ── useGenerateEmail ────────────────────────────────────────────────────────

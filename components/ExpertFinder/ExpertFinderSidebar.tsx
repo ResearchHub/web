@@ -6,12 +6,6 @@ import { SidebarNav, SidebarNavMenu, type SidebarNavItem } from '@/components/Si
 
 const navigationItems: SidebarNavItem[] = [
   {
-    name: 'Find Expert',
-    href: '/expert-finder/find',
-    icon: Search,
-    description: 'Find domain experts',
-  },
-  {
     name: 'Library',
     href: '/expert-finder/library',
     icon: BookOpen,
@@ -37,6 +31,6 @@ export const ExpertFinderMenu: FC = () => (
   <SidebarNavMenu
     items={navigationItems}
     menuTitle="Expert Finder"
-    triggerFallbackLabel="Expert Finder"
+    triggerFallbackLabel="Library"
   />
 );

@@ -1,7 +1,9 @@
 import type { Work } from './work';
-import { transformWork } from './work';
+import { transformUnifiedDocument, transformWork } from './work';
 import { createTransformer } from './transformer';
 import { InputType, SearchStatus } from '@/services/expertFinder.service';
+import type { AuthorProfile } from './authorProfile';
+import { transformAuthorProfile } from './authorProfile';
 
 /** Single expert as displayed in the app (detail/list rows). */
 export interface ExpertResult {
@@ -119,7 +121,7 @@ export const transformExpertSearch = createTransformer<any, ExpertSearchResult>(
   createdAt: raw.created_at ?? '',
   updatedAt: raw.updated_at ?? '',
   completedAt: raw.completed_at ?? null,
-  work: raw.work ? transformWork(raw.work) : null,
+  work: raw.work ? transformUnifiedDocument(raw.work) : null,
 }));
 
 export const transformExpertSearchListItem = createTransformer<any, ExpertSearchListItem>(
@@ -198,6 +200,36 @@ export const transformGeneratedEmail = createTransformer<any, GeneratedEmail>((r
   updatedAt: raw.updated_at ?? '',
 }));
 
+// ── Document invited experts (app-level, camelCase) ───────────────────────────
+
+export interface InvitedExpert {
+  author: AuthorProfile;
+  expertSearchId: number;
+  generatedEmailId: number;
+  invitedAt?: string;
+}
+
+export interface InvitedExperts {
+  unifiedDocumentId: number;
+  invited: InvitedExpert[];
+  totalCount: number;
+}
+
+export const transformInvitedExpert = createTransformer<any, InvitedExpert>((raw) => ({
+  author: transformAuthorProfile(raw.author),
+  expertSearchId: raw.expert_search_id ?? raw.expertSearchId ?? 0,
+  generatedEmailId: raw.generated_email_id ?? raw.generatedEmailId ?? 0,
+  invitedAt: raw.invited_at ?? raw.created_at,
+}));
+
+export const transformInvitedExperts = createTransformer<any, InvitedExperts>((raw) => ({
+  unifiedDocumentId: raw.unified_document_id ?? raw.unifiedDocumentId ?? 0,
+  invited: Array.isArray(raw.invited)
+    ? raw.invited.map((item: any) => transformInvitedExpert(item))
+    : [],
+  totalCount: raw.total_count ?? raw.totalCount ?? 0,
+}));
+
 // ── Saved templates (app-level, camelCase) ───────────────────────────────────
 
 export interface SavedTemplate {
@@ -211,7 +243,6 @@ export interface SavedTemplate {
   contactPhone: string;
   contactWebsite: string;
   outreachContext: string;
-  isActive: boolean;
   createdDate: string;
   updatedDate: string;
 }
@@ -234,7 +265,6 @@ export const transformSavedTemplate = createTransformer<any, SavedTemplate>((raw
   contactPhone: raw.contact_phone ?? '',
   contactWebsite: raw.contact_website ?? '',
   outreachContext: raw.outreach_context ?? '',
-  isActive: raw.is_active ?? false,
   createdDate: raw.created_date ?? '',
   updatedDate: raw.updated_date ?? '',
 }));
