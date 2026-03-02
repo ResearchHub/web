@@ -237,15 +237,22 @@ export function PublishingForm({
       }
     }
 
-    const authors = methods.getValues('authors');
-    if (authors.length === 0 && currentUser) {
-      const profile = currentUser.authorProfile;
-      methods.setValue('authors', [
-        {
-          value: profile?.id?.toString() || currentUser.id.toString(),
-          label: currentUser.fullName || currentUser.email || 'Unknown User',
-        },
-      ]);
+    if (currentUser) {
+      const isGrant = methods.getValues('articleType') === 'grant';
+      const field = isGrant ? 'contacts' : 'authors';
+      const values = methods.getValues(field);
+
+      if (values.length === 0) {
+        const profile = currentUser.authorProfile;
+        methods.setValue(field, [
+          {
+            value: isGrant
+              ? currentUser.id.toString()
+              : profile?.id?.toString() || currentUser.id.toString(),
+            label: currentUser.fullName || currentUser.email || 'Unknown User',
+          },
+        ]);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noteId]);
