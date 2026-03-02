@@ -167,7 +167,10 @@ export const Navigation: React.FC<NavigationProps> = ({
       return currentPath.startsWith('/fund');
     }
 
-    // Special case for notebook page - match any route that starts with /notebook
+    if (path === '/earn') {
+      return currentPath.startsWith('/earn') || currentPath === '/grants';
+    }
+
     if (path === '/notebook') {
       return currentPath.startsWith('/notebook');
     }

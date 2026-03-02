@@ -69,7 +69,7 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
           <Link href={href} className="block hover:bg-gray-50 transition-colors -m-3 p-3">
             <div className="flex flex-wrap items-center gap-1.5 mb-1">
               {grants.map((grant) => (
-                <GrantBadge key={grant.id} grant={grant} />
+                <GrantBadge key={grant.id} grant={grant} size="md" />
               ))}
               {hasReviewScore && (
                 <Tooltip
@@ -83,14 +83,14 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
                   width="w-72"
                   delay={200}
                 >
-                  <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-full px-2 py-0.5 transition-colors cursor-pointer">
-                    <Star size={10} className="fill-amber-400 text-amber-400" />
+                  <span className="inline-flex items-center gap-0.5 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-full px-2.5 py-1 transition-colors cursor-pointer">
+                    <Star size={12} className="fill-amber-400 text-amber-400" />
                     {reviewScore.toFixed(1)}
                   </span>
                 </Tooltip>
               )}
               {isEndingSoon && (
-                <span className="text-[11px] font-medium text-red-600 bg-red-50 rounded-full px-2 py-0.5">
+                <span className="text-xs font-medium text-red-600 bg-red-50 rounded-full px-2.5 py-1">
                   Ending soon
                 </span>
               )}
@@ -108,7 +108,7 @@ export const FundingProposalCard: FC<FundingProposalCardProps> = ({
 
           {showActions && (
             <div
-              className="py-1.5 cursor-default"
+              className="pt-3 pb-1.5 cursor-default"
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
             >

@@ -46,6 +46,7 @@ interface TopBarProps {
 interface PageInfo {
   title: string;
   icon?: React.ReactNode;
+  breadcrumbParent?: { title: string; href: string };
 }
 
 // Function to check if a pathname is a root navigation page (that shouldn't have back button)
@@ -71,7 +72,7 @@ const ROOT_NAVIGATION_PATHS = new Set([
 const isRootNavigationPage = (pathname: string): boolean => ROOT_NAVIGATION_PATHS.has(pathname);
 
 // Function to get page info based on current route
-const getPageInfo = (pathname: string): PageInfo | null => {
+const getPageInfo = (pathname: string, searchParams?: URLSearchParams): PageInfo | null => {
   // Homepage variants
   if (['/', '/following', '/latest', '/popular', '/for-you', '/feed'].includes(pathname)) {
     return {
@@ -133,9 +134,12 @@ const getPageInfo = (pathname: string): PageInfo | null => {
   }
 
   if (pathname.startsWith('/earn')) {
+    const earnTab = searchParams?.get('tab') || 'awards';
+    const tabTitle = earnTab === 'reviews' ? 'Peer Reviews' : 'Awards';
     return {
-      title: 'Earn',
+      title: tabTitle,
       icon: <Icon name="earn1" size={24} className="text-gray-900" />,
+      breadcrumbParent: { title: 'Earn', href: '/earn' },
     };
   }
 
@@ -178,6 +182,14 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     return {
       title: 'Proposal',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
+    };
+  }
+
+  if (pathname === '/grants') {
+    return {
+      title: 'Awards',
+      icon: <Icon name="earn1" size={24} className="text-gray-900" />,
+      breadcrumbParent: { title: 'Earn', href: '/earn' },
     };
   }
 
@@ -345,7 +357,14 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   // Get current search query from URL if on search page
   const currentSearchQuery = pathname === '/search' ? searchParams.get('q') : null;
 
-  const pageInfo = getPageInfo(pathname);
+  const pageInfo = getPageInfo(pathname, searchParams);
+
+  const breadcrumbParent = pageInfo?.breadcrumbParent ?? null;
+  const breadcrumbChild = activeGrantTitle ?? (breadcrumbParent ? pageInfo?.title : null);
+  const breadcrumbParentTitle = activeGrantTitle
+    ? (pageInfo?.title ?? null)
+    : (breadcrumbParent?.title ?? null);
+  const breadcrumbParentHref = breadcrumbParent?.href ?? null;
 
   const calculatePercent = useCallback(() => {
     if (user) {
@@ -450,10 +469,21 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             {pageInfo && (
               <div className="flex tablet:!hidden items-center min-w-0">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  {pageInfo.title ? (
-                    <h1
-                      className={`leading-tight flex-shrink-0 ${activeGrantTitle ? 'text-gray-400 font-medium text-base' : 'font-semibold text-gray-900 text-lg'}`}
-                    >
+                  {breadcrumbChild ? (
+                    breadcrumbParentHref ? (
+                      <Link
+                        href={breadcrumbParentHref}
+                        className="leading-tight flex-shrink-0 text-gray-400 font-medium text-base hover:text-gray-600 transition-colors"
+                      >
+                        {breadcrumbParentTitle}
+                      </Link>
+                    ) : (
+                      <h1 className="leading-tight flex-shrink-0 text-gray-400 font-medium text-base">
+                        {breadcrumbParentTitle}
+                      </h1>
+                    )
+                  ) : pageInfo.title ? (
+                    <h1 className="leading-tight flex-shrink-0 font-semibold text-gray-900 text-lg">
                       {pageInfo.title}
                     </h1>
                   ) : (
@@ -463,16 +493,16 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                       </div>
                     )
                   )}
-                  {activeGrantTitle && (
+                  {breadcrumbChild && (
                     <>
                       <span className="text-gray-300 flex-shrink-0 text-sm">/</span>
                       <h1
                         className="text-gray-900 font-semibold truncate text-base"
-                        title={activeGrantTitle}
+                        title={breadcrumbChild}
                       >
-                        {activeGrantTitle.length > 50
-                          ? `${activeGrantTitle.slice(0, 50)}…`
-                          : activeGrantTitle}
+                        {breadcrumbChild.length > 50
+                          ? `${breadcrumbChild.slice(0, 50)}…`
+                          : breadcrumbChild}
                       </h1>
                     </>
                   )}
@@ -500,18 +530,34 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             {pageInfo && (
               <div className="hidden tablet:!flex items-center min-w-0">
                 <div className="min-w-0 flex items-center gap-1.5">
-                  {pageInfo.title && (
-                    <h1
-                      className={`leading-tight flex-shrink-0 ${activeGrantTitle ? 'text-gray-400 font-medium' : 'font-semibold text-gray-900'}`}
-                      style={{
-                        fontSize: activeGrantTitle ? '20px' : '24px',
-                        letterSpacing: '-0.5px',
-                      }}
-                    >
-                      {pageInfo.title}
-                    </h1>
+                  {breadcrumbChild ? (
+                    breadcrumbParentHref ? (
+                      <Link
+                        href={breadcrumbParentHref}
+                        className="leading-tight flex-shrink-0 text-gray-400 font-medium hover:text-gray-600 transition-colors"
+                        style={{ fontSize: '20px', letterSpacing: '-0.5px' }}
+                      >
+                        {breadcrumbParentTitle}
+                      </Link>
+                    ) : (
+                      <h1
+                        className="leading-tight flex-shrink-0 text-gray-400 font-medium"
+                        style={{ fontSize: '20px', letterSpacing: '-0.5px' }}
+                      >
+                        {breadcrumbParentTitle}
+                      </h1>
+                    )
+                  ) : (
+                    pageInfo.title && (
+                      <h1
+                        className="leading-tight flex-shrink-0 font-semibold text-gray-900"
+                        style={{ fontSize: '24px', letterSpacing: '-0.5px' }}
+                      >
+                        {pageInfo.title}
+                      </h1>
+                    )
                   )}
-                  {activeGrantTitle && (
+                  {breadcrumbChild && (
                     <>
                       <span className="text-gray-300 flex-shrink-0" style={{ fontSize: '18px' }}>
                         /
@@ -519,11 +565,11 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                       <h1
                         className="text-gray-900 font-semibold truncate"
                         style={{ fontSize: '20px', letterSpacing: '-0.5px' }}
-                        title={activeGrantTitle}
+                        title={breadcrumbChild}
                       >
-                        {activeGrantTitle.length > 50
-                          ? `${activeGrantTitle.slice(0, 50)}…`
-                          : activeGrantTitle}
+                        {breadcrumbChild.length > 50
+                          ? `${breadcrumbChild.slice(0, 50)}…`
+                          : breadcrumbChild}
                       </h1>
                     </>
                   )}

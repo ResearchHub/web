@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import Link from 'next/link';
-import { Logo } from '@/components/ui/Logo';
-import { Icon } from '../ui/icons';
 
 interface FundingIntroBannerProps {
   onDismiss?: () => void;
@@ -23,7 +21,6 @@ export function FundingIntroBanner({ onDismiss }: FundingIntroBannerProps) {
         <div className="relative grid grid-cols-[1fr_1fr_1fr] items-center px-6 py-4">
           {/* Column 1: Branding */}
           <div className="flex flex-row gap-2">
-            <Icon name="fund" size={28} color="#1e40b3" className="-mt-1 text-primary-800" />
             <h3 className="text-lg font-bold text-primary-800 tracking-tight">
               Funding Marketplace
             </h3>

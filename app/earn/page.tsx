@@ -1,5 +1,8 @@
 'use client';
 
+import { useEffect, useMemo } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { X } from 'lucide-react';
 import { PageLayout } from '../layouts/PageLayout';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { EarnRightSidebar } from '@/components/Earn/EarnRightSidebar';
@@ -8,10 +11,40 @@ import Icon from '@/components/ui/icons/Icon';
 import { BountyHubSelector as HubsSelector } from '@/components/Earn/BountyHubSelector';
 import SortDropdown, { SortOption } from '@/components/ui/SortDropdown';
 import { Badge } from '@/components/ui/Badge';
-import { X } from 'lucide-react';
 import { useBounties } from '@/hooks/useBounties';
+import { useGrants } from '@/contexts/GrantContext';
+import { GrantCard } from '@/components/Funding/GrantCard';
+import { FeedGrantContent } from '@/types/feed';
+import { cn } from '@/utils/styles';
 
-export default function EarnPage() {
+type EarnTab = 'awards' | 'reviews';
+
+function formatCompactAmount(usd: number): string {
+  if (usd >= 1_000_000) return `$${Math.round(usd / 1_000_000)}M`;
+  if (usd >= 1_000) return `$${Math.round(usd / 1_000)}K`;
+  return `$${Math.round(usd)}`;
+}
+
+function EarnPageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const activeTab = (searchParams.get('tab') as EarnTab) || 'awards';
+
+  const { grants, fetchGrants, totalFundingUsd } = useGrants();
+
+  useEffect(() => {
+    fetchGrants();
+  }, [fetchGrants]);
+
+  const openGrants = useMemo(
+    () =>
+      grants.filter((g) => {
+        const content = g.content as FeedGrantContent;
+        return content.grant.status !== 'CLOSED';
+      }),
+    [grants]
+  );
+
   const {
     entries,
     isLoading,
@@ -23,10 +56,18 @@ export default function EarnPage() {
     handleHubsChange,
     restoredScrollPosition,
     page,
+    total: bountyTotal,
     lastClickedEntryId,
   } = useBounties();
 
-  // Available sort options
+  const setTab = (tab: EarnTab) => {
+    if (tab === 'awards') {
+      router.replace('/earn', { scroll: false });
+    } else {
+      router.replace('/earn?tab=reviews', { scroll: false });
+    }
+  };
+
   const sortOptions = [
     { label: 'Best', value: 'personalized' },
     { label: 'Newest', value: '-created_date' },
@@ -36,7 +77,6 @@ export default function EarnPage() {
 
   const renderFilters = () => (
     <div className="mt-5 space-y-3">
-      {/* Top filter bar */}
       <div className="flex items-center gap-0 sm:gap-2 flex-wrap justify-between">
         <div className="w-1/2 sm:!w-[220px] flex-1 sm:!flex-none pr-1 sm:!pr-0">
           <HubsSelector
@@ -55,7 +95,6 @@ export default function EarnPage() {
         </div>
       </div>
 
-      {/* Selected hubs badges */}
       {selectedHubs.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {selectedHubs.map((hub) => (
@@ -79,33 +118,129 @@ export default function EarnPage() {
     </div>
   );
 
-  const renderHeader = () => (
-    <MainPageHeader
-      icon={<Icon name="earn1" size={26} color="#3971ff" />}
-      title="Earn ResearchCoin"
-      subtitle="Earn ResearchCoin by completing scientific bounties"
-      showTitle={false}
-    />
+  const sectionCards = (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2 mb-4">
+      <button
+        onClick={() => setTab('awards')}
+        className={cn(
+          'rounded-xl border p-4 text-left transition-all',
+          activeTab === 'awards'
+            ? 'border-indigo-300 bg-indigo-50/40 shadow-sm'
+            : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+        )}
+      >
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2">
+            <span className="text-base">🏆</span>
+            <h3 className="text-[15px] font-semibold text-gray-900">Awards</h3>
+          </div>
+          {openGrants.length > 0 && (
+            <span className="text-xs font-medium text-green-700 bg-green-50 rounded-full px-2 py-0.5">
+              {openGrants.length} open
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-gray-500 mb-2">
+          Submit proposals to compete for pooled community funding
+        </p>
+        {totalFundingUsd > 0 && (
+          <p className="text-lg font-bold font-mono text-gray-900">
+            {formatCompactAmount(totalFundingUsd)}
+            <span className="text-xs font-normal text-gray-400 font-sans ml-1">pooled</span>
+          </p>
+        )}
+      </button>
+
+      <button
+        onClick={() => setTab('reviews')}
+        className={cn(
+          'rounded-xl border p-4 text-left transition-all',
+          activeTab === 'reviews'
+            ? 'border-amber-300 bg-amber-50/40 shadow-sm'
+            : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+        )}
+      >
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2">
+            <span className="text-base">📝</span>
+            <h3 className="text-[15px] font-semibold text-gray-900">Peer Reviews</h3>
+          </div>
+          {bountyTotal > 0 && (
+            <span className="text-xs font-medium text-amber-700 bg-amber-50 rounded-full px-2 py-0.5">
+              {bountyTotal} available
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-gray-500 mb-2">Review papers in your area of expertise</p>
+        <p className="text-lg font-bold font-mono text-gray-900">
+          $150+
+          <span className="text-xs font-normal text-gray-400 font-sans ml-1">per review</span>
+        </p>
+      </button>
+    </div>
   );
 
-  const header = <div className="-mb-8">{renderHeader()}</div>;
+  if (activeTab === 'awards') {
+    return (
+      <>
+        <div className="-mb-2">
+          <MainPageHeader
+            icon={<Icon name="earn1" size={26} color="#3971ff" />}
+            title="Earn ResearchCoin"
+            subtitle="Earn ResearchCoin by completing scientific bounties"
+            showTitle={false}
+          />
+        </div>
+        {sectionCards}
+
+        {openGrants.length > 0 ? (
+          <div className="flex flex-col gap-3 mt-2">
+            {openGrants.map((entry) => (
+              <GrantCard key={entry.id} entry={entry} />
+            ))}
+          </div>
+        ) : (
+          <p className="py-12 text-center text-gray-400 text-sm">No open awards right now</p>
+        )}
+      </>
+    );
+  }
+
+  const header = (
+    <div className="-mb-8">
+      <MainPageHeader
+        icon={<Icon name="earn1" size={26} color="#3971ff" />}
+        title="Earn ResearchCoin"
+        subtitle="Earn ResearchCoin by completing scientific bounties"
+        showTitle={false}
+      />
+      {sectionCards}
+    </div>
+  );
+
+  return (
+    <FeedContent
+      entries={entries}
+      isLoading={isLoading}
+      hasMore={hasMore}
+      loadMore={loadMore}
+      header={header}
+      filters={renderFilters()}
+      showBountyFooter={false}
+      showPostHeaders={false}
+      showFundraiseHeaders={false}
+      restoredScrollPosition={restoredScrollPosition}
+      page={page}
+      lastClickedEntryId={lastClickedEntryId ?? undefined}
+      showBountyInfo={true}
+    />
+  );
+}
+
+export default function EarnPage() {
   return (
     <PageLayout rightSidebar={<EarnRightSidebar />}>
-      <FeedContent
-        entries={entries}
-        isLoading={isLoading}
-        hasMore={hasMore}
-        loadMore={loadMore}
-        header={header}
-        filters={renderFilters()}
-        showBountyFooter={false}
-        showPostHeaders={false}
-        showFundraiseHeaders={false}
-        restoredScrollPosition={restoredScrollPosition}
-        page={page}
-        lastClickedEntryId={lastClickedEntryId ?? undefined}
-        showBountyInfo={true}
-      />
+      <EarnPageContent />
     </PageLayout>
   );
 }

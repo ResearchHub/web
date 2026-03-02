@@ -6,9 +6,15 @@ import { AssociatedGrant } from '@/types/feed';
 import { generateSlug } from '@/utils/url';
 import { GrantPreviewTooltip } from '@/components/tooltips/GrantPreviewTooltip';
 
-export const GrantBadge: FC<{ grant: AssociatedGrant }> = ({ grant }) => {
+export const GrantBadge: FC<{ grant: AssociatedGrant; size?: 'sm' | 'md' }> = ({
+  grant,
+  size = 'sm',
+}) => {
   const href = `/grant/${grant.id}/${generateSlug(grant.shortTitle || grant.organization)}`;
   const title = grant.shortTitle || grant.organization;
+
+  const sizeStyles =
+    size === 'md' ? 'text-xs px-2.5 py-1 gap-1.5' : 'text-[11px] px-2 py-0.5 gap-1';
 
   return (
     <GrantPreviewTooltip
@@ -23,9 +29,9 @@ export const GrantBadge: FC<{ grant: AssociatedGrant }> = ({ grant }) => {
       <Link
         href={href}
         onClick={(e) => e.stopPropagation()}
-        className="inline-flex items-center gap-1 max-w-full text-[11px] font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-full px-2 py-0.5 transition-colors truncate"
+        className={`inline-flex items-center max-w-full font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-full transition-colors truncate ${sizeStyles}`}
       >
-        <span className="flex-shrink-0 text-[10px] leading-none">💰</span>
+        <span className="flex-shrink-0 text-[10px] leading-none">🏆</span>
         <span className="truncate">{title}</span>
       </Link>
     </GrantPreviewTooltip>
