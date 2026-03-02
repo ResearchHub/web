@@ -3,7 +3,12 @@
 import Link from 'next/link';
 import { TableContainer, SortableColumn } from '@/components/ui/Table/TableContainer';
 import { Badge } from '@/components/ui/Badge';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { formatTimestamp } from '@/utils/date';
+import {
+  getTemplateDisplayLabel,
+  getTemplateDescription,
+} from '@/app/expert-finder/library/[searchId]/components/GenerateEmailModal';
 import type { GeneratedEmail } from '@/types/expertFinder';
 
 const OUTREACH_DETAIL_PATH = '/expert-finder/outreach';
@@ -29,12 +34,27 @@ interface OutreachTableProps {
   onRowClick?: (email: GeneratedEmail) => void;
 }
 
+function TemplateCell({ email }: { email: GeneratedEmail }) {
+  const label = getTemplateDisplayLabel(email.template);
+  const description = getTemplateDescription(email.template);
+  if (description) {
+    return (
+      <Tooltip content={description} width="w-72" position="top">
+        <span className="cursor-help underline decoration-dotted decoration-gray-400 underline-offset-1">
+          {label}
+        </span>
+      </Tooltip>
+    );
+  }
+  return <span>{label}</span>;
+}
+
 export function OutreachTable({ emails, onRowClick }: OutreachTableProps) {
   const data = emails.map((email) => ({
     id: email.id,
     expertName: email.expertName || '—',
     subject: truncate(email.emailSubject, SUBJECT_TRUNCATE_LENGTH),
-    template: email.template || '—',
+    template: <TemplateCell email={email} />,
     status: (
       <Badge variant={email.status === 'sent' ? 'success' : 'primary'}>
         {email.status === 'sent' ? 'Sent' : 'Draft'}

@@ -154,7 +154,6 @@ export interface UpdateSavedTemplatePayload {
   contact_phone?: string;
   contact_website?: string;
   outreach_context?: string;
-  is_active?: boolean;
 }
 
 export class ExpertFinderService {

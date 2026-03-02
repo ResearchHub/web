@@ -5,14 +5,18 @@ import { useRouter } from 'next/navigation';
 import { Alert } from '@/components/ui/Alert';
 import { PaginationButton } from '@/components/ui/PaginationButton';
 import { useGeneratedEmails } from '@/hooks/useExpertFinder';
-import { OutreachTable } from './OutreachTable';
-import { OutreachTableSkeleton } from './OutreachTableSkeleton';
+import { useScreenSize } from '@/hooks/useScreenSize';
+import { OutreachTable, OUTREACH_TABLE_COLUMNS } from './OutreachTable';
+import { OutreachMobileCard } from './OutreachMobileCard';
+import { TableSkeleton } from '@/components/ui/Table/TableSkeleton';
+import { ListCardSkeleton } from '@/components/ui/ListCardSkeleton';
 import type { GeneratedEmail } from '@/types/expertFinder';
 
 const PAGE_SIZE = 10;
 
 export function OutreachPageContent() {
   const router = useRouter();
+  const { mdAndUp } = useScreenSize();
   const [page, setPage] = useState(1);
   const offset = (page - 1) * PAGE_SIZE;
   const [{ emails, pagination, isLoading, error }] = useGeneratedEmails({
@@ -32,7 +36,11 @@ export function OutreachPageContent() {
     if (isLoading && emails.length === 0) {
       return (
         <div className="p-4">
-          <OutreachTableSkeleton rowCount={PAGE_SIZE} />
+          {mdAndUp ? (
+            <TableSkeleton columns={OUTREACH_TABLE_COLUMNS} rowCount={PAGE_SIZE} />
+          ) : (
+            <ListCardSkeleton rowCount={PAGE_SIZE} />
+          )}
         </div>
       );
     }
@@ -50,9 +58,22 @@ export function OutreachPageContent() {
 
     return (
       <>
-        <div className="overflow-x-auto">
-          <OutreachTable emails={emails} onRowClick={handleRowClick} />
-        </div>
+        {mdAndUp ? (
+          <div className="overflow-x-auto">
+            <OutreachTable emails={emails} onRowClick={handleRowClick} />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {emails.map((email, index) => (
+              <OutreachMobileCard
+                key={email.id ?? index}
+                email={email}
+                onClick={() => handleRowClick(email)}
+                className="shadow-sm"
+              />
+            ))}
+          </div>
+        )}
 
         {totalPages > 1 && (
           <div className="py-4 flex items-center justify-between">
@@ -84,7 +105,9 @@ export function OutreachPageContent() {
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8">
-      <h2 className="text-2xl font-semibold text-gray-900 mb-2">Outreach</h2>
+      <h2 className="text-base font-semibold text-gray-900 mb-2 sm:!text-lg md:!text-2xl">
+        Outreach
+      </h2>
       <p className="text-sm text-gray-600 mb-6">View and manage your generated outreach emails.</p>
 
       {error && (
