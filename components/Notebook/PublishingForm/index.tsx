@@ -162,6 +162,35 @@ const restoreFromStorage = (
   }
 };
 
+const applyGrantDefaults = (getValues: any, setValue: (name: any, value: any) => void) => {
+  if (getValues('articleType') === 'grant' && !getValues('applicationDeadline')) {
+    setValue('applicationDeadline', new Date('2029-12-31'));
+  }
+};
+
+const autoAddCurrentUser = (
+  getValues: any,
+  setValue: (name: any, value: any) => void,
+  currentUser: any
+) => {
+  if (!currentUser) return;
+
+  const isGrant = getValues('articleType') === 'grant';
+  const field = isGrant ? 'contacts' : 'authors';
+
+  if (getValues(field).length === 0) {
+    const profile = currentUser.authorProfile;
+    setValue(field, [
+      {
+        value: isGrant
+          ? currentUser.id.toString()
+          : profile?.id?.toString() || currentUser.id.toString(),
+        label: currentUser.fullName || currentUser.email || 'Unknown User',
+      },
+    ]);
+  }
+};
+
 interface ArticleTypeResult {
   type: PublishingFormData['articleType'];
   source: 'searchParam' | 'template' | 'default';
@@ -234,28 +263,8 @@ export function PublishingForm({
       }
     }
 
-    if (methods.getValues('articleType') === 'grant' && !methods.getValues('applicationDeadline')) {
-      methods.setValue('applicationDeadline', new Date('2029-12-31'));
-    }
-
-    if (currentUser) {
-      const isGrant = methods.getValues('articleType') === 'grant';
-      const field = isGrant ? 'contacts' : 'authors';
-      const values = methods.getValues(field);
-
-      if (values.length === 0) {
-        const profile = currentUser.authorProfile;
-        methods.setValue(field, [
-          {
-            value: isGrant
-              ? currentUser.id.toString()
-              : profile?.id?.toString() || currentUser.id.toString(),
-            label: currentUser.fullName || currentUser.email || 'Unknown User',
-          },
-        ]);
-      }
-    }
-
+    applyGrantDefaults(methods.getValues, methods.setValue);
+    autoAddCurrentUser(methods.getValues, methods.setValue, currentUser);
     savePublishingFormToStorage(
       note.id.toString(),
       methods.getValues() as Partial<PublishingFormData>

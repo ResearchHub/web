@@ -47,7 +47,7 @@ export function UserSearchSelect({
   helperText,
   debounceMs = 300,
   getOptionValue = defaultGetOptionValue,
-}: UserSearchSelectProps) {
+}: Readonly<UserSearchSelectProps>) {
   const handleAsyncSearch = useCallback(
     async (query: string) => {
       const suggestions = await SearchService.getSuggestions(query, 'user');

@@ -54,7 +54,8 @@ export function extractHeadline(value: unknown): string {
   if (!value) return '';
   if (typeof value === 'string') return value;
   if (typeof value === 'object' && value !== null && 'title' in value) {
-    return String((value as { title: unknown }).title || '');
+    const { title } = value as { title: unknown };
+    return typeof title === 'string' ? title : '';
   }
   return '';
 }
