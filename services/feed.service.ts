@@ -245,7 +245,9 @@ export class FeedService {
       contributors: {
         total: content_object.contributors?.total || 0,
         top: (content_object.contributors?.top || []).map((contributor: any) => ({
+          id: contributor.id,
           author_profile: contributor.author_profile,
+          total_contribution: contributor.total_contribution,
         })),
       },
       created_date: content_object.created_date,
