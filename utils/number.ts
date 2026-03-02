@@ -103,9 +103,13 @@ export function formatTransactionAmount(amount: string): string {
  * @example
  * formatUsdValue("10500.5", 0.5) // "$5,250.25 USD"
  */
-export function formatUsdValue(amount: string, exchangeRate: number): string {
+export function formatUsdValue(
+  amount: string,
+  exchangeRate: number,
+  useExchangeRate = true
+): string {
   const parsedAmount = parseFloat(amount);
-  const usdValue = parsedAmount * exchangeRate;
+  const usdValue = useExchangeRate ? parsedAmount * exchangeRate : parsedAmount;
   const absValue = Math.abs(usdValue).toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,

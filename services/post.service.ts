@@ -36,6 +36,14 @@ export const transformProposalForModal = (raw: any): ProposalForModal => {
   };
 };
 
+export type ArticleTypeApi = 'DISCUSSION' | 'PREREGISTRATION' | 'GRANT';
+
+export const ARTICLE_TYPE_API_MAP: Record<string, ArticleTypeApi> = {
+  preregistration: 'PREREGISTRATION',
+  grant: 'GRANT',
+  discussion: 'DISCUSSION',
+};
+
 export class PostService {
   private static readonly BASE_PATH = '/api/researchhubpost';
 

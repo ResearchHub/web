@@ -16,23 +16,24 @@ export async function connectEndaomentAccount(returnUrl: string): Promise<string
   return response.auth_url;
 }
 
+/**
+ * Disconnects the user's Endaoment account from the application.
+ */
+export async function disconnectEndaomentAccount(): Promise<void> {
+  await ApiClient.post('/api/endaoment/disconnect/');
+}
+
 interface EndaomentStatus {
   connected: boolean;
-  endaomentUserId: string | null;
 }
 
 /**
  * Provides the connection status of the Endaoment account.
- *
- * @returns The connection status and Endaoment user ID if connected.
  */
 export async function getEndaomentStatus(): Promise<EndaomentStatus> {
-  const response = await ApiClient.get<{ connected: boolean; endaoment_user_id: string | null }>(
-    '/api/endaoment/status/'
-  );
+  const response = await ApiClient.get<{ connected: boolean }>('/api/endaoment/status/');
   return {
     connected: response.connected,
-    endaomentUserId: response.endaoment_user_id,
   };
 }
 
@@ -45,8 +46,34 @@ export interface EndaomentFund {
 }
 
 /**
- * Fetches the user's Endaoment funds (DAFs).
+ * Converts USDC micros to dollars.
+ *
+ * Round down to the nearest cent to avoid displaying amounts larger
+ * than the actual balance. E.g., if the balance is 12345678 micros
+ * (which is $123.45678), this will return "123.45".
+ */
+function microsToDollars(micros: string | number): string {
+  const balanceInMicros = Number(micros) || 0;
+  return (Math.floor(balanceInMicros / 10_000) / 100).toString();
+}
+
+/**
+ * Transforms a raw Endaoment fund API response into an EndaomentFund.
+ */
+function transformEndaomentFund(raw: Record<string, any>): EndaomentFund {
+  return {
+    id: raw.id,
+    name: raw.name,
+    type: raw.type,
+    description: raw.description,
+    usdcBalance: microsToDollars(raw.usdcBalance),
+  };
+}
+
+/**
+ * Fetches the user's Endaoment funds.
  */
 export async function getEndaomentFunds(): Promise<EndaomentFund[]> {
-  return ApiClient.get<EndaomentFund[]>('/api/endaoment/funds/');
+  const response = await ApiClient.get<Array<Record<string, any>>>('/api/endaoment/funds/');
+  return response.map(transformEndaomentFund);
 }

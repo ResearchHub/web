@@ -8,7 +8,10 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { Logo } from '@/components/ui/Logo';
 import { PaymentWidget } from './PaymentWidget';
 import { PaymentRequestButton } from './PaymentRequestButton';
+import { EndaomentPaymentButton } from '@/components/Endaoment/EndaomentPaymentButton';
 import { InsufficientBalanceAlert } from './InsufficientBalanceAlert';
+import { EndaomentInsufficientFundsAlert } from '@/components/Endaoment/EndaomentInsufficientFundsAlert';
+import type { EndaomentFund } from '@/services/endaoment.service';
 import {
   usePaymentCalculations,
   getDefaultPaymentMethod,
@@ -48,12 +51,16 @@ interface PaymentStepProps {
   ) => void | Promise<void>;
   /** Called when Apple Pay/Google Pay payment succeeds */
   onPaymentRequestSuccess?: (paymentMethod?: 'apple_pay' | 'google_pay') => void;
+  /** Called when Endaoment payment is confirmed */
+  onEndaomentPaymentConfirm?: (fundId: string) => void;
   /** Called when user wants to deposit RSC */
   onDepositRsc?: () => void;
   /** Called when user wants to buy RSC */
   onBuyRsc?: () => void;
   /** Called when Stripe context is ready for payment confirmation */
   onStripeReady?: (context: StripePaymentContext | null) => void;
+  /** Whether the Endaoment payment option is enabled (feature flag) */
+  isEndaomentEnabled?: boolean;
 }
 
 /**
@@ -71,9 +78,11 @@ export function PaymentStep({
   error,
   onConfirmPayment,
   onPaymentRequestSuccess,
+  onEndaomentPaymentConfirm,
   onDepositRsc,
   onBuyRsc,
   onStripeReady,
+  isEndaomentEnabled = false,
 }: PaymentStepProps) {
   // Compute the default payment method based on balance and actual wallet availability
   // Use RSC fee percentage since we're checking if user can afford RSC payment
@@ -99,6 +108,7 @@ export function PaymentStep({
     }
   }, [defaultPaymentMethod, selectedMethod]);
   const [isCreditCardComplete, setIsCreditCardComplete] = useState(false);
+  const [selectedEndaomentFund, setSelectedEndaomentFund] = useState<EndaomentFund | null>(null);
 
   // Get RSC balance check (only relevant for RSC payment method)
   const { insufficientBalance } = usePaymentCalculations({
@@ -132,6 +142,13 @@ export function PaymentStep({
   // Check if selected method has insufficient balance
   const isRscInsufficientBalance = selectedMethod === 'rsc' && insufficientBalance;
 
+  // Check if selected Endaoment fund has insufficient balance
+  const isEndaomentInsufficientBalance = Boolean(
+    selectedMethod === 'endaoment' &&
+    selectedEndaomentFund &&
+    (parseFloat(selectedEndaomentFund.usdcBalance) || 0) < amountInUsd
+  );
+
   // Check if credit card is selected but not complete
   const isCreditCardIncomplete = selectedMethod === 'credit_card' && !isCreditCardComplete;
 
@@ -145,6 +162,12 @@ export function PaymentStep({
       onConfirmPayment(selectedMethod);
     }
   }, [selectedMethod, onConfirmPayment]);
+
+  const handleEndaomentConfirm = useCallback(() => {
+    if (selectedEndaomentFund && onEndaomentPaymentConfirm) {
+      onEndaomentPaymentConfirm(selectedEndaomentFund.id);
+    }
+  }, [selectedEndaomentFund, onEndaomentPaymentConfirm]);
 
   // Handle payment method selection from widget
   const handlePaymentMethodChange = useCallback(
@@ -187,9 +210,11 @@ export function PaymentStep({
           selectedPaymentMethod={selectedMethod}
           onPaymentMethodChange={handlePaymentMethodChange}
           onCreditCardCompleteChange={setIsCreditCardComplete}
+          onEndaomentFundSelected={setSelectedEndaomentFund}
           onStripeReady={onStripeReady}
           hideButton
           walletAvailability={walletAvailability}
+          isEndaomentEnabled={isEndaomentEnabled}
         />
 
         {/* Receipt-style line items */}
@@ -271,6 +296,9 @@ export function PaymentStep({
             {/* Insufficient balance alert for RSC */}
             {isRscInsufficientBalance && <InsufficientBalanceAlert />}
 
+            {/* Insufficient balance alert for Endaoment */}
+            {isEndaomentInsufficientBalance && <EndaomentInsufficientFundsAlert />}
+
             {/* Error Alert */}
             {error && <Alert variant="error">{error}</Alert>}
           </div>
@@ -300,6 +328,13 @@ export function PaymentStep({
               }
               onSuccess={() => onPaymentRequestSuccess?.(selectedMethod)}
               onError={(err) => console.error('Payment request error:', err)}
+            />
+          ) : selectedMethod === 'endaoment' ? (
+            <EndaomentPaymentButton
+              isProcessing={isProcessing}
+              selectedFund={selectedEndaomentFund}
+              hasSufficientFunds={!isEndaomentInsufficientBalance}
+              onConfirm={handleEndaomentConfirm}
             />
           ) : (
             <Button
