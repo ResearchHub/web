@@ -29,7 +29,6 @@ import { EndaomentProvider } from '@/contexts/EndaomentContext';
 
 // Import inline deposit views
 import { DepositRSCView } from './DepositRSCView';
-import { BuyModal } from './ResearchCoin/BuyModal';
 import AuthContent from '@/components/Auth/AuthContent';
 import { UserService } from '@/services/user.service';
 
@@ -106,7 +105,6 @@ function ContributeToFundraiseModalInner({
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
   const [currentView, setCurrentView] = useState<ModalView>('funding');
   const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(100);
-  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
   const [isSliderControlled, setIsSliderControlled] = useState(false);
 
   // Store Stripe context for credit card payments
@@ -344,10 +342,6 @@ function ContributeToFundraiseModalInner({
     setCurrentView('deposit-rsc');
   }, []);
 
-  const handleBuyRsc = useCallback(() => {
-    setIsBuyModalOpen(true);
-  }, []);
-
   // Handle quick amount selection
   const handleQuickAmountSelect = useCallback((amount: number) => {
     setSelectedQuickAmount(amount);
@@ -492,7 +486,6 @@ function ContributeToFundraiseModalInner({
             onPaymentRequestSuccess={handlePaymentRequestSuccess}
             onEndaomentPaymentConfirm={handleEndaomentPaymentConfirm}
             onDepositRsc={handleOpenDeposit}
-            onBuyRsc={handleBuyRsc}
             onStripeReady={handleStripeReady}
             isEndaomentEnabled={isEndaomentEnabled}
           />
@@ -637,9 +630,6 @@ function ContributeToFundraiseModalInner({
           {renderContent()}
         </BaseModal>
       )}
-
-      {/* Buy RSC Modal */}
-      <BuyModal isOpen={isBuyModalOpen} onClose={() => setIsBuyModalOpen(false)} />
     </>
   );
 }
