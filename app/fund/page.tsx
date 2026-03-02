@@ -5,7 +5,9 @@ import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { TotalFundingSection } from '@/components/Funding/TotalFundingSection';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
+import { FundingIntroBanner } from '@/components/Funding/FundingIntroBanner';
 import { GrantService } from '@/services/grant.service';
+
 export default async function FundPage() {
   const { usd } = await GrantService.getAvailableFunding();
 
@@ -19,6 +21,7 @@ export default async function FundPage() {
       scrollContainerClassName="pt-[108px]"
     >
       <div className="py-4">
+        <FundingIntroBanner />
         <FundraiseProvider>
           <FundingProposalGrid />
         </FundraiseProvider>
