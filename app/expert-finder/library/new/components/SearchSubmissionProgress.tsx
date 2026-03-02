@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { useExpertSearchProgress } from '@/hooks/useExpertSearchProgress';
 import toast from 'react-hot-toast';
 
-const SEARCH_DETAIL_PATH = '/expert-finder/searches';
+const SEARCH_DETAIL_PATH = '/expert-finder/library';
 
 interface SearchSubmissionProgressProps {
   searchId: number;
@@ -83,7 +83,6 @@ export function SearchSubmissionProgress({ searchId }: SearchSubmissionProgressP
           aria-label="Copy link"
         >
           {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-          {isCopied ? ' Copied' : ' Copy'}
         </Button>
       </div>
     </div>

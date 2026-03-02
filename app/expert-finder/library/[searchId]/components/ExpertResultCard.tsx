@@ -1,21 +1,31 @@
 'use client';
 
-import Link from 'next/link';
 import { Award, Building2, GraduationCap, Mail } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
-import { buttonVariants } from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
+import { Checkbox } from '@/components/ui/form/Checkbox';
 import { cn } from '@/utils/styles';
 import type { ExpertResult } from '@/types/expertFinder';
 
 interface ExpertResultCardProps {
   expert: ExpertResult;
+  index: number;
+  selected?: boolean;
+  onToggleSelect?: (index: number) => void;
+  onGenerateEmail?: (expert: ExpertResult) => void;
 }
 
 function empty(value: string | undefined): string {
   return value?.trim() || '';
 }
 
-export function ExpertResultCard({ expert }: ExpertResultCardProps) {
+export function ExpertResultCard({
+  expert,
+  index,
+  selected,
+  onToggleSelect,
+  onGenerateEmail,
+}: ExpertResultCardProps) {
   const name = empty(expert.name);
   const title = empty(expert.title);
   const affiliation = empty(expert.affiliation);
@@ -30,13 +40,28 @@ export function ExpertResultCard({ expert }: ExpertResultCardProps) {
   const email = expert.email?.trim();
 
   return (
-    <article className="flex h-full min-h-0 flex-col rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
+    <article
+      className={cn(
+        'flex h-full min-h-0 flex-col rounded-lg border bg-white p-5 shadow-sm',
+        selected ? 'border-primary-600 ring-2 ring-primary-200' : 'border-gray-200'
+      )}
+    >
+      <div className="flex items-start justify-between mb-2">
         <header>
           <h3 className="text-base font-semibold text-gray-900">{name || '—'}</h3>
           {title ? <p className="text-sm text-gray-500 mt-0.5">{title}</p> : null}
         </header>
-
+        {onToggleSelect && (
+          <div className="flex items-center justify-end mb-2 mt-1">
+            <Checkbox
+              checked={selected ?? false}
+              onCheckedChange={() => onToggleSelect(index)}
+              aria-label={`Select ${name || 'expert'}`}
+            />
+          </div>
+        )}
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col gap-3">
         {affiliation ? (
           <div className="flex items-start gap-2 text-sm text-gray-600">
             <Building2 className="h-4 w-4 shrink-0 text-gray-400 mt-0.5" aria-hidden />
@@ -71,20 +96,32 @@ export function ExpertResultCard({ expert }: ExpertResultCardProps) {
         ) : null}
       </div>
 
-      {email ? (
-        <div className="mt-auto pt-4 border-t border-gray-100 shrink-0">
-          <Link
+      <div className="mt-auto pt-4 border-t border-gray-100 shrink-0 flex flex-col gap-2">
+        {onGenerateEmail && (
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            className="w-full gap-2"
+            onClick={() => onGenerateEmail(expert)}
+          >
+            <Mail className="h-4 w-4 shrink-0" aria-hidden />
+            Generate email
+          </Button>
+        )}
+        {email && !onGenerateEmail && (
+          <a
             href={`mailto:${email}`}
             className={cn(
-              buttonVariants({ variant: 'default', size: 'sm' }),
-              'w-full gap-2 inline-flex'
+              'inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-3 py-2 text-sm font-medium text-white hover:bg-primary-700',
+              'w-full'
             )}
           >
             <Mail className="h-4 w-4 shrink-0" aria-hidden />
-            <span>Contact Expert</span>
-          </Link>
-        </div>
-      ) : null}
+            Contact Expert
+          </a>
+        )}
+      </div>
     </article>
   );
 }

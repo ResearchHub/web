@@ -3,12 +3,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   ExpertFinderService,
+  type CreateSavedTemplatePayload,
   type ExpertSearchCreatePayload,
+  type GenerateEmailPayload,
+  type UpdateGeneratedEmailPayload,
+  type UpdateSavedTemplatePayload,
 } from '@/services/expertFinder.service';
 import type {
   ExpertSearchCreated,
+  InvitedExperts,
   ExpertSearchResult,
   ExpertSearchListItem,
+  GeneratedEmail,
+  SavedTemplate,
 } from '@/types/expertFinder';
 import type { Work } from '@/types/work';
 
@@ -222,4 +229,535 @@ export function useWorkByUnifiedDocumentId(
   }, [unifiedDocumentId, fetch]);
 
   return [{ work, isLoading, error }, fetch];
+}
+
+// ── useDocumentInvited ─────────────────────────────────────────────────────
+
+export interface UseDocumentInvitedReturn {
+  data: InvitedExperts | null;
+  isLoading: boolean;
+  error: Error | null;
+  refresh: () => void;
+}
+
+/**
+ * Fetches invited experts for a unified document.
+ */
+export function useDocumentInvited(
+  unifiedDocumentId: number | null | undefined
+): UseDocumentInvitedReturn {
+  const [data, setData] = useState<InvitedExperts | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const load = useCallback(
+    async (signal?: { cancelled: boolean }) => {
+      if (unifiedDocumentId == null) return;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const result = await ExpertFinderService.getDocumentInvited(unifiedDocumentId);
+        if (signal?.cancelled) return;
+        setData(result);
+      } catch (err) {
+        if (signal?.cancelled) return;
+        setError(err instanceof Error ? err : new Error('Failed to load invited experts'));
+        setData(null);
+      } finally {
+        if (!signal?.cancelled) setIsLoading(false);
+      }
+    },
+    [unifiedDocumentId]
+  );
+
+  useEffect(() => {
+    if (unifiedDocumentId == null) {
+      setData(null);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
+    const signal = { cancelled: false };
+    load(signal);
+    return () => {
+      signal.cancelled = true;
+    };
+  }, [unifiedDocumentId, load]);
+
+  const refresh = useCallback(() => {
+    if (unifiedDocumentId != null) load();
+  }, [unifiedDocumentId, load]);
+
+  if (unifiedDocumentId == null) {
+    return { data: null, isLoading: false, error: null, refresh: () => {} };
+  }
+
+  return { data, isLoading, error, refresh };
+}
+
+// ── useGenerateEmail ────────────────────────────────────────────────────────
+
+interface UseGenerateEmailState {
+  subject: string | null;
+  body: string | null;
+  email: GeneratedEmail | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+type GenerateEmailFn = (
+  payload: GenerateEmailPayload,
+  options?: { save?: boolean; action?: 'generate' }
+) => Promise<{ subject: string; body: string } | GeneratedEmail>;
+
+type UseGenerateEmailReturn = [UseGenerateEmailState, GenerateEmailFn];
+
+export function useGenerateEmail(): UseGenerateEmailReturn {
+  const [subject, setSubject] = useState<string | null>(null);
+  const [body, setBody] = useState<string | null>(null);
+  const [email, setEmail] = useState<GeneratedEmail | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const generateEmail = useCallback(
+    async (
+      payload: GenerateEmailPayload,
+      options?: { save?: boolean; action?: 'generate' }
+    ): Promise<{ subject: string; body: string } | GeneratedEmail> => {
+      setIsLoading(true);
+      setError(null);
+      setSubject(null);
+      setBody(null);
+      setEmail(null);
+      try {
+        const result = await ExpertFinderService.generateEmail(payload, options);
+        if ('subject' in result && 'body' in result && !('id' in result)) {
+          setSubject(result.subject);
+          setBody(result.body);
+          return result;
+        }
+        setEmail(result as GeneratedEmail);
+        setSubject((result as GeneratedEmail).emailSubject);
+        setBody((result as GeneratedEmail).emailBody);
+        return result as GeneratedEmail;
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to generate email';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  return [{ subject, body, email, isLoading, error }, generateEmail];
+}
+
+// ── useGeneratedEmails ──────────────────────────────────────────────────────
+
+interface UseGeneratedEmailsState {
+  emails: GeneratedEmail[];
+  pagination: Pagination;
+  isLoading: boolean;
+  error: string | null;
+}
+
+interface UseGeneratedEmailsParams {
+  limit?: number;
+  offset?: number;
+  immediate?: boolean;
+}
+
+type FetchGeneratedEmailsFn = (params?: UseGeneratedEmailsParams) => Promise<void>;
+type UseGeneratedEmailsReturn = [UseGeneratedEmailsState, FetchGeneratedEmailsFn];
+
+export function useGeneratedEmails(params?: UseGeneratedEmailsParams): UseGeneratedEmailsReturn {
+  const limit = params?.limit ?? 20;
+  const offset = params?.offset ?? 0;
+
+  const [emails, setEmails] = useState<GeneratedEmail[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({
+    total: 0,
+    limit,
+    offset,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetch = useCallback(
+    async (fetchParams?: UseGeneratedEmailsParams) => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await ExpertFinderService.listEmails(fetchParams ?? params);
+        setEmails(response.emails);
+        setPagination({
+          total: response.total,
+          limit: response.limit,
+          offset: response.offset,
+        });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to fetch emails';
+        setError(message);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [params?.limit, params?.offset]
+  );
+
+  const immediate = params?.immediate !== false;
+  useEffect(() => {
+    if (immediate) fetch();
+  }, [immediate, fetch]);
+
+  return [{ emails, pagination, isLoading, error }, fetch];
+}
+
+// ── useGeneratedEmailDetail ──────────────────────────────────────────────────
+
+interface UseGeneratedEmailDetailState {
+  email: GeneratedEmail | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+type FetchGeneratedEmailDetailFn = () => Promise<void>;
+type UseGeneratedEmailDetailReturn = [UseGeneratedEmailDetailState, FetchGeneratedEmailDetailFn];
+
+export function useGeneratedEmailDetail(
+  emailId: number | string | null
+): UseGeneratedEmailDetailReturn {
+  const [email, setEmail] = useState<GeneratedEmail | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetch = useCallback(async () => {
+    if (emailId == null) return;
+    try {
+      setIsLoading(true);
+      setError(null);
+      const result = await ExpertFinderService.getEmail(emailId);
+      setEmail(result);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch email';
+      setError(message);
+      setEmail(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [emailId]);
+
+  useEffect(() => {
+    if (emailId != null) {
+      fetch();
+    } else {
+      setEmail(null);
+      setError(null);
+    }
+  }, [emailId, fetch]);
+
+  return [{ email, isLoading, error }, fetch];
+}
+
+// ── useUpdateGeneratedEmail ──────────────────────────────────────────────────
+
+interface UseUpdateGeneratedEmailState {
+  updated: GeneratedEmail | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+type UpdateGeneratedEmailFn = (
+  emailId: number | string,
+  payload: UpdateGeneratedEmailPayload
+) => Promise<GeneratedEmail>;
+
+type UseUpdateGeneratedEmailReturn = [UseUpdateGeneratedEmailState, UpdateGeneratedEmailFn];
+
+export function useUpdateGeneratedEmail(): UseUpdateGeneratedEmailReturn {
+  const [updated, setUpdated] = useState<GeneratedEmail | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const updateEmail = useCallback(
+    async (
+      emailId: number | string,
+      payload: UpdateGeneratedEmailPayload
+    ): Promise<GeneratedEmail> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await ExpertFinderService.updateEmail(emailId, payload);
+        setUpdated(response);
+        return response;
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to update email';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  return [{ updated, isLoading, error }, updateEmail];
+}
+
+// ── useDeleteGeneratedEmail ──────────────────────────────────────────────────
+
+interface UseDeleteGeneratedEmailState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type DeleteGeneratedEmailFn = (emailId: number | string) => Promise<void>;
+type UseDeleteGeneratedEmailReturn = [UseDeleteGeneratedEmailState, DeleteGeneratedEmailFn];
+
+export function useDeleteGeneratedEmail(): UseDeleteGeneratedEmailReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const deleteEmail = useCallback(async (emailId: number | string): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await ExpertFinderService.deleteEmail(emailId);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to delete email';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return [{ isLoading, error }, deleteEmail];
+}
+
+// ── useSavedTemplates ────────────────────────────────────────────────────────
+
+interface UseSavedTemplatesState {
+  templates: SavedTemplate[];
+  pagination: Pagination;
+  isLoading: boolean;
+  error: string | null;
+}
+
+interface UseSavedTemplatesParams {
+  limit?: number;
+  offset?: number;
+  immediate?: boolean;
+}
+
+type FetchSavedTemplatesFn = (params?: UseSavedTemplatesParams) => Promise<void>;
+type UseSavedTemplatesReturn = [UseSavedTemplatesState, FetchSavedTemplatesFn];
+
+export function useSavedTemplates(params?: UseSavedTemplatesParams): UseSavedTemplatesReturn {
+  const limit = params?.limit ?? 20;
+  const offset = params?.offset ?? 0;
+
+  const [templates, setTemplates] = useState<SavedTemplate[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({
+    total: 0,
+    limit,
+    offset,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetch = useCallback(
+    async (fetchParams?: UseSavedTemplatesParams) => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await ExpertFinderService.listTemplates(fetchParams ?? params);
+        setTemplates(response.templates);
+        setPagination({
+          total: response.total,
+          limit: response.limit,
+          offset: response.offset,
+        });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to fetch templates';
+        setError(message);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [params?.limit, params?.offset]
+  );
+
+  const immediate = params?.immediate !== false;
+  useEffect(() => {
+    if (immediate) fetch();
+  }, [immediate, fetch]);
+
+  return [{ templates, pagination, isLoading, error }, fetch];
+}
+
+// ── useSavedTemplateDetail ───────────────────────────────────────────────────
+
+interface UseSavedTemplateDetailState {
+  template: SavedTemplate | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+type FetchSavedTemplateDetailFn = () => Promise<void>;
+type UseSavedTemplateDetailReturn = [UseSavedTemplateDetailState, FetchSavedTemplateDetailFn];
+
+export function useSavedTemplateDetail(
+  templateId: number | string | null
+): UseSavedTemplateDetailReturn {
+  const [template, setTemplate] = useState<SavedTemplate | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetch = useCallback(async () => {
+    if (templateId == null) return;
+    try {
+      setIsLoading(true);
+      setError(null);
+      const result = await ExpertFinderService.getTemplate(templateId);
+      setTemplate(result);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch template';
+      setError(message);
+      setTemplate(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [templateId]);
+
+  useEffect(() => {
+    if (templateId != null) {
+      fetch();
+    } else {
+      setTemplate(null);
+      setError(null);
+    }
+  }, [templateId, fetch]);
+
+  return [{ template, isLoading, error }, fetch];
+}
+
+// ── useCreateSavedTemplate ──────────────────────────────────────────────────
+
+interface UseCreateSavedTemplateState {
+  created: SavedTemplate | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+type CreateSavedTemplateFn = (payload: CreateSavedTemplatePayload) => Promise<SavedTemplate>;
+
+type UseCreateSavedTemplateReturn = [UseCreateSavedTemplateState, CreateSavedTemplateFn];
+
+export function useCreateSavedTemplate(): UseCreateSavedTemplateReturn {
+  const [created, setCreated] = useState<SavedTemplate | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const createTemplate = useCallback(
+    async (payload: CreateSavedTemplatePayload): Promise<SavedTemplate> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await ExpertFinderService.createTemplate(payload);
+        setCreated(response);
+        return response;
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to create template';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  return [{ created, isLoading, error }, createTemplate];
+}
+
+// ── useUpdateSavedTemplate ───────────────────────────────────────────────────
+
+interface UseUpdateSavedTemplateState {
+  updated: SavedTemplate | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+type UpdateSavedTemplateFn = (
+  templateId: number | string,
+  payload: UpdateSavedTemplatePayload
+) => Promise<SavedTemplate>;
+
+type UseUpdateSavedTemplateReturn = [UseUpdateSavedTemplateState, UpdateSavedTemplateFn];
+
+export function useUpdateSavedTemplate(): UseUpdateSavedTemplateReturn {
+  const [updated, setUpdated] = useState<SavedTemplate | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const updateTemplate = useCallback(
+    async (
+      templateId: number | string,
+      payload: UpdateSavedTemplatePayload
+    ): Promise<SavedTemplate> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await ExpertFinderService.updateTemplate(templateId, payload);
+        setUpdated(response);
+        return response;
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to update template';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  return [{ updated, isLoading, error }, updateTemplate];
+}
+
+// ── useDeleteSavedTemplate ───────────────────────────────────────────────────
+
+interface UseDeleteSavedTemplateState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type DeleteSavedTemplateFn = (templateId: number | string) => Promise<void>;
+type UseDeleteSavedTemplateReturn = [UseDeleteSavedTemplateState, DeleteSavedTemplateFn];
+
+export function useDeleteSavedTemplate(): UseDeleteSavedTemplateReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const deleteTemplate = useCallback(async (templateId: number | string): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await ExpertFinderService.deleteTemplate(templateId);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to delete template';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return [{ isLoading, error }, deleteTemplate];
 }
