@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   ExpertFinderService,
-  type CreateDraftEmailPayload,
   type CreateSavedTemplatePayload,
   type ExpertSearchCreatePayload,
   type GenerateEmailPayload,
@@ -12,6 +11,7 @@ import {
 } from '@/services/expertFinder.service';
 import type {
   ExpertSearchCreated,
+  InvitedExperts,
   ExpertSearchResult,
   ExpertSearchListItem,
   GeneratedEmail,
@@ -231,6 +231,73 @@ export function useWorkByUnifiedDocumentId(
   return [{ work, isLoading, error }, fetch];
 }
 
+// ── useDocumentInvited ─────────────────────────────────────────────────────
+
+export interface UseDocumentInvitedReturn {
+  data: InvitedExperts | null;
+  isLoading: boolean;
+  error: Error | null;
+  refresh: () => void;
+}
+
+/**
+ * Fetches invited experts for a unified document.
+ */
+export function useDocumentInvited(
+  unifiedDocumentId: number | null | undefined
+): UseDocumentInvitedReturn {
+  const [data, setData] = useState<InvitedExperts | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const load = useCallback(
+    async (signal?: { cancelled: boolean }) => {
+      if (unifiedDocumentId == null) return;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const result = await ExpertFinderService.getDocumentInvited(unifiedDocumentId);
+        if (signal?.cancelled) return;
+        setData(result);
+      } catch (err) {
+        if (signal?.cancelled) return;
+        setError(err instanceof Error ? err : new Error('Failed to load invited experts'));
+        setData(null);
+      } finally {
+        if (!signal?.cancelled) setIsLoading(false);
+      }
+    },
+    [unifiedDocumentId]
+  );
+
+  useEffect(() => {
+    if (unifiedDocumentId == null) {
+      setData(null);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
+    const signal = { cancelled: false };
+    load(signal);
+    return () => {
+      signal.cancelled = true;
+    };
+  }, [unifiedDocumentId, load]);
+
+  const refresh = useCallback(() => {
+    if (unifiedDocumentId != null) load();
+  }, [unifiedDocumentId, load]);
+
+  if (unifiedDocumentId == null) {
+    return { data: null, isLoading: false, error: null, refresh: () => {} };
+  }
+
+  return { data, isLoading, error, refresh };
+}
+
 // ── useGenerateEmail ────────────────────────────────────────────────────────
 
 interface UseGenerateEmailState {
@@ -248,9 +315,6 @@ type GenerateEmailFn = (
 
 type UseGenerateEmailReturn = [UseGenerateEmailState, GenerateEmailFn];
 
-/**
- * Generate an outreach email (LLM). Preview-only sets subject/body; save creates a draft and sets email.
- */
 export function useGenerateEmail(): UseGenerateEmailReturn {
   const [subject, setSubject] = useState<string | null>(null);
   const [body, setBody] = useState<string | null>(null);
@@ -311,9 +375,6 @@ interface UseGeneratedEmailsParams {
 type FetchGeneratedEmailsFn = (params?: UseGeneratedEmailsParams) => Promise<void>;
 type UseGeneratedEmailsReturn = [UseGeneratedEmailsState, FetchGeneratedEmailsFn];
 
-/**
- * Lists generated emails with pagination.
- */
 export function useGeneratedEmails(params?: UseGeneratedEmailsParams): UseGeneratedEmailsReturn {
   const limit = params?.limit ?? 20;
   const offset = params?.offset ?? 0;
@@ -368,9 +429,6 @@ interface UseGeneratedEmailDetailState {
 type FetchGeneratedEmailDetailFn = () => Promise<void>;
 type UseGeneratedEmailDetailReturn = [UseGeneratedEmailDetailState, FetchGeneratedEmailDetailFn];
 
-/**
- * Fetches a single generated email by id.
- */
 export function useGeneratedEmailDetail(
   emailId: number | string | null
 ): UseGeneratedEmailDetailReturn {
@@ -406,48 +464,7 @@ export function useGeneratedEmailDetail(
   return [{ email, isLoading, error }, fetch];
 }
 
-// ── useCreateDraftEmail ──────────────────────────────────────────────────────
-
-interface UseCreateDraftEmailState {
-  created: GeneratedEmail | null;
-  isLoading: boolean;
-  error: string | null;
-}
-
-type CreateDraftEmailFn = (payload?: CreateDraftEmailPayload) => Promise<GeneratedEmail>;
-type UseCreateDraftEmailReturn = [UseCreateDraftEmailState, CreateDraftEmailFn];
-
-/**
- * Create a draft email without calling the LLM.
- */
-export function useCreateDraftEmail(): UseCreateDraftEmailReturn {
-  const [created, setCreated] = useState<GeneratedEmail | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const createDraft = useCallback(
-    async (payload?: CreateDraftEmailPayload): Promise<GeneratedEmail> => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await ExpertFinderService.createDraftEmail(payload ?? {});
-        setCreated(response);
-        return response;
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to create draft email';
-        setError(message);
-        throw err;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    []
-  );
-
-  return [{ created, isLoading, error }, createDraft];
-}
-
-// ── useUpdateGeneratedEmail ───────────────────────────────────────────────────
+// ── useUpdateGeneratedEmail ──────────────────────────────────────────────────
 
 interface UseUpdateGeneratedEmailState {
   updated: GeneratedEmail | null;
@@ -462,9 +479,6 @@ type UpdateGeneratedEmailFn = (
 
 type UseUpdateGeneratedEmailReturn = [UseUpdateGeneratedEmailState, UpdateGeneratedEmailFn];
 
-/**
- * Update a generated email (e.g. mark as sent).
- */
 export function useUpdateGeneratedEmail(): UseUpdateGeneratedEmailReturn {
   const [updated, setUpdated] = useState<GeneratedEmail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -495,7 +509,7 @@ export function useUpdateGeneratedEmail(): UseUpdateGeneratedEmailReturn {
   return [{ updated, isLoading, error }, updateEmail];
 }
 
-// ── useDeleteGeneratedEmail ─────────────────────────────────────────────────
+// ── useDeleteGeneratedEmail ──────────────────────────────────────────────────
 
 interface UseDeleteGeneratedEmailState {
   isLoading: boolean;
@@ -505,9 +519,6 @@ interface UseDeleteGeneratedEmailState {
 type DeleteGeneratedEmailFn = (emailId: number | string) => Promise<void>;
 type UseDeleteGeneratedEmailReturn = [UseDeleteGeneratedEmailState, DeleteGeneratedEmailFn];
 
-/**
- * Delete a generated email.
- */
 export function useDeleteGeneratedEmail(): UseDeleteGeneratedEmailReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -547,9 +558,6 @@ interface UseSavedTemplatesParams {
 type FetchSavedTemplatesFn = (params?: UseSavedTemplatesParams) => Promise<void>;
 type UseSavedTemplatesReturn = [UseSavedTemplatesState, FetchSavedTemplatesFn];
 
-/**
- * Lists saved templates with pagination.
- */
 export function useSavedTemplates(params?: UseSavedTemplatesParams): UseSavedTemplatesReturn {
   const limit = params?.limit ?? 20;
   const offset = params?.offset ?? 0;
@@ -604,9 +612,6 @@ interface UseSavedTemplateDetailState {
 type FetchSavedTemplateDetailFn = () => Promise<void>;
 type UseSavedTemplateDetailReturn = [UseSavedTemplateDetailState, FetchSavedTemplateDetailFn];
 
-/**
- * Fetches a single saved template by id.
- */
 export function useSavedTemplateDetail(
   templateId: number | string | null
 ): UseSavedTemplateDetailReturn {
@@ -642,7 +647,7 @@ export function useSavedTemplateDetail(
   return [{ template, isLoading, error }, fetch];
 }
 
-// ── useCreateSavedTemplate ───────────────────────────────────────────────────
+// ── useCreateSavedTemplate ──────────────────────────────────────────────────
 
 interface UseCreateSavedTemplateState {
   created: SavedTemplate | null;
@@ -654,9 +659,6 @@ type CreateSavedTemplateFn = (payload: CreateSavedTemplatePayload) => Promise<Sa
 
 type UseCreateSavedTemplateReturn = [UseCreateSavedTemplateState, CreateSavedTemplateFn];
 
-/**
- * Create a saved template.
- */
 export function useCreateSavedTemplate(): UseCreateSavedTemplateReturn {
   const [created, setCreated] = useState<SavedTemplate | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -684,7 +686,7 @@ export function useCreateSavedTemplate(): UseCreateSavedTemplateReturn {
   return [{ created, isLoading, error }, createTemplate];
 }
 
-// ── useUpdateSavedTemplate ────────────────────────────────────────────────────
+// ── useUpdateSavedTemplate ───────────────────────────────────────────────────
 
 interface UseUpdateSavedTemplateState {
   updated: SavedTemplate | null;
@@ -699,9 +701,6 @@ type UpdateSavedTemplateFn = (
 
 type UseUpdateSavedTemplateReturn = [UseUpdateSavedTemplateState, UpdateSavedTemplateFn];
 
-/**
- * Update a saved template.
- */
 export function useUpdateSavedTemplate(): UseUpdateSavedTemplateReturn {
   const [updated, setUpdated] = useState<SavedTemplate | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -732,7 +731,7 @@ export function useUpdateSavedTemplate(): UseUpdateSavedTemplateReturn {
   return [{ updated, isLoading, error }, updateTemplate];
 }
 
-// ── useDeleteSavedTemplate ────────────────────────────────────────────────────
+// ── useDeleteSavedTemplate ───────────────────────────────────────────────────
 
 interface UseDeleteSavedTemplateState {
   isLoading: boolean;
@@ -742,9 +741,6 @@ interface UseDeleteSavedTemplateState {
 type DeleteSavedTemplateFn = (templateId: number | string) => Promise<void>;
 type UseDeleteSavedTemplateReturn = [UseDeleteSavedTemplateState, DeleteSavedTemplateFn];
 
-/**
- * Delete a saved template.
- */
 export function useDeleteSavedTemplate(): UseDeleteSavedTemplateReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

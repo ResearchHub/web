@@ -268,6 +268,10 @@ export function ExpertFinderForm() {
 
   return (
     <div className="space-y-6 mb-[240px]">
+      <p className="text-sm text-gray-600 mb-6">
+        Paste a ResearchHub paper or post URL to discover domain experts, or use the “Find experts”
+        button on any Work details page to start from that content.
+      </p>
       <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
         {documentInputContent}
 

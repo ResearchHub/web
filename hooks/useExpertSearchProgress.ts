@@ -100,9 +100,7 @@ export const useExpertSearchProgress = (
             if (!eventData) continue;
 
             try {
-              const data = transformExpertSearchProgressEvent(
-                JSON.parse(eventData) as Record<string, unknown>
-              );
+              const data = transformExpertSearchProgressEvent(JSON.parse(eventData));
 
               if (eventType === 'connected') {
                 setStatus('connected');

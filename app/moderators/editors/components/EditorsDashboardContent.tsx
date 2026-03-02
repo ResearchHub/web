@@ -7,8 +7,8 @@ import { TransformedEditorData } from '@/types/editor';
 import { formatDistanceToNow } from 'date-fns';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useEditorsDashboard } from '@/hooks/useEditorsDashboard';
-import { EditorTableSkeleton } from '@/components/skeletons/EditorTableSkeleton';
-import { EditorMobileSkeleton } from '@/components/skeletons/EditorMobileSkeleton';
+import { TableSkeleton } from '@/components/ui/Table/TableSkeleton';
+import { ListCardSkeleton } from '@/components/ui/ListCardSkeleton';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
 import { ChevronDown, Plus, Trash2 } from 'lucide-react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
@@ -328,7 +328,7 @@ export default function EditorsDashboardContent({ hasWriteAccess }: EditorsDashb
           {mdAndUp && (
             <div className="w-full max-w-full mx-auto">
               {state.isLoading ? (
-                <EditorTableSkeleton columns={columns} rowCount={pageSize} />
+                <TableSkeleton columns={columns} rowCount={pageSize} />
               ) : (
                 <TableContainer
                   columns={columns}
@@ -367,7 +367,7 @@ export default function EditorsDashboardContent({ hasWriteAccess }: EditorsDashb
           {!mdAndUp && (
             <div>
               {state.isLoading ? (
-                <EditorMobileSkeleton rowCount={pageSize} />
+                <ListCardSkeleton rowCount={pageSize} />
               ) : (
                 <div className="space-y-4">
                   {state.editors.map((editor, index) => (

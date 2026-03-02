@@ -7,6 +7,8 @@ import {
   transformExpertSearchListItem,
   transformGeneratedEmail,
   transformSavedTemplate,
+  transformInvitedExperts,
+  type InvitedExperts,
   type ExpertSearchCreated,
   type ExpertSearchResult,
   type ExpertSearchListItem,
@@ -78,7 +80,7 @@ export interface ExpertSearchCreatePayload {
   excluded_expert_names?: string[];
 }
 
-// ── Email template kind and generated email status (API) ────────────────────
+// ── Email template kind (purpose) ───────────────────
 
 export type EmailTemplateKind =
   | 'collaboration'
@@ -88,6 +90,8 @@ export type EmailTemplateKind =
   | 'publication'
   | 'rfp-outreach'
   | 'custom';
+
+// ── Generated emails API ───────────────────────────────────────────────────
 
 export type GeneratedEmailStatus = 'draft' | 'sent';
 
@@ -112,11 +116,6 @@ export interface GenerateEmailPayload {
   outreach_context?: string;
   template_data?: TemplateData;
   template_id?: number | null;
-}
-
-export interface GenerateEmailPreviewResponse {
-  subject: string;
-  body: string;
 }
 
 export interface CreateDraftEmailPayload {
@@ -155,7 +154,6 @@ export interface UpdateSavedTemplatePayload {
   contact_phone?: string;
   contact_website?: string;
   outreach_context?: string;
-  is_active?: boolean;
 }
 
 export class ExpertFinderService {
@@ -298,23 +296,29 @@ export class ExpertFinderService {
     return transformUnifiedDocument(response.work);
   }
 
+  /**
+   * Fetch invited experts for a unified document.
+   * GET /api/research_ai/expert-finder/documents/:unifiedDocumentId/invited/
+   */
+  static async getDocumentInvited(unifiedDocumentId: number): Promise<InvitedExperts> {
+    const raw = await ApiClient.get<Record<string, unknown>>(
+      `${this.BASE_PATH}/documents/${unifiedDocumentId}/invited/`
+    );
+    return transformInvitedExperts(raw);
+  }
+
   // ── Generated emails ─────────────────────────────────────────────────────
 
-  /**
-   * Generate an outreach email with the LLM. By default also creates a GeneratedEmail draft.
-   * Use options.save = false or options.action = 'generate' for preview only (no record created).
-   * POST /api/research_ai/expert-finder/generate-email/
-   */
   static async generateEmail(
     payload: GenerateEmailPayload,
     options?: { save?: boolean; action?: 'generate' }
-  ): Promise<GenerateEmailPreviewResponse | GeneratedEmail> {
+  ): Promise<any | GeneratedEmail> {
     const preview = options?.save === false || options?.action === 'generate';
     const query = preview
       ? `?${options?.action === 'generate' ? 'action=generate' : 'save=false'}`
       : '';
     const raw = await ApiClient.post<Record<string, unknown>>(
-      `${this.BASE_PATH}/generate-email${query}`,
+      `${this.BASE_PATH}/generate-email/${query}`,
       payload
     );
     if (preview) {
@@ -326,10 +330,6 @@ export class ExpertFinderService {
     return transformGeneratedEmail(raw);
   }
 
-  /**
-   * List generated emails with pagination.
-   * GET /api/research_ai/expert-finder/emails/?limit=&offset=
-   */
   static async listEmails(params?: {
     limit?: number;
     offset?: number;
@@ -352,10 +352,6 @@ export class ExpertFinderService {
     };
   }
 
-  /**
-   * Get a single generated email.
-   * GET /api/research_ai/expert-finder/emails/:emailId/
-   */
   static async getEmail(emailId: number | string): Promise<GeneratedEmail> {
     const raw = await ApiClient.get<Record<string, unknown>>(
       `${this.BASE_PATH}/emails/${emailId}/`
@@ -363,19 +359,11 @@ export class ExpertFinderService {
     return transformGeneratedEmail(raw);
   }
 
-  /**
-   * Create a draft email without calling the LLM.
-   * POST /api/research_ai/expert-finder/emails/
-   */
   static async createDraftEmail(payload: CreateDraftEmailPayload = {}): Promise<GeneratedEmail> {
     const raw = await ApiClient.post<Record<string, unknown>>(`${this.BASE_PATH}/emails/`, payload);
     return transformGeneratedEmail(raw);
   }
 
-  /**
-   * Update a generated email (partial update).
-   * PATCH /api/research_ai/expert-finder/emails/:emailId/
-   */
   static async updateEmail(
     emailId: number | string,
     payload: UpdateGeneratedEmailPayload
@@ -387,20 +375,12 @@ export class ExpertFinderService {
     return transformGeneratedEmail(raw);
   }
 
-  /**
-   * Delete a generated email.
-   * DELETE /api/research_ai/expert-finder/emails/:emailId/
-   */
   static async deleteEmail(emailId: number | string): Promise<void> {
     return ApiClient.deleteNoContent(`${this.BASE_PATH}/emails/${emailId}/`);
   }
 
   // ── Saved templates ──────────────────────────────────────────────────────
 
-  /**
-   * List saved templates with pagination.
-   * GET /api/research_ai/expert-finder/templates/?limit=&offset=
-   */
   static async listTemplates(params?: {
     limit?: number;
     offset?: number;
@@ -423,10 +403,6 @@ export class ExpertFinderService {
     };
   }
 
-  /**
-   * Get a single saved template.
-   * GET /api/research_ai/expert-finder/templates/:templateId/
-   */
   static async getTemplate(templateId: number | string): Promise<SavedTemplate> {
     const raw = await ApiClient.get<Record<string, unknown>>(
       `${this.BASE_PATH}/templates/${templateId}/`
@@ -434,10 +410,6 @@ export class ExpertFinderService {
     return transformSavedTemplate(raw);
   }
 
-  /**
-   * Create a saved template.
-   * POST /api/research_ai/expert-finder/templates/
-   */
   static async createTemplate(payload: CreateSavedTemplatePayload): Promise<SavedTemplate> {
     const raw = await ApiClient.post<Record<string, unknown>>(
       `${this.BASE_PATH}/templates/`,
@@ -446,10 +418,6 @@ export class ExpertFinderService {
     return transformSavedTemplate(raw);
   }
 
-  /**
-   * Update a saved template (partial update).
-   * PATCH /api/research_ai/expert-finder/templates/:templateId/
-   */
   static async updateTemplate(
     templateId: number | string,
     payload: UpdateSavedTemplatePayload
@@ -461,10 +429,6 @@ export class ExpertFinderService {
     return transformSavedTemplate(raw);
   }
 
-  /**
-   * Delete a saved template.
-   * DELETE /api/research_ai/expert-finder/templates/:templateId/
-   */
   static async deleteTemplate(templateId: number | string): Promise<void> {
     return ApiClient.deleteNoContent(`${this.BASE_PATH}/templates/${templateId}/`);
   }
