@@ -15,7 +15,7 @@ import { GrantFundingAmountSection } from './components/GrantFundingAmountSectio
 import { GrantApplicationDeadlineSection } from './components/GrantApplicationDeadlineSection';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUpsertPost } from '@/hooks/useDocument';
 import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
@@ -213,14 +213,12 @@ export function PublishingForm({
     mode: 'onChange',
   });
 
-  useEffect(() => {
-    if (note?.id) {
-      methods.reset(FORM_DEFAULTS);
-    }
-  }, [note?.id, methods]);
+  const noteId = note?.id;
 
   useEffect(() => {
     if (!note) return;
+
+    methods.reset(FORM_DEFAULTS);
 
     if (note.post) {
       populateFromPost(note.post, methods.setValue);
@@ -238,9 +236,18 @@ export function PublishingForm({
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [noteId]);
+
+  const autoAddedForNote = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!noteId || !currentUser) return;
+    if (autoAddedForNote.current === noteId.toString()) return;
 
     const authors = methods.getValues('authors');
-    if (authors.length === 0 && currentUser) {
+    if (authors.length === 0) {
+      autoAddedForNote.current = noteId.toString();
       const profile = currentUser.authorProfile;
       methods.setValue('authors', [
         {
@@ -249,17 +256,17 @@ export function PublishingForm({
         },
       ]);
     }
-  }, [note, methods, searchParams, defaultArticleType, currentUser]);
+  }, [noteId, currentUser, methods]);
 
   useEffect(() => {
-    if (!note) return;
+    if (!noteId || !note) return;
 
     const subscription = methods.watch((data) => {
-      savePublishingFormToStorage(note.id.toString(), data as Partial<PublishingFormData>);
+      savePublishingFormToStorage(noteId.toString(), data as Partial<PublishingFormData>);
     });
 
     return () => subscription.unsubscribe();
-  }, [methods, note]);
+  }, [noteId, methods, note]);
 
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
