@@ -15,7 +15,7 @@ import { GrantFundingAmountSection } from './components/GrantFundingAmountSectio
 import { GrantApplicationDeadlineSection } from './components/GrantApplicationDeadlineSection';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUpsertPost } from '@/hooks/useDocument';
 import { ConfirmPublishModal } from '@/components/modals/ConfirmPublishModal';
@@ -236,18 +236,9 @@ export function PublishingForm({
         }
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [noteId]);
-
-  const autoAddedForNote = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (!noteId || !currentUser) return;
-    if (autoAddedForNote.current === noteId.toString()) return;
 
     const authors = methods.getValues('authors');
-    if (authors.length === 0) {
-      autoAddedForNote.current = noteId.toString();
+    if (authors.length === 0 && currentUser) {
       const profile = currentUser.authorProfile;
       methods.setValue('authors', [
         {
@@ -256,17 +247,18 @@ export function PublishingForm({
         },
       ]);
     }
-  }, [noteId, currentUser, methods]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [noteId]);
 
   useEffect(() => {
-    if (!noteId || !note) return;
+    if (!noteId) return;
 
     const subscription = methods.watch((data) => {
       savePublishingFormToStorage(noteId.toString(), data as Partial<PublishingFormData>);
     });
 
     return () => subscription.unsubscribe();
-  }, [noteId, methods, note]);
+  }, [noteId, methods]);
 
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
