@@ -2,7 +2,7 @@
 
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import Icon from '@/components/ui/icons/Icon';
 import { IconName } from '@/components/ui/icons/Icon';
@@ -16,6 +16,8 @@ import {
   faBookmark as faBookmarkLight,
 } from '@fortawesome/pro-light-svg-icons';
 import { useUser } from '@/contexts/UserContext';
+import { useGrants } from '@/contexts/GrantContext';
+import { formatCurrency } from '@/utils/currency';
 
 // Define icon mapping for navigation items with both light and solid variants
 interface NavIcon {
@@ -73,6 +75,11 @@ export const Navigation: React.FC<NavigationProps> = ({
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const router = useRouter();
   const { user } = useUser();
+  const { totalFundingUsd, fetchGrants } = useGrants();
+
+  useEffect(() => {
+    fetchGrants();
+  }, [fetchGrants]);
 
   const handleNavigate = useCallback(
     (href: string) => {
@@ -80,6 +87,17 @@ export const Navigation: React.FC<NavigationProps> = ({
     },
     [router]
   );
+
+  const fundingLabel =
+    totalFundingUsd > 0
+      ? formatCurrency({
+          amount: totalFundingUsd,
+          showUSD: true,
+          exchangeRate: 0,
+          shorten: true,
+          skipConversion: true,
+        })
+      : null;
 
   // Home href depends on auth state: logged in -> /for-you, logged out -> /popular
   const homeHref = user ? '/for-you' : '/popular';
@@ -208,7 +226,7 @@ export const Navigation: React.FC<NavigationProps> = ({
 
     const textContainerClass = forceMinimize
       ? 'flex items-center justify-between w-full min-w-0 !hidden'
-      : 'flex items-center justify-between w-full min-w-0 tablet:max-sidebar-compact:!hidden';
+      : 'w-full min-w-0 tablet:max-sidebar-compact:!hidden';
 
     return (
       <Link href={item.href} onClick={handleClick} className={buttonStyles} scroll={false}>
@@ -233,6 +251,11 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
         <div className={textContainerClass}>
           <span className="truncate text-[16px] font-semibold">{item.label}</span>
+          {item.iconKey === 'earn' && fundingLabel && (
+            <span className="ml-2 rounded-md bg-green-100 px-1.5 py-0.5 text-xs font-semibold text-green-700">
+              {fundingLabel}
+            </span>
+          )}
         </div>
       </Link>
     );

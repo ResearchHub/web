@@ -9,7 +9,6 @@ import { CardTabs } from '@/components/ui/CardTabs';
 import { useGrants } from '@/contexts/GrantContext';
 import { FeedGrantContent } from '@/types/feed';
 import { buildWorkUrl } from '@/utils/url';
-import { GrantPreviewTooltip } from '@/components/tooltips/GrantPreviewTooltip';
 
 function formatCompactAmount(usd: number): string {
   if (usd >= 1_000_000) return `$${Math.round(usd / 1_000_000)}M`;
@@ -63,19 +62,6 @@ export const FundingGrantTabs: FC = () => {
         subtitle,
         href: tabHref,
         variant: 'grant' as const,
-        renderWrapper: (children: ReactNode) => (
-          <GrantPreviewTooltip
-            href={grantDetailHref}
-            title={content.grant.shortTitle}
-            description={content.grant.description}
-            image={content.previewImage ?? null}
-            amount={String(content.grant.amount?.usd ?? 0)}
-            currency="USD"
-            numApplicants={proposalCount}
-          >
-            {children}
-          </GrantPreviewTooltip>
-        ),
       };
     });
 

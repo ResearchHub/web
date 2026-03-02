@@ -2,7 +2,6 @@ import { Suspense } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundingPageContent } from '../components/FundingPageContent';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
-import { TotalFundingSection } from '@/components/Funding/TotalFundingSection';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
 import { GrantService } from '@/services/grant.service';
 
@@ -38,17 +37,13 @@ async function getClosedGrants() {
 }
 
 export default async function BrowsePage() {
-  const [{ grants, error }, closedGrants, { usd }] = await Promise.all([
-    getOpenGrants(),
-    getClosedGrants(),
-    GrantService.getAvailableFunding(),
-  ]);
+  const [{ grants, error }, closedGrants] = await Promise.all([getOpenGrants(), getClosedGrants()]);
 
   return (
     <PageLayout
       rightSidebar={
         <Suspense fallback={<ActivitySidebarSkeleton />}>
-          <FundingSidebarServer topSection={<TotalFundingSection totalUsd={usd} />} />
+          <FundingSidebarServer />
         </Suspense>
       }
       scrollContainerClassName="pt-[108px]"

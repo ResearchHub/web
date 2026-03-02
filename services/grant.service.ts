@@ -41,7 +41,6 @@ export class GrantService {
     total: number;
   }> {
     const queryParams = new URLSearchParams();
-
     queryParams.append('content_type', 'GRANT');
     queryParams.append('page', (params?.page || 1).toString());
     queryParams.append('page_size', (params?.pageSize || 20).toString());

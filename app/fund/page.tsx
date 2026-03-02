@@ -3,19 +3,15 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
-import { TotalFundingSection } from '@/components/Funding/TotalFundingSection';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
 import { FundingIntroBanner } from '@/components/Funding/FundingIntroBanner';
-import { GrantService } from '@/services/grant.service';
 
 export default async function FundPage() {
-  const { usd } = await GrantService.getAvailableFunding();
-
   return (
     <PageLayout
       rightSidebar={
         <Suspense fallback={<ActivitySidebarSkeleton />}>
-          <FundingSidebarServer topSection={<TotalFundingSection totalUsd={usd} />} />
+          <FundingSidebarServer />
         </Suspense>
       }
       scrollContainerClassName="pt-[108px]"
