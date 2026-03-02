@@ -62,8 +62,11 @@ function microsToDollars(micros: string | number): string {
  * This accounts for pending transactions that aren't yet reflected in usdcBalance.
  * It is needed because the Endaoment API's usdcBalance field does not account for pending donations.
  */
-function getAvailableBalance(usdcBalance: string, lifetimeDonationsUsdc: string): number {
-  return Number(usdcBalance) - Number(lifetimeDonationsUsdc);
+function getAvailableBalance(
+  usdcBalance: string,
+  lifetimeDonationsUsdc: string | undefined
+): number {
+  return Number(usdcBalance) - (Number(lifetimeDonationsUsdc) || 0);
 }
 
 /**
