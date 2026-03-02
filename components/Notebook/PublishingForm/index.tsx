@@ -158,7 +158,7 @@ const restoreFromStorage = (
   setValue: (name: any, value: any) => void
 ) => {
   for (const [key, value] of Object.entries(data)) {
-    setValue(key, key === 'applicationDeadline' ? new Date(value) : value);
+    setValue(key, key === 'applicationDeadline' && value ? new Date(value) : value);
   }
 };
 
@@ -231,10 +231,11 @@ export function PublishingForm({
         if (resolved) {
           methods.setValue('articleType', resolved.type);
         }
-        if (resolved?.type === 'grant' && resolved.source === 'default') {
-          methods.setValue('applicationDeadline', new Date('2029-12-31'));
-        }
       }
+    }
+
+    if (methods.getValues('articleType') === 'grant' && !methods.getValues('applicationDeadline')) {
+      methods.setValue('applicationDeadline', new Date('2029-12-31'));
     }
 
     if (currentUser) {
@@ -254,6 +255,11 @@ export function PublishingForm({
         ]);
       }
     }
+
+    savePublishingFormToStorage(
+      note.id.toString(),
+      methods.getValues() as Partial<PublishingFormData>
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noteId]);
 
