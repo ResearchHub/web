@@ -13,8 +13,6 @@ import { useCopyAddress } from '@/hooks/useCopyAddress';
 interface DepositModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentBalance: number;
-  onSuccess?: () => void;
 }
 
 export function DepositModal({ isOpen, onClose }: DepositModalProps) {

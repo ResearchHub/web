@@ -165,12 +165,7 @@ export function UserBalanceSection({
       {/* Modals */}
       {isBalanceReady && (
         <>
-          <DepositModal
-            isOpen={isDepositModalOpen}
-            onClose={() => setIsDepositModalOpen(false)}
-            currentBalance={balance?.raw || 0}
-            onSuccess={onTransactionSuccess}
-          />
+          <DepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} />
           <WithdrawModal
             isOpen={isWithdrawModalOpen}
             onClose={() => setIsWithdrawModalOpen(false)}
