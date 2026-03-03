@@ -20,15 +20,13 @@ import { ApolloProvider } from '@/components/providers/ApolloProvider';
 import { usePreferences } from '@/contexts/PreferencesContext';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 import { useUser } from '@/contexts/UserContext';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { useFeedTabs } from '@/hooks/useFeedTabs';
 
 function FeedContent() {
   const { user, isLoading: isUserLoading } = useUser();
-  const router = useRouter();
-  const { preferences, clearPreferences } = usePreferences();
-  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
+  const { preferences } = usePreferences();
   const searchParams = useSearchParams();
   const [isNavigating, setIsNavigating] = useState(false);
 
@@ -37,32 +35,6 @@ function FeedContent() {
     activeTab,
     handleTabChange,
   } = useFeedTabs(() => setIsNavigating(true));
-
-  // Check if we should reset onboarding (for testing)
-  useEffect(() => {
-    if (searchParams.get('reset-onboarding') === 'true') {
-      clearPreferences();
-      // Also clear the feed filters to start fresh
-      localStorage.removeItem('researchhub_feed_filters');
-      // Remove the query parameter and reload
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete('reset-onboarding');
-      window.location.href = newUrl.toString();
-    }
-  }, [searchParams, clearPreferences]);
-
-  // Check if user needs to see the new onboarding
-  useEffect(() => {
-    if (isUserLoading) return;
-
-    // If user is logged in and hasn't completed the new onboarding
-    if (user && !preferences?.completedAt) {
-      router.replace('/onboarding');
-    } else {
-      // Only show the feed content if they don't need onboarding
-      setCheckingOnboarding(false);
-    }
-  }, [user, isUserLoading, preferences, router]);
 
   // Set up intersection observer for infinite scrolling early to follow Rules of Hooks
   const { ref: loadMoreRef, inView } = useInView({
@@ -229,8 +201,7 @@ function FeedContent() {
   // Only show initial loading state when it's the first load (no data yet)
   const isInitialLoading = loading && !data?.getPapers;
 
-  // Show loading state while checking onboarding status
-  if (checkingOnboarding || isUserLoading) {
+  if (isUserLoading) {
     return (
       <div className="container mx-auto p-4 max-w-6xl">
         <div className="flex items-center justify-center min-h-[60vh]">

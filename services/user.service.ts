@@ -57,13 +57,7 @@ export class UserService {
    * @returns Boolean indicating if the user should be redirected to onboarding
    */
   static shouldRedirectToOnboarding(user: User | null): boolean {
-    // If no user or user is already onboarded, no redirection needed
-    if (!user || user.hasCompletedOnboarding) {
-      return false;
-    }
-
-    // User exists but hasn't completed onboarding
-    return true;
+    return false;
   }
 
   /**
