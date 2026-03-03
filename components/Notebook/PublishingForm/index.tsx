@@ -12,7 +12,6 @@ import { JournalSection } from './components/JournalSection';
 import { GrantDescriptionSection } from './components/GrantDescriptionSection';
 import { GrantOrganizationSection } from './components/GrantOrganizationSection';
 import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
-import { GrantApplicationDeadlineSection } from './components/GrantApplicationDeadlineSection';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { useState, useEffect } from 'react';
@@ -501,7 +500,6 @@ export function PublishingForm({
               </div>
             )}
             {articleType === 'grant' && <GrantFundingAmountSection />}
-            {articleType === 'grant' && !isModal && <GrantApplicationDeadlineSection />}
             {articleType === 'preregistration' && <FundingSection note={note} />}
             {FEATURE_FLAG_RESEARCH_COIN &&
               articleType !== 'preregistration' &&
