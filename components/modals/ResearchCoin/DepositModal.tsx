@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Loader2, Copy, Check } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { WalletService } from '@/services/wallet.service';
 import { Alert } from '@/components/ui/Alert';
@@ -87,28 +88,35 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
               </div>
             </Alert>
           ) : depositAddress ? (
-            <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <code className="text-sm text-gray-900 font-mono break-all flex-1">
-                  {depositAddress}
-                </code>
-                <button
-                  onClick={() => copyAddress(depositAddress)}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                  type="button"
-                >
-                  {isCopied ? (
-                    <>
-                      <Check className="h-4 w-4 text-green-500" />
-                      <span className="text-green-600">Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-4 w-4" />
-                      <span>Copy</span>
-                    </>
-                  )}
-                </button>
+            <div className="space-y-4">
+              <div className="flex justify-center">
+                <div className="p-3 bg-white rounded-lg border border-gray-200">
+                  <QRCodeCanvas value={depositAddress} size={180} />
+                </div>
+              </div>
+              <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <code className="text-sm text-gray-900 font-mono break-all flex-1">
+                    {depositAddress}
+                  </code>
+                  <button
+                    onClick={() => copyAddress(depositAddress)}
+                    className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    type="button"
+                  >
+                    {isCopied ? (
+                      <>
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span className="text-green-600">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           ) : null}
