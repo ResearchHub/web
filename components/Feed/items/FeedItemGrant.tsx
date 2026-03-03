@@ -14,7 +14,9 @@ import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSecti
 import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { GrantInfo } from '@/components/Fund/GrantInfo';
 import { AuthorList } from '@/components/ui/AuthorList';
-
+import { Tooltip } from '@/components/ui/Tooltip';
+import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
+import { Star } from 'lucide-react';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
 import { formatTimestamp } from '@/utils/date';
 import { buildWorkUrl } from '@/utils/url';
@@ -56,6 +58,9 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
   const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
 
   // Use provided href or create default grant page URL
+  const reviewScore = entry.metrics?.reviewScore;
+  const hasReviewScore = reviewScore !== undefined && reviewScore > 0;
+
   const grantPageUrl =
     href ||
     buildWorkUrl({
@@ -76,15 +81,8 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
       showHeader={showHeader}
       onFeedItemClick={onFeedItemClick}
       hideReportButton={true}
-      badges={
-        <FeedItemBadges
-          topics={grant.topics}
-          category={grant.category}
-          subcategory={grant.subcategory}
-        />
-      }
     >
-      {/* Top section with badges and status + image(mobile) */}
+      {/* Top section with status + image(mobile) */}
       <FeedItemTopSection
         imageSection={
           grant.previewImage && (
@@ -98,6 +96,14 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
         rightContent={null}
         leftContent={null}
       />
+
+      <div className="mt-[-7px]">
+        <FeedItemBadges
+          topics={grant.topics}
+          category={grant.category}
+          subcategory={grant.subcategory}
+        />
+      </div>
 
       {/* Main content layout + image(desktop) */}
       <FeedItemLayout
@@ -141,6 +147,27 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
                     <span className="text-gray-600 whitespace-nowrap text-sm">
                       {formatTimestamp(grant.createdDate, false)}
                     </span>
+                  </>
+                )}
+                {hasReviewScore && (
+                  <>
+                    <span className="mx-2 text-gray-500">•</span>
+                    <Tooltip
+                      content={
+                        <PeerReviewTooltip
+                          reviews={grant.reviews ?? []}
+                          averageScore={reviewScore}
+                          href={grantPageUrl}
+                        />
+                      }
+                      position="top"
+                      width="w-[320px]"
+                    >
+                      <span className="inline-flex items-center gap-1 text-sm text-gray-600 cursor-help">
+                        <Star size={13} className="fill-amber-400 text-amber-400" />
+                        {reviewScore.toFixed(1)}
+                      </span>
+                    </Tooltip>
                   </>
                 )}
               </div>

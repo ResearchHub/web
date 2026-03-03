@@ -39,6 +39,7 @@ export interface BaseFeedItemProps {
   hideReportButton?: boolean;
   badges?: ReactNode;
   cardImage?: ReactNode;
+  calloutSection?: ReactNode;
 }
 
 // Badge component interface
@@ -266,6 +267,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   hideReportButton = false,
   badges,
   cardImage,
+  calloutSection,
 }) => {
   const content = entry.content;
   const author = content.createdBy;
@@ -347,9 +349,9 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
       )}
       {/* Main Content Card */}
       <CardWrapper href={href} isClickable={isClickable} onClick={handleClick} entryId={entryIdKey}>
-        <div className="p-4">
-          <div className={cn('flex gap-4', cardImage && 'md:!flex-row flex-col')}>
-            <div className="flex-1 min-w-0">
+        <div className={cn('flex', cardImage && 'md:!flex-row flex-col')}>
+          <div className="flex-1 min-w-0">
+            <div className="p-4">
               {children}
               {showBountyInfo ? (
                 openBounties.length === 1 ? (
@@ -382,52 +384,62 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               ) : null}
               {badges && <div className="pt-3">{badges}</div>}
             </div>
-            {cardImage && (
-              <div className="hidden md:!block flex-shrink-0 w-[280px] max-w-[33%] relative overflow-hidden rounded-lg border border-gray-200">
-                {cardImage}
+            {calloutSection && (
+              <div
+                className="border-t border-b border-gray-200 px-4 py-2.5 cursor-default"
+                onMouseDown={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {calloutSection}
+              </div>
+            )}
+            {showActions && (
+              <div
+                className="px-4 py-2 cursor-default"
+                onMouseDown={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <FeedItemActions
+                  metrics={entry.metrics}
+                  feedContentType={
+                    content.contentType ? (content.contentType as FeedContentType) : 'COMMENT'
+                  }
+                  votableEntityId={content.id}
+                  relatedDocumentId={
+                    'relatedDocumentId' in content
+                      ? content.relatedDocumentId?.toString()
+                      : content.id.toString()
+                  }
+                  relatedDocumentContentType={
+                    'relatedDocumentContentType' in content
+                      ? content.relatedDocumentContentType
+                      : mapFeedContentTypeToContentType(content.contentType)
+                  }
+                  userVote={entry.userVote}
+                  showTooltips={showTooltips}
+                  href={href}
+                  reviews={content.reviews}
+                  relatedDocumentTopics={'topics' in content ? content.topics : undefined}
+                  relatedDocumentUnifiedDocumentId={
+                    'unifiedDocumentId' in content ? content.unifiedDocumentId : undefined
+                  }
+                  showPeerReviews={showPeerReviews}
+                  onFeedItemClick={onFeedItemClick}
+                  bounties={showBountyInfo ? undefined : content.bounties}
+                  hideReportButton={hideReportButton}
+                  hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
+                />
               </div>
             )}
           </div>
+          {cardImage && (
+            <div className="hidden md:!block flex-shrink-0 w-[260px] relative overflow-hidden rounded-r-lg border-l border-gray-200">
+              {cardImage}
+            </div>
+          )}
         </div>
-        {showActions && (
-          <div
-            className="px-4 py-2 cursor-default"
-            onMouseDown={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <FeedItemActions
-              metrics={entry.metrics}
-              feedContentType={
-                content.contentType ? (content.contentType as FeedContentType) : 'COMMENT'
-              }
-              votableEntityId={content.id}
-              relatedDocumentId={
-                'relatedDocumentId' in content
-                  ? content.relatedDocumentId?.toString()
-                  : content.id.toString()
-              }
-              relatedDocumentContentType={
-                'relatedDocumentContentType' in content
-                  ? content.relatedDocumentContentType
-                  : mapFeedContentTypeToContentType(content.contentType)
-              }
-              userVote={entry.userVote}
-              showTooltips={showTooltips}
-              href={href}
-              reviews={content.reviews}
-              relatedDocumentTopics={'topics' in content ? content.topics : undefined}
-              relatedDocumentUnifiedDocumentId={
-                'unifiedDocumentId' in content ? content.unifiedDocumentId : undefined
-              }
-              showPeerReviews={showPeerReviews}
-              onFeedItemClick={onFeedItemClick}
-              bounties={showBountyInfo ? undefined : content.bounties}
-              hideReportButton={hideReportButton}
-              hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
-            />
-          </div>
-        )}
       </CardWrapper>
     </div>
   );

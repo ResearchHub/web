@@ -2,7 +2,7 @@
 
 import { FC, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { FundingProposalCard } from './FundingProposalCard';
+import { FeedItemFundraise } from '@/components/Feed/items/FeedItemFundraise';
 import { ProposalCardSkeleton } from '@/components/skeletons/ProposalCardSkeleton';
 import { useFundraises } from '@/contexts/FundraiseContext';
 import { FundingGrantTabs } from './FundingGrantTabs';
@@ -65,7 +65,7 @@ export const FundingProposalGrid: FC<FundingProposalGridProps> = ({
         ) : entries.length > 0 ? (
           <>
             {entries.map((entry) => (
-              <FundingProposalCard key={entry.id} entry={entry} showActions={true} />
+              <FeedItemFundraise key={entry.id} entry={entry} showActions={true} />
             ))}
             {isLoadingMore &&
               [...Array(3)].map((_, i) => <ProposalCardSkeleton key={`more-${i}`} />)}

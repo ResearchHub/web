@@ -16,6 +16,8 @@ import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PopularityScoreTooltip } from '@/components/tooltips/HotScoreTooltip';
+import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
+import { Star } from 'lucide-react';
 import { formatTimestamp } from '@/utils/date';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
 import { buildWorkUrl } from '@/utils/url';
@@ -77,6 +79,9 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const thumbnailUrl = paper.previewThumbnail || paper.journal?.imageUrl;
   const isPdfPreview = thumbnailUrl?.includes('preview');
 
+  const reviewScore = entry.metrics?.reviewScore;
+  const hasReviewScore = reviewScore !== undefined && reviewScore > 0;
+
   return (
     <BaseFeedItem
       entry={entry}
@@ -98,16 +103,8 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
           />
         ) : undefined
       }
-      badges={
-        <FeedItemBadges
-          journal={filteredJournal}
-          category={paper.category}
-          subcategory={paper.subcategory}
-          topics={paper.topics}
-        />
-      }
     >
-      {/* Top section with badges and mobile image (hide PDF previews on mobile) */}
+      {/* Top section with mobile image */}
       <FeedItemTopSection
         imageSection={
           thumbnailUrl &&
@@ -149,8 +146,15 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         }
         leftContent={null}
       />
-      {/* Main content layout with desktop image */}
-      {/* Title */}
+      <div className="mt-[-7px]">
+        <FeedItemBadges
+          journal={filteredJournal}
+          category={paper.category}
+          subcategory={paper.subcategory}
+          topics={paper.topics}
+        />
+      </div>
+
       <TitleSection
         title={paper.title}
         highlightedTitle={highlightedTitle}
@@ -182,6 +186,27 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
               <span className="text-gray-600 whitespace-nowrap text-sm">
                 {formatTimestamp(entry.timestamp || paper.createdDate, false)}
               </span>
+            </>
+          )}
+          {hasReviewScore && (
+            <>
+              <span className="mx-2 text-gray-500">•</span>
+              <Tooltip
+                content={
+                  <PeerReviewTooltip
+                    reviews={paper.reviews ?? []}
+                    averageScore={reviewScore}
+                    href={paperPageUrl}
+                  />
+                }
+                position="top"
+                width="w-[320px]"
+              >
+                <span className="inline-flex items-center gap-1 text-sm text-gray-600 cursor-help">
+                  <Star size={13} className="fill-amber-400 text-amber-400" />
+                  {reviewScore.toFixed(1)}
+                </span>
+              </Tooltip>
             </>
           )}
         </div>

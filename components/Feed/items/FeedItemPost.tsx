@@ -13,6 +13,9 @@ import {
 import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
 import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
+import { Star } from 'lucide-react';
 import { formatTimestamp } from '@/utils/date';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
 import { buildWorkUrl } from '@/utils/url';
@@ -61,6 +64,9 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
     })) || [];
 
   // Use provided href or create default post page URL
+  const reviewScore = entry.metrics?.reviewScore;
+  const hasReviewScore = reviewScore !== undefined && reviewScore > 0;
+
   const postPageUrl =
     href ||
     buildWorkUrl({
@@ -95,14 +101,17 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
           )
         }
         rightContent={null}
-        leftContent={
-          <FeedItemBadges
-            topics={post.topics}
-            category={post.category}
-            subcategory={post.subcategory}
-          />
-        }
+        leftContent={null}
       />
+
+      <div className="mt-[-7px]">
+        <FeedItemBadges
+          topics={post.topics}
+          category={post.category}
+          subcategory={post.subcategory}
+        />
+      </div>
+
       {/* Main content layout with desktop image */}
       <FeedItemLayout
         leftContent={
@@ -115,22 +124,40 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
               onClick={onFeedItemClick}
             />
 
-            <div>
-              {/* Authors list below title */}
-              {authors.length > 0 && (
-                <MetadataSection>
-                  <div className="flex items-start gap-1.5">
-                    <AuthorList
-                      authors={authors}
-                      size="sm"
-                      className="text-gray-500 font-normal text-sm"
-                      delimiter="•"
-                      timestamp={post.createdDate ? formatTimestamp(post.createdDate) : undefined}
-                    />
-                  </div>
-                </MetadataSection>
-              )}
-            </div>
+            <MetadataSection>
+              <div className="flex items-center flex-wrap text-sm">
+                {authors.length > 0 && (
+                  <AuthorList
+                    authors={authors}
+                    size="sm"
+                    className="text-gray-500 font-normal text-sm"
+                    delimiter="•"
+                    timestamp={post.createdDate ? formatTimestamp(post.createdDate) : undefined}
+                  />
+                )}
+                {hasReviewScore && (
+                  <>
+                    <span className="mx-2 text-gray-500">•</span>
+                    <Tooltip
+                      content={
+                        <PeerReviewTooltip
+                          reviews={post.reviews ?? []}
+                          averageScore={reviewScore}
+                          href={postPageUrl}
+                        />
+                      }
+                      position="top"
+                      width="w-[320px]"
+                    >
+                      <span className="inline-flex items-center gap-1 text-sm text-gray-600 cursor-help">
+                        <Star size={13} className="fill-amber-400 text-amber-400" />
+                        {reviewScore.toFixed(1)}
+                      </span>
+                    </Tooltip>
+                  </>
+                )}
+              </div>
+            </MetadataSection>
 
             {/* Content Section - handles both desktop and mobile */}
             <FeedItemAbstractSection

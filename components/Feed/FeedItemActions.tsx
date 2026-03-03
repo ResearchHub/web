@@ -7,7 +7,6 @@ import {
   MessageCircle,
   Flag,
   MoreHorizontal,
-  Star,
   ArrowUp,
   ArrowDown,
   Maximize2,
@@ -35,7 +34,6 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { cn } from '@/utils/styles';
 import { getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import { Topic } from '@/types/topic';
-import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { BountyTooltip } from '@/components/tooltips/BountyTooltip';
 import { TipTooltip } from '@/components/tooltips/TipTooltip';
 import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
@@ -121,7 +119,7 @@ export const ActionButton: FC<ActionButtonProps> = ({
       // Responsive padding
       'py-0.5 px-2 md:!py-1 md:!px-3',
       isActive ? 'text-green-600' : 'text-gray-900',
-      'bg-gray-100 hover:text-gray-900 hover:bg-gray-200',
+      'hover:text-gray-900 hover:bg-gray-100',
       className
     )}
     tooltip={showTooltip ? tooltip : undefined}
@@ -344,15 +342,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     }
   };
 
-  const handleReviewClick = (e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-    }
-    if (href) {
-      navigateToTab('reviews');
-    }
-  };
-
   const handleBountyClick = (e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation();
@@ -418,11 +407,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     });
   };
 
-  // Format score to show with one decimal place
-  const formatScore = (score: number): string => {
-    return score.toFixed(1);
-  };
-
   // Check if we have open bounties
   const openBounties = bounties ? bounties.filter((b) => b.status === 'OPEN') : [];
   const hasOpenBounties = openBounties.length > 0;
@@ -441,8 +425,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   // Add separator if needed before Report
   const showSeparator = !hideReportButton && menuItems.length > 0 && !isTabletOrSmaller;
 
-  // Determine which buttons to show inline based on screen size
-  const showInlineReviews = showPeerReviews && reviews.length > 0;
   const showInlineBounties = hasOpenBounties;
 
   // Calculate total awarded amount (tips + bounty awards)
@@ -520,7 +502,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     className={cn(
                       'flex items-center space-x-1 rounded-md transition-all',
                       'py-0.5 px-2 md:!py-1 md:!px-3',
-                      'text-gray-900 bg-gray-100 hover:text-gray-900 hover:bg-gray-200'
+                      'text-gray-900 hover:text-gray-900 hover:bg-gray-100'
                     )}
                     onClick={handleTip}
                   >
@@ -543,7 +525,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     className={cn(
                       'flex items-center space-x-1 rounded-md',
                       'py-0.5 px-2 md:!py-1 md:!px-3',
-                      'text-gray-900 bg-gray-100 cursor-default'
+                      'text-gray-900 cursor-default'
                     )}
                   >
                     <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
@@ -569,7 +551,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 className={cn(
                   'flex items-center space-x-1 rounded-md transition-all',
                   'py-0.5 px-2 md:!py-1 md:!px-3',
-                  'text-gray-900 bg-gray-100 hover:text-gray-900 hover:bg-gray-200'
+                  'text-gray-900 hover:text-gray-900 hover:bg-gray-100'
                 )}
                 tooltip={showTooltips ? 'Tip' : undefined}
                 onClick={handleTip}
@@ -588,7 +570,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 className={cn(
                   'flex items-center space-x-1 rounded-md',
                   'py-0.5 px-2 md:!py-1 md:!px-3',
-                  'text-gray-900 bg-gray-100 cursor-default'
+                  'text-gray-900 cursor-default'
                 )}
               >
                 <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
@@ -600,42 +582,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                   <span className="text-xs md:!text-sm font-medium">Tip</span>
                 )}
               </div>
-            ))}
-          {showInlineReviews &&
-            (showTooltips && reviews.length > 0 ? (
-              <Tooltip
-                content={
-                  <PeerReviewTooltip
-                    reviews={reviews}
-                    averageScore={metrics?.reviewScore || 0}
-                    href={href}
-                  />
-                }
-                position="top"
-                width="w-[320px]"
-              >
-                <ActionButton
-                  icon={Star}
-                  count={
-                    metrics?.reviewScore !== 0 ? formatScore(metrics?.reviewScore || 0) : '3.0'
-                  }
-                  tooltip=""
-                  label="Peer Review"
-                  showTooltip={false}
-                  onClick={!isTouchDevice ? handleReviewClick : undefined}
-                  className="hover:!bg-amber-50 hover:!text-amber-600 hover:!border-amber-300"
-                />
-              </Tooltip>
-            ) : (
-              <ActionButton
-                icon={Star}
-                count={metrics?.reviewScore !== 0 ? formatScore(metrics?.reviewScore || 0) : '3.0'}
-                tooltip="Peer Review"
-                label="Peer Review"
-                showTooltip={showTooltips}
-                onClick={handleReviewClick}
-                className="hover:!bg-amber-50 hover:!text-amber-600 hover:!border-amber-300"
-              />
             ))}
           {showInlineBounties &&
             (showTooltips ? (
