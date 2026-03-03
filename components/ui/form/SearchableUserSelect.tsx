@@ -29,7 +29,7 @@ const renderUserOption = (
   </div>
 );
 
-export interface UserSearchSelectProps {
+export interface SearchableUserSelectProps {
   value: MultiSelectOption[];
   onChange: (value: MultiSelectOption[]) => void;
   placeholder?: string;
@@ -39,7 +39,7 @@ export interface UserSearchSelectProps {
   getOptionValue?: (user: UserSuggestion) => string;
 }
 
-export function UserSearchSelect({
+export function SearchableUserSelect({
   value,
   onChange,
   placeholder = 'Search for users...',
@@ -47,16 +47,13 @@ export function UserSearchSelect({
   helperText,
   debounceMs = 300,
   getOptionValue = defaultGetOptionValue,
-}: Readonly<UserSearchSelectProps>) {
+}: Readonly<SearchableUserSelectProps>) {
   const handleAsyncSearch = useCallback(
     async (query: string) => {
       const suggestions = await SearchService.getSuggestions(query, 'user');
 
       return suggestions
-        .filter(
-          (s): s is UserSuggestion =>
-            (s.entityType === 'user' || s.entityType === 'author') && !!s.id
-        )
+        .filter((s): s is UserSuggestion => s.entityType === 'user' && !!s.id)
         .map((user) => ({
           value: getOptionValue(user),
           label: user.displayName || 'Unknown User',

@@ -2,7 +2,7 @@ import { Users } from 'lucide-react';
 import { SectionHeader } from './SectionHeader';
 import { useFormContext } from 'react-hook-form';
 import { getFieldErrorMessage } from '@/utils/form';
-import { UserSearchSelect } from '@/components/ui/form/UserSearchSelect';
+import { SearchableUserSelect } from '@/components/ui/form/SearchableUserSelect';
 import { UserSuggestion } from '@/types/search';
 
 const getContactId = (user: UserSuggestion) => user.id!.toString();
@@ -19,7 +19,7 @@ export function ContactsSection() {
   return (
     <div className="py-3 px-6">
       <SectionHeader icon={Users}>Contacts</SectionHeader>
-      <UserSearchSelect
+      <SearchableUserSelect
         value={contacts}
         onChange={(newContacts) => setValue('contacts', newContacts, { shouldValidate: true })}
         placeholder="Search for contacts..."

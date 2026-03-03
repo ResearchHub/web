@@ -163,7 +163,7 @@ const restoreFromStorage = (
 };
 
 const applyGrantDefaults = (getValues: any, setValue: (name: any, value: any) => void) => {
-  if (getValues('articleType') === 'grant' && !getValues('applicationDeadline')) {
+  if (getValues('articleType') === 'grant') {
     setValue('applicationDeadline', new Date('2029-12-31'));
   }
 };
