@@ -4,9 +4,7 @@ import { useState, useEffect } from 'react';
 import { Loader2, Copy, Check } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { WalletService } from '@/services/wallet.service';
-import { NetworkType, NETWORK_CONFIG } from '@/constants/tokens';
 import { Alert } from '@/components/ui/Alert';
-import { NetworkSelectorSection } from './shared/NetworkSelectorSection';
 import toast from 'react-hot-toast';
 import { useCopyAddress } from '@/hooks/useCopyAddress';
 
@@ -16,13 +14,10 @@ interface DepositModalProps {
 }
 
 export function DepositModal({ isOpen, onClose }: DepositModalProps) {
-  const [selectedNetwork, setSelectedNetwork] = useState<NetworkType>('BASE');
   const [depositAddress, setDepositAddress] = useState<string | null>(null);
   const [isLoadingDepositAddress, setIsLoadingDepositAddress] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { isCopied, copyAddress } = useCopyAddress();
-
-  const networkConfig = NETWORK_CONFIG[selectedNetwork];
 
   // Fetch deposit address when modal opens (lazy wallet provisioning)
   useEffect(() => {
@@ -46,7 +41,6 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedNetwork('BASE');
       setError(null);
     }
   }, [isOpen]);
@@ -60,22 +54,10 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
       className="md:!w-[500px]"
     >
       <div className="space-y-6">
-        {/* Network Selector */}
-        <NetworkSelectorSection
-          selectedNetwork={selectedNetwork}
-          onNetworkChange={setSelectedNetwork}
-          disabled={false}
-          showDescription={false}
-          customBadges={{
-            BASE: 'Recommended',
-            ETHEREUM: 'Higher Fees',
-          }}
-        />
-
         {/* Instructions */}
         <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
           <p className="text-sm text-blue-800">
-            Send RSC to the address below on the <strong>{networkConfig.name}</strong> network. Your
+            Send RSC to the address below. We recommend using the Base network for lower fees. Your
             deposit will appear in your balance within 10-20 minutes.
           </p>
         </div>
@@ -135,8 +117,7 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
         {/* Warning */}
         <Alert variant="warning">
           <div className="font-medium">
-            Only send RSC tokens on the {networkConfig.name} network to this address. Sending other
-            tokens or using the wrong network may result in permanent loss.
+            Only send RSC tokens to this address. Sending other tokens may result in permanent loss.
           </div>
         </Alert>
       </div>
