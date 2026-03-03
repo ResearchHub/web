@@ -20,14 +20,12 @@ import { ApolloProvider } from '@/components/providers/ApolloProvider';
 import { usePreferences } from '@/contexts/PreferencesContext';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 import { useUser } from '@/contexts/UserContext';
-import { useSearchParams } from 'next/navigation';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { useFeedTabs } from '@/hooks/useFeedTabs';
 
 function FeedContent() {
-  const { user, isLoading: isUserLoading } = useUser();
+  const { isLoading: isUserLoading } = useUser();
   const { preferences } = usePreferences();
-  const searchParams = useSearchParams();
   const [isNavigating, setIsNavigating] = useState(false);
 
   const {
