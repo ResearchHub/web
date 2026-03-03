@@ -255,10 +255,7 @@ function FeedContent() {
           </span>
         </div>
         <p className="text-gray-600">
-          {preferences?.completedAt &&
-          new Date(preferences.completedAt).getTime() > Date.now() - 60000
-            ? 'Your personalized feed is ready based on your interests.'
-            : 'Discover the latest research papers from leading preprint servers'}
+          Discover the latest research papers from leading preprint servers
         </p>
       </div>
 

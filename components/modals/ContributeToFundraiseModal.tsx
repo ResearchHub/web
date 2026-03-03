@@ -31,8 +31,6 @@ import { EndaomentProvider } from '@/contexts/EndaomentContext';
 import { DepositRSCView } from './DepositRSCView';
 import { BuyModal } from './ResearchCoin/BuyModal';
 import AuthContent from '@/components/Auth/AuthContent';
-import { UserService } from '@/services/user.service';
-
 interface ContributeToFundraiseModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -200,10 +198,6 @@ function ContributeToFundraiseModalInner({
   }, [user, fundraise.id, amountUsd, amountInRsc]);
 
   const handleAuthSuccess = useCallback(async () => {
-    // Skip onboarding for users who sign up through the fundraise flow
-    await UserService.setCompletedOnboarding();
-
-    // Track funnel step: user reached payment step after auth
     AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP, {
       fundraise_id: fundraise.id,
       amount_usd: amountUsd,

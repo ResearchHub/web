@@ -40,27 +40,6 @@ export class UserService {
   }
 
   /**
-   * Mark a user as having completed the onboarding process
-   */
-  static async setCompletedOnboarding(): Promise<void> {
-    try {
-      await ApiClient.patch(`/api/user/has_completed_onboarding/`, {});
-    } catch (error) {
-      console.error('Error setting onboarding as completed:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Check if the user should be redirected to onboarding
-   * @param user The current user object
-   * @returns Boolean indicating if the user should be redirected to onboarding
-   */
-  static shouldRedirectToOnboarding(user: User | null): boolean {
-    return false;
-  }
-
-  /**
    * Search for universities by name
    * @param search The search query for university name
    * @returns Array of universities matching the search
