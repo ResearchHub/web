@@ -45,20 +45,22 @@ export default async function FundGrantPage({ params }: Props) {
       }
     >
       <div>
-        {grant?.description ? (
-          <GrantDetailsCallout
-            description={grant.description}
-            content={work.previewContent}
-            amountUsd={amountUsd}
-            grantId={grantId?.toString()}
-            isActive={isActive}
-          />
-        ) : (
-          <p className="mt-4 text-gray-500">No content available</p>
-        )}
-
         <FundraiseProvider grantId={grantId ? Number(grantId) : undefined}>
-          <FundingProposalGrid className="mt-6" />
+          <FundingProposalGrid
+            belowNavContent={
+              grant?.description ? (
+                <GrantDetailsCallout
+                  description={grant.description}
+                  content={work.previewContent}
+                  amountUsd={amountUsd}
+                  grantId={grantId?.toString()}
+                  isActive={isActive}
+                />
+              ) : (
+                <p className="text-gray-500">No content available</p>
+              )
+            }
+          />
         </FundraiseProvider>
       </div>
     </PageLayout>

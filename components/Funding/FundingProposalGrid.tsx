@@ -11,11 +11,16 @@ import { cn } from '@/utils/styles';
 
 interface FundingProposalGridProps {
   className?: string;
+  /** Content rendered between the tab navigation and the proposal list */
+  belowNavContent?: React.ReactNode;
 }
 
 const SKELETON_COUNT = 5;
 
-export const FundingProposalGrid: FC<FundingProposalGridProps> = ({ className }) => {
+export const FundingProposalGrid: FC<FundingProposalGridProps> = ({
+  className,
+  belowNavContent,
+}) => {
   const { entries, isLoading, isLoadingMore, hasMore, loadMore } = useFundraises();
   const pathname = usePathname();
   const isGrantDetail = pathname.startsWith('/fund/grant/');
@@ -36,6 +41,8 @@ export const FundingProposalGrid: FC<FundingProposalGridProps> = ({ className })
       <div className="mb-6">
         <FundingGrantTabs />
       </div>
+
+      {belowNavContent && <div className="mb-4">{belowNavContent}</div>}
 
       {isGrantDetail && (
         <p className="text-sm text-gray-600 mb-4">
