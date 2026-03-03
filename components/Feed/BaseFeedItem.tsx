@@ -348,9 +348,25 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
         />
       )}
       {/* Main Content Card */}
-      <CardWrapper href={href} isClickable={isClickable} onClick={handleClick} entryId={entryIdKey}>
-        <div className={cn('flex', cardImage && 'md:!flex-row flex-col')}>
-          <div className="flex-1 min-w-0">
+      <div
+        className={cn(
+          'flex',
+          cardImage &&
+            'md:!flex-row flex-col md:rounded-lg md:shadow-sm md:hover:shadow-md md:transition-all md:duration-200'
+        )}
+      >
+        <CardWrapper
+          href={href}
+          isClickable={isClickable}
+          onClick={handleClick}
+          entryId={entryIdKey}
+          className={
+            cardImage
+              ? 'md:!border-r-0 md:!rounded-r-none md:!shadow-none md:hover:!shadow-none'
+              : undefined
+          }
+        >
+          <div className={cn(cardImage && 'md:pr-6')}>
             <div className="p-4">
               {children}
               {showBountyInfo ? (
@@ -386,7 +402,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
             </div>
             {calloutSection && (
               <div
-                className="border-t border-b border-gray-200 px-4 py-2.5 cursor-default"
+                className="border-t border-b border-gray-200 px-4 pr-0 py-2 cursor-default"
                 onMouseDown={(e) => e.stopPropagation()}
                 onKeyDown={(e) => e.stopPropagation()}
                 onClick={(e) => e.stopPropagation()}
@@ -434,13 +450,13 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               </div>
             )}
           </div>
-          {cardImage && (
-            <div className="hidden md:!block flex-shrink-0 w-[260px] relative overflow-hidden rounded-r-lg border-l border-gray-200">
-              {cardImage}
-            </div>
-          )}
-        </div>
-      </CardWrapper>
+        </CardWrapper>
+        {cardImage && (
+          <div className="hidden md:!block flex-shrink-0 w-[220px] relative overflow-hidden rounded-r-lg border border-l-0 border-gray-200 bg-white hover:border-indigo-100 transition-all duration-200">
+            {cardImage}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

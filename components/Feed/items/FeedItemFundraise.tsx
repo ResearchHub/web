@@ -158,7 +158,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         <Button
           variant="default"
           size="sm"
-          className="flex-shrink-0 rounded-md w-[280px] max-w-[33%] hidden md:!inline-flex"
+          className="flex-shrink-0 rounded-none w-[220px] hidden md:!inline-flex !h-auto self-stretch -my-[calc(0.5rem+1px)]"
           onClick={() => setIsContributeModalOpen(true)}
         >
           Fund this research
@@ -196,11 +196,18 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         hideReportButton={true}
         cardImage={
           imageUrl && (
-            <ImageSection
-              imageUrl={imageUrl}
-              alt={post.title || 'Fundraise image'}
-              naturalDimensions
-            />
+            <div className="relative w-full h-full">
+              <ImageSection
+                imageUrl={imageUrl}
+                alt={post.title || 'Fundraise image'}
+                naturalDimensions
+              />
+              {isNonprofit && (
+                <div className="absolute bottom-2 left-2 z-10">
+                  <TaxDeductibleBadge size="xs" />
+                </div>
+              )}
+            </div>
           )
         }
         calloutSection={callout || undefined}
@@ -222,7 +229,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             )
           }
           rightContent={null}
-          leftContent={isNonprofit ? <TaxDeductibleBadge /> : null}
+          leftContent={null}
         />
 
         <div className="mt-[-7px]">
