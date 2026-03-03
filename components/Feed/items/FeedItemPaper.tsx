@@ -3,17 +3,15 @@
 import { FC } from 'react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
-import { FeedPaperContent, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
+import { FeedPaperContent, FeedEntry } from '@/types/feed';
 import {
   BaseFeedItem,
   TitleSection,
   ImageSection,
   MetadataSection,
-  FeedItemLayout,
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
 import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
-import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
 import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -70,13 +68,6 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   const journalName = paper.journal?.name;
   const actionText = journalName ? `published in ${journalName}` : 'published in a journal';
 
-  // Extract props for FeedItemMenuButton (same as BaseFeedItem uses for FeedItemActions)
-  const feedContentType = paper.contentType || 'PAPER';
-  const votableEntityId = paper.id;
-  const relatedDocumentId =
-    'relatedDocumentId' in paper ? paper.relatedDocumentId?.toString() : paper.id.toString();
-  const relatedDocumentContentType = mapFeedContentTypeToContentType(paper.contentType);
-
   // Only show journal badge for specific preprint servers
   const ALLOWED_JOURNALS = ['biorxiv', 'arxiv', 'medrxiv', 'chemrxiv'];
   const journalSlugLower = paper.journal?.slug?.toLowerCase() || '';
@@ -98,6 +89,23 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
       onFeedItemClick={onFeedItemClick}
       showBountyInfo={showBountyInfo}
       hideReportButton={true}
+      cardImage={
+        thumbnailUrl ? (
+          <ImageSection
+            imageUrl={thumbnailUrl}
+            alt={paper.title || 'Paper image'}
+            naturalDimensions={true}
+          />
+        ) : undefined
+      }
+      badges={
+        <FeedItemBadges
+          journal={filteredJournal}
+          category={paper.category}
+          subcategory={paper.subcategory}
+          topics={paper.topics}
+        />
+      }
     >
       {/* Top section with badges and mobile image (hide PDF previews on mobile) */}
       <FeedItemTopSection
@@ -115,107 +123,76 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
           )
         }
         rightContent={
-          <div className="flex items-center gap-2">
-            {isDebugMode && entry.hotScoreV2 !== undefined && entry.hotScoreV2 > 0 && (
-              <Tooltip
-                content={
-                  <PopularityScoreTooltip
-                    score={entry.hotScoreV2}
-                    breakdown={entry.hotScoreBreakdown}
-                  />
-                }
-                width="w-72"
-                position="bottom"
-              >
-                <div className="flex items-center gap-1 text-blue-600 cursor-help hover:text-blue-700 transition-colors">
-                  <Image
-                    src="/icons/flaskVector.svg"
-                    alt="Popularity Score"
-                    width={16}
-                    height={16}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm font-medium">{Math.round(entry.hotScoreV2)}</span>
-                </div>
-              </Tooltip>
-            )}
-            <FeedItemMenuButton
-              feedContentType={feedContentType}
-              votableEntityId={votableEntityId}
-              relatedDocumentId={relatedDocumentId}
-              relatedDocumentContentType={relatedDocumentContentType}
-              relatedDocumentUnifiedDocumentId={paper.unifiedDocumentId}
-            />
-          </div>
+          isDebugMode && entry.hotScoreV2 !== undefined && entry.hotScoreV2 > 0 ? (
+            <Tooltip
+              content={
+                <PopularityScoreTooltip
+                  score={entry.hotScoreV2}
+                  breakdown={entry.hotScoreBreakdown}
+                />
+              }
+              width="w-72"
+              position="bottom"
+            >
+              <div className="flex items-center gap-1 text-blue-600 cursor-help hover:text-blue-700 transition-colors">
+                <Image
+                  src="/icons/flaskVector.svg"
+                  alt="Popularity Score"
+                  width={16}
+                  height={16}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm font-medium">{Math.round(entry.hotScoreV2)}</span>
+              </div>
+            </Tooltip>
+          ) : null
         }
-        leftContent={
-          <FeedItemBadges
-            journal={filteredJournal}
-            category={paper.category}
-            subcategory={paper.subcategory}
-            topics={paper.topics}
-          />
-        }
+        leftContent={null}
       />
       {/* Main content layout with desktop image */}
-      <FeedItemLayout
-        leftContent={
-          <>
-            {/* Title */}
-            <TitleSection
-              title={paper.title}
-              highlightedTitle={highlightedTitle}
-              href={paperPageUrl}
-              onClick={onFeedItemClick}
-            />
+      {/* Title */}
+      <TitleSection
+        title={paper.title}
+        highlightedTitle={highlightedTitle}
+        href={paperPageUrl}
+        onClick={onFeedItemClick}
+      />
 
-            {/* Authors and Date */}
-            <MetadataSection className="mb-1">
-              <div className="flex items-center flex-wrap text-base">
-                {paper.authors.length > 0 && (
-                  <AuthorList
-                    authors={paper.authors.map((author) => ({
-                      name: author.fullName,
-                      verified: author.user?.isVerified,
-                      authorUrl: author.id === 0 ? undefined : author.profileUrl,
-                    }))}
-                    size="base"
-                    className="text-gray-500 font-normal text-sm"
-                    delimiter=","
-                    delimiterClassName="ml-0"
-                    showAbbreviatedInMobile={true}
-                    hideExpandButton={true}
-                  />
-                )}
-                {(entry.timestamp || paper.createdDate) && (
-                  <>
-                    {paper.authors.length > 0 && <span className="mx-2 text-gray-500">•</span>}
-                    <span className="text-gray-600 whitespace-nowrap text-sm">
-                      {formatTimestamp(entry.timestamp || paper.createdDate, false)}
-                    </span>
-                  </>
-                )}
-              </div>
-            </MetadataSection>
+      {/* Authors and Date */}
+      <MetadataSection className="mb-1">
+        <div className="flex items-center flex-wrap text-base">
+          {paper.authors.length > 0 && (
+            <AuthorList
+              authors={paper.authors.map((author) => ({
+                name: author.fullName,
+                verified: author.user?.isVerified,
+                authorUrl: author.id === 0 ? undefined : author.profileUrl,
+              }))}
+              size="base"
+              className="text-gray-500 font-normal text-sm"
+              delimiter=","
+              delimiterClassName="ml-0"
+              showAbbreviatedInMobile={true}
+              hideExpandButton={true}
+            />
+          )}
+          {(entry.timestamp || paper.createdDate) && (
+            <>
+              {paper.authors.length > 0 && <span className="mx-2 text-gray-500">•</span>}
+              <span className="text-gray-600 whitespace-nowrap text-sm">
+                {formatTimestamp(entry.timestamp || paper.createdDate, false)}
+              </span>
+            </>
+          )}
+        </div>
+      </MetadataSection>
 
-            <FeedItemAbstractSection
-              content={paper.textPreview}
-              highlightedContent={highlightedSnippet}
-              maxLength={maxLength}
-              className="mt-3"
-              onAbstractExpanded={onAbstractExpanded}
-            />
-          </>
-        }
-        rightContent={
-          thumbnailUrl && (
-            <ImageSection
-              imageUrl={thumbnailUrl}
-              alt={paper.title || 'Paper image'}
-              naturalDimensions={true}
-            />
-          )
-        }
+      <FeedItemAbstractSection
+        content={paper.textPreview}
+        highlightedContent={highlightedSnippet}
+        maxLength={maxLength}
+        className="mt-3"
+        onAbstractExpanded={onAbstractExpanded}
       />
     </BaseFeedItem>
   );

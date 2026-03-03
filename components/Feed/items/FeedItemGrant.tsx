@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { FeedEntry, FeedGrantContent, mapFeedContentTypeToContentType } from '@/types/feed';
+import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import {
   BaseFeedItem,
   TitleSection,
@@ -11,7 +11,6 @@ import {
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
 import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
-import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
 import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { GrantInfo } from '@/components/Fund/GrantInfo';
 import { AuthorList } from '@/components/ui/AuthorList';
@@ -65,17 +64,6 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
       contentType: 'funding_request',
     });
 
-  // Extract props for FeedItemMenuButton (same as BaseFeedItem uses for FeedItemActions)
-  const feedContentType = grant.contentType || 'GRANT';
-  const votableEntityId = grant.id;
-  const relatedDocumentId =
-    'relatedDocumentId' in grant ? grant.relatedDocumentId?.toString() : grant.id.toString();
-  const relatedDocumentContentType =
-    // 'relatedDocumentContentType' in grant
-    // ? grant.relatedDocumentContentType
-    // :
-    mapFeedContentTypeToContentType(grant.contentType);
-
   return (
     <BaseFeedItem
       entry={entry}
@@ -88,6 +76,13 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
       showHeader={showHeader}
       onFeedItemClick={onFeedItemClick}
       hideReportButton={true}
+      badges={
+        <FeedItemBadges
+          topics={grant.topics}
+          category={grant.category}
+          subcategory={grant.subcategory}
+        />
+      }
     >
       {/* Top section with badges and status + image(mobile) */}
       <FeedItemTopSection
@@ -100,22 +95,8 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             />
           )
         }
-        rightContent={
-          <FeedItemMenuButton
-            feedContentType={feedContentType}
-            votableEntityId={votableEntityId}
-            relatedDocumentId={relatedDocumentId}
-            relatedDocumentContentType={relatedDocumentContentType}
-            relatedDocumentUnifiedDocumentId={grant.unifiedDocumentId}
-          />
-        }
-        leftContent={
-          <FeedItemBadges
-            topics={grant.topics}
-            category={grant.category}
-            subcategory={grant.subcategory}
-          />
-        }
+        rightContent={null}
+        leftContent={null}
       />
 
       {/* Main content layout + image(desktop) */}

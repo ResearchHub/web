@@ -37,6 +37,8 @@ export interface BaseFeedItemProps {
   showPeerReviews?: boolean;
   showBountyInfo?: boolean;
   hideReportButton?: boolean;
+  badges?: ReactNode;
+  cardImage?: ReactNode;
 }
 
 // Badge component interface
@@ -262,6 +264,8 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   showPeerReviews = true,
   showBountyInfo,
   hideReportButton = false,
+  badges,
+  cardImage,
 }) => {
   const content = entry.content;
   const author = content.createdBy;
@@ -343,79 +347,87 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
       )}
       {/* Main Content Card */}
       <CardWrapper href={href} isClickable={isClickable} onClick={handleClick} entryId={entryIdKey}>
-        <div className="p-4">
-          {children}
-          {/* BountyInfoSummary */}
-          {showBountyInfo ? (
-            openBounties.length === 1 ? (
+        <div className={cn('flex', cardImage && 'md:!flex-row flex-col')}>
+          <div className="flex-1 min-w-0">
+            <div className="p-4">
+              {children}
+              {showBountyInfo ? (
+                openBounties.length === 1 ? (
+                  <div
+                    className="mt-4"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <BountyInfo
+                      bounty={openBounties[0]}
+                      relatedWork={entry.relatedWork}
+                      onAddSolutionClick={handleAddSolutionClick}
+                      className="bg-orange-50 border-orange-200"
+                    />
+                  </div>
+                ) : openBounties.length > 0 ? (
+                  <div
+                    className="mt-4"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <BountyInfoSummary
+                      bounties={openBounties}
+                      onDetailsClick={handleBountyDetailsClick}
+                    />
+                  </div>
+                ) : null
+              ) : null}
+            </div>
+            {badges && <div className="px-4 pb-1">{badges}</div>}
+            {showActions && (
               <div
-                className="mt-4"
+                className="px-4 py-2 cursor-default"
                 onMouseDown={(e) => e.stopPropagation()}
                 onKeyDown={(e) => e.stopPropagation()}
                 onClick={(e) => e.stopPropagation()}
               >
-                <BountyInfo
-                  bounty={openBounties[0]}
-                  relatedWork={entry.relatedWork}
-                  onAddSolutionClick={handleAddSolutionClick}
-                  className="bg-orange-50 border-orange-200"
+                <FeedItemActions
+                  metrics={entry.metrics}
+                  feedContentType={
+                    content.contentType ? (content.contentType as FeedContentType) : 'COMMENT'
+                  }
+                  votableEntityId={content.id}
+                  relatedDocumentId={
+                    'relatedDocumentId' in content
+                      ? content.relatedDocumentId?.toString()
+                      : content.id.toString()
+                  }
+                  relatedDocumentContentType={
+                    'relatedDocumentContentType' in content
+                      ? content.relatedDocumentContentType
+                      : mapFeedContentTypeToContentType(content.contentType)
+                  }
+                  userVote={entry.userVote}
+                  showTooltips={showTooltips}
+                  href={href}
+                  reviews={content.reviews}
+                  relatedDocumentTopics={'topics' in content ? content.topics : undefined}
+                  relatedDocumentUnifiedDocumentId={
+                    'unifiedDocumentId' in content ? content.unifiedDocumentId : undefined
+                  }
+                  showPeerReviews={showPeerReviews}
+                  onFeedItemClick={onFeedItemClick}
+                  bounties={showBountyInfo ? undefined : content.bounties}
+                  hideReportButton={hideReportButton}
+                  hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
                 />
               </div>
-            ) : openBounties.length > 0 ? (
-              <div
-                className="mt-4"
-                onMouseDown={(e) => e.stopPropagation()}
-                onKeyDown={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <BountyInfoSummary
-                  bounties={openBounties}
-                  onDetailsClick={handleBountyDetailsClick}
-                />
-              </div>
-            ) : null
-          ) : null}
-        </div>
-        {/* Action Buttons */}
-        {showActions && (
-          <div
-            className="px-4 py-2 border-t border-gray-200 bg-gray-50 cursor-default"
-            onMouseDown={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <FeedItemActions
-              metrics={entry.metrics}
-              feedContentType={
-                content.contentType ? (content.contentType as FeedContentType) : 'COMMENT'
-              }
-              votableEntityId={content.id}
-              relatedDocumentId={
-                'relatedDocumentId' in content
-                  ? content.relatedDocumentId?.toString()
-                  : content.id.toString()
-              }
-              relatedDocumentContentType={
-                'relatedDocumentContentType' in content
-                  ? content.relatedDocumentContentType
-                  : mapFeedContentTypeToContentType(content.contentType)
-              }
-              userVote={entry.userVote}
-              showTooltips={showTooltips}
-              href={href}
-              reviews={content.reviews}
-              relatedDocumentTopics={'topics' in content ? content.topics : undefined}
-              relatedDocumentUnifiedDocumentId={
-                'unifiedDocumentId' in content ? content.unifiedDocumentId : undefined
-              }
-              showPeerReviews={showPeerReviews}
-              onFeedItemClick={onFeedItemClick}
-              bounties={showBountyInfo ? undefined : content.bounties}
-              hideReportButton={hideReportButton}
-              hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
-            />
+            )}
           </div>
-        )}
+          {cardImage && (
+            <div className="hidden md:!block flex-shrink-0 w-[280px] max-w-[33%] relative overflow-hidden border-l border-gray-200">
+              {cardImage}
+            </div>
+          )}
+        </div>
       </CardWrapper>
     </div>
   );

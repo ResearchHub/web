@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState, ReactNode, useEffect } from 'react';
+import { FC, useState, ReactNode, useEffect, useContext } from 'react';
 import React from 'react';
 import { FeedContentType, Review } from '@/types/feed';
 import {
@@ -12,6 +12,7 @@ import {
   ArrowDown,
   Maximize2,
   Bookmark,
+  Trash2,
 } from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
@@ -40,6 +41,9 @@ import { TipTooltip } from '@/components/tooltips/TipTooltip';
 import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
 import { Tip } from '@/types/tip';
 import { formatCurrency } from '@/utils/currency';
+import { ListDetailContext } from '@/components/UserList/lib/user-list';
+import { toast } from 'react-hot-toast';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -220,6 +224,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
+  const listDetailContext = useContext(ListDetailContext);
   const [localVoteCount, setLocalVoteCount] = useState(
     metrics?.adjustedScore ?? metrics?.votes ?? 0
   );
@@ -359,6 +364,21 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   const handleCloseAddToListModal = () => {
     setIsAddToListModalOpen(false);
+  };
+
+  const handleRemoveFromList = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    if (!listDetailContext || !relatedDocumentUnifiedDocumentId) {
+      return;
+    }
+    setIsMenuOpen(false);
+    try {
+      await listDetailContext.onRemoveItem(Number.parseInt(relatedDocumentUnifiedDocumentId));
+    } catch (error) {
+      toast.error(extractApiErrorMessage(error, 'Failed to remove from list'));
+    }
   };
 
   const handleReport = (e?: React.MouseEvent) => {
@@ -718,51 +738,56 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
         <div className="flex-grow flex justify-end items-center gap-3">
           {rightSideActionButton}
 
-          {(!hideReportButton || menuItems.length > 0) && (
-            <BaseMenu
-              trigger={
-                <Button
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                  variant="ghost"
-                  size="sm"
-                  className="flex items-center text-gray-400 hover:text-gray-600"
-                >
-                  <MoreHorizontal className="w-5 h-5" />
-                </Button>
-              }
-              align="end"
-              open={isMenuOpen}
-              onOpenChange={setIsMenuOpen}
-            >
-              {menuItems.map((item, index) => (
-                <BaseMenuItem
-                  key={`menu-item-${index}`}
-                  onClick={(e) => {
-                    setIsMenuOpen(false); // Close dropdown when any menu item is clicked
-                    item.onClick(e);
-                  }}
-                  className={cn('flex items-center gap-2', item.className)} // Apply potential class for color
-                >
-                  {item.icon && <item.icon className="w-4 h-4" />}
-                  <span>{item.label}</span>
-                </BaseMenuItem>
-              ))}
+          <BaseMenu
+            trigger={
+              <Button
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+                variant="ghost"
+                size="sm"
+                className="flex items-center text-gray-400 hover:text-gray-600"
+              >
+                <MoreHorizontal className="w-5 h-5" />
+              </Button>
+            }
+            align="end"
+            open={isMenuOpen}
+            onOpenChange={setIsMenuOpen}
+          >
+            {listDetailContext && relatedDocumentUnifiedDocumentId && (
+              <BaseMenuItem onClick={handleRemoveFromList} className="flex items-center gap-2">
+                <Trash2 className="w-4 h-4" />
+                <span>Remove from list</span>
+              </BaseMenuItem>
+            )}
 
-              {showSeparator && <div className="h-px my-1 bg-gray-200" />}
+            {menuItems.map((item, index) => (
+              <BaseMenuItem
+                key={`menu-item-${index}`}
+                onClick={(e) => {
+                  setIsMenuOpen(false);
+                  item.onClick(e);
+                }}
+                className={cn('flex items-center gap-2', item.className)}
+              >
+                {item.icon && <item.icon className="w-4 h-4" />}
+                <span>{item.label}</span>
+              </BaseMenuItem>
+            ))}
 
-              {!hideReportButton && (
-                <BaseMenuItem onClick={handleReport} className="flex items-center gap-2">
-                  <Flag className="w-4 h-4" />
-                  <span>{actionLabels?.report || 'Report'}</span>
-                </BaseMenuItem>
-              )}
-            </BaseMenu>
-          )}
+            {showSeparator && <div className="h-px my-1 bg-gray-200" />}
+
+            {!hideReportButton && (
+              <BaseMenuItem onClick={handleReport} className="flex items-center gap-2">
+                <Flag className="w-4 h-4" />
+                <span>{actionLabels?.report || 'Report'}</span>
+              </BaseMenuItem>
+            )}
+          </BaseMenu>
         </div>
       </div>
 

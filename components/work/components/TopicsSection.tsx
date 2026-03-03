@@ -2,7 +2,7 @@
 
 import { ChevronDown } from 'lucide-react';
 import { useState, useMemo } from 'react';
-import { TopicAndJournalBadge } from '@/components/ui/TopicAndJournalBadge';
+import { HashtagBadge } from '@/components/ui/badges/HashtagBadge';
 import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
 
@@ -20,40 +20,30 @@ interface TopicsSectionProps {
 export const TopicsSection = ({ topics }: TopicsSectionProps) => {
   const [showAllTopics, setShowAllTopics] = useState(false);
 
-  // Sort topics: lowest-id category first, lowest-id subcategory second, then the rest
   const sortedTopics = useMemo(() => {
     const filtered = topics.filter((topic) => !EXCLUDED_TOPIC_SLUGS.includes(topic.slug));
 
-    // Find the category and subcategory with the lowest ids
     const categories = filtered.filter((t) => t.namespace === 'category');
     const subcategories = filtered.filter((t) => t.namespace === 'subcategory');
     const others = filtered.filter(
       (t) => t.namespace !== 'category' && t.namespace !== 'subcategory'
     );
 
-    // Sort each group by id to get the lowest
     categories.sort((a, b) => Number(a.id) - Number(b.id));
     subcategories.sort((a, b) => Number(a.id) - Number(b.id));
 
     const result: Topic[] = [];
 
-    // Add the lowest-id category first
     if (categories.length > 0) {
       result.push(categories[0]);
     }
 
-    // Add the lowest-id subcategory second
     if (subcategories.length > 0) {
       result.push(subcategories[0]);
     }
 
-    // Add remaining categories (excluding the first one already added)
     result.push(...categories.slice(1));
-
-    // Add remaining subcategories (excluding the first one already added)
     result.push(...subcategories.slice(1));
-
-    // Add all other topics
     result.push(...others);
 
     return result;
@@ -67,11 +57,14 @@ export const TopicsSection = ({ topics }: TopicsSectionProps) => {
   return (
     <section>
       <SidebarHeader title="Topics" className="mb-3" />
-      {/* Show the same topics UI across breakpoints (do not hide on mobile) */}
       <div className="space-y-3">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           {displayedTopics.map((topic) => (
-            <TopicAndJournalBadge key={topic.id} name={topic.name} slug={topic.slug} size="md" />
+            <HashtagBadge
+              key={topic.id}
+              label={topic.slug || topic.name}
+              href={`/topic/${topic.slug}`}
+            />
           ))}
         </div>
         {hasMoreTopics && (

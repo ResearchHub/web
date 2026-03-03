@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { FeedPostContent, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
+import { FeedPostContent, FeedEntry } from '@/types/feed';
 import {
   BaseFeedItem,
   TitleSection,
@@ -11,7 +11,6 @@ import {
   FeedItemLayout,
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
-import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
 import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
@@ -90,17 +89,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
     router.push(fundingPageUrl);
   };
 
-  // Extract props for FeedItemMenuButton (same as BaseFeedItem uses for FeedItemActions)
-  const feedContentType = post.contentType || 'PREREGISTRATION';
-  const votableEntityId = post.id;
-  const relatedDocumentId =
-    'relatedDocumentId' in post ? post.relatedDocumentId?.toString() : post.id.toString();
-  const relatedDocumentContentType =
-    // 'relatedDocumentContentType' in post
-    // ? post.relatedDocumentContentType
-    // :
-    mapFeedContentTypeToContentType(post.contentType);
-
   return (
     <BaseFeedItem
       entry={entry}
@@ -115,6 +103,9 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       showBountyInfo={showBountyInfo}
       showHeader={showHeader}
       hideReportButton={true}
+      badges={
+        <FeedItemBadges topics={topics} category={post.category} subcategory={post.subcategory} />
+      }
     >
       {/* Pin icon in top right corner for pinned fundraises */}
       {isPinnedFundraise && (
@@ -134,25 +125,8 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             />
           )
         }
-        rightContent={
-          <FeedItemMenuButton
-            feedContentType={feedContentType}
-            votableEntityId={votableEntityId}
-            relatedDocumentId={relatedDocumentId}
-            relatedDocumentContentType={relatedDocumentContentType}
-            relatedDocumentUnifiedDocumentId={post.unifiedDocumentId}
-          />
-        }
-        leftContent={
-          <div className="flex items-center gap-2">
-            {isNonprofit && <TaxDeductibleBadge />}
-            <FeedItemBadges
-              topics={topics}
-              category={post.category}
-              subcategory={post.subcategory}
-            />
-          </div>
-        }
+        rightContent={null}
+        leftContent={isNonprofit ? <TaxDeductibleBadge /> : null}
       />
 
       {/* Main content layout with desktop image */}

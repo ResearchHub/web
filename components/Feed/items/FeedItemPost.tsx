@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { FeedPostContent, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
+import { FeedPostContent, FeedEntry } from '@/types/feed';
 import {
   BaseFeedItem,
   TitleSection,
@@ -11,7 +11,6 @@ import {
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
 import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
-import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
 import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { formatTimestamp } from '@/utils/date';
@@ -70,13 +69,6 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
       contentType: post.postType === 'QUESTION' ? 'question' : 'post',
     });
 
-  // Extract props for FeedItemMenuButton (same as BaseFeedItem uses for FeedItemActions)
-  const feedContentType = post.contentType || 'POST';
-  const votableEntityId = post.id;
-  const relatedDocumentId =
-    'relatedDocumentId' in post ? post.relatedDocumentId?.toString() : post.id.toString();
-  const relatedDocumentContentType = mapFeedContentTypeToContentType(post.contentType);
-
   return (
     <BaseFeedItem
       entry={entry}
@@ -102,15 +94,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
             />
           )
         }
-        rightContent={
-          <FeedItemMenuButton
-            feedContentType={feedContentType}
-            votableEntityId={votableEntityId}
-            relatedDocumentId={relatedDocumentId}
-            relatedDocumentContentType={relatedDocumentContentType}
-            relatedDocumentUnifiedDocumentId={post.unifiedDocumentId}
-          />
-        }
+        rightContent={null}
         leftContent={
           <FeedItemBadges
             topics={post.topics}
