@@ -113,22 +113,22 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
 
             {/* Info items */}
             <div className="space-y-4">
-              <div className="flex gap-3">
-                <Info className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-gray-600">
-                  Supports Base and Ethereum. We recommend Base for lower fees.
+              <div className="flex items-center gap-3">
+                <Info className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <p className="text-xs text-gray-600">
+                  Supports Base and Ethereum. Use Base for lower fees.
                 </p>
               </div>
-              <div className="flex gap-3">
-                <AlertTriangle className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-gray-600">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <p className="text-xs text-gray-600">
                   Only send RSC tokens to this address. Sending other tokens may result in permanent
                   loss.
                 </p>
               </div>
-              <div className="flex gap-3">
-                <Clock className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-gray-600">Allow 10-20 minutes for processing.</p>
+              <div className="flex items-center gap-3">
+                <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <p className="text-xs text-gray-600">Allow 10-20 minutes for processing.</p>
               </div>
             </div>
           </>
