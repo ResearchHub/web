@@ -1,59 +1,22 @@
 'use client';
 
-import { ReactNode, useState, Suspense, useEffect, useRef } from 'react';
-import { useMobileNavScroll } from '@/hooks/useMobileNavScroll';
+import { ReactNode } from 'react';
 import dynamic from 'next/dynamic';
-import { usePathname } from 'next/navigation';
-import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
+import { useMobileNavScroll } from '@/hooks/useMobileNavScroll';
 import { OnboardingModalWrapper } from '@/components/Onboarding/NewUserOnboarding';
 import { cn } from '@/lib/utils';
 import { ScrollContainerProvider } from '@/contexts/ScrollContainerContext';
 import { GrantProvider } from '@/contexts/GrantContext';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
-// Dynamically import sidebar components
-const LeftSidebar = dynamic(() => import('./LeftSidebar').then((mod) => mod.LeftSidebar), {
-  ssr: true,
-  loading: () => <div className="w-full h-screen bg-gray-100 animate-pulse"></div>,
-});
-
-const RightSidebar = dynamic(() => import('./RightSidebar').then((mod) => mod.RightSidebar), {
-  ssr: true,
-});
-
-const TopBar = dynamic(() => import('./TopBar').then((mod) => mod.TopBar), {
-  ssr: true,
-});
+import { usePageLayoutState } from './hooks/usePageLayoutState';
+import { TopBarContainer } from './components/TopBarContainer';
+import { MobileOverlay } from './components/MobileOverlay';
+import { LeftSidebarContainer } from './components/LeftSidebarContainer';
+import { RightSidebarContainer } from './components/RightSidebarContainer';
 
 const MobileBottomNav = dynamic(
   () => import('./MobileBottomNav').then((mod) => mod.MobileBottomNav),
-  {
-    ssr: false,
-  }
-);
-
-// Simple loading skeletons remain the same...
-const TopBarSkeleton = () => (
-  <div className="h-16 w-full border-b border-gray-200 bg-gray-50 animate-pulse"></div>
-);
-
-const RightSidebarSkeleton = () => (
-  <div className="p-4 pt-0">
-    <div className="mb-6 h-40 bg-gray-100 rounded-lg animate-pulse"></div>
-    <div className="space-y-2">
-      <div className="h-4 bg-gray-100 rounded w-1/2 animate-pulse"></div>
-      <div className="space-y-3">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-              <div className="h-4 bg-gray-200 rounded w-20"></div>
-            </div>
-            <div className="h-7 bg-gray-200 rounded-full w-16"></div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
+  { ssr: false }
 );
 
 interface PageLayoutProps {
@@ -69,45 +32,17 @@ export function PageLayout({
   className,
   sidebarContentClassName,
 }: PageLayoutProps) {
-  const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
-  const [showOverlay, setShowOverlay] = useState(false);
-  const [overlayVisible, setOverlayVisible] = useState(false);
-  const mainContentRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const pathname = usePathname();
-
-  // Mobile top nav scroll hide/show
-  const { isHidden: isMobileTopNavHidden } = useMobileNavScroll({
+  const {
     scrollContainerRef,
-  });
+    isLeftSidebarOpen,
+    isCompact,
+    showOverlay,
+    overlayVisible,
+    toggleLeftSidebar,
+    closeLeftSidebar,
+  } = usePageLayoutState();
 
-  const [isCompact, setIsCompact] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (scrollContainerRef.current) {
-        setIsCompact(scrollContainerRef.current.scrollTop > 100);
-      }
-    };
-
-    const container = scrollContainerRef.current;
-    if (container) {
-      container.addEventListener('scroll', handleScroll, { passive: true });
-      handleScroll();
-      return () => container.removeEventListener('scroll', handleScroll);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isLeftSidebarOpen) {
-      setShowOverlay(true);
-      setTimeout(() => setOverlayVisible(true), 0);
-    } else {
-      setOverlayVisible(false);
-      const timeout = setTimeout(() => setShowOverlay(false), 300);
-      return () => clearTimeout(timeout);
-    }
-  }, [isLeftSidebarOpen]);
+  const { isHidden: isMobileTopNavHidden } = useMobileNavScroll({ scrollContainerRef });
 
   return (
     <GrantProvider>
@@ -116,58 +51,17 @@ export function PageLayout({
           <div className="flex h-screen">
             <OnboardingModalWrapper />
 
-            {/* Fixed TopBar starting from LeftSidebar edge */}
-            <div
-              className={`fixed top-0 right-0 z-[60] tablet:!z-50 tablet:!bg-white
-                        left-0 tablet:!left-[240px] tablet:sidebar-compact:!left-[240px] tablet:max-sidebar-compact:!left-[70px]
-                        transition-transform duration-300 ease-in-out tablet:!transform-none
-                        ${isMobileTopNavHidden && !isLeftSidebarOpen ? '-translate-y-full' : 'translate-y-0'}`}
-            >
-              <Suspense fallback={<TopBarSkeleton />}>
-                <TopBar onMenuClick={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)} />
-              </Suspense>
-            </div>
+            <TopBarContainer
+              isMobileTopNavHidden={isMobileTopNavHidden}
+              isLeftSidebarOpen={isLeftSidebarOpen}
+              onMenuClick={toggleLeftSidebar}
+            />
 
-            {/* Mobile overlay */}
-            {showOverlay && (
-              <div
-                className={`fixed inset-0 bg-black ${
-                  overlayVisible ? 'opacity-50' : 'opacity-0'
-                } z-40 tablet:!hidden transition-opacity duration-300 ease-in-out`}
-                onClick={() => setIsLeftSidebarOpen(false)}
-              />
-            )}
+            <MobileOverlay show={showOverlay} visible={overlayVisible} onClose={closeLeftSidebar} />
 
-            {/* Left Sidebar Container (Sticky) */}
-            <div
-              className={`
-            tablet:!sticky tablet:!top-0 tablet:!h-screen bg-white border-r border-gray-200
-            z-50 tablet:!z-30
-            flex-shrink-0
+            <LeftSidebarContainer isOpen={isLeftSidebarOpen} isCompact={isCompact} />
 
-            transition-all duration-300 ease-in-out
-            tablet:!transition-none
-
-            tablet:!translate-x-0
-            tablet:sidebar-compact:!w-[240px]
-            tablet:max-sidebar-compact:!w-[70px]
-
-            fixed transition-all duration-150
-            ${isCompact ? 'top-[48px] h-[calc(100vh-48px)]' : 'top-[64px] h-[calc(100vh-64px)]'}
-            w-[240px]
-            ${isLeftSidebarOpen ? '!translate-x-0' : '!-translate-x-full'}
-
-            tablet:!block tablet:!w-[240px]
-          `}
-            >
-              <Suspense
-                fallback={<div className="w-full h-screen bg-gray-100 animate-pulse"></div>}
-              >
-                <LeftSidebar />
-              </Suspense>
-            </div>
-
-            {/* Center Content Area (Scrolling) */}
+            {/* Scrollable content area */}
             <div
               ref={scrollContainerRef}
               className={cn(
@@ -176,38 +70,21 @@ export function PageLayout({
               )}
             >
               <div className="flex mx-auto w-full max-w-[1180px]">
-                {/* Main Content */}
-                <main
-                  ref={mainContentRef}
-                  className="flex-1 min-w-0 px-4 tablet:!px-8 py-6 pb-20 tablet:!pb-4 mt-4"
-                >
-                  <div className={cn('w-full', 'max-w-full tablet:!max-w-[860px]', className)}>
+                <main className="flex-1 min-w-0 px-4 tablet:!px-8 py-6 pb-20 tablet:!pb-4 mt-4">
+                  <div className={cn('w-full max-w-full tablet:!max-w-[860px]', className)}>
                     {children}
                   </div>
                 </main>
 
-                {/* Right Sidebar (positioned relative to content) */}
                 {rightSidebar && (
-                  <aside
-                    className={`sticky top-10 overflow-y-auto mt-10
-                    lg:!block !hidden right-sidebar:!block w-80 flex-shrink-0 bg-gray-50 rounded-xl
-                    z-30 ${isCompact ? 'h-[calc(100vh-48px)]' : 'h-[calc(100vh-64px)]'}`}
-                  >
-                    <div className={cn('p-4 h-full', sidebarContentClassName)}>
-                      <Suspense fallback={<RightSidebarSkeleton />}>
-                        {pathname.startsWith('/paper/create') ? (
-                          <RHJRightSidebar showBanner={false} />
-                        ) : typeof rightSidebar === 'boolean' ? (
-                          <RightSidebar />
-                        ) : (
-                          rightSidebar
-                        )}
-                      </Suspense>
-                    </div>
-                  </aside>
+                  <RightSidebarContainer
+                    rightSidebar={rightSidebar}
+                    isCompact={isCompact}
+                    contentClassName={sidebarContentClassName}
+                  />
                 )}
               </div>
-              {/* Mobile Bottom Navigation */}
+
               <MobileBottomNav />
             </div>
           </div>
