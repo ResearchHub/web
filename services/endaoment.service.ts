@@ -78,7 +78,7 @@ function transformEndaomentFund(raw: Record<string, any>): EndaomentFund {
     name: raw.name,
     type: raw.type,
     description: raw.description,
-    usdcBalance: microsToDollars(getAvailableBalance(raw.usdcBalance, raw.lifetimeDonationsUsdc)),
+    usdcBalance: microsToDollars(raw.availableBalance),
   };
 }
 
