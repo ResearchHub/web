@@ -58,6 +58,18 @@ function microsToDollars(micros: string | number): string {
 }
 
 /**
+ * Calculates the effective available balance for a DAF.
+ * This accounts for pending transactions that aren't yet reflected in usdcBalance.
+ * It is needed because the Endaoment API's usdcBalance field does not account for pending donations.
+ */
+function getAvailableBalance(
+  usdcBalance: string,
+  lifetimeDonationsUsdc: string | undefined
+): number {
+  return Number(usdcBalance) - (Number(lifetimeDonationsUsdc) || 0);
+}
+
+/**
  * Transforms a raw Endaoment fund API response into an EndaomentFund.
  */
 function transformEndaomentFund(raw: Record<string, any>): EndaomentFund {
@@ -66,7 +78,7 @@ function transformEndaomentFund(raw: Record<string, any>): EndaomentFund {
     name: raw.name,
     type: raw.type,
     description: raw.description,
-    usdcBalance: microsToDollars(raw.usdcBalance),
+    usdcBalance: microsToDollars(getAvailableBalance(raw.usdcBalance, raw.lifetimeDonationsUsdc)),
   };
 }
 
