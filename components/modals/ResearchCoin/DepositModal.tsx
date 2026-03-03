@@ -1,13 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Loader2, Copy, Check } from 'lucide-react';
+import { Loader2, Copy, Check, Info, AlertTriangle, Clock } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { WalletService } from '@/services/wallet.service';
 import { Alert } from '@/components/ui/Alert';
 import toast from 'react-hot-toast';
 import { useCopyAddress } from '@/hooks/useCopyAddress';
+
+function truncateAddress(address: string): string {
+  return `${address.slice(0, 6)}...${address.slice(-6)}`;
+}
 
 interface DepositModalProps {
   isOpen: boolean;
@@ -52,82 +56,83 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
       onClose={onClose}
       title="Deposit RSC"
       padding="p-8"
-      className="md:!w-[500px]"
+      className="md:!w-[460px]"
     >
       <div className="space-y-6">
-        {/* Instructions */}
-        <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-          <p className="text-sm text-blue-800">
-            Send RSC to the address below. We recommend using the Base network for lower fees. Your
-            deposit will appear in your balance within 10-20 minutes.
-          </p>
-        </div>
-
-        {/* Deposit Address */}
-        <div className="space-y-2">
-          <span className="text-[15px] text-gray-700 font-medium">Your Deposit Address</span>
-
-          {isLoadingDepositAddress ? (
-            <div className="flex items-center justify-center py-6">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-              <span className="ml-2 text-sm text-gray-500">Loading deposit address...</span>
-            </div>
-          ) : error ? (
-            <Alert variant="error">
-              <div className="space-y-2">
-                <div>{error}</div>
-                <button
-                  onClick={() => {
-                    setDepositAddress(null);
-                    setError(null);
-                  }}
-                  className="text-sm font-medium underline"
-                >
-                  Retry
-                </button>
-              </div>
-            </Alert>
-          ) : depositAddress ? (
-            <div className="space-y-4">
-              <div className="flex justify-center">
-                <div className="p-3 bg-white rounded-lg border border-gray-200">
-                  <QRCodeCanvas value={depositAddress} size={180} />
-                </div>
-              </div>
-              <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <code className="text-sm text-gray-900 font-mono break-all flex-1">
-                    {depositAddress}
-                  </code>
-                  <button
-                    onClick={() => copyAddress(depositAddress)}
-                    className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                    type="button"
-                  >
-                    {isCopied ? (
-                      <>
-                        <Check className="h-4 w-4 text-green-500" />
-                        <span className="text-green-600">Copied</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-4 w-4" />
-                        <span>Copy</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        {/* Warning */}
-        <Alert variant="warning">
-          <div className="font-medium">
-            Only send RSC tokens to this address. Sending other tokens may result in permanent loss.
+        {/* QR Code */}
+        {isLoadingDepositAddress ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            <span className="ml-2 text-sm text-gray-500">Loading deposit address...</span>
           </div>
-        </Alert>
+        ) : error ? (
+          <Alert variant="error">
+            <div className="space-y-2">
+              <div>{error}</div>
+              <button
+                onClick={() => {
+                  setDepositAddress(null);
+                  setError(null);
+                }}
+                className="text-sm font-medium underline"
+              >
+                Retry
+              </button>
+            </div>
+          </Alert>
+        ) : depositAddress ? (
+          <>
+            <div className="flex justify-center">
+              <div className="p-4 bg-white rounded-2xl border border-gray-200">
+                <QRCodeCanvas value={depositAddress} size={200} />
+              </div>
+            </div>
+
+            {/* Address */}
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-gray-500">Your address</div>
+                <div className="text-base font-medium text-gray-900 font-mono">
+                  {truncateAddress(depositAddress)}
+                </div>
+              </div>
+              <button
+                onClick={() => copyAddress(depositAddress)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                type="button"
+              >
+                {isCopied ? (
+                  <Check className="h-5 w-5 text-green-500" />
+                ) : (
+                  <Copy className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+
+            <hr className="border-gray-200" />
+
+            {/* Info items */}
+            <div className="space-y-4">
+              <div className="flex gap-3">
+                <Info className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-gray-600">
+                  Supports Base and Ethereum. We recommend Base for lower fees.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <AlertTriangle className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-gray-600">
+                  Only send RSC tokens to this address. Sending other tokens may result in permanent
+                  loss.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Clock className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-gray-600">Allow 10-20 minutes for processing.</p>
+              </div>
+            </div>
+          </>
+        ) : null}
       </div>
     </BaseModal>
   );
