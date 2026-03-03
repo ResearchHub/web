@@ -1,14 +1,12 @@
 'use client';
 
 import { FC, useMemo, useEffect } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { Plus } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
-import { Tabs } from '@/components/ui/Tabs';
-import { CardTabs } from '@/components/ui/CardTabs';
+import { PillTabs } from '@/components/ui/PillTabs';
 import { useGrants } from '@/contexts/GrantContext';
 import { FeedGrantContent } from '@/types/feed';
-import { buildWorkUrl } from '@/utils/url';
 
 function formatCompactAmount(usd: number): string {
   if (usd >= 1_000_000) return `$${Math.round(usd / 1_000_000)}M`;
@@ -18,9 +16,7 @@ function formatCompactAmount(usd: number): string {
 
 export const FundingGrantTabs: FC = () => {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { grants, fetchGrants } = useGrants();
-  const useLegacyTabs = searchParams.get('exp') === 'tabs';
 
   useEffect(() => {
     fetchGrants();
@@ -32,85 +28,56 @@ export const FundingGrantTabs: FC = () => {
     return 'all';
   }, [pathname]);
 
-  const tabs = useMemo(() => {
-    const totalUsd = grants.reduce((sum, grant) => {
-      const content = grant.content as FeedGrantContent;
-      return sum + (content.grant.amount?.usd ?? 0);
-    }, 0);
+  const pillTabs = useMemo(() => {
+    const allTab = {
+      id: 'all',
+      label: 'All',
+      href: '/fund',
+    };
 
     const grantTabs = grants.map((grant) => {
       const content = grant.content as FeedGrantContent;
-      const proposalCount = content.grant.applicants?.length ?? 0;
       const amount = content.grant.amount?.usd;
       const amountFormatted = amount ? formatCompactAmount(amount) : null;
-      const grantDetailHref = buildWorkUrl({
-        id: content.id,
-        contentType: 'funding_request',
-        slug: content.slug,
-      });
       const tabHref = `/fund/grant/${content.id}`;
-
-      const subtitle =
-        proposalCount > 0
-          ? `${proposalCount} proposal${proposalCount !== 1 ? 's' : ''}`
-          : undefined;
 
       return {
         id: `grant-${content.id}`,
-        amount: amountFormatted,
-        title: content.grant.shortTitle,
-        subtitle,
+        label: (
+          <span className="flex items-center gap-1">
+            <span className="text-[10px] leading-none flex-shrink-0">🏆</span>
+            <span className="truncate">
+              {amountFormatted
+                ? `${content.grant.shortTitle} · ${amountFormatted}`
+                : content.grant.shortTitle}
+            </span>
+          </span>
+        ),
         href: tabHref,
-        variant: 'grant' as const,
       };
     });
-
-    const allTab = {
-      id: 'all',
-      amount: totalUsd > 0 ? formatCompactAmount(totalUsd) : null,
-      title: 'All',
-      href: '/fund',
-      variant: 'grant-summary' as const,
-    };
 
     return [allTab, ...grantTabs];
   }, [grants]);
 
   if (grants.length === 0) return null;
 
-  if (useLegacyTabs) {
-    const legacyTabs = tabs.map((t) => ({
-      id: t.id,
-      label: t.amount ? `${t.title} · ${t.amount}` : t.title,
-      href: t.href,
-    }));
-
-    return (
-      <div className="h-full [&_.text-sm]:!text-base">
-        <Tabs
-          tabs={legacyTabs}
-          activeTab={activeTab}
-          onTabChange={() => {}}
-          className="!border-b-0 h-full py-0"
-        />
-      </div>
-    );
-  }
-
   return (
-    <CardTabs
-      tabs={tabs}
-      activeTab={activeTab}
-      onTabChange={() => {}}
-      rightContent={
-        <Link
-          href="/fund/new"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-[13px] font-semibold text-white hover:bg-indigo-700 transition-colors whitespace-nowrap"
-        >
-          <Plus className="w-4 h-4" />
-          New Award
-        </Link>
-      }
-    />
+    <div className="flex items-center gap-1">
+      <PillTabs
+        tabs={pillTabs}
+        activeTab={activeTab}
+        onTabChange={() => {}}
+        size="md"
+        colorScheme="indigo"
+      />
+      <Link
+        href="/awards"
+        className="flex items-center justify-center p-2 text-indigo-600 hover:text-indigo-700 transition-colors flex-shrink-0"
+        title="Browse awards"
+      >
+        <LayoutGrid className="w-5 h-5" />
+      </Link>
+    </div>
   );
 };

@@ -43,7 +43,6 @@ export default async function FundGrantPage({ params }: Props) {
           <FundingSidebarServer grantId={grantId} grantTitle={grantTitle} />
         </Suspense>
       }
-      scrollContainerClassName="pt-[108px]"
     >
       <div>
         {grant?.description ? (

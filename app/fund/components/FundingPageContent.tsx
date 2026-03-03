@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useGrants } from '@/contexts/GrantContext';
 import { GrantList } from '@/components/Funding/GrantList';
 import { GrantCarouselSkeleton } from '@/components/skeletons/GrantCarouselSkeleton';
+import { FundingGrantTabs } from '@/components/Funding/FundingGrantTabs';
 import { FeedEntry } from '@/types/feed';
 
 interface FundingPageContentProps {
@@ -31,13 +32,18 @@ export function FundingPageContent({
 
   const displayGrants = grants.length > 0 ? grants : initialGrants || [];
 
-  return isLoading && displayGrants.length === 0 ? (
-    <GrantCarouselSkeleton />
-  ) : (
-    <GrantList
-      grants={displayGrants}
-      closedGrants={closedGrants}
-      emptyMessage="No funding opportunities available right now."
-    />
+  return (
+    <>
+      <FundingGrantTabs />
+      {isLoading && displayGrants.length === 0 ? (
+        <GrantCarouselSkeleton />
+      ) : (
+        <GrantList
+          grants={displayGrants}
+          closedGrants={closedGrants}
+          emptyMessage="No funding opportunities available right now."
+        />
+      )}
+    </>
   );
 }

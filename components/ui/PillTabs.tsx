@@ -4,6 +4,7 @@ import { cn } from '@/utils/styles';
 import Link from 'next/link';
 
 export type PillTabSize = 'xs' | 'sm' | 'md' | 'lg';
+export type PillTabColorScheme = 'default' | 'indigo';
 
 const sizeClasses: Record<PillTabSize, { pill: string; icon: string; separator: string }> = {
   xs: { pill: 'gap-1 px-2 py-0.5 text-[11px]', icon: 'w-3 h-3', separator: 'h-3.5' },
@@ -27,16 +28,29 @@ interface PillTabsProps {
   onTabChange: (tabId: string, e?: React.MouseEvent) => void;
   disabled?: boolean;
   size?: PillTabSize;
+  colorScheme?: PillTabColorScheme;
   className?: string;
 }
+
+const colorSchemes: Record<PillTabColorScheme, { active: string; inactive: string }> = {
+  default: {
+    active: 'bg-gray-900 text-white',
+    inactive: 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+  },
+  indigo: {
+    active: 'bg-indigo-200/80 text-indigo-800',
+    inactive: 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100',
+  },
+};
 
 const PillTabItem: React.FC<{
   tab: PillTab;
   isActive: boolean;
   disabled: boolean;
   size: PillTabSize;
+  scheme: PillTabColorScheme;
   onTabChange: (id: string, e: React.MouseEvent) => void;
-}> = ({ tab, isActive, disabled, size, onTabChange }) => {
+}> = ({ tab, isActive, disabled, size, scheme, onTabChange }) => {
   const handleClick = (e: React.MouseEvent) => {
     if (disabled) {
       e.preventDefault();
@@ -47,10 +61,11 @@ const PillTabItem: React.FC<{
 
   const s = sizeClasses[size];
 
+  const colors = colorSchemes[scheme];
   const styles = cn(
     'inline-flex items-center rounded-lg font-medium transition-all duration-150 select-none whitespace-nowrap flex-shrink-0 cursor-pointer',
     s.pill,
-    isActive ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+    isActive ? colors.active : colors.inactive,
     disabled && 'cursor-not-allowed pointer-events-none opacity-50'
   );
 
@@ -94,6 +109,7 @@ export const PillTabs: React.FC<PillTabsProps> = ({
   onTabChange,
   disabled = false,
   size = 'md',
+  colorScheme = 'default',
   className,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -158,6 +174,7 @@ export const PillTabs: React.FC<PillTabsProps> = ({
               isActive={activeTab === tab.id}
               disabled={disabled}
               size={size}
+              scheme={colorScheme}
               onTabChange={onTabChange}
             />
           </React.Fragment>

@@ -10,6 +10,7 @@ import { ProposalSidebar } from '@/components/work/ProposalSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { FundDocument } from '@/components/work/FundDocument';
+import { FundingGrantTabs } from '@/components/Funding/FundingGrantTabs';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 
 interface Props {
@@ -71,10 +72,10 @@ export default async function FundingProjectPage({ params }: Props) {
   ]);
 
   return (
-    <PageLayout
-      rightSidebar={<ProposalSidebar work={work} metadata={metadata} />}
-      scrollContainerClassName="pt-[108px]"
-    >
+    <PageLayout rightSidebar={<ProposalSidebar work={work} metadata={metadata} />}>
+      <div className="mb-6">
+        <FundingGrantTabs />
+      </div>
       <Suspense>
         <FundDocument
           work={work}

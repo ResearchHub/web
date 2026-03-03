@@ -31,46 +31,51 @@ export const GrantDetailsCallout = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 
-  const isTruncated = description.length > 300;
-  const preview = isTruncated ? description.slice(0, 300).trimEnd() : description;
+  const isTruncated = description.length > 200;
+  const preview = isTruncated ? description.slice(0, 200).trimEnd() : description;
 
   return (
     <>
-      <div className="w-full rounded-xl bg-primary-50 px-4 py-3">
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className="text-base leading-none">🏆</span>
-          <span className="text-sm font-semibold text-gray-900">Award Details</span>
-          {amountUsd != null && amountUsd > 0 && (
-            <span
-              className={`font-mono font-bold text-[13px] px-2 py-0.5 rounded-md tabular-nums ${isActive ? 'text-primary-700 bg-primary-100' : 'text-gray-500 bg-gray-200'}`}
-            >
-              {formatCompactAmount(amountUsd)}
-            </span>
-          )}
-        </div>
+      <div
+        className={`w-full rounded-xl bg-primary-50 px-4 py-3 transition-colors ${content ? 'hover:bg-primary-100/70' : ''}`}
+      >
+        {/* Clickable top section */}
+        <button
+          type="button"
+          onClick={() => content && setIsExpanded(!isExpanded)}
+          className={`w-full text-left ${content ? 'cursor-pointer' : 'cursor-default'}`}
+        >
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-base leading-none">🏆</span>
+            <span className="text-sm font-semibold text-gray-900">Award Details</span>
+            {amountUsd != null && amountUsd > 0 && (
+              <span
+                className={`font-mono font-bold text-[13px] px-2 py-0.5 rounded-md tabular-nums ${isActive ? 'text-primary-700 bg-primary-100' : 'text-gray-500 bg-gray-200'}`}
+              >
+                {formatCompactAmount(amountUsd)}
+              </span>
+            )}
+          </div>
 
-        <p className="text-sm text-gray-700 leading-relaxed line-clamp-3">
-          {preview}
-          {isTruncated && <span className="text-sm font-bold text-gray-900 ml-0.5">...</span>}
-        </p>
+          <p className="text-sm text-gray-700 leading-relaxed line-clamp-3">
+            {preview}
+            {isTruncated && <span className="text-sm font-bold text-gray-900 ml-0.5">...</span>}
+          </p>
 
-        <div className="border-t border-gray-200 mt-3 pt-2.5 flex items-center gap-2">
           {content && (
-            <Button
-              variant="outlined"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="gap-1"
-            >
-              {isExpanded ? 'Show less' : 'Read more'}
+            <span className="inline-flex items-center gap-1 text-sm font-bold text-gray-900 mt-1.5">
+              {isExpanded ? 'Show less' : 'Learn more'}
               {isExpanded ? (
                 <ChevronUp className="w-3.5 h-3.5" />
               ) : (
                 <ChevronDown className="w-3.5 h-3.5" />
               )}
-            </Button>
+            </span>
           )}
-          {grantId && (
+        </button>
+
+        {grantId && (
+          <div className="border-t border-gray-200 mt-3 pt-2.5 flex items-center gap-2">
             <Button
               variant="default"
               size="sm"
@@ -80,8 +85,8 @@ export const GrantDetailsCallout = ({
               Submit Proposal
               <ArrowRight className="w-3.5 h-3.5" />
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {isExpanded && content && (

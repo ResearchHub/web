@@ -3,7 +3,6 @@
 import { FC } from 'react';
 import { Settings } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/Button';
 import { SortDropdown, SortOption } from '@/components/ui/SortDropdown';
 import { Tabs } from '@/components/ui/Tabs';
 import { PillTabs } from '@/components/ui/PillTabs';
@@ -58,9 +57,12 @@ export const FeedTabs: FC<FeedTabsProps> = ({
     onSortChange?.(option.value);
   };
 
+  const firstSeparatorIdx = tabs.findIndex((tab) => tab.separator);
+  const coreTabs = firstSeparatorIdx === -1 ? tabs : tabs.slice(0, firstSeparatorIdx);
+
   const tabContent = useLegacyTabs ? (
     <Tabs
-      tabs={tabs}
+      tabs={coreTabs}
       activeTab={activeTab}
       onTabChange={onTabChange}
       disabled={isLoading}
@@ -68,7 +70,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
     />
   ) : (
     <PillTabs
-      tabs={tabs}
+      tabs={coreTabs}
       activeTab={activeTab}
       onTabChange={onTabChange}
       disabled={!!isLoading}
@@ -92,15 +94,14 @@ export const FeedTabs: FC<FeedTabsProps> = ({
               />
             )}
             {showGearIcon && onGearClick && (
-              <Button
+              <button
                 onClick={onGearClick}
-                variant="ghost"
-                size="sm"
-                className="p-1.5"
-                aria-label="Edit topics"
+                type="button"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
               >
-                <Settings className="w-3.5 h-3.5 text-gray-600" />
-              </Button>
+                <Settings className="w-3.5 h-3.5" />
+                <span>Customize</span>
+              </button>
             )}
           </div>
         )}

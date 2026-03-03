@@ -46,7 +46,6 @@ export default async function BrowsePage() {
           <FundingSidebarServer />
         </Suspense>
       }
-      scrollContainerClassName="pt-[108px]"
     >
       <FundingPageContent initialGrants={grants} closedGrants={closedGrants} error={error} />
     </PageLayout>

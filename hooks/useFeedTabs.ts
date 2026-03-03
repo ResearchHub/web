@@ -6,7 +6,6 @@ import { useUser } from '@/contexts/UserContext';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useSession } from 'next-auth/react';
 import { FeedTab } from './useFeed';
-import { useTopicFilters } from './useTopicFilters';
 import { Sparkles, Users, TrendingUp } from 'lucide-react';
 
 export const useFeedTabs = (onBeforeNavigate?: () => void) => {
@@ -16,7 +15,6 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
-  const { topics: filterTopics } = useTopicFilters();
 
   const isTopicPage = pathname.startsWith('/topic/');
   const isJournalPage = pathname.startsWith('/journal');
@@ -103,21 +101,11 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
           { id: 'popular', label: 'Popular', icon: TrendingUp },
         ];
 
-    const topicTabs = filterTopics.map((topic, index) => ({
-      id: `topic-${topic.slug}`,
-      label: topic.name,
-      separator: index === 0,
-    }));
-
-    return [...coreTabs, ...topicTabs].map((tab) => {
-      const href = tab.id.startsWith('topic-')
-        ? `/topic/${tab.id.replace('topic-', '')}`
-        : tab.id === 'popular'
-          ? '/popular'
-          : `/${tab.id}`;
+    return coreTabs.map((tab) => {
+      const href = tab.id === 'popular' ? '/popular' : `/${tab.id}`;
       return { ...tab, href, scroll: false };
     });
-  }, [status, isJournalPage, filterTopics, searchParams, pathname]);
+  }, [status, isJournalPage, searchParams, pathname]);
 
   // Sub-tabs for topic pages (Popular / Latest within a topic)
   const topicSubTabs = useMemo(() => {
@@ -147,10 +135,7 @@ export const useFeedTabs = (onBeforeNavigate?: () => void) => {
     const navigate = () => {
       onBeforeNavigate?.();
 
-      if (tab.startsWith('topic-')) {
-        const slug = tab.replace('topic-', '');
-        router.push(`/topic/${slug}`, { scroll: false });
-      } else if (isJournalPage) {
+      if (isJournalPage) {
         const params = new URLSearchParams(window.location.search);
         params.set('tab', tab);
         router.push(`${pathname}?${params.toString()}`, { scroll: false });

@@ -7,10 +7,10 @@ import { FeedContent } from './FeedContent';
 import { ForYouFeedBanner } from './ForYouFeedBanner';
 import { useSearchParams } from 'next/navigation';
 import { FeedEntry } from '@/types/feed';
-import { MainPageHeader } from '@/components/ui/MainPageHeader';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
-import { DocumentFeedSortAndFilters } from './DocumentFeedSortAndFilters';
+import { FeedTabs } from './FeedTabs';
+import { ManageTopicsModal } from '@/components/modals/ManageTopicsModal';
+import { useSession } from 'next-auth/react';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 
 interface FeedProps {
   defaultTab: FeedTab;
@@ -31,10 +31,21 @@ const getDefaultOrdering = (tab: FeedTab): string | undefined => {
 export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData }) => {
   const searchParams = useSearchParams();
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const { status } = useSession();
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
 
-  const { activeTab } = useFeedTabs(() => {
+  const { activeTab, tabs, highlightedTab, handleTabChange } = useFeedTabs(() => {
     setIsNavigating(true);
   });
+
+  const handleCustomize = () => {
+    if (status === 'authenticated') {
+      setIsCustomizeOpen(true);
+    } else {
+      executeAuthenticatedAction(() => setIsCustomizeOpen(true));
+    }
+  };
 
   const orderingParam = searchParams.get('ordering');
   const filterParam = searchParams.get('filter');
@@ -75,35 +86,38 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData }) => {
 
   const combinedIsLoading = isLoading || isNavigating;
 
-  const renderHeader = () => (
-    <MainPageHeader
-      icon={<FontAwesomeIcon icon={faHouseLight} fontSize={24} color="#3971ff" />}
-      title="Home"
-      subtitle="Explore cutting-edge research from leading preprint servers."
-      showTitle={false}
+  const header = activeTab === 'for-you' ? <ForYouFeedBanner /> : undefined;
+
+  const inlineTabs = (
+    <FeedTabs
+      activeTab={highlightedTab}
+      tabs={tabs}
+      onTabChange={handleTabChange}
+      showGearIcon
+      onGearClick={handleCustomize}
     />
   );
 
-  const banner = activeTab === 'for-you' ? <ForYouFeedBanner /> : undefined;
-
   return (
-    <FeedContent
-      showFundraiseHeaders={false}
-      showGrantHeaders={false}
-      showPostHeaders={false}
-      entries={entries}
-      isLoading={combinedIsLoading}
-      hasMore={hasMore}
-      loadMore={loadMore}
-      header={renderHeader()}
-      filters={<DocumentFeedSortAndFilters variant="home" />}
-      banner={banner}
-      activeTab={activeTab}
-      ordering={ordering}
-      restoredScrollPosition={restoredScrollPosition}
-      page={page}
-      lastClickedEntryId={lastClickedEntryId ?? undefined}
-    />
+    <>
+      <FeedContent
+        showFundraiseHeaders={false}
+        showGrantHeaders={false}
+        showPostHeaders={false}
+        entries={entries}
+        isLoading={combinedIsLoading}
+        hasMore={hasMore}
+        loadMore={loadMore}
+        header={header}
+        tabs={inlineTabs}
+        activeTab={activeTab}
+        ordering={ordering}
+        restoredScrollPosition={restoredScrollPosition}
+        page={page}
+        lastClickedEntryId={lastClickedEntryId ?? undefined}
+      />
+      <ManageTopicsModal isOpen={isCustomizeOpen} onClose={() => setIsCustomizeOpen(false)} />
+    </>
   );
 };
 

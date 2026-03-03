@@ -173,7 +173,7 @@ const getPageInfo = (pathname: string, searchParams?: URLSearchParams): PageInfo
 
   if (pathname === '/fund/browse' || pathname === '/fund' || pathname.startsWith('/fund/grant/')) {
     return {
-      title: 'Fund',
+      title: 'Funding Marketplace',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     };
   }
@@ -441,7 +441,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   return (
     <>
-      <div className={`bg-white ${isFeedPage || showGrantTabs ? '' : 'border-b border-gray-200'}`}>
+      <div
+        className={`bg-white ${isFeedPage || showGrantTabs ? 'tablet:!border-b tablet:!border-gray-200' : 'border-b border-gray-200'}`}
+      >
         {/* Title row */}
         <div className="flex items-center justify-between px-4 lg:px-8" style={{ height: '70px' }}>
           {/* Left side - Back button + Page title OR FeedTabs */}
@@ -677,9 +679,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           </div>
         </div>
 
-        {/* Feed tabs - second row below title */}
+        {/* Feed tabs - mobile only, revealed on scroll-up gesture */}
         {isFeedPage && (
-          <div className="border-b border-gray-200 px-4 lg:px-8 -mt-2 pb-1">
+          <div className="tablet:!hidden border-b border-gray-200 px-4 -mt-2 pb-1">
             <FeedTabs
               activeTab={highlightedTab}
               tabs={tabs}
@@ -689,10 +691,10 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           </div>
         )}
 
-        {/* Funding grant tabs - second row below title */}
+        {/* Funding grant tabs - mobile only, revealed on scroll-up gesture */}
         {(isFundingPage || isProposalPage || isGrantPage) && (
           <div
-            className={`border-b border-gray-200 px-4 lg:px-8 -mt-2 pb-1${
+            className={`tablet:!hidden border-b border-gray-200 px-4 -mt-2 pb-1${
               !isFundingPage ? ' overflow-hidden transition-all duration-300 ease-in-out' : ''
             }`}
             style={

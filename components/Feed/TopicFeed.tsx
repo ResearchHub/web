@@ -50,7 +50,7 @@ export const TopicFeed: FC<TopicFeedProps> = ({ defaultTab }) => {
   const isLoading = isHubLoading || isFeedLoading || isNavigating;
 
   return (
-    <PageLayout scrollContainerClassName="pt-[108px]">
+    <PageLayout>
       <FeedContent
         entries={entries}
         isLoading={isLoading}

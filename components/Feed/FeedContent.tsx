@@ -117,10 +117,10 @@ export const FeedContent: FC<FeedContentProps> = ({
 
   return (
     <>
-      {header && <div>{header}</div>}
+      {header && <div className="mb-2">{header}</div>}
 
       <div className="max-w-4xl mx-auto">
-        {tabs && <div className="border-b">{tabs}</div>}
+        {tabs && <div>{tabs}</div>}
 
         {filters && <div className="py-3">{filters}</div>}
 

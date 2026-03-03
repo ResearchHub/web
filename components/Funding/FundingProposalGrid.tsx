@@ -5,6 +5,8 @@ import { useInView } from 'react-intersection-observer';
 import { FundingProposalCard } from './FundingProposalCard';
 import { ProposalCardSkeleton } from '@/components/skeletons/ProposalCardSkeleton';
 import { useFundraises } from '@/contexts/FundraiseContext';
+import { FundingGrantTabs } from './FundingGrantTabs';
+import { usePathname } from 'next/navigation';
 import { cn } from '@/utils/styles';
 
 interface FundingProposalGridProps {
@@ -15,6 +17,8 @@ const SKELETON_COUNT = 5;
 
 export const FundingProposalGrid: FC<FundingProposalGridProps> = ({ className }) => {
   const { entries, isLoading, isLoadingMore, hasMore, loadMore } = useFundraises();
+  const pathname = usePathname();
+  const isGrantDetail = pathname.startsWith('/fund/grant/');
 
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
@@ -29,20 +33,24 @@ export const FundingProposalGrid: FC<FundingProposalGridProps> = ({ className })
 
   return (
     <div className={cn('', className)}>
-      <p className="text-sm text-gray-600 mb-4">
-        {isLoading ? (
-          '\u00A0'
-        ) : (
-          <div>
-            <span className="font-semibold">
-              {entries.length}
-              {` `}
-              proposal{entries.length !== 1 ? 's' : ''}
-            </span>{' '}
-            competing for award
-          </div>
-        )}
-      </p>
+      <div className="mb-6">
+        <FundingGrantTabs />
+      </div>
+
+      {isGrantDetail && (
+        <p className="text-sm text-gray-600 mb-4">
+          {isLoading ? (
+            '\u00A0'
+          ) : (
+            <span>
+              <span className="font-semibold">
+                {entries.length} proposal{entries.length !== 1 ? 's' : ''}
+              </span>{' '}
+              competing for award
+            </span>
+          )}
+        </p>
+      )}
 
       <div className="flex flex-col gap-3">
         {isLoading ? (

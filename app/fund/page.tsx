@@ -14,9 +14,8 @@ export default async function FundPage() {
           <FundingSidebarServer />
         </Suspense>
       }
-      scrollContainerClassName="pt-[108px]"
     >
-      <div className="py-4">
+      <div className="">
         <FundingIntroBanner />
         <FundraiseProvider>
           <FundingProposalGrid />

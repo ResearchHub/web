@@ -60,7 +60,6 @@ interface PageLayoutProps {
   children: ReactNode;
   rightSidebar?: boolean | ReactNode;
   className?: string;
-  scrollContainerClassName?: string;
   sidebarContentClassName?: string;
 }
 
@@ -68,7 +67,6 @@ export function PageLayout({
   children,
   rightSidebar = true,
   className,
-  scrollContainerClassName,
   sidebarContentClassName,
 }: PageLayoutProps) {
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
@@ -174,8 +172,7 @@ export function PageLayout({
               ref={scrollContainerRef}
               className={cn(
                 'flex-1 overflow-y-auto overflow-x-hidden relative transition-all duration-150',
-                isCompact ? 'pt-12' : 'pt-16',
-                scrollContainerClassName
+                isCompact ? 'pt-12' : 'pt-16'
               )}
             >
               <div className="flex mx-auto w-full max-w-[1180px]">

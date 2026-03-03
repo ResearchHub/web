@@ -34,7 +34,6 @@ export default async function GrantsPage() {
           <FundingSidebarServer />
         </Suspense>
       }
-      scrollContainerClassName="pt-[108px]"
     >
       <GrantsPageContent openGrants={openGrants} closedGrants={closedGrants} />
     </PageLayout>

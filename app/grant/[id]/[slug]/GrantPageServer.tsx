@@ -9,6 +9,7 @@ import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { GrantDocument } from '@/components/work/GrantDocument';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
+import { FundingGrantTabs } from '@/components/Funding/FundingGrantTabs';
 
 interface GrantPageServerProps {
   id: string;
@@ -39,8 +40,8 @@ export async function GrantPageServer({ id }: GrantPageServerProps) {
           <FundingSidebarServer grantId={grantId} grantTitle={grantTitle} />
         </Suspense>
       }
-      scrollContainerClassName="pt-[108px]"
     >
+      <FundingGrantTabs />
       <Suspense>
         <GrantDocument work={work} metadata={metadata} />
         <SearchHistoryTracker work={work} />
