@@ -1,7 +1,8 @@
 'use client';
 
-import { ArrowDownToLine, ArrowUpFromLine, HelpCircle } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowDownToLine, ArrowUpFromLine, DollarSign, HelpCircle } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { FundButton } from '@coinbase/onchainkit/fund';
 import { DepositModal } from '../modals/ResearchCoin/DepositModal';
 import { WithdrawModal } from '../modals/ResearchCoin/WithdrawModal';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -9,6 +10,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { FundingCreditsTooltip } from '@/components/ui/FundingCreditsTooltip';
 import { formatCombinedBalance, formatCombinedBalanceSecondary } from '@/utils/number';
 import { Button } from '@/components/ui/Button';
+import { CoinbaseService } from '@/services/coinbase.service';
 
 interface UserBalanceSectionProps {
   balance: {
@@ -33,12 +35,27 @@ export function UserBalanceSection({
 }: UserBalanceSectionProps) {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [onrampUrl, setOnrampUrl] = useState<string | null>(null);
 
   const { showUSD } = useCurrencyPreference();
 
   // Only consider balance as not ready if we're fetching exchange rate
   // Zero balance (balance = 0) should be treated as a valid state
   const isBalanceReady = !isFetchingExchangeRate;
+
+  const fetchOnrampUrl = useCallback(async () => {
+    try {
+      const response = await CoinbaseService.createRSCOnrampUrl();
+      setOnrampUrl(response.onramp_url);
+    } catch (err) {
+      console.error('Failed to fetch onramp URL:', err);
+    }
+  }, []);
+
+  // Pre-fetch the onramp URL on mount
+  useEffect(() => {
+    fetchOnrampUrl();
+  }, [fetchOnrampUrl]);
 
   return (
     <>
@@ -135,7 +152,30 @@ export function UserBalanceSection({
         </div>
 
         {/* Action buttons */}
-        <div className="mt-6 grid grid-cols-2 gap-3">
+        <div className="mt-6 grid grid-cols-3 gap-3">
+          {onrampUrl ? (
+            <FundButton
+              fundingUrl={onrampUrl}
+              openIn="popup"
+              className="w-full flex flex-col items-center gap-2 h-auto py-3 px-4 rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 group"
+            >
+              <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center transition-colors">
+                <DollarSign className="h-5 w-5 text-gray-700" strokeWidth={2} />
+              </div>
+              <span className="text-sm font-medium text-gray-900">Buy</span>
+            </FundButton>
+          ) : (
+            <Button
+              variant="outlined"
+              disabled
+              className="flex flex-col items-center gap-2 h-auto py-3 px-4 rounded-xl shadow-sm"
+            >
+              <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center">
+                <DollarSign className="h-5 w-5 text-gray-700" strokeWidth={2} />
+              </div>
+              <span className="text-sm font-medium text-gray-900">Buy</span>
+            </Button>
+          )}
           <Button
             onClick={() => setIsDepositModalOpen(true)}
             variant="outlined"
