@@ -103,6 +103,14 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
           />
         ) : undefined
       }
+      badges={
+        <FeedItemBadges
+          journal={filteredJournal}
+          category={paper.category}
+          subcategory={paper.subcategory}
+          topics={paper.topics}
+        />
+      }
     >
       {/* Top section with mobile image */}
       <FeedItemTopSection
@@ -146,14 +154,6 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         }
         leftContent={null}
       />
-      <div className="mt-[-7px]">
-        <FeedItemBadges
-          journal={filteredJournal}
-          category={paper.category}
-          subcategory={paper.subcategory}
-          topics={paper.topics}
-        />
-      </div>
 
       <TitleSection
         title={paper.title}

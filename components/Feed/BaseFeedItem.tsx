@@ -39,8 +39,7 @@ export interface BaseFeedItemProps {
   hideReportButton?: boolean;
   badges?: ReactNode;
   cardImage?: ReactNode;
-  calloutSection?: ReactNode;
-  /** Image rendered on the left side spanning the full card height (content + callout + actions) */
+  /** Image rendered on the left side; content + actions span full width below */
   cardImageLeft?: ReactNode;
 }
 
@@ -223,6 +222,28 @@ export const CTASection: FC<CTASectionProps> = ({ children, className }) => {
   return <div className={cn('flex items-center gap-3', className)}>{children}</div>;
 };
 
+// Primary action component interface
+export interface PrimaryActionSectionProps {
+  children: ReactNode;
+  className?: string;
+}
+
+export const PrimaryActionSection: FC<PrimaryActionSectionProps> = ({ children, className }) => {
+  return (
+    <div
+      className={cn(
+        'mt-3 rounded-lg bg-gray-50 border border-gray-200 px-4 py-3.5 cursor-default',
+        className
+      )}
+      onMouseDown={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {children}
+    </div>
+  );
+};
+
 // Re-export FeedItemAbstractSection for backwards compatibility
 export {
   FeedItemAbstractSection,
@@ -269,7 +290,6 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   hideReportButton = false,
   badges,
   cardImage,
-  calloutSection,
   cardImageLeft,
 }) => {
   const content = entry.content;
@@ -352,6 +372,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
       )}
       {/* Main Content Card */}
       <CardWrapper href={href} isClickable={isClickable} onClick={handleClick} entryId={entryIdKey}>
+        {/* Content area: image-left + main content side by side */}
         <div className={cn(cardImageLeft && 'md:!flex md:!flex-row')}>
           {cardImageLeft && (
             <div className="hidden md:!block flex-shrink-0 w-[200px] p-4 pr-2">
@@ -394,7 +415,6 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                       </div>
                     ) : null
                   ) : null}
-                  {badges && <div className="pt-3">{badges}</div>}
                 </div>
                 {cardImage && (
                   <div className="hidden md:!block flex-shrink-0 w-[280px] max-w-[33%] relative overflow-hidden rounded-lg border border-gray-200">
@@ -402,58 +422,51 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                   </div>
                 )}
               </div>
+              {badges && <div className="pt-3">{badges}</div>}
             </div>
-            {calloutSection && (
-              <div
-                className="border-t border-b border-gray-200 bg-gray-50 px-4 py-2.5 cursor-default"
-                onMouseDown={(e) => e.stopPropagation()}
-                onKeyDown={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
-              >
-                {calloutSection}
-              </div>
-            )}
-            {showActions && (
-              <div
-                className="px-4 py-2 cursor-default"
-                onMouseDown={(e) => e.stopPropagation()}
-                onKeyDown={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <FeedItemActions
-                  metrics={entry.metrics}
-                  feedContentType={
-                    content.contentType ? (content.contentType as FeedContentType) : 'COMMENT'
-                  }
-                  votableEntityId={content.id}
-                  relatedDocumentId={
-                    'relatedDocumentId' in content
-                      ? content.relatedDocumentId?.toString()
-                      : content.id.toString()
-                  }
-                  relatedDocumentContentType={
-                    'relatedDocumentContentType' in content
-                      ? content.relatedDocumentContentType
-                      : mapFeedContentTypeToContentType(content.contentType)
-                  }
-                  userVote={entry.userVote}
-                  showTooltips={showTooltips}
-                  href={href}
-                  reviews={content.reviews}
-                  relatedDocumentTopics={'topics' in content ? content.topics : undefined}
-                  relatedDocumentUnifiedDocumentId={
-                    'unifiedDocumentId' in content ? content.unifiedDocumentId : undefined
-                  }
-                  showPeerReviews={showPeerReviews}
-                  onFeedItemClick={onFeedItemClick}
-                  bounties={showBountyInfo ? undefined : content.bounties}
-                  hideReportButton={hideReportButton}
-                  hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
-                />
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Actions row — full width with divider */}
+        {showActions && (
+          <div
+            className="border-t border-gray-200 px-4 py-2 cursor-default"
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <FeedItemActions
+              metrics={entry.metrics}
+              feedContentType={
+                content.contentType ? (content.contentType as FeedContentType) : 'COMMENT'
+              }
+              votableEntityId={content.id}
+              relatedDocumentId={
+                'relatedDocumentId' in content
+                  ? content.relatedDocumentId?.toString()
+                  : content.id.toString()
+              }
+              relatedDocumentContentType={
+                'relatedDocumentContentType' in content
+                  ? content.relatedDocumentContentType
+                  : mapFeedContentTypeToContentType(content.contentType)
+              }
+              userVote={entry.userVote}
+              showTooltips={showTooltips}
+              href={href}
+              reviews={content.reviews}
+              relatedDocumentTopics={'topics' in content ? content.topics : undefined}
+              relatedDocumentUnifiedDocumentId={
+                'unifiedDocumentId' in content ? content.unifiedDocumentId : undefined
+              }
+              showPeerReviews={showPeerReviews}
+              onFeedItemClick={onFeedItemClick}
+              bounties={showBountyInfo ? undefined : content.bounties}
+              hideReportButton={hideReportButton}
+              hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
+            />
+          </div>
+        )}
       </CardWrapper>
     </div>
   );
