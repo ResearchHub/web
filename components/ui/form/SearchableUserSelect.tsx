@@ -29,24 +29,25 @@ const renderUserOption = (
         <div className="flex items-center gap-1">
           <div className="font-medium text-sm">{option.label}</div>
           {option.isVerified && <VerifiedBadge size="sm" />}
-          {option.profileUrl && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                window.open(option.profileUrl, '_blank', 'noopener,noreferrer');
-              }}
-              className="p-0 h-auto text-primary-600 hover:text-primary-700 hover:bg-transparent ml-0.5"
-              aria-label="View profile"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-            </Button>
-          )}
         </div>
         {option.description && (
           <div className="text-xs text-gray-500 line-clamp-3">{option.description}</div>
+        )}
+        {option.profileUrl && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              window.open(option.profileUrl, '_blank', 'noopener,noreferrer');
+            }}
+            className="p-0 h-auto text-xs text-primary-600 underline hover:text-primary-700 hover:bg-transparent inline-flex items-center gap-0.5 mt-0.5"
+            aria-label="View profile"
+          >
+            View profile
+            <ExternalLink className="w-3 h-3" />
+          </Button>
         )}
       </div>
     </div>
