@@ -38,7 +38,7 @@ const renderUserOption = (
                 e.stopPropagation();
                 window.open(option.profileUrl, '_blank', 'noopener,noreferrer');
               }}
-              className="p-0 h-auto text-gray-400 hover:text-primary-600 hover:bg-transparent ml-0.5"
+              className="p-0 h-auto text-primary-600 hover:text-primary-700 hover:bg-transparent ml-0.5"
               aria-label="View profile"
             >
               <ExternalLink className="w-3.5 h-3.5" />
