@@ -12,7 +12,6 @@ import { JournalSection } from './components/JournalSection';
 import { GrantDescriptionSection } from './components/GrantDescriptionSection';
 import { GrantOrganizationSection } from './components/GrantOrganizationSection';
 import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
-import { GrantApplicationDeadlineSection } from './components/GrantApplicationDeadlineSection';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { useState, useEffect } from 'react';
@@ -34,6 +33,7 @@ import { Loader2 } from 'lucide-react';
 import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
 import { useNotebookContext } from '@/contexts/NotebookContext';
+import { useUser } from '@/contexts/UserContext';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
@@ -157,7 +157,36 @@ const restoreFromStorage = (
   setValue: (name: any, value: any) => void
 ) => {
   for (const [key, value] of Object.entries(data)) {
-    setValue(key, key === 'applicationDeadline' ? new Date(value) : value);
+    setValue(key, key === 'applicationDeadline' && value ? new Date(value) : value);
+  }
+};
+
+const applyGrantDefaults = (getValues: any, setValue: (name: any, value: any) => void) => {
+  if (getValues('articleType') === 'grant') {
+    setValue('applicationDeadline', new Date('2029-12-31'));
+  }
+};
+
+const autoAddCurrentUser = (
+  getValues: any,
+  setValue: (name: any, value: any) => void,
+  currentUser: any
+) => {
+  if (!currentUser) return;
+
+  const isGrant = getValues('articleType') === 'grant';
+  const field = isGrant ? 'contacts' : 'authors';
+
+  if (getValues(field).length === 0) {
+    const profile = currentUser.authorProfile;
+    setValue(field, [
+      {
+        value: isGrant
+          ? currentUser.id.toString()
+          : profile?.id?.toString() || currentUser.id.toString(),
+        label: currentUser.fullName || currentUser.email || 'Unknown User',
+      },
+    ]);
   }
 };
 
@@ -199,6 +228,7 @@ export function PublishingForm({
   isModal,
 }: Readonly<PublishingFormProps>) {
   const { currentNote: note, editor } = useNotebookContext();
+  const { user: currentUser } = useUser();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
@@ -211,44 +241,45 @@ export function PublishingForm({
     mode: 'onChange',
   });
 
-  useEffect(() => {
-    if (note?.id) {
-      methods.reset(FORM_DEFAULTS);
-    }
-  }, [note?.id, methods]);
+  const noteId = note?.id;
 
   useEffect(() => {
     if (!note) return;
+
+    methods.reset(FORM_DEFAULTS);
 
     if (note.post) {
       populateFromPost(note.post, methods.setValue);
-      return;
+    } else {
+      const storedData = loadPublishingFormFromStorage(note.id.toString());
+      if (storedData) {
+        restoreFromStorage(storedData, methods.setValue);
+      } else {
+        const resolved = resolveArticleType(searchParams, defaultArticleType);
+        if (resolved) {
+          methods.setValue('articleType', resolved.type);
+        }
+      }
     }
 
-    const storedData = loadPublishingFormFromStorage(note.id.toString());
-    if (storedData) {
-      restoreFromStorage(storedData, methods.setValue);
-      return;
-    }
-
-    const resolved = resolveArticleType(searchParams, defaultArticleType);
-    if (resolved) {
-      methods.setValue('articleType', resolved.type);
-    }
-    if (resolved?.type === 'grant' && resolved.source === 'default') {
-      methods.setValue('applicationDeadline', new Date('2029-12-31'));
-    }
-  }, [note, methods, searchParams, defaultArticleType]);
+    applyGrantDefaults(methods.getValues, methods.setValue);
+    autoAddCurrentUser(methods.getValues, methods.setValue, currentUser);
+    savePublishingFormToStorage(
+      note.id.toString(),
+      methods.getValues() as Partial<PublishingFormData>
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [noteId]);
 
   useEffect(() => {
-    if (!note) return;
+    if (!noteId) return;
 
     const subscription = methods.watch((data) => {
-      savePublishingFormToStorage(note.id.toString(), data as Partial<PublishingFormData>);
+      savePublishingFormToStorage(noteId.toString(), data as Partial<PublishingFormData>);
     });
 
     return () => subscription.unsubscribe();
-  }, [methods, note]);
+  }, [noteId, methods]);
 
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');
@@ -469,7 +500,6 @@ export function PublishingForm({
               </div>
             )}
             {articleType === 'grant' && <GrantFundingAmountSection />}
-            {articleType === 'grant' && !isModal && <GrantApplicationDeadlineSection />}
             {articleType === 'preregistration' && <FundingSection note={note} />}
             {FEATURE_FLAG_RESEARCH_COIN &&
               articleType !== 'preregistration' &&
