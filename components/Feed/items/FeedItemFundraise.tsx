@@ -7,9 +7,7 @@ import {
   TitleSection,
   ImageSection,
   MetadataSection,
-  FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
-import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
 import { AvatarStack } from '@/components/ui/AvatarStack';
@@ -17,7 +15,8 @@ import { Button } from '@/components/ui/Button';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
-import { Building, Pin, Star, ArrowRight } from 'lucide-react';
+import { GrantBadge } from '@/components/ui/GrantBadge';
+import { Pin, Star, ArrowRight } from 'lucide-react';
 import { formatTimestamp } from '@/utils/date';
 import { useRouter } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
@@ -63,7 +62,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
 
   const post = entry.content as FeedPostContent;
   const hasFundraise = post.contentType === 'PREREGISTRATION' && post.fundraise;
-  const topics = post.topics || [];
+  const grants = entry.associatedGrants ?? [];
 
   const isNonprofit =
     entry.raw?.is_nonprofit === true && post.contentType === 'PREREGISTRATION' && post.fundraise;
@@ -112,70 +111,68 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   const hasReviewScore = reviewScore !== undefined && reviewScore > 0;
 
   const callout = hasFundraise && fundraise && (
-    <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="font-mono text-sm leading-tight whitespace-nowrap">
-          <span className="font-semibold text-blue-600">
-            {formatCurrency({
-              amount: showUSD
-                ? Math.round(fundraise.amountRaised.usd)
-                : Math.round(fundraise.amountRaised.rsc),
-              showUSD,
-              exchangeRate,
-              skipConversion: true,
-            })}
-          </span>
-          <span className="text-gray-500 mx-1">raised of</span>
-          <span className="font-semibold text-blue-600">
-            {formatCurrency({
-              amount: showUSD
-                ? Math.round(fundraise.goalAmount.usd)
-                : Math.round(fundraise.goalAmount.rsc),
-              showUSD,
-              exchangeRate,
-              skipConversion: true,
-            })}
-          </span>
-          <span className="text-gray-500 ml-1">goal</span>
+    <div
+      className="mt-3 rounded-lg bg-gray-50 border border-gray-200 px-4 py-3.5 cursor-default"
+      onMouseDown={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="font-mono text-sm leading-tight whitespace-nowrap">
+            <span className="font-semibold text-blue-600">
+              {formatCurrency({
+                amount: showUSD
+                  ? Math.round(fundraise.amountRaised.usd)
+                  : Math.round(fundraise.amountRaised.rsc),
+                showUSD,
+                exchangeRate,
+                skipConversion: true,
+                shorten: true,
+              })}
+            </span>
+            <span className="text-gray-500 mx-1">raised of</span>
+            <span className="font-semibold text-blue-600">
+              {formatCurrency({
+                amount: showUSD
+                  ? Math.round(fundraise.goalAmount.usd)
+                  : Math.round(fundraise.goalAmount.rsc),
+                showUSD,
+                exchangeRate,
+                skipConversion: true,
+                shorten: true,
+              })}
+            </span>
+            <span className="text-gray-500 ml-1">goal</span>
+          </div>
+
+          {contributors.length > 0 && (
+            <AvatarStack
+              items={contributors}
+              size="xxs"
+              maxItems={3}
+              spacing={-6}
+              showLabel={false}
+              disableTooltip={false}
+              showExtraCount={true}
+              totalItemsCount={fundraise.contributors.numContributors}
+              extraCountLabel="Backers"
+            />
+          )}
         </div>
 
-        {contributors.length > 0 && (
-          <AvatarStack
-            items={contributors}
-            size="xxs"
-            maxItems={3}
-            spacing={-6}
-            showLabel={false}
-            disableTooltip={false}
-            showExtraCount={true}
-            totalItemsCount={fundraise.contributors.numContributors}
-            extraCountLabel="Backers"
-          />
+        {isActive && (
+          <Button
+            variant="default"
+            size="sm"
+            className="flex-shrink-0 rounded-md text-[13px]"
+            onClick={() => setIsContributeModalOpen(true)}
+          >
+            Fund Research
+            <ArrowRight size={14} className="ml-1.5" />
+          </Button>
         )}
       </div>
-
-      {isActive && (
-        <Button
-          variant="default"
-          size="sm"
-          className="flex-shrink-0 rounded-none w-[220px] hidden md:!inline-flex !h-auto self-stretch -my-[calc(0.5rem+1px)]"
-          onClick={() => setIsContributeModalOpen(true)}
-        >
-          Fund this research
-          <ArrowRight size={14} className="ml-1.5" />
-        </Button>
-      )}
-      {isActive && (
-        <Button
-          variant="default"
-          size="sm"
-          className="flex-shrink-0 rounded-md md:!hidden"
-          onClick={() => setIsContributeModalOpen(true)}
-        >
-          Fund this research
-          <ArrowRight size={14} className="ml-1.5" />
-        </Button>
-      )}
     </div>
   );
 
@@ -194,23 +191,60 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         showBountyInfo={showBountyInfo}
         showHeader={false}
         hideReportButton={true}
-        cardImage={
-          imageUrl && (
-            <div className="relative w-full h-full">
+        cardImageLeft={
+          imageUrl ? (
+            <>
               <ImageSection
                 imageUrl={imageUrl}
                 alt={post.title || 'Fundraise image'}
                 naturalDimensions
               />
               {isNonprofit && (
-                <div className="absolute bottom-2 left-2 z-10">
-                  <TaxDeductibleBadge size="xs" />
-                </div>
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: 7,
+                    left: 7,
+                  }}
+                >
+                  <TaxDeductibleBadge />
+                </span>
               )}
-            </div>
-          )
+              {hasReviewScore && (
+                <Tooltip
+                  content={
+                    <PeerReviewTooltip
+                      reviews={post.reviews ?? []}
+                      averageScore={reviewScore}
+                      href={fundingPageUrl}
+                    />
+                  }
+                  position="top"
+                  width="w-[320px]"
+                >
+                  <span
+                    className="cursor-help"
+                    style={{
+                      position: 'absolute',
+                      bottom: 7,
+                      left: 7,
+                      background: 'rgba(0, 0, 0, 0.45)',
+                      backdropFilter: 'blur(8px)',
+                      borderRadius: 12,
+                      padding: '2px 7px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 3,
+                    }}
+                  >
+                    <Star size={12} className="fill-amber-400 text-amber-400" />
+                    <span className="text-xs font-medium text-white">{reviewScore.toFixed(1)}</span>
+                  </span>
+                </Tooltip>
+              )}
+            </>
+          ) : undefined
         }
-        calloutSection={callout || undefined}
       >
         {isPinnedFundraise && (
           <div className="absolute top-3 right-3 z-10 pointer-events-none">
@@ -218,23 +252,29 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
           </div>
         )}
 
-        <FeedItemTopSection
-          imageSection={
-            imageUrl && (
-              <ImageSection
-                imageUrl={imageUrl}
-                alt={post.title || 'Fundraise image'}
-                aspectRatio="16/9"
-              />
-            )
-          }
-          rightContent={null}
-          leftContent={null}
-        />
+        {/* Mobile image */}
+        {imageUrl && (
+          <div className="md:!hidden w-[calc(100%+2rem)] mb-5 -mx-4 -mt-4 overflow-hidden">
+            <ImageSection
+              imageUrl={imageUrl}
+              alt={post.title || 'Fundraise image'}
+              aspectRatio="16/9"
+            />
+          </div>
+        )}
 
-        <div className="mt-[-7px]">
-          <FeedItemBadges topics={topics} category={post.category} subcategory={post.subcategory} />
-        </div>
+        {grants.length > 0 && (
+          <div className="mt-[-7px] flex flex-wrap items-center gap-3">
+            {grants.map((grant) => (
+              <GrantBadge
+                key={grant.id}
+                grant={grant}
+                hideIcon
+                className="text-[13px] font-normal text-gray-500 hover:text-gray-700 gap-1"
+              />
+            ))}
+          </div>
+        )}
 
         <TitleSection title={post.title} href={fundingPageUrl} onClick={onFeedItemClick} />
 
@@ -251,6 +291,10 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                 hideExpandButton={true}
               />
             )}
+            <span className="mx-1.5 text-gray-400">/</span>
+            <span className="text-gray-500 whitespace-nowrap text-sm">
+              {post.institution || 'George Church Lab'}
+            </span>
             {post.createdDate && (
               <>
                 <span className="mx-2 text-gray-500">•</span>
@@ -259,38 +303,10 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                 </span>
               </>
             )}
-            {hasReviewScore && (
-              <>
-                <span className="mx-2 text-gray-500">•</span>
-                <Tooltip
-                  content={
-                    <PeerReviewTooltip
-                      reviews={post.reviews ?? []}
-                      averageScore={reviewScore}
-                      href={fundingPageUrl}
-                    />
-                  }
-                  position="top"
-                  width="w-[320px]"
-                >
-                  <span className="inline-flex items-center gap-1 text-sm text-gray-600 cursor-help">
-                    <Star size={13} className="fill-amber-400 text-amber-400" />
-                    {reviewScore.toFixed(1)}
-                  </span>
-                </Tooltip>
-              </>
-            )}
           </div>
         </MetadataSection>
 
-        {post.institution && (
-          <MetadataSection>
-            <div className="mt-1 flex items-center gap-1.5 text-sm text-gray-500">
-              <Building className="w-4 h-4" />
-              <span>{post.institution}</span>
-            </div>
-          </MetadataSection>
-        )}
+        {callout}
       </BaseFeedItem>
 
       {hasFundraise && fundraise && (

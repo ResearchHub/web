@@ -1,9 +1,7 @@
 'use client';
 
-import { FC, useEffect } from 'react';
-import { useInView } from 'react-intersection-observer';
-import { FeedItemFundraise } from '@/components/Feed/items/FeedItemFundraise';
-import { ProposalCardSkeleton } from '@/components/skeletons/ProposalCardSkeleton';
+import { FC } from 'react';
+import { FeedContent } from '@/components/Feed/FeedContent';
 import { useFundraises } from '@/contexts/FundraiseContext';
 import { FundingGrantTabs } from './FundingGrantTabs';
 import { usePathname } from 'next/navigation';
@@ -15,8 +13,6 @@ interface FundingProposalGridProps {
   belowNavContent?: React.ReactNode;
 }
 
-const SKELETON_COUNT = 5;
-
 export const FundingProposalGrid: FC<FundingProposalGridProps> = ({
   className,
   belowNavContent,
@@ -25,27 +21,13 @@ export const FundingProposalGrid: FC<FundingProposalGridProps> = ({
   const pathname = usePathname();
   const isGrantDetail = pathname.startsWith('/fund/grant/');
 
-  const { ref: loadMoreRef, inView } = useInView({
-    threshold: 0,
-    rootMargin: '200px',
-  });
+  const tabs = <FundingGrantTabs />;
 
-  useEffect(() => {
-    if (inView && hasMore && !isLoading && !isLoadingMore) {
-      loadMore();
-    }
-  }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
-
-  return (
-    <div className={cn('', className)}>
-      <div className="mb-6">
-        <FundingGrantTabs />
-      </div>
-
-      {belowNavContent && <div className="mb-4">{belowNavContent}</div>}
-
+  const banner = (
+    <>
+      {belowNavContent && <div>{belowNavContent}</div>}
       {isGrantDetail && (
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-gray-600 mt-2">
           {isLoading ? (
             '\u00A0'
           ) : (
@@ -58,26 +40,28 @@ export const FundingProposalGrid: FC<FundingProposalGridProps> = ({
           )}
         </p>
       )}
+    </>
+  );
 
-      <div className="flex flex-col gap-3">
-        {isLoading ? (
-          [...Array(SKELETON_COUNT)].map((_, i) => <ProposalCardSkeleton key={i} />)
-        ) : entries.length > 0 ? (
-          <>
-            {entries.map((entry) => (
-              <FeedItemFundraise key={entry.id} entry={entry} showActions={true} />
-            ))}
-            {isLoadingMore &&
-              [...Array(3)].map((_, i) => <ProposalCardSkeleton key={`more-${i}`} />)}
-          </>
-        ) : (
+  return (
+    <div className={cn('', className)}>
+      <FeedContent
+        entries={entries}
+        isLoading={isLoading}
+        isLoadingMore={isLoadingMore}
+        hasMore={hasMore}
+        loadMore={loadMore}
+        tabs={tabs}
+        banner={banner}
+        showFundraiseHeaders={false}
+        showGrantHeaders={false}
+        showPostHeaders={false}
+        noEntriesElement={
           <div className="py-12 text-center">
             <p className="text-gray-500">No proposals found</p>
           </div>
-        )}
-      </div>
-
-      {!isLoading && hasMore && <div ref={loadMoreRef} className="h-10" />}
+        }
+      />
     </div>
   );
 };
