@@ -66,7 +66,7 @@ function transformEndaomentFund(raw: Record<string, any>): EndaomentFund {
     name: raw.name,
     type: raw.type,
     description: raw.description,
-    usdcBalance: microsToDollars(raw.usdcBalance),
+    usdcBalance: microsToDollars(raw.availableBalance),
   };
 }
 
