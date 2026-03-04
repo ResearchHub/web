@@ -17,6 +17,8 @@ export interface MultiSelectOption {
   label: string;
   avatarUrl?: string;
   description?: string;
+  isVerified?: boolean;
+  profileUrl?: string;
 }
 
 export interface SearchableMultiSelectProps {
