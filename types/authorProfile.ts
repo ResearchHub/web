@@ -50,6 +50,16 @@ export interface AuthorProfile {
 
 export type TransformedAuthorProfile = AuthorProfile & BaseTransformed;
 
+export function extractHeadline(value: unknown): string {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object' && value !== null && 'title' in value) {
+    const { title } = value as { title: unknown };
+    return typeof title === 'string' ? title : '';
+  }
+  return '';
+}
+
 export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw) => {
   if (!raw) {
     return {
@@ -78,7 +88,7 @@ export const transformAuthorProfile = createTransformer<any, AuthorProfile>((raw
     firstName: raw.first_name || '',
     lastName: raw.last_name || '',
     profileImage: raw.profile_image || '',
-    headline: typeof raw.headline === 'string' ? raw.headline : raw.headline?.title || '',
+    headline: extractHeadline(raw.headline),
     profileUrl: `/author/${raw.id || 0}`,
     user: raw.user ? transformUser(raw.user) : undefined,
     description: raw.description || undefined,

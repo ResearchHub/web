@@ -45,8 +45,6 @@ interface PaymentWidgetProps {
   onEndaomentLogin?: () => void;
   /** Called when user wants to deposit RSC */
   onDepositRsc?: () => void;
-  /** Called when user wants to buy RSC */
-  onBuyRsc?: () => void;
   /** Whether the CTA button should be disabled */
   isButtonDisabled?: boolean;
   /** Initial/controlled selected payment method */
@@ -80,7 +78,6 @@ export function PaymentWidget({
   onPreviewTransaction,
   onEndaomentLogin,
   onDepositRsc,
-  onBuyRsc,
   isButtonDisabled = false,
   selectedPaymentMethod,
   onPaymentMethodChange,

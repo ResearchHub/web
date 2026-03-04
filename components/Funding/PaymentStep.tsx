@@ -55,8 +55,6 @@ interface PaymentStepProps {
   onEndaomentPaymentConfirm?: (fundId: string) => void;
   /** Called when user wants to deposit RSC */
   onDepositRsc?: () => void;
-  /** Called when user wants to buy RSC */
-  onBuyRsc?: () => void;
   /** Called when Stripe context is ready for payment confirmation */
   onStripeReady?: (context: StripePaymentContext | null) => void;
   /** Whether the Endaoment payment option is enabled (feature flag) */
@@ -80,7 +78,6 @@ export function PaymentStep({
   onPaymentRequestSuccess,
   onEndaomentPaymentConfirm,
   onDepositRsc,
-  onBuyRsc,
   onStripeReady,
   isEndaomentEnabled = false,
 }: PaymentStepProps) {
@@ -206,7 +203,6 @@ export function PaymentStep({
           rscBalance={rscBalance}
           onPreviewTransaction={handlePreviewTransaction}
           onDepositRsc={onDepositRsc}
-          onBuyRsc={onBuyRsc}
           selectedPaymentMethod={selectedMethod}
           onPaymentMethodChange={handlePaymentMethodChange}
           onCreditCardCompleteChange={setIsCreditCardComplete}
