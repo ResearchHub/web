@@ -242,13 +242,16 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
           'flex items-center',
           variant === 'inline' ? 'px-2 py-1' : '',
           sizeClasses[size],
-          isUSD && !shouldInheritColor ? effectiveTextColor || 'text-black' : '',
           className
         )}
       >
         {showIcon &&
           (isUSD ? (
-            <DollarSign size={effectiveIconSize} className="-mr-1" strokeWidth={2} />
+            <DollarSign
+              size={effectiveIconSize}
+              className={cn('-mr-1', effectiveTextColor || colors.text)}
+              strokeWidth={2}
+            />
           ) : (
             <ResearchCoinIcon
               size={effectiveIconSize}
