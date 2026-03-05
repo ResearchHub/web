@@ -264,8 +264,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
           <div className="flex items-center">
             <span
               className={cn(
-                !shouldInheritColor &&
-                  (isUSD ? effectiveTextColor || colors.textDark : colors.textDark),
+                !shouldInheritColor && (effectiveTextColor || colors.textDark),
                 fontWeight || 'font-medium'
               )}
             >
@@ -281,8 +280,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
             {label && (
               <span
                 className={cn(
-                  !shouldInheritColor &&
-                    (isUSD ? effectiveTextColor || colors.textDark : colors.textDark),
+                  !shouldInheritColor && (effectiveTextColor || colors.textDark),
                   'ml-1'
                 )}
               >
@@ -294,7 +292,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
           <div className="flex items-center">
             <span
               className={cn(
-                !shouldInheritColor && (isUSD ? effectiveTextColor || colors.text : colors.text),
+                !shouldInheritColor && (effectiveTextColor || colors.text),
                 fontWeight || 'font-medium'
               )}
             >
@@ -310,8 +308,7 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
             {label && (
               <span
                 className={cn(
-                  !shouldInheritColor &&
-                    (isUSD ? effectiveTextColor || colors.textDark : colors.textDark),
+                  !shouldInheritColor && (effectiveTextColor || colors.textDark),
                   'ml-1'
                 )}
               >
