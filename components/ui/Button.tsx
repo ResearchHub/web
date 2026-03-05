@@ -12,7 +12,7 @@ const buttonVariants = cva(
       variant: {
         default: 'bg-[#3971FF] text-white hover:bg-[#2C5EE8] focus-visible:ring-[#3971FF]',
         secondary:
-          'bg-primary-100 text-primary-900 hover:bg-primary-200 focus-visible:ring-primary-500',
+          'bg-primary-100 text-primary-700 hover:bg-primary-200 focus-visible:ring-primary-500',
         outlined: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50',
         ghost: 'hover:bg-gray-100 text-gray-700',
         link: 'p-0 h-auto text-[#3971FF] underline-offset-4 hover:underline focus-visible:ring-0 !px-0 !py-0',
@@ -37,8 +37,7 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   tooltip?: string;
 }

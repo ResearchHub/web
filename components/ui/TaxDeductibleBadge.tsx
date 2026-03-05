@@ -38,12 +38,12 @@ export const TaxDeductibleBadge = ({
         showTooltip ? 'cursor-help' : 'cursor-default',
         sizeStyles[size],
         isOverlay
-          ? 'bg-indigo-900/70 text-white backdrop-blur-sm border border-indigo-400/30 shadow-[0_0_8px_rgba(0,0,0,0.25)]'
-          : 'bg-indigo-50 text-indigo-700 border border-indigo-200',
+          ? 'bg-black/50 text-white backdrop-blur-sm border border-white/20'
+          : 'bg-white-50 text-white-700 border border-white-200',
         className
       )}
     >
-      <Percent className={cn(iconSizes[size], isOverlay ? 'text-white' : 'text-indigo-500')} />
+      <Percent className={cn(iconSizes[size], isOverlay ? 'text-white-400' : 'text-white-500')} />
       <span>Tax-Deductible</span>
     </span>
   );
@@ -56,8 +56,8 @@ export const TaxDeductibleBadge = ({
     <Tooltip
       content={
         <div className="flex items-start gap-3 text-left">
-          <div className="bg-indigo-100 p-2 rounded-md flex items-center justify-center flex-shrink-0">
-            <Percent className="w-4 h-4 text-indigo-600" />
+          <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center flex-shrink-0">
+            <Percent className="w-4 h-4 text-white-600" />
           </div>
           <div>
             <h3 className="text-sm font-semibold text-gray-900">Tax-Deductible Donations</h3>

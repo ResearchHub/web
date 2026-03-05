@@ -15,8 +15,8 @@ export function FundingIntroBanner({ onDismiss }: FundingIntroBannerProps) {
 
   return (
     <div className="mb-4 rounded-xl p-[1.5px]">
-      <div className="relative rounded-[10px] overflow-hidden bg-gradient-to-r from-primary-50 to-primary-50">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(99,102,241,0.1),transparent_70%)]" />
+      <div className="relative rounded-[10px] overflow-hidden bg-gradient-to-r from-primary-50 to-primary-50 via-primary-100">
+        <div className="absolute inset-0 " />
 
         <div className="relative grid grid-cols-[1fr_1fr] items-center px-6 py-4">
           {/* Column 1: Researchers */}

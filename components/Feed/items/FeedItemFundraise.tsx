@@ -129,7 +129,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                   reviews={post.reviews}
                   href={fundingPageUrl}
                   isNonprofit={!!isNonprofit}
-                  fundraiseStatus={'COMPLETED'}
+                  fundraiseStatus={fundraise?.status}
                   variant="overlay"
                 />
               </div>
