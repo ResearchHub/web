@@ -125,18 +125,6 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
                         className="text-orange-500 font-medium"
                       />
                     )}
-                    {contributor.totalContribution.usd <= 0 &&
-                      contributor.totalContribution.rsc <= 0 && (
-                        <CurrencyBadge
-                          amount={0}
-                          variant="text"
-                          size="xs"
-                          currency="RSC"
-                          showText={true}
-                          showExchangeRate={false}
-                          className="text-orange-500 font-medium"
-                        />
-                      )}
                   </div>
                 </div>
               ))}
