@@ -272,7 +272,9 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
               {displayAmount}
             </span>
             {shouldShowCurrencyText && (
-              <span className={cn(!shouldInheritColor && colors.rscLabel, 'ml-1')}>
+              <span
+                className={cn(!shouldInheritColor && (effectiveTextColor || colors.text), 'ml-1')}
+              >
                 {currencyText}
               </span>
             )}
@@ -299,7 +301,9 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
               {displayAmount}
             </span>
             {shouldShowCurrencyText && (
-              <span className={cn(!shouldInheritColor && colors.rscLabel, 'ml-1')}>
+              <span
+                className={cn(!shouldInheritColor && (effectiveTextColor || colors.text), 'ml-1')}
+              >
                 {currencyText}
               </span>
             )}
