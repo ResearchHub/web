@@ -6,8 +6,10 @@ import { WorkLineItems } from './WorkLineItems';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { isDeadlineInFuture } from '@/utils/date';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
-import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
-import { GrantDetailsCallout } from '@/components/Funding/GrantDetailsCallout';
+import { ProposalFeed } from '@/components/Funding/ProposalFeed';
+import { ProposalCount } from '@/components/Funding/ProposalCount';
+import { FundingGrantTabs } from '@/components/Funding/FundingGrantTabs';
+import { GrantInfoBanner } from '@/components/Funding/GrantInfoBanner';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 
 interface GrantDocumentProps {
@@ -36,18 +38,24 @@ export const GrantDocument = ({ work, metadata }: GrantDocumentProps) => {
         <WorkLineItems work={work} showClaimButton={false} metadata={metadata} />
 
         {work.note?.post?.grant?.description ? (
-          <GrantDetailsCallout
-            description={work.note.post.grant.description}
-            content={work.previewContent}
-            amountUsd={work.note.post.grant.amount?.usd}
-            grantId={grantId.toString()}
-            isActive={isActive}
-          />
+          <>
+            <GrantInfoBanner
+              className="mt-4"
+              description={work.note.post.grant.description}
+              content={work.previewContent}
+              amountUsd={work.note.post.grant.amount?.usd}
+              grantId={grantId.toString()}
+              isActive={isActive}
+              imageUrl={work.image}
+            />
+            <ProposalCount />
+          </>
         ) : (
           <p className="mt-4 text-gray-500">No content available</p>
         )}
 
-        <FundingProposalGrid className="mt-6" />
+        <FundingGrantTabs />
+        <ProposalFeed />
       </div>
     </FundraiseProvider>
   );

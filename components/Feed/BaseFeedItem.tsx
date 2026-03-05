@@ -415,6 +415,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                       </div>
                     ) : null
                   ) : null}
+                  {badges && <div className="pt-3">{badges}</div>}
                 </div>
                 {cardImage && (
                   <div className="hidden md:!block flex-shrink-0 w-[280px] max-w-[33%] relative overflow-hidden rounded-lg border border-gray-200">
@@ -422,7 +423,6 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                   </div>
                 )}
               </div>
-              {badges && <div className="pt-3">{badges}</div>}
             </div>
           </div>
         </div>

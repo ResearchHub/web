@@ -69,11 +69,11 @@ export const FundingGrantTabs: FC = () => {
         activeTab={activeTab}
         onTabChange={() => {}}
         size="md"
-        colorScheme="indigo"
+        colorScheme="default"
       />
       <Link
         href="/awards"
-        className="flex items-center justify-center p-2 text-indigo-600 hover:text-indigo-700 transition-colors flex-shrink-0"
+        className="flex items-center justify-center p-2 text-gray-600 hover:text-gray-800 transition-colors flex-shrink-0"
         title="Browse awards"
       >
         <LayoutGrid className="w-5 h-5" />

@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
+import { ProposalFeed } from '@/components/Funding/ProposalFeed';
+import { FundingGrantTabs } from '@/components/Funding/FundingGrantTabs';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
@@ -15,10 +16,11 @@ export default async function FundPage() {
         </Suspense>
       }
     >
-      <div className="">
+      <div>
         <FundingIntroBanner />
         <FundraiseProvider>
-          <FundingProposalGrid />
+          <FundingGrantTabs />
+          <ProposalFeed />
         </FundraiseProvider>
       </div>
     </PageLayout>

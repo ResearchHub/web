@@ -2,8 +2,10 @@ import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FundingProposalGrid } from '@/components/Funding/FundingProposalGrid';
-import { GrantDetailsCallout } from '@/components/Funding/GrantDetailsCallout';
+import { ProposalFeed } from '@/components/Funding/ProposalFeed';
+import { ProposalCount } from '@/components/Funding/ProposalCount';
+import { FundingGrantTabs } from '@/components/Funding/FundingGrantTabs';
+import { GrantInfoBanner } from '@/components/Funding/GrantInfoBanner';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
@@ -46,21 +48,22 @@ export default async function FundGrantPage({ params }: Props) {
     >
       <div>
         <FundraiseProvider grantId={grantId ? Number(grantId) : undefined}>
-          <FundingProposalGrid
-            belowNavContent={
-              grant?.description ? (
-                <GrantDetailsCallout
-                  description={grant.description}
-                  content={work.previewContent}
-                  amountUsd={amountUsd}
-                  grantId={grantId?.toString()}
-                  isActive={isActive}
-                />
-              ) : (
-                <p className="text-gray-500">No content available</p>
-              )
-            }
-          />
+          <FundingGrantTabs />
+          {grant?.description ? (
+            <>
+              <GrantInfoBanner
+                className="mt-4"
+                description={grant.description}
+                content={work.previewContent}
+                amountUsd={amountUsd}
+                grantId={grantId?.toString()}
+                isActive={isActive}
+                imageUrl={work.image}
+              />
+              <ProposalCount />
+            </>
+          ) : null}
+          <ProposalFeed />
         </FundraiseProvider>
       </div>
     </PageLayout>
