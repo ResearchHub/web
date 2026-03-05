@@ -1,4 +1,3 @@
-import '@coinbase/onchainkit/styles.css';
 import localFont from 'next/font/local';
 import './globals.css';
 import { Metadata } from 'next';
