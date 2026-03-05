@@ -15,6 +15,7 @@ import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Button } from '@/components/ui/Button';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { GrantBadge } from '@/components/ui/GrantBadge';
 import { Pin, Star, ArrowRight } from 'lucide-react';
@@ -88,6 +89,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       src: c.authorProfile.profileImage || '',
       alt: c.authorProfile.fullName,
       tooltip: c.authorProfile.fullName,
+      authorId: c.authorProfile.id || undefined,
     })) || [];
 
   const handleContributeSuccess = () => {
@@ -187,13 +189,14 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         <MetadataSection className="mb-0 py-2">
           {primaryAuthor ? (
             <div className="flex items-center gap-2.5">
-              <Avatar
-                src={primaryAuthor.profileImage || undefined}
-                alt={primaryAuthor.fullName}
-                size="sm"
-                authorId={primaryAuthor.id !== 0 ? primaryAuthor.id : undefined}
-                disableTooltip
-              />
+              <AuthorTooltip authorId={primaryAuthor.id !== 0 ? primaryAuthor.id : undefined}>
+                <Avatar
+                  src={primaryAuthor.profileImage || undefined}
+                  alt={primaryAuthor.fullName}
+                  size="sm"
+                  disableTooltip
+                />
+              </AuthorTooltip>
               <div className="flex flex-col min-w-0">
                 <Link
                   href={primaryAuthor.profileUrl || '#'}

@@ -108,12 +108,14 @@ export const FeedContent: FC<FeedContentProps> = ({
     useFeedImpressionTracking();
 
   const displayEntries = entries;
+  const showLoadingSkeletons = isLoading || isLoadingMore;
+  const skeletonCount = 3;
 
   useEffect(() => {
-    if (inView && hasMore && !isLoading && !isLoadingMore) {
+    if (inView && hasMore && !showLoadingSkeletons) {
       loadMore();
     }
-  }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
+  }, [inView, hasMore, showLoadingSkeletons, loadMore]);
 
   return (
     <>
@@ -178,21 +180,18 @@ export const FeedContent: FC<FeedContentProps> = ({
               );
             })}
 
-          {isLoading && (
-            <>
-              {[...Array(3)].map((_, index) => (
-                <div
-                  key={`skeleton-${index}`}
-                  className={index > 0 || displayEntries.length > 0 ? 'mt-8' : ''}
-                >
-                  <FeedItemSkeleton />
-                </div>
-              ))}
-            </>
+          {showLoadingSkeletons && (
+            <div className={displayEntries.length > 0 ? 'mt-8' : ''}>
+              <div className="space-y-8">
+                {[...Array(skeletonCount)].map((_, index) => (
+                  <FeedItemSkeleton key={`skeleton-${index}`} />
+                ))}
+              </div>
+            </div>
           )}
 
-          {/* Show 'No entries' message only if not loading and entries are empty */}
           {!isLoading &&
+            !isLoadingMore &&
             displayEntries.length === 0 &&
             (noEntriesElement || (
               <div className="text-center py-8">
@@ -202,11 +201,7 @@ export const FeedContent: FC<FeedContentProps> = ({
         </div>
 
         {/* Infinite scroll sentinel */}
-        {!isLoading && hasMore && (
-          <div ref={loadMoreRef} className="h-10 flex items-center justify-center">
-            {isLoadingMore && <span className="text-sm text-gray-500">Loading more...</span>}
-          </div>
-        )}
+        {!showLoadingSkeletons && hasMore && <div ref={loadMoreRef} className="h-10" />}
       </div>
     </>
   );
