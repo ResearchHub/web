@@ -108,7 +108,7 @@ export const GrantInfoBanner = ({
       </div>
 
       {isExpanded && content && (
-        <div className="post-content rounded-b-xl bg-gray-50 px-6 py-4 -mt-2">
+        <div className="post-content rounded-b-xl bg-gray-50 px-6 py-4">
           <PostBlockEditor content={content} />
         </div>
       )}

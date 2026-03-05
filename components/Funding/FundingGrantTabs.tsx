@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useMemo, useEffect } from 'react';
+import { FC, useMemo, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
@@ -16,11 +16,16 @@ function formatCompactAmount(usd: number): string {
 
 export const FundingGrantTabs: FC = () => {
   const pathname = usePathname();
-  const { grants, fetchGrants } = useGrants();
+  const { grants, isLoading, fetchGrants } = useGrants();
+  const hasFetchedRef = useRef(grants.length > 0);
 
   useEffect(() => {
-    fetchGrants();
+    fetchGrants().then(() => {
+      hasFetchedRef.current = true;
+    });
   }, [fetchGrants]);
+
+  const isPending = !hasFetchedRef.current && grants.length === 0;
 
   const activeTab = useMemo(() => {
     const grantMatch = pathname.match(/^\/(?:fund\/)?grant\/(\d+)/);
@@ -60,11 +65,28 @@ export const FundingGrantTabs: FC = () => {
     return [allTab, ...grantTabs];
   }, [grants]);
 
-  if (grants.length === 0) return null;
+  if (grants.length === 0) {
+    if (isLoading || isPending) {
+      const widths = [48, 128, 112, 96, 120, 104, 88, 132, 100, 116];
+      return (
+        <div className="flex items-center gap-2 py-2 overflow-hidden">
+          {widths.map((w, i) => (
+            <div
+              key={i}
+              className="h-[30px] rounded-lg bg-gray-100 animate-pulse flex-shrink-0"
+              style={{ width: w }}
+            />
+          ))}
+        </div>
+      );
+    }
+    return null;
+  }
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 max-w-full">
       <PillTabs
+        className="min-w-0"
         tabs={pillTabs}
         activeTab={activeTab}
         onTabChange={() => {}}
