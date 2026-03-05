@@ -86,7 +86,7 @@ function ContributeToFundraiseModalInner({
   fundraise,
   proposalTitle,
   work,
-}: ContributeToFundraiseModalProps) {
+}: Readonly<ContributeToFundraiseModalProps>) {
   const { user, refreshUser } = useUser();
   const walletAvailability = useWalletAvailability();
   const { exchangeRate } = useExchangeRate();
