@@ -6,6 +6,7 @@ import type { AuthorProfile } from '@/types/authorProfile';
 import { formatRSC } from '@/utils/number';
 import { Button } from '../Button';
 import { ContributorsButton } from '../ContributorsButton';
+import type { ContributionTotals } from '@/types/funding';
 
 interface ContributeRSCProps {
   /**
@@ -39,7 +40,7 @@ interface ContributeRSCProps {
    */
   contributors?: Array<{
     profile: AuthorProfile;
-    amount: number;
+    amounts: ContributionTotals;
   }>;
 }
 

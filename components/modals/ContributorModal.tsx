@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatRSC } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
+import type { ContributionTotals } from '@/types/funding';
 
 interface Contributor {
   profile: {
@@ -15,7 +17,7 @@ interface Contributor {
     profileImage?: string | null;
     fullName: string;
   };
-  amount: number;
+  amounts: ContributionTotals;
 }
 
 interface ContributorModalProps {
@@ -33,8 +35,10 @@ export const ContributorModal: FC<ContributorModalProps> = ({
   onContribute,
   disableContribute,
 }) => {
-  const sortedContributors = [...contributors].sort((a, b) => b.amount - a.amount);
-  const totalAmount = contributors.reduce((sum, c) => sum + c.amount, 0);
+  const totalUsd = contributors.reduce((sum, c) => sum + c.amounts.usd, 0);
+  const totalRsc = contributors.reduce((sum, c) => sum + c.amounts.rsc, 0);
+  const hasUsdTotal = totalUsd > 0;
+  const hasRscTotal = totalRsc > 0;
 
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
@@ -45,11 +49,35 @@ export const ContributorModal: FC<ContributorModalProps> = ({
           <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
             <div className="flex flex-col">
               <Dialog.Title className="text-lg font-semibold text-gray-900">
-                {sortedContributors.length === 1 ? 'Contributor' : 'Contributors'} (
-                {sortedContributors.length})
+                {contributors.length === 1 ? 'Contributor' : 'Contributors'} ({contributors.length})
               </Dialog.Title>
-              <div className="text-sm text-gray-500">
-                Total: {formatRSC({ amount: totalAmount, round: true })} RSC
+              <div className="text-sm text-gray-500 flex items-center gap-2">
+                <span>Total:</span>
+                {hasUsdTotal && (
+                  <CurrencyBadge
+                    amount={Math.round(totalUsd)}
+                    variant="text"
+                    size="xs"
+                    currency="USD"
+                    showText={true}
+                    hideUSDText={false}
+                    skipConversion={true}
+                    showExchangeRate={false}
+                  />
+                )}
+                {hasRscTotal && (
+                  <CurrencyBadge
+                    amount={Math.round(totalRsc)}
+                    variant="text"
+                    size="xs"
+                    currency="RSC"
+                    showText={true}
+                    showExchangeRate={false}
+                  />
+                )}
+                {!hasUsdTotal && !hasRscTotal && (
+                  <span>{formatRSC({ amount: 0, round: true })} RSC</span>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -77,7 +105,7 @@ export const ContributorModal: FC<ContributorModalProps> = ({
 
           <div className="px-4 py-3 max-h-[60vh] overflow-y-auto">
             <div className="space-y-3">
-              {sortedContributors.map((contributor, index) => (
+              {contributors.map((contributor, index) => (
                 <div
                   key={contributor.profile.fullName + index}
                   className="flex items-center justify-between py-2"
@@ -102,9 +130,34 @@ export const ContributorModal: FC<ContributorModalProps> = ({
                       </span>
                     )}
                   </div>
-                  <span className="text-sm font-medium text-orange-500">
-                    +{formatRSC({ amount: contributor.amount, round: true })} RSC
-                  </span>
+                  <div className="flex items-center gap-2 text-sm font-medium text-orange-500">
+                    <span className="mr-0.5">+</span>
+                    {contributor.amounts.usd > 0 && (
+                      <CurrencyBadge
+                        amount={Math.round(contributor.amounts.usd)}
+                        variant="text"
+                        size="xs"
+                        currency="USD"
+                        showText={true}
+                        hideUSDText={false}
+                        skipConversion={true}
+                        showExchangeRate={false}
+                      />
+                    )}
+                    {contributor.amounts.rsc > 0 && (
+                      <CurrencyBadge
+                        amount={Math.round(contributor.amounts.rsc)}
+                        variant="text"
+                        size="xs"
+                        currency="RSC"
+                        showText={true}
+                        showExchangeRate={false}
+                      />
+                    )}
+                    {contributor.amounts.usd <= 0 && contributor.amounts.rsc <= 0 && (
+                      <span>{formatRSC({ amount: 0, round: true })} RSC</span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

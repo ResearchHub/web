@@ -72,7 +72,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
         fullName: contributor.authorProfile.fullName,
         id: contributor.authorProfile.id,
       },
-      amount: contributor.totalContribution,
+      amounts: contributor.totalContribution,
     })) || [];
 
   // Get status display for the non-compact view
