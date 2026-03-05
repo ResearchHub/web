@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { FundraiseService } from '@/services/fundraise.service';
 import { PaymentService } from '@/services/payment.service';
