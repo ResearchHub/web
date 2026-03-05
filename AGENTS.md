@@ -8,26 +8,17 @@ ResearchHub Web is a Next.js 15 frontend (React 18, TypeScript, TailwindCSS) for
 
 ### Private npm registries
 
-This project depends on **@tiptap-pro** and **@fortawesome/pro-\*** packages which require private registry authentication. The `.npmrc` must exist in the project root with:
+This project depends on **@tiptap-pro** and **@fortawesome/pro-\*** packages which require private registry authentication. The `.npmrc` must exist in the project root (it is gitignored). Without it, `npm install` will fail with 403/404 errors.
 
-```
-@tiptap-pro:registry=https://registry.tiptap.dev/
-//registry.tiptap.dev/:_authToken=${TIPTAP_PRO_TOKEN}
-@fortawesome:registry=https://npm.fontawesome.com/
-//npm.fontawesome.com/:_authToken=${FONTAWESOME_NPM_AUTH_TOKEN}
-```
+### Environment files
 
-The environment variables `TIPTAP_PRO_TOKEN` and `FONTAWESOME_NPM_AUTH_TOKEN` must be injected as secrets. Without these, `npm install` will fail with 403/404 errors.
+Next.js loads `.env.development` automatically in dev mode (`npm run dev`). This file is gitignored. It contains API URLs, NextAuth config, and third-party service keys. The Django backend URL defaults to `http://localhost:8000` but the frontend renders gracefully without it (API calls fail but UI works).
 
-### Environment variables
+### Important notes
 
-A `.env.local` file is needed for the dev server. Key required vars:
-
-- `NEXT_PUBLIC_API_URL` — Django backend URL (staging: `https://backend.staging.researchhub.com`)
-- `NEXT_PUBLIC_WS_URL` — WebSocket URL (staging: `wss://backend.staging.researchhub.com`)
-- `NEXT_PUBLIC_SITE_URL` — Local site URL (`http://localhost:3000`)
-- `NEXTAUTH_SECRET` — Any random string for NextAuth session encryption
-- `NEXTAUTH_URL` — Local URL (`http://localhost:3000`)
+- The landing page at `/` fetches live data from the production ResearchHub API (hardcoded in the landing page component), so it loads real content even without a local backend.
+- Other pages (feed, browse, leaderboard, etc.) use `NEXT_PUBLIC_API_URL` and will show empty/error states without the Django backend running locally.
+- The `@fortawesome` registry scope in `.npmrc` must use `https://npm.fontawesome.com/` for both `@fortawesome` and `@awesome.me` scopes.
 
 ### Key commands
 
