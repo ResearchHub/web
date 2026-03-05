@@ -31,7 +31,7 @@ interface GrantProviderProps {
 export function GrantProvider({ children }: GrantProviderProps) {
   const [grants, setGrantsRaw] = useState<FeedEntry[]>(_grantsCache);
   const [selectedGrant, setSelectedGrant] = useState<FeedEntry | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(_grantsCache.length === 0);
   const [error, setError] = useState<string | null>(null);
   const [totalFundingUsd, setTotalFundingUsdRaw] = useState<number>(_fundingCache ?? 0);
 
@@ -83,6 +83,7 @@ export function GrantProvider({ children }: GrantProviderProps) {
     if (hasDataRef.current) return;
     hasDataRef.current = true;
     setGrants(initialGrants);
+    setIsLoading(false);
   }, []);
 
   const getGrantById = useCallback(

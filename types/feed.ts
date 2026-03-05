@@ -188,7 +188,7 @@ export interface FeedGrantContent extends BaseFeedContent {
     isExpired: boolean;
     isActive: boolean;
     currency: string;
-    createdBy: any;
+    createdBy: AuthorProfile;
     applicants: AuthorProfile[];
   };
   organization?: string;
@@ -839,7 +839,9 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               isActive: content_object.grant.is_active,
               currency: content_object.grant.currency,
               shortTitle: content_object.grant.short_title || '',
-              createdBy: content_object.grant.created_by,
+              createdBy: content_object.grant.created_by
+                ? transformAuthorProfile(content_object.grant.created_by)
+                : transformAuthorProfile(author),
               applicants: (content_object.grant.applications || [])
                 .map((application: any) => application.applicant)
                 .map(transformAuthorProfile),

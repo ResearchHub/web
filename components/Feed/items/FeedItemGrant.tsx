@@ -7,21 +7,23 @@ import {
   TitleSection,
   ImageSection,
   MetadataSection,
-  FeedItemLayout,
-  FeedItemTopSection,
+  PrimaryActionSection,
 } from '@/components/Feed/BaseFeedItem';
-import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
-import { FeedItemTopicBadges } from '@/components/Feed/FeedItemTopicBadges';
-import { GrantInfo } from '@/components/Fund/GrantInfo';
-import { AuthorList } from '@/components/ui/AuthorList';
-import { Tooltip } from '@/components/ui/Tooltip';
-import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
-import { Star } from 'lucide-react';
-import { Highlight } from '@/components/Feed/FeedEntryItem';
-import { formatTimestamp } from '@/utils/date';
+import { Avatar } from '@/components/ui/Avatar';
+import { AvatarStack } from '@/components/ui/AvatarStack';
+import { Button } from '@/components/ui/Button';
+import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { formatCurrency } from '@/utils/currency';
+import { isDeadlineInFuture } from '@/utils/date';
+import { Highlight } from '@/components/Feed/FeedEntryItem';
+import Link from 'next/link';
 
-interface FeedItemGrantRefactoredProps {
+interface FeedItemGrantProps {
   entry: FeedEntry;
   href?: string;
   className?: string;
@@ -35,10 +37,7 @@ interface FeedItemGrantRefactoredProps {
   highlights?: Highlight[];
 }
 
-/**
- * Refactored Grant Feed Item using BaseFeedItem
- */
-export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
+export const FeedItemGrant: FC<FeedItemGrantProps> = ({
   entry,
   href,
   className,
@@ -48,18 +47,13 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
   maxLength,
   showHeader = true,
   onFeedItemClick,
-  onAbstractExpanded,
   highlights,
 }) => {
+  const router = useRouter();
+  const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
+
   const grant = entry.content as FeedGrantContent;
-
-  // Extract highlighted fields from highlights prop
-  const highlightedTitle = highlights?.find((h) => h.field === 'title')?.value;
-  const highlightedSnippet = highlights?.find((h) => h.field === 'snippet')?.value;
-
-  // Use provided href or create default grant page URL
-  const reviewScore = entry.metrics?.reviewScore;
-  const hasReviewScore = reviewScore !== undefined && reviewScore > 0;
 
   const grantPageUrl =
     href ||
@@ -68,6 +62,26 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
       slug: grant.slug,
       contentType: 'funding_request',
     });
+
+  const imageUrl = grant.previewImage ?? undefined;
+
+  const isActive =
+    grant.grant?.status === 'OPEN' &&
+    (grant.grant?.endDate ? isDeadlineInFuture(grant.grant.endDate) : true);
+
+  const funder = grant.grant?.createdBy;
+
+  const applicants =
+    grant.grant?.applicants?.map((applicant) => ({
+      src: applicant.profileImage || '',
+      alt: applicant.fullName,
+      tooltip: applicant.fullName,
+      authorId: applicant.id || undefined,
+    })) || [];
+
+  const budgetAmount = showUSD
+    ? Math.round(grant.grant?.amount?.usd || 0)
+    : Math.round(grant.grant?.amount?.rsc || 0);
 
   return (
     <BaseFeedItem
@@ -81,130 +95,108 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
       showHeader={showHeader}
       onFeedItemClick={onFeedItemClick}
       hideReportButton={true}
+      cardImageLeft={
+        imageUrl ? (
+          <ImageSection imageUrl={imageUrl} alt={grant.title || 'Grant image'} naturalDimensions />
+        ) : undefined
+      }
     >
-      {/* Top section with status + image(mobile) */}
-      <FeedItemTopSection
-        imageSection={
-          grant.previewImage && (
-            <ImageSection
-              imageUrl={grant.previewImage}
-              alt={grant.title || 'Grant image'}
-              aspectRatio="16/9"
-            />
-          )
-        }
-        rightContent={null}
-        leftContent={null}
-      />
+      {/* Mobile image */}
+      {imageUrl && (
+        <div className="md:!hidden w-[calc(100%+2rem)] mb-5 -mx-4 -mt-4 overflow-hidden">
+          <ImageSection imageUrl={imageUrl} alt={grant.title || 'Grant image'} aspectRatio="16/9" />
+        </div>
+      )}
 
-      <div className="mt-[-7px]">
-        <FeedItemTopicBadges
-          topics={grant.topics}
-          category={grant.category}
-          subcategory={grant.subcategory}
-        />
-      </div>
+      <TitleSection title={grant.title} href={grantPageUrl} onClick={onFeedItemClick} />
 
-      {/* Main content layout + image(desktop) */}
-      <FeedItemLayout
-        leftContent={
-          <>
-            {/* Title */}
-            <TitleSection
-              title={grant.title}
-              highlightedTitle={highlightedTitle}
-              href={grantPageUrl}
-              onClick={onFeedItemClick}
-            />
-
-            {/* Organization or Authors list */}
-            <MetadataSection className="mb-1">
-              <div className="flex items-center flex-wrap text-base">
-                {grant.organization || grant.grant?.organization ? (
-                  <span className="text-gray-500 font-normal text-sm">
-                    {grant.organization || grant.grant?.organization}
-                  </span>
-                ) : (
-                  grant.authors.length > 0 && (
-                    <AuthorList
-                      authors={grant.authors.map((author) => ({
-                        name: author.fullName,
-                        verified: author.user?.isVerified,
-                        authorUrl: author.id === 0 ? undefined : author.profileUrl,
-                      }))}
-                      size="base"
-                      className="text-gray-500 font-normal text-sm"
-                      delimiter=","
-                      delimiterClassName="ml-0"
-                      showAbbreviatedInMobile={true}
-                      hideExpandButton={true}
-                    />
-                  )
-                )}
-                {grant.createdDate && (
-                  <>
-                    <span className="mx-2 text-gray-500">•</span>
-                    <span className="text-gray-600 whitespace-nowrap text-sm">
-                      {formatTimestamp(grant.createdDate, false)}
-                    </span>
-                  </>
-                )}
-                {hasReviewScore && (
-                  <>
-                    <span className="mx-2 text-gray-500">•</span>
-                    <Tooltip
-                      content={
-                        <PeerReviewTooltip
-                          reviews={grant.reviews ?? []}
-                          averageScore={reviewScore}
-                          href={grantPageUrl}
-                        />
-                      }
-                      position="top"
-                      width="w-[320px]"
-                    >
-                      <span className="inline-flex items-center gap-1 text-sm text-gray-600 cursor-help">
-                        <Star size={13} className="fill-amber-400 text-amber-400" />
-                        {reviewScore.toFixed(1)}
-                      </span>
-                    </Tooltip>
-                  </>
-                )}
-              </div>
-            </MetadataSection>
-
-            {/* Description Section - handles both desktop and mobile */}
-            {(grant.grant?.description || grant.textPreview) && (
-              <FeedItemAbstractSection
-                content={grant.grant?.description || grant.textPreview || ''}
-                highlightedContent={highlightedSnippet}
-                maxLength={maxLength}
-                mobileLabel="Read description"
-                className="mb-3"
-                onAbstractExpanded={onAbstractExpanded}
+      <MetadataSection className="mb-0 py-2">
+        {funder ? (
+          <div className="flex items-center gap-2.5">
+            <AuthorTooltip authorId={funder.id !== 0 ? funder.id : undefined}>
+              <Avatar
+                src={funder.profileImage || undefined}
+                alt={funder.fullName}
+                size="sm"
+                disableTooltip
               />
-            )}
-          </>
-        }
-        rightContent={
-          grant.previewImage && (
-            <ImageSection
-              imageUrl={grant.previewImage}
-              alt={grant.title || 'Grant image'}
-              aspectRatio="4/3"
-            />
+            </AuthorTooltip>
+            <div className="flex flex-col min-w-0">
+              <Link
+                href={funder.profileUrl || '#'}
+                className="text-sm font-medium text-gray-900 hover:underline truncate"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {funder.fullName}
+              </Link>
+              {(grant.organization || grant.grant?.organization) && (
+                <span className="text-xs text-gray-500 truncate">
+                  {grant.organization || grant.grant?.organization}
+                </span>
+              )}
+            </div>
+          </div>
+        ) : (
+          (grant.organization || grant.grant?.organization) && (
+            <span className="text-sm text-gray-500">
+              {grant.organization || grant.grant?.organization}
+            </span>
           )
-        }
-      />
-      {/* Grant Info */}
-      <div
-        className="mt-4"
-        onMouseDown={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <GrantInfo grant={grant} onFeedItemClick={onFeedItemClick} />
-      </div>
+        )}
+      </MetadataSection>
+
+      {grant.grant && (
+        <PrimaryActionSection>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="text-sm leading-tight whitespace-nowrap">
+                <span className="text-gray-500">Funding:</span>
+                <span className="font-mono font-semibold text-primary-600 ml-1">
+                  {formatCurrency({
+                    amount: budgetAmount,
+                    showUSD,
+                    exchangeRate,
+                    skipConversion: true,
+                    shorten: true,
+                  })}
+                </span>
+              </div>
+
+              {applicants.length > 0 && (
+                <>
+                  <span className="text-gray-500 text-md">/</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">Applicants:</span>
+                    <AvatarStack
+                      items={applicants}
+                      size="xxs"
+                      maxItems={3}
+                      spacing={-6}
+                      showLabel={false}
+                      disableTooltip={false}
+                      showExtraCount={true}
+                      totalItemsCount={applicants.length}
+                      extraCountLabel="Applicants"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            {isActive && (
+              <Button
+                variant="default"
+                size="sm"
+                className="flex-shrink-0 rounded-md text-[13px]"
+                onClick={() => router.push(`/grant/${grant.id}/${grant.slug}/applications`)}
+              >
+                Apply
+                <ArrowRight size={14} className="ml-1.5" />
+              </Button>
+            )}
+          </div>
+        </PrimaryActionSection>
+      )}
     </BaseFeedItem>
   );
 };

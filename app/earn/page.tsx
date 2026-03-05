@@ -13,7 +13,6 @@ import SortDropdown, { SortOption } from '@/components/ui/SortDropdown';
 import { Badge } from '@/components/ui/Badge';
 import { useBounties } from '@/hooks/useBounties';
 import { useGrants } from '@/contexts/GrantContext';
-import { GrantCard } from '@/components/Funding/GrantCard';
 import { FeedGrantContent } from '@/types/feed';
 import { cn } from '@/utils/styles';
 
@@ -30,7 +29,7 @@ function EarnPageContent() {
   const router = useRouter();
   const activeTab = (searchParams.get('tab') as EarnTab) || 'awards';
 
-  const { grants, fetchGrants, totalFundingUsd } = useGrants();
+  const { grants, fetchGrants, totalFundingUsd, isLoading: isGrantsLoading } = useGrants();
 
   useEffect(() => {
     fetchGrants();
@@ -181,8 +180,8 @@ function EarnPageContent() {
   );
 
   if (activeTab === 'awards') {
-    return (
-      <>
+    const awardsHeader = (
+      <div className="-mb-8">
         <div className="-mb-2">
           <MainPageHeader
             icon={<Icon name="earn1" size={26} color="#3971ff" />}
@@ -192,17 +191,25 @@ function EarnPageContent() {
           />
         </div>
         {sectionCards}
+      </div>
+    );
 
-        {openGrants.length > 0 ? (
-          <div className="flex flex-col gap-3 mt-2">
-            {openGrants.map((entry) => (
-              <GrantCard key={entry.id} entry={entry} />
-            ))}
+    return (
+      <FeedContent
+        entries={openGrants}
+        isLoading={isGrantsLoading}
+        hasMore={false}
+        loadMore={() => {}}
+        header={awardsHeader}
+        showGrantHeaders={false}
+        showPostHeaders={false}
+        showFundraiseHeaders={false}
+        noEntriesElement={
+          <div className="py-12 text-center">
+            <p className="text-gray-400 text-sm">No open awards right now</p>
           </div>
-        ) : (
-          <p className="py-12 text-center text-gray-400 text-sm">No open awards right now</p>
-        )}
-      </>
+        }
+      />
     );
   }
 

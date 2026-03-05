@@ -1,51 +1,49 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { FeedEntry } from '@/types/feed';
-import { GrantCard } from '@/components/Funding/GrantCard';
+import { FeedContent } from '@/components/Feed/FeedContent';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { useGrants } from '@/contexts/GrantContext';
 
 interface GrantsPageContentProps {
-  openGrants: FeedEntry[];
-  closedGrants: FeedEntry[];
+  initialGrants?: FeedEntry[];
 }
 
-export const GrantsPageContent: FC<GrantsPageContentProps> = ({ openGrants, closedGrants }) => {
-  return (
-    <div className="py-4">
-      <PageHeader title="Awards" className="mb-6" />
+export const GrantsPageContent: FC<GrantsPageContentProps> = ({ initialGrants }) => {
+  const { grants, isLoading, fetchGrants, setInitialGrants } = useGrants();
 
-      <section>
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">
-          Open
-          {openGrants.length > 0 && (
-            <span className="ml-2 text-sm font-normal text-gray-400">{openGrants.length}</span>
-          )}
-        </h2>
-        {openGrants.length > 0 ? (
-          <div className="flex flex-col gap-3">
-            {openGrants.map((entry) => (
-              <GrantCard key={entry.id} entry={entry} />
-            ))}
-          </div>
-        ) : (
-          <p className="py-8 text-center text-gray-400 text-sm">No open awards right now</p>
-        )}
-      </section>
+  useEffect(() => {
+    if (initialGrants && initialGrants.length > 0) {
+      setInitialGrants(initialGrants);
+    } else {
+      fetchGrants();
+    }
+  }, [fetchGrants, setInitialGrants, initialGrants]);
 
-      {closedGrants.length > 0 && (
-        <section className="mt-10">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">
-            Completed
-            <span className="ml-2 text-sm font-normal text-gray-400">{closedGrants.length}</span>
-          </h2>
-          <div className="flex flex-col gap-3">
-            {closedGrants.map((entry) => (
-              <GrantCard key={entry.id} entry={entry} />
-            ))}
-          </div>
-        </section>
-      )}
+  const entries = grants.length > 0 ? grants : (initialGrants ?? []);
+
+  const header = (
+    <div className="-mb-8">
+      <PageHeader title="Awards" className="mb-2" />
     </div>
+  );
+
+  return (
+    <FeedContent
+      entries={entries}
+      isLoading={isLoading}
+      hasMore={false}
+      loadMore={() => {}}
+      header={header}
+      showGrantHeaders={false}
+      showPostHeaders={false}
+      showFundraiseHeaders={false}
+      noEntriesElement={
+        <div className="py-12 text-center">
+          <p className="text-gray-400 text-sm">No awards found</p>
+        </div>
+      }
+    />
   );
 };

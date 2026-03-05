@@ -7,12 +7,11 @@ import { GrantService } from '@/services/grant.service';
 
 export const revalidate = 3600;
 
-async function getGrantsByStatus(status: 'OPEN' | 'CLOSED') {
+async function getGrants() {
   try {
     const { grants } = await GrantService.getGrants({
       page: 1,
       pageSize: 50,
-      status,
       ordering: 'best',
     });
     return grants;
@@ -22,10 +21,7 @@ async function getGrantsByStatus(status: 'OPEN' | 'CLOSED') {
 }
 
 export default async function GrantsPage() {
-  const [openGrants, closedGrants] = await Promise.all([
-    getGrantsByStatus('OPEN'),
-    getGrantsByStatus('CLOSED'),
-  ]);
+  const initialGrants = await getGrants();
 
   return (
     <PageLayout
@@ -35,7 +31,7 @@ export default async function GrantsPage() {
         </Suspense>
       }
     >
-      <GrantsPageContent openGrants={openGrants} closedGrants={closedGrants} />
+      <GrantsPageContent initialGrants={initialGrants} />
     </PageLayout>
   );
 }
