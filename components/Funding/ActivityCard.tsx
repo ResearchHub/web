@@ -192,24 +192,24 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
       onMouseEnter={showOverlay}
       onMouseLeave={hideOverlay}
     >
-      <p className="text-sm leading-snug line-clamp-2">
+      <span className="block text-sm leading-snug line-clamp-2">
         {inlineAvatar}
         <span className="font-medium text-gray-900">{author?.fullName || 'Unknown'}</span>{' '}
         <span className="text-gray-600">{actionLabel}</span> {titleEl}
-      </p>
-      <p className="text-xs text-gray-400 mt-0.5">{formatTimeAgo(entry.timestamp)}</p>
+      </span>
+      <span className="block text-xs text-gray-400 mt-0.5">{formatTimeAgo(entry.timestamp)}</span>
 
       {/* Fixed overlay -- escapes all overflow clipping */}
       {visible && (
         <div style={overlayStyle} onMouseEnter={() => setVisible(true)} onMouseLeave={hideOverlay}>
           <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3 animate-in fade-in zoom-in-95 duration-150">
-            <p className="text-sm leading-snug">
+            <span className="block text-sm leading-snug">
               {inlineAvatar}
               <span className="font-medium text-gray-900">
                 {author?.fullName || 'Unknown'}
               </span>{' '}
               <span className="text-gray-600">{actionLabel}</span> {titleEl}
-            </p>
+            </span>
 
             {reviewScore && (
               <div className="flex items-center gap-1.5 mt-1.5">

@@ -255,7 +255,7 @@ export const Navigation: React.FC<NavigationProps> = ({
         <div className={textContainerClass}>
           <span className="truncate text-[16px] font-semibold">{item.label}</span>
           {item.iconKey === 'earn' && fundingLabel && (
-            <span className="ml-2 rounded-md bg-green-100 px-1.5 py-0.5 text-xs font-semibold text-green-700">
+            <span className="ml-2 rounded-md font-mono bg-primary-100 px-1.5 py-1 text-xs font-semibold text-primary-700">
               {fundingLabel}
             </span>
           )}

@@ -126,51 +126,32 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                 alt={post.title || 'Fundraise image'}
                 naturalDimensions
               />
-              {isNonprofit && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: 7,
-                    left: 7,
-                  }}
-                >
-                  <TaxDeductibleBadge
-                    size="xs"
-                    className="!rounded-lg !border-0 !bg-[rgba(240,253,244,0.45)] !backdrop-blur-[8px] !text-[11px] !py-0.5"
-                  />
-                </span>
-              )}
-              {hasReviewScore && (
-                <Tooltip
-                  content={
-                    <PeerReviewTooltip
-                      reviews={post.reviews ?? []}
-                      averageScore={reviewScore}
-                      href={fundingPageUrl}
-                    />
-                  }
-                  position="top"
-                  width="w-[320px]"
-                >
-                  <span
-                    className="cursor-help"
-                    style={{
-                      position: 'absolute',
-                      bottom: 7,
-                      left: 7,
-                      background: 'rgba(0, 0, 0, 0.45)',
-                      backdropFilter: 'blur(8px)',
-                      borderRadius: 8,
-                      padding: '2px 7px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 3,
-                    }}
-                  >
-                    <Star size={12} className="fill-amber-400 text-amber-400" />
-                    <span className="text-xs font-medium text-white">{reviewScore.toFixed(1)}</span>
-                  </span>
-                </Tooltip>
+              {(isNonprofit || hasReviewScore) && (
+                <div className="absolute inset-0 flex flex-col justify-between p-2">
+                  <div>{isNonprofit && <TaxDeductibleBadge size="sm" variant="overlay" />}</div>
+                  <div>
+                    {hasReviewScore && (
+                      <Tooltip
+                        content={
+                          <PeerReviewTooltip
+                            reviews={post.reviews ?? []}
+                            averageScore={reviewScore}
+                            href={fundingPageUrl}
+                          />
+                        }
+                        position="top"
+                        width="w-[320px]"
+                      >
+                        <span className="inline-flex items-center gap-1 cursor-help rounded-md bg-black/50 backdrop-blur-sm px-1.5 py-0.5 border border-white/20">
+                          <Star size={11} className="fill-amber-400 text-amber-400" />
+                          <span className="text-[11px] font-medium text-white">
+                            {reviewScore.toFixed(1)}
+                          </span>
+                        </span>
+                      </Tooltip>
+                    )}
+                  </div>
+                </div>
               )}
             </>
           ) : undefined
@@ -194,21 +175,16 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         )}
 
         {grants.length > 0 && (
-          <div className="mt-[-7px] flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
             {grants.map((grant) => (
-              <GrantBadge
-                key={grant.id}
-                grant={grant}
-                hideIcon
-                className="text-[13px] font-normal text-gray-500 hover:text-gray-700 gap-1"
-              />
+              <GrantBadge key={grant.id} grant={grant} hideIcon />
             ))}
           </div>
         )}
 
         <TitleSection title={post.title} href={fundingPageUrl} onClick={onFeedItemClick} />
 
-        <MetadataSection className="mb-0">
+        <MetadataSection className="mb-0 py-2">
           {primaryAuthor ? (
             <div className="flex items-center gap-2.5">
               <Avatar
@@ -227,12 +203,14 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                   {primaryAuthor.fullName}
                 </Link>
                 <span className="text-xs text-gray-500 truncate">
-                  {post.institution || 'George Church Lab'}
+                  {entry.nonprofit?.name || post.institution}
                 </span>
               </div>
             </div>
           ) : (
-            <span className="text-sm text-gray-500">{post.institution || 'George Church Lab'}</span>
+            <span className="text-sm text-gray-500">
+              {entry.nonprofit?.name || post.institution}
+            </span>
           )}
         </MetadataSection>
 

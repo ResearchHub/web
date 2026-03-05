@@ -289,12 +289,21 @@ export interface FeedEntry {
   hotScoreV2?: number;
   hotScoreBreakdown?: HotScoreBreakdown;
   externalMetrics?: ExternalMetrics;
+  nonprofit?: Nonprofit;
   associatedGrants?: AssociatedGrant[];
   searchMetadata?: {
     highlightedTitle?: string;
     highlightedSnippet?: string;
     matchedField?: string;
   };
+}
+
+export interface Nonprofit {
+  id: number;
+  name: string;
+  ein: string;
+  endaomentOrgId: string;
+  baseWalletAddress: string;
 }
 
 export interface RawApiFeedEntry {
@@ -306,6 +315,13 @@ export interface RawApiFeedEntry {
   action: string;
   action_date: string;
   is_nonprofit?: boolean;
+  nonprofit?: {
+    id: number;
+    name: string;
+    ein: string;
+    endaoment_org_id: string;
+    base_wallet_address: string;
+  };
   hot_score_v2?: number;
   associated_grants?: Array<{
     id: number;
@@ -451,6 +467,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     external_metadata,
     recommendation_id,
     associated_grants,
+    nonprofit,
   } = feedEntry;
 
   // Base feed entry properties
@@ -999,6 +1016,15 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       image: g.image ?? null,
       numApplicants: g.num_applicants ?? 0,
     })),
+    nonprofit: nonprofit
+      ? {
+          id: nonprofit.id,
+          name: nonprofit.name,
+          ein: nonprofit.ein,
+          endaomentOrgId: nonprofit.endaoment_org_id,
+          baseWalletAddress: nonprofit.base_wallet_address,
+        }
+      : undefined,
   } as FeedEntry;
 };
 
