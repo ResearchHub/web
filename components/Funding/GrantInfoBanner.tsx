@@ -43,8 +43,8 @@ export const GrantInfoBanner = ({
     <>
       <div
         className={cn(
-          'w-full rounded-xl bg-primary-50 overflow-hidden transition-colors',
-          content && 'hover:bg-primary-100/70',
+          'w-full rounded-xl bg-gray-50 border border-gray-200 overflow-hidden transition-colors',
+          content && 'hover:bg-gray-100/70',
           className
         )}
       >
