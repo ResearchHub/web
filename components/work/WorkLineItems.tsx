@@ -9,6 +9,7 @@ import {
   Octagon,
   Share2,
   CheckCircle,
+  XCircle,
   Download,
   ArrowUp,
   ArrowDown,
@@ -43,6 +44,8 @@ import { useAddToList } from '@/components/UserList/lib/UserListsContext';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { handleDownload } from '@/utils/download';
+import { useGrantModeration } from '@/hooks/useGrantModeration';
+import { DeclineGrantModal } from '@/components/Moderators/DeclineGrantModal';
 
 interface WorkLineItemsProps {
   work: Work;
@@ -77,6 +80,14 @@ export const WorkLineItems = ({
     work.metrics?.adjustedScore ?? work.metrics?.votes ?? 0
   );
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
+  const {
+    moderationAction,
+    isDeclineModalOpen,
+    openDeclineModal,
+    closeDeclineModal,
+    approveGrant: handleApproveGrant,
+    declineGrant: handleDeclineGrant,
+  } = useGrantModeration(work.note?.post?.grant?.id);
   const router = useRouter();
   const { selectedOrg } = useOrganizationContext();
   const { user } = useUser();
@@ -189,6 +200,10 @@ export const WorkLineItems = ({
   const isAuthor =
     user?.authorProfile != null &&
     work.authors?.some((a) => a.authorProfile.id === user.authorProfile?.id);
+
+  const isGrantPending =
+    work.contentType === 'funding_request' && work.note?.post?.grant?.status === 'PENDING';
+  const isModerating = moderationAction !== null;
 
   const handleEdit = useCallback(() => {
     if (work.contentType === 'paper' && (isModerator || isHubEditor)) {
@@ -495,6 +510,24 @@ export const WorkLineItems = ({
                 <span>Download PDF</span>
               </BaseMenuItem>
             )}
+            {isModerator && isGrantPending && (
+              <>
+                <BaseMenuItem
+                  disabled={isModerating}
+                  onSelect={() => executeAuthenticatedAction(handleApproveGrant)}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                  <span>{moderationAction === 'approving' ? 'Approving...' : 'Approve RFP'}</span>
+                </BaseMenuItem>
+                <BaseMenuItem
+                  disabled={isModerating}
+                  onSelect={() => executeAuthenticatedAction(openDeclineModal)}
+                >
+                  <XCircle className="h-4 w-4 mr-2 text-red-600" />
+                  <span>Decline RFP</span>
+                </BaseMenuItem>
+              </>
+            )}
             <BaseMenuItem
               onSelect={() => executeAuthenticatedAction(() => setIsFlagModalOpen(true))}
             >
@@ -638,6 +671,15 @@ export const WorkLineItems = ({
         confirmButtonClass={modalConfig.confirmButtonClass}
         cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
       />
+
+      {isDeclineModalOpen && (
+        <DeclineGrantModal
+          isOpen={isDeclineModalOpen}
+          onClose={closeDeclineModal}
+          onConfirm={handleDeclineGrant}
+          isSubmitting={moderationAction === 'declining'}
+        />
+      )}
     </div>
   );
 };

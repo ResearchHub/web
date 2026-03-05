@@ -445,7 +445,13 @@ export function PublishingForm({
       }
 
       setIsRedirecting(true);
-      toast.success(`${PUBLISH_LABEL[formData.articleType] ?? 'Post'} published successfully!`);
+      if (formData.articleType === 'grant' && !formData.workId) {
+        toast.success('Your RFP has been submitted and is pending moderator review.', {
+          duration: 5000,
+        });
+      } else {
+        toast.success(`${PUBLISH_LABEL[formData.articleType] ?? 'Post'} published successfully!`);
+      }
       router.push(getRedirectPath(formData.articleType, String(response.id), response.slug));
     } catch (error: unknown) {
       const fallback = 'Error publishing. Please try again.';

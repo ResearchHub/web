@@ -83,7 +83,10 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
       className={className}
       showActions={showActions}
       showTooltips={showTooltips}
-      customActionText={customActionText ?? 'opened an RFP'}
+      customActionText={
+        customActionText ??
+        (grant.grant?.status === 'PENDING' ? 'submitted an RFP for review' : 'opened an RFP')
+      }
       maxLength={maxLength}
       showHeader={showHeader}
       onFeedItemClick={onFeedItemClick}
@@ -107,6 +110,8 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             relatedDocumentId={relatedDocumentId}
             relatedDocumentContentType={relatedDocumentContentType}
             relatedDocumentUnifiedDocumentId={grant.unifiedDocumentId}
+            grantId={grant.grant?.id}
+            grantStatus={grant.grant?.status}
           />
         }
         leftContent={
