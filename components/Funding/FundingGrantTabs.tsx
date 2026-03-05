@@ -50,12 +50,10 @@ export const FundingGrantTabs: FC = () => {
         id: `grant-${content.id}`,
         label: (
           <span className="flex items-center gap-1">
-            <span className="text-[10px] leading-none flex-shrink-0">🏆</span>
-            <span className="truncate">
-              {amountFormatted
-                ? `${content.grant.shortTitle} · ${amountFormatted}`
-                : content.grant.shortTitle}
-            </span>
+            <span className="truncate">{content.grant.shortTitle}</span>
+            {amountFormatted && (
+              <span className="font-mono text-gray-500">· {amountFormatted}</span>
+            )}
           </span>
         ),
         href: tabHref,
@@ -92,6 +90,8 @@ export const FundingGrantTabs: FC = () => {
         onTabChange={() => {}}
         size="md"
         colorScheme="default"
+        // Used as a key to strore left scroll position across remounts
+        scrollCacheKey="funding-grants"
       />
       <Link
         href="/awards"

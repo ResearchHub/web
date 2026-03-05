@@ -30,7 +30,11 @@ interface PillTabsProps {
   size?: PillTabSize;
   colorScheme?: PillTabColorScheme;
   className?: string;
+  /** When set, persists horizontal scroll position across remounts via a module-level cache. */
+  scrollCacheKey?: string;
 }
+
+const _scrollCache = new Map<string, number>();
 
 const colorSchemes: Record<PillTabColorScheme, { active: string; inactive: string }> = {
   default: {
@@ -84,6 +88,7 @@ const PillTabItem: React.FC<{
         onClick={handleClick}
         className={styles}
         title={typeof tab.label === 'string' ? tab.label : undefined}
+        data-pilltab-active={isActive || undefined}
       >
         {content}
       </Link>
@@ -97,6 +102,7 @@ const PillTabItem: React.FC<{
       onClick={handleClick}
       className={styles}
       title={typeof tab.label === 'string' ? tab.label : undefined}
+      data-pilltab-active={isActive || undefined}
     >
       {content}
     </button>
@@ -111,6 +117,7 @@ export const PillTabs: React.FC<PillTabsProps> = ({
   size = 'md',
   colorScheme = 'default',
   className,
+  scrollCacheKey,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -123,6 +130,39 @@ export const PillTabs: React.FC<PillTabsProps> = ({
     setCanScrollLeft(scrollLeft > 0);
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
   }, []);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || !scrollCacheKey) return;
+
+    const cached = _scrollCache.get(scrollCacheKey);
+    if (cached !== undefined && cached > 0) {
+      container.scrollLeft = cached;
+    } else {
+      const activeEl = container.querySelector('[data-pilltab-active="true"]');
+      if (activeEl) {
+        (activeEl as HTMLElement).scrollIntoView({
+          inline: 'nearest',
+          block: 'nearest',
+          behavior: 'instant' as ScrollBehavior,
+        });
+      }
+    }
+
+    checkScrollability();
+  }, [scrollCacheKey, activeTab]);
+
+  useEffect(() => {
+    if (!scrollCacheKey) return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      _scrollCache.set(scrollCacheKey, container.scrollLeft);
+    };
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [scrollCacheKey]);
 
   useEffect(() => {
     checkScrollability();
