@@ -113,7 +113,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData, showSourceFil
       tabs={tabs}
       onTabChange={handleTabChange}
       isLoading={combinedIsLoading}
-      showGearIcon={activeTab === 'following' && !!user}
+      showGearIcon={(activeTab === 'following' || activeTab === 'for-you') && !!user}
       onGearClick={() => setIsManageTopicsModalOpen(true)}
       showSorting={activeTab === 'following' && !!user}
       sortOption={(ordering as FeedSortOption) || 'hot_score_v2'}
