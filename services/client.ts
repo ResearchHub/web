@@ -101,11 +101,8 @@ export class ApiClient {
     };
   }
 
-  static async get<T>(path: string): Promise<T> {
+  private static async fetchJson<T>(path: string, headers: Record<string, string>): Promise<T> {
     try {
-      const headers = await this.getHeaders('GET');
-      // Check if the path is already a full URL
-      // If it is, use it as is, otherwise prepend the base URL
       const url = path.startsWith('http') ? path : `${this.baseURL}${path}`;
       const response = await fetch(url, this.getFetchOptions('GET', headers));
 
@@ -124,6 +121,22 @@ export class ApiClient {
       console.error('API request failed:', error);
       throw error;
     }
+  }
+
+  /**
+   * Makes an authenticated GET request for endpoints that require authentication.
+   * Automatically includes the auth token in the headers.
+   */
+  static async get<T>(path: string): Promise<T> {
+    const headers = await this.getHeaders('GET');
+    return this.fetchJson<T>(path, headers);
+  }
+
+  /**
+   * Makes an unauthenticated GET request for public endpoints.
+   */
+  static async getPublic<T>(path: string): Promise<T> {
+    return this.fetchJson<T>(path, { Accept: 'application/json' });
   }
 
   /**

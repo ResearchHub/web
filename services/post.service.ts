@@ -48,7 +48,7 @@ export class PostService {
   private static readonly BASE_PATH = '/api/researchhubpost';
 
   static async get(id: string): Promise<Work> {
-    const response = await ApiClient.get<any>(`${this.BASE_PATH}/${id}/`);
+    const response = await ApiClient.getPublic<any>(`${this.BASE_PATH}/${id}/`);
     return transformPost(response);
   }
 
