@@ -7,7 +7,7 @@ import { Journal } from '@/types/journal';
 import { EXCLUDED_TOPIC_SLUGS } from '@/constants/topics';
 import { getSourceLogo } from '@/utils/preprintUtil';
 
-interface FeedItemBadgesProps {
+interface FeedItemTopicBadgesProps {
   journal?: Journal;
   category?: Topic;
   subcategory?: Topic;
@@ -15,10 +15,10 @@ interface FeedItemBadgesProps {
 }
 
 /**
- * Reusable component for rendering badges in feed items
- * Renders topics and journal as hashtag-style text badges (e.g. #biorxiv, #chemistry)
+ * Renders topic and journal hashtag-style badges (e.g. #biorxiv, #chemistry)
+ * for paper, post, and grant feed items.
  */
-export const FeedItemBadges: FC<FeedItemBadgesProps> = ({
+export const FeedItemTopicBadges: FC<FeedItemTopicBadgesProps> = ({
   journal,
   category,
   subcategory,

@@ -12,7 +12,7 @@ import {
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
 import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
-import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
+import { FeedItemTopicBadges } from '@/components/Feed/FeedItemTopicBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PopularityScoreTooltip } from '@/components/tooltips/HotScoreTooltip';
@@ -104,7 +104,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         ) : undefined
       }
       badges={
-        <FeedItemBadges
+        <FeedItemTopicBadges
           journal={filteredJournal}
           category={paper.category}
           subcategory={paper.subcategory}

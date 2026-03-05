@@ -9,16 +9,14 @@ import {
   MetadataSection,
   PrimaryActionSection,
 } from '@/components/Feed/BaseFeedItem';
-import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
 import { Avatar } from '@/components/ui/Avatar';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Button } from '@/components/ui/Button';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
-import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
+import { FeedItemFundingBadges } from '@/components/Feed/FeedItemFundingBadges';
 import { GrantBadge } from '@/components/ui/GrantBadge';
-import { Pin, Star, ArrowRight } from 'lucide-react';
+import { Pin, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -102,9 +100,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
     router.refresh();
   };
 
-  const reviewScore = entry.metrics?.reviewScore;
-  const hasReviewScore = reviewScore !== undefined && reviewScore > 0;
-
   return (
     <>
       <BaseFeedItem
@@ -128,33 +123,16 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                 alt={post.title || 'Fundraise image'}
                 naturalDimensions
               />
-              {(isNonprofit || hasReviewScore) && (
-                <div className="absolute inset-0 flex flex-col justify-between p-2">
-                  <div>{isNonprofit && <TaxDeductibleBadge size="sm" variant="overlay" />}</div>
-                  <div>
-                    {hasReviewScore && (
-                      <Tooltip
-                        content={
-                          <PeerReviewTooltip
-                            reviews={post.reviews ?? []}
-                            averageScore={reviewScore}
-                            href={fundingPageUrl}
-                          />
-                        }
-                        position="top"
-                        width="w-[320px]"
-                      >
-                        <span className="inline-flex items-center gap-1 cursor-help rounded-md bg-black/50 backdrop-blur-sm px-1.5 py-0.5 border border-white/20">
-                          <Star size={11} className="fill-amber-400 text-amber-400" />
-                          <span className="text-[11px] font-medium text-white">
-                            {reviewScore.toFixed(1)}
-                          </span>
-                        </span>
-                      </Tooltip>
-                    )}
-                  </div>
-                </div>
-              )}
+              <div className="absolute top-2 left-2">
+                <FeedItemFundingBadges
+                  reviewScore={entry.metrics?.reviewScore}
+                  reviews={post.reviews}
+                  href={fundingPageUrl}
+                  isNonprofit={!!isNonprofit}
+                  fundraiseStatus={'COMPLETED'}
+                  variant="overlay"
+                />
+              </div>
             </>
           ) : undefined
         }
@@ -179,7 +157,12 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         {grants.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 mb-1">
             {grants.map((grant) => (
-              <GrantBadge key={grant.id} grant={grant} hideIcon />
+              <GrantBadge
+                key={grant.id}
+                grant={grant}
+                hideIcon
+                className="bg-unset text-gray-500 font-normal hover:underline hover:text-gray-600 text-sm"
+              />
             ))}
           </div>
         )}

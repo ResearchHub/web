@@ -4,6 +4,8 @@ import { FC, useState, useRef, useEffect, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 export interface GrantPreviewTooltipProps {
   href: string;
@@ -98,19 +100,31 @@ export const GrantPreviewTooltip: FC<GrantPreviewTooltipProps> = ({
                   </p>
                 )}
 
-                <div className="flex items-center gap-12 mt-2.5 pt-2.5 border-t border-gray-100">
-                  <div>
-                    <div className="font-mono text-sm font-bold text-gray-900">
-                      {formattedAmount}
+                <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-gray-100">
+                  <div className="flex items-center gap-12">
+                    <div>
+                      <div className="font-mono text-sm font-bold text-gray-900">
+                        {formattedAmount}
+                      </div>
+                      <div className="text-[11px] text-gray-600">Award</div>
                     </div>
-                    <div className="text-[11px] text-gray-600">Award</div>
-                  </div>
-                  <div>
-                    <div className="font-mono text-sm font-bold font-mono text-gray-900">
-                      {numApplicants}
+                    <div>
+                      <div className="font-mono text-sm font-bold text-gray-900">
+                        {numApplicants}
+                      </div>
+                      <div className="text-[11px] text-gray-600">Applicants</div>
                     </div>
-                    <div className="text-[11px] text-gray-600">Applicants</div>
                   </div>
+                  <Link href={href} onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="gap-1 text-primary-600 hover:text-primary-700 hover:bg-primary-50"
+                    >
+                      View funding
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>

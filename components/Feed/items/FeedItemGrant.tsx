@@ -11,7 +11,7 @@ import {
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
 import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
-import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
+import { FeedItemTopicBadges } from '@/components/Feed/FeedItemTopicBadges';
 import { GrantInfo } from '@/components/Fund/GrantInfo';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -98,7 +98,7 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
       />
 
       <div className="mt-[-7px]">
-        <FeedItemBadges
+        <FeedItemTopicBadges
           topics={grant.topics}
           category={grant.category}
           subcategory={grant.subcategory}

@@ -11,7 +11,7 @@ import {
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
 import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
-import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
+import { FeedItemTopicBadges } from '@/components/Feed/FeedItemTopicBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
@@ -105,7 +105,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
       />
 
       <div className="mt-[-7px]">
-        <FeedItemBadges
+        <FeedItemTopicBadges
           topics={post.topics}
           category={post.category}
           subcategory={post.subcategory}

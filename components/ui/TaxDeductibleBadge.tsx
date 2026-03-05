@@ -1,6 +1,6 @@
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
-import { CheckCircle } from 'lucide-react';
+import { Percent } from 'lucide-react';
 
 interface TaxDeductibleBadgeProps {
   className?: string;
@@ -34,17 +34,16 @@ export const TaxDeductibleBadge = ({
   const badge = (
     <span
       className={cn(
-        'inline-flex items-center rounded-md font-medium cursor-default whitespace-nowrap',
+        'inline-flex items-center rounded-md font-medium whitespace-nowrap',
+        showTooltip ? 'cursor-help' : 'cursor-default',
         sizeStyles[size],
         isOverlay
-          ? 'bg-black/50 text-white backdrop-blur-sm border border-white/20'
-          : 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+          ? 'bg-indigo-900/70 text-white backdrop-blur-sm border border-indigo-400/30 shadow-[0_0_8px_rgba(0,0,0,0.25)]'
+          : 'bg-indigo-50 text-indigo-700 border border-indigo-200',
         className
       )}
     >
-      <CheckCircle
-        className={cn(iconSizes[size], isOverlay ? 'text-emerald-300' : 'text-emerald-500')}
-      />
+      <Percent className={cn(iconSizes[size], isOverlay ? 'text-white' : 'text-indigo-500')} />
       <span>Tax-Deductible</span>
     </span>
   );
@@ -57,8 +56,8 @@ export const TaxDeductibleBadge = ({
     <Tooltip
       content={
         <div className="flex items-start gap-3 text-left">
-          <div className="bg-emerald-100 p-2 rounded-md flex items-center justify-center flex-shrink-0">
-            <CheckCircle className="w-4 h-4 text-emerald-600" />
+          <div className="bg-indigo-100 p-2 rounded-md flex items-center justify-center flex-shrink-0">
+            <Percent className="w-4 h-4 text-indigo-600" />
           </div>
           <div>
             <h3 className="text-sm font-semibold text-gray-900">Tax-Deductible Donations</h3>
