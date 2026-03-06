@@ -10,7 +10,9 @@ export function PublishedStatusSection() {
   const workId = note?.post?.id;
 
   const isPublished = Boolean(workId);
-  const isDeclined = note?.post?.grant?.status === 'DECLINED';
+  const grantStatus = note?.post?.grant?.status;
+  const isPending = grantStatus === 'PENDING';
+  const isDeclined = grantStatus === 'DECLINED';
 
   if (!note && !isLoading) {
     return null;
@@ -32,7 +34,12 @@ export function PublishedStatusSection() {
           <span className="text-sm">Declined</span>
         </Badge>
       )}
-      {!isLoading && isPublished && !isDeclined && (
+      {!isLoading && isPending && (
+        <Badge variant="warning" size="sm">
+          <span className="text-sm">Pending</span>
+        </Badge>
+      )}
+      {!isLoading && isPublished && !isDeclined && !isPending && (
         <Badge variant="success" size="sm">
           <span className="mr-1 text-sm">Published</span>
           {slug && (
