@@ -74,7 +74,7 @@ export const FeedTabs: FC<FeedTabsProps> = ({
       activeTab={activeTab}
       onTabChange={onTabChange}
       disabled={!!isLoading}
-      size="md"
+      size="lg"
     />
   );
 

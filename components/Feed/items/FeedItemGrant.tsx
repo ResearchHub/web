@@ -9,10 +9,8 @@ import {
   MetadataSection,
   PrimaryActionSection,
 } from '@/components/Feed/BaseFeedItem';
-import { Avatar } from '@/components/ui/Avatar';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Button } from '@/components/ui/Button';
-import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
@@ -21,7 +19,6 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatCurrency } from '@/utils/currency';
 import { isDeadlineInFuture } from '@/utils/date';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
-import Link from 'next/link';
 
 interface FeedItemGrantProps {
   entry: FeedEntry;
@@ -69,8 +66,6 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
     grant.grant?.status === 'OPEN' &&
     (grant.grant?.endDate ? isDeadlineInFuture(grant.grant.endDate) : true);
 
-  const funder = grant.grant?.createdBy;
-
   const applicants =
     grant.grant?.applicants?.map((applicant) => ({
       src: applicant.profileImage || '',
@@ -110,48 +105,21 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
 
       <TitleSection title={grant.title} href={grantPageUrl} onClick={onFeedItemClick} />
 
-      <MetadataSection className="mb-0 py-2">
-        {funder ? (
-          <div className="flex items-center gap-2.5">
-            <AuthorTooltip authorId={funder.id !== 0 ? funder.id : undefined}>
-              <Avatar
-                src={funder.profileImage || undefined}
-                alt={funder.fullName}
-                size="sm"
-                disableTooltip
-              />
-            </AuthorTooltip>
-            <div className="flex flex-col min-w-0">
-              <Link
-                href={funder.profileUrl || '#'}
-                className="text-sm font-medium text-gray-900 hover:underline truncate"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {funder.fullName}
-              </Link>
-              {(grant.organization || grant.grant?.organization) && (
-                <span className="text-xs text-gray-500 truncate">
-                  {grant.organization || grant.grant?.organization}
-                </span>
-              )}
-            </div>
-          </div>
-        ) : (
-          (grant.organization || grant.grant?.organization) && (
-            <span className="text-sm text-gray-500">
-              {grant.organization || grant.grant?.organization}
-            </span>
-          )
-        )}
-      </MetadataSection>
+      {(grant.organization || grant.grant?.organization) && (
+        <MetadataSection className="mb-0">
+          <span className="text-sm text-gray-500">
+            Offerd by {grant.organization || grant.grant?.organization}
+          </span>
+        </MetadataSection>
+      )}
 
       {grant.grant && (
         <PrimaryActionSection>
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="text-sm leading-tight whitespace-nowrap">
-                <span className="text-gray-500">Funding:</span>
-                <span className="font-mono font-semibold text-primary-600 ml-1">
+            <div className="flex items-center gap-6 min-w-0">
+              <div className="flex flex-col leading-tight whitespace-nowrap">
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Funding</span>
+                <span className="font-mono font-semibold text-primary-600 text-xl">
                   {formatCurrency({
                     amount: budgetAmount,
                     showUSD,
@@ -163,23 +131,22 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
               </div>
 
               {applicants.length > 0 && (
-                <>
-                  <span className="text-gray-500 text-md">/</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500">Applicants:</span>
-                    <AvatarStack
-                      items={applicants}
-                      size="xxs"
-                      maxItems={3}
-                      spacing={-6}
-                      showLabel={false}
-                      disableTooltip={false}
-                      showExtraCount={true}
-                      totalItemsCount={applicants.length}
-                      extraCountLabel="Applicants"
-                    />
-                  </div>
-                </>
+                <div className="flex flex-col leading-tight">
+                  <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                    Applicants
+                  </span>
+                  <AvatarStack
+                    items={applicants}
+                    size="xxs"
+                    maxItems={3}
+                    spacing={-6}
+                    showLabel={false}
+                    disableTooltip={false}
+                    showExtraCount={true}
+                    totalItemsCount={applicants.length}
+                    extraCountLabel="Applicants"
+                  />
+                </div>
               )}
             </div>
 

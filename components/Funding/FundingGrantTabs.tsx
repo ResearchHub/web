@@ -75,6 +75,7 @@ export const FundingGrantTabs: FC<FundingGrantTabsProps> = ({ variant = 'content
       const amount = content.grant.amount?.usd;
       const amountFormatted = amount ? formatCompactAmount(amount) : null;
       const tabHref = `/fund/grant/${content.id}`;
+      const isActive = activeTab === `grant-${content.id}`;
 
       return {
         id: `grant-${content.id}`,
@@ -82,7 +83,9 @@ export const FundingGrantTabs: FC<FundingGrantTabsProps> = ({ variant = 'content
           <span className="flex items-center gap-1">
             <span className="truncate">{content.grant.shortTitle}</span>
             {amountFormatted && (
-              <span className="font-mono text-gray-500">· {amountFormatted}</span>
+              <span className={`font-mono ${isActive ? 'text-white/80' : 'text-gray-500'}`}>
+                · {amountFormatted}
+              </span>
             )}
           </span>
         ),
@@ -124,7 +127,7 @@ export const FundingGrantTabs: FC<FundingGrantTabsProps> = ({ variant = 'content
         tabs={pillTabs}
         activeTab={activeTab}
         onTabChange={() => {}}
-        size="md"
+        size="lg"
         colorScheme="default"
         scrollCacheKey={variant === 'topbar' ? 'funding-grants-topbar' : 'funding-grants'}
       />
