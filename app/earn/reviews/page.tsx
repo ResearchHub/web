@@ -2,9 +2,9 @@ import { Suspense } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
-import { EarnPageContent } from './EarnPageContent';
+import { ReviewsPageContent } from './ReviewsPageContent';
 
-export default async function EarnPage() {
+export default async function ReviewsPage() {
   return (
     <PageLayout
       rightSidebar={
@@ -13,7 +13,7 @@ export default async function EarnPage() {
         </Suspense>
       }
     >
-      <EarnPageContent />
+      <ReviewsPageContent />
     </PageLayout>
   );
 }
