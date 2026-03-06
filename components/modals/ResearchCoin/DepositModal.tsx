@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Loader2, Copy, Check, Info, AlertTriangle, Clock } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
+import { FundButton } from '@coinbase/onchainkit/fund';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { WalletService } from '@/services/wallet.service';
+import { CoinbaseService } from '@/services/coinbase.service';
 import { Alert } from '@/components/ui/Alert';
 import toast from 'react-hot-toast';
 import { useCopyAddress } from '@/hooks/useCopyAddress';
@@ -22,7 +24,17 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
   const [depositAddress, setDepositAddress] = useState<string | null>(null);
   const [isLoadingDepositAddress, setIsLoadingDepositAddress] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [onrampUrl, setOnrampUrl] = useState<string | null>(null);
   const { isCopied, copyAddress } = useCopyAddress();
+
+  const fetchOnrampUrl = useCallback(async () => {
+    try {
+      const response = await CoinbaseService.createRSCOnrampUrl();
+      setOnrampUrl(response.onramp_url);
+    } catch (err) {
+      console.error('Failed to fetch onramp URL:', err);
+    }
+  }, []);
 
   // Fetch deposit address when modal opens (lazy wallet provisioning)
   useEffect(() => {
@@ -47,8 +59,9 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
   useEffect(() => {
     if (isOpen) {
       setError(null);
+      fetchOnrampUrl();
     }
-  }, [isOpen]);
+  }, [isOpen, fetchOnrampUrl]);
 
   return (
     <BaseModal
@@ -133,6 +146,27 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
             </div>
           </>
         ) : null}
+
+        {/* Coinbase Onramp */}
+        {onrampUrl && (
+          <>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white px-2 text-gray-400">or</span>
+              </div>
+            </div>
+            <FundButton
+              fundingUrl={onrampUrl}
+              openIn="popup"
+              className="w-full h-12 rounded-lg border border-gray-200 bg-white font-medium text-gray-900 hover:bg-gray-50 transition-colors shadow-sm"
+            >
+              Use Coinbase
+            </FundButton>
+          </>
+        )}
       </div>
     </BaseModal>
   );
