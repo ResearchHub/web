@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Loader2, Copy, Check, Info, AlertTriangle, Clock } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { FundButton } from '@coinbase/onchainkit/fund';
+import Image from 'next/image';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { WalletService } from '@/services/wallet.service';
 import { CoinbaseService } from '@/services/coinbase.service';
@@ -161,9 +162,9 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
             <FundButton
               fundingUrl={onrampUrl}
               openIn="popup"
-              className="w-full h-12 rounded-lg border border-gray-200 bg-white font-medium text-gray-900 hover:bg-gray-50 transition-colors shadow-sm"
+              className="w-full h-12 rounded-xl border border-gray-300 bg-white font-medium text-gray-900 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200"
             >
-              Use Coinbase
+              <Image src="/coinbase-logo.svg" alt="Coinbase" width={100} height={18} />
             </FundButton>
           </>
         )}
