@@ -1,35 +1,16 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
 import Icon from '@/components/ui/icons/Icon';
 import { useFeed } from '@/hooks/useFeed';
-import { useGrants } from '@/contexts/GrantContext';
-import { useBounties } from '@/hooks/useBounties';
 import { GrantSortAndFilters } from '@/components/Funding/GrantSortAndFilters';
 import { EarnSectionCards } from '@/components/Funding/EarnSectionCards';
-import { FeedGrantContent } from '@/types/feed';
 import type { GrantSortOption } from '@/components/Funding/lib/grantSortConfig';
 
 export function EarnPageContent() {
-  const { grants, fetchGrants, totalFundingUsd } = useGrants();
-  const { total: bountyTotal } = useBounties();
-
-  useEffect(() => {
-    fetchGrants();
-  }, [fetchGrants]);
-
-  const openGrants = useMemo(
-    () =>
-      grants.filter((g) => {
-        const content = g.content as FeedGrantContent;
-        return content.grant.status !== 'CLOSED';
-      }),
-    [grants]
-  );
-
-  const [grantSort, setGrantSort] = useState<GrantSortOption>('most_applicants');
+  const [grantSort, setGrantSort] = useState<GrantSortOption>('newest');
 
   const grantFeedOptions = useMemo(
     () => ({
@@ -55,11 +36,7 @@ export function EarnPageContent() {
         subtitle="Earn ResearchCoin by completing scientific bounties"
         showTitle={false}
       />
-      <EarnSectionCards
-        openGrantCount={openGrants.length}
-        totalFundingUsd={totalFundingUsd}
-        bountyTotal={bountyTotal}
-      />
+      <EarnSectionCards />
     </div>
   );
 

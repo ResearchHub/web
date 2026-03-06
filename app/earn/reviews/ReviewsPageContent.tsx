@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
 import { X } from 'lucide-react';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { MainPageHeader } from '@/components/ui/MainPageHeader';
@@ -9,26 +8,9 @@ import { BountyHubSelector as HubsSelector } from '@/components/Earn/BountyHubSe
 import SortDropdown, { SortOption } from '@/components/ui/SortDropdown';
 import { Badge } from '@/components/ui/Badge';
 import { useBounties } from '@/hooks/useBounties';
-import { useGrants } from '@/contexts/GrantContext';
 import { EarnSectionCards } from '@/components/Funding/EarnSectionCards';
-import { FeedGrantContent } from '@/types/feed';
 
 export function ReviewsPageContent() {
-  const { grants, fetchGrants, totalFundingUsd } = useGrants();
-
-  useEffect(() => {
-    fetchGrants();
-  }, [fetchGrants]);
-
-  const openGrants = useMemo(
-    () =>
-      grants.filter((g) => {
-        const content = g.content as FeedGrantContent;
-        return content.grant.status !== 'CLOSED';
-      }),
-    [grants]
-  );
-
   const {
     entries,
     isLoading,
@@ -40,7 +22,6 @@ export function ReviewsPageContent() {
     handleHubsChange,
     restoredScrollPosition,
     page,
-    total: bountyTotal,
     lastClickedEntryId,
   } = useBounties();
 
@@ -102,11 +83,7 @@ export function ReviewsPageContent() {
         subtitle="Earn ResearchCoin by completing scientific bounties"
         showTitle={false}
       />
-      <EarnSectionCards
-        openGrantCount={openGrants.length}
-        totalFundingUsd={totalFundingUsd}
-        bountyTotal={bountyTotal}
-      />
+      <EarnSectionCards />
     </div>
   );
 
