@@ -10,8 +10,8 @@ import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { GrantApplications } from './GrantApplications';
 import { format } from 'date-fns';
 import { PostBlockEditor } from './PostBlockEditor';
-import { formatDeadline, isDeadlineInFuture } from '@/utils/date';
-import { isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
+import { isDeadlineInFuture } from '@/utils/date';
+import { RollingDeadlineInfo } from './components/RollingDeadlineInfo';
 
 interface GrantDocumentProps {
   work: Work;
@@ -86,9 +86,6 @@ export const GrantDocument = ({
     work.note?.post?.grant?.status === 'OPEN' &&
     (work.note?.post?.grant?.endDate ? isDeadlineInFuture(work.note?.post?.grant?.endDate) : true);
 
-  // Show countdown when grant expires within 24 hours
-  const expiringSoon = isExpiringSoon(work.note?.post?.grant?.endDate, 1);
-
   return (
     <div>
       <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-2" />
@@ -125,23 +122,8 @@ export const GrantDocument = ({
                 <span>{isActive ? 'Accepting Applications' : 'Closed'}</span>
               </div>
 
-              {/* Deadline and countdown - stack on mobile */}
-              {endDate && isActive && (
-                <div className="space-y-1 md:space-y-0 md:flex md:items-center md:gap-2">
-                  <span className="text-sm text-gray-600">
-                    Closes {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
-                  </span>
-                  {/* Show countdown when expiring soon */}
-                  {expiringSoon && work.note?.post?.grant?.endDate && (
-                    <>
-                      <div className="hidden md:block h-4 w-px bg-gray-300" />
-                      <span className="text-sm text-amber-600 font-medium block md:inline">
-                        {formatDeadline(work.note.post.grant.endDate)}
-                      </span>
-                    </>
-                  )}
-                </div>
-              )}
+              {/* Rolling deadline for open grants */}
+              {isActive && <RollingDeadlineInfo />}
 
               {/* Closed grant deadline */}
               {!isActive && endDate && (

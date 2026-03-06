@@ -4,13 +4,13 @@ import { FC } from 'react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
 import { AvatarStack } from '@/components/ui/AvatarStack';
-import { formatDate, isDeadlineInFuture } from '@/utils/date';
+import { isDeadlineInFuture } from '@/utils/date';
 import { FeedGrantContent } from '@/types/feed';
 import { useRouter } from 'next/navigation';
 import { colors } from '@/app/styles/colors';
 import { StatusCard } from '@/components/ui/StatusCard';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import { Clock } from 'lucide-react';
+import { RollingDeadlineInfo } from '@/components/work/components/RollingDeadlineInfo';
 
 interface GrantInfoProps {
   grant: FeedGrantContent;
@@ -28,7 +28,6 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
   const isActive =
     grant.grant?.status === 'OPEN' &&
     (grant.grant?.endDate ? isDeadlineInFuture(grant.grant?.endDate) : true);
-  const deadline = grant.grant.endDate ? formatDate(grant.grant.endDate) : undefined;
 
   const applicants =
     grant.grant.applicants?.map((applicant) => ({
@@ -90,13 +89,8 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
             shorten={false}
           />
 
-          {/* Close date */}
-          {deadline && isActive && (
-            <div className="hidden sm:!flex items-center gap-1.5 text-xs text-gray-500">
-              <Clock size={14} className="text-gray-400" />
-              <span className="whitespace-nowrap">Closes {deadline}</span>
-            </div>
-          )}
+          {/* Rolling deadline */}
+          {isActive && <RollingDeadlineInfo variant="compact" className="hidden sm:!inline-flex" />}
 
           {/* Status badges */}
           {isActive && (
