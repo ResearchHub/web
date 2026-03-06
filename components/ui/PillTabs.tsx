@@ -67,7 +67,7 @@ const PillTabItem: React.FC<{
 
   const colors = colorSchemes[scheme];
   const styles = cn(
-    'inline-flex items-center rounded-lg font-medium transition-all duration-150 select-none whitespace-nowrap flex-shrink-0 cursor-pointer',
+    'inline-flex items-center rounded-lg font-semibold transition-all duration-150 select-none whitespace-nowrap flex-shrink-0 cursor-pointer',
     s.pill,
     isActive ? colors.active : colors.inactive,
     disabled && 'cursor-not-allowed pointer-events-none opacity-50'

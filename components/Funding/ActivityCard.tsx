@@ -2,10 +2,12 @@
 
 import { FC, useRef, useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
-import { Star } from 'lucide-react';
+import { Star, MessageCircle, Bell } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
+import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { formatTimeAgo } from '@/utils/date';
 import { buildWorkUrl } from '@/utils/url';
+import { formatCurrency } from '@/utils/currency';
 import { parseContent, extractTextFromTipTap } from '@/components/Comment/lib/commentContentUtils';
 import type {
   FeedEntry,
@@ -26,7 +28,7 @@ const COMMENT_ACTION_LABELS: Record<CommentType, string> = {
 };
 
 const DOC_ACTION_LABELS: Record<string, string> = {
-  GRANT: 'opened funding opportunity',
+  GRANT: 'opened funding',
   PREREGISTRATION: 'submitted proposal',
   POST: 'posted discussion',
   PAPER: 'published preprint',
@@ -91,25 +93,27 @@ function getCommentPreview(entry: FeedEntry): string | undefined {
   }
 }
 
+function getFundingAmount(entry: FeedEntry): number | undefined {
+  if (entry.contentType !== 'GRANT') return undefined;
+  const grant = (entry.content as FeedGrantContent).grant;
+  return grant?.amount?.usd || undefined;
+}
+
+function getActionIcon(entry: FeedEntry): React.ReactNode {
+  if (entry.contentType !== 'COMMENT') return null;
+  const commentType = (entry.content as FeedCommentContent).comment?.commentType;
+  if (commentType === 'AUTHOR_UPDATE')
+    return <Bell size={14} className="inline -mt-0.5 ml-1 text-gray-600" />;
+  if (commentType === 'GENERIC_COMMENT' || commentType === 'ANSWER')
+    return <MessageCircle size={14} className="inline -mt-0.5 ml-1 text-gray-600" />;
+  return null;
+}
+
 function getReviewScore(entry: FeedEntry): number | undefined {
   if (entry.contentType !== 'COMMENT') return undefined;
   const commentContent = entry.content as FeedCommentContent;
   if (commentContent.comment?.commentType !== 'REVIEW') return undefined;
   return commentContent.review?.score || commentContent.comment.reviewScore || undefined;
-}
-
-function ReviewStars({ score }: { score: number }) {
-  return (
-    <span className="inline-flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Star
-          key={i}
-          size={11}
-          className={i <= score ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
-        />
-      ))}
-    </span>
-  );
 }
 
 interface ActivityCardProps {
@@ -125,6 +129,7 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [overlayStyle, setOverlayStyle] = useState<React.CSSProperties>({ display: 'none' });
   const [visible, setVisible] = useState(false);
+  const overAvatar = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -133,6 +138,7 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
   }, []);
 
   const showOverlay = useCallback(() => {
+    if (overAvatar.current) return;
     if (hoverTimer.current) clearTimeout(hoverTimer.current);
     hoverTimer.current = setTimeout(() => {
       const el = cardRef.current;
@@ -162,8 +168,10 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
   if (!title) return null;
 
   const actionLabel = getActionLabel(entry);
+  const actionIcon = getActionIcon(entry);
   const commentPreview = getCommentPreview(entry);
   const reviewScore = getReviewScore(entry);
+  const fundingAmount = getFundingAmount(entry);
 
   const titleEl = href ? (
     <Link href={href} className="text-indigo-600 hover:text-indigo-800">
@@ -173,16 +181,58 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
     <span className="text-gray-500">{title}</span>
   );
 
-  const inlineAvatar = (
-    <span className="inline-block align-middle mr-1.5">
-      <Avatar
-        src={author?.profileImage}
-        alt={author?.fullName || 'User'}
-        size={20}
-        authorId={author?.id}
-        disableTooltip
-      />
-    </span>
+  const headerBlock = (showTitle: boolean) => (
+    <div className="grid grid-cols-[auto_1fr] gap-x-2.5 items-start">
+      <div
+        className="row-span-3 pt-0.5"
+        onMouseEnter={() => {
+          overAvatar.current = true;
+          if (hoverTimer.current) {
+            clearTimeout(hoverTimer.current);
+            hoverTimer.current = null;
+          }
+          setVisible(false);
+        }}
+        onMouseLeave={() => {
+          overAvatar.current = false;
+        }}
+      >
+        <AuthorTooltip authorId={author?.id} placement="bottom">
+          <Avatar
+            src={author?.profileImage}
+            alt={author?.fullName || 'User'}
+            size={32}
+            authorId={author?.id}
+            disableTooltip
+          />
+        </AuthorTooltip>
+      </div>
+      <span className="text-sm font-medium text-gray-900 leading-tight truncate">
+        {author?.fullName || 'Unknown'}
+      </span>
+      <span className="text-sm leading-tight mb-1">
+        <span className="text-gray-500">{actionLabel}</span>
+        {actionIcon}
+        {reviewScore && (
+          <span className="inline-flex items-center gap-1 ml-1.5 text-xs text-gray-600 align-middle">
+            <Star size={13} className="fill-amber-400 text-amber-400" />
+            {reviewScore.toFixed(1)}
+          </span>
+        )}
+        {fundingAmount && (
+          <span className="ml-1.5 text-xs font-medium text-gray-900">
+            {formatCurrency({
+              amount: fundingAmount,
+              showUSD: true,
+              exchangeRate: 1,
+              skipConversion: true,
+              shorten: true,
+            })}
+          </span>
+        )}
+      </span>
+      {showTitle && <span className="text-sm leading-tight line-clamp-2">{titleEl}</span>}
+    </div>
   );
 
   return (
@@ -192,39 +242,23 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
       onMouseEnter={showOverlay}
       onMouseLeave={hideOverlay}
     >
-      <span className="block text-sm leading-snug line-clamp-2">
-        {inlineAvatar}
-        <span className="font-medium text-gray-900">{author?.fullName || 'Unknown'}</span>{' '}
-        <span className="text-gray-600">{actionLabel}</span> {titleEl}
+      {headerBlock(true)}
+      <span className="block text-xs text-gray-400 mt-1 ml-[42px]">
+        {formatTimeAgo(entry.timestamp)}
       </span>
-      <span className="block text-xs text-gray-400 mt-0.5">{formatTimeAgo(entry.timestamp)}</span>
 
-      {/* Fixed overlay -- escapes all overflow clipping */}
       {visible && (
         <div style={overlayStyle} onMouseEnter={() => setVisible(true)} onMouseLeave={hideOverlay}>
           <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3 animate-in fade-in zoom-in-95 duration-150">
-            <span className="block text-sm leading-snug">
-              {inlineAvatar}
-              <span className="font-medium text-gray-900">
-                {author?.fullName || 'Unknown'}
-              </span>{' '}
-              <span className="text-gray-600">{actionLabel}</span> {titleEl}
-            </span>
-
-            {reviewScore && (
-              <div className="flex items-center gap-1.5 mt-1.5">
-                <ReviewStars score={reviewScore} />
-                <span className="text-xs text-gray-500">{reviewScore}/5</span>
-              </div>
-            )}
+            {headerBlock(true)}
 
             {commentPreview && (
-              <p className="text-xs text-gray-500 leading-relaxed mt-1.5 line-clamp-4">
+              <p className="text-xs text-gray-500 leading-relaxed mt-1.5 ml-[42px] line-clamp-4">
                 {commentPreview}
               </p>
             )}
 
-            <p className="text-xs text-gray-400 mt-1">{formatTimeAgo(entry.timestamp)}</p>
+            <p className="text-xs text-gray-400 mt-1 ml-[42px]">{formatTimeAgo(entry.timestamp)}</p>
           </div>
         </div>
       )}
