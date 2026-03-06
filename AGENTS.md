@@ -16,9 +16,9 @@ Next.js loads `.env.development` automatically in dev mode (`npm run dev`). This
 
 ### Important notes
 
-- The landing page at `/` fetches live data from the production ResearchHub API (hardcoded in the landing page component), so it loads real content even without a local backend.
-- Other pages (feed, browse, leaderboard, etc.) use `NEXT_PUBLIC_API_URL` and will show empty/error states without the Django backend running locally.
+- The `.env.development` is configured to use the **staging backend** (`https://backend.staging.researchhub.com`). All pages load real data from staging.
 - The `@fortawesome` registry scope in `.npmrc` must use `https://npm.fontawesome.com/` for both `@fortawesome` and `@awesome.me` scopes.
+- `NEXTAUTH_URL` is set to `https://www.v2.staging.researchhub.com/` for staging OAuth callbacks. Google OAuth login requires this URL to match the authorized redirect URIs in the Google Cloud Console.
 
 ### Key commands
 
