@@ -18,9 +18,11 @@ export default async function FundPage() {
       }
     >
       <div>
-        <FundingIntroBanner />
         <FundraiseProvider>
           <FundingGrantTabs />
+          <div className="mt-4">
+            <FundingIntroBanner />
+          </div>
           <ProposalSortAndFilters variant="all" />
           <ProposalFeed />
         </FundraiseProvider>
