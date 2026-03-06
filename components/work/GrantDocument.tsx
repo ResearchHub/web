@@ -123,7 +123,7 @@ export const GrantDocument = ({
               </div>
 
               {/* Rolling deadline for open grants */}
-              {isActive && <RollingDeadlineInfo />}
+              {isActive && <RollingDeadlineInfo iconPosition="left" />}
 
               {/* Closed grant deadline */}
               {!isActive && endDate && (

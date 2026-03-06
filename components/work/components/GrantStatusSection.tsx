@@ -39,7 +39,7 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
         <span>{isActive ? 'Accepting Applications' : 'Closed'}</span>
       </div>
       {/* Rolling deadline for open grants */}
-      {isActive && <RollingDeadlineInfo className="mt-1" />}
+      {isActive && <RollingDeadlineInfo className="mt-1" iconPosition="left" />}
       {!isActive && (
         <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
           <Clock size={14} className="text-gray-500" />

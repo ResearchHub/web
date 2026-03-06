@@ -89,9 +89,6 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
             shorten={false}
           />
 
-          {/* Rolling deadline */}
-          {isActive && <RollingDeadlineInfo variant="compact" className="hidden sm:!inline-flex" />}
-
           {/* Status badges */}
           {isActive && (
             <span className="text-xs font-medium text-primary-700 bg-primary-100 px-2 py-0.5 rounded-full">
@@ -103,6 +100,9 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
               Closed
             </span>
           )}
+
+          {/* Rolling deadline */}
+          {isActive && <RollingDeadlineInfo variant="compact" className="hidden sm:!inline-flex" />}
 
           {/* Applicants section */}
           {applicantCount > 0 && (
