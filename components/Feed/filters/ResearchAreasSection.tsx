@@ -54,7 +54,7 @@ export function ResearchAreasSection({
 }: ResearchAreasSectionProps) {
   // Use a ref to prevent animation interruptions during selections
   const isSelectingRef = React.useRef(false);
-  const animationTimeoutRef = React.useRef<NodeJS.Timeout>();
+  const animationTimeoutRef = React.useRef<NodeJS.Timeout>(undefined);
 
   const handleToggle = useCallback(() => {
     onToggle?.();

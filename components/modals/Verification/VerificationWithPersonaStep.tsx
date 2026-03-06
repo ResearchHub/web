@@ -18,7 +18,7 @@ export interface VerificationWithPersonaStepProps {
 
 export function VerificationWithPersonaStep({
   onVerificationStatusChange,
-}: VerificationWithPersonaStepProps): JSX.Element {
+}: VerificationWithPersonaStepProps): React.JSX.Element {
   const [isPersonaLoaded, setIsPersonaLoaded] = useState(false);
   const { user } = useUser();
   const personaWrapperRef = useRef<HTMLDivElement>(null);

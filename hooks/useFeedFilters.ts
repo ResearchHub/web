@@ -30,7 +30,7 @@ export function useFeedFilters() {
   const [filters, setFilters] = useState<FeedFilters>(DEFAULT_FILTERS);
   const [filtersInitialized, setFiltersInitialized] = useState(false);
   const [debouncedFilters, setDebouncedFilters] = useState<FeedFilters>(DEFAULT_FILTERS);
-  const debounceTimerRef = useRef<NodeJS.Timeout>();
+  const debounceTimerRef = useRef<NodeJS.Timeout>(undefined);
 
   // Load filters from localStorage on mount
   useEffect(() => {
