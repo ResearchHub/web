@@ -20,6 +20,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { StatusCard } from '@/components/ui/StatusCard';
 import { colors } from '@/app/styles/colors';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { getFundraiseDisplayAmounts } from './lib/getFundraiseDisplayAmounts';
 
 interface FundraiseProgressProps {
   fundraise: Fundraise;
@@ -54,15 +55,19 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
   const isActive =
     fundraise.status === 'OPEN' &&
     (fundraise.endDate ? isDeadlineInFuture(fundraise.endDate) : true);
+  const {
+    displayAmountRaisedUsd,
+    displayGoalAmountUsd,
+    displayAmountRaisedRsc,
+    displayGoalAmountRsc,
+    displayProgressPercent,
+  } = getFundraiseDisplayAmounts(fundraise);
 
   // Calculate progress percentage with a minimum of 5% for visibility
   const progressPercentage =
     fundraise.status === 'COMPLETED'
       ? 100
-      : Math.max(
-          0,
-          Math.min(100, Math.max(5, (fundraise.amountRaised.rsc / fundraise.goalAmount.rsc) * 100))
-        );
+      : Math.max(0, Math.min(100, Math.max(5, displayProgressPercent)));
 
   // Extract contributors if available
   const contributors =
@@ -164,8 +169,8 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   <CurrencyBadge
                     amount={
                       showUSD
-                        ? Math.round(fundraise.amountRaised.usd)
-                        : Math.round(fundraise.amountRaised.rsc)
+                        ? Math.round(displayAmountRaisedUsd)
+                        : Math.round(displayAmountRaisedRsc)
                     }
                     variant="text"
                     size="md"
@@ -183,9 +188,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   <span className="text-xs text-gray-500 mx-0.5">/</span>
                   <CurrencyBadge
                     amount={
-                      showUSD
-                        ? Math.round(fundraise.goalAmount.usd)
-                        : Math.round(fundraise.goalAmount.rsc)
+                      showUSD ? Math.round(displayGoalAmountUsd) : Math.round(displayGoalAmountRsc)
                     }
                     variant="text"
                     size="md"
@@ -295,8 +298,8 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   <CurrencyBadge
                     amount={
                       showUSD
-                        ? Math.round(fundraise.amountRaised.usd)
-                        : Math.round(fundraise.amountRaised.rsc)
+                        ? Math.round(displayAmountRaisedUsd)
+                        : Math.round(displayAmountRaisedRsc)
                     }
                     variant="text"
                     size="md"
@@ -308,9 +311,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   <span className="text-gray-500 text-base mobile:!text-lg">raised of</span>
                   <CurrencyBadge
                     amount={
-                      showUSD
-                        ? Math.round(fundraise.goalAmount.usd)
-                        : Math.round(fundraise.goalAmount.rsc)
+                      showUSD ? Math.round(displayGoalAmountUsd) : Math.round(displayGoalAmountRsc)
                     }
                     variant="text"
                     size="md"
