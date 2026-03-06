@@ -246,7 +246,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                 )}
               </div>
 
-              {isActive && (
+              {isActive ? (
                 <Button
                   variant="default"
                   size="sm"
@@ -256,6 +256,8 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                   Fund Research
                   <ArrowRight size={14} className="ml-1.5" />
                 </Button>
+              ) : (
+                <span className="flex-shrink-0 text-sm text-gray-400">Ended</span>
               )}
             </div>
           </PrimaryActionSection>

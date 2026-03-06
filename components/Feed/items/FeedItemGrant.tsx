@@ -116,7 +116,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
       {grant.grant && (
         <PrimaryActionSection>
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-6 min-w-0">
+            <div className="flex items-start gap-6 min-w-0">
               <div className="flex flex-col leading-tight whitespace-nowrap">
                 <span className="text-xs text-gray-500 uppercase tracking-wide">Funding</span>
                 <span className="font-mono font-semibold text-primary-600 text-xl">
@@ -150,7 +150,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
               )}
             </div>
 
-            {isActive && (
+            {isActive ? (
               <Button
                 variant="default"
                 size="sm"
@@ -160,6 +160,8 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
                 Apply
                 <ArrowRight size={14} className="ml-1.5" />
               </Button>
+            ) : (
+              <span className="flex-shrink-0 text-sm text-gray-400">Ended</span>
             )}
           </div>
         </PrimaryActionSection>
