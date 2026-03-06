@@ -61,8 +61,6 @@ interface PaymentWidgetProps {
   hideButton?: boolean;
   /** Wallet payment method availability from Stripe */
   walletAvailability: WalletAvailability;
-  /** Whether the Endaoment payment option is enabled (feature flag) */
-  isEndaomentEnabled?: boolean;
 }
 
 /**
@@ -86,7 +84,6 @@ export function PaymentWidget({
   onStripeReady,
   hideButton = false,
   walletAvailability,
-  isEndaomentEnabled = false,
 }: PaymentWidgetProps) {
   const { isExpanded, selectedMethod, toggleExpanded, selectMethod } = usePaymentMethod({
     initialMethod: selectedPaymentMethod,
@@ -195,7 +192,6 @@ export function PaymentWidget({
   //   options that may not be available
   const visiblePaymentOptions = paymentOptions.filter((option) => {
     if (HIDDEN_PAYMENT_METHODS.includes(option.id)) return false;
-    if (option.id === 'endaoment' && !isEndaomentEnabled) return false;
     if (option.id === 'apple_pay') {
       return !walletAvailability.checking && walletAvailability.applePay;
     }
