@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, ReactNode, useEffect } from 'react';
+import { FC, ReactNode, useEffect, useRef } from 'react';
 import React from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { FeedItemSkeleton } from './FeedItemSkeleton';
@@ -12,6 +12,8 @@ import { FeedEntryItem, Highlight } from './FeedEntryItem';
 import { getFeedKey } from '@/contexts/NavigationContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { useFeedImpressionTracking } from '@/hooks/useFeedImpressionTracking';
+import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
+import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 
 interface InsertContentItem {
   index: number;
@@ -75,6 +77,9 @@ export const FeedContent: FC<FeedContentProps> = ({
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { setContentTabsHidden } = useFeedTabsVisibility();
+  const scrollContainerRef = useScrollContainer();
+  const tabsSentinelRef = useRef<HTMLDivElement>(null);
 
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
@@ -117,12 +122,33 @@ export const FeedContent: FC<FeedContentProps> = ({
     }
   }, [inView, hasMore, showLoadingSkeletons, loadMore]);
 
+  useEffect(() => {
+    const sentinel = tabsSentinelRef.current;
+    if (!sentinel || !tabs) return;
+
+    const root = scrollContainerRef?.current ?? null;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setContentTabsHidden(!entry.isIntersecting);
+      },
+      { root, threshold: 0 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [tabs, scrollContainerRef, setContentTabsHidden]);
+
+  useEffect(() => {
+    if (!tabs) return;
+    return () => setContentTabsHidden(false);
+  }, [tabs, setContentTabsHidden]);
+
   return (
     <>
       {header && <div className="mb-2">{header}</div>}
 
       <div className="max-w-4xl mx-auto">
-        {tabs && <div>{tabs}</div>}
+        {tabs && <div ref={tabsSentinelRef}>{tabs}</div>}
 
         {filters && <div>{filters}</div>}
 

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { ScrollContainerProvider } from '@/contexts/ScrollContainerContext';
 import { GrantProvider } from '@/contexts/GrantContext';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
+import { FeedTabsVisibilityProvider } from '@/contexts/FeedTabsVisibilityContext';
 import { usePageLayoutState } from './hooks/usePageLayoutState';
 import { TopBarContainer } from './components/TopBarContainer';
 import { MobileOverlay } from './components/MobileOverlay';
@@ -47,48 +48,54 @@ export function PageLayout({
   return (
     <GrantProvider>
       <FundraiseProvider>
-        <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
-          <div className="flex h-screen">
-            <OnboardingModalWrapper />
+        <FeedTabsVisibilityProvider>
+          <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
+            <div className="flex h-screen">
+              <OnboardingModalWrapper />
 
-            <TopBarContainer
-              isMobileTopNavHidden={isMobileTopNavHidden}
-              isLeftSidebarOpen={isLeftSidebarOpen}
-              onMenuClick={toggleLeftSidebar}
-            />
+              <TopBarContainer
+                isMobileTopNavHidden={isMobileTopNavHidden}
+                isLeftSidebarOpen={isLeftSidebarOpen}
+                onMenuClick={toggleLeftSidebar}
+              />
 
-            <MobileOverlay show={showOverlay} visible={overlayVisible} onClose={closeLeftSidebar} />
+              <MobileOverlay
+                show={showOverlay}
+                visible={overlayVisible}
+                onClose={closeLeftSidebar}
+              />
 
-            <LeftSidebarContainer isOpen={isLeftSidebarOpen} isCompact={isCompact} />
+              <LeftSidebarContainer isOpen={isLeftSidebarOpen} isCompact={isCompact} />
 
-            {/* Scrollable content area */}
-            <div
-              ref={scrollContainerRef}
-              className={cn(
-                'flex-1 overflow-y-auto overflow-x-hidden relative transition-all duration-150',
-                isCompact ? 'pt-12' : 'pt-16'
-              )}
-            >
-              <div className="flex mx-auto w-full max-w-[1180px]">
-                <main className="flex-1 min-w-0 px-4 tablet:!px-8 py-6 pb-20 tablet:!pb-4 mt-4">
-                  <div className={cn('w-full max-w-full tablet:!max-w-[860px]', className)}>
-                    {children}
-                  </div>
-                </main>
-
-                {rightSidebar && (
-                  <RightSidebarContainer
-                    rightSidebar={rightSidebar}
-                    isCompact={isCompact}
-                    contentClassName={sidebarContentClassName}
-                  />
+              {/* Scrollable content area */}
+              <div
+                ref={scrollContainerRef}
+                className={cn(
+                  'flex-1 overflow-y-auto overflow-x-hidden relative transition-all duration-150',
+                  isCompact ? 'pt-12' : 'pt-16'
                 )}
-              </div>
+              >
+                <div className="flex mx-auto w-full max-w-[1180px]">
+                  <main className="flex-1 min-w-0 px-4 tablet:!px-8 py-6 pb-20 tablet:!pb-4 mt-4">
+                    <div className={cn('w-full max-w-full tablet:!max-w-[860px]', className)}>
+                      {children}
+                    </div>
+                  </main>
 
-              <MobileBottomNav />
+                  {rightSidebar && (
+                    <RightSidebarContainer
+                      rightSidebar={rightSidebar}
+                      isCompact={isCompact}
+                      contentClassName={sidebarContentClassName}
+                    />
+                  )}
+                </div>
+
+                <MobileBottomNav />
+              </div>
             </div>
-          </div>
-        </ScrollContainerProvider>
+          </ScrollContainerProvider>
+        </FeedTabsVisibilityProvider>
       </FundraiseProvider>
     </GrantProvider>
   );
