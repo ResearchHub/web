@@ -6,6 +6,7 @@ import { LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
 import { PillTabs } from '@/components/ui/PillTabs';
 import { useGrants } from '@/contexts/GrantContext';
+import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 import { FeedGrantContent } from '@/types/feed';
 
 function formatCompactAmount(usd: number): string {
@@ -14,16 +15,45 @@ function formatCompactAmount(usd: number): string {
   return `$${Math.round(usd).toLocaleString()}`;
 }
 
-export const FundingGrantTabs: FC = () => {
+interface FundingGrantTabsProps {
+  /** "content" instances observe scroll position and report to context. "topbar" instances are passive. */
+  variant?: 'content' | 'topbar';
+}
+
+export const FundingGrantTabs: FC<FundingGrantTabsProps> = ({ variant = 'content' }) => {
   const pathname = usePathname();
-  const { grants, isLoading, fetchGrants } = useGrants();
+  const { grants, isLoading, fetchGrants, setContentTabsHidden } = useGrants();
+  const scrollContainerRef = useScrollContainer();
   const hasFetchedRef = useRef(grants.length > 0);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchGrants().then(() => {
       hasFetchedRef.current = true;
     });
   }, [fetchGrants]);
+
+  useEffect(() => {
+    if (variant !== 'content') return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const root = scrollContainerRef?.current ?? null;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setContentTabsHidden(!entry.isIntersecting);
+      },
+      { root, threshold: 0 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [variant, scrollContainerRef, setContentTabsHidden]);
+
+  useEffect(() => {
+    if (variant !== 'content') return;
+    return () => setContentTabsHidden(false);
+  }, [variant, setContentTabsHidden]);
 
   const isPending = !hasFetchedRef.current && grants.length === 0;
 
@@ -67,7 +97,10 @@ export const FundingGrantTabs: FC = () => {
     if (isLoading || isPending) {
       const widths = [48, 128, 112, 96, 120, 104, 88, 132, 100, 116];
       return (
-        <div className="flex items-center gap-2 py-2 overflow-hidden">
+        <div
+          ref={variant === 'content' ? sentinelRef : undefined}
+          className="flex items-center gap-2 py-2 overflow-hidden"
+        >
           {widths.map((w, i) => (
             <div
               key={i}
@@ -78,11 +111,14 @@ export const FundingGrantTabs: FC = () => {
         </div>
       );
     }
-    return null;
+    return variant === 'content' ? <div ref={sentinelRef} /> : null;
   }
 
   return (
-    <div className="flex items-center gap-1 max-w-full">
+    <div
+      ref={variant === 'content' ? sentinelRef : undefined}
+      className="flex items-center gap-1 max-w-full"
+    >
       <PillTabs
         className="min-w-0"
         tabs={pillTabs}
@@ -90,8 +126,7 @@ export const FundingGrantTabs: FC = () => {
         onTabChange={() => {}}
         size="md"
         colorScheme="default"
-        // Used as a key to strore left scroll position across remounts
-        scrollCacheKey="funding-grants"
+        scrollCacheKey={variant === 'topbar' ? 'funding-grants-topbar' : 'funding-grants'}
       />
       <Link
         href="/awards"

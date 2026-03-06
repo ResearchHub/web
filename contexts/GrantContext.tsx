@@ -17,6 +17,9 @@ interface GrantContextValue {
   selectGrant: (grantId: number | string | null) => void;
   getGrantById: (grantId: number | string) => FeedEntry | undefined;
   refresh: () => Promise<void>;
+  /** True when the in-content FundingGrantTabs has scrolled out of view */
+  contentTabsHidden: boolean;
+  setContentTabsHidden: (hidden: boolean) => void;
 }
 
 const GrantContext = createContext<GrantContextValue | null>(null);
@@ -34,6 +37,7 @@ export function GrantProvider({ children }: GrantProviderProps) {
   const [isLoading, setIsLoading] = useState(_grantsCache.length === 0);
   const [error, setError] = useState<string | null>(null);
   const [totalFundingUsd, setTotalFundingUsdRaw] = useState<number>(_fundingCache ?? 0);
+  const [contentTabsHidden, setContentTabsHidden] = useState(false);
 
   const setGrants = useCallback((newGrants: FeedEntry[]) => {
     _grantsCache = newGrants;
@@ -131,6 +135,8 @@ export function GrantProvider({ children }: GrantProviderProps) {
         selectGrant,
         getGrantById,
         refresh,
+        contentTabsHidden,
+        setContentTabsHidden,
       }}
     >
       {children}

@@ -37,13 +37,14 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { showAuthModal } = useAuthModalContext();
 
   const { tabs, activeTab, highlightedTab, handleTabChange, isFeedPage } = useFeedTabs();
-  const { grants } = useGrants();
+  const { grants, contentTabsHidden } = useGrants();
 
   const isFundingPage =
     pathname === '/fund' || pathname === '/fund/browse' || pathname.startsWith('/fund/grant/');
   const isProposalPage = pathname.startsWith('/proposal/');
   const isGrantPage = pathname.startsWith('/grant/');
   const showGrantTabs = (isFundingPage || isProposalPage || isGrantPage) && grants.length > 0;
+  const showTopBarGrantTabs = showGrantTabs && contentTabsHidden;
 
   const activeGrantTitle = useMemo(() => {
     const match = pathname.match(/^\/(?:fund\/)?grant\/(\d+)/);
@@ -101,7 +102,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   return (
     <>
       <div
-        className={`bg-white ${isFeedPage || showGrantTabs ? 'tablet:!border-b tablet:!border-gray-200' : 'border-b border-gray-200'}`}
+        className={`bg-white ${isFeedPage || showGrantTabs || showTopBarGrantTabs ? 'tablet:!border-b tablet:!border-gray-200' : 'border-b border-gray-200'}`}
       >
         {/* Title row */}
         <div className="flex items-center justify-between px-4 lg:px-8" style={{ height: '70px' }}>
@@ -182,23 +183,17 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           </div>
         )}
 
-        {/* Funding grant tabs - mobile only */}
+        {/* Funding grant tabs — revealed when content tabs scroll out of view */}
         {(isFundingPage || isProposalPage || isGrantPage) && (
           <div
-            className={`tablet:!hidden border-b border-gray-200 px-4 -mt-2 pb-1${
-              !isFundingPage ? ' overflow-hidden transition-all duration-300 ease-in-out' : ''
-            }`}
-            style={
-              isFundingPage
-                ? undefined
-                : {
-                    maxHeight: showGrantTabs ? '62px' : '0px',
-                    opacity: showGrantTabs ? 1 : 0,
-                    borderBottomColor: showGrantTabs ? undefined : 'transparent',
-                  }
-            }
+            className="overflow-hidden transition-all duration-300 ease-in-out border-b px-4 lg:px-8 -mt-2 pb-1"
+            style={{
+              maxHeight: showTopBarGrantTabs ? '62px' : '0px',
+              opacity: showTopBarGrantTabs ? 1 : 0,
+              borderBottomColor: showTopBarGrantTabs ? undefined : 'transparent',
+            }}
           >
-            <FundingGrantTabs />
+            <FundingGrantTabs variant="topbar" />
           </div>
         )}
       </div>
