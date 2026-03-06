@@ -119,6 +119,8 @@ const nextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': __dirname,
+      // Alias React Native modules to prevent build warnings
+      '@react-native-async-storage/async-storage': false,
     };
 
     if (!isServer) {
