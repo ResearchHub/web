@@ -3,9 +3,9 @@
 import { Fundraise } from '@/types/funding';
 import { BarChart3, Users } from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
-import { formatRSC } from '@/utils/number';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { getFundraiseDisplayAmounts } from '@/components/Fund/lib/getFundraiseDisplayAmounts';
 
 interface FundraiseSectionProps {
   fundraise: Fundraise;
@@ -13,7 +13,13 @@ interface FundraiseSectionProps {
 
 export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
   const { showUSD } = useCurrencyPreference();
-  const progress = (fundraise.amountRaised.rsc / fundraise.goalAmount.rsc) * 100;
+  const {
+    displayAmountRaisedUsd,
+    displayGoalAmountUsd,
+    displayAmountRaisedRsc,
+    displayGoalAmountRsc,
+    displayProgressPercent,
+  } = getFundraiseDisplayAmounts(fundraise);
 
   return (
     <section>
@@ -26,7 +32,7 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <CurrencyBadge
-              amount={showUSD ? fundraise.amountRaised.usd : fundraise.amountRaised.rsc}
+              amount={showUSD ? displayAmountRaisedUsd : displayAmountRaisedRsc}
               variant="text"
               size="xs"
               currency={showUSD ? 'USD' : 'RSC'}
@@ -35,7 +41,7 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
               skipConversion={showUSD}
             />
             <CurrencyBadge
-              amount={showUSD ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc}
+              amount={showUSD ? displayGoalAmountUsd : displayGoalAmountRsc}
               variant="text"
               size="xs"
               currency={showUSD ? 'USD' : 'RSC'}
@@ -50,7 +56,7 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
                 fundraise.status === 'COMPLETED' ? 'bg-green-500' : 'bg-orange-500'
               }`}
               style={{
-                width: `${fundraise.status === 'COMPLETED' ? 100 : progress}%`,
+                width: `${displayProgressPercent}%`,
               }}
             />
           </div>
