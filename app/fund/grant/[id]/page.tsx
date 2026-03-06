@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { ProposalFeed } from '@/components/Funding/ProposalFeed';
-import { ProposalCount } from '@/components/Funding/ProposalCount';
+import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
 import { FundingGrantTabs } from '@/components/Funding/FundingGrantTabs';
 import { GrantInfoBanner } from '@/components/Funding/GrantInfoBanner';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
@@ -60,7 +60,7 @@ export default async function FundGrantPage({ params }: Props) {
                 isActive={isActive}
                 imageUrl={work.image}
               />
-              <ProposalCount />
+              <ProposalSortAndFilters variant="grant" />
             </>
           ) : null}
           <ProposalFeed />

@@ -3,14 +3,18 @@
 import { FC, useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/utils/styles';
-import { useFundraises } from '@/contexts/FundraiseContext';
-import { SORT_OPTIONS } from './lib/proposalSortAndFilterConfig';
+import { GRANT_SORT_OPTIONS, type GrantSortOption } from './lib/grantSortConfig';
 
-function SortDropdown() {
-  const { sortBy, setSortBy } = useFundraises();
+function SortDropdown({
+  sortBy,
+  onSortChange,
+}: {
+  sortBy: GrantSortOption;
+  onSortChange: (value: GrantSortOption) => void;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const selectedLabel = SORT_OPTIONS.find((o) => o.value === sortBy)?.label;
+  const selectedLabel = GRANT_SORT_OPTIONS.find((o) => o.value === sortBy)?.label;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -35,12 +39,12 @@ function SortDropdown() {
 
       {isOpen && (
         <div className="absolute top-full right-0 mt-1.5 z-50 min-w-[180px] bg-white rounded-xl border border-gray-200 shadow-lg py-1.5 animate-in fade-in slide-in-from-top-1 duration-100">
-          {SORT_OPTIONS.map((option) => (
+          {GRANT_SORT_OPTIONS.map((option) => (
             <label
               key={option.value}
               className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors"
               onClick={() => {
-                setSortBy(option.value);
+                onSortChange(option.value);
                 setIsOpen(false);
               }}
             >
@@ -63,31 +67,30 @@ function SortDropdown() {
   );
 }
 
-interface ProposalSortAndFiltersProps {
+interface GrantSortAndFiltersProps {
   className?: string;
-  /** "all" = /fund page, "grant" = /fund/grant/[id] page */
-  variant?: 'all' | 'grant';
+  grantCount: number;
+  isLoading: boolean;
+  sortBy: GrantSortOption;
+  onSortChange: (value: GrantSortOption) => void;
 }
 
-export const ProposalSortAndFilters: FC<ProposalSortAndFiltersProps> = ({
+export const GrantSortAndFilters: FC<GrantSortAndFiltersProps> = ({
   className,
-  variant = 'all',
+  grantCount,
+  isLoading,
+  sortBy,
+  onSortChange,
 }) => {
-  const { entries, isLoading } = useFundraises();
-
-  const label =
-    variant === 'grant' ? (
-      <>
-        <span className="font-semibold">
-          {entries.length} proposal{entries.length !== 1 ? 's' : ''}
-        </span>{' '}
-        competing for award
-      </>
-    ) : (
-      <span>
-        Showing <span className="font-semibold">all proposals</span> seeking funding
-      </span>
-    );
+  const label = (
+    <span>
+      Showing{' '}
+      <span className="font-semibold">
+        {grantCount} award{grantCount !== 1 ? 's' : ''}
+      </span>{' '}
+      seeking proposals
+    </span>
+  );
 
   return (
     <div className={cn('flex items-center justify-between mt-10', className)}>
@@ -96,7 +99,7 @@ export const ProposalSortAndFilters: FC<ProposalSortAndFiltersProps> = ({
       ) : (
         <p className="text-sm text-gray-600">{label}</p>
       )}
-      <SortDropdown />
+      <SortDropdown sortBy={sortBy} onSortChange={onSortChange} />
     </div>
   );
 };

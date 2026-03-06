@@ -74,6 +74,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
   }, [statusFilter, sortBy]);
 
   const fetchProposals = useCallback(async () => {
+    setEntries([]);
     setIsLoading(true);
     try {
       const result = await FeedService.getFeed({

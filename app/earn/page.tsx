@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 import { PageLayout } from '../layouts/PageLayout';
@@ -12,9 +12,12 @@ import { BountyHubSelector as HubsSelector } from '@/components/Earn/BountyHubSe
 import SortDropdown, { SortOption } from '@/components/ui/SortDropdown';
 import { Badge } from '@/components/ui/Badge';
 import { useBounties } from '@/hooks/useBounties';
+import { useFeed } from '@/hooks/useFeed';
 import { useGrants } from '@/contexts/GrantContext';
+import { GrantSortAndFilters } from '@/components/Funding/GrantSortAndFilters';
 import { FeedGrantContent } from '@/types/feed';
 import { cn } from '@/utils/styles';
+import type { GrantSortOption } from '@/components/Funding/lib/grantSortConfig';
 
 type EarnTab = 'awards' | 'reviews';
 
@@ -43,6 +46,24 @@ function EarnPageContent() {
       }),
     [grants]
   );
+
+  const [grantSort, setGrantSort] = useState<GrantSortOption>('most_applicants');
+
+  const grantFeedOptions = useMemo(
+    () => ({
+      endpoint: 'grant_feed' as const,
+      contentType: 'GRANT',
+      ordering: grantSort,
+    }),
+    [grantSort]
+  );
+
+  const {
+    entries: grantEntries,
+    isLoading: isGrantFeedLoading,
+    hasMore: hasMoreGrants,
+    loadMore: loadMoreGrants,
+  } = useFeed('all', grantFeedOptions);
 
   const {
     entries,
@@ -196,11 +217,20 @@ function EarnPageContent() {
 
     return (
       <FeedContent
-        entries={openGrants}
-        isLoading={isGrantsLoading}
-        hasMore={false}
-        loadMore={() => {}}
+        entries={grantEntries}
+        isLoading={isGrantFeedLoading}
+        hasMore={hasMoreGrants}
+        loadMore={loadMoreGrants}
         header={awardsHeader}
+        filters={
+          <GrantSortAndFilters
+            grantCount={grantEntries.length}
+            isLoading={isGrantFeedLoading}
+            sortBy={grantSort}
+            onSortChange={setGrantSort}
+            className="mt-0"
+          />
+        }
         showGrantHeaders={false}
         showPostHeaders={false}
         showFundraiseHeaders={false}

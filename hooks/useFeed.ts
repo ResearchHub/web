@@ -106,6 +106,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
 
   const loadFeed = async () => {
     setHasAttemptedLoad(true);
+    setEntries([]);
     setIsLoading(true);
 
     try {

@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { isDeadlineInFuture } from '@/utils/date';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ProposalFeed } from '@/components/Funding/ProposalFeed';
-import { ProposalCount } from '@/components/Funding/ProposalCount';
+import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
 import { FundingGrantTabs } from '@/components/Funding/FundingGrantTabs';
 import { GrantInfoBanner } from '@/components/Funding/GrantInfoBanner';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
@@ -48,7 +48,7 @@ export const GrantDocument = ({ work, metadata }: GrantDocumentProps) => {
               isActive={isActive}
               imageUrl={work.image}
             />
-            <ProposalCount />
+            <ProposalSortAndFilters variant="grant" />
           </>
         ) : (
           <p className="mt-4 text-gray-500">No content available</p>
