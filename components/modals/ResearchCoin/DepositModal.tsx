@@ -162,10 +162,19 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
               onClick={() => {
                 window.open(onrampUrl, 'coinbase-onramp', 'width=460,height=700,left=100,top=100');
               }}
-              className="w-full h-12 rounded-xl border border-gray-300 bg-white font-medium text-gray-900 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 flex items-center justify-center"
+              className="w-full h-12 rounded-xl border border-gray-300 bg-white shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 flex items-center justify-center"
               type="button"
             >
-              <Image src="/coinbase-logo.svg" alt="Coinbase" width={100} height={18} />
+              <span className="flex items-baseline gap-1 font-medium text-gray-900">
+                <span>Buy with</span>
+                <Image
+                  src="/coinbase-logo.svg"
+                  alt="Coinbase"
+                  width={80}
+                  height={14}
+                  className="h-[0.9em] w-auto border-none"
+                />
+              </span>
             </button>
           </>
         )}
