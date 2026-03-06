@@ -124,7 +124,7 @@ export const FeedContent: FC<FeedContentProps> = ({
       <div className="max-w-4xl mx-auto">
         {tabs && <div>{tabs}</div>}
 
-        {filters && <div className="py-3">{filters}</div>}
+        {filters && <div>{filters}</div>}
 
         {banner && <div className="pt-3 pb-0">{banner}</div>}
 
