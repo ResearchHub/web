@@ -28,7 +28,7 @@ const CustomTooltipWrapper: React.FC<{
   onMouseEnter: () => void;
   onMouseLeave: () => void;
   position: 'top' | 'bottom' | 'left' | 'right';
-  anchorRef: React.RefObject<HTMLDivElement>;
+  anchorRef: React.RefObject<HTMLDivElement | null>;
 }> = ({ isVisible, children, className, onMouseEnter, onMouseLeave, position, anchorRef }) => {
   const [mounted, setMounted] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });

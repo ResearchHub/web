@@ -5,7 +5,7 @@ import { MenuProps } from '../types';
 import { LinkPreviewPanel } from '@/components/Editor/components/panels/LinkPreviewPanel';
 import { LinkEditorPanel } from '@/components/Editor/components/panels';
 
-export const LinkMenu = ({ editor, appendTo }: MenuProps): JSX.Element => {
+export const LinkMenu = ({ editor, appendTo }: MenuProps): React.JSX.Element => {
   const [showEdit, setShowEdit] = useState(false);
   const { link, target } = useEditorState({
     editor,
