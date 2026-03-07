@@ -205,8 +205,8 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           </div>
         )}
 
-        {/* Funding grant tabs — revealed when content tabs scroll out of view */}
-        {(isFundingPage || isProposalPage || isGrantPage) && (
+        {/* Funding grant tabs — temporarily disabled to test scroll jitter */}
+        {false && (isFundingPage || isProposalPage || isGrantPage) && (
           <div
             className="overflow-hidden transition-all duration-300 ease-in-out border-b px-4 lg:px-8 -mt-2 pb-1"
             style={{
