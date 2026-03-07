@@ -234,9 +234,9 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                 {contributors.length > 0 && (
                   <AvatarStack
                     items={contributors}
-                    size="xxs"
+                    size="sm"
                     maxItems={3}
-                    spacing={-6}
+                    spacing={-8}
                     showLabel={false}
                     disableTooltip={false}
                     showExtraCount={true}

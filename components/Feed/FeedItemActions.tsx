@@ -434,7 +434,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   return (
     <>
       <div className="flex items-center justify-between w-full">
-        <div className="flex items-center space-x-3 md:space-x-4 flex-nowrap overflow-visible">
+        <div className="flex items-center space-x-1.5 md:space-x-2 flex-nowrap overflow-visible">
           <div
             className={cn(
               'flex items-center h-8 rounded-md bg-gray-100 transition-all',
@@ -446,7 +446,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               disabled={isVoting}
               className={cn(
                 'py-0.5 px-2 md:!py-1 md:!px-2 rounded-l-md transition-colors',
-                localUserVote === 'UPVOTE' ? 'text-green-600' : 'text-gray-900 hover:bg-gray-100',
+                localUserVote === 'UPVOTE' ? 'text-green-600' : 'text-gray-900 hover:bg-gray-200',
                 isVoting ? 'cursor-not-allowed' : 'cursor-pointer'
               )}
               aria-label="Upvote"
@@ -461,7 +461,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               disabled={isVoting}
               className={cn(
                 'py-0.5 px-2 md:!py-1 md:!px-2 rounded-r-md transition-colors',
-                localUserVote === 'DOWNVOTE' ? 'text-red-600' : 'text-gray-900 hover:bg-gray-100',
+                localUserVote === 'DOWNVOTE' ? 'text-red-600' : 'text-gray-900 hover:bg-gray-200',
                 isVoting ? 'cursor-not-allowed' : 'cursor-pointer'
               )}
               aria-label="Downvote"
@@ -469,6 +469,25 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               <ArrowDown className="w-4 h-4 md:!w-5 md:!h-5" />
             </button>
           </div>
+          {relatedDocumentUnifiedDocumentId &&
+            feedContentType !== 'COMMENT' &&
+            feedContentType !== 'BOUNTY' &&
+            feedContentType !== 'APPLICATION' &&
+            showPeerReviews && (
+              <ActionButton
+                icon={Bookmark}
+                tooltip="Save"
+                label="Save"
+                onClick={handleAddToList}
+                isActive={isDocumentInList}
+                isDisabled={isTogglingDefaultList}
+                showTooltip={showTooltips}
+                className={cn(
+                  'rounded-md bg-gray-100 hover:!bg-gray-200',
+                  isDocumentInList ? '!text-green-600' : ''
+                )}
+              />
+            )}
           {!hideCommentButton && (
             <ActionButton
               icon={MessageCircle}
@@ -662,22 +681,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               showTooltip={showTooltips}
             />
           )}
-          {relatedDocumentUnifiedDocumentId &&
-            feedContentType !== 'COMMENT' &&
-            feedContentType !== 'BOUNTY' &&
-            feedContentType !== 'APPLICATION' &&
-            showPeerReviews && (
-              <ActionButton
-                icon={Bookmark}
-                tooltip="Save"
-                label="Save"
-                onClick={handleAddToList}
-                isActive={isDocumentInList}
-                isDisabled={isTogglingDefaultList}
-                showTooltip={showTooltips}
-                className={isDocumentInList ? '!text-green-600' : ''}
-              />
-            )}
           {children}
         </div>
 

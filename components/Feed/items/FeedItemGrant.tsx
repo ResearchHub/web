@@ -137,7 +137,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
                   </span>
                   <AvatarStack
                     items={applicants}
-                    size="xxs"
+                    size="xs"
                     maxItems={3}
                     spacing={-6}
                     showLabel={false}
