@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/utils/styles';
+import { Icon } from '@/components/ui/icons/Icon';
 
 type EarnTab = 'awards' | 'reviews';
 
@@ -25,13 +26,13 @@ export function EarnSectionCards() {
             : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
         )}
       >
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-base">🏆</span>
-          <h3 className="text-[15px] font-semibold text-gray-900">Awards</h3>
+        <div className="flex items-center gap-3">
+          <Icon name="solidHand" size={28} className="shrink-0" />
+          <div>
+            <h3 className="text-xl font-normal text-gray-900">Funding Opportunities</h3>
+            <p className="text-sm text-gray-500 mt-0.5">Submit proposals to compete for funding</p>
+          </div>
         </div>
-        <p className="text-xs text-gray-500">
-          Submit proposals to compete for pooled community funding
-        </p>
       </button>
 
       <button
@@ -43,11 +44,13 @@ export function EarnSectionCards() {
             : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
         )}
       >
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-base">📝</span>
-          <h3 className="text-[15px] font-semibold text-gray-900">Peer Reviews</h3>
+        <div className="flex items-center gap-3">
+          <Icon name="peerReview1" size={28} className="shrink-0" />
+          <div>
+            <h3 className="text-xl font-normal text-gray-900">Peer Reviews</h3>
+            <p className="text-sm text-gray-500 mt-0.5">Review papers in your area of expertise</p>
+          </div>
         </div>
-        <p className="text-xs text-gray-500">Review papers in your area of expertise</p>
       </button>
     </div>
   );
