@@ -122,6 +122,8 @@ interface ActivityCardProps {
 
 const EXPAND_LEFT = 200;
 const PAD_Y = 12;
+const HOVER_DELAY = 1000;
+const MOUSE_MOVE_THRESHOLD = 3;
 
 export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
   const { title, author, href } = getEntryMeta(entry);
@@ -130,6 +132,8 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
   const [overlayStyle, setOverlayStyle] = useState<React.CSSProperties>({ display: 'none' });
   const [visible, setVisible] = useState(false);
   const overAvatar = useRef(false);
+  const entryPos = useRef<{ x: number; y: number } | null>(null);
+  const mouseMoved = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -137,10 +141,13 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
     };
   }, []);
 
-  const showOverlay = useCallback(() => {
+  const showOverlay = useCallback((e: React.MouseEvent) => {
     if (overAvatar.current) return;
+    entryPos.current = { x: e.clientX, y: e.clientY };
+    mouseMoved.current = false;
     if (hoverTimer.current) clearTimeout(hoverTimer.current);
     hoverTimer.current = setTimeout(() => {
+      if (!mouseMoved.current) return;
       const el = cardRef.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
@@ -157,11 +164,22 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
         zIndex: 9999,
       });
       setVisible(true);
-    }, 500);
+    }, HOVER_DELAY);
+  }, []);
+
+  const onCardMouseMove = useCallback((e: React.MouseEvent) => {
+    if (mouseMoved.current || !entryPos.current) return;
+    const dx = e.clientX - entryPos.current.x;
+    const dy = e.clientY - entryPos.current.y;
+    if (Math.abs(dx) > MOUSE_MOVE_THRESHOLD || Math.abs(dy) > MOUSE_MOVE_THRESHOLD) {
+      mouseMoved.current = true;
+    }
   }, []);
 
   const hideOverlay = useCallback(() => {
     if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    entryPos.current = null;
+    mouseMoved.current = false;
     setVisible(false);
   }, []);
 
@@ -240,6 +258,7 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
       ref={cardRef}
       className="py-3 first:pt-0 last:pb-0"
       onMouseEnter={showOverlay}
+      onMouseMove={onCardMouseMove}
       onMouseLeave={hideOverlay}
     >
       {headerBlock(true)}
