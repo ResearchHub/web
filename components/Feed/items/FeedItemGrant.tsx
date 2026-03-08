@@ -152,7 +152,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
 
             {isActive ? (
               <Button
-                variant="default"
+                variant="secondary"
                 size="sm"
                 className="flex-shrink-0 rounded-md text-[13px]"
                 onClick={() => router.push(`/grant/${grant.id}/${grant.slug}/applications`)}

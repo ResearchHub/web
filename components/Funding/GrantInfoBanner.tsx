@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import Image from 'next/image';
-import { ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowUpFromLine, ChevronDown, ChevronUp } from 'lucide-react';
 import { PostBlockEditor } from '@/components/work/PostBlockEditor';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
@@ -88,6 +88,22 @@ export const GrantInfoBanner = ({
                 className="object-cover brightness-105 contrast-105"
                 sizes="240px"
               />
+              <div className="absolute top-2 left-2">
+                <span
+                  className={cn(
+                    'inline-flex items-center gap-1.5 bg-white/95 text-[11px] border border-white font-semibold px-2 py-0.5 rounded-full shadow-sm',
+                    isActive ? 'text-green-700' : 'text-gray-500'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'inline-block w-1.5 h-1.5 rounded-full',
+                      isActive ? 'bg-green-500 animate-pulse' : 'bg-gray-400 text-gray-500'
+                    )}
+                  />
+                  {isActive ? 'Accepting Proposals' : 'Closed'}
+                </span>
+              </div>
             </div>
           )}
 
@@ -135,12 +151,12 @@ export const GrantInfoBanner = ({
                 {grantId && isActive && (
                   <Button
                     variant="default"
-                    size="sm"
+                    size="md"
                     onClick={() => setIsApplyModalOpen(true)}
                     className="flex-shrink-0 gap-1.5"
                   >
                     Submit Proposal
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowUpFromLine className="w-4 h-4" />
                   </Button>
                 )}
               </div>

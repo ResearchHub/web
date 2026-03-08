@@ -232,7 +232,7 @@ export const PrimaryActionSection: FC<PrimaryActionSectionProps> = ({ children, 
   return (
     <div
       className={cn(
-        'mt-3 rounded-lg bg-primary-50/80 border border-primary-100 px-4 py-3.5 cursor-default',
+        'mt-3 rounded-lg bg-primary-50/60 border border-primary-100 px-4 py-3.5 cursor-default',
         className
       )}
       onMouseDown={(e) => e.stopPropagation()}

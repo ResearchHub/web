@@ -38,7 +38,7 @@ export const TaxDeductibleBadge = ({
         showTooltip ? 'cursor-help' : 'cursor-default',
         sizeStyles[size],
         isOverlay
-          ? 'bg-black/50 text-white backdrop-blur-sm border border-white/20'
+          ? 'bg-white/95 text-gray-900 text-[11px] border border-white font-semibold px-2 py-0.5 rounded-full shadow-sm'
           : 'bg-white-50 text-white-700 border border-white-200',
         className
       )}

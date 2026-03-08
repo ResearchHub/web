@@ -248,7 +248,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
 
               {isActive ? (
                 <Button
-                  variant="default"
+                  variant="secondary"
                   size="sm"
                   className="flex-shrink-0 rounded-md text-[13px]"
                   onClick={() => setIsContributeModalOpen(true)}

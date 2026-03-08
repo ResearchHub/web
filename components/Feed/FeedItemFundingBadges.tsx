@@ -17,7 +17,8 @@ interface FeedItemFundingBadgesProps {
   variant?: 'default' | 'overlay';
 }
 
-const overlayBadge = 'bg-black/50 backdrop-blur-sm border border-white/20';
+const overlayBadge =
+  'bg-white/95 text-gray-900 text-[11px] border border-white font-semibold px-2 py-0.5 rounded-full shadow-sm';
 
 export const FeedItemFundingBadges: FC<FeedItemFundingBadgesProps> = ({
   reviewScore,
@@ -44,10 +45,10 @@ export const FeedItemFundingBadges: FC<FeedItemFundingBadgesProps> = ({
           width="w-[320px]"
         >
           <span
-            className={`inline-flex items-center gap-1 cursor-help rounded-md px-1.5 py-0.5 text-[11px] font-medium transition-colors ${
+            className={`inline-flex items-center gap-1 cursor-help transition-colors ${
               isOverlay
-                ? `${overlayBadge} text-white`
-                : 'bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100'
+                ? overlayBadge
+                : 'rounded-md px-1.5 py-0.5 text-[11px] font-medium bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100'
             }`}
           >
             <Star size={11} className="fill-amber-400 text-amber-400" />
@@ -57,7 +58,13 @@ export const FeedItemFundingBadges: FC<FeedItemFundingBadgesProps> = ({
       )}
 
       {isCompleted ? (
-        <span className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium bg-emerald-500 text-white border border-emerald-400">
+        <span
+          className={`inline-flex items-center gap-1 font-medium ${
+            isOverlay
+              ? overlayBadge
+              : 'rounded-md px-1.5 py-0.5 text-[11px] bg-emerald-500 text-white border border-emerald-400'
+          }`}
+        >
           <CheckCircle size={12} className="text-white" />
           Funded
         </span>
