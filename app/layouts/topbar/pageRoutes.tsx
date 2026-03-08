@@ -28,7 +28,6 @@ export const ROOT_NAVIGATION_PATHS = new Set([
   '/feed',
   '/earn',
   '/fund',
-  '/fund/browse',
   '/dashboard',
   '/dashboard/impact',
   '/journal',
@@ -143,7 +142,7 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p === '/fund/browse' || p === '/fund' || p.startsWith('/fund/grant/'),
+    match: (p) => p === '/fund' || p.startsWith('/fund/grant/'),
     getInfo: () => ({
       title: 'Funding Marketplace',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,

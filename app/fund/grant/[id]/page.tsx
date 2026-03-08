@@ -4,7 +4,7 @@ import { PostService } from '@/services/post.service';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { ProposalFeed } from '@/components/Funding/ProposalFeed';
 import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
-import { FundingGrantTabs } from '@/components/Funding/FundingGrantTabs';
+
 import { GrantInfoBanner } from '@/components/Funding/GrantInfoBanner';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
@@ -48,11 +48,10 @@ export default async function FundGrantPage({ params }: Props) {
     >
       <div>
         <FundraiseProvider grantId={grantId ? Number(grantId) : undefined}>
-          <FundingGrantTabs />
           {grant?.description ? (
             <>
               <GrantInfoBanner
-                className="mt-4"
+                className="mb-8"
                 description={grant.description}
                 content={work.previewContent}
                 amountUsd={amountUsd}

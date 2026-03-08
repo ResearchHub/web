@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { ProposalFeed } from '@/components/Funding/ProposalFeed';
-import { FundingGrantTabs } from '@/components/Funding/FundingGrantTabs';
+
 import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
@@ -19,8 +19,7 @@ export default async function FundPage() {
     >
       <div>
         <FundraiseProvider>
-          <FundingGrantTabs />
-          <div className="mt-4">
+          <div className="">
             <FundingIntroBanner />
           </div>
           <ProposalSortAndFilters variant="all" />

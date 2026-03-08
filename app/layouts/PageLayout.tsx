@@ -2,6 +2,7 @@
 
 import { ReactNode } from 'react';
 import dynamic from 'next/dynamic';
+import { usePathname } from 'next/navigation';
 import { useMobileNavScroll } from '@/hooks/useMobileNavScroll';
 import { OnboardingModalWrapper } from '@/components/Onboarding/NewUserOnboarding';
 import { cn } from '@/lib/utils';
@@ -27,7 +28,14 @@ interface PageLayoutProps {
   sidebarContentClassName?: string;
 }
 
-export function PageLayout({
+function useIsGrantTabsPage() {
+  const pathname = usePathname();
+  const isFundingPage = pathname === '/fund' || pathname.startsWith('/fund/grant/');
+  const isGrantPage = pathname.startsWith('/grant/');
+  return isFundingPage || isGrantPage;
+}
+
+function PageLayoutInner({
   children,
   rightSidebar = true,
   className,
@@ -44,57 +52,61 @@ export function PageLayout({
   } = usePageLayoutState();
 
   const { isHidden: isMobileTopNavHidden } = useMobileNavScroll({ scrollContainerRef });
+  const hasGrantTabs = useIsGrantTabsPage();
 
+  return (
+    <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
+      <div className="flex h-screen">
+        <OnboardingModalWrapper />
+
+        <TopBarContainer
+          isMobileTopNavHidden={isMobileTopNavHidden}
+          isLeftSidebarOpen={isLeftSidebarOpen}
+          onMenuClick={toggleLeftSidebar}
+        />
+
+        <MobileOverlay show={showOverlay} visible={overlayVisible} onClose={closeLeftSidebar} />
+
+        <LeftSidebarContainer isOpen={isLeftSidebarOpen} isCompact={isCompact} />
+
+        {/* Scrollable content area */}
+        <div
+          ref={scrollContainerRef}
+          className={cn(
+            'flex-1 overflow-y-auto overflow-x-hidden relative transition-all duration-150',
+            isCompact ? 'pt-12' : 'pt-16',
+            hasGrantTabs && 'pt-[110px]'
+          )}
+        >
+          <div className="flex mx-auto w-full max-w-[1180px]">
+            <main className="flex-1 min-w-0 px-4 tablet:!px-8 py-6 pb-20 tablet:!pb-4 mt-4">
+              <div className={cn('w-full max-w-full tablet:!max-w-[860px]', className)}>
+                {children}
+              </div>
+            </main>
+
+            {rightSidebar && (
+              <RightSidebarContainer
+                rightSidebar={rightSidebar}
+                isCompact={isCompact}
+                contentClassName={sidebarContentClassName}
+              />
+            )}
+          </div>
+
+          <MobileBottomNav />
+        </div>
+      </div>
+    </ScrollContainerProvider>
+  );
+}
+
+export function PageLayout(props: PageLayoutProps) {
   return (
     <GrantProvider>
       <FundraiseProvider>
         <FeedTabsVisibilityProvider>
-          <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
-            <div className="flex h-screen">
-              <OnboardingModalWrapper />
-
-              <TopBarContainer
-                isMobileTopNavHidden={isMobileTopNavHidden}
-                isLeftSidebarOpen={isLeftSidebarOpen}
-                onMenuClick={toggleLeftSidebar}
-              />
-
-              <MobileOverlay
-                show={showOverlay}
-                visible={overlayVisible}
-                onClose={closeLeftSidebar}
-              />
-
-              <LeftSidebarContainer isOpen={isLeftSidebarOpen} isCompact={isCompact} />
-
-              {/* Scrollable content area */}
-              <div
-                ref={scrollContainerRef}
-                className={cn(
-                  'flex-1 overflow-y-auto overflow-x-hidden relative transition-all duration-150',
-                  isCompact ? 'pt-12' : 'pt-16'
-                )}
-              >
-                <div className="flex mx-auto w-full max-w-[1180px]">
-                  <main className="flex-1 min-w-0 px-4 tablet:!px-8 py-6 pb-20 tablet:!pb-4 mt-4">
-                    <div className={cn('w-full max-w-full tablet:!max-w-[860px]', className)}>
-                      {children}
-                    </div>
-                  </main>
-
-                  {rightSidebar && (
-                    <RightSidebarContainer
-                      rightSidebar={rightSidebar}
-                      isCompact={isCompact}
-                      contentClassName={sidebarContentClassName}
-                    />
-                  )}
-                </div>
-
-                <MobileBottomNav />
-              </div>
-            </div>
-          </ScrollContainerProvider>
+          <PageLayoutInner {...props} />
         </FeedTabsVisibilityProvider>
       </FundraiseProvider>
     </GrantProvider>

@@ -90,7 +90,7 @@ export const ProposalSortAndFilters: FC<ProposalSortAndFiltersProps> = ({
     );
 
   return (
-    <div className={cn('flex items-center justify-between mt-10', className)}>
+    <div className={cn('flex items-center justify-between', className)}>
       {isLoading ? (
         <div className="h-5 w-52 rounded bg-gray-200 animate-pulse" />
       ) : (

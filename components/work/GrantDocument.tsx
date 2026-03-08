@@ -8,7 +8,7 @@ import { isDeadlineInFuture } from '@/utils/date';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ProposalFeed } from '@/components/Funding/ProposalFeed';
 import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
-import { FundingGrantTabs } from '@/components/Funding/FundingGrantTabs';
+
 import { GrantInfoBanner } from '@/components/Funding/GrantInfoBanner';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 
@@ -54,7 +54,6 @@ export const GrantDocument = ({ work, metadata }: GrantDocumentProps) => {
           <p className="mt-4 text-gray-500">No content available</p>
         )}
 
-        <FundingGrantTabs />
         <ProposalFeed />
       </div>
     </FundraiseProvider>
