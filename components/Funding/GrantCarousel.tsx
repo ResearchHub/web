@@ -10,6 +10,8 @@ import { cn } from '@/utils/styles';
 import { ArrowRight, RefreshCw } from 'lucide-react';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { useFeed } from '@/hooks/useFeed';
+import { getShortTitle } from './lib/getShortTitle';
+
 interface GrantCarouselProps {
   grant: FeedEntry;
   className?: string;
@@ -17,9 +19,7 @@ interface GrantCarouselProps {
   isDashboard?: boolean;
 }
 
-export function getShortTitle(title: string): string {
-  return title.replace(/^Request for Proposals\s*[-–—:]\s*/i, '');
-}
+export { getShortTitle } from './lib/getShortTitle';
 
 function formatCompactUSD(usd: number): string {
   if (usd >= 1_000_000) return `$${(usd / 1_000_000).toFixed(2).replace(/\.?0+$/, '')}M`;
@@ -82,7 +82,7 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
       <div className="flex items-center gap-2.5 flex-wrap">
         <Link href={grantHref} className="group">
           <h2 className="text-xl font-bold text-gray-900 group-hover:underline">
-            {getShortTitle(content.title)}
+            {getShortTitle(content.grant.shortTitle, content.title)}
           </h2>
         </Link>
         {grantData.amount?.usd && (

@@ -60,7 +60,7 @@ export function GrantProvider({ children }: GrantProviderProps) {
           page: 1,
           pageSize: 20,
           status: 'OPEN',
-          ordering: 'most_applicants',
+          ordering: 'newest',
         }),
         hasFundingRef.current ? Promise.resolve(null) : GrantService.getAvailableFunding(),
       ]);

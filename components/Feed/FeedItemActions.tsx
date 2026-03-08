@@ -10,10 +10,12 @@ import {
   ArrowUp,
   ArrowDown,
   Maximize2,
-  Bookmark,
   Share,
   Trash2,
 } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookmark } from '@fortawesome/free-regular-svg-icons';
+import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
 import { useVote } from '@/hooks/useVote';
@@ -750,7 +752,10 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'
                 )}
               >
-                <Bookmark className="h-[18px] w-[18px]" />
+                <FontAwesomeIcon
+                  icon={isDocumentInList ? faBookmarkSolid : faBookmark}
+                  className="h-[18px] w-[18px]"
+                />
               </Button>
             )}
         </div>

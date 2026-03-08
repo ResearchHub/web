@@ -20,7 +20,7 @@ export const DraftGrantCard: FC<DraftGrantCardProps> = ({
   onContinueEditing,
   onDelete,
 }) => {
-  const title = getShortTitle(note.title || 'Untitled Grant');
+  const title = getShortTitle('', note.title || 'Untitled Grant');
 
   return (
     <div

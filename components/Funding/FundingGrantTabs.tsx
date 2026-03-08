@@ -6,6 +6,7 @@ import { LayoutGrid } from 'lucide-react';
 import { PillTabs } from '@/components/ui/PillTabs';
 import { useGrants } from '@/contexts/GrantContext';
 import { FeedGrantContent } from '@/types/feed';
+import { getShortTitle } from './lib/getShortTitle';
 
 function formatCompactAmount(usd: number): string {
   if (usd >= 1_000_000) return `$${Math.round(usd / 1_000_000)}M`;
@@ -59,7 +60,9 @@ export const FundingGrantTabs: FC = () => {
         separator: idx === 0,
         label: (
           <span className="flex items-center gap-1">
-            <span className="truncate">{content.grant.shortTitle}</span>
+            <span className="truncate">
+              {getShortTitle(content.grant.shortTitle, content.title)}
+            </span>
             {amountFormatted && (
               <span className={`font-mono ${isActive ? 'text-white/80' : 'text-gray-500'}`}>
                 · {amountFormatted}

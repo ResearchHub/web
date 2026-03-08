@@ -16,6 +16,7 @@ import { useGrants } from '@/contexts/GrantContext';
 import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
 import { useSmartBack } from '@/hooks/useSmartBack';
 import type { FeedGrantContent } from '@/types/feed';
+import { getShortTitle } from '@/components/Funding/lib/getShortTitle';
 
 import { getPageInfo, isRootNavigationPage } from './topbar/pageRoutes';
 import { TopBarBackButton } from './topbar/TopBarBackButton';
@@ -55,7 +56,8 @@ export function TopBar({ onMenuClick }: TopBarProps) {
       return content.id === postId;
     });
     if (!grant) return null;
-    return (grant.content as FeedGrantContent).grant.shortTitle;
+    const content = grant.content as FeedGrantContent;
+    return getShortTitle(content.grant.shortTitle, content.title);
   }, [pathname, grants]);
 
   const currentSearchQuery = pathname === '/search' ? searchParams.get('q') : null;
