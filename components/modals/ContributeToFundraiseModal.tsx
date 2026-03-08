@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { FundraiseService } from '@/services/fundraise.service';
 import { PaymentService } from '@/services/payment.service';
@@ -30,8 +29,6 @@ import { EndaomentProvider } from '@/contexts/EndaomentContext';
 // Import inline deposit views
 import { DepositRSCView } from './DepositRSCView';
 import AuthContent from '@/components/Auth/AuthContent';
-import { UserService } from '@/services/user.service';
-
 interface ContributeToFundraiseModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -56,10 +53,6 @@ type ModalView = 'funding' | 'auth' | 'payment' | 'deposit-rsc';
  * where the modal is rendered but never opened.
  */
 export function ContributeToFundraiseModal(props: ContributeToFundraiseModalProps) {
-  // Feature flag: Endaoment is only visible when ?exp_endaoment=true
-  const searchParams = useSearchParams();
-  const isEndaomentEnabled = searchParams.get('exp_endaoment') === 'true';
-
   // Track whether the modal has been opened at least once.
   // Using a ref for the flag (no extra render) and state to trigger the
   // initial mount when isOpen first becomes true.
@@ -75,13 +68,11 @@ export function ContributeToFundraiseModal(props: ContributeToFundraiseModalProp
   // BaseModal/SwipeableDrawer aren't needed when isOpen has never been true.
   if (!mountStripe) return null;
 
-  const inner = (
-    <ContributeToFundraiseModalInner {...props} isEndaomentEnabled={isEndaomentEnabled} />
-  );
+  const inner = <ContributeToFundraiseModalInner {...props} />;
 
   return (
     <StripeProvider>
-      {isEndaomentEnabled ? <EndaomentProvider>{inner}</EndaomentProvider> : inner}
+      <EndaomentProvider>{inner}</EndaomentProvider>
     </StripeProvider>
   );
 }
@@ -93,8 +84,7 @@ function ContributeToFundraiseModalInner({
   fundraise,
   proposalTitle,
   work,
-  isEndaomentEnabled,
-}: ContributeToFundraiseModalProps & { isEndaomentEnabled: boolean }) {
+}: Readonly<ContributeToFundraiseModalProps>) {
   const { user, refreshUser } = useUser();
   const walletAvailability = useWalletAvailability();
   const { exchangeRate } = useExchangeRate();
@@ -198,10 +188,6 @@ function ContributeToFundraiseModalInner({
   }, [user, fundraise.id, amountUsd, amountInRsc]);
 
   const handleAuthSuccess = useCallback(async () => {
-    // Skip onboarding for users who sign up through the fundraise flow
-    await UserService.setCompletedOnboarding();
-
-    // Track funnel step: user reached payment step after auth
     AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP, {
       fundraise_id: fundraise.id,
       amount_usd: amountUsd,
@@ -487,7 +473,6 @@ function ContributeToFundraiseModalInner({
             onEndaomentPaymentConfirm={handleEndaomentPaymentConfirm}
             onDepositRsc={handleOpenDeposit}
             onStripeReady={handleStripeReady}
-            isEndaomentEnabled={isEndaomentEnabled}
           />
         );
 

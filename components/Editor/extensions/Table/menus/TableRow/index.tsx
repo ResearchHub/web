@@ -7,7 +7,7 @@ import { isRowGripSelected } from './utils';
 import { Icon } from '@/components/Editor/components/ui/Icon';
 import { MenuProps, ShouldShowProps } from '@/components/Editor/components/menus/types';
 
-export const TableRowMenu = React.memo(({ editor, appendTo }: MenuProps): JSX.Element => {
+export const TableRowMenu = React.memo(({ editor, appendTo }: MenuProps): React.JSX.Element => {
   const shouldShow = useCallback(
     ({ view, state, from }: ShouldShowProps) => {
       if (!state || !from) {

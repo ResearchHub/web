@@ -5,7 +5,7 @@ import { useMobileNavScroll } from '@/hooks/useMobileNavScroll';
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
-import { OnboardingModalWrapper } from '@/components/Onboarding/NewUserOnboarding';
+
 import { cn } from '@/lib/utils';
 import { ScrollContainerProvider } from '@/contexts/ScrollContainerContext';
 // Dynamically import sidebar components
@@ -104,8 +104,6 @@ export function PageLayout({ children, rightSidebar = true, className }: PageLay
   return (
     <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
       <div className="flex h-screen">
-        <OnboardingModalWrapper />
-
         {/* Fixed TopBar starting from LeftSidebar edge */}
         <div
           className={`fixed top-0 right-0 z-[60] tablet:!z-50 tablet:!bg-white

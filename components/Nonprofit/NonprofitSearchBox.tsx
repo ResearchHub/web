@@ -17,7 +17,7 @@ interface NonprofitSearchBoxProps {
   onSelectNonprofit: (nonprofit: NonprofitOrg) => void;
   onInfoClick: (nonprofit: NonprofitOrg, e: React.MouseEvent<HTMLButtonElement>) => void;
   selectedInfoNonprofit: NonprofitOrg | null;
-  inputRef?: RefObject<HTMLInputElement>;
+  inputRef?: RefObject<HTMLInputElement | null>;
   onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void;
 }
 

@@ -137,7 +137,7 @@ export class HubService {
   }
 
   static async getPrimaryHubs(): Promise<Topic[]> {
-    const response = await ApiClient.get<PrimaryHubsResponse>(this.PRIMARY_HUBS_PATH);
+    const response = await ApiClient.getPublic<PrimaryHubsResponse>(this.PRIMARY_HUBS_PATH);
     return response.results.map(transformTopic);
   }
 }

@@ -242,13 +242,16 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
           'flex items-center',
           variant === 'inline' ? 'px-2 py-1' : '',
           sizeClasses[size],
-          isUSD && !shouldInheritColor ? effectiveTextColor || 'text-black' : '',
           className
         )}
       >
         {showIcon &&
           (isUSD ? (
-            <DollarSign size={effectiveIconSize} className="-mr-1" strokeWidth={2} />
+            <DollarSign
+              size={effectiveIconSize}
+              className={cn('-mr-1', effectiveTextColor || colors.text)}
+              strokeWidth={2}
+            />
           ) : (
             <ResearchCoinIcon
               size={effectiveIconSize}
@@ -261,23 +264,23 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
           <div className="flex items-center">
             <span
               className={cn(
-                !shouldInheritColor &&
-                  (isUSD ? effectiveTextColor || colors.textDark : colors.textDark),
+                !shouldInheritColor && (effectiveTextColor || colors.textDark),
                 fontWeight || 'font-medium'
               )}
             >
               {displayAmount}
             </span>
             {shouldShowCurrencyText && (
-              <span className={cn(!shouldInheritColor && colors.rscLabel, 'ml-1')}>
+              <span
+                className={cn(!shouldInheritColor && (effectiveTextColor || colors.text), 'ml-1')}
+              >
                 {currencyText}
               </span>
             )}
             {label && (
               <span
                 className={cn(
-                  !shouldInheritColor &&
-                    (isUSD ? effectiveTextColor || colors.textDark : colors.textDark),
+                  !shouldInheritColor && (effectiveTextColor || colors.textDark),
                   'ml-1'
                 )}
               >
@@ -289,22 +292,23 @@ export const CurrencyBadge: FC<CurrencyBadgeProps> = ({
           <div className="flex items-center">
             <span
               className={cn(
-                !shouldInheritColor && (isUSD ? effectiveTextColor || colors.text : colors.text),
+                !shouldInheritColor && (effectiveTextColor || colors.text),
                 fontWeight || 'font-medium'
               )}
             >
               {displayAmount}
             </span>
             {shouldShowCurrencyText && (
-              <span className={cn(!shouldInheritColor && colors.rscLabel, 'ml-1')}>
+              <span
+                className={cn(!shouldInheritColor && (effectiveTextColor || colors.text), 'ml-1')}
+              >
                 {currencyText}
               </span>
             )}
             {label && (
               <span
                 className={cn(
-                  !shouldInheritColor &&
-                    (isUSD ? effectiveTextColor || colors.textDark : colors.textDark),
+                  !shouldInheritColor && (effectiveTextColor || colors.textDark),
                   'ml-1'
                 )}
               >

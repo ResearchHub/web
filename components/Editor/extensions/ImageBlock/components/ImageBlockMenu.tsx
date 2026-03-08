@@ -9,7 +9,7 @@ import { ImageBlockWidth } from './ImageBlockWidth';
 import { MenuProps } from '@/components/Editor/components/menus/types';
 import { getRenderContainer } from '@/components/Editor/lib/utils';
 
-export const ImageBlockMenu = ({ editor, appendTo }: MenuProps): JSX.Element => {
+export const ImageBlockMenu = ({ editor, appendTo }: MenuProps): React.JSX.Element => {
   const menuRef = useRef<HTMLDivElement>(null);
   const tippyInstance = useRef<Instance | null>(null);
 
