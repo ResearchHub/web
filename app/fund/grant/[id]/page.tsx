@@ -58,6 +58,8 @@ export default async function FundGrantPage({ params }: Props) {
                 grantId={grantId?.toString()}
                 isActive={isActive}
                 imageUrl={work.image}
+                work={work}
+                organization={grant.organization}
               />
               <ProposalSortAndFilters variant="grant" />
             </>

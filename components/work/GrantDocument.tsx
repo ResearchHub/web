@@ -47,6 +47,8 @@ export const GrantDocument = ({ work, metadata }: GrantDocumentProps) => {
               grantId={grantId.toString()}
               isActive={isActive}
               imageUrl={work.image}
+              work={work}
+              organization={work.note?.post?.grant?.organization}
             />
             <ProposalSortAndFilters variant="grant" />
           </>
