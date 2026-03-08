@@ -2,35 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import {
-  Copy,
-  Mail,
-  Trash2,
-  Send,
-  Loader2,
-  Save,
-  User,
-  Building2,
-  Briefcase,
-  Lightbulb,
-  FileText,
-  Calendar,
-} from 'lucide-react';
+import { Mail, Trash2, Send, Loader2, Save } from 'lucide-react';
 import { getTemplateDisplayLabel } from '@/app/expert-finder/library/[searchId]/components/GenerateEmailModal';
 import { Alert } from '@/components/ui/Alert';
 import { BaseSection } from '@/components/ui/BaseSection';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
+import { TemplateVariableEditor } from '@/app/expert-finder/templates/components/TemplateBodyEditor';
 import { Input } from '@/components/ui/form/Input';
-import { Textarea } from '@/components/ui/form/Textarea';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/form/Modal';
 import {
   useGeneratedEmailDetail,
   useUpdateGeneratedEmail,
   useDeleteGeneratedEmail,
+  usePreviewEmails,
 } from '@/hooks/useExpertFinder';
-import { formatTimestamp } from '@/utils/date';
 import { toast } from 'react-hot-toast';
 
 export interface OutreachDetailPageContentProps {
@@ -41,8 +28,10 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
   const [{ email, isLoading, error }, refetch] = useGeneratedEmailDetail(emailId);
   const [{ isLoading: isUpdating }, updateEmail] = useUpdateGeneratedEmail();
   const [{ isLoading: isDeleting }, deleteEmail] = useDeleteGeneratedEmail();
+  const [{ isLoading: isSendingPreview }, previewEmails] = usePreviewEmails();
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showPreviewConfirm, setShowPreviewConfirm] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [editSubject, setEditSubject] = useState('');
   const [editBody, setEditBody] = useState('');
@@ -99,22 +88,16 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
   const displaySubject = isDraft ? editSubject : (email?.emailSubject ?? '');
   const displayBody = isDraft ? editBody : (email?.emailBody ?? '');
 
-  const handleCopy = () => {
-    if (!email) return;
-    const text = `Subject: ${displaySubject}\n\n${displayBody}`;
-    navigator.clipboard.writeText(text).then(
-      () => {
-        toast.success('Email copied to clipboard');
-      },
-      () => toast.error('Failed to copy email')
-    );
-  };
-
-  const handleSend = () => {
-    if (!email) return;
-    const subject = encodeURIComponent(displaySubject);
-    const body = encodeURIComponent(displayBody);
-    window.location.href = `mailto:${email.expertEmail || ''}?subject=${subject}&body=${body}`;
+  const handleSendPreview = async () => {
+    if (!emailId || !email) return;
+    setActionError(null);
+    try {
+      await previewEmails([Number(emailId)]);
+      setShowPreviewConfirm(false);
+      toast.success('Preview email sent to your email address.');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to send preview email');
+    }
   };
 
   if (isLoading && !email) {
@@ -183,19 +166,15 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
             variant="outlined"
             size="sm"
             className="gap-2"
-            onClick={handleCopy}
-            title="Copy email"
+            onClick={() => setShowPreviewConfirm(true)}
+            disabled={isSendingPreview}
+            title="Send preview to your email"
           >
-            <Copy className="h-4 w-4" aria-hidden />
-          </Button>
-          <Button
-            variant="outlined"
-            size="sm"
-            className="gap-2"
-            onClick={handleSend}
-            title="Send email"
-          >
-            <Send className="h-4 w-4" aria-hidden />
+            {isSendingPreview ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <Send className="h-4 w-4" aria-hidden />
+            )}
           </Button>
           {email.status !== 'sent' && (
             <Button
@@ -226,41 +205,49 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
       </BaseSection>
 
       <BaseSection>
-        {isDraft ? (
-          <>
-            <Textarea
-              label="Email Body"
-              value={editBody}
-              onChange={(e) => setEditBody(e.target.value)}
-              placeholder="Email body"
-              rows={12}
-              className="min-h-[200px]"
-            />
-            {hasEdits && (
-              <Button
-                variant="default"
-                size="sm"
-                className="mt-3 gap-2"
-                onClick={handleSaveDraft}
-                disabled={isUpdating}
-              >
-                {isUpdating ? (
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                ) : (
-                  <Save className="h-4 w-4" aria-hidden />
-                )}
-                Save draft
-              </Button>
-            )}
-          </>
-        ) : (
-          <>
-            <label className="block text-sm font-semibold text-gray-700">Email Body</label>
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-800 whitespace-pre-wrap">
-              {email.emailBody || '—'}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">Email Body</label>
+          {isDraft ? (
+            <>
+              <TemplateVariableEditor
+                value={editBody}
+                onChange={setEditBody}
+                placeholder="Email body"
+                valueAsHtml
+                disabled={false}
+                showVariablePanel={false}
+              />
+              {hasEdits && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="mt-3 gap-2"
+                  onClick={handleSaveDraft}
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  ) : (
+                    <Save className="h-4 w-4" aria-hidden />
+                  )}
+                  Save draft
+                </Button>
+              )}
+            </>
+          ) : !email.emailBody?.trim() ? (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
+              —
             </div>
-          </>
-        )}
+          ) : (
+            <TemplateVariableEditor
+              value={email.emailBody ?? ''}
+              onChange={() => {}}
+              valueAsHtml
+              disabled
+              showVariablePanel={false}
+            />
+          )}
+        </div>
       </BaseSection>
 
       <div className="flex justify-end pt-2">
@@ -288,6 +275,40 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
           </Button>
           <Button variant="default" size="sm" onClick={handleDelete} disabled={isDeleting}>
             Delete
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showPreviewConfirm}
+        onClose={() => !isSendingPreview && setShowPreviewConfirm(false)}
+        title="Send preview email"
+      >
+        <p className="text-sm text-gray-600 mb-4">
+          The email will be sent to your email address for testing.
+        </p>
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outlined"
+            size="sm"
+            onClick={() => setShowPreviewConfirm(false)}
+            disabled={isSendingPreview}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleSendPreview}
+            disabled={isSendingPreview}
+            className="gap-2"
+          >
+            {isSendingPreview ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <Send className="h-4 w-4" aria-hidden />
+            )}
+            Send
           </Button>
         </div>
       </Modal>

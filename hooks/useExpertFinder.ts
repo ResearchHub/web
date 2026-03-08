@@ -540,6 +540,44 @@ export function useDeleteGeneratedEmail(): UseDeleteGeneratedEmailReturn {
   return [{ isLoading, error }, deleteEmail];
 }
 
+// ── usePreviewEmails ─────────────────────────────────────────────────────────
+
+interface UsePreviewEmailsState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type PreviewEmailsFn = (generatedEmailIds: number[]) => Promise<{ sent: number }>;
+type UsePreviewEmailsReturn = [UsePreviewEmailsState, PreviewEmailsFn];
+
+/**
+ * Send generated email(s) to the current user for preview/testing.
+ */
+export function usePreviewEmails(): UsePreviewEmailsReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const previewEmails = useCallback(
+    async (generatedEmailIds: number[]): Promise<{ sent: number }> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await ExpertFinderService.previewEmails(generatedEmailIds);
+        return response;
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to send preview email';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  return [{ isLoading, error }, previewEmails];
+}
+
 // ── useSavedTemplates ────────────────────────────────────────────────────────
 
 interface UseSavedTemplatesState {

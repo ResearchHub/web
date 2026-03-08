@@ -5,7 +5,6 @@ import { ChevronDown } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
-import { RadioGroup } from '@/components/ui/form/RadioGroup';
 import { useSavedTemplates } from '@/hooks/useExpertFinder';
 import { cn } from '@/utils/styles';
 import type { ExpertResult } from '@/types/expertFinder';
@@ -28,6 +27,21 @@ export interface EmailTemplateOption {
 
 export const EMAIL_TEMPLATE_OPTIONS: EmailTemplateOption[] = [
   {
+    value: 'rfp-outreach',
+    label: 'Call for Proposals',
+    description: 'Invite them to submit proposals and share with their network',
+  },
+  {
+    value: 'peer-review',
+    label: 'Review Request',
+    description: 'Ask them to review a manuscript, proposal, or other work',
+  },
+  {
+    value: 'publication',
+    label: 'Publication Opportunity',
+    description: 'Invite them to contribute to a journal, book, or publication',
+  },
+  {
     value: 'collaboration',
     label: 'Collaboration Opportunity',
     description: 'Propose a research partnership, joint project, or co-authored work',
@@ -41,21 +55,6 @@ export const EMAIL_TEMPLATE_OPTIONS: EmailTemplateOption[] = [
     value: 'conference',
     label: 'Event Invitation',
     description: 'Invite them to speak at a conference, symposium, or panel discussion',
-  },
-  {
-    value: 'peer-review',
-    label: 'Review Request',
-    description: 'Ask them to review a manuscript, proposal, or other work',
-  },
-  {
-    value: 'publication',
-    label: 'Publication Opportunity',
-    description: 'Invite them to contribute to a journal, book, or publication',
-  },
-  {
-    value: 'rfp-outreach',
-    label: 'Call for Proposals',
-    description: 'Invite them to submit proposals and share with their network',
   },
   {
     value: 'custom',
@@ -78,12 +77,6 @@ export function getTemplateDescription(value: string | null | undefined): string
   return opt ? opt.description : '';
 }
 
-const RADIO_OPTIONS = EMAIL_TEMPLATE_OPTIONS.map((opt) => ({
-  value: opt.value,
-  label: opt.label,
-  description: opt.description,
-}));
-
 const CUSTOM_PLACEHOLDER =
   'e.g. Invitation to join an advisory board for a new research initiative';
 
@@ -96,16 +89,17 @@ export function GenerateEmailModal({
   onConfirm,
 }: GenerateEmailModalProps) {
   const [purpose, setPurpose] = useState<EmailTemplateKind>(
-    RADIO_OPTIONS[0]?.value ?? 'collaboration'
+    EMAIL_TEMPLATE_OPTIONS[0]?.value ?? 'collaboration'
   );
   const [customUseCase, setCustomUseCase] = useState('');
   const [templateId, setTemplateId] = useState<number | null>(null);
+  const [purposeDropdownOpen, setPurposeDropdownOpen] = useState(false);
   const [templateDropdownOpen, setTemplateDropdownOpen] = useState(false);
   const [{ templates }] = useSavedTemplates({ limit: 100, immediate: isOpen });
 
   useEffect(() => {
     if (isOpen) {
-      setPurpose(RADIO_OPTIONS[0]?.value ?? 'collaboration');
+      setPurpose(EMAIL_TEMPLATE_OPTIONS[0]?.value ?? 'collaboration');
       setCustomUseCase('');
       setTemplateId(null);
     }
@@ -115,6 +109,8 @@ export function GenerateEmailModal({
   const isCustom = purpose === 'custom';
   const customTrimmed = customUseCase.trim();
   const canSubmit = !isCustom || customTrimmed.length > 0;
+  const selectedPurpose =
+    EMAIL_TEMPLATE_OPTIONS.find((option) => option.value === purpose) ?? EMAIL_TEMPLATE_OPTIONS[0];
 
   const handleSubmit = () => {
     const template: string = isCustom ? `custom: ${customTrimmed}` : purpose;
@@ -140,13 +136,45 @@ export function GenerateEmailModal({
       }
     >
       <div className="space-y-4">
-        <RadioGroup
+        <Dropdown
           label="Email Purpose"
-          options={RADIO_OPTIONS}
-          value={purpose}
-          onChange={(v) => setPurpose(v as EmailTemplateKind)}
           helperText="Select the purpose of your email to generate a personalized template"
-        />
+          trigger={
+            <button
+              type="button"
+              className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-left focus:outline-none focus:ring-2 focus:ring-primary-500"
+            >
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-gray-900">{selectedPurpose.label}</div>
+                <div className="truncate text-xs text-gray-500">{selectedPurpose.description}</div>
+              </div>
+              <ChevronDown
+                className={cn(
+                  'ml-2 h-4 w-4 shrink-0 transition-transform text-gray-400',
+                  purposeDropdownOpen && 'rotate-180'
+                )}
+              />
+            </button>
+          }
+          onOpenChange={setPurposeDropdownOpen}
+          className="max-h-72 overflow-y-auto"
+        >
+          {EMAIL_TEMPLATE_OPTIONS.map((option) => (
+            <DropdownItem
+              key={option.value}
+              onClick={() => setPurpose(option.value)}
+              className={cn(
+                'items-start text-left',
+                purpose === option.value && 'bg-gray-100 font-medium'
+              )}
+            >
+              <div className="w-full text-left">
+                <div className="text-sm text-gray-900">{option.label}</div>
+                <div className="text-xs text-gray-500">{option.description}</div>
+              </div>
+            </DropdownItem>
+          ))}
+        </Dropdown>
 
         {isCustom && (
           <div>
@@ -170,7 +198,7 @@ export function GenerateEmailModal({
 
         <Dropdown
           label="Context Template"
-          helperText="Select a saved template to provide your contact details and outreach context to the AI."
+          helperText="Select a saved template to provide either AI context or a fixed subject/body template."
           trigger={
             <button
               type="button"
