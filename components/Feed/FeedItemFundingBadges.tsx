@@ -18,7 +18,7 @@ interface FeedItemFundingBadgesProps {
 }
 
 const overlayBadge =
-  'bg-white/95 text-gray-900 text-[11px] border border-white font-semibold px-2 py-0.5 rounded-full shadow-sm';
+  'bg-white/95 text-gray-900 text-[11px] border border-gray-200/80 font-semibold px-2 py-0.5 rounded-full shadow-sm';
 
 export const FeedItemFundingBadges: FC<FeedItemFundingBadgesProps> = ({
   reviewScore,
@@ -61,8 +61,8 @@ export const FeedItemFundingBadges: FC<FeedItemFundingBadgesProps> = ({
         <span
           className={`inline-flex items-center gap-1 font-medium ${
             isOverlay
-              ? overlayBadge
-              : 'rounded-md px-1.5 py-0.5 text-[11px] bg-emerald-500 text-white border border-emerald-400'
+              ? `${overlayBadge} !bg-green-500 !text-white !border-green-400`
+              : 'rounded-md px-1.5 py-0.5 text-[11px] bg-green-500 text-white border border-green-400'
           }`}
         >
           <CheckCircle size={12} className="text-white" />

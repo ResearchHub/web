@@ -375,7 +375,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
         {/* Content area: image-left + main content side by side */}
         <div className={cn(cardImageLeft && 'md:!flex md:!flex-row')}>
           {cardImageLeft && (
-            <div className="hidden md:!block flex-shrink-0 w-[200px] p-4 pr-2">
+            <div className="hidden md:!block flex-shrink-0 w-[210px] p-4 pr-2">
               <div className="relative overflow-hidden rounded-xl w-full h-full">
                 {cardImageLeft}
               </div>
