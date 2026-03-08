@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Mail, Trash2, Send, Loader2, Save } from 'lucide-react';
+import { Mail, Trash2, Send, Loader2, Save, Eye } from 'lucide-react';
 import { getTemplateDisplayLabel } from '@/app/expert-finder/library/[searchId]/components/GenerateEmailModal';
 import { Alert } from '@/components/ui/Alert';
 import { BaseSection } from '@/components/ui/BaseSection';
@@ -17,21 +17,30 @@ import {
   useUpdateGeneratedEmail,
   useDeleteGeneratedEmail,
   usePreviewEmails,
+  useSendEmails,
 } from '@/hooks/useExpertFinder';
 import { toast } from 'react-hot-toast';
 
 export interface OutreachDetailPageContentProps {
   emailId: string;
+  breadcrumbVariant?: 'outreach' | 'library';
+  librarySearchId?: string;
 }
 
-export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContentProps) {
+export function OutreachDetailPageContent({
+  emailId,
+  breadcrumbVariant = 'outreach',
+  librarySearchId,
+}: OutreachDetailPageContentProps) {
   const [{ email, isLoading, error }, refetch] = useGeneratedEmailDetail(emailId);
   const [{ isLoading: isUpdating }, updateEmail] = useUpdateGeneratedEmail();
   const [{ isLoading: isDeleting }, deleteEmail] = useDeleteGeneratedEmail();
   const [{ isLoading: isSendingPreview }, previewEmails] = usePreviewEmails();
+  const [{ isLoading: isSendingToExpert }, sendEmails] = useSendEmails();
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showPreviewConfirm, setShowPreviewConfirm] = useState(false);
+  const [showSendToExpertConfirm, setShowSendToExpertConfirm] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [editSubject, setEditSubject] = useState('');
   const [editBody, setEditBody] = useState('');
@@ -73,11 +82,16 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
     }
   };
 
+  const backHref =
+    breadcrumbVariant === 'library' && librarySearchId
+      ? `/expert-finder/library/${librarySearchId}?tab=outreach`
+      : '/expert-finder/outreach';
+
   const handleDelete = async () => {
     setActionError(null);
     try {
       await deleteEmail(emailId);
-      window.location.href = '/expert-finder/outreach';
+      window.location.href = backHref;
     } catch (e) {
       setActionError(e instanceof Error ? e.message : 'Failed to delete');
     } finally {
@@ -100,6 +114,19 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
     }
   };
 
+  const handleSendToExpert = async () => {
+    if (!emailId || !email) return;
+    setActionError(null);
+    try {
+      await sendEmails({ generated_email_ids: [Number(emailId)] });
+      setShowSendToExpertConfirm(false);
+      refetch();
+      toast.success('Email sent to the expert.');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to send email');
+    }
+  };
+
   if (isLoading && !email) {
     return (
       <div className="w-full max-w-4xl mx-auto px-4 py-8">
@@ -111,15 +138,20 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
     );
   }
 
+  const errorBackHref =
+    breadcrumbVariant === 'library' && librarySearchId
+      ? `/expert-finder/library/${librarySearchId}?tab=outreach`
+      : '/expert-finder/outreach';
+
   if (error && !email) {
     return (
       <div className="w-full max-w-4xl mx-auto px-4 py-8">
         <Alert variant="error">{error}</Alert>
         <Link
-          href="/expert-finder/outreach"
+          href={errorBackHref}
           className="mt-4 inline-block text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
         >
-          Back to Outreach
+          {breadcrumbVariant === 'library' ? 'Back to search' : 'Back to Outreach'}
         </Link>
       </div>
     );
@@ -128,16 +160,23 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
   if (!email) return null;
 
   const displayTitle = displaySubject || `Email for ${email.expertName}`;
+  const breadcrumbLabel = displayTitle.length > 40 ? `${displayTitle.slice(0, 40)}…` : displayTitle;
+
+  const breadcrumbItems =
+    breadcrumbVariant === 'library' && librarySearchId
+      ? [
+          { label: 'Library', href: '/expert-finder/library' },
+          {
+            label: `Search #${librarySearchId}`,
+            href: `/expert-finder/library/${librarySearchId}?tab=outreach`,
+          },
+          { label: breadcrumbLabel },
+        ]
+      : [{ label: 'Outreach', href: '/expert-finder/outreach' }, { label: breadcrumbLabel }];
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-8 space-y-6">
-      <Breadcrumbs
-        items={[
-          { label: 'Outreach', href: '/expert-finder/outreach' },
-          { label: displayTitle.length > 40 ? `${displayTitle.slice(0, 40)}…` : displayTitle },
-        ]}
-        className="mb-2"
-      />
+      <Breadcrumbs items={breadcrumbItems} className="mb-2" />
 
       {actionError && <Alert variant="error">{actionError}</Alert>}
 
@@ -162,19 +201,37 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
           <Badge variant={email.status === 'sent' ? 'success' : 'warning'}>
             {email.status === 'sent' ? 'Sent' : 'Draft'}
           </Badge>
+          {email.status !== 'sent' && (
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-2"
+              onClick={() => setShowSendToExpertConfirm(true)}
+              disabled={isSendingToExpert}
+              title="Send this email to the expert"
+            >
+              {isSendingToExpert ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Send className="h-4 w-4" aria-hidden />
+              )}
+              Send
+            </Button>
+          )}
           <Button
             variant="outlined"
             size="sm"
             className="gap-2"
             onClick={() => setShowPreviewConfirm(true)}
             disabled={isSendingPreview}
-            title="Send preview to your email"
+            title="Send test email to your inbox"
           >
             {isSendingPreview ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
             ) : (
-              <Send className="h-4 w-4" aria-hidden />
+              <Eye className="h-4 w-4" aria-hidden />
             )}
+            Preview
           </Button>
           {email.status !== 'sent' && (
             <Button
@@ -280,9 +337,44 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
       </Modal>
 
       <Modal
+        isOpen={showSendToExpertConfirm}
+        onClose={() => !isSendingToExpert && setShowSendToExpertConfirm(false)}
+        title="Send this email to the expert?"
+      >
+        <p className="text-sm text-gray-600 mb-4">
+          This email will be sent to the expert. Sending may be disabled in non-production
+          environments.
+        </p>
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outlined"
+            size="sm"
+            onClick={() => setShowSendToExpertConfirm(false)}
+            disabled={isSendingToExpert}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleSendToExpert}
+            disabled={isSendingToExpert}
+            className="gap-2"
+          >
+            {isSendingToExpert ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <Send className="h-4 w-4" aria-hidden />
+            )}
+            Send
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
         isOpen={showPreviewConfirm}
         onClose={() => !isSendingPreview && setShowPreviewConfirm(false)}
-        title="Send preview email"
+        title="Send test email"
       >
         <p className="text-sm text-gray-600 mb-4">
           The email will be sent to your email address for testing.
@@ -306,7 +398,7 @@ export function OutreachDetailPageContent({ emailId }: OutreachDetailPageContent
             {isSendingPreview ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
             ) : (
-              <Send className="h-4 w-4" aria-hidden />
+              <Eye className="h-4 w-4" aria-hidden />
             )}
             Send
           </Button>

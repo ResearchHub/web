@@ -2,22 +2,32 @@
 
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { Loader2, RefreshCw, FileText, Download, Mail } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
+import { Tabs } from '@/components/ui/Tabs';
 import { useExpertSearchDetail } from '@/hooks/useExpertFinder';
 import { SearchDetailHeader } from './SearchDetailHeader';
 import { ExpertResultCard } from './ExpertResultCard';
 import { GenerateEmailModal } from './GenerateEmailModal';
 import { GenerateEmailProgressModal } from './GenerateEmailProgressModal';
+import { GeneratedEmailsList } from '@/app/expert-finder/outreach/components/GeneratedEmailsList';
 import type { ExpertResult } from '@/types/expertFinder';
+
+const TAB_EXPERT_RESULTS = 'expert-results';
+const TAB_OUTREACH = 'outreach';
 
 export interface SearchDetailContentProps {
   searchId: string;
 }
 
 export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tab = searchParams?.get('tab') === TAB_OUTREACH ? TAB_OUTREACH : TAB_EXPERT_RESULTS;
+
   const [{ searchDetail, isLoading, error }, refetch] = useExpertSearchDetail(searchId);
 
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
@@ -156,11 +166,44 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
             </section>
           )}
 
-          {searchDetail.expertResults.length > 0 ? (
+          <Tabs
+            tabs={[
+              {
+                id: TAB_EXPERT_RESULTS,
+                label: 'Expert results',
+                href: pathname ? `${pathname}?tab=${TAB_EXPERT_RESULTS}` : undefined,
+              },
+              {
+                id: TAB_OUTREACH,
+                label: 'Outreach',
+                href: pathname ? `${pathname}?tab=${TAB_OUTREACH}` : undefined,
+              },
+            ]}
+            activeTab={tab}
+            onTabChange={() => {}}
+            variant="primary"
+          />
+
+          {tab === TAB_OUTREACH && (
+            <section>
+              <GeneratedEmailsList
+                searchId={searchId}
+                getDetailHref={(e) => `/expert-finder/library/${searchId}/outreach/${e.id}`}
+                emptyMessage={
+                  <p className="text-gray-600">
+                    No generated emails for this search yet. Use the Expert results tab to select
+                    experts and generate emails.
+                  </p>
+                }
+              />
+            </section>
+          )}
+
+          {tab === TAB_EXPERT_RESULTS && searchDetail.expertResults.length > 0 ? (
             <section>
               <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                 <h2 className="text-lg font-semibold text-gray-900 mb-[2px] mt-[2px]">
-                  Expert results ({searchDetail.expertResults.length})
+                  Results ({searchDetail.expertResults.length})
                 </h2>
                 <div className="flex items-center gap-2">
                   {selectedIndices.size > 0 && (
@@ -217,11 +260,11 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                 ))}
               </div>
             </section>
-          ) : (
+          ) : tab === TAB_EXPERT_RESULTS ? (
             <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-gray-600">
               No experts found for this search.
             </div>
-          )}
+          ) : null}
         </>
       )}
 

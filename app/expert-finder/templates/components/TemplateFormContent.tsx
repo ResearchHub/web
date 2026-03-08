@@ -342,10 +342,10 @@ export function TemplateFormContent({ templateId }: TemplateFormContentProps) {
             </BaseSection>
 
             <BaseSection>
-              <h3 className="text-lg font-semibold text-gray-900">Plain Email Body</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Email Body</h3>
               <p className="text-sm text-gray-500">
                 Write the exact email body and insert placeholders where personalized values should
-                appear. The backend will replace variables without using AI.
+                appear.
               </p>
               <TemplateVariableEditor
                 value={form.emailBody}
