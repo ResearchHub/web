@@ -114,7 +114,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         onFeedItemClick={onFeedItemClick}
         showBountyInfo={showBountyInfo}
         showHeader={false}
-        hideReportButton={true}
+        hideReportButton={false}
         cardImageLeft={
           imageUrl ? (
             <>

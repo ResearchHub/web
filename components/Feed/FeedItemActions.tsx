@@ -11,6 +11,7 @@ import {
   ArrowDown,
   Maximize2,
   Bookmark,
+  Share,
   Trash2,
 } from 'lucide-react';
 import { Icon } from '@/components/ui/icons/Icon';
@@ -115,11 +116,10 @@ export const ActionButton: FC<ActionButtonProps> = ({
     variant="ghost"
     size="sm"
     className={cn(
-      'flex items-center space-x-1 rounded-md transition-all',
-      // Responsive padding
-      'py-0.5 px-2 md:!py-1 md:!px-3',
-      isActive ? 'text-green-600' : 'text-gray-900',
-      'hover:text-gray-900 hover:bg-gray-100',
+      'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-all',
+      isActive
+        ? 'bg-white text-green-600 shadow-sm ring-1 ring-green-100'
+        : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm',
       className
     )}
     tooltip={showTooltip ? tooltip : undefined}
@@ -127,19 +127,9 @@ export const ActionButton: FC<ActionButtonProps> = ({
     disabled={isDisabled}
   >
     {!hideIcon && Icon && (
-      <Icon
-        className={cn(
-          // Responsive icon size
-          'w-4 h-4 md:!w-5 md:!h-5',
-          isActive ? 'text-green-600' : ''
-        )}
-      />
+      <Icon className={cn('h-[18px] w-[18px]', isActive ? 'text-green-600' : '')} />
     )}
-    {showLabel ? (
-      <span className="text-xs md:!text-sm font-medium">{label}</span>
-    ) : count !== undefined ? (
-      <span className="text-xs md:!text-sm font-medium">{count}</span>
-    ) : null}
+    {showLabel ? <span>{label}</span> : count !== undefined ? <span>{count}</span> : null}
   </Button>
 );
 
@@ -233,11 +223,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const isTouchDevice = useIsTouchDevice();
   // State for dropdown menu
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
-  const { isInList: isDocumentInList, listIdsContainingDocument } = useIsInList(
-    relatedDocumentUnifiedDocumentId
-  );
+  const { isInList: isDocumentInList } = useIsInList(relatedDocumentUnifiedDocumentId);
 
   const { isTogglingDefaultList, handleAddToList } = useAddToList({
     unifiedDocumentId: relatedDocumentUnifiedDocumentId,
@@ -409,6 +396,19 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     });
   };
 
+  const handleCopyDocumentUrl = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+
+    const url = href ? new URL(href, window.location.origin).toString() : window.location.href;
+
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copied to clipboard');
+    } catch {
+      toast.error('Failed to copy link');
+    }
+  };
+
   // Check if we have open bounties
   const openBounties = bounties ? bounties.filter((b) => b.status === 'OPEN') : [];
   const hasOpenBounties = openBounties.length > 0;
@@ -435,11 +435,11 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   return (
     <>
-      <div className="flex items-center justify-between w-full">
+      <div className="flex items-center justify-between gap-2 bg-gray-50 px-3 py-1.5">
         <div className={cn('flex items-center flex-nowrap overflow-visible', className)}>
           <div
             className={cn(
-              'flex items-center h-8 rounded-md transition-all',
+              'flex h-8 items-center rounded-full bg-white px-1 shadow-sm ring-1 ring-gray-200/80 transition-all',
               isVoting ? 'opacity-50' : ''
             )}
           >
@@ -447,49 +447,34 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               onClick={(e) => handleVote(e, 'up')}
               disabled={isVoting}
               className={cn(
-                'py-0.5 px-2 md:!py-1 md:!px-2 rounded-md transition-colors',
-                localUserVote === 'UPVOTE' ? 'text-green-600' : 'text-gray-900 hover:bg-gray-200',
+                'flex h-7 w-7 items-center justify-center rounded-full transition-colors',
+                localUserVote === 'UPVOTE'
+                  ? 'bg-green-50 text-green-600'
+                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
                 isVoting ? 'cursor-not-allowed' : 'cursor-pointer'
               )}
               aria-label="Upvote"
             >
-              <ArrowUp className="w-4 h-4 md:!w-5 md:!h-5" />
+              <ArrowUp className="h-[18px] w-[18px]" />
             </button>
-            <span className="text-xs md:!text-sm font-medium text-gray-900 px-1">
+            <span className="min-w-[1.75rem] px-1 text-center text-xs font-semibold text-gray-900">
               {localVoteCount}
             </span>
             <button
               onClick={(e) => handleVote(e, 'down')}
               disabled={isVoting}
               className={cn(
-                'py-0.5 px-2 md:!py-1 md:!px-2 rounded-md transition-colors',
-                localUserVote === 'DOWNVOTE' ? 'text-red-600' : 'text-gray-900 hover:bg-gray-200',
+                'flex h-7 w-7 items-center justify-center rounded-full transition-colors',
+                localUserVote === 'DOWNVOTE'
+                  ? 'bg-red-50 text-red-600'
+                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
                 isVoting ? 'cursor-not-allowed' : 'cursor-pointer'
               )}
               aria-label="Downvote"
             >
-              <ArrowDown className="w-4 h-4 md:!w-5 md:!h-5" />
+              <ArrowDown className="h-[18px] w-[18px]" />
             </button>
           </div>
-          {relatedDocumentUnifiedDocumentId &&
-            feedContentType !== 'COMMENT' &&
-            feedContentType !== 'BOUNTY' &&
-            feedContentType !== 'APPLICATION' &&
-            showPeerReviews && (
-              <ActionButton
-                icon={Bookmark}
-                tooltip="Save"
-                label="Save"
-                onClick={handleAddToList}
-                isActive={isDocumentInList}
-                isDisabled={isTogglingDefaultList}
-                showTooltip={showTooltips}
-                className={cn(
-                  'rounded-md hover:!bg-gray-200',
-                  isDocumentInList ? '!text-green-600' : ''
-                )}
-              />
-            )}
           {!hideCommentButton && (
             <ActionButton
               icon={MessageCircle}
@@ -521,15 +506,14 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      'flex items-center space-x-1 rounded-md transition-all',
-                      'py-0.5 px-2 md:!py-1 md:!px-3',
-                      'text-gray-900 hover:text-gray-900 hover:bg-gray-100'
+                      'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-gray-700 transition-all',
+                      'hover:bg-white hover:text-gray-900 hover:shadow-sm'
                     )}
                     onClick={handleTip}
                   >
-                    <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
+                    <Icon name="tipRSC" size={18} className="h-[18px] w-[18px]" />
                     {totalAwarded > 0 ? (
-                      <span className="text-xs md:!text-sm font-medium">
+                      <span>
                         {formatCurrency({
                           amount: totalAwarded,
                           showUSD,
@@ -538,20 +522,18 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                         })}
                       </span>
                     ) : (
-                      <span className="text-xs md:!text-sm font-medium">Tip</span>
+                      <span>Tip</span>
                     )}
                   </Button>
                 ) : (
                   <div
                     className={cn(
-                      'flex items-center space-x-1 rounded-md',
-                      'py-0.5 px-2 md:!py-1 md:!px-3',
-                      'text-gray-900 cursor-default'
+                      'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-gray-700'
                     )}
                   >
-                    <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
+                    <Icon name="tipRSC" size={18} className="h-[18px] w-[18px]" />
                     {totalAwarded > 0 ? (
-                      <span className="text-xs md:!text-sm font-medium">
+                      <span>
                         {formatCurrency({
                           amount: totalAwarded,
                           showUSD,
@@ -560,7 +542,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                         })}
                       </span>
                     ) : (
-                      <span className="text-xs md:!text-sm font-medium">Tip</span>
+                      <span>Tip</span>
                     )}
                   </div>
                 )}
@@ -570,37 +552,34 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  'flex items-center space-x-1 rounded-md transition-all',
-                  'py-0.5 px-2 md:!py-1 md:!px-3',
-                  'text-gray-900 hover:text-gray-900 hover:bg-gray-100'
+                  'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-gray-700 transition-all',
+                  'hover:bg-white hover:text-gray-900 hover:shadow-sm'
                 )}
                 tooltip={showTooltips ? 'Tip' : undefined}
                 onClick={handleTip}
               >
-                <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
+                <Icon name="tipRSC" size={16} className="h-4 w-4" />
                 {totalAwarded > 0 ? (
-                  <span className="text-xs md:!text-sm font-medium">
+                  <span>
                     {formatCurrency({ amount: totalAwarded, showUSD, exchangeRate, shorten: true })}
                   </span>
                 ) : (
-                  <span className="text-xs md:!text-sm font-medium">Tip</span>
+                  <span>Tip</span>
                 )}
               </Button>
             ) : (
               <div
                 className={cn(
-                  'flex items-center space-x-1 rounded-md',
-                  'py-0.5 px-2 md:!py-1 md:!px-3',
-                  'text-gray-900 cursor-default'
+                  'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-gray-700'
                 )}
               >
-                <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
+                <Icon name="tipRSC" size={16} className="h-4 w-4" />
                 {totalAwarded > 0 ? (
-                  <span className="text-xs md:!text-sm font-medium">
+                  <span>
                     {formatCurrency({ amount: totalAwarded, showUSD, exchangeRate, shorten: true })}
                   </span>
                 ) : (
-                  <span className="text-xs md:!text-sm font-medium">Tip</span>
+                  <span>Tip</span>
                 )}
               </div>
             ))}
@@ -622,13 +601,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                   hideIcon={true}
                   tooltip=""
                   label="Bounties"
-                  className="hover:!border-orange-500 hover:!text-orange-600 hover:!bg-orange-50"
+                  className="hover:!bg-white hover:!text-orange-600 hover:shadow-sm"
                   count={
                     <CurrencyBadge
                       amount={totalBountyAmount}
                       variant="text"
                       size="xs"
-                      className="!text-xs md:!text-sm px-0"
+                      className="!text-xs px-0"
                       textColor="inherit"
                       iconColor="inherit"
                       iconSize={18}
@@ -649,13 +628,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 hideIcon={true}
                 tooltip="Bounties"
                 label="Bounties"
-                className="hover:!border-orange-500 hover:!text-orange-600 hover:!bg-orange-50"
+                className="hover:!bg-white hover:!text-orange-600 hover:shadow-sm"
                 count={
                   <CurrencyBadge
                     amount={totalBountyAmount}
                     variant="text"
                     size="xs"
-                    className="!text-xs md:!text-sm"
+                    className="!text-xs"
                     textColor="inherit"
                     iconColor="inherit"
                     iconSize={18}
@@ -686,9 +665,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
           {children}
         </div>
 
-        <div className="flex-grow flex justify-end items-center gap-3">
+        <div className="flex flex-shrink-0 items-center justify-end gap-1">
           {rightSideActionButton}
-
           <BaseMenu
             trigger={
               <Button
@@ -700,9 +678,9 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 }}
                 variant="ghost"
                 size="sm"
-                className="flex items-center text-gray-400 hover:text-gray-600"
+                className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-all hover:bg-white hover:text-gray-900 hover:shadow-sm"
               >
-                <MoreHorizontal className="w-5 h-5" />
+                <MoreHorizontal className="h-[18px] w-[18px]" />
               </Button>
             }
             align="end"
@@ -739,6 +717,42 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               </BaseMenuItem>
             )}
           </BaseMenu>
+          <Button
+            variant="ghost"
+            size="sm"
+            tooltip={showTooltips ? 'Copy link' : undefined}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+            }}
+            onClick={handleCopyDocumentUrl}
+            className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-white hover:text-gray-900 hover:shadow-sm"
+          >
+            <Share className="h-[18px] w-[18px]" />
+          </Button>
+          {relatedDocumentUnifiedDocumentId &&
+            feedContentType !== 'COMMENT' &&
+            feedContentType !== 'BOUNTY' &&
+            feedContentType !== 'APPLICATION' &&
+            showPeerReviews && (
+              <Button
+                variant="ghost"
+                size="sm"
+                tooltip={showTooltips ? 'Save' : undefined}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                }}
+                onClick={handleAddToList}
+                disabled={isTogglingDefaultList}
+                className={cn(
+                  'flex h-8 w-8 !p-0 items-center justify-center rounded-full transition-colors',
+                  isDocumentInList
+                    ? 'text-green-600 hover:bg-white hover:text-green-700 hover:shadow-sm'
+                    : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'
+                )}
+              >
+                <Bookmark className="h-[18px] w-[18px]" />
+              </Button>
+            )}
         </div>
       </div>
 

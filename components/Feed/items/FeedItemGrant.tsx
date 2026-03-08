@@ -89,7 +89,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
       maxLength={maxLength}
       showHeader={showHeader}
       onFeedItemClick={onFeedItemClick}
-      hideReportButton={true}
+      hideReportButton={false}
       cardImageLeft={
         imageUrl ? (
           <ImageSection imageUrl={imageUrl} alt={grant.title || 'Grant image'} naturalDimensions />

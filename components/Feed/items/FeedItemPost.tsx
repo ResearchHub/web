@@ -87,7 +87,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
       onFeedItemClick={onFeedItemClick}
       showPeerReviews={post.postType !== 'QUESTION'}
       showBountyInfo={showBountyInfo}
-      hideReportButton={true}
+      hideReportButton={false}
     >
       {/* Top section with badges and mobile image */}
       <FeedItemTopSection

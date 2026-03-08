@@ -93,7 +93,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
       maxLength={maxLength}
       onFeedItemClick={onFeedItemClick}
       showBountyInfo={showBountyInfo}
-      hideReportButton={true}
+      hideReportButton={false}
       cardImage={
         thumbnailUrl ? (
           <ImageSection

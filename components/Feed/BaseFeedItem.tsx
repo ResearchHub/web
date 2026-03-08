@@ -430,7 +430,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
         {/* Actions row — full width with divider */}
         {showActions && (
           <div
-            className="border-t border-gray-200 px-4 py-[5px] cursor-default"
+            className="cursor-default"
             onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
