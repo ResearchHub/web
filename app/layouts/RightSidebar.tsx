@@ -48,16 +48,6 @@ const InfoBanner = dynamic(() => import('./components/InfoBanner').then((mod) =>
   ),
 });
 
-// Follow recommendations removed from sidebar
-
-const NextStepsPanel = dynamic(
-  () => import('./components/NextStepsPanel').then((mod) => mod.NextStepsPanel),
-  {
-    ssr: false,
-    loading: () => null, // No loading state needed, component handles its own visibility
-  }
-);
-
 // Sample journal contributors for social proof (similar to JournalFeed)
 const journalContributors = [
   {
@@ -173,9 +163,6 @@ const SidebarComponent = () => {
     <div className="space-y-4">
       {/* Personalize Feed Banner - show logged-in variant on /following page */}
       <PersonalizeFeedBanner variant={isFollowingPage ? 'logged-in' : 'logged-out'} />
-
-      {/* Next Steps Panel for new users */}
-      {/* <NextStepsPanel /> */}
 
       <div className="bg-white rounded-lg p-2">
         {/* Dynamic Leaderboard Section */}

@@ -38,7 +38,7 @@ export function ExportFilterModal({
 }: ExportFilterModalProps) {
   const [currentStage, setCurrentStage] = useState(0);
   const hasStartedExport = useRef(false);
-  const progressInterval = useRef<NodeJS.Timeout>();
+  const progressInterval = useRef<NodeJS.Timeout>(undefined);
 
   // Progress simulation and export handling
   useEffect(() => {

@@ -30,37 +30,18 @@ export function useFeedFilters() {
   const [filters, setFilters] = useState<FeedFilters>(DEFAULT_FILTERS);
   const [filtersInitialized, setFiltersInitialized] = useState(false);
   const [debouncedFilters, setDebouncedFilters] = useState<FeedFilters>(DEFAULT_FILTERS);
-  const debounceTimerRef = useRef<NodeJS.Timeout>();
+  const debounceTimerRef = useRef<NodeJS.Timeout>(undefined);
 
   // Load filters from localStorage on mount
   useEffect(() => {
     try {
       const savedFilters = localStorage.getItem(FEED_FILTERS_STORAGE_KEY);
 
-      // Check if user just completed onboarding (within the last minute)
-      const justCompletedOnboarding =
-        preferences?.completedAt &&
-        new Date(preferences.completedAt).getTime() > Date.now() - 60000;
-
-      if (justCompletedOnboarding && preferences) {
-        // User just completed onboarding - use their selections
-        const initialFilters = {
-          ...DEFAULT_FILTERS,
-          selectedCategories: preferences.selectedCategories || [],
-          selectedSubcategories: preferences.selectedSubcategories || [],
-          useMlScoring: preferences.useMlScoring ?? true,
-        };
-        setFilters(initialFilters);
-        setDebouncedFilters(initialFilters);
-        // Save these as the new filters
-        localStorage.setItem(FEED_FILTERS_STORAGE_KEY, JSON.stringify(initialFilters));
-      } else if (savedFilters) {
-        // Use saved filters from previous sessions
+      if (savedFilters) {
         const parsed: FeedFilters = JSON.parse(savedFilters);
         setFilters(parsed);
         setDebouncedFilters(parsed);
       } else if (preferences) {
-        // First time visiting feed (no saved filters, but has preferences)
         const initialFilters = {
           ...DEFAULT_FILTERS,
           selectedCategories: preferences.selectedCategories || [],
@@ -70,7 +51,6 @@ export function useFeedFilters() {
         setFilters(initialFilters);
         setDebouncedFilters(initialFilters);
       } else {
-        // No saved filters and no preferences - use defaults
         setFilters(DEFAULT_FILTERS);
         setDebouncedFilters(DEFAULT_FILTERS);
       }

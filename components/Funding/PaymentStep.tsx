@@ -57,8 +57,6 @@ interface PaymentStepProps {
   onDepositRsc?: () => void;
   /** Called when Stripe context is ready for payment confirmation */
   onStripeReady?: (context: StripePaymentContext | null) => void;
-  /** Whether the Endaoment payment option is enabled (feature flag) */
-  isEndaomentEnabled?: boolean;
 }
 
 /**
@@ -79,7 +77,6 @@ export function PaymentStep({
   onEndaomentPaymentConfirm,
   onDepositRsc,
   onStripeReady,
-  isEndaomentEnabled = false,
 }: PaymentStepProps) {
   // Compute the default payment method based on balance and actual wallet availability
   // Use RSC fee percentage since we're checking if user can afford RSC payment
@@ -210,7 +207,6 @@ export function PaymentStep({
           onStripeReady={onStripeReady}
           hideButton
           walletAvailability={walletAvailability}
-          isEndaomentEnabled={isEndaomentEnabled}
         />
 
         {/* Receipt-style line items */}
