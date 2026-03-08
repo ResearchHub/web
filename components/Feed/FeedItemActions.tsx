@@ -181,6 +181,7 @@ interface FeedItemActionsProps {
   onFeedItemClick?: () => void;
   onExpand?: (e?: React.MouseEvent) => void;
   isExpanded?: boolean;
+  className?: string;
 }
 
 // Define interface for avatar items used in local state
@@ -218,6 +219,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   onFeedItemClick,
   onExpand,
   isExpanded = false,
+  className,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD } = useCurrencyPreference();
@@ -434,10 +436,10 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   return (
     <>
       <div className="flex items-center justify-between w-full">
-        <div className="flex items-center space-x-1.5 md:space-x-2 flex-nowrap overflow-visible">
+        <div className={cn('flex items-center flex-nowrap overflow-visible', className)}>
           <div
             className={cn(
-              'flex items-center h-8 rounded-md bg-gray-100 transition-all',
+              'flex items-center h-8 rounded-md transition-all',
               isVoting ? 'opacity-50' : ''
             )}
           >
@@ -445,7 +447,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               onClick={(e) => handleVote(e, 'up')}
               disabled={isVoting}
               className={cn(
-                'py-0.5 px-2 md:!py-1 md:!px-2 rounded-l-md transition-colors',
+                'py-0.5 px-2 md:!py-1 md:!px-2 rounded-md transition-colors',
                 localUserVote === 'UPVOTE' ? 'text-green-600' : 'text-gray-900 hover:bg-gray-200',
                 isVoting ? 'cursor-not-allowed' : 'cursor-pointer'
               )}
@@ -460,7 +462,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               onClick={(e) => handleVote(e, 'down')}
               disabled={isVoting}
               className={cn(
-                'py-0.5 px-2 md:!py-1 md:!px-2 rounded-r-md transition-colors',
+                'py-0.5 px-2 md:!py-1 md:!px-2 rounded-md transition-colors',
                 localUserVote === 'DOWNVOTE' ? 'text-red-600' : 'text-gray-900 hover:bg-gray-200',
                 isVoting ? 'cursor-not-allowed' : 'cursor-pointer'
               )}
@@ -483,7 +485,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 isDisabled={isTogglingDefaultList}
                 showTooltip={showTooltips}
                 className={cn(
-                  'rounded-md bg-gray-100 hover:!bg-gray-200',
+                  'rounded-md hover:!bg-gray-200',
                   isDocumentInList ? '!text-green-600' : ''
                 )}
               />

@@ -430,7 +430,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
         {/* Actions row — full width with divider */}
         {showActions && (
           <div
-            className="border-t border-gray-200 px-4 py-2 cursor-default"
+            className="border-t border-gray-200 px-4 py-[5px] cursor-default"
             onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
@@ -464,6 +464,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               bounties={showBountyInfo ? undefined : content.bounties}
               hideReportButton={hideReportButton}
               hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
+              className="gap-1"
             />
           </div>
         )}
