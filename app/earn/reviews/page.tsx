@@ -9,7 +9,7 @@ export default async function ReviewsPage() {
     <PageLayout
       rightSidebar={
         <Suspense fallback={<ActivitySidebarSkeleton />}>
-          <FundingSidebarServer />
+          <FundingSidebarServer scope="peer_reviews" />
         </Suspense>
       }
     >

@@ -3,7 +3,7 @@ import { FeedEntry, FeedApiResponse, transformFeedEntry, RawApiFeedEntry } from 
 
 export type ActivityDocumentType = 'PREREGISTRATION' | 'GRANT' | 'DISCUSSION';
 
-export type ActivityScope = 'grants';
+export type ActivityScope = 'grants' | 'peer_reviews';
 
 export interface GetActivityParams {
   page?: number;
