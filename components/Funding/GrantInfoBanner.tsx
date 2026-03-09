@@ -208,6 +208,8 @@ export const GrantInfoBanner = ({
           onClose={() => setIsApplyModalOpen(false)}
           onUseSelected={() => setIsApplyModalOpen(false)}
           grantId={grantId}
+          grantTitle={work?.title}
+          grantAmountUsd={amountUsd}
         />
       )}
     </>

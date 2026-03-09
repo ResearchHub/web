@@ -398,7 +398,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
                           bounty={openBounties[0]}
                           relatedWork={entry.relatedWork}
                           onAddSolutionClick={handleAddSolutionClick}
-                          className="bg-orange-50 border-orange-200"
+                          className="bg-primary-50/60 border-primary-100"
                         />
                       </div>
                     ) : openBounties.length > 0 ? (

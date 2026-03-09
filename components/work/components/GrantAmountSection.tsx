@@ -54,6 +54,8 @@ export const GrantAmountSection = ({ work }: GrantAmountSectionProps) => {
         onClose={() => setIsApplyModalOpen(false)}
         onUseSelected={handleUseSelectedProposal}
         grantId={(work.note?.post?.grant?.id || 0).toString()}
+        grantTitle={work.title}
+        grantAmountUsd={usdAmount}
       />
     </>
   );

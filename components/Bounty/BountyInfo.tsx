@@ -14,10 +14,11 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { ContentFormat } from '@/types/comment';
 import { BountyDetails } from '@/components/Feed/items/FeedItemBountyComment';
-import { Clock, Forward, ArrowLeft } from 'lucide-react';
+import { Clock, Forward, ArrowLeft, ArrowRight } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleInfo } from '@fortawesome/pro-light-svg-icons';
 import { getBountyDisplayAmount } from './lib/bountyUtil';
+import { formatCurrency } from '@/utils/currency';
 
 interface BountyDetailsModalProps {
   isOpen: boolean;
@@ -56,10 +57,10 @@ const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
 
   const footerContent = isActive ? (
     <Button
-      variant="default"
+      variant="secondary"
       size="lg"
       onClick={handleCTAClick}
-      className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+      className="w-full flex items-center justify-center gap-2"
     >
       <Forward size={18} />
       <span>{buttonText}</span>
@@ -75,7 +76,7 @@ const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
           <ArrowLeft className="h-5 w-5 text-gray-600" />
         </Button>
       </div>
-      <FontAwesomeIcon icon={faCircleInfo} className="h-5 w-5 text-orange-500" />
+      <FontAwesomeIcon icon={faCircleInfo} className="h-5 w-5 text-primary-500" />
     </div>
   );
 
@@ -195,7 +196,6 @@ export const BountyInfo: FC<BountyInfoProps> = ({
     [bounty, exchangeRate, showUSD]
   );
 
-  // Handler for details button click - always open modal
   const handleDetailsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -206,85 +206,75 @@ export const BountyInfo: FC<BountyInfoProps> = ({
     <>
       <div
         className={cn(
-          'flex items-center justify-between gap-3 px-3 py-2 rounded-lg',
+          'mt-3 rounded-lg px-4 py-3.5 cursor-default',
           isActive
-            ? 'bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200'
+            ? 'bg-primary-50/60 border border-primary-100'
             : 'bg-gray-50 border border-gray-200',
           className
         )}
+        onMouseDown={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Left side: Label + Amount + Deadline */}
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          {/* Bounty Label & Amount */}
-          <div className="flex items-center gap-2">
-            {/* Label badge - hidden on mobile */}
-            <span
-              className={cn(
-                'hidden sm:!inline-block text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap',
-                isActive ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-600'
-              )}
-            >
-              {bountyLabel}
-            </span>
-            <CurrencyBadge
-              amount={Math.round(displayAmount)}
-              variant="text"
-              size="md"
-              showText={true}
-              currency={showUSD ? 'USD' : 'RSC'}
-              className="p-0 gap-0"
-              textColor={isActive ? 'text-orange-700' : 'text-gray-600'}
-              fontWeight="font-bold"
-              showExchangeRate={false}
-              iconColor={isActive ? '#ea580c' : colors.gray[500]}
-              iconSize={18}
-              shorten
-              skipConversion={showUSD}
-            />
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-start gap-6 min-w-0">
+            <div className="flex flex-col leading-tight whitespace-nowrap">
+              <span className="text-xs text-gray-500 uppercase tracking-wide">{bountyLabel}</span>
+              <span className="font-mono font-semibold text-primary-600 text-xl">
+                {formatCurrency({
+                  amount: Math.round(displayAmount),
+                  showUSD,
+                  exchangeRate,
+                  skipConversion: showUSD,
+                  shorten: true,
+                })}
+              </span>
+            </div>
+
+            {deadlineLabel && (
+              <div className="flex flex-col leading-tight">
+                <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">Deadline</span>
+                <div className="flex items-center gap-1.5">
+                  <Clock size={14} className="text-gray-500 flex-shrink-0" />
+                  <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                    {deadlineLabel}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {!isActive && (
+              <div className="flex flex-col leading-tight">
+                <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">Status</span>
+                <span className="text-sm font-medium text-gray-500">Closed</span>
+              </div>
+            )}
           </div>
 
-          {/* Deadline - hidden on very small screens */}
-          {deadlineLabel && (
-            <div
-              className={cn(
-                'hidden sm:!flex items-center gap-1 text-xs',
-                isActive ? 'text-gray-600' : 'text-gray-500'
-              )}
-            >
-              <Clock size={12} className="flex-shrink-0" />
-              <span className="whitespace-nowrap">{deadlineLabel}</span>
-            </div>
-          )}
-
-          {!isActive && (
-            <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
-              Closed
-            </span>
-          )}
-        </div>
-
-        {/* Right side: Action buttons */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <Button
-            variant="outlined"
-            size="sm"
-            onClick={handleDetailsClick}
-            className="flex items-center gap-1.5 !py-1.5 !px-2.5 text-gray-600 hover:text-gray-800"
-          >
-            <FontAwesomeIcon icon={faCircleInfo} className="h-3.5 w-3.5 text-gray-700" />
-            <span className="text-xs font-medium">Details</span>
-          </Button>
-          {isActive && (
+          <div className="flex items-center gap-2 flex-shrink-0">
             <Button
-              variant="default"
+              variant="outlined"
               size="sm"
-              onClick={onAddSolutionClick}
-              className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white !py-1.5 !px-2.5"
+              className="flex-shrink-0 rounded-md text-[13px] gap-1.5 text-gray-600 hover:text-gray-800"
+              onClick={handleDetailsClick}
             >
-              <Forward size={14} />
-              <span className="text-xs font-medium">{getAddButtonText()}</span>
+              <FontAwesomeIcon icon={faCircleInfo} className="h-3.5 w-3.5" />
+              Details
             </Button>
-          )}
+            {isActive ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="flex-shrink-0 rounded-md text-[13px]"
+                onClick={onAddSolutionClick}
+              >
+                {getAddButtonText()}
+                <ArrowRight size={14} className="ml-1.5" />
+              </Button>
+            ) : (
+              <span className="flex-shrink-0 text-sm text-gray-400">Ended</span>
+            )}
+          </div>
         </div>
       </div>
 

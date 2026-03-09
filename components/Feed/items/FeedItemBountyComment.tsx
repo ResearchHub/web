@@ -21,15 +21,17 @@ import { ID } from '@/types/root';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { BountyContribution, BountyType } from '@/types/bounty';
 import { useParams, useRouter } from 'next/navigation';
-import { Trophy, Pen, Users, MessageSquareReply } from 'lucide-react';
+import { Trophy, Pen, Users, ArrowRight } from 'lucide-react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
+import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
+import { AvatarStack } from '@/components/ui/AvatarStack';
 import { buildWorkUrl } from '@/utils/url';
-import { BaseFeedItem, TitleSection } from '@/components/Feed/BaseFeedItem';
+import { BaseFeedItem, TitleSection, PrimaryActionSection } from '@/components/Feed/BaseFeedItem';
 
 /**
  * Internal component for rendering bounty details
@@ -304,18 +306,16 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
         showActions={false}
         onFeedItemClick={onFeedItemClick}
       >
-        <div onMouseDown={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-          <BountyMetadataLine
-            amount={displayBountyAmount}
-            expirationDate={bounty.expirationDate}
-            isOpen={isActive}
-            expiringSoon={expiringSoon}
-            solutionsCount={solutionsCount}
-            bountyStatus={bounty.status}
-            showDeadline={showDeadline}
-            skipConversion={showUSD}
-          />
-        </div>
+        <BountyMetadataLine
+          amount={displayBountyAmount}
+          expirationDate={bounty.expirationDate}
+          isOpen={isActive}
+          expiringSoon={expiringSoon}
+          solutionsCount={solutionsCount}
+          bountyStatus={bounty.status}
+          showDeadline={showDeadline}
+          skipConversion={showUSD}
+        />
 
         {entry.relatedWork && showRelatedWork && (
           <div
@@ -357,47 +357,77 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
         )}
 
         {showSupportAndCTAButtons && (
-          <div
-            className="mt-4 flex items-center gap-2 flex-wrap mobile:flex-wrap flex-nowrap"
-            onMouseDown={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
-            role="presentation"
-            aria-hidden="true"
-            tabIndex={-1}
-          >
-            {isOpen && (
-              <Button
-                variant="default"
-                size="sm"
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border-0 min-w-[140px] !flex-1 mobile:!flex-initial mobile:!w-auto"
-                onClick={handleSolution}
-              >
-                <MessageSquareReply size={16} />
-                {(() => {
-                  if (entry.relatedWork?.postType === 'QUESTION') {
-                    return 'Add answer';
-                  }
-                  if (bounty.bountyType === 'REVIEW') {
-                    return 'Add Review';
-                  }
+          <PrimaryActionSection>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="text-sm leading-tight whitespace-nowrap">
+                  <span className="font-mono font-semibold text-gray-900">
+                    {displayBountyAmount > 0 ? (
+                      <CurrencyBadge
+                        amount={displayBountyAmount}
+                        size="sm"
+                        variant={isActive ? 'badge' : 'disabled'}
+                        currency={showUSD ? 'USD' : 'RSC'}
+                        skipConversion={showUSD}
+                      />
+                    ) : null}
+                  </span>
+                </div>
 
-                  return 'Add Solution';
-                })()}
-              </Button>
-            )}
-            {awardButton}
-            {isActive && showContributeButton && !isAuthor && (
-              <Button
-                variant="outlined"
-                size="sm"
-                onClick={handleOpenContributeModal}
-                className="text-orange-600 gap-2 border-orange-600 hover:bg-orange-50 min-w-[140px] !flex-1 mobile:!flex-initial mobile:!w-auto"
-              >
-                <ResearchCoinIcon outlined size={16} />
-                Support
-              </Button>
-            )}
-          </div>
+                {bounty.contributions && bounty.contributions.length > 0 && (
+                  <AvatarStack
+                    items={bounty.contributions.map((contribution: BountyContribution) => ({
+                      src: contribution.createdBy?.authorProfile?.profileImage || '',
+                      alt: contribution.createdBy?.authorProfile?.fullName || 'Anonymous',
+                      tooltip: contribution.createdBy?.authorProfile?.fullName || 'Anonymous',
+                    }))}
+                    size="sm"
+                    maxItems={3}
+                    spacing={-8}
+                    showLabel={false}
+                    disableTooltip={false}
+                    showExtraCount={true}
+                    totalItemsCount={bounty.contributions.length}
+                    extraCountLabel="Contributors"
+                  />
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {isOpen && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="flex-shrink-0 rounded-md text-[13px]"
+                    onClick={handleSolution}
+                  >
+                    {(() => {
+                      if (entry.relatedWork?.postType === 'QUESTION') {
+                        return 'Add answer';
+                      }
+                      if (bounty.bountyType === 'REVIEW') {
+                        return 'Add Review';
+                      }
+                      return 'Add Solution';
+                    })()}
+                    <ArrowRight size={14} className="ml-1.5" />
+                  </Button>
+                )}
+                {awardButton}
+                {isActive && showContributeButton && !isAuthor && (
+                  <Button
+                    variant="outlined"
+                    size="sm"
+                    onClick={handleOpenContributeModal}
+                    className="text-orange-600 gap-2 border-orange-600 hover:bg-orange-50 rounded-md text-[13px]"
+                  >
+                    <ResearchCoinIcon outlined size={16} />
+                    Support
+                  </Button>
+                )}
+              </div>
+            </div>
+          </PrimaryActionSection>
         )}
 
         {showFooter && !shouldHideActions && (

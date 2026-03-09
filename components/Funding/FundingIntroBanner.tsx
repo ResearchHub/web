@@ -1,17 +1,14 @@
 'use client';
 
-import { useState } from 'react';
 import { X, Microscope, Users } from 'lucide-react';
 import Link from 'next/link';
+import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 
-interface FundingIntroBannerProps {
-  onDismiss?: () => void;
-}
+export function FundingIntroBanner() {
+  const { isDismissed, dismissFeature, dismissStatus } =
+    useDismissableFeature('funding_intro_banner');
 
-export function FundingIntroBanner({ onDismiss }: FundingIntroBannerProps) {
-  const [dismissed, setDismissed] = useState(false);
-
-  if (dismissed) return null;
+  if (isDismissed || dismissStatus !== 'checked') return null;
 
   return (
     <div className="mb-4 rounded-xl p-[1.5px]">
@@ -49,20 +46,17 @@ export function FundingIntroBanner({ onDismiss }: FundingIntroBannerProps) {
                 <p className="text-sm text-primary-700">
                   Fund a proposal or{' '}
                   <Link
-                    href="/fund/grant/create"
+                    href="/notebook?newGrant=true"
                     className="text-sm text-primary-800 hover:text-primary-900 underline underline-offset-2"
                   >
-                    create an award
+                    Create funding opportunity
                   </Link>
                 </p>
               </div>
             </div>
 
             <button
-              onClick={() => {
-                setDismissed(true);
-                onDismiss?.();
-              }}
+              onClick={() => dismissFeature()}
               className="p-1.5 rounded-full hover:bg-primary-200/60 transition-colors ml-4"
               aria-label="Dismiss banner"
             >
