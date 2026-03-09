@@ -95,7 +95,6 @@ export function usePendingDeposits(options?: UsePendingDepositsOptions): usePend
     fetchPendingDeposits();
   }, [session, status, fetchPendingDeposits]);
 
-  // Poll every 5 seconds
   useEffect(() => {
     if (status === 'loading' || !session) return;
 
