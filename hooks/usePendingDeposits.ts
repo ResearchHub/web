@@ -53,7 +53,7 @@ export function usePendingDeposits(options?: UsePendingDepositsOptions): usePend
         if (prevIds.size > 0) {
           const resolvedIds = [...prevIds].filter((id) => !currentIds.has(id));
           if (resolvedIds.length > 0) {
-            toast.success('Deposit confirmed!');
+            toast.success('Deposit confirmed');
             onDepositResolvedRef.current?.();
           }
         }
