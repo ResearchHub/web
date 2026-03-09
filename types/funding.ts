@@ -63,7 +63,11 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => ({
     topContributors: raw.contributors.top.map((contributor: any) => ({
       id: contributor.id,
       authorProfile: transformAuthorProfile(contributor.author_profile),
-      totalContribution: contributor.total_contribution,
+      totalContribution:
+        typeof contributor.total_contribution === 'object' &&
+        contributor.total_contribution !== null
+          ? contributor.total_contribution.rsc
+          : Number(contributor.total_contribution) || 0,
       contributions: contributor.contributions.map((contribution: any) => ({
         amount: contribution.amount,
         date: contribution.date,

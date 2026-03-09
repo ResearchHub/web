@@ -12,6 +12,8 @@ interface ProposalSidebarProps {
 }
 
 export const ProposalSidebar = ({ work, metadata }: ProposalSidebarProps) => {
+  console.log('metadata', metadata);
+
   return (
     <div className="space-y-12">
       {metadata.fundraising && <FundraiseSection fundraise={metadata.fundraising} />}

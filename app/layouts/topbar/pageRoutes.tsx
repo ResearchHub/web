@@ -107,7 +107,7 @@ const ROUTE_RULES: RouteRule[] = [
     getInfo: (_p, searchParams) => {
       const earnTab = searchParams?.get('tab') || 'awards';
       return {
-        title: earnTab === 'reviews' ? 'Peer Reviews' : 'Awards',
+        title: earnTab === 'reviews' ? 'Peer Reviews' : 'Funding Opportunities',
         icon: <Icon name="earn1" size={24} className="text-gray-900" />,
         breadcrumbParent: { title: 'Earn', href: '/earn' },
       };

@@ -38,7 +38,7 @@ export const FundingGrantTabs: FC = () => {
     const browseTab = {
       id: 'browse',
       label: 'Browse',
-      href: '/awards',
+      href: '/earn',
       icon: LayoutGrid,
     };
 
