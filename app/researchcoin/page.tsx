@@ -34,7 +34,12 @@ export default function ResearchCoinPage() {
     hasPendingDepositFeed,
     isLoading: isLoadingPendingDeposits,
     refreshDeposits,
-  } = usePendingDeposits();
+  } = usePendingDeposits({
+    onDepositResolved: () => {
+      fetchBalance();
+      transactionFeedRef.current?.refresh();
+    },
+  });
   const transactionFeedRef = useRef<{ refresh: () => Promise<void> }>(null);
   const { openVerificationModal } = useVerification();
 
