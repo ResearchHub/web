@@ -103,7 +103,9 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
                       size="xs"
                       currency={showUSD ? 'USD' : 'RSC'}
                       showText={true}
-                      className="text-primary-600 font-medium font-mono"
+                      textColor="text-primary-600"
+                      fontWeight="font-semibold"
+                      className="font-mono"
                     />
                   </div>
                 </div>

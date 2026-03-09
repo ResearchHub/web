@@ -11,6 +11,7 @@ import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilt
 
 import { GrantInfoBanner } from '@/components/Funding/GrantInfoBanner';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
+import { buildWorkUrl } from '@/utils/url';
 
 interface GrantDocumentProps {
   work: Work;
@@ -34,7 +35,17 @@ export const GrantDocument = ({ work, metadata }: GrantDocumentProps) => {
           </span>
         </div>
 
-        <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-0" />
+        <PageHeader
+          title={work.title}
+          className="text-2xl md:!text-3xl mt-0"
+          hasBounty={metadata.openBounties > 0}
+          bountyUrl={buildWorkUrl({
+            id: work.id,
+            contentType: 'post',
+            slug: work.slug,
+            tab: 'bounties',
+          })}
+        />
         <WorkLineItems work={work} showClaimButton={false} metadata={metadata} />
 
         {work.note?.post?.grant?.description ? (

@@ -142,8 +142,8 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
         <div className={cn('rounded-lg', className)}>
           {/* Top row: Percentage on left, days left on right */}
           <div className="flex items-center justify-between mb-2">
-            <div className="font-mono font-medium text-sm text-gray-700">
-              {actualPercentage}% funded
+            <div className="font-medium text-sm text-gray-700">
+              <span className="font-mono">{actualPercentage}%</span> funded
             </div>
             {getStatusDisplay()}
           </div>
@@ -155,19 +155,19 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
     );
   }
 
-  const defaultContainerClasses = 'p-4 bg-white rounded-lg border border-gray-200';
+  const defaultContainerClasses = 'p-3 bg-white rounded-lg border border-primary-100';
 
   return (
     <>
       <div className={cn(defaultContainerClasses, className)}>
-        <div className="mb-6">
-          <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between mb-4 mobile:!mb-3 gap-3 mobile:!gap-0">
+        <div className="mb-4">
+          <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between mb-3 mobile:!mb-2 gap-2 mobile:!gap-0">
             {showPercentage ? (
-              <div className="font-mono text-lg mobile:!text-xl font-medium text-gray-700">
-                {actualPercentage}% funded
+              <div className="text-sm mobile:!text-base font-medium text-gray-700">
+                <span className="font-mono">{actualPercentage}%</span> funded
               </div>
             ) : (
-              <div className="flex items-center flex-wrap gap-1 font-mono">
+              <div className="flex items-center flex-wrap gap-1">
                 <CurrencyBadge
                   amount={
                     showUSD
@@ -175,13 +175,15 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                       : Math.round(fundraise.amountRaised.rsc)
                   }
                   variant="text"
-                  size="md"
+                  size="sm"
                   showText={false}
                   currency={showUSD ? 'USD' : 'RSC'}
-                  className="font-medium text-primary-600 text-base mobile:!text-lg pl-0"
+                  className="font-mono text-sm mobile:!text-base pl-0"
+                  fontWeight="font-semibold"
+                  textColor="text-primary-600"
                   skipConversion={showUSD}
                 />
-                <span className="text-gray-500 text-base mobile:!text-lg">raised of</span>
+                <span className="text-gray-500 text-sm mobile:!text-base">raised of</span>
                 <CurrencyBadge
                   amount={
                     showUSD
@@ -189,23 +191,25 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                       : Math.round(fundraise.goalAmount.rsc)
                   }
                   variant="text"
-                  size="md"
+                  size="sm"
                   showText={true}
                   showIcon={true}
                   currency={showUSD ? 'USD' : 'RSC'}
-                  className="text-primary-600 text-base mobile:!text-lg"
+                  className="font-mono text-sm mobile:!text-base"
+                  fontWeight="font-semibold"
+                  textColor="text-primary-600"
                   skipConversion={showUSD}
                 />
-                <span className="text-primary-600 text-base mobile:!text-lg">goal</span>
+                <span className="text-gray-500 text-sm mobile:!text-base">goal</span>
               </div>
             )}
             <div className="mobile:!flex-shrink-0 hidden mobile:!block">{getStatusDisplay()}</div>
           </div>
 
-          <Progress value={progressPercentage} variant={getProgressVariant()} className="h-3" />
+          <Progress value={progressPercentage} variant={getProgressVariant()} className="h-2.5" />
 
           {/* Mobile: Status and Contributors in same row */}
-          <div className="flex mobile:!hidden items-center justify-between mt-3">
+          <div className="flex mobile:!hidden items-center justify-between mt-2.5">
             <div>{getStatusDisplay()}</div>
             {contributors.length > 0 && (
               <ContributorsButton
@@ -219,7 +223,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
           </div>
         </div>
 
-        <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between gap-4 mobile:!gap-0">
+        <div className="flex flex-col mobile:!flex-row mobile:!items-center mobile:!justify-between gap-3 mobile:!gap-0">
           {/* Desktop: Contributors on the left */}
           {contributors.length > 0 ? (
             <div className="hidden mobile:!flex">
@@ -227,7 +231,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                 contributors={contributors}
                 onContribute={handleContributeClick}
                 label={`Funders`}
-                size={22}
+                size={20}
                 disableContribute={!isActive}
               />
             </div>
@@ -238,17 +242,17 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
           {isActive && showContribute ? (
             <Button
               variant="contribute"
-              size="md"
+              size="sm"
               className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold transition-all duration-200 border-0"
               onClick={handleContributeClick}
             >
-              <Icon name="giveRSC" size={20} color="white" />
+              <Icon name="giveRSC" size={18} color="white" />
               Fund this research
             </Button>
           ) : onDetailsClick ? (
             <Button
               variant="outlined"
-              size="md"
+              size="sm"
               onClick={(e) => {
                 e.stopPropagation();
                 onDetailsClick();

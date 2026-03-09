@@ -30,7 +30,8 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
               size="xs"
               currency={showUSD ? 'USD' : 'RSC'}
               showText={false}
-              className="text-primary-600"
+              textColor="text-primary-600"
+              fontWeight="font-semibold"
               skipConversion={showUSD}
               shorten
             />
@@ -41,7 +42,8 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
               size="xs"
               currency={showUSD ? 'USD' : 'RSC'}
               showText={true}
-              className="text-primary-600"
+              textColor="text-primary-600"
+              fontWeight="font-semibold"
               skipConversion={showUSD}
               shorten
             />

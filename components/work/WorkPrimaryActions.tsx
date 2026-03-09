@@ -7,7 +7,7 @@ import {
   MoreHorizontal,
   FileUp,
   Octagon,
-  Share2,
+  Share,
   CheckCircle,
   Download,
   ArrowUp,
@@ -392,10 +392,8 @@ export const WorkPrimaryActions = ({
               onClick={handleAddToList}
               disabled={isTogglingDefaultList}
               className={cn(
-                'flex items-center justify-center !px-4 !min-w-0 rounded-lg',
-                isInList
-                  ? 'bg-green-50 text-green-600 hover:bg-green-100'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100',
+                'flex items-center justify-center !px-4 !min-w-0 rounded-lg bg-gray-50 hover:bg-gray-100',
+                isInList ? 'text-green-600' : 'text-gray-600',
                 isTogglingDefaultList && 'opacity-50 cursor-not-allowed'
               )}
             >
@@ -414,7 +412,7 @@ export const WorkPrimaryActions = ({
             }
             className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
           >
-            <Share2 className="h-6 w-6" />
+            <Share className="h-6 w-6" />
           </button>
 
           {insightsButton}

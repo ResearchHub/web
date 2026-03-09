@@ -20,10 +20,7 @@ import { useShareModalContext } from '@/contexts/ShareContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '../ui/Button';
-import { RadiatingDot } from '@/components/ui/RadiatingDot';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { buildWorkUrl } from '@/utils/url';
-import Link from 'next/link';
 
 interface FundDocumentProps {
   work: Work;
@@ -194,50 +191,22 @@ export const FundDocument = ({
 
   return (
     <div>
-      {metadata.openBounties > 0 && (
-        <div className="flex items-center gap-2 mb-2 mt-2">
-          <RadiatingDot color="bg-green-500" isRadiating />
-          <span className="text-sm font-medium text-green-600">
-            Peer review for{' '}
-            <span className="font-mono">
-              $
-              {metadata.bounties?.[0]?.amount
-                ? Math.round(parseFloat(metadata.bounties[0].amount))
-                : 150}
-            </span>
-          </span>
-          <Tooltip
-            content={
-              <div className="p-1 text-xs">
-                <p className="mb-1">Earn RSC by submitting a peer review.</p>
-                <Link
-                  href={buildWorkUrl({
-                    id: work.id,
-                    contentType: work.contentType === 'paper' ? 'paper' : 'post',
-                    slug: work.slug,
-                    tab: 'bounties',
-                  })}
-                  className="text-primary-600 hover:underline font-medium"
-                >
-                  View bounties →
-                </Link>
-              </div>
-            }
-            position="bottom"
-            width="w-48"
-          >
-            <span className="text-xs text-gray-400 hover:text-gray-600 cursor-help underline decoration-dotted">
-              Learn more
-            </span>
-          </Tooltip>
-        </div>
-      )}
       {work.type === 'preprint' && (
         <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
           Preprint
         </div>
       )}
-      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-0" />
+      <PageHeader
+        title={work.title}
+        className="text-2xl md:!text-3xl mt-0"
+        hasBounty={metadata.openBounties > 0}
+        bountyUrl={buildWorkUrl({
+          id: work.id,
+          contentType: work.contentType === 'paper' ? 'paper' : 'post',
+          slug: work.slug,
+          tab: 'bounties',
+        })}
+      />
 
       <WorkLineItems
         work={work}
