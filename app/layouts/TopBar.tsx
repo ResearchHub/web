@@ -140,6 +140,14 @@ const getPageInfo = (pathname: string): PageInfo | null => {
     };
   }
 
+  if (pathname.startsWith('/expert-finder')) {
+    return {
+      title: 'Expert Finder',
+      subtitle: 'Find experts in your field',
+      icon: <Icon name="profile" size={24} className="text-gray-900" />,
+    };
+  }
+
   if (pathname.startsWith('/bounties')) {
     return {
       title: 'Bounties',

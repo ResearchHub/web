@@ -12,6 +12,7 @@ import {
   Download,
   ArrowUp,
   ArrowDown,
+  Search,
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
@@ -493,6 +494,18 @@ export const WorkLineItems = ({
               <BaseMenuItem onSelect={() => handleDownload(pdfFormat.url, 'document.pdf')}>
                 <Download className="h-4 w-4 mr-2" />
                 <span>Download PDF</span>
+              </BaseMenuItem>
+            )}
+            {isModerator && work.unifiedDocumentId != null && (
+              <BaseMenuItem
+                onSelect={() =>
+                  router.push(
+                    `/expert-finder/library/new?unifiedDocumentId=${work.unifiedDocumentId}`
+                  )
+                }
+              >
+                <Search className="h-4 w-4 mr-2" />
+                <span>Find experts</span>
               </BaseMenuItem>
             )}
             <BaseMenuItem
