@@ -31,9 +31,7 @@ interface PageLayoutProps {
 
 function useIsGrantTabsPage() {
   const pathname = usePathname();
-  const isFundingPage = pathname === '/fund' || pathname.startsWith('/fund/grant/');
-  const isGrantPage = pathname.startsWith('/grant/');
-  return isFundingPage || isGrantPage;
+  return pathname === '/fund' || pathname.startsWith('/grant/');
 }
 
 function PageLayoutInner({

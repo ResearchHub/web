@@ -142,7 +142,7 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p === '/fund' || p.startsWith('/fund/grant/'),
+    match: (p) => p === '/fund' || p.startsWith('/grant/'),
     getInfo: () => ({
       title: 'Funding Marketplace',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
@@ -161,13 +161,6 @@ const ROUTE_RULES: RouteRule[] = [
       title: 'Awards',
       icon: <Icon name="earn1" size={24} className="text-gray-900" />,
       breadcrumbParent: { title: 'Earn', href: '/earn' },
-    }),
-  },
-  {
-    match: (p) => p.startsWith('/grant'),
-    getInfo: () => ({
-      title: 'Fund',
-      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     }),
   },
   {

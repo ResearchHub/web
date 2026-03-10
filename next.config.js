@@ -33,6 +33,26 @@ const nextConfig = {
       permanent: true,
     },
     {
+      source: '/grant/:id(\\d+)/:slug/applications',
+      destination: '/grant/:id/:slug',
+      permanent: true,
+    },
+    {
+      source: '/grant/:id(\\d+)/:slug/conversation',
+      destination: '/grant/:id/:slug',
+      permanent: true,
+    },
+    {
+      source: '/fund/grant/:id(\\d+)',
+      destination: '/grant/:id',
+      permanent: true,
+    },
+    {
+      source: '/fund/grant/:id(\\d+)/:path*',
+      destination: '/grant/:id/:path*',
+      permanent: true,
+    },
+    {
       source: '/fund/:id(\\d+)',
       destination: '/proposal/:id',
       permanent: true,

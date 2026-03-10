@@ -65,7 +65,7 @@ function SortDropdown() {
 
 interface ProposalSortAndFiltersProps {
   className?: string;
-  /** "all" = /fund page, "grant" = /fund/grant/[id] page */
+  /** "all" = /fund page, "grant" = /grant/[id] page */
   variant?: 'all' | 'grant';
 }
 

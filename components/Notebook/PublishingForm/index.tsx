@@ -14,6 +14,7 @@ import { GrantOrganizationSection } from './components/GrantOrganizationSection'
 import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
+import { buildWorkUrl } from '@/utils/url';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUpsertPost } from '@/hooks/useDocument';
@@ -198,7 +199,8 @@ const resolveArticleType = (
 
 const getRedirectPath = (articleType: string, responseId: string, slug: string): string => {
   if (articleType === 'preregistration') return `/proposal/${responseId}/${slug}?new=true`;
-  if (articleType === 'grant') return `/grant/${responseId}/${slug}`;
+  if (articleType === 'grant')
+    return buildWorkUrl({ id: responseId, slug, contentType: 'funding_request' });
   return `/post/${responseId}/${slug}`;
 };
 

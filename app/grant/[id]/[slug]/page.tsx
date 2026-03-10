@@ -1,12 +1,28 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { PostService } from '@/services/post.service';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
-import { GrantPageServer, getGrant } from './GrantPageServer';
+import { ProposalFeed } from '@/components/Funding/ProposalFeed';
+import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
+import { FundraiseProvider } from '@/contexts/FundraiseContext';
+import { GrantContentSwitcher } from '@/components/Funding/GrantContentSwitcher';
 
 interface Props {
   params: Promise<{
     id: string;
     slug: string;
   }>;
+}
+
+async function getGrant(id: string) {
+  if (!id.match(/^\d+$/)) {
+    notFound();
+  }
+  try {
+    return await PostService.get(id);
+  } catch {
+    notFound();
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -18,7 +34,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default async function GrantPage({ params }: Props) {
+export default async function GrantSlugPage({ params }: Props) {
   const { id } = await params;
-  return <GrantPageServer id={id} />;
+  const work = await getGrant(id);
+
+  const grant = work.note?.post?.grant;
+  const grantId = grant?.id ?? undefined;
+
+  return (
+    <GrantContentSwitcher
+      content={work.previewContent}
+      imageUrl={work.image}
+      hasDescription={!!grant?.description}
+      grantId={grantId}
+    >
+      <FundraiseProvider grantId={grantId ? Number(grantId) : undefined}>
+        {grant?.description && <ProposalSortAndFilters variant="grant" />}
+        <ProposalFeed />
+      </FundraiseProvider>
+    </GrantContentSwitcher>
+  );
 }

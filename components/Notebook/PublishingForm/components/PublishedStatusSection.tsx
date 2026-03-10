@@ -2,6 +2,7 @@ import { ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
 import { useNotebookContext } from '@/contexts/NotebookContext';
+import { buildWorkUrl } from '@/utils/url';
 
 export function PublishedStatusSection() {
   const { currentNote: note, isLoading } = useNotebookContext();
@@ -16,9 +17,13 @@ export function PublishedStatusSection() {
   }
 
   const getWorkPath = () => {
-    if (articleType === 'preregistration') return `/proposal/${workId}/${slug}`;
-    if (articleType === 'funding_request') return `/grant/${workId}/${slug}`;
-    return `/post/${workId}/${slug}`;
+    const contentType =
+      articleType === 'preregistration'
+        ? 'preregistration'
+        : articleType === 'funding_request'
+          ? 'funding_request'
+          : 'post';
+    return buildWorkUrl({ id: workId, slug, contentType });
   };
 
   return (

@@ -7,6 +7,7 @@ import { PillTabs } from '@/components/ui/PillTabs';
 import { useGrants } from '@/contexts/GrantContext';
 import { FeedGrantContent } from '@/types/feed';
 import { getShortTitle } from './lib/getShortTitle';
+import { generateSlug, buildWorkUrl } from '@/utils/url';
 
 function formatCompactAmount(usd: number): string {
   if (usd >= 1_000_000) return `$${Math.round(usd / 1_000_000)}M`;
@@ -52,7 +53,9 @@ export const FundingGrantTabs: FC = () => {
       const content = grant.content as FeedGrantContent;
       const amount = content.grant.amount?.usd;
       const amountFormatted = amount ? formatCompactAmount(amount) : null;
-      const tabHref = `/fund/grant/${content.id}`;
+      const slug =
+        content.slug || generateSlug(getShortTitle(content.grant.shortTitle, content.title));
+      const tabHref = buildWorkUrl({ id: content.id, slug, contentType: 'funding_request' });
       const isActive = activeTab === `grant-${content.id}`;
 
       return {

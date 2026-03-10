@@ -155,7 +155,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
                 variant="secondary"
                 size="sm"
                 className="flex-shrink-0 rounded-md text-[13px]"
-                onClick={() => router.push(`/grant/${grant.id}/${grant.slug}/applications`)}
+                onClick={() => router.push(grantPageUrl)}
               >
                 Apply
                 <ArrowRight size={14} className="ml-1.5" />

@@ -1,16 +1,6 @@
 'use client';
 
-import {
-  FileText,
-  LayoutDashboard,
-  LayoutList,
-  Star,
-  MessageCircle,
-  History,
-  Activity,
-  Bell,
-  MessageCircleQuestion,
-} from 'lucide-react';
+import { FileText, Star, MessageCircle, History, Bell, MessageCircleQuestion } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useState, useEffect, useMemo } from 'react';
@@ -30,8 +20,6 @@ import { colors } from '@/app/styles/colors';
 
 export type TabType =
   | 'paper'
-  | 'overview'
-  | 'proposals'
   | 'updates'
   | 'reviews'
   | 'bounties'
@@ -43,7 +31,7 @@ interface WorkTabsProps {
   work: Work;
   metadata: WorkMetadata;
   defaultTab?: TabType;
-  contentType?: 'paper' | 'post' | 'fund' | 'grant'; // To customize tab labels based on content type
+  contentType?: 'paper' | 'post' | 'fund';
   onTabChange: (tab: TabType) => void;
   updatesCount?: number;
 }
@@ -90,13 +78,10 @@ export const WorkTabs = ({
   const getActiveTabFromPath = (path: string): TabType => {
     if (path.includes('/updates')) return 'updates';
     if (path.includes('/conversation')) return 'conversation';
-    if (path.includes('/details') && contentType === 'grant') return 'overview';
-    if (path.includes('/applications') && contentType === 'grant') return 'proposals';
     if (path.includes('/applications')) return 'applications';
     if (path.includes('/reviews')) return 'reviews';
     if (path.includes('/bounties')) return 'bounties';
     if (path.includes('/history') && hasResearchHubJournalVersions) return 'history';
-    if (contentType === 'grant') return 'overview';
     return 'paper';
   };
 
@@ -138,11 +123,9 @@ export const WorkTabs = ({
           ? `/paper/${work.id}/${work.slug}`
           : contentType === 'fund'
             ? `/proposal/${work.id}/${work.slug}`
-            : contentType === 'grant'
-              ? `/grant/${work.id}/${work.slug}`
-              : work.postType === 'QUESTION'
-                ? `/question/${work.id}/${work.slug}`
-                : `/post/${work.id}/${work.slug}`;
+            : work.postType === 'QUESTION'
+              ? `/question/${work.id}/${work.slug}`
+              : `/post/${work.id}/${work.slug}`;
 
       const tabUrlMap: Partial<Record<TabType, string>> = {
         updates: `${baseUrl}/updates`,
@@ -151,7 +134,6 @@ export const WorkTabs = ({
         applications: `${baseUrl}/applications`,
         bounties: `${baseUrl}/bounties`,
         history: `${baseUrl}/history`,
-        ...(contentType === 'grant' ? { proposals: `${baseUrl}/applications` } : {}),
       };
       const newUrl = tabUrlMap[tab] || baseUrl;
 
@@ -164,60 +146,11 @@ export const WorkTabs = ({
   const getMainTabLabel = () => {
     if (contentType === 'paper') return 'Paper';
     if (contentType === 'fund') return 'Project';
-    if (contentType === 'grant') return 'Details';
     if (work.postType === 'QUESTION') return 'Question';
     return 'Post';
   };
 
-  const grantTabs = [
-    {
-      id: 'overview',
-      label: (
-        <div className="flex items-center">
-          <LayoutDashboard className="h-4 w-4 mr-2" />
-          <span>Overview</span>
-        </div>
-      ),
-    },
-    {
-      id: 'proposals',
-      label: (
-        <div className="flex items-center">
-          <LayoutList className="h-4 w-4 mr-2" />
-          <span>Proposals</span>
-        </div>
-      ),
-    },
-    {
-      id: 'conversation',
-      label: (
-        <div className="flex items-center">
-          <MessageCircle className="h-4 w-4 mr-2" />
-          <span>Conversation</span>
-          <span
-            className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-              activeTab === 'conversation'
-                ? 'bg-primary-100 text-primary-600'
-                : 'bg-gray-100 text-gray-600'
-            }`}
-          >
-            {metadata.metrics.conversationComments || 0}
-          </span>
-        </div>
-      ),
-    },
-    {
-      id: 'history',
-      label: (
-        <div className="flex items-center">
-          <Activity className="h-4 w-4 mr-2" />
-          <span>Activity</span>
-        </div>
-      ),
-    },
-  ];
-
-  // Define base tabs (non-grant content types)
+  // Define base tabs
   const baseTabs = [
     {
       id: 'paper',
@@ -344,10 +277,6 @@ export const WorkTabs = ({
   ];
 
   const tabs = useMemo(() => {
-    if (contentType === 'grant') {
-      return grantTabs;
-    }
-
     if (hasResearchHubJournalVersions) {
       return [
         ...baseTabs,
@@ -372,14 +301,7 @@ export const WorkTabs = ({
       ];
     }
     return baseTabs;
-  }, [
-    baseTabs,
-    grantTabs,
-    contentType,
-    hasResearchHubJournalVersions,
-    activeTab,
-    work.versions?.length,
-  ]);
+  }, [baseTabs, hasResearchHubJournalVersions, activeTab, work.versions?.length]);
 
   return (
     <div className="border-b mb-6">

@@ -2,24 +2,20 @@ import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { ProposalFeed } from '@/components/Funding/ProposalFeed';
-import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
-
-import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
 import { isDeadlineInFuture } from '@/utils/date';
 import { GrantTabProvider } from '@/components/Funding/GrantPageContent';
 import { GrantBannerWithTabs } from '@/components/Funding/GrantBannerWithTabs';
-import { GrantContentSwitcher } from '@/components/Funding/GrantContentSwitcher';
 
 interface Props {
   params: Promise<{
     id: string;
   }>;
+  children: React.ReactNode;
 }
 
-export default async function FundGrantPage({ params }: Props) {
+export default async function GrantSlugLayout({ params, children }: Props) {
   const { id } = await params;
 
   if (!id.match(/^\d+$/)) {
@@ -35,7 +31,6 @@ export default async function FundGrantPage({ params }: Props) {
 
   const grant = work.note?.post?.grant;
   const grantId = grant?.id ?? undefined;
-  const amountUsd = grant?.amount?.usd;
   const grantTitle = grant?.shortTitle || work.title;
   const isActive =
     grant?.status === 'OPEN' && (grant?.endDate ? isDeadlineInFuture(grant.endDate) : true);
@@ -45,7 +40,7 @@ export default async function FundGrantPage({ params }: Props) {
       <PageLayout
         topBanner={
           <GrantBannerWithTabs
-            amountUsd={amountUsd}
+            amountUsd={grant?.amount?.usd}
             grantId={grantId?.toString()}
             isActive={isActive}
             work={work}
@@ -58,17 +53,7 @@ export default async function FundGrantPage({ params }: Props) {
           </Suspense>
         }
       >
-        <GrantContentSwitcher
-          content={work.previewContent}
-          imageUrl={work.image}
-          hasDescription={!!grant?.description}
-          grantId={grantId}
-        >
-          <FundraiseProvider grantId={grantId ? Number(grantId) : undefined}>
-            {grant?.description && <ProposalSortAndFilters variant="grant" />}
-            <ProposalFeed />
-          </FundraiseProvider>
-        </GrantContentSwitcher>
+        {children}
       </PageLayout>
     </GrantTabProvider>
   );

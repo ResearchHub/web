@@ -3,7 +3,7 @@
 import { FC } from 'react';
 import Link from 'next/link';
 import { AssociatedGrant } from '@/types/feed';
-import { generateSlug } from '@/utils/url';
+import { generateSlug, buildWorkUrl } from '@/utils/url';
 import { GrantPreviewTooltip } from '@/components/tooltips/GrantPreviewTooltip';
 
 export const GrantBadge: FC<{
@@ -12,8 +12,12 @@ export const GrantBadge: FC<{
   hideIcon?: boolean;
   className?: string;
 }> = ({ grant, size = 'sm', hideIcon = false, className }) => {
-  const href = `/grant/${grant.id}/${generateSlug(grant.shortTitle || grant.organization)}`;
   const title = grant.shortTitle || grant.organization;
+  const href = buildWorkUrl({
+    id: grant.id,
+    slug: generateSlug(title),
+    contentType: 'funding_request',
+  });
 
   const defaultStyles =
     size === 'md'

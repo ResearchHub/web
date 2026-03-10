@@ -11,6 +11,7 @@ import { ArrowRight, RefreshCw } from 'lucide-react';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { useFeed } from '@/hooks/useFeed';
 import { getShortTitle } from './lib/getShortTitle';
+import { buildWorkUrl } from '@/utils/url';
 
 interface GrantCarouselProps {
   grant: FeedEntry;
@@ -35,7 +36,11 @@ export const GrantCarousel: FC<GrantCarouselProps> = ({
 }) => {
   const content = grant.content as FeedGrantContent;
   const grantData = content.grant;
-  const grantHref = `/grant/${content.id}/${content.slug}`;
+  const grantHref = buildWorkUrl({
+    id: content.id,
+    slug: content.slug,
+    contentType: 'funding_request',
+  });
 
   const sectionRef = useRef<HTMLElement>(null);
   const [hasBeenVisible, setHasBeenVisible] = useState(false);

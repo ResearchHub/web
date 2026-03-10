@@ -43,9 +43,8 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { contentTabsHidden: feedTabsHidden } = useFeedTabsVisibility();
   const showTopBarFeedTabs = isFeedPage && feedTabsHidden;
 
-  const isFundingPage = pathname === '/fund' || pathname.startsWith('/fund/grant/');
-  const isGrantPage = pathname.startsWith('/grant/');
-  const showGrantTabs = isFundingPage || isGrantPage;
+  const isFundingPage = pathname === '/fund' || pathname.startsWith('/grant/');
+  const showGrantTabs = isFundingPage;
 
   const activeGrantTitle = useMemo(() => {
     const match = pathname.match(/^\/(?:fund\/)?grant\/(\d+)/);
