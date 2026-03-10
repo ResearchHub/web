@@ -5,7 +5,10 @@ import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 
 export default function FundGrantLoading() {
   return (
-    <PageLayout topBanner={<FundingBannerSkeleton />} rightSidebar={<ActivitySidebarSkeleton />}>
+    <PageLayout
+      topBanner={<FundingBannerSkeleton showTabs />}
+      rightSidebar={<ActivitySidebarSkeleton />}
+    >
       <div>
         {/* ProposalSortAndFilters placeholder */}
         <div className="flex items-center justify-between mt-6 mb-2">

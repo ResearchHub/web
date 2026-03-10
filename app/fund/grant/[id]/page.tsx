@@ -5,11 +5,13 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { ProposalFeed } from '@/components/Funding/ProposalFeed';
 import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
 
-import { GrantInfoBanner } from '@/components/Funding/GrantInfoBanner';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
 import { isDeadlineInFuture } from '@/utils/date';
+import { GrantTabProvider } from '@/components/Funding/GrantPageContent';
+import { GrantBannerWithTabs } from '@/components/Funding/GrantBannerWithTabs';
+import { GrantContentSwitcher } from '@/components/Funding/GrantContentSwitcher';
 
 interface Props {
   params: Promise<{
@@ -38,34 +40,36 @@ export default async function FundGrantPage({ params }: Props) {
   const isActive =
     grant?.status === 'OPEN' && (grant?.endDate ? isDeadlineInFuture(grant.endDate) : true);
 
-  const banner = (
-    <GrantInfoBanner
-      amountUsd={amountUsd}
-      grantId={grantId?.toString()}
-      isActive={isActive}
-      work={work}
-      organization={grant?.organization}
-      description={grant?.description}
-      content={work.previewContent}
-      imageUrl={work.image}
-    />
-  );
-
   return (
-    <PageLayout
-      topBanner={banner}
-      rightSidebar={
-        <Suspense fallback={<ActivitySidebarSkeleton />}>
-          <FundingSidebarServer grantId={grantId} grantTitle={grantTitle} />
-        </Suspense>
-      }
-    >
-      <div id="grant-content">
-        <FundraiseProvider grantId={grantId ? Number(grantId) : undefined}>
-          {grant?.description && <ProposalSortAndFilters variant="grant" />}
-          <ProposalFeed />
-        </FundraiseProvider>
-      </div>
-    </PageLayout>
+    <GrantTabProvider>
+      <PageLayout
+        topBanner={
+          <GrantBannerWithTabs
+            amountUsd={amountUsd}
+            grantId={grantId?.toString()}
+            isActive={isActive}
+            work={work}
+            organization={grant?.organization}
+          />
+        }
+        rightSidebar={
+          <Suspense fallback={<ActivitySidebarSkeleton />}>
+            <FundingSidebarServer grantId={grantId} grantTitle={grantTitle} />
+          </Suspense>
+        }
+      >
+        <GrantContentSwitcher
+          content={work.previewContent}
+          imageUrl={work.image}
+          hasDescription={!!grant?.description}
+          grantId={grantId}
+        >
+          <FundraiseProvider grantId={grantId ? Number(grantId) : undefined}>
+            {grant?.description && <ProposalSortAndFilters variant="grant" />}
+            <ProposalFeed />
+          </FundraiseProvider>
+        </GrantContentSwitcher>
+      </PageLayout>
+    </GrantTabProvider>
   );
 }
