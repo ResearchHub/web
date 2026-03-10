@@ -6,3 +6,4 @@ export { TableRow } from './TableRow';
 export { TableCell } from './TableCell';
 export { TableContainer, type SortableColumn } from './TableContainer';
 export { MobileTableCard, type MobileTableCardProps } from './MobileTableCard';
+export { TableSkeleton, type TableSkeletonProps } from './TableSkeleton';

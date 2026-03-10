@@ -1,4 +1,95 @@
-import { ContentType } from '@/types/work';
+import type { ContentType } from '@/types/work';
+
+export const ALL_CONTENT_TYPES: readonly ContentType[] = [
+  'paper',
+  'post',
+  'preregistration',
+  'question',
+  'discussion',
+  'funding_request',
+];
+
+// URL path segment (first path segment) → ContentType. Aligns with app routes: /paper/, /post/, /question/, /fund/, /grant/
+const ROUTE_SEGMENT_TO_CONTENT_TYPE: Record<string, ContentType> = {
+  paper: 'paper',
+  post: 'post',
+  question: 'question',
+  fund: 'preregistration',
+  grant: 'funding_request',
+};
+
+const SUPPORTED_ROUTE_SEGMENTS = Object.keys(ROUTE_SEGMENT_TO_CONTENT_TYPE).join(', ');
+
+export type ParsedResearchHubUrl = {
+  contentType: ContentType;
+  documentId: string;
+};
+
+export function validateResearchHubUrl(
+  url: string
+): { success: true; parsed: ParsedResearchHubUrl } | { success: false; error: string } {
+  const trimmedUrl = url.trim();
+  if (!trimmedUrl) {
+    return { success: false, error: 'URL is required' };
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmedUrl);
+  } catch {
+    return {
+      success: false,
+      error: 'Invalid URL format, e.g., https://researchhub.com/paper/123/...',
+    };
+  }
+
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (typeof window !== 'undefined' ? window.location.origin : '');
+
+  if (siteUrl) {
+    let siteOrigin: string;
+    try {
+      siteOrigin = new URL(siteUrl).origin;
+    } catch {
+      siteOrigin = siteUrl;
+    }
+    if (parsed.origin !== siteOrigin) {
+      return {
+        success: false,
+        error: `URL must be from ${siteOrigin}. Received a URL from ${parsed.origin}`,
+      };
+    }
+  }
+
+  const segments = parsed.pathname.split('/').filter(Boolean);
+  if (segments.length < 2) {
+    return {
+      success: false,
+      error: 'URL must include a content type and ID (e.g., /paper/123/...)',
+    };
+  }
+
+  const segmentRaw = segments[0].toLowerCase();
+  const documentId = segments[1];
+
+  const contentType = ROUTE_SEGMENT_TO_CONTENT_TYPE[segmentRaw];
+  if (!contentType) {
+    return {
+      success: false,
+      error: `Unsupported content type "${segmentRaw}". Supported route segments: ${SUPPORTED_ROUTE_SEGMENTS}`,
+    };
+  }
+
+  if (!/^\d+$/.test(documentId)) {
+    return {
+      success: false,
+      error: `Invalid document ID "${documentId}". Expected a numeric ID`,
+    };
+  }
+
+  return { success: true, parsed: { contentType, documentId } };
+}
 
 /**
  * Converts a string to a URL-friendly slug
