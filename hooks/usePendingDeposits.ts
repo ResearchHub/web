@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { TransactionService, PendingDeposit } from '@/services/transaction.service';
 import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
+
+const POLL_INTERVAL_MS = 5000;
 
 interface usePendingDepositsReturn {
   deposits: PendingDeposit[];
@@ -14,82 +16,54 @@ interface usePendingDepositsReturn {
   hasPendingDepositFeed: boolean;
 }
 
-export function usePendingDeposits(): usePendingDepositsReturn {
+interface UsePendingDepositsOptions {
+  onDepositResolved?: () => void;
+}
+
+export function usePendingDeposits(options?: UsePendingDepositsOptions): usePendingDepositsReturn {
   const { data: session, status } = useSession();
   const [deposits, setDeposits] = useState<PendingDeposit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Function to fetch all pages of deposits
-  const fetchAllDeposits = useCallback(async () => {
-    if (!session) return [];
+  // Track previous pending deposit IDs to detect resolved deposits
+  const prevDepositIdsRef = useRef<Set<number>>(new Set());
+  const onDepositResolvedRef = useRef(options?.onDepositResolved);
+  onDepositResolvedRef.current = options?.onDepositResolved;
 
-    try {
-      let allDeposits: PendingDeposit[] = [];
-      let nextPageUrl: string | null = null;
-      let currentPage = 1;
-
-      do {
-        // Get the current page of deposits
-        const response = await TransactionService.getDeposits(currentPage);
-
-        // Add the results to our collection
-        allDeposits = [...allDeposits, ...response.results];
-
-        // Update pagination info for the next iteration
-        nextPageUrl = response.next;
-        currentPage++;
-      } while (nextPageUrl !== null);
-
-      return allDeposits;
-    } catch (err) {
-      console.error('Error fetching all deposits:', err);
-      throw err;
-    }
-  }, [session]);
-
-  const fetchPendingDepositFeed = useCallback(
+  const fetchPendingDeposits = useCallback(
     async (isBackgroundRefresh = false) => {
       if (!session) return;
 
       try {
-        // Only show loading indicator on initial load, not during background refreshes
         if (!isBackgroundRefresh) {
           setIsLoading(true);
         } else {
           setIsRefreshing(true);
         }
 
-        // Fetch all deposits across all pages
-        const allDeposits = await fetchAllDeposits();
+        const response = await TransactionService.getPendingDeposits();
+        const pendingDeposits = response.results;
 
-        // Filter for pending deposits only
-        const pendingDeposits = allDeposits.filter(
-          (deposit) =>
-            deposit.paid_status === 'PENDING' ||
-            (deposit.amount !== '0' && deposit.paid_status === null)
-        );
+        // Check if any previously-pending deposits have resolved
+        const currentIds = new Set(pendingDeposits.map((d) => d.id));
+        const prevIds = prevDepositIdsRef.current;
 
-        // Deduplicate deposits with the same transaction hash
-        const uniqueDeposits = new Map<string, PendingDeposit>();
-        pendingDeposits.forEach((deposit) => {
-          // Use transaction hash as the unique key
-          const uniqueKey = deposit.transaction_hash;
-
-          // If this hash is new or more recent than existing entry, store it
-          if (!uniqueDeposits.has(uniqueKey)) {
-            uniqueDeposits.set(uniqueKey, deposit);
+        if (prevIds.size > 0) {
+          const resolvedIds = [...prevIds].filter((id) => !currentIds.has(id));
+          if (resolvedIds.length > 0) {
+            toast.success('Deposit confirmed');
+            onDepositResolvedRef.current?.();
           }
-        });
+        }
 
-        // Convert back to array
-        const dedupedDeposits = Array.from(uniqueDeposits.values());
+        prevDepositIdsRef.current = currentIds;
 
-        // Sort deposits by date in descending order (most recent first)
-        const sortedDeposits = [...dedupedDeposits].sort((a, b) => {
-          return new Date(b.created_date).getTime() - new Date(a.created_date).getTime();
-        });
+        // Sort by most recent first
+        const sortedDeposits = [...pendingDeposits].sort(
+          (a, b) => new Date(b.created_date).getTime() - new Date(a.created_date).getTime()
+        );
 
         setDeposits(sortedDeposits);
       } catch (err) {
@@ -106,9 +80,10 @@ export function usePendingDeposits(): usePendingDepositsReturn {
         }
       }
     },
-    [session, fetchAllDeposits]
+    [session]
   );
 
+  // Initial fetch
   useEffect(() => {
     if (status === 'loading') return;
 
@@ -117,14 +92,22 @@ export function usePendingDeposits(): usePendingDepositsReturn {
       return;
     }
 
-    fetchPendingDepositFeed();
+    fetchPendingDeposits();
+  }, [session, status, fetchPendingDeposits]);
 
-    // No more polling interval here since it will be handled by the parent
-  }, [session, status, fetchPendingDepositFeed]);
+  useEffect(() => {
+    if (status === 'loading' || !session) return;
+
+    const intervalId = setInterval(() => {
+      fetchPendingDeposits(true);
+    }, POLL_INTERVAL_MS);
+
+    return () => clearInterval(intervalId);
+  }, [session, status, fetchPendingDeposits]);
 
   const refreshDeposits = useCallback(() => {
-    return fetchPendingDepositFeed(true);
-  }, [fetchPendingDepositFeed]);
+    return fetchPendingDeposits(true);
+  }, [fetchPendingDeposits]);
 
   return {
     deposits,
