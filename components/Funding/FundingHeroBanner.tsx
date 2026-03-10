@@ -47,8 +47,8 @@ export function FundingHeroBanner({ className, totalFundingUsd }: FundingHeroBan
             </Link>
             <Link href="/notebook?newGrant=true">
               <Button variant="outlined" size="lg" className="gap-2 w-full">
-                Create Grant
                 <Plus className="w-5 h-5" />
+                Create Funding
               </Button>
             </Link>
           </div>

@@ -142,13 +142,22 @@ export const BaseModal: FC<BaseModalProps> = ({
                     className={cn('relative w-full flex-shrink-0 bg-gray-100', headerImageHeight)}
                   >
                     <Image src={headerImage} alt="" fill className="object-cover" sizes="600px" />
+                    {showCloseButton && (
+                      <Button
+                        onClick={onClose}
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-3 right-3 z-10 bg-black/40 hover:bg-black/60 text-white hover:text-white rounded-full"
+                        aria-label="Close"
+                      >
+                        <X className="h-5 w-5" />
+                      </Button>
+                    )}
                   </div>
                 )}
-                {(showCloseButton || title) && (
+                {!headerImage && (showCloseButton || title) && (
                   <div ref={headerRef} className="relative">
-                    {/* Header with close button - only show for non-INTRO steps */}
                     <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between gap-4">
-                      {/* Left: headerAction */}
                       <div className="flex items-center min-w-0 flex-1">
                         {headerAction}
                         {title && (
