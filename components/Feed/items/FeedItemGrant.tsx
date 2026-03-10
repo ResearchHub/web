@@ -110,8 +110,6 @@ export const FeedItemGrant: FC<FeedItemGrantRefactoredProps> = ({
             relatedDocumentId={relatedDocumentId}
             relatedDocumentContentType={relatedDocumentContentType}
             relatedDocumentUnifiedDocumentId={grant.unifiedDocumentId}
-            grantId={grant.grant?.id}
-            grantStatus={grant.grant?.status}
           />
         }
         leftContent={

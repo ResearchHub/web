@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, useState, useContext } from 'react';
-import { MoreHorizontal, Flag, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { MoreHorizontal, Flag, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
@@ -12,11 +12,6 @@ import { ContentType } from '@/types/work';
 import { ListDetailContext } from '@/components/UserList/lib/user-list';
 import { toast } from 'react-hot-toast';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
-import { useUser } from '@/contexts/UserContext';
-import { useGrantModeration } from '@/hooks/useGrantModeration';
-import { DeclineGrantModal } from '@/components/Moderators/DeclineGrantModal';
-import { ID } from '@/types/root';
-import { GrantStatus } from '@/types/grant';
 
 interface FeedItemMenuButtonProps {
   feedContentType: FeedContentType;
@@ -25,8 +20,6 @@ interface FeedItemMenuButtonProps {
   votableEntityId: number;
   actionLabel?: string;
   relatedDocumentUnifiedDocumentId?: string;
-  grantId?: ID;
-  grantStatus?: GrantStatus;
 }
 
 export const FeedItemMenuButton: FC<FeedItemMenuButtonProps> = ({
@@ -36,25 +29,10 @@ export const FeedItemMenuButton: FC<FeedItemMenuButtonProps> = ({
   relatedDocumentContentType,
   actionLabel = 'Report',
   relatedDocumentUnifiedDocumentId,
-  grantId,
-  grantStatus,
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isOpen, contentToFlag, openFlagModal, closeFlagModal } = useFlagModal();
-  const { user } = useUser();
-  const {
-    moderationAction,
-    isDeclineModalOpen,
-    openDeclineModal,
-    closeDeclineModal,
-    approveGrant,
-    declineGrant,
-  } = useGrantModeration(grantId);
-
-  const isModerator = !!user?.isModerator;
-  const isGrantPending = feedContentType === 'GRANT' && grantStatus === 'PENDING' && !!grantId;
-  const isModerating = moderationAction !== null;
 
   const listDetailContext = useContext(ListDetailContext);
 
@@ -76,25 +54,15 @@ export const FeedItemMenuButton: FC<FeedItemMenuButtonProps> = ({
     }
   };
 
-  const handleApproveGrant = async (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setIsMenuOpen(false);
-    await approveGrant();
-  };
-
-  const handleDeclineGrant = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setIsMenuOpen(false);
-    openDeclineModal();
-  };
-
   const handleReport = (e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation();
     }
     executeAuthenticatedAction(() => {
+      // Close the dropdown menu before opening the modal
       setIsMenuOpen(false);
 
+      // Map feedContentType to ContentType
       let contentType: ContentType;
       let commentId: string | undefined;
 
@@ -106,15 +74,16 @@ export const FeedItemMenuButton: FC<FeedItemMenuButtonProps> = ({
         contentType = relatedDocumentContentType || 'funding_request';
       } else if (feedContentType === 'BOUNTY' && relatedDocumentContentType) {
         contentType = relatedDocumentContentType;
-        commentId = votableEntityId.toString();
+        commentId = votableEntityId.toString(); // Use votableEntityId as commentId for bounties
       } else if (feedContentType === 'COMMENT') {
         contentType = relatedDocumentContentType || 'post';
         commentId = votableEntityId.toString();
       } else {
-        contentType = 'post';
+        contentType = 'post'; // Default fallback
       }
 
       openFlagModal(
+        // For comments and bounties, use relatedDocumentId as the documentId
         (feedContentType === 'COMMENT' || feedContentType === 'BOUNTY') && relatedDocumentId
           ? relatedDocumentId.toString()
           : votableEntityId.toString(),
@@ -153,27 +122,6 @@ export const FeedItemMenuButton: FC<FeedItemMenuButtonProps> = ({
           </BaseMenuItem>
         )}
 
-        {isModerator && isGrantPending && (
-          <>
-            <BaseMenuItem
-              onClick={handleApproveGrant}
-              className="flex items-center gap-2"
-              disabled={isModerating}
-            >
-              <CheckCircle className="w-4 h-4 text-green-600" />
-              <span>{moderationAction === 'approving' ? 'Approving...' : 'Approve RFP'}</span>
-            </BaseMenuItem>
-            <BaseMenuItem
-              onClick={handleDeclineGrant}
-              className="flex items-center gap-2"
-              disabled={isModerating}
-            >
-              <XCircle className="w-4 h-4 text-red-600" />
-              <span>Decline RFP</span>
-            </BaseMenuItem>
-          </>
-        )}
-
         <BaseMenuItem onClick={handleReport} className="flex items-center gap-2">
           <Flag className="w-4 h-4" />
           <span>{actionLabel}</span>
@@ -187,15 +135,6 @@ export const FeedItemMenuButton: FC<FeedItemMenuButtonProps> = ({
           documentId={contentToFlag.documentId}
           workType={contentToFlag.contentType}
           commentId={contentToFlag.commentId}
-        />
-      )}
-
-      {isDeclineModalOpen && (
-        <DeclineGrantModal
-          isOpen={isDeclineModalOpen}
-          onClose={closeDeclineModal}
-          onConfirm={declineGrant}
-          isSubmitting={moderationAction === 'declining'}
         />
       )}
     </>

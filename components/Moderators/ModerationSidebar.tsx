@@ -4,7 +4,7 @@ import { FC } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
-import { Flag, BookCheck, UserRoundPen, Users } from 'lucide-react';
+import { Flag, BookCheck, UserRoundPen, Users, FileCheck } from 'lucide-react';
 import { ChevronDown } from 'lucide-react';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
@@ -29,6 +29,12 @@ const navigationItems: NavigationItem[] = [
     href: '/moderators/referral',
     icon: Users,
     description: 'Manage referral program',
+  },
+  {
+    name: 'Pending Works',
+    href: '/moderators/pending-works',
+    icon: FileCheck,
+    description: 'Review pending submissions',
   },
   {
     name: 'Editors',
