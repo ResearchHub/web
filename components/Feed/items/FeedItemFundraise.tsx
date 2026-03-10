@@ -258,7 +258,7 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                   className="flex-shrink-0 rounded-md text-[13px]"
                   onClick={() => setIsContributeModalOpen(true)}
                 >
-                  Fund Research
+                  Fund Proposal
                   <ArrowRight size={14} className="ml-1.5" />
                 </Button>
               ) : (

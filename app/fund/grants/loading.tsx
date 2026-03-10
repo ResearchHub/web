@@ -3,7 +3,7 @@ import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSke
 import { FundingBannerSkeleton } from '@/components/Funding/FundingBannerSkeleton';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 
-export default function EarnLoading() {
+export default function FundGrantsLoading() {
   return (
     <PageLayout topBanner={<FundingBannerSkeleton />} rightSidebar={<ActivitySidebarSkeleton />}>
       <div>

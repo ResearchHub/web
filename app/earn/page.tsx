@@ -2,18 +2,20 @@ import { Suspense } from 'react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
-import { EarnPageContent } from './EarnPageContent';
+import { HeroHeader } from '@/components/ui/HeroHeader';
+import { ReviewsPageContent } from './ReviewsPageContent';
 
 export default async function EarnPage() {
   return (
     <PageLayout
+      topBanner={<HeroHeader title="Earn RSC for Peer Reviews" />}
       rightSidebar={
         <Suspense fallback={<ActivitySidebarSkeleton />}>
-          <FundingSidebarServer />
+          <FundingSidebarServer scope="peer_reviews" />
         </Suspense>
       }
     >
-      <EarnPageContent />
+      <ReviewsPageContent />
     </PageLayout>
   );
 }

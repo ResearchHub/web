@@ -39,12 +39,13 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { contentTabsHidden: feedTabsHidden } = useFeedTabsVisibility();
   const showTopBarFeedTabs = isFeedPage && feedTabsHidden;
 
-  const isFundingPage = pathname === '/fund' || pathname.startsWith('/grant/');
+  const isFundingPage =
+    pathname === '/fund' || pathname.startsWith('/fund/grant') || pathname.startsWith('/grant/');
   const showGrantTabs = isFundingPage;
 
   const currentSearchQuery = pathname === '/search' ? searchParams.get('q') : null;
   const pageInfo = getPageInfo(pathname, searchParams);
-  const showBackButton = pageInfo && !isRootNavigationPage(pathname);
+  const showBackButton = pageInfo && !isRootNavigationPage(pathname) && !isFundingPage;
 
   const profilePercent = useCallback(() => {
     if (!user) return 100;

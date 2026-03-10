@@ -2,13 +2,10 @@
 
 import { X } from 'lucide-react';
 import { FeedContent } from '@/components/Feed/FeedContent';
-import { MainPageHeader } from '@/components/ui/MainPageHeader';
-import Icon from '@/components/ui/icons/Icon';
 import { BountyHubSelector as HubsSelector } from '@/components/Earn/BountyHubSelector';
 import SortDropdown, { SortOption } from '@/components/ui/SortDropdown';
 import { Badge } from '@/components/ui/Badge';
 import { useBounties } from '@/hooks/useBounties';
-import { EarnSectionCards } from '@/components/Funding/EarnSectionCards';
 
 export function ReviewsPageContent() {
   const {
@@ -75,25 +72,12 @@ export function ReviewsPageContent() {
     </div>
   );
 
-  const header = (
-    <div>
-      <MainPageHeader
-        icon={<Icon name="earn1" size={26} color="#3971ff" />}
-        title="Earn ResearchCoin"
-        subtitle="Earn ResearchCoin by completing scientific bounties"
-        showTitle={false}
-      />
-      <EarnSectionCards />
-    </div>
-  );
-
   return (
     <FeedContent
       entries={entries}
       isLoading={isLoading}
       hasMore={hasMore}
       loadMore={loadMore}
-      header={header}
       filters={filters}
       showBountyFooter={false}
       showPostHeaders={false}

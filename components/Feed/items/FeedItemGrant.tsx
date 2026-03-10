@@ -157,7 +157,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
                 className="flex-shrink-0 rounded-md text-[13px]"
                 onClick={() => router.push(grantPageUrl)}
               >
-                Apply
+                View Details
                 <ArrowRight size={14} className="ml-1.5" />
               </Button>
             ) : (

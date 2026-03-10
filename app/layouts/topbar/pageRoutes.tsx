@@ -27,6 +27,7 @@ export const ROOT_NAVIGATION_PATHS = new Set([
   '/feed',
   '/earn',
   '/fund',
+  '/fund/grants',
   '/dashboard',
   '/dashboard/impact',
   '/journal',
@@ -103,13 +104,10 @@ const ROUTE_RULES: RouteRule[] = [
   },
   {
     match: (p) => p.startsWith('/earn'),
-    getInfo: (_p, searchParams) => {
-      const earnTab = searchParams?.get('tab') || 'awards';
-      return {
-        title: earnTab === 'reviews' ? 'Peer Reviews' : 'Funding Opportunities',
-        icon: <Icon name="earn1" size={24} className="text-gray-900" />,
-      };
-    },
+    getInfo: () => ({
+      title: 'Earn',
+      icon: <Icon name="earn1" size={24} className="text-gray-900" />,
+    }),
   },
   {
     match: (p) => p.startsWith('/journal'),
@@ -140,7 +138,7 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p === '/fund' || p.startsWith('/grant/'),
+    match: (p) => p === '/fund' || p.startsWith('/fund/grant') || p.startsWith('/grant/'),
     getInfo: () => ({
       title: 'Fund',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,

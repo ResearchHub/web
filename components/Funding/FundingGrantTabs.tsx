@@ -29,7 +29,7 @@ export const FundingGrantTabs: FC = () => {
   const isPending = !hasFetchedRef.current && grants.length === 0;
 
   const activeTab = useMemo(() => {
-    if (pathname === '/awards') return 'browse';
+    if (pathname === '/fund/grants') return 'browse';
     const grantMatch = pathname.match(/^\/(?:fund\/)?grant\/(\d+)/);
     if (grantMatch) return `grant-${grantMatch[1]}`;
     return 'all';
@@ -39,7 +39,7 @@ export const FundingGrantTabs: FC = () => {
     const browseTab = {
       id: 'browse',
       label: 'Browse',
-      href: '/earn',
+      href: '/fund/grants',
       icon: LayoutGrid,
     };
 
