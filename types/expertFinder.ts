@@ -1,7 +1,7 @@
 import type { Work } from './work';
 import { transformUnifiedDocument, transformWork } from './work';
 import { createTransformer } from './transformer';
-import { InputType, SearchStatus } from '@/services/expertFinder.service';
+import { InputType, SearchStatus, type SavedTemplateType } from '@/services/expertFinder.service';
 import type { AuthorProfile } from './authorProfile';
 import { transformAuthorProfile } from './authorProfile';
 
@@ -236,6 +236,7 @@ export interface SavedTemplate {
   id: number;
   createdBy: number;
   name: string;
+  templateType: SavedTemplateType;
   contactName: string;
   contactTitle: string;
   contactInstitution: string;
@@ -243,6 +244,8 @@ export interface SavedTemplate {
   contactPhone: string;
   contactWebsite: string;
   outreachContext: string;
+  emailSubject: string;
+  emailBody: string;
   createdDate: string;
   updatedDate: string;
 }
@@ -258,6 +261,7 @@ export const transformSavedTemplate = createTransformer<any, SavedTemplate>((raw
   id: raw.id ?? 0,
   createdBy: raw.created_by ?? 0,
   name: raw.name ?? '',
+  templateType: raw.template_type ?? 'prompt-context',
   contactName: raw.contact_name ?? '',
   contactTitle: raw.contact_title ?? '',
   contactInstitution: raw.contact_institution ?? '',
@@ -265,6 +269,8 @@ export const transformSavedTemplate = createTransformer<any, SavedTemplate>((raw
   contactPhone: raw.contact_phone ?? '',
   contactWebsite: raw.contact_website ?? '',
   outreachContext: raw.outreach_context ?? '',
+  emailSubject: raw.email_subject ?? '',
+  emailBody: raw.email_body ?? '',
   createdDate: raw.created_date ?? '',
   updatedDate: raw.updated_date ?? '',
 }));

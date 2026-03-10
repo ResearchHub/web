@@ -9,7 +9,7 @@ import { TableCell } from './TableCell';
 
 export interface SortableColumn {
   key: string;
-  label: string;
+  label: ReactNode;
   sortable?: boolean;
 }
 

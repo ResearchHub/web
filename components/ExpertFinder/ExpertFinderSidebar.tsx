@@ -17,12 +17,6 @@ const navigationItems: SidebarNavItem[] = [
     icon: FileText,
     description: 'Contact & context templates',
   },
-  {
-    name: 'Outreach',
-    href: '/expert-finder/outreach',
-    icon: Send,
-    description: 'Generated emails',
-  },
 ];
 
 export const ExpertFinderSidebar: FC = () => <SidebarNav items={navigationItems} />;

@@ -133,9 +133,11 @@ export interface CreateDraftEmailPayload {
 }
 
 export type UpdateGeneratedEmailPayload = Partial<CreateDraftEmailPayload>;
+export type SavedTemplateType = 'prompt-context' | 'fixed-template';
 
 export interface CreateSavedTemplatePayload {
   name: string;
+  template_type: SavedTemplateType;
   contact_name?: string;
   contact_title?: string;
   contact_institution?: string;
@@ -143,10 +145,13 @@ export interface CreateSavedTemplatePayload {
   contact_phone?: string;
   contact_website?: string;
   outreach_context?: string;
+  email_subject?: string;
+  email_body?: string;
 }
 
 export interface UpdateSavedTemplatePayload {
   name?: string;
+  template_type?: SavedTemplateType;
   contact_name?: string;
   contact_title?: string;
   contact_institution?: string;
@@ -154,6 +159,8 @@ export interface UpdateSavedTemplatePayload {
   contact_phone?: string;
   contact_website?: string;
   outreach_context?: string;
+  email_subject?: string;
+  email_body?: string;
 }
 
 export class ExpertFinderService {
@@ -333,15 +340,23 @@ export class ExpertFinderService {
   static async listEmails(params?: {
     limit?: number;
     offset?: number;
+    search_id?: number | string;
   }): Promise<GeneratedEmailListResponse> {
     const limit = Math.min(params?.limit ?? 20, 100);
     const offset = params?.offset ?? 0;
+    const searchParams = new URLSearchParams({
+      limit: String(limit),
+      offset: String(offset),
+    });
+    if (params?.search_id != null && params.search_id !== '') {
+      searchParams.set('search_id', String(params.search_id));
+    }
     const response = await ApiClient.get<{
       emails: Record<string, unknown>[];
       total: number;
       limit: number;
       offset: number;
-    }>(`${this.BASE_PATH}/emails/?limit=${limit}&offset=${offset}`);
+    }>(`${this.BASE_PATH}/emails/?${searchParams.toString()}`);
     return {
       emails: Array.isArray(response.emails)
         ? response.emails.map((item) => transformGeneratedEmail(item))
@@ -377,6 +392,35 @@ export class ExpertFinderService {
 
   static async deleteEmail(emailId: number | string): Promise<void> {
     return ApiClient.deleteNoContent(`${this.BASE_PATH}/emails/${emailId}/`);
+  }
+
+  /**
+   * Send generated email(s) to experts via SES.
+   * POST /api/research_ai/expert-finder/emails/send/
+   */
+  static async sendEmails(payload: {
+    generated_email_ids: number[];
+    reply_to?: string;
+    cc?: string[];
+  }): Promise<{ sent: number }> {
+    const body: Record<string, unknown> = {
+      generated_email_ids: payload.generated_email_ids,
+    };
+    if (payload.reply_to != null) body.reply_to = payload.reply_to;
+    if (payload.cc != null && payload.cc.length > 0) body.cc = payload.cc;
+    const raw = await ApiClient.post<{ sent: number }>(`${this.BASE_PATH}/emails/send/`, body);
+    return { sent: raw.sent ?? 0 };
+  }
+
+  /**
+   * Send generated email(s) to the current user for preview/testing.
+   * POST /api/research_ai/expert-finder/emails/preview/
+   */
+  static async previewEmails(generatedEmailIds: number[]): Promise<{ sent: number }> {
+    const raw = await ApiClient.post<{ sent: number }>(`${this.BASE_PATH}/emails/preview/`, {
+      generated_email_ids: generatedEmailIds,
+    });
+    return { sent: raw.sent ?? 0 };
   }
 
   // ── Saved templates ──────────────────────────────────────────────────────

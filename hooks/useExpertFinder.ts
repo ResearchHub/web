@@ -369,6 +369,7 @@ interface UseGeneratedEmailsState {
 interface UseGeneratedEmailsParams {
   limit?: number;
   offset?: number;
+  searchId?: number | string;
   immediate?: boolean;
 }
 
@@ -393,7 +394,12 @@ export function useGeneratedEmails(params?: UseGeneratedEmailsParams): UseGenera
       try {
         setIsLoading(true);
         setError(null);
-        const response = await ExpertFinderService.listEmails(fetchParams ?? params);
+        const merged = fetchParams ?? params;
+        const response = await ExpertFinderService.listEmails({
+          limit: merged?.limit,
+          offset: merged?.offset,
+          search_id: merged?.searchId != null ? merged.searchId : undefined,
+        });
         setEmails(response.emails);
         setPagination({
           total: response.total,
@@ -407,7 +413,7 @@ export function useGeneratedEmails(params?: UseGeneratedEmailsParams): UseGenera
         setIsLoading(false);
       }
     },
-    [params?.limit, params?.offset]
+    [params?.limit, params?.offset, params?.searchId]
   );
 
   const immediate = params?.immediate !== false;
@@ -538,6 +544,90 @@ export function useDeleteGeneratedEmail(): UseDeleteGeneratedEmailReturn {
   }, []);
 
   return [{ isLoading, error }, deleteEmail];
+}
+
+// ── usePreviewEmails ─────────────────────────────────────────────────────────
+
+interface UsePreviewEmailsState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type PreviewEmailsFn = (generatedEmailIds: number[]) => Promise<{ sent: number }>;
+type UsePreviewEmailsReturn = [UsePreviewEmailsState, PreviewEmailsFn];
+
+/**
+ * Send generated email(s) to the current user for preview/testing.
+ */
+export function usePreviewEmails(): UsePreviewEmailsReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const previewEmails = useCallback(
+    async (generatedEmailIds: number[]): Promise<{ sent: number }> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await ExpertFinderService.previewEmails(generatedEmailIds);
+        return response;
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to send preview email';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  return [{ isLoading, error }, previewEmails];
+}
+
+// ── useSendEmails ─────────────────────────────────────────────────────────────
+
+interface UseSendEmailsState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type SendEmailsFn = (payload: {
+  generated_email_ids: number[];
+  reply_to?: string;
+  cc?: string[];
+}) => Promise<{ sent: number }>;
+type UseSendEmailsReturn = [UseSendEmailsState, SendEmailsFn];
+
+/**
+ * Send generated email(s) to experts via SES.
+ */
+export function useSendEmails(): UseSendEmailsReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const sendEmails = useCallback(
+    async (payload: {
+      generated_email_ids: number[];
+      reply_to?: string;
+      cc?: string[];
+    }): Promise<{ sent: number }> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await ExpertFinderService.sendEmails(payload);
+        return response;
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to send emails';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  return [{ isLoading, error }, sendEmails];
 }
 
 // ── useSavedTemplates ────────────────────────────────────────────────────────
