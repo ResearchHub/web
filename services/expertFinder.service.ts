@@ -58,10 +58,6 @@ export const REGION_OPTIONS: { value: Region; label: string }[] = [
 
 export const DEFAULT_REGION: Region = 'all_regions';
 
-export function getExpertiseLevelLabel(value: ExpertiseLevel): string {
-  return EXPERTISE_LEVEL_OPTIONS.find((o) => o.value === value)?.label ?? value;
-}
-
 export function getRegionLabel(value: Region): string {
   return REGION_OPTIONS.find((o) => o.value === value)?.label ?? value;
 }
@@ -248,51 +244,6 @@ export class ExpertFinderService {
   }
 
   /**
-   * Resolves a content type + document ID to a unified document ID.
-   * Fetches the document via PaperService (paper) or PostService (all other types)
-   * and returns its unifiedDocumentId. Exhaustive on ContentType (assertNever in default).
-   *
-   * @throws {Error} if the document cannot be fetched or has no unified document ID
-   */
-  static async resolveUnifiedDocumentId(
-    contentType: ContentType,
-    documentId: string
-  ): Promise<number> {
-    let unifiedDocumentId: number | null | undefined;
-
-    try {
-      switch (contentType) {
-        case 'paper': {
-          const work = await PaperService.get(documentId);
-          unifiedDocumentId = work.unifiedDocumentId;
-          break;
-        }
-        case 'post':
-        case 'question':
-        case 'discussion':
-        case 'preregistration':
-        case 'funding_request': {
-          const work = await PostService.get(documentId);
-          unifiedDocumentId = work.unifiedDocumentId;
-          break;
-        }
-        default: {
-          assertNever(contentType, true);
-        }
-      }
-    } catch (err) {
-      const detail = err instanceof Error ? err.message : 'Unknown error';
-      throw new Error(`Could not load the document (${contentType}/${documentId}). ${detail}`);
-    }
-
-    if (!unifiedDocumentId) {
-      throw new Error(`Could not resolve unified document ID for ${contentType}/${documentId}`);
-    }
-
-    return unifiedDocumentId;
-  }
-
-  /**
    * Fetch a work by unified document ID.
    */
   static async fetchWorkByUnifiedDocumentId(unifiedDocumentId: number): Promise<Work | null> {
@@ -371,11 +322,6 @@ export class ExpertFinderService {
     const raw = await ApiClient.get<Record<string, unknown>>(
       `${this.BASE_PATH}/emails/${emailId}/`
     );
-    return transformGeneratedEmail(raw);
-  }
-
-  static async createDraftEmail(payload: CreateDraftEmailPayload = {}): Promise<GeneratedEmail> {
-    const raw = await ApiClient.post<Record<string, unknown>>(`${this.BASE_PATH}/emails/`, payload);
     return transformGeneratedEmail(raw);
   }
 

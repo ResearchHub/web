@@ -19,7 +19,6 @@ const interactiveClass =
   'hover:shadow-md hover:border-gray-300 transition-all active:bg-gray-50 cursor-pointer';
 
 /**
- * Reusable card for list/item views (e.g. mobile table alternatives).
  * Use with `onClick` for tappable rows (library, templates, outreach); use without for custom layout (e.g. editors with dropdown).
  */
 export function ListCard({ children, onClick, trailing, className }: ListCardProps) {

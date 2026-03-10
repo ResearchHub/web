@@ -138,7 +138,6 @@ export function GenerateEmailModal({
       <div className="space-y-4">
         <Dropdown
           label="Email Purpose"
-          helperText="Select the purpose of your email to generate a personalized template"
           trigger={
             <button
               type="button"
@@ -198,7 +197,6 @@ export function GenerateEmailModal({
 
         <Dropdown
           label="Context Template"
-          helperText="Select a saved template to provide either AI context or a fixed subject/body template."
           trigger={
             <button
               type="button"

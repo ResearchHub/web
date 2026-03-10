@@ -3,11 +3,8 @@ import { cn } from '@/utils/styles';
 
 export interface BaseSectionProps {
   children: ReactNode;
-  /** Extra class names (merged with base styles). */
   className?: string;
-  /** Vertical spacing between children. Default 4 (space-y-4). Use 0 for none. */
   spaceY?: 0 | 4 | 6;
-  /** Render as div instead of section. */
   as?: 'section' | 'div';
 }
 

@@ -85,9 +85,7 @@ export const SidebarNav: FC<SidebarNavProps> = ({ items }) => {
 
 interface SidebarNavMenuProps {
   items: SidebarNavItem[];
-  /** Label above the dropdown (e.g. "Expert Finder"). */
   menuTitle: string;
-  /** Button label when no item is selected (e.g. "Expert Finder"). */
   triggerFallbackLabel: string;
 }
 

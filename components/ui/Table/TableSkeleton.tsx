@@ -10,16 +10,10 @@ import { TableHeader } from '@/components/ui/Table/TableHeader';
 import type { SortableColumn } from '@/components/ui/Table/TableContainer';
 
 export interface TableSkeletonProps {
-  /** Column definitions (key + label); headers and cell count match this. */
   columns: SortableColumn[];
-  /** Number of skeleton rows (default 10). */
   rowCount?: number;
 }
 
-/**
- * Generic table loading skeleton. Use with the same columns as the real table
- * (e.g. SEARCH_HISTORY_COLUMNS, OUTREACH_TABLE_COLUMNS) for consistent header labels.
- */
 export function TableSkeleton({ columns, rowCount = 10 }: TableSkeletonProps) {
   return (
     <div className="w-full">

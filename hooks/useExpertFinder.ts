@@ -5,7 +5,6 @@ import {
   ExpertFinderService,
   type CreateSavedTemplatePayload,
   type ExpertSearchCreatePayload,
-  type GenerateEmailPayload,
   type UpdateGeneratedEmailPayload,
   type UpdateSavedTemplatePayload,
 } from '@/services/expertFinder.service';
@@ -296,65 +295,6 @@ export function useDocumentInvited(
   }
 
   return { data, isLoading, error, refresh };
-}
-
-// ── useGenerateEmail ────────────────────────────────────────────────────────
-
-interface UseGenerateEmailState {
-  subject: string | null;
-  body: string | null;
-  email: GeneratedEmail | null;
-  isLoading: boolean;
-  error: string | null;
-}
-
-type GenerateEmailFn = (
-  payload: GenerateEmailPayload,
-  options?: { save?: boolean; action?: 'generate' }
-) => Promise<{ subject: string; body: string } | GeneratedEmail>;
-
-type UseGenerateEmailReturn = [UseGenerateEmailState, GenerateEmailFn];
-
-export function useGenerateEmail(): UseGenerateEmailReturn {
-  const [subject, setSubject] = useState<string | null>(null);
-  const [body, setBody] = useState<string | null>(null);
-  const [email, setEmail] = useState<GeneratedEmail | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const generateEmail = useCallback(
-    async (
-      payload: GenerateEmailPayload,
-      options?: { save?: boolean; action?: 'generate' }
-    ): Promise<{ subject: string; body: string } | GeneratedEmail> => {
-      setIsLoading(true);
-      setError(null);
-      setSubject(null);
-      setBody(null);
-      setEmail(null);
-      try {
-        const result = await ExpertFinderService.generateEmail(payload, options);
-        if ('subject' in result && 'body' in result && !('id' in result)) {
-          setSubject(result.subject);
-          setBody(result.body);
-          return result;
-        }
-        setEmail(result as GeneratedEmail);
-        setSubject((result as GeneratedEmail).emailSubject);
-        setBody((result as GeneratedEmail).emailBody);
-        return result as GeneratedEmail;
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to generate email';
-        setError(message);
-        throw err;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    []
-  );
-
-  return [{ subject, body, email, isLoading, error }, generateEmail];
 }
 
 // ── useGeneratedEmails ──────────────────────────────────────────────────────
