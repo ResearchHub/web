@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ArrowUpFromLine } from 'lucide-react';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
+import { GrantDetailsModal } from '@/components/modals/GrantDetailsModal';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { Work } from '@/types/work';
@@ -20,6 +21,9 @@ interface GrantInfoBannerProps {
   isActive?: boolean;
   work?: Work;
   organization?: string;
+  description?: string;
+  content?: string;
+  imageUrl?: string;
 }
 
 export const GrantInfoBanner = ({
@@ -29,8 +33,12 @@ export const GrantInfoBanner = ({
   isActive = true,
   work,
   organization,
+  description,
+  content,
+  imageUrl,
 }: GrantInfoBannerProps) => {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   return (
     <>
@@ -75,19 +83,22 @@ export const GrantInfoBanner = ({
                   <ArrowUpFromLine className="w-5 h-5" />
                 </Button>
               )}
-              <Button
-                variant="outlined"
-                size="lg"
-                onClick={() => {
-                  document.getElementById('grant-content')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
+              <Button variant="outlined" size="lg" onClick={() => setIsDetailsModalOpen(true)}>
                 View details
               </Button>
             </div>
           </div>
         </div>
       </div>
+
+      <GrantDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        onSubmitProposal={() => setIsApplyModalOpen(true)}
+        content={content}
+        imageUrl={imageUrl}
+        isActive={isActive}
+      />
 
       {grantId && (
         <ApplyToGrantModal

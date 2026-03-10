@@ -2,6 +2,7 @@
 
 import { FC, Fragment, ReactNode, useRef, useLayoutEffect, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
+import Image from 'next/image';
 import { X } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
@@ -20,6 +21,9 @@ interface BaseModalProps {
   headerAction?: ReactNode;
   className?: string; // Additional classes to override default styling
   contentClassName?: string; // Additional classes for the scrollable content wrapper
+  /** Optional banner image displayed above the header */
+  headerImage?: string;
+  headerImageHeight?: string;
 }
 
 export const BaseModal: FC<BaseModalProps> = ({
@@ -35,6 +39,8 @@ export const BaseModal: FC<BaseModalProps> = ({
   headerAction,
   className,
   contentClassName,
+  headerImage,
+  headerImageHeight = 'h-[100px]',
 }) => {
   const headerRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
@@ -131,6 +137,13 @@ export const BaseModal: FC<BaseModalProps> = ({
                   e.stopPropagation();
                 }}
               >
+                {headerImage && (
+                  <div
+                    className={cn('relative w-full flex-shrink-0 bg-gray-100', headerImageHeight)}
+                  >
+                    <Image src={headerImage} alt="" fill className="object-cover" sizes="600px" />
+                  </div>
+                )}
                 {(showCloseButton || title) && (
                   <div ref={headerRef} className="relative">
                     {/* Header with close button - only show for non-INTRO steps */}

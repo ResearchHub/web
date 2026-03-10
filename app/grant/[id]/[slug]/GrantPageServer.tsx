@@ -44,6 +44,9 @@ export async function GrantPageServer({ id }: GrantPageServerProps) {
       isActive={isActive}
       work={work}
       organization={grant?.organization}
+      description={grant?.description}
+      content={work.previewContent}
+      imageUrl={work.image}
     />
   );
 
