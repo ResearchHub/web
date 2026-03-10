@@ -104,7 +104,7 @@ export const FundingTimelineModal: React.FC<FundingTimelineModalProps> = ({ isOp
                         </div>
                       </div>
                       <div className="pt-1">
-                        <h4 className="text-lg font-medium text-gray-900">Start your Crowdfund</h4>
+                        <h4 className="text-lg font-medium text-gray-900">Launch your Campaign</h4>
                         <p className="mt-2 text-gray-600">
                           Launch your campaign and let the community start funding your research
                           immediately.

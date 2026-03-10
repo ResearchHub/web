@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { SearchModal } from '@/components/Search/SearchModal';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
@@ -12,11 +12,8 @@ import { Logo } from '@/components/ui/Logo';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { useFeedTabs } from '@/hooks/useFeedTabs';
 import { FundingGrantTabs } from '@/components/Funding/FundingGrantTabs';
-import { useGrants } from '@/contexts/GrantContext';
 import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
 import { useSmartBack } from '@/hooks/useSmartBack';
-import type { FeedGrantContent } from '@/types/feed';
-import { getShortTitle } from '@/components/Funding/lib/getShortTitle';
 
 import { getPageInfo, isRootNavigationPage } from './topbar/pageRoutes';
 import { TopBarBackButton } from './topbar/TopBarBackButton';
@@ -39,36 +36,15 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { showAuthModal } = useAuthModalContext();
 
   const { tabs, activeTab, highlightedTab, handleTabChange, isFeedPage } = useFeedTabs();
-  const { grants } = useGrants();
   const { contentTabsHidden: feedTabsHidden } = useFeedTabsVisibility();
   const showTopBarFeedTabs = isFeedPage && feedTabsHidden;
 
   const isFundingPage = pathname === '/fund' || pathname.startsWith('/grant/');
   const showGrantTabs = isFundingPage;
 
-  const activeGrantTitle = useMemo(() => {
-    const match = pathname.match(/^\/(?:fund\/)?grant\/(\d+)/);
-    if (!match) return null;
-    const postId = Number(match[1]);
-    const grant = grants.find((g) => {
-      const content = g.content as FeedGrantContent;
-      return content.id === postId;
-    });
-    if (!grant) return null;
-    const content = grant.content as FeedGrantContent;
-    return getShortTitle(content.grant.shortTitle, content.title);
-  }, [pathname, grants]);
-
   const currentSearchQuery = pathname === '/search' ? searchParams.get('q') : null;
   const pageInfo = getPageInfo(pathname, searchParams);
   const showBackButton = pageInfo && !isRootNavigationPage(pathname);
-
-  const breadcrumbParent = pageInfo?.breadcrumbParent ?? null;
-  const breadcrumbChild = activeGrantTitle ?? (breadcrumbParent ? (pageInfo?.title ?? null) : null);
-  const breadcrumbParentTitle = activeGrantTitle
-    ? (pageInfo?.title ?? null)
-    : (breadcrumbParent?.title ?? null);
-  const breadcrumbParentHref = breadcrumbParent?.href ?? null;
 
   const profilePercent = useCallback(() => {
     if (!user) return 100;
@@ -117,27 +93,11 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
             {showBackButton && <TopBarBackButton onClick={goBack} variant="mobile" />}
 
-            {pageInfo && (
-              <TopBarBreadcrumb
-                pageInfo={pageInfo}
-                breadcrumbChild={breadcrumbChild}
-                breadcrumbParentTitle={breadcrumbParentTitle}
-                breadcrumbParentHref={breadcrumbParentHref}
-                variant="mobile"
-              />
-            )}
+            {pageInfo && <TopBarBreadcrumb pageInfo={pageInfo} variant="mobile" />}
 
             {showBackButton && <TopBarBackButton onClick={goBack} variant="desktop" />}
 
-            {pageInfo && (
-              <TopBarBreadcrumb
-                pageInfo={pageInfo}
-                breadcrumbChild={breadcrumbChild}
-                breadcrumbParentTitle={breadcrumbParentTitle}
-                breadcrumbParentHref={breadcrumbParentHref}
-                variant="desktop"
-              />
-            )}
+            {pageInfo && <TopBarBreadcrumb pageInfo={pageInfo} variant="desktop" />}
 
             {/* Inline feed tabs — desktop only, shown to the right of the title */}
             {showTopBarFeedTabs && (

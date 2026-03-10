@@ -16,7 +16,6 @@ import { getSourceLogo, getPreprintDisplayName } from '@/utils/preprintUtil';
 export interface PageInfo {
   title: string;
   icon?: React.ReactNode;
-  breadcrumbParent?: { title: string; href: string };
 }
 
 export const ROOT_NAVIGATION_PATHS = new Set([
@@ -109,7 +108,6 @@ const ROUTE_RULES: RouteRule[] = [
       return {
         title: earnTab === 'reviews' ? 'Peer Reviews' : 'Funding Opportunities',
         icon: <Icon name="earn1" size={24} className="text-gray-900" />,
-        breadcrumbParent: { title: 'Earn', href: '/earn' },
       };
     },
   },
@@ -144,7 +142,7 @@ const ROUTE_RULES: RouteRule[] = [
   {
     match: (p) => p === '/fund' || p.startsWith('/grant/'),
     getInfo: () => ({
-      title: 'Funding Marketplace',
+      title: 'Fund',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
     }),
   },
@@ -160,7 +158,6 @@ const ROUTE_RULES: RouteRule[] = [
     getInfo: () => ({
       title: 'Awards',
       icon: <Icon name="earn1" size={24} className="text-gray-900" />,
-      breadcrumbParent: { title: 'Earn', href: '/earn' },
     }),
   },
   {
