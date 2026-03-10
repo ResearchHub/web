@@ -2,6 +2,8 @@
 
 import { Work } from '@/types/work';
 import type { WorkMetadata } from '@/services/metadata.service';
+import { HaveYouPublishedBanner } from '@/components/banners/HaveYouPublishedBanner';
+import { PublishInJournalBanner } from '@/components/banners/PublishInJournalBanner';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 import { SupportersSection } from './components/SupportersSection';
 import { TopicsSection } from './components/TopicsSection';
@@ -11,7 +13,6 @@ import { FormatsSection } from './components/FormatsSection';
 import { VersionsSection } from './components/VersionsSection';
 import { JournalSection } from './components/JournalSection';
 import { useMemo } from 'react';
-import { useUser } from '@/contexts/UserContext';
 
 interface WorkRightSidebarProps {
   work: Work;
@@ -19,8 +20,6 @@ interface WorkRightSidebarProps {
 }
 
 export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
-  const { user } = useUser();
-  const isModerator = !!user?.isModerator;
   // Check if any version is part of the ResearchHub journal
   const hasResearchHubJournalVersions = useMemo(() => {
     return (work.versions || []).some((version) => version.isResearchHubJournal);
