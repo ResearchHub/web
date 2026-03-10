@@ -8,7 +8,6 @@ import { TopicsSection } from './components/TopicsSection';
 import { DOISection } from './components/DOISection';
 import { LicenseSection } from './components/LicenseSection';
 import { FormatsSection } from './components/FormatsSection';
-import { InvitedExpertsSection } from './components/InvitedExpertsSection';
 import { VersionsSection } from './components/VersionsSection';
 import { JournalSection } from './components/JournalSection';
 import { useMemo } from 'react';
@@ -40,7 +39,6 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
       {work.doi && <DOISection doi={work.doi} />}
       {work.postType !== 'QUESTION' && <LicenseSection license={work.license} />}
       <FormatsSection formats={work.formats} />
-      {isModerator && <InvitedExpertsSection unifiedDocumentId={work.unifiedDocumentId} />}
     </div>
   );
 };

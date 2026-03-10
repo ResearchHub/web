@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { cn } from '@/utils/styles';
 
-export interface BaseSectionProps {
+interface BaseSectionProps {
   children: ReactNode;
   className?: string;
   spaceY?: 0 | 4 | 6;
