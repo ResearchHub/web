@@ -205,7 +205,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         )}
 
         {showGrantTabs && (
-          <div className="border-b px-4 lg:px-8 -mt-2 pb-1">
+          <div className="px-4 lg:px-8 -mt-2 pb-1">
             <FundingGrantTabs />
           </div>
         )}

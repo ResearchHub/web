@@ -38,32 +38,28 @@ export default async function FundGrantPage({ params }: Props) {
   const isActive =
     grant?.status === 'OPEN' && (grant?.endDate ? isDeadlineInFuture(grant.endDate) : true);
 
+  const banner = (
+    <GrantInfoBanner
+      amountUsd={amountUsd}
+      grantId={grantId?.toString()}
+      isActive={isActive}
+      work={work}
+      organization={grant?.organization}
+    />
+  );
+
   return (
     <PageLayout
+      topBanner={banner}
       rightSidebar={
         <Suspense fallback={<ActivitySidebarSkeleton />}>
           <FundingSidebarServer grantId={grantId} grantTitle={grantTitle} />
         </Suspense>
       }
     >
-      <div>
+      <div id="grant-content">
         <FundraiseProvider grantId={grantId ? Number(grantId) : undefined}>
-          {grant?.description ? (
-            <>
-              <GrantInfoBanner
-                className="mb-8"
-                description={grant.description}
-                content={work.previewContent}
-                amountUsd={amountUsd}
-                grantId={grantId?.toString()}
-                isActive={isActive}
-                imageUrl={work.image}
-                work={work}
-                organization={grant.organization}
-              />
-              <ProposalSortAndFilters variant="grant" />
-            </>
-          ) : null}
+          {grant?.description && <ProposalSortAndFilters variant="grant" />}
           <ProposalFeed />
         </FundraiseProvider>
       </div>

@@ -26,6 +26,7 @@ interface PageLayoutProps {
   rightSidebar?: boolean | ReactNode;
   className?: string;
   sidebarContentClassName?: string;
+  topBanner?: ReactNode;
 }
 
 function useIsGrantTabsPage() {
@@ -40,6 +41,7 @@ function PageLayoutInner({
   rightSidebar = true,
   className,
   sidebarContentClassName,
+  topBanner,
 }: PageLayoutProps) {
   const {
     scrollContainerRef,
@@ -78,8 +80,15 @@ function PageLayoutInner({
             hasGrantTabs && 'pt-[110px]'
           )}
         >
+          {topBanner && <div className="w-full">{topBanner}</div>}
+
           <div className="flex mx-auto w-full max-w-[1180px]">
-            <main className="flex-1 min-w-0 px-4 tablet:!px-8 py-6 pb-20 tablet:!pb-4 mt-4">
+            <main
+              className={cn(
+                'flex-1 min-w-0 px-4 tablet:!px-8 py-6 pb-20 tablet:!pb-4',
+                !topBanner && 'mt-4'
+              )}
+            >
               <div className={cn('w-full max-w-full tablet:!max-w-[860px]', className)}>
                 {children}
               </div>
