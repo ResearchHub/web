@@ -218,21 +218,23 @@ export function OutreachDetailPageContent({
               Send
             </Button>
           )}
-          <Button
-            variant="outlined"
-            size="sm"
-            className="gap-2"
-            onClick={() => setShowPreviewConfirm(true)}
-            disabled={isSendingPreview}
-            title="Send test email to your inbox"
-          >
-            {isSendingPreview ? (
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-            ) : (
-              <Eye className="h-4 w-4" aria-hidden />
-            )}
-            Preview
-          </Button>
+          {email.status !== 'sent' && (
+            <Button
+              variant="outlined"
+              size="sm"
+              className="gap-2"
+              onClick={() => setShowPreviewConfirm(true)}
+              disabled={isSendingPreview}
+              title="Send test email to your inbox"
+            >
+              {isSendingPreview ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Eye className="h-4 w-4" aria-hidden />
+              )}
+              Preview
+            </Button>
+          )}
           {email.status !== 'sent' && (
             <Button
               variant="default"
@@ -307,18 +309,20 @@ export function OutreachDetailPageContent({
         </div>
       </BaseSection>
 
-      <div className="flex justify-end pt-2">
-        <Button
-          variant="destructive"
-          size="sm"
-          className="gap-2"
-          onClick={() => setShowDeleteConfirm(true)}
-          disabled={isDeleting}
-        >
-          <Trash2 className="h-4 w-4" aria-hidden />
-          Delete
-        </Button>
-      </div>
+      {email.status !== 'sent' && (
+        <div className="flex justify-end pt-2">
+          <Button
+            variant="destructive"
+            size="sm"
+            className="gap-2"
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={isDeleting}
+          >
+            <Trash2 className="h-4 w-4" aria-hidden />
+            Delete
+          </Button>
+        </div>
+      )}
 
       <Modal
         isOpen={showDeleteConfirm}
