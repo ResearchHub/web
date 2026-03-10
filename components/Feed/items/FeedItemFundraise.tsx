@@ -167,7 +167,12 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
           </div>
         )}
 
-        <TitleSection title={post.title} href={fundingPageUrl} onClick={onFeedItemClick} />
+        <TitleSection
+          title={post.title}
+          href={fundingPageUrl}
+          onClick={onFeedItemClick}
+          className="text-md md:!text-md"
+        />
 
         <MetadataSection className="mb-0 py-2">
           {primaryAuthor ? (

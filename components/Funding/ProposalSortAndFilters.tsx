@@ -27,7 +27,7 @@ function SortDropdown() {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+        className="inline-flex items-center gap-1 text-base text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
       >
         Sort: <span className="font-medium text-gray-700">{selectedLabel}</span>
         {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -90,11 +90,11 @@ export const ProposalSortAndFilters: FC<ProposalSortAndFiltersProps> = ({
     );
 
   return (
-    <div className={cn('flex items-center justify-between', className)}>
+    <div className={cn('flex items-center justify-between mt-6 mb-2', className)}>
       {isLoading ? (
         <div className="h-5 w-52 rounded bg-gray-200 animate-pulse" />
       ) : (
-        <p className="text-sm text-gray-600">{label}</p>
+        <p className="text-base text-gray-600">{label}</p>
       )}
       <SortDropdown />
     </div>
