@@ -6,11 +6,15 @@ import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilt
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
-import { FundingIntroBanner } from '@/components/Funding/FundingIntroBanner';
+import { FundingHeroBanner } from '@/components/Funding/FundingHeroBanner';
+import { GrantService } from '@/services/grant.service';
 
 export default async function FundPage() {
+  const funding = await GrantService.getAvailableFunding();
+
   return (
     <PageLayout
+      topBanner={<FundingHeroBanner totalFundingUsd={funding.usd} />}
       rightSidebar={
         <Suspense fallback={<ActivitySidebarSkeleton />}>
           <FundingSidebarServer />
@@ -19,9 +23,6 @@ export default async function FundPage() {
     >
       <div>
         <FundraiseProvider>
-          <div className="">
-            <FundingIntroBanner />
-          </div>
           <ProposalSortAndFilters variant="all" />
           <ProposalFeed />
         </FundraiseProvider>

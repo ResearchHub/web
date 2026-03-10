@@ -52,10 +52,10 @@ export const GrantInfoBanner = ({
                   <span
                     className={cn(
                       'font-mono font-bold text-base px-2.5 py-0.5 rounded-md tabular-nums',
-                      isActive ? 'text-primary-800 bg-primary-200/70' : 'text-gray-500 bg-gray-100'
+                      isActive ? 'text-green-700 bg-green-100' : 'text-gray-500 bg-gray-100'
                     )}
                   >
-                    {formatCompactAmount(amountUsd)}
+                    {formatCompactAmount(amountUsd)} available
                   </span>
                 </div>
               )}
