@@ -136,6 +136,7 @@ const transformAuditPostToFeedEntry = (
 export const AuditItemPost: FC<AuditItemPostProps> = ({ entry, onAction, view = 'pending' }) => {
   const verdict = entry.verdict;
   const contentUrl = getAuditContentUrl(entry);
+  const userInfo = getAuditUserInfo(entry);
 
   // Transform audit entry to feed entry format
   const { feedEntry, relatedWork } = useMemo(() => transformAuditPostToFeedEntry(entry), [entry]);
@@ -171,6 +172,8 @@ export const AuditItemPost: FC<AuditItemPostProps> = ({ entry, onAction, view = 
           onRemove={() => onAction('remove')}
           view={view}
           hasVerdict={!!verdict}
+          authorId={userInfo.authorId}
+          authorName={userInfo.name}
         />
       </div>
     </div>

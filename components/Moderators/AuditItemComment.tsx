@@ -180,6 +180,7 @@ export const AuditItemComment: FC<AuditItemCommentProps> = ({
   view = 'pending',
 }) => {
   const verdict = entry.verdict;
+  const userInfo = getAuditUserInfo(entry);
 
   // Transform audit entry to feed entry format
   const feedEntry = useMemo(() => transformAuditCommentToFeedEntry(entry), [entry]);
@@ -212,6 +213,8 @@ export const AuditItemComment: FC<AuditItemCommentProps> = ({
           onRemove={() => onAction('remove')}
           view={view}
           hasVerdict={!!verdict}
+          authorId={userInfo.authorId}
+          authorName={userInfo.name}
         />
       </div>
     </div>

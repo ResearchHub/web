@@ -138,6 +138,8 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({ entry, onAction, view 
         onRemove={() => onAction('remove')}
         view={view}
         hasVerdict={!!verdict}
+        authorId={userInfo.authorId}
+        authorName={userInfo.name}
       />
     </div>
   );
