@@ -4,6 +4,7 @@ import { Work } from '@/types/work';
 import { format } from 'date-fns';
 import { Clock } from 'lucide-react';
 import { isDeadlineInFuture } from '@/utils/date';
+import { RollingDeadlineInfo } from './RollingDeadlineInfo';
 
 interface GrantStatusSectionProps {
   work: Work;
@@ -37,17 +38,8 @@ export const GrantStatusSection = ({ work }: GrantStatusSectionProps) => {
         />
         <span>{isActive ? 'Accepting Applications' : 'Closed'}</span>
       </div>
-      {/* Deadline information for open grants */}
-      {isActive && (
-        <div className="text-sm text-gray-600 mt-1">
-          <div className="flex items-center gap-1">
-            <Clock size={14} className="text-gray-500" />
-            <span>
-              Closes {format(endDate, 'MMMM d, yyyy')} at {format(endDate, 'h:mm a')}
-            </span>
-          </div>
-        </div>
-      )}
+      {/* Rolling deadline for open grants */}
+      {isActive && <RollingDeadlineInfo className="mt-1" iconPosition="left" />}
       {!isActive && (
         <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
           <Clock size={14} className="text-gray-500" />
