@@ -197,7 +197,7 @@ export function TemplateVariableEditor({
     editable: !disabled,
     editorProps: {
       attributes: {
-        class: `${minHeightClassName} px-3 py-2 text-sm leading-5 text-gray-900 whitespace-pre-wrap focus:outline-none [&>p]:my-0`,
+        class: `${minHeightClassName} !px-3 !py-1.5 text-sm leading-5 text-gray-900 whitespace-pre-wrap focus:outline-none [&>p]:my-0`,
       },
       handlePaste(view, event) {
         const text = event.clipboardData?.getData('text/plain');
@@ -287,6 +287,7 @@ export function TemplateVariableEditor({
       <div
         className={cn(
           'rounded-lg border border-gray-200 bg-white transition-all focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/20',
+          '[&_.ProseMirror]:!px-3 [&_.ProseMirror]:!py-1.5',
           disabled && 'bg-gray-50 opacity-70',
           '[&_.is-editor-empty:first-child::before]:pointer-events-none',
           '[&_.is-editor-empty:first-child::before]:float-left',
