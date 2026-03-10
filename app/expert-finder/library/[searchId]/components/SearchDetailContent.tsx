@@ -13,7 +13,7 @@ import { SearchDetailHeader } from './SearchDetailHeader';
 import { ExpertResultCard } from './ExpertResultCard';
 import { GenerateEmailModal } from './GenerateEmailModal';
 import { GenerateEmailProgressModal } from './GenerateEmailProgressModal';
-import { GeneratedEmailsList } from '@/app/expert-finder/outreach/components/GeneratedEmailsList';
+import { GeneratedEmailsList } from '@/app/expert-finder/library/[searchId]/outreach/components/GeneratedEmailsList';
 import type { ExpertResult } from '@/types/expertFinder';
 
 const TAB_EXPERT_RESULTS = 'expert-results';

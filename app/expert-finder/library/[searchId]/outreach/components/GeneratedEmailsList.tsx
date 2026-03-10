@@ -31,7 +31,7 @@ const DEFAULT_EMPTY_MESSAGE = (
 export interface GeneratedEmailsListProps {
   /** When provided, only emails for this search are shown */
   searchId?: string | number;
-  /** Used for row click and View link (e.g. /expert-finder/outreach/{id} or /expert-finder/library/{searchId}/outreach/{id}) */
+  /** Used for row click and View link (e.g. /expert-finder/library/{searchId}/outreach/{id}) */
   getDetailHref: (email: GeneratedEmail) => string;
   pageSize?: number;
   /** Custom empty state content when there are no emails */

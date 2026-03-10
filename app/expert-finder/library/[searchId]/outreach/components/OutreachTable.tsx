@@ -11,7 +11,6 @@ import {
 } from '@/app/expert-finder/library/[searchId]/components/GenerateEmailModal';
 import type { GeneratedEmail } from '@/types/expertFinder';
 
-const OUTREACH_DETAIL_PATH = '/expert-finder/outreach';
 const SUBJECT_TRUNCATE_LENGTH = 50;
 
 function truncate(s: string, max: number): string {
@@ -32,7 +31,7 @@ const BASE_COLUMNS: SortableColumn[] = [
 interface OutreachTableProps {
   emails: GeneratedEmail[];
   onRowClick?: (email: GeneratedEmail) => void;
-  getDetailHref?: (email: GeneratedEmail) => string;
+  getDetailHref: (email: GeneratedEmail) => string;
   selectedIds?: Set<number>;
   onSelectionChange?: (ids: Set<number>) => void;
 }
@@ -119,7 +118,7 @@ export function OutreachTable({
       createdAt: formatTimestamp(email.createdAt, false),
       view: (
         <Link
-          href={getDetailHref ? getDetailHref(email) : `${OUTREACH_DETAIL_PATH}/${email.id}`}
+          href={getDetailHref(email)}
           className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
           onClick={(e) => e.stopPropagation()}
         >

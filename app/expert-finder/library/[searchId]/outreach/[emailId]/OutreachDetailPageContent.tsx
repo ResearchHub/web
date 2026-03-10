@@ -23,13 +23,11 @@ import { toast } from 'react-hot-toast';
 
 export interface OutreachDetailPageContentProps {
   emailId: string;
-  breadcrumbVariant?: 'outreach' | 'library';
-  librarySearchId?: string;
+  librarySearchId: string;
 }
 
 export function OutreachDetailPageContent({
   emailId,
-  breadcrumbVariant = 'outreach',
   librarySearchId,
 }: OutreachDetailPageContentProps) {
   const [{ email, isLoading, error }, refetch] = useGeneratedEmailDetail(emailId);
@@ -44,6 +42,8 @@ export function OutreachDetailPageContent({
   const [actionError, setActionError] = useState<string | null>(null);
   const [editSubject, setEditSubject] = useState('');
   const [editBody, setEditBody] = useState('');
+
+  const backHref = `/expert-finder/library/${librarySearchId}?tab=outreach`;
 
   useEffect(() => {
     if (email) {
@@ -81,11 +81,6 @@ export function OutreachDetailPageContent({
       setActionError(e instanceof Error ? e.message : 'Failed to update');
     }
   };
-
-  const backHref =
-    breadcrumbVariant === 'library' && librarySearchId
-      ? `/expert-finder/library/${librarySearchId}?tab=outreach`
-      : '/expert-finder/outreach';
 
   const handleDelete = async () => {
     setActionError(null);
@@ -138,20 +133,15 @@ export function OutreachDetailPageContent({
     );
   }
 
-  const errorBackHref =
-    breadcrumbVariant === 'library' && librarySearchId
-      ? `/expert-finder/library/${librarySearchId}?tab=outreach`
-      : '/expert-finder/outreach';
-
   if (error && !email) {
     return (
       <div className="w-full max-w-4xl mx-auto px-4 py-8">
         <Alert variant="error">{error}</Alert>
         <Link
-          href={errorBackHref}
+          href={backHref}
           className="mt-4 inline-block text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
         >
-          {breadcrumbVariant === 'library' ? 'Back to search' : 'Back to Outreach'}
+          Back to search
         </Link>
       </div>
     );
@@ -162,17 +152,14 @@ export function OutreachDetailPageContent({
   const displayTitle = displaySubject || `Email for ${email.expertName}`;
   const breadcrumbLabel = displayTitle.length > 40 ? `${displayTitle.slice(0, 40)}…` : displayTitle;
 
-  const breadcrumbItems =
-    breadcrumbVariant === 'library' && librarySearchId
-      ? [
-          { label: 'Library', href: '/expert-finder/library' },
-          {
-            label: `Search #${librarySearchId}`,
-            href: `/expert-finder/library/${librarySearchId}?tab=outreach`,
-          },
-          { label: breadcrumbLabel },
-        ]
-      : [{ label: 'Outreach', href: '/expert-finder/outreach' }, { label: breadcrumbLabel }];
+  const breadcrumbItems = [
+    { label: 'Library', href: '/expert-finder/library' },
+    {
+      label: `Search #${librarySearchId}`,
+      href: backHref,
+    },
+    { label: breadcrumbLabel },
+  ];
 
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-8 space-y-6">
