@@ -11,6 +11,7 @@ interface TooltipProps {
   className?: string;
   wrapperClassName?: string;
   delay?: number;
+  hideDelay?: number;
   position?: 'top' | 'bottom' | 'left' | 'right';
   width?: string; // Width class for the tooltip (e.g., 'w-38', 'w-80', 'w-96')
 }
@@ -114,6 +115,7 @@ export function Tooltip({
   className,
   wrapperClassName,
   delay = 100,
+  hideDelay = 200,
   position = 'bottom',
   width = 'w-38',
 }: TooltipProps) {
@@ -155,7 +157,7 @@ export function Tooltip({
       if (!isHoveringTooltip) {
         setIsVisible(false);
       }
-    }, 200);
+    }, hideDelay);
   };
 
   const handleTooltipMouseEnter = () => {
@@ -170,30 +172,6 @@ export function Tooltip({
     setIsVisible(false);
   };
 
-  const handleClick = (e: React.MouseEvent) => {
-    if (!isTouchDevice) return;
-
-    e.stopPropagation();
-    if (triggerRef.current) {
-      setTriggerRect(triggerRef.current.getBoundingClientRect());
-    }
-    setIsVisible((prev) => !prev);
-  };
-
-  // Close tooltip when clicking outside on touch devices
-  useEffect(() => {
-    if (!isTouchDevice || !isVisible) return;
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (triggerRef.current && !triggerRef.current.contains(e.target as Node)) {
-        setIsVisible(false);
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [isTouchDevice, isVisible]);
-
   // Clean up timeout on unmount
   useEffect(() => {
     return () => {
@@ -206,15 +184,18 @@ export function Tooltip({
     };
   }, []);
 
+  if (isTouchDevice) {
+    return <>{children}</>;
+  }
+
   return (
     <>
       <div
         ref={triggerRef}
-        onMouseEnter={!isTouchDevice ? showTooltip : undefined}
-        onMouseLeave={!isTouchDevice ? hideTooltip : undefined}
-        onFocus={!isTouchDevice ? showTooltip : undefined}
-        onBlur={!isTouchDevice ? hideTooltip : undefined}
-        onClick={handleClick}
+        onMouseEnter={showTooltip}
+        onMouseLeave={hideTooltip}
+        onFocus={showTooltip}
+        onBlur={hideTooltip}
         className={cn('inline-flex h-full', wrapperClassName)}
       >
         {children}

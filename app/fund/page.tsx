@@ -7,14 +7,11 @@ import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
 import { FundingHeroBanner } from '@/components/Funding/FundingHeroBanner';
-import { GrantService } from '@/services/grant.service';
 
 export default async function FundPage() {
-  const funding = await GrantService.getAvailableFunding();
-
   return (
     <PageLayout
-      topBanner={<FundingHeroBanner totalFundingUsd={funding.usd} />}
+      topBanner={<FundingHeroBanner />}
       rightSidebar={
         <Suspense fallback={<ActivitySidebarSkeleton />}>
           <FundingSidebarServer />

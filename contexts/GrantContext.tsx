@@ -9,7 +9,6 @@ interface GrantContextValue {
   selectedGrant: FeedEntry | null;
   isLoading: boolean;
   error: string | null;
-  totalFundingUsd: number;
   /** Lazy fetch -- only fires one API call, then caches. Safe to call repeatedly. */
   fetchGrants: () => Promise<void>;
   /** Seed grants from SSR data without triggering a fetch */
@@ -22,7 +21,6 @@ interface GrantContextValue {
 const GrantContext = createContext<GrantContextValue | null>(null);
 
 let _grantsCache: FeedEntry[] = [];
-let _fundingCache: number | null = null;
 
 interface GrantProviderProps {
   children: ReactNode;
@@ -33,19 +31,12 @@ export function GrantProvider({ children }: GrantProviderProps) {
   const [selectedGrant, setSelectedGrant] = useState<FeedEntry | null>(null);
   const [isLoading, setIsLoading] = useState(_grantsCache.length === 0);
   const [error, setError] = useState<string | null>(null);
-  const [totalFundingUsd, setTotalFundingUsdRaw] = useState<number>(_fundingCache ?? 0);
   const setGrants = useCallback((newGrants: FeedEntry[]) => {
     _grantsCache = newGrants;
     setGrantsRaw(newGrants);
   }, []);
 
-  const setTotalFundingUsd = useCallback((value: number) => {
-    _fundingCache = value;
-    setTotalFundingUsdRaw(value);
-  }, []);
-
   const hasDataRef = useRef(_grantsCache.length > 0);
-  const hasFundingRef = useRef(_fundingCache !== null);
 
   const fetchGrants = useCallback(async () => {
     if (hasDataRef.current) return;
@@ -55,28 +46,21 @@ export function GrantProvider({ children }: GrantProviderProps) {
     setError(null);
 
     try {
-      const [result, funding] = await Promise.all([
-        GrantService.getGrants({
-          page: 1,
-          pageSize: 20,
-          status: 'OPEN',
-          ordering: 'newest',
-        }),
-        hasFundingRef.current ? Promise.resolve(null) : GrantService.getAvailableFunding(),
-      ]);
+      const result = await GrantService.getGrants({
+        page: 1,
+        pageSize: 20,
+        status: 'OPEN',
+        ordering: 'newest',
+      });
 
       setGrants(result.grants);
-      if (funding) {
-        hasFundingRef.current = true;
-        setTotalFundingUsd(funding.usd);
-      }
     } catch (err) {
       console.error('Failed to fetch grants:', err);
       setError('Failed to load funding opportunities.');
     } finally {
       setIsLoading(false);
     }
-  }, [setGrants, setTotalFundingUsd]);
+  }, [setGrants]);
 
   const setInitialGrants = useCallback((initialGrants: FeedEntry[]) => {
     if (hasDataRef.current) return;
@@ -113,7 +97,6 @@ export function GrantProvider({ children }: GrantProviderProps) {
 
   const refresh = useCallback(async () => {
     hasDataRef.current = false;
-    hasFundingRef.current = false;
     await fetchGrants();
   }, [fetchGrants]);
 
@@ -124,7 +107,6 @@ export function GrantProvider({ children }: GrantProviderProps) {
         selectedGrant,
         isLoading,
         error,
-        totalFundingUsd,
         fetchGrants,
         setInitialGrants,
         selectGrant,

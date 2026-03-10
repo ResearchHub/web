@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
+import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalTooltip';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { Tabs } from '@/components/ui/Tabs';
 import { Button } from '@/components/ui/Button';
@@ -101,15 +102,17 @@ export const GrantInfoBanner = ({
 
             <div className="flex-shrink-0 flex flex-col items-stretch gap-2">
               {grantId && isActive && (
-                <Button
-                  variant="default"
-                  size="lg"
-                  onClick={() => setIsApplyModalOpen(true)}
-                  className="gap-2 w-full"
-                >
-                  Submit Proposal
-                  <ArrowUpFromLine className="w-5 h-5" />
-                </Button>
+                <SubmitProposalTooltip>
+                  <Button
+                    variant="default"
+                    size="lg"
+                    onClick={() => setIsApplyModalOpen(true)}
+                    className="gap-2 w-full"
+                  >
+                    Submit Proposal
+                    <ArrowUpFromLine className="w-5 h-5" />
+                  </Button>
+                </SubmitProposalTooltip>
               )}
 
               <div className="flex items-center gap-2 justify-center">
