@@ -3,7 +3,6 @@
 import { FC, useState } from 'react';
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
-import { formatRSC } from '@/utils/number';
 import { Fundraise } from '@/types/funding';
 import { Work } from '@/types/work';
 import { isDeadlineInFuture } from '@/utils/date';
@@ -11,9 +10,9 @@ import { ContributorModal } from '@/components/modals/ContributorModal';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
-import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useRouter } from 'next/navigation';
 import { useShareModalContext } from '@/contexts/ShareContext';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 interface FundersSectionProps {
   fundraise: Fundraise;
@@ -25,8 +24,8 @@ interface FundersSectionProps {
 export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTitle, work }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
-  const { showUSD } = useCurrencyPreference();
   const { showShareModal } = useShareModalContext();
+  const { showUSD } = useCurrencyPreference();
   const router = useRouter();
   const hasContributors =
     fundraise.contributors &&
@@ -50,7 +49,7 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
       profileImage: contributor.authorProfile.profileImage,
       fullName: contributor.authorProfile.fullName,
     },
-    amount: contributor.totalContribution,
+    amounts: contributor.totalContribution,
   }));
 
   const handleContributeClick = () => {
@@ -98,10 +97,15 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
                   <div className="flex items-center text-sm font-medium font-mono text-primary-600">
                     <span className="mr-0.5">+</span>
                     <CurrencyBadge
-                      amount={contributor.totalContribution}
+                      amount={
+                        showUSD
+                          ? contributor.totalContribution.usd
+                          : contributor.totalContribution.rsc
+                      }
                       variant="text"
                       size="xs"
                       currency={showUSD ? 'USD' : 'RSC'}
+                      skipConversion
                       showText={true}
                       textColor="text-primary-600"
                       fontWeight="font-semibold"

@@ -1,7 +1,7 @@
 import { createTransformer, BaseTransformed } from './transformer';
 import { buildWorkUrl, buildAuthorUrl, buildTopicUrl } from '@/utils/url';
 import { mapApiDocumentTypeToClientType } from '@/utils/contentTypeMapping';
-import { AuthorProfile } from './authorProfile';
+import { AuthorProfile, extractHeadline } from './authorProfile';
 import { ID } from './root';
 import { transformTopic } from './topic';
 import { ContentType } from './work';
@@ -98,16 +98,9 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
 
     // Handle different entity types
     switch (raw.entity_type) {
-      case 'user':
-        // Process headline to ensure it's a string
-        let userHeadline = '';
-        if (raw.headline) {
-          if (typeof raw.headline === 'string') {
-            userHeadline = raw.headline;
-          } else if (typeof raw.headline === 'object' && raw.headline.title) {
-            userHeadline = String(raw.headline.title);
-          }
-        }
+      case 'user': {
+        const userHeadline =
+          extractHeadline(raw.headline) || extractHeadline(raw.author_profile?.headline);
 
         return {
           entityType: 'user',
@@ -128,6 +121,7 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
                 ...raw.author_profile,
                 userId: raw.id,
                 profileImage: raw.author_profile.profile_image || '',
+                headline: userHeadline,
               }
             : {
                 id: raw.id,
@@ -136,18 +130,10 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
                 userId: raw.id,
               },
         };
-      case 'person':
-        // Process headline to ensure it's a string
-        let headline = '';
-        if (raw.headline) {
-          if (typeof raw.headline === 'string') {
-            headline = raw.headline;
-          } else if (typeof raw.headline === 'object' && raw.headline.title) {
-            headline = String(raw.headline.title);
-          }
-        }
-
-        let fullName =
+      }
+      case 'person': {
+        const headline = extractHeadline(raw.headline);
+        const fullName =
           raw.display_name ||
           raw.full_name ||
           `${raw.first_name || ''} ${raw.last_name || ''}`.trim() ||
@@ -165,10 +151,10 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
           url: buildAuthorUrl(raw.id),
           authorProfile: {
             id: raw.id,
-            headline: headline,
+            headline,
             profileImage: raw.profile_image || raw.avatar || '',
             userId: raw.user_id,
-            fullName: fullName,
+            fullName,
             firstName: raw.first_name || '',
             lastName: raw.last_name || '',
             profileUrl: buildAuthorUrl(raw.id),
@@ -176,8 +162,8 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
             isVerified: raw.is_verified || false,
           },
         };
-
-      case 'post':
+      }
+      case 'post': {
         const documentType = raw.document_type || raw.type;
         const documentContentType = mapApiDocumentTypeToClientType(documentType);
 
@@ -195,7 +181,7 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
               })
             : undefined,
         };
-
+      }
       case 'hub':
         try {
           // Transform hub using topic transformer and adapt to SearchSuggestion format

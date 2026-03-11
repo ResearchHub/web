@@ -7,6 +7,24 @@ import { X } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
 
+const MODAL_SIZE_TO_MAX_WIDTH: Record<string, string> = {
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-xl',
+  '2xl': 'max-w-2xl',
+} as const;
+
+const MODAL_SIZE_TO_MIN_WIDTH: Record<string, string> = {
+  sm: 'md:!min-w-[24rem]',
+  md: 'md:!min-w-[28rem]',
+  lg: 'md:!min-w-[32rem]',
+  xl: 'md:!min-w-[36rem]',
+  '2xl': 'md:!min-w-[42rem]',
+} as const;
+
+export type ModalSize = keyof typeof MODAL_SIZE_TO_MAX_WIDTH;
+
 interface BaseModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -14,7 +32,10 @@ interface BaseModalProps {
   initialFocus?: React.MutableRefObject<HTMLElement | null>;
   /** Modal title - can be a string or custom ReactNode for complex headers */
   title?: ReactNode;
-  maxWidth?: string; // e.g., 'max-w-md', 'max-w-xl', 'max-w-4xl'
+  /** Preset size (sm, md, lg, xl, 2xl). When set, overrides maxWidth for the panel width. */
+  size?: ModalSize;
+  /** (e.g. 'max-w-md', 'max-w-xl'). Omit to use default (max-w-tablet). */
+  maxWidth?: string;
   showCloseButton?: boolean;
   padding?: string; // e.g., 'p-4', 'p-6', 'p-8'
   footer?: ReactNode;
@@ -32,7 +53,8 @@ export const BaseModal: FC<BaseModalProps> = ({
   children,
   initialFocus,
   title,
-  maxWidth = 'max-w-tablet', // Default max width for larger screens
+  size,
+  maxWidth,
   showCloseButton = true,
   padding = 'p-6', // Default padding
   footer,
@@ -42,6 +64,9 @@ export const BaseModal: FC<BaseModalProps> = ({
   headerImage,
   headerImageHeight = 'h-[100px]',
 }) => {
+  const effectiveMaxWidth = size ? MODAL_SIZE_TO_MAX_WIDTH[size] : (maxWidth ?? 'max-w-tablet');
+  const effectiveMinWidth = size ? MODAL_SIZE_TO_MIN_WIDTH[size] : undefined;
+
   const headerRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
@@ -124,8 +149,8 @@ export const BaseModal: FC<BaseModalProps> = ({
                   isFullScreen ? 'h-screen' : 'h-screen md:!h-auto md:!max-h-[85vh]',
                   // No rounded corners on mobile, rounded on md+ (unless full screen)
                   isFullScreen ? '' : 'md:!rounded-2xl',
-                  // Only apply max width on md and up (unless full screen)
-                  isFullScreen ? '' : `${maxWidth}`,
+                  // Apply width constraints on md and up (unless full screen)
+                  isFullScreen ? '' : cn(effectiveMinWidth, effectiveMaxWidth),
                   // Custom className overrides
                   className
                 )}

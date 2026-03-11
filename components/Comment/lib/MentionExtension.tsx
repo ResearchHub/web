@@ -75,12 +75,7 @@ const transformUserSuggestion = (userSuggestion: UserSuggestion): MentionItem =>
     authorProfile: userSuggestion.authorProfile
       ? {
           id: userSuggestion.authorProfile.id?.toString() || null,
-          headline:
-            typeof userSuggestion.authorProfile.headline === 'string'
-              ? userSuggestion.authorProfile.headline
-              : userSuggestion.authorProfile.headline
-                ? (userSuggestion.authorProfile.headline as { title: string }).title
-                : '',
+          headline: userSuggestion.authorProfile.headline || '',
           profileImage: userSuggestion.authorProfile.profileImage || null,
           userId: userSuggestion.authorProfile.userId?.toString() || null,
         }
@@ -101,12 +96,7 @@ const transformAuthorSuggestion = (authorSuggestion: UserSuggestion): MentionIte
     authorProfile: authorSuggestion.authorProfile
       ? {
           id: authorSuggestion.authorProfile.id?.toString() || null,
-          headline:
-            typeof authorSuggestion.authorProfile.headline === 'string'
-              ? authorSuggestion.authorProfile.headline
-              : authorSuggestion.authorProfile.headline
-                ? (authorSuggestion.authorProfile.headline as { title: string }).title
-                : '',
+          headline: authorSuggestion.authorProfile.headline || '',
           profileImage: authorSuggestion.authorProfile.profileImage || null,
           userId: authorSuggestion.authorProfile.userId?.toString() || null,
         }

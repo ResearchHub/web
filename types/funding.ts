@@ -10,10 +10,15 @@ export interface Contribution {
   date: string;
 }
 
+export interface ContributionTotals {
+  usd: number;
+  rsc: number;
+}
+
 export interface Contributor {
   id: ID;
   authorProfile: AuthorProfile;
-  totalContribution: number;
+  totalContribution: ContributionTotals;
   contributions: Contribution[];
 }
 
@@ -63,12 +68,17 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => ({
     topContributors: raw.contributors.top.map((contributor: any) => ({
       id: contributor.id,
       authorProfile: transformAuthorProfile(contributor.author_profile),
-      totalContribution:
-        typeof contributor.total_contribution === 'object' &&
-        contributor.total_contribution !== null
-          ? contributor.total_contribution.rsc
-          : Number(contributor.total_contribution) || 0,
-      contributions: contributor.contributions.map((contribution: any) => ({
+      totalContribution: (() => {
+        if (typeof contributor.total_contribution === 'number') {
+          return { usd: 0, rsc: contributor.total_contribution };
+        }
+
+        return {
+          usd: contributor.total_contribution?.usd ?? contributor.total_contribution?.USD ?? 0,
+          rsc: contributor.total_contribution?.rsc ?? contributor.total_contribution?.RSC ?? 0,
+        };
+      })(),
+      contributions: (contributor.contributions || []).map((contribution: any) => ({
         amount: contribution.amount,
         date: contribution.date,
       })),

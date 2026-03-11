@@ -109,8 +109,7 @@ export function SearchSuggestions({
 
       const safeGetHeadline = () => {
         if (isUserSuggestion && 'authorProfile' in suggestion) {
-          const headline = suggestion.authorProfile?.headline;
-          return typeof headline === 'string' ? headline : 'User';
+          return suggestion.authorProfile?.headline || 'User';
         }
         return 'User';
       };

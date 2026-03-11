@@ -13,15 +13,12 @@ interface UserPreferences {
   firstName: string;
   selectedCategories: string[];
   selectedSubcategories: string[];
-  completedAt?: string;
   useMlScoring?: boolean;
-  currentOnboardingStep?: string;
 }
 
 interface PreferencesContextType {
   preferences: UserPreferences | null;
   updatePreferences: (updates: Partial<UserPreferences>) => void;
-  clearPreferences: () => void;
 }
 
 const PreferencesContext = createContext<PreferencesContextType | undefined>(undefined);
@@ -64,21 +61,11 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const clearPreferences = useCallback(() => {
-    setPreferences(null);
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (error) {
-      console.error('Error clearing user preferences:', error);
-    }
-  }, []);
-
   return (
     <PreferencesContext.Provider
       value={{
         preferences,
         updatePreferences,
-        clearPreferences,
       }}
     >
       {children}

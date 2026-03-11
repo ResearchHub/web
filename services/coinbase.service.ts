@@ -1,12 +1,6 @@
 import { ApiClient } from './client';
 
-interface OnrampAddress {
-  address: string;
-  blockchains: string[];
-}
-
 interface CreateOnrampRequest {
-  addresses: OnrampAddress[];
   assets?: string[];
   default_network?: string;
   default_asset?: string;
@@ -23,42 +17,21 @@ export class CoinbaseService {
   private static readonly BASE_PATH = '/api/payment/coinbase';
 
   /**
-   * Creates a Coinbase Onramp URL for purchasing crypto
-   * @param walletAddress - User's wallet address
-   * @param options - Optional configuration for the onramp flow
-   * @returns Promise with the onramp URL and expiration time
+   * Creates a Coinbase Onramp URL for purchasing crypto.
+   * The backend resolves the user's server wallet address internally.
    */
-  static async createOnrampUrl(
-    walletAddress: string,
-    options?: {
-      assets?: string[];
-      defaultNetwork?: string;
-      defaultAsset?: string;
-      presetFiatAmount?: number;
-      presetCryptoAmount?: number;
-    }
-  ): Promise<OnrampResponse> {
-    const token = ApiClient.getGlobalAuthToken();
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    };
-
-    if (token) {
-      headers['Authorization'] = `Token ${token}`;
-    }
-
+  static async createOnrampUrl(options?: {
+    assets?: string[];
+    defaultNetwork?: string;
+    defaultAsset?: string;
+    presetFiatAmount?: number;
+    presetCryptoAmount?: number;
+  }): Promise<OnrampResponse> {
     const requestBody: CreateOnrampRequest = {
-      addresses: [
-        {
-          address: walletAddress,
-          blockchains: ['base'],
-        },
-      ],
       assets: options?.assets || ['RSC'],
       default_network: options?.defaultNetwork || 'base',
       default_asset: options?.defaultAsset || 'RSC',
-      preset_fiat_amount: options?.presetFiatAmount || 100,
+      preset_fiat_amount: options?.presetFiatAmount,
     };
 
     if (options?.presetCryptoAmount) {
@@ -66,48 +39,19 @@ export class CoinbaseService {
       delete requestBody.preset_fiat_amount;
     }
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}${this.BASE_PATH}/create-onramp/`,
-      {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestBody),
-        mode: 'cors',
-        cache: 'no-cache',
-      }
-    );
-
-    if (!response.ok) {
-      const contentType = response.headers.get('content-type');
-
-      if (contentType?.includes('application/json')) {
-        const errorData = await response.json();
-        const errorMessage =
-          errorData.message || errorData.detail || 'Failed to generate onramp URL';
-        throw new Error(errorMessage);
-      }
-
-      throw new Error(`Failed to generate onramp URL: ${response.statusText}`);
-    }
-
-    return response.json();
+    return ApiClient.post<OnrampResponse>(`${this.BASE_PATH}/create-onramp/`, requestBody);
   }
 
   /**
-   * Creates an Onramp URL specifically for purchasing RSC
-   * @param walletAddress - User's wallet address
-   * @param presetAmount - Optional preset fiat amount (defaults to 100)
-   * @returns Promise with the onramp URL and expiration time
+   * Creates an Onramp URL specifically for purchasing RSC.
+   * The backend resolves the user's server wallet address internally.
+   * Optionally, a preset amount can be provided, allowing the user to input it on the Coinbase widget.
    */
-  static async createRSCOnrampUrl(
-    walletAddress: string,
-    presetAmount: number = 100
-  ): Promise<OnrampResponse> {
-    return this.createOnrampUrl(walletAddress, {
+  static async createRSCOnrampUrl(): Promise<OnrampResponse> {
+    return this.createOnrampUrl({
       assets: ['RSC'],
       defaultAsset: 'RSC',
       defaultNetwork: 'base',
-      presetFiatAmount: presetAmount,
     });
   }
 }

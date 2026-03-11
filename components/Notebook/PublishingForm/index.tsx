@@ -34,6 +34,7 @@ import { Loader2 } from 'lucide-react';
 import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
 import { useNotebookContext } from '@/contexts/NotebookContext';
+import { useUser } from '@/contexts/UserContext';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
@@ -168,7 +169,36 @@ const restoreFromStorage = (
   setValue: (name: any, value: any) => void
 ) => {
   for (const [key, value] of Object.entries(data)) {
-    setValue(key, key === 'applicationDeadline' ? new Date(value) : value);
+    setValue(key, key === 'applicationDeadline' && value ? new Date(value) : value);
+  }
+};
+
+const applyGrantDefaults = (getValues: any, setValue: (name: any, value: any) => void) => {
+  if (getValues('articleType') === 'grant') {
+    setValue('applicationDeadline', new Date('2029-12-31'));
+  }
+};
+
+const autoAddCurrentUser = (
+  getValues: any,
+  setValue: (name: any, value: any) => void,
+  currentUser: any
+) => {
+  if (!currentUser) return;
+
+  const isGrant = getValues('articleType') === 'grant';
+  const field = isGrant ? 'contacts' : 'authors';
+
+  if (getValues(field).length === 0) {
+    const profile = currentUser.authorProfile;
+    setValue(field, [
+      {
+        value: isGrant
+          ? currentUser.id.toString()
+          : profile?.id?.toString() || currentUser.id.toString(),
+        label: currentUser.fullName || currentUser.email || 'Unknown User',
+      },
+    ]);
   }
 };
 
@@ -211,6 +241,7 @@ export function PublishingForm({
   isModal,
 }: Readonly<PublishingFormProps>) {
   const { currentNote: note, editor } = useNotebookContext();
+  const { user: currentUser } = useUser();
   const searchParams = useSearchParams();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
@@ -223,58 +254,45 @@ export function PublishingForm({
     mode: 'onChange',
   });
 
-  useEffect(() => {
-    if (note?.id) {
-      const initialType = note.documentType
-        ? mapDocumentTypeToArticleType(note.documentType)
-        : undefined;
-      methods.reset({
-        ...FORM_DEFAULTS,
-        ...(initialType ? { articleType: initialType } : {}),
-      });
-    }
-  }, [note?.id, methods]);
+  const noteId = note?.id;
 
   useEffect(() => {
     if (!note) return;
+
+    methods.reset(FORM_DEFAULTS);
 
     if (note.post) {
       populateFromPost(note.post, methods.setValue);
-      return;
-    }
-
-    if (note.documentType) {
-      const mapped = mapDocumentTypeToArticleType(note.documentType);
-      if (mapped) {
-        methods.setValue('articleType', mapped);
-      }
-    }
-
-    const storedData = loadPublishingFormFromStorage(note.id.toString());
-    if (storedData) {
-      const { articleType: _storedType, ...otherStoredData } = storedData;
-      if (note.documentType) {
-        restoreFromStorage(otherStoredData, methods.setValue);
-      } else {
-        restoreFromStorage(storedData, methods.setValue);
-      }
     } else {
-      const resolved = resolveArticleType(searchParams, defaultArticleType);
-      if (resolved) {
-        methods.setValue('articleType', resolved.type);
+      const storedData = loadPublishingFormFromStorage(note.id.toString());
+      if (storedData) {
+        restoreFromStorage(storedData, methods.setValue);
+      } else {
+        const resolved = resolveArticleType(searchParams, defaultArticleType);
+        if (resolved) {
+          methods.setValue('articleType', resolved.type);
+        }
       }
     }
-  }, [note, methods, searchParams, defaultArticleType]);
+
+    applyGrantDefaults(methods.getValues, methods.setValue);
+    autoAddCurrentUser(methods.getValues, methods.setValue, currentUser);
+    savePublishingFormToStorage(
+      note.id.toString(),
+      methods.getValues() as Partial<PublishingFormData>
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [noteId]);
 
   useEffect(() => {
-    if (!note) return;
+    if (!noteId) return;
 
     const subscription = methods.watch((data) => {
-      savePublishingFormToStorage(note.id.toString(), data as Partial<PublishingFormData>);
+      savePublishingFormToStorage(noteId.toString(), data as Partial<PublishingFormData>);
     });
 
     return () => subscription.unsubscribe();
-  }, [methods, note]);
+  }, [noteId, methods]);
 
   const { watch, clearErrors } = methods;
   const articleType = watch('articleType');

@@ -41,7 +41,6 @@ export const DocumentViewer = ({
   }, [isLoading, onLoaded]);
 
   const handleReady = () => {
-    console.log('PDF ready, calling onLoaded callback');
     setTimeout(() => {
       setIsLoading(false);
       if (onLoaded) {

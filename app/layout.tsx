@@ -1,4 +1,3 @@
-import '@coinbase/onchainkit/styles.css';
 import localFont from 'next/font/local';
 import { Lora } from 'next/font/google';
 import './globals.css';

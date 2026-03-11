@@ -4,7 +4,6 @@ import { ReactNode } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { useMobileNavScroll } from '@/hooks/useMobileNavScroll';
-import { OnboardingModalWrapper } from '@/components/Onboarding/NewUserOnboarding';
 import { cn } from '@/lib/utils';
 import { ScrollContainerProvider } from '@/contexts/ScrollContainerContext';
 import { GrantProvider } from '@/contexts/GrantContext';
@@ -59,8 +58,6 @@ function PageLayoutInner({
   return (
     <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
       <div className="flex h-screen">
-        <OnboardingModalWrapper />
-
         <TopBarContainer
           isMobileTopNavHidden={isMobileTopNavHidden}
           isLeftSidebarOpen={isLeftSidebarOpen}

@@ -11,6 +11,8 @@ interface EndaomentPaymentButtonProps {
   readonly isProcessing?: boolean;
   /** The selected Endaoment fund to pay from */
   readonly selectedFund: EndaomentFund | null;
+  /** Whether the selected fund has sufficient balance for the payment */
+  readonly hasSufficientFunds?: boolean;
   /** Callback when user confirms payment */
   readonly onConfirm: () => void;
 }
@@ -25,6 +27,7 @@ interface EndaomentPaymentButtonProps {
 export function EndaomentPaymentButton({
   isProcessing = false,
   selectedFund,
+  hasSufficientFunds = true,
   onConfirm,
 }: EndaomentPaymentButtonProps) {
   const { connected, isLoading } = useEndaoment();
@@ -44,8 +47,8 @@ export function EndaomentPaymentButton({
     return <EndaomentConnectButton variant="default" className="w-full h-12 text-base" />;
   }
 
-  // Connected: enable button only when a fund is selected
-  const isDisabled = isProcessing || !selectedFund;
+  // Connected: enable button only when a fund is selected and has sufficient balance
+  const isDisabled = isProcessing || !selectedFund || !hasSufficientFunds;
 
   return (
     <Button

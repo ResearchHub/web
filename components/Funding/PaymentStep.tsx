@@ -55,12 +55,8 @@ interface PaymentStepProps {
   onEndaomentPaymentConfirm?: (fundId: string) => void;
   /** Called when user wants to deposit RSC */
   onDepositRsc?: () => void;
-  /** Called when user wants to buy RSC */
-  onBuyRsc?: () => void;
   /** Called when Stripe context is ready for payment confirmation */
   onStripeReady?: (context: StripePaymentContext | null) => void;
-  /** Whether the Endaoment payment option is enabled (feature flag) */
-  isEndaomentEnabled?: boolean;
 }
 
 /**
@@ -80,9 +76,7 @@ export function PaymentStep({
   onPaymentRequestSuccess,
   onEndaomentPaymentConfirm,
   onDepositRsc,
-  onBuyRsc,
   onStripeReady,
-  isEndaomentEnabled = false,
 }: PaymentStepProps) {
   // Compute the default payment method based on balance and actual wallet availability
   // Use RSC fee percentage since we're checking if user can afford RSC payment
@@ -206,7 +200,6 @@ export function PaymentStep({
           rscBalance={rscBalance}
           onPreviewTransaction={handlePreviewTransaction}
           onDepositRsc={onDepositRsc}
-          onBuyRsc={onBuyRsc}
           selectedPaymentMethod={selectedMethod}
           onPaymentMethodChange={handlePaymentMethodChange}
           onCreditCardCompleteChange={setIsCreditCardComplete}
@@ -214,7 +207,6 @@ export function PaymentStep({
           onStripeReady={onStripeReady}
           hideButton
           walletAvailability={walletAvailability}
-          isEndaomentEnabled={isEndaomentEnabled}
         />
 
         {/* Receipt-style line items */}
@@ -333,6 +325,7 @@ export function PaymentStep({
             <EndaomentPaymentButton
               isProcessing={isProcessing}
               selectedFund={selectedEndaomentFund}
+              hasSufficientFunds={!isEndaomentInsufficientBalance}
               onConfirm={handleEndaomentConfirm}
             />
           ) : (

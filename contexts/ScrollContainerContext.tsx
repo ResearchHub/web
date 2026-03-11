@@ -3,7 +3,7 @@
 import { createContext, useContext, ReactNode, RefObject } from 'react';
 
 interface ScrollContainerContextType {
-  scrollContainerRef: RefObject<HTMLDivElement> | null;
+  scrollContainerRef: RefObject<HTMLDivElement | null> | null;
 }
 
 const ScrollContainerContext = createContext<ScrollContainerContextType>({
@@ -15,7 +15,7 @@ export function ScrollContainerProvider({
   scrollContainerRef,
 }: {
   children: ReactNode;
-  scrollContainerRef: RefObject<HTMLDivElement>;
+  scrollContainerRef: RefObject<HTMLDivElement | null>;
 }) {
   return (
     <ScrollContainerContext.Provider value={{ scrollContainerRef }}>

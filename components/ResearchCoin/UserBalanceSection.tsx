@@ -1,17 +1,13 @@
 'use client';
 
-import { ArrowDownToLine, ArrowUpFromLine, Plus, Minus, HelpCircle } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, HelpCircle } from 'lucide-react';
 import { useState } from 'react';
 import { DepositModal } from '../modals/ResearchCoin/DepositModal';
 import { WithdrawModal } from '../modals/ResearchCoin/WithdrawModal';
-import { BuyModal } from '@/components/modals/ResearchCoin/BuyModal';
-import { SellModal } from '@/components/modals/ResearchCoin/SellModal';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import { useAccount } from 'wagmi';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { FundingCreditsTooltip } from '@/components/ui/FundingCreditsTooltip';
 import { formatCombinedBalance, formatCombinedBalanceSecondary } from '@/utils/number';
-import { WalletDefault } from '@coinbase/onchainkit/wallet';
 import { Button } from '@/components/ui/Button';
 
 interface UserBalanceSectionProps {
@@ -37,11 +33,7 @@ export function UserBalanceSection({
 }: UserBalanceSectionProps) {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
-  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
-  const [isSellModalOpen, setIsSellModalOpen] = useState(false);
 
-  // Check if wallet is connected and get currency preference
-  const { isConnected } = useAccount();
   const { showUSD } = useCurrencyPreference();
 
   // Only consider balance as not ready if we're fetching exchange rate
@@ -139,89 +131,47 @@ export function UserBalanceSection({
                 </div>
               </div>
             )}
-
-            {/* Wallet connection section for non-connected users */}
-            {!isConnected && (
-              <>
-                <div className="pt-2">
-                  <p className="text-gray-600 text-base mb-4">
-                    To buy, sell, deposit or withdraw RSC, start by connecting your wallet.
-                  </p>
-                  <WalletDefault />
-                </div>
-              </>
-            )}
           </div>
         </div>
 
-        {/* Action buttons for connected users - moved outside the white box */}
-        {isConnected && (
-          <div className="mt-6 grid grid-cols-4 gap-3">
-            <Button
-              onClick={() => setIsBuyModalOpen(true)}
-              variant="outlined"
-              className="flex flex-col items-center gap-2 h-auto py-3 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 group"
-            >
-              <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center transition-colors">
-                <Plus className="h-5 w-5 text-gray-700" strokeWidth={2} />
-              </div>
-              <span className="text-sm font-medium text-gray-900">Buy RSC</span>
-            </Button>
-            <Button
-              onClick={() => setIsSellModalOpen(true)}
-              variant="outlined"
-              className="flex flex-col items-center gap-2 h-auto py-3 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 group"
-            >
-              <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center transition-colors">
-                <Minus className="h-5 w-5 text-gray-700" strokeWidth={2} />
-              </div>
-              <span className="text-sm font-medium text-gray-900">Sell RSC</span>
-            </Button>
-            <Button
-              onClick={() => setIsDepositModalOpen(true)}
-              variant="outlined"
-              disabled={!isBalanceReady}
-              data-action="deposit"
-              className="flex flex-col items-center gap-2 h-auto py-3 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 group"
-            >
-              <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center transition-colors">
-                <ArrowDownToLine className="h-5 w-5 text-gray-700" strokeWidth={2} />
-              </div>
-              <span className="text-sm font-medium text-gray-900">Deposit</span>
-            </Button>
-            <Button
-              onClick={() => setIsWithdrawModalOpen(true)}
-              variant="outlined"
-              disabled={!isBalanceReady}
-              className="flex flex-col items-center gap-2 h-auto py-3 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 group"
-            >
-              <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center transition-colors">
-                <ArrowUpFromLine className="h-5 w-5 text-gray-700" strokeWidth={2} />
-              </div>
-              <span className="text-sm font-medium text-gray-900">Withdraw</span>
-            </Button>
-            <WalletDefault />
-          </div>
-        )}
+        {/* Action buttons */}
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          <Button
+            onClick={() => setIsDepositModalOpen(true)}
+            variant="outlined"
+            disabled={!isBalanceReady}
+            data-action="deposit"
+            className="flex flex-col items-center gap-2 h-auto py-3 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 group"
+          >
+            <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center transition-colors">
+              <ArrowDownToLine className="h-5 w-5 text-gray-700" strokeWidth={2} />
+            </div>
+            <span className="text-sm font-medium text-gray-900">Deposit</span>
+          </Button>
+          <Button
+            onClick={() => setIsWithdrawModalOpen(true)}
+            variant="outlined"
+            disabled={!isBalanceReady}
+            className="flex flex-col items-center gap-2 h-auto py-3 px-4 rounded-xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 group"
+          >
+            <div className="w-10 h-10 rounded-full bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center transition-colors">
+              <ArrowUpFromLine className="h-5 w-5 text-gray-700" strokeWidth={2} />
+            </div>
+            <span className="text-sm font-medium text-gray-900">Withdraw</span>
+          </Button>
+        </div>
       </div>
 
       {/* Modals */}
       {isBalanceReady && (
         <>
-          <DepositModal
-            isOpen={isDepositModalOpen}
-            onClose={() => setIsDepositModalOpen(false)}
-            currentBalance={balance?.raw || 0}
-            onSuccess={onTransactionSuccess}
-          />
+          <DepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} />
           <WithdrawModal
             isOpen={isWithdrawModalOpen}
             onClose={() => setIsWithdrawModalOpen(false)}
             availableBalance={balance?.raw || 0}
             onSuccess={onTransactionSuccess}
           />
-          <BuyModal isOpen={isBuyModalOpen} onClose={() => setIsBuyModalOpen(false)} />
-          <SellModal isOpen={isSellModalOpen} onClose={() => setIsSellModalOpen(false)} />
         </>
       )}
     </>

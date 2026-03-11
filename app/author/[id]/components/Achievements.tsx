@@ -81,8 +81,11 @@ const Achievements: React.FC<AchievementsProps> = ({ achievements, isLoading }) 
     return (
       <div className="p-2 text-sm flex flex-col gap-1 w-64 text-left">
         <div className="flex items-center gap-2 font-semibold">
-          {React.cloneElement(achievementDetails.icon, {
-            style: { ...achievementDetails.icon.props.style, fontSize: '18px' },
+          {React.cloneElement(achievementDetails.icon as React.ReactElement<any>, {
+            style: {
+              ...(achievementDetails.icon as React.ReactElement<any>).props.style,
+              fontSize: '18px',
+            },
           })}
           <span>
             {achievementDetails.title} ({currentTierName})
@@ -152,8 +155,11 @@ const Achievements: React.FC<AchievementsProps> = ({ achievements, isLoading }) 
               )}
             >
               <div className="flex justify-center">
-                {React.cloneElement(achievementDetails.icon, {
-                  style: { ...achievementDetails.icon.props.style, fontSize: '18px' },
+                {React.cloneElement(achievementDetails.icon as React.ReactElement<any>, {
+                  style: {
+                    ...(achievementDetails.icon as React.ReactElement<any>).props.style,
+                    fontSize: '18px',
+                  },
                 })}
               </div>
               <span className="flex-1">{achievementDetails.title}</span>

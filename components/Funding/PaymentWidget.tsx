@@ -18,6 +18,7 @@ import {
 import { CreditCardForm, type StripePaymentContext } from './CreditCardForm';
 import { useEndaoment } from '@/contexts/EndaomentContext';
 import { EndaomentFundSelector } from '@/components/Endaoment/EndaomentFundSelector';
+import { useDisconnectEndaoment } from '@/components/Endaoment/lib/hooks/useDisconnectEndaoment';
 import { EndaomentFund } from '@/services/endaoment.service';
 import { formatUsdValue } from '@/utils/number';
 
@@ -44,8 +45,6 @@ interface PaymentWidgetProps {
   onEndaomentLogin?: () => void;
   /** Called when user wants to deposit RSC */
   onDepositRsc?: () => void;
-  /** Called when user wants to buy RSC */
-  onBuyRsc?: () => void;
   /** Whether the CTA button should be disabled */
   isButtonDisabled?: boolean;
   /** Initial/controlled selected payment method */
@@ -62,8 +61,6 @@ interface PaymentWidgetProps {
   hideButton?: boolean;
   /** Wallet payment method availability from Stripe */
   walletAvailability: WalletAvailability;
-  /** Whether the Endaoment payment option is enabled (feature flag) */
-  isEndaomentEnabled?: boolean;
 }
 
 /**
@@ -79,7 +76,6 @@ export function PaymentWidget({
   onPreviewTransaction,
   onEndaomentLogin,
   onDepositRsc,
-  onBuyRsc,
   isButtonDisabled = false,
   selectedPaymentMethod,
   onPaymentMethodChange,
@@ -88,7 +84,6 @@ export function PaymentWidget({
   onStripeReady,
   hideButton = false,
   walletAvailability,
-  isEndaomentEnabled = false,
 }: PaymentWidgetProps) {
   const { isExpanded, selectedMethod, toggleExpanded, selectMethod } = usePaymentMethod({
     initialMethod: selectedPaymentMethod,
@@ -97,6 +92,7 @@ export function PaymentWidget({
 
   // Endaoment connection status and funds from context
   const { connected, funds } = useEndaoment();
+  const { disconnect, isDisconnecting } = useDisconnectEndaoment();
 
   // State for selected DAF fund (Endaoment)
   const [selectedDafAccountId, setSelectedDafAccountId] = useState<string | null>(null);
@@ -196,7 +192,6 @@ export function PaymentWidget({
   //   options that may not be available
   const visiblePaymentOptions = paymentOptions.filter((option) => {
     if (HIDDEN_PAYMENT_METHODS.includes(option.id)) return false;
-    if (option.id === 'endaoment' && !isEndaomentEnabled) return false;
     if (option.id === 'apple_pay') {
       return !walletAvailability.checking && walletAvailability.applePay;
     }
@@ -383,6 +378,18 @@ export function PaymentWidget({
             onSelectFund={setSelectedDafAccountId}
             requiredAmountUsd={amountInUsd}
           />
+          <div className="mt-2 text-center text-sm text-gray-500">
+            <span>Connected to Endaoment</span>
+            <span className="mx-1">&middot;</span>
+            <button
+              type="button"
+              onClick={disconnect}
+              disabled={isDisconnecting}
+              className="text-gray-400 hover:text-gray-600 hover:underline disabled:opacity-50"
+            >
+              {isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
+            </button>
+          </div>
         </div>
       )}
 
