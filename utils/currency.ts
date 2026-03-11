@@ -23,10 +23,14 @@ export const formatCurrency = ({
     // Use the amount as-is if skipConversion is true, otherwise convert from RSC to USD
     const usdAmount = skipConversion ? amount : exchangeRate > 0 ? amount * exchangeRate : amount;
     if (shorten && usdAmount >= 1000) {
-      if (usdAmount >= 1000000) {
-        return `$${Math.round(usdAmount / 1000000)}M`;
+      const rounded = Math.round(usdAmount / 1000);
+      if (rounded >= 1000) {
+        const millions = usdAmount / 1000000;
+        const formatted =
+          millions >= 10 ? `${Math.round(millions)}` : `${parseFloat(millions.toFixed(1))}`;
+        return `$${formatted}M`;
       }
-      return `$${Math.round(usdAmount / 1000)}K`;
+      return `$${rounded}K`;
     }
     return `$${Math.round(usdAmount).toLocaleString()}`;
   }

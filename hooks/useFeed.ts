@@ -14,6 +14,7 @@ interface UseFeedOptions {
   source?: FeedSource;
   endpoint?: 'feed' | 'funding_feed' | 'grant_feed';
   fundraiseStatus?: 'OPEN' | 'CLOSED';
+  grantId?: number;
   createdBy?: number;
   ordering?: string;
   filter?: string;
@@ -89,24 +90,23 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       options.source !== currentOptions.source ||
       options.endpoint !== currentOptions.endpoint ||
       options.fundraiseStatus !== currentOptions.fundraiseStatus ||
+      options.grantId !== currentOptions.grantId ||
       options.createdBy !== currentOptions.createdBy ||
       options.ordering !== currentOptions.ordering ||
       options.isDebugMode !== currentOptions.isDebugMode ||
       options.filter !== currentOptions.filter ||
       options.userId !== currentOptions.userId;
 
-    const tabIsChanging = currentTab !== activeTab;
-
-    if (relevantOptionsChanged && !tabIsChanging) {
+    if (relevantOptionsChanged) {
       setCurrentOptions(options);
       setHasAttemptedLoad(false);
-      loadFeed();
-    } else if (relevantOptionsChanged && tabIsChanging) {
-      setCurrentOptions(options);
+      setPage(1);
     }
   }, [options, currentTab, activeTab]);
 
   const loadFeed = async () => {
+    setHasAttemptedLoad(true);
+    setEntries([]);
     setIsLoading(true);
 
     try {
@@ -131,6 +131,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         source: options.source,
         endpoint: options.endpoint,
         fundraiseStatus: options.fundraiseStatus,
+        grantId: options.grantId,
         createdBy: options.createdBy,
         ordering: options.ordering,
         includeHotScoreBreakdown: options.isDebugMode,
@@ -141,11 +142,9 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
       setEntries(result.entries);
       setHasMore(result.hasMore);
       setPage(1);
-      setHasAttemptedLoad(true);
     } catch (error) {
       console.error('Error loading feed:', error);
       setPage(1);
-      setHasAttemptedLoad(true);
     } finally {
       setIsLoading(false);
     }
@@ -178,6 +177,7 @@ export const useFeed = (activeTab: FeedTab | FundingTab, options: UseFeedOptions
         source: options.source,
         endpoint: options.endpoint,
         fundraiseStatus: options.fundraiseStatus,
+        grantId: options.grantId,
         createdBy: options.createdBy,
         ordering: options.ordering,
         includeHotScoreBreakdown: options.isDebugMode,

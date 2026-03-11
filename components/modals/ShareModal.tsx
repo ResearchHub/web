@@ -3,7 +3,7 @@
 import { Fragment, useRef, useEffect, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import Confetti from 'react-confetti';
-import { PartyPopper, Copy, Share2 } from 'lucide-react';
+import { PartyPopper, Copy, Share } from 'lucide-react';
 import SocialShareButtons from '@/components/SocialShareButtons';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 
@@ -61,13 +61,13 @@ export const SHARE_CONFIGS: Record<ShareAction, ShareConfig> = {
     socialText: (docTitle) => `I just funded: ${docTitle} on ResearchHub!`,
   },
   USER_SHARED_DOCUMENT: {
-    IconComponent: Share2,
+    IconComponent: Share,
     title: (docTitle, url) => {
       const getShareType = (url: string): string => {
         if (url.includes('/post/')) return 'Preprint';
         if (url.includes('/paper/')) return 'Paper';
-        if (url.includes('/fund/')) return 'Proposal';
-        if (url.includes('/grant/')) return 'RFP';
+        if (url.includes('/proposal/')) return 'Proposal';
+        if (url.includes('/grant/')) return 'Funding Opportunity';
         return '';
       };
       const type = getShareType(url);

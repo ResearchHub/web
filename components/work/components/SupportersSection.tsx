@@ -2,16 +2,13 @@
 
 import { FC, useState } from 'react';
 import { Avatar } from '@/components/ui/Avatar';
-import { formatRSC } from '@/utils/number';
 import { Tip } from '@/types/tip';
-import { HeartHandshake } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { Icon } from '@/components/ui/icons/Icon';
-import { Work } from '@/types/work';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { SidebarHeader } from '@/components/ui/SidebarHeader';
 
 interface SupportersSectionProps {
   tips: Tip[];
@@ -67,10 +64,7 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
 
   return (
     <section>
-      <div className="flex items-center gap-2 mb-3">
-        <HeartHandshake className="w-6 h-6 text-gray-600" />
-        <h3 className="text-base font-semibold text-gray-900">Supporters</h3>
-      </div>
+      <SidebarHeader title="Supporters" className="mb-3" />
 
       {hasSupporters ? (
         <>
@@ -87,7 +81,7 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
                     {supporter.user.fullName}
                   </span>
                 </div>
-                <div className="flex items-center text-sm font-medium text-orange-500">
+                <div className="flex items-center text-sm font-mono font-medium text-primary-600">
                   <span className="mr-0.5">+</span>
                   <CurrencyBadge
                     amount={supporter.amount}
@@ -95,7 +89,7 @@ export const SupportersSection: FC<SupportersSectionProps> = ({ tips = [], docum
                     size="xs"
                     currency={showUSD ? 'USD' : 'RSC'}
                     showText={true}
-                    className="text-orange-500 font-medium"
+                    className="text-primary-600 font-mono font-medium"
                   />
                 </div>
               </div>

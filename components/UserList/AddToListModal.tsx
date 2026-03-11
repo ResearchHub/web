@@ -83,7 +83,7 @@ interface ListCreateFormProps {
   readonly onSubmit: () => void;
   readonly onCancel: () => void;
   readonly isLoading: boolean;
-  readonly inputRef?: React.RefObject<HTMLInputElement | null>;
+  readonly inputRef?: React.Ref<HTMLInputElement>;
 }
 
 function ListCreateForm({

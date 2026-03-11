@@ -66,20 +66,12 @@ export const ImageSection: FC<ImageSectionProps> = ({
     return (
       <div
         className={cn(
-          'relative rounded-lg overflow-hidden shadow-none md:shadow-sm transition-all duration-300 md:hover:shadow-md w-full',
+          'relative overflow-hidden w-full h-full min-h-[120px]',
           isPdfPreview && 'border-[3px] border-gray-100',
           className
         )}
       >
-        <Image
-          src={imageUrl}
-          alt={alt}
-          width={0}
-          height={0}
-          sizes="100vw"
-          className="w-full h-auto max-h-[240px] object-contain"
-          style={{ width: '100%', height: 'auto' }}
-        />
+        <Image src={imageUrl} alt={alt} fill sizes="280px" className="object-cover" />
       </div>
     );
   }

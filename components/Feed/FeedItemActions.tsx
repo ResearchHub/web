@@ -1,9 +1,18 @@
 'use client';
 
-import { FC, useState, ReactNode, useEffect } from 'react';
+import { FC, useState, ReactNode, useEffect, useContext } from 'react';
 import React from 'react';
 import { FeedContentType, Review } from '@/types/feed';
-import { MessageCircle, Flag, MoreHorizontal, Star, ArrowUp, ArrowDown } from 'lucide-react';
+import {
+  MessageCircle,
+  Flag,
+  MoreHorizontal,
+  ArrowUp,
+  ArrowDown,
+  Maximize2,
+  Share,
+  Trash2,
+} from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
@@ -28,12 +37,14 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { cn } from '@/utils/styles';
 import { getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import { Topic } from '@/types/topic';
-import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { BountyTooltip } from '@/components/tooltips/BountyTooltip';
 import { TipTooltip } from '@/components/tooltips/TipTooltip';
 import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
 import { Tip } from '@/types/tip';
 import { formatCurrency } from '@/utils/currency';
+import { ListDetailContext } from '@/components/UserList/lib/user-list';
+import { toast } from 'react-hot-toast';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 
 // Basic media query hook (can be moved to a utility file later)
 const useMediaQuery = (query: string): boolean => {
@@ -107,11 +118,10 @@ export const ActionButton: FC<ActionButtonProps> = ({
     variant="ghost"
     size="sm"
     className={cn(
-      `flex items-center space-x-1 border border-gray-200 rounded-full transition-all`,
-      // Responsive padding
-      'py-0.5 px-2 md:!py-1 md:!px-3',
-      isActive ? 'text-green-600 border-green-300' : 'text-gray-900',
-      'bg-white hover:text-gray-900 hover:bg-gray-100',
+      'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-all',
+      isActive
+        ? 'bg-white text-green-600 shadow-sm ring-1 ring-green-100'
+        : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm',
       className
     )}
     tooltip={showTooltip ? tooltip : undefined}
@@ -119,19 +129,9 @@ export const ActionButton: FC<ActionButtonProps> = ({
     disabled={isDisabled}
   >
     {!hideIcon && Icon && (
-      <Icon
-        className={cn(
-          // Responsive icon size
-          'w-4 h-4 md:!w-5 md:!h-5',
-          isActive ? 'text-green-600' : ''
-        )}
-      />
+      <Icon className={cn('h-[18px] w-[18px]', isActive ? 'text-green-600' : '')} />
     )}
-    {showLabel ? (
-      <span className="text-xs md:!text-sm font-medium">{label}</span>
-    ) : count !== undefined ? (
-      <span className="text-xs md:!text-sm font-medium">{count}</span>
-    ) : null}
+    {showLabel ? <span>{label}</span> : count !== undefined ? <span>{count}</span> : null}
   </Button>
 );
 
@@ -171,6 +171,10 @@ interface FeedItemActionsProps {
   relatedDocumentUnifiedDocumentId?: string;
   showPeerReviews?: boolean;
   onFeedItemClick?: () => void;
+  onExpand?: (e?: React.MouseEvent) => void;
+  isExpanded?: boolean;
+  className?: string;
+  variant?: 'default' | 'inline';
 }
 
 // Define interface for avatar items used in local state
@@ -206,10 +210,15 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   relatedDocumentUnifiedDocumentId,
   showPeerReviews = true,
   onFeedItemClick,
+  onExpand,
+  isExpanded = false,
+  className,
+  variant = 'default',
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
+  const listDetailContext = useContext(ListDetailContext);
   const [localVoteCount, setLocalVoteCount] = useState(
     metrics?.adjustedScore ?? metrics?.votes ?? 0
   );
@@ -218,11 +227,8 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   const isTouchDevice = useIsTouchDevice();
   // State for dropdown menu
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
-  const { isInList: isDocumentInList, listIdsContainingDocument } = useIsInList(
-    relatedDocumentUnifiedDocumentId
-  );
+  const { isInList: isDocumentInList } = useIsInList(relatedDocumentUnifiedDocumentId);
 
   const { isTogglingDefaultList, handleAddToList } = useAddToList({
     unifiedDocumentId: relatedDocumentUnifiedDocumentId,
@@ -329,15 +335,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     }
   };
 
-  const handleReviewClick = (e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-    }
-    if (href) {
-      navigateToTab('reviews');
-    }
-  };
-
   const handleBountyClick = (e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation();
@@ -349,6 +346,21 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   const handleCloseAddToListModal = () => {
     setIsAddToListModalOpen(false);
+  };
+
+  const handleRemoveFromList = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    if (!listDetailContext || !relatedDocumentUnifiedDocumentId) {
+      return;
+    }
+    setIsMenuOpen(false);
+    try {
+      await listDetailContext.onRemoveItem(Number.parseInt(relatedDocumentUnifiedDocumentId));
+    } catch (error) {
+      toast.error(extractApiErrorMessage(error, 'Failed to remove from list'));
+    }
   };
 
   const handleReport = (e?: React.MouseEvent) => {
@@ -388,9 +400,17 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
     });
   };
 
-  // Format score to show with one decimal place
-  const formatScore = (score: number): string => {
-    return score.toFixed(1);
+  const handleCopyDocumentUrl = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+
+    const url = href ? new URL(href, window.location.origin).toString() : window.location.href;
+
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Link copied to clipboard');
+    } catch {
+      toast.error('Failed to copy link');
+    }
   };
 
   // Check if we have open bounties
@@ -411,8 +431,6 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   // Add separator if needed before Report
   const showSeparator = !hideReportButton && menuItems.length > 0 && !isTabletOrSmaller;
 
-  // Determine which buttons to show inline based on screen size
-  const showInlineReviews = showPeerReviews && reviews.length > 0;
   const showInlineBounties = hasOpenBounties;
 
   // Calculate total awarded amount (tips + bounty awards)
@@ -421,16 +439,16 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   return (
     <>
-      <div className="flex items-center justify-between w-full">
-        <div className="flex items-center space-x-3 md:space-x-4 flex-nowrap overflow-visible">
+      <div
+        className={cn(
+          'flex items-center justify-between gap-2',
+          variant === 'default' && 'bg-gray-50 px-3 py-1.5'
+        )}
+      >
+        <div className={cn('flex items-center flex-nowrap overflow-visible', className)}>
           <div
             className={cn(
-              'flex items-center h-8 border rounded-full bg-white transition-all',
-              localUserVote === 'UPVOTE'
-                ? 'border-green-300'
-                : localUserVote === 'DOWNVOTE'
-                  ? 'border-red-300'
-                  : 'border-gray-200',
+              'flex h-8 items-center rounded-full bg-white px-1 shadow-sm ring-1 ring-gray-200/80 transition-all',
               isVoting ? 'opacity-50' : ''
             )}
           >
@@ -438,28 +456,32 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               onClick={(e) => handleVote(e, 'up')}
               disabled={isVoting}
               className={cn(
-                'py-0.5 px-2 md:!py-1 md:!px-2 rounded-l-full transition-colors',
-                localUserVote === 'UPVOTE' ? 'text-green-600' : 'text-gray-900 hover:bg-gray-100',
+                'flex h-7 w-7 items-center justify-center rounded-full transition-colors',
+                localUserVote === 'UPVOTE'
+                  ? 'bg-green-50 text-green-600'
+                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
                 isVoting ? 'cursor-not-allowed' : 'cursor-pointer'
               )}
               aria-label="Upvote"
             >
-              <ArrowUp className="w-4 h-4 md:!w-5 md:!h-5" />
+              <ArrowUp className="h-[18px] w-[18px]" />
             </button>
-            <span className="text-xs md:!text-sm font-medium text-gray-900 px-1">
+            <span className="min-w-[1.75rem] px-1 text-center text-xs font-semibold text-gray-900">
               {localVoteCount}
             </span>
             <button
               onClick={(e) => handleVote(e, 'down')}
               disabled={isVoting}
               className={cn(
-                'py-0.5 px-2 md:!py-1 md:!px-2 rounded-r-full transition-colors',
-                localUserVote === 'DOWNVOTE' ? 'text-red-600' : 'text-gray-900 hover:bg-gray-100',
+                'flex h-7 w-7 items-center justify-center rounded-full transition-colors',
+                localUserVote === 'DOWNVOTE'
+                  ? 'bg-red-50 text-red-600'
+                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
                 isVoting ? 'cursor-not-allowed' : 'cursor-pointer'
               )}
               aria-label="Downvote"
             >
-              <ArrowDown className="w-4 h-4 md:!w-5 md:!h-5" />
+              <ArrowDown className="h-[18px] w-[18px]" />
             </button>
           </div>
           {!hideCommentButton && (
@@ -493,15 +515,14 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      'flex items-center space-x-1 border border-gray-200 rounded-full transition-all',
-                      'py-0.5 px-2 md:!py-1 md:!px-3',
-                      'text-gray-900 bg-white hover:text-gray-900 hover:bg-gray-100'
+                      'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-gray-700 transition-all',
+                      'hover:bg-white hover:text-gray-900 hover:shadow-sm'
                     )}
                     onClick={handleTip}
                   >
-                    <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
+                    <Icon name="tipRSC" size={18} className="h-[18px] w-[18px]" />
                     {totalAwarded > 0 ? (
-                      <span className="text-xs md:!text-sm font-medium">
+                      <span>
                         {formatCurrency({
                           amount: totalAwarded,
                           showUSD,
@@ -510,20 +531,18 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                         })}
                       </span>
                     ) : (
-                      <span className="text-xs md:!text-sm font-medium">Tip</span>
+                      <span>Tip</span>
                     )}
                   </Button>
                 ) : (
                   <div
                     className={cn(
-                      'flex items-center space-x-1 border border-gray-200 rounded-full',
-                      'py-0.5 px-2 md:!py-1 md:!px-3',
-                      'text-gray-900 bg-white cursor-default'
+                      'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-gray-700'
                     )}
                   >
-                    <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
+                    <Icon name="tipRSC" size={18} className="h-[18px] w-[18px]" />
                     {totalAwarded > 0 ? (
-                      <span className="text-xs md:!text-sm font-medium">
+                      <span>
                         {formatCurrency({
                           amount: totalAwarded,
                           showUSD,
@@ -532,7 +551,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                         })}
                       </span>
                     ) : (
-                      <span className="text-xs md:!text-sm font-medium">Tip</span>
+                      <span>Tip</span>
                     )}
                   </div>
                 )}
@@ -542,75 +561,36 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  'flex items-center space-x-1 border border-gray-200 rounded-full transition-all',
-                  'py-0.5 px-2 md:!py-1 md:!px-3',
-                  'text-gray-900 bg-white hover:text-gray-900 hover:bg-gray-100'
+                  'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-gray-700 transition-all',
+                  'hover:bg-white hover:text-gray-900 hover:shadow-sm'
                 )}
                 tooltip={showTooltips ? 'Tip' : undefined}
                 onClick={handleTip}
               >
-                <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
+                <Icon name="tipRSC" size={16} className="h-4 w-4" />
                 {totalAwarded > 0 ? (
-                  <span className="text-xs md:!text-sm font-medium">
+                  <span>
                     {formatCurrency({ amount: totalAwarded, showUSD, exchangeRate, shorten: true })}
                   </span>
                 ) : (
-                  <span className="text-xs md:!text-sm font-medium">Tip</span>
+                  <span>Tip</span>
                 )}
               </Button>
             ) : (
               <div
                 className={cn(
-                  'flex items-center space-x-1 border border-gray-200 rounded-full',
-                  'py-0.5 px-2 md:!py-1 md:!px-3',
-                  'text-gray-900 bg-white cursor-default'
+                  'flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-gray-700'
                 )}
               >
-                <Icon name="tipRSC" size={16} className="w-4 h-4 md:!w-5 md:!h-5" />
+                <Icon name="tipRSC" size={16} className="h-4 w-4" />
                 {totalAwarded > 0 ? (
-                  <span className="text-xs md:!text-sm font-medium">
+                  <span>
                     {formatCurrency({ amount: totalAwarded, showUSD, exchangeRate, shorten: true })}
                   </span>
                 ) : (
-                  <span className="text-xs md:!text-sm font-medium">Tip</span>
+                  <span>Tip</span>
                 )}
               </div>
-            ))}
-          {showInlineReviews &&
-            (showTooltips && reviews.length > 0 ? (
-              <Tooltip
-                content={
-                  <PeerReviewTooltip
-                    reviews={reviews}
-                    averageScore={metrics?.reviewScore || 0}
-                    href={href}
-                  />
-                }
-                position="top"
-                width="w-[320px]"
-              >
-                <ActionButton
-                  icon={Star}
-                  count={
-                    metrics?.reviewScore !== 0 ? formatScore(metrics?.reviewScore || 0) : '3.0'
-                  }
-                  tooltip=""
-                  label="Peer Review"
-                  showTooltip={false}
-                  onClick={!isTouchDevice ? handleReviewClick : undefined}
-                  className="hover:!bg-amber-50 hover:!text-amber-600 hover:!border-amber-300"
-                />
-              </Tooltip>
-            ) : (
-              <ActionButton
-                icon={Star}
-                count={metrics?.reviewScore !== 0 ? formatScore(metrics?.reviewScore || 0) : '3.0'}
-                tooltip="Peer Review"
-                label="Peer Review"
-                showTooltip={showTooltips}
-                onClick={handleReviewClick}
-                className="hover:!bg-amber-50 hover:!text-amber-600 hover:!border-amber-300"
-              />
             ))}
           {showInlineBounties &&
             (showTooltips ? (
@@ -630,13 +610,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                   hideIcon={true}
                   tooltip=""
                   label="Bounties"
-                  className="hover:!border-orange-500 hover:!text-orange-600 hover:!bg-orange-50"
+                  className="hover:!bg-white hover:!text-orange-600 hover:shadow-sm"
                   count={
                     <CurrencyBadge
                       amount={totalBountyAmount}
                       variant="text"
                       size="xs"
-                      className="!text-xs md:!text-sm px-0"
+                      className="!text-xs px-0"
                       textColor="inherit"
                       iconColor="inherit"
                       iconSize={18}
@@ -657,13 +637,13 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 hideIcon={true}
                 tooltip="Bounties"
                 label="Bounties"
-                className="hover:!border-orange-500 hover:!text-orange-600 hover:!bg-orange-50"
+                className="hover:!bg-white hover:!text-orange-600 hover:shadow-sm"
                 count={
                   <CurrencyBadge
                     amount={totalBountyAmount}
                     variant="text"
                     size="xs"
-                    className="!text-xs md:!text-sm"
+                    className="!text-xs"
                     textColor="inherit"
                     iconColor="inherit"
                     iconSize={18}
@@ -679,13 +659,87 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
                 onClick={handleBountyClick}
               />
             ))}
+          {onExpand && (
+            <ActionButton
+              icon={Maximize2}
+              tooltip={isExpanded ? 'Collapse' : 'Expand'}
+              label={isExpanded ? 'Collapse' : 'Expand'}
+              onClick={(e) => {
+                e?.stopPropagation();
+                onExpand(e);
+              }}
+              showTooltip={showTooltips}
+            />
+          )}
           {children}
         </div>
 
-        <div className="flex-grow flex justify-end items-center gap-3">
+        <div className="flex flex-shrink-0 items-center justify-end gap-1">
           {rightSideActionButton}
+          <BaseMenu
+            trigger={
+              <Button
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+                variant="ghost"
+                size="sm"
+                className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-all hover:bg-white hover:text-gray-900 hover:shadow-sm"
+              >
+                <MoreHorizontal className="h-[18px] w-[18px]" />
+              </Button>
+            }
+            align="end"
+            open={isMenuOpen}
+            onOpenChange={setIsMenuOpen}
+          >
+            {listDetailContext && relatedDocumentUnifiedDocumentId && (
+              <BaseMenuItem onClick={handleRemoveFromList} className="flex items-center gap-2">
+                <Trash2 className="w-4 h-4" />
+                <span>Remove from list</span>
+              </BaseMenuItem>
+            )}
 
-          {/* Show "Add to List" button in right section when hideReportButton is true */}
+            {menuItems.map((item, index) => (
+              <BaseMenuItem
+                key={`menu-item-${index}`}
+                onClick={(e) => {
+                  setIsMenuOpen(false);
+                  item.onClick(e);
+                }}
+                className={cn('flex items-center gap-2', item.className)}
+              >
+                {item.icon && <item.icon className="w-4 h-4" />}
+                <span>{item.label}</span>
+              </BaseMenuItem>
+            ))}
+
+            {showSeparator && <div className="h-px my-1 bg-gray-200" />}
+
+            {!hideReportButton && (
+              <BaseMenuItem onClick={handleReport} className="flex items-center gap-2">
+                <Flag className="w-4 h-4" />
+                <span>{actionLabels?.report || 'Report'}</span>
+              </BaseMenuItem>
+            )}
+          </BaseMenu>
+          {variant !== 'inline' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              tooltip={showTooltips ? 'Copy link' : undefined}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+              }}
+              onClick={handleCopyDocumentUrl}
+              className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-white hover:text-gray-900 hover:shadow-sm"
+            >
+              <Share className="h-[18px] w-[18px]" />
+            </Button>
+          )}
           {relatedDocumentUnifiedDocumentId &&
             feedContentType !== 'COMMENT' &&
             feedContentType !== 'BOUNTY' &&
@@ -694,68 +748,25 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className={cn(
-                  'p-1.5 transition-colors hover:bg-gray-0',
-                  isDocumentInList
-                    ? 'text-green-600 hover:text-green-600'
-                    : 'text-gray-900 hover:text-gray-600'
-                )}
-                tooltip={'Save'}
+                tooltip={showTooltips ? 'Save' : undefined}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                }}
                 onClick={handleAddToList}
                 disabled={isTogglingDefaultList}
+                className={cn(
+                  'flex h-8 w-8 !p-0 items-center justify-center rounded-full transition-colors',
+                  isDocumentInList
+                    ? 'text-green-600 hover:bg-white hover:text-green-700 hover:shadow-sm'
+                    : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'
+                )}
               >
                 <FontAwesomeIcon
                   icon={isDocumentInList ? faBookmarkSolid : faBookmark}
-                  className="w-5 h-5"
+                  className="h-[18px] w-[18px]"
                 />
               </Button>
             )}
-
-          {(!hideReportButton || menuItems.length > 0) && (
-            <BaseMenu
-              trigger={
-                <Button
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                  variant="ghost"
-                  size="sm"
-                  className="flex items-center text-gray-400 hover:text-gray-600"
-                >
-                  <MoreHorizontal className="w-5 h-5" />
-                </Button>
-              }
-              align="end"
-              open={isMenuOpen}
-              onOpenChange={setIsMenuOpen}
-            >
-              {menuItems.map((item, index) => (
-                <BaseMenuItem
-                  key={`menu-item-${index}`}
-                  onClick={(e) => {
-                    setIsMenuOpen(false); // Close dropdown when any menu item is clicked
-                    item.onClick(e);
-                  }}
-                  className={cn('flex items-center gap-2', item.className)} // Apply potential class for color
-                >
-                  {item.icon && <item.icon className="w-4 h-4" />}
-                  <span>{item.label}</span>
-                </BaseMenuItem>
-              ))}
-
-              {showSeparator && <div className="h-px my-1 bg-gray-200" />}
-
-              {!hideReportButton && (
-                <BaseMenuItem onClick={handleReport} className="flex items-center gap-2">
-                  <Flag className="w-4 h-4" />
-                  <span>{actionLabels?.report || 'Report'}</span>
-                </BaseMenuItem>
-              )}
-            </BaseMenu>
-          )}
         </div>
       </div>
 

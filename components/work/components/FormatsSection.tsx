@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFilePdf } from '@fortawesome/pro-light-svg-icons';
 import { handleDownload } from '@/utils/download';
+import { SidebarHeader } from '@/components/ui/SidebarHeader';
 
 interface Format {
   type: string;
@@ -18,9 +19,7 @@ export const FormatsSection = ({ formats }: FormatsSectionProps) => {
 
   return (
     <section>
-      <div className="flex items-center space-x-2 mb-4">
-        <h2 className="text-base font-semibold text-gray-900">Other Formats</h2>
-      </div>
+      <SidebarHeader title="Other Formats" className="mb-3" />
       <div className="space-y-2">
         {formats.map((format, index) => (
           <div key={index} className="flex items-center justify-between">

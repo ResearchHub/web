@@ -1,16 +1,11 @@
-import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
-import { MetadataService } from '@/services/metadata.service';
-import { Work } from '@/types/work';
-import { PageLayout } from '@/app/layouts/PageLayout';
-import { FundingRightSidebar } from '@/components/work/FundingRightSidebar';
-import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
-import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
-import { GrantDocument } from '@/components/work/GrantDocument';
-import { GrantRightSidebar } from '@/components/work/GrantRightSidebar';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
+import { ProposalFeed } from '@/components/Funding/ProposalFeed';
+import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
+import { FundraiseProvider } from '@/contexts/FundraiseContext';
+import { GrantContentSwitcher } from '@/components/Funding/GrantContentSwitcher';
 
 interface Props {
   params: Promise<{
@@ -18,55 +13,45 @@ interface Props {
     slug: string;
   }>;
 }
-async function getWorkHTMLContent(work: Work): Promise<string | undefined> {
-  if (!work.contentUrl) return undefined;
 
-  try {
-    return await PostService.getContent(work.contentUrl);
-  } catch (error) {
-    console.error('Failed to fetch content:', error);
-    return undefined;
-  }
-}
-
-async function getGrant(id: string): Promise<Work> {
+async function getGrant(id: string) {
   if (!id.match(/^\d+$/)) {
     notFound();
   }
-
   try {
-    const work = await PostService.get(id);
-    return work;
-  } catch (error) {
+    return await PostService.get(id);
+  } catch {
     notFound();
   }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const resolvedParams = await params;
-  const grant = await getGrant(resolvedParams.id);
+  const { id, slug } = await params;
+  const grant = await getGrant(id);
   return getWorkMetadata({
     work: grant,
-    url: `/grant/${resolvedParams.id}/${resolvedParams.slug}`,
+    url: `/grant/${id}/${slug}`,
   });
 }
 
-export default async function GrantPage({ params }: Props) {
-  const resolvedParams = await params;
-  const id = resolvedParams.id;
-
+export default async function GrantSlugPage({ params }: Props) {
+  const { id } = await params;
   const work = await getGrant(id);
-  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
-  const content = await getWorkHTMLContent(work);
+  const grant = work.note?.post?.grant;
+  const grantId = grant?.id ?? undefined;
 
   return (
-    <PageLayout rightSidebar={<GrantRightSidebar work={work} metadata={metadata} />}>
-      <Suspense>
-        <GrantDocument work={work} metadata={metadata} content={content} defaultTab="paper" />
-        <SearchHistoryTracker work={work} />
-        <WorkDocumentTracker work={work} metadata={metadata} tab="paper" />
-      </Suspense>
-    </PageLayout>
+    <GrantContentSwitcher
+      content={work.previewContent}
+      imageUrl={work.image}
+      hasDescription={!!grant?.description}
+      grantId={grantId}
+    >
+      <FundraiseProvider grantId={grantId ? Number(grantId) : undefined}>
+        {grant?.description && <ProposalSortAndFilters variant="grant" />}
+        <ProposalFeed />
+      </FundraiseProvider>
+    </GrantContentSwitcher>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { FeedPostContent, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
+import { FeedPostContent, FeedEntry } from '@/types/feed';
 import {
   BaseFeedItem,
   TitleSection,
@@ -11,9 +11,11 @@ import {
   FeedItemTopSection,
 } from '@/components/Feed/BaseFeedItem';
 import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
-import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
-import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
+import { FeedItemTopicBadges } from '@/components/Feed/FeedItemTopicBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
+import { Star } from 'lucide-react';
 import { formatTimestamp } from '@/utils/date';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
 import { buildWorkUrl } from '@/utils/url';
@@ -62,6 +64,9 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
     })) || [];
 
   // Use provided href or create default post page URL
+  const reviewScore = entry.metrics?.reviewScore;
+  const hasReviewScore = reviewScore !== undefined && reviewScore > 0;
+
   const postPageUrl =
     href ||
     buildWorkUrl({
@@ -69,13 +74,6 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
       slug: post.slug,
       contentType: post.postType === 'QUESTION' ? 'question' : 'post',
     });
-
-  // Extract props for FeedItemMenuButton (same as BaseFeedItem uses for FeedItemActions)
-  const feedContentType = post.contentType || 'POST';
-  const votableEntityId = post.id;
-  const relatedDocumentId =
-    'relatedDocumentId' in post ? post.relatedDocumentId?.toString() : post.id.toString();
-  const relatedDocumentContentType = mapFeedContentTypeToContentType(post.contentType);
 
   return (
     <BaseFeedItem
@@ -89,7 +87,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
       onFeedItemClick={onFeedItemClick}
       showPeerReviews={post.postType !== 'QUESTION'}
       showBountyInfo={showBountyInfo}
-      hideReportButton={true}
+      hideReportButton={false}
     >
       {/* Top section with badges and mobile image */}
       <FeedItemTopSection
@@ -102,23 +100,18 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
             />
           )
         }
-        rightContent={
-          <FeedItemMenuButton
-            feedContentType={feedContentType}
-            votableEntityId={votableEntityId}
-            relatedDocumentId={relatedDocumentId}
-            relatedDocumentContentType={relatedDocumentContentType}
-            relatedDocumentUnifiedDocumentId={post.unifiedDocumentId}
-          />
-        }
-        leftContent={
-          <FeedItemBadges
-            topics={post.topics}
-            category={post.category}
-            subcategory={post.subcategory}
-          />
-        }
+        rightContent={null}
+        leftContent={null}
       />
+
+      <div className="mt-[-7px]">
+        <FeedItemTopicBadges
+          topics={post.topics}
+          category={post.category}
+          subcategory={post.subcategory}
+        />
+      </div>
+
       {/* Main content layout with desktop image */}
       <FeedItemLayout
         leftContent={
@@ -131,22 +124,40 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
               onClick={onFeedItemClick}
             />
 
-            <div>
-              {/* Authors list below title */}
-              {authors.length > 0 && (
-                <MetadataSection>
-                  <div className="flex items-start gap-1.5">
-                    <AuthorList
-                      authors={authors}
-                      size="sm"
-                      className="text-gray-500 font-normal text-sm"
-                      delimiter="•"
-                      timestamp={post.createdDate ? formatTimestamp(post.createdDate) : undefined}
-                    />
-                  </div>
-                </MetadataSection>
-              )}
-            </div>
+            <MetadataSection>
+              <div className="flex items-center flex-wrap text-sm">
+                {authors.length > 0 && (
+                  <AuthorList
+                    authors={authors}
+                    size="sm"
+                    className="text-gray-500 font-normal text-sm"
+                    delimiter="•"
+                    timestamp={post.createdDate ? formatTimestamp(post.createdDate) : undefined}
+                  />
+                )}
+                {hasReviewScore && (
+                  <>
+                    <span className="mx-2 text-gray-500">•</span>
+                    <Tooltip
+                      content={
+                        <PeerReviewTooltip
+                          reviews={post.reviews ?? []}
+                          averageScore={reviewScore}
+                          href={postPageUrl}
+                        />
+                      }
+                      position="top"
+                      width="w-[320px]"
+                    >
+                      <span className="inline-flex items-center gap-1 text-sm text-gray-600 cursor-help">
+                        <Star size={13} className="fill-amber-400 text-amber-400" />
+                        {reviewScore.toFixed(1)}
+                      </span>
+                    </Tooltip>
+                  </>
+                )}
+              </div>
+            </MetadataSection>
 
             {/* Content Section - handles both desktop and mobile */}
             <FeedItemAbstractSection

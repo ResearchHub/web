@@ -250,6 +250,7 @@ export class FeedService {
           total_contribution: contributor.total_contribution,
         })),
       },
+      created_by: content_object.created_by,
       created_date: content_object.created_date,
       updated_date: content_object.updated_date,
     };
