@@ -144,13 +144,13 @@ export function PaymentWidget({
     },
     {
       id: 'endaoment',
-      title: 'Endaoment',
+      title: 'Donor-Advised Fund (DAF)',
       description:
         connected && selectedEndaomentFund
           ? `Balance:  ${formatUsdValue(selectedEndaomentFund.usdcBalance, 0, false)}`
           : connected
             ? 'Select a fund'
-            : 'Contribute from your fund',
+            : 'Via Endaoment',
       icon: (
         <Image
           src="/logos/endaoment_color.svg"
