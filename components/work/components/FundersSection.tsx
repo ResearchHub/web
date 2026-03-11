@@ -97,15 +97,10 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
                   <div className="flex items-center text-sm font-medium font-mono text-primary-600">
                     <span className="mr-0.5">+</span>
                     <CurrencyBadge
-                      amount={
-                        showUSD
-                          ? contributor.totalContribution.usd
-                          : contributor.totalContribution.rsc
-                      }
+                      amount={contributor.totalContribution.rsc}
                       variant="text"
                       size="xs"
                       currency={showUSD ? 'USD' : 'RSC'}
-                      skipConversion
                       showText={true}
                       textColor="text-primary-600"
                       fontWeight="font-semibold"
