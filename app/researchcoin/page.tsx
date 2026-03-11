@@ -90,7 +90,7 @@ export default function ResearchCoinPage() {
     <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
       <div className="w-full">
         <div className="">
-          <div className="mb-8">
+          <div className="">
             <MainPageHeader
               icon={<Icon name="rscThin" size={28} />}
               title="My Wallet"
