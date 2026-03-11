@@ -23,6 +23,7 @@ export interface AvatarProps {
   disableTooltip?: boolean;
   label?: string;
   labelClassName?: string;
+  labelStyle?: CSSProperties;
   showProfileCompletion?: boolean;
   profileCompletionPercent?: number;
   showProfileCompletionNumber?: boolean;
@@ -268,6 +269,7 @@ export const Avatar: FC<AvatarProps> = ({
   disableTooltip = false,
   label,
   labelClassName,
+  labelStyle,
   showProfileCompletion = false,
   profileCompletionPercent,
   showProfileCompletionNumber = false,
@@ -377,6 +379,7 @@ export const Avatar: FC<AvatarProps> = ({
             ),
             labelClassName
           )}
+          style={labelStyle}
         >
           {label}
         </span>

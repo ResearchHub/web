@@ -12,12 +12,14 @@ interface ManageTopicsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onTopicsChanged?: () => void;
+  defaultTab?: 'all' | 'following';
 }
 
 export const ManageTopicsModal: FC<ManageTopicsModalProps> = ({
   isOpen,
   onClose,
   onTopicsChanged,
+  defaultTab = 'all',
 }) => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -87,7 +89,7 @@ export const ManageTopicsModal: FC<ManageTopicsModalProps> = ({
         <ManageTopics
           initialTopics={topics}
           showFollowingTab={true}
-          defaultTab="following"
+          defaultTab={defaultTab}
           topicListVariant="default"
           showTitle={false}
           className="[&_.grid]:!grid-cols-2 [&_.grid]:sm:!grid-cols-3 [&_.grid]:lg:!grid-cols-3"

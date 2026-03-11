@@ -257,6 +257,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 relatedDocumentTopics={entry.relatedWork?.topics}
                 onFeedItemClick={onFeedItemClick}
                 hideCommentButton={!shouldShowCommentButton(entry.metrics, Boolean(onReply))}
+                variant="inline"
               />
             </div>
           </div>

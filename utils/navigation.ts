@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { Work } from '@/types/work';
-import { generateSlug } from '@/utils/url';
+import { generateSlug, buildWorkUrl } from '@/utils/url';
 import { ExperimentVariant, isExperimentEnabledServer } from '@/utils/experiment';
 
 /**
@@ -31,7 +31,7 @@ export const navigateToAuthorProfile = (authorId: number | string | undefined, n
  */
 export function handleFundraiseRedirect(work: Work, id: string, slug: string) {
   if (work.note?.post?.fundraise) {
-    redirect(`/fund/${id}/${slug}`);
+    redirect(`/proposal/${id}/${slug}`);
   }
 }
 
@@ -57,9 +57,8 @@ export function handleQuestionRedirect(work: Work, id: string, slug: string, tab
  * @param slug The post slug
  */
 export function handleGrantRedirect(work: Work, id: string, slug: string) {
-  // Grants are represented as contentType 'funding_request' or postType 'GRANT'
   if (work.contentType === 'funding_request' || work.postType === 'GRANT') {
-    redirect(`/grant/${id}/${slug}`);
+    redirect(buildWorkUrl({ id, slug, contentType: 'funding_request' }));
   }
 }
 

@@ -33,6 +33,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
+import { buildWorkUrl } from '@/utils/url';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 
 interface WorkDocumentProps {
@@ -258,7 +259,17 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
         <EarningOpportunityBanner work={work} metadata={metadata} />
       </div>
       {/* Title & Actions */}
-      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-0" />
+      <PageHeader
+        title={work.title}
+        className="text-2xl md:!text-3xl mt-0"
+        hasBounty={metadata.openBounties > 0}
+        bountyUrl={buildWorkUrl({
+          id: work.id,
+          contentType: 'paper',
+          slug: work.slug,
+          tab: 'bounties',
+        })}
+      />
 
       <WorkLineItems
         work={work}

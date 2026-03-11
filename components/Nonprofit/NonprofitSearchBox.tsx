@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/form/Input';
 import { Search, X, Info } from 'lucide-react';
 import { NonprofitOrg } from '@/types/nonprofit';
 import { cn } from '@/utils/styles';
-import { KeyboardEvent, RefObject } from 'react';
+import React, { KeyboardEvent } from 'react';
 import { Button } from '@/components/ui/Button';
 
 interface NonprofitSearchBoxProps {
@@ -17,7 +17,7 @@ interface NonprofitSearchBoxProps {
   onSelectNonprofit: (nonprofit: NonprofitOrg) => void;
   onInfoClick: (nonprofit: NonprofitOrg, e: React.MouseEvent<HTMLButtonElement>) => void;
   selectedInfoNonprofit: NonprofitOrg | null;
-  inputRef?: RefObject<HTMLInputElement | null>;
+  inputRef?: React.Ref<HTMLInputElement>;
   onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void;
 }
 

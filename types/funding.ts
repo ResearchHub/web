@@ -1,6 +1,7 @@
 import { Currency, ID } from './root';
 import { createTransformer } from './transformer';
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
+import { transformUser, User } from './user';
 
 export type FundraiseStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
 
@@ -42,8 +43,14 @@ export interface Fundraise {
     topContributors: Contributor[];
   };
 
+  createdBy?: User;
   createdDate: string;
   updatedDate: string;
+
+  postId?: number;
+  postTitle?: string;
+  postSlug?: string;
+  postImage?: string | null;
 }
 
 export const transformFundraise = createTransformer<any, Fundraise>((raw) => ({
@@ -62,8 +69,6 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => ({
       id: contributor.id,
       authorProfile: transformAuthorProfile(contributor.author_profile),
       totalContribution: (() => {
-        // For transitioning from old API response.
-        // Can be removed once backend and frontend are in sync.
         if (typeof contributor.total_contribution === 'number') {
           return { usd: 0, rsc: contributor.total_contribution };
         }
@@ -79,10 +84,15 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => ({
       })),
     })),
   },
+  createdBy: transformUser(raw.created_by),
   status: raw.status as FundraiseStatus,
   goalCurrency: raw.goal_currency as Currency,
   startDate: raw.start_date || undefined,
   endDate: raw.end_date || undefined,
   createdDate: raw.created_date,
   updatedDate: raw.updated_date,
+  postId: raw.post_id || undefined,
+  postTitle: raw.post_title || undefined,
+  postSlug: raw.post_slug || undefined,
+  postImage: raw.post_image || null,
 }));

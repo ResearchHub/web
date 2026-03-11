@@ -44,6 +44,7 @@ interface FeedEntryItemProps {
   shouldRenderBountyAsComment?: boolean;
   highlights?: Highlight[];
   showBountyInfo?: boolean;
+  abstractCollapsedByDefault?: boolean;
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
@@ -63,6 +64,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   getVisibleItems,
   shouldRenderBountyAsComment = false,
   highlights,
+  abstractCollapsedByDefault,
 }) => {
   const unifiedDocumentId = getUnifiedDocumentId(entry);
 
@@ -241,6 +243,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             onAbstractExpanded={handleAbstractExpanded}
             highlights={highlights}
             showBountyInfo={showBountyInfo}
+            abstractCollapsedByDefault={abstractCollapsedByDefault}
           />
         );
         break;
@@ -284,6 +287,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
                     onAbstractExpanded={handleAbstractExpanded}
                     highlights={highlights}
                     showBountyInfo={showBountyInfo}
+                    abstractCollapsedByDefault={abstractCollapsedByDefault}
                   />
                 ) : (
                   <FeedItemPost

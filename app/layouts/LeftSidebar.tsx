@@ -43,7 +43,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ forceMinimize = false 
   return (
     <div className={`h-full flex flex-col z-50 bg-white overflow-hidden ${minimizeClass}`}>
       <div
-        className={`p-4 pl-4 ${forceMinimize ? '!flex !justify-center' : 'tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center'}`}
+        className={`p-4 pl-4 ${forceMinimize ? '!flex !justify-center' : 'tablet:max-sidebar-compact:!flex tablet:max-sidebar-compact:!justify-center'} pt-[10px]`}
       >
         <Link href="/">
           <div className={forceMinimize ? '!hidden' : 'tablet:max-sidebar-compact:!hidden ml-1'}>

@@ -71,20 +71,18 @@ export const FooterLinks: React.FC = () => {
         </div>
       </div>
       <div className="flex flex-wrap gap-3 text-gray-500">
+        <a href="https://www.researchhub.com/about" className="hover:text-gray-700">
+          About
+        </a>
+        <a href="https://docs.researchhub.com/" className="hover:text-gray-700">
+          Docs
+        </a>
         <a
           href="/changelog"
           className={`flex items-center gap-1 ${hasSeenChangelog ? 'hover:text-gray-700' : 'text-orange-500 hover:text-orange-600'}`}
           onClick={handleChangelogClick}
         >
-          {!hasSeenChangelog && (
-            <RadiatingDot
-              size={12}
-              dotSize={6}
-              color="bg-orange-500"
-              radiateColor="bg-orange-400"
-              ringColor="border-orange-200"
-            />
-          )}
+          {!hasSeenChangelog && <RadiatingDot color="bg-orange-500" size="sm" />}
           Changelog
         </a>
         <a href="https://www.researchhub.com/about/tos" className="hover:text-gray-700">
@@ -94,27 +92,12 @@ export const FooterLinks: React.FC = () => {
           Privacy
         </a>
         <a
-          href="https://github.com/ResearchHub/issues/issues/new/choose"
-          className="hover:text-gray-700"
-        >
-          Issues
-        </a>
-        <a href="https://docs.researchhub.com/" className="hover:text-gray-700">
-          Docs
-        </a>
-        <a
           href="https://airtable.com/appuhMJaf1kb3ic8e/pagYeh6cB9sgiTIgx/form"
           className="hover:text-gray-700"
           target="_blank"
           rel="noopener noreferrer"
         >
           Support
-        </a>
-        <a href="https://researchhub.foundation/" className="hover:text-gray-700">
-          Foundation
-        </a>
-        <a href="https://www.researchhub.com/about" className="hover:text-gray-700">
-          About
         </a>
       </div>
     </div>

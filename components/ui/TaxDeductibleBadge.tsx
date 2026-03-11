@@ -1,14 +1,27 @@
-import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
-import { CheckCircle } from 'lucide-react';
+import { Percent } from 'lucide-react';
 
 interface TaxDeductibleBadgeProps {
   className?: string;
   size?: 'default' | 'sm' | 'lg' | 'xs';
   showTooltip?: boolean;
-  variant?: 'default' | 'icon-only';
+  variant?: 'default' | 'overlay';
 }
+
+const sizeStyles = {
+  xs: 'text-[9px] px-1.5 py-0.5 gap-1',
+  sm: 'text-[10px] px-1.5 py-0.5 gap-1',
+  default: 'text-xs px-2 py-0.5 gap-1.5',
+  lg: 'text-sm px-2.5 py-1 gap-1.5',
+} as const;
+
+const iconSizes = {
+  xs: 'w-2.5 h-2.5',
+  sm: 'w-3 h-3',
+  default: 'w-3 h-3',
+  lg: 'w-3.5 h-3.5',
+} as const;
 
 export const TaxDeductibleBadge = ({
   className = '',
@@ -16,26 +29,23 @@ export const TaxDeductibleBadge = ({
   showTooltip = true,
   variant = 'default',
 }: TaxDeductibleBadgeProps) => {
-  // Determine styling based on variant
-  const getBadgeStyles = () => {
-    switch (variant) {
-      case 'icon-only':
-        return 'border-green-200 bg-green-50 text-green-700 cursor-pointer px-2';
-      case 'default':
-      default:
-        return 'border-green-200 bg-green-50 text-green-700 cursor-pointer';
-    }
-  };
+  const isOverlay = variant === 'overlay';
 
   const badge = (
-    <Badge
-      variant="default"
-      size={size}
-      className={cn('gap-1.5 py-1', getBadgeStyles(), className)}
+    <span
+      className={cn(
+        'inline-flex items-center rounded-md font-medium whitespace-nowrap',
+        showTooltip ? 'cursor-help' : 'cursor-default',
+        sizeStyles[size],
+        isOverlay
+          ? 'bg-white/95 text-gray-900 text-[11px] border border-white font-semibold px-2 py-0.5 rounded-full shadow-sm'
+          : 'bg-white-50 text-white-700 border border-white-200',
+        className
+      )}
     >
-      <CheckCircle className="w-4 h-4" />
-      {variant !== 'icon-only' && <span>Tax-Deductible</span>}
-    </Badge>
+      <Percent className={cn(iconSizes[size], isOverlay ? 'text-white-400' : 'text-white-500')} />
+      <span>Tax-Deductible</span>
+    </span>
   );
 
   if (!showTooltip) {
@@ -46,8 +56,8 @@ export const TaxDeductibleBadge = ({
     <Tooltip
       content={
         <div className="flex items-start gap-3 text-left">
-          <div className="bg-green-100 p-2 rounded-md flex items-center justify-center">
-            <CheckCircle className="w-6 h-6 text-green-600" />
+          <div className="bg-gray-100 p-2 rounded-md flex items-center justify-center flex-shrink-0">
+            <Percent className="w-4 h-4 text-white-600" />
           </div>
           <div>
             <h3 className="text-sm font-semibold text-gray-900">Tax-Deductible Donations</h3>

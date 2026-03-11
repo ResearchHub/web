@@ -20,6 +20,7 @@ import '@fontsource/inter/700.css';
 import { LeftSidebar as NotebookLeftSidebar } from '@/components/Notebook/LeftSidebar';
 import { LeftSidebar as MainLeftSidebar } from '../layouts/LeftSidebar';
 import { NotebookProvider } from '@/contexts/NotebookContext';
+import { GrantProvider } from '@/contexts/GrantContext';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { NoteEditorLayout } from '@/components/Notebook/NoteEditorLayout';
 
@@ -135,10 +136,12 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
 
 export default function NotebookLayout({ children }: { children: React.ReactNode }) {
   return (
-    <NotebookProvider>
-      <SidebarProvider>
-        <NotebookLayoutContent>{children}</NotebookLayoutContent>
-      </SidebarProvider>
-    </NotebookProvider>
+    <GrantProvider>
+      <NotebookProvider>
+        <SidebarProvider>
+          <NotebookLayoutContent>{children}</NotebookLayoutContent>
+        </SidebarProvider>
+      </NotebookProvider>
+    </GrantProvider>
   );
 }

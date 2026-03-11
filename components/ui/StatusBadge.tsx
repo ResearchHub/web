@@ -13,8 +13,6 @@ interface StatusBadgeProps {
 
 interface StatusConfig {
   dotColor: string;
-  radiateColor: string;
-  ringColor: string;
   textColor: string;
   bgColor: string;
   borderColor: string;
@@ -31,8 +29,6 @@ export const StatusBadge: FC<StatusBadgeProps> = ({ status, className, size = 's
   const statusConfig: Record<string, StatusConfig> = {
     open: {
       dotColor: 'bg-blue-500',
-      radiateColor: 'bg-blue-400',
-      ringColor: 'border-blue-200',
       textColor: 'text-blue-700',
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-100',
@@ -40,8 +36,6 @@ export const StatusBadge: FC<StatusBadgeProps> = ({ status, className, size = 's
     },
     expiring: {
       dotColor: 'bg-orange-500',
-      radiateColor: 'bg-orange-400',
-      ringColor: 'border-orange-200',
       textColor: 'text-orange-700',
       bgColor: 'bg-orange-50',
       borderColor: 'border-orange-200',
@@ -49,8 +43,6 @@ export const StatusBadge: FC<StatusBadgeProps> = ({ status, className, size = 's
     },
     closed: {
       dotColor: 'bg-gray-500',
-      radiateColor: 'bg-gray-400',
-      ringColor: 'border-gray-200',
       textColor: 'text-gray-700',
       bgColor: 'bg-gray-50',
       borderColor: 'border-gray-200',
@@ -58,8 +50,6 @@ export const StatusBadge: FC<StatusBadgeProps> = ({ status, className, size = 's
     },
     pending: {
       dotColor: 'bg-yellow-500',
-      radiateColor: 'bg-yellow-400',
-      ringColor: 'border-yellow-200',
       textColor: 'text-yellow-700',
       bgColor: 'bg-yellow-50',
       borderColor: 'border-yellow-100',
@@ -67,8 +57,6 @@ export const StatusBadge: FC<StatusBadgeProps> = ({ status, className, size = 's
     },
     completed: {
       dotColor: 'bg-green-500',
-      radiateColor: 'bg-green-400',
-      ringColor: 'border-green-200',
       textColor: 'text-green-700',
       bgColor: 'bg-green-50',
       borderColor: 'border-green-100',
@@ -92,16 +80,10 @@ export const StatusBadge: FC<StatusBadgeProps> = ({ status, className, size = 's
       )}
       size={badgeSize}
     >
-      {status === 'open' || status === 'expiring' ? (
-        <RadiatingDot
-          color={config.dotColor}
-          radiateColor={config.radiateColor}
-          ringColor={config.ringColor}
-          isRadiating={true}
-        />
-      ) : (
-        <RadiatingDot color={config.dotColor} isRadiating={false} />
-      )}
+      <RadiatingDot
+        color={config.dotColor}
+        isRadiating={status === 'open' || status === 'expiring'}
+      />
       <span>{config.label}</span>
     </Badge>
   );
