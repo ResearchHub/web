@@ -139,11 +139,6 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
       {grantTitle && (
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-sm text-gray-500 truncate">{grantTitle}</span>
-          {grantAmountUsd != null && grantAmountUsd > 0 && (
-            <span className="font-mono font-bold text-xs px-2 py-0.5 rounded-md tabular-nums text-primary-800 bg-primary-200/70 flex-shrink-0">
-              {formatCompactAmount(grantAmountUsd)}
-            </span>
-          )}
         </div>
       )}
     </div>

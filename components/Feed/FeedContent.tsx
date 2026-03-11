@@ -147,7 +147,7 @@ export const FeedContent: FC<FeedContentProps> = ({
 
   return (
     <>
-      {header && <div className="mb-2">{header}</div>}
+      {header}
 
       <div className="max-w-4xl mx-auto">
         {tabs && <div ref={tabsSentinelRef}>{tabs}</div>}
