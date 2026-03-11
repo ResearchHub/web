@@ -16,7 +16,7 @@ export function HeroHeader({ title, subtitle, cta, children, className }: HeroHe
       <div
         className={cn(
           'max-w-[1180px] mx-auto px-4 tablet:!px-8 relative',
-          children ? 'pt-4 sm:pt-6' : 'py-4 sm:py-6'
+          children ? 'pt-4 sm:pt-6' : 'py-4 sm:py-8'
         )}
       >
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">

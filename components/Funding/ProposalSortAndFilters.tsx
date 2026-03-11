@@ -81,7 +81,7 @@ export const ProposalSortAndFilters: FC<ProposalSortAndFiltersProps> = ({
         <span className="font-semibold">
           {entries.length} proposal{entries.length !== 1 ? 's' : ''}
         </span>{' '}
-        competing for award
+        competing for funding
       </>
     ) : (
       <span>

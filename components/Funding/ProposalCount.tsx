@@ -13,7 +13,7 @@ export const ProposalCount: FC = () => {
       <span className="font-semibold">
         {entries.length} proposal{entries.length !== 1 ? 's' : ''}
       </span>{' '}
-      competing for award
+      competing for funding
     </p>
   );
 };
