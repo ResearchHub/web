@@ -46,6 +46,7 @@ interface FeedContentProps {
   insertContent?: InsertContentItem[];
   shouldRenderBountyAsComment?: boolean;
   showBountyInfo?: boolean;
+  abstractCollapsedByDefault?: boolean;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -74,6 +75,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   insertContent,
   shouldRenderBountyAsComment,
   showBountyInfo = false,
+  abstractCollapsedByDefault,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -191,6 +193,7 @@ export const FeedContent: FC<FeedContentProps> = ({
                   registerVisibleItem={registerVisibleItem}
                   unregisterVisibleItem={unregisterVisibleItem}
                   getVisibleItems={getVisibleItems}
+                  abstractCollapsedByDefault={abstractCollapsedByDefault}
                 />
               );
 

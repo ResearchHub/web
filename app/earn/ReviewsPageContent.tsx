@@ -86,6 +86,7 @@ export function ReviewsPageContent() {
       page={page}
       lastClickedEntryId={lastClickedEntryId ?? undefined}
       showBountyInfo={true}
+      abstractCollapsedByDefault={true}
     />
   );
 }

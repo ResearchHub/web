@@ -32,6 +32,7 @@ interface FeedItemPaperProps {
   onAbstractExpanded?: () => void;
   highlights?: Highlight[];
   showBountyInfo?: boolean;
+  abstractCollapsedByDefault?: boolean;
 }
 
 /**
@@ -47,6 +48,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   onAbstractExpanded,
   highlights,
   showBountyInfo,
+  abstractCollapsedByDefault,
 }) => {
   const searchParams = useSearchParams();
   const isDebugMode = searchParams.has('debug');
@@ -218,6 +220,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         maxLength={maxLength}
         className="mt-3"
         onAbstractExpanded={onAbstractExpanded}
+        collapsedByDefault={abstractCollapsedByDefault}
       />
     </BaseFeedItem>
   );
