@@ -16,8 +16,14 @@ export function useGrantTab() {
   return ctx;
 }
 
-export function GrantTabProvider({ children }: { children: ReactNode }) {
-  const [activeTab, setActiveTab] = useState<GrantBannerTab>('proposals');
+export function GrantTabProvider({
+  children,
+  defaultTab = 'proposals',
+}: {
+  children: ReactNode;
+  defaultTab?: GrantBannerTab;
+}) {
+  const [activeTab, setActiveTab] = useState<GrantBannerTab>(defaultTab);
   return (
     <GrantTabContext.Provider value={{ activeTab, setActiveTab }}>
       {children}
