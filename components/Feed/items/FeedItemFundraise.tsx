@@ -237,17 +237,19 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                 </div>
 
                 {contributors.length > 0 && (
-                  <AvatarStack
-                    items={contributors}
-                    size="sm"
-                    maxItems={3}
-                    spacing={-8}
-                    showLabel={false}
-                    disableTooltip={false}
-                    showExtraCount={true}
-                    totalItemsCount={fundraise.contributors.numContributors}
-                    extraCountLabel="Backers"
-                  />
+                  <div className="hidden sm:block">
+                    <AvatarStack
+                      items={contributors}
+                      size="sm"
+                      maxItems={3}
+                      spacing={-8}
+                      showLabel={false}
+                      disableTooltip={false}
+                      showExtraCount={true}
+                      totalItemsCount={fundraise.contributors.numContributors}
+                      extraCountLabel="Backers"
+                    />
+                  </div>
                 )}
               </div>
 
@@ -258,8 +260,9 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                   className="flex-shrink-0 rounded-md text-[13px]"
                   onClick={() => setIsContributeModalOpen(true)}
                 >
-                  Fund Proposal
-                  <ArrowRight size={14} className="ml-1.5" />
+                  <span className="hidden sm:inline">Fund Proposal</span>
+                  <span className="sm:hidden">Fund</span>
+                  <ArrowRight size={14} className="ml-1" />
                 </Button>
               ) : (
                 <span className="flex-shrink-0 text-sm text-gray-400">Ended</span>

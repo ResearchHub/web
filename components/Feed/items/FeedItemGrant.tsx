@@ -131,7 +131,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
               </div>
 
               {applicants.length > 0 && (
-                <div className="flex flex-col leading-tight">
+                <div className="hidden sm:flex flex-col leading-tight">
                   <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">
                     Applicants
                   </span>
@@ -157,8 +157,9 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
                 className="flex-shrink-0 rounded-md text-[13px]"
                 onClick={() => router.push(grantPageUrl)}
               >
-                View Details
-                <ArrowRight size={14} className="ml-1.5" />
+                <span className="hidden sm:inline">View Details</span>
+                <span className="sm:hidden">View</span>
+                <ArrowRight size={14} className="ml-1" />
               </Button>
             ) : (
               <span className="flex-shrink-0 text-sm text-gray-400">Ended</span>
