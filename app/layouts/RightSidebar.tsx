@@ -67,7 +67,7 @@ const AvailableFundingSection = () => {
   return (
     <div>
       <SidebarHeader
-        title="Available Funding"
+        title="Funding Opportunities"
         action={<ViewAllLink href="/fund" />}
         className="pb-2"
       />
@@ -152,7 +152,11 @@ const NeedsFundingSection = () => {
 
   return (
     <div>
-      <SidebarHeader title="Needs Funding" action={<ViewAllLink href="/fund" />} className="pb-2" />
+      <SidebarHeader
+        title="Fund Proposals"
+        action={<ViewAllLink href="/fund" />}
+        className="pb-2"
+      />
 
       {isSidebarLoading ? (
         <SidebarSectionSkeleton />

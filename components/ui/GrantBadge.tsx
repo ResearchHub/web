@@ -14,7 +14,7 @@ export const GrantBadge: FC<{
 }> = ({ grant, size = 'sm', hideIcon = false, className }) => {
   const title = grant.shortTitle || grant.organization;
   const href = buildWorkUrl({
-    id: grant.id,
+    id: grant.postId ?? grant.id,
     slug: generateSlug(title),
     contentType: 'funding_request',
   });

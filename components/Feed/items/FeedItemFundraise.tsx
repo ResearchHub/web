@@ -15,7 +15,6 @@ import { Button } from '@/components/ui/Button';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { FeedItemFundingBadges } from '@/components/Feed/FeedItemFundingBadges';
-import { GrantBadge } from '@/components/ui/GrantBadge';
 import { Pin, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
@@ -59,8 +58,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
 
   const post = entry.content as FeedPostContent;
   const hasFundraise = post.contentType === 'PREREGISTRATION' && post.fundraise;
-  const grants = entry.associatedGrants ?? [];
-
   const isNonprofit =
     entry.raw?.is_nonprofit === true && post.contentType === 'PREREGISTRATION' && post.fundraise;
 
@@ -151,19 +148,6 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
               alt={post.title || 'Fundraise image'}
               aspectRatio="16/9"
             />
-          </div>
-        )}
-
-        {grants.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            {grants.map((grant) => (
-              <GrantBadge
-                key={grant.id}
-                grant={grant}
-                hideIcon
-                className="bg-unset text-gray-500 font-normal hover:underline hover:text-gray-600 text-sm"
-              />
-            ))}
           </div>
         )}
 

@@ -174,6 +174,7 @@ interface FeedItemActionsProps {
   onExpand?: (e?: React.MouseEvent) => void;
   isExpanded?: boolean;
   className?: string;
+  variant?: 'default' | 'inline';
 }
 
 // Define interface for avatar items used in local state
@@ -212,6 +213,7 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
   onExpand,
   isExpanded = false,
   className,
+  variant = 'default',
 }) => {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { showUSD } = useCurrencyPreference();
@@ -437,7 +439,12 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2 bg-gray-50 px-3 py-1.5">
+      <div
+        className={cn(
+          'flex items-center justify-between gap-2',
+          variant === 'default' && 'bg-gray-50 px-3 py-1.5'
+        )}
+      >
         <div className={cn('flex items-center flex-nowrap overflow-visible', className)}>
           <div
             className={cn(
@@ -719,18 +726,20 @@ export const FeedItemActions: FC<FeedItemActionsProps> = ({
               </BaseMenuItem>
             )}
           </BaseMenu>
-          <Button
-            variant="ghost"
-            size="sm"
-            tooltip={showTooltips ? 'Copy link' : undefined}
-            onMouseDown={(e) => {
-              e.stopPropagation();
-            }}
-            onClick={handleCopyDocumentUrl}
-            className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-white hover:text-gray-900 hover:shadow-sm"
-          >
-            <Share className="h-[18px] w-[18px]" />
-          </Button>
+          {variant !== 'inline' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              tooltip={showTooltips ? 'Copy link' : undefined}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+              }}
+              onClick={handleCopyDocumentUrl}
+              className="flex h-8 w-8 !p-0 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-white hover:text-gray-900 hover:shadow-sm"
+            >
+              <Share className="h-[18px] w-[18px]" />
+            </Button>
+          )}
           {relatedDocumentUnifiedDocumentId &&
             feedContentType !== 'COMMENT' &&
             feedContentType !== 'BOUNTY' &&

@@ -15,7 +15,7 @@ export function HeroHeader({ title, subtitle, cta, children, className }: HeroHe
     <div className={cn('w-full bg-gray-50/80 border-b border-gray-200', className)}>
       <div
         className={cn(
-          'max-w-[1180px] mx-auto px-4 tablet:!px-8 relative',
+          'max-w-[1180px] mx-auto px-4 tablet:!px-8',
           children ? 'pt-4 sm:pt-6' : 'py-4 sm:py-8'
         )}
       >
@@ -28,17 +28,15 @@ export function HeroHeader({ title, subtitle, cta, children, className }: HeroHe
           </div>
 
           {cta && !children && <div className="flex flex-shrink-0 flex-col gap-2">{cta}</div>}
+
+          {cta && children && (
+            <div className="hidden sm:flex flex-shrink-0 flex-col gap-2">{cta}</div>
+          )}
         </div>
 
         {cta && children && <div className="sm:hidden mt-3">{cta}</div>}
 
         {children}
-
-        {cta && children && (
-          <div className="hidden sm:flex absolute right-4 tablet:!right-8 top-0 bottom-0 items-center">
-            {cta}
-          </div>
-        )}
       </div>
     </div>
   );

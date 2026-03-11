@@ -262,6 +262,7 @@ export interface HotScoreBreakdown {
 
 export interface AssociatedGrant {
   id: number;
+  postId?: number;
   organization: string;
   shortTitle: string;
   amount: string;
@@ -325,6 +326,7 @@ export interface RawApiFeedEntry {
   hot_score_v2?: number;
   associated_grants?: Array<{
     id: number;
+    post_id: number;
     organization: string;
     short_title: string;
     amount: string;
@@ -1009,6 +1011,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     isAwardedForFoundationBounty: (content as any)?.bounty_creator_id,
     associatedGrants: associated_grants?.map((g) => ({
       id: g.id,
+      postId: g.post_id,
       organization: g.organization,
       shortTitle: g.short_title,
       amount: g.amount,

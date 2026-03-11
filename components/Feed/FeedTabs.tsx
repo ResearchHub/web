@@ -99,8 +99,8 @@ export const FeedTabs: FC<FeedTabsProps> = ({
                 type="button"
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
               >
-                <Settings className="w-3.5 h-3.5" />
-                <span>Customize</span>
+                <Settings className="w-4.5 h-4.5 sm:w-3.5 sm:h-3.5" />
+                <span className="hidden sm:inline">Customize</span>
               </button>
             )}
           </div>
