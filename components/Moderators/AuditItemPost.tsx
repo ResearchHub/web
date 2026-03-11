@@ -13,6 +13,7 @@ import { ModerationActions } from './ModerationActions';
 interface AuditItemPostProps {
   entry: FlaggedContent;
   onAction: (action: 'dismiss' | 'remove') => void;
+  onRefresh?: () => void;
   view?: 'pending' | 'dismissed' | 'removed';
 }
 
@@ -133,7 +134,12 @@ const transformAuditPostToFeedEntry = (
   return { feedEntry, relatedWork };
 };
 
-export const AuditItemPost: FC<AuditItemPostProps> = ({ entry, onAction, view = 'pending' }) => {
+export const AuditItemPost: FC<AuditItemPostProps> = ({
+  entry,
+  onAction,
+  onRefresh,
+  view = 'pending',
+}) => {
   const verdict = entry.verdict;
   const contentUrl = getAuditContentUrl(entry);
   const userInfo = getAuditUserInfo(entry);
@@ -174,6 +180,7 @@ export const AuditItemPost: FC<AuditItemPostProps> = ({ entry, onAction, view = 
           hasVerdict={!!verdict}
           authorId={userInfo.authorId}
           authorName={userInfo.name}
+          onRefresh={onRefresh}
         />
       </div>
     </div>

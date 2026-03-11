@@ -11,6 +11,7 @@ import { toast } from 'react-hot-toast';
 interface ModerationActionsProps {
   onDismiss: () => void;
   onRemove: () => void;
+  onRefresh?: () => void;
   view?: 'pending' | 'dismissed' | 'removed';
   hasVerdict?: boolean;
   className?: string;
@@ -21,6 +22,7 @@ interface ModerationActionsProps {
 export const ModerationActions: FC<ModerationActionsProps> = ({
   onDismiss,
   onRemove,
+  onRefresh,
   view = 'pending',
   hasVerdict = false,
   className,
@@ -38,7 +40,7 @@ export const ModerationActions: FC<ModerationActionsProps> = ({
     try {
       await UserModerationService.suspendUser(String(authorId));
       toast.success('User has been suspended');
-      onRemove();
+      onRefresh?.();
     } catch (error) {
       console.error('Failed to suspend user:', error);
       toast.error('Failed to suspend user');

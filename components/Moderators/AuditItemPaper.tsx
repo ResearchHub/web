@@ -17,10 +17,16 @@ import { truncateText } from '@/utils/stringUtils';
 interface AuditItemPaperProps {
   readonly entry: FlaggedContent;
   readonly onAction: (action: 'dismiss' | 'remove') => void;
+  readonly onRefresh?: () => void;
   readonly view?: 'pending' | 'dismissed' | 'removed';
 }
 
-export const AuditItemPaper: FC<AuditItemPaperProps> = ({ entry, onAction, view = 'pending' }) => {
+export const AuditItemPaper: FC<AuditItemPaperProps> = ({
+  entry,
+  onAction,
+  onRefresh,
+  view = 'pending',
+}) => {
   const userInfo = getAuditUserInfo(entry);
   const verdict = entry.verdict;
   const contentUrl = getAuditContentUrl(entry);
@@ -140,6 +146,7 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({ entry, onAction, view 
         hasVerdict={!!verdict}
         authorId={userInfo.authorId}
         authorName={userInfo.name}
+        onRefresh={onRefresh}
       />
     </div>
   );

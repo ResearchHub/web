@@ -16,6 +16,7 @@ interface AuditContentProps {
   loadMore: () => void;
   onDismiss: (flagIds: ID[]) => Promise<boolean>;
   onRemove: (flagIds: ID[]) => Promise<boolean>;
+  onRefresh?: () => void;
   header?: ReactNode;
   filters?: ReactNode;
   noEntriesElement?: ReactNode;
@@ -31,6 +32,7 @@ export const AuditContent: FC<AuditContentProps> = ({
   loadMore,
   onDismiss,
   onRemove,
+  onRefresh,
   header,
   filters,
   noEntriesElement,
@@ -56,6 +58,7 @@ export const AuditContent: FC<AuditContentProps> = ({
         <AuditItemCard
           entry={entry}
           onAction={(action) => handleAction(action, entry.id)}
+          onRefresh={onRefresh}
           view={view}
         />
       </div>
