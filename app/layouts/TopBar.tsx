@@ -79,9 +79,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   return (
     <>
-      <div
-        className={`bg-white ${showTopBarFeedTabs || showGrantTabs ? 'tablet:!border-b tablet:!border-gray-200' : 'border-b border-gray-200'}`}
-      >
+      <div className="bg-white border-b border-gray-200">
         {/* Title row */}
         <div className="flex items-center justify-between px-4 lg:px-8" style={{ height: '70px' }}>
           {/* Left side */}

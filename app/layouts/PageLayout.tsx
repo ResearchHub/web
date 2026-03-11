@@ -76,8 +76,7 @@ function PageLayoutInner({
           ref={scrollContainerRef}
           className={cn(
             'flex-1 overflow-y-auto overflow-x-hidden relative transition-all duration-150',
-            isCompact ? 'pt-12' : 'pt-16',
-            hasGrantTabs && 'pt-[110px]'
+            hasGrantTabs ? (isCompact ? 'pt-[94px]' : 'pt-[110px]') : isCompact ? 'pt-12' : 'pt-16'
           )}
         >
           {topBanner && <div className="w-full">{topBanner}</div>}
@@ -85,8 +84,8 @@ function PageLayoutInner({
           <div className="flex mx-auto w-full max-w-[1180px]">
             <main
               className={cn(
-                'flex-1 min-w-0 px-4 tablet:!px-8 py-6 pb-20 tablet:!pb-4',
-                !topBanner && 'mt-4'
+                'flex-1 min-w-0 px-4 tablet:!px-8 pb-20 tablet:!pb-4',
+                topBanner ? 'py-3 sm:py-6' : 'py-6 mt-4'
               )}
             >
               <div className={cn('w-full max-w-full tablet:!max-w-[860px]', className)}>

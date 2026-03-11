@@ -9,6 +9,7 @@ import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
 import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalTooltip';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { Tabs } from '@/components/ui/Tabs';
+import { HeroHeader } from '@/components/ui/HeroHeader';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { Work } from '@/types/work';
@@ -40,6 +41,32 @@ interface GrantInfoBannerProps {
   onTabChange?: (tab: GrantBannerTab) => void;
 }
 
+function GrantSubtitle({
+  amountUsd,
+  isActive,
+  organization,
+}: {
+  amountUsd?: number;
+  isActive: boolean;
+  organization?: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      {amountUsd != null && amountUsd > 0 && (
+        <span
+          className={cn(
+            'font-mono font-bold text-sm px-2 py-0.5 rounded-md tabular-nums',
+            isActive ? 'text-green-700 bg-green-100' : 'text-gray-500 bg-gray-100'
+          )}
+        >
+          {formatCompactAmount(amountUsd)} available
+        </span>
+      )}
+      {organization && <span className="text-sm text-gray-500">Offered by {organization}</span>}
+    </div>
+  );
+}
+
 export const GrantInfoBanner = ({
   className,
   amountUsd,
@@ -60,101 +87,102 @@ export const GrantInfoBanner = ({
     onOpenModal: () => setIsAddToListModalOpen(true),
   });
 
+  const shareAction = () =>
+    showShareModal({
+      url: window.location.href,
+      docTitle: work?.title || '',
+      action: 'USER_SHARED_DOCUMENT',
+      shouldShowConfetti: false,
+    });
+
+  const ctaButtons = (
+    <div className="flex flex-shrink-0 flex-col items-stretch gap-2">
+      {grantId && isActive && (
+        <SubmitProposalTooltip>
+          <Button
+            variant="default"
+            size="lg"
+            onClick={() => setIsApplyModalOpen(true)}
+            className="gap-2 w-full max-sm:!text-xs max-sm:!h-8 max-sm:!px-2"
+          >
+            Submit Proposal
+            <ArrowUpFromLine className="w-4 h-4 sm:w-5 sm:h-5" />
+          </Button>
+        </SubmitProposalTooltip>
+      )}
+
+      <div className="hidden sm:flex items-center gap-2 justify-center">
+        <Button
+          variant="outlined"
+          size="lg"
+          className="flex-1 gap-2"
+          aria-label="Share"
+          onClick={shareAction}
+        >
+          <Share className="h-4 w-4" />
+          <span className="text-sm">Share</span>
+        </Button>
+
+        {work?.unifiedDocumentId && (
+          <Button
+            variant="outlined"
+            size="lg"
+            onClick={handleAddToList}
+            disabled={isTogglingDefaultList}
+            className={cn('flex-1 gap-2', isInList && 'text-green-600 border-green-300')}
+            aria-label="Save"
+          >
+            <FontAwesomeIcon icon={isInList ? faBookmarkSolid : faBookmark} className="h-4 w-4" />
+            <span className="text-sm">Save</span>
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+
+  const mobileSecondaryActions = (
+    <div className="flex sm:hidden items-center gap-1.5 flex-shrink-0 mb-2">
+      <Button variant="outlined" size="sm" aria-label="Share" onClick={shareAction}>
+        <Share className="h-3.5 w-3.5" />
+      </Button>
+      {work?.unifiedDocumentId && (
+        <Button
+          variant="outlined"
+          size="sm"
+          onClick={handleAddToList}
+          disabled={isTogglingDefaultList}
+          className={cn(isInList && 'text-green-600 border-green-300')}
+          aria-label="Save"
+        >
+          <FontAwesomeIcon icon={isInList ? faBookmarkSolid : faBookmark} className="h-3.5 w-3.5" />
+        </Button>
+      )}
+    </div>
+  );
+
   return (
     <>
-      <div className={cn('w-full bg-gray-50/80 border-b border-gray-200', className)}>
-        <div className="max-w-[1180px] mx-auto pl-4 tablet:!pl-8 pr-4 tablet:!pr-0">
-          <div className="flex items-center gap-6">
-            <div className={cn('flex-1 min-w-0 pt-5', !onTabChange && 'pb-5')}>
-              {amountUsd != null && amountUsd > 0 && (
-                <div className="mb-1.5">
-                  <span
-                    className={cn(
-                      'font-mono font-bold text-base px-2.5 py-0.5 rounded-md tabular-nums',
-                      isActive ? 'text-green-700 bg-green-100' : 'text-gray-500 bg-gray-100'
-                    )}
-                  >
-                    {formatCompactAmount(amountUsd)} available
-                  </span>
-                </div>
-              )}
-
-              {work?.title && (
-                <h1 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900">
-                  {work.title}
-                </h1>
-              )}
-
-              {organization && (
-                <p className="text-base text-gray-700 mt-[10px]">Offered by {organization}</p>
-              )}
-
-              {onTabChange && (
-                <div className="mt-4">
-                  <Tabs
-                    tabs={GRANT_BANNER_TABS}
-                    activeTab={activeTab}
-                    onTabChange={(tabId) => onTabChange(tabId as GrantBannerTab)}
-                  />
-                </div>
-              )}
+      <HeroHeader
+        title={work?.title || ''}
+        subtitle={
+          <GrantSubtitle amountUsd={amountUsd} isActive={isActive} organization={organization} />
+        }
+        cta={ctaButtons}
+        className={className}
+      >
+        {onTabChange && (
+          <div className="flex items-end justify-between mt-3 sm:mt-4">
+            <div className="min-w-0 flex-1">
+              <Tabs
+                tabs={GRANT_BANNER_TABS}
+                activeTab={activeTab}
+                onTabChange={(tabId) => onTabChange(tabId as GrantBannerTab)}
+              />
             </div>
-
-            <div className="flex-shrink-0 flex flex-col items-stretch gap-2">
-              {grantId && isActive && (
-                <SubmitProposalTooltip>
-                  <Button
-                    variant="default"
-                    size="lg"
-                    onClick={() => setIsApplyModalOpen(true)}
-                    className="gap-2 w-full"
-                  >
-                    Submit Proposal
-                    <ArrowUpFromLine className="w-5 h-5" />
-                  </Button>
-                </SubmitProposalTooltip>
-              )}
-
-              <div className="flex items-center gap-2 justify-center">
-                <Button
-                  variant="outlined"
-                  size="lg"
-                  className="flex-1 gap-2"
-                  aria-label="Share"
-                  onClick={() =>
-                    showShareModal({
-                      url: window.location.href,
-                      docTitle: work?.title || '',
-                      action: 'USER_SHARED_DOCUMENT',
-                      shouldShowConfetti: false,
-                    })
-                  }
-                >
-                  <Share className="h-4 w-4" />
-                  <span className="text-sm">Share</span>
-                </Button>
-
-                {work?.unifiedDocumentId && (
-                  <Button
-                    variant="outlined"
-                    size="lg"
-                    onClick={handleAddToList}
-                    disabled={isTogglingDefaultList}
-                    className={cn('flex-1 gap-2', isInList && 'text-green-600 border-green-300')}
-                    aria-label="Save"
-                  >
-                    <FontAwesomeIcon
-                      icon={isInList ? faBookmarkSolid : faBookmark}
-                      className="h-4 w-4"
-                    />
-                    <span className="text-sm">Save</span>
-                  </Button>
-                )}
-              </div>
-            </div>
+            {mobileSecondaryActions}
           </div>
-        </div>
-      </div>
+        )}
+      </HeroHeader>
 
       {grantId && (
         <ApplyToGrantModal

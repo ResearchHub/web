@@ -13,9 +13,13 @@ function SubmitProposalCTA() {
   return (
     <SubmitProposalTooltip>
       <Link href="/notebook?newFunding=true">
-        <Button variant="default" size="lg" className="gap-2 w-full">
+        <Button
+          variant="default"
+          size="lg"
+          className="gap-2 w-full max-sm:!text-xs max-sm:!h-8 max-sm:!px-2"
+        >
           Submit Proposal
-          <ArrowUpFromLine className="w-5 h-5" />
+          <ArrowUpFromLine className="w-4 h-4 sm:w-5 sm:h-5" />
         </Button>
       </Link>
     </SubmitProposalTooltip>
@@ -29,8 +33,8 @@ export default async function FundGrantsPage() {
         <HeroHeader
           title="Funding Opportunities"
           subtitle={
-            <p className="text-md text-gray-600">
-              Browse opportunities to submit researchproposals for.
+            <p className="text-sm sm:text-base text-gray-500">
+              Browse opportunities to submit research proposals for.
             </p>
           }
           cta={<SubmitProposalCTA />}

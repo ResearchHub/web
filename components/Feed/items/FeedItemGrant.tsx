@@ -108,7 +108,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
       {(grant.organization || grant.grant?.organization) && (
         <MetadataSection className="mb-0">
           <span className="text-sm text-gray-500">
-            Offerd by {grant.organization || grant.grant?.organization}
+            Offered by {grant.organization || grant.grant?.organization}
           </span>
         </MetadataSection>
       )}
