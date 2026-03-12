@@ -36,19 +36,9 @@ export class GrantModerationService {
     }
   }
 
-  static async fetchPendingProposals(page: number = 1): Promise<PendingWorksResponse> {
-    try {
-      return await FeedService.getFeed({
-        endpoint: 'funding_feed',
-        page,
-        status: 'PENDING',
-      });
-    } catch (error) {
-      throw new GrantModerationError(
-        error instanceof Error ? error.message : 'Failed to fetch pending proposals',
-        error
-      );
-    }
+  // TODO: Wire up to backend once the pending proposals endpoint is ready
+  static async fetchPendingProposals(_page: number = 1): Promise<PendingWorksResponse> {
+    return { entries: [], hasMore: false };
   }
 
   static async approveGrant(grantId: ID): Promise<void> {
@@ -62,17 +52,12 @@ export class GrantModerationService {
     }
   }
 
-  /**
-   * Declines a pending grant/RFP with an optional reason
-   * @param grantId - The ID of the grant to decline
-   * @param reason - Optional reason for declining
-   * @throws {GrantModerationError} When decline fails
-   */
-  static async declineGrant(grantId: ID, reason?: string): Promise<void> {
+  static async declineGrant(
+    grantId: ID,
+    params: { reason_choice: string; reason?: string }
+  ): Promise<void> {
     try {
-      await ApiClient.post(`${this.BASE_PATH}/${grantId}/decline/`, {
-        ...(reason && { reason }),
-      });
+      await ApiClient.post(`${this.BASE_PATH}/${grantId}/decline/`, params);
     } catch (error) {
       throw new GrantModerationError(
         error instanceof Error ? error.message : 'Failed to decline RFP',

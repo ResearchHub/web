@@ -1,16 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { RefreshCw, CheckCircle, XCircle, ExternalLink, Clock } from 'lucide-react';
+import { RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Tabs } from '@/components/ui/Tabs';
 import { GrantModerationService } from '@/services/grant-moderation.service';
 import { DeclineGrantModal } from '@/components/Moderators/DeclineGrantModal';
+import { FeedItemGrant } from '@/components/Feed/items/FeedItemGrant';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
-import { formatDistanceToNow } from 'date-fns';
-import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { buildWorkUrl } from '@/utils/url';
 
 type WorkTypeFilter = 'all' | 'rfp' | 'proposal';
 
@@ -86,11 +84,14 @@ export default function PendingWorksPage() {
     }
   };
 
-  const handleDecline = async (reason: string) => {
+  const handleDecline = async (data: { reasonChoice: string; reason: string }) => {
     if (!declineTarget) return;
     setActioningId(declineTarget.grantId);
     try {
-      await GrantModerationService.declineGrant(declineTarget.grantId, reason);
+      await GrantModerationService.declineGrant(declineTarget.grantId, {
+        reason_choice: data.reasonChoice,
+        ...(data.reason && { reason: data.reason }),
+      });
       toast.success('RFP declined');
       setEntries((prev) => prev.filter((e) => e.id !== declineTarget.entryId));
       setDeclineTarget(null);
@@ -172,103 +173,43 @@ export default function PendingWorksPage() {
             const grantId = grant.grant?.id;
             const isActioning = actioningId === grantId;
 
-            const createdBy = grant.grant?.createdBy;
-            const creatorName = createdBy
-              ? `${createdBy.firstName ?? ''} ${createdBy.lastName ?? ''}`.trim()
-              : '';
-            const creatorAuthorId = createdBy?.id;
-
-            const grantUrl = buildWorkUrl({
-              id: grant.id,
-              slug: grant.slug,
-              contentType: 'funding_request',
-            });
-
             return (
               <div
                 key={entry.id}
-                className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow"
+                className="bg-white border border-gray-200 rounded-lg overflow-hidden"
               >
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-base font-semibold text-gray-900 truncate">
-                        {grant.title || grant.grant?.organization || 'Untitled RFP'}
-                      </h3>
+                <FeedItemGrant
+                  entry={entry}
+                  showActions={false}
+                  showHeader={true}
+                  customActionText="submitted an RFP for review"
+                />
 
-                      <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
-                        {creatorName && (
-                          <span>
-                            by{' '}
-                            {creatorAuthorId ? (
-                              <Link
-                                href={`/author/${creatorAuthorId}`}
-                                className="text-primary-600 hover:underline"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {creatorName}
-                              </Link>
-                            ) : (
-                              creatorName
-                            )}
-                          </span>
-                        )}
-                        {grant.createdDate && (
-                          <span className="flex items-center gap-1">
-                            <Clock size={14} />
-                            {formatDistanceToNow(new Date(grant.createdDate), { addSuffix: true })}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <Link
-                      href={grantUrl}
-                      target="_blank"
-                      className="flex-shrink-0 text-gray-400 hover:text-gray-600"
+                {!!grantId && (
+                  <div className="flex items-center gap-2 px-4 py-3 border-t border-gray-100">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleApprove(grantId, entry.id)}
+                      disabled={isActioning}
+                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
                     >
-                      <ExternalLink className="h-4 w-4" />
-                    </Link>
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      {isActioning ? 'Approving...' : 'Approve'}
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDeclineTarget({ grantId, entryId: entry.id })}
+                      disabled={isActioning}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <XCircle className="h-4 w-4 mr-1" />
+                      Decline
+                    </Button>
                   </div>
-
-                  {(grant.grant?.description || grant.textPreview) && (
-                    <p className="mt-3 text-sm text-gray-700 line-clamp-3">
-                      {grant.grant?.description || grant.textPreview}
-                    </p>
-                  )}
-
-                  {grant.grant?.amount && (
-                    <div className="mt-3 text-sm text-gray-600">
-                      <span className="font-medium">Amount:</span> {grant.grant.amount.formatted}
-                    </div>
-                  )}
-
-                  {!!grantId && (
-                    <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleApprove(grantId, entry.id)}
-                        disabled={isActioning}
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                      >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        {isActioning ? 'Approving...' : 'Approve'}
-                      </Button>
-
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDeclineTarget({ grantId, entryId: entry.id })}
-                        disabled={isActioning}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <XCircle className="h-4 w-4 mr-1" />
-                        Decline
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             );
           })}

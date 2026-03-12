@@ -198,13 +198,6 @@ export const GrantInfoBanner = ({
         )}
       </HeroHeader>
 
-      {isPending && (
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800 mt-3">
-          This RFP is pending moderator review. It will become visible to the community once
-          approved.
-        </div>
-      )}
-
       {grantId && (
         <ApplyToGrantModal
           isOpen={isApplyModalOpen}

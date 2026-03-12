@@ -1,13 +1,19 @@
 'use client';
 
-import { FC, useState, useEffect, useRef } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
+import { FlagRadioGroup } from '@/components/ui/form/FlagRadioGroup';
+import { Textarea } from '@/components/ui/form/Textarea';
+import { getFlagOptions } from '@/constants/flags';
+import { FlagReasonKey } from '@/types/work';
+
+const flagOptions = getFlagOptions();
 
 interface DeclineGrantModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (reason: string) => void;
+  onConfirm: (data: { reasonChoice: FlagReasonKey; reason: string }) => void;
   isSubmitting?: boolean;
 }
 
@@ -17,18 +23,19 @@ export const DeclineGrantModal: FC<DeclineGrantModalProps> = ({
   onConfirm,
   isSubmitting = false,
 }) => {
-  const [reason, setReason] = useState('');
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [selectedReason, setSelectedReason] = useState<FlagReasonKey | null>(null);
+  const [reasonText, setReasonText] = useState('');
 
   useEffect(() => {
     if (isOpen) {
-      setReason('');
-      setTimeout(() => textareaRef.current?.focus(), 100);
+      setSelectedReason(null);
+      setReasonText('');
     }
   }, [isOpen]);
 
   const handleConfirm = () => {
-    onConfirm(reason.trim());
+    if (!selectedReason) return;
+    onConfirm({ reasonChoice: selectedReason, reason: reasonText.trim() });
   };
 
   const handleClose = () => {
@@ -52,7 +59,7 @@ export const DeclineGrantModal: FC<DeclineGrantModalProps> = ({
             variant="default"
             size="sm"
             onClick={handleConfirm}
-            disabled={isSubmitting}
+            disabled={!selectedReason || isSubmitting}
             className="bg-red-600 hover:bg-red-700 text-white"
           >
             {isSubmitting ? 'Declining...' : 'Decline'}
@@ -60,19 +67,33 @@ export const DeclineGrantModal: FC<DeclineGrantModalProps> = ({
         </div>
       }
     >
-      <div className="space-y-3">
-        <p className="text-sm text-gray-600">
-          Provide an optional reason for declining this RFP. The creator will be notified.
-        </p>
-        <textarea
-          ref={textareaRef}
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          placeholder="Reason for declining (optional)..."
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 resize-none"
-          rows={4}
-          disabled={isSubmitting}
+      <div className="space-y-4">
+        <p className="text-xs text-gray-600">I am declining this RFP because of:</p>
+
+        <FlagRadioGroup
+          options={flagOptions}
+          value={selectedReason || ''}
+          onChange={(value) => setSelectedReason(value as FlagReasonKey)}
+          className="space-y-1.5"
         />
+
+        <div>
+          <label htmlFor="decline-reason" className="block text-xs text-gray-600 mb-1">
+            Additional information (optional)
+          </label>
+          <Textarea
+            id="decline-reason"
+            value={reasonText}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReasonText(e.target.value)}
+            onKeyDown={(e) => e.stopPropagation()}
+            placeholder="Provide more details..."
+            className="w-full"
+            rows={3}
+            maxLength={1000}
+            disabled={isSubmitting}
+          />
+          <p className="text-xs text-gray-500 mt-1 text-right">{reasonText.length} / 1000</p>
+        </div>
       </div>
     </BaseModal>
   );

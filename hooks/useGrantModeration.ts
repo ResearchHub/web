@@ -14,7 +14,7 @@ interface UseGrantModerationReturn {
   openDeclineModal: () => void;
   closeDeclineModal: () => void;
   approveGrant: () => Promise<void>;
-  declineGrant: (reason: string) => Promise<void>;
+  declineGrant: (data: { reasonChoice: string; reason: string }) => Promise<void>;
 }
 
 export const useGrantModeration = (grantId: ID | undefined): UseGrantModerationReturn => {
@@ -37,11 +37,14 @@ export const useGrantModeration = (grantId: ID | undefined): UseGrantModerationR
   }, [grantId, router]);
 
   const declineGrant = useCallback(
-    async (reason: string) => {
+    async (data: { reasonChoice: string; reason: string }) => {
       if (!grantId) return;
       setModerationAction('declining');
       try {
-        await GrantModerationService.declineGrant(grantId, reason);
+        await GrantModerationService.declineGrant(grantId, {
+          reason_choice: data.reasonChoice,
+          ...(data.reason && { reason: data.reason }),
+        });
         toast.success('RFP declined');
         setIsDeclineModalOpen(false);
         router.refresh();
