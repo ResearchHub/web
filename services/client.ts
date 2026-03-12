@@ -66,7 +66,7 @@ export class ApiClient {
     const authToken = await this.getAuthToken();
     if (authToken) {
       headers['Authorization'] = `Token ${authToken}`;
-    } else {
+    } else if (typeof window !== 'undefined') {
       console.warn('No auth token available for request');
     }
 
@@ -99,6 +99,24 @@ export class ApiClient {
       cache: 'no-cache',
       body: body ? JSON.stringify(body) : undefined,
     };
+  }
+
+  static async getStream(
+    path: string,
+    options?: { signal?: AbortSignal; accept?: string }
+  ): Promise<Response> {
+    const headers = await this.getHeaders('GET');
+    if (options?.accept) {
+      headers['Accept'] = options.accept;
+    }
+    const url = path.startsWith('http') ? path : `${this.baseURL}${path}`;
+    return fetch(url, {
+      method: 'GET',
+      headers,
+      mode: 'cors',
+      cache: 'no-cache',
+      signal: options?.signal,
+    });
   }
 
   private static async fetchJson<T>(path: string, headers: Record<string, string>): Promise<T> {
@@ -236,6 +254,20 @@ export class ApiClient {
     } catch (error) {
       console.error('API request failed:', error);
       throw error;
+    }
+  }
+
+  static async deleteNoContent(path: string): Promise<void> {
+    const headers = await this.getHeaders('DELETE');
+    const response = await fetch(`${this.baseURL}${path}`, this.getFetchOptions('DELETE', headers));
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: 'Invalid JSON response from server' };
+      }
+      throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
     }
   }
 }

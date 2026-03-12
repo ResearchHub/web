@@ -14,6 +14,7 @@ import { GrantOrganizationSection } from './components/GrantOrganizationSection'
 import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
+import { buildWorkUrl } from '@/utils/url';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUpsertPost } from '@/hooks/useDocument';
@@ -106,6 +107,17 @@ const mapContentTypeToArticleType = (contentType: string): PublishingFormData['a
   if (contentType === 'preregistration') return 'preregistration';
   if (contentType === 'funding_request') return 'grant';
   return 'discussion';
+};
+
+const mapDocumentTypeToArticleType = (
+  documentType: string
+): PublishingFormData['articleType'] | null => {
+  const map: Record<string, PublishingFormData['articleType']> = {
+    DISCUSSION: 'discussion',
+    GRANT: 'grant',
+    PREREGISTRATION: 'preregistration',
+  };
+  return map[documentType] ?? null;
 };
 
 const populateGrantFields = (grant: any, setValue: (name: any, value: any) => void) => {
@@ -216,8 +228,9 @@ const resolveArticleType = (
 };
 
 const getRedirectPath = (articleType: string, responseId: string, slug: string): string => {
-  if (articleType === 'preregistration') return `/fund/${responseId}/${slug}?new=true`;
-  if (articleType === 'grant') return `/grant/${responseId}/${slug}`;
+  if (articleType === 'preregistration') return `/proposal/${responseId}/${slug}?new=true`;
+  if (articleType === 'grant')
+    return buildWorkUrl({ id: responseId, slug, contentType: 'funding_request' });
   return `/post/${responseId}/${slug}`;
 };
 
@@ -285,6 +298,7 @@ export function PublishingForm({
   const articleType = watch('articleType');
   const isJournalEnabled = watch('isJournalEnabled');
   const selectedNonprofit = watch('selectedNonprofit');
+
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -431,7 +445,10 @@ export function PublishingForm({
           image: imagePath,
           organization: formData.organization,
           description: formData.shortDescription,
-          applicationDeadline: formData.applicationDeadline,
+          applicationDeadline:
+            formData.articleType === 'grant'
+              ? new Date('2029-12-31')
+              : formData.applicationDeadline,
         },
         formData.workId
       );

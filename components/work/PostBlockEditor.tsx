@@ -4,11 +4,13 @@ import { BlockEditorClientWrapper } from '@/components/Editor/components/BlockEd
 import { useEffect } from 'react';
 import { removeTitleFromHTML } from '../Editor/lib/utils/documentTitle';
 import { Editor } from '@tiptap/react';
+import { cn } from '@/utils/styles';
 
 interface PostBlockEditorProps {
   content: string;
   editable?: boolean;
   onEditorReady?: (editor: Editor | null) => void;
+  className?: string;
 }
 
 /**
@@ -19,6 +21,7 @@ export const PostBlockEditor = ({
   content,
   editable = false,
   onEditorReady,
+  className,
 }: PostBlockEditorProps) => {
   // Add custom styles to override the default ProseMirror padding
   useEffect(() => {
@@ -41,7 +44,7 @@ export const PostBlockEditor = ({
   }, []);
 
   return (
-    <div className="post-content bg-white rounded-lg shadow-sm border p-6 mb-6">
+    <div className={cn('post-content bg-white rounded-lg shadow-sm border p-6 mb-6', className)}>
       <BlockEditorClientWrapper content={content} editable={editable} setEditor={onEditorReady} />
     </div>
   );

@@ -70,7 +70,7 @@ function ContributeVariant({ size, color }: { size: number; color: string }) {
 
 export function ResearchCoinIcon({
   size = 24,
-  color = '#F97316',
+  color = '#2563eb',
   className,
   onClick,
   outlined = false,

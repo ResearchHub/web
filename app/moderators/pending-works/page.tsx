@@ -170,9 +170,9 @@ export default function PendingWorksPage() {
 
             const createdBy = grant.grant?.createdBy;
             const creatorName = createdBy
-              ? `${createdBy.first_name ?? ''} ${createdBy.last_name ?? ''}`.trim()
+              ? `${createdBy.firstName ?? ''} ${createdBy.lastName ?? ''}`.trim()
               : '';
-            const creatorAuthorId = createdBy?.author_profile?.id;
+            const creatorAuthorId = createdBy?.id;
 
             const grantUrl = buildWorkUrl({
               id: grant.id,

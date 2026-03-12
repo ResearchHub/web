@@ -57,7 +57,7 @@ export const RelatedWorkCard = ({
       // Default behavior: open the document in a new tab
       let path;
       if (work.contentType === 'preregistration') {
-        path = `/fund/${work.id}/${work.slug}`;
+        path = `/proposal/${work.id}/${work.slug}`;
       } else if (work.contentType === 'post') {
         // Check if it's a question based on postType
         if (work.postType === 'QUESTION') {

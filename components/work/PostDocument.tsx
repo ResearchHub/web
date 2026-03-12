@@ -13,6 +13,7 @@ import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 import { QuestionEditModal } from '@/components/modals/QuestionEditModal';
 import TipTapRenderer from '@/components/Comment/lib/TipTapRenderer';
 import { htmlToTipTapJSON } from '@/components/Comment/lib/htmlToTipTap';
+import { buildWorkUrl } from '@/utils/url';
 
 interface PostDocumentProps {
   work: Work;
@@ -144,7 +145,17 @@ export const PostDocument = ({
           Preprint
         </div>
       )}
-      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-0" />
+      <PageHeader
+        title={work.title}
+        className="text-2xl md:!text-3xl mt-0"
+        hasBounty={metadata.openBounties > 0}
+        bountyUrl={buildWorkUrl({
+          id: work.id,
+          contentType: 'post',
+          slug: work.slug,
+          tab: 'bounties',
+        })}
+      />
       <WorkLineItems work={work} metadata={metadata} onEditClick={handleEditToggle} />
 
       {/* Tabs */}

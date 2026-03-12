@@ -14,6 +14,7 @@ export interface FeedItemAbstractSectionProps {
   className?: string;
   mobileLabel?: string;
   onAbstractExpanded?: () => void;
+  collapsedByDefault?: boolean;
 }
 
 export const FeedItemAbstractSection: FC<FeedItemAbstractSectionProps> = ({
@@ -23,6 +24,7 @@ export const FeedItemAbstractSection: FC<FeedItemAbstractSectionProps> = ({
   className,
   mobileLabel = 'Read abstract',
   onAbstractExpanded,
+  collapsedByDefault = false,
 }) => {
   const [isDesktopExpanded, setIsDesktopExpanded] = useState(false);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
@@ -96,15 +98,24 @@ export const FeedItemAbstractSection: FC<FeedItemAbstractSectionProps> = ({
     <div className={className}>
       {/* Desktop: Show content with expand/collapse */}
       <div className="hidden md:!block text-sm text-gray-900 leading-relaxed">
-        <p>{isDesktopExpanded ? content : truncateText(content, maxLength)}</p>
-        {isTextTruncated && (
+        {collapsedByDefault && !isDesktopExpanded ? null : (
+          <p>{isDesktopExpanded ? content : truncateText(content, maxLength)}</p>
+        )}
+        {(collapsedByDefault || isTextTruncated) && (
           <Button
             variant="link"
             size="sm"
             onClick={handleDesktopToggle}
-            className="flex items-center gap-0.5 mt-1 text-blue-500 p-0 h-auto text-sm font-medium"
+            className={cn(
+              'flex items-center gap-0.5 text-blue-500 p-0 h-auto text-sm font-medium',
+              !collapsedByDefault && 'mt-1'
+            )}
           >
-            {isDesktopExpanded ? 'Show less' : 'Read more'}
+            {isDesktopExpanded
+              ? collapsedByDefault
+                ? 'Hide abstract'
+                : 'Show less'
+              : 'Read abstract'}
             <ChevronDown
               size={14}
               className={cn(

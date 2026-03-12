@@ -11,6 +11,9 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      fontFamily: {
+        serif: ['var(--font-lora)', 'Georgia', 'Cambria', 'serif'],
+      },
       colors: {
         primary: colors.primary,
         gray: colors.gray,

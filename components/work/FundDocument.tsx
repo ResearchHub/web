@@ -13,14 +13,14 @@ import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { useStorageKey } from '@/utils/storageKeys';
-import { FundingRightSidebar } from './FundingRightSidebar';
+import { ProposalSidebar } from './ProposalSidebar';
 import { useUser } from '@/contexts/UserContext';
-import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '../ui/Button';
+import { buildWorkUrl } from '@/utils/url';
 
 interface FundDocumentProps {
   work: Work;
@@ -191,17 +191,22 @@ export const FundDocument = ({
 
   return (
     <div>
-      {/* Show on mobile only - desktop shows in right sidebar */}
-      <div className="lg:hidden mb-3">
-        <EarningOpportunityBanner work={work} metadata={metadata} />
-      </div>
-      {/* Title & Actions */}
       {work.type === 'preprint' && (
         <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
           Preprint
         </div>
       )}
-      <PageHeader title={work.title} className="text-2xl md:!text-3xl mt-0" />
+      <PageHeader
+        title={work.title}
+        className="text-2xl md:!text-3xl mt-0"
+        hasBounty={metadata.openBounties > 0}
+        bountyUrl={buildWorkUrl({
+          id: work.id,
+          contentType: work.contentType === 'paper' ? 'paper' : 'post',
+          slug: work.slug,
+          tab: 'bounties',
+        })}
+      />
 
       <WorkLineItems
         work={work}
@@ -289,7 +294,7 @@ export const FundDocument = ({
           >
             <FontAwesomeIcon icon={faXmark} className="w-4 h-4 text-gray-600" />
           </Button>
-          <FundingRightSidebar work={work} metadata={metadata} />
+          <ProposalSidebar work={work} metadata={metadata} />
         </div>
       </div>
     </div>

@@ -46,6 +46,7 @@ export interface Grant {
   currency: Currency;
   organization: string;
   description: string;
+  shortTitle: string;
   status: GrantStatus;
   startDate: string;
   endDate: string;
@@ -77,6 +78,7 @@ export const transformGrant = createTransformer<any, Grant>((raw) => ({
   currency: raw.currency as Currency,
   organization: raw.organization,
   description: raw.description,
+  shortTitle: raw.short_title || '',
   status: raw.status as GrantStatus,
   startDate: raw.start_date,
   endDate: raw.end_date,

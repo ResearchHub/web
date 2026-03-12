@@ -285,3 +285,16 @@ export const transformPaper = createTransformer<any, Work>((raw) => ({
   category: raw.category ? transformTopic(raw.category) : undefined,
   subcategory: raw.subcategory ? transformTopic(raw.subcategory) : undefined,
 }));
+
+/**
+ * Transform raw work from a unified-document context.
+ * Uses transformPaper when document_type is PAPER, otherwise transformPost.
+ */
+export function transformUnifiedDocument(raw: Record<string, unknown>): Work {
+  const documentType = (raw?.unified_document as { document_type?: string } | undefined)
+    ?.document_type;
+  if (documentType === 'PAPER') {
+    return transformPaper(raw);
+  }
+  return transformPost(raw);
+}

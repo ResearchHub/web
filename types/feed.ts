@@ -183,12 +183,13 @@ export interface FeedGrantContent extends BaseFeedContent {
     organization: string;
     description: string;
     status: GrantStatus;
+    shortTitle: string;
     startDate: string;
     endDate: string;
     isExpired: boolean;
     isActive: boolean;
     currency: string;
-    createdBy: any;
+    createdBy: AuthorProfile;
     applicants: AuthorProfile[];
   };
   organization?: string;
@@ -260,6 +261,19 @@ export interface HotScoreBreakdown {
   };
 }
 
+export interface AssociatedGrant {
+  id: number;
+  postId?: number;
+  organization: string;
+  shortTitle: string;
+  amount: string;
+  currency: string;
+  status: string;
+  description: string | null;
+  image: string | null;
+  numApplicants: number;
+}
+
 export interface FeedEntry {
   id: string;
   recommendationId: string | null;
@@ -277,11 +291,21 @@ export interface FeedEntry {
   hotScoreV2?: number;
   hotScoreBreakdown?: HotScoreBreakdown;
   externalMetrics?: ExternalMetrics;
+  nonprofit?: Nonprofit;
+  associatedGrants?: AssociatedGrant[];
   searchMetadata?: {
     highlightedTitle?: string;
     highlightedSnippet?: string;
     matchedField?: string;
   };
+}
+
+export interface Nonprofit {
+  id: number;
+  name: string;
+  ein: string;
+  endaomentOrgId: string;
+  baseWalletAddress: string;
 }
 
 export interface RawApiFeedEntry {
@@ -293,7 +317,26 @@ export interface RawApiFeedEntry {
   action: string;
   action_date: string;
   is_nonprofit?: boolean;
+  nonprofit?: {
+    id: number;
+    name: string;
+    ein: string;
+    endaoment_org_id: string;
+    base_wallet_address: string;
+  };
   hot_score_v2?: number;
+  associated_grants?: Array<{
+    id: number;
+    post_id: number;
+    organization: string;
+    short_title: string;
+    amount: string;
+    currency: string;
+    status: string;
+    description: string | null;
+    image: string | null;
+    num_applicants: number;
+  }>;
   hot_score_breakdown?: {
     steps: string[];
     signals: {
@@ -426,6 +469,8 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     hot_score_breakdown,
     external_metadata,
     recommendation_id,
+    associated_grants,
+    nonprofit,
   } = feedEntry;
 
   // Base feed entry properties
@@ -460,7 +505,6 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       try {
         // Check if required fields exist
         if (!content_object) {
-          console.error('Bounty content_object is missing');
           throw new Error('Bounty content_object is missing');
         }
 
@@ -764,7 +808,17 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               content_object.authors && content_object.authors.length > 0
                 ? content_object.authors.map(transformAuthorProfile)
                 : [transformAuthorProfile(author)],
-            topics: [Array.isArray(content_object.hub) || content_object.hub].map(transformTopic),
+            topics: content_object.hub
+              ? [
+                  content_object.hub.id
+                    ? transformTopic(content_object.hub)
+                    : {
+                        id: 0,
+                        name: content_object.hub.name || '',
+                        slug: content_object.hub.slug || '',
+                      },
+                ]
+              : [],
             createdBy: transformAuthorProfile(author),
             category: content_object.category ? transformTopic(content_object.category) : undefined,
             subcategory: content_object.subcategory
@@ -787,7 +841,10 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               isExpired: content_object.grant.is_expired,
               isActive: content_object.grant.is_active,
               currency: content_object.grant.currency,
-              createdBy: content_object.grant.created_by,
+              shortTitle: content_object.grant.short_title || '',
+              createdBy: content_object.grant.created_by
+                ? transformAuthorProfile(content_object.grant.created_by)
+                : transformAuthorProfile(author),
               applicants: (content_object.grant.applications || [])
                 .map((application: any) => application.applicant)
                 .map(transformAuthorProfile),
@@ -953,6 +1010,27 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     tips: [], // Default empty tips
     awardedBountyAmount: (content as any)?.awardedBountyAmount,
     isAwardedForFoundationBounty: (content as any)?.bounty_creator_id,
+    associatedGrants: associated_grants?.map((g) => ({
+      id: g.id,
+      postId: g.post_id,
+      organization: g.organization,
+      shortTitle: g.short_title,
+      amount: g.amount,
+      currency: g.currency,
+      status: g.status,
+      description: g.description ?? null,
+      image: g.image ?? null,
+      numApplicants: g.num_applicants ?? 0,
+    })),
+    nonprofit: nonprofit
+      ? {
+          id: nonprofit.id,
+          name: nonprofit.name,
+          ein: nonprofit.ein,
+          endaomentOrgId: nonprofit.endaoment_org_id,
+          baseWalletAddress: nonprofit.base_wallet_address,
+        }
+      : undefined,
   } as FeedEntry;
 };
 

@@ -209,7 +209,7 @@ export function formatNavigationUrl(notification: Notification): string | undefi
   ) {
     const { id, slug } = notification.work;
     if (id && slug) {
-      return `/fund/${id}/${slug}/updates`;
+      return `/proposal/${id}/${slug}/updates`;
     }
   }
 

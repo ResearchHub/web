@@ -1,14 +1,12 @@
 'use client';
 
-import { History } from 'lucide-react';
 import { DocumentVersion } from '@/types/work';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { VersionOfRecordBadge } from '@/components/ui/VersionOfRecordBadge';
-import { Tooltip } from '@/components/ui/Tooltip';
 import Link from 'next/link';
 import { cn } from '@/utils/styles';
-import { Button } from '@/components/ui/Button';
 import { buildWorkUrl } from '@/utils/url';
+import { SidebarHeader } from '@/components/ui/SidebarHeader';
 
 interface VersionsSectionProps {
   versions: DocumentVersion[];
@@ -31,10 +29,7 @@ export const VersionsSection = ({ versions, currentPaperId, slug }: VersionsSect
 
   return (
     <div>
-      <div className="flex items-center space-x-2 mb-4">
-        <History className="h-5 w-5 text-gray-500" />
-        <h3 className="text-base font-medium">Available Versions</h3>
-      </div>
+      <SidebarHeader title="Available Versions" className="mb-3" />
 
       <div className="space-y-2">
         {displayVersions.map((version) => {

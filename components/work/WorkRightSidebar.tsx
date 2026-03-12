@@ -27,7 +27,6 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
 
   return (
     <div className="space-y-8">
-      <EarningOpportunityBanner work={work} metadata={metadata} />
       {hasResearchHubJournalVersions && (
         <VersionsSection versions={work.versions || []} currentPaperId={work.id} slug={work.slug} />
       )}
