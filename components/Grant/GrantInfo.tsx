@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { formatDate, isDeadlineInFuture } from '@/utils/date';
 import { FeedGrantContent } from '@/types/feed';
-import { GRANT_STATUS_CONFIG, GrantStatus } from '@/types/grant';
+import { GRANT_STATUS_CONFIG } from '@/types/grant';
 import { useRouter } from 'next/navigation';
 import { colors } from '@/app/styles/colors';
 import { StatusCard } from '@/components/ui/StatusCard';
