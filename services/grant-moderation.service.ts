@@ -36,7 +36,6 @@ export class GrantModerationService {
     }
   }
 
-  // TODO: Wire up to backend once the pending proposals endpoint is ready
   static async fetchPendingProposals(_page: number = 1): Promise<PendingWorksResponse> {
     return { entries: [], hasMore: false };
   }

@@ -88,7 +88,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
     try {
       await GrantModerationService.approveGrant(grantId);
       toast.success('RFP approved successfully');
-      window.location.reload();
+      globalThis.location.reload();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to approve RFP');
     } finally {
@@ -109,7 +109,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
       });
       toast.success('RFP declined');
       setShowDeclineModal(false);
-      window.location.reload();
+      globalThis.location.reload();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to decline RFP');
     } finally {
