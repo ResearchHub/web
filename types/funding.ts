@@ -10,6 +10,7 @@ export interface ApplicationContributor {
   firstName: string;
   lastName: string;
   fullName: string;
+  profileImage: string;
   totalContribution: { usd: number; rsc: number };
 }
 
@@ -23,6 +24,7 @@ export interface ApplicationFundraise {
     total: number;
     top: ApplicationContributor[];
   };
+  nonprofit?: { id: number; name: string };
 }
 
 export function transformApplicationFundraise(raw: any): ApplicationFundraise {
@@ -34,6 +36,7 @@ export function transformApplicationFundraise(raw: any): ApplicationFundraise {
       firstName,
       lastName,
       fullName: [firstName, lastName].filter(Boolean).join(' ') || 'Contributor',
+      profileImage: c.profile_image ?? '',
       totalContribution: {
         usd: c.total_contribution?.usd ?? c.total_contribution?.USD ?? 0,
         rsc: c.total_contribution?.rsc ?? c.total_contribution?.RSC ?? 0,
@@ -57,6 +60,7 @@ export function transformApplicationFundraise(raw: any): ApplicationFundraise {
       total: raw.contributors?.total ?? 0,
       top: topContributors,
     },
+    nonprofit: raw.nonprofit ? { id: raw.nonprofit.id, name: raw.nonprofit.name } : undefined,
   };
 }
 

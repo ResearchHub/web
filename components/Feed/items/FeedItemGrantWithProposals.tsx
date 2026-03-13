@@ -47,7 +47,7 @@ const ProposalRow: FC<ProposalRowProps> = ({
     : Math.round(fundraise.goalAmount.rsc);
 
   const backerItems = fundraise.contributors.top.map((c) => ({
-    src: '',
+    src: c.profileImage || '',
     alt: c.fullName,
     tooltip: c.fullName,
   }));
@@ -68,7 +68,7 @@ const ProposalRow: FC<ProposalRowProps> = ({
         <div className="text-[8.5px] font-bold uppercase text-gray-400 tracking-wide">ask</div>
       </div>
 
-      {/* Title + author */}
+      {/* Title + author + org */}
       <div className="min-w-0">
         <p className="text-[12.5px] font-bold text-gray-900 truncate leading-snug mb-0.5">
           {fundraise.title || profile.fullName}
@@ -76,6 +76,14 @@ const ProposalRow: FC<ProposalRowProps> = ({
         <div className="flex items-center gap-1.5">
           <Avatar src={profile.profileImage || ''} alt={profile.fullName} size="xxs" />
           <span className="text-[11px] text-gray-500 truncate">{profile.fullName}</span>
+          {fundraise.nonprofit?.name && (
+            <>
+              <span className="text-gray-300">·</span>
+              <span className="text-[10.5px] text-gray-400 truncate">
+                {fundraise.nonprofit.name}
+              </span>
+            </>
+          )}
         </div>
       </div>
 
