@@ -207,7 +207,7 @@ export default function UserMenu({
           </Link>
         )}
 
-        {user?.isModerator && (
+        {(user?.isModerator || user?.authorProfile?.isHubEditor) && (
           <Link href="/expert-finder" className="block" onClick={() => setMenuOpenState(false)}>
             <div className="px-6 py-2 hover:bg-gray-50">
               <div className="flex items-center">
@@ -395,7 +395,7 @@ export default function UserMenu({
               </Link>
             )}
 
-            {user?.isModerator && (
+            {(user?.isModerator || user?.authorProfile?.isHubEditor) && (
               <Link href="/expert-finder" className="block" onClick={() => setMenuOpenState(false)}>
                 <div className="w-full px-4 py-2 hover:bg-gray-50">
                   <div className="flex items-center">
