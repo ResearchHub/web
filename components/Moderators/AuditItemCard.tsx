@@ -9,6 +9,7 @@ import { AuditItemPaper } from './AuditItemPaper';
 interface AuditItemCardProps {
   entry: FlaggedContent;
   onAction: (action: 'dismiss' | 'remove') => void;
+  onRefresh?: () => void;
   view?: 'pending' | 'dismissed' | 'removed';
 }
 
@@ -34,17 +35,19 @@ const detectContentType = (entry: FlaggedContent): 'comment' | 'post' | 'paper' 
   }
 };
 
-export const AuditItemCard: FC<AuditItemCardProps> = ({ entry, onAction, view }) => {
+export const AuditItemCard: FC<AuditItemCardProps> = ({ entry, onAction, onRefresh, view }) => {
   const contentType = detectContentType(entry);
 
   // Render the appropriate component based on content type
   switch (contentType) {
     case 'comment':
-      return <AuditItemComment entry={entry} onAction={onAction} view={view} />;
+      return (
+        <AuditItemComment entry={entry} onAction={onAction} onRefresh={onRefresh} view={view} />
+      );
     case 'post':
-      return <AuditItemPost entry={entry} onAction={onAction} view={view} />;
+      return <AuditItemPost entry={entry} onAction={onAction} onRefresh={onRefresh} view={view} />;
     case 'paper':
-      return <AuditItemPaper entry={entry} onAction={onAction} view={view} />;
+      return <AuditItemPaper entry={entry} onAction={onAction} onRefresh={onRefresh} view={view} />;
     default:
       return (
         <div className="bg-white border border-gray-200 rounded-lg p-4">
