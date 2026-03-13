@@ -11,7 +11,6 @@ import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { Logo } from '@/components/ui/Logo';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { useFeedTabs } from '@/hooks/useFeedTabs';
-import { FundingGrantTabs } from '@/components/Funding/FundingGrantTabs';
 import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
 import { useSmartBack } from '@/hooks/useSmartBack';
 
@@ -39,13 +38,9 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { contentTabsHidden: feedTabsHidden } = useFeedTabsVisibility();
   const showTopBarFeedTabs = isFeedPage && feedTabsHidden;
 
-  const isFundingPage =
-    pathname === '/fund' || pathname.startsWith('/fund/grant') || pathname.startsWith('/grant/');
-  const showGrantTabs = isFundingPage;
-
   const currentSearchQuery = pathname === '/search' ? searchParams.get('q') : null;
   const pageInfo = getPageInfo(pathname, searchParams);
-  const showBackButton = pageInfo && !isRootNavigationPage(pathname) && !isFundingPage;
+  const showBackButton = pageInfo && !isRootNavigationPage(pathname);
 
   const profilePercent = useCallback(() => {
     if (!user) return 100;
@@ -159,12 +154,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               onTabChange={handleTabChange}
               isCompact={false}
             />
-          </div>
-        )}
-
-        {showGrantTabs && (
-          <div className="px-4 lg:px-8 -mt-2 pb-1">
-            <FundingGrantTabs />
           </div>
         )}
       </div>
