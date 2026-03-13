@@ -154,7 +154,7 @@ const NeedsFundingSection = () => {
     <div>
       <SidebarHeader
         title="Fund Proposals"
-        action={<ViewAllLink href="/fund" />}
+        action={<ViewAllLink href="/fund/proposals" />}
         className="pb-2"
       />
 

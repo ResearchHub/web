@@ -24,7 +24,7 @@ const cards: MarketplaceCard[] = [
   {
     key: 'grants',
     label: 'Funding Opportunities',
-    href: '/fund/grants',
+    href: '/fund',
     icon: ArrowDownCircle,
     count: '5',
     value: '$21.4M',
@@ -37,7 +37,7 @@ const cards: MarketplaceCard[] = [
   {
     key: 'proposals',
     label: 'Open Proposals',
-    href: '/fund',
+    href: '/fund/proposals',
     icon: ArrowUpCircle,
     count: '8',
     value: '$548K',

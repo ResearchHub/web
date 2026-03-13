@@ -13,11 +13,6 @@ const nextConfig = {
       permanent: false,
     },
     {
-      source: '/fund/proposals',
-      destination: '/fund',
-      permanent: false,
-    },
-    {
       source: '/researchhub-journal',
       destination: '/journal',
       permanent: true,

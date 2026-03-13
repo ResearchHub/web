@@ -3,12 +3,12 @@ import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSke
 import { FundingBannerSkeleton } from '@/components/Funding/FundingBannerSkeleton';
 import { FeedItemSkeleton } from '@/components/Feed/FeedItemSkeleton';
 
-export default function FundGrantsLoading() {
+export default function FundProposalsLoading() {
   return (
     <PageLayout topBanner={<FundingBannerSkeleton />} rightSidebar={<ActivitySidebarSkeleton />}>
       <div>
         <div className="flex items-center justify-between mt-6 mb-2">
-          <div className="h-5 w-32 rounded bg-gray-200 animate-pulse" />
+          <div className="h-5 w-52 rounded bg-gray-200 animate-pulse" />
           <div className="h-5 w-24 rounded bg-gray-200 animate-pulse" />
         </div>
 
