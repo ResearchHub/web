@@ -32,14 +32,14 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
   const deadline = grant.grant.endDate ? formatDate(grant.grant.endDate) : undefined;
 
   const applicants =
-    grant.grant.applicants?.map((applicant) => ({
+    grant.grant.applicants?.map(({ profile }) => ({
       profile: {
-        profileImage: applicant.profileImage,
+        profileImage: profile.profileImage,
         fullName:
-          applicant.firstName && applicant.lastName
-            ? `${applicant.firstName} ${applicant.lastName}`
-            : applicant.firstName || 'Applicant',
-        id: applicant.id,
+          profile.firstName && profile.lastName
+            ? `${profile.firstName} ${profile.lastName}`
+            : profile.firstName || 'Applicant',
+        id: profile.id,
       },
       amount: 0,
     })) || [];
