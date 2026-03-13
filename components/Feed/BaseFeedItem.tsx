@@ -43,6 +43,15 @@ export interface BaseFeedItemProps {
   cardImageLeft?: ReactNode;
   /** Optional footer rendered at the bottom of the card, below the actions row */
   footer?: ReactNode;
+  /** Extra items to add to the "..." dropdown menu */
+  menuItems?: Array<{
+    icon: any;
+    label: string;
+    tooltip?: string;
+    disabled?: boolean;
+    onClick: (e?: React.MouseEvent) => void;
+    className?: string;
+  }>;
 }
 
 // Badge component interface
@@ -294,6 +303,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   cardImage,
   cardImageLeft,
   footer,
+  menuItems,
 }) => {
   const content = entry.content;
   const author = content.createdBy;
@@ -466,6 +476,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               onFeedItemClick={onFeedItemClick}
               bounties={showBountyInfo ? undefined : content.bounties}
               hideReportButton={hideReportButton}
+              menuItems={menuItems}
               hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
               className="gap-1"
             />
