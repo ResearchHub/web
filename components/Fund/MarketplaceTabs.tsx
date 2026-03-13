@@ -25,7 +25,7 @@ const getTabs = (isMobile: boolean) => [
 ];
 
 const TAB_ROUTES: Record<MarketplaceTab, string> = {
-  grants: '/fund/grants',
+  grants: '/fund',
   'needs-funding': '/fund/needs-funding',
 };
 

@@ -2,14 +2,12 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { ArrowUpFromLine } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { ProposalFeed } from '@/components/Funding/ProposalFeed';
-import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
-import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { Button } from '@/components/ui/Button';
 import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalTooltip';
+import { FundGrantsPageContent } from './FundGrantsPageContent';
 import { MarketplaceCards } from '@/components/Funding/MarketplaceCards';
 
 function SubmitProposalCTA() {
@@ -34,10 +32,10 @@ export default async function FundPage() {
     <PageLayout
       topBanner={
         <HeroHeader
-          title="Open Science Funding Marketplace"
+          title="Funding Opportunities"
           subtitle={
             <p className="text-sm sm:text-base text-gray-500">
-              Propose research, get reviewed, receive funding.
+              Browse opportunities to submit research proposals for.
             </p>
           }
           cta={<SubmitProposalCTA />}
@@ -49,13 +47,8 @@ export default async function FundPage() {
         </Suspense>
       }
     >
-      <MarketplaceCards selected="proposals" />
-      <div>
-        <FundraiseProvider>
-          <ProposalSortAndFilters variant="all" />
-          <ProposalFeed />
-        </FundraiseProvider>
-      </div>
+      <MarketplaceCards selected="grants" />
+      <FundGrantsPageContent />
     </PageLayout>
   );
 }

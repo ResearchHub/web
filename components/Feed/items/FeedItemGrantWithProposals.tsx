@@ -225,7 +225,7 @@ export const FeedItemGrantWithProposals: FC<FeedItemGrantWithProposalsProps> = (
         <div>
           {shown.map(({ profile, fundraise }, i) => (
             <ProposalRow
-              key={profile.id ?? fundraise!.id}
+              key={`${profile.id}-${fundraise!.id}-${i}`}
               profile={profile}
               fundraise={fundraise!}
               showUSD={showUSD}
