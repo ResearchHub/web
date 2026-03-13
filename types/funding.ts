@@ -5,6 +5,61 @@ import { transformUser, User } from './user';
 
 export type FundraiseStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
 
+export interface ApplicationContributor {
+  id: number;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  totalContribution: { usd: number; rsc: number };
+}
+
+export interface ApplicationFundraise {
+  id: number;
+  title: string;
+  status: FundraiseStatus;
+  goalAmount: { usd: number; rsc: number };
+  amountRaised: { usd: number; rsc: number };
+  contributors: {
+    total: number;
+    top: ApplicationContributor[];
+  };
+}
+
+export function transformApplicationFundraise(raw: any): ApplicationFundraise {
+  const topContributors = (raw.contributors?.top ?? []).map((c: any) => {
+    const firstName = c.first_name ?? '';
+    const lastName = c.last_name ?? '';
+    return {
+      id: c.id,
+      firstName,
+      lastName,
+      fullName: [firstName, lastName].filter(Boolean).join(' ') || 'Contributor',
+      totalContribution: {
+        usd: c.total_contribution?.usd ?? c.total_contribution?.USD ?? 0,
+        rsc: c.total_contribution?.rsc ?? c.total_contribution?.RSC ?? 0,
+      },
+    };
+  });
+
+  return {
+    id: raw.id,
+    title: raw.title,
+    status: raw.status as FundraiseStatus,
+    goalAmount: {
+      usd: raw.goal_amount?.usd ?? 0,
+      rsc: raw.goal_amount?.rsc ?? 0,
+    },
+    amountRaised: {
+      usd: raw.amount_raised?.usd ?? 0,
+      rsc: raw.amount_raised?.rsc ?? 0,
+    },
+    contributors: {
+      total: raw.contributors?.total ?? 0,
+      top: topContributors,
+    },
+  };
+}
+
 export interface Contribution {
   amount: number;
   date: string;
