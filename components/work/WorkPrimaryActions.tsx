@@ -471,7 +471,7 @@ export const WorkPrimaryActions = ({
                 <span>Download PDF</span>
               </BaseMenuItem>
             )}
-            {isModerator && work.unifiedDocumentId != null && (
+            {(isModerator || isHubEditor) && work.unifiedDocumentId != null && (
               <BaseMenuItem
                 onSelect={() =>
                   router.push(
