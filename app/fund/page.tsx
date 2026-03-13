@@ -10,6 +10,7 @@ import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSke
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { Button } from '@/components/ui/Button';
 import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalTooltip';
+import { MarketplaceCards } from '@/components/Funding/MarketplaceCards';
 
 function SubmitProposalCTA() {
   return (
@@ -48,6 +49,7 @@ export default async function FundPage() {
         </Suspense>
       }
     >
+      <MarketplaceCards selected="proposals" />
       <div>
         <FundraiseProvider>
           <ProposalSortAndFilters variant="all" />

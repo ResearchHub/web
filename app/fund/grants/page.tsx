@@ -8,6 +8,7 @@ import { HeroHeader } from '@/components/ui/HeroHeader';
 import { Button } from '@/components/ui/Button';
 import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalTooltip';
 import { FundGrantsPageContent } from './FundGrantsPageContent';
+import { MarketplaceCards } from '@/components/Funding/MarketplaceCards';
 
 function SubmitProposalCTA() {
   return (
@@ -46,6 +47,7 @@ export default async function FundGrantsPage() {
         </Suspense>
       }
     >
+      <MarketplaceCards selected="grants" />
       <FundGrantsPageContent />
     </PageLayout>
   );
