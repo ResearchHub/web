@@ -41,6 +41,8 @@ export interface BaseFeedItemProps {
   cardImage?: ReactNode;
   /** Image rendered on the left side; content + actions span full width below */
   cardImageLeft?: ReactNode;
+  /** Optional footer rendered at the bottom of the card, below the actions row */
+  footer?: ReactNode;
 }
 
 // Badge component interface
@@ -291,6 +293,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   badges,
   cardImage,
   cardImageLeft,
+  footer,
 }) => {
   const content = entry.content;
   const author = content.createdBy;
@@ -468,6 +471,8 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
             />
           </div>
         )}
+
+        {footer}
       </CardWrapper>
     </div>
   );

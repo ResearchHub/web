@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import {
   BaseFeedItem,
@@ -32,6 +32,7 @@ interface FeedItemGrantProps {
   onFeedItemClick?: () => void;
   onAbstractExpanded?: () => void;
   highlights?: Highlight[];
+  footer?: ReactNode;
 }
 
 export const FeedItemGrant: FC<FeedItemGrantProps> = ({
@@ -45,6 +46,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
   showHeader = true,
   onFeedItemClick,
   highlights,
+  footer,
 }) => {
   const router = useRouter();
   const { showUSD } = useCurrencyPreference();
@@ -93,6 +95,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
       showHeader={showHeader}
       onFeedItemClick={onFeedItemClick}
       hideReportButton={false}
+      footer={footer}
       cardImageLeft={
         imageUrl ? (
           <ImageSection imageUrl={imageUrl} alt={grant.title || 'Grant image'} naturalDimensions />

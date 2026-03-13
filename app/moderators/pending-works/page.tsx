@@ -174,43 +174,40 @@ export default function PendingWorksPage() {
             const isActioning = actioningId === grantId;
 
             return (
-              <div
+              <FeedItemGrant
                 key={entry.id}
-                className="bg-white border border-gray-200 rounded-lg overflow-hidden"
-              >
-                <FeedItemGrant
-                  entry={entry}
-                  showActions={false}
-                  showHeader={true}
-                  customActionText="submitted an RFP for review"
-                />
+                entry={entry}
+                showActions={false}
+                showHeader={true}
+                customActionText="submitted an RFP for review"
+                footer={
+                  grantId ? (
+                    <div className="flex items-center gap-2 px-4 py-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleApprove(grantId, entry.id)}
+                        disabled={isActioning}
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        {isActioning ? 'Approving...' : 'Approve'}
+                      </Button>
 
-                {!!grantId && (
-                  <div className="flex items-center gap-2 px-4 py-3 border-t border-gray-100">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleApprove(grantId, entry.id)}
-                      disabled={isActioning}
-                      className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                    >
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      {isActioning ? 'Approving...' : 'Approve'}
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeclineTarget({ grantId, entryId: entry.id })}
-                      disabled={isActioning}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <XCircle className="h-4 w-4 mr-1" />
-                      Decline
-                    </Button>
-                  </div>
-                )}
-              </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDeclineTarget({ grantId, entryId: entry.id })}
+                        disabled={isActioning}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Decline
+                      </Button>
+                    </div>
+                  ) : undefined
+                }
+              />
             );
           })}
         </div>
