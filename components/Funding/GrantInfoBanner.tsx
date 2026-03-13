@@ -35,6 +35,7 @@ interface GrantInfoBannerProps {
   amountUsd?: number;
   grantId?: string;
   isActive?: boolean;
+  isPending?: boolean;
   work?: Work;
   organization?: string;
   activeTab?: GrantBannerTab;
@@ -44,15 +45,22 @@ interface GrantInfoBannerProps {
 function GrantSubtitle({
   amountUsd,
   isActive,
+  isPending,
   organization,
 }: {
   amountUsd?: number;
   isActive: boolean;
+  isPending: boolean;
   organization?: string;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-      {amountUsd != null && amountUsd > 0 && (
+      {isPending && (
+        <span className="font-medium text-sm px-2 py-0.5 rounded-md text-yellow-700 bg-yellow-100">
+          Pending Review
+        </span>
+      )}
+      {!isPending && amountUsd != null && amountUsd > 0 && (
         <span
           className={cn(
             'font-mono font-bold text-sm px-2 py-0.5 rounded-md tabular-nums',
@@ -72,6 +80,7 @@ export const GrantInfoBanner = ({
   amountUsd,
   grantId,
   isActive = true,
+  isPending = false,
   work,
   organization,
   activeTab = 'proposals',
@@ -165,7 +174,12 @@ export const GrantInfoBanner = ({
       <HeroHeader
         title={work?.title || ''}
         subtitle={
-          <GrantSubtitle amountUsd={amountUsd} isActive={isActive} organization={organization} />
+          <GrantSubtitle
+            amountUsd={amountUsd}
+            isActive={isActive}
+            isPending={isPending}
+            organization={organization}
+          />
         }
         cta={ctaButtons}
         className={className}

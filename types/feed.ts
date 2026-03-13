@@ -12,6 +12,7 @@ import { User } from './user';
 import { stripHtml } from '@/utils/stringUtils';
 import { Tip } from './tip';
 import { FOUNDATION_USER_ID } from '@/config/constants';
+import { GrantStatus } from './grant';
 
 export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
 
@@ -181,8 +182,8 @@ export interface FeedGrantContent extends BaseFeedContent {
     };
     organization: string;
     description: string;
+    status: GrantStatus;
     shortTitle: string;
-    status: 'OPEN' | 'CLOSED';
     startDate: string;
     endDate: string;
     isExpired: boolean;

@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, ReactNode, useState, useMemo } from 'react';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import {
   BaseFeedItem,
@@ -11,7 +11,7 @@ import {
 } from '@/components/Feed/BaseFeedItem';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Button } from '@/components/ui/Button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, CheckCircle, XCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -19,6 +19,12 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatCurrency } from '@/utils/currency';
 import { isDeadlineInFuture } from '@/utils/date';
 import { Highlight } from '@/components/Feed/FeedEntryItem';
+import { GRANT_STATUS_CONFIG } from '@/types/grant';
+import { useUser } from '@/contexts/UserContext';
+import { GrantModerationService } from '@/services/grant-moderation.service';
+import { DeclineGrantModal } from '@/components/Moderators/DeclineGrantModal';
+import { toast } from 'react-hot-toast';
+import { FlagReasonKey } from '@/types/work';
 
 interface FeedItemGrantProps {
   entry: FeedEntry;
@@ -32,6 +38,7 @@ interface FeedItemGrantProps {
   onFeedItemClick?: () => void;
   onAbstractExpanded?: () => void;
   highlights?: Highlight[];
+  footer?: ReactNode;
 }
 
 export const FeedItemGrant: FC<FeedItemGrantProps> = ({
@@ -45,10 +52,15 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
   showHeader = true,
   onFeedItemClick,
   highlights,
+  footer,
 }) => {
   const router = useRouter();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
+  const { user } = useUser();
+  const [showDeclineModal, setShowDeclineModal] = useState(false);
+  const [isApprovingGrant, setIsApprovingGrant] = useState(false);
+  const [isDecliningGrant, setIsDecliningGrant] = useState(false);
 
   const grant = entry.content as FeedGrantContent;
 
@@ -61,10 +73,72 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
     });
 
   const imageUrl = grant.previewImage ?? undefined;
+  const isPending = grant.grant?.status === 'PENDING';
+  const isModerator = !!user?.isModerator;
+  const grantId = grant.grant?.id;
 
   const isActive =
     grant.grant?.status === 'OPEN' &&
     (grant.grant?.endDate ? isDeadlineInFuture(grant.grant.endDate) : true);
+
+  const handleApproveGrant = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!grantId) return;
+    setIsApprovingGrant(true);
+    try {
+      await GrantModerationService.approveGrant(grantId);
+      toast.success('RFP approved successfully');
+      globalThis.location.reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to approve RFP');
+    } finally {
+      setIsApprovingGrant(false);
+    }
+  };
+
+  const handleDeclineGrantConfirm = async (data: {
+    reasonChoice: FlagReasonKey;
+    reason: string;
+  }) => {
+    if (!grantId) return;
+    setIsDecliningGrant(true);
+    try {
+      await GrantModerationService.declineGrant(grantId, {
+        reason_choice: data.reasonChoice,
+        reason: data.reason,
+      });
+      toast.success('RFP declined');
+      setShowDeclineModal(false);
+      globalThis.location.reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to decline RFP');
+    } finally {
+      setIsDecliningGrant(false);
+    }
+  };
+
+  const moderationMenuItems = useMemo(() => {
+    if (!isModerator || !isPending || !grantId) return [];
+    return [
+      {
+        icon: CheckCircle,
+        label: isApprovingGrant ? 'Approving...' : 'Approve RFP',
+        disabled: isApprovingGrant || isDecliningGrant,
+        onClick: handleApproveGrant,
+        className: 'text-green-600',
+      },
+      {
+        icon: XCircle,
+        label: 'Decline RFP',
+        disabled: isApprovingGrant || isDecliningGrant,
+        onClick: (e?: React.MouseEvent) => {
+          if (e) e.stopPropagation();
+          setShowDeclineModal(true);
+        },
+        className: 'text-red-600',
+      },
+    ];
+  }, [isModerator, isPending, grantId, isApprovingGrant, isDecliningGrant]);
 
   const applicants =
     grant.grant?.applicants?.map((applicant) => ({
@@ -79,94 +153,125 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
     : Math.round(grant.grant?.amount?.rsc || 0);
 
   return (
-    <BaseFeedItem
-      entry={entry}
-      href={grantPageUrl}
-      className={className}
-      showActions={showActions}
-      showTooltips={showTooltips}
-      customActionText={customActionText ?? 'opened an RFP'}
-      maxLength={maxLength}
-      showHeader={showHeader}
-      onFeedItemClick={onFeedItemClick}
-      hideReportButton={false}
-      cardImageLeft={
-        imageUrl ? (
-          <ImageSection imageUrl={imageUrl} alt={grant.title || 'Grant image'} naturalDimensions />
-        ) : undefined
-      }
-    >
-      {/* Mobile image */}
-      {imageUrl && (
-        <div className="md:!hidden w-[calc(100%+2rem)] mb-5 -mx-4 -mt-4 overflow-hidden">
-          <ImageSection imageUrl={imageUrl} alt={grant.title || 'Grant image'} aspectRatio="16/9" />
-        </div>
-      )}
+    <>
+      <BaseFeedItem
+        entry={entry}
+        href={grantPageUrl}
+        className={className}
+        showActions={showActions}
+        showTooltips={showTooltips}
+        customActionText={
+          customActionText ?? (isPending ? 'submitted an RFP for review' : 'opened an RFP')
+        }
+        maxLength={maxLength}
+        showHeader={showHeader}
+        onFeedItemClick={onFeedItemClick}
+        hideReportButton={false}
+        footer={footer}
+        menuItems={moderationMenuItems}
+        cardImageLeft={
+          imageUrl ? (
+            <ImageSection
+              imageUrl={imageUrl}
+              alt={grant.title || 'Grant image'}
+              naturalDimensions
+            />
+          ) : undefined
+        }
+      >
+        {/* Mobile image */}
+        {imageUrl && (
+          <div className="md:!hidden w-[calc(100%+2rem)] mb-5 -mx-4 -mt-4 overflow-hidden">
+            <ImageSection
+              imageUrl={imageUrl}
+              alt={grant.title || 'Grant image'}
+              aspectRatio="16/9"
+            />
+          </div>
+        )}
 
-      <TitleSection title={grant.title} href={grantPageUrl} onClick={onFeedItemClick} />
+        {isPending && (
+          <div className="mb-2">
+            <span
+              className={`text-xs font-medium ${GRANT_STATUS_CONFIG.PENDING.badgeClass} px-2 py-0.5 rounded-full`}
+            >
+              {GRANT_STATUS_CONFIG.PENDING.label}
+            </span>
+          </div>
+        )}
 
-      {(grant.organization || grant.grant?.organization) && (
-        <MetadataSection className="mb-0">
-          <span className="text-sm text-gray-500">
-            Offered by {grant.organization || grant.grant?.organization}
-          </span>
-        </MetadataSection>
-      )}
+        <TitleSection title={grant.title} href={grantPageUrl} onClick={onFeedItemClick} />
 
-      {grant.grant && (
-        <PrimaryActionSection>
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-start gap-6 min-w-0">
-              <div className="flex flex-col leading-tight whitespace-nowrap">
-                <span className="text-xs text-gray-500 uppercase tracking-wide">Funding</span>
-                <span className="font-mono font-semibold text-primary-600 text-xl">
-                  {formatCurrency({
-                    amount: budgetAmount,
-                    showUSD,
-                    exchangeRate,
-                    skipConversion: true,
-                    shorten: true,
-                  })}
-                </span>
+        {(grant.organization || grant.grant?.organization) && (
+          <MetadataSection className="mb-0">
+            <span className="text-sm text-gray-500">
+              Offered by {grant.organization || grant.grant?.organization}
+            </span>
+          </MetadataSection>
+        )}
+
+        {grant.grant && (
+          <PrimaryActionSection>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-start gap-6 min-w-0">
+                <div className="flex flex-col leading-tight whitespace-nowrap">
+                  <span className="text-xs text-gray-500 uppercase tracking-wide">Funding</span>
+                  <span className="font-mono font-semibold text-primary-600 text-xl">
+                    {formatCurrency({
+                      amount: budgetAmount,
+                      showUSD,
+                      exchangeRate,
+                      skipConversion: true,
+                      shorten: true,
+                    })}
+                  </span>
+                </div>
+
+                {applicants.length > 0 && (
+                  <div className="hidden sm:flex flex-col leading-tight">
+                    <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                      Applicants
+                    </span>
+                    <AvatarStack
+                      items={applicants}
+                      size="xs"
+                      maxItems={3}
+                      spacing={-6}
+                      showLabel={false}
+                      disableTooltip={false}
+                      showExtraCount={true}
+                      totalItemsCount={applicants.length}
+                      extraCountLabel="Applicants"
+                    />
+                  </div>
+                )}
               </div>
 
-              {applicants.length > 0 && (
-                <div className="hidden sm:flex flex-col leading-tight">
-                  <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                    Applicants
-                  </span>
-                  <AvatarStack
-                    items={applicants}
-                    size="xs"
-                    maxItems={3}
-                    spacing={-6}
-                    showLabel={false}
-                    disableTooltip={false}
-                    showExtraCount={true}
-                    totalItemsCount={applicants.length}
-                    extraCountLabel="Applicants"
-                  />
-                </div>
+              {isActive ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="flex-shrink-0 rounded-md text-[13px]"
+                  onClick={() => router.push(grantPageUrl)}
+                >
+                  <span className="hidden sm:inline">View Details</span>
+                  <span className="sm:hidden">View</span>
+                  <ArrowRight size={14} className="ml-1" />
+                </Button>
+              ) : (
+                <span className="flex-shrink-0 text-sm text-gray-400">Ended</span>
               )}
             </div>
+          </PrimaryActionSection>
+        )}
+      </BaseFeedItem>
 
-            {isActive ? (
-              <Button
-                variant="secondary"
-                size="sm"
-                className="flex-shrink-0 rounded-md text-[13px]"
-                onClick={() => router.push(grantPageUrl)}
-              >
-                <span className="hidden sm:inline">View Details</span>
-                <span className="sm:hidden">View</span>
-                <ArrowRight size={14} className="ml-1" />
-              </Button>
-            ) : (
-              <span className="flex-shrink-0 text-sm text-gray-400">Ended</span>
-            )}
-          </div>
-        </PrimaryActionSection>
-      )}
-    </BaseFeedItem>
+      <DeclineGrantModal
+        isOpen={showDeclineModal}
+        onClose={() => setShowDeclineModal(false)}
+        onConfirm={handleDeclineGrantConfirm}
+        isSubmitting={isDecliningGrant}
+      />
+    </>
   );
 };
