@@ -49,7 +49,7 @@ export default async function GrantSlugPage({ params }: Props) {
       grantId={grantId}
     >
       <FundraiseProvider grantId={grantId ? Number(grantId) : undefined}>
-        {grant?.description && <ProposalSortAndFilters variant="grant" />}
+        {grant?.description && <ProposalSortAndFilters />}
         <ProposalFeed />
       </FundraiseProvider>
     </GrantContentSwitcher>

@@ -7,7 +7,7 @@ import { FeedEntry, FeedPostContent } from '@/types/feed';
 import { Avatar } from '@/components/ui/Avatar';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Button } from '@/components/ui/Button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { buildWorkUrl } from '@/utils/url';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -111,8 +111,14 @@ export const FeedItemFundraiseV2: FC<FeedItemFundraiseV2Props> = ({ entry, class
           />
         )}
 
-        {/* Time badge */}
-        <div className="absolute top-2.5 right-3">
+        {/* Top-right badges */}
+        <div className="absolute top-2.5 right-3 flex items-center gap-1.5">
+          {fundraise?.reviewMetrics && fundraise.reviewMetrics.avg > 0 && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-white/95 text-gray-900 border border-gray-200/80 px-2 py-0.5 rounded-full shadow-sm">
+              <Star size={11} className="fill-amber-400 text-amber-400" />
+              {fundraise.reviewMetrics.avg.toFixed(1)}
+            </span>
+          )}
           <span className="text-[10px] font-medium text-white/70 bg-black/30 rounded-full px-2 py-0.5 backdrop-blur-sm">
             {timeAgo}
           </span>

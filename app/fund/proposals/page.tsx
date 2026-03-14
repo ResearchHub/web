@@ -52,7 +52,7 @@ export default async function FundProposalsPage() {
       <MarketplaceCards selected="proposals" />
       <div>
         <FundraiseProvider>
-          <ProposalSortAndFilters variant="all" />
+          <ProposalSortAndFilters />
           <ProposalFeed />
         </FundraiseProvider>
       </div>
