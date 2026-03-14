@@ -18,9 +18,7 @@ import { VerificationWithPersonaStep } from './Verification/VerificationWithPers
 import { AddPublicationsForm, STEP } from './Verification/AddPublicationsForm';
 import { ProgressStepper } from '@/components/ui/ProgressStepper';
 import { navigateToAuthorProfile } from '@/utils/navigation';
-
-/** When 'publish', modal shows publish-specific copy and Continue resumes the interrupted flow. */
-type VerificationModalContext = 'publish' | null;
+import type { VerificationModalContext } from '@/contexts/VerificationContext';
 
 interface VerifyIdentityModalProps {
   isOpen: boolean;

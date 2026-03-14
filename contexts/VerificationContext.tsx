@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useCallback, useRef } from 
 import { VerifyIdentityModal } from '@/components/modals/VerifyIdentityModal';
 import { useUser } from '@/contexts/UserContext';
 
-type VerificationModalContext = 'publish' | null;
+export type VerificationModalContext = 'publish' | null;
 
 interface VerificationContextType {
   openVerificationModal: (options?: {
