@@ -51,14 +51,16 @@ const ProposalRow: FC<ProposalRowProps> = ({
         'grid items-center gap-3 px-5 py-2.5 hover:bg-gray-50/80 transition-colors cursor-pointer',
         !isLast && 'border-b border-gray-100'
       )}
-      style={{ gridTemplateColumns: '58px 1fr auto' }}
+      style={{ gridTemplateColumns: '75px 1fr auto' }}
     >
       {/* Ask amount */}
-      <div className="text-center py-1 px-0.5 rounded-lg bg-gray-50 border border-gray-200/80">
+      <div className="text-center py-1 px-0.5  border-r border-gray-200">
         <div className="text-sm font-extrabold font-mono tracking-tight text-gray-900">
           {formatCompact(askAmount, showUSD, exchangeRate)}
         </div>
-        <div className="text-[8.5px] font-bold uppercase text-gray-400 tracking-wide">ask</div>
+        <div className="text-[8.5px] font-bold uppercase text-gray-400 tracking-wide">
+          requested
+        </div>
       </div>
 
       {/* Title + author + org */}
@@ -68,13 +70,11 @@ const ProposalRow: FC<ProposalRowProps> = ({
         </p>
         <div className="flex items-center gap-1.5">
           <Avatar src={profile.profileImage || ''} alt={profile.fullName} size="xxs" />
-          <span className="text-[11px] text-gray-500 truncate">{profile.fullName}</span>
+          <span className="text-[12px] text-gray-500 truncate">{profile.fullName}</span>
           {fundraise.nonprofit?.name && (
             <>
               <span className="text-gray-300">·</span>
-              <span className="text-[10.5px] text-gray-400 truncate">
-                {fundraise.nonprofit.name}
-              </span>
+              <span className="text-[11px] text-gray-500 truncate">{fundraise.nonprofit.name}</span>
             </>
           )}
         </div>
