@@ -134,7 +134,7 @@ export const FeedItemGrantWithProposals: FC<FeedItemGrantWithProposalsProps> = (
       )}
     >
       {/* Frosted header */}
-      <Link href={href} className="block relative h-[120px] overflow-hidden bg-gray-900">
+      <Link href={href} className="block relative h-[150px] overflow-hidden bg-gray-900">
         {content.previewImage ? (
           <Image
             src={content.previewImage}
