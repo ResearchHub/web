@@ -14,6 +14,11 @@ export interface ApplicationContributor {
   totalContribution: { usd: number; rsc: number };
 }
 
+export interface ReviewMetrics {
+  avg: number;
+  count: number;
+}
+
 export interface ApplicationFundraise {
   id: number;
   title: string;
@@ -25,6 +30,7 @@ export interface ApplicationFundraise {
     top: ApplicationContributor[];
   };
   nonprofit?: { id: number; name: string };
+  reviewMetrics?: ReviewMetrics;
 }
 
 export function transformApplicationFundraise(raw: any): ApplicationFundraise {
@@ -61,6 +67,10 @@ export function transformApplicationFundraise(raw: any): ApplicationFundraise {
       top: topContributors,
     },
     nonprofit: raw.nonprofit ? { id: raw.nonprofit.id, name: raw.nonprofit.name } : undefined,
+    reviewMetrics:
+      raw.review_metrics?.avg != null
+        ? { avg: raw.review_metrics.avg, count: raw.review_metrics.count ?? 0 }
+        : undefined,
   };
 }
 
@@ -110,6 +120,7 @@ export interface Fundraise {
   postTitle?: string;
   postSlug?: string;
   postImage?: string | null;
+  reviewMetrics?: ReviewMetrics;
 }
 
 export const transformFundraise = createTransformer<any, Fundraise>((raw) => ({
@@ -154,4 +165,8 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => ({
   postTitle: raw.post_title || undefined,
   postSlug: raw.post_slug || undefined,
   postImage: raw.post_image || null,
+  reviewMetrics:
+    raw.review_metrics?.avg != null
+      ? { avg: raw.review_metrics.avg, count: raw.review_metrics.count ?? 0 }
+      : undefined,
 }));
