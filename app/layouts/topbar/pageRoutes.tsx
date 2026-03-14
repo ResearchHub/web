@@ -96,13 +96,6 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p.startsWith('/bounty/create'),
-    getInfo: () => ({
-      title: 'Create Bounty',
-      icon: <Icon name="earn1" size={24} className="text-gray-900" />,
-    }),
-  },
-  {
     match: (p) => p.startsWith('/earn'),
     getInfo: () => ({
       title: 'Earn',
