@@ -22,6 +22,7 @@ import { CommentContent } from '@/components/Comment/lib/types';
 import { BalanceInfo } from '@/components/modals/BalanceInfo';
 import { useUser } from '@/contexts/UserContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useVerifiedAction } from '@/hooks/useVerifiedAction';
 import { Progress } from '@/components/ui/Progress';
 import {
   Star,
@@ -94,6 +95,7 @@ export default function CreateBountyPage() {
   // User balance
   const { user } = useUser();
   const userBalance = user?.balance || 0;
+  const { withVerification } = useVerifiedAction();
 
   // Review comment editor content (peer review branch)
   const [reviewContent, setReviewContent] = useState<CommentContent | null>(null);
@@ -225,141 +227,143 @@ export default function CreateBountyPage() {
     if (amountError) return;
     if (!bountyType) return;
 
-    setIsSubmitting(true);
+    withVerification(async () => {
+      setIsSubmitting(true);
 
-    if (bountyType === 'REVIEW') {
-      if (!paperId) {
-        toast.error('Please select a work to review');
+      if (bountyType === 'REVIEW') {
+        if (!paperId) {
+          toast.error('Please select a work to review');
+          setIsSubmitting(false);
+          return;
+        }
+        const expirationDate = (() => {
+          const date = new Date();
+          date.setDate(date.getDate() + 30);
+          return date.toISOString();
+        })();
+        const toastId = toast.loading('Creating bounty...');
+        try {
+          // Extract mentions from the review content
+          const mentions =
+            reviewContent && typeof reviewContent === 'object' && 'content' in reviewContent
+              ? extractUserMentions(reviewContent as JSONContent)
+              : [];
+
+          await CommentService.createComment({
+            workId: paperId.toString(),
+            contentType: 'paper',
+            content:
+              typeof reviewContent === 'string' ? reviewContent : JSON.stringify(reviewContent),
+            contentFormat: 'TIPTAP',
+            commentType: 'GENERIC_COMMENT',
+            bountyAmount: rscAmount,
+            bountyType: 'REVIEW',
+            expirationDate,
+            privacyType: 'PUBLIC',
+            mentions,
+          });
+          toast.success('Bounty created!', { id: toastId });
+
+          router.push(
+            buildWorkUrl({
+              id: paperId,
+              contentType: 'paper',
+              slug: selectedPaper?.slug,
+              tab: 'bounties',
+            })
+          );
+        } catch (err) {
+          console.error(err);
+          toast.error('Failed to create bounty', { id: toastId });
+        } finally {
+          setIsSubmitting(false);
+        }
+        return;
+      }
+
+      // Answer-to-question flow
+      if (questionTitle.trim().length === 0) {
+        toast.error('Please enter a title');
         setIsSubmitting(false);
         return;
       }
-      const expirationDate = (() => {
-        const date = new Date();
-        date.setDate(date.getDate() + 30);
-        return date.toISOString();
-      })();
-      const toastId = toast.loading('Creating bounty...');
+      if (!questionPlainText || questionPlainText.trim() === '') {
+        toast.error('Please enter the question details');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const toastId = toast.loading('Publishing question...');
       try {
-        // Extract mentions from the review content
-        const mentions =
-          reviewContent && typeof reviewContent === 'object' && 'content' in reviewContent
-            ? extractUserMentions(reviewContent as JSONContent)
-            : [];
+        const post = await PostService.upsert({
+          assign_doi: false,
+          document_type: 'QUESTION',
+          full_src: questionHtml,
+          renderable_text: questionPlainText,
+          hubs: selectedHubs.map((h) => Number(h.id)),
+          title: questionTitle,
+        });
+        // After post creation, create the bounty comment with platform fee applied
+        const expirationDate = (() => {
+          const date = new Date();
+          date.setDate(date.getDate() + 30);
+          return date.toISOString();
+        })();
+
+        const bountyCommentContent = {
+          type: 'doc',
+          content: [
+            {
+              type: 'paragraph',
+              content: [
+                {
+                  type: 'text',
+                  text: `Offering a bounty of ${rscAmount} RSC to the best answer to this question.`,
+                },
+              ],
+            },
+          ],
+        } as any;
 
         await CommentService.createComment({
-          workId: paperId.toString(),
-          contentType: 'paper',
-          content:
-            typeof reviewContent === 'string' ? reviewContent : JSON.stringify(reviewContent),
-          contentFormat: 'TIPTAP',
-          commentType: 'GENERIC_COMMENT',
+          workId: post.id.toString(),
+          contentType: 'post',
+          content: bountyCommentContent,
           bountyAmount: rscAmount,
-          bountyType: 'REVIEW',
+          bountyType: 'ANSWER',
           expirationDate,
           privacyType: 'PUBLIC',
-          mentions,
+          commentType: 'GENERIC_COMMENT',
+          mentions: [],
         });
-        toast.success('Bounty created!', { id: toastId });
 
-        router.push(
-          buildWorkUrl({
-            id: paperId,
-            contentType: 'paper',
-            slug: selectedPaper?.slug,
-            tab: 'bounties',
-          })
-        );
+        toast.success('Question published & bounty created!', { id: toastId });
+        router.push(`/post/${post.id}/${post.slug}`);
+
+        removeCommentDraftById(`question-editor-draft`);
       } catch (err) {
         console.error(err);
-        toast.error('Failed to create bounty', { id: toastId });
+        let errorMessage = 'Failed to publish question';
+        if (err && typeof err === 'object') {
+          const e: any = err;
+          // Priority: explicit msg field, then nested errors.msg (string | string[]), then generic message
+          if (typeof e.msg === 'string') {
+            errorMessage = e.msg;
+          } else if (e.errors?.msg) {
+            if (Array.isArray(e.errors.msg)) {
+              errorMessage = e.errors.msg.join(', ');
+            } else if (typeof e.errors.msg === 'string') {
+              errorMessage = e.errors.msg;
+            }
+          } else if (typeof e.message === 'string') {
+            errorMessage = e.message;
+          }
+        }
+        toast.error(errorMessage, { id: toastId });
       } finally {
         setIsSubmitting(false);
       }
-      return;
-    }
-
-    // Answer-to-question flow
-    if (questionTitle.trim().length === 0) {
-      toast.error('Please enter a title');
-      setIsSubmitting(false);
-      return;
-    }
-    if (!questionPlainText || questionPlainText.trim() === '') {
-      toast.error('Please enter the question details');
-      setIsSubmitting(false);
-      return;
-    }
-
-    const toastId = toast.loading('Publishing question...');
-    try {
-      const post = await PostService.upsert({
-        assign_doi: false,
-        document_type: 'QUESTION',
-        full_src: questionHtml,
-        renderable_text: questionPlainText,
-        hubs: selectedHubs.map((h) => Number(h.id)),
-        title: questionTitle,
-      });
-      // After post creation, create the bounty comment with platform fee applied
-      const expirationDate = (() => {
-        const date = new Date();
-        date.setDate(date.getDate() + 30);
-        return date.toISOString();
-      })();
-
-      const bountyCommentContent = {
-        type: 'doc',
-        content: [
-          {
-            type: 'paragraph',
-            content: [
-              {
-                type: 'text',
-                text: `Offering a bounty of ${rscAmount} RSC to the best answer to this question.`,
-              },
-            ],
-          },
-        ],
-      } as any;
-
-      await CommentService.createComment({
-        workId: post.id.toString(),
-        contentType: 'post',
-        content: bountyCommentContent,
-        bountyAmount: rscAmount,
-        bountyType: 'ANSWER',
-        expirationDate,
-        privacyType: 'PUBLIC',
-        commentType: 'GENERIC_COMMENT',
-        mentions: [],
-      });
-
-      toast.success('Question published & bounty created!', { id: toastId });
-      router.push(`/post/${post.id}/${post.slug}`);
-
-      removeCommentDraftById(`question-editor-draft`);
-    } catch (err) {
-      console.error(err);
-      let errorMessage = 'Failed to publish question';
-      if (err && typeof err === 'object') {
-        const e: any = err;
-        // Priority: explicit msg field, then nested errors.msg (string | string[]), then generic message
-        if (typeof e.msg === 'string') {
-          errorMessage = e.msg;
-        } else if (e.errors?.msg) {
-          if (Array.isArray(e.errors.msg)) {
-            errorMessage = e.errors.msg.join(', ');
-          } else if (typeof e.errors.msg === 'string') {
-            errorMessage = e.errors.msg;
-          }
-        } else if (typeof e.message === 'string') {
-          errorMessage = e.message;
-        }
-      }
-      toast.error(errorMessage, { id: toastId });
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   };
 
   /* ---------- Navigation ---------- */

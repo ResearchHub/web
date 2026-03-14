@@ -12,7 +12,7 @@ interface UserContextType {
   user: User | null;
   isLoading: boolean;
   error: Error | null;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<User | null>;
 }
 
 const UserContext = createContext<UserContextType | null>(null);
@@ -24,18 +24,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<Error | null>(null);
   const [isAnalyticsInitialized, setIsAnalyticsInitialized] = useState(false);
 
-  const fetchUserData = async () => {
+  const fetchUserData = async (): Promise<User | null> => {
     if (!session?.authToken) {
       setUser(null);
       setIsLoading(false);
-      return;
+      return null;
     }
 
     try {
       setIsLoading(true);
       const userData = await AuthService.fetchUserData(session.authToken);
-      const user = userData.results[0] || null;
-      setUser(user);
+      const fetchedUser = userData.results[0] || null;
+      setUser(fetchedUser);
+      return fetchedUser;
     } catch (err) {
       if (err instanceof AuthError) {
         if (err.code === 401) {
@@ -43,14 +44,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
       }
       setError(err instanceof Error ? err : new Error('Failed to load user data'));
+      return null;
     } finally {
       setIsLoading(false);
     }
   };
 
   // Refresh function that can be called from components
-  const refreshUser = async () => {
-    await fetchUserData();
+  const refreshUser = async (): Promise<User | null> => {
+    return fetchUserData();
   };
 
   // Effect to load user data when session changes

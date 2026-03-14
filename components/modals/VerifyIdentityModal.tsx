@@ -19,10 +19,14 @@ import { AddPublicationsForm, STEP } from './Verification/AddPublicationsForm';
 import { ProgressStepper } from '@/components/ui/ProgressStepper';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 
+/** When 'publish', modal shows publish-specific copy and Continue resumes the interrupted flow. */
+type VerificationModalContext = 'publish' | null;
+
 interface VerifyIdentityModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialStep?: VerificationStep;
+  context?: VerificationModalContext;
 }
 
 type VerificationStep =
@@ -43,11 +47,13 @@ export function VerifyIdentityModal({
   isOpen,
   onClose,
   initialStep = 'INTRO',
+  context = null,
 }: VerifyIdentityModalProps) {
   const [currentStep, setCurrentStep] = useState<VerificationStep>(initialStep);
   const [publicationsSubstep, setPublicationsSubstep] = useState<STEP | 'SUCCESS'>('DOI');
 
   const { user } = useUser();
+  const isPublishContext = context === 'publish';
 
   useEffect(() => {
     if (isOpen) {
@@ -69,7 +75,9 @@ export function VerifyIdentityModal({
       }
     } else if (currentStep === 'SUCCESS') {
       onClose();
-      navigateToAuthorProfile(user?.authorProfile?.id, false);
+      if (context !== 'publish') {
+        navigateToAuthorProfile(user?.authorProfile?.id, false);
+      }
     }
   };
 
@@ -116,9 +124,15 @@ export function VerifyIdentityModal({
             {/* Title and subtitle */}
             <div className="text-center">
               <h3 className="text-2xl font-bold text-white">
-                Verify identity to unlock new features
+                {isPublishContext
+                  ? 'Verify your identity to publish'
+                  : 'Verify identity to unlock new features'}
               </h3>
-              <p className="mt-2 text-indigo-100">(Takes 1-3 minutes)</p>
+              <p className="mt-2 text-indigo-100">
+                {isPublishContext
+                  ? 'Publishing on ResearchHub requires a verified profile. Complete the steps below to continue.'
+                  : '(Takes 1-3 minutes)'}
+              </p>
             </div>
 
             {/* Two columns of features */}
@@ -324,13 +338,18 @@ export function VerifyIdentityModal({
                 <BadgeCheck className="h-8 w-8 text-green-600" />
               </div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900">Verification Successful!</h3>
+            <h3 className="text-xl font-semibold text-gray-900">
+              {isPublishContext ? "You're ready to publish" : 'Verification Successful!'}
+            </h3>
             <p className="text-gray-600">
-              Your identity has been verified. You can now claim your publications and earn
-              ResearchCoin for your contributions.
+              {isPublishContext
+                ? 'Your identity is verified. Click Continue to finish your post.'
+                : 'Your identity has been verified. You can now claim your publications and earn ResearchCoin for your contributions.'}
             </p>
             <div className="flex justify-center">
-              <Button onClick={handleNext}>View My Profile</Button>
+              <Button onClick={handleNext}>
+                {isPublishContext ? 'Continue' : 'View My Profile'}
+              </Button>
             </div>
           </div>
         );
