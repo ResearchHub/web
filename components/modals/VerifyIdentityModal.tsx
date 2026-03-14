@@ -198,6 +198,25 @@ export function VerifyIdentityModal({
         );
 
       case 'IDENTITY_VERIFIED_SUCCESSFULLY':
+        if (isPublishContext) {
+          return (
+            <div className="space-y-6 text-center p-6">
+              <div className="flex justify-center">
+                <div className="bg-green-100 p-4 rounded-full">
+                  <BadgeCheck className="h-8 w-8 text-green-600" />
+                </div>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900">You're ready to publish</h3>
+              <p className="text-gray-600">
+                Your identity is verified. Click Continue to finish your post.
+              </p>
+              <div className="flex justify-center">
+                <Button onClick={onClose}>Continue</Button>
+              </div>
+            </div>
+          );
+        }
+        // General flow: continue to publications step
         return (
           <div className="space-y-6 text-center p-6 flex flex-col justify-between min-h-[400px]">
             <div>
@@ -336,18 +355,13 @@ export function VerifyIdentityModal({
                 <BadgeCheck className="h-8 w-8 text-green-600" />
               </div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900">
-              {isPublishContext ? "You're ready to publish" : 'Verification Successful!'}
-            </h3>
+            <h3 className="text-xl font-semibold text-gray-900">Verification Successful!</h3>
             <p className="text-gray-600">
-              {isPublishContext
-                ? 'Your identity is verified. Click Continue to finish your post.'
-                : 'Your identity has been verified. You can now claim your publications and earn ResearchCoin for your contributions.'}
+              Your identity has been verified. You can now claim your publications and earn
+              ResearchCoin for your contributions.
             </p>
             <div className="flex justify-center">
-              <Button onClick={handleNext}>
-                {isPublishContext ? 'Continue' : 'View My Profile'}
-              </Button>
+              <Button onClick={handleNext}>View My Profile</Button>
             </div>
           </div>
         );
