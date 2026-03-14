@@ -18,11 +18,13 @@ import { VerificationWithPersonaStep } from './Verification/VerificationWithPers
 import { AddPublicationsForm, STEP } from './Verification/AddPublicationsForm';
 import { ProgressStepper } from '@/components/ui/ProgressStepper';
 import { navigateToAuthorProfile } from '@/utils/navigation';
+import type { VerificationModalContext } from '@/contexts/VerificationContext';
 
 interface VerifyIdentityModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialStep?: VerificationStep;
+  context?: VerificationModalContext;
 }
 
 type VerificationStep =
@@ -43,11 +45,13 @@ export function VerifyIdentityModal({
   isOpen,
   onClose,
   initialStep = 'INTRO',
+  context = null,
 }: VerifyIdentityModalProps) {
   const [currentStep, setCurrentStep] = useState<VerificationStep>(initialStep);
   const [publicationsSubstep, setPublicationsSubstep] = useState<STEP | 'SUCCESS'>('DOI');
 
   const { user } = useUser();
+  const isPublishContext = context === 'publish';
 
   useEffect(() => {
     if (isOpen) {
@@ -69,7 +73,9 @@ export function VerifyIdentityModal({
       }
     } else if (currentStep === 'SUCCESS') {
       onClose();
-      navigateToAuthorProfile(user?.authorProfile?.id, false);
+      if (context !== 'publish') {
+        navigateToAuthorProfile(user?.authorProfile?.id, false);
+      }
     }
   };
 
@@ -116,9 +122,15 @@ export function VerifyIdentityModal({
             {/* Title and subtitle */}
             <div className="text-center">
               <h3 className="text-2xl font-bold text-white">
-                Verify identity to unlock new features
+                {isPublishContext
+                  ? 'Verify your identity to publish'
+                  : 'Verify identity to unlock new features'}
               </h3>
-              <p className="mt-2 text-indigo-100">(Takes 1-3 minutes)</p>
+              <p className="mt-2 text-indigo-100">
+                {isPublishContext
+                  ? 'Publishing on ResearchHub requires a verified profile.'
+                  : '(Takes 1-3 minutes)'}
+              </p>
             </div>
 
             {/* Two columns of features */}
@@ -186,6 +198,25 @@ export function VerifyIdentityModal({
         );
 
       case 'IDENTITY_VERIFIED_SUCCESSFULLY':
+        if (isPublishContext) {
+          return (
+            <div className="space-y-6 text-center p-6">
+              <div className="flex justify-center">
+                <div className="bg-green-100 p-4 rounded-full">
+                  <BadgeCheck className="h-8 w-8 text-green-600" />
+                </div>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900">You're ready to publish</h3>
+              <p className="text-gray-600">
+                Your identity is verified. Click Continue to finish your post.
+              </p>
+              <div className="flex justify-center">
+                <Button onClick={onClose}>Continue</Button>
+              </div>
+            </div>
+          );
+        }
+        // General flow: continue to publications step
         return (
           <div className="space-y-6 text-center p-6 flex flex-col justify-between min-h-[400px]">
             <div>

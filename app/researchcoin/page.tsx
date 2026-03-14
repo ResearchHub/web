@@ -117,7 +117,7 @@ export default function ResearchCoinPage() {
                     </div>
                   </div>
                   <Button
-                    onClick={openVerificationModal}
+                    onClick={() => openVerificationModal()}
                     variant="secondary"
                     size="default"
                     className="bg-white text-blue-600 hover:bg-gray-50 font-medium px-5"
