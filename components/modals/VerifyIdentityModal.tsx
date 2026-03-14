@@ -128,7 +128,7 @@ export function VerifyIdentityModal({
               </h3>
               <p className="mt-2 text-indigo-100">
                 {isPublishContext
-                  ? 'Publishing on ResearchHub requires a verified profile. Complete the steps below to continue.'
+                  ? 'Publishing on ResearchHub requires a verified profile.'
                   : '(Takes 1-3 minutes)'}
               </p>
             </div>
