@@ -404,9 +404,14 @@ export function VerifyIdentityModal({
                 <div className="relative">
                   {/* Header with close button - only show for non-INTRO steps */}
                   {currentStep !== 'INTRO' && (
-                    <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <div
+                      className={`border-b border-gray-200 px-6 py-4 flex items-center justify-between ${currentStep === 'IDENTITY' ? 'fixed top-0 left-0 right-0 !border-0 ml-20' : ''}`}
+                    >
                       <div className="flex items-center">
-                        <Dialog.Title as="h3" className="text-lg font-medium text-gray-900">
+                        <Dialog.Title
+                          as="h3"
+                          className={`text-lg font-medium text-gray-900 ${currentStep === 'IDENTITY' ? 'hidden' : ''}`}
+                        >
                           Verify Identity
                         </Dialog.Title>
                       </div>
