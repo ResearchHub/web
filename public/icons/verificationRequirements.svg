@@ -1,0 +1,31 @@
+<svg id="reqs-svg" viewBox="0 0 360 152" xmlns="http://www.w3.org/2000/svg" style="width:100%; max-width:360px; display:block; border-radius:8px;">
+
+  <rect width="360" height="152" fill="#f9fafb" rx="12"></rect>
+
+  <!-- Government-issued ID -->
+  <rect x="16" y="20" width="44" height="44" rx="8" fill="#FFFFFF" stroke="#cccccc" stroke-width="0.5"></rect>
+  <rect x="26" y="33" width="24" height="18" rx="3" fill="none" stroke="#6B6A66" stroke-width="1.5"></rect>
+  <line x1="26" y1="39" x2="50" y2="39" stroke="#6B6A66" stroke-width="1.5"></line>
+  <rect x="29" y="42" width="7" height="5" rx="1" fill="#6B6A66"></rect>
+  <line x1="39" y1="43.5" x2="47" y2="43.5" stroke="#6B6A66" stroke-width="1.2"></line>
+  <line x1="39" y1="46.5" x2="44" y2="46.5" stroke="#6B6A66" stroke-width="1.2"></line>
+
+  <!-- Text: 2 lines -->
+  <text x="70" y="36" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="16" font-weight="600" fill="#1C1B19">Government-issued ID</text>
+  <text x="70" y="54" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" fill="#888780">Passport, license, or national ID</text>
+
+  <!-- Divider -->
+  <line x1="16" y1="76" x2="344" y2="76" stroke="#cccccc" stroke-width="0.5"></line>
+
+  <!-- Camera access -->
+  <rect x="16" y="92" width="44" height="44" rx="8" fill="#FFFFFF" stroke="#cccccc" stroke-width="0.5"></rect>
+  <path d="M30 109 h16 a2 2 0 0 1 2 2 v8 a2 2 0 0 1-2 2 H30 a2 2 0 0 1-2-2 v-8 a2 2 0 0 1 2-2z" fill="none" stroke="#6B6A66" stroke-width="1.5"></path>
+  <circle cx="38" cy="114" r="3.2" fill="none" stroke="#6B6A66" stroke-width="1.3"></circle>
+  <path d="M34.5 109 l1.5-2.5 h4 l1.5 2.5" fill="none" stroke="#6B6A66" stroke-width="1.3" stroke-linejoin="round"></path>
+
+  <!-- Text: 3 lines -->
+  <text x="70" y="103" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="16" font-weight="600" fill="#1C1B19">Camera access</text>
+  <text x="70" y="121" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" fill="#888780">Browser will request permission</text>
+  <text x="70" y="139" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" fill="#888780">Or scan a QR code to continue on mobile</text>
+
+</svg>
