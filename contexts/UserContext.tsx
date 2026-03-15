@@ -12,7 +12,7 @@ interface UserContextType {
   user: User | null;
   isLoading: boolean;
   error: Error | null;
-  refreshUser: () => Promise<User | null>;
+  refreshUser: (options?: { silent?: boolean }) => Promise<User | null>;
 }
 
 const UserContext = createContext<UserContextType | null>(null);
@@ -24,15 +24,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<Error | null>(null);
   const [isAnalyticsInitialized, setIsAnalyticsInitialized] = useState(false);
 
-  const fetchUserData = async (): Promise<User | null> => {
+  const fetchUserData = async (silent = false): Promise<User | null> => {
     if (!session?.authToken) {
       setUser(null);
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
       return null;
     }
 
     try {
-      setIsLoading(true);
+      if (!silent) setIsLoading(true);
       const userData = await AuthService.fetchUserData(session.authToken);
       const fetchedUser = userData.results[0] || null;
       setUser(fetchedUser);
@@ -43,16 +43,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
           await AuthSharingService.signOutFromBothApps();
         }
       }
-      setError(err instanceof Error ? err : new Error('Failed to load user data'));
+      if (!silent) setError(err instanceof Error ? err : new Error('Failed to load user data'));
       return null;
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   };
 
-  // Refresh function that can be called from components
-  const refreshUser = async (): Promise<User | null> => {
-    return fetchUserData();
+  const refreshUser = async (options?: { silent?: boolean }): Promise<User | null> => {
+    return fetchUserData(options?.silent ?? false);
   };
 
   // Effect to load user data when session changes

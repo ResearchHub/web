@@ -55,11 +55,10 @@ export function VerifyIdentityModal({
 
   useEffect(() => {
     if (isOpen) {
-      setCurrentStep(initialStep);
-    } else {
-      setCurrentStep(initialStep);
+      setCurrentStep(context === 'publish' ? 'IDENTITY' : initialStep);
+      setPublicationsSubstep('DOI');
     }
-  }, [isOpen, initialStep]);
+  }, [isOpen, initialStep, context]);
 
   const handleNext = () => {
     if (currentStep === 'INTRO') {
@@ -194,6 +193,11 @@ export function VerifyIdentityModal({
         return (
           <VerificationWithPersonaStep
             onVerificationStatusChange={handleVerificationStatusChange}
+            templateId={
+              isPublishContext
+                ? process.env.NEXT_PUBLIC_PERSONA_TEMPLATE_ID_PUBLISH_FLOW
+                : undefined
+            }
           />
         );
 
@@ -394,7 +398,9 @@ export function VerifyIdentityModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel
+                className={`w-full transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all ${currentStep === 'IDENTITY' ? 'max-w-[400px]' : 'max-w-2xl'}`}
+              >
                 <div className="relative">
                   {/* Header with close button - only show for non-INTRO steps */}
                   {currentStep !== 'INTRO' && (
