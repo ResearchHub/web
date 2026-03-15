@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { Alert } from '@/components/ui/Alert';
+import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
 import { PaginationButton } from '@/components/ui/PaginationButton';
 import { useSavedTemplates } from '@/hooks/useExpertFinder';
@@ -115,9 +116,7 @@ export function TemplatesPageContent() {
     <div className="w-full max-w-5xl mx-auto px-4 py-8">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-base font-semibold text-gray-900 mb-2 sm:!text-lg md:!text-2xl">
-            Templates
-          </h2>
+          <Breadcrumbs items={[{ label: 'Templates' }]} className="mb-2" />
           <p className="text-sm text-gray-600">
             Save your contact details and outreach context to reuse when generating emails.
           </p>

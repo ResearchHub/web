@@ -13,6 +13,7 @@ import {
   CircleDollarSign,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { BaseModal } from '@/components/ui/BaseModal';
 import { useUser } from '@/contexts/UserContext';
 import { VerificationWithPersonaStep } from './Verification/VerificationWithPersonaStep';
 import { AddPublicationsForm, STEP } from './Verification/AddPublicationsForm';
@@ -56,8 +57,7 @@ export function VerifyIdentityModal({
   useEffect(() => {
     if (isOpen) {
       setCurrentStep(initialStep);
-    } else {
-      setCurrentStep(initialStep);
+      setPublicationsSubstep('DOI');
     }
   }, [isOpen, initialStep]);
 
@@ -368,69 +368,60 @@ export function VerifyIdentityModal({
     }
   };
 
-  return (
-    <Transition show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-        </Transition.Child>
+  if (currentStep === 'INTRO') {
+    return (
+      <Transition show={isOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-[1010]" onClose={onClose}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+          </Transition.Child>
 
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
-                <div className="relative">
-                  {/* Header with close button - only show for non-INTRO steps */}
-                  {currentStep !== 'INTRO' && (
-                    <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                      <div className="flex items-center">
-                        <Dialog.Title as="h3" className="text-lg font-medium text-gray-900">
-                          Verify Identity
-                        </Dialog.Title>
-                      </div>
-                      <Button
-                        onClick={onClose}
-                        variant="ghost"
-                        size="icon"
-                        className="text-gray-400 hover:text-gray-500"
-                        aria-label="Close"
-                      >
-                        <X className="h-5 w-5" />
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Progress stepper */}
-                  {['PUBLICATIONS', 'SUCCESS'].includes(currentStep) && (
-                    <div className="px-6 py-4 border-b border-gray-200">
-                      <ProgressStepper steps={stepperSteps} currentStep={currentStep} />
-                    </div>
-                  )}
-
-                  {/* Content */}
-                  <div className="">{renderStepContent()}</div>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
+                  <div className="relative">{renderStepContent()}</div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
           </div>
+        </Dialog>
+      </Transition>
+    );
+  }
+
+  // All other steps: render inside BaseModal (title, close, stepper when applicable)
+  return (
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Verify Identity"
+      size="2xl"
+      padding="p-0"
+      contentClassName="flex flex-col"
+    >
+      {['PUBLICATIONS', 'SUCCESS'].includes(currentStep) && (
+        <div className="px-6 py-4 border-b border-gray-200 flex-shrink-0">
+          <ProgressStepper steps={stepperSteps} currentStep={currentStep} />
         </div>
-      </Dialog>
-    </Transition>
+      )}
+      <div className="flex-1 min-h-0">{renderStepContent()}</div>
+    </BaseModal>
   );
 }

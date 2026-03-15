@@ -33,7 +33,7 @@ export function VerificationProvider({ children }: { children: React.ReactNode }
 
   const closeVerificationModal = useCallback(async () => {
     setIsModalOpen(false);
-    const freshUser = await refreshUser();
+    const freshUser = await refreshUser({ silent: true });
     if (freshUser?.isVerified && pendingCallbackRef.current) {
       pendingCallbackRef.current();
     }
