@@ -12,7 +12,6 @@ import {
   createFeedEntryFromWork,
 } from '@/types/feed';
 import { FeedItemFundraise } from './items/FeedItemFundraise';
-import { FeedItemFundraiseV2 } from './items/FeedItemFundraiseV2';
 import { FeedItemPaper } from './items/FeedItemPaper';
 import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
@@ -221,7 +220,17 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
         break;
 
       case 'PREREGISTRATION':
-        content = <FeedItemFundraiseV2 entry={entry} />;
+        content = (
+          <FeedItemFundraise
+            entry={entry}
+            href={href}
+            showHeader={showFundraiseHeaders}
+            showActions={!hideActions}
+            maxLength={maxLength}
+            onFeedItemClick={handleFeedItemClick}
+            showBountyInfo={showBountyInfo}
+          />
+        );
         break;
 
       case 'PAPER':
