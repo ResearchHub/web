@@ -35,7 +35,7 @@ export default async function FundPage() {
           title="Funding Opportunities"
           subtitle={
             <p className="text-sm sm:text-base text-gray-500">
-              Browse opportunities to submit research proposals for.
+              Browse funding opportunities to apply for.
             </p>
           }
           cta={<SubmitProposalCTA />}

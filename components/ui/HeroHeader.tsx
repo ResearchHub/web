@@ -21,7 +21,7 @@ export function HeroHeader({ title, subtitle, cta, children, className }: HeroHe
       >
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
           <div className="flex-1 min-w-0">
-            <h1 className="font-serif text-2xl sm:text-4xl font-semibold tracking-tight text-gray-900">
+            <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight text-gray-900">
               {title}
             </h1>
             {subtitle && <div className="mt-2">{subtitle}</div>}

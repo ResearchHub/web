@@ -134,13 +134,13 @@ export const FeedItemGrantWithProposals: FC<FeedItemGrantWithProposalsProps> = (
       )}
     >
       {/* Frosted header */}
-      <Link href={href} className="block relative h-[150px] overflow-hidden bg-gray-900">
+      <Link href={href} className="group block relative h-[160px] overflow-hidden bg-gray-900">
         {content.previewImage ? (
           <Image
             src={content.previewImage}
             alt={content.title}
             fill
-            className="object-cover"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, 660px"
           />
         ) : (
