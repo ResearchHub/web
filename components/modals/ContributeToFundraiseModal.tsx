@@ -25,6 +25,7 @@ import { BaseModal } from '@/components/ui/BaseModal';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { EndaomentProvider } from '@/contexts/EndaomentContext';
+import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
 
 // Import inline deposit views
 import { DepositRSCView } from './DepositRSCView';
@@ -89,6 +90,8 @@ function ContributeToFundraiseModalInner({
   const walletAvailability = useWalletAvailability();
   const { exchangeRate } = useExchangeRate();
   const isMobile = useIsMobile();
+  const { nonprofit } = useNonprofitByFundraiseId(fundraise.id);
+  const hasNonprofit = nonprofit !== null;
   const [amountUsd, setAmountUsd] = useState(100);
   const [isContributing, setIsContributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -468,6 +471,7 @@ function ContributeToFundraiseModalInner({
             isProcessing={isContributing}
             error={error}
             walletAvailability={walletAvailability}
+            hasNonprofit={hasNonprofit}
             onConfirmPayment={handleConfirmPayment}
             onPaymentRequestSuccess={handlePaymentRequestSuccess}
             onEndaomentPaymentConfirm={handleEndaomentPaymentConfirm}
