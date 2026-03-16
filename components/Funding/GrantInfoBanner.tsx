@@ -22,8 +22,6 @@ import { useUser } from '@/contexts/UserContext';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useRouter } from 'next/navigation';
-import { Icon } from '@/components/ui/icons/Icon';
-import { PaperService } from '@/services/paper.service';
 import toast from 'react-hot-toast';
 
 function formatCompactAmount(usd: number): string {
@@ -89,7 +87,6 @@ export const GrantInfoBanner = ({
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
   const { showShareModal } = useShareModalContext();
   const { isInList } = useIsInList(work?.unifiedDocumentId);
   const { isTogglingDefaultList, handleAddToList } = useAddToList({
@@ -122,28 +119,6 @@ export const GrantInfoBanner = ({
     }
   }, [selectedOrg, work?.note, router]);
 
-  const latestVersion = work?.versions?.find((v) => v.isLatest);
-  const isPublished = latestVersion?.publicationStatus === 'PUBLISHED';
-
-  const handlePublish = useCallback(async () => {
-    if (!work || isPublished) return;
-    setIsPublishing(true);
-    try {
-      await PaperService.publishPaper(work.id);
-      toast.success('Published to ResearchHub Journal');
-
-      if (typeof router.refresh === 'function') {
-        router.refresh();
-      } else if (typeof globalThis !== 'undefined') {
-        globalThis.location.reload();
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to publish. Please try again.');
-    } finally {
-      setIsPublishing(false);
-    }
-  }, [work?.id, isPublished, router]);
-
   const shareAction = () =>
     showShareModal({
       url: globalThis.location.href,
@@ -158,15 +133,6 @@ export const GrantInfoBanner = ({
         <BaseMenuItem onSelect={handleEdit}>
           <Edit className="h-4 w-4 mr-2" />
           <span>Edit</span>
-        </BaseMenuItem>
-      )}
-      {!isPublished && isModerator && (
-        <BaseMenuItem
-          disabled={isPublishing}
-          onSelect={() => executeAuthenticatedAction(handlePublish)}
-        >
-          <Icon name="rhJournal1" size={16} className="mr-2" />
-          <span>Publish to Journal</span>
         </BaseMenuItem>
       )}
       {(isModerator || isHubEditor) && work?.unifiedDocumentId != null && (
