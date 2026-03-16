@@ -42,26 +42,28 @@ export function ProgressStepper({
               )}
               onClick={() => isClickable && onStepClick(step.id)}
             >
-              <div
-                className={cn(
-                  'flex items-center justify-center w-8 h-8 rounded-full shrink-0',
-                  isActive
-                    ? 'bg-primary-100 text-primary-600 border-2 border-primary-500'
-                    : isCompleted
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-gray-100 text-gray-500'
-                )}
-              >
-                {step.icon || (isCompleted ? <CheckIcon className="w-4 h-4" /> : index + 1)}
+              <div className="flex !flex-col !items-center md:!flex-row md:!items-center !shrink-0">
+                <div
+                  className={cn(
+                    'flex items-center justify-center !w-8 !h-8 rounded-full !shrink-0',
+                    isActive
+                      ? 'bg-primary-100 text-primary-600 border-2 border-primary-500'
+                      : isCompleted
+                        ? 'bg-primary-500 text-white'
+                        : 'bg-gray-100 text-gray-500'
+                  )}
+                >
+                  {step.icon || (isCompleted ? <CheckIcon className="w-4 h-4" /> : index + 1)}
+                </div>
+                <span
+                  className={cn(
+                    '!mt-1 !ml-0 !text-center md:!mt-0 md:!ml-2 md:!text-left text-sm font-medium whitespace-nowrap',
+                    isActive ? 'text-primary-600' : isCompleted ? 'text-gray-900' : 'text-gray-500'
+                  )}
+                >
+                  {step.label}
+                </span>
               </div>
-              <span
-                className={cn(
-                  'ml-2 text-sm font-medium whitespace-nowrap',
-                  isActive ? 'text-primary-600' : isCompleted ? 'text-gray-900' : 'text-gray-500'
-                )}
-              >
-                {step.label}
-              </span>
               {index < steps.length - 1 && (
                 <div
                   className={cn(

@@ -38,7 +38,7 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const handleSuccess = useCallback(() => {
-    if (pendingAction) {
+    if (typeof pendingAction === 'function') {
       pendingAction();
     }
     hideAuthModal();

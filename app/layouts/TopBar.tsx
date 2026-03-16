@@ -120,7 +120,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               avatarSize={32}
               profilePercent={profilePercent()}
               onViewProfile={handleViewProfile}
-              onAuth={showAuthModal}
+              onAuth={() => showAuthModal()}
               onSearchOpen={openSearch}
               currentSearchQuery={currentSearchQuery}
               shortcutText={shortcutText}
@@ -134,7 +134,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               avatarSize={40}
               profilePercent={profilePercent()}
               onViewProfile={handleViewProfile}
-              onAuth={showAuthModal}
+              onAuth={() => showAuthModal()}
               onSearchOpen={openSearch}
               currentSearchQuery={currentSearchQuery}
               shortcutText={shortcutText}

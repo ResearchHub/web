@@ -63,6 +63,11 @@ const transactionMappings: TransactionMappingRule[] = [
     variant: 'positive',
   },
   {
+    condition: (tx) => tx.source?.distribution_type === 'PREREGISTRATION_UPDATE_REWARD',
+    label: 'Proposal Reward',
+    icon: 'earn1',
+  },
+  {
     condition: (tx) => tx.source?.distribution_type === 'DEPOSIT',
     label: 'Deposit',
     icon: 'wallet1',

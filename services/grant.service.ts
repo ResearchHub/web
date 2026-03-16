@@ -88,16 +88,6 @@ export class GrantService {
     }
   }
 
-  /**
-   * Creates a new grant
-   * @param payload The grant creation payload
-   * @returns The created grant object
-   */
-  static async createGrant(payload: any): Promise<any> {
-    const response = await ApiClient.post<any>(`${this.BASE_PATH}/`, payload);
-    return response;
-  }
-
   static async getAvailableFunding(): Promise<AvailableFunding> {
     try {
       const response = await ApiClient.get<AvailableFundingResponse>(
