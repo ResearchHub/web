@@ -78,7 +78,7 @@ export const ModerationActions: FC<ModerationActionsProps> = ({
             className="text-red-600 hover:text-red-700 hover:bg-red-50"
           >
             <Ban className="h-4 w-4 mr-1" />
-            Suspend User
+            Remove + Suspend
           </Button>
         )}
       </div>
@@ -88,9 +88,9 @@ export const ModerationActions: FC<ModerationActionsProps> = ({
           isOpen={showSuspendConfirm}
           onClose={() => setShowSuspendConfirm(false)}
           onConfirm={handleSuspendUser}
-          title="Suspend User"
+          title="Remove + Suspend"
           message={`Are you sure you want to suspend ${authorName || 'this user'}? This will remove their content and prevent them from using the platform.`}
-          confirmText="Suspend User"
+          confirmText="Remove + Suspend"
           confirmButtonClass="bg-red-600 hover:bg-red-700"
         />
       )}
