@@ -18,7 +18,7 @@ const navigationItems: SidebarNavItem[] = [
     description: 'Manage referral program',
   },
   {
-    name: 'Pending Works',
+    name: 'Pending',
     href: '/moderators/pending-works',
     icon: FileCheck,
     description: 'Review pending submissions',

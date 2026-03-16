@@ -36,10 +36,6 @@ export class GrantModerationService {
     }
   }
 
-  static async fetchPendingProposals(_page: number = 1): Promise<PendingWorksResponse> {
-    return { entries: [], hasMore: false };
-  }
-
   static async approveGrant(grantId: ID): Promise<void> {
     try {
       await ApiClient.post(`${this.BASE_PATH}/${grantId}/approve/`, {});

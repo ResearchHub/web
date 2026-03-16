@@ -67,7 +67,7 @@ function GrantSubtitle({
           Pending Review
         </span>
       )}
-      {!isPending && amountUsd != null && amountUsd > 0 && (
+      {amountUsd != null && amountUsd > 0 && (
         <span
           className={cn(
             'font-mono font-bold text-sm px-2 py-0.5 rounded-md tabular-nums',

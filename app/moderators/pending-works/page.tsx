@@ -3,23 +3,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Tabs } from '@/components/ui/Tabs';
 import { GrantModerationService } from '@/services/grant-moderation.service';
 import { DeclineGrantModal } from '@/components/Moderators/DeclineGrantModal';
 import { FeedItemGrant } from '@/components/Feed/items/FeedItemGrant';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import toast from 'react-hot-toast';
 
-type WorkTypeFilter = 'all' | 'rfp' | 'proposal';
-
-const TABS = [
-  { id: 'all' as const, label: 'All' },
-  { id: 'rfp' as const, label: 'RFP' },
-  { id: 'proposal' as const, label: 'Proposal' },
-];
-
 export default function PendingWorksPage() {
-  const [activeTab, setActiveTab] = useState<WorkTypeFilter>('all');
   const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -31,26 +21,15 @@ export default function PendingWorksPage() {
   const fetchEntries = useCallback(async () => {
     setIsLoading(true);
     try {
-      if (activeTab === 'rfp') {
-        const response = await GrantModerationService.fetchPendingGrants();
-        setEntries(response.entries);
-      } else if (activeTab === 'proposal') {
-        const response = await GrantModerationService.fetchPendingProposals();
-        setEntries(response.entries);
-      } else {
-        const [grants, proposals] = await Promise.all([
-          GrantModerationService.fetchPendingGrants(),
-          GrantModerationService.fetchPendingProposals(),
-        ]);
-        setEntries([...grants.entries, ...proposals.entries]);
-      }
+      const response = await GrantModerationService.fetchPendingGrants();
+      setEntries(response.entries);
     } catch {
-      toast.error('Failed to load pending works');
+      toast.error('Failed to load pending submissions');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [activeTab]);
+  }, []);
 
   useEffect(() => {
     fetchEntries();
@@ -59,16 +38,6 @@ export default function PendingWorksPage() {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await fetchEntries();
-  };
-
-  const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId as WorkTypeFilter);
-  };
-
-  const TAB_LABELS: Record<WorkTypeFilter, string> = {
-    rfp: 'RFPs',
-    proposal: 'proposals',
-    all: 'works',
   };
 
   const handleApprove = async (grantId: number, entryId: string) => {
@@ -107,7 +76,7 @@ export default function PendingWorksPage() {
       <div className="bg-white">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Pending Works</h1>
+            <h1 className="text-2xl font-semibold text-gray-900">Pending</h1>
             <p className="text-sm text-gray-600 mt-1">
               Review and approve or decline pending submissions
             </p>
@@ -123,16 +92,6 @@ export default function PendingWorksPage() {
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span className="hidden tablet:!block">Refresh</span>
           </Button>
-        </div>
-
-        <div className="border-b border-gray-200 mb-6">
-          <Tabs
-            tabs={TABS}
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            variant="primary"
-            disabled={isLoading || isRefreshing}
-          />
         </div>
       </div>
 
@@ -162,7 +121,7 @@ export default function PendingWorksPage() {
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">All caught up!</h3>
                 <p className="text-gray-600 text-center max-w-md">
-                  No pending {TAB_LABELS[activeTab]} require your review at the moment.
+                  No pending submissions require your review at the moment.
                 </p>
               </div>
             </div>
@@ -178,8 +137,7 @@ export default function PendingWorksPage() {
                 key={entry.id}
                 entry={entry}
                 showActions={false}
-                showHeader={true}
-                customActionText="submitted an RFP for review"
+                showHeader={false}
                 footer={
                   grantId ? (
                     <div className="flex items-center gap-2 px-4 py-3">

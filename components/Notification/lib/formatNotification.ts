@@ -379,10 +379,10 @@ export function formatNotificationMessage(
 
     // Grant moderation notifications
     case 'GRANT_APPROVED':
-      return `Your RFP "${truncatedTitle}" has been approved and is now open`;
+      return `Your funding opportunity has been approved.`;
 
     case 'GRANT_DECLINED':
-      return `Your RFP "${truncatedTitle}" has been declined by a moderator`;
+      return `Your funding opportunity has been declined.`;
 
     default:
       console.warn(`Unhandled notification type: ${type}`);
