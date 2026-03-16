@@ -61,6 +61,8 @@ interface PaymentWidgetProps {
   hideButton?: boolean;
   /** Wallet payment method availability from Stripe */
   walletAvailability: WalletAvailability;
+  /** Whether the fundraise has a non-profit org attached */
+  hasNonprofit?: boolean;
 }
 
 /**
@@ -84,6 +86,7 @@ export function PaymentWidget({
   onStripeReady,
   hideButton = false,
   walletAvailability,
+  hasNonprofit = false,
 }: PaymentWidgetProps) {
   const { isExpanded, selectedMethod, toggleExpanded, selectMethod } = usePaymentMethod({
     initialMethod: selectedPaymentMethod,
@@ -184,6 +187,7 @@ export function PaymentWidget({
   ];
 
   // Filter payment methods based on actual device capabilities from Stripe.
+  // - Hide Endaoment if the fundraise has no associated non-profit
   // - Hide Apple Pay if not available on this device
   // - Hide Google Pay if not available OR if Apple Pay is available
   //   (Stripe's PaymentRequestButtonElement renders Apple Pay preferentially
@@ -192,6 +196,9 @@ export function PaymentWidget({
   //   options that may not be available
   const visiblePaymentOptions = paymentOptions.filter((option) => {
     if (HIDDEN_PAYMENT_METHODS.includes(option.id)) return false;
+    if (option.id === 'endaoment') {
+      return hasNonprofit;
+    }
     if (option.id === 'apple_pay') {
       return !walletAvailability.checking && walletAvailability.applePay;
     }

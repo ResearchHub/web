@@ -41,6 +41,8 @@ interface PaymentStepProps {
   fundraiseId: ID;
   /** Wallet payment method availability from Stripe (resolved at modal level) */
   walletAvailability: WalletAvailability;
+  /** Whether the fundraise has a non-profit org (shows Endaoment option) */
+  hasNonprofit?: boolean;
   /** Whether the action is being processed */
   isProcessing?: boolean;
   /** Error message to display */
@@ -70,6 +72,7 @@ export function PaymentStep({
   rscBalance,
   fundraiseId,
   walletAvailability,
+  hasNonprofit = false,
   isProcessing = false,
   error,
   onConfirmPayment,
@@ -207,6 +210,7 @@ export function PaymentStep({
           onStripeReady={onStripeReady}
           hideButton
           walletAvailability={walletAvailability}
+          hasNonprofit={hasNonprofit}
         />
 
         {/* Receipt-style line items */}
