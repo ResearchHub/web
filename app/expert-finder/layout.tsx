@@ -21,12 +21,14 @@ export default function ExpertFinderLayout({ children }: ExpertFinderLayoutProps
   const { user, isLoading } = useUser();
   const router = useRouter();
   const isModerator = !!user?.isModerator;
+  const isHubEditor = !!user?.authorProfile?.isHubEditor;
+  const canAccessExpertFinder = isModerator || isHubEditor;
 
   useEffect(() => {
-    if (!isLoading && !isModerator) {
+    if (!isLoading && !canAccessExpertFinder) {
       router.push('/popular');
     }
-  }, [isLoading, isModerator, router]);
+  }, [isLoading, canAccessExpertFinder, router]);
 
   if (isLoading) {
     return (
@@ -36,7 +38,7 @@ export default function ExpertFinderLayout({ children }: ExpertFinderLayoutProps
     );
   }
 
-  if (!isModerator) {
+  if (!canAccessExpertFinder) {
     return null;
   }
 
