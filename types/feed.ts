@@ -788,8 +788,60 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       break;
 
     case 'RESEARCHHUBPOST':
-      // Check if it's a grant
-      if (content_object.type === 'GRANT' && content_object?.grant) {
+      // Check if it's a fundraise contribution (DAF contribution)
+      if (content_object.type === 'USDFUNDRAISECONTRIBUTION' && content_object?.fundraise) {
+        contentType = 'POST';
+        try {
+          const postEntry: FeedPostContent = {
+            id: content_object.id,
+            unifiedDocumentId: getUnifiedDocumentId(content_object),
+            contentType: 'POST',
+            postType: content_object.type,
+            createdDate: action_date || content_object.created_date,
+            textPreview: content_object.renderable_text || '',
+            slug: content_object.slug || '',
+            title: stripHtml(content_object.title || content_object.fundraise.post_title || 'Fundraise Contribution'),
+            previewImage: content_object.image_url || content_object.fundraise.post_image || '',
+            authors:
+              content_object.authors && content_object.authors.length > 0
+                ? content_object.authors.map(transformAuthorProfile)
+                : [transformAuthorProfile(author)],
+            topics: content_object.hub
+              ? [
+                  content_object.hub.id
+                    ? transformTopic(content_object.hub)
+                    : {
+                        id: 0,
+                        name: content_object.hub.name || '',
+                        slug: content_object.hub.slug || '',
+                      },
+                ]
+              : [],
+            createdBy: transformAuthorProfile(author),
+            category: content_object.category ? transformTopic(content_object.category) : undefined,
+            subcategory: content_object.subcategory
+              ? transformTopic(content_object.subcategory)
+              : undefined,
+            bounties: content_object.bounties
+              ? content_object.bounties.map((bounty: any) =>
+                  transformBounty(bounty, { ignoreBaseAmount: true })
+                )
+              : [],
+            reviews: content_object.reviews
+              ? content_object.reviews.map((review: any) => ({
+                  id: review.id,
+                  score: review.score,
+                  author: transformAuthorProfile(review.author),
+                }))
+              : [],
+            fundraise: transformFundraise(content_object.fundraise),
+          };
+          content = postEntry;
+        } catch (error) {
+          console.error('Error transforming USDFUNDRAISECONTRIBUTION:', error);
+          throw error;
+        }
+      } else if (content_object.type === 'GRANT' && content_object?.grant) {
         // Add this new case for GRANT content
         contentType = 'GRANT';
         try {

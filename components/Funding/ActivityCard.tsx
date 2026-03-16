@@ -32,6 +32,7 @@ const DOC_ACTION_LABELS: Record<string, string> = {
   PREREGISTRATION: 'submitted proposal',
   POST: 'posted discussion',
   PAPER: 'published preprint',
+  USDFUNDRAISECONTRIBUTION: 'contributed to',
 };
 
 const CONTENT_TYPE_MAP: Record<string, ContentType> = {
@@ -47,6 +48,14 @@ function getActionLabel(entry: FeedEntry): string {
     return COMMENT_ACTION_LABELS[comment?.commentType] || 'commented on';
   }
   if (entry.contentType === 'BOUNTY') return 'contributed to';
+  
+  if (entry.contentType === 'POST') {
+    const post = entry.content as FeedPostContent;
+    if (post.postType === 'USDFUNDRAISECONTRIBUTION') {
+      return DOC_ACTION_LABELS['USDFUNDRAISECONTRIBUTION'] || 'contributed to';
+    }
+  }
+  
   return DOC_ACTION_LABELS[entry.contentType] || 'contributed';
 }
 
@@ -66,6 +75,24 @@ function getEntryMeta(entry: FeedEntry) {
   }
 
   const titled = content as FeedPostContent | FeedPaperContent | FeedGrantContent;
+  
+  if (entry.contentType === 'POST') {
+    const post = content as FeedPostContent;
+    if (post.postType === 'USDFUNDRAISECONTRIBUTION' && post.fundraise) {
+      return {
+        title: post.fundraise.postTitle || titled.title,
+        author,
+        href: post.fundraise.postId && post.fundraise.postSlug
+          ? buildWorkUrl({
+              id: post.fundraise.postId,
+              slug: post.fundraise.postSlug,
+              contentType: 'preregistration',
+            })
+          : undefined,
+      };
+    }
+  }
+  
   return {
     title: titled.title,
     author,
