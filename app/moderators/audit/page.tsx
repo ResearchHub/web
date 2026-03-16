@@ -100,6 +100,7 @@ export default function AuditPage() {
           loadMore={loadMore}
           onDismiss={handleDismiss}
           onRemove={handleRemove}
+          onRefresh={refresh}
           view={getViewFromStatus(activeStatus)}
         />
       </div>

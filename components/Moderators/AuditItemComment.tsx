@@ -12,6 +12,7 @@ import { ModerationActions } from './ModerationActions';
 interface AuditItemCommentProps {
   entry: FlaggedContent;
   onAction: (action: 'dismiss' | 'remove') => void;
+  onRefresh?: () => void;
   view?: 'pending' | 'dismissed' | 'removed';
 }
 
@@ -177,9 +178,11 @@ const transformAuditCommentToFeedEntry = (entry: FlaggedContent): FeedEntry => {
 export const AuditItemComment: FC<AuditItemCommentProps> = ({
   entry,
   onAction,
+  onRefresh,
   view = 'pending',
 }) => {
   const verdict = entry.verdict;
+  const userInfo = getAuditUserInfo(entry);
 
   // Transform audit entry to feed entry format
   const feedEntry = useMemo(() => transformAuditCommentToFeedEntry(entry), [entry]);
@@ -212,6 +215,9 @@ export const AuditItemComment: FC<AuditItemCommentProps> = ({
           onRemove={() => onAction('remove')}
           view={view}
           hasVerdict={!!verdict}
+          authorId={userInfo.authorId}
+          authorName={userInfo.name}
+          onRefresh={onRefresh}
         />
       </div>
     </div>
