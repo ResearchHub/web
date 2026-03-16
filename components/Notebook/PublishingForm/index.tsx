@@ -35,6 +35,7 @@ import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useUser } from '@/contexts/UserContext';
+import { useVerifiedAction } from '@/hooks/useVerifiedAction';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
@@ -300,6 +301,7 @@ export function PublishingForm({
   const selectedNonprofit = watch('selectedNonprofit');
 
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
+  const { withVerification } = useVerifiedAction();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const router = useRouter();
@@ -342,11 +344,13 @@ export function PublishingForm({
       return;
     }
 
-    if (selectedNonprofit) {
-      setShowNonprofitConfirmModal(true);
-    } else {
-      setShowConfirmModal(true);
-    }
+    withVerification(() => {
+      if (selectedNonprofit) {
+        setShowNonprofitConfirmModal(true);
+      } else {
+        setShowConfirmModal(true);
+      }
+    });
   };
 
   const handleNonprofitConfirm = () => {

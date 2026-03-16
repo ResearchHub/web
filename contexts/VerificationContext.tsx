@@ -1,10 +1,16 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import { VerifyIdentityModal } from '@/components/modals/VerifyIdentityModal';
+import { useUser } from '@/contexts/UserContext';
+
+export type VerificationModalContext = 'publish' | null;
 
 interface VerificationContextType {
-  openVerificationModal: () => void;
+  openVerificationModal: (options?: {
+    onVerified?: () => void;
+    context?: VerificationModalContext;
+  }) => void;
   closeVerificationModal: () => void;
 }
 
@@ -12,19 +18,36 @@ const VerificationContext = createContext<VerificationContextType | undefined>(u
 
 export function VerificationProvider({ children }: { children: React.ReactNode }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContext, setModalContext] = useState<VerificationModalContext>(null);
+  const pendingCallbackRef = useRef<(() => void) | null>(null);
+  const { refreshUser } = useUser();
 
-  const openVerificationModal = useCallback(() => {
-    setIsModalOpen(true);
-  }, []);
+  const openVerificationModal = useCallback(
+    (options?: { onVerified?: () => void; context?: VerificationModalContext }) => {
+      pendingCallbackRef.current = options?.onVerified ?? null;
+      setModalContext(options?.context ?? null);
+      setIsModalOpen(true);
+    },
+    []
+  );
 
-  const closeVerificationModal = useCallback(() => {
+  const closeVerificationModal = useCallback(async () => {
     setIsModalOpen(false);
-  }, []);
+    const freshUser = await refreshUser({ silent: true });
+    if (freshUser?.isVerified && pendingCallbackRef.current) {
+      pendingCallbackRef.current();
+    }
+    pendingCallbackRef.current = null;
+  }, [refreshUser]);
 
   return (
     <VerificationContext.Provider value={{ openVerificationModal, closeVerificationModal }}>
       {children}
-      <VerifyIdentityModal isOpen={isModalOpen} onClose={closeVerificationModal} />
+      <VerifyIdentityModal
+        isOpen={isModalOpen}
+        onClose={closeVerificationModal}
+        context={modalContext}
+      />
     </VerificationContext.Provider>
   );
 }

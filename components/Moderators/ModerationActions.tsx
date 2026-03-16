@@ -1,52 +1,99 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Ban } from 'lucide-react';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
+import { UserModerationService } from '@/services/user-moderation.service';
+import { cn } from '@/utils/styles';
+import { toast } from 'react-hot-toast';
 
 interface ModerationActionsProps {
   onDismiss: () => void;
   onRemove: () => void;
+  onRefresh?: () => void;
   view?: 'pending' | 'dismissed' | 'removed';
   hasVerdict?: boolean;
   className?: string;
+  authorId?: number | null;
+  authorName?: string;
 }
 
 export const ModerationActions: FC<ModerationActionsProps> = ({
   onDismiss,
   onRemove,
+  onRefresh,
   view = 'pending',
   hasVerdict = false,
-  className = '',
+  className,
+  authorId,
+  authorName,
 }) => {
-  // Only show action buttons for pending items without verdicts
-  const showActionButtons = view === 'pending' && !hasVerdict;
+  const [showSuspendConfirm, setShowSuspendConfirm] = useState(false);
 
-  if (!showActionButtons) {
+  if (view !== 'pending' || hasVerdict) {
     return null;
   }
 
-  return (
-    <div className={`flex items-center space-x-2 ${className}`}>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onDismiss}
-        className="text-green-600 hover:text-green-700 hover:bg-green-50"
-      >
-        <CheckCircle className="h-4 w-4 mr-1" />
-        Dismiss
-      </Button>
+  const handleSuspendUser = async () => {
+    if (!authorId) return;
+    try {
+      await UserModerationService.suspendUser(String(authorId));
+      toast.success('User has been suspended');
+      onRefresh?.();
+    } catch (error) {
+      console.error('Failed to suspend user:', error);
+      toast.error('Failed to suspend user');
+    }
+  };
 
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onRemove}
-        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-      >
-        <XCircle className="h-4 w-4 mr-1" />
-        Remove
-      </Button>
-    </div>
+  return (
+    <>
+      <div className={cn('flex items-center space-x-2', className)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onDismiss}
+          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+        >
+          <CheckCircle className="h-4 w-4 mr-1" />
+          Dismiss
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onRemove}
+          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+        >
+          <XCircle className="h-4 w-4 mr-1" />
+          Remove
+        </Button>
+
+        {authorId && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowSuspendConfirm(true)}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            <Ban className="h-4 w-4 mr-1" />
+            Remove + Suspend
+          </Button>
+        )}
+      </div>
+
+      {authorId && (
+        <ConfirmModal
+          isOpen={showSuspendConfirm}
+          onClose={() => setShowSuspendConfirm(false)}
+          onConfirm={handleSuspendUser}
+          title="Remove + Suspend"
+          message={`Are you sure you want to suspend ${authorName || 'this user'}? This will remove their content and prevent them from using the platform.`}
+          confirmText="Remove + Suspend"
+          confirmButtonClass="bg-red-600 hover:bg-red-700"
+        />
+      )}
+    </>
   );
 };

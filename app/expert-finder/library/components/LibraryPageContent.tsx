@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Alert } from '@/components/ui/Alert';
+import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { PaginationButton } from '@/components/ui/PaginationButton';
 import { useExpertSearches } from '@/hooks/useExpertFinder';
 import { useScreenSize } from '@/hooks/useScreenSize';
@@ -115,9 +116,7 @@ export function LibraryPageContent() {
     <div className="w-full max-w-5xl mx-auto px-4 py-8">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-base font-semibold text-gray-900 mb-2 sm:!text-lg md:!text-2xl">
-            Library
-          </h2>
+          <Breadcrumbs items={[{ label: 'Library' }]} className="mb-2" />
           <p className="text-sm text-gray-600">View your expert search history.</p>
         </div>
         {searches.length > 0 && (

@@ -207,7 +207,7 @@ export default function UserMenu({
           </Link>
         )}
 
-        {user?.isModerator && (
+        {(user?.isModerator || user?.authorProfile?.isHubEditor) && (
           <Link href="/expert-finder" className="block" onClick={() => setMenuOpenState(false)}>
             <div className="px-6 py-2 hover:bg-gray-50">
               <div className="flex items-center">
@@ -231,14 +231,14 @@ export default function UserMenu({
           <div
             className="px-6 py-2 hover:bg-gray-50"
             onClick={() => {
-              //TODO call the method from the context
               setMenuOpenState(false);
+              openVerificationModal();
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                //TODO call the method from the context
                 setMenuOpenState(false);
+                openVerificationModal();
               }
             }}
             tabIndex={0}
@@ -395,7 +395,7 @@ export default function UserMenu({
               </Link>
             )}
 
-            {user?.isModerator && (
+            {(user?.isModerator || user?.authorProfile?.isHubEditor) && (
               <Link href="/expert-finder" className="block" onClick={() => setMenuOpenState(false)}>
                 <div className="w-full px-4 py-2 hover:bg-gray-50">
                   <div className="flex items-center">
@@ -416,7 +416,7 @@ export default function UserMenu({
             </Link>
 
             {!user.isVerified && (
-              <BaseMenuItem onClick={openVerificationModal} className="w-full px-4 py-2">
+              <BaseMenuItem onClick={() => openVerificationModal()} className="w-full px-4 py-2">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center">
                     <BadgeCheck className="h-5 w-5 mr-3 text-gray-500" />
