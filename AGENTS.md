@@ -18,7 +18,7 @@ Next.js loads `.env.development` automatically in dev mode (`npm run dev`). This
 
 - The `.env.development` is configured to use the **staging backend** (`https://backend.staging.researchhub.com`). All pages load real data from staging.
 - The `@fortawesome` registry scope in `.npmrc` must use `https://npm.fontawesome.com/` for both `@fortawesome` and `@awesome.me` scopes.
-- `NEXTAUTH_URL` is set to `https://www.v2.staging.researchhub.com/` for staging OAuth callbacks. Google OAuth login requires this URL to match the authorized redirect URIs in the Google Cloud Console.
+- `NEXTAUTH_URL` is set to `https://staging.researchhub.com/` for staging OAuth callbacks. Google OAuth login requires this URL to match the authorized redirect URIs in the Google Cloud Console.
 
 ### Key commands
 
