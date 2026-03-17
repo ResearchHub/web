@@ -216,8 +216,8 @@ export const BountyInfo: FC<BountyInfoProps> = ({
         onKeyDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-start gap-6 min-w-0">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-1 basis-56 flex-wrap items-start gap-x-6 gap-y-3">
             <div className="flex flex-col leading-tight whitespace-nowrap">
               <span className="text-xs text-gray-500 uppercase tracking-wide">{bountyLabel}</span>
               <span className="font-mono font-semibold text-primary-600 text-xl">
@@ -236,7 +236,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
                 <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">Deadline</span>
                 <div className="flex items-center gap-1.5">
                   <Clock size={14} className="text-gray-500 flex-shrink-0" />
-                  <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                  <span className="text-sm font-medium text-gray-700">
                     {deadlineLabel}
                   </span>
                 </div>
@@ -251,7 +251,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2 flex-shrink-0">
             <Button
               variant="outlined"
               size="sm"
