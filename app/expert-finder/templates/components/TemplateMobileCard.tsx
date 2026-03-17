@@ -30,11 +30,13 @@ function ContactSummary({ template }: { template: SavedTemplate }) {
 
 export function TemplateMobileCard({ template, onClick, className }: TemplateMobileCardProps) {
   const displayName = template.name?.trim() || '—';
+  const createdByName = template.createdBy?.author?.fullName;
 
   return (
     <ListCard onClick={onClick} className={className}>
       <h3 className="text-sm font-medium text-gray-900 truncate">{displayName}</h3>
       <ContactSummary template={template} />
+      {createdByName && <p className="text-xs text-gray-500 mt-1">by {createdByName}</p>}
       <p className="text-xs text-gray-500 mt-2">{formatTimestamp(template.createdDate, false)}</p>
     </ListCard>
   );
