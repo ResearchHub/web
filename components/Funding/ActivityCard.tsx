@@ -41,7 +41,25 @@ const CONTENT_TYPE_MAP: Record<string, ContentType> = {
   PAPER: 'paper',
 };
 
+function getFundraiseContributionContent(entry: FeedEntry) {
+  const rawContentType = entry.raw?.content_type?.toUpperCase();
+  if (!rawContentType?.endsWith('FUNDRAISECONTRIBUTION')) {
+    return undefined;
+  }
+
+  return entry.raw?.content_object as
+    | {
+        proposal_title?: string;
+        proposal_slug?: string;
+        unified_document_id?: number | string;
+      }
+    | undefined;
+}
+
 function getActionLabel(entry: FeedEntry): string {
+  if (getFundraiseContributionContent(entry)) {
+    return 'contributed to';
+  }
   if (entry.contentType === 'COMMENT') {
     const comment = (entry.content as FeedCommentContent).comment;
     return COMMENT_ACTION_LABELS[comment?.commentType] || 'commented on';
@@ -53,6 +71,21 @@ function getActionLabel(entry: FeedEntry): string {
 function getEntryMeta(entry: FeedEntry) {
   const content = entry.content;
   const author = content.createdBy;
+  const fundraiseContribution = getFundraiseContributionContent(entry);
+
+  if (fundraiseContribution) {
+    return {
+      title: fundraiseContribution.proposal_title || (content as FeedPostContent).title,
+      author,
+      href: fundraiseContribution.unified_document_id
+        ? buildWorkUrl({
+            id: fundraiseContribution.unified_document_id,
+            slug: fundraiseContribution.proposal_slug,
+            contentType: 'preregistration',
+          })
+        : undefined,
+    };
+  }
 
   if (entry.contentType === 'COMMENT' || entry.contentType === 'BOUNTY') {
     const work = entry.relatedWork;
