@@ -205,46 +205,43 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                 <h2 className="text-lg font-semibold text-gray-900 mb-[2px] mt-[2px]">
                   Results ({searchDetail.expertResults.length})
                 </h2>
-                <div className="flex items-center gap-2">
-                  {selectedIndices.size > 0 && (
-                    <>
-                      {selectedIndices.size < searchDetail.expertResults.length && (
-                        <Button
-                          variant="outlined"
-                          size="sm"
-                          onClick={() =>
-                            setSelectedIndices(new Set(searchDetail.expertResults.map((_, i) => i)))
-                          }
-                        >
-                          Select all
-                        </Button>
-                      )}
-                      {selectedIndices.size === searchDetail.expertResults.length && (
-                        <Button
-                          variant="outlined"
-                          size="sm"
-                          onClick={() => setSelectedIndices(new Set())}
-                        >
-                          Unselect all
-                        </Button>
-                      )}
-                      <span className="text-sm text-gray-600">{selectedIndices.size} selected</span>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => {
-                          const experts = Array.from(selectedIndices).map(
-                            (i) => searchDetail.expertResults[i]
-                          );
-                          openGenerateForExperts(experts);
-                        }}
-                      >
-                        <Mail className="h-4 w-4" aria-hidden />
-                        Generate emails
-                      </Button>
-                    </>
+                <div className="flex flex-wrap items-center gap-2">
+                  {selectedIndices.size === searchDetail.expertResults.length ? (
+                    <Button
+                      variant="outlined"
+                      size="sm"
+                      onClick={() => setSelectedIndices(new Set())}
+                    >
+                      Unselect all
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      size="sm"
+                      onClick={() =>
+                        setSelectedIndices(new Set(searchDetail.expertResults.map((_, i) => i)))
+                      }
+                      disabled={searchDetail.expertResults.length === 0}
+                    >
+                      Select all
+                    </Button>
                   )}
+                  <span className="text-sm text-gray-600">{selectedIndices.size} selected</span>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => {
+                      const experts = Array.from(selectedIndices).map(
+                        (i) => searchDetail.expertResults[i]
+                      );
+                      openGenerateForExperts(experts);
+                    }}
+                    disabled={selectedIndices.size === 0}
+                  >
+                    <Mail className="h-4 w-4" aria-hidden />
+                    Generate emails
+                  </Button>
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
