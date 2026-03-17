@@ -1,19 +1,22 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Send } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/form/Input';
 import { PaginationButton } from '@/components/ui/PaginationButton';
 import { Modal } from '@/components/ui/form/Modal';
 import { useGeneratedEmails, useSendEmails } from '@/hooks/useExpertFinder';
 import { useScreenSize } from '@/hooks/useScreenSize';
+import { useUser } from '@/contexts/UserContext';
 import { OutreachTable, OUTREACH_TABLE_COLUMNS } from './OutreachTable';
 import { OutreachMobileCard } from './OutreachMobileCard';
 import { TableSkeleton } from '@/components/ui/Table/TableSkeleton';
 import { ListCardSkeleton } from '@/components/ui/ListCardSkeleton';
 import { toast } from 'react-hot-toast';
+import { isValidEmail } from '@/utils/validation';
 import type { GeneratedEmail } from '@/types/expertFinder';
 
 const DEFAULT_PAGE_SIZE = 10;
@@ -45,10 +48,12 @@ export function GeneratedEmailsList({
   emptyMessage = DEFAULT_EMPTY_MESSAGE,
 }: GeneratedEmailsListProps) {
   const router = useRouter();
+  const { user } = useUser();
   const { mdAndUp } = useScreenSize();
   const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [showSendConfirm, setShowSendConfirm] = useState(false);
+  const [bulkReplyTo, setBulkReplyTo] = useState('');
 
   const offset = (page - 1) * pageSize;
   const [{ emails, pagination, isLoading, error }, refetch] = useGeneratedEmails({
@@ -90,19 +95,33 @@ export function GeneratedEmailsList({
     setShowSendConfirm(true);
   };
 
+  useEffect(() => {
+    if (showSendConfirm && user?.email && !bulkReplyTo.trim()) {
+      setBulkReplyTo(user.email);
+    }
+  }, [showSendConfirm, user?.email]);
+
   const handleSendConfirm = async () => {
     const ids = Array.from(selectedIds);
     if (ids.length === 0) return;
+    const trimmedReplyTo = bulkReplyTo.trim();
+    if (!trimmedReplyTo || !isValidEmail(trimmedReplyTo)) {
+      toast.error('Please enter a valid Reply To email address.');
+      return;
+    }
     try {
-      await sendEmails({ generated_email_ids: ids });
+      await sendEmails({
+        generated_email_ids: ids,
+        reply_to: trimmedReplyTo,
+      });
       setShowSendConfirm(false);
       setSelectedIds(new Set());
+      setBulkReplyTo('');
       toast.success(
         'Emails are being sent. You can close this window and monitor status in the outreach table.'
       );
       refetch();
     } catch {
-      // Error already set in hook; toast or show in modal
       toast.error('Failed to send emails. Please try again.');
     }
   };
@@ -139,31 +158,32 @@ export function GeneratedEmailsList({
             <h2 className="text-lg font-semibold text-gray-900 mb-[2px] mt-[2px]">
               Generated emails ({pagination.total})
             </h2>
-            <div className="flex items-center gap-2">
-              {selectedIds.size > 0 && (
-                <>
-                  {allSelected ? (
-                    <Button variant="outlined" size="sm" onClick={() => setSelectedIds(new Set())}>
-                      Unselect all
-                    </Button>
-                  ) : (
-                    <Button variant="outlined" size="sm" onClick={handleSelectAll}>
-                      Select all
-                    </Button>
-                  )}
-                  <span className="text-sm text-gray-600">{selectedIds.size} selected</span>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="gap-2"
-                    onClick={handleSendClick}
-                    disabled={isSending}
-                  >
-                    <Send className="h-4 w-4" aria-hidden />
-                    Send emails
-                  </Button>
-                </>
+            <div className="flex flex-wrap items-center gap-2">
+              {allSelected ? (
+                <Button variant="outlined" size="sm" onClick={() => setSelectedIds(new Set())}>
+                  Unselect all
+                </Button>
+              ) : (
+                <Button
+                  variant="outlined"
+                  size="sm"
+                  onClick={handleSelectAll}
+                  disabled={pageIds.length === 0}
+                >
+                  Select all
+                </Button>
               )}
+              <span className="text-sm text-gray-600">{selectedIds.size} selected</span>
+              <Button
+                variant="default"
+                size="sm"
+                className="gap-2"
+                onClick={handleSendClick}
+                disabled={isSending || selectedIds.size === 0}
+              >
+                <Send className="h-4 w-4" aria-hidden />
+                Send emails
+              </Button>
             </div>
           </div>
           <div className="overflow-x-auto">
@@ -224,6 +244,21 @@ export function GeneratedEmailsList({
         <p className="text-sm text-gray-600 mb-4">
           The selected emails will be sent to the experts.
         </p>
+        <div className="mb-4">
+          <Input
+            label="Reply To"
+            type="email"
+            value={bulkReplyTo}
+            onChange={(e) => setBulkReplyTo(e.target.value)}
+            placeholder="Email address for replies"
+            helperText="When experts hit Reply, their response goes to this address. Defaults to your account email; change it if you want replies elsewhere."
+            error={
+              bulkReplyTo.trim() && !isValidEmail(bulkReplyTo.trim())
+                ? 'Please enter a valid email address'
+                : undefined
+            }
+          />
+        </div>
         <div className="flex justify-end gap-2">
           <Button
             variant="outlined"
@@ -233,7 +268,12 @@ export function GeneratedEmailsList({
           >
             Cancel
           </Button>
-          <Button variant="default" size="sm" onClick={handleSendConfirm} disabled={isSending}>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleSendConfirm}
+            disabled={isSending || !bulkReplyTo.trim() || !isValidEmail(bulkReplyTo.trim())}
+          >
             {isSending ? 'Sending…' : 'Confirm'}
           </Button>
         </div>
