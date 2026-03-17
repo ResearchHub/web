@@ -222,8 +222,7 @@ export function GeneratedEmailsList({
         title="Send emails to experts?"
       >
         <p className="text-sm text-gray-600 mb-4">
-          The selected emails will be sent to the experts. Sending may be disabled in non-production
-          environments.
+          The selected emails will be sent to the experts.
         </p>
         <div className="flex justify-end gap-2">
           <Button
