@@ -196,9 +196,14 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                 <div className="text-sm leading-tight whitespace-nowrap">
                   <span className="font-mono font-semibold text-gray-900">
                     {formatCurrency({
-                      amount: showUSD
-                        ? Math.round(fundraise.amountRaised.usd)
-                        : Math.round(fundraise.amountRaised.rsc),
+                      amount:
+                        fundraise.status === 'COMPLETED'
+                          ? Math.round(
+                              showUSD ? fundraise.goalAmount.usd : fundraise.amountRaised.rsc
+                            )
+                          : Math.round(
+                              showUSD ? fundraise.amountRaised.usd : fundraise.amountRaised.rsc
+                            ),
                       showUSD,
                       exchangeRate,
                       skipConversion: true,
@@ -208,9 +213,14 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                   <span className="text-gray-500 mx-1">raised of</span>
                   <span className="font-mono font-semibold text-gray-900">
                     {formatCurrency({
-                      amount: showUSD
-                        ? Math.round(fundraise.goalAmount.usd)
-                        : Math.round(fundraise.goalAmount.rsc),
+                      amount:
+                        fundraise.status === 'COMPLETED'
+                          ? Math.round(
+                              showUSD ? fundraise.goalAmount.usd : fundraise.amountRaised.rsc
+                            )
+                          : Math.round(
+                              showUSD ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc
+                            ),
                       showUSD,
                       exchangeRate,
                       skipConversion: true,

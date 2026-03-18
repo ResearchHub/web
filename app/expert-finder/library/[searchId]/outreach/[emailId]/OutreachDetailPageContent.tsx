@@ -332,10 +332,7 @@ export function OutreachDetailPageContent({
         onClose={() => !isSendingToExpert && setShowSendToExpertConfirm(false)}
         title="Send this email to the expert?"
       >
-        <p className="text-sm text-gray-600 mb-4">
-          This email will be sent to the expert. Sending may be disabled in non-production
-          environments.
-        </p>
+        <p className="text-sm text-gray-600 mb-4">This email will be sent to the expert.</p>
         <div className="flex justify-end gap-2">
           <Button
             variant="outlined"
