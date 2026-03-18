@@ -230,4 +230,18 @@ export class PaperService {
     const response = await ApiClient.patch(`${this.BASE_PATH}/${paperId}/`, payload);
     return transformPaper(response);
   }
+
+  /**
+   * Get similar papers for a given paper
+   * API returns: {count: number, results: [paper1, paper2, ...]}
+   */
+  static async getSimilarPapers(paperId: number): Promise<Work[]> {
+    const response = await ApiClient.get<any>(`${this.BASE_PATH}/${paperId}/similar_papers/`);
+
+    // Extract papers array from response (handles {results: [...]} or direct array)
+    const papers = Array.isArray(response) ? response : response?.results || [];
+
+    // Transform each paper
+    return papers.map(transformPaper);
+  }
 }
