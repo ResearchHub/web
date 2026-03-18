@@ -147,7 +147,6 @@ export const useBounties = () => {
 
       const result = await BountyService.fetchBounties({
         status,
-        personalized: true,
         sort,
         onlyParentBounties: true,
         page: currentPage,

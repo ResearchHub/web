@@ -164,13 +164,12 @@ export class BountyService {
   }
 
   /**
-   * Fetches open bounties with personalization and sorts by creation date
+   * Fetches open bounties and sorts by creation date
    * @param params Optional parameters to customize the bounty fetch
    * @returns An object containing the transformed bounty entries and pagination info
    */
   static async fetchBounties(params?: {
     status?: string;
-    personalized?: boolean;
     sort?: string;
     onlyParentBounties?: boolean;
     page?: number;
@@ -180,7 +179,6 @@ export class BountyService {
     // Set default parameters
     const defaultParams = {
       status: 'OPEN',
-      personalized: true,
       sort: '-created_date',
       only_parent_bounties: true,
       page: 1,
@@ -195,13 +193,6 @@ export class BountyService {
       queryParams.append('status', params.status);
     } else {
       queryParams.append('status', defaultParams.status);
-    }
-
-    // Personalized parameter
-    if (params?.personalized !== undefined) {
-      queryParams.append('personalized', params.personalized.toString());
-    } else {
-      queryParams.append('personalized', defaultParams.personalized.toString());
     }
 
     // Sort parameter
