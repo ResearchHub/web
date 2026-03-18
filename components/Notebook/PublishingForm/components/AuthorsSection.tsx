@@ -21,6 +21,7 @@ export function AuthorsSection() {
         onChange={(newAuthors) => setValue('authors', newAuthors, { shouldValidate: true })}
         placeholder="Search for authors..."
         error={getFieldErrorMessage(errors.authors, 'Invalid authors')}
+        searchType="author"
       />
     </div>
   );
