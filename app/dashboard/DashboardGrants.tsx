@@ -7,8 +7,18 @@ interface DashboardGrantsProps {
 
 export async function DashboardGrants({ userId }: DashboardGrantsProps) {
   const [{ grants: published }, { grants: past }] = await Promise.all([
-    GrantService.getGrants({ createdBy: userId, status: 'OPEN', ordering: 'most_applicants' }),
-    GrantService.getGrants({ createdBy: userId, status: 'CLOSED', ordering: 'newest' }),
+    GrantService.getGrants({
+      createdBy: userId,
+      status: 'OPEN',
+      ordering: 'most_applicants',
+      excludeLikelySpam: false,
+    }),
+    GrantService.getGrants({
+      createdBy: userId,
+      status: 'CLOSED',
+      ordering: 'newest',
+      excludeLikelySpam: false,
+    }),
   ]);
 
   return (
