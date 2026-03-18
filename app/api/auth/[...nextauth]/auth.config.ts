@@ -2,7 +2,6 @@ import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { AuthService } from '@/services/auth.service';
-import { AuthSharingService } from '@/services/auth-sharing.service';
 
 // Debug flag - set to true to enable detailed authentication logging
 const DEBUG_AUTH = true;
@@ -37,7 +36,6 @@ export const authOptions: NextAuthOptions = {
                 authToken: credentials.authToken,
               };
             } catch (error) {
-              AuthSharingService.removeSharedAuthToken();
               return promptInvalidCredentials();
             }
           }
