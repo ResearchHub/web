@@ -62,7 +62,9 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
   const hasSidebarDataRef = useRef(false);
 
   const feedParams = useMemo(() => {
-    const isCompleted = statusFilter === 'completed';
+    const isStatusCompleted = statusFilter === 'completed';
+    const isSortCompleted = sortBy === 'completed';
+    const isCompleted = isStatusCompleted || isSortCompleted;
     return {
       fundraiseStatus: isCompleted
         ? ('CLOSED' as const)
