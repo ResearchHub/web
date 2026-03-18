@@ -213,10 +213,11 @@ export function formatNavigationUrl(notification: Notification): string | undefi
     }
   }
 
-  if (
-    (notification.type === 'GRANT_APPROVED' || notification.type === 'GRANT_DECLINED') &&
-    notification.work
-  ) {
+  if (notification.type === 'GRANT_DECLINED') {
+    return undefined;
+  }
+
+  if (notification.type === 'GRANT_APPROVED' && notification.work) {
     const { id, slug } = notification.work;
     if (id && slug) {
       return `/grant/${id}/${slug}`;
