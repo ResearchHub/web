@@ -41,6 +41,10 @@ import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
 import { ApiError } from '@/services/types';
 import { ARTICLE_TYPE_API_MAP } from '@/services/post.service';
+import {
+  isLikelySpamGrantContent,
+  LIKELY_SPAM_GRANT_MESSAGE,
+} from '@/utils/grantSpamDetection';
 
 const FEATURE_FLAG_RESEARCH_COIN = false;
 const FEATURE_FLAG_JOURNAL = false;
@@ -343,6 +347,25 @@ export function PublishingForm({
       return;
     }
 
+    const formData = methods.getValues();
+    const currentTitle = getDocumentTitleFromEditor(editor) || '';
+    const currentContent = editor?.getText() || '';
+
+    if (
+      formData.articleType === 'grant' &&
+      isLikelySpamGrantContent({
+        title: currentTitle,
+        description: formData.shortDescription,
+        organization: formData.organization,
+        content: currentContent,
+      })
+    ) {
+      toast.error(LIKELY_SPAM_GRANT_MESSAGE, {
+        style: { width: '320px' },
+      });
+      return;
+    }
+
     withVerification(() => {
       if (selectedNonprofit) {
         setShowNonprofitConfirmModal(true);
@@ -413,6 +436,21 @@ export function PublishingForm({
       const json = editor?.getJSON();
       const html = editor?.getHTML();
       const formData = methods.getValues();
+
+      if (
+        formData.articleType === 'grant' &&
+        isLikelySpamGrantContent({
+          title: editedTitle,
+          description: formData.shortDescription,
+          organization: formData.organization,
+          content: text || '',
+        })
+      ) {
+        toast.error(LIKELY_SPAM_GRANT_MESSAGE, {
+          style: { width: '320px' },
+        });
+        return;
+      }
 
       const imagePath = await uploadCoverImage(formData);
       if (imagePath === false) {

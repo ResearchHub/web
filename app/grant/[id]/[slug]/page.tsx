@@ -6,6 +6,7 @@ import { ProposalFeed } from '@/components/Funding/ProposalFeed';
 import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { GrantContentSwitcher } from '@/components/Funding/GrantContentSwitcher';
+import { isLikelySpamGrantWork } from '@/utils/grantSpamDetection';
 
 interface Props {
   params: Promise<{
@@ -19,7 +20,11 @@ async function getGrant(id: string) {
     notFound();
   }
   try {
-    return await PostService.get(id);
+    const work = await PostService.get(id);
+    if (isLikelySpamGrantWork(work)) {
+      notFound();
+    }
+    return work;
   } catch {
     notFound();
   }

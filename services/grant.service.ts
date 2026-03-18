@@ -1,5 +1,6 @@
 import { ApiClient } from './client';
 import { FeedEntry, transformFeedEntry, RawApiFeedEntry } from '@/types/feed';
+import { isLikelySpamGrantEntry } from '@/utils/grantSpamDetection';
 
 interface GrantFeedResponse {
   count: number;
@@ -24,6 +25,7 @@ export interface GetGrantsParams {
   status?: 'OPEN' | 'CLOSED';
   ordering?: 'newest' | 'oldest' | 'best' | 'most_applicants' | 'upvotes' | 'amount_raised';
   createdBy?: number | string;
+  excludeLikelySpam?: boolean;
 }
 
 export class GrantService {
@@ -40,6 +42,7 @@ export class GrantService {
     hasMore: boolean;
     total: number;
   }> {
+    const excludeLikelySpam = params?.excludeLikelySpam ?? true;
     const queryParams = new URLSearchParams();
     queryParams.append('content_type', 'GRANT');
     queryParams.append('page', (params?.page || 1).toString());
@@ -71,7 +74,8 @@ export class GrantService {
             return null;
           }
         })
-        .filter((entry): entry is FeedEntry => entry !== null);
+        .filter((entry): entry is FeedEntry => entry !== null)
+        .filter((entry) => !excludeLikelySpam || !isLikelySpamGrantEntry(entry));
 
       return {
         grants,
