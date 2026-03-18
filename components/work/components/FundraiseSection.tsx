@@ -12,10 +12,18 @@ interface FundraiseSectionProps {
 
 export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
   const { showUSD } = useCurrencyPreference();
-  const percentage = Math.min(
-    100,
-    Math.round((fundraise.amountRaised.rsc / fundraise.goalAmount.rsc) * 100)
-  );
+  const isCompleted = fundraise.status === 'COMPLETED';
+  const percentage = isCompleted
+    ? 100
+    : Math.min(100, Math.round((fundraise.amountRaised.rsc / fundraise.goalAmount.rsc) * 100));
+
+  const raisedAmount = isCompleted
+    ? Math.round(showUSD ? fundraise.goalAmount.usd : fundraise.amountRaised.rsc)
+    : Math.round(showUSD ? fundraise.amountRaised.usd : fundraise.amountRaised.rsc);
+
+  const goalAmount = isCompleted
+    ? Math.round(showUSD ? fundraise.goalAmount.usd : fundraise.amountRaised.rsc)
+    : Math.round(showUSD ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc);
 
   return (
     <section>
@@ -25,7 +33,7 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
           <span className="text-2xl font-bold font-mono text-gray-900">{percentage}%</span>
           <div className="flex items-center gap-1 text-sm font-mono">
             <CurrencyBadge
-              amount={showUSD ? fundraise.amountRaised.usd : fundraise.amountRaised.rsc}
+              amount={raisedAmount}
               variant="text"
               size="xs"
               currency={showUSD ? 'USD' : 'RSC'}
@@ -37,7 +45,7 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
             />
             <span className="text-gray-500">/</span>
             <CurrencyBadge
-              amount={showUSD ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc}
+              amount={goalAmount}
               variant="text"
               size="xs"
               currency={showUSD ? 'USD' : 'RSC'}
