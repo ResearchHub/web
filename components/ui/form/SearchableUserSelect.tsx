@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { SearchableMultiSelect, MultiSelectOption } from './SearchableMultiSelect';
 import { SearchService } from '@/services/search.service';
-import { UserSuggestion } from '@/types/search';
+import { AuthorSuggestion, UserSuggestion } from '@/types/search';
 import { Avatar } from '@/components/ui/Avatar';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { Button } from '@/components/ui/Button';
@@ -62,6 +62,7 @@ export interface SearchableUserSelectProps {
   helperText?: string;
   debounceMs?: number;
   getOptionValue?: (user: UserSuggestion) => string;
+  searchType?: 'user' | 'author';
 }
 
 export function SearchableUserSelect({
@@ -72,9 +73,29 @@ export function SearchableUserSelect({
   helperText,
   debounceMs = 300,
   getOptionValue = defaultGetOptionValue,
+  searchType = 'user',
 }: Readonly<SearchableUserSelectProps>) {
   const handleAsyncSearch = useCallback(
     async (query: string) => {
+      if (searchType === 'author') {
+        const suggestions = await SearchService.suggestPeople(query);
+
+        return suggestions
+          .filter((author): author is AuthorSuggestion & { id: NonNullable<AuthorSuggestion['id']> } =>
+            Boolean(author.id)
+          )
+          .map((author) => ({
+            value: author.id.toString(),
+            label: author.fullName || 'Unknown Author',
+            avatarUrl: author.profileImage,
+            description: author.headline,
+            profileUrl:
+              typeof author.id === 'number' || typeof author.id === 'string'
+                ? buildAuthorUrl(author.id)
+                : undefined,
+          }));
+      }
+
       const suggestions = await SearchService.getSuggestions(query, 'user');
 
       return suggestions
@@ -91,7 +112,7 @@ export function SearchableUserSelect({
           profileUrl: user.authorProfile?.id ? buildAuthorUrl(user.authorProfile.id) : undefined,
         }));
     },
-    [getOptionValue]
+    [getOptionValue, searchType]
   );
 
   return (
