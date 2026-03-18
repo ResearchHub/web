@@ -57,7 +57,14 @@ function PageLayoutInner({
 
   return (
     <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
-      <div className="flex h-screen">
+      <div
+        className="flex h-screen"
+        style={{
+          // Use the visible viewport on mobile Safari so fixed bottom navigation
+          // does not reduce the scrollable area near the end of long pages.
+          height: '100dvh',
+        }}
+      >
         <TopBarContainer
           isMobileTopNavHidden={isMobileTopNavHidden}
           isLeftSidebarOpen={isLeftSidebarOpen}
