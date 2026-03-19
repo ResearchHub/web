@@ -128,7 +128,7 @@ export function GrantActionBar({ work, className }: GrantActionBarProps) {
             className={cn(
               'px-3 py-2 rounded-l-lg transition-colors',
               isUpvoted ? 'text-green-600 hover:bg-green-100' : 'text-gray-600 hover:bg-gray-100',
-              (isVoting || isLoadingVotes) ? 'cursor-not-allowed' : 'cursor-pointer'
+              isVoting || isLoadingVotes ? 'cursor-not-allowed' : 'cursor-pointer'
             )}
             aria-label="Upvote"
           >
@@ -143,7 +143,7 @@ export function GrantActionBar({ work, className }: GrantActionBarProps) {
             className={cn(
               'px-3 py-2 rounded-r-lg transition-colors',
               isDownvoted ? 'text-red-600 hover:bg-red-100' : 'text-gray-600 hover:bg-gray-100',
-              (isVoting || isLoadingVotes) ? 'cursor-not-allowed' : 'cursor-pointer'
+              isVoting || isLoadingVotes ? 'cursor-not-allowed' : 'cursor-pointer'
             )}
             aria-label="Downvote"
           >
@@ -197,9 +197,7 @@ export function GrantActionBar({ work, className }: GrantActionBarProps) {
             </button>
           }
         >
-          <BaseMenuItem
-            onSelect={() => executeAuthenticatedAction(() => setIsFlagModalOpen(true))}
-          >
+          <BaseMenuItem onSelect={() => executeAuthenticatedAction(() => setIsFlagModalOpen(true))}>
             <Flag className="h-4 w-4 mr-2" />
             <span>Flag Content</span>
           </BaseMenuItem>

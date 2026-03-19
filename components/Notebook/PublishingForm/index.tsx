@@ -306,6 +306,7 @@ export function PublishingForm({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const router = useRouter();
 
+  const isDeclined = note?.post?.grant?.status === 'DECLINED';
   const isPublishing = isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage;
 
   useEffect(() => {
@@ -466,7 +467,13 @@ export function PublishingForm({
       }
 
       setIsRedirecting(true);
-      toast.success(`${PUBLISH_LABEL[formData.articleType] ?? 'Post'} published successfully!`);
+      if (formData.articleType === 'grant' && !formData.workId) {
+        toast.success('Your RFP has been submitted and is pending moderator review.', {
+          duration: 5000,
+        });
+      } else {
+        toast.success(`${PUBLISH_LABEL[formData.articleType] ?? 'Post'} published successfully!`);
+      }
       router.push(getRedirectPath(formData.articleType, String(response.id), response.slug));
     } catch (error: unknown) {
       const fallback = 'Error publishing. Please try again.';
@@ -501,7 +508,8 @@ export function PublishingForm({
         <div
           className={cn(
             'flex-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 relative',
-            isRedirecting ? 'overflow-hidden' : 'overflow-y-auto'
+            isRedirecting ? 'overflow-hidden' : 'overflow-y-auto',
+            isDeclined && 'pointer-events-none opacity-60'
           )}
         >
           <div className="pb-6">
@@ -545,7 +553,7 @@ export function PublishingForm({
             variant="default"
             onClick={handlePublishClick}
             className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isPublishing}
+            disabled={isPublishing || isDeclined}
           >
             {getButtonText({
               isLoadingUpsert: isLoadingUpsert || isUploadingImage,

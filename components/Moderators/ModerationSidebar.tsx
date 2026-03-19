@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { Flag, UserRoundPen, Users, DollarSign } from 'lucide-react';
+import { Flag, UserRoundPen, Users, DollarSign, FileCheck } from 'lucide-react';
 import { SidebarNav, SidebarNavMenu, type SidebarNavItem } from '@/components/SidebarNav';
 
 const navigationItems: SidebarNavItem[] = [
@@ -16,6 +16,12 @@ const navigationItems: SidebarNavItem[] = [
     href: '/moderators/referral',
     icon: Users,
     description: 'Manage referral program',
+  },
+  {
+    name: 'Pending',
+    href: '/moderators/pending-works',
+    icon: FileCheck,
+    description: 'Review pending submissions',
   },
   {
     name: 'Editors',

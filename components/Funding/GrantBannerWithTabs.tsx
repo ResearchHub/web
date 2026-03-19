@@ -8,6 +8,7 @@ interface GrantBannerWithTabsProps {
   amountUsd?: number;
   grantId?: string;
   isActive?: boolean;
+  isPending?: boolean;
   work?: Work;
   organization?: string;
 }

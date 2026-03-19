@@ -127,6 +127,16 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
     icon: 'earn1',
     useAvatar: false,
   },
+
+  // Grant moderation notifications
+  GRANT_APPROVED: {
+    icon: 'openGrant',
+    useAvatar: false,
+  },
+  GRANT_DECLINED: {
+    icon: 'openGrant',
+    useAvatar: false,
+  },
 };
 
 export function getNotificationInfo(notification: Notification): NotificationTypeInfo {
@@ -200,6 +210,17 @@ export function formatNavigationUrl(notification: Notification): string | undefi
     const { id, slug } = notification.work;
     if (id && slug) {
       return `/proposal/${id}/${slug}/updates`;
+    }
+  }
+
+  if (notification.type === 'GRANT_DECLINED') {
+    return undefined;
+  }
+
+  if (notification.type === 'GRANT_APPROVED' && notification.work) {
+    const { id, slug } = notification.work;
+    if (id && slug) {
+      return `/grant/${id}/${slug}`;
     }
   }
 
@@ -356,6 +377,13 @@ export function formatNotificationMessage(
           : `${formatRSC({ amount: PROPOSAL_UPDATE_REWARD_USD / exchangeRate, round: true })} RSC`;
       return `Share a meaningful update on your proposal "${truncatedTitle}" and earn ${formattedAmount}`;
     }
+
+    // Grant moderation notifications
+    case 'GRANT_APPROVED':
+      return `Your funding opportunity has been approved.`;
+
+    case 'GRANT_DECLINED':
+      return `Your funding opportunity has been declined.`;
 
     default:
       console.warn(`Unhandled notification type: ${type}`);
