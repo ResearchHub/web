@@ -15,7 +15,7 @@ import { formatCurrency } from '@/utils/currency';
 import { ApplicationFundraise } from '@/types/funding';
 import { AuthorProfile } from '@/types/authorProfile';
 
-interface FeedItemGrantWithProposalsProps {
+interface FeedItemGrantWithApplicantsProps {
   entry: FeedEntry;
   className?: string;
 }
@@ -95,7 +95,7 @@ const ProposalRow: FC<ProposalRowProps> = ({
   );
 };
 
-export const FeedItemGrantWithProposals: FC<FeedItemGrantWithProposalsProps> = ({
+export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> = ({
   entry,
   className,
 }) => {
