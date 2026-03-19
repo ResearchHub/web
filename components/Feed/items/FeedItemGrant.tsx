@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import {
   BaseFeedItem,
@@ -32,6 +32,7 @@ interface FeedItemGrantProps {
   onFeedItemClick?: () => void;
   onAbstractExpanded?: () => void;
   highlights?: Highlight[];
+  footer?: ReactNode;
 }
 
 export const FeedItemGrant: FC<FeedItemGrantProps> = ({
@@ -45,6 +46,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
   showHeader = true,
   onFeedItemClick,
   highlights,
+  footer,
 }) => {
   const router = useRouter();
   const { showUSD } = useCurrencyPreference();
@@ -62,6 +64,7 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
 
   const imageUrl = grant.previewImage ?? undefined;
 
+  const isPending = grant.grant?.status === 'PENDING';
   const isActive =
     grant.grant?.status === 'OPEN' &&
     (grant.grant?.endDate ? isDeadlineInFuture(grant.grant.endDate) : true);
@@ -90,13 +93,13 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
       showHeader={showHeader}
       onFeedItemClick={onFeedItemClick}
       hideReportButton={false}
+      footer={footer}
       cardImageLeft={
         imageUrl ? (
           <ImageSection imageUrl={imageUrl} alt={grant.title || 'Grant image'} naturalDimensions />
         ) : undefined
       }
     >
-      {/* Mobile image */}
       {imageUrl && (
         <div className="md:!hidden w-[calc(100%+2rem)] mb-5 -mx-4 -mt-4 overflow-hidden">
           <ImageSection imageUrl={imageUrl} alt={grant.title || 'Grant image'} aspectRatio="16/9" />
@@ -162,7 +165,11 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
                 <ArrowRight size={14} className="ml-1" />
               </Button>
             ) : (
-              <span className="flex-shrink-0 text-sm text-gray-400">Ended</span>
+              <span
+                className={`flex-shrink-0 text-sm ${isPending ? 'text-yellow-600' : 'text-gray-400'}`}
+              >
+                {isPending ? 'Pending' : 'Ended'}
+              </span>
             )}
           </div>
         </PrimaryActionSection>
