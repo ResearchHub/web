@@ -136,7 +136,10 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
       )}
     >
       {/* Frosted header */}
-      <Link href={href} className="group block relative h-[160px] overflow-hidden bg-gray-900">
+      <Link
+        href={href}
+        className="group block relative h-[200px] sm:h-[160px] overflow-hidden bg-gray-900"
+      >
         {content.previewImage ? (
           <Image
             src={content.previewImage}
@@ -169,7 +172,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
 
         {/* Frosted metadata bar */}
         <div
-          className="absolute bottom-0 inset-x-0 flex items-center justify-between px-5 py-2.5 border-t border-white/[0.06]"
+          className="absolute bottom-0 inset-x-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-0 px-5 py-2.5 border-t border-white/[0.06]"
           style={{
             backdropFilter: 'blur(16px) saturate(1.4)',
             WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
@@ -194,7 +197,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
               { label: 'Proposals', value: String(allProposals.length), accent: false },
               { label: 'Duration', value: 'Rolling', accent: false },
             ].map((stat) => (
-              <div key={stat.label} className="text-right">
+              <div key={stat.label} className="sm:text-right">
                 <div className="text-[9px] uppercase tracking-wider font-semibold text-white/[0.38]">
                   {stat.label}
                 </div>
