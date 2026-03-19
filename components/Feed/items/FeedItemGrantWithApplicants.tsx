@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowRight, CalendarOff, Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { buildWorkUrl } from '@/utils/url';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -121,6 +121,8 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
   const remaining = allProposals.length - VISIBLE_PROPOSALS;
   const hasProposals = allProposals.length > 0;
 
+  const isClosed = grant.status === 'CLOSED' || grant.isExpired || !grant.isActive;
+
   const totalRequested = allProposals.reduce((sum, a) => {
     const ask = showUSD ? (a.fundraise?.goalAmount.usd ?? 0) : (a.fundraise?.goalAmount.rsc ?? 0);
     return sum + ask;
@@ -154,6 +156,15 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
                 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
             }}
           />
+        )}
+
+        {isClosed && (
+          <div className="absolute top-3 left-3 z-10">
+            <span className="inline-flex items-center gap-1 bg-gray-500/90 text-white text-[11px] border border-gray-400/80 font-semibold px-2 py-0.5 rounded-md shadow-sm">
+              <CalendarOff size={11} />
+              Ended
+            </span>
+          </div>
         )}
 
         {/* Frosted metadata bar */}
@@ -254,19 +265,21 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between px-5 py-2.5 border-t border-gray-100">
-        <span className="text-[11px] text-gray-400">
-          {hasProposals
-            ? `${allProposals.length} proposal${allProposals.length !== 1 ? 's' : ''} · ${formatCompact(Math.round(totalRequested), showUSD, exchangeRate)} total requested`
-            : 'Rolling funding · Apply anytime'}
-        </span>
-        <Link href={href}>
-          <Button variant="dark" size="sm" className="gap-1">
-            Apply
-            <ArrowRight size={14} />
-          </Button>
-        </Link>
-      </div>
+      {!isClosed && (
+        <div className="flex items-center justify-between px-5 py-2.5 border-t border-gray-100">
+          <span className="text-[11px] text-gray-400">
+            {hasProposals
+              ? `${allProposals.length} proposal${allProposals.length !== 1 ? 's' : ''} · ${formatCompact(Math.round(totalRequested), showUSD, exchangeRate)} total requested`
+              : 'Rolling funding · Apply anytime'}
+          </span>
+          <Link href={href}>
+            <Button variant="dark" size="sm" className="gap-1">
+              Apply
+              <ArrowRight size={14} />
+            </Button>
+          </Link>
+        </div>
+      )}
     </div>
   );
 };
