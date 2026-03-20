@@ -35,10 +35,8 @@ export default async function GrantSlugLayout({ params, children }: Props) {
   const isPending = grant?.status === 'PENDING';
   const isActive =
     grant?.status === 'OPEN' && (grant?.endDate ? isDeadlineInFuture(grant.endDate) : true);
-  const hasProposals = (grant?.applicants?.length ?? 0) > 0;
-
   return (
-    <GrantTabProvider defaultTab={hasProposals ? 'proposals' : 'details'}>
+    <GrantTabProvider defaultTab="details">
       <PageLayout
         topBanner={
           <GrantBannerWithTabs

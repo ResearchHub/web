@@ -53,12 +53,7 @@ export function PageHeader({ title, className, hasBounty = false, bountyUrl }: P
           </Tooltip>
         </div>
       )}
-      <h1
-        className={cn(
-          'font-serif text-4xl font-semibold tracking-tight text-gray-900 mb-3',
-          className
-        )}
-      >
+      <h1 className={cn('text-4xl font-semibold tracking-tight text-gray-900 mb-3', className)}>
         {title}
       </h1>
     </>

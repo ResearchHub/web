@@ -16,6 +16,7 @@ import { FeedItemPaper } from './items/FeedItemPaper';
 import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
 import { FeedItemGrant } from './items/FeedItemGrant';
+import { FeedItemGrantWithApplicants } from './items/FeedItemGrantWithApplicants';
 import { useFeedItemAnalyticsTracking } from '@/hooks/useFeedItemAnalyticsTracking';
 import { getUnifiedDocumentId } from '@/types/analytics';
 import { FeedItemBountyComment } from './items/FeedItemBountyComment';
@@ -223,10 +224,10 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
           <FeedItemFundraise
             entry={entry}
             href={href}
+            showHeader={showFundraiseHeaders}
             showActions={!hideActions}
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
-            showHeader={showFundraiseHeaders}
             showBountyInfo={showBountyInfo}
           />
         );
@@ -325,18 +326,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
         break;
 
       case 'GRANT':
-        content = (
-          <FeedItemGrant
-            entry={entry}
-            href={href}
-            showActions={!hideActions}
-            maxLength={maxLength}
-            showHeader={showGrantHeaders}
-            onFeedItemClick={handleFeedItemClick}
-            onAbstractExpanded={handleAbstractExpanded}
-            highlights={highlights}
-          />
-        );
+        content = <FeedItemGrantWithApplicants entry={entry} />;
         break;
 
       default:

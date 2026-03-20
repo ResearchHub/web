@@ -70,11 +70,11 @@ export const FeedItemGrant: FC<FeedItemGrantProps> = ({
     (grant.grant?.endDate ? isDeadlineInFuture(grant.grant.endDate) : true);
 
   const applicants =
-    grant.grant?.applicants?.map((applicant) => ({
-      src: applicant.profileImage || '',
-      alt: applicant.fullName,
-      tooltip: applicant.fullName,
-      authorId: applicant.id || undefined,
+    grant.grant?.applicants?.map(({ profile }) => ({
+      src: profile.profileImage || '',
+      alt: profile.fullName,
+      tooltip: profile.fullName,
+      authorId: profile.id || undefined,
     })) || [];
 
   const budgetAmount = showUSD

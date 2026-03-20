@@ -18,7 +18,7 @@ interface FeedItemFundingBadgesProps {
 }
 
 const overlayBadge =
-  'bg-white/95 text-gray-900 text-[11px] border border-gray-200/80 font-semibold px-2 py-0.5 rounded-full shadow-sm';
+  'bg-white/95 text-gray-900 text-[11px] border border-gray-200/80 font-semibold px-2 py-0.5 rounded-md shadow-sm';
 
 export const FeedItemFundingBadges: FC<FeedItemFundingBadgesProps> = ({
   reviewScore,

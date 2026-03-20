@@ -192,26 +192,10 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
         {hasFundraise && fundraise && (
           <PrimaryActionSection>
             <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="text-sm leading-tight whitespace-nowrap">
-                  <span className="font-mono font-semibold text-gray-900">
-                    {formatCurrency({
-                      amount:
-                        fundraise.status === 'COMPLETED'
-                          ? Math.round(
-                              showUSD ? fundraise.goalAmount.usd : fundraise.amountRaised.rsc
-                            )
-                          : Math.round(
-                              showUSD ? fundraise.amountRaised.usd : fundraise.amountRaised.rsc
-                            ),
-                      showUSD,
-                      exchangeRate,
-                      skipConversion: true,
-                      shorten: true,
-                    })}
-                  </span>
-                  <span className="text-gray-500 mx-1">raised of</span>
-                  <span className="font-mono font-semibold text-gray-900">
+              <div className="flex items-start gap-6 min-w-0">
+                <div className="flex flex-col leading-tight whitespace-nowrap">
+                  <span className="text-xs text-gray-500 uppercase tracking-wide">Requested</span>
+                  <span className="font-mono font-semibold text-primary-600 text-xl">
                     {formatCurrency({
                       amount:
                         fundraise.status === 'COMPLETED'
@@ -227,16 +211,18 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                       shorten: true,
                     })}
                   </span>
-                  <span className="text-gray-500 ml-1">goal</span>
                 </div>
 
                 {contributors.length > 0 && (
-                  <div className="hidden sm:block">
+                  <div className="hidden sm:flex flex-col leading-tight">
+                    <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                      Backers
+                    </span>
                     <AvatarStack
                       items={contributors}
-                      size="sm"
+                      size="xs"
                       maxItems={3}
-                      spacing={-8}
+                      spacing={-6}
                       showLabel={false}
                       disableTooltip={false}
                       showExtraCount={true}
@@ -249,14 +235,13 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
 
               {isActive ? (
                 <Button
-                  variant="secondary"
+                  variant="dark"
                   size="sm"
-                  className="flex-shrink-0 rounded-md text-[13px]"
+                  className="flex-shrink-0 gap-1"
                   onClick={() => setIsContributeModalOpen(true)}
                 >
-                  <span className="hidden sm:inline">Fund Proposal</span>
-                  <span className="sm:hidden">Fund</span>
-                  <ArrowRight size={14} className="ml-1" />
+                  Fund
+                  <ArrowRight size={14} />
                 </Button>
               ) : (
                 <span className="flex-shrink-0 text-sm text-gray-400">Ended</span>

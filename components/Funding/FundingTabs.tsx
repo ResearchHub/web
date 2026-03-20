@@ -47,7 +47,7 @@ export const FundingTabs: FC<FundingTabsProps> = ({ selectedGrantId, className, 
       {
         id: 'all',
         label: 'All',
-        href: '/fund',
+        href: '/fund/proposals',
       },
       ...grantTabs,
     ];
@@ -59,7 +59,7 @@ export const FundingTabs: FC<FundingTabsProps> = ({ selectedGrantId, className, 
       return `grant-${selectedGrantId}`;
     }
     // Check if we're on the main /funding page
-    if (pathname === '/fund') {
+    if (pathname === '/fund/proposals') {
       return 'all';
     }
     return 'all';
