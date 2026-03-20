@@ -31,14 +31,7 @@ export function FundGrantsPageContent() {
       isLoading={isGrantFeedLoading}
       hasMore={hasMoreGrants}
       loadMore={loadMoreGrants}
-      filters={
-        <GrantSortAndFilters
-          grantCount={grantEntries.length}
-          isLoading={isGrantFeedLoading}
-          sortBy={grantSort}
-          onSortChange={setGrantSort}
-        />
-      }
+      filters={<GrantSortAndFilters sortBy={grantSort} onSortChange={setGrantSort} />}
       showGrantHeaders={false}
       showPostHeaders={false}
       showFundraiseHeaders={false}

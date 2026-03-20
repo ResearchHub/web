@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 
 const ProposalSkeleton = () => (
-  <div className="space-y-2 min-w-[550px]">
+  <div className="space-y-2">
     {[1, 2, 3].map((i) => (
       <div key={i} className="p-3 rounded-xl border-2 border-gray-200">
         <div className="flex items-center justify-between gap-3">
@@ -179,7 +179,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
       padding="p-6"
       footer={footerContent}
     >
-      <div className="space-y-3 min-w-[550px]">
+      <div className="space-y-3">
         {/* Section title */}
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-medium text-gray-900">Choose how to apply</h3>
