@@ -8,12 +8,11 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { ArrowRight, CalendarOff, Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
-import { buildWorkUrl } from '@/utils/url';
+import { buildWorkUrl, generateSlug } from '@/utils/url';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatCurrency } from '@/utils/currency';
-import { ApplicationFundraise } from '@/types/funding';
-import { AuthorProfile } from '@/types/authorProfile';
+import { Application } from '@/types/funding';
 
 interface FeedItemGrantWithApplicantsProps {
   entry: FeedEntry;
@@ -27,26 +26,29 @@ function formatCompact(amount: number, showUSD: boolean, exchangeRate: number): 
 }
 
 interface ProposalRowProps {
-  profile: AuthorProfile;
-  fundraise: ApplicationFundraise;
+  application: Application;
   showUSD: boolean;
   exchangeRate: number;
   isLast: boolean;
 }
 
-const ProposalRow: FC<ProposalRowProps> = ({
-  profile,
-  fundraise,
-  showUSD,
-  exchangeRate,
-  isLast,
-}) => {
+const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate, isLast }) => {
+  const { profile, fundraise: fundraiseRaw } = application;
+  const fundraise = fundraiseRaw!;
+
   const askAmount = showUSD
     ? Math.round(fundraise.goalAmount.usd)
     : Math.round(fundraise.goalAmount.rsc);
 
+  const proposalHref = buildWorkUrl({
+    id: application.preregistrationPostId,
+    contentType: 'preregistration',
+    slug: fundraise.title ? generateSlug(fundraise.title) : undefined,
+  });
+
   return (
-    <div
+    <Link
+      href={proposalHref}
       className={cn(
         'grid items-center gap-3 px-5 py-2.5 hover:bg-gray-50/80 transition-colors cursor-pointer',
         !isLast && 'border-b border-gray-100'
@@ -91,7 +93,7 @@ const ProposalRow: FC<ProposalRowProps> = ({
           <span className="text-[10.5px] text-gray-400 whitespace-nowrap">No reviews</span>
         )}
       </div>
-    </div>
+    </Link>
   );
 };
 
@@ -224,11 +226,10 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
             </span>
           </div>
           <div>
-            {shown.map(({ profile, fundraise }, i) => (
+            {shown.map((application, i) => (
               <ProposalRow
-                key={`${profile.id}-${fundraise!.id}-${i}`}
-                profile={profile}
-                fundraise={fundraise!}
+                key={`${application.profile.id}-${application.fundraise!.id}-${i}`}
+                application={application}
                 showUSD={showUSD}
                 exchangeRate={exchangeRate}
                 isLast={

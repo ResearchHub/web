@@ -4,7 +4,6 @@ import { ArrowUpFromLine } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { ProposalFeed } from '@/components/Funding/ProposalFeed';
 import { ProposalSortAndFilters } from '@/components/Funding/ProposalSortAndFilters';
-import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
 import { HeroHeader } from '@/components/ui/HeroHeader';
@@ -51,10 +50,8 @@ export default async function FundProposalsPage() {
     >
       <MarketplaceCards selected="proposals" />
       <div>
-        <FundraiseProvider>
-          <ProposalSortAndFilters />
-          <ProposalFeed />
-        </FundraiseProvider>
+        <ProposalSortAndFilters />
+        <ProposalFeed />
       </div>
     </PageLayout>
   );
