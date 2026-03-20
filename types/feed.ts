@@ -5,12 +5,7 @@ import { createTransformer, BaseTransformed } from './transformer';
 import { Work, transformPaper, transformPost, FundingRequest, ContentType } from './work';
 import { Bounty, BountyWithComment, transformBounty } from './bounty';
 import { Comment, CommentType, ContentFormat, transformComment } from './comment';
-import {
-  Fundraise,
-  transformFundraise,
-  ApplicationFundraise,
-  transformApplicationFundraise,
-} from './funding';
+import { Fundraise, transformFundraise, Application, transformApplication } from './funding';
 import { Journal } from './journal';
 import { UserVoteType } from './reaction';
 import { User } from './user';
@@ -195,10 +190,7 @@ export interface FeedGrantContent extends BaseFeedContent {
     isActive: boolean;
     currency: string;
     createdBy: AuthorProfile;
-    applicants: Array<{
-      profile: AuthorProfile;
-      fundraise?: ApplicationFundraise;
-    }>;
+    applicants: Application[];
   };
   organization?: string;
   grantAmount?: {
@@ -853,12 +845,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               createdBy: content_object.grant.created_by
                 ? transformAuthorProfile(content_object.grant.created_by)
                 : transformAuthorProfile(author),
-              applicants: (content_object.grant.applications || []).map((application: any) => ({
-                profile: transformAuthorProfile(application.applicant),
-                fundraise: application.fundraise
-                  ? transformApplicationFundraise(application.fundraise)
-                  : undefined,
-              })),
+              applicants: (content_object.grant.applications || []).map(transformApplication),
             },
             organization: content_object.grant.organization || '',
             grantAmount: content_object.grant.amount || {},

@@ -37,6 +37,7 @@ export function transformApplicationFundraise(raw: any): ApplicationFundraise {
   const topContributors = (raw.contributors?.top ?? []).map((c: any) => {
     const firstName = c.first_name ?? '';
     const lastName = c.last_name ?? '';
+
     return {
       id: c.id,
       firstName,
@@ -71,6 +72,20 @@ export function transformApplicationFundraise(raw: any): ApplicationFundraise {
       raw.review_metrics?.avg != null
         ? { avg: raw.review_metrics.avg, count: raw.review_metrics.count ?? 0 }
         : undefined,
+  };
+}
+
+export interface Application {
+  profile: AuthorProfile;
+  preregistrationPostId?: number;
+  fundraise?: ApplicationFundraise;
+}
+
+export function transformApplication(raw: any): Application {
+  return {
+    profile: transformAuthorProfile(raw.applicant),
+    preregistrationPostId: raw.preregistration_post_id ?? undefined,
+    fundraise: raw.fundraise ? transformApplicationFundraise(raw.fundraise) : undefined,
   };
 }
 
