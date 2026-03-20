@@ -34,6 +34,9 @@ export interface PreregistrationPostParams {
   organization?: string | null;
   description?: string | null;
   contacts?: number[];
+
+  // RFP attachment
+  grantId?: string | null;
 }
 
 interface UsePostState {
@@ -91,6 +94,10 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         payload.nft_supply = postParams.nftSupply;
         payload.fundraise_goal_currency = 'USD';
         payload.fundraise_goal_amount = parseFloat(postParams.budget.replace(/[^0-9.]/g, ''));
+
+        if (postParams.grantId) {
+          payload.grant_id = postParams.grantId;
+        }
       }
 
       if (postParams.articleType === 'GRANT') {

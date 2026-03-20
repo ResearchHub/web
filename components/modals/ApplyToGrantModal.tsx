@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PostService, ProposalForModal } from '@/services/post.service';
 import { GrantService } from '@/services/grant.service';
+import { setPendingGrant } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
@@ -72,6 +73,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   };
 
   const handleDraftNew = () => {
+    setPendingGrant({ id: grantId, title: grantTitle || '' });
     onClose();
     router.push('/notebook?newFunding=true');
   };

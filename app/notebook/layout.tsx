@@ -23,6 +23,7 @@ import { NotebookProvider } from '@/contexts/NotebookContext';
 import { GrantProvider } from '@/contexts/GrantContext';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { NoteEditorLayout } from '@/components/Notebook/NoteEditorLayout';
+import { clearPendingGrant } from '@/components/Editor/lib/utils/publishingFormStorage';
 
 function NotebookLayoutContent({ children }: { children: ReactNode }) {
   const { isLeftSidebarOpen, closeLeftSidebar, openLeftSidebar, closeBothSidebars } = useSidebar();
@@ -37,6 +38,10 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
       closeBothSidebars();
     }
   }, [lgAndUp, openLeftSidebar, closeBothSidebars]);
+
+  useEffect(() => {
+    return () => clearPendingGrant();
+  }, []);
 
   if (isDesktop === null) {
     return null;
