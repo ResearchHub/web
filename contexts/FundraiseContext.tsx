@@ -32,6 +32,9 @@ interface FundraiseContextValue {
   sortBy: ProposalSortOption;
   setSortBy: (value: ProposalSortOption) => void;
 
+  /** Call once from the consuming component to trigger the initial fetch. */
+  activate: () => void;
+
   sidebarFundraises: FeedEntry[];
   isSidebarLoading: boolean;
   fetchSidebarFundraises: () => Promise<void>;
@@ -75,6 +78,9 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
     };
   }, [statusFilter, sortBy]);
 
+  const [activated, setActivated] = useState(false);
+  const activate = useCallback(() => setActivated(true), []);
+
   const fetchProposals = useCallback(async () => {
     setEntries([]);
     setIsLoading(true);
@@ -99,8 +105,10 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
   }, [grantId, feedParams]);
 
   useEffect(() => {
-    fetchProposals();
-  }, [fetchProposals]);
+    if (activated) {
+      fetchProposals();
+    }
+  }, [activated, fetchProposals]);
 
   const loadMore = useCallback(async () => {
     if (isLoading || isLoadingMore || !hasMore) return;
@@ -152,7 +160,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
   const value = useMemo<FundraiseContextValue>(
     () => ({
       entries,
-      isLoading,
+      isLoading: activated ? isLoading : false,
       isLoadingMore,
       hasMore,
       loadMore,
@@ -163,12 +171,14 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
       setTaxDeductible,
       sortBy,
       setSortBy,
+      activate,
       sidebarFundraises,
       isSidebarLoading,
       fetchSidebarFundraises,
     }),
     [
       entries,
+      activated,
       isLoading,
       isLoadingMore,
       hasMore,
@@ -176,6 +186,7 @@ export function FundraiseProvider({ children, grantId }: FundraiseProviderProps)
       statusFilter,
       taxDeductible,
       sortBy,
+      activate,
       sidebarFundraises,
       isSidebarLoading,
       fetchSidebarFundraises,

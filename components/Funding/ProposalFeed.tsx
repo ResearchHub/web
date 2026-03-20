@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { useFundraises } from '@/contexts/FundraiseContext';
 import { cn } from '@/utils/styles';
@@ -10,7 +10,11 @@ interface ProposalFeedProps {
 }
 
 export const ProposalFeed: FC<ProposalFeedProps> = ({ className }) => {
-  const { entries, isLoading, isLoadingMore, hasMore, loadMore } = useFundraises();
+  const { entries, isLoading, isLoadingMore, hasMore, loadMore, activate } = useFundraises();
+
+  useEffect(() => {
+    activate();
+  }, [activate]);
 
   return (
     <div className={cn('', className)}>
