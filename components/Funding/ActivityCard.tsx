@@ -2,7 +2,7 @@
 
 import { FC } from 'react';
 import Link from 'next/link';
-import { Star, MessageCircle, Bell } from 'lucide-react';
+import { Star, MessageCircle, Bell, Coins } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { formatTimeAgo } from '@/utils/date';
@@ -46,6 +46,7 @@ function getActionLabel(entry: FeedEntry): string {
     return COMMENT_ACTION_LABELS[comment?.commentType] || 'commented on';
   }
   if (entry.contentType === 'BOUNTY') return 'contributed to';
+  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION') return 'Funded Proposal';
   return DOC_ACTION_LABELS[entry.contentType] || 'contributed';
 }
 
@@ -55,11 +56,34 @@ function getEntryMeta(entry: FeedEntry) {
 
   if (entry.contentType === 'COMMENT' || entry.contentType === 'BOUNTY') {
     const work = entry.relatedWork;
+    const isReview =
+      entry.contentType === 'COMMENT' &&
+      (content as FeedCommentContent).comment?.commentType === 'REVIEW';
     return {
       title: work?.title,
       author,
       href: work
-        ? buildWorkUrl({ id: work.id, slug: work.slug, contentType: work.contentType })
+        ? buildWorkUrl({
+            id: work.id,
+            slug: work.slug,
+            contentType: work.contentType,
+            tab: isReview ? 'reviews' : undefined,
+          })
+        : undefined,
+    };
+  }
+
+  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION') {
+    const post = content as FeedPostContent;
+    return {
+      title: post.title,
+      author,
+      href: post.unifiedDocumentId
+        ? buildWorkUrl({
+            id: post.unifiedDocumentId,
+            slug: post.slug,
+            contentType: 'preregistration',
+          })
         : undefined,
     };
   }
@@ -85,6 +109,8 @@ function getFundingAmount(entry: FeedEntry): number | undefined {
 }
 
 function getActionIcon(entry: FeedEntry): React.ReactNode {
+  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION')
+    return <Coins size={14} className="inline -mt-0.5 ml-1 text-gray-600" />;
   if (entry.contentType !== 'COMMENT') return null;
   const commentType = (entry.content as FeedCommentContent).comment?.commentType;
   if (commentType === 'AUTHOR_UPDATE')
@@ -101,6 +127,12 @@ function getReviewScore(entry: FeedEntry): number | undefined {
   return commentContent.review?.score || commentContent.comment.reviewScore || undefined;
 }
 
+function getContributionAmount(entry: FeedEntry): number | undefined {
+  if (entry.contentType !== 'USDFUNDRAISECONTRIBUTION') return undefined;
+  const post = entry.content as FeedPostContent;
+  return post.fundraiseContribution?.amount || undefined;
+}
+
 interface ActivityCardProps {
   entry: FeedEntry;
 }
@@ -114,6 +146,7 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
   const actionIcon = getActionIcon(entry);
   const reviewScore = getReviewScore(entry);
   const fundingAmount = getFundingAmount(entry);
+  const contributionAmount = getContributionAmount(entry);
 
   const titleEl = href ? (
     <Link href={href} className="text-indigo-600 hover:text-indigo-800">
@@ -152,6 +185,18 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
           <span className="ml-1.5 text-xs font-medium text-gray-900">
             {formatCurrency({
               amount: fundingAmount,
+              showUSD: true,
+              exchangeRate: 1,
+              skipConversion: true,
+              shorten: true,
+            })}
+          </span>
+        )}
+        {contributionAmount != null && (
+          <span className="ml-1.5 text-xs font-medium font-mono text-green-700">
+            +
+            {formatCurrency({
+              amount: contributionAmount,
               showUSD: true,
               exchangeRate: 1,
               skipConversion: true,
