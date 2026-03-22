@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ChevronDown, DollarSign, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
+import { useInView } from 'react-intersection-observer';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -140,7 +141,18 @@ export default function AutoPaymentsContent() {
     [distributionType, createdAfter, createdBefore]
   );
 
-  const [state, { goToNextPage, goToPrevPage, refetch }] = useAutoPayments(filters);
+  const [state, { loadMore, refetch }] = useAutoPayments(filters);
+
+  const { ref: loadMoreRef, inView } = useInView({
+    threshold: 0,
+    rootMargin: '100px',
+  });
+
+  useEffect(() => {
+    if (inView && state.hasMore && !state.isLoading) {
+      loadMore();
+    }
+  }, [inView, state.hasMore, state.isLoading, loadMore]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -292,31 +304,15 @@ export default function AutoPaymentsContent() {
             </div>
           )}
 
-          {state.totalPages > 1 && !state.isLoading && (
-            <div className="flex items-center justify-between py-6">
-              <span className="text-sm text-gray-700">
-                Page {state.currentPage} of {state.totalPages}
-              </span>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outlined"
-                  size="sm"
-                  onClick={goToPrevPage}
-                  disabled={!state.hasPrevPage}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="sm"
-                  onClick={goToNextPage}
-                  disabled={!state.hasNextPage}
-                >
-                  Next
-                </Button>
-              </div>
+          {state.isLoading && state.payments.length > 0 && (
+            <div className="space-y-4 mt-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <PaymentCardSkeleton key={i} />
+              ))}
             </div>
           )}
+
+          {!state.isLoading && state.hasMore && <div ref={loadMoreRef} className="h-10" />}
         </div>
       </div>
     </div>

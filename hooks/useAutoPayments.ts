@@ -6,18 +6,13 @@ export interface AutoPaymentsState {
   payments: AutoPayment[];
   isLoading: boolean;
   error: string | null;
-  currentPage: number;
-  totalPages: number;
-  totalCount: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
+  hasMore: boolean;
 }
 
 export type UseAutoPaymentsReturn = [
   AutoPaymentsState,
   {
-    goToNextPage: () => Promise<void>;
-    goToPrevPage: () => Promise<void>;
+    loadMore: () => Promise<void>;
     refetch: () => Promise<void>;
   },
 ];
@@ -29,27 +24,23 @@ export function useAutoPayments(
   const [payments, setPayments] = useState<AutoPayment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-
-  const totalPages = Math.ceil(totalCount / pageSize);
-  const hasNextPage = currentPage < totalPages;
-  const hasPrevPage = currentPage > 1;
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
 
   const fetchPayments = useCallback(
-    async (page: number) => {
+    async (targetPage: number, append: boolean) => {
       try {
         setIsLoading(true);
         setError(null);
 
         const response = await AutoPaymentService.fetchAutoPayments(filters, {
-          page,
+          page: targetPage,
           pageSize,
         });
 
-        setPayments(response.payments);
-        setTotalCount(response.count);
-        setCurrentPage(page);
+        setPayments((prev) => (append ? [...prev, ...response.payments] : response.payments));
+        setHasMore(response.count > targetPage * pageSize);
+        setPage(targetPage);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to fetch auto-payments';
         setError(message);
@@ -60,37 +51,27 @@ export function useAutoPayments(
     [filters, pageSize]
   );
 
-  const goToNextPage = useCallback(async () => {
-    if (hasNextPage) {
-      await fetchPayments(currentPage + 1);
-    }
-  }, [hasNextPage, currentPage, fetchPayments]);
-
-  const goToPrevPage = useCallback(async () => {
-    if (hasPrevPage) {
-      await fetchPayments(currentPage - 1);
-    }
-  }, [hasPrevPage, currentPage, fetchPayments]);
+  const loadMore = useCallback(async () => {
+    if (!hasMore || isLoading) return;
+    await fetchPayments(page + 1, true);
+  }, [hasMore, isLoading, page, fetchPayments]);
 
   const refetch = useCallback(async () => {
-    await fetchPayments(1);
+    setPayments([]);
+    setPage(1);
+    setHasMore(false);
+    await fetchPayments(1, false);
   }, [fetchPayments]);
 
   useEffect(() => {
-    fetchPayments(1);
+    setPayments([]);
+    setPage(1);
+    setHasMore(false);
+    fetchPayments(1, false);
   }, [fetchPayments]);
 
   return [
-    {
-      payments,
-      isLoading,
-      error,
-      currentPage,
-      totalPages,
-      totalCount,
-      hasNextPage,
-      hasPrevPage,
-    },
-    { goToNextPage, goToPrevPage, refetch },
+    { payments, isLoading, error, hasMore },
+    { loadMore, refetch },
   ];
 }
