@@ -19,6 +19,7 @@ const buttonVariants = cva(
         destructive: 'bg-red-600 text-white hover:bg-red-700',
         contribute:
           'bg-white bg-orange-100 text-orange-600 border border-orange-100 hover:bg-orange-200 hover:border-orange-200',
+        dark: 'bg-gray-900 text-white border border-gray-900 hover:bg-gray-800 focus-visible:ring-gray-900 shadow-sm',
       },
       size: {
         default: 'h-10 px-4 py-2',

@@ -18,7 +18,7 @@ export function useGrantTab() {
 
 export function GrantTabProvider({
   children,
-  defaultTab = 'proposals',
+  defaultTab = 'details',
 }: {
   children: ReactNode;
   defaultTab?: GrantBannerTab;

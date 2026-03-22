@@ -396,9 +396,9 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
               <div className="flex items-center gap-2 flex-shrink-0">
                 {isOpen && (
                   <Button
-                    variant="secondary"
+                    variant="dark"
                     size="sm"
-                    className="flex-shrink-0 rounded-md text-[13px]"
+                    className="flex-shrink-0 gap-1"
                     onClick={handleSolution}
                   >
                     {(() => {
@@ -410,7 +410,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
                       }
                       return 'Add Solution';
                     })()}
-                    <ArrowRight size={14} className="ml-1.5" />
+                    <ArrowRight size={14} />
                   </Button>
                 )}
                 {awardButton}

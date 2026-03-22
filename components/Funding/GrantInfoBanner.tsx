@@ -33,8 +33,8 @@ function formatCompactAmount(usd: number): string {
 export type GrantBannerTab = 'proposals' | 'details';
 
 const GRANT_BANNER_TABS = [
-  { id: 'proposals' as const, label: 'Proposals' },
   { id: 'details' as const, label: 'Details' },
+  { id: 'proposals' as const, label: 'Proposals' },
 ];
 
 interface GrantInfoBannerProps {
@@ -90,7 +90,7 @@ export const GrantInfoBanner = ({
   isPending = false,
   work,
   organization,
-  activeTab = 'proposals',
+  activeTab = 'details',
   onTabChange,
 }: GrantInfoBannerProps) => {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
