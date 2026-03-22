@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { Flag, UserRoundPen, Users, FileCheck } from 'lucide-react';
+import { Flag, UserRoundPen, Users, DollarSign, FileCheck } from 'lucide-react';
 import { SidebarNav, SidebarNavMenu, type SidebarNavItem } from '@/components/SidebarNav';
 
 const navigationItems: SidebarNavItem[] = [
@@ -28,6 +28,12 @@ const navigationItems: SidebarNavItem[] = [
     href: '/moderators/editors',
     icon: UserRoundPen,
     description: 'Review editors activity',
+  },
+  {
+    name: 'Auto-Payments',
+    href: '/moderators/auto-payments',
+    icon: DollarSign,
+    description: 'Audit automated payments',
   },
 ];
 

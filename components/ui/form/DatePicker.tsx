@@ -15,6 +15,7 @@ interface DatePickerProps {
   maxDate?: Date;
   className?: string;
   disabled?: boolean;
+  withPortal?: boolean;
 }
 
 export function DatePicker({
@@ -28,6 +29,7 @@ export function DatePicker({
   maxDate,
   className,
   disabled,
+  withPortal,
   ...props
 }: DatePickerProps) {
   return (
@@ -40,6 +42,7 @@ export function DatePicker({
           minDate={minDate}
           maxDate={maxDate}
           disabled={disabled}
+          withPortal={withPortal}
           dateFormat="MM/dd/yyyy"
           wrapperClassName="w-full"
           className={cn(
