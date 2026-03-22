@@ -162,7 +162,7 @@ export default function AutoPaymentsContent() {
   const selectedFilterLabel = FILTER_OPTIONS.find((o) => o.value === distributionType)?.label;
 
   return (
-    <div className="h-full flex flex-col p-4">
+    <div className="h-full flex flex-col p-4 pb-20 tablet:!pb-4">
       {/* Header */}
       <div className="bg-white">
         <div className="flex items-center justify-between mb-4">
