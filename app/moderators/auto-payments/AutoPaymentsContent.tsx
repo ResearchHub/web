@@ -7,7 +7,6 @@ import { useInView } from 'react-intersection-observer';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Skeleton } from '@/components/ui/Skeleton';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
 import { DatePicker } from '@/components/ui/form/DatePicker';
 import { useScreenSize } from '@/hooks/useScreenSize';
@@ -34,15 +33,15 @@ const STATUS_STYLES: Record<DistributedStatus, string> = {
 };
 
 function formatRscAmount(amount: string): string {
-  const num = parseFloat(amount);
-  if (isNaN(num)) return amount;
+  const num = Number.parseFloat(amount);
+  if (Number.isNaN(num)) return amount;
   return new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(num);
 }
 
-function PaymentCard({ payment }: { payment: AutoPayment }) {
+function PaymentCard({ payment }: Readonly<{ payment: AutoPayment }>) {
   const recipientName = payment.recipient
     ? `${payment.recipient.firstName} ${payment.recipient.lastName}`
     : null;
@@ -102,21 +101,19 @@ function PaymentCard({ payment }: { payment: AutoPayment }) {
 
 function PaymentCardSkeleton() {
   return (
-    <div className="animate-pulse">
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-2">
-            <div className="w-8 h-8 bg-gray-200 rounded-full" />
-            <div>
-              <Skeleton className="h-4 w-32 mb-1.5" />
-              <Skeleton className="h-3.5 w-20 mb-1.5" />
-              <Skeleton className="h-5 w-28 rounded-full" />
-            </div>
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="flex items-start justify-between">
+        <div className="flex items-start gap-2">
+          <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
+          <div>
+            <div className="h-4 w-32 bg-gray-200 rounded animate-pulse mb-1.5" />
+            <div className="h-3.5 w-20 bg-gray-200 rounded animate-pulse mb-1.5" />
+            <div className="h-5 w-28 bg-gray-200 rounded-full animate-pulse" />
           </div>
-          <div className="flex flex-col items-end">
-            <Skeleton className="h-3 w-16 mb-1.5" />
-            <Skeleton className="h-5 w-20 rounded-full" />
-          </div>
+        </div>
+        <div className="flex flex-col items-end">
+          <div className="h-3 w-16 bg-gray-200 rounded animate-pulse mb-1.5" />
+          <div className="h-5 w-20 bg-gray-200 rounded-full animate-pulse" />
         </div>
       </div>
     </div>
@@ -210,7 +207,7 @@ export default function AutoPaymentsContent() {
               {FILTER_OPTIONS.map((option) => (
                 <DropdownItem
                   key={option.value}
-                  onClick={() => setDistributionType(option.value as DistributionType | '')}
+                  onClick={() => setDistributionType(option.value)}
                   className={distributionType === option.value ? 'bg-blue-50 text-blue-700' : ''}
                 >
                   {option.label}
@@ -276,7 +273,7 @@ export default function AutoPaymentsContent() {
           {state.isLoading && state.payments.length === 0 && (
             <div className="space-y-4">
               {Array.from({ length: 5 }).map((_, i) => (
-                <PaymentCardSkeleton key={i} />
+                <PaymentCardSkeleton key={`skeleton-${i}`} />
               ))}
             </div>
           )}
@@ -307,7 +304,7 @@ export default function AutoPaymentsContent() {
           {state.isLoading && state.payments.length > 0 && (
             <div className="space-y-4 mt-4">
               {Array.from({ length: 3 }).map((_, i) => (
-                <PaymentCardSkeleton key={i} />
+                <PaymentCardSkeleton key={`skeleton-load-${i}`} />
               ))}
             </div>
           )}
