@@ -272,8 +272,8 @@ export default function AutoPaymentsContent() {
 
           {state.isLoading && state.payments.length === 0 && (
             <div className="space-y-4">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <PaymentCardSkeleton key={`skeleton-${i}`} />
+              {Array.from({ length: 5 }).map((_, skeletonIndex) => (
+                <PaymentCardSkeleton key={'payment-skeleton-' + skeletonIndex} />
               ))}
             </div>
           )}
@@ -303,8 +303,8 @@ export default function AutoPaymentsContent() {
 
           {state.isLoading && state.payments.length > 0 && (
             <div className="space-y-4 mt-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <PaymentCardSkeleton key={`skeleton-load-${i}`} />
+              {Array.from({ length: 3 }).map((_, skeletonIndex) => (
+                <PaymentCardSkeleton key={'payment-skeleton-load-' + skeletonIndex} />
               ))}
             </div>
           )}
