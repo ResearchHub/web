@@ -22,10 +22,8 @@ import { DISTRIBUTION_TYPE_LABELS } from '@/types/autoPayment';
 
 const FILTER_OPTIONS: { value: DistributionType | ''; label: string }[] = [
   { value: '', label: 'All Types' },
-  ...Object.entries(DISTRIBUTION_TYPE_LABELS).map(([value, label]) => ({
-    value: value as DistributionType,
-    label,
-  })),
+  { value: 'EDITOR_PAYOUT', label: 'Editor Pay' },
+  { value: 'PREREGISTRATION_UPDATE_REWARD', label: 'Author Update Reward' },
 ];
 
 const STATUS_STYLES: Record<DistributedStatus, string> = {
@@ -80,7 +78,7 @@ function PaymentCard({ payment }: { payment: AutoPayment }) {
             <span className="text-sm text-gray-700 mt-1">
               {formatRscAmount(payment.amount)} RSC
             </span>
-            <div className="mt-1.5">
+            <div className="mt-1">
               <Badge variant="primary" size="sm">
                 {DISTRIBUTION_TYPE_LABELS[payment.distributionType]}
               </Badge>

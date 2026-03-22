@@ -7,7 +7,7 @@ export type DistributedStatus = 'DISTRIBUTED' | 'PENDING' | 'FAILED';
 
 export const DISTRIBUTION_TYPE_LABELS: Record<DistributionType, string> = {
   EDITOR_PAYOUT: 'Editor Pay',
-  EDITOR_COMPENSATION: 'Editor Pay (Legacy)',
+  EDITOR_COMPENSATION: 'Editor Pay',
   PREREGISTRATION_UPDATE_REWARD: 'Author Update Reward',
 };
 
