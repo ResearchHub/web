@@ -5,12 +5,7 @@ import { createTransformer, BaseTransformed } from './transformer';
 import { Work, transformPaper, transformPost, FundingRequest, ContentType } from './work';
 import { Bounty, BountyWithComment, transformBounty } from './bounty';
 import { Comment, CommentType, ContentFormat, transformComment } from './comment';
-import {
-  Fundraise,
-  transformFundraise,
-  ApplicationFundraise,
-  transformApplicationFundraise,
-} from './funding';
+import { Fundraise, transformFundraise, Application, transformApplication } from './funding';
 import { Journal } from './journal';
 import { UserVoteType } from './reaction';
 import { User } from './user';
@@ -91,6 +86,7 @@ export interface FeedPostContent extends BaseFeedContent {
   contentType: 'PREREGISTRATION' | 'POST';
   postType?: string; // The actual type from content_object.type
   fundraise?: Fundraise;
+  fundraiseContribution?: { amount: number; currency: string };
   textPreview: string;
   slug: string;
   title: string;
@@ -195,10 +191,7 @@ export interface FeedGrantContent extends BaseFeedContent {
     isActive: boolean;
     currency: string;
     createdBy: AuthorProfile;
-    applicants: Array<{
-      profile: AuthorProfile;
-      fundraise?: ApplicationFundraise;
-    }>;
+    applicants: Application[];
   };
   organization?: string;
   grantAmount?: {
@@ -225,7 +218,8 @@ export type FeedContentType =
   | 'BOUNTY'
   | 'COMMENT'
   | 'APPLICATION'
-  | 'GRANT';
+  | 'GRANT'
+  | 'USDFUNDRAISECONTRIBUTION';
 
 export interface ExternalMetrics {
   score: number;
@@ -853,12 +847,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
               createdBy: content_object.grant.created_by
                 ? transformAuthorProfile(content_object.grant.created_by)
                 : transformAuthorProfile(author),
-              applicants: (content_object.grant.applications || []).map((application: any) => ({
-                profile: transformAuthorProfile(application.applicant),
-                fundraise: application.fundraise
-                  ? transformApplicationFundraise(application.fundraise)
-                  : undefined,
-              })),
+              applicants: (content_object.grant.applications || []).map(transformApplication),
             },
             organization: content_object.grant.organization || '',
             grantAmount: content_object.grant.amount || {},
@@ -941,6 +930,42 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           console.error('Error transforming RESEARCHHUBPOST:', error);
           throw new Error(`Failed to transform RESEARCHHUBPOST: ${error}`);
         }
+      }
+      break;
+
+    case 'USDFUNDRAISECONTRIBUTION':
+      contentType = 'USDFUNDRAISECONTRIBUTION';
+      try {
+        const contributionEntry: FeedPostContent = {
+          id: content_object.id || id,
+          unifiedDocumentId: content_object.unified_document_id,
+          contentType: 'PREREGISTRATION',
+          createdDate: action_date || created_date,
+          textPreview: '',
+          slug: content_object.proposal_slug || '',
+          title: stripHtml(content_object.proposal_title || ''),
+          authors: [transformAuthorProfile(author)],
+          topics: content_object.hub
+            ? [
+                content_object.hub.id
+                  ? transformTopic(content_object.hub)
+                  : {
+                      id: 0,
+                      name: content_object.hub.name || '',
+                      slug: content_object.hub.slug || '',
+                    },
+              ]
+            : [],
+          createdBy: transformAuthorProfile(author),
+          fundraiseContribution: {
+            amount: content_object.amount || 0,
+            currency: content_object.currency || 'USD',
+          },
+        };
+        content = contributionEntry;
+      } catch (error) {
+        console.error('Error transforming USDFUNDRAISECONTRIBUTION:', error);
+        throw new Error(`Failed to transform USDFUNDRAISECONTRIBUTION: ${error}`);
       }
       break;
 
