@@ -28,6 +28,9 @@ import { toast } from 'react-hot-toast';
 import {
   loadPublishingFormFromStorage,
   savePublishingFormToStorage,
+  getPendingGrant,
+  clearPendingGrant,
+  PendingGrant,
 } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSkeleton';
 import { Loader2 } from 'lucide-react';
@@ -248,6 +251,7 @@ export function PublishingForm({
   const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
   const { linkNonprofitToFundraise, isLoading: isLinkingNonprofit } = useNonprofitLink();
   const [showNonprofitConfirmModal, setShowNonprofitConfirmModal] = useState(false);
+  const [pendingGrant, setPendingGrant] = useState<PendingGrant | null>(() => getPendingGrant());
 
   const methods = useForm<PublishingFormData>({
     defaultValues: FORM_DEFAULTS,
@@ -426,6 +430,9 @@ export function PublishingForm({
         budgetValue = formData.budget || '0';
       }
 
+      const isNewProposal = formData.articleType === 'preregistration' && !formData.workId;
+      const pendingGrantId = isNewProposal ? pendingGrant?.id || null : null;
+
       const response = await upsertPost(
         {
           budget: budgetValue,
@@ -454,6 +461,7 @@ export function PublishingForm({
             formData.articleType === 'grant'
               ? new Date('2029-12-31')
               : formData.applicationDeadline,
+          grantId: pendingGrantId,
         },
         formData.workId
       );
@@ -466,6 +474,8 @@ export function PublishingForm({
         return;
       }
 
+      clearPendingGrant();
+      setPendingGrant(null);
       setIsRedirecting(true);
       if (formData.articleType === 'grant' && !formData.workId) {
         toast.success('Your RFP has been submitted and is pending moderator review.', {
@@ -588,6 +598,11 @@ export function PublishingForm({
           onTitleChange={(title) => setDocumentTitle(editor, title)}
           variant={articleType === 'grant' ? 'rfp' : 'default'}
           zIndex={isModal ? 10000 : 100}
+          pendingGrantTitle={
+            articleType === 'preregistration' && !methods.watch('workId')
+              ? pendingGrant?.title
+              : null
+          }
         />
       )}
     </FormProvider>
