@@ -41,6 +41,17 @@ export interface BaseFeedItemProps {
   cardImage?: ReactNode;
   /** Image rendered on the left side; content + actions span full width below */
   cardImageLeft?: ReactNode;
+  /** Optional footer rendered at the bottom of the card, below the actions row */
+  footer?: ReactNode;
+  /** Extra items to add to the "..." dropdown menu */
+  menuItems?: Array<{
+    icon: any;
+    label: string;
+    tooltip?: string;
+    disabled?: boolean;
+    onClick: (e?: React.MouseEvent) => void;
+    className?: string;
+  }>;
 }
 
 // Badge component interface
@@ -232,7 +243,7 @@ export const PrimaryActionSection: FC<PrimaryActionSectionProps> = ({ children, 
   return (
     <div
       className={cn(
-        'mt-3 rounded-lg bg-primary-50/60 border border-primary-100 px-4 py-3.5 cursor-default',
+        'mt-3 rounded-lg bg-gray-50/90 border border-gray-100 px-4 py-3.5 cursor-default',
         className
       )}
       onMouseDown={(e) => e.stopPropagation()}
@@ -291,6 +302,8 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   badges,
   cardImage,
   cardImageLeft,
+  footer,
+  menuItems,
 }) => {
   const content = entry.content;
   const author = content.createdBy;
@@ -463,11 +476,14 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               onFeedItemClick={onFeedItemClick}
               bounties={showBountyInfo ? undefined : content.bounties}
               hideReportButton={hideReportButton}
+              menuItems={menuItems}
               hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
               className="gap-1"
             />
           </div>
         )}
+
+        {footer}
       </CardWrapper>
     </div>
   );

@@ -54,6 +54,15 @@ export class ApiClient {
     }
   }
 
+  private static isNotFoundError(error: unknown): boolean {
+    return error instanceof ApiError && error.status === 404;
+  }
+
+  private static logError(error: unknown): void {
+    const log = this.isNotFoundError(error) ? console.warn : console.error;
+    log('API request failed:', error);
+  }
+
   private static async getHeaders(method: string) {
     const headers: Record<string, string> = {
       Accept: 'application/json',
@@ -136,7 +145,7 @@ export class ApiClient {
 
       return response.json();
     } catch (error) {
-      console.error('API request failed:', error);
+      this.logError(error);
       throw error;
     }
   }
@@ -178,7 +187,7 @@ export class ApiClient {
 
       return response.blob();
     } catch (error) {
-      console.error('API request failed:', error);
+      this.logError(error);
       throw error;
     }
   }
@@ -252,7 +261,7 @@ export class ApiClient {
 
       return response.json();
     } catch (error) {
-      console.error('API request failed:', error);
+      this.logError(error);
       throw error;
     }
   }

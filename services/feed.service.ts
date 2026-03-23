@@ -24,6 +24,7 @@ export class FeedService {
     ordering?: string;
     includeHotScoreBreakdown?: boolean;
     filter?: string;
+    status?: string;
     userId?: string;
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
@@ -44,6 +45,7 @@ export class FeedService {
       queryParams.append('include_hot_score_breakdown', 'true');
     }
     if (params?.filter) queryParams.append('filter', params.filter);
+    if (params?.status) queryParams.append('status', params.status);
     if (params?.userId) queryParams.append('user_id', params.userId);
 
     // Determine which endpoint to use

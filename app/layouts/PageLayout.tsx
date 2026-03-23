@@ -2,7 +2,6 @@
 
 import { ReactNode } from 'react';
 import dynamic from 'next/dynamic';
-import { usePathname } from 'next/navigation';
 import { useMobileNavScroll } from '@/hooks/useMobileNavScroll';
 import { cn } from '@/lib/utils';
 import { ScrollContainerProvider } from '@/contexts/ScrollContainerContext';
@@ -28,13 +27,6 @@ interface PageLayoutProps {
   topBanner?: ReactNode;
 }
 
-function useIsGrantTabsPage() {
-  const pathname = usePathname();
-  return (
-    pathname === '/fund' || pathname.startsWith('/fund/grant') || pathname.startsWith('/grant/')
-  );
-}
-
 function PageLayoutInner({
   children,
   rightSidebar = true,
@@ -53,7 +45,6 @@ function PageLayoutInner({
   } = usePageLayoutState();
 
   const { isHidden: isMobileTopNavHidden } = useMobileNavScroll({ scrollContainerRef });
-  const hasGrantTabs = useIsGrantTabsPage();
 
   return (
     <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
@@ -73,7 +64,7 @@ function PageLayoutInner({
           ref={scrollContainerRef}
           className={cn(
             'flex-1 overflow-y-auto overflow-x-hidden relative transition-all duration-150',
-            hasGrantTabs ? (isCompact ? 'pt-[94px]' : 'pt-[110px]') : isCompact ? 'pt-12' : 'pt-16'
+            isCompact ? 'pt-12' : 'pt-16'
           )}
         >
           {topBanner && <div className="w-full">{topBanner}</div>}

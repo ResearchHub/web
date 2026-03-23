@@ -27,7 +27,7 @@ export const ROOT_NAVIGATION_PATHS = new Set([
   '/feed',
   '/earn',
   '/fund',
-  '/fund/grants',
+  '/fund/proposals',
   '/dashboard',
   '/dashboard/impact',
   '/journal',
@@ -138,7 +138,7 @@ const ROUTE_RULES: RouteRule[] = [
     }),
   },
   {
-    match: (p) => p === '/fund' || p.startsWith('/fund/grant') || p.startsWith('/grant/'),
+    match: (p) => p === '/fund' || p.startsWith('/fund/') || p.startsWith('/grant/'),
     getInfo: () => ({
       title: 'Fund',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,

@@ -58,10 +58,10 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
           Math.min(100, Math.max(5, (fundraise.amountRaised.rsc / fundraise.goalAmount.rsc) * 100))
         );
 
-  // Calculate actual percentage for display
-  const actualPercentage = Math.floor(
-    (fundraise.amountRaised.rsc / fundraise.goalAmount.rsc) * 100
-  );
+  const actualPercentage =
+    fundraise.status === 'COMPLETED'
+      ? 100
+      : Math.floor((fundraise.amountRaised.rsc / fundraise.goalAmount.rsc) * 100);
 
   // Extract contributors if available
   const contributors =
@@ -170,9 +170,11 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
               <div className="flex items-center flex-wrap gap-1">
                 <CurrencyBadge
                   amount={
-                    showUSD
-                      ? Math.round(fundraise.amountRaised.usd)
-                      : Math.round(fundraise.amountRaised.rsc)
+                    fundraise.status === 'COMPLETED'
+                      ? Math.round(showUSD ? fundraise.goalAmount.usd : fundraise.amountRaised.rsc)
+                      : Math.round(
+                          showUSD ? fundraise.amountRaised.usd : fundraise.amountRaised.rsc
+                        )
                   }
                   variant="text"
                   size="sm"
@@ -180,15 +182,18 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   currency={showUSD ? 'USD' : 'RSC'}
                   className="font-mono text-sm mobile:!text-base pl-0"
                   fontWeight="font-semibold"
-                  textColor="text-primary-600"
+                  textColor={
+                    fundraise.status === 'COMPLETED' ? 'text-green-600' : 'text-primary-600'
+                  }
+                  iconColor={fundraise.status === 'COMPLETED' ? '#16a34a' : undefined}
                   skipConversion={showUSD}
                 />
                 <span className="text-gray-500 text-sm mobile:!text-base">raised of</span>
                 <CurrencyBadge
                   amount={
-                    showUSD
-                      ? Math.round(fundraise.goalAmount.usd)
-                      : Math.round(fundraise.goalAmount.rsc)
+                    fundraise.status === 'COMPLETED'
+                      ? Math.round(showUSD ? fundraise.goalAmount.usd : fundraise.amountRaised.rsc)
+                      : Math.round(showUSD ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc)
                   }
                   variant="text"
                   size="sm"
@@ -197,7 +202,10 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                   currency={showUSD ? 'USD' : 'RSC'}
                   className="font-mono text-sm mobile:!text-base"
                   fontWeight="font-semibold"
-                  textColor="text-primary-600"
+                  textColor={
+                    fundraise.status === 'COMPLETED' ? 'text-green-600' : 'text-primary-600'
+                  }
+                  iconColor={fundraise.status === 'COMPLETED' ? '#16a34a' : undefined}
                   skipConversion={showUSD}
                 />
                 <span className="text-gray-500 text-sm mobile:!text-base">goal</span>

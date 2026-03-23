@@ -4,7 +4,8 @@ export type ProposalSortOption =
   | 'newest'
   | 'upvotes'
   | 'most_applicants'
-  | 'amount_raised';
+  | 'amount_raised'
+  | 'completed';
 
 export const STATUS_OPTIONS: { label: string; value: ProposalStatusFilter }[] = [
   { label: 'All proposals', value: 'all' },
@@ -18,4 +19,5 @@ export const SORT_OPTIONS: { label: string; value: ProposalSortOption }[] = [
   { label: 'Most upvoted', value: 'upvotes' },
   { label: 'Most funders', value: 'most_applicants' },
   { label: 'Raised', value: 'amount_raised' },
+  { label: 'Completed', value: 'completed' },
 ];

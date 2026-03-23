@@ -11,6 +11,8 @@ interface Tab {
   highlight?: boolean;
   separator?: boolean;
   icon?: LucideIcon;
+  iconClassName?: string;
+  activeClassName?: string;
   onClick?: (e: React.MouseEvent) => void;
 }
 
@@ -53,7 +55,7 @@ const TabItem: React.FC<{
       : [
           'border-b-2 py-3 h-full',
           isActive
-            ? 'text-primary-600 border-primary-600'
+            ? tab.activeClassName || 'text-primary-600 border-b-primary-600'
             : 'text-gray-800 border-transparent hover:text-gray-700 hover:border-gray-200',
         ],
     disabled && 'cursor-not-allowed pointer-events-none'
@@ -61,7 +63,7 @@ const TabItem: React.FC<{
 
   const content = (
     <>
-      {tab.icon && <tab.icon className="w-4 h-4 flex-shrink-0" />}
+      {tab.icon && <tab.icon className={cn('w-4 h-4 flex-shrink-0', tab.iconClassName)} />}
       <span className="truncate">{tab.label}</span>
     </>
   );
@@ -126,7 +128,7 @@ export const Tabs: React.FC<TabsProps> = ({
   const gradient = isPrimary ? 'white' : '#f3f4f6';
 
   return (
-    <div className={cn('w-full relative', className)}>
+    <div className={cn('w-full relative', isPrimary && 'border-b border-gray-200', className)}>
       <div
         className={cn(
           'absolute left-0 top-0 bottom-0 z-10 flex items-center pr-2 transition-opacity duration-200',
@@ -147,7 +149,7 @@ export const Tabs: React.FC<TabsProps> = ({
         onScroll={checkScrollability}
         className={cn(
           'flex items-center flex-nowrap h-full overflow-x-auto scrollbar-none',
-          variant === 'pill' ? 'gap-2' : 'space-x-8'
+          variant === 'pill' ? 'gap-2' : 'space-x-8 -mb-px'
         )}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >

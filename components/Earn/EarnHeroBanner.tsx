@@ -27,7 +27,7 @@ export function EarnHeroBanner() {
   return (
     <>
       <HeroHeader
-        title="Earn RSC for Peer Reviews"
+        title="Earn for Peer Reviews"
         subtitle={
           <p className="text-gray-500 text-base">Earn ResearchCoin for peer-reviewing papers.</p>
         }
