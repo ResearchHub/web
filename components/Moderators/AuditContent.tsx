@@ -239,8 +239,8 @@ export const AuditContent: FC<AuditContentProps> = ({
         onClose={() => setShowBulkRemoveConfirm(false)}
         onConfirm={handleBulkRemoveConfirmed}
         title="Remove Selected Content"
-        message={`Are you sure you want to remove ${selectionCount} flagged item${selectionCount !== 1 ? 's' : ''}? This action cannot be undone.`}
-        confirmText={`Remove ${selectionCount} item${selectionCount !== 1 ? 's' : ''}`}
+        message={`Are you sure you want to remove ${selectionCount} flagged item${selectionCount === 1 ? '' : 's'}? This action cannot be undone.`}
+        confirmText={`Remove ${selectionCount} item${selectionCount === 1 ? '' : 's'}`}
         confirmButtonClass="bg-red-600 hover:bg-red-700"
       />
     </div>
