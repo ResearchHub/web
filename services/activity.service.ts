@@ -15,14 +15,16 @@ export interface GetActivityParams {
 
 export class ActivityService {
   private static readonly BASE_PATH = '/api/activity_feed';
+  private static readonly DEFAULT_PAGE_SIZE = 25;
 
   static async getActivity(params?: GetActivityParams): Promise<{
     entries: FeedEntry[];
     hasMore: boolean;
   }> {
+    const pageSize = params?.pageSize ?? this.DEFAULT_PAGE_SIZE;
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.pageSize) queryParams.append('page_size', params.pageSize.toString());
+    queryParams.append('page_size', pageSize.toString());
     if (params?.documentType) queryParams.append('document_type', params.documentType);
     if (params?.grantId) queryParams.append('grant_id', params.grantId.toString());
     if (params?.scope) queryParams.append('scope', params.scope);
