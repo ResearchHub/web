@@ -36,7 +36,7 @@ export function SelectFundingOpportunityModal({
   isOpen,
   onClose,
   onSelect,
-}: SelectFundingOpportunityModalProps) {
+}: Readonly<SelectFundingOpportunityModalProps>) {
   const [grants, setGrants] = useState<FeedEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -99,13 +99,15 @@ export function SelectFundingOpportunityModal({
       contentClassName="!pb-10"
     >
       <div className="space-y-2">
-        {grants.length === 0 && loading ? (
-          <GrantCardSkeleton />
-        ) : grants.length === 0 ? (
+        {grants.length === 0 && loading && <GrantCardSkeleton />}
+
+        {grants.length === 0 && !loading && (
           <div className="text-center py-10">
             <p className="text-sm text-gray-500">No open funding opportunities available</p>
           </div>
-        ) : (
+        )}
+
+        {grants.length > 0 && (
           <>
             {grants.map((entry) => {
               const content = entry.content as FeedGrantContent;

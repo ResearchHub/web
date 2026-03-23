@@ -34,8 +34,7 @@ function FundingOpportunitySection() {
     <>
       <div>
         <h3 className="text-[15px] font-semibold tracking-tight text-gray-900 mb-2">
-          Funding Opportunity
-          <span className="ml-1 font-normal text-gray-500 text-xs">(Optional)</span>
+          Funding Opportunity <span className="font-normal text-gray-500 text-xs">(Optional)</span>
         </h3>
         {selectedGrant ? (
           <div className="flex gap-3 p-3 rounded-xl border border-gray-200 bg-gray-50 relative">
