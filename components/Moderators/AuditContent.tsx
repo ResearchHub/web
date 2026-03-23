@@ -126,8 +126,8 @@ export const AuditContent: FC<AuditContentProps> = ({
 
       {/* Bulk action bar — shown when in pending view and entries exist */}
       {isPending && entries.length > 0 && !isLoading && (
-        <div className="mb-4 flex items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-3">
-          <div className="flex items-center gap-3">
+        <div className="mb-4 flex flex-wrap items-center gap-y-2 bg-white border border-gray-200 rounded-lg px-4 py-3">
+          <div className="flex items-center gap-3 mr-auto">
             {onToggleSelectAll && (
               <SelectionCheckbox
                 checked={isAllSelected}
@@ -144,7 +144,7 @@ export const AuditContent: FC<AuditContentProps> = ({
           </div>
 
           {selectionCount > 0 && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center">
               <Button
                 variant="ghost"
                 size="sm"

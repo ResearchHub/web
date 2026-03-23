@@ -54,34 +54,36 @@ export const ModerationActions: FC<ModerationActionsProps> = ({
 
   return (
     <>
-      <div className={cn('flex items-center space-x-2', className)}>
-        {onSelect && (
-          <SelectionCheckbox
-            checked={!!isSelected}
-            onChange={onSelect}
-            ariaLabel={isSelected ? 'Deselect item' : 'Select item'}
-          />
-        )}
+      <div className={cn('flex flex-wrap items-center gap-x-1 gap-y-2', className)}>
+        <div className="flex items-center gap-1">
+          {onSelect && (
+            <SelectionCheckbox
+              checked={!!isSelected}
+              onChange={onSelect}
+              ariaLabel={isSelected ? 'Deselect item' : 'Select item'}
+            />
+          )}
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onDismiss}
-          className="text-green-600 hover:text-green-700 hover:bg-green-50"
-        >
-          <CheckCircle className="h-4 w-4 mr-1" />
-          Dismiss
-        </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onDismiss}
+            className="text-green-600 hover:text-green-700 hover:bg-green-50"
+          >
+            <CheckCircle className="h-4 w-4 mr-1" />
+            Dismiss
+          </Button>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onRemove}
-          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-        >
-          <XCircle className="h-4 w-4 mr-1" />
-          Remove
-        </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onRemove}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            <XCircle className="h-4 w-4 mr-1" />
+            Remove
+          </Button>
+        </div>
 
         {authorId && (
           <Button
