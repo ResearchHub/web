@@ -5,6 +5,19 @@ import { InputType, SearchStatus, type SavedTemplateType } from '@/services/expe
 import type { AuthorProfile } from './authorProfile';
 import { transformAuthorProfile } from './authorProfile';
 
+export interface CreatedByInfo {
+  userId: number;
+  author: AuthorProfile | null;
+}
+
+function transformCreatedBy(raw: any): CreatedByInfo | null {
+  if (!raw) return null;
+  const userId = raw.user_id ?? 0;
+  const author = raw.author ? transformAuthorProfile(raw.author) : null;
+
+  return { userId, author };
+}
+
 /** Single expert as displayed in the app (detail/list rows). */
 export interface ExpertResult {
   name: string;
@@ -45,6 +58,7 @@ export interface ExpertSearchResult {
   updatedAt: string;
   completedAt: string | null;
   work: Work | null;
+  createdBy: CreatedByInfo | null;
 }
 
 /** Search list item as used by the app (library table, etc.). */
@@ -57,6 +71,7 @@ export interface ExpertSearchListItem {
   expertNames: string[];
   createdAt: string;
   completedAt: string | null;
+  createdBy: CreatedByInfo | null;
 }
 
 /** List response shape as consumed by the app. */
@@ -122,6 +137,7 @@ export const transformExpertSearch = createTransformer<any, ExpertSearchResult>(
   updatedAt: raw.updated_at ?? '',
   completedAt: raw.completed_at ?? null,
   work: raw.work ? transformUnifiedDocument(raw.work) : null,
+  createdBy: transformCreatedBy(raw.created_by),
 }));
 
 export const transformExpertSearchListItem = createTransformer<any, ExpertSearchListItem>(
@@ -134,6 +150,7 @@ export const transformExpertSearchListItem = createTransformer<any, ExpertSearch
     expertNames: Array.isArray(raw.expert_names) ? raw.expert_names : [],
     createdAt: raw.created_at ?? '',
     completedAt: raw.completed_at ?? null,
+    createdBy: transformCreatedBy(raw.created_by),
   })
 );
 
@@ -174,6 +191,7 @@ export interface GeneratedEmail {
   notes: string;
   createdAt: string;
   updatedAt: string;
+  createdBy: CreatedByInfo | null;
 }
 
 export interface GeneratedEmailListResponse {
@@ -198,6 +216,7 @@ export const transformGeneratedEmail = createTransformer<any, GeneratedEmail>((r
   notes: raw.notes ?? '',
   createdAt: raw.created_at ?? '',
   updatedAt: raw.updated_at ?? '',
+  createdBy: transformCreatedBy(raw.created_by),
 }));
 
 // ── Document invited experts (app-level, camelCase) ───────────────────────────
@@ -234,7 +253,7 @@ export const transformInvitedExperts = createTransformer<any, InvitedExperts>((r
 
 export interface SavedTemplate {
   id: number;
-  createdBy: number;
+  createdBy: CreatedByInfo | null;
   name: string;
   templateType: SavedTemplateType;
   contactName: string;
@@ -259,7 +278,7 @@ export interface SavedTemplateListResponse {
 
 export const transformSavedTemplate = createTransformer<any, SavedTemplate>((raw) => ({
   id: raw.id ?? 0,
-  createdBy: raw.created_by ?? 0,
+  createdBy: transformCreatedBy(raw.created_by),
   name: raw.name ?? '',
   templateType: raw.template_type ?? 'prompt-context',
   contactName: raw.contact_name ?? '',

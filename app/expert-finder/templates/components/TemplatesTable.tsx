@@ -3,36 +3,49 @@
 import Link from 'next/link';
 import { TableContainer, SortableColumn } from '@/components/ui/Table/TableContainer';
 import { formatTimestamp } from '@/utils/date';
+import { stripHtml } from '@/utils/stringUtils';
 import type { SavedTemplate } from '@/types/expertFinder';
 
 const TEMPLATE_DETAIL_PATH = '/expert-finder/templates';
+const DETAIL_MAX_CHARS = 80;
 
-function TemplateContactDetails({ template }: { template: SavedTemplate }) {
-  const name = template.contactName?.trim();
-  const title = template.contactTitle?.trim();
-  const institution = template.contactInstitution?.trim();
-  const email = template.contactEmail?.trim();
+function TemplateDetailsCell({ template }: { template: SavedTemplate }) {
+  const isPromptContext = template.templateType === 'prompt-context';
+  const textClassName = 'text-[10px] text-gray-600 truncate block max-w-[200px]';
 
-  const nameTitleLine = [name, title].filter(Boolean).join(', ') || '—';
-  const institutionLine = institution || '—';
+  if (isPromptContext) {
+    const name = template.contactName?.trim();
+    const title = template.contactTitle?.trim();
+    const institution = template.contactInstitution?.trim();
+    const email = template.contactEmail?.trim();
+    const parts = [name, title, institution, email].filter(Boolean);
+    const summary = parts.length > 0 ? parts.join(' · ') : '—';
+    const display =
+      summary.length > DETAIL_MAX_CHARS ? `${summary.slice(0, DETAIL_MAX_CHARS)}…` : summary;
+    return (
+      <span className={textClassName} title={summary}>
+        {display}
+      </span>
+    );
+  }
 
+  const bodySnippet = stripHtml(template.emailBody ?? '');
+  const display =
+    bodySnippet.length > DETAIL_MAX_CHARS
+      ? `${bodySnippet.slice(0, DETAIL_MAX_CHARS)}…`
+      : bodySnippet || '—';
   return (
-    <div className="flex flex-col gap-0.5 text-sm">
-      <span className="font-medium text-gray-900">{nameTitleLine}</span>
-      <span className="text-gray-600">{institutionLine}</span>
-      {email ? (
-        <span className="text-gray-600 truncate max-w-full">{email}</span>
-      ) : (
-        <span className="text-gray-500">—</span>
-      )}
-    </div>
+    <span className={textClassName} title={bodySnippet || undefined}>
+      {display}
+    </span>
   );
 }
 
 const COLUMNS: SortableColumn[] = [
   { key: 'name', label: 'Name', sortable: false },
-  { key: 'contact', label: 'Contact', sortable: false },
-  { key: 'createdDate', label: 'Created', sortable: false },
+  { key: 'details', label: 'Details', sortable: false },
+  { key: 'createdBy', label: 'Created By', sortable: false },
+  { key: 'createdDate', label: 'Created Date', sortable: false },
   { key: 'view', label: '', sortable: false },
 ];
 
@@ -45,7 +58,8 @@ export function TemplatesTable({ templates, onRowClick }: TemplatesTableProps) {
   const data = templates.map((template) => ({
     id: template.id,
     name: template.name || '—',
-    contact: <TemplateContactDetails template={template} />,
+    details: <TemplateDetailsCell template={template} />,
+    createdBy: template.createdBy?.author?.fullName ?? '—',
     createdDate: formatTimestamp(template.createdDate, false),
     view: (
       <Link

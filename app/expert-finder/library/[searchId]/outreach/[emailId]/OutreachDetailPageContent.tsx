@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Mail, Trash2, Send, Loader2, Save, Eye } from 'lucide-react';
 import { getTemplateDisplayLabel } from '@/app/expert-finder/library/[searchId]/components/GenerateEmailModal';
 import { Alert } from '@/components/ui/Alert';
+import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { BaseSection } from '@/components/ui/BaseSection';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
@@ -19,7 +20,9 @@ import {
   usePreviewEmails,
   useSendEmails,
 } from '@/hooks/useExpertFinder';
+import { useUser } from '@/contexts/UserContext';
 import { toast } from 'react-hot-toast';
+import { isValidEmail } from '@/utils/validation';
 
 export interface OutreachDetailPageContentProps {
   emailId: string;
@@ -30,6 +33,7 @@ export function OutreachDetailPageContent({
   emailId,
   librarySearchId,
 }: OutreachDetailPageContentProps) {
+  const { user } = useUser();
   const [{ email, isLoading, error }, refetch] = useGeneratedEmailDetail(emailId);
   const [{ isLoading: isUpdating }, updateEmail] = useUpdateGeneratedEmail();
   const [{ isLoading: isDeleting }, deleteEmail] = useDeleteGeneratedEmail();
@@ -42,6 +46,7 @@ export function OutreachDetailPageContent({
   const [actionError, setActionError] = useState<string | null>(null);
   const [editSubject, setEditSubject] = useState('');
   const [editBody, setEditBody] = useState('');
+  const [replyTo, setReplyTo] = useState('');
 
   const backHref = `/expert-finder/library/${librarySearchId}?tab=outreach`;
 
@@ -51,6 +56,12 @@ export function OutreachDetailPageContent({
       setEditBody(email.emailBody ?? '');
     }
   }, [email?.id, email?.emailSubject, email?.emailBody]);
+
+  useEffect(() => {
+    if (user?.email && replyTo === '') {
+      setReplyTo(user.email);
+    }
+  }, [user?.email]);
 
   const isDraft = email?.status !== 'sent';
   const hasEdits =
@@ -111,9 +122,17 @@ export function OutreachDetailPageContent({
 
   const handleSendToExpert = async () => {
     if (!emailId || !email) return;
+    const trimmedReplyTo = (replyTo ?? '').trim();
+    if (!trimmedReplyTo || !isValidEmail(trimmedReplyTo)) {
+      setActionError('Please enter a valid Reply To email address.');
+      return;
+    }
     setActionError(null);
     try {
-      await sendEmails({ generated_email_ids: [Number(emailId)] });
+      await sendEmails({
+        generated_email_ids: [Number(emailId)],
+        reply_to: trimmedReplyTo,
+      });
       setShowSendToExpertConfirm(false);
       refetch();
       toast.success('Email sent to the expert.');
@@ -183,6 +202,23 @@ export function OutreachDetailPageContent({
               </div>
             </div>
           )}
+          {email.createdBy?.author && (
+            <div className="mt-2 text-sm text-gray-600">
+              Created by:{' '}
+              {email.createdBy.author.id ? (
+                <AuthorTooltip authorId={email.createdBy.author.id}>
+                  <Link
+                    href={`/author/${email.createdBy.author.id}`}
+                    className="font-medium text-primary-600 hover:text-primary-700 hover:underline"
+                  >
+                    {email.createdBy.author.fullName}
+                  </Link>
+                </AuthorTooltip>
+              ) : (
+                <span className="font-medium text-gray-900">{email.createdBy.author.fullName}</span>
+              )}
+            </div>
+          )}
         </div>
         <div className="min-w-0 flex flex-wrap items-center gap-2 justify-start md:!justify-end">
           <Badge variant={email.status === 'sent' ? 'success' : 'warning'}>
@@ -249,6 +285,23 @@ export function OutreachDetailPageContent({
           <Input label="Subject" value={email.emailSubject} readOnly className="bg-gray-50" />
         )}
       </BaseSection>
+
+      {isDraft && (
+        <BaseSection>
+          <Input
+            label="Reply To"
+            type="email"
+            value={replyTo}
+            onChange={(e) => setReplyTo(e.target.value)}
+            placeholder="Email address for replies"
+            error={
+              replyTo.trim() && !isValidEmail(replyTo.trim())
+                ? 'Please enter a valid email address'
+                : undefined
+            }
+          />
+        </BaseSection>
+      )}
 
       <BaseSection>
         <div>
