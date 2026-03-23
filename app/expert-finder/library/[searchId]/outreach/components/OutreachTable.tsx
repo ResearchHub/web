@@ -24,7 +24,8 @@ const BASE_COLUMNS: SortableColumn[] = [
   { key: 'subject', label: 'Subject', sortable: false },
   { key: 'template', label: 'Template', sortable: false },
   { key: 'status', label: 'Status', sortable: false },
-  { key: 'createdAt', label: 'Created', sortable: false },
+  { key: 'createdBy', label: 'Created By', sortable: false },
+  { key: 'createdAt', label: 'Created Date', sortable: false },
   { key: 'view', label: '', sortable: false },
 ];
 
@@ -115,6 +116,7 @@ export function OutreachTable({
           {email.status === 'sent' ? 'Sent' : 'Draft'}
         </Badge>
       ),
+      createdBy: email.createdBy?.author?.fullName ?? '—',
       createdAt: formatTimestamp(email.createdAt, false),
       view: (
         <Link

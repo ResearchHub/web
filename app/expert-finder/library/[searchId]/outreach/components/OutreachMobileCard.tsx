@@ -30,6 +30,7 @@ export function OutreachMobileCard({ email, onClick, className }: OutreachMobile
   const templateLabel = getTemplateDisplayLabel(email.template);
   const templateDescription = getTemplateDescription(email.template);
   const isSent = email.status === 'sent';
+  const createdByName = email.createdBy?.author?.fullName;
 
   return (
     <ListCard onClick={onClick} className={className}>
@@ -37,6 +38,7 @@ export function OutreachMobileCard({ email, onClick, className }: OutreachMobile
       <p className="text-xs text-gray-600 mt-1 truncate" title={email.emailSubject}>
         {subject}
       </p>
+      {createdByName && <p className="text-xs text-gray-500 mt-0.5">by {createdByName}</p>}
       <div className="flex flex-wrap items-center gap-2 mt-2">
         <Badge variant={isSent ? 'success' : 'primary'} size="sm">
           {isSent ? 'Sent' : 'Draft'}
