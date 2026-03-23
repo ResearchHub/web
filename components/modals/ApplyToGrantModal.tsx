@@ -29,12 +29,6 @@ const ProposalSkeleton = () => (
   </div>
 );
 
-function formatCompactAmount(usd: number): string {
-  if (usd >= 1_000_000) return `$${Math.round(usd / 1_000_000)}M`;
-  if (usd >= 1_000) return `$${Math.round(usd / 1_000)}K`;
-  return `$${Math.round(usd).toLocaleString()}`;
-}
-
 interface ApplyToGrantModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -42,6 +36,9 @@ interface ApplyToGrantModalProps {
   grantId: string;
   grantTitle?: string;
   grantAmountUsd?: number;
+  grantShortTitle?: string;
+  grantImageUrl?: string;
+  grantOrganization?: string;
 }
 
 export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
@@ -51,6 +48,9 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   grantId,
   grantTitle,
   grantAmountUsd,
+  grantShortTitle,
+  grantImageUrl,
+  grantOrganization,
 }) => {
   const [proposals, setProposals] = useState<ProposalForModal[]>([]);
   const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
@@ -73,7 +73,13 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   };
 
   const handleDraftNew = () => {
-    setPendingGrant({ id: grantId, title: grantTitle || '' });
+    setPendingGrant({
+      id: grantId,
+      shortTitle: grantShortTitle || grantTitle || '',
+      imageUrl: grantImageUrl || '',
+      fundingAmount: grantAmountUsd || 0,
+      organization: grantOrganization || '',
+    });
     onClose();
     router.push('/notebook?newFunding=true');
   };

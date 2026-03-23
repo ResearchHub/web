@@ -60,6 +60,7 @@ export const publishingFormSchema = z
       .optional(),
     isJournalEnabled: z.boolean().optional(),
     selectedNonprofit: z.any().nullable().optional(),
+    selectedGrant: z.any().nullable().optional(),
     departmentLabName: z.string().optional(),
     shortDescription: z.string().optional(),
     organization: z.string().optional(),

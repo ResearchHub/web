@@ -17,7 +17,6 @@ interface ConfirmPublishModalProps {
   isUpdate?: boolean;
   variant?: ConfirmPublishVariant;
   zIndex?: number;
-  pendingGrantTitle?: string | null;
 }
 
 interface GuidelineItem {
@@ -64,7 +63,6 @@ export function ConfirmPublishModal({
   isUpdate,
   variant = 'default',
   zIndex = 100,
-  pendingGrantTitle,
 }: ConfirmPublishModalProps) {
   const [title, setTitle] = useState(initialTitle);
   const [hasAgreed, setHasAgreed] = useState(false);
@@ -127,16 +125,6 @@ export function ConfirmPublishModal({
                     className="w-full p-3 text-sm font-medium text-gray-900 bg-gray-50 rounded-lg mb-6 border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="Enter title..."
                   />
-
-                  {pendingGrantTitle && (
-                    <div className="flex items-center gap-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2.5 mb-6">
-                      <FileText className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                      <p className="text-sm text-blue-700">
-                        This proposal will be submitted to{' '}
-                        <span className="font-semibold">{pendingGrantTitle}</span>
-                      </p>
-                    </div>
-                  )}
 
                   <div className="bg-gray-50 p-4 rounded-lg mb-6">
                     <h4 className="font-medium text-sm text-gray-900 mb-3">{guidelines.heading}</h4>

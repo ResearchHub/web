@@ -1,5 +1,11 @@
 import { formatRSC } from './number';
 
+export function formatCompactAmount(usd: number): string {
+  if (usd >= 1_000_000) return `$${Math.round(usd / 1_000_000)}M`;
+  if (usd >= 1_000) return `$${Math.round(usd / 1_000)}K`;
+  return `$${Math.round(usd).toLocaleString()}`;
+}
+
 interface FormatCurrencyOptions {
   amount: number;
   showUSD: boolean;

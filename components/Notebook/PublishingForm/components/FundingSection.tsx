@@ -1,5 +1,5 @@
 import { useFormContext } from 'react-hook-form';
-import { Upload, Image as ImageIcon, Gift } from 'lucide-react';
+import { Upload, Image as ImageIcon, Gift, X, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Switch } from '@/components/ui/Switch';
@@ -11,12 +11,89 @@ import { FundraiseSection } from '@/components/work/components/FundraiseSection'
 import { NonprofitSearchSection } from '@/components/Nonprofit';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
 import { useNonprofitSearch } from '@/hooks/useNonprofitSearch';
+import { SelectFundingOpportunityModal } from '@/components/modals/SelectFundingOpportunityModal';
+import { SelectedGrantData } from '@/components/Editor/lib/utils/publishingFormStorage';
+import { formatCompactAmount } from '@/utils/currency';
+import { GRANT_IMAGE_FALLBACK_GRADIENT } from '@/types/grant';
 
 interface FundingSectionProps {
   note: Note;
 }
 
 const FEATURE_FLAG_NFT_REWARDS = false;
+
+function FundingOpportunitySection() {
+  const { watch, setValue } = useFormContext();
+  const selectedGrant: SelectedGrantData | null = watch('selectedGrant');
+  const workId = watch('workId');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  if (workId) return null;
+
+  return (
+    <>
+      <div>
+        <h3 className="text-[15px] font-semibold tracking-tight text-gray-900 mb-2">
+          Funding Opportunity
+          <span className="ml-1 font-normal text-gray-500 text-xs">(Optional)</span>
+        </h3>
+        {selectedGrant ? (
+          <div className="flex gap-3 p-3 rounded-xl border border-gray-200 bg-gray-50 relative">
+            <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-900 flex-shrink-0 relative">
+              {selectedGrant.imageUrl ? (
+                <Image
+                  src={selectedGrant.imageUrl}
+                  alt={selectedGrant.shortTitle}
+                  fill
+                  className="object-cover"
+                  sizes="48px"
+                />
+              ) : (
+                <div
+                  className="absolute inset-0"
+                  style={{ background: GRANT_IMAGE_FALLBACK_GRADIENT }}
+                />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                {selectedGrant.organization || 'ResearchHub Grant'}
+              </div>
+              <div className="text-sm font-semibold text-gray-900 truncate">
+                {selectedGrant.shortTitle}
+              </div>
+              <div className="text-xs font-medium text-emerald-600">
+                {formatCompactAmount(selectedGrant.fundingAmount)} Funding
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setValue('selectedGrant', null)}
+              className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 transition-colors text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-gray-300 text-xs text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/50 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Select Funding Opportunity
+          </button>
+        )}
+      </div>
+
+      <SelectFundingOpportunityModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSelect={(grant) => setValue('selectedGrant', grant)}
+      />
+    </>
+  );
+}
 
 export function FundingSection({ note }: Readonly<FundingSectionProps>) {
   const {
@@ -103,6 +180,8 @@ export function FundingSection({ note }: Readonly<FundingSectionProps>) {
 
   return (
     <div className="py-3 px-6 space-y-6">
+      <FundingOpportunitySection />
+
       {fundraise ? (
         <>
           <FundraiseSection fundraise={fundraise} />

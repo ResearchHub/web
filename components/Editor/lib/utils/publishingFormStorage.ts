@@ -88,12 +88,15 @@ export const clearPublishingFormStorage = (noteId: string) => {
 
 const PENDING_GRANT_KEY = 'pendingGrant';
 
-export interface PendingGrant {
+export interface SelectedGrantData {
   id: string;
-  title: string;
+  shortTitle: string;
+  imageUrl: string;
+  fundingAmount: number;
+  organization: string;
 }
 
-export const setPendingGrant = (grant: PendingGrant) => {
+export const setPendingGrant = (grant: SelectedGrantData) => {
   if (globalThis.window === undefined) return;
   try {
     sessionStorage.setItem(PENDING_GRANT_KEY, JSON.stringify(grant));
@@ -102,7 +105,7 @@ export const setPendingGrant = (grant: PendingGrant) => {
   }
 };
 
-export const getPendingGrant = (): PendingGrant | null => {
+export const getPendingGrant = (): SelectedGrantData | null => {
   if (globalThis.window === undefined) return null;
   try {
     const raw = sessionStorage.getItem(PENDING_GRANT_KEY);

@@ -30,7 +30,6 @@ import {
   savePublishingFormToStorage,
   getPendingGrant,
   clearPendingGrant,
-  PendingGrant,
 } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSkeleton';
 import { Loader2 } from 'lucide-react';
@@ -101,6 +100,7 @@ const FORM_DEFAULTS = {
   budget: '',
   coverImage: null,
   selectedNonprofit: null,
+  selectedGrant: null,
   departmentLabName: '',
   shortDescription: '',
   organization: '',
@@ -251,7 +251,6 @@ export function PublishingForm({
   const [{ loading: isUploadingImage }, uploadAsset] = useAssetUpload();
   const { linkNonprofitToFundraise, isLoading: isLinkingNonprofit } = useNonprofitLink();
   const [showNonprofitConfirmModal, setShowNonprofitConfirmModal] = useState(false);
-  const [pendingGrant, setPendingGrant] = useState<PendingGrant | null>(() => getPendingGrant());
 
   const methods = useForm<PublishingFormData>({
     defaultValues: FORM_DEFAULTS,
@@ -282,6 +281,13 @@ export function PublishingForm({
 
     applyGrantDefaults(methods.getValues, methods.setValue);
     autoAddCurrentUser(methods.getValues, methods.setValue, currentUser);
+
+    const pending = getPendingGrant();
+    if (pending) {
+      methods.setValue('selectedGrant', pending);
+      clearPendingGrant();
+    }
+
     savePublishingFormToStorage(
       note.id.toString(),
       methods.getValues() as Partial<PublishingFormData>
@@ -431,7 +437,7 @@ export function PublishingForm({
       }
 
       const isNewProposal = formData.articleType === 'preregistration' && !formData.workId;
-      const pendingGrantId = isNewProposal ? pendingGrant?.id || null : null;
+      const grantId = isNewProposal ? (formData.selectedGrant?.id ?? null) : null;
 
       const response = await upsertPost(
         {
@@ -461,7 +467,7 @@ export function PublishingForm({
             formData.articleType === 'grant'
               ? new Date('2029-12-31')
               : formData.applicationDeadline,
-          grantId: pendingGrantId,
+          grantId,
         },
         formData.workId
       );
@@ -474,8 +480,6 @@ export function PublishingForm({
         return;
       }
 
-      clearPendingGrant();
-      setPendingGrant(null);
       setIsRedirecting(true);
       if (formData.articleType === 'grant' && !formData.workId) {
         toast.success('Your RFP has been submitted and is pending moderator review.', {
@@ -598,11 +602,6 @@ export function PublishingForm({
           onTitleChange={(title) => setDocumentTitle(editor, title)}
           variant={articleType === 'grant' ? 'rfp' : 'default'}
           zIndex={isModal ? 10000 : 100}
-          pendingGrantTitle={
-            articleType === 'preregistration' && !methods.watch('workId')
-              ? pendingGrant?.title
-              : null
-          }
         />
       )}
     </FormProvider>

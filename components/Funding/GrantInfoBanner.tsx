@@ -284,6 +284,9 @@ export const GrantInfoBanner = ({
           grantId={grantId}
           grantTitle={work?.title}
           grantAmountUsd={amountUsd}
+          grantShortTitle={work?.note?.post?.grant?.shortTitle}
+          grantImageUrl={work?.image}
+          grantOrganization={organization}
         />
       )}
 
