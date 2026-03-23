@@ -15,6 +15,8 @@ interface AuditItemPostProps {
   onAction: (action: 'dismiss' | 'remove') => void;
   onRefresh?: () => void;
   view?: 'pending' | 'dismissed' | 'removed';
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
 /**
@@ -139,6 +141,8 @@ export const AuditItemPost: FC<AuditItemPostProps> = ({
   onAction,
   onRefresh,
   view = 'pending',
+  isSelected,
+  onSelect,
 }) => {
   const verdict = entry.verdict;
   const contentUrl = getAuditContentUrl(entry);
@@ -181,6 +185,8 @@ export const AuditItemPost: FC<AuditItemPostProps> = ({
           authorId={userInfo.authorId}
           authorName={userInfo.name}
           onRefresh={onRefresh}
+          isSelected={isSelected}
+          onSelect={onSelect}
         />
       </div>
     </div>

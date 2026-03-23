@@ -19,6 +19,8 @@ interface AuditItemPaperProps {
   readonly onAction: (action: 'dismiss' | 'remove') => void;
   readonly onRefresh?: () => void;
   readonly view?: 'pending' | 'dismissed' | 'removed';
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
 export const AuditItemPaper: FC<AuditItemPaperProps> = ({
@@ -26,6 +28,8 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({
   onAction,
   onRefresh,
   view = 'pending',
+  isSelected,
+  onSelect,
 }) => {
   const userInfo = getAuditUserInfo(entry);
   const verdict = entry.verdict;
@@ -147,6 +151,8 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({
         authorId={userInfo.authorId}
         authorName={userInfo.name}
         onRefresh={onRefresh}
+        isSelected={isSelected}
+        onSelect={onSelect}
       />
     </div>
   );

@@ -6,7 +6,6 @@ import { AuditContent } from '@/components/Moderators/AuditContent';
 import { AuditTabs } from '@/components/Moderators/AuditTabs';
 import { Button } from '@/components/ui/Button';
 import { RefreshCw } from 'lucide-react';
-import { ID } from '@/types/root';
 
 const getViewFromStatus = (status: AuditStatus): 'pending' | 'dismissed' | 'removed' => {
   if (status === 'pending') return 'pending';
@@ -28,6 +27,11 @@ export default function AuditPage() {
     refresh,
     removeFlaggedContent,
     dismissFlaggedContent,
+    selectedIds,
+    handleItemSelect,
+    toggleSelectAll,
+    clearSelection,
+    handleBulkAction,
   } = useAudit({
     status: activeStatus,
   });
@@ -39,18 +43,6 @@ export default function AuditPage() {
     } finally {
       setIsRefreshing(false);
     }
-  };
-
-  const handleDismiss = async (flagIds: ID[]) => {
-    return await dismissFlaggedContent(flagIds);
-  };
-
-  const handleRemove = async (flagIds: ID[]) => {
-    return await removeFlaggedContent(flagIds);
-  };
-
-  const handleStatusChange = (status: AuditStatus) => {
-    setActiveStatus(status);
   };
 
   return (
@@ -83,7 +75,7 @@ export default function AuditPage() {
         <div className="flex items-center justify-between border-b border-gray-200 mb-6">
           <AuditTabs
             activeStatus={activeStatus}
-            onStatusChange={handleStatusChange}
+            onStatusChange={setActiveStatus}
             loading={isLoading || isRefreshing || isLoadingMore}
           />
         </div>
@@ -98,10 +90,15 @@ export default function AuditPage() {
           hasMore={hasMore}
           error={error}
           loadMore={loadMore}
-          onDismiss={handleDismiss}
-          onRemove={handleRemove}
+          onDismiss={dismissFlaggedContent}
+          onRemove={removeFlaggedContent}
           onRefresh={refresh}
           view={getViewFromStatus(activeStatus)}
+          selectedIds={selectedIds}
+          onItemSelect={handleItemSelect}
+          onToggleSelectAll={toggleSelectAll}
+          onClearSelection={clearSelection}
+          onBulkAction={handleBulkAction}
         />
       </div>
     </div>

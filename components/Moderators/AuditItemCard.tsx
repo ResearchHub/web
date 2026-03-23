@@ -11,6 +11,8 @@ interface AuditItemCardProps {
   onAction: (action: 'dismiss' | 'remove') => void;
   onRefresh?: () => void;
   view?: 'pending' | 'dismissed' | 'removed';
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
 /**
@@ -35,19 +37,25 @@ const detectContentType = (entry: FlaggedContent): 'comment' | 'post' | 'paper' 
   }
 };
 
-export const AuditItemCard: FC<AuditItemCardProps> = ({ entry, onAction, onRefresh, view }) => {
+export const AuditItemCard: FC<AuditItemCardProps> = ({
+  entry,
+  onAction,
+  onRefresh,
+  view,
+  isSelected,
+  onSelect,
+}) => {
   const contentType = detectContentType(entry);
 
-  // Render the appropriate component based on content type
+  const sharedProps = { entry, onAction, onRefresh, view, isSelected, onSelect };
+
   switch (contentType) {
     case 'comment':
-      return (
-        <AuditItemComment entry={entry} onAction={onAction} onRefresh={onRefresh} view={view} />
-      );
+      return <AuditItemComment {...sharedProps} />;
     case 'post':
-      return <AuditItemPost entry={entry} onAction={onAction} onRefresh={onRefresh} view={view} />;
+      return <AuditItemPost {...sharedProps} />;
     case 'paper':
-      return <AuditItemPaper entry={entry} onAction={onAction} onRefresh={onRefresh} view={view} />;
+      return <AuditItemPaper {...sharedProps} />;
     default:
       return (
         <div className="bg-white border border-gray-200 rounded-lg p-4">

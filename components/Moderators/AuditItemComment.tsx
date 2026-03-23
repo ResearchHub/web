@@ -14,6 +14,8 @@ interface AuditItemCommentProps {
   onAction: (action: 'dismiss' | 'remove') => void;
   onRefresh?: () => void;
   view?: 'pending' | 'dismissed' | 'removed';
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
 /**
@@ -180,6 +182,8 @@ export const AuditItemComment: FC<AuditItemCommentProps> = ({
   onAction,
   onRefresh,
   view = 'pending',
+  isSelected,
+  onSelect,
 }) => {
   const verdict = entry.verdict;
   const userInfo = getAuditUserInfo(entry);
@@ -218,6 +222,8 @@ export const AuditItemComment: FC<AuditItemCommentProps> = ({
           authorId={userInfo.authorId}
           authorName={userInfo.name}
           onRefresh={onRefresh}
+          isSelected={isSelected}
+          onSelect={onSelect}
         />
       </div>
     </div>

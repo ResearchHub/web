@@ -4,6 +4,7 @@ import { FC, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CheckCircle, XCircle, Ban } from 'lucide-react';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
+import { SelectionCheckbox } from './SelectionCheckbox';
 import { UserModerationService } from '@/services/user-moderation.service';
 import { cn } from '@/utils/styles';
 import { toast } from 'react-hot-toast';
@@ -17,6 +18,8 @@ interface ModerationActionsProps {
   className?: string;
   authorId?: number | null;
   authorName?: string;
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
 export const ModerationActions: FC<ModerationActionsProps> = ({
@@ -28,6 +31,8 @@ export const ModerationActions: FC<ModerationActionsProps> = ({
   className,
   authorId,
   authorName,
+  isSelected,
+  onSelect,
 }) => {
   const [showSuspendConfirm, setShowSuspendConfirm] = useState(false);
 
@@ -50,6 +55,14 @@ export const ModerationActions: FC<ModerationActionsProps> = ({
   return (
     <>
       <div className={cn('flex items-center space-x-2', className)}>
+        {onSelect && (
+          <SelectionCheckbox
+            checked={!!isSelected}
+            onChange={onSelect}
+            ariaLabel={isSelected ? 'Deselect item' : 'Select item'}
+          />
+        )}
+
         <Button
           variant="ghost"
           size="sm"
