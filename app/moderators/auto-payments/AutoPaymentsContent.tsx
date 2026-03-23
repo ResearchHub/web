@@ -7,6 +7,7 @@ import { useInView } from 'react-intersection-observer';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { CurrencyBadge } from '@/components/ui/RSCBadge';
 import { Dropdown, DropdownItem } from '@/components/ui/form/Dropdown';
 import { DatePicker } from '@/components/ui/form/DatePicker';
 import { useScreenSize } from '@/hooks/useScreenSize';
@@ -31,15 +32,6 @@ const STATUS_STYLES: Record<DistributedStatus, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800',
   FAILED: 'bg-red-100 text-red-800',
 };
-
-function formatRscAmount(amount: string): string {
-  const num = Number.parseFloat(amount);
-  if (Number.isNaN(num)) return amount;
-  return new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(num);
-}
 
 function PaymentCard({ payment }: Readonly<{ payment: AutoPayment }>) {
   const recipientName = payment.recipient
@@ -75,9 +67,17 @@ function PaymentCard({ payment }: Readonly<{ payment: AutoPayment }>) {
             ) : (
               <span className="text-sm text-gray-400">Unknown user</span>
             )}
-            <span className="text-sm text-gray-700 mt-1">
-              {formatRscAmount(payment.amount)} RSC
-            </span>
+            <div className="mt-1">
+              <CurrencyBadge
+                amount={Number.parseFloat(payment.amount)}
+                size="xs"
+                variant="text"
+                showExchangeRate
+                textColor="text-gray-900"
+                showIcon={false}
+                className="!px-0 !py-0"
+              />
+            </div>
             <div className="mt-1">
               <Badge variant="primary" size="sm">
                 {DISTRIBUTION_TYPE_LABELS[payment.distributionType]}
