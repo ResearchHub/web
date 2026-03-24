@@ -1,26 +1,31 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useInView } from 'react-intersection-observer';
+import { LayoutList, Star, Coins, Reply } from 'lucide-react';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { Tabs } from '@/components/ui/Tabs';
+import { HeroHeader } from '@/components/ui/HeroHeader';
+import { PillTabs } from '@/components/ui/PillTabs';
 import { ActivityCardFull } from '@/components/Activity/ActivityCardFull';
 import { useActivityFeed, ActivityTab } from '@/hooks/useActivityFeed';
 import { ActivityScope } from '@/services/activity.service';
+import { GrantService } from '@/services/grant.service';
 
 const TABS = [
-  { id: 'all' as const, label: 'All' },
-  { id: 'peer_reviews' as const, label: 'Peer Reviews' },
+  { id: 'all' as const, label: 'All', icon: LayoutList },
+  { id: 'peer_reviews' as const, label: 'Peer Reviews', icon: Star },
+  { id: 'financial' as const, label: 'Financial', icon: Coins },
 ];
 
 const TAB_TO_SCOPE: Record<ActivityTab, ActivityScope | undefined> = {
   all: undefined,
   peer_reviews: 'peer_reviews',
+  financial: 'financial',
 };
 
 function isValidTab(value: string | null): value is ActivityTab {
-  return value === 'all' || value === 'peer_reviews';
+  return value === 'all' || value === 'peer_reviews' || value === 'financial';
 }
 
 export default function ActivityPage() {
@@ -28,10 +33,26 @@ export default function ActivityPage() {
   const searchParams = useSearchParams();
 
   const tabParam = searchParams.get('tab');
+  const grantIdParam = searchParams.get('grant_id');
   const activeTab: ActivityTab = isValidTab(tabParam) ? tabParam : 'all';
   const scope = TAB_TO_SCOPE[activeTab];
 
-  const { entries, isLoading, isLoadingMore, hasMore, loadMore } = useActivityFeed({ scope });
+  const [grantName, setGrantName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!grantIdParam) {
+      setGrantName(null);
+      return;
+    }
+    GrantService.getById(grantIdParam).then((grant) => {
+      setGrantName(grant?.shortTitle || grant?.title || null);
+    });
+  }, [grantIdParam]);
+
+  const { entries, isLoading, isLoadingMore, hasMore, loadMore } = useActivityFeed({
+    scope,
+    grantId: grantIdParam || undefined,
+  });
 
   const { ref: sentinelRef } = useInView({
     threshold: 0,
@@ -58,12 +79,24 @@ export default function ActivityPage() {
   );
 
   const tabsElement = useMemo(
-    () => <Tabs tabs={TABS} activeTab={activeTab} onTabChange={handleTabChange} />,
+    () => <PillTabs tabs={TABS} activeTab={activeTab} onTabChange={handleTabChange} size="lg" />,
     [activeTab, handleTabChange]
   );
 
+  const subtitle = grantName ? (
+    <div className="flex items-center gap-1.5">
+      <Reply className="w-4 h-4 text-gray-400 rotate-180 flex-shrink-0" />
+      <span className="text-sm sm:text-base text-gray-500">{grantName}</span>
+    </div>
+  ) : (
+    <p className="text-sm sm:text-base text-gray-500">Recent activity across the platform</p>
+  );
+
   return (
-    <PageLayout rightSidebar={false}>
+    <PageLayout
+      rightSidebar={false}
+      topBanner={<HeroHeader title="Activity" subtitle={subtitle} />}
+    >
       <div className="max-w-3xl mx-auto">
         {tabsElement}
 
@@ -74,7 +107,7 @@ export default function ActivityPage() {
 
           {(isLoading || isLoadingMore) && (
             <div className="py-8 space-y-6">
-              {[...Array(3)].map((_, i) => (
+              {[...Array(15)].map((_, i) => (
                 <div key={i} className="animate-pulse">
                   <div className="flex gap-2.5">
                     <div className="w-8 h-8 bg-gray-200 rounded-full shrink-0" />

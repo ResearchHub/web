@@ -4,13 +4,14 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { ActivityService, ActivityScope } from '@/services/activity.service';
 
-export type ActivityTab = 'all' | 'peer_reviews';
+export type ActivityTab = 'all' | 'peer_reviews' | 'financial';
 
 interface UseActivityFeedOptions {
   scope?: ActivityScope;
+  grantId?: number | string;
 }
 
-export function useActivityFeed({ scope }: UseActivityFeedOptions = {}) {
+export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {}) {
   const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -26,6 +27,7 @@ export function useActivityFeed({ scope }: UseActivityFeedOptions = {}) {
       const result = await ActivityService.getActivity({
         page: 1,
         scope,
+        grantId,
       });
       setEntries(result.entries);
       setHasMore(result.hasMore);
@@ -34,7 +36,7 @@ export function useActivityFeed({ scope }: UseActivityFeedOptions = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, [scope]);
+  }, [scope, grantId]);
 
   useEffect(() => {
     fetchInitial();
@@ -50,6 +52,7 @@ export function useActivityFeed({ scope }: UseActivityFeedOptions = {}) {
       const result = await ActivityService.getActivity({
         page: nextPage,
         scope,
+        grantId,
       });
       setEntries((prev) => [...prev, ...result.entries]);
       setHasMore(result.hasMore);
@@ -59,7 +62,7 @@ export function useActivityFeed({ scope }: UseActivityFeedOptions = {}) {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoading, isLoadingMore, hasMore, scope]);
+  }, [isLoading, isLoadingMore, hasMore, scope, grantId]);
 
   return {
     entries,

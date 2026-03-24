@@ -6,7 +6,7 @@ import {
   faGrid3 as faGrid3Light,
   faMagnifyingGlass,
 } from '@fortawesome/pro-light-svg-icons';
-import { ChartNoAxesColumnIncreasing, Shield, Hash, Users } from 'lucide-react';
+import { ChartNoAxesColumnIncreasing, Shield, Hash, Users, Activity } from 'lucide-react';
 import Image from 'next/image';
 import { Icon } from '@/components/ui/icons';
 import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
@@ -135,6 +135,13 @@ const ROUTE_RULES: RouteRule[] = [
     getInfo: () => ({
       title: 'My Dashboard',
       icon: <Icon name="fund" size={24} className="text-gray-900" />,
+    }),
+  },
+  {
+    match: (p) => p === '/activity',
+    getInfo: () => ({
+      title: 'Activity',
+      icon: <Activity size={24} className="text-gray-900" />,
     }),
   },
   {
