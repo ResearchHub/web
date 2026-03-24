@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useMemo } from 'react';
+import { FC, ReactNode, useMemo } from 'react';
 import { FlaggedContent } from '@/services/audit.service';
 import { FeedItemPost } from '@/components/Feed/items/FeedItemPost';
 import { FeedEntry, FeedPostContent } from '@/types/feed';
@@ -15,6 +15,7 @@ interface AuditItemPostProps {
   onAction: (action: 'dismiss' | 'remove') => void;
   onRefresh?: () => void;
   view?: 'pending' | 'dismissed' | 'removed';
+  checkbox?: ReactNode;
 }
 
 /**
@@ -139,6 +140,7 @@ export const AuditItemPost: FC<AuditItemPostProps> = ({
   onAction,
   onRefresh,
   view = 'pending',
+  checkbox,
 }) => {
   const verdict = entry.verdict;
   const contentUrl = getAuditContentUrl(entry);
@@ -149,9 +151,11 @@ export const AuditItemPost: FC<AuditItemPostProps> = ({
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow">
-      {/* Moderation metadata at the top */}
-      <div className="px-4 pt-4">
-        <ModerationMetadata entry={entry} />
+      <div className="px-4 pt-4 flex items-start gap-3">
+        {checkbox}
+        <div className="flex-1 min-w-0">
+          <ModerationMetadata entry={entry} />
+        </div>
       </div>
 
       {/* Use existing FeedItemPost for consistent rendering */}
