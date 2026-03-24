@@ -23,6 +23,7 @@ export interface User {
   isModerator?: boolean;
   referralCode?: string;
   authProvider?: 'google' | 'credentials';
+  isStakingOptedIn?: boolean;
 }
 
 export type TransformedUser = User & BaseTransformed;
@@ -47,6 +48,7 @@ const baseTransformUser = (raw: any): User => {
       moderator: false,
       isModerator: false,
       authProvider: undefined,
+      isStakingOptedIn: false,
     };
   }
 
@@ -84,6 +86,7 @@ const baseTransformUser = (raw: any): User => {
         ? 'google'
         : 'credentials'
       : undefined,
+    isStakingOptedIn: raw.is_staking_opted_in ?? false,
   };
 };
 
@@ -107,6 +110,7 @@ export const transformUser = (raw: any): TransformedUser => {
       raw: null,
       isModerator: false,
       authProvider: undefined,
+      isStakingOptedIn: false,
     };
   }
 
