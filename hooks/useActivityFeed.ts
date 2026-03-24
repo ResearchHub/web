@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { FeedEntry } from '@/types/feed';
 import { ActivityService, ActivityScope } from '@/services/activity.service';
 
-export type ActivityTab = 'all' | 'peer_reviews';
+export type ActivityTab = 'all' | 'peer_reviews' | 'financial';
 
 interface UseActivityFeedOptions {
   scope?: ActivityScope;

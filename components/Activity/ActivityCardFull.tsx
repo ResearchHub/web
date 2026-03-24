@@ -9,6 +9,8 @@ import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { formatTimeAgo } from '@/utils/date';
 import { buildWorkUrl } from '@/utils/url';
 import { formatCurrency } from '@/utils/currency';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import type {
   FeedEntry,
   FeedPostContent,
@@ -47,7 +49,8 @@ function getActionLabel(entry: FeedEntry): string {
     return COMMENT_ACTION_LABELS[comment?.commentType] || 'commented on';
   }
   if (entry.contentType === 'BOUNTY') return 'contributed to';
-  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION') return 'Funded Proposal';
+  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE')
+    return 'Funded Proposal';
   return DOC_ACTION_LABELS[entry.contentType] || 'contributed';
 }
 
@@ -74,7 +77,7 @@ function getEntryMeta(entry: FeedEntry) {
     };
   }
 
-  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION') {
+  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
     const post = content as FeedPostContent;
     return {
       title: post.title,
@@ -110,7 +113,7 @@ function getFundingAmount(entry: FeedEntry): number | undefined {
 }
 
 function getActionIcon(entry: FeedEntry): React.ReactNode {
-  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION')
+  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE')
     return <Coins size={14} className="inline -mt-0.5 ml-1 text-gray-600" />;
   if (entry.contentType !== 'COMMENT') return null;
   const commentType = (entry.content as FeedCommentContent).comment?.commentType;
@@ -128,10 +131,15 @@ function getReviewScore(entry: FeedEntry): number | undefined {
   return commentContent.review?.score || commentContent.comment.reviewScore || undefined;
 }
 
-function getContributionAmount(entry: FeedEntry): number | undefined {
-  if (entry.contentType !== 'USDFUNDRAISECONTRIBUTION') return undefined;
+function getContribution(entry: FeedEntry): { amount: number; currency: string } | undefined {
+  if (entry.contentType !== 'USDFUNDRAISECONTRIBUTION' && entry.contentType !== 'PURCHASE')
+    return undefined;
   const post = entry.content as FeedPostContent;
-  return post.fundraiseContribution?.amount || undefined;
+  if (!post.fundraiseContribution?.amount) return undefined;
+  return {
+    amount: post.fundraiseContribution.amount,
+    currency: post.fundraiseContribution.currency || 'USD',
+  };
 }
 
 function getCommentContent(entry: FeedEntry) {
@@ -150,6 +158,8 @@ interface ActivityCardFullProps {
 export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
   const { title, author, href } = getEntryMeta(entry);
   const [reviewExpanded, setReviewExpanded] = useState(false);
+  const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
 
   if (!title) return null;
 
@@ -157,7 +167,7 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
   const actionIcon = getActionIcon(entry);
   const reviewScore = getReviewScore(entry);
   const fundingAmount = getFundingAmount(entry);
-  const contributionAmount = getContributionAmount(entry);
+  const contribution = getContribution(entry);
   const commentData = getCommentContent(entry);
 
   const titleEl = href ? (
@@ -205,14 +215,14 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
               })}
             </span>
           )}
-          {contributionAmount != null && (
+          {contribution && (
             <span className="ml-1.5 text-xs font-medium font-mono text-green-700">
               +
               {formatCurrency({
-                amount: contributionAmount,
-                showUSD: true,
-                exchangeRate: 1,
-                skipConversion: true,
+                amount: contribution.amount,
+                showUSD: contribution.currency === 'USD' ? true : showUSD,
+                exchangeRate,
+                skipConversion: contribution.currency === 'USD',
                 shorten: true,
               })}
             </span>

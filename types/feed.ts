@@ -219,7 +219,8 @@ export type FeedContentType =
   | 'COMMENT'
   | 'APPLICATION'
   | 'GRANT'
-  | 'USDFUNDRAISECONTRIBUTION';
+  | 'USDFUNDRAISECONTRIBUTION'
+  | 'PURCHASE';
 
 export interface ExternalMetrics {
   score: number;
@@ -933,8 +934,9 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       }
       break;
 
+    case 'PURCHASE':
     case 'USDFUNDRAISECONTRIBUTION':
-      contentType = 'USDFUNDRAISECONTRIBUTION';
+      contentType = content_type as 'PURCHASE' | 'USDFUNDRAISECONTRIBUTION';
       try {
         const contributionEntry: FeedPostContent = {
           id: content_object.id || id,
@@ -964,8 +966,8 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         };
         content = contributionEntry;
       } catch (error) {
-        console.error('Error transforming USDFUNDRAISECONTRIBUTION:', error);
-        throw new Error(`Failed to transform USDFUNDRAISECONTRIBUTION: ${error}`);
+        console.error(`Error transforming ${content_type}:`, error);
+        throw new Error(`Failed to transform ${content_type}: ${error}`);
       }
       break;
 
