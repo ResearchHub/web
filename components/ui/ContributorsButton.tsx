@@ -237,8 +237,6 @@ export function ContributorsButton({
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         contributors={contributors}
-        onContribute={onContribute}
-        disableContribute={disableContribute}
       />
     </>
   );
