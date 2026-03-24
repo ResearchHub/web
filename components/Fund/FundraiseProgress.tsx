@@ -171,10 +171,8 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                 <CurrencyBadge
                   amount={
                     fundraise.status === 'COMPLETED'
-                      ? Math.round(showUSD ? fundraise.goalAmount.usd : fundraise.amountRaised.rsc)
-                      : Math.round(
-                          showUSD ? fundraise.amountRaised.usd : fundraise.amountRaised.rsc
-                        )
+                      ? Math.round(fundraise.amountRaised.rsc)
+                      : Math.round(fundraise.amountRaised.rsc)
                   }
                   variant="text"
                   size="sm"
@@ -186,7 +184,6 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     fundraise.status === 'COMPLETED' ? 'text-green-600' : 'text-primary-600'
                   }
                   iconColor={fundraise.status === 'COMPLETED' ? '#16a34a' : undefined}
-                  skipConversion={showUSD}
                 />
                 <span className="text-gray-500 text-sm mobile:!text-base">raised of</span>
                 <CurrencyBadge

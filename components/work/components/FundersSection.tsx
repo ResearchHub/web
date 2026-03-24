@@ -132,8 +132,6 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           contributors={modalContributors}
-          onContribute={handleContributeClick}
-          disableContribute={!isActive}
         />
       )}
 
