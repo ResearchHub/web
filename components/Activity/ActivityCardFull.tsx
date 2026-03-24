@@ -216,7 +216,7 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
             </span>
           )}
           {contribution && (
-            <span className="ml-1.5 text-xs font-medium font-mono text-green-700">
+            <span className="ml-1.5 text-xs font-medium font-mono text-gray-900">
               +
               {formatCurrency({
                 amount: contribution.amount,
@@ -257,8 +257,8 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
               <CommentReadOnly
                 content={commentData.content}
                 contentFormat={commentData.format}
-                maxLength={250}
-                showReadMoreButton={true}
+                initiallyExpanded={true}
+                showReadMoreButton={false}
                 className="text-sm"
               />
             </div>
