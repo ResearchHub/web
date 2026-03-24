@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useMemo } from 'react';
+import { FC, ReactNode, useMemo } from 'react';
 import { FlaggedContent } from '@/services/audit.service';
 import { FeedItemComment } from '@/components/Feed/items/FeedItemComment';
 import { FeedEntry, FeedCommentContent } from '@/types/feed';
@@ -14,8 +14,7 @@ interface AuditItemCommentProps {
   onAction: (action: 'dismiss' | 'remove') => void;
   onRefresh?: () => void;
   view?: 'pending' | 'dismissed' | 'removed';
-  isSelected?: boolean;
-  onSelect?: () => void;
+  checkbox?: ReactNode;
 }
 
 /**
@@ -182,8 +181,7 @@ export const AuditItemComment: FC<AuditItemCommentProps> = ({
   onAction,
   onRefresh,
   view = 'pending',
-  isSelected,
-  onSelect,
+  checkbox,
 }) => {
   const verdict = entry.verdict;
   const userInfo = getAuditUserInfo(entry);
@@ -193,9 +191,11 @@ export const AuditItemComment: FC<AuditItemCommentProps> = ({
 
   return (
     <div className="bg-white border rounded-lg overflow-hidden hover:shadow-sm transition-shadow">
-      {/* Moderation metadata at the top */}
-      <div className="px-4 pt-4">
-        <ModerationMetadata entry={entry} />
+      <div className="px-4 pt-4 flex items-start gap-3">
+        {checkbox}
+        <div className="flex-1 min-w-0">
+          <ModerationMetadata entry={entry} />
+        </div>
       </div>
 
       {/* Use existing FeedItemComment for consistent rendering */}
@@ -222,8 +222,6 @@ export const AuditItemComment: FC<AuditItemCommentProps> = ({
           authorId={userInfo.authorId}
           authorName={userInfo.name}
           onRefresh={onRefresh}
-          isSelected={isSelected}
-          onSelect={onSelect}
         />
       </div>
     </div>

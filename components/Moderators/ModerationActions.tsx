@@ -2,9 +2,8 @@
 
 import { FC, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { CheckCircle, XCircle, Ban } from 'lucide-react';
+import { CheckCircle, Trash2, Ban } from 'lucide-react';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
-import { SelectionCheckbox } from './SelectionCheckbox';
 import { UserModerationService } from '@/services/user-moderation.service';
 import { cn } from '@/utils/styles';
 import { toast } from 'react-hot-toast';
@@ -18,8 +17,6 @@ interface ModerationActionsProps {
   className?: string;
   authorId?: number | null;
   authorName?: string;
-  isSelected?: boolean;
-  onSelect?: () => void;
 }
 
 export const ModerationActions: FC<ModerationActionsProps> = ({
@@ -31,8 +28,6 @@ export const ModerationActions: FC<ModerationActionsProps> = ({
   className,
   authorId,
   authorName,
-  isSelected,
-  onSelect,
 }) => {
   const [showSuspendConfirm, setShowSuspendConfirm] = useState(false);
 
@@ -54,48 +49,38 @@ export const ModerationActions: FC<ModerationActionsProps> = ({
 
   return (
     <>
-      <div className={cn('flex items-center gap-1', className)}>
-        {onSelect && (
-          <SelectionCheckbox
-            checked={!!isSelected}
-            onChange={onSelect}
-            ariaLabel={isSelected ? 'Deselect item' : 'Select item'}
-          />
-        )}
+      <div className={cn('flex flex-wrap items-center gap-x-1 gap-y-1', className)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onDismiss}
+          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+        >
+          <CheckCircle className="h-4 w-4 mr-1" />
+          Dismiss
+        </Button>
 
-        <div className="flex flex-wrap items-center gap-x-1 gap-y-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onRemove}
+          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+        >
+          <Trash2 className="h-4 w-4 mr-1" />
+          Remove
+        </Button>
+
+        {authorId && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={onDismiss}
-            className="text-green-600 hover:text-green-700 hover:bg-green-50"
-          >
-            <CheckCircle className="h-4 w-4 mr-1" />
-            Dismiss
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onRemove}
+            onClick={() => setShowSuspendConfirm(true)}
             className="text-red-600 hover:text-red-700 hover:bg-red-50"
           >
-            <XCircle className="h-4 w-4 mr-1" />
-            Remove
+            <Ban className="h-4 w-4 mr-1" />
+            Remove + Suspend
           </Button>
-
-          {authorId && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowSuspendConfirm(true)}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <Ban className="h-4 w-4 mr-1" />
-              Remove + Suspend
-            </Button>
-          )}
-        </div>
+        )}
       </div>
 
       {authorId && (

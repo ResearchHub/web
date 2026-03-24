@@ -46,7 +46,7 @@ export default function AuditPage() {
   };
 
   return (
-    <div className="h-full flex flex-col  p-4">
+    <div className="h-full flex flex-col p-4">
       {/* Header */}
       <div className="bg-white">
         <div className="flex items-center justify-between mb-4">
@@ -82,7 +82,7 @@ export default function AuditPage() {
       </div>
 
       {/* Main content area with audit feed */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1">
         <AuditContent
           entries={entries}
           isLoading={isLoading}

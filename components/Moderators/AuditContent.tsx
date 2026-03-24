@@ -3,12 +3,16 @@
 import { FC, ReactNode, useState } from 'react';
 import { FlaggedContent } from '@/services/audit.service';
 import { Button } from '@/components/ui/Button';
-import { ChevronDown, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
+import { ChevronDown, RefreshCw, CheckCircle, Trash2, XCircle } from 'lucide-react';
 import { AuditItemCard } from './AuditItemCard';
 import { AuditItemSkeleton } from './AuditItemSkeleton';
 import { SelectionCheckbox } from './SelectionCheckbox';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
+import { useIsMobileTopNavHidden } from '@/contexts/ScrollContainerContext';
 import { ID } from '@/types/root';
+
+const STICKY_TOP_DEFAULT = '25px';
+const STICKY_TOP_NAV_HIDDEN = '-45px';
 
 interface AuditContentProps {
   entries: FlaggedContent[];
@@ -56,6 +60,7 @@ export const AuditContent: FC<AuditContentProps> = ({
   onBulkAction,
 }) => {
   const [showBulkRemoveConfirm, setShowBulkRemoveConfirm] = useState(false);
+  const isMobileTopNavHidden = useIsMobileTopNavHidden();
 
   const isPending = view === 'pending';
   const selectionCount = selectedIds.length;
@@ -124,17 +129,22 @@ export const AuditContent: FC<AuditContentProps> = ({
       {/* Filters */}
       {filters && <div className="mb-6">{filters}</div>}
 
-      {/* Bulk action bar — shown when in pending view and entries exist */}
-      {isPending && entries.length > 0 && !isLoading && (
-        <div className="mb-4 flex flex-wrap items-center gap-y-2 bg-white border border-gray-200 rounded-lg px-4 py-3">
+      {/* Bulk action bar — sticky, shown when in pending view and entries exist */}
+      {isPending && totalCount > 0 && !isLoading && (
+        <div
+          style={{ top: isMobileTopNavHidden ? STICKY_TOP_NAV_HIDDEN : STICKY_TOP_DEFAULT }}
+          className="sticky tablet:!top-[25px] z-10 mb-4 flex flex-wrap items-center gap-y-2 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 transition-[top] duration-300"
+        >
           <div className="flex items-center gap-3 mr-auto">
             {onToggleSelectAll && (
-              <SelectionCheckbox
-                checked={isAllSelected}
-                indeterminate={isSomeSelected}
-                onChange={onToggleSelectAll}
-                ariaLabel={isAllSelected ? 'Deselect all' : 'Select all'}
-              />
+              <div className="w-8 flex-shrink-0 flex justify-center">
+                <SelectionCheckbox
+                  checked={isAllSelected}
+                  indeterminate={isSomeSelected}
+                  onChange={onToggleSelectAll}
+                  ariaLabel={isAllSelected ? 'Deselect all' : 'Select all'}
+                />
+              </div>
             )}
             <span className="text-sm text-gray-700">
               {selectionCount === 0
@@ -168,7 +178,7 @@ export const AuditContent: FC<AuditContentProps> = ({
                 onClick={() => setShowBulkRemoveConfirm(true)}
                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
               >
-                <XCircle className="h-4 w-4 mr-1" />
+                <Trash2 className="h-4 w-4 mr-1" />
                 Remove ({selectionCount})
               </Button>
             </div>

@@ -1,10 +1,11 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import { FlaggedContent } from '@/services/audit.service';
 import { AuditItemComment } from './AuditItemComment';
 import { AuditItemPost } from './AuditItemPost';
 import { AuditItemPaper } from './AuditItemPaper';
+import { SelectionCheckbox } from './SelectionCheckbox';
 
 interface AuditItemCardProps {
   entry: FlaggedContent;
@@ -15,9 +16,6 @@ interface AuditItemCardProps {
   onSelect?: () => void;
 }
 
-/**
- * Detect the content type from the flagged content entry
- */
 const detectContentType = (entry: FlaggedContent): 'comment' | 'post' | 'paper' | 'unknown' => {
   const contentType = entry.contentType?.name?.toLowerCase();
 
@@ -47,7 +45,17 @@ export const AuditItemCard: FC<AuditItemCardProps> = ({
 }) => {
   const contentType = detectContentType(entry);
 
-  const sharedProps = { entry, onAction, onRefresh, view, isSelected, onSelect };
+  const checkbox: ReactNode = onSelect ? (
+    <div className="w-8 flex-shrink-0 flex justify-center">
+      <SelectionCheckbox
+        checked={!!isSelected}
+        onChange={onSelect}
+        ariaLabel={isSelected ? 'Deselect item' : 'Select item'}
+      />
+    </div>
+  ) : null;
+
+  const sharedProps = { entry, onAction, onRefresh, view, checkbox };
 
   switch (contentType) {
     case 'comment':
