@@ -12,7 +12,7 @@ export default function NotePage() {
 
   useEffect(() => {
     if (isNewFunding) {
-      const url = new URL(window.location.href);
+      const url = new URL(globalThis.window.location.href);
       url.searchParams.delete('newFunding');
       router.replace(url.pathname + url.search, { scroll: false });
     }
