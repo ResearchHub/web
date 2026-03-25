@@ -52,8 +52,7 @@ export function TemplatesPageContent() {
         <div className="px-6 py-12 text-center">
           <p className="text-gray-600 mb-2">No templates yet</p>
           <p className="text-sm text-gray-500 mb-4">
-            Create a template to save your contact details and outreach context for generating
-            emails.
+            Create a reusable email template with subject and body for expert outreach.
           </p>
           <Link href="/expert-finder/templates/new">
             <Button variant="default" size="sm" className="gap-2">
@@ -118,7 +117,8 @@ export function TemplatesPageContent() {
         <div>
           <Breadcrumbs items={[{ label: 'Templates' }]} className="mb-2" />
           <p className="text-sm text-gray-600">
-            Save your contact details and outreach context to reuse when generating emails.
+            Save subject and body templates with placeholders to reuse when generating outreach
+            emails.
           </p>
         </div>
         {templates.length > 0 && (

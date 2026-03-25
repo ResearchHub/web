@@ -10,32 +10,18 @@ const TEMPLATE_DETAIL_PATH = '/expert-finder/templates';
 const DETAIL_MAX_CHARS = 80;
 
 function TemplateDetailsCell({ template }: { template: SavedTemplate }) {
-  const isPromptContext = template.templateType === 'prompt-context';
   const textClassName = 'text-[10px] text-gray-600 truncate block max-w-[200px]';
-
-  if (isPromptContext) {
-    const name = template.contactName?.trim();
-    const title = template.contactTitle?.trim();
-    const institution = template.contactInstitution?.trim();
-    const email = template.contactEmail?.trim();
-    const parts = [name, title, institution, email].filter(Boolean);
-    const summary = parts.length > 0 ? parts.join(' · ') : '—';
-    const display =
-      summary.length > DETAIL_MAX_CHARS ? `${summary.slice(0, DETAIL_MAX_CHARS)}…` : summary;
-    return (
-      <span className={textClassName} title={summary}>
-        {display}
-      </span>
-    );
-  }
-
+  const subject = template.emailSubject?.trim();
   const bodySnippet = stripHtml(template.emailBody ?? '');
+  const primary = subject || bodySnippet;
   const display =
-    bodySnippet.length > DETAIL_MAX_CHARS
-      ? `${bodySnippet.slice(0, DETAIL_MAX_CHARS)}…`
-      : bodySnippet || '—';
+    primary.length > DETAIL_MAX_CHARS ? `${primary.slice(0, DETAIL_MAX_CHARS)}…` : primary || '—';
+  const title = subject
+    ? `${subject}${bodySnippet ? ` — ${bodySnippet}` : ''}`
+    : bodySnippet || undefined;
+
   return (
-    <span className={textClassName} title={bodySnippet || undefined}>
+    <span className={textClassName} title={title}>
       {display}
     </span>
   );
@@ -43,7 +29,7 @@ function TemplateDetailsCell({ template }: { template: SavedTemplate }) {
 
 const COLUMNS: SortableColumn[] = [
   { key: 'name', label: 'Name', sortable: false },
-  { key: 'details', label: 'Details', sortable: false },
+  { key: 'details', label: 'Preview', sortable: false },
   { key: 'createdBy', label: 'Created By', sortable: false },
   { key: 'createdDate', label: 'Created Date', sortable: false },
   { key: 'view', label: '', sortable: false },
