@@ -8,6 +8,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { ArrowRight, CalendarOff, Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
+import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { buildWorkUrl, generateSlug } from '@/utils/url';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -259,12 +260,18 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
         </>
       )}
 
-      {/* No proposals message */}
-      {!hasProposals && (
-        <div className="px-5 py-2 border-b border-gray-100 bg-gray-50/80 text-center">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
-            No proposals yet — be the first to apply
-          </span>
+      {/* No proposals — experts invited state */}
+      {!hasProposals && !isClosed && (
+        <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
+          <div className="flex items-center justify-center gap-2 mb-1.5">
+            <RadiatingDot color="bg-emerald-500" size="sm" />
+            <span className="text-[11px] font-semibold text-gray-700">
+              Experts have been invited to apply
+            </span>
+          </div>
+          <p className="text-[11px] text-gray-600 text-center">
+            Anyone can apply. be the first to submit yours.
+          </p>
         </div>
       )}
 
