@@ -58,7 +58,7 @@ export default function OrganizationPage() {
 
         const queryString = queryParam && queryValue ? `?${queryParam}=${queryValue}` : '';
         refreshNotes();
-        router.push(`/notebook/${orgSlug}/${newNote.id}${queryString}`);
+        router.replace(`/notebook/${orgSlug}/${newNote.id}${queryString}`);
       }
     } catch (err) {
       console.error('Failed to create note:', err);
