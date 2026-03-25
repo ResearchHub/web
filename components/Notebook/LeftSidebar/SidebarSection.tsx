@@ -23,7 +23,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
 
   return (
     <div className="mb-2">
-      <div className="flex items-center justify-center w-full px-2 py-1 group rounded relative">
+      <div className="flex items-center justify-between w-full px-2 py-1 group rounded">
         <Button
           variant="ghost"
           className="flex items-center gap-1.5 h-auto p-0 cursor-pointer"
@@ -35,7 +35,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
           </span>
           {Icon && iconPosition === 'after' && <Icon className="w-3.5 h-3.5 text-gray-400" />}
         </Button>
-        {action && <div className="absolute right-2 flex items-center">{action}</div>}
+        {action && <div className="flex items-center">{action}</div>}
       </div>
       {isExpanded && children && <div className="mt-1">{children}</div>}
     </div>
