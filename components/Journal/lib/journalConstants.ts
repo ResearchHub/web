@@ -43,19 +43,6 @@ export const editors: Editor[] = [
     },
   },
   {
-    name: 'Selda Yildiz, PhD',
-    role: 'Associate Editor',
-    bio: '',
-    affiliation: 'Oregon Health & Science University',
-    image: '/people/selda.jpeg',
-    authorId: '8116339',
-    socialLinks: {
-      email: 'selda.editor@researchhub.foundation',
-      linkedin: 'https://www.linkedin.com/in/seldayildiz/',
-      scholar: 'https://scholar.google.com/citations?user=QbTyK0AAAAAJ&hl=en',
-    },
-  },
-  {
     name: 'Scott Nelson, PhD',
     role: 'Associate Editor',
     bio: '',
