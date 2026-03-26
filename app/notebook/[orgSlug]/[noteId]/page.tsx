@@ -10,13 +10,18 @@ export default function NotePage() {
   const isNewFunding = searchParams?.get('newFunding') === 'true';
   const [showFundingModal, setShowFundingModal] = useState(isNewFunding);
 
+  const stripNewFundingParam = () => {
+    // Strip the one-time query param so the modal doesn't re-appear on refresh or back navigation
+    const url = new URL(globalThis.window.location.href);
+    url.searchParams.delete('newFunding');
+    router.replace(url.pathname + url.search, { scroll: false });
+  };
+
   useEffect(() => {
     if (isNewFunding) {
-      const url = new URL(globalThis.window.location.href);
-      url.searchParams.delete('newFunding');
-      router.replace(url.pathname + url.search, { scroll: false });
+      stripNewFundingParam();
     }
-  }, [isNewFunding, router]);
+  }, [isNewFunding]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <FundingTimelineModal isOpen={showFundingModal} onClose={() => setShowFundingModal(false)} />
