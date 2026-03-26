@@ -1,6 +1,6 @@
 'use client';
 
-import { Award, Building2, GraduationCap, Mail } from 'lucide-react';
+import { Award, Building2, ExternalLink, GraduationCap, Mail } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
@@ -38,6 +38,7 @@ export function ExpertResultCard({
     : [];
   const notes = empty(expert.notes);
   const email = expert.email?.trim();
+  const sources = expert.sources?.length ? expert.sources : [];
 
   return (
     <article
@@ -92,6 +93,27 @@ export function ExpertResultCard({
               <span>Why Recommended:</span>
             </div>
             <p className="text-sm text-gray-600 mt-1">{notes}</p>
+          </div>
+        ) : null}
+
+        {sources.length > 0 ? (
+          <div className="flex flex-col gap-1.5">
+            <div className="text-sm font-medium text-gray-700">Sources</div>
+            <ul className="flex flex-col gap-1.5 text-sm">
+              {sources.map((src, i) => (
+                <li key={`${src.url}-${i}`}>
+                  <a
+                    href={src.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 hover:underline break-all"
+                  >
+                    <span className="break-words">{src.text}</span>
+                    <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden />
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
         ) : null}
       </div>
