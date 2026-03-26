@@ -7,14 +7,14 @@ import { BaseModal } from '@/components/ui/BaseModal';
 import { Progress } from '@/components/ui/Progress';
 import { ExpertFinderService } from '@/services/expertFinder.service';
 import type { ExpertResult } from '@/types/expertFinder';
+import type { GenerateEmailConfirmPayload } from './GenerateEmailModal';
 
 interface GenerateEmailProgressModalProps {
   isOpen: boolean;
   onClose: () => void;
   experts: ExpertResult[];
   searchId: string;
-  template: string;
-  templateId: number | null;
+  generation: GenerateEmailConfirmPayload | null;
   onDone?: () => void;
 }
 
@@ -31,8 +31,7 @@ export function GenerateEmailProgressModal({
   onClose,
   experts,
   searchId,
-  template,
-  templateId,
+  generation,
   onDone,
 }: GenerateEmailProgressModalProps) {
   const [rows, setRows] = useState<RowState[]>([]);
@@ -56,7 +55,7 @@ export function GenerateEmailProgressModal({
   }, [isOpen, experts]);
 
   useEffect(() => {
-    if (!isOpen || !experts.length || started.current) return;
+    if (!isOpen || !experts.length || !generation || started.current) return;
     started.current = true;
 
     let cancelled = false;
@@ -70,21 +69,35 @@ export function GenerateEmailProgressModal({
           return next;
         });
 
+        const basePayload = {
+          expert_name: expert.name?.trim() || 'Expert',
+          expert_title: expert.title || undefined,
+          expert_affiliation: expert.affiliation || undefined,
+          expert_email: expert.email || undefined,
+          expertise: expert.expertise || undefined,
+          notes: expert.notes || undefined,
+          expert_search_id: Number(searchId) || undefined,
+        };
+
         try {
-          await ExpertFinderService.generateEmail(
-            {
-              expert_name: expert.name?.trim() || 'Expert',
-              template,
-              expert_title: expert.title || undefined,
-              expert_affiliation: expert.affiliation || undefined,
-              expert_email: expert.email || undefined,
-              expertise: expert.expertise || undefined,
-              notes: expert.notes || undefined,
-              expert_search_id: Number(searchId) || undefined,
-              template_id: templateId ?? undefined,
-            },
-            { save: true }
-          );
+          if (generation.mode === 'ai') {
+            await ExpertFinderService.generateEmail(
+              {
+                ...basePayload,
+                template: generation.template,
+              },
+              { save: true }
+            );
+          } else {
+            await ExpertFinderService.generateEmail(
+              {
+                ...basePayload,
+                template: null,
+                template_id: generation.templateId,
+              },
+              { save: true }
+            );
+          }
           if (cancelled) return;
           setRows((prev) => {
             const next = [...prev];
@@ -110,7 +123,7 @@ export function GenerateEmailProgressModal({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, experts, searchId, template, templateId, onDone]);
+  }, [isOpen, experts, searchId, generation, onDone]);
 
   const total = experts.length;
   const isComplete = total > 0 && completedCount === total;

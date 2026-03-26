@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Mail, Trash2, Send, Loader2, Save, Eye } from 'lucide-react';
-import { getTemplateDisplayLabel } from '@/app/expert-finder/library/[searchId]/components/GenerateEmailModal';
 import { Alert } from '@/components/ui/Alert';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { BaseSection } from '@/components/ui/BaseSection';

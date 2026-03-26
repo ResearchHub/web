@@ -43,16 +43,15 @@ export function OutreachMobileCard({ email, onClick, className }: OutreachMobile
         <Badge variant={isSent ? 'success' : 'primary'} size="sm">
           {isSent ? 'Sent' : 'Draft'}
         </Badge>
-        {templateLabel !== '—' &&
-          (templateDescription ? (
-            <Tooltip content={templateDescription} width="w-72" position="top">
-              <span className="text-xs text-gray-500 truncate max-w-[140px] cursor-help underline decoration-dotted decoration-gray-400 underline-offset-1">
-                {templateLabel}
-              </span>
-            </Tooltip>
-          ) : (
-            <span className="text-xs text-gray-500 truncate max-w-[140px]">{templateLabel}</span>
-          ))}
+        {templateDescription ? (
+          <Tooltip content={templateDescription} width="w-72" position="top">
+            <span className="text-xs text-gray-500 truncate max-w-[140px] cursor-help underline decoration-dotted decoration-gray-400 underline-offset-1">
+              {templateLabel}
+            </span>
+          </Tooltip>
+        ) : (
+          <span className="text-xs text-gray-500 truncate max-w-[140px]">{templateLabel}</span>
+        )}
         <p className="text-xs text-gray-500">{formatTimestamp(email.createdAt, false)}</p>
       </div>
     </ListCard>
