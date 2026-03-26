@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState, useMemo } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
@@ -16,11 +16,11 @@ import { ContentFormat } from '@/types/comment';
 import { BountyDetails } from '@/components/Feed/items/FeedItemBountyComment';
 import { Clock, Forward, ArrowLeft, ArrowRight } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleInfo } from '@fortawesome/pro-light-svg-icons';
+import { faCircleInfo } from '@fortawesome/pro-solid-svg-icons';
 import { getBountyDisplayAmount } from './lib/bountyUtil';
 import { formatCurrency } from '@/utils/currency';
 
-interface BountyDetailsModalProps {
+export interface BountyDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
@@ -35,7 +35,7 @@ interface BountyDetailsModalProps {
   isActive: boolean;
 }
 
-const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
+export const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
   isOpen,
   onClose,
   title,
@@ -57,7 +57,7 @@ const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
 
   const footerContent = isActive ? (
     <Button
-      variant="secondary"
+      variant="dark"
       size="lg"
       onClick={handleCTAClick}
       className="w-full flex items-center justify-center gap-2"
@@ -141,11 +141,8 @@ export const BountyInfo: FC<BountyInfoProps> = ({
   onAddSolutionClick,
   className,
 }) => {
-  const bountyCommentContent = bounty?.comment?.content;
-  const bountyCommentContentFormat = bounty?.comment?.contentFormat;
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   // Check if bounty is active (OPEN or ASSESSMENT)
   const isActive = useMemo(() => {
@@ -196,9 +193,11 @@ export const BountyInfo: FC<BountyInfoProps> = ({
     [bounty, exchangeRate, showUSD]
   );
 
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
   const handleDetailsClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
     e.preventDefault();
+    e.stopPropagation();
     setIsDetailsModalOpen(true);
   };
 
@@ -206,10 +205,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
     <>
       <div
         className={cn(
-          'mt-3 rounded-lg px-4 py-3.5 cursor-default',
-          isActive
-            ? 'bg-primary-50/60 border border-primary-100'
-            : 'bg-gray-50 border border-gray-200',
+          'mt-3 rounded-lg bg-gray-50/90 border border-gray-100 px-4 py-3.5 cursor-default',
           className
         )}
         onMouseDown={(e) => e.stopPropagation()}
@@ -232,7 +228,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
             </div>
 
             {deadlineLabel && (
-              <div className="flex flex-col leading-tight">
+              <div className="hidden sm:flex flex-col leading-tight">
                 <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">Deadline</span>
                 <div className="flex items-center gap-1.5">
                   <Clock size={14} className="text-gray-500 flex-shrink-0" />
@@ -240,13 +236,6 @@ export const BountyInfo: FC<BountyInfoProps> = ({
                     {deadlineLabel}
                   </span>
                 </div>
-              </div>
-            )}
-
-            {!isActive && (
-              <div className="flex flex-col leading-tight">
-                <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">Status</span>
-                <span className="text-sm font-medium text-gray-500">Closed</span>
               </div>
             )}
           </div>
@@ -263,13 +252,13 @@ export const BountyInfo: FC<BountyInfoProps> = ({
             </Button>
             {isActive ? (
               <Button
-                variant="secondary"
+                variant="dark"
                 size="sm"
-                className="flex-shrink-0 rounded-md text-[13px]"
+                className="flex-shrink-0 gap-1"
                 onClick={onAddSolutionClick}
               >
                 {getAddButtonText()}
-                <ArrowRight size={14} className="ml-1.5" />
+                <ArrowRight size={14} />
               </Button>
             ) : (
               <span className="flex-shrink-0 text-sm text-gray-400">Ended</span>
@@ -278,14 +267,13 @@ export const BountyInfo: FC<BountyInfoProps> = ({
         </div>
       </div>
 
-      {/* Bounty Details Modal - always render, controlled by isOpen */}
       <BountyDetailsModal
         isOpen={isDetailsModalOpen}
         onClose={() => setIsDetailsModalOpen(false)}
-        title={'Bounty Details'}
-        content={bountyCommentContent}
-        contentFormat={bountyCommentContentFormat}
-        bountyType={bounty.bountyType as BountyType}
+        title={relatedWork?.title ?? bountyLabel}
+        content={bounty.comment?.content}
+        contentFormat={bounty.comment?.contentFormat}
+        bountyType={bounty.bountyType}
         displayAmount={displayAmount}
         showUSD={showUSD}
         deadlineLabel={deadlineLabel}
