@@ -1,7 +1,5 @@
 'use client';
 
-import { HocuspocusProvider } from '@hocuspocus/provider';
-
 import { API } from '@/components/Editor/lib/api';
 
 import {
@@ -52,23 +50,17 @@ import {
 
 import { ImageUpload } from './ImageUpload';
 import { TableOfContentsNode } from './TableOfContentsNode';
-import { isChangeOrigin } from '@tiptap/extension-collaboration';
 import { AnyExtension } from '@tiptap/core';
 import { PlaceholderOptions } from '@tiptap/extension-placeholder';
 import { Youtube } from './Youtube';
 import { ReadOnlyFigure } from './ReadOnlyFigure';
 
 interface ExtensionKitProps {
-  provider?: HocuspocusProvider | null;
   customDocument?: AnyExtension;
   placeholderConfig?: Partial<PlaceholderOptions>;
 }
 
-export const ExtensionKit = ({
-  provider,
-  customDocument,
-  placeholderConfig,
-}: ExtensionKitProps) => [
+export const ExtensionKit = ({ customDocument, placeholderConfig }: ExtensionKitProps) => [
   customDocument || Document,
   Columns,
   TaskList,
@@ -83,7 +75,6 @@ export const ExtensionKit = ({
   HorizontalRule,
   UniqueID.configure({
     types: ['paragraph', 'heading', 'blockquote', 'codeBlock', 'table'],
-    filterTransaction: (transaction) => !isChangeOrigin(transaction),
   }),
   StarterKit.configure({
     document: false,
@@ -116,9 +107,7 @@ export const ExtensionKit = ({
   CharacterCount.configure({ limit: 500000 }),
   TableOfContents,
   TableOfContentsNode,
-  ImageUpload.configure({
-    clientId: provider?.document?.clientID,
-  }),
+  ImageUpload,
   ImageBlock,
   FileHandler.configure({
     allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
