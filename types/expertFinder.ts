@@ -18,6 +18,11 @@ function transformCreatedBy(raw: any): CreatedByInfo | null {
   return { userId, author };
 }
 
+export interface ExpertSourceLink {
+  url: string;
+  text: string;
+}
+
 /** Single expert as displayed in the app (detail/list rows). */
 export interface ExpertResult {
   name: string;
@@ -26,7 +31,7 @@ export interface ExpertResult {
   expertise: string;
   email: string;
   notes?: string;
-  sources?: string[] | null;
+  sources?: ExpertSourceLink[] | null;
 }
 
 export interface ReportUrls {
@@ -100,7 +105,31 @@ export interface ExpertSearchProgress {
   error?: string;
 }
 
+function transformExpertSource(raw: string | Record<string, unknown>): ExpertSourceLink | null {
+  if (typeof raw === 'string') {
+    const url = raw.trim();
+    if (!url) return null;
+    try {
+      const host = new URL(url).hostname.replace(/^www\./, '');
+      return { url, text: host || 'Source' };
+    } catch {
+      return { url, text: 'Source' };
+    }
+  }
+  const url = String(raw?.url ?? '').trim();
+  if (!url) return null;
+  const text = String(raw?.text ?? '').trim() || 'Source';
+  return { url, text };
+}
+
 function transformExpertResult(raw: any): ExpertResult {
+  const sourcesRaw = Array.isArray(raw.sources) ? raw.sources : null;
+  const sources = sourcesRaw
+    ? sourcesRaw
+        .map((item: unknown) => transformExpertSource(item as string | Record<string, unknown>))
+        .filter((s: ExpertSourceLink | null): s is ExpertSourceLink => s !== null)
+    : null;
+
   return {
     name: raw.name ?? raw.first_name ?? raw.full_name ?? '',
     title: raw.title ?? raw.job_title ?? raw.position ?? '',
@@ -108,7 +137,7 @@ function transformExpertResult(raw: any): ExpertResult {
     expertise: raw.expertise ?? raw.expertise_areas ?? '',
     email: raw.email ?? '',
     notes: raw.notes ?? raw.recommendation_notes,
-    sources: Array.isArray(raw.sources) ? raw.sources : null,
+    sources: sources?.length ? sources : null,
   };
 }
 
