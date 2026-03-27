@@ -142,19 +142,19 @@ export const BountyInfo: FC<BountyInfoProps> = ({
 
   const statusInfo = useMemo(() => {
     if (bounty.status === 'OPEN' && isActive) {
-      const days = getRemainingDays(bounty.expirationDate ?? null);
+      const days = 0.5; //getRemainingDays(bounty.expirationDate ?? null);
       const remaining =
         days !== null
           ? days < 1
-            ? '< 1 day'
-            : `${Math.floor(days)} day${Math.floor(days) === 1 ? '' : 's'}`
+            ? '< 1 day remaining'
+            : `${Math.floor(days)} day${Math.floor(days) === 1 ? '' : 's'} remaining`
           : null;
-      return { label: 'Open', color: 'bg-green-500', remaining };
+      return { label: 'Open', color: 'bg-green-500', remaining, urgent: days !== null && days < 3 };
     }
     if (bounty.status === 'ASSESSMENT') {
-      return { label: 'Assessment', color: 'bg-orange-500', remaining: null };
+      return { label: 'Assessment', color: 'bg-orange-500', remaining: null, urgent: false };
     }
-    return { label: 'Completed', color: 'bg-gray-400', remaining: null };
+    return { label: 'Completed', color: 'bg-gray-400', remaining: null, urgent: false };
   }, [bounty.status, bounty.expirationDate, isActive]);
 
   // Get bounty label text
@@ -230,7 +230,12 @@ export const BountyInfo: FC<BountyInfoProps> = ({
                   </span>
                 )}
                 {statusInfo.remaining && (
-                  <span className="text-xs text-gray-500 whitespace-nowrap">
+                  <span
+                    className={cn(
+                      'text-xs whitespace-nowrap',
+                      statusInfo.urgent ? 'text-amber-600 font-medium' : 'text-gray-500'
+                    )}
+                  >
                     ({statusInfo.remaining})
                   </span>
                 )}

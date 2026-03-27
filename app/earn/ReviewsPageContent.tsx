@@ -51,7 +51,7 @@ function BountySortDropdown({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-1.5 z-50 min-w-[180px] bg-white rounded-xl border border-gray-200 shadow-lg py-1.5 animate-in fade-in slide-in-from-top-1 duration-100">
+        <div className="absolute top-full right-0 mt-1.5 z-50 min-w-[240px] bg-white rounded-xl border border-gray-200 shadow-lg py-1.5 animate-in fade-in slide-in-from-top-1 duration-100">
           {SORT_OPTIONS.map((option) => (
             <label
               key={option.value}

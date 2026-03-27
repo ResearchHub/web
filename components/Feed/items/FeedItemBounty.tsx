@@ -18,6 +18,7 @@ import { BountyDetailsModal } from '@/components/Bounty/BountyInfo';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { getBountyDisplayAmount, isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
+import { cn } from '@/utils/styles';
 import { formatCurrency } from '@/utils/currency';
 import { isDeadlineInFuture, getRemainingDays } from '@/utils/date';
 import { buildWorkUrl } from '@/utils/url';
@@ -142,6 +143,7 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const creatorProfile = bounty.createdBy?.authorProfile;
+  const rawCreatedBy = bounty.raw?.created_by;
   const bountyCreator = creatorProfile
     ? {
         id: creatorProfile.id,
@@ -149,14 +151,24 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         profileImage: creatorProfile.profileImage,
         profileUrl: creatorProfile.profileUrl,
       }
-    : bounty.createdBy?.id
+    : rawCreatedBy?.id
       ? {
-          id: bounty.createdBy.id,
-          fullName: bounty.createdBy.fullName,
-          profileImage: '',
-          profileUrl: '#',
+          id: rawCreatedBy.id,
+          fullName:
+            bounty.createdBy?.fullName ||
+            `${rawCreatedBy.first_name || ''} ${rawCreatedBy.last_name || ''}`.trim() ||
+            'Unknown',
+          profileImage: rawCreatedBy.profile_image || '',
+          profileUrl: `/author/${rawCreatedBy.id}`,
         }
-      : undefined;
+      : bounty.createdBy?.id
+        ? {
+            id: bounty.createdBy.id,
+            fullName: bounty.createdBy.fullName,
+            profileImage: '',
+            profileUrl: `/author/${bounty.createdBy.id}`,
+          }
+        : undefined;
 
   const isActive = useMemo(() => {
     if (bounty.status === 'OPEN') {
@@ -171,15 +183,15 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       const remaining =
         days !== null
           ? days < 1
-            ? '< 1 day'
-            : `${Math.floor(days)} day${Math.floor(days) === 1 ? '' : 's'}`
+            ? '< 1 day remaining'
+            : `${Math.floor(days)} day${Math.floor(days) === 1 ? '' : 's'} remaining`
           : null;
-      return { label: 'Open', color: 'bg-green-500', remaining };
+      return { label: 'Open', color: 'bg-green-500', remaining, urgent: days !== null && days < 3 };
     }
     if (bounty.status === 'ASSESSMENT') {
-      return { label: 'Assessment', color: 'bg-orange-500', remaining: null };
+      return { label: 'Assessment', color: 'bg-orange-500', remaining: null, urgent: false };
     }
-    return { label: 'Completed', color: 'bg-gray-400', remaining: null };
+    return { label: 'Completed', color: 'bg-gray-400', remaining: null, urgent: false };
   }, [bounty.status, bounty.expirationDate, isActive]);
 
   const { amount: displayAmount } = useMemo(
@@ -334,7 +346,12 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
                     </span>
                   )}
                   {statusInfo.remaining && (
-                    <span className="text-xs text-gray-500 whitespace-nowrap">
+                    <span
+                      className={cn(
+                        'text-xs whitespace-nowrap',
+                        statusInfo.urgent ? 'text-amber-600 font-medium' : 'text-gray-500'
+                      )}
+                    >
                       ({statusInfo.remaining})
                     </span>
                   )}

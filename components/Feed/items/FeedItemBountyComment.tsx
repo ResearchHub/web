@@ -28,14 +28,10 @@ import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { buildWorkUrl } from '@/utils/url';
+import { cn } from '@/utils/styles';
 import { formatCurrency } from '@/utils/currency';
 import { getRemainingDays } from '@/utils/date';
-import {
-  BaseFeedItem,
-  TitleSection,
-  MetadataSection,
-  PrimaryActionSection,
-} from '@/components/Feed/BaseFeedItem';
+import { BaseFeedItem, TitleSection, PrimaryActionSection } from '@/components/Feed/BaseFeedItem';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import Link from 'next/link';
@@ -165,18 +161,19 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
       const remaining =
         days !== null
           ? days < 1
-            ? '< 1 day'
-            : `${Math.floor(days)} day${Math.floor(days) === 1 ? '' : 's'}`
+            ? '< 1 day remaining'
+            : `${Math.floor(days)} day${Math.floor(days) === 1 ? '' : 's'} remaining`
           : null;
-      return { label: 'Open', color: 'bg-green-500', remaining };
+      return { label: 'Open', color: 'bg-green-500', remaining, urgent: days !== null && days < 3 };
     }
     if (bounty.status === 'ASSESSMENT') {
-      return { label: 'Assessment', color: 'bg-orange-500', remaining: null };
+      return { label: 'Assessment', color: 'bg-orange-500', remaining: null, urgent: false };
     }
-    return { label: 'Completed', color: 'bg-gray-400', remaining: null };
+    return { label: 'Completed', color: 'bg-gray-400', remaining: null, urgent: false };
   })();
 
   const creatorProfile = bounty.createdBy?.authorProfile;
+  const rawCreatedBy = bounty.raw?.created_by;
   const bountyCreator = creatorProfile
     ? {
         id: creatorProfile.id,
@@ -184,14 +181,24 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
         profileImage: creatorProfile.profileImage,
         profileUrl: creatorProfile.profileUrl,
       }
-    : bounty.createdBy?.id
+    : rawCreatedBy?.id
       ? {
-          id: bounty.createdBy.id,
-          fullName: bounty.createdBy.fullName,
-          profileImage: '',
-          profileUrl: '#',
+          id: rawCreatedBy.id,
+          fullName:
+            bounty.createdBy?.fullName ||
+            `${rawCreatedBy.first_name || ''} ${rawCreatedBy.last_name || ''}`.trim() ||
+            'Unknown',
+          profileImage: rawCreatedBy.profile_image || '',
+          profileUrl: `/author/${rawCreatedBy.id}`,
         }
-      : undefined;
+      : bounty.createdBy?.id
+        ? {
+            id: bounty.createdBy.id,
+            fullName: bounty.createdBy.fullName,
+            profileImage: '',
+            profileUrl: `/author/${bounty.createdBy.id}`,
+          }
+        : undefined;
 
   const getAddButtonText = () => {
     if (entry.relatedWork?.postType === 'QUESTION') return 'Answer';
@@ -331,33 +338,19 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
           </div>
         )}
 
-        <BountyDetails
-          content={bountyEntry.comment.content}
-          contentFormat={bountyEntry.comment.contentFormat}
-          bountyType={bounty.bountyType}
-          maxLength={maxLength}
-          href={href}
-          onFeedItemClick={onFeedItemClick}
-        />
-
-        {!isOpen && hasSolutions && showSolutions && (
-          <div
-            className="mt-4"
-            onMouseDown={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
-          >
-            <BountySolutions
-              solutions={bounty.solutions}
-              isPeerReviewBounty={bounty.bountyType === 'REVIEW'}
-              totalAwardedAmount={calculateTotalAwardedAmount(bounty)}
-              onViewSolution={handleViewSolution}
-            />
-          </div>
-        )}
-
-        {bountyCreator && (
-          <MetadataSection className="mb-0 py-4">
-            <div className="flex items-center gap-2.5">
+        <div>
+          <TitleSection
+            title={
+              bounty.bountyType === 'REVIEW'
+                ? 'Peer Review Earning Opportunity'
+                : 'Earning Opportunity'
+            }
+            className="text-md"
+            href={href}
+            onClick={onFeedItemClick}
+          />
+          {bountyCreator && (
+            <div className="flex items-center gap-2.5 mt-3">
               <AuthorTooltip authorId={bountyCreator.id !== 0 ? bountyCreator.id : undefined}>
                 <Avatar
                   src={bountyCreator.profileImage || undefined}
@@ -377,7 +370,29 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
                 <span className="text-xs text-gray-500">Offering bounty</span>
               </div>
             </div>
-          </MetadataSection>
+          )}
+          <div className="text-gray-600 mt-2">
+            <CommentReadOnly
+              content={bountyEntry.comment.content}
+              contentFormat={bountyEntry.comment.contentFormat}
+              maxLength={maxLength}
+            />
+          </div>
+        </div>
+
+        {!isOpen && hasSolutions && showSolutions && (
+          <div
+            className="mt-4"
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <BountySolutions
+              solutions={bounty.solutions}
+              isPeerReviewBounty={bounty.bountyType === 'REVIEW'}
+              totalAwardedAmount={calculateTotalAwardedAmount(bounty)}
+              onViewSolution={handleViewSolution}
+            />
+          </div>
         )}
 
         {showSupportAndCTAButtons && (
@@ -437,7 +452,12 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
                       </span>
                     )}
                     {statusInfo.remaining && (
-                      <span className="text-xs text-gray-500 whitespace-nowrap">
+                      <span
+                        className={cn(
+                          'text-xs whitespace-nowrap',
+                          statusInfo.urgent ? 'text-amber-600 font-medium' : 'text-gray-500'
+                        )}
+                      >
                         ({statusInfo.remaining})
                       </span>
                     )}
