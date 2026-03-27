@@ -447,6 +447,17 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
 
               <div className="flex items-center gap-2 flex-shrink-0">
                 {awardButton}
+                {isActive && showContributeButton && !isAuthor && (
+                  <Button
+                    variant="outlined"
+                    size="sm"
+                    onClick={handleOpenContributeModal}
+                    className="text-primary-600 gap-2 border-primary-600 hover:bg-primary-50 rounded-md text-[13px]"
+                  >
+                    <ResearchCoinIcon outlined size={16} />
+                    Support
+                  </Button>
+                )}
                 {isOpen && (
                   <Button
                     variant="dark"
@@ -456,17 +467,6 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
                   >
                     {getAddButtonText()}
                     <ArrowRight size={14} />
-                  </Button>
-                )}
-                {isActive && showContributeButton && !isAuthor && (
-                  <Button
-                    variant="outlined"
-                    size="sm"
-                    onClick={handleOpenContributeModal}
-                    className="text-orange-600 gap-2 border-orange-600 hover:bg-orange-50 rounded-md text-[13px]"
-                  >
-                    <ResearchCoinIcon outlined size={16} />
-                    Support
                   </Button>
                 )}
               </div>
