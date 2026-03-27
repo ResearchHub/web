@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import { handleMissingSlugRedirect } from '@/utils/navigation';
+import { isLikelySpamGrantWork } from '@/utils/grantSpamDetection';
 
 interface Props {
   params: Promise<{
@@ -18,6 +19,9 @@ export default async function GrantRedirectPage({ params }: Props) {
   let grant;
   try {
     grant = await PostService.get(id);
+    if (isLikelySpamGrantWork(grant)) {
+      notFound();
+    }
   } catch {
     notFound();
   }

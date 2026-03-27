@@ -7,6 +7,7 @@ import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSke
 import { isDeadlineInFuture } from '@/utils/date';
 import { GrantTabProvider } from '@/components/Funding/GrantPageContent';
 import { GrantBannerWithTabs } from '@/components/Funding/GrantBannerWithTabs';
+import { isLikelySpamGrantWork } from '@/utils/grantSpamDetection';
 
 interface Props {
   params: Promise<{
@@ -25,6 +26,9 @@ export default async function GrantSlugLayout({ params, children }: Props) {
   let work;
   try {
     work = await PostService.get(id);
+    if (isLikelySpamGrantWork(work)) {
+      notFound();
+    }
   } catch {
     notFound();
   }

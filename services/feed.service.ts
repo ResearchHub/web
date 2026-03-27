@@ -4,6 +4,7 @@ import { Bounty, BountyType, transformBounty } from '@/types/bounty';
 import { transformUser, User } from '@/types/user';
 import { transformAuthorProfile } from '@/types/authorProfile';
 import { Fundraise, transformFundraise } from '@/types/funding';
+import { isLikelySpamGrantEntry } from '@/utils/grantSpamDetection';
 
 export class FeedService {
   private static readonly BASE_PATH = '/api/feed';
@@ -73,7 +74,8 @@ export class FeedService {
             return null;
           }
         })
-        .filter((entry): entry is FeedEntry => !!entry);
+        .filter((entry): entry is FeedEntry => !!entry)
+        .filter((entry) => !isLikelySpamGrantEntry(entry));
 
       // Return the transformed entries
       return {
