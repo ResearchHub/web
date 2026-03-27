@@ -6,7 +6,6 @@ import { shouldShowCommentButton } from '@/components/Feed/lib/feedUtils';
 import { Topic } from '@/types/topic';
 import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
-import { BountyMetadataLine } from '@/components/Bounty/BountyMetadataLine';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { BountySolutions } from '@/components/Bounty/BountySolutions';
 import {
@@ -21,16 +20,17 @@ import { ID } from '@/types/root';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { BountyContribution, BountyType } from '@/types/bounty';
 import { useParams, useRouter } from 'next/navigation';
-import { Trophy, Pen, Users, ArrowRight } from 'lucide-react';
+import { Trophy, Pen, Users, ArrowRight, Clock } from 'lucide-react';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { ContributeBountyModal } from '@/components/modals/ContributeBountyModal';
-import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { buildWorkUrl } from '@/utils/url';
+import { formatCurrency } from '@/utils/currency';
+import { formatDate, formatDeadline } from '@/utils/date';
 import { BaseFeedItem, TitleSection, PrimaryActionSection } from '@/components/Feed/BaseFeedItem';
 
 /**
@@ -49,7 +49,7 @@ export const BountyDetails: FC<{
   }
 
   return (
-    <div className="mt-4">
+    <div>
       <TitleSection
         title={bountyType === 'REVIEW' ? 'Peer Review Earning Opportunity' : 'Earning Opportunity'}
         className="text-md"
@@ -141,7 +141,6 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
   // Determine bounty status
   const isOpen = isOpenBounty(bounty);
   const isActive = isActiveBounty(bounty);
-  const expiringSoon = isExpiringSoon(bounty.expirationDate);
   const solutionsCount = bounty.solutions ? bounty.solutions.length : 0;
   const hasSolutions = solutionsCount > 0;
 
@@ -150,6 +149,29 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
 
   // Always use generic action text without amount
   const bountyActionText = 'created a bounty';
+
+  const bountyLabel = bounty.bountyType === 'REVIEW' ? 'Peer Review' : 'Bounty';
+
+  const deadlineLabel = (() => {
+    if (bounty.status === 'ASSESSMENT') return 'Assessment Period';
+    if (!bounty.expirationDate) return undefined;
+    if (isExpiringSoon(bounty.expirationDate, 1)) return formatDeadline(bounty.expirationDate);
+    return `Ends ${formatDate(bounty.expirationDate)}`;
+  })();
+
+  const getAddButtonText = () => {
+    if (entry.relatedWork?.postType === 'QUESTION') return 'Answer';
+    if (bounty.bountyType === 'REVIEW') return 'Add Review';
+    return 'Solve';
+  };
+
+  const contributors =
+    bounty.contributions?.map((c: BountyContribution) => ({
+      src: c.createdBy?.authorProfile?.profileImage || '',
+      alt: c.createdBy?.authorProfile?.fullName || 'Anonymous',
+      tooltip: c.createdBy?.authorProfile?.fullName || 'Anonymous',
+      authorId: c.createdBy?.authorProfile?.id || undefined,
+    })) ?? [];
 
   // Handle opening the contribute modal
   const handleOpenContributeModal = (e: React.MouseEvent | undefined) => {
@@ -306,17 +328,6 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
         showActions={false}
         onFeedItemClick={onFeedItemClick}
       >
-        <BountyMetadataLine
-          amount={displayBountyAmount}
-          expirationDate={bounty.expirationDate}
-          isOpen={isActive}
-          expiringSoon={expiringSoon}
-          solutionsCount={solutionsCount}
-          bountyStatus={bounty.status}
-          showDeadline={showDeadline}
-          skipConversion={showUSD}
-        />
-
         {entry.relatedWork && showRelatedWork && (
           <div
             className="mt-4"
@@ -359,41 +370,58 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
         {showSupportAndCTAButtons && (
           <PrimaryActionSection>
             <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="text-sm leading-tight whitespace-nowrap">
-                  <span className="font-mono font-semibold text-gray-900">
-                    {displayBountyAmount > 0 ? (
-                      <CurrencyBadge
-                        amount={displayBountyAmount}
-                        size="sm"
-                        variant={isActive ? 'badge' : 'disabled'}
-                        currency={showUSD ? 'USD' : 'RSC'}
-                        skipConversion={showUSD}
-                      />
-                    ) : null}
+              <div className="flex items-start gap-6 min-w-0">
+                <div className="flex flex-col leading-tight whitespace-nowrap">
+                  <span className="text-xs text-gray-500 uppercase tracking-wide">
+                    {bountyLabel}
+                  </span>
+                  <span className="font-mono font-semibold text-primary-600 text-xl">
+                    {formatCurrency({
+                      amount: Math.round(displayBountyAmount),
+                      showUSD,
+                      exchangeRate,
+                      skipConversion: showUSD,
+                      shorten: true,
+                    })}
                   </span>
                 </div>
 
-                {bounty.contributions && bounty.contributions.length > 0 && (
-                  <AvatarStack
-                    items={bounty.contributions.map((contribution: BountyContribution) => ({
-                      src: contribution.createdBy?.authorProfile?.profileImage || '',
-                      alt: contribution.createdBy?.authorProfile?.fullName || 'Anonymous',
-                      tooltip: contribution.createdBy?.authorProfile?.fullName || 'Anonymous',
-                    }))}
-                    size="sm"
-                    maxItems={3}
-                    spacing={-8}
-                    showLabel={false}
-                    disableTooltip={false}
-                    showExtraCount={true}
-                    totalItemsCount={bounty.contributions.length}
-                    extraCountLabel="Contributors"
-                  />
+                {contributors.length > 0 && (
+                  <div className="hidden sm:flex flex-col leading-tight">
+                    <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                      Backers
+                    </span>
+                    <AvatarStack
+                      items={contributors}
+                      size="xs"
+                      maxItems={3}
+                      spacing={-6}
+                      showLabel={false}
+                      disableTooltip={false}
+                      showExtraCount={true}
+                      totalItemsCount={bounty.contributions?.length ?? 0}
+                      extraCountLabel="Backers"
+                    />
+                  </div>
+                )}
+
+                {deadlineLabel && (
+                  <div className="hidden sm:flex flex-col leading-tight">
+                    <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                      Deadline
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <Clock size={14} className="text-gray-500 flex-shrink-0" />
+                      <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                        {deadlineLabel}
+                      </span>
+                    </div>
+                  </div>
                 )}
               </div>
 
               <div className="flex items-center gap-2 flex-shrink-0">
+                {awardButton}
                 {isOpen && (
                   <Button
                     variant="dark"
@@ -401,19 +429,10 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
                     className="flex-shrink-0 gap-1"
                     onClick={handleSolution}
                   >
-                    {(() => {
-                      if (entry.relatedWork?.postType === 'QUESTION') {
-                        return 'Add answer';
-                      }
-                      if (bounty.bountyType === 'REVIEW') {
-                        return 'Add Review';
-                      }
-                      return 'Add Solution';
-                    })()}
+                    {getAddButtonText()}
                     <ArrowRight size={14} />
                   </Button>
                 )}
-                {awardButton}
                 {isActive && showContributeButton && !isAuthor && (
                   <Button
                     variant="outlined"
@@ -456,6 +475,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
               }
               onFeedItemClick={onFeedItemClick}
               hideCommentButton={!shouldShowCommentButton(entry.metrics, Boolean(onReply))}
+              variant="inline"
             />
           </div>
         )}
