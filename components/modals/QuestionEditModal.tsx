@@ -12,6 +12,7 @@ import { Work } from '@/types/work';
 import { PostService } from '@/services/post.service';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { useVerifiedAction } from '@/hooks/useVerifiedAction';
 
 interface QuestionEditModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ interface QuestionEditModalProps {
 export const QuestionEditModal = ({ isOpen, onClose, work }: QuestionEditModalProps) => {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
+  const { withVerification } = useVerifiedAction();
 
   // Form state
   const [title, setTitle] = useState(work.title);
@@ -55,30 +57,32 @@ export const QuestionEditModal = ({ isOpen, onClose, work }: QuestionEditModalPr
       return;
     }
 
-    setIsSaving(true);
-    try {
-      const payload = {
-        post_id: work.id,
-        assign_doi: false,
-        document_type: work.contentType === 'preregistration' ? 'PREREGISTRATION' : 'QUESTION',
-        full_src: htmlContent || work.previewContent || '',
-        renderable_text: plainText || work.title || '',
-        hubs: selectedHubs.map((h) => Number(h.id)),
-        title: title,
-      };
+    withVerification(async () => {
+      setIsSaving(true);
+      try {
+        const payload = {
+          post_id: work.id,
+          assign_doi: false,
+          document_type: work.contentType === 'preregistration' ? 'PREREGISTRATION' : 'QUESTION',
+          full_src: htmlContent || work.previewContent || '',
+          renderable_text: plainText || work.title || '',
+          hubs: selectedHubs.map((h) => Number(h.id)),
+          title: title,
+        };
 
-      await PostService.upsert(payload);
-      toast.success('Question updated successfully');
-      onClose();
+        await PostService.upsert(payload);
+        toast.success('Question updated successfully');
+        onClose();
 
-      // Refresh the page to show updated content
-      router.refresh();
-    } catch (error) {
-      console.error('Failed to save:', error);
-      toast.error('Failed to save changes');
-    } finally {
-      setIsSaving(false);
-    }
+        // Refresh the page to show updated content
+        router.refresh();
+      } catch (error) {
+        console.error('Failed to save:', error);
+        toast.error('Failed to save changes');
+      } finally {
+        setIsSaving(false);
+      }
+    });
   };
 
   const handleCancel = () => {

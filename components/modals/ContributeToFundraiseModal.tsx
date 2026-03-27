@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { FundraiseService } from '@/services/fundraise.service';
 import { PaymentService } from '@/services/payment.service';
@@ -26,13 +25,11 @@ import { BaseModal } from '@/components/ui/BaseModal';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { EndaomentProvider } from '@/contexts/EndaomentContext';
+import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
 
 // Import inline deposit views
 import { DepositRSCView } from './DepositRSCView';
-import { BuyModal } from './ResearchCoin/BuyModal';
 import AuthContent from '@/components/Auth/AuthContent';
-import { UserService } from '@/services/user.service';
-
 interface ContributeToFundraiseModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -57,10 +54,6 @@ type ModalView = 'funding' | 'auth' | 'payment' | 'deposit-rsc';
  * where the modal is rendered but never opened.
  */
 export function ContributeToFundraiseModal(props: ContributeToFundraiseModalProps) {
-  // Feature flag: Endaoment is only visible when ?exp_endaoment=true
-  const searchParams = useSearchParams();
-  const isEndaomentEnabled = searchParams.get('exp_endaoment') === 'true';
-
   // Track whether the modal has been opened at least once.
   // Using a ref for the flag (no extra render) and state to trigger the
   // initial mount when isOpen first becomes true.
@@ -76,13 +69,11 @@ export function ContributeToFundraiseModal(props: ContributeToFundraiseModalProp
   // BaseModal/SwipeableDrawer aren't needed when isOpen has never been true.
   if (!mountStripe) return null;
 
-  const inner = (
-    <ContributeToFundraiseModalInner {...props} isEndaomentEnabled={isEndaomentEnabled} />
-  );
+  const inner = <ContributeToFundraiseModalInner {...props} />;
 
   return (
     <StripeProvider>
-      {isEndaomentEnabled ? <EndaomentProvider>{inner}</EndaomentProvider> : inner}
+      <EndaomentProvider>{inner}</EndaomentProvider>
     </StripeProvider>
   );
 }
@@ -94,19 +85,19 @@ function ContributeToFundraiseModalInner({
   fundraise,
   proposalTitle,
   work,
-  isEndaomentEnabled,
-}: ContributeToFundraiseModalProps & { isEndaomentEnabled: boolean }) {
+}: Readonly<ContributeToFundraiseModalProps>) {
   const { user, refreshUser } = useUser();
   const walletAvailability = useWalletAvailability();
   const { exchangeRate } = useExchangeRate();
   const isMobile = useIsMobile();
+  const { nonprofit } = useNonprofitByFundraiseId(fundraise.id);
+  const hasNonprofit = nonprofit !== null;
   const [amountUsd, setAmountUsd] = useState(100);
   const [isContributing, setIsContributing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [amountError, setAmountError] = useState<string | undefined>(undefined);
   const [currentView, setCurrentView] = useState<ModalView>('funding');
   const [selectedQuickAmount, setSelectedQuickAmount] = useState<number | null>(100);
-  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
   const [isSliderControlled, setIsSliderControlled] = useState(false);
 
   // Store Stripe context for credit card payments
@@ -200,10 +191,6 @@ function ContributeToFundraiseModalInner({
   }, [user, fundraise.id, amountUsd, amountInRsc]);
 
   const handleAuthSuccess = useCallback(async () => {
-    // Skip onboarding for users who sign up through the fundraise flow
-    await UserService.setCompletedOnboarding();
-
-    // Track funnel step: user reached payment step after auth
     AnalyticsService.logEvent(LogEvent.FUNDRAISE_CONTRIBUTION_PAYMENT_STEP, {
       fundraise_id: fundraise.id,
       amount_usd: amountUsd,
@@ -342,10 +329,6 @@ function ContributeToFundraiseModalInner({
 
   const handleOpenDeposit = useCallback(() => {
     setCurrentView('deposit-rsc');
-  }, []);
-
-  const handleBuyRsc = useCallback(() => {
-    setIsBuyModalOpen(true);
   }, []);
 
   // Handle quick amount selection
@@ -488,13 +471,12 @@ function ContributeToFundraiseModalInner({
             isProcessing={isContributing}
             error={error}
             walletAvailability={walletAvailability}
+            hasNonprofit={hasNonprofit}
             onConfirmPayment={handleConfirmPayment}
             onPaymentRequestSuccess={handlePaymentRequestSuccess}
             onEndaomentPaymentConfirm={handleEndaomentPaymentConfirm}
             onDepositRsc={handleOpenDeposit}
-            onBuyRsc={handleBuyRsc}
             onStripeReady={handleStripeReady}
-            isEndaomentEnabled={isEndaomentEnabled}
           />
         );
 
@@ -637,9 +619,6 @@ function ContributeToFundraiseModalInner({
           {renderContent()}
         </BaseModal>
       )}
-
-      {/* Buy RSC Modal */}
-      <BuyModal isOpen={isBuyModalOpen} onClose={() => setIsBuyModalOpen(false)} />
     </>
   );
 }

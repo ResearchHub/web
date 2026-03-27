@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, ReactNode, useEffect } from 'react';
+import { FC, ReactNode, useEffect, useRef } from 'react';
 import React from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { FeedItemSkeleton } from './FeedItemSkeleton';
@@ -12,6 +12,8 @@ import { FeedEntryItem, Highlight } from './FeedEntryItem';
 import { getFeedKey } from '@/contexts/NavigationContext';
 import { useFeedScrollTracking } from '@/hooks/useFeedScrollTracking';
 import { useFeedImpressionTracking } from '@/hooks/useFeedImpressionTracking';
+import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
+import { useScrollContainer } from '@/contexts/ScrollContainerContext';
 
 interface InsertContentItem {
   index: number;
@@ -44,6 +46,7 @@ interface FeedContentProps {
   insertContent?: InsertContentItem[];
   shouldRenderBountyAsComment?: boolean;
   showBountyInfo?: boolean;
+  abstractCollapsedByDefault?: boolean;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -72,9 +75,13 @@ export const FeedContent: FC<FeedContentProps> = ({
   insertContent,
   shouldRenderBountyAsComment,
   showBountyInfo = false,
+  abstractCollapsedByDefault,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { setContentTabsHidden } = useFeedTabsVisibility();
+  const scrollContainerRef = useScrollContainer();
+  const tabsSentinelRef = useRef<HTMLDivElement>(null);
 
   const { ref: loadMoreRef, inView } = useInView({
     threshold: 0,
@@ -108,21 +115,44 @@ export const FeedContent: FC<FeedContentProps> = ({
     useFeedImpressionTracking();
 
   const displayEntries = entries;
+  const showLoadingSkeletons = isLoading || isLoadingMore;
+  const skeletonCount = 3;
 
   useEffect(() => {
-    if (inView && hasMore && !isLoading && !isLoadingMore) {
+    if (inView && hasMore && !showLoadingSkeletons) {
       loadMore();
     }
-  }, [inView, hasMore, isLoading, isLoadingMore, loadMore]);
+  }, [inView, hasMore, showLoadingSkeletons, loadMore]);
+
+  useEffect(() => {
+    const sentinel = tabsSentinelRef.current;
+    if (!sentinel || !tabs) return;
+
+    const root = scrollContainerRef?.current ?? null;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setContentTabsHidden(!entry.isIntersecting);
+      },
+      { root, threshold: 0 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [tabs, scrollContainerRef, setContentTabsHidden]);
+
+  useEffect(() => {
+    if (!tabs) return;
+    return () => setContentTabsHidden(false);
+  }, [tabs, setContentTabsHidden]);
 
   return (
     <>
-      {header && <div>{header}</div>}
+      {header}
 
       <div className="max-w-4xl mx-auto">
-        {tabs && <div className="border-b">{tabs}</div>}
+        {tabs && <div ref={tabsSentinelRef}>{tabs}</div>}
 
-        {filters && <div className="py-3">{filters}</div>}
+        {filters && <div>{filters}</div>}
 
         {banner && <div className="pt-3 pb-0">{banner}</div>}
 
@@ -163,6 +193,7 @@ export const FeedContent: FC<FeedContentProps> = ({
                   registerVisibleItem={registerVisibleItem}
                   unregisterVisibleItem={unregisterVisibleItem}
                   getVisibleItems={getVisibleItems}
+                  abstractCollapsedByDefault={abstractCollapsedByDefault}
                 />
               );
 
@@ -178,21 +209,18 @@ export const FeedContent: FC<FeedContentProps> = ({
               );
             })}
 
-          {isLoading && (
-            <>
-              {[...Array(3)].map((_, index) => (
-                <div
-                  key={`skeleton-${index}`}
-                  className={index > 0 || displayEntries.length > 0 ? 'mt-8' : ''}
-                >
-                  <FeedItemSkeleton />
-                </div>
-              ))}
-            </>
+          {showLoadingSkeletons && (
+            <div className={displayEntries.length > 0 ? 'mt-8' : ''}>
+              <div className="space-y-8">
+                {[...Array(skeletonCount)].map((_, index) => (
+                  <FeedItemSkeleton key={`skeleton-${index}`} />
+                ))}
+              </div>
+            </div>
           )}
 
-          {/* Show 'No entries' message only if not loading and entries are empty */}
           {!isLoading &&
+            !isLoadingMore &&
             displayEntries.length === 0 &&
             (noEntriesElement || (
               <div className="text-center py-8">
@@ -202,11 +230,7 @@ export const FeedContent: FC<FeedContentProps> = ({
         </div>
 
         {/* Infinite scroll sentinel */}
-        {!isLoading && hasMore && (
-          <div ref={loadMoreRef} className="h-10 flex items-center justify-center">
-            {isLoadingMore && <span className="text-sm text-gray-500">Loading more...</span>}
-          </div>
-        )}
+        {!showLoadingSkeletons && hasMore && <div ref={loadMoreRef} className="h-10" />}
       </div>
     </>
   );

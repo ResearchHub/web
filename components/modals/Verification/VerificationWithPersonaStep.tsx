@@ -14,11 +14,13 @@ const PersonaReact = dynamic(() => import('persona-react'), {
 
 export interface VerificationWithPersonaStepProps {
   onVerificationStatusChange?: (status: 'success' | 'failed') => void;
+  templateId?: string | null;
 }
 
 export function VerificationWithPersonaStep({
   onVerificationStatusChange,
-}: VerificationWithPersonaStepProps): JSX.Element {
+  templateId,
+}: VerificationWithPersonaStepProps): React.JSX.Element {
   const [isPersonaLoaded, setIsPersonaLoaded] = useState(false);
   const { user } = useUser();
   const personaWrapperRef = useRef<HTMLDivElement>(null);
@@ -80,7 +82,7 @@ export function VerificationWithPersonaStep({
       <div className={isPersonaLoaded ? '' : 'hidden'}>
         <PersonaReact
           environmentId={process.env.NEXT_PUBLIC_PERSONA_ENVIRONMENT_ID}
-          templateId={process.env.NEXT_PUBLIC_PERSONA_TEMPLATE_ID}
+          templateId={templateId ?? process.env.NEXT_PUBLIC_PERSONA_TEMPLATE_ID}
           referenceId={`${user.id}`}
           onReady={() => {
             setIsPersonaLoaded(true);

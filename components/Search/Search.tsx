@@ -69,7 +69,7 @@ export function Search({
       if (suggestion.entityType === 'paper') {
         // Check if this is a funding request
         if (suggestion.contentType === 'preregistration') {
-          router.push(`/fund/${suggestion.id}/${suggestion.slug || ''}`);
+          router.push(`/proposal/${suggestion.id}/${suggestion.slug || ''}`);
         } else if (suggestion.isRecent) {
           router.push(`/paper/${suggestion.id}/${suggestion.slug}`);
         } else {

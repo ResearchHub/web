@@ -1,6 +1,5 @@
 'use client';
 
-import { BookOpen } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Icon } from '@/components/ui/icons/Icon';
@@ -8,6 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { getSourceLogo, getPreprintDisplayName } from '@/utils/preprintUtil';
 import { SOURCES } from '@/components/Feed/filters/constants';
 import type { Journal } from '@/types/journal';
+import { SidebarHeader } from '@/components/ui/SidebarHeader';
 
 interface JournalSectionProps {
   journal: Journal;
@@ -25,10 +25,7 @@ export const JournalSection = ({ journal }: JournalSectionProps) => {
 
   return (
     <section>
-      <div className="flex items-center space-x-2 mb-4">
-        <BookOpen className="h-5 w-5 text-gray-500" />
-        <h2 className="text-base font-semibold text-gray-900">{sectionTitle}</h2>
-      </div>
+      <SidebarHeader title={sectionTitle} className="mb-3" />
       <Link href={href} className="inline-block">
         <Badge
           variant="default"

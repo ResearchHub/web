@@ -54,6 +54,15 @@ export class ApiClient {
     }
   }
 
+  private static isNotFoundError(error: unknown): boolean {
+    return error instanceof ApiError && error.status === 404;
+  }
+
+  private static logError(error: unknown): void {
+    const log = this.isNotFoundError(error) ? console.warn : console.error;
+    log('API request failed:', error);
+  }
+
   private static async getHeaders(method: string) {
     const headers: Record<string, string> = {
       Accept: 'application/json',
@@ -66,7 +75,7 @@ export class ApiClient {
     const authToken = await this.getAuthToken();
     if (authToken) {
       headers['Authorization'] = `Token ${authToken}`;
-    } else {
+    } else if (typeof window !== 'undefined') {
       console.warn('No auth token available for request');
     }
 
@@ -101,11 +110,26 @@ export class ApiClient {
     };
   }
 
-  static async get<T>(path: string): Promise<T> {
+  static async getStream(
+    path: string,
+    options?: { signal?: AbortSignal; accept?: string }
+  ): Promise<Response> {
+    const headers = await this.getHeaders('GET');
+    if (options?.accept) {
+      headers['Accept'] = options.accept;
+    }
+    const url = path.startsWith('http') ? path : `${this.baseURL}${path}`;
+    return fetch(url, {
+      method: 'GET',
+      headers,
+      mode: 'cors',
+      cache: 'no-cache',
+      signal: options?.signal,
+    });
+  }
+
+  private static async fetchJson<T>(path: string, headers: Record<string, string>): Promise<T> {
     try {
-      const headers = await this.getHeaders('GET');
-      // Check if the path is already a full URL
-      // If it is, use it as is, otherwise prepend the base URL
       const url = path.startsWith('http') ? path : `${this.baseURL}${path}`;
       const response = await fetch(url, this.getFetchOptions('GET', headers));
 
@@ -121,9 +145,25 @@ export class ApiClient {
 
       return response.json();
     } catch (error) {
-      console.error('API request failed:', error);
+      this.logError(error);
       throw error;
     }
+  }
+
+  /**
+   * Makes an authenticated GET request for endpoints that require authentication.
+   * Automatically includes the auth token in the headers.
+   */
+  static async get<T>(path: string): Promise<T> {
+    const headers = await this.getHeaders('GET');
+    return this.fetchJson<T>(path, headers);
+  }
+
+  /**
+   * Makes an unauthenticated GET request for public endpoints.
+   */
+  static async getPublic<T>(path: string): Promise<T> {
+    return this.fetchJson<T>(path, { Accept: 'application/json' });
   }
 
   /**
@@ -147,7 +187,7 @@ export class ApiClient {
 
       return response.blob();
     } catch (error) {
-      console.error('API request failed:', error);
+      this.logError(error);
       throw error;
     }
   }
@@ -221,8 +261,22 @@ export class ApiClient {
 
       return response.json();
     } catch (error) {
-      console.error('API request failed:', error);
+      this.logError(error);
       throw error;
+    }
+  }
+
+  static async deleteNoContent(path: string): Promise<void> {
+    const headers = await this.getHeaders('DELETE');
+    const response = await fetch(`${this.baseURL}${path}`, this.getFetchOptions('DELETE', headers));
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: 'Invalid JSON response from server' };
+      }
+      throw new ApiError(errorData.message || 'Request failed', response.status, errorData);
     }
   }
 }

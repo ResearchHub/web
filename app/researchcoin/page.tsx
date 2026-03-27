@@ -34,7 +34,12 @@ export default function ResearchCoinPage() {
     hasPendingDepositFeed,
     isLoading: isLoadingPendingDeposits,
     refreshDeposits,
-  } = usePendingDeposits();
+  } = usePendingDeposits({
+    onDepositResolved: () => {
+      fetchBalance();
+      transactionFeedRef.current?.refresh();
+    },
+  });
   const transactionFeedRef = useRef<{ refresh: () => Promise<void> }>(null);
   const { openVerificationModal } = useVerification();
 
@@ -85,7 +90,7 @@ export default function ResearchCoinPage() {
     <PageLayout rightSidebar={<ResearchCoinRightSidebar />}>
       <div className="w-full">
         <div className="">
-          <div className="mb-8">
+          <div className="">
             <MainPageHeader
               icon={<Icon name="rscThin" size={28} />}
               title="My Wallet"
@@ -112,7 +117,7 @@ export default function ResearchCoinPage() {
                     </div>
                   </div>
                   <Button
-                    onClick={openVerificationModal}
+                    onClick={() => openVerificationModal()}
                     variant="secondary"
                     size="default"
                     className="bg-white text-blue-600 hover:bg-gray-50 font-medium px-5"

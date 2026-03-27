@@ -372,7 +372,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
       return (
         <>
           {renderTextWithMarks(truncatedText, node.marks || [])}
-          <span className="text-gray-500 text-sm font-semibold">[...]</span>
+          <span className="text-gray-500 font-semibold">...</span>
         </>
       );
     }
@@ -395,7 +395,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
 
   // Handle heading nodes
   if (node.type === 'heading') {
-    const HeadingTag = `h${node.attrs?.level || 1}` as keyof JSX.IntrinsicElements;
+    const HeadingTag = `h${node.attrs?.level || 1}` as keyof React.JSX.IntrinsicElements;
     const { children } = renderChildrenWithTruncation(node.content, {
       debug,
       renderSectionHeader,

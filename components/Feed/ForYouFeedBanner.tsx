@@ -23,7 +23,7 @@ const ForYouFeedBannerComponent: React.FC = () => {
   }
 
   return (
-    <div className="relative flex flex-col sm:!flex-row sm:!items-center gap-2.5 text-sm bg-indigo-50 rounded-lg px-3 py-2.5 border-2 border-primary-200">
+    <div className="relative flex flex-col sm:!flex-row sm:!items-center gap-2.5 text-sm bg-indigo-50 rounded-lg px-3 py-2.5 border-2 border-primary-200 mb-2">
       <div className="flex items-start sm:!items-center gap-2.5 flex-1">
         <PersonalizedIcon />
         <div className="text-gray-600">

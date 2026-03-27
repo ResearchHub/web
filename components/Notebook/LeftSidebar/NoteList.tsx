@@ -27,7 +27,11 @@ export const NoteList: React.FC<NoteListProps> = ({ notes, type, isLoading = fal
   }
 
   if (filteredAndSortedNotes.length === 0) {
-    return <div className="text-sm text-gray-500 px-2.5">No {type} notes</div>;
+    return (
+      <div className="flex flex-col items-center py-4 text-center">
+        <p className="text-sm text-gray-400">No {type} notes yet</p>
+      </div>
+    );
   }
 
   return (

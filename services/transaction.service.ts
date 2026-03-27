@@ -157,6 +157,21 @@ export class TransactionService {
   }
 
   /**
+   * Fetches only pending deposits for the current user
+   */
+  static async getPendingDeposits(): Promise<PendingDepositResponse> {
+    const response = await ApiClient.get<PendingDepositResponse>(
+      `${this.DEPOSITS_PATH}/?paid_status=PENDING`
+    );
+
+    if (!response?.results) {
+      throw new Error('Invalid response format');
+    }
+
+    return response;
+  }
+
+  /**
    * Fetches the user's balance
    */
   static async getUserBalance(): Promise<number> {

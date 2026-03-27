@@ -279,7 +279,7 @@ export const renderQuillContent = (quillContent: any): ReactNode[] | null => {
           }
 
           if (attributes.header) {
-            const HeaderTag = `h${attributes.header}` as keyof JSX.IntrinsicElements;
+            const HeaderTag = `h${attributes.header}` as keyof React.JSX.IntrinsicElements;
             result.push(
               <HeaderTag key={`h-${blockIndex}-${index}`} className="font-bold text-lg my-4">
                 {text}

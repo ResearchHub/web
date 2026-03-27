@@ -6,7 +6,7 @@ import { SidebarSection } from '@/components/Notebook/LeftSidebar/SidebarSection
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { FileText, Plus, Wallet, Lock, Loader2 } from 'lucide-react';
+import { FileText, Plus, Wallet, Lock, Loader2, type LucideIcon } from 'lucide-react';
 import { Organization } from '@/types/organization';
 import { useRouter } from 'next/navigation';
 import { useCallback, useTransition } from 'react';
@@ -116,23 +116,38 @@ export const LeftSidebar = () => {
     [createNote, updateNoteContent, router, selectedOrg, refreshNotes]
   );
 
-  const processing = isCreatingNote || isUpdatingContent;
+  const isProcessing = isCreatingNote || isUpdatingContent;
 
-  const renderTemplateMenu = (type: 'workspace' | 'private') => (
+  const hasWorkspaceNotes = notes?.some((n) => n.access === 'WORKSPACE' || n.access === 'SHARED');
+  const hasPrivateNotes = notes?.some((n) => n.access === 'PRIVATE');
+
+  const renderTemplateMenu = (type: 'workspace' | 'private', triggerLabel?: string) => (
     <BaseMenu
       trigger={
-        <Button
-          variant="ghost"
-          size="icon"
-          className="w-6 h-6 transition-opacity"
-          disabled={processing}
-        >
-          {processing ? (
-            <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
-          ) : (
-            <Plus className="h-4 w-4 text-gray-500" />
-          )}
-        </Button>
+        triggerLabel ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={isProcessing}
+            className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-700"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {triggerLabel}
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-6 h-6 transition-opacity"
+            disabled={isProcessing}
+          >
+            {isProcessing ? (
+              <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
+            ) : (
+              <Plus className="h-4 w-4 text-gray-500" />
+            )}
+          </Button>
+        )
       }
       align="start"
       className="w-56 p-1.5"
@@ -143,9 +158,9 @@ export const LeftSidebar = () => {
       <BaseMenuItem
         onClick={() => handleTemplateSelect(type, 'research')}
         className="flex items-center gap-2 py-2"
-        disabled={processing}
+        disabled={isProcessing}
       >
-        {processing ? (
+        {isProcessing ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
           <FileText className="h-4 w-4" />
@@ -159,9 +174,9 @@ export const LeftSidebar = () => {
       <BaseMenuItem
         onClick={() => handleTemplateSelect(type, 'grant')}
         className="flex items-center gap-2 py-2"
-        disabled={processing}
+        disabled={isProcessing}
       >
-        {processing ? (
+        {isProcessing ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
           <FileText className="h-4 w-4" />
@@ -174,9 +189,13 @@ export const LeftSidebar = () => {
       <BaseMenuItem
         onClick={() => handleTemplateSelect(type, 'preregistration')}
         className="flex items-center gap-2 py-2"
-        disabled={processing}
+        disabled={isProcessing}
       >
-        {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
+        {isProcessing ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Wallet className="h-4 w-4" />
+        )}
         <div>
           <div className="font-medium text-gray-900">Proposal</div>
           <div className="text-xs text-gray-500">Get funding for your research</div>
@@ -185,9 +204,9 @@ export const LeftSidebar = () => {
       <BaseMenuItem
         onClick={() => handleTemplateSelect(type, 'empty')}
         className="flex items-center gap-2 py-2"
-        disabled={processing}
+        disabled={isProcessing}
       >
-        {processing ? (
+        {isProcessing ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
           <FileText className="h-4 w-4" />
@@ -198,6 +217,29 @@ export const LeftSidebar = () => {
         </div>
       </BaseMenuItem>
     </BaseMenu>
+  );
+
+  const renderEmptyState = ({
+    icon: Icon,
+    title,
+    subtitle,
+    buttonLabel,
+    type,
+  }: {
+    icon: LucideIcon;
+    title: string;
+    subtitle: string;
+    buttonLabel: string;
+    type: 'workspace' | 'private';
+  }) => (
+    <div className="flex flex-col items-center justify-center py-6 text-center">
+      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-2.5">
+        <Icon className="h-5 w-5 text-gray-400" />
+      </div>
+      <p className="text-sm font-medium text-gray-500">{title}</p>
+      <p className="text-xs text-gray-400 mt-0.5 mb-3">{subtitle}</p>
+      {renderTemplateMenu(type, buttonLabel)}
+    </div>
   );
 
   return (
@@ -211,58 +253,51 @@ export const LeftSidebar = () => {
 
       <div className="flex-1 overflow-y-auto">
         <div className="px-2 py-3">
-          <SidebarSection action={renderTemplateMenu('workspace')} title="Workspace">
-            {(notes && notes.length > 0) || isLoadingNotes || isLoadingOrgs ? (
+          <SidebarSection
+            title="Workspace"
+            icon={FileText}
+            iconPosition="after"
+            action={renderTemplateMenu('workspace')}
+          >
+            {hasWorkspaceNotes || isLoadingNotes || isLoadingOrgs ? (
               <NoteList
                 type="workspace"
                 notes={notes || []}
                 isLoading={isLoadingNotes || isPending}
               />
             ) : (
-              <div className="flex flex-col items-center justify-center py-4 text-sm text-gray-500">
-                <p className="mb-2">No notes yet</p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleTemplateSelect('workspace', 'research')}
-                  disabled={processing}
-                  className="flex items-center gap-1"
-                >
-                  <Plus className="h-3 w-3" />
-                  Add New Note
-                </Button>
-              </div>
+              renderEmptyState({
+                icon: FileText,
+                title: 'No notes yet',
+                subtitle: 'Create your first note to get started',
+                buttonLabel: 'Add New Note',
+                type: 'workspace',
+              })
             )}
           </SidebarSection>
         </div>
 
         <div className="px-2 py-3">
           <SidebarSection
+            title="Private"
             icon={Lock}
             iconPosition="after"
             action={renderTemplateMenu('private')}
-            title="Private"
           >
-            {(notes && notes.length > 0) || isLoadingNotes || isLoadingOrgs ? (
+            {hasPrivateNotes || isLoadingNotes || isLoadingOrgs ? (
               <NoteList
                 type="private"
                 notes={notes || []}
                 isLoading={isLoadingNotes || isPending}
               />
             ) : (
-              <div className="flex flex-col items-center justify-center py-4 text-sm text-gray-500">
-                <p className="mb-2">No private notes yet</p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleTemplateSelect('private', 'research')}
-                  disabled={processing}
-                  className="flex items-center gap-1"
-                >
-                  <Plus className="h-3 w-3" />
-                  Add Private Note
-                </Button>
-              </div>
+              renderEmptyState({
+                icon: Lock,
+                title: 'No private notes yet',
+                subtitle: 'Private notes are only visible to you',
+                buttonLabel: 'Add Private Note',
+                type: 'private',
+              })
             )}
           </SidebarSection>
         </div>

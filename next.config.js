@@ -3,8 +3,13 @@ const nextConfig = {
   reactStrictMode: false,
   redirects: async () => [
     {
-      source: '/fund',
-      destination: '/fund/grants',
+      source: '/funding',
+      destination: '/fund',
+      permanent: false,
+    },
+    {
+      source: '/funding/:path*',
+      destination: '/fund/:path*',
       permanent: false,
     },
     {
@@ -20,6 +25,31 @@ const nextConfig = {
     {
       source: '/trending',
       destination: '/popular',
+      permanent: true,
+    },
+    {
+      source: '/grant/:id(\\d+)/:slug/applications',
+      destination: '/grant/:id/:slug',
+      permanent: true,
+    },
+    {
+      source: '/grant/:id(\\d+)/:slug/conversation',
+      destination: '/grant/:id/:slug',
+      permanent: true,
+    },
+    {
+      source: '/earn/reviews',
+      destination: '/earn',
+      permanent: false,
+    },
+    {
+      source: '/fund/:id(\\d+)',
+      destination: '/proposal/:id',
+      permanent: true,
+    },
+    {
+      source: '/fund/:id(\\d+)/:path*',
+      destination: '/proposal/:id/:path*',
       permanent: true,
     },
   ],
@@ -119,6 +149,8 @@ const nextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': __dirname,
+      // Alias React Native modules to prevent build warnings
+      '@react-native-async-storage/async-storage': false,
     };
 
     if (!isServer) {

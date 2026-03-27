@@ -1,25 +1,29 @@
 'use client';
 
-import { FC } from 'react';
-import { FeedPostContent, FeedEntry, mapFeedContentTypeToContentType } from '@/types/feed';
+import { FC, useState } from 'react';
+import { FeedPostContent, FeedEntry } from '@/types/feed';
 import {
   BaseFeedItem,
   TitleSection,
-  ContentSection,
   ImageSection,
   MetadataSection,
-  FeedItemLayout,
-  FeedItemTopSection,
+  PrimaryActionSection,
 } from '@/components/Feed/BaseFeedItem';
-import { FeedItemMenuButton } from '@/components/Feed/FeedItemMenuButton';
-import { FeedItemBadges } from '@/components/Feed/FeedItemBadges';
-import { AuthorList } from '@/components/ui/AuthorList';
-import { TaxDeductibleBadge } from '@/components/ui/TaxDeductibleBadge';
-import { FundraiseProgress } from '@/components/Fund/FundraiseProgressV2';
-import { Users, Building, Pin } from 'lucide-react';
-import { formatTimestamp } from '@/utils/date';
+import { Avatar } from '@/components/ui/Avatar';
+import { AvatarStack } from '@/components/ui/AvatarStack';
+import { Button } from '@/components/ui/Button';
+import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
+import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { FeedItemFundingBadges } from '@/components/Feed/FeedItemFundingBadges';
+import { Pin, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { useShareModalContext } from '@/contexts/ShareContext';
+import { formatCurrency } from '@/utils/currency';
+import { isDeadlineInFuture } from '@/utils/date';
+import Link from 'next/link';
 
 interface FeedItemFundraiseProps {
   entry: FeedEntry;
@@ -34,9 +38,6 @@ interface FeedItemFundraiseProps {
   showBountyInfo?: boolean;
 }
 
-/**
- * Component for rendering a fundraise feed item using BaseFeedItem
- */
 export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   entry,
   href,
@@ -50,28 +51,18 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
   showBountyInfo,
 }) => {
   const router = useRouter();
-  // Extract the post from the entry's content
+  const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
+  const { showShareModal } = useShareModalContext();
+  const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
+
   const post = entry.content as FeedPostContent;
-
-  // Check if this is a proposal with fundraise data
   const hasFundraise = post.contentType === 'PREREGISTRATION' && post.fundraise;
-
-  // Get topics/tags for display
-  const topics = post.topics || [];
-
-  // Check if the entry has the is_nonprofit flag and is a funding type
   const isNonprofit =
     entry.raw?.is_nonprofit === true && post.contentType === 'PREREGISTRATION' && post.fundraise;
 
-  // Convert authors to the format expected by AuthorList
-  const authors =
-    post.authors?.map((author) => ({
-      name: author.fullName,
-      verified: author.user?.isVerified,
-      authorUrl: author.profileUrl,
-    })) || [];
+  const primaryAuthor = post.authors?.[0];
 
-  // Use provided href or create default funding page URL
   const fundingPageUrl =
     href ||
     buildWorkUrl({
@@ -80,148 +71,195 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
       contentType: 'preregistration',
     });
 
-  // Image URL
   const imageUrl = post.previewImage ?? undefined;
 
-  const handleFundDetailsClick = () => {
-    if (onFeedItemClick) {
-      onFeedItemClick();
-    }
-    router.push(fundingPageUrl);
+  const fundraise = post.fundraise;
+  const isActive =
+    fundraise &&
+    fundraise.status === 'OPEN' &&
+    (fundraise.endDate ? isDeadlineInFuture(fundraise.endDate) : true);
+
+  const contributors =
+    fundraise?.contributors?.topContributors?.map((c) => ({
+      src: c.authorProfile.profileImage || '',
+      alt: c.authorProfile.fullName,
+      tooltip: c.authorProfile.fullName,
+      authorId: c.authorProfile.id || undefined,
+    })) || [];
+
+  const handleContributeSuccess = () => {
+    setIsContributeModalOpen(false);
+    showShareModal({
+      url: window.location.href,
+      docTitle: post.title,
+      action: 'USER_FUNDED_PROPOSAL',
+    });
+    router.refresh();
   };
 
-  // Extract props for FeedItemMenuButton (same as BaseFeedItem uses for FeedItemActions)
-  const feedContentType = post.contentType || 'PREREGISTRATION';
-  const votableEntityId = post.id;
-  const relatedDocumentId =
-    'relatedDocumentId' in post ? post.relatedDocumentId?.toString() : post.id.toString();
-  const relatedDocumentContentType =
-    // 'relatedDocumentContentType' in post
-    // ? post.relatedDocumentContentType
-    // :
-    mapFeedContentTypeToContentType(post.contentType);
-
   return (
-    <BaseFeedItem
-      entry={entry}
-      href={fundingPageUrl}
-      showActions={showActions}
-      showTooltips={showTooltips}
-      customActionText={
-        customActionText ?? (hasFundraise ? `is seeking funding` : 'published a post')
-      }
-      maxLength={maxLength}
-      onFeedItemClick={onFeedItemClick}
-      showBountyInfo={showBountyInfo}
-      showHeader={showHeader}
-      hideReportButton={true}
-    >
-      {/* Pin icon in top right corner for pinned fundraises */}
-      {isPinnedFundraise && (
-        <div className="absolute top-3 right-3 z-10 pointer-events-none">
-          <Pin className="w-4 h-4 text-blue-600" />
-        </div>
-      )}
+    <>
+      <BaseFeedItem
+        entry={entry}
+        href={fundingPageUrl}
+        showActions={showActions}
+        showTooltips={showTooltips}
+        customActionText={
+          customActionText ?? (hasFundraise ? `is seeking funding` : 'published a post')
+        }
+        maxLength={maxLength}
+        onFeedItemClick={onFeedItemClick}
+        showBountyInfo={showBountyInfo}
+        showHeader={false}
+        hideReportButton={false}
+        cardImageLeft={
+          imageUrl ? (
+            <>
+              <ImageSection
+                imageUrl={imageUrl}
+                alt={post.title || 'Fundraise image'}
+                naturalDimensions
+              />
+              <div className="absolute top-2 left-2">
+                <FeedItemFundingBadges
+                  reviewScore={entry.metrics?.reviewScore}
+                  reviews={post.reviews}
+                  href={fundingPageUrl}
+                  isNonprofit={!!isNonprofit}
+                  fundraiseStatus={fundraise?.status}
+                  variant="overlay"
+                />
+              </div>
+            </>
+          ) : undefined
+        }
+      >
+        {isPinnedFundraise && (
+          <div className="absolute top-3 right-3 z-10 pointer-events-none">
+            <Pin className="w-4 h-4 text-blue-600" />
+          </div>
+        )}
 
-      {/* Top section with badges and mobile image */}
-      <FeedItemTopSection
-        imageSection={
-          imageUrl && (
+        {/* Mobile image */}
+        {imageUrl && (
+          <div className="md:!hidden w-[calc(100%+2rem)] mb-5 -mx-4 -mt-4 overflow-hidden">
             <ImageSection
               imageUrl={imageUrl}
               alt={post.title || 'Fundraise image'}
               aspectRatio="16/9"
             />
-          )
-        }
-        rightContent={
-          <FeedItemMenuButton
-            feedContentType={feedContentType}
-            votableEntityId={votableEntityId}
-            relatedDocumentId={relatedDocumentId}
-            relatedDocumentContentType={relatedDocumentContentType}
-            relatedDocumentUnifiedDocumentId={post.unifiedDocumentId}
-          />
-        }
-        leftContent={
-          <div className="flex items-center gap-2">
-            {isNonprofit && <TaxDeductibleBadge />}
-            <FeedItemBadges
-              topics={topics}
-              category={post.category}
-              subcategory={post.subcategory}
-            />
           </div>
-        }
-      />
+        )}
 
-      {/* Main content layout with desktop image */}
-      <FeedItemLayout
-        leftContent={
-          <>
-            {/* Title */}
-            <TitleSection title={post.title} href={fundingPageUrl} onClick={onFeedItemClick} />
+        <TitleSection
+          title={post.title}
+          href={fundingPageUrl}
+          onClick={onFeedItemClick}
+          className="text-md md:!text-md"
+        />
 
-            {/* Authors list */}
-            <MetadataSection className="mb-1">
-              <div className="flex items-center flex-wrap text-base">
-                {authors.length > 0 && (
-                  <AuthorList
-                    authors={authors}
-                    size="base"
-                    className="text-gray-500 font-normal text-sm"
-                    delimiter=","
-                    delimiterClassName="ml-0"
-                    showAbbreviatedInMobile={true}
-                    hideExpandButton={true}
-                  />
-                )}
-                {post.createdDate && (
-                  <>
-                    <span className="mx-2 text-gray-500">•</span>
-                    <span className="text-gray-600 whitespace-nowrap text-sm">
-                      {formatTimestamp(post.createdDate, false)}
+        <MetadataSection className="mb-0 py-2">
+          {primaryAuthor ? (
+            <div className="flex items-center gap-2.5">
+              <AuthorTooltip authorId={primaryAuthor.id !== 0 ? primaryAuthor.id : undefined}>
+                <Avatar
+                  src={primaryAuthor.profileImage || undefined}
+                  alt={primaryAuthor.fullName}
+                  size="sm"
+                  disableTooltip
+                />
+              </AuthorTooltip>
+              <div className="flex flex-col min-w-0">
+                <Link
+                  href={primaryAuthor.profileUrl || '#'}
+                  className="text-sm font-medium text-gray-900 hover:underline truncate"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {primaryAuthor.fullName}
+                </Link>
+                <span className="text-xs text-gray-500 truncate">
+                  {entry.nonprofit?.name || post.institution}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <span className="text-sm text-gray-500">
+              {entry.nonprofit?.name || post.institution}
+            </span>
+          )}
+        </MetadataSection>
+
+        {hasFundraise && fundraise && (
+          <PrimaryActionSection>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-start gap-6 min-w-0">
+                <div className="flex flex-col leading-tight whitespace-nowrap">
+                  <span className="text-xs text-gray-500 uppercase tracking-wide">Requested</span>
+                  <span className="font-mono font-semibold text-primary-600 text-xl">
+                    {formatCurrency({
+                      amount:
+                        fundraise.status === 'COMPLETED'
+                          ? Math.round(
+                              showUSD ? fundraise.goalAmount.usd : fundraise.amountRaised.rsc
+                            )
+                          : Math.round(
+                              showUSD ? fundraise.goalAmount.usd : fundraise.goalAmount.rsc
+                            ),
+                      showUSD,
+                      exchangeRate,
+                      skipConversion: true,
+                      shorten: true,
+                    })}
+                  </span>
+                </div>
+
+                {contributors.length > 0 && (
+                  <div className="hidden sm:flex flex-col leading-tight">
+                    <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                      Backers
                     </span>
-                  </>
+                    <AvatarStack
+                      items={contributors}
+                      size="xs"
+                      maxItems={3}
+                      spacing={-6}
+                      showLabel={false}
+                      disableTooltip={false}
+                      showExtraCount={true}
+                      totalItemsCount={fundraise.contributors.numContributors}
+                      extraCountLabel="Backers"
+                    />
+                  </div>
                 )}
               </div>
-            </MetadataSection>
 
-            {/* Institution */}
-            {post.institution && (
-              <MetadataSection>
-                <div className="mt-1 mb-3 flex items-center gap-1.5 text-sm text-gray-500">
-                  <Building className="w-4 h-4" />
-                  <span>{post.institution}</span>
-                </div>
-              </MetadataSection>
-            )}
+              {isActive ? (
+                <Button
+                  variant="dark"
+                  size="sm"
+                  className="flex-shrink-0 gap-1"
+                  onClick={() => setIsContributeModalOpen(true)}
+                >
+                  Fund
+                  <ArrowRight size={14} />
+                </Button>
+              ) : (
+                <span className="flex-shrink-0 text-sm text-gray-400">Ended</span>
+              )}
+            </div>
+          </PrimaryActionSection>
+        )}
+      </BaseFeedItem>
 
-            {/* Truncated Content */}
-            <ContentSection content={post.textPreview} maxLength={maxLength} />
-          </>
-        }
-        rightContent={
-          imageUrl && (
-            <ImageSection
-              imageUrl={imageUrl}
-              alt={post.title || 'Fundraise image'}
-              aspectRatio="4/3"
-            />
-          )
-        }
-      />
-      {/* Fundraise Progress (only for preregistrations with fundraise) */}
-      {hasFundraise && post.fundraise && (
-        <div className="mt-4" onClick={(e) => e.stopPropagation()}>
-          <FundraiseProgress
-            fundraiseTitle={post.title}
-            fundraise={post.fundraise}
-            compact={true}
-            onDetailsClick={handleFundDetailsClick}
-          />
-        </div>
+      {hasFundraise && fundraise && (
+        <ContributeToFundraiseModal
+          isOpen={isContributeModalOpen}
+          onClose={() => setIsContributeModalOpen(false)}
+          onContributeSuccess={handleContributeSuccess}
+          fundraise={fundraise}
+          proposalTitle={post.title}
+        />
       )}
-    </BaseFeedItem>
+    </>
   );
 };

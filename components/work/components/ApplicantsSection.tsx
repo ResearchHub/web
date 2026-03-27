@@ -2,9 +2,9 @@
 
 import { FC, useState } from 'react';
 import Link from 'next/link';
-import { Users } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorProfile } from '@/types/authorProfile';
+import { SidebarHeader } from '@/components/ui/SidebarHeader';
 
 interface ApplicantsSectionProps {
   applicants?: AuthorProfile[];
@@ -19,10 +19,7 @@ export const ApplicantsSection: FC<ApplicantsSectionProps> = ({ applicants = [] 
 
   return (
     <section>
-      <div className="flex items-center gap-2 mb-3">
-        <Users size={22} className="text-gray-600" />
-        <h3 className="text-base font-semibold text-gray-900">Applicants</h3>
-      </div>
+      <SidebarHeader title="Applicants" className="mb-3" />
 
       {hasApplicants ? (
         <>

@@ -1,20 +1,21 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import { FlaggedContent } from '@/services/audit.service';
 import { AuditItemComment } from './AuditItemComment';
 import { AuditItemPost } from './AuditItemPost';
 import { AuditItemPaper } from './AuditItemPaper';
+import { SelectionCheckbox } from './SelectionCheckbox';
 
 interface AuditItemCardProps {
   entry: FlaggedContent;
   onAction: (action: 'dismiss' | 'remove') => void;
+  onRefresh?: () => void;
   view?: 'pending' | 'dismissed' | 'removed';
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
-/**
- * Detect the content type from the flagged content entry
- */
 const detectContentType = (entry: FlaggedContent): 'comment' | 'post' | 'paper' | 'unknown' => {
   const contentType = entry.contentType?.name?.toLowerCase();
 
@@ -34,17 +35,35 @@ const detectContentType = (entry: FlaggedContent): 'comment' | 'post' | 'paper' 
   }
 };
 
-export const AuditItemCard: FC<AuditItemCardProps> = ({ entry, onAction, view }) => {
+export const AuditItemCard: FC<AuditItemCardProps> = ({
+  entry,
+  onAction,
+  onRefresh,
+  view,
+  isSelected,
+  onSelect,
+}) => {
   const contentType = detectContentType(entry);
 
-  // Render the appropriate component based on content type
+  const checkbox: ReactNode = onSelect ? (
+    <div className="w-8 flex-shrink-0 flex justify-center">
+      <SelectionCheckbox
+        checked={!!isSelected}
+        onChange={onSelect}
+        ariaLabel={isSelected ? 'Deselect item' : 'Select item'}
+      />
+    </div>
+  ) : null;
+
+  const sharedProps = { entry, onAction, onRefresh, view, checkbox };
+
   switch (contentType) {
     case 'comment':
-      return <AuditItemComment entry={entry} onAction={onAction} view={view} />;
+      return <AuditItemComment {...sharedProps} />;
     case 'post':
-      return <AuditItemPost entry={entry} onAction={onAction} view={view} />;
+      return <AuditItemPost {...sharedProps} />;
     case 'paper':
-      return <AuditItemPaper entry={entry} onAction={onAction} view={view} />;
+      return <AuditItemPaper {...sharedProps} />;
     default:
       return (
         <div className="bg-white border border-gray-200 rounded-lg p-4">

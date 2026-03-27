@@ -9,8 +9,7 @@ interface Props {
 }
 
 export default async function GrantRedirectPage({ params }: Props) {
-  const resolvedParams = await params;
-  const id = resolvedParams.id;
+  const { id } = await params;
 
   if (!id.match(/^\d+$/)) {
     notFound();
@@ -19,10 +18,9 @@ export default async function GrantRedirectPage({ params }: Props) {
   let grant;
   try {
     grant = await PostService.get(id);
-  } catch (error) {
+  } catch {
     notFound();
   }
 
-  // Redirect to the full URL with slug (outside try-catch)
   handleMissingSlugRedirect(grant, id, 'grant');
 }

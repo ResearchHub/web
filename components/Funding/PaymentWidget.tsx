@@ -45,8 +45,6 @@ interface PaymentWidgetProps {
   onEndaomentLogin?: () => void;
   /** Called when user wants to deposit RSC */
   onDepositRsc?: () => void;
-  /** Called when user wants to buy RSC */
-  onBuyRsc?: () => void;
   /** Whether the CTA button should be disabled */
   isButtonDisabled?: boolean;
   /** Initial/controlled selected payment method */
@@ -63,8 +61,8 @@ interface PaymentWidgetProps {
   hideButton?: boolean;
   /** Wallet payment method availability from Stripe */
   walletAvailability: WalletAvailability;
-  /** Whether the Endaoment payment option is enabled (feature flag) */
-  isEndaomentEnabled?: boolean;
+  /** Whether the fundraise has a non-profit org attached */
+  hasNonprofit?: boolean;
 }
 
 /**
@@ -80,7 +78,6 @@ export function PaymentWidget({
   onPreviewTransaction,
   onEndaomentLogin,
   onDepositRsc,
-  onBuyRsc,
   isButtonDisabled = false,
   selectedPaymentMethod,
   onPaymentMethodChange,
@@ -89,7 +86,7 @@ export function PaymentWidget({
   onStripeReady,
   hideButton = false,
   walletAvailability,
-  isEndaomentEnabled = false,
+  hasNonprofit = false,
 }: PaymentWidgetProps) {
   const { isExpanded, selectedMethod, toggleExpanded, selectMethod } = usePaymentMethod({
     initialMethod: selectedPaymentMethod,
@@ -150,13 +147,13 @@ export function PaymentWidget({
     },
     {
       id: 'endaoment',
-      title: 'Endaoment',
+      title: 'Donor-Advised Fund (DAF)',
       description:
         connected && selectedEndaomentFund
           ? `Balance:  ${formatUsdValue(selectedEndaomentFund.usdcBalance, 0, false)}`
           : connected
             ? 'Select a fund'
-            : 'Contribute from your fund',
+            : 'Via Endaoment',
       icon: (
         <Image
           src="/logos/endaoment_color.svg"
@@ -190,6 +187,7 @@ export function PaymentWidget({
   ];
 
   // Filter payment methods based on actual device capabilities from Stripe.
+  // - Hide Endaoment if the fundraise has no associated non-profit
   // - Hide Apple Pay if not available on this device
   // - Hide Google Pay if not available OR if Apple Pay is available
   //   (Stripe's PaymentRequestButtonElement renders Apple Pay preferentially
@@ -198,7 +196,9 @@ export function PaymentWidget({
   //   options that may not be available
   const visiblePaymentOptions = paymentOptions.filter((option) => {
     if (HIDDEN_PAYMENT_METHODS.includes(option.id)) return false;
-    if (option.id === 'endaoment' && !isEndaomentEnabled) return false;
+    if (option.id === 'endaoment') {
+      return hasNonprofit;
+    }
     if (option.id === 'apple_pay') {
       return !walletAvailability.checking && walletAvailability.applePay;
     }

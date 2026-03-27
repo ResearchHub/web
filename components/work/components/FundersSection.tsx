@@ -3,17 +3,16 @@
 import { FC, useState } from 'react';
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
-import { formatRSC } from '@/utils/number';
 import { Fundraise } from '@/types/funding';
 import { Work } from '@/types/work';
 import { isDeadlineInFuture } from '@/utils/date';
 import { ContributorModal } from '@/components/modals/ContributorModal';
-import { Users } from 'lucide-react';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
+import { SidebarHeader } from '@/components/ui/SidebarHeader';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
-import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useRouter } from 'next/navigation';
 import { useShareModalContext } from '@/contexts/ShareContext';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 
 interface FundersSectionProps {
   fundraise: Fundraise;
@@ -25,8 +24,8 @@ interface FundersSectionProps {
 export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTitle, work }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
-  const { showUSD } = useCurrencyPreference();
   const { showShareModal } = useShareModalContext();
+  const { showUSD } = useCurrencyPreference();
   const router = useRouter();
   const hasContributors =
     fundraise.contributors &&
@@ -50,7 +49,7 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
       profileImage: contributor.authorProfile.profileImage,
       fullName: contributor.authorProfile.fullName,
     },
-    amount: contributor.totalContribution,
+    amounts: contributor.totalContribution,
   }));
 
   const handleContributeClick = () => {
@@ -71,10 +70,7 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
   return (
     <>
       <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Users size={18} className="text-gray-700" />
-          <h3 className="text-base font-semibold text-gray-900">Funders</h3>
-        </div>
+        <SidebarHeader title="Funders" className="mb-3" />
 
         {hasContributors ? (
           <>
@@ -98,15 +94,17 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
                       {contributor.authorProfile.fullName}
                     </Link>
                   </div>
-                  <div className="flex items-center text-sm font-medium text-orange-500">
+                  <div className="flex items-center text-sm font-medium font-mono text-primary-600">
                     <span className="mr-0.5">+</span>
                     <CurrencyBadge
-                      amount={contributor.totalContribution}
+                      amount={contributor.totalContribution.rsc}
                       variant="text"
                       size="xs"
                       currency={showUSD ? 'USD' : 'RSC'}
                       showText={true}
-                      className="text-orange-500 font-medium"
+                      textColor="text-primary-600"
+                      fontWeight="font-semibold"
+                      className="font-mono"
                     />
                   </div>
                 </div>
@@ -134,8 +132,6 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           contributors={modalContributors}
-          onContribute={handleContributeClick}
-          disableContribute={!isActive}
         />
       )}
 

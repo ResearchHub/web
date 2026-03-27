@@ -108,6 +108,14 @@ export const useAudit = (options: UseAuditOptions = {}) => {
     setSelectedIds([]);
   }, []);
 
+  const toggleSelectAll = useCallback(() => {
+    if (selectedIds.length === entries.length && entries.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(entries.map((e) => e.id));
+    }
+  }, [entries, selectedIds.length]);
+
   const removeFlaggedContent = async (
     flagIds: ID[],
     verdictChoice?: string,
@@ -257,6 +265,7 @@ export const useAudit = (options: UseAuditOptions = {}) => {
     refresh: loadFlaggedContent,
     handleItemSelect,
     clearSelection,
+    toggleSelectAll,
 
     // Individual actions
     removeFlaggedContent,

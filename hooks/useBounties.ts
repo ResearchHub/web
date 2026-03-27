@@ -76,18 +76,13 @@ export const useBounties = () => {
   const restoredScrollPosition = restoredState?.scrollPosition ?? null;
   const lastClickedEntryId = restoredState?.lastClickedEntryId ?? null;
 
-  // Sync sort state with URL params and set default if missing
+  // Sync sort state with URL params (don't inject default into URL)
   useEffect(() => {
     const currentSort = searchParams.get('sort');
-    if (!currentSort) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set('sort', 'personalized');
-      router.replace(`?${params.toString()}`, { scroll: false });
-    } else if (currentSort !== sort) {
-      // Sync sort state with URL (e.g., when user uses back button or handleSortChange)
+    if (currentSort && currentSort !== sort) {
       setSort(currentSort);
     }
-  }, [searchParams, sort, router]);
+  }, [searchParams, sort]);
 
   // Sync selected hubs with URL params (e.g., when user uses back button)
   // Only syncs FROM URL TO state, not the other way around

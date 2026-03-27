@@ -96,11 +96,11 @@ export function FeaturesSection() {
   const { executeAuthenticatedAction } = useAuthenticatedAction();
 
   const handleGiveResearchFunding = () => {
-    router.push('/fund/grants');
+    router.push('/fund');
   };
 
   const handleRequestFunding = () => {
-    router.push('/fund/needs-funding');
+    router.push('/fund');
   };
 
   const handleStartReviewing = () => {

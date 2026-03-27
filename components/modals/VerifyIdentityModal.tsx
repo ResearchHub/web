@@ -18,11 +18,13 @@ import { VerificationWithPersonaStep } from './Verification/VerificationWithPers
 import { AddPublicationsForm, STEP } from './Verification/AddPublicationsForm';
 import { ProgressStepper } from '@/components/ui/ProgressStepper';
 import { navigateToAuthorProfile } from '@/utils/navigation';
+import type { VerificationModalContext } from '@/contexts/VerificationContext';
 
 interface VerifyIdentityModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialStep?: VerificationStep;
+  context?: VerificationModalContext;
 }
 
 type VerificationStep =
@@ -43,19 +45,20 @@ export function VerifyIdentityModal({
   isOpen,
   onClose,
   initialStep = 'INTRO',
+  context = null,
 }: VerifyIdentityModalProps) {
   const [currentStep, setCurrentStep] = useState<VerificationStep>(initialStep);
   const [publicationsSubstep, setPublicationsSubstep] = useState<STEP | 'SUCCESS'>('DOI');
 
   const { user } = useUser();
+  const isPublishContext = context === 'publish';
 
   useEffect(() => {
     if (isOpen) {
-      setCurrentStep(initialStep);
-    } else {
-      setCurrentStep(initialStep);
+      setCurrentStep(context === 'publish' ? 'IDENTITY' : initialStep);
+      setPublicationsSubstep('DOI');
     }
-  }, [isOpen, initialStep]);
+  }, [isOpen, initialStep, context]);
 
   const handleNext = () => {
     if (currentStep === 'INTRO') {
@@ -69,7 +72,9 @@ export function VerifyIdentityModal({
       }
     } else if (currentStep === 'SUCCESS') {
       onClose();
-      navigateToAuthorProfile(user?.authorProfile?.id, false);
+      if (context !== 'publish') {
+        navigateToAuthorProfile(user?.authorProfile?.id, false);
+      }
     }
   };
 
@@ -116,9 +121,15 @@ export function VerifyIdentityModal({
             {/* Title and subtitle */}
             <div className="text-center">
               <h3 className="text-2xl font-bold text-white">
-                Verify identity to unlock new features
+                {isPublishContext
+                  ? 'Verify your identity to publish'
+                  : 'Verify identity to unlock new features'}
               </h3>
-              <p className="mt-2 text-indigo-100">(Takes 1-3 minutes)</p>
+              <p className="mt-2 text-indigo-100">
+                {isPublishContext
+                  ? 'Publishing on ResearchHub requires a verified profile.'
+                  : '(Takes 1-3 minutes)'}
+              </p>
             </div>
 
             {/* Two columns of features */}
@@ -182,10 +193,34 @@ export function VerifyIdentityModal({
         return (
           <VerificationWithPersonaStep
             onVerificationStatusChange={handleVerificationStatusChange}
+            templateId={
+              isPublishContext
+                ? process.env.NEXT_PUBLIC_PERSONA_TEMPLATE_ID_PUBLISH_FLOW
+                : undefined
+            }
           />
         );
 
       case 'IDENTITY_VERIFIED_SUCCESSFULLY':
+        if (isPublishContext) {
+          return (
+            <div className="space-y-6 text-center p-6">
+              <div className="flex justify-center">
+                <div className="bg-green-100 p-4 rounded-full">
+                  <BadgeCheck className="h-8 w-8 text-green-600" />
+                </div>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900">You're ready to publish</h3>
+              <p className="text-gray-600">
+                Your identity is verified. Click Continue to finish your post.
+              </p>
+              <div className="flex justify-center">
+                <Button onClick={onClose}>Continue</Button>
+              </div>
+            </div>
+          );
+        }
+        // General flow: continue to publications step
         return (
           <div className="space-y-6 text-center p-6 flex flex-col justify-between min-h-[400px]">
             <div>
@@ -363,13 +398,20 @@ export function VerifyIdentityModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel
+                className={`w-full transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all ${currentStep === 'IDENTITY' ? 'max-w-[400px]' : 'max-w-2xl'}`}
+              >
                 <div className="relative">
                   {/* Header with close button - only show for non-INTRO steps */}
                   {currentStep !== 'INTRO' && (
-                    <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <div
+                      className={`border-b border-gray-200 px-6 py-4 flex items-center justify-between ${currentStep === 'IDENTITY' ? 'fixed top-0 left-0 right-0 !border-0 ml-20' : ''}`}
+                    >
                       <div className="flex items-center">
-                        <Dialog.Title as="h3" className="text-lg font-medium text-gray-900">
+                        <Dialog.Title
+                          as="h3"
+                          className={`text-lg font-medium text-gray-900 ${currentStep === 'IDENTITY' ? 'hidden' : ''}`}
+                        >
                           Verify Identity
                         </Dialog.Title>
                       </div>

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { AvatarStack } from './AvatarStack';
 import { ContributorModal } from '../modals/ContributorModal';
-import type { AuthorProfile } from '@/types/authorProfile';
+import type { ContributionTotals } from '@/types/funding';
 import { cn } from '@/utils/styles';
 
 // Define a more flexible profile type
@@ -125,7 +125,7 @@ export function LabelBadge({
 interface ContributorsButtonProps {
   contributors: Array<{
     profile: FlexibleProfile;
-    amount: number;
+    amounts: ContributionTotals;
   }>;
   onContribute?: () => void;
   label?: string;
@@ -237,8 +237,6 @@ export function ContributorsButton({
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         contributors={contributors}
-        onContribute={onContribute}
-        disableContribute={disableContribute}
       />
     </>
   );

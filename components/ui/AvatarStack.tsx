@@ -197,7 +197,8 @@ export const AvatarStack: FC<AvatarStackProps> = ({
                 className={`${getRingWidth()} ${ringColorClass} bg-gray-100`}
                 disableTooltip
                 label={`+${extraCount}`}
-                labelClassName="font-bold text-[100%]"
+                labelClassName="font-semibold"
+                labelStyle={{ fontSize: getExtraCountFontSize() }}
               />
             </Tooltip>
           </div>

@@ -318,7 +318,7 @@ export function AddPublicationsForm({
               )}
             </div>
 
-            <div className="space-y-4 max-h-[400px] overflow-y-auto">
+            <div className="space-y-4 max-h-[320px] overflow-y-auto">
               {(data?.works || []).map((publication) => (
                 <div
                   key={publication.id}

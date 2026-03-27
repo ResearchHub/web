@@ -95,11 +95,7 @@ export function ReferralImpactSection() {
                   on the platform.
                 </p>
                 <div className="border-t border-gray-200 mt-2 pt-2 flex justify-around">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => router.push('/fund/needs-funding')}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => router.push('/fund/proposals')}>
                     <List className="h-4 w-4 mr-2" />
                     <span>View proposals</span>
                   </Button>

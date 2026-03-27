@@ -11,6 +11,8 @@ interface Tab {
   highlight?: boolean;
   separator?: boolean;
   icon?: LucideIcon;
+  iconClassName?: string;
+  activeClassName?: string;
   onClick?: (e: React.MouseEvent) => void;
 }
 
@@ -42,27 +44,26 @@ const TabItem: React.FC<{
   };
 
   const styles = cn(
-    'text-sm font-medium flex items-center gap-1 whitespace-nowrap flex-shrink-0 h-full cursor-pointer',
+    'text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 cursor-pointer transition-all duration-150',
     variant === 'pill'
       ? [
-          'px-4 py-2 rounded-lg',
+          'px-4 py-2 rounded-full',
           isActive
-            ? 'bg-primary-100 text-primary-600 shadow-sm'
+            ? 'border border-gray-300 bg-white text-gray-900 shadow-sm'
             : 'text-gray-500 hover:text-gray-700',
         ]
       : [
-          'px-1 border-b-2 py-3',
+          'border-b-2 py-3 h-full',
           isActive
-            ? 'text-primary-600 border-primary-600'
-            : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-200',
+            ? tab.activeClassName || 'text-primary-600 border-b-primary-600'
+            : 'text-gray-800 border-transparent hover:text-gray-700 hover:border-gray-200',
         ],
-    // disabled && 'opacity-50 cursor-not-allowed pointer-events-none'
     disabled && 'cursor-not-allowed pointer-events-none'
   );
 
   const content = (
     <>
-      {tab.icon && <tab.icon className="w-4 h-4 flex-shrink-0" />}
+      {tab.icon && <tab.icon className={cn('w-4 h-4 flex-shrink-0', tab.iconClassName)} />}
       <span className="truncate">{tab.label}</span>
     </>
   );
@@ -127,7 +128,7 @@ export const Tabs: React.FC<TabsProps> = ({
   const gradient = isPrimary ? 'white' : '#f3f4f6';
 
   return (
-    <div className={cn('w-full relative', className)}>
+    <div className={cn('w-full relative', isPrimary && 'border-b border-gray-200', className)}>
       <div
         className={cn(
           'absolute left-0 top-0 bottom-0 z-10 flex items-center pr-2 transition-opacity duration-200',
@@ -148,7 +149,7 @@ export const Tabs: React.FC<TabsProps> = ({
         onScroll={checkScrollability}
         className={cn(
           'flex items-center flex-nowrap h-full overflow-x-auto scrollbar-none',
-          variant === 'pill' ? 'space-x-1 bg-gray-100 p-1 rounded-lg' : 'space-x-6'
+          variant === 'pill' ? 'gap-2' : 'space-x-8 -mb-px'
         )}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >

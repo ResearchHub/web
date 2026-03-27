@@ -1,9 +1,10 @@
-import { Scale, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Link from 'next/link';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { parseLicense } from '../lib/licenseUtils';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { SidebarHeader } from '@/components/ui/SidebarHeader';
 
 interface LicenseSectionProps {
   license?: string;
@@ -94,10 +95,7 @@ export const LicenseSection = ({ license }: LicenseSectionProps) => {
 
     return (
       <section>
-        <div className="flex items-center space-x-2 mb-4">
-          <Scale className="h-5 w-5 text-gray-500" />
-          <h2 className="text-base font-semibold text-gray-900">License</h2>
-        </div>
+        <SidebarHeader title="License" className="mb-3" />
         <div className="flex items-center space-x-2">{badgeWithTooltip}</div>
       </section>
     );
@@ -107,10 +105,7 @@ export const LicenseSection = ({ license }: LicenseSectionProps) => {
   if (type === 'text-with-link' && url && label) {
     return (
       <section>
-        <div className="flex items-center space-x-2 mb-4">
-          <Scale className="h-5 w-5 text-gray-500" />
-          <h2 className="text-base font-semibold text-gray-900">License</h2>
-        </div>
+        <SidebarHeader title="License" className="mb-3" />
         <div className="flex items-center space-x-2">
           <Link
             href={url}
@@ -130,10 +125,7 @@ export const LicenseSection = ({ license }: LicenseSectionProps) => {
   // Render plain text only licenses (no links)
   return (
     <section>
-      <div className="flex items-center space-x-2 mb-4">
-        <Scale className="h-5 w-5 text-gray-500" />
-        <h2 className="text-base font-semibold text-gray-900">License</h2>
-      </div>
+      <SidebarHeader title="License" className="mb-3" />
       <div className="flex items-center space-x-2">
         <span className="text-sm text-gray-600">{label || license}</span>
       </div>

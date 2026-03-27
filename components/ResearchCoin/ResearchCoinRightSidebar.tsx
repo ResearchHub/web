@@ -17,7 +17,7 @@ export const ResearchCoinRightSidebar = () => {
   };
 
   return (
-    <div className="w-80 sticky top-[64px] h-[calc(100vh-64px)] bg-white/95 backdrop-blur-md border-gray-100 overscroll-contain">
+    <div className="w-80 sticky top-[64px] h-[calc(100vh-64px)] overscroll-contain">
       <div className="h-full overflow-y-auto pb-16 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
         {/* Resources Section */}
         <div className="px-6 mb-4 mt-3">
@@ -152,7 +152,7 @@ export const ResearchCoinRightSidebar = () => {
         </SimpleCollapsibleSection>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-50 via-gray-50/90 to-transparent pointer-events-none" />
     </div>
   );
 };

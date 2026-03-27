@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/Button';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { formatDate, isDeadlineInFuture } from '@/utils/date';
 import { FeedGrantContent } from '@/types/feed';
+import { GRANT_STATUS_CONFIG } from '@/types/grant';
 import { useRouter } from 'next/navigation';
 import { colors } from '@/app/styles/colors';
 import { StatusCard } from '@/components/ui/StatusCard';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { Clock } from 'lucide-react';
+import { buildWorkUrl } from '@/utils/url';
 
 interface GrantInfoProps {
   grant: FeedGrantContent;
@@ -24,47 +26,35 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
 
   if (!grant || !grant.grant) return null;
 
-  // Check if RFP is active
   const isActive =
-    grant.grant?.status === 'OPEN' &&
-    (grant.grant?.endDate ? isDeadlineInFuture(grant.grant?.endDate) : true);
+    grant.grant.status === 'OPEN' &&
+    (grant.grant.endDate ? isDeadlineInFuture(grant.grant.endDate) : true);
   const deadline = grant.grant.endDate ? formatDate(grant.grant.endDate) : undefined;
+  const statusBadge = GRANT_STATUS_CONFIG[grant.grant.status];
 
   const applicants =
-    grant.grant.applicants?.map((applicant) => ({
+    grant.grant.applicants?.map(({ profile }) => ({
       profile: {
-        profileImage: applicant.profileImage,
+        profileImage: profile.profileImage,
         fullName:
-          applicant.firstName && applicant.lastName
-            ? `${applicant.firstName} ${applicant.lastName}`
-            : applicant.firstName || 'Applicant',
-        id: applicant.id,
+          profile.firstName && profile.lastName
+            ? `${profile.firstName} ${profile.lastName}`
+            : profile.firstName || 'Applicant',
+        id: profile.id,
       },
       amount: 0,
     })) || [];
 
-  const handleApplicantsClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onFeedItemClick) {
-      onFeedItemClick();
-    }
-    router.push(`/grant/${grant.id}/${grant.slug}/applications`);
-  };
+  const grantUrl = buildWorkUrl({
+    id: grant.id,
+    slug: grant.slug,
+    contentType: 'funding_request',
+  });
 
-  const handleDetailsClick = (e: React.MouseEvent) => {
+  const navigateToGrant = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onFeedItemClick) {
-      onFeedItemClick();
-    }
-    router.push(`/grant/${grant.id}/${grant.slug}`);
-  };
-
-  const handleApplyClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onFeedItemClick) {
-      onFeedItemClick();
-    }
-    router.push(`/grant/${grant.id}/${grant.slug}/applications`);
+    onFeedItemClick?.();
+    router.push(grantUrl);
   };
 
   const budgetAmount = grant.grant.amount?.rsc || 0;
@@ -98,23 +88,18 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
             </div>
           )}
 
-          {/* Status badges */}
-          {isActive && (
-            <span className="text-xs font-medium text-primary-700 bg-primary-100 px-2 py-0.5 rounded-full">
-              Open
-            </span>
-          )}
-          {!isActive && (
-            <span className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
-              Closed
-            </span>
-          )}
+          {/* Status badge */}
+          <span
+            className={`text-xs font-medium ${statusBadge.badgeClass} px-2 py-0.5 rounded-full`}
+          >
+            {isActive ? 'Open' : statusBadge.label}
+          </span>
 
           {/* Applicants section */}
           {applicantCount > 0 && (
             <div
               className="cursor-pointer hidden sm:!flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 transition-colors"
-              onClick={handleApplicantsClick}
+              onClick={navigateToGrant}
             >
               <AvatarStack
                 items={applicants.map((applicant) => ({
@@ -143,7 +128,7 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
           <Button
             variant="outlined"
             size="sm"
-            onClick={handleDetailsClick}
+            onClick={navigateToGrant}
             className="!py-1.5 !px-2.5 text-gray-600 hover:text-gray-800"
           >
             <span className="text-xs font-medium">Details</span>
@@ -152,7 +137,7 @@ export const GrantInfo: FC<GrantInfoProps> = ({ grant, className, onFeedItemClic
             <Button
               variant="default"
               size="sm"
-              onClick={handleApplyClick}
+              onClick={navigateToGrant}
               className="bg-primary-600 hover:bg-primary-700 text-white !py-1.5 !px-2.5"
             >
               <span className="text-xs font-medium">Apply</span>

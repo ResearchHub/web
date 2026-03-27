@@ -37,6 +37,21 @@ export interface BaseFeedItemProps {
   showPeerReviews?: boolean;
   showBountyInfo?: boolean;
   hideReportButton?: boolean;
+  badges?: ReactNode;
+  cardImage?: ReactNode;
+  /** Image rendered on the left side; content + actions span full width below */
+  cardImageLeft?: ReactNode;
+  /** Optional footer rendered at the bottom of the card, below the actions row */
+  footer?: ReactNode;
+  /** Extra items to add to the "..." dropdown menu */
+  menuItems?: Array<{
+    icon: any;
+    label: string;
+    tooltip?: string;
+    disabled?: boolean;
+    onClick: (e?: React.MouseEvent) => void;
+    className?: string;
+  }>;
 }
 
 // Badge component interface
@@ -128,25 +143,20 @@ export const TitleSection: FC<TitleSectionProps> = ({
   href,
   onClick,
 }) => {
+  const titleStyles = cn(
+    'text-md md:!text-lg font-semibold text-gray-900 mb-1 hover:underline',
+    className
+  );
+
   const content = highlightedTitle ? (
     <h2
-      className={cn(
-        'text-md md:!text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors',
-        className
-      )}
+      className={titleStyles}
       dangerouslySetInnerHTML={{
         __html: sanitizeHighlightHtml(highlightedTitle),
       }}
     />
   ) : (
-    <h2
-      className={cn(
-        'text-md md:!text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors',
-        className
-      )}
-    >
-      {title}
-    </h2>
+    <h2 className={titleStyles}>{title}</h2>
   );
 
   if (href) {
@@ -223,6 +233,28 @@ export const CTASection: FC<CTASectionProps> = ({ children, className }) => {
   return <div className={cn('flex items-center gap-3', className)}>{children}</div>;
 };
 
+// Primary action component interface
+export interface PrimaryActionSectionProps {
+  children: ReactNode;
+  className?: string;
+}
+
+export const PrimaryActionSection: FC<PrimaryActionSectionProps> = ({ children, className }) => {
+  return (
+    <div
+      className={cn(
+        'mt-3 rounded-lg bg-gray-50/90 border border-gray-100 px-4 py-3.5 cursor-default',
+        className
+      )}
+      onMouseDown={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {children}
+    </div>
+  );
+};
+
 // Re-export FeedItemAbstractSection for backwards compatibility
 export {
   FeedItemAbstractSection,
@@ -267,6 +299,11 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   showPeerReviews = true,
   showBountyInfo,
   hideReportButton = false,
+  badges,
+  cardImage,
+  cardImageLeft,
+  footer,
+  menuItems,
 }) => {
   const content = entry.content;
   const author = content.createdBy;
@@ -348,43 +385,65 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
       )}
       {/* Main Content Card */}
       <CardWrapper href={href} isClickable={isClickable} onClick={handleClick} entryId={entryIdKey}>
-        <div className="p-4">
-          {children}
-          {/* BountyInfoSummary */}
-          {showBountyInfo ? (
-            openBounties.length === 1 ? (
-              <div
-                className="mt-4"
-                onMouseDown={(e) => e.stopPropagation()}
-                onKeyDown={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <BountyInfo
-                  bounty={openBounties[0]}
-                  relatedWork={entry.relatedWork}
-                  onAddSolutionClick={handleAddSolutionClick}
-                  className="bg-orange-50 border-orange-200"
-                />
+        {/* Content area: image-left + main content side by side */}
+        <div className={cn(cardImageLeft && 'md:!flex md:!flex-row')}>
+          {cardImageLeft && (
+            <div className="hidden md:!block flex-shrink-0 w-[210px] p-4 pr-2">
+              <div className="relative overflow-hidden rounded-xl w-full h-full">
+                {cardImageLeft}
               </div>
-            ) : openBounties.length > 0 ? (
-              <div
-                className="mt-4"
-                onMouseDown={(e) => e.stopPropagation()}
-                onKeyDown={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <BountyInfoSummary
-                  bounties={openBounties}
-                  onDetailsClick={handleBountyDetailsClick}
-                />
+            </div>
+          )}
+          <div className={cn('flex-1 min-w-0', cardImageLeft && 'md:!min-w-0')}>
+            <div className="p-4">
+              <div className={cn('flex gap-4', cardImage && 'md:!flex-row flex-col')}>
+                <div className="flex-1 min-w-0">
+                  {children}
+                  {showBountyInfo ? (
+                    openBounties.length === 1 ? (
+                      <div
+                        className="mt-4"
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <BountyInfo
+                          bounty={openBounties[0]}
+                          relatedWork={entry.relatedWork}
+                          onAddSolutionClick={handleAddSolutionClick}
+                          className="bg-primary-50/60 border-primary-100"
+                        />
+                      </div>
+                    ) : openBounties.length > 0 ? (
+                      <div
+                        className="mt-4"
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <BountyInfoSummary
+                          bounties={openBounties}
+                          onDetailsClick={handleBountyDetailsClick}
+                        />
+                      </div>
+                    ) : null
+                  ) : null}
+                  {badges && <div className="pt-3">{badges}</div>}
+                </div>
+                {cardImage && (
+                  <div className="hidden md:!block flex-shrink-0 w-[280px] max-w-[33%] relative overflow-hidden rounded-lg border border-gray-200">
+                    {cardImage}
+                  </div>
+                )}
               </div>
-            ) : null
-          ) : null}
+            </div>
+          </div>
         </div>
-        {/* Action Buttons */}
+
+        {/* Actions row — full width with divider */}
         {showActions && (
           <div
-            className="px-4 py-2 border-t border-gray-200 bg-gray-50 cursor-default"
+            className="cursor-default"
             onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
@@ -417,10 +476,14 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               onFeedItemClick={onFeedItemClick}
               bounties={showBountyInfo ? undefined : content.bounties}
               hideReportButton={hideReportButton}
+              menuItems={menuItems}
               hideCommentButton={(entry.metrics?.comments ?? 0) === 0}
+              className="gap-1"
             />
           </div>
         )}
+
+        {footer}
       </CardWrapper>
     </div>
   );

@@ -14,8 +14,7 @@ import { TransactionService } from '@/services/transaction.service';
 import { getRSCForNetwork, NetworkType, TRANSFER_ABI, NETWORK_CONFIG } from '@/constants/tokens';
 import { NetworkSelector } from '@/components/ui/NetworkSelector';
 import { Alert } from '@/components/ui/Alert';
-import { Button } from '@/components/ui/Button';
-import { WalletDefault } from '@coinbase/onchainkit/wallet';
+import { Wallet, ConnectWallet } from '@coinbase/onchainkit/wallet';
 
 const HOT_WALLET_ADDRESS_ENV = process.env.NEXT_PUBLIC_WEB3_WALLET_ADDRESS;
 if (!HOT_WALLET_ADDRESS_ENV || HOT_WALLET_ADDRESS_ENV.trim() === '') {
@@ -204,7 +203,9 @@ export function DepositRSCView({ currentBalance, onSuccess }: DepositRSCViewProp
         <p className="text-gray-600 text-sm">
           Connect your wallet to deposit RSC to your ResearchHub account.
         </p>
-        <WalletDefault />
+        <Wallet>
+          <ConnectWallet />
+        </Wallet>
       </div>
     );
   }

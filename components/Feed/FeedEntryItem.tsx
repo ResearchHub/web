@@ -16,6 +16,7 @@ import { FeedItemPaper } from './items/FeedItemPaper';
 import { FeedItemComment } from './items/FeedItemComment';
 import { FeedItemPost } from './items/FeedItemPost';
 import { FeedItemGrant } from './items/FeedItemGrant';
+import { FeedItemGrantWithApplicants } from './items/FeedItemGrantWithApplicants';
 import { useFeedItemAnalyticsTracking } from '@/hooks/useFeedItemAnalyticsTracking';
 import { getUnifiedDocumentId } from '@/types/analytics';
 import { FeedItemBountyComment } from './items/FeedItemBountyComment';
@@ -44,6 +45,7 @@ interface FeedEntryItemProps {
   shouldRenderBountyAsComment?: boolean;
   highlights?: Highlight[];
   showBountyInfo?: boolean;
+  abstractCollapsedByDefault?: boolean;
 }
 
 export const FeedEntryItem: FC<FeedEntryItemProps> = ({
@@ -63,6 +65,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
   getVisibleItems,
   shouldRenderBountyAsComment = false,
   highlights,
+  abstractCollapsedByDefault,
 }) => {
   const unifiedDocumentId = getUnifiedDocumentId(entry);
 
@@ -221,10 +224,10 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
           <FeedItemFundraise
             entry={entry}
             href={href}
+            showHeader={showFundraiseHeaders}
             showActions={!hideActions}
             maxLength={maxLength}
             onFeedItemClick={handleFeedItemClick}
-            showHeader={showFundraiseHeaders}
             showBountyInfo={showBountyInfo}
           />
         );
@@ -241,6 +244,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
             onAbstractExpanded={handleAbstractExpanded}
             highlights={highlights}
             showBountyInfo={showBountyInfo}
+            abstractCollapsedByDefault={abstractCollapsedByDefault}
           />
         );
         break;
@@ -284,6 +288,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
                     onAbstractExpanded={handleAbstractExpanded}
                     highlights={highlights}
                     showBountyInfo={showBountyInfo}
+                    abstractCollapsedByDefault={abstractCollapsedByDefault}
                   />
                 ) : (
                   <FeedItemPost
@@ -321,18 +326,7 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
         break;
 
       case 'GRANT':
-        content = (
-          <FeedItemGrant
-            entry={entry}
-            href={href}
-            showActions={!hideActions}
-            maxLength={maxLength}
-            showHeader={showGrantHeaders}
-            onFeedItemClick={handleFeedItemClick}
-            onAbstractExpanded={handleAbstractExpanded}
-            highlights={highlights}
-          />
-        );
+        content = <FeedItemGrantWithApplicants entry={entry} />;
         break;
 
       default:

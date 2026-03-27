@@ -2,6 +2,7 @@ import { ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import Link from 'next/link';
 import { useNotebookContext } from '@/contexts/NotebookContext';
+import { buildWorkUrl } from '@/utils/url';
 
 export function PublishedStatusSection() {
   const { currentNote: note, isLoading } = useNotebookContext();
@@ -10,15 +11,22 @@ export function PublishedStatusSection() {
   const workId = note?.post?.id;
 
   const isPublished = Boolean(workId);
+  const grantStatus = note?.post?.grant?.status;
+  const isPending = grantStatus === 'PENDING';
+  const isDeclined = grantStatus === 'DECLINED';
 
   if (!note && !isLoading) {
     return null;
   }
 
   const getWorkPath = () => {
-    if (articleType === 'preregistration') return `/fund/${workId}/${slug}`;
-    if (articleType === 'funding_request') return `/grant/${workId}/${slug}`;
-    return `/post/${workId}/${slug}`;
+    const contentType =
+      articleType === 'preregistration'
+        ? 'preregistration'
+        : articleType === 'funding_request'
+          ? 'funding_request'
+          : 'post';
+    return buildWorkUrl({ id: workId, slug, contentType });
   };
 
   return (
@@ -26,7 +34,17 @@ export function PublishedStatusSection() {
       {isLoading && (
         <div className="h-5 w-14 inline-flex items-center bg-gray-100 animate-pulse rounded-full" />
       )}
-      {!isLoading && isPublished && (
+      {!isLoading && isDeclined && (
+        <Badge variant="error" size="sm">
+          <span className="text-sm">Declined</span>
+        </Badge>
+      )}
+      {!isLoading && isPending && (
+        <Badge variant="warning" size="sm">
+          <span className="text-sm">Pending</span>
+        </Badge>
+      )}
+      {!isLoading && isPublished && !isDeclined && !isPending && (
         <Badge variant="success" size="sm">
           <span className="mr-1 text-sm">Published</span>
           {slug && (
@@ -42,7 +60,7 @@ export function PublishedStatusSection() {
       )}
       {!isLoading && !isPublished && (
         <Badge variant="default" size="sm">
-          <span className="mr-1 text-sm">Draft</span>
+          <span className="text-sm">Draft</span>
         </Badge>
       )}
     </div>

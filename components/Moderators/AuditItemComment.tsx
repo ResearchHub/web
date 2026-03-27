@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useMemo } from 'react';
+import { FC, ReactNode, useMemo } from 'react';
 import { FlaggedContent } from '@/services/audit.service';
 import { FeedItemComment } from '@/components/Feed/items/FeedItemComment';
 import { FeedEntry, FeedCommentContent } from '@/types/feed';
@@ -12,7 +12,9 @@ import { ModerationActions } from './ModerationActions';
 interface AuditItemCommentProps {
   entry: FlaggedContent;
   onAction: (action: 'dismiss' | 'remove') => void;
+  onRefresh?: () => void;
   view?: 'pending' | 'dismissed' | 'removed';
+  checkbox?: ReactNode;
 }
 
 /**
@@ -177,18 +179,23 @@ const transformAuditCommentToFeedEntry = (entry: FlaggedContent): FeedEntry => {
 export const AuditItemComment: FC<AuditItemCommentProps> = ({
   entry,
   onAction,
+  onRefresh,
   view = 'pending',
+  checkbox,
 }) => {
   const verdict = entry.verdict;
+  const userInfo = getAuditUserInfo(entry);
 
   // Transform audit entry to feed entry format
   const feedEntry = useMemo(() => transformAuditCommentToFeedEntry(entry), [entry]);
 
   return (
     <div className="bg-white border rounded-lg overflow-hidden hover:shadow-sm transition-shadow">
-      {/* Moderation metadata at the top */}
-      <div className="px-4 pt-4">
-        <ModerationMetadata entry={entry} />
+      <div className="px-4 pt-4 flex items-start gap-3">
+        {checkbox}
+        <div className="flex-1 min-w-0">
+          <ModerationMetadata entry={entry} />
+        </div>
       </div>
 
       {/* Use existing FeedItemComment for consistent rendering */}
@@ -212,6 +219,9 @@ export const AuditItemComment: FC<AuditItemCommentProps> = ({
           onRemove={() => onAction('remove')}
           view={view}
           hasVerdict={!!verdict}
+          authorId={userInfo.authorId}
+          authorName={userInfo.name}
+          onRefresh={onRefresh}
         />
       </div>
     </div>
