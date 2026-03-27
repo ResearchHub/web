@@ -31,12 +31,7 @@ import { buildWorkUrl } from '@/utils/url';
 import { cn } from '@/utils/styles';
 import { formatCurrency } from '@/utils/currency';
 import { getRemainingDays } from '@/utils/date';
-import {
-  BaseFeedItem,
-  TitleSection,
-  MetadataSection,
-  PrimaryActionSection,
-} from '@/components/Feed/BaseFeedItem';
+import { BaseFeedItem, TitleSection, PrimaryActionSection } from '@/components/Feed/BaseFeedItem';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import Link from 'next/link';
@@ -343,33 +338,19 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
           </div>
         )}
 
-        <BountyDetails
-          content={bountyEntry.comment.content}
-          contentFormat={bountyEntry.comment.contentFormat}
-          bountyType={bounty.bountyType}
-          maxLength={maxLength}
-          href={href}
-          onFeedItemClick={onFeedItemClick}
-        />
-
-        {!isOpen && hasSolutions && showSolutions && (
-          <div
-            className="mt-4"
-            onMouseDown={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
-          >
-            <BountySolutions
-              solutions={bounty.solutions}
-              isPeerReviewBounty={bounty.bountyType === 'REVIEW'}
-              totalAwardedAmount={calculateTotalAwardedAmount(bounty)}
-              onViewSolution={handleViewSolution}
-            />
-          </div>
-        )}
-
-        {bountyCreator && (
-          <MetadataSection className="mb-0 py-4">
-            <div className="flex items-center gap-2.5">
+        <div>
+          <TitleSection
+            title={
+              bounty.bountyType === 'REVIEW'
+                ? 'Peer Review Earning Opportunity'
+                : 'Earning Opportunity'
+            }
+            className="text-md"
+            href={href}
+            onClick={onFeedItemClick}
+          />
+          {bountyCreator && (
+            <div className="flex items-center gap-2.5 mt-3">
               <AuthorTooltip authorId={bountyCreator.id !== 0 ? bountyCreator.id : undefined}>
                 <Avatar
                   src={bountyCreator.profileImage || undefined}
@@ -389,7 +370,29 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
                 <span className="text-xs text-gray-500">Offering bounty</span>
               </div>
             </div>
-          </MetadataSection>
+          )}
+          <div className="text-gray-600 mt-2">
+            <CommentReadOnly
+              content={bountyEntry.comment.content}
+              contentFormat={bountyEntry.comment.contentFormat}
+              maxLength={maxLength}
+            />
+          </div>
+        </div>
+
+        {!isOpen && hasSolutions && showSolutions && (
+          <div
+            className="mt-4"
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <BountySolutions
+              solutions={bounty.solutions}
+              isPeerReviewBounty={bounty.bountyType === 'REVIEW'}
+              totalAwardedAmount={calculateTotalAwardedAmount(bounty)}
+              onViewSolution={handleViewSolution}
+            />
+          </div>
         )}
 
         {showSupportAndCTAButtons && (
