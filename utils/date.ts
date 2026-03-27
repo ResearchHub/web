@@ -215,3 +215,13 @@ export function formatCountdownRemaining(targetDate: string | null): {
 
   return { isPast: false, formatted: parts.join(' ') || 'less than a minute' };
 }
+
+/**
+ * Returns the number of remaining days until the target date, or null if past/missing.
+ */
+export function getRemainingDays(targetDate: string | null): number | null {
+  if (!targetDate) return null;
+  const diffMs = dayjs(targetDate).diff(dayjs());
+  if (diffMs <= 0) return null;
+  return dayjs.duration(diffMs).asDays();
+}

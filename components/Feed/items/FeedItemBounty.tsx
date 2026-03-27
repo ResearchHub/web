@@ -19,10 +19,12 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { getBountyDisplayAmount, isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
 import { formatCurrency } from '@/utils/currency';
-import { formatDate, formatDeadline, isDeadlineInFuture } from '@/utils/date';
+import { isDeadlineInFuture, getRemainingDays } from '@/utils/date';
 import { buildWorkUrl } from '@/utils/url';
 import { mapApiDocumentTypeToClientType, ApiDocumentType } from '@/utils/contentTypeMapping';
-import { ArrowRight, Clock, Info } from 'lucide-react';
+import { ArrowRight, Info } from 'lucide-react';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ContentFormat } from '@/types/comment';
@@ -163,14 +165,22 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
     return bounty.status === 'ASSESSMENT';
   }, [bounty.status, bounty.expirationDate]);
 
-  const deadlineLabel = useMemo(() => {
-    if (bounty.status === 'ASSESSMENT') return 'Assessment Period';
-    if (!bounty.expirationDate) return undefined;
-    if (isExpiringSoon(bounty.expirationDate, 1)) {
-      return formatDeadline(bounty.expirationDate);
+  const statusInfo = useMemo(() => {
+    if (bounty.status === 'OPEN' && isActive) {
+      const days = getRemainingDays(bounty.expirationDate ?? null);
+      const remaining =
+        days !== null
+          ? days < 1
+            ? '< 1 day'
+            : `${Math.floor(days)} day${Math.floor(days) === 1 ? '' : 's'}`
+          : null;
+      return { label: 'Open', color: 'bg-green-500', remaining };
     }
-    return `Ends ${formatDate(bounty.expirationDate)}`;
-  }, [bounty.status, bounty.expirationDate]);
+    if (bounty.status === 'ASSESSMENT') {
+      return { label: 'Assessment', color: 'bg-orange-500', remaining: null };
+    }
+    return { label: 'Completed', color: 'bg-gray-400', remaining: null };
+  }, [bounty.status, bounty.expirationDate, isActive]);
 
   const { amount: displayAmount } = useMemo(
     () => getBountyDisplayAmount(bounty, exchangeRate, showUSD),
@@ -305,19 +315,31 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
                 </span>
               </div>
 
-              {deadlineLabel && (
-                <div className="hidden sm:flex flex-col leading-tight">
-                  <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                    Deadline
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <Clock size={14} className="text-gray-500 flex-shrink-0" />
+              <div className="hidden sm:flex flex-col leading-tight">
+                <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">Status</span>
+                <div className="flex items-center gap-1.5">
+                  <RadiatingDot color={statusInfo.color} size="sm" isRadiating={isActive} />
+                  {bounty.status === 'ASSESSMENT' ? (
+                    <Tooltip
+                      content="Editors are reviewing any submissions and will award top reviews."
+                      position="top"
+                    >
+                      <span className="text-sm font-medium text-gray-700 whitespace-nowrap border-b border-dashed border-gray-400 cursor-help">
+                        {statusInfo.label}
+                      </span>
+                    </Tooltip>
+                  ) : (
                     <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                      {deadlineLabel}
+                      {statusInfo.label}
                     </span>
-                  </div>
+                  )}
+                  {statusInfo.remaining && (
+                    <span className="text-xs text-gray-500 whitespace-nowrap">
+                      ({statusInfo.remaining})
+                    </span>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
 
             <div className="flex items-center gap-2 flex-shrink-0">
@@ -356,7 +378,9 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
         bountyType={bounty.bountyType}
         displayAmount={displayAmount}
         showUSD={showUSD}
-        deadlineLabel={deadlineLabel}
+        deadlineLabel={
+          statusInfo.remaining ? `${statusInfo.label} (${statusInfo.remaining})` : statusInfo.label
+        }
         onAddSolutionClick={handleAddSolutionClick}
         buttonText={getAddButtonText()}
         isActive={isActive}

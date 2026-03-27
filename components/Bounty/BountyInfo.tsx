@@ -4,7 +4,7 @@ import { FC, useMemo, useState } from 'react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
-import { formatDate, formatDeadline, isDeadlineInFuture } from '@/utils/date';
+import { isDeadlineInFuture, getRemainingDays } from '@/utils/date';
 import { isExpiringSoon } from './lib/bountyUtil';
 import { Bounty, BountyType } from '@/types/bounty';
 import { Work } from '@/types/work';
@@ -14,7 +14,9 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { ContentFormat } from '@/types/comment';
 import { BountyDetails } from '@/components/Feed/items/FeedItemBountyComment';
-import { Clock, Forward, ArrowRight, Info } from 'lucide-react';
+import { Forward, ArrowRight, Info, Clock } from 'lucide-react';
+import { RadiatingDot } from '@/components/ui/RadiatingDot';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { getBountyDisplayAmount } from './lib/bountyUtil';
 import { formatCurrency } from '@/utils/currency';
 
@@ -138,22 +140,22 @@ export const BountyInfo: FC<BountyInfoProps> = ({
     return false;
   }, [bounty.status, bounty.expirationDate]);
 
-  // Compute deadline label: use hours format if <24h, else use date format
-  const deadlineLabel = useMemo(() => {
+  const statusInfo = useMemo(() => {
+    if (bounty.status === 'OPEN' && isActive) {
+      const days = getRemainingDays(bounty.expirationDate ?? null);
+      const remaining =
+        days !== null
+          ? days < 1
+            ? '< 1 day'
+            : `${Math.floor(days)} day${Math.floor(days) === 1 ? '' : 's'}`
+          : null;
+      return { label: 'Open', color: 'bg-green-500', remaining };
+    }
     if (bounty.status === 'ASSESSMENT') {
-      return 'Assessment Period';
+      return { label: 'Assessment', color: 'bg-orange-500', remaining: null };
     }
-
-    if (!bounty.expirationDate) return undefined;
-
-    // If <24h remaining, use formatDeadline which returns "Ends in Xh" or "Ends in Xm"
-    if (isExpiringSoon(bounty.expirationDate, 1)) {
-      return formatDeadline(bounty.expirationDate);
-    }
-
-    // Otherwise, use date format with "Ends" prefix
-    return `Ends ${formatDate(bounty.expirationDate)}`;
-  }, [bounty.status, bounty.expirationDate]);
+    return { label: 'Completed', color: 'bg-gray-400', remaining: null };
+  }, [bounty.status, bounty.expirationDate, isActive]);
 
   // Get bounty label text
   const bountyLabel = bounty.bountyType === 'REVIEW' ? 'Peer Review' : 'Bounty';
@@ -209,17 +211,31 @@ export const BountyInfo: FC<BountyInfoProps> = ({
               </span>
             </div>
 
-            {deadlineLabel && (
-              <div className="hidden sm:flex flex-col leading-tight">
-                <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">Deadline</span>
-                <div className="flex items-center gap-1.5">
-                  <Clock size={14} className="text-gray-500 flex-shrink-0" />
+            <div className="hidden sm:flex flex-col leading-tight">
+              <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">Status</span>
+              <div className="flex items-center gap-1.5">
+                <RadiatingDot color={statusInfo.color} size="sm" isRadiating={isActive} />
+                {bounty.status === 'ASSESSMENT' ? (
+                  <Tooltip
+                    content="Editors are reviewing submissions and will award top reviews."
+                    position="top"
+                  >
+                    <span className="text-sm font-medium text-gray-700 whitespace-nowrap border-b border-dashed border-gray-400 cursor-help">
+                      {statusInfo.label}
+                    </span>
+                  </Tooltip>
+                ) : (
                   <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                    {deadlineLabel}
+                    {statusInfo.label}
                   </span>
-                </div>
+                )}
+                {statusInfo.remaining && (
+                  <span className="text-xs text-gray-500 whitespace-nowrap">
+                    ({statusInfo.remaining})
+                  </span>
+                )}
               </div>
-            )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -257,7 +273,9 @@ export const BountyInfo: FC<BountyInfoProps> = ({
         bountyType={bounty.bountyType}
         displayAmount={displayAmount}
         showUSD={showUSD}
-        deadlineLabel={deadlineLabel}
+        deadlineLabel={
+          statusInfo.remaining ? `${statusInfo.label} (${statusInfo.remaining})` : statusInfo.label
+        }
         onAddSolutionClick={onAddSolutionClick}
         buttonText={getAddButtonText()}
         isActive={isActive}
