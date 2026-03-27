@@ -14,16 +14,13 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { ContentFormat } from '@/types/comment';
 import { BountyDetails } from '@/components/Feed/items/FeedItemBountyComment';
-import { Clock, Forward, ArrowLeft, ArrowRight } from 'lucide-react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleInfo } from '@fortawesome/pro-solid-svg-icons';
+import { Clock, Forward, ArrowRight, Info } from 'lucide-react';
 import { getBountyDisplayAmount } from './lib/bountyUtil';
 import { formatCurrency } from '@/utils/currency';
 
 export interface BountyDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
   content: any;
   contentFormat?: ContentFormat;
   bountyType: BountyType;
@@ -38,7 +35,6 @@ export interface BountyDetailsModalProps {
 export const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
   isOpen,
   onClose,
-  title,
   content,
   contentFormat,
   bountyType,
@@ -67,26 +63,12 @@ export const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
     </Button>
   ) : undefined;
 
-  // Mobile: back arrow + icon, Desktop: just icon
-  const headerAction = (
-    <div className="flex items-center">
-      {/* Back arrow - mobile only */}
-      <div className="md:!hidden -ml-2">
-        <Button onClick={onClose} variant="ghost" size="icon" aria-label="Go back">
-          <ArrowLeft className="h-5 w-5 text-gray-600" />
-        </Button>
-      </div>
-      <FontAwesomeIcon icon={faCircleInfo} className="h-5 w-5 text-primary-500" />
-    </div>
-  );
-
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title={title}
+      title="Details"
       maxWidth="max-w-xl"
-      headerAction={headerAction}
       footer={footerContent}
       className="md:!min-w-[500px] md:!min-h-[400px]"
     >
@@ -247,8 +229,8 @@ export const BountyInfo: FC<BountyInfoProps> = ({
               className="flex-shrink-0 rounded-md text-[13px] gap-1.5 text-gray-600 hover:text-gray-800"
               onClick={handleDetailsClick}
             >
-              <FontAwesomeIcon icon={faCircleInfo} className="h-3.5 w-3.5" />
-              Details
+              <Info size={14} />
+              <span className="hidden sm:inline">Details</span>
             </Button>
             {isActive ? (
               <Button
@@ -270,7 +252,6 @@ export const BountyInfo: FC<BountyInfoProps> = ({
       <BountyDetailsModal
         isOpen={isDetailsModalOpen}
         onClose={() => setIsDetailsModalOpen(false)}
-        title={relatedWork?.title ?? bountyLabel}
         content={bounty.comment?.content}
         contentFormat={bounty.comment?.contentFormat}
         bountyType={bounty.bountyType}

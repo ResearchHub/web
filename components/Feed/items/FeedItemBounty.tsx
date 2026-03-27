@@ -15,8 +15,6 @@ import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { Button } from '@/components/ui/Button';
 import { Bounty } from '@/types/bounty';
 import { BountyDetailsModal } from '@/components/Bounty/BountyInfo';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleInfo } from '@fortawesome/pro-solid-svg-icons';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { getBountyDisplayAmount, isExpiringSoon } from '@/components/Bounty/lib/bountyUtil';
@@ -24,7 +22,7 @@ import { formatCurrency } from '@/utils/currency';
 import { formatDate, formatDeadline, isDeadlineInFuture } from '@/utils/date';
 import { buildWorkUrl } from '@/utils/url';
 import { mapApiDocumentTypeToClientType, ApiDocumentType } from '@/utils/contentTypeMapping';
-import { ArrowRight, Clock } from 'lucide-react';
+import { ArrowRight, Clock, Info } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ContentFormat } from '@/types/comment';
@@ -329,8 +327,8 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
                 className="flex-shrink-0 rounded-lg text-[13px] gap-1.5 text-gray-600 hover:text-gray-800"
                 onClick={handleDetailsClick}
               >
-                <FontAwesomeIcon icon={faCircleInfo} className="h-3.5 w-3.5" />
-                Details
+                <Info size={14} />
+                <span className="hidden sm:inline">Details</span>
               </Button>
               {isActive ? (
                 <Button
@@ -353,7 +351,6 @@ export const FeedItemBounty: FC<FeedItemBountyProps> = ({
       <BountyDetailsModal
         isOpen={isDetailsModalOpen}
         onClose={() => setIsDetailsModalOpen(false)}
-        title={title}
         content={commentContent}
         contentFormat={commentFormat}
         bountyType={bounty.bountyType}

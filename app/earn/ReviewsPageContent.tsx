@@ -94,11 +94,13 @@ export function ReviewsPageContent() {
   } = useBounties();
 
   const [allTopics, setAllTopics] = useState<Topic[]>([]);
+  const [isLoadingTopics, setIsLoadingTopics] = useState(true);
 
   useEffect(() => {
     (async () => {
       const topics = await BountyService.getBountyHubs();
       setAllTopics(topics);
+      setIsLoadingTopics(false);
     })();
   }, []);
 
@@ -123,17 +125,33 @@ export function ReviewsPageContent() {
     }
   };
 
+  const pillSkeleton = (
+    <div className="flex items-center gap-2 py-2">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div
+          key={i}
+          className="h-7 rounded-lg bg-gray-100 animate-pulse flex-shrink-0"
+          style={{ width: `${60 + (i % 3) * 20}px` }}
+        />
+      ))}
+    </div>
+  );
+
   const filters = (
     <div className="mt-5 relative flex items-center">
       <div className="min-w-0 flex-1 pr-24">
-        <PillTabs
-          tabs={tabs}
-          activeTab={activeTabId}
-          onTabChange={handleTabChange}
-          size="sm"
-          scrollCacheKey="earn-topics"
-          chevronClassName="text-gray-900 hover:text-black"
-        />
+        {isLoadingTopics ? (
+          pillSkeleton
+        ) : (
+          <PillTabs
+            tabs={tabs}
+            activeTab={activeTabId}
+            onTabChange={handleTabChange}
+            size="sm"
+            scrollCacheKey="earn-topics"
+            chevronClassName="text-gray-900 hover:text-black"
+          />
+        )}
       </div>
       <div
         className="absolute right-0 top-0 bottom-0 z-20 flex items-center pl-6"
