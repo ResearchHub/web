@@ -24,10 +24,9 @@ import { TemplateVariableEditor } from '@/app/expert-finder/templates/components
 import { Input } from '@/components/ui/form/Input';
 import { Badge } from '@/components/ui/Badge';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import { CloseGeneratedEmailModal } from '../components/CloseGeneratedEmailModal';
-import { DeleteGeneratedEmailModal } from '../components/DeleteGeneratedEmailModal';
-import { PreviewGeneratedEmailModal } from '../components/PreviewGeneratedEmailModal';
-import { SendGeneratedEmailModal } from '../components/SendGeneratedEmailModal';
+import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
+import { ReplyToEmailModal } from '@/app/expert-finder/components/ReplyToEmailModal';
+import { Textarea } from '@/components/ui/form/Textarea';
 import {
   getGeneratedEmailStatusPresentation,
   isGeneratedEmailClosed,
@@ -73,7 +72,9 @@ export function OutreachDetailPageContent({
   const [showPreviewConfirm, setShowPreviewConfirm] = useState(false);
   const [showSendToExpertConfirm, setShowSendToExpertConfirm] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [showMarkSentConfirm, setShowMarkSentConfirm] = useState(false);
   const [closeNotes, setCloseNotes] = useState('');
+  const [markSentNotes, setMarkSentNotes] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
   const [editSubject, setEditSubject] = useState('');
   const [editBody, setEditBody] = useState('');
@@ -144,11 +145,19 @@ export function OutreachDetailPageContent({
     }
   };
 
-  const handleMarkSent = async () => {
+  const handleMarkSentSubmit = async () => {
+    if (!emailId) return;
     setActionError(null);
     try {
-      await updateEmail(emailId, { status: 'sent' });
+      const notes = markSentNotes.trim();
+      await updateEmail(emailId, {
+        status: 'sent',
+        ...(notes ? { notes } : {}),
+      });
+      setShowMarkSentConfirm(false);
+      setMarkSentNotes('');
       refetch();
+      toast.success('Email marked as sent.');
     } catch (e) {
       setActionError(e instanceof Error ? e.message : 'Failed to update');
     }
@@ -255,8 +264,11 @@ export function OutreachDetailPageContent({
   if (!email) return null;
 
   const isClosed = isGeneratedEmailClosed(email.status);
+  const isSent = email.status === 'sent';
   const statusPresentation = getGeneratedEmailStatusPresentation(email.status);
   const pipelineBusy = isGeneratedEmailPipelineBusy(email.status);
+  /** No overflow actions once the message is sent or retired (draft / failed / in-flight still get Preview, etc.). */
+  const showOutreachMoreMenu = !isClosed && !isSent;
   const failedOrDraftForPreview =
     isGeneratedEmailDraftLike(email.status) || isGeneratedEmailFailed(email.status);
 
@@ -374,7 +386,7 @@ export function OutreachDetailPageContent({
                 Send
               </Button>
             )}
-            {!isClosed && (
+            {showOutreachMoreMenu && (
               <BaseMenu
                 align="end"
                 trigger={
@@ -400,9 +412,15 @@ export function OutreachDetailPageContent({
                   </BaseMenuItem>
                 )}
                 {isDraftLike && (
-                  <BaseMenuItem disabled={isUpdating} onSelect={() => void handleMarkSent()}>
+                  <BaseMenuItem
+                    disabled={isUpdating}
+                    onSelect={() => {
+                      setMarkSentNotes('');
+                      setShowMarkSentConfirm(true);
+                    }}
+                  >
                     <Mail className="h-4 w-4 mr-2 shrink-0 text-amber-600" aria-hidden />
-                    <span>Mark as read</span>
+                    <span>Mark as sent</span>
                   </BaseMenuItem>
                 )}
                 <BaseMenuItem
@@ -435,7 +453,7 @@ export function OutreachDetailPageContent({
           )}
         </div>
 
-        {isClosed && email.notes?.trim() ? (
+        {(isClosed || email.status === 'sent') && email.notes?.trim() ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
             <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Notes</p>
             <p className="text-sm text-gray-800 mt-1 whitespace-pre-wrap">{email.notes}</p>
@@ -504,39 +522,86 @@ export function OutreachDetailPageContent({
         </div>
       )}
 
-      <DeleteGeneratedEmailModal
+      <ConfirmationModal
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        isDeleting={isDeleting}
+        title="Delete email?"
+        description="This draft will be permanently removed."
+        confirmLabel="Delete"
+        confirmVariant="destructive"
+        confirmIcon={<Trash2 className="h-4 w-4" aria-hidden />}
+        isConfirming={isDeleting}
+        blockDismissWhileConfirming={false}
         onConfirm={handleDelete}
       />
 
-      <SendGeneratedEmailModal
+      <ReplyToEmailModal
         isOpen={showSendToExpertConfirm}
         onClose={() => setShowSendToExpertConfirm(false)}
-        isSending={isSendingToExpert}
+        isSubmitting={isSendingToExpert}
+        title="Send this email to the expert?"
+        description="This email will be sent to the expert."
         replyTo={replyTo}
         onReplyToChange={setReplyTo}
         onConfirm={handleSendToExpert}
+        confirmLabel="Send"
+        confirmIcon={<Send className="h-4 w-4" aria-hidden />}
       />
 
-      <PreviewGeneratedEmailModal
+      <ReplyToEmailModal
         isOpen={showPreviewConfirm}
         onClose={() => setShowPreviewConfirm(false)}
-        isSending={isSendingPreview}
+        isSubmitting={isSendingPreview}
+        title="Send test email"
+        description="A test copy is sent to your inbox. Reply To is included on the message for the preview send."
         replyTo={replyTo}
         onReplyToChange={setReplyTo}
         onConfirm={handleSendPreview}
+        confirmLabel="Send"
+        confirmIcon={<Eye className="h-4 w-4" aria-hidden />}
       />
 
-      <CloseGeneratedEmailModal
+      <ConfirmationModal
+        isOpen={showMarkSentConfirm}
+        onClose={() => setShowMarkSentConfirm(false)}
+        title="Mark as sent?"
+        description="Use this if you already sent the message outside ResearchHub (e.g. from Gmail). Optional note helps your team see how it went out."
+        descriptionClassName="mb-3"
+        confirmLabel="Mark as sent"
+        confirmClassName="gap-2 bg-amber-500 text-white hover:bg-amber-600"
+        confirmIcon={<Mail className="h-4 w-4" aria-hidden />}
+        isConfirming={isUpdating}
+        onConfirm={() => void handleMarkSentSubmit()}
+      >
+        <Textarea
+          label="Notes (optional)"
+          value={markSentNotes}
+          onChange={(e) => setMarkSentNotes(e.target.value)}
+          placeholder="e.g. Sent manually via Gmail"
+          rows={3}
+          className="mb-4"
+        />
+      </ConfirmationModal>
+
+      <ConfirmationModal
         isOpen={showCloseConfirm}
         onClose={() => setShowCloseConfirm(false)}
-        isSubmitting={isUpdating}
-        notes={closeNotes}
-        onNotesChange={setCloseNotes}
+        title="Mark as closed?"
+        description="This retires the generated email (inactive). You can add an optional note for your team."
+        descriptionClassName="mb-3"
+        confirmLabel="Mark closed"
+        isConfirming={isUpdating}
         onConfirm={() => void handleCloseEmail()}
-      />
+      >
+        <Textarea
+          label="Notes (optional)"
+          value={closeNotes}
+          onChange={(e) => setCloseNotes(e.target.value)}
+          placeholder="e.g. Replaced by outreach email id 456"
+          rows={3}
+          className="mb-4"
+        />
+      </ConfirmationModal>
     </div>
   );
 }

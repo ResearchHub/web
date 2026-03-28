@@ -12,10 +12,10 @@ import { Loader2, Mail, MoreVertical, Send, Trash2 } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
+import { ReplyToEmailModal } from '@/app/expert-finder/components/ReplyToEmailModal';
 import { PaginationButton } from '@/components/ui/PaginationButton';
-import { BulkSendEmailsModal } from './BulkSendEmailsModal';
-import { BulkMarkAsSentModal } from './BulkMarkAsSentModal';
-import { BulkDeleteOutreachDraftsModal } from './BulkDeleteOutreachDraftsModal';
+import { ExpertFinderService } from '@/services/expertFinder.service';
 import { useGeneratedEmails, useSendEmails } from '@/hooks/useExpertFinder';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useUser } from '@/contexts/UserContext';
@@ -70,6 +70,8 @@ export function GeneratedEmailsList({
   const [showBulkMarkSentConfirm, setShowBulkMarkSentConfirm] = useState(false);
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
   const [bulkReplyTo, setBulkReplyTo] = useState('');
+  const [bulkMarkSentBusy, setBulkMarkSentBusy] = useState(false);
+  const [bulkDeleteBusy, setBulkDeleteBusy] = useState(false);
 
   const offset = (pageFromUrl - 1) * pageSize;
   const [{ emails, pagination, isLoading, error }, refetch] = useGeneratedEmails({
@@ -155,6 +157,14 @@ export function GeneratedEmailsList({
     }
   }, [showSendConfirm, user?.email]);
 
+  useEffect(() => {
+    if (!showBulkMarkSentConfirm) setBulkMarkSentBusy(false);
+  }, [showBulkMarkSentConfirm]);
+
+  useEffect(() => {
+    if (!showBulkDeleteConfirm) setBulkDeleteBusy(false);
+  }, [showBulkDeleteConfirm]);
+
   const handleBulkListRefresh = useCallback(async () => {
     setSelectedIds(new Set());
     await refetch();
@@ -198,6 +208,54 @@ export function GeneratedEmailsList({
       return next;
     });
   }, []);
+
+  const handleBulkMarkSentConfirm = useCallback(async () => {
+    const ids = selectedDraftIdsOnPage;
+    if (ids.length === 0) return;
+    setBulkMarkSentBusy(true);
+    try {
+      const results = await Promise.allSettled(
+        ids.map((id) => ExpertFinderService.updateEmail(id, { status: 'sent' }))
+      );
+      const ok = results.filter((r) => r.status === 'fulfilled').length;
+      const bad = results.length - ok;
+      if (bad === 0) {
+        toast.success(`Marked ${ok} email(s) as sent.`);
+      } else {
+        toast.error(`Marked ${ok} as sent; ${bad} failed.`);
+      }
+      await handleBulkListRefresh();
+      setShowBulkMarkSentConfirm(false);
+    } catch {
+      toast.error('Failed to update emails.');
+    } finally {
+      setBulkMarkSentBusy(false);
+    }
+  }, [selectedDraftIdsOnPage, handleBulkListRefresh]);
+
+  const handleBulkDeleteConfirm = useCallback(async () => {
+    const ids = selectedDraftIdsOnPage;
+    if (ids.length === 0) return;
+    setBulkDeleteBusy(true);
+    try {
+      const results = await Promise.allSettled(
+        ids.map((id) => ExpertFinderService.deleteEmail(id))
+      );
+      const ok = results.filter((r) => r.status === 'fulfilled').length;
+      const bad = results.length - ok;
+      if (bad === 0) {
+        toast.success(`Deleted ${ok} draft(s).`);
+      } else {
+        toast.error(`Deleted ${ok}; ${bad} failed.`);
+      }
+      await handleBulkListRefresh();
+      setShowBulkDeleteConfirm(false);
+    } catch {
+      toast.error('Failed to delete emails.');
+    } finally {
+      setBulkDeleteBusy(false);
+    }
+  }, [selectedDraftIdsOnPage, handleBulkListRefresh]);
 
   if (error) {
     return (
@@ -339,27 +397,49 @@ export function GeneratedEmailsList({
         </div>
       )}
 
-      <BulkSendEmailsModal
+      <ReplyToEmailModal
         isOpen={showSendConfirm}
         onClose={() => setShowSendConfirm(false)}
-        isSending={isSending}
+        isSubmitting={isSending}
+        title="Send emails to experts?"
         replyTo={bulkReplyTo}
         onReplyToChange={setBulkReplyTo}
         onConfirm={handleSendConfirm}
+        confirmLabel="Confirm"
       />
 
-      <BulkMarkAsSentModal
+      <ConfirmationModal
         isOpen={showBulkMarkSentConfirm}
         onClose={() => setShowBulkMarkSentConfirm(false)}
-        draftIds={selectedDraftIdsOnPage}
-        onSuccess={handleBulkListRefresh}
+        title="Mark selected as sent?"
+        description={
+          <>
+            {selectedDraftIdsOnPage.length} draft
+            {selectedDraftIdsOnPage.length === 1 ? '' : 's'} will be marked as sent.
+          </>
+        }
+        confirmLabel="Confirm"
+        confirmClassName="gap-2 bg-amber-500 text-white hover:bg-amber-600"
+        confirmIcon={<Mail className="h-4 w-4" aria-hidden />}
+        isConfirming={bulkMarkSentBusy}
+        onConfirm={handleBulkMarkSentConfirm}
       />
 
-      <BulkDeleteOutreachDraftsModal
+      <ConfirmationModal
         isOpen={showBulkDeleteConfirm}
         onClose={() => setShowBulkDeleteConfirm(false)}
-        draftIds={selectedDraftIdsOnPage}
-        onSuccess={handleBulkListRefresh}
+        title="Delete selected drafts?"
+        description={
+          <>
+            {selectedDraftIdsOnPage.length} draft
+            {selectedDraftIdsOnPage.length === 1 ? '' : 's'} will be permanently removed.
+          </>
+        }
+        confirmLabel="Delete"
+        confirmVariant="destructive"
+        confirmIcon={<Trash2 className="h-4 w-4" aria-hidden />}
+        isConfirming={bulkDeleteBusy}
+        onConfirm={handleBulkDeleteConfirm}
       />
     </>
   );
