@@ -1,5 +1,6 @@
 'use client';
 
+import type { MouseEvent } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { formatTimestamp } from '@/utils/date';
@@ -22,9 +23,18 @@ export interface OutreachMobileCardProps {
   email: GeneratedEmail;
   onClick: () => void;
   className?: string;
+  /** When set, shows a checkbox that does not trigger `onClick` on the card. */
+  selected?: boolean;
+  onToggleSelect?: (emailId: number, e: MouseEvent) => void;
 }
 
-export function OutreachMobileCard({ email, onClick, className }: OutreachMobileCardProps) {
+export function OutreachMobileCard({
+  email,
+  onClick,
+  className,
+  selected = false,
+  onToggleSelect,
+}: OutreachMobileCardProps) {
   const expertName = email.expertName?.trim() || '—';
   const subject = truncateSubject(email.emailSubject);
   const templateLabel = getTemplateDisplayLabel(email.template);
@@ -32,8 +42,23 @@ export function OutreachMobileCard({ email, onClick, className }: OutreachMobile
   const isSent = email.status === 'sent';
   const createdByName = email.createdBy?.author?.fullName;
 
+  const selectTrailing =
+    onToggleSelect != null ? (
+      <input
+        type="checkbox"
+        checked={selected}
+        onChange={() => {}}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleSelect(email.id, e);
+        }}
+        className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer mt-0.5"
+        aria-label={`Select ${expertName}`}
+      />
+    ) : undefined;
+
   return (
-    <ListCard onClick={onClick} className={className}>
+    <ListCard onClick={onClick} className={className} trailing={selectTrailing}>
       <h3 className="text-sm font-medium text-gray-900 truncate">{expertName}</h3>
       <p className="text-xs text-gray-600 mt-1 truncate" title={email.emailSubject}>
         {subject}

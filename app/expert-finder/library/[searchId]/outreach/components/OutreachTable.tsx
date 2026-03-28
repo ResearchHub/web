@@ -3,12 +3,7 @@
 import Link from 'next/link';
 import { TableContainer, SortableColumn } from '@/components/ui/Table/TableContainer';
 import { Badge } from '@/components/ui/Badge';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { formatTimestamp } from '@/utils/date';
-import {
-  getTemplateDisplayLabel,
-  getTemplateDescription,
-} from '@/app/expert-finder/library/[searchId]/components/GenerateEmailModal';
 import type { GeneratedEmail } from '@/types/expertFinder';
 
 const SUBJECT_TRUNCATE_LENGTH = 50;
@@ -20,13 +15,11 @@ function truncate(s: string, max: number): string {
 }
 
 const BASE_COLUMNS: SortableColumn[] = [
-  { key: 'expertName', label: 'Expert', sortable: false },
   { key: 'subject', label: 'Subject', sortable: false },
-  { key: 'template', label: 'Template', sortable: false },
+  { key: 'expertName', label: 'Expert', sortable: false },
   { key: 'status', label: 'Status', sortable: false },
   { key: 'createdBy', label: 'Created By', sortable: false },
   { key: 'createdAt', label: 'Created Date', sortable: false },
-  { key: 'view', label: '', sortable: false },
 ];
 
 interface OutreachTableProps {
@@ -35,21 +28,6 @@ interface OutreachTableProps {
   getDetailHref: (email: GeneratedEmail) => string;
   selectedIds?: Set<number>;
   onSelectionChange?: (ids: Set<number>) => void;
-}
-
-function TemplateCell({ email }: { email: GeneratedEmail }) {
-  const label = getTemplateDisplayLabel(email.template);
-  const description = getTemplateDescription(email.template);
-  if (description) {
-    return (
-      <Tooltip content={description} width="w-72" position="top">
-        <span className="cursor-help underline decoration-dotted decoration-gray-400 underline-offset-1">
-          {label}
-        </span>
-      </Tooltip>
-    );
-  }
-  return <span>{label}</span>;
 }
 
 export function OutreachTable({
@@ -106,11 +84,19 @@ export function OutreachTable({
       : BASE_COLUMNS;
 
   const data = emails.map((email) => {
+    const subjectText = truncate(email.emailSubject, SUBJECT_TRUNCATE_LENGTH);
     const row: Record<string, unknown> = {
       id: email.id,
+      subject: (
+        <Link
+          href={getDetailHref(email)}
+          className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {subjectText}
+        </Link>
+      ),
       expertName: email.expertName || '—',
-      subject: truncate(email.emailSubject, SUBJECT_TRUNCATE_LENGTH),
-      template: <TemplateCell email={email} />,
       status: (
         <Badge variant={email.status === 'sent' ? 'success' : 'primary'}>
           {email.status === 'sent' ? 'Sent' : 'Draft'}
@@ -118,15 +104,6 @@ export function OutreachTable({
       ),
       createdBy: email.createdBy?.author?.fullName ?? '—',
       createdAt: formatTimestamp(email.createdAt, false),
-      view: (
-        <Link
-          href={getDetailHref(email)}
-          className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
-          onClick={(e) => e.stopPropagation()}
-        >
-          View
-        </Link>
-      ),
     };
     if (selectedIds && onSelectionChange) {
       row.select = (

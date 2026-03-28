@@ -15,20 +15,19 @@ import { TemplateMobileCard } from './TemplateMobileCard';
 import { TableSkeleton } from '@/components/ui/Table/TableSkeleton';
 import { ListCardSkeleton } from '@/components/ui/ListCardSkeleton';
 import type { SavedTemplate } from '@/types/expertFinder';
-
-const PAGE_SIZE = 10;
+import { EXPERT_FINDER_LIST_PAGE_SIZE } from '@/app/expert-finder/lib/paginationParams';
 
 export function TemplatesPageContent() {
   const router = useRouter();
   const { mdAndUp } = useScreenSize();
   const [page, setPage] = useState(1);
-  const offset = (page - 1) * PAGE_SIZE;
+  const offset = (page - 1) * EXPERT_FINDER_LIST_PAGE_SIZE;
   const [{ templates, pagination, isLoading, error }] = useSavedTemplates({
-    limit: PAGE_SIZE,
+    limit: EXPERT_FINDER_LIST_PAGE_SIZE,
     offset,
   });
 
-  const totalPages = Math.max(1, Math.ceil(pagination.total / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(pagination.total / EXPERT_FINDER_LIST_PAGE_SIZE));
   const hasNextPage = page < totalPages;
   const hasPrevPage = page > 1;
 
@@ -41,9 +40,12 @@ export function TemplatesPageContent() {
       return (
         <div className="p-4">
           {mdAndUp ? (
-            <TableSkeleton columns={TEMPLATES_TABLE_COLUMNS} rowCount={PAGE_SIZE} />
+            <TableSkeleton
+              columns={TEMPLATES_TABLE_COLUMNS}
+              rowCount={EXPERT_FINDER_LIST_PAGE_SIZE}
+            />
           ) : (
-            <ListCardSkeleton rowCount={PAGE_SIZE} />
+            <ListCardSkeleton rowCount={EXPERT_FINDER_LIST_PAGE_SIZE} />
           )}
         </div>
       );

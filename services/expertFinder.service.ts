@@ -1,3 +1,4 @@
+import { EXPERT_FINDER_LIST_PAGE_SIZE } from '@/app/expert-finder/lib/paginationParams';
 import { ApiClient } from './client';
 import { PaperService } from './paper.service';
 import { PostService } from './post.service';
@@ -188,7 +189,7 @@ export class ExpertFinderService {
     limit?: number;
     offset?: number;
   }): Promise<ExpertSearchListResponse> {
-    const limit = params?.limit ?? 10;
+    const limit = params?.limit ?? EXPERT_FINDER_LIST_PAGE_SIZE;
     const offset = params?.offset ?? 0;
 
     const response = await ApiClient.get<any>(
@@ -293,7 +294,7 @@ export class ExpertFinderService {
     offset?: number;
     search_id?: number | string;
   }): Promise<GeneratedEmailListResponse> {
-    const limit = Math.min(params?.limit ?? 20, 100);
+    const limit = params?.limit ?? EXPERT_FINDER_LIST_PAGE_SIZE;
     const offset = params?.offset ?? 0;
     const searchParams = new URLSearchParams({
       limit: String(limit),
@@ -375,7 +376,7 @@ export class ExpertFinderService {
     limit?: number;
     offset?: number;
   }): Promise<SavedTemplateListResponse> {
-    const limit = Math.min(params?.limit ?? 20, 100);
+    const limit = params?.limit ?? EXPERT_FINDER_LIST_PAGE_SIZE;
     const offset = params?.offset ?? 0;
     const response = await ApiClient.get<{
       templates: Record<string, unknown>[];

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useCallback } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Alert } from '@/components/ui/Alert';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { PaginationButton } from '@/components/ui/PaginationButton';
@@ -15,22 +15,54 @@ import type { ExpertSearchListItem } from '@/types/expertFinder';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
-
-const PAGE_SIZE = 10;
+import {
+  EXPERT_FINDER_LIST_PAGE_SIZE,
+  PAGE_QUERY,
+  parsePageQueryParam,
+} from '@/app/expert-finder/lib/paginationParams';
 
 export function LibraryPageContent() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { mdAndUp } = useScreenSize();
-  const [page, setPage] = useState(1);
-  const offset = (page - 1) * PAGE_SIZE;
+
+  const pageFromUrl = useMemo(
+    () => parsePageQueryParam(searchParams.get(PAGE_QUERY)),
+    [searchParams]
+  );
+
+  const offset = (pageFromUrl - 1) * EXPERT_FINDER_LIST_PAGE_SIZE;
   const [{ searches, pagination, isLoading, error }] = useExpertSearches({
-    limit: PAGE_SIZE,
+    limit: EXPERT_FINDER_LIST_PAGE_SIZE,
     offset,
   });
 
-  const totalPages = Math.max(1, Math.ceil(pagination.total / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(pagination.total / EXPERT_FINDER_LIST_PAGE_SIZE));
+  const page = pagination.total > 0 ? Math.min(pageFromUrl, totalPages) : pageFromUrl;
   const hasNextPage = page < totalPages;
   const hasPrevPage = page > 1;
+
+  useEffect(() => {
+    if (isLoading || pagination.total <= 0) return;
+    if (pageFromUrl <= totalPages) return;
+    const params = new URLSearchParams(searchParams.toString());
+    if (totalPages <= 1) params.delete(PAGE_QUERY);
+    else params.set(PAGE_QUERY, String(totalPages));
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [isLoading, pageFromUrl, pagination.total, pathname, router, searchParams, totalPages]);
+
+  const pushLibraryPage = useCallback(
+    (nextPage: number) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (nextPage <= 1) params.delete(PAGE_QUERY);
+      else params.set(PAGE_QUERY, String(nextPage));
+      const qs = params.toString();
+      router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
 
   const handleRowClick = (search: ExpertSearchListItem) => {
     router.push(`/expert-finder/library/${search.searchId}`);
@@ -41,9 +73,12 @@ export function LibraryPageContent() {
       return (
         <div className="p-4">
           {mdAndUp ? (
-            <TableSkeleton columns={SEARCH_HISTORY_COLUMNS} rowCount={PAGE_SIZE} />
+            <TableSkeleton
+              columns={SEARCH_HISTORY_COLUMNS}
+              rowCount={EXPERT_FINDER_LIST_PAGE_SIZE}
+            />
           ) : (
-            <ListCardSkeleton rowCount={PAGE_SIZE} />
+            <ListCardSkeleton rowCount={EXPERT_FINDER_LIST_PAGE_SIZE} />
           )}
         </div>
       );
@@ -95,13 +130,13 @@ export function LibraryPageContent() {
             <div className="flex items-center gap-2">
               <PaginationButton
                 label="Previous"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                onClick={() => pushLibraryPage(page - 1)}
                 disabled={!hasPrevPage || isLoading}
                 isLoading={isLoading}
               />
               <PaginationButton
                 label="Next"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                onClick={() => pushLibraryPage(page + 1)}
                 disabled={!hasNextPage || isLoading}
                 isLoading={isLoading}
               />

@@ -1,5 +1,5 @@
 import type { Work } from './work';
-import { transformUnifiedDocument, transformWork } from './work';
+import { transformUnifiedDocument } from './work';
 import { createTransformer } from './transformer';
 import { InputType, SearchStatus, type SavedTemplateType } from '@/services/expertFinder.service';
 import type { AuthorProfile } from './authorProfile';
@@ -113,7 +113,7 @@ function transformExpertResult(raw: any): ExpertResult {
 }
 
 export const transformExpertSearch = createTransformer<any, ExpertSearchResult>((raw) => ({
-  searchId: raw.search_id ?? raw.searchId ?? 0,
+  searchId: raw.search_id ?? 0,
   name: raw.name ?? '',
   query: raw.query ?? '',
   inputType: raw.input_type ?? 'abstract',
@@ -142,7 +142,7 @@ export const transformExpertSearch = createTransformer<any, ExpertSearchResult>(
 
 export const transformExpertSearchListItem = createTransformer<any, ExpertSearchListItem>(
   (raw) => ({
-    searchId: raw.search_id ?? raw.searchId ?? 0,
+    searchId: raw.search_id ?? 0,
     name: raw.name ?? '',
     query: raw.query ?? '',
     status: raw.status ?? 'pending',
@@ -156,7 +156,7 @@ export const transformExpertSearchListItem = createTransformer<any, ExpertSearch
 
 export const transformExpertSearchCreateResponse = createTransformer<any, ExpertSearchCreated>(
   (raw) => ({
-    searchId: raw.search_id ?? raw.searchId ?? 0,
+    searchId: raw.search_id ?? 0,
     status: raw.status ?? 'pending',
     message: raw.message ?? '',
     sseUrl: raw.sse_url ?? null,
@@ -167,14 +167,45 @@ export const transformExpertSearchProgressEvent = createTransformer<any, ExpertS
   (raw) => ({
     status: raw.status ?? 'pending',
     progress: raw.progress,
-    currentStep: raw.current_step ?? raw.currentStep,
-    taskType: raw.task_type ?? raw.taskType,
-    taskId: raw.task_id ?? raw.taskId,
+    currentStep: raw.current_step,
+    taskType: raw.task_type,
+    taskId: raw.task_id,
     error: raw.error,
   })
 );
 
-// ── Generated emails (app-level, camelCase) ─────────────────────────────────
+// ── Generated emails ─────────────────────────────────
+
+export interface GeneratedEmailListNavigation {
+  total: number;
+  /** 1-based index within the search’s outreach list, or null if unknown */
+  position: number | null;
+  previousId: number | null;
+  nextId: number | null;
+}
+
+function transformGeneratedEmailListNavigation(raw: any): GeneratedEmailListNavigation | undefined {
+  if (!raw) return undefined;
+  const totalNum = Number(raw.total ?? 0);
+  const total = Number.isFinite(totalNum) ? Math.max(0, Math.trunc(totalNum)) : 0;
+  const posRaw = raw.position;
+  const position =
+    posRaw != null && posRaw !== '' && Number.isFinite(Number(posRaw))
+      ? Math.trunc(Number(posRaw))
+      : null;
+  const prevRaw = raw.previous_id;
+  const nextRaw = raw.next_id;
+  const previousId =
+    prevRaw != null && prevRaw !== '' && Number.isFinite(Number(prevRaw))
+      ? Math.trunc(Number(prevRaw))
+      : null;
+  const nextId =
+    nextRaw != null && nextRaw !== '' && Number.isFinite(Number(nextRaw))
+      ? Math.trunc(Number(nextRaw))
+      : null;
+
+  return { total, position, previousId, nextId };
+}
 
 export interface GeneratedEmail {
   id: number;
@@ -192,6 +223,8 @@ export interface GeneratedEmail {
   createdAt: string;
   updatedAt: string;
   createdBy: CreatedByInfo | null;
+  /** Present on single-email responses from the API */
+  listNavigation?: GeneratedEmailListNavigation;
 }
 
 export interface GeneratedEmailListResponse {
@@ -217,6 +250,7 @@ export const transformGeneratedEmail = createTransformer<any, GeneratedEmail>((r
   createdAt: raw.created_at ?? '',
   updatedAt: raw.updated_at ?? '',
   createdBy: transformCreatedBy(raw.created_by),
+  listNavigation: transformGeneratedEmailListNavigation(raw.list_navigation),
 }));
 
 // ── Document invited experts (app-level, camelCase) ───────────────────────────
@@ -236,17 +270,17 @@ export interface InvitedExperts {
 
 export const transformInvitedExpert = createTransformer<any, InvitedExpert>((raw) => ({
   author: transformAuthorProfile(raw.author),
-  expertSearchId: raw.expert_search_id ?? raw.expertSearchId ?? 0,
-  generatedEmailId: raw.generated_email_id ?? raw.generatedEmailId ?? 0,
+  expertSearchId: raw.expert_search_id ?? 0,
+  generatedEmailId: raw.generated_email_id ?? 0,
   invitedAt: raw.invited_at ?? raw.created_at,
 }));
 
 export const transformInvitedExperts = createTransformer<any, InvitedExperts>((raw) => ({
-  unifiedDocumentId: raw.unified_document_id ?? raw.unifiedDocumentId ?? 0,
+  unifiedDocumentId: raw.unified_document_id ?? 0,
   invited: Array.isArray(raw.invited)
     ? raw.invited.map((item: any) => transformInvitedExpert(item))
     : [],
-  totalCount: raw.total_count ?? raw.totalCount ?? 0,
+  totalCount: raw.total_count ?? 0,
 }));
 
 // ── Saved templates (app-level, camelCase) ───────────────────────────────────

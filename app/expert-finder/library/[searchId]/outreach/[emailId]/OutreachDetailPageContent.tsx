@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Mail, Trash2, Send, Loader2, Save, Eye } from 'lucide-react';
-import { getTemplateDisplayLabel } from '@/app/expert-finder/library/[searchId]/components/GenerateEmailModal';
+import { Mail, Trash2, Send, Loader2, Save, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { BaseSection } from '@/components/ui/BaseSection';
@@ -23,6 +22,11 @@ import {
 import { useUser } from '@/contexts/UserContext';
 import { toast } from 'react-hot-toast';
 import { isValidEmail } from '@/utils/validation';
+import { TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
+
+function buildOutreachDetailHref(librarySearchId: string, neighborEmailId: number): string {
+  return `/expert-finder/library/${librarySearchId}/outreach/${neighborEmailId}`;
+}
 
 export interface OutreachDetailPageContentProps {
   emailId: string;
@@ -48,7 +52,36 @@ export function OutreachDetailPageContent({
   const [editBody, setEditBody] = useState('');
   const [replyTo, setReplyTo] = useState('');
 
-  const backHref = `/expert-finder/library/${librarySearchId}?tab=outreach`;
+  const backHref = useMemo(
+    () => `/expert-finder/library/${librarySearchId}?tab=${TAB_OUTREACH}`,
+    [librarySearchId]
+  );
+
+  const neighborNav = useMemo(() => {
+    const nav = email?.listNavigation;
+    if (!nav) {
+      return {
+        prevHref: null as string | null,
+        nextHref: null as string | null,
+        positionLabel: null as string | null,
+      };
+    }
+    const positionLabel =
+      nav.total > 0 && nav.position != null && nav.position >= 1
+        ? `${nav.position} of ${nav.total}`
+        : null;
+    return {
+      prevHref:
+        nav.previousId != null && nav.previousId > 0
+          ? buildOutreachDetailHref(librarySearchId, nav.previousId)
+          : null,
+      nextHref:
+        nav.nextId != null && nav.nextId > 0
+          ? buildOutreachDetailHref(librarySearchId, nav.nextId)
+          : null,
+      positionLabel,
+    };
+  }, [email, librarySearchId]);
 
   useEffect(() => {
     if (email) {
@@ -183,6 +216,42 @@ export function OutreachDetailPageContent({
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-8 space-y-6">
       <Breadcrumbs items={breadcrumbItems} className="mb-2" />
+
+      <div className="flex flex-wrap items-center gap-2 mt-2">
+        {neighborNav.prevHref ? (
+          <Link
+            href={neighborNav.prevHref}
+            className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
+          >
+            <ChevronLeft className="h-4 w-4 shrink-0" aria-hidden />
+            Previous
+          </Link>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-sm text-gray-400 cursor-not-allowed">
+            <ChevronLeft className="h-4 w-4 shrink-0" aria-hidden />
+            Previous
+          </span>
+        )}
+        {neighborNav.positionLabel ? (
+          <span className="text-sm text-gray-600 tabular-nums px-1">
+            {neighborNav.positionLabel}
+          </span>
+        ) : null}
+        {neighborNav.nextHref ? (
+          <Link
+            href={neighborNav.nextHref}
+            className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
+          >
+            Next
+            <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
+          </Link>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-sm text-gray-400 cursor-not-allowed">
+            Next
+            <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
+          </span>
+        )}
+      </div>
 
       {actionError && <Alert variant="error">{actionError}</Alert>}
 

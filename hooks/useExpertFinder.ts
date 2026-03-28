@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { EXPERT_FINDER_LIST_PAGE_SIZE } from '@/app/expert-finder/lib/paginationParams';
 import {
   ExpertFinderService,
   type CreateSavedTemplatePayload,
@@ -95,7 +96,7 @@ type UseExpertSearchesReturn = [UseExpertSearchesState, FetchExpertSearchesFn];
  * Lists expert searches with pagination.
  */
 export function useExpertSearches(params?: UseExpertSearchesParams): UseExpertSearchesReturn {
-  const limit = params?.limit ?? 10;
+  const limit = params?.limit ?? EXPERT_FINDER_LIST_PAGE_SIZE;
   const offset = params?.offset ?? 0;
 
   const [searches, setSearches] = useState<ExpertSearchListItem[]>([]);
@@ -317,7 +318,7 @@ type FetchGeneratedEmailsFn = (params?: UseGeneratedEmailsParams) => Promise<voi
 type UseGeneratedEmailsReturn = [UseGeneratedEmailsState, FetchGeneratedEmailsFn];
 
 export function useGeneratedEmails(params?: UseGeneratedEmailsParams): UseGeneratedEmailsReturn {
-  const limit = params?.limit ?? 20;
+  const limit = params?.limit ?? EXPERT_FINDER_LIST_PAGE_SIZE;
   const offset = params?.offset ?? 0;
 
   const [emails, setEmails] = useState<GeneratedEmail[]>([]);
@@ -589,7 +590,7 @@ type FetchSavedTemplatesFn = (params?: UseSavedTemplatesParams) => Promise<void>
 type UseSavedTemplatesReturn = [UseSavedTemplatesState, FetchSavedTemplatesFn];
 
 export function useSavedTemplates(params?: UseSavedTemplatesParams): UseSavedTemplatesReturn {
-  const limit = params?.limit ?? 20;
+  const limit = params?.limit ?? EXPERT_FINDER_LIST_PAGE_SIZE;
   const offset = params?.offset ?? 0;
 
   const [templates, setTemplates] = useState<SavedTemplate[]>([]);
