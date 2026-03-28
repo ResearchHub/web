@@ -9,7 +9,8 @@ import { isValidEmail } from '@/utils/validation';
 
 const DEFAULT_REPLY_TO_HELPER = 'When experts hit Reply, their response goes to this address.';
 
-export interface ReplyToEmailModalProps {
+/** Modal to confirm a send/preview action; collects Reply-To for the API (not stored on the draft). */
+export interface SendConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
   /** Disables inputs, confirm, and blocking close while true */
@@ -19,7 +20,7 @@ export interface ReplyToEmailModalProps {
   description?: ReactNode;
   replyTo: string;
   onReplyToChange: (value: string) => void;
-  /** Parent performs send/preview API call */
+  /** Parent performs send/preview API call after user confirms */
   onConfirm: () => void;
   confirmLabel?: string;
   /** Used on the confirm button while submitting when `confirmIcon` is not set */
@@ -30,7 +31,7 @@ export interface ReplyToEmailModalProps {
   cancelLabel?: string;
 }
 
-export function ReplyToEmailModal({
+export function SendConfirmationModal({
   isOpen,
   onClose,
   isSubmitting,
@@ -44,7 +45,7 @@ export function ReplyToEmailModal({
   confirmIcon,
   replyToHelperText = DEFAULT_REPLY_TO_HELPER,
   cancelLabel = 'Cancel',
-}: ReplyToEmailModalProps) {
+}: SendConfirmationModalProps) {
   const replyValid = replyTo.trim() && isValidEmail(replyTo.trim());
   const canSubmit = !isSubmitting && replyValid;
 

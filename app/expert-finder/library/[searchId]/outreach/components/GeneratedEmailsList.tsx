@@ -13,7 +13,7 @@ import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
-import { ReplyToEmailModal } from '@/app/expert-finder/components/ReplyToEmailModal';
+import { SendConfirmationModal } from '@/app/expert-finder/components/SendConfirmationModal';
 import { PaginationButton } from '@/components/ui/PaginationButton';
 import { ExpertFinderService } from '@/services/expertFinder.service';
 import { useGeneratedEmails, useSendEmails } from '@/hooks/useExpertFinder';
@@ -397,7 +397,7 @@ export function GeneratedEmailsList({
         </div>
       )}
 
-      <ReplyToEmailModal
+      <SendConfirmationModal
         isOpen={showSendConfirm}
         onClose={() => setShowSendConfirm(false)}
         isSubmitting={isSending}

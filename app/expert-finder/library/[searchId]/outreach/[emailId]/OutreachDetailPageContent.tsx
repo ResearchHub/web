@@ -25,7 +25,7 @@ import { Input } from '@/components/ui/form/Input';
 import { Badge } from '@/components/ui/Badge';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
-import { ReplyToEmailModal } from '@/app/expert-finder/components/ReplyToEmailModal';
+import { SendConfirmationModal } from '@/app/expert-finder/components/SendConfirmationModal';
 import { Textarea } from '@/components/ui/form/Textarea';
 import {
   getGeneratedEmailStatusPresentation,
@@ -535,7 +535,7 @@ export function OutreachDetailPageContent({
         onConfirm={handleDelete}
       />
 
-      <ReplyToEmailModal
+      <SendConfirmationModal
         isOpen={showSendToExpertConfirm}
         onClose={() => setShowSendToExpertConfirm(false)}
         isSubmitting={isSendingToExpert}
@@ -548,7 +548,7 @@ export function OutreachDetailPageContent({
         confirmIcon={<Send className="h-4 w-4" aria-hidden />}
       />
 
-      <ReplyToEmailModal
+      <SendConfirmationModal
         isOpen={showPreviewConfirm}
         onClose={() => setShowPreviewConfirm(false)}
         isSubmitting={isSendingPreview}
