@@ -1,9 +1,10 @@
 'use client';
 
-import { Award, Building2, ExternalLink, GraduationCap, Mail } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
+import { useState, useRef, useLayoutEffect } from 'react';
+import { Award, Building2, ExternalLink, GraduationCap, Info, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import type { ExpertResult } from '@/types/expertFinder';
 
@@ -40,6 +41,22 @@ export function ExpertResultCard({
   const email = expert.email?.trim();
   const sources = expert.sources?.length ? expert.sources : [];
 
+  const [notesExpanded, setNotesExpanded] = useState(false);
+  const notesMeasureRef = useRef<HTMLParagraphElement>(null);
+  const [notesOverflows, setNotesOverflows] = useState(false);
+
+  useLayoutEffect(() => {
+    const el = notesMeasureRef.current;
+    if (!el || !notes) {
+      setNotesOverflows(false);
+      return;
+    }
+    if (notesExpanded) return;
+    setNotesOverflows(el.scrollHeight > el.clientHeight + 1);
+  }, [notes, notesExpanded]);
+
+  const showNotesToggle = notesOverflows || notesExpanded;
+
   return (
     <article
       className={cn(
@@ -47,13 +64,36 @@ export function ExpertResultCard({
         selected ? 'border-primary-600 ring-2 ring-primary-200' : 'border-gray-200'
       )}
     >
-      <div className="flex items-start justify-between mb-2">
-        <header>
-          <h3 className="text-base font-semibold text-gray-900">{name || '—'}</h3>
-          {title ? <p className="text-sm text-gray-500 mt-0.5">{title}</p> : null}
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <header className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <h3 className="text-base font-semibold text-gray-900 shrink-0">{name || '—'}</h3>
+            {sources.length > 0
+              ? sources.map((src, i) => (
+                  <a
+                    key={`${src.url}-${i}`}
+                    href={src.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-w-0 max-w-full items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
+                  >
+                    <span className="truncate">{src.text}</span>
+                    <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden />
+                  </a>
+                ))
+              : null}
+          </div>
+          {title ? (
+            <p
+              className="mt-0.5 line-clamp-2 min-w-0 break-words text-sm text-gray-500"
+              title={title}
+            >
+              {title}
+            </p>
+          ) : null}
         </header>
         {onToggleSelect && (
-          <div className="flex items-center justify-end mb-2 mt-1">
+          <div className="flex shrink-0 items-center justify-end pt-0.5">
             <Checkbox
               checked={selected ?? false}
               onCheckedChange={() => onToggleSelect(index)}
@@ -71,18 +111,31 @@ export function ExpertResultCard({
         ) : null}
 
         {expertiseTags.length > 0 ? (
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <GraduationCap className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
-              <span>Expertise:</span>
-            </div>
-            <div className="flex flex-wrap gap-1.5 overflow-hidden">
-              {expertiseTags.map((tag) => (
-                <Badge key={tag} variant="primary">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
+          <div className="flex min-w-0 items-center gap-2 text-sm font-medium text-gray-700">
+            <GraduationCap className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
+            <span>Expertise</span>
+            <Tooltip
+              content={
+                <ul className="max-h-64 list-disc space-y-1 overflow-y-auto pl-4 text-left text-sm leading-snug">
+                  {expertiseTags.map((tag, i) => (
+                    <li key={`${tag}-${i}`}>{tag}</li>
+                  ))}
+                </ul>
+              }
+              position="top"
+              width="w-72"
+              className="text-left"
+              wrapperClassName="inline-flex shrink-0 items-center"
+            >
+              <button
+                type="button"
+                className="inline-flex rounded p-0.5 text-gray-500 transition-colors hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
+                aria-label={`All expertise areas (${expertiseTags.length})`}
+                title={expertiseTags.join(' · ')}
+              >
+                <Info className="h-4 w-4 shrink-0" aria-hidden />
+              </button>
+            </Tooltip>
           </div>
         ) : null}
 
@@ -92,33 +145,42 @@ export function ExpertResultCard({
               <Award className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
               <span>Why Recommended:</span>
             </div>
-            <p className="text-sm text-gray-600 mt-1">{notes}</p>
-          </div>
-        ) : null}
-
-        {sources.length > 0 ? (
-          <div className="flex flex-col gap-1.5">
-            <div className="text-sm font-medium text-gray-700">Sources</div>
-            <ul className="flex flex-col gap-1.5 text-sm">
-              {sources.map((src, i) => (
-                <li key={`${src.url}-${i}`}>
-                  <a
-                    href={src.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 hover:underline break-all"
+            <div className="mt-1 text-sm leading-relaxed text-gray-600">
+              <span
+                ref={notesMeasureRef}
+                className={cn(
+                  'inline-block w-full max-w-full align-baseline',
+                  !notesExpanded && 'line-clamp-2'
+                )}
+              >
+                {notes}
+              </span>
+              {showNotesToggle ? (
+                <>
+                  {' '}
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    className="inline align-baseline font-medium text-primary-600 underline-offset-2 hover:underline cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 rounded"
+                    onClick={() => setNotesExpanded((v) => !v)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setNotesExpanded((v) => !v);
+                      }
+                    }}
+                    aria-expanded={notesExpanded}
                   >
-                    <span className="break-words">{src.text}</span>
-                    <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden />
-                  </a>
-                </li>
-              ))}
-            </ul>
+                    {notesExpanded ? 'Read less' : 'Read more'}
+                  </span>
+                </>
+              ) : null}
+            </div>
           </div>
         ) : null}
       </div>
 
-      <div className="mt-auto pt-4 border-t border-gray-100 shrink-0 flex flex-col gap-2">
+      <div className="mt-auto pt-4 shrink-0 flex flex-col gap-2">
         {onGenerateEmail && (
           <Button
             type="button"
