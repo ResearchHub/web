@@ -9,11 +9,12 @@ export const ALL_CONTENT_TYPES: readonly ContentType[] = [
   'funding_request',
 ];
 
-// URL path segment (first path segment) → ContentType. Aligns with app routes: /paper/, /post/, /question/, /fund/, /grant/
+// URL path segment (first path segment) → ContentType. Aligns with app routes: /paper/, /post/, /question/, /proposal/, /fund/, /grant/
 const ROUTE_SEGMENT_TO_CONTENT_TYPE: Record<string, ContentType> = {
   paper: 'paper',
   post: 'post',
   question: 'question',
+  proposal: 'preregistration',
   fund: 'preregistration',
   grant: 'funding_request',
 };
