@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Mail, Trash2, Send, Loader2, Save, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
@@ -37,6 +38,7 @@ export function OutreachDetailPageContent({
   emailId,
   librarySearchId,
 }: OutreachDetailPageContentProps) {
+  const router = useRouter();
   const { user } = useUser();
   const [{ email, isLoading, error }, refetch] = useGeneratedEmailDetail(emailId);
   const [{ isLoading: isUpdating }, updateEmail] = useUpdateGeneratedEmail();
@@ -213,45 +215,43 @@ export function OutreachDetailPageContent({
     { label: breadcrumbLabel },
   ];
 
+  const neighborNavBar = (
+    <div className="flex flex-wrap items-center gap-2 justify-start md:!justify-end">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        disabled={!neighborNav.prevHref}
+        aria-label="Previous email"
+        onClick={() => {
+          if (neighborNav.prevHref) router.push(neighborNav.prevHref);
+        }}
+      >
+        <ChevronLeft className="h-4 w-4 shrink-0" aria-hidden />
+      </Button>
+      {neighborNav.positionLabel ? (
+        <span className="text-sm text-gray-600 tabular-nums px-1">{neighborNav.positionLabel}</span>
+      ) : null}
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        disabled={!neighborNav.nextHref}
+        aria-label="Next email"
+        onClick={() => {
+          if (neighborNav.nextHref) router.push(neighborNav.nextHref);
+        }}
+      >
+        <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
+      </Button>
+    </div>
+  );
+
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-8 space-y-6">
       <Breadcrumbs items={breadcrumbItems} className="mb-2" />
 
-      <div className="flex flex-wrap items-center gap-2 mt-2">
-        {neighborNav.prevHref ? (
-          <Link
-            href={neighborNav.prevHref}
-            className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
-          >
-            <ChevronLeft className="h-4 w-4 shrink-0" aria-hidden />
-            Previous
-          </Link>
-        ) : (
-          <span className="inline-flex items-center gap-1 text-sm text-gray-400 cursor-not-allowed">
-            <ChevronLeft className="h-4 w-4 shrink-0" aria-hidden />
-            Previous
-          </span>
-        )}
-        {neighborNav.positionLabel ? (
-          <span className="text-sm text-gray-600 tabular-nums px-1">
-            {neighborNav.positionLabel}
-          </span>
-        ) : null}
-        {neighborNav.nextHref ? (
-          <Link
-            href={neighborNav.nextHref}
-            className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
-          >
-            Next
-            <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
-          </Link>
-        ) : (
-          <span className="inline-flex items-center gap-1 text-sm text-gray-400 cursor-not-allowed">
-            Next
-            <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
-          </span>
-        )}
-      </div>
+      <div className="sm:!hidden">{neighborNavBar}</div>
 
       {actionError && <Alert variant="error">{actionError}</Alert>}
 
@@ -289,132 +289,137 @@ export function OutreachDetailPageContent({
             </div>
           )}
         </div>
-        <div className="min-w-0 flex flex-wrap items-center gap-2 justify-start md:!justify-end">
-          <Badge variant={email.status === 'sent' ? 'success' : 'warning'}>
-            {email.status === 'sent' ? 'Sent' : 'Draft'}
-          </Badge>
-          {email.status !== 'sent' && (
-            <Button
-              variant="default"
-              size="sm"
-              className="gap-2"
-              onClick={() => setShowSendToExpertConfirm(true)}
-              disabled={isSendingToExpert}
-              title="Send this email to the expert"
-            >
-              {isSendingToExpert ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-              ) : (
-                <Send className="h-4 w-4" aria-hidden />
-              )}
-              Send
-            </Button>
-          )}
-          {email.status !== 'sent' && (
-            <Button
-              variant="outlined"
-              size="sm"
-              className="gap-2"
-              onClick={() => setShowPreviewConfirm(true)}
-              disabled={isSendingPreview}
-              title="Send test email to your inbox"
-            >
-              {isSendingPreview ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-              ) : (
-                <Eye className="h-4 w-4" aria-hidden />
-              )}
-              Preview
-            </Button>
-          )}
-          {email.status !== 'sent' && (
-            <Button
-              variant="default"
-              size="sm"
-              className="gap-2 bg-amber-500 hover:bg-amber-600"
-              onClick={handleMarkSent}
-              disabled={isUpdating}
-              title="Mark as sent"
-            >
-              <Mail className="h-4 w-4" aria-hidden />
-            </Button>
-          )}
+        <div className="min-w-0 flex flex-col gap-2">
+          <div className="hidden sm:!block">{neighborNavBar}</div>
+          <div className="flex flex-wrap items-center gap-2 justify-start md:!justify-end">
+            <Badge variant={email.status === 'sent' ? 'success' : 'warning'}>
+              {email.status === 'sent' ? 'Sent' : 'Draft'}
+            </Badge>
+            {email.status !== 'sent' && (
+              <Button
+                variant="default"
+                size="sm"
+                className="gap-2"
+                onClick={() => setShowSendToExpertConfirm(true)}
+                disabled={isSendingToExpert}
+                title="Send this email to the expert"
+              >
+                {isSendingToExpert ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <Send className="h-4 w-4" aria-hidden />
+                )}
+                Send
+              </Button>
+            )}
+            {email.status !== 'sent' && (
+              <Button
+                variant="outlined"
+                size="sm"
+                className="gap-2"
+                onClick={() => setShowPreviewConfirm(true)}
+                disabled={isSendingPreview}
+                title="Send test email to your inbox"
+              >
+                {isSendingPreview ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <Eye className="h-4 w-4" aria-hidden />
+                )}
+                Preview
+              </Button>
+            )}
+            {email.status !== 'sent' && (
+              <Button
+                variant="default"
+                size="sm"
+                className="gap-2 bg-amber-500 hover:bg-amber-600"
+                onClick={handleMarkSent}
+                disabled={isUpdating}
+                title="Mark as sent"
+              >
+                <Mail className="h-4 w-4" aria-hidden />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
       <BaseSection>
-        {isDraft ? (
-          <Input
-            label="Subject"
-            value={editSubject}
-            onChange={(e) => setEditSubject(e.target.value)}
-            placeholder="Email subject"
-          />
-        ) : (
-          <Input label="Subject" value={email.emailSubject} readOnly className="bg-gray-50" />
-        )}
-      </BaseSection>
-
-      {isDraft && (
-        <BaseSection>
-          <Input
-            label="Reply To"
-            type="email"
-            value={replyTo}
-            onChange={(e) => setReplyTo(e.target.value)}
-            placeholder="Email address for replies"
-            error={
-              replyTo.trim() && !isValidEmail(replyTo.trim())
-                ? 'Please enter a valid email address'
-                : undefined
-            }
-          />
-        </BaseSection>
-      )}
-
-      <BaseSection>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Email Body</label>
           {isDraft ? (
-            <>
+            <Input
+              label="Subject"
+              value={editSubject}
+              onChange={(e) => setEditSubject(e.target.value)}
+              placeholder="Email subject"
+            />
+          ) : (
+            <Input label="Subject" value={email.emailSubject} readOnly className="bg-gray-50" />
+          )}
+        </div>
+
+        {isDraft && (
+          <div>
+            <Input
+              label="Reply To"
+              type="email"
+              value={replyTo}
+              onChange={(e) => setReplyTo(e.target.value)}
+              placeholder="Email address for replies"
+              error={
+                replyTo.trim() && !isValidEmail(replyTo.trim())
+                  ? 'Please enter a valid email address'
+                  : undefined
+              }
+            />
+          </div>
+        )}
+
+        <div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Email Body</label>
+            {isDraft ? (
+              <>
+                <TemplateVariableEditor
+                  value={editBody}
+                  onChange={setEditBody}
+                  placeholder="Email body"
+                  valueAsHtml
+                  disabled={false}
+                  showVariablePanel={false}
+                />
+                {hasEdits && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="mt-3 gap-2"
+                    onClick={handleSaveDraft}
+                    disabled={isUpdating}
+                  >
+                    {isUpdating ? (
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                    ) : (
+                      <Save className="h-4 w-4" aria-hidden />
+                    )}
+                    Save draft
+                  </Button>
+                )}
+              </>
+            ) : !email.emailBody?.trim() ? (
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
+                —
+              </div>
+            ) : (
               <TemplateVariableEditor
-                value={editBody}
-                onChange={setEditBody}
-                placeholder="Email body"
+                value={email.emailBody ?? ''}
+                onChange={() => {}}
                 valueAsHtml
-                disabled={false}
+                disabled
                 showVariablePanel={false}
               />
-              {hasEdits && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="mt-3 gap-2"
-                  onClick={handleSaveDraft}
-                  disabled={isUpdating}
-                >
-                  {isUpdating ? (
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                  ) : (
-                    <Save className="h-4 w-4" aria-hidden />
-                  )}
-                  Save draft
-                </Button>
-              )}
-            </>
-          ) : !email.emailBody?.trim() ? (
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
-              —
-            </div>
-          ) : (
-            <TemplateVariableEditor
-              value={email.emailBody ?? ''}
-              onChange={() => {}}
-              valueAsHtml
-              disabled
-              showVariablePanel={false}
-            />
-          )}
+            )}
+          </div>
         </div>
       </BaseSection>
 
