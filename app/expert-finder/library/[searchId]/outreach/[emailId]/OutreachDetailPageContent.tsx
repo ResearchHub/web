@@ -3,7 +3,18 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Trash2, Send, Loader2, Save, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Mail,
+  Trash2,
+  Send,
+  Loader2,
+  Save,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+  MoreVertical,
+  CircleSlash,
+} from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { BaseSection } from '@/components/ui/BaseSection';
@@ -12,7 +23,19 @@ import { Button } from '@/components/ui/Button';
 import { TemplateVariableEditor } from '@/app/expert-finder/templates/components/TemplateBodyEditor';
 import { Input } from '@/components/ui/form/Input';
 import { Badge } from '@/components/ui/Badge';
-import { Modal } from '@/components/ui/form/Modal';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { CloseGeneratedEmailModal } from '../components/CloseGeneratedEmailModal';
+import { DeleteGeneratedEmailModal } from '../components/DeleteGeneratedEmailModal';
+import { PreviewGeneratedEmailModal } from '../components/PreviewGeneratedEmailModal';
+import { SendGeneratedEmailModal } from '../components/SendGeneratedEmailModal';
+import {
+  getGeneratedEmailStatusPresentation,
+  isGeneratedEmailClosed,
+  isGeneratedEmailDraftLike,
+  isGeneratedEmailFailed,
+  isGeneratedEmailPipelineBusy,
+} from '@/app/expert-finder/lib/generatedEmailStatus';
+import { cn } from '@/utils/styles';
 import {
   useGeneratedEmailDetail,
   useUpdateGeneratedEmail,
@@ -49,6 +72,8 @@ export function OutreachDetailPageContent({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showPreviewConfirm, setShowPreviewConfirm] = useState(false);
   const [showSendToExpertConfirm, setShowSendToExpertConfirm] = useState(false);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [closeNotes, setCloseNotes] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
   const [editSubject, setEditSubject] = useState('');
   const [editBody, setEditBody] = useState('');
@@ -93,15 +118,16 @@ export function OutreachDetailPageContent({
   }, [email?.id, email?.emailSubject, email?.emailBody]);
 
   useEffect(() => {
-    if (user?.email && replyTo === '') {
-      setReplyTo(user.email);
-    }
-  }, [user?.email]);
+    if (!showSendToExpertConfirm && !showPreviewConfirm) return;
+    if (!user?.email) return;
+    setReplyTo((prev) => (prev.trim() ? prev : user.email));
+  }, [showSendToExpertConfirm, showPreviewConfirm, user?.email]);
 
-  const isDraft = email?.status !== 'sent';
+  const isDraftLike = email != null && isGeneratedEmailDraftLike(email.status);
   const hasEdits =
-    isDraft &&
-    (editSubject !== (email?.emailSubject ?? '') || editBody !== (email?.emailBody ?? ''));
+    email != null &&
+    isDraftLike &&
+    (editSubject !== (email.emailSubject ?? '') || editBody !== (email.emailBody ?? ''));
 
   const handleSaveDraft = async () => {
     if (!emailId || !hasEdits) return;
@@ -140,14 +166,21 @@ export function OutreachDetailPageContent({
     }
   };
 
-  const displaySubject = isDraft ? editSubject : (email?.emailSubject ?? '');
-  const displayBody = isDraft ? editBody : (email?.emailBody ?? '');
+  const displaySubject = email != null && isDraftLike ? editSubject : (email?.emailSubject ?? '');
 
   const handleSendPreview = async () => {
     if (!emailId || !email) return;
+    const trimmedReplyTo = (replyTo ?? '').trim();
+    if (!trimmedReplyTo || !isValidEmail(trimmedReplyTo)) {
+      setActionError('Please enter a valid Reply To email address.');
+      return;
+    }
     setActionError(null);
     try {
-      await previewEmails([Number(emailId)]);
+      await previewEmails({
+        generated_email_ids: [Number(emailId)],
+        reply_to: trimmedReplyTo,
+      });
       setShowPreviewConfirm(false);
       toast.success('Preview email sent to your email address.');
     } catch (e) {
@@ -173,6 +206,24 @@ export function OutreachDetailPageContent({
       toast.success('Email sent to the expert.');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to send email');
+    }
+  };
+
+  const handleCloseEmail = async () => {
+    if (!emailId) return;
+    setActionError(null);
+    try {
+      const notes = closeNotes.trim();
+      await updateEmail(emailId, {
+        status: 'closed',
+        ...(notes ? { notes } : {}),
+      });
+      setShowCloseConfirm(false);
+      setCloseNotes('');
+      refetch();
+      toast.success('Email marked as closed.');
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Failed to close email');
     }
   };
 
@@ -202,6 +253,12 @@ export function OutreachDetailPageContent({
   }
 
   if (!email) return null;
+
+  const isClosed = isGeneratedEmailClosed(email.status);
+  const statusPresentation = getGeneratedEmailStatusPresentation(email.status);
+  const pipelineBusy = isGeneratedEmailPipelineBusy(email.status);
+  const failedOrDraftForPreview =
+    isGeneratedEmailDraftLike(email.status) || isGeneratedEmailFailed(email.status);
 
   const displayTitle = displaySubject || `Email for ${email.expertName}`;
   const breadcrumbLabel = displayTitle.length > 40 ? `${displayTitle.slice(0, 40)}…` : displayTitle;
@@ -255,6 +312,13 @@ export function OutreachDetailPageContent({
 
       {actionError && <Alert variant="error">{actionError}</Alert>}
 
+      {pipelineBusy && (
+        <Alert variant="warning">
+          This email is {email.status === 'sending' ? 'being sent' : 'processing'}. Some actions may
+          be unavailable until it finishes.
+        </Alert>
+      )}
+
       <div className="grid grid-cols-1 md:!grid-cols-2 items-start gap-4">
         <div className="min-w-0">
           <div className="flex gap-3">
@@ -292,10 +356,8 @@ export function OutreachDetailPageContent({
         <div className="min-w-0 flex flex-col gap-2">
           <div className="hidden sm:!block">{neighborNavBar}</div>
           <div className="flex flex-wrap items-center gap-2 justify-start md:!justify-end">
-            <Badge variant={email.status === 'sent' ? 'success' : 'warning'}>
-              {email.status === 'sent' ? 'Sent' : 'Draft'}
-            </Badge>
-            {email.status !== 'sent' && (
+            <Badge variant={statusPresentation.variant}>{statusPresentation.label}</Badge>
+            {isDraftLike && (
               <Button
                 variant="default"
                 size="sm"
@@ -312,34 +374,48 @@ export function OutreachDetailPageContent({
                 Send
               </Button>
             )}
-            {email.status !== 'sent' && (
-              <Button
-                variant="outlined"
-                size="sm"
-                className="gap-2"
-                onClick={() => setShowPreviewConfirm(true)}
-                disabled={isSendingPreview}
-                title="Send test email to your inbox"
+            {!isClosed && (
+              <BaseMenu
+                align="end"
+                trigger={
+                  <button
+                    type="button"
+                    className={cn(
+                      'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm transition-colors',
+                      'hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2'
+                    )}
+                    aria-label="More email actions"
+                  >
+                    <MoreVertical className="h-4 w-4" aria-hidden />
+                  </button>
+                }
               >
-                {isSendingPreview ? (
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                ) : (
-                  <Eye className="h-4 w-4" aria-hidden />
+                {failedOrDraftForPreview && (
+                  <BaseMenuItem
+                    disabled={isSendingPreview || pipelineBusy}
+                    onSelect={() => setShowPreviewConfirm(true)}
+                  >
+                    <Eye className="h-4 w-4 mr-2 shrink-0" aria-hidden />
+                    <span>Preview</span>
+                  </BaseMenuItem>
                 )}
-                Preview
-              </Button>
-            )}
-            {email.status !== 'sent' && (
-              <Button
-                variant="default"
-                size="sm"
-                className="gap-2 bg-amber-500 hover:bg-amber-600"
-                onClick={handleMarkSent}
-                disabled={isUpdating}
-                title="Mark as sent"
-              >
-                <Mail className="h-4 w-4" aria-hidden />
-              </Button>
+                {isDraftLike && (
+                  <BaseMenuItem disabled={isUpdating} onSelect={() => void handleMarkSent()}>
+                    <Mail className="h-4 w-4 mr-2 shrink-0 text-amber-600" aria-hidden />
+                    <span>Mark as read</span>
+                  </BaseMenuItem>
+                )}
+                <BaseMenuItem
+                  disabled={isUpdating}
+                  onSelect={() => {
+                    setCloseNotes('');
+                    setShowCloseConfirm(true);
+                  }}
+                >
+                  <CircleSlash className="h-4 w-4 mr-2 shrink-0" aria-hidden />
+                  <span>Mark as closed</span>
+                </BaseMenuItem>
+              </BaseMenu>
             )}
           </div>
         </div>
@@ -347,7 +423,7 @@ export function OutreachDetailPageContent({
 
       <BaseSection>
         <div>
-          {isDraft ? (
+          {isDraftLike ? (
             <Input
               label="Subject"
               value={editSubject}
@@ -359,27 +435,17 @@ export function OutreachDetailPageContent({
           )}
         </div>
 
-        {isDraft && (
-          <div>
-            <Input
-              label="Reply To"
-              type="email"
-              value={replyTo}
-              onChange={(e) => setReplyTo(e.target.value)}
-              placeholder="Email address for replies"
-              error={
-                replyTo.trim() && !isValidEmail(replyTo.trim())
-                  ? 'Please enter a valid email address'
-                  : undefined
-              }
-            />
+        {isClosed && email.notes?.trim() ? (
+          <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Notes</p>
+            <p className="text-sm text-gray-800 mt-1 whitespace-pre-wrap">{email.notes}</p>
           </div>
-        )}
+        ) : null}
 
         <div>
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Email Body</label>
-            {isDraft ? (
+            {isDraftLike ? (
               <>
                 <TemplateVariableEditor
                   value={editBody}
@@ -423,7 +489,7 @@ export function OutreachDetailPageContent({
         </div>
       </BaseSection>
 
-      {email.status !== 'sent' && (
+      {isDraftLike && (
         <div className="flex justify-end pt-2">
           <Button
             variant="destructive"
@@ -438,87 +504,39 @@ export function OutreachDetailPageContent({
         </div>
       )}
 
-      <Modal
+      <DeleteGeneratedEmailModal
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        title="Delete email?"
-      >
-        <p className="text-sm text-gray-600 mb-4">This draft will be permanently removed.</p>
-        <div className="flex justify-end gap-2">
-          <Button variant="outlined" size="sm" onClick={() => setShowDeleteConfirm(false)}>
-            Cancel
-          </Button>
-          <Button variant="default" size="sm" onClick={handleDelete} disabled={isDeleting}>
-            Delete
-          </Button>
-        </div>
-      </Modal>
+        isDeleting={isDeleting}
+        onConfirm={handleDelete}
+      />
 
-      <Modal
+      <SendGeneratedEmailModal
         isOpen={showSendToExpertConfirm}
-        onClose={() => !isSendingToExpert && setShowSendToExpertConfirm(false)}
-        title="Send this email to the expert?"
-      >
-        <p className="text-sm text-gray-600 mb-4">This email will be sent to the expert.</p>
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="outlined"
-            size="sm"
-            onClick={() => setShowSendToExpertConfirm(false)}
-            disabled={isSendingToExpert}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={handleSendToExpert}
-            disabled={isSendingToExpert}
-            className="gap-2"
-          >
-            {isSendingToExpert ? (
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-            ) : (
-              <Send className="h-4 w-4" aria-hidden />
-            )}
-            Send
-          </Button>
-        </div>
-      </Modal>
+        onClose={() => setShowSendToExpertConfirm(false)}
+        isSending={isSendingToExpert}
+        replyTo={replyTo}
+        onReplyToChange={setReplyTo}
+        onConfirm={handleSendToExpert}
+      />
 
-      <Modal
+      <PreviewGeneratedEmailModal
         isOpen={showPreviewConfirm}
-        onClose={() => !isSendingPreview && setShowPreviewConfirm(false)}
-        title="Send test email"
-      >
-        <p className="text-sm text-gray-600 mb-4">
-          The email will be sent to your email address for testing.
-        </p>
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="outlined"
-            size="sm"
-            onClick={() => setShowPreviewConfirm(false)}
-            disabled={isSendingPreview}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={handleSendPreview}
-            disabled={isSendingPreview}
-            className="gap-2"
-          >
-            {isSendingPreview ? (
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-            ) : (
-              <Eye className="h-4 w-4" aria-hidden />
-            )}
-            Send
-          </Button>
-        </div>
-      </Modal>
+        onClose={() => setShowPreviewConfirm(false)}
+        isSending={isSendingPreview}
+        replyTo={replyTo}
+        onReplyToChange={setReplyTo}
+        onConfirm={handleSendPreview}
+      />
+
+      <CloseGeneratedEmailModal
+        isOpen={showCloseConfirm}
+        onClose={() => setShowCloseConfirm(false)}
+        isSubmitting={isUpdating}
+        notes={closeNotes}
+        onNotesChange={setCloseNotes}
+        onConfirm={() => void handleCloseEmail()}
+      />
     </div>
   );
 }

@@ -494,7 +494,10 @@ interface UsePreviewEmailsState {
   error: string | null;
 }
 
-type PreviewEmailsFn = (generatedEmailIds: number[]) => Promise<{ sent: number }>;
+type PreviewEmailsFn = (payload: {
+  generated_email_ids: number[];
+  reply_to?: string;
+}) => Promise<{ sent: number }>;
 type UsePreviewEmailsReturn = [UsePreviewEmailsState, PreviewEmailsFn];
 
 /**
@@ -505,11 +508,14 @@ export function usePreviewEmails(): UsePreviewEmailsReturn {
   const [error, setError] = useState<string | null>(null);
 
   const previewEmails = useCallback(
-    async (generatedEmailIds: number[]): Promise<{ sent: number }> => {
+    async (payload: {
+      generated_email_ids: number[];
+      reply_to?: string;
+    }): Promise<{ sent: number }> => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await ExpertFinderService.previewEmails(generatedEmailIds);
+        const response = await ExpertFinderService.previewEmails(payload);
         return response;
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Failed to send preview email';

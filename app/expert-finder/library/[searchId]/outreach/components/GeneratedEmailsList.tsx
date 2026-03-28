@@ -26,6 +26,7 @@ import { ListCardSkeleton } from '@/components/ui/ListCardSkeleton';
 import { toast } from 'react-hot-toast';
 import { isValidEmail } from '@/utils/validation';
 import type { GeneratedEmail } from '@/types/expertFinder';
+import { isGeneratedEmailDraftLike } from '@/app/expert-finder/lib/generatedEmailStatus';
 import { cn } from '@/utils/styles';
 
 const DEFAULT_EMPTY_MESSAGE = (
@@ -110,7 +111,10 @@ export function GeneratedEmailsList({
   const allSelected = pageIds.length > 0 && pageIds.every((id) => selectedIds.has(id));
 
   const selectedDraftIdsOnPage = useMemo(
-    () => emails.filter((e) => selectedIds.has(e.id) && e.status !== 'sent').map((e) => e.id),
+    () =>
+      emails
+        .filter((e) => selectedIds.has(e.id) && isGeneratedEmailDraftLike(e.status))
+        .map((e) => e.id),
     [emails, selectedIds]
   );
 
@@ -157,7 +161,9 @@ export function GeneratedEmailsList({
   }, [refetch]);
 
   const handleSendConfirm = async () => {
-    const ids = emails.filter((e) => selectedIds.has(e.id) && e.status !== 'sent').map((e) => e.id);
+    const ids = emails
+      .filter((e) => selectedIds.has(e.id) && isGeneratedEmailDraftLike(e.status))
+      .map((e) => e.id);
     if (ids.length === 0) {
       toast.error('Select at least one draft to send.');
       return;

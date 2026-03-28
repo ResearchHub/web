@@ -90,7 +90,18 @@ export type EmailTemplateKind =
 
 // ── Generated emails API ───────────────────────────────────────────────────
 
-export type GeneratedEmailStatus = 'draft' | 'sent';
+/** GeneratedEmail.status */
+export const GENERATED_EMAIL_STATUS_VALUES = [
+  'draft',
+  'sent',
+  'processing',
+  'failed',
+  'sending',
+  'send_failed',
+  'closed',
+] as const;
+
+export type GeneratedEmailStatus = (typeof GENERATED_EMAIL_STATUS_VALUES)[number];
 
 export interface GenerateEmailPayload {
   expert_name: string;
@@ -335,10 +346,17 @@ export class ExpertFinderService {
    * Send generated email(s) to the current user for preview/testing.
    * POST /api/research_ai/expert-finder/emails/preview/
    */
-  static async previewEmails(generatedEmailIds: number[]): Promise<{ sent: number }> {
-    const raw = await ApiClient.post<{ sent: number }>(`${this.BASE_PATH}/emails/preview/`, {
-      generated_email_ids: generatedEmailIds,
-    });
+  static async previewEmails(payload: {
+    generated_email_ids: number[];
+    reply_to?: string;
+  }): Promise<{ sent: number }> {
+    const body: Record<string, unknown> = {
+      generated_email_ids: payload.generated_email_ids,
+    };
+    if (payload.reply_to != null && payload.reply_to !== '') {
+      body.reply_to = payload.reply_to;
+    }
+    const raw = await ApiClient.post<{ sent: number }>(`${this.BASE_PATH}/emails/preview/`, body);
     return { sent: raw.sent ?? 0 };
   }
 

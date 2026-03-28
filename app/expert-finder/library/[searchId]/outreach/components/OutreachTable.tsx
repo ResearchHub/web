@@ -5,6 +5,12 @@ import { TableContainer, SortableColumn } from '@/components/ui/Table/TableConta
 import { Badge } from '@/components/ui/Badge';
 import { formatTimestamp } from '@/utils/date';
 import type { GeneratedEmail } from '@/types/expertFinder';
+import { getGeneratedEmailStatusPresentation } from '@/app/expert-finder/lib/generatedEmailStatus';
+
+function statusBadge(email: GeneratedEmail) {
+  const { label, variant } = getGeneratedEmailStatusPresentation(email.status);
+  return <Badge variant={variant}>{label}</Badge>;
+}
 
 const SUBJECT_TRUNCATE_LENGTH = 50;
 
@@ -97,11 +103,7 @@ export function OutreachTable({
         </Link>
       ),
       expertName: email.expertName || '—',
-      status: (
-        <Badge variant={email.status === 'sent' ? 'success' : 'primary'}>
-          {email.status === 'sent' ? 'Sent' : 'Draft'}
-        </Badge>
-      ),
+      status: statusBadge(email),
       createdBy: email.createdBy?.author?.fullName ?? '—',
       createdAt: formatTimestamp(email.createdAt, false),
     };
