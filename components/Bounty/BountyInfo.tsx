@@ -1,10 +1,10 @@
 'use client';
 
-import { FC, useState, useMemo } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
-import { formatDate, formatDeadline, isDeadlineInFuture } from '@/utils/date';
+import { isDeadlineInFuture, getRemainingDays } from '@/utils/date';
 import { isExpiringSoon } from './lib/bountyUtil';
 import { Bounty, BountyType } from '@/types/bounty';
 import { Work } from '@/types/work';
@@ -14,16 +14,15 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { ContentFormat } from '@/types/comment';
 import { BountyDetails } from '@/components/Feed/items/FeedItemBountyComment';
-import { Clock, Forward, ArrowLeft, ArrowRight } from 'lucide-react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleInfo } from '@fortawesome/pro-light-svg-icons';
+import { Forward, ArrowRight, Info, Clock } from 'lucide-react';
+import { RadiatingDot } from '@/components/ui/RadiatingDot';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { getBountyDisplayAmount } from './lib/bountyUtil';
 import { formatCurrency } from '@/utils/currency';
 
-interface BountyDetailsModalProps {
+export interface BountyDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
   content: any;
   contentFormat?: ContentFormat;
   bountyType: BountyType;
@@ -35,10 +34,9 @@ interface BountyDetailsModalProps {
   isActive: boolean;
 }
 
-const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
+export const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
   isOpen,
   onClose,
-  title,
   content,
   contentFormat,
   bountyType,
@@ -57,7 +55,7 @@ const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
 
   const footerContent = isActive ? (
     <Button
-      variant="secondary"
+      variant="dark"
       size="lg"
       onClick={handleCTAClick}
       className="w-full flex items-center justify-center gap-2"
@@ -67,26 +65,12 @@ const BountyDetailsModal: FC<BountyDetailsModalProps> = ({
     </Button>
   ) : undefined;
 
-  // Mobile: back arrow + icon, Desktop: just icon
-  const headerAction = (
-    <div className="flex items-center">
-      {/* Back arrow - mobile only */}
-      <div className="md:!hidden -ml-2">
-        <Button onClick={onClose} variant="ghost" size="icon" aria-label="Go back">
-          <ArrowLeft className="h-5 w-5 text-gray-600" />
-        </Button>
-      </div>
-      <FontAwesomeIcon icon={faCircleInfo} className="h-5 w-5 text-primary-500" />
-    </div>
-  );
-
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title={title}
+      title="Details"
       maxWidth="max-w-xl"
-      headerAction={headerAction}
       footer={footerContent}
       className="md:!min-w-[500px] md:!min-h-[400px]"
     >
@@ -141,11 +125,8 @@ export const BountyInfo: FC<BountyInfoProps> = ({
   onAddSolutionClick,
   className,
 }) => {
-  const bountyCommentContent = bounty?.comment?.content;
-  const bountyCommentContentFormat = bounty?.comment?.contentFormat;
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   // Check if bounty is active (OPEN or ASSESSMENT)
   const isActive = useMemo(() => {
@@ -159,22 +140,22 @@ export const BountyInfo: FC<BountyInfoProps> = ({
     return false;
   }, [bounty.status, bounty.expirationDate]);
 
-  // Compute deadline label: use hours format if <24h, else use date format
-  const deadlineLabel = useMemo(() => {
+  const statusInfo = useMemo(() => {
+    if (bounty.status === 'OPEN' && isActive) {
+      const days = 0.5; //getRemainingDays(bounty.expirationDate ?? null);
+      const remaining =
+        days !== null
+          ? days < 1
+            ? '< 1 day remaining'
+            : `${Math.floor(days)} day${Math.floor(days) === 1 ? '' : 's'} remaining`
+          : null;
+      return { label: 'Open', color: 'bg-green-500', remaining, urgent: days !== null && days < 3 };
+    }
     if (bounty.status === 'ASSESSMENT') {
-      return 'Assessment Period';
+      return { label: 'Assessment', color: 'bg-orange-500', remaining: null, urgent: false };
     }
-
-    if (!bounty.expirationDate) return undefined;
-
-    // If <24h remaining, use formatDeadline which returns "Ends in Xh" or "Ends in Xm"
-    if (isExpiringSoon(bounty.expirationDate, 1)) {
-      return formatDeadline(bounty.expirationDate);
-    }
-
-    // Otherwise, use date format with "Ends" prefix
-    return `Ends ${formatDate(bounty.expirationDate)}`;
-  }, [bounty.status, bounty.expirationDate]);
+    return { label: 'Completed', color: 'bg-gray-400', remaining: null, urgent: false };
+  }, [bounty.status, bounty.expirationDate, isActive]);
 
   // Get bounty label text
   const bountyLabel = bounty.bountyType === 'REVIEW' ? 'Peer Review' : 'Bounty';
@@ -196,9 +177,11 @@ export const BountyInfo: FC<BountyInfoProps> = ({
     [bounty, exchangeRate, showUSD]
   );
 
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
   const handleDetailsClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
     e.preventDefault();
+    e.stopPropagation();
     setIsDetailsModalOpen(true);
   };
 
@@ -206,10 +189,7 @@ export const BountyInfo: FC<BountyInfoProps> = ({
     <>
       <div
         className={cn(
-          'mt-3 rounded-lg px-4 py-3.5 cursor-default',
-          isActive
-            ? 'bg-primary-50/60 border border-primary-100'
-            : 'bg-gray-50 border border-gray-200',
+          'mt-3 rounded-lg bg-gray-50/90 border border-gray-100 px-4 py-3.5 cursor-default',
           className
         )}
         onMouseDown={(e) => e.stopPropagation()}
@@ -231,24 +211,36 @@ export const BountyInfo: FC<BountyInfoProps> = ({
               </span>
             </div>
 
-            {deadlineLabel && (
-              <div className="flex flex-col leading-tight">
-                <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">Deadline</span>
-                <div className="flex items-center gap-1.5">
-                  <Clock size={14} className="text-gray-500 flex-shrink-0" />
+            <div className="hidden sm:flex flex-col leading-tight">
+              <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">Status</span>
+              <div className="flex items-center gap-1.5">
+                <RadiatingDot color={statusInfo.color} size="sm" isRadiating={isActive} />
+                {bounty.status === 'ASSESSMENT' ? (
+                  <Tooltip
+                    content="Editors are reviewing submissions and will award top reviews."
+                    position="top"
+                  >
+                    <span className="text-sm font-medium text-gray-700 whitespace-nowrap border-b border-dashed border-gray-400 cursor-help">
+                      {statusInfo.label}
+                    </span>
+                  </Tooltip>
+                ) : (
                   <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                    {deadlineLabel}
+                    {statusInfo.label}
                   </span>
-                </div>
+                )}
+                {statusInfo.remaining && (
+                  <span
+                    className={cn(
+                      'text-xs whitespace-nowrap',
+                      statusInfo.urgent ? 'text-amber-600 font-medium' : 'text-gray-500'
+                    )}
+                  >
+                    ({statusInfo.remaining})
+                  </span>
+                )}
               </div>
-            )}
-
-            {!isActive && (
-              <div className="flex flex-col leading-tight">
-                <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">Status</span>
-                <span className="text-sm font-medium text-gray-500">Closed</span>
-              </div>
-            )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -258,18 +250,18 @@ export const BountyInfo: FC<BountyInfoProps> = ({
               className="flex-shrink-0 rounded-md text-[13px] gap-1.5 text-gray-600 hover:text-gray-800"
               onClick={handleDetailsClick}
             >
-              <FontAwesomeIcon icon={faCircleInfo} className="h-3.5 w-3.5" />
-              Details
+              <Info size={14} />
+              <span className="hidden sm:inline">Details</span>
             </Button>
             {isActive ? (
               <Button
-                variant="secondary"
+                variant="dark"
                 size="sm"
-                className="flex-shrink-0 rounded-md text-[13px]"
+                className="flex-shrink-0 gap-1"
                 onClick={onAddSolutionClick}
               >
                 {getAddButtonText()}
-                <ArrowRight size={14} className="ml-1.5" />
+                <ArrowRight size={14} />
               </Button>
             ) : (
               <span className="flex-shrink-0 text-sm text-gray-400">Ended</span>
@@ -278,17 +270,17 @@ export const BountyInfo: FC<BountyInfoProps> = ({
         </div>
       </div>
 
-      {/* Bounty Details Modal - always render, controlled by isOpen */}
       <BountyDetailsModal
         isOpen={isDetailsModalOpen}
         onClose={() => setIsDetailsModalOpen(false)}
-        title={'Bounty Details'}
-        content={bountyCommentContent}
-        contentFormat={bountyCommentContentFormat}
-        bountyType={bounty.bountyType as BountyType}
+        content={bounty.comment?.content}
+        contentFormat={bounty.comment?.contentFormat}
+        bountyType={bounty.bountyType}
         displayAmount={displayAmount}
         showUSD={showUSD}
-        deadlineLabel={deadlineLabel}
+        deadlineLabel={
+          statusInfo.remaining ? `${statusInfo.label} (${statusInfo.remaining})` : statusInfo.label
+        }
         onAddSolutionClick={onAddSolutionClick}
         buttonText={getAddButtonText()}
         isActive={isActive}

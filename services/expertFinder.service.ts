@@ -92,26 +92,15 @@ export type EmailTemplateKind =
 
 export type GeneratedEmailStatus = 'draft' | 'sent';
 
-export interface TemplateData {
-  contact_name?: string;
-  contact_title?: string;
-  contact_institution?: string;
-  contact_email?: string;
-  contact_phone?: string;
-  contact_website?: string;
-}
-
 export interface GenerateEmailPayload {
   expert_name: string;
-  template: string;
+  template: string | null;
   expert_title?: string;
   expert_affiliation?: string;
   expert_email?: string;
   expertise?: string;
   notes?: string;
   expert_search_id?: number | null;
-  outreach_context?: string;
-  template_data?: TemplateData;
   template_id?: number | null;
 }
 
@@ -130,32 +119,15 @@ export interface CreateDraftEmailPayload {
 }
 
 export type UpdateGeneratedEmailPayload = Partial<CreateDraftEmailPayload>;
-export type SavedTemplateType = 'prompt-context' | 'fixed-template';
 
 export interface CreateSavedTemplatePayload {
   name: string;
-  template_type: SavedTemplateType;
-  contact_name?: string;
-  contact_title?: string;
-  contact_institution?: string;
-  contact_email?: string;
-  contact_phone?: string;
-  contact_website?: string;
-  outreach_context?: string;
   email_subject?: string;
   email_body?: string;
 }
 
 export interface UpdateSavedTemplatePayload {
   name?: string;
-  template_type?: SavedTemplateType;
-  contact_name?: string;
-  contact_title?: string;
-  contact_institution?: string;
-  contact_email?: string;
-  contact_phone?: string;
-  contact_website?: string;
-  outreach_context?: string;
   email_subject?: string;
   email_body?: string;
 }

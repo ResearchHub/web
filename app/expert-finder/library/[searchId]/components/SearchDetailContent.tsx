@@ -12,7 +12,7 @@ import { Tabs } from '@/components/ui/Tabs';
 import { useExpertSearchDetail } from '@/hooks/useExpertFinder';
 import { SearchDetailHeader } from './SearchDetailHeader';
 import { ExpertResultCard } from './ExpertResultCard';
-import { GenerateEmailModal } from './GenerateEmailModal';
+import { GenerateEmailModal, type GenerateEmailConfirmPayload } from './GenerateEmailModal';
 import { GenerateEmailProgressModal } from './GenerateEmailProgressModal';
 import { GeneratedEmailsList } from '@/app/expert-finder/library/[searchId]/outreach/components/GeneratedEmailsList';
 import type { ExpertResult } from '@/types/expertFinder';
@@ -32,8 +32,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [generateExperts, setGenerateExperts] = useState<ExpertResult[]>([]);
-  const [generateTemplate, setGenerateTemplate] = useState<string>('collaboration');
-  const [generateTemplateId, setGenerateTemplateId] = useState<number | null>(null);
+  const [generatePayload, setGeneratePayload] = useState<GenerateEmailConfirmPayload | null>(null);
 
   const toggleSelection = useCallback((index: number) => {
     setSelectedIndices((prev) => {
@@ -49,11 +48,15 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     setShowGenerateModal(true);
   }, []);
 
-  const handleGenerateConfirm = useCallback((template: string, templateId: number | null) => {
-    setGenerateTemplate(template);
-    setGenerateTemplateId(templateId);
+  const handleGenerateConfirm = useCallback((payload: GenerateEmailConfirmPayload) => {
+    setGeneratePayload(payload);
     setShowGenerateModal(false);
     setShowProgressModal(true);
+  }, []);
+
+  const handleProgressClose = useCallback(() => {
+    setShowProgressModal(false);
+    setGeneratePayload(null);
   }, []);
 
   const handleProgressDone = useCallback(() => {
@@ -272,17 +275,14 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
         isOpen={showGenerateModal}
         onClose={() => setShowGenerateModal(false)}
         experts={generateExperts}
-        searchId={searchId}
-        searchName={searchDetail?.name}
         onConfirm={handleGenerateConfirm}
       />
       <GenerateEmailProgressModal
         isOpen={showProgressModal}
-        onClose={() => setShowProgressModal(false)}
+        onClose={handleProgressClose}
         experts={generateExperts}
         searchId={searchId}
-        template={generateTemplate}
-        templateId={generateTemplateId}
+        generation={generatePayload}
         onDone={handleProgressDone}
       />
 

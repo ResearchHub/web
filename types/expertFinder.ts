@@ -1,7 +1,7 @@
 import type { Work } from './work';
 import { transformUnifiedDocument } from './work';
 import { createTransformer } from './transformer';
-import { InputType, SearchStatus, type SavedTemplateType } from '@/services/expertFinder.service';
+import { InputType, SearchStatus } from '@/services/expertFinder.service';
 import type { AuthorProfile } from './authorProfile';
 import { transformAuthorProfile } from './authorProfile';
 
@@ -18,6 +18,11 @@ function transformCreatedBy(raw: any): CreatedByInfo | null {
   return { userId, author };
 }
 
+export interface ExpertSourceLink {
+  url: string;
+  text: string;
+}
+
 /** Single expert as displayed in the app (detail/list rows). */
 export interface ExpertResult {
   name: string;
@@ -26,7 +31,7 @@ export interface ExpertResult {
   expertise: string;
   email: string;
   notes?: string;
-  sources?: string[] | null;
+  sources?: ExpertSourceLink[] | null;
 }
 
 export interface ReportUrls {
@@ -100,7 +105,31 @@ export interface ExpertSearchProgress {
   error?: string;
 }
 
+function transformExpertSource(raw: string | Record<string, unknown>): ExpertSourceLink | null {
+  if (typeof raw === 'string') {
+    const url = raw.trim();
+    if (!url) return null;
+    try {
+      const host = new URL(url).hostname.replace(/^www\./, '');
+      return { url, text: host || 'Source' };
+    } catch {
+      return { url, text: 'Source' };
+    }
+  }
+  const url = String(raw?.url ?? '').trim();
+  if (!url) return null;
+  const text = String(raw?.text ?? '').trim() || 'Source';
+  return { url, text };
+}
+
 function transformExpertResult(raw: any): ExpertResult {
+  const sourcesRaw = Array.isArray(raw.sources) ? raw.sources : null;
+  const sources = sourcesRaw
+    ? sourcesRaw
+        .map((item: unknown) => transformExpertSource(item as string | Record<string, unknown>))
+        .filter((s: ExpertSourceLink | null): s is ExpertSourceLink => s !== null)
+    : null;
+
   return {
     name: raw.name ?? raw.first_name ?? raw.full_name ?? '',
     title: raw.title ?? raw.job_title ?? raw.position ?? '',
@@ -108,7 +137,7 @@ function transformExpertResult(raw: any): ExpertResult {
     expertise: raw.expertise ?? raw.expertise_areas ?? '',
     email: raw.email ?? '',
     notes: raw.notes ?? raw.recommendation_notes,
-    sources: Array.isArray(raw.sources) ? raw.sources : null,
+    sources: sources?.length ? sources : null,
   };
 }
 
@@ -289,14 +318,6 @@ export interface SavedTemplate {
   id: number;
   createdBy: CreatedByInfo | null;
   name: string;
-  templateType: SavedTemplateType;
-  contactName: string;
-  contactTitle: string;
-  contactInstitution: string;
-  contactEmail: string;
-  contactPhone: string;
-  contactWebsite: string;
-  outreachContext: string;
   emailSubject: string;
   emailBody: string;
   createdDate: string;
@@ -314,14 +335,6 @@ export const transformSavedTemplate = createTransformer<any, SavedTemplate>((raw
   id: raw.id ?? 0,
   createdBy: transformCreatedBy(raw.created_by),
   name: raw.name ?? '',
-  templateType: raw.template_type ?? 'prompt-context',
-  contactName: raw.contact_name ?? '',
-  contactTitle: raw.contact_title ?? '',
-  contactInstitution: raw.contact_institution ?? '',
-  contactEmail: raw.contact_email ?? '',
-  contactPhone: raw.contact_phone ?? '',
-  contactWebsite: raw.contact_website ?? '',
-  outreachContext: raw.outreach_context ?? '',
   emailSubject: raw.email_subject ?? '',
   emailBody: raw.email_body ?? '',
   createdDate: raw.created_date ?? '',
