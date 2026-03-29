@@ -83,8 +83,8 @@ export function AdvancedConfig({
       onToggle={() => setIsExpanded(!isExpanded)}
       className="border border-gray-200 rounded-lg p-3 bg-gray-50/50"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-        <div className="min-w-0 md:col-span-2">
+      <div className="grid grid-cols-1 md:!grid-cols-2 gap-4 mt-6">
+        <div className="min-w-0 md:!col-span-2">
           <Input
             label="Name your search (Optional)"
             placeholder="e.g. fMRI-based glymphatic system measurements in mice"
@@ -255,8 +255,8 @@ export function AdvancedConfig({
           </Dropdown>
         </div>
 
-        <div className="min-w-0 md:col-span-2 border-t border-gray-200 pt-4 mt-2 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="min-w-0 md:!col-span-2 border-t border-gray-200 pt-4 mt-2 space-y-4">
+          <div className="grid grid-cols-1 md:!grid-cols-2 gap-4">
             <div className="min-w-0">
               <SearchHistoryDropdown
                 selectedSearchId={selectedSearchId}
