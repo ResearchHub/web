@@ -272,9 +272,11 @@ export function PublishingForm({
       if (storedData) {
         restoreFromStorage(storedData, methods.setValue);
       } else {
-        const resolved = resolveArticleType(searchParams, defaultArticleType);
-        if (resolved) {
-          methods.setValue('articleType', resolved.type);
+        const articleType =
+          (note.documentType && mapDocumentTypeToArticleType(note.documentType)) ??
+          resolveArticleType(searchParams, defaultArticleType)?.type;
+        if (articleType) {
+          methods.setValue('articleType', articleType);
         }
       }
     }
