@@ -13,7 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreVertical,
-  CircleSlash,
+  Octagon,
 } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
@@ -46,6 +46,7 @@ import { useUser } from '@/contexts/UserContext';
 import { toast } from 'react-hot-toast';
 import { isValidEmail } from '@/utils/validation';
 import { TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
+import { useOutreachReplyTo } from '@/hooks/useOutreachReplyTo';
 
 function buildOutreachDetailHref(librarySearchId: string, neighborEmailId: number): string {
   return `/expert-finder/library/${librarySearchId}/outreach/${neighborEmailId}`;
@@ -78,7 +79,7 @@ export function OutreachDetailPageContent({
   const [actionError, setActionError] = useState<string | null>(null);
   const [editSubject, setEditSubject] = useState('');
   const [editBody, setEditBody] = useState('');
-  const [replyTo, setReplyTo] = useState('');
+  const { replyTo, setReplyTo } = useOutreachReplyTo();
 
   const backHref = useMemo(
     () => `/expert-finder/library/${librarySearchId}?tab=${TAB_OUTREACH}`,
@@ -407,7 +408,7 @@ export function OutreachDetailPageContent({
                     disabled={isSendingPreview || pipelineBusy}
                     onSelect={() => setShowPreviewConfirm(true)}
                   >
-                    <Eye className="h-4 w-4 mr-2 shrink-0" aria-hidden />
+                    <Eye className="h-4 w-4 mr-2 shrink-0 text-gray-500" aria-hidden />
                     <span>Preview</span>
                   </BaseMenuItem>
                 )}
@@ -430,7 +431,7 @@ export function OutreachDetailPageContent({
                     setShowCloseConfirm(true);
                   }}
                 >
-                  <CircleSlash className="h-4 w-4 mr-2 shrink-0" aria-hidden />
+                  <Octagon className="h-4 w-4 mr-2 shrink-0" aria-hidden />
                   <span>Mark as closed</span>
                 </BaseMenuItem>
               </BaseMenu>

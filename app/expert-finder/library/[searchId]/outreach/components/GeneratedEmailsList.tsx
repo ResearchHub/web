@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo, type MouseEvent } from 'reac
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   EXPERT_FINDER_LIST_PAGE_SIZE,
+  EXPERT_FINDER_OUTREACH_PAGE_SIZE,
   PAGE_QUERY,
   parsePageQueryParam,
 } from '@/app/expert-finder/lib/paginationParams';
@@ -17,6 +18,7 @@ import { SendConfirmationModal } from '@/app/expert-finder/components/SendConfir
 import { PaginationButton } from '@/components/ui/PaginationButton';
 import { ExpertFinderService } from '@/services/expertFinder.service';
 import { useGeneratedEmails, useSendEmails } from '@/hooks/useExpertFinder';
+import { useOutreachReplyTo } from '@/hooks/useOutreachReplyTo';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useUser } from '@/contexts/UserContext';
 import { OutreachTable, OUTREACH_TABLE_COLUMNS } from './OutreachTable';
@@ -58,7 +60,8 @@ export function GeneratedEmailsList({
   const searchParams = useSearchParams();
   const { user } = useUser();
   const { mdAndUp } = useScreenSize();
-  const pageSize = EXPERT_FINDER_LIST_PAGE_SIZE;
+  const { replyTo, setReplyTo } = useOutreachReplyTo();
+  const pageSize = EXPERT_FINDER_OUTREACH_PAGE_SIZE;
 
   const pageFromUrl = useMemo(
     () => parsePageQueryParam(searchParams.get(PAGE_QUERY)),
@@ -69,7 +72,6 @@ export function GeneratedEmailsList({
   const [showSendConfirm, setShowSendConfirm] = useState(false);
   const [showBulkMarkSentConfirm, setShowBulkMarkSentConfirm] = useState(false);
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
-  const [bulkReplyTo, setBulkReplyTo] = useState('');
   const [bulkMarkSentBusy, setBulkMarkSentBusy] = useState(false);
   const [bulkDeleteBusy, setBulkDeleteBusy] = useState(false);
 
@@ -152,10 +154,10 @@ export function GeneratedEmailsList({
   };
 
   useEffect(() => {
-    if (showSendConfirm && user?.email && !bulkReplyTo.trim()) {
-      setBulkReplyTo(user.email);
-    }
-  }, [showSendConfirm, user?.email]);
+    if (!showSendConfirm) return;
+    if (!user?.email) return;
+    setReplyTo((prev) => (prev.trim() ? prev : user.email));
+  }, [showSendConfirm, user?.email, setReplyTo]);
 
   useEffect(() => {
     if (!showBulkMarkSentConfirm) setBulkMarkSentBusy(false);
@@ -178,7 +180,7 @@ export function GeneratedEmailsList({
       toast.error('Select at least one draft to send.');
       return;
     }
-    const trimmedReplyTo = bulkReplyTo.trim();
+    const trimmedReplyTo = replyTo.trim();
     if (!trimmedReplyTo || !isValidEmail(trimmedReplyTo)) {
       toast.error('Please enter a valid Reply To email address.');
       return;
@@ -189,7 +191,6 @@ export function GeneratedEmailsList({
         reply_to: trimmedReplyTo,
       });
       setShowSendConfirm(false);
-      setBulkReplyTo('');
       toast.success(
         'Emails are being sent. You can close this window and monitor status in the outreach table.'
       );
@@ -269,9 +270,9 @@ export function GeneratedEmailsList({
     return (
       <div className="p-4">
         {mdAndUp ? (
-          <TableSkeleton columns={OUTREACH_TABLE_COLUMNS} rowCount={pageSize} />
+          <TableSkeleton columns={OUTREACH_TABLE_COLUMNS} rowCount={EXPERT_FINDER_LIST_PAGE_SIZE} />
         ) : (
-          <ListCardSkeleton rowCount={pageSize} />
+          <ListCardSkeleton rowCount={EXPERT_FINDER_LIST_PAGE_SIZE} />
         )}
       </div>
     );
@@ -402,8 +403,8 @@ export function GeneratedEmailsList({
         onClose={() => setShowSendConfirm(false)}
         isSubmitting={isSending}
         title="Send emails to experts?"
-        replyTo={bulkReplyTo}
-        onReplyToChange={setBulkReplyTo}
+        replyTo={replyTo}
+        onReplyToChange={setReplyTo}
         onConfirm={handleSendConfirm}
         confirmLabel="Confirm"
       />

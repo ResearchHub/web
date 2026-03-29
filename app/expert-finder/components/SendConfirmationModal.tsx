@@ -7,27 +7,20 @@ import { Input } from '@/components/ui/form/Input';
 import { Modal } from '@/components/ui/form/Modal';
 import { isValidEmail } from '@/utils/validation';
 
-const DEFAULT_REPLY_TO_HELPER = 'When experts hit Reply, their response goes to this address.';
-
-/** Modal to confirm a send/preview action; collects Reply-To for the API (not stored on the draft). */
+/** Modal to confirm a send/preview action; collects Reply-To for the API. */
 export interface SendConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /** Disables inputs, confirm, and blocking close while true */
   isSubmitting: boolean;
   title: string;
   /** Shown above the Reply To field (optional) */
   description?: ReactNode;
   replyTo: string;
   onReplyToChange: (value: string) => void;
-  /** Parent performs send/preview API call after user confirms */
   onConfirm: () => void;
   confirmLabel?: string;
-  /** Used on the confirm button while submitting when `confirmIcon` is not set */
   submittingLabel?: string;
-  /** Idle icon before label; replaced by a spinner while submitting */
   confirmIcon?: ReactNode;
-  replyToHelperText?: string;
   cancelLabel?: string;
 }
 
@@ -43,7 +36,6 @@ export function SendConfirmationModal({
   confirmLabel = 'Send',
   submittingLabel = 'Sending…',
   confirmIcon,
-  replyToHelperText = DEFAULT_REPLY_TO_HELPER,
   cancelLabel = 'Cancel',
 }: SendConfirmationModalProps) {
   const replyValid = replyTo.trim() && isValidEmail(replyTo.trim());
@@ -59,7 +51,7 @@ export function SendConfirmationModal({
           value={replyTo}
           onChange={(e) => onReplyToChange(e.target.value)}
           placeholder="Email address for replies"
-          helperText={replyToHelperText}
+          helperText={'When experts hit Reply, their response goes to this address.'}
           error={
             replyTo.trim() && !isValidEmail(replyTo.trim())
               ? 'Please enter a valid email address'

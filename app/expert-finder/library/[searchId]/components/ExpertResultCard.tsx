@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useRef, useLayoutEffect } from 'react';
+import { useState } from 'react';
+import Link from 'next/link';
 import { Award, Building2, ExternalLink, GraduationCap, Info, Mail } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonVariants } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
@@ -19,6 +20,9 @@ interface ExpertResultCardProps {
 function empty(value: string | undefined): string {
   return value?.trim() || '';
 }
+
+/** Show Read more when notes are longer than this */
+const NOTES_READ_MORE_MIN_LENGTH = 25;
 
 export function ExpertResultCard({
   expert,
@@ -42,20 +46,7 @@ export function ExpertResultCard({
   const sources = expert.sources?.length ? expert.sources : [];
 
   const [notesExpanded, setNotesExpanded] = useState(false);
-  const notesMeasureRef = useRef<HTMLParagraphElement>(null);
-  const [notesOverflows, setNotesOverflows] = useState(false);
-
-  useLayoutEffect(() => {
-    const el = notesMeasureRef.current;
-    if (!el || !notes) {
-      setNotesOverflows(false);
-      return;
-    }
-    if (notesExpanded) return;
-    setNotesOverflows(el.scrollHeight > el.clientHeight + 1);
-  }, [notes, notesExpanded]);
-
-  const showNotesToggle = notesOverflows || notesExpanded;
+  const showNotesToggle = notes.length > NOTES_READ_MORE_MIN_LENGTH || notesExpanded;
 
   return (
     <article
@@ -147,7 +138,6 @@ export function ExpertResultCard({
             </div>
             <div className="mt-1 text-sm leading-relaxed text-gray-600">
               <span
-                ref={notesMeasureRef}
                 className={cn(
                   'inline-block w-full max-w-full align-baseline',
                   !notesExpanded && 'line-clamp-2'

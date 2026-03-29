@@ -24,7 +24,6 @@ export interface OutreachMobileCardProps {
   email: GeneratedEmail;
   onClick: () => void;
   className?: string;
-  /** When set, shows a checkbox that does not trigger `onClick` on the card. */
   selected?: boolean;
   onToggleSelect?: (emailId: number, e: MouseEvent) => void;
 }

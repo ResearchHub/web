@@ -207,7 +207,6 @@ export const transformExpertSearchProgressEvent = createTransformer<any, ExpertS
 
 export interface GeneratedEmailListNavigation {
   total: number;
-  /** 1-based index within the search’s outreach list, or null if unknown */
   position: number | null;
   previousId: number | null;
   nextId: number | null;
@@ -252,7 +251,6 @@ export interface GeneratedEmail {
   createdAt: string;
   updatedAt: string;
   createdBy: CreatedByInfo | null;
-  /** Present on single-email responses from the API */
   listNavigation?: GeneratedEmailListNavigation;
 }
 
