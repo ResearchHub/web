@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { EXPERT_FINDER_LIST_PAGE_SIZE } from '@/app/expert-finder/lib/paginationParams';
 import {
   ExpertFinderService,
   type CreateSavedTemplatePayload,
@@ -95,7 +96,7 @@ type UseExpertSearchesReturn = [UseExpertSearchesState, FetchExpertSearchesFn];
  * Lists expert searches with pagination.
  */
 export function useExpertSearches(params?: UseExpertSearchesParams): UseExpertSearchesReturn {
-  const limit = params?.limit ?? 10;
+  const limit = params?.limit ?? EXPERT_FINDER_LIST_PAGE_SIZE;
   const offset = params?.offset ?? 0;
 
   const [searches, setSearches] = useState<ExpertSearchListItem[]>([]);
@@ -317,7 +318,7 @@ type FetchGeneratedEmailsFn = (params?: UseGeneratedEmailsParams) => Promise<voi
 type UseGeneratedEmailsReturn = [UseGeneratedEmailsState, FetchGeneratedEmailsFn];
 
 export function useGeneratedEmails(params?: UseGeneratedEmailsParams): UseGeneratedEmailsReturn {
-  const limit = params?.limit ?? 20;
+  const limit = params?.limit ?? EXPERT_FINDER_LIST_PAGE_SIZE;
   const offset = params?.offset ?? 0;
 
   const [emails, setEmails] = useState<GeneratedEmail[]>([]);
@@ -493,7 +494,10 @@ interface UsePreviewEmailsState {
   error: string | null;
 }
 
-type PreviewEmailsFn = (generatedEmailIds: number[]) => Promise<{ sent: number }>;
+type PreviewEmailsFn = (payload: {
+  generated_email_ids: number[];
+  reply_to?: string;
+}) => Promise<{ sent: number }>;
 type UsePreviewEmailsReturn = [UsePreviewEmailsState, PreviewEmailsFn];
 
 /**
@@ -504,11 +508,14 @@ export function usePreviewEmails(): UsePreviewEmailsReturn {
   const [error, setError] = useState<string | null>(null);
 
   const previewEmails = useCallback(
-    async (generatedEmailIds: number[]): Promise<{ sent: number }> => {
+    async (payload: {
+      generated_email_ids: number[];
+      reply_to?: string;
+    }): Promise<{ sent: number }> => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await ExpertFinderService.previewEmails(generatedEmailIds);
+        const response = await ExpertFinderService.previewEmails(payload);
         return response;
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Failed to send preview email';
@@ -589,7 +596,7 @@ type FetchSavedTemplatesFn = (params?: UseSavedTemplatesParams) => Promise<void>
 type UseSavedTemplatesReturn = [UseSavedTemplatesState, FetchSavedTemplatesFn];
 
 export function useSavedTemplates(params?: UseSavedTemplatesParams): UseSavedTemplatesReturn {
-  const limit = params?.limit ?? 20;
+  const limit = params?.limit ?? EXPERT_FINDER_LIST_PAGE_SIZE;
   const offset = params?.offset ?? 0;
 
   const [templates, setTemplates] = useState<SavedTemplate[]>([]);

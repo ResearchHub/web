@@ -1,14 +1,24 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Send } from 'lucide-react';
+import { useState, useCallback, useEffect, useMemo, type MouseEvent } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import {
+  EXPERT_FINDER_LIST_PAGE_SIZE,
+  EXPERT_FINDER_OUTREACH_PAGE_SIZE,
+  PAGE_QUERY,
+  parsePageQueryParam,
+} from '@/app/expert-finder/lib/paginationParams';
+import { TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
+import { Loader2, Mail, MoreVertical, Send, Trash2 } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/form/Input';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
+import { ConfirmationModal } from '@/components/ui/form/ConfirmationModal';
+import { SendConfirmationModal } from '@/app/expert-finder/components/SendConfirmationModal';
 import { PaginationButton } from '@/components/ui/PaginationButton';
-import { Modal } from '@/components/ui/form/Modal';
+import { ExpertFinderService } from '@/services/expertFinder.service';
 import { useGeneratedEmails, useSendEmails } from '@/hooks/useExpertFinder';
+import { useOutreachReplyTo } from '@/hooks/useOutreachReplyTo';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useUser } from '@/contexts/UserContext';
 import { OutreachTable, OUTREACH_TABLE_COLUMNS } from './OutreachTable';
@@ -18,8 +28,8 @@ import { ListCardSkeleton } from '@/components/ui/ListCardSkeleton';
 import { toast } from 'react-hot-toast';
 import { isValidEmail } from '@/utils/validation';
 import type { GeneratedEmail } from '@/types/expertFinder';
-
-const DEFAULT_PAGE_SIZE = 10;
+import { isGeneratedEmailDraftLike } from '@/app/expert-finder/lib/generatedEmailStatus';
+import { cn } from '@/utils/styles';
 
 const DEFAULT_EMPTY_MESSAGE = (
   <>
@@ -34,9 +44,8 @@ const DEFAULT_EMPTY_MESSAGE = (
 export interface GeneratedEmailsListProps {
   /** When provided, only emails for this search are shown */
   searchId?: string | number;
-  /** Used for row click and View link (e.g. /expert-finder/library/{searchId}/outreach/{id}) */
+  /** Row click + table View link target */
   getDetailHref: (email: GeneratedEmail) => string;
-  pageSize?: number;
   /** Custom empty state content when there are no emails */
   emptyMessage?: React.ReactNode;
 }
@@ -44,18 +53,29 @@ export interface GeneratedEmailsListProps {
 export function GeneratedEmailsList({
   searchId,
   getDetailHref,
-  pageSize = DEFAULT_PAGE_SIZE,
   emptyMessage = DEFAULT_EMPTY_MESSAGE,
 }: GeneratedEmailsListProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user } = useUser();
   const { mdAndUp } = useScreenSize();
-  const [page, setPage] = useState(1);
+  const { replyTo, setReplyTo } = useOutreachReplyTo();
+  const pageSize = EXPERT_FINDER_OUTREACH_PAGE_SIZE;
+
+  const pageFromUrl = useMemo(
+    () => parsePageQueryParam(searchParams.get(PAGE_QUERY)),
+    [searchParams]
+  );
+
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [showSendConfirm, setShowSendConfirm] = useState(false);
-  const [bulkReplyTo, setBulkReplyTo] = useState('');
+  const [showBulkMarkSentConfirm, setShowBulkMarkSentConfirm] = useState(false);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+  const [bulkMarkSentBusy, setBulkMarkSentBusy] = useState(false);
+  const [bulkDeleteBusy, setBulkDeleteBusy] = useState(false);
 
-  const offset = (page - 1) * pageSize;
+  const offset = (pageFromUrl - 1) * pageSize;
   const [{ emails, pagination, isLoading, error }, refetch] = useGeneratedEmails({
     searchId,
     limit: pageSize,
@@ -64,8 +84,46 @@ export function GeneratedEmailsList({
   const [{ isLoading: isSending }, sendEmails] = useSendEmails();
 
   const totalPages = Math.max(1, Math.ceil(pagination.total / pageSize));
+  const page = pagination.total > 0 ? Math.min(pageFromUrl, totalPages) : pageFromUrl;
+
+  useEffect(() => {
+    if (isLoading || pagination.total <= 0) return;
+    if (pageFromUrl <= totalPages) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', TAB_OUTREACH);
+    if (totalPages <= 1) params.delete(PAGE_QUERY);
+    else params.set(PAGE_QUERY, String(totalPages));
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [isLoading, pageFromUrl, pagination.total, pathname, router, searchParams, totalPages]);
+
+  const pushOutreachPage = useCallback(
+    (nextPage: number) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('tab', TAB_OUTREACH);
+      if (nextPage <= 1) params.delete(PAGE_QUERY);
+      else params.set(PAGE_QUERY, String(nextPage));
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [pageFromUrl]);
+
   const pageIds = emails.map((e) => e.id);
   const allSelected = pageIds.length > 0 && pageIds.every((id) => selectedIds.has(id));
+
+  const selectedDraftIdsOnPage = useMemo(
+    () =>
+      emails
+        .filter((e) => selectedIds.has(e.id) && isGeneratedEmailDraftLike(e.status))
+        .map((e) => e.id),
+    [emails, selectedIds]
+  );
+
+  const bulkActionsBusy = isSending;
+  const canBulkActOnDrafts = selectedDraftIdsOnPage.length > 0 && !bulkActionsBusy;
 
   const handleSelectionChange = useCallback((ids: Set<number>) => {
     setSelectedIds(ids);
@@ -96,15 +154,33 @@ export function GeneratedEmailsList({
   };
 
   useEffect(() => {
-    if (showSendConfirm && user?.email && !bulkReplyTo.trim()) {
-      setBulkReplyTo(user.email);
-    }
-  }, [showSendConfirm, user?.email]);
+    if (!showSendConfirm) return;
+    if (!user?.email) return;
+    setReplyTo((prev) => (prev.trim() ? prev : user.email));
+  }, [showSendConfirm, user?.email, setReplyTo]);
+
+  useEffect(() => {
+    if (!showBulkMarkSentConfirm) setBulkMarkSentBusy(false);
+  }, [showBulkMarkSentConfirm]);
+
+  useEffect(() => {
+    if (!showBulkDeleteConfirm) setBulkDeleteBusy(false);
+  }, [showBulkDeleteConfirm]);
+
+  const handleBulkListRefresh = useCallback(async () => {
+    setSelectedIds(new Set());
+    await refetch();
+  }, [refetch]);
 
   const handleSendConfirm = async () => {
-    const ids = Array.from(selectedIds);
-    if (ids.length === 0) return;
-    const trimmedReplyTo = bulkReplyTo.trim();
+    const ids = emails
+      .filter((e) => selectedIds.has(e.id) && isGeneratedEmailDraftLike(e.status))
+      .map((e) => e.id);
+    if (ids.length === 0) {
+      toast.error('Select at least one draft to send.');
+      return;
+    }
+    const trimmedReplyTo = replyTo.trim();
     if (!trimmedReplyTo || !isValidEmail(trimmedReplyTo)) {
       toast.error('Please enter a valid Reply To email address.');
       return;
@@ -115,16 +191,72 @@ export function GeneratedEmailsList({
         reply_to: trimmedReplyTo,
       });
       setShowSendConfirm(false);
-      setSelectedIds(new Set());
-      setBulkReplyTo('');
       toast.success(
         'Emails are being sent. You can close this window and monitor status in the outreach table.'
       );
-      refetch();
+      await handleBulkListRefresh();
     } catch {
       toast.error('Failed to send emails. Please try again.');
     }
   };
+
+  const handleMobileToggleSelect = useCallback((emailId: number, e: MouseEvent) => {
+    e.stopPropagation();
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(emailId)) next.delete(emailId);
+      else next.add(emailId);
+      return next;
+    });
+  }, []);
+
+  const handleBulkMarkSentConfirm = useCallback(async () => {
+    const ids = selectedDraftIdsOnPage;
+    if (ids.length === 0) return;
+    setBulkMarkSentBusy(true);
+    try {
+      const results = await Promise.allSettled(
+        ids.map((id) => ExpertFinderService.updateEmail(id, { status: 'sent' }))
+      );
+      const ok = results.filter((r) => r.status === 'fulfilled').length;
+      const bad = results.length - ok;
+      if (bad === 0) {
+        toast.success(`Marked ${ok} email(s) as sent.`);
+      } else {
+        toast.error(`Marked ${ok} as sent; ${bad} failed.`);
+      }
+      await handleBulkListRefresh();
+      setShowBulkMarkSentConfirm(false);
+    } catch {
+      toast.error('Failed to update emails.');
+    } finally {
+      setBulkMarkSentBusy(false);
+    }
+  }, [selectedDraftIdsOnPage, handleBulkListRefresh]);
+
+  const handleBulkDeleteConfirm = useCallback(async () => {
+    const ids = selectedDraftIdsOnPage;
+    if (ids.length === 0) return;
+    setBulkDeleteBusy(true);
+    try {
+      const results = await Promise.allSettled(
+        ids.map((id) => ExpertFinderService.deleteEmail(id))
+      );
+      const ok = results.filter((r) => r.status === 'fulfilled').length;
+      const bad = results.length - ok;
+      if (bad === 0) {
+        toast.success(`Deleted ${ok} draft(s).`);
+      } else {
+        toast.error(`Deleted ${ok}; ${bad} failed.`);
+      }
+      await handleBulkListRefresh();
+      setShowBulkDeleteConfirm(false);
+    } catch {
+      toast.error('Failed to delete emails.');
+    } finally {
+      setBulkDeleteBusy(false);
+    }
+  }, [selectedDraftIdsOnPage, handleBulkListRefresh]);
 
   if (error) {
     return (
@@ -138,9 +270,9 @@ export function GeneratedEmailsList({
     return (
       <div className="p-4">
         {mdAndUp ? (
-          <TableSkeleton columns={OUTREACH_TABLE_COLUMNS} rowCount={pageSize} />
+          <TableSkeleton columns={OUTREACH_TABLE_COLUMNS} rowCount={EXPERT_FINDER_LIST_PAGE_SIZE} />
         ) : (
-          <ListCardSkeleton rowCount={pageSize} />
+          <ListCardSkeleton rowCount={EXPERT_FINDER_LIST_PAGE_SIZE} />
         )}
       </div>
     );
@@ -152,53 +284,81 @@ export function GeneratedEmailsList({
 
   return (
     <>
-      {mdAndUp && (
-        <>
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 mb-[2px] mt-[2px]">
-              Generated emails ({pagination.total})
-            </h2>
-            <div className="flex flex-wrap items-center gap-2">
-              {allSelected ? (
-                <Button variant="outlined" size="sm" onClick={() => setSelectedIds(new Set())}>
-                  Unselect all
-                </Button>
-              ) : (
-                <Button
-                  variant="outlined"
-                  size="sm"
-                  onClick={handleSelectAll}
-                  disabled={pageIds.length === 0}
-                >
-                  Select all
-                </Button>
-              )}
-              <span className="text-sm text-gray-600">{selectedIds.size} selected</span>
-              <Button
-                variant="default"
-                size="sm"
-                className="gap-2"
-                onClick={handleSendClick}
-                disabled={isSending || selectedIds.size === 0}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+        <h2 className="text-lg font-semibold text-gray-900 mb-[2px] mt-[2px]">
+          Generated emails ({pagination.total})
+        </h2>
+        <div className="flex flex-wrap items-center gap-2">
+          {allSelected ? (
+            <Button variant="outlined" size="sm" onClick={() => setSelectedIds(new Set())}>
+              Unselect all
+            </Button>
+          ) : (
+            <Button
+              variant="outlined"
+              size="sm"
+              onClick={handleSelectAll}
+              disabled={pageIds.length === 0}
+            >
+              Select all
+            </Button>
+          )}
+          <span className="text-sm text-gray-600">{selectedIds.size} selected</span>
+          <BaseMenu
+            align="end"
+            disabled={!canBulkActOnDrafts}
+            trigger={
+              <button
+                type="button"
+                className={cn(
+                  'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm transition-colors',
+                  'hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+                  !canBulkActOnDrafts && 'cursor-not-allowed opacity-50'
+                )}
+                aria-label="Bulk actions for selected emails"
               >
-                <Send className="h-4 w-4" aria-hidden />
-                Send emails
-              </Button>
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <OutreachTable
-              emails={emails}
-              onRowClick={handleRowClick}
-              getDetailHref={getDetailHref}
-              selectedIds={selectedIds}
-              onSelectionChange={handleSelectionChange}
-            />
-          </div>
-        </>
-      )}
+                {bulkActionsBusy ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <MoreVertical className="h-4 w-4" aria-hidden />
+                )}
+              </button>
+            }
+          >
+            <BaseMenuItem disabled={!canBulkActOnDrafts} onSelect={() => handleSendClick()}>
+              <Send className="h-4 w-4 mr-2 shrink-0" aria-hidden />
+              <span>Send emails</span>
+            </BaseMenuItem>
+            <BaseMenuItem
+              disabled={!canBulkActOnDrafts}
+              onSelect={() => setShowBulkMarkSentConfirm(true)}
+            >
+              <Mail className="h-4 w-4 mr-2 shrink-0 text-amber-600" aria-hidden />
+              <span>Mark as sent</span>
+            </BaseMenuItem>
+            <BaseMenuItem
+              disabled={!canBulkActOnDrafts}
+              className="text-red-600 focus:bg-red-50 focus:text-red-700"
+              onSelect={() => setShowBulkDeleteConfirm(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2 shrink-0" aria-hidden />
+              <span>Delete</span>
+            </BaseMenuItem>
+          </BaseMenu>
+        </div>
+      </div>
 
-      {!mdAndUp && (
+      {mdAndUp ? (
+        <div className="overflow-x-auto">
+          <OutreachTable
+            emails={emails}
+            onRowClick={handleRowClick}
+            getDetailHref={getDetailHref}
+            selectedIds={selectedIds}
+            onSelectionChange={handleSelectionChange}
+          />
+        </div>
+      ) : (
         <div className="space-y-4">
           {emails.map((email, index) => (
             <OutreachMobileCard
@@ -206,6 +366,8 @@ export function GeneratedEmailsList({
               email={email}
               onClick={() => handleRowClick(email)}
               className="shadow-sm"
+              selected={selectedIds.has(email.id)}
+              onToggleSelect={handleMobileToggleSelect}
             />
           ))}
         </div>
@@ -222,13 +384,13 @@ export function GeneratedEmailsList({
           <div className="flex items-center gap-2">
             <PaginationButton
               label="Previous"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              onClick={() => pushOutreachPage(page - 1)}
               disabled={page <= 1 || isLoading}
               isLoading={isLoading}
             />
             <PaginationButton
               label="Next"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              onClick={() => pushOutreachPage(page + 1)}
               disabled={page >= totalPages || isLoading}
               isLoading={isLoading}
             />
@@ -236,48 +398,50 @@ export function GeneratedEmailsList({
         </div>
       )}
 
-      <Modal
+      <SendConfirmationModal
         isOpen={showSendConfirm}
-        onClose={() => !isSending && setShowSendConfirm(false)}
+        onClose={() => setShowSendConfirm(false)}
+        isSubmitting={isSending}
         title="Send emails to experts?"
-      >
-        <p className="text-sm text-gray-600 mb-4">
-          The selected emails will be sent to the experts.
-        </p>
-        <div className="mb-4">
-          <Input
-            label="Reply To"
-            type="email"
-            value={bulkReplyTo}
-            onChange={(e) => setBulkReplyTo(e.target.value)}
-            placeholder="Email address for replies"
-            helperText="When experts hit Reply, their response goes to this address. Defaults to your account email; change it if you want replies elsewhere."
-            error={
-              bulkReplyTo.trim() && !isValidEmail(bulkReplyTo.trim())
-                ? 'Please enter a valid email address'
-                : undefined
-            }
-          />
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="outlined"
-            size="sm"
-            onClick={() => setShowSendConfirm(false)}
-            disabled={isSending}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={handleSendConfirm}
-            disabled={isSending || !bulkReplyTo.trim() || !isValidEmail(bulkReplyTo.trim())}
-          >
-            {isSending ? 'Sending…' : 'Confirm'}
-          </Button>
-        </div>
-      </Modal>
+        replyTo={replyTo}
+        onReplyToChange={setReplyTo}
+        onConfirm={handleSendConfirm}
+        confirmLabel="Confirm"
+      />
+
+      <ConfirmationModal
+        isOpen={showBulkMarkSentConfirm}
+        onClose={() => setShowBulkMarkSentConfirm(false)}
+        title="Mark selected as sent?"
+        description={
+          <>
+            {selectedDraftIdsOnPage.length} draft
+            {selectedDraftIdsOnPage.length === 1 ? '' : 's'} will be marked as sent.
+          </>
+        }
+        confirmLabel="Confirm"
+        confirmClassName="gap-2 bg-amber-500 text-white hover:bg-amber-600"
+        confirmIcon={<Mail className="h-4 w-4" aria-hidden />}
+        isConfirming={bulkMarkSentBusy}
+        onConfirm={handleBulkMarkSentConfirm}
+      />
+
+      <ConfirmationModal
+        isOpen={showBulkDeleteConfirm}
+        onClose={() => setShowBulkDeleteConfirm(false)}
+        title="Delete selected drafts?"
+        description={
+          <>
+            {selectedDraftIdsOnPage.length} draft
+            {selectedDraftIdsOnPage.length === 1 ? '' : 's'} will be permanently removed.
+          </>
+        }
+        confirmLabel="Delete"
+        confirmVariant="destructive"
+        confirmIcon={<Trash2 className="h-4 w-4" aria-hidden />}
+        isConfirming={bulkDeleteBusy}
+        onConfirm={handleBulkDeleteConfirm}
+      />
     </>
   );
 }

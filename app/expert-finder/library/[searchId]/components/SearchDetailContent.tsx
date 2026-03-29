@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { TAB_EXPERT_RESULTS, TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
 import { Loader2, RefreshCw, FileText, Download, Mail } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
@@ -15,9 +16,6 @@ import { GenerateEmailModal, type GenerateEmailConfirmPayload } from './Generate
 import { GenerateEmailProgressModal } from './GenerateEmailProgressModal';
 import { GeneratedEmailsList } from '@/app/expert-finder/library/[searchId]/outreach/components/GeneratedEmailsList';
 import type { ExpertResult } from '@/types/expertFinder';
-
-const TAB_EXPERT_RESULTS = 'expert-results';
-const TAB_OUTREACH = 'outreach';
 
 export interface SearchDetailContentProps {
   searchId: string;
@@ -65,6 +63,13 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     setSelectedIndices(new Set());
   }, []);
 
+  const expertResultsTabHref = pathname ? `${pathname}?tab=${TAB_EXPERT_RESULTS}` : undefined;
+  const outreachTabHref = pathname ? `${pathname}?tab=${TAB_OUTREACH}` : undefined;
+
+  const isInProgress =
+    searchDetail != null &&
+    (searchDetail.status === 'pending' || searchDetail.status === 'processing');
+
   if (isLoading && !searchDetail) {
     return (
       <div className="w-full max-w-5xl mx-auto px-4 py-8">
@@ -96,8 +101,6 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   if (!searchDetail) {
     return null;
   }
-
-  const isInProgress = searchDetail.status === 'pending' || searchDetail.status === 'processing';
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-6">
@@ -174,12 +177,12 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
               {
                 id: TAB_EXPERT_RESULTS,
                 label: 'Expert results',
-                href: pathname ? `${pathname}?tab=${TAB_EXPERT_RESULTS}` : undefined,
+                href: expertResultsTabHref,
               },
               {
                 id: TAB_OUTREACH,
                 label: 'Outreach',
-                href: pathname ? `${pathname}?tab=${TAB_OUTREACH}` : undefined,
+                href: outreachTabHref,
               },
             ]}
             activeTab={tab}
@@ -247,7 +250,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                   </Button>
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:!grid-cols-2 md:!grid-cols-3">
                 {searchDetail.expertResults.map((expert, index) => (
                   <ExpertResultCard
                     key={`expert-${index}`}
