@@ -1,17 +1,12 @@
-import { Suspense } from 'react';
 import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
 import { Work } from '@/types/work';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkDocument } from '@/components/work/WorkDocument';
-import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
-import { WorkTabProvider } from '@/components/work/WorkHeader/WorkTabContext';
+import { PostDocument } from '@/components/work/PostDocument';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
-import { PostDocument } from '@/components/work/PostDocument';
-import { handleFundraiseRedirect } from '@/utils/navigation';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 
 interface Props {
@@ -56,18 +51,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function QuestionPage({ params }: Props) {
   const resolvedParams = await params;
-  const id = resolvedParams.id;
+  const post = await getPost(resolvedParams.id);
 
-  // First fetch the post
-  const post = await getPost(id);
-
-  // Handle fundraise redirection
-  // handleFundraiseRedirect(post, resolvedParams.id, resolvedParams.slug);
-
-  // Then fetch metadata using unifiedDocumentId
   const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '');
-
-  // Fetch content if available
   const content = await getPostContent(post);
 
   if (!post) {
@@ -75,18 +61,14 @@ export default async function QuestionPage({ params }: Props) {
   }
 
   return (
-    <WorkTabProvider>
-      <PageLayout rightSidebar={<WorkRightSidebar work={post} metadata={metadata} />}>
-        <Suspense>
-          {content ? (
-            <PostDocument work={post} metadata={metadata} content={content} defaultTab="paper" />
-          ) : (
-            <WorkDocument work={post} metadata={metadata} />
-          )}
-          <SearchHistoryTracker work={post} />
-          <WorkDocumentTracker work={post} metadata={metadata} tab="paper" />
-        </Suspense>
-      </PageLayout>
-    </WorkTabProvider>
+    <>
+      {content ? (
+        <PostDocument work={post} metadata={metadata} content={content} />
+      ) : (
+        <WorkDocument work={post} metadata={metadata} />
+      )}
+      <SearchHistoryTracker work={post} />
+      <WorkDocumentTracker work={post} metadata={metadata} tab="paper" />
+    </>
   );
 }

@@ -1,12 +1,9 @@
-import { Suspense } from 'react';
 import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
 import { Work } from '@/types/work';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { PageLayout } from '@/app/layouts/PageLayout';
 import { PostDocument } from '@/components/work/PostDocument';
-import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { handlePostRedirect } from '@/utils/navigation';
@@ -57,7 +54,6 @@ export default async function PostReviewsPage({ params }: Props) {
   const resolvedParams = await params;
   const post = await getPost(resolvedParams.id);
 
-  // Handle all post redirects (questions redirect to conversation since they don't have reviews)
   handlePostRedirect(post, resolvedParams.id, resolvedParams.slug, 'conversation');
 
   const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '');
@@ -68,16 +64,10 @@ export default async function PostReviewsPage({ params }: Props) {
   }
 
   return (
-    <PageLayout rightSidebar={<WorkRightSidebar work={post} metadata={metadata} />}>
-      <Suspense>
-        {content ? (
-          <PostDocument work={post} metadata={metadata} content={content} defaultTab="reviews" />
-        ) : (
-          <PostDocument work={post} metadata={metadata} defaultTab="reviews" />
-        )}
-        <SearchHistoryTracker work={post} />
-        <WorkDocumentTracker work={post} metadata={metadata} tab="reviews" />
-      </Suspense>
-    </PageLayout>
+    <>
+      <PostDocument work={post} metadata={metadata} content={content} />
+      <SearchHistoryTracker work={post} />
+      <WorkDocumentTracker work={post} metadata={metadata} tab="reviews" />
+    </>
   );
 }

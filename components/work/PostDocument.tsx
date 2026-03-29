@@ -3,53 +3,30 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
-import { WorkLineItems } from './WorkLineItems';
-import { PageHeader } from '@/components/ui/PageHeader';
-import { WorkTabs, TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
-import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 import { QuestionEditModal } from '@/components/modals/QuestionEditModal';
 import TipTapRenderer from '@/components/Comment/lib/TipTapRenderer';
 import { htmlToTipTapJSON } from '@/components/Comment/lib/htmlToTipTap';
-import { buildWorkUrl } from '@/utils/url';
+import { useWorkTab } from './WorkHeader/WorkTabContext';
 
 interface PostDocumentProps {
   work: Work;
   metadata: WorkMetadata;
   content?: string;
-  defaultTab?: TabType;
 }
 
-export const PostDocument = ({
-  work,
-  metadata,
-  content,
-  defaultTab = 'paper',
-}: PostDocumentProps) => {
-  const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
+export const PostDocument = ({ work, metadata, content }: PostDocumentProps) => {
+  const { activeTab } = useWorkTab();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [parsedQuestionContent, setParsedQuestionContent] = useState<any>(null);
 
-  // Parse question content on client side
   useEffect(() => {
     if (work.postType === 'QUESTION' && work.previewContent) {
       setParsedQuestionContent(htmlToTipTapJSON(work.previewContent));
     }
   }, [work.postType, work.previewContent]);
-
-  // Handle tab change
-  const handleTabChange = (tab: TabType) => {
-    setActiveTab(tab);
-  };
-
-  // Handle edit mode toggle from WorkLineItems
-  const handleEditToggle = useCallback(() => {
-    setIsEditModalOpen(true);
-  }, []);
-
-  // Render tab content based on activeTab
 
   const renderTabContent = useMemo(() => {
     switch (activeTab) {
@@ -135,42 +112,8 @@ export const PostDocument = ({
 
   return (
     <div>
-      {/* Show on mobile only - desktop shows in right sidebar */}
-      <div className="lg:hidden mb-3">
-        <EarningOpportunityBanner work={work} metadata={metadata} />
-      </div>
-      {/* Title & Actions */}
-      {work.type === 'preprint' && (
-        <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
-          Preprint
-        </div>
-      )}
-      <PageHeader
-        title={work.title}
-        className="text-2xl md:!text-3xl mt-0"
-        hasBounty={metadata.openBounties > 0}
-        bountyUrl={buildWorkUrl({
-          id: work.id,
-          contentType: 'post',
-          slug: work.slug,
-          tab: 'bounties',
-        })}
-      />
-      <WorkLineItems work={work} metadata={metadata} onEditClick={handleEditToggle} />
-
-      {/* Tabs */}
-      <WorkTabs
-        work={work}
-        metadata={metadata}
-        defaultTab={defaultTab}
-        contentType="post"
-        onTabChange={handleTabChange}
-      />
-
-      {/* Tab Content */}
       {renderTabContent}
 
-      {/* Question Edit Modal */}
       <QuestionEditModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}

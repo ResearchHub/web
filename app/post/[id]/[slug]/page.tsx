@@ -1,16 +1,11 @@
-import { Suspense } from 'react';
 import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
 import { Work } from '@/types/work';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { PageLayout } from '@/app/layouts/PageLayout';
-import { WorkDocument } from '@/components/work/WorkDocument';
-import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
-import { WorkTabProvider } from '@/components/work/WorkHeader/WorkTabContext';
+import { PostDocument } from '@/components/work/PostDocument';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
-import { PostDocument } from '@/components/work/PostDocument';
 import { handlePostRedirect } from '@/utils/navigation';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 
@@ -37,9 +32,7 @@ async function getPostContent(work: Work): Promise<string | undefined> {
   if (!work.contentUrl) return undefined;
 
   try {
-    const postContent = await PostService.getContent(work.contentUrl);
-    console.log('postContent', postContent);
-    return postContent;
+    return await PostService.getContent(work.contentUrl);
   } catch (error) {
     console.error('Failed to fetch content:', error);
     return undefined;
@@ -60,16 +53,11 @@ export default async function PostPage({ params }: Props) {
   const resolvedParams = await params;
   const id = resolvedParams.id;
 
-  // First fetch the post
   const post = await getPost(id);
 
-  // Handle all post redirects (question and fundraise)
   handlePostRedirect(post, resolvedParams.id, resolvedParams.slug);
 
-  // Then fetch metadata using unifiedDocumentId
   const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '');
-
-  // Fetch content if available
   const content = await getPostContent(post);
 
   if (!post) {
@@ -77,18 +65,10 @@ export default async function PostPage({ params }: Props) {
   }
 
   return (
-    <WorkTabProvider>
-      <PageLayout rightSidebar={<WorkRightSidebar work={post} metadata={metadata} />}>
-        <Suspense>
-          {content ? (
-            <PostDocument work={post} metadata={metadata} content={content} defaultTab="paper" />
-          ) : (
-            <WorkDocument work={post} metadata={metadata} />
-          )}
-          <SearchHistoryTracker work={post} />
-          <WorkDocumentTracker work={post} metadata={metadata} tab="paper" />
-        </Suspense>
-      </PageLayout>
-    </WorkTabProvider>
+    <>
+      <PostDocument work={post} metadata={metadata} content={content} />
+      <SearchHistoryTracker work={post} />
+      <WorkDocumentTracker work={post} metadata={metadata} tab="paper" />
+    </>
   );
 }
