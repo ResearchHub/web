@@ -1,12 +1,18 @@
 'use client';
 
-import { FC, ReactNode } from 'react';
+import { FC, ReactNode, useState } from 'react';
 import { FlaggedContent } from '@/services/audit.service';
 import { Button } from '@/components/ui/Button';
-import { ChevronDown, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
+import { ChevronDown, RefreshCw, CheckCircle, Trash2, XCircle } from 'lucide-react';
 import { AuditItemCard } from './AuditItemCard';
 import { AuditItemSkeleton } from './AuditItemSkeleton';
+import { SelectionCheckbox } from './SelectionCheckbox';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
+import { useIsMobileTopNavHidden } from '@/contexts/ScrollContainerContext';
 import { ID } from '@/types/root';
+
+const STICKY_TOP_DEFAULT = '25px';
+const STICKY_TOP_NAV_HIDDEN = '-45px';
 
 interface AuditContentProps {
   entries: FlaggedContent[];
@@ -22,6 +28,15 @@ interface AuditContentProps {
   noEntriesElement?: ReactNode;
   error?: Error | null;
   view?: 'pending' | 'dismissed' | 'removed';
+  selectedIds?: ID[];
+  onItemSelect?: (itemId: ID) => void;
+  onToggleSelectAll?: () => void;
+  onClearSelection?: () => void;
+  onBulkAction?: (
+    action: 'dismiss' | 'remove' | 'removePdf',
+    flagIds?: ID[],
+    options?: { verdictChoice?: string; sendEmail?: boolean }
+  ) => Promise<boolean>;
 }
 
 export const AuditContent: FC<AuditContentProps> = ({
@@ -38,7 +53,21 @@ export const AuditContent: FC<AuditContentProps> = ({
   noEntriesElement,
   error,
   view,
+  selectedIds = [],
+  onItemSelect,
+  onToggleSelectAll,
+  onClearSelection,
+  onBulkAction,
 }) => {
+  const [showBulkRemoveConfirm, setShowBulkRemoveConfirm] = useState(false);
+  const isMobileTopNavHidden = useIsMobileTopNavHidden();
+
+  const isPending = view === 'pending';
+  const selectionCount = selectedIds.length;
+  const totalCount = entries.length;
+  const isAllSelected = totalCount > 0 && selectionCount === totalCount;
+  const isSomeSelected = selectionCount > 0 && selectionCount < totalCount;
+
   const handleAction = async (action: 'dismiss' | 'remove', flagId: ID) => {
     switch (action) {
       case 'dismiss':
@@ -50,8 +79,17 @@ export const AuditContent: FC<AuditContentProps> = ({
     }
   };
 
+  const handleBulkDismiss = async () => {
+    await onBulkAction?.('dismiss');
+  };
+
+  const handleBulkRemoveConfirmed = async () => {
+    await onBulkAction?.('remove');
+  };
+
   const renderAuditEntry = (entry: FlaggedContent, index: number) => {
     const spacingClass = index !== 0 ? 'mt-6' : '';
+    const isSelected = selectedIds.includes(entry.id);
 
     return (
       <div key={entry.id} className={spacingClass}>
@@ -60,6 +98,8 @@ export const AuditContent: FC<AuditContentProps> = ({
           onAction={(action) => handleAction(action, entry.id)}
           onRefresh={onRefresh}
           view={view}
+          isSelected={isPending ? isSelected : undefined}
+          onSelect={isPending && onItemSelect ? () => onItemSelect(entry.id) : undefined}
         />
       </div>
     );
@@ -88,6 +128,63 @@ export const AuditContent: FC<AuditContentProps> = ({
 
       {/* Filters */}
       {filters && <div className="mb-6">{filters}</div>}
+
+      {/* Bulk action bar — sticky, shown when in pending view and entries exist */}
+      {isPending && totalCount > 0 && !isLoading && (
+        <div
+          style={{ top: isMobileTopNavHidden ? STICKY_TOP_NAV_HIDDEN : STICKY_TOP_DEFAULT }}
+          className="sticky tablet:!top-[25px] z-10 mb-4 flex flex-wrap items-center gap-y-2 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 transition-[top] duration-300"
+        >
+          <div className="flex items-center gap-3 mr-auto">
+            {onToggleSelectAll && (
+              <div className="w-8 flex-shrink-0 flex justify-center">
+                <SelectionCheckbox
+                  checked={isAllSelected}
+                  indeterminate={isSomeSelected}
+                  onChange={onToggleSelectAll}
+                  ariaLabel={isAllSelected ? 'Deselect all' : 'Select all'}
+                />
+              </div>
+            )}
+            <span className="text-sm text-gray-700">
+              {selectionCount === 0
+                ? `Select all (${totalCount})`
+                : `${selectionCount} of ${totalCount} selected`}
+            </span>
+          </div>
+
+          {selectionCount > 0 && (
+            <div className="flex items-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClearSelection}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                Clear
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBulkDismiss}
+                className="text-green-600 hover:text-green-700 hover:bg-green-50"
+              >
+                <CheckCircle className="h-4 w-4 mr-1" />
+                Dismiss ({selectionCount})
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowBulkRemoveConfirm(true)}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Remove ({selectionCount})
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Content */}
       <div className="space-y-6">
@@ -145,6 +242,17 @@ export const AuditContent: FC<AuditContentProps> = ({
           </Button>
         </div>
       )}
+
+      {/* Bulk remove confirmation modal */}
+      <ConfirmModal
+        isOpen={showBulkRemoveConfirm}
+        onClose={() => setShowBulkRemoveConfirm(false)}
+        onConfirm={handleBulkRemoveConfirmed}
+        title="Remove Selected Content"
+        message={`Are you sure you want to remove ${selectionCount} flagged item${selectionCount === 1 ? '' : 's'}? This action cannot be undone.`}
+        confirmText={`Remove ${selectionCount} item${selectionCount === 1 ? '' : 's'}`}
+        confirmButtonClass="bg-red-600 hover:bg-red-700"
+      />
     </div>
   );
 };

@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { TAB_EXPERT_RESULTS, TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
 import { Loader2, RefreshCw, FileText, Download, Mail } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
@@ -11,13 +12,10 @@ import { Tabs } from '@/components/ui/Tabs';
 import { useExpertSearchDetail } from '@/hooks/useExpertFinder';
 import { SearchDetailHeader } from './SearchDetailHeader';
 import { ExpertResultCard } from './ExpertResultCard';
-import { GenerateEmailModal } from './GenerateEmailModal';
+import { GenerateEmailModal, type GenerateEmailConfirmPayload } from './GenerateEmailModal';
 import { GenerateEmailProgressModal } from './GenerateEmailProgressModal';
 import { GeneratedEmailsList } from '@/app/expert-finder/library/[searchId]/outreach/components/GeneratedEmailsList';
 import type { ExpertResult } from '@/types/expertFinder';
-
-const TAB_EXPERT_RESULTS = 'expert-results';
-const TAB_OUTREACH = 'outreach';
 
 export interface SearchDetailContentProps {
   searchId: string;
@@ -34,8 +32,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [generateExperts, setGenerateExperts] = useState<ExpertResult[]>([]);
-  const [generateTemplate, setGenerateTemplate] = useState<string>('collaboration');
-  const [generateTemplateId, setGenerateTemplateId] = useState<number | null>(null);
+  const [generatePayload, setGeneratePayload] = useState<GenerateEmailConfirmPayload | null>(null);
 
   const toggleSelection = useCallback((index: number) => {
     setSelectedIndices((prev) => {
@@ -51,16 +48,27 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     setShowGenerateModal(true);
   }, []);
 
-  const handleGenerateConfirm = useCallback((template: string, templateId: number | null) => {
-    setGenerateTemplate(template);
-    setGenerateTemplateId(templateId);
+  const handleGenerateConfirm = useCallback((payload: GenerateEmailConfirmPayload) => {
+    setGeneratePayload(payload);
     setShowGenerateModal(false);
     setShowProgressModal(true);
+  }, []);
+
+  const handleProgressClose = useCallback(() => {
+    setShowProgressModal(false);
+    setGeneratePayload(null);
   }, []);
 
   const handleProgressDone = useCallback(() => {
     setSelectedIndices(new Set());
   }, []);
+
+  const expertResultsTabHref = pathname ? `${pathname}?tab=${TAB_EXPERT_RESULTS}` : undefined;
+  const outreachTabHref = pathname ? `${pathname}?tab=${TAB_OUTREACH}` : undefined;
+
+  const isInProgress =
+    searchDetail != null &&
+    (searchDetail.status === 'pending' || searchDetail.status === 'processing');
 
   if (isLoading && !searchDetail) {
     return (
@@ -93,8 +101,6 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   if (!searchDetail) {
     return null;
   }
-
-  const isInProgress = searchDetail.status === 'pending' || searchDetail.status === 'processing';
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-6">
@@ -171,12 +177,12 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
               {
                 id: TAB_EXPERT_RESULTS,
                 label: 'Expert results',
-                href: pathname ? `${pathname}?tab=${TAB_EXPERT_RESULTS}` : undefined,
+                href: expertResultsTabHref,
               },
               {
                 id: TAB_OUTREACH,
                 label: 'Outreach',
-                href: pathname ? `${pathname}?tab=${TAB_OUTREACH}` : undefined,
+                href: outreachTabHref,
               },
             ]}
             activeTab={tab}
@@ -205,49 +211,46 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                 <h2 className="text-lg font-semibold text-gray-900 mb-[2px] mt-[2px]">
                   Results ({searchDetail.expertResults.length})
                 </h2>
-                <div className="flex items-center gap-2">
-                  {selectedIndices.size > 0 && (
-                    <>
-                      {selectedIndices.size < searchDetail.expertResults.length && (
-                        <Button
-                          variant="outlined"
-                          size="sm"
-                          onClick={() =>
-                            setSelectedIndices(new Set(searchDetail.expertResults.map((_, i) => i)))
-                          }
-                        >
-                          Select all
-                        </Button>
-                      )}
-                      {selectedIndices.size === searchDetail.expertResults.length && (
-                        <Button
-                          variant="outlined"
-                          size="sm"
-                          onClick={() => setSelectedIndices(new Set())}
-                        >
-                          Unselect all
-                        </Button>
-                      )}
-                      <span className="text-sm text-gray-600">{selectedIndices.size} selected</span>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => {
-                          const experts = Array.from(selectedIndices).map(
-                            (i) => searchDetail.expertResults[i]
-                          );
-                          openGenerateForExperts(experts);
-                        }}
-                      >
-                        <Mail className="h-4 w-4" aria-hidden />
-                        Generate emails
-                      </Button>
-                    </>
+                <div className="flex flex-wrap items-center gap-2">
+                  {selectedIndices.size === searchDetail.expertResults.length ? (
+                    <Button
+                      variant="outlined"
+                      size="sm"
+                      onClick={() => setSelectedIndices(new Set())}
+                    >
+                      Unselect all
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      size="sm"
+                      onClick={() =>
+                        setSelectedIndices(new Set(searchDetail.expertResults.map((_, i) => i)))
+                      }
+                      disabled={searchDetail.expertResults.length === 0}
+                    >
+                      Select all
+                    </Button>
                   )}
+                  <span className="text-sm text-gray-600">{selectedIndices.size} selected</span>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => {
+                      const experts = Array.from(selectedIndices).map(
+                        (i) => searchDetail.expertResults[i]
+                      );
+                      openGenerateForExperts(experts);
+                    }}
+                    disabled={selectedIndices.size === 0}
+                  >
+                    <Mail className="h-4 w-4" aria-hidden />
+                    Generate emails
+                  </Button>
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:!grid-cols-2 md:!grid-cols-3">
                 {searchDetail.expertResults.map((expert, index) => (
                   <ExpertResultCard
                     key={`expert-${index}`}
@@ -272,17 +275,14 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
         isOpen={showGenerateModal}
         onClose={() => setShowGenerateModal(false)}
         experts={generateExperts}
-        searchId={searchId}
-        searchName={searchDetail?.name}
         onConfirm={handleGenerateConfirm}
       />
       <GenerateEmailProgressModal
         isOpen={showProgressModal}
-        onClose={() => setShowProgressModal(false)}
+        onClose={handleProgressClose}
         experts={generateExperts}
         searchId={searchId}
-        template={generateTemplate}
-        templateId={generateTemplateId}
+        generation={generatePayload}
         onDone={handleProgressDone}
       />
 

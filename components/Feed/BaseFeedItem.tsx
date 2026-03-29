@@ -36,6 +36,7 @@ export interface BaseFeedItemProps {
   onFeedItemClick?: () => void;
   showPeerReviews?: boolean;
   showBountyInfo?: boolean;
+  hideBountyActions?: boolean;
   hideReportButton?: boolean;
   badges?: ReactNode;
   cardImage?: ReactNode;
@@ -298,6 +299,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
   onFeedItemClick,
   showPeerReviews = true,
   showBountyInfo,
+  hideBountyActions = false,
   hideReportButton = false,
   badges,
   cardImage,
@@ -474,7 +476,7 @@ export const BaseFeedItem: FC<BaseFeedItemProps> = ({
               }
               showPeerReviews={showPeerReviews}
               onFeedItemClick={onFeedItemClick}
-              bounties={showBountyInfo ? undefined : content.bounties}
+              bounties={showBountyInfo || hideBountyActions ? undefined : content.bounties}
               hideReportButton={hideReportButton}
               menuItems={menuItems}
               hideCommentButton={(entry.metrics?.comments ?? 0) === 0}

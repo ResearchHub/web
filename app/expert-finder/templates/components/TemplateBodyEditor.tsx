@@ -37,11 +37,6 @@ const TEMPLATE_PLACEHOLDER_GROUPS = [
     ],
   },
   {
-    label: 'RFP',
-    tone: 'amber',
-    tags: ['{{rfp.title}}', '{{rfp.deadline}}', '{{rfp.blurb}}', '{{rfp.amount}}', '{{rfp.url}}'],
-  },
-  {
     label: 'Expert',
     tone: 'emerald',
     tags: [
@@ -50,6 +45,25 @@ const TEMPLATE_PLACEHOLDER_GROUPS = [
       '{{expert.affiliation}}',
       '{{expert.email}}',
       '{{expert.expertise}}',
+    ],
+  },
+  {
+    label: 'RFP',
+    tone: 'amber',
+    tags: ['{{rfp.title}}', '{{rfp.deadline}}', '{{rfp.blurb}}', '{{rfp.amount}}', '{{rfp.url}}'],
+  },
+  {
+    label: 'Proposal',
+    tone: 'purple',
+    tags: [
+      '{{proposal.title}}',
+      '{{proposal.url}}',
+      '{{proposal.created_by_name}}',
+      '{{proposal.goal_amount}}',
+      '{{proposal.amount_raised}}',
+      '{{proposal.contributor_count}}',
+      '{{proposal.deadline}}',
+      '{{proposal.blurb}}',
     ],
   },
 ] as const;
@@ -197,7 +211,7 @@ export function TemplateVariableEditor({
     editable: !disabled,
     editorProps: {
       attributes: {
-        class: `${minHeightClassName} !px-3 !py-1.5 text-sm leading-5 text-gray-900 whitespace-pre-wrap focus:outline-none [&>p]:my-0`,
+        class: `${minHeightClassName} !px-3 !py-1.5 text-sm leading-5 text-gray-900 whitespace-pre-wrap focus:outline-none [&>p]:!my-0`,
       },
       handlePaste(view, event) {
         const text = event.clipboardData?.getData('text/plain');
@@ -288,6 +302,8 @@ export function TemplateVariableEditor({
         className={cn(
           'rounded-lg border border-gray-200 bg-white transition-all focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/20',
           '[&_.ProseMirror]:!px-3 [&_.ProseMirror]:!py-1.5',
+          /* Block editor loads global @/components/Editor/styles (`.ProseMirror p` / `> p` margins); win over those when both apply */
+          '[&_.ProseMirror_p]:!my-0',
           disabled && 'bg-gray-50 opacity-70',
           '[&_.is-editor-empty:first-child::before]:pointer-events-none',
           '[&_.is-editor-empty:first-child::before]:float-left',
@@ -309,6 +325,9 @@ export function TemplateVariableEditor({
           '[&_.template-placeholder-tag--amber]:border-amber-200',
           '[&_.template-placeholder-tag--amber]:bg-amber-50',
           '[&_.template-placeholder-tag--amber]:text-amber-700',
+          '[&_.template-placeholder-tag--purple]:border-purple-200',
+          '[&_.template-placeholder-tag--purple]:bg-purple-50',
+          '[&_.template-placeholder-tag--purple]:text-purple-700',
           '[&_.template-placeholder-tag--generic]:border-gray-200',
           '[&_.template-placeholder-tag--generic]:bg-gray-100',
           '[&_.template-placeholder-tag--generic]:text-gray-700',
@@ -432,6 +451,8 @@ export function TemplateVariableEditor({
                             'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100',
                           group.tone === 'amber' &&
                             'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100',
+                          group.tone === 'purple' &&
+                            'border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100',
                           group.tone === 'emerald' &&
                             'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                         )}

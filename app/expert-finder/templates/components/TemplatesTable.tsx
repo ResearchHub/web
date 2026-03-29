@@ -3,36 +3,35 @@
 import Link from 'next/link';
 import { TableContainer, SortableColumn } from '@/components/ui/Table/TableContainer';
 import { formatTimestamp } from '@/utils/date';
+import { stripHtml } from '@/utils/stringUtils';
 import type { SavedTemplate } from '@/types/expertFinder';
 
 const TEMPLATE_DETAIL_PATH = '/expert-finder/templates';
+const DETAIL_MAX_CHARS = 80;
 
-function TemplateContactDetails({ template }: { template: SavedTemplate }) {
-  const name = template.contactName?.trim();
-  const title = template.contactTitle?.trim();
-  const institution = template.contactInstitution?.trim();
-  const email = template.contactEmail?.trim();
-
-  const nameTitleLine = [name, title].filter(Boolean).join(', ') || '—';
-  const institutionLine = institution || '—';
+function TemplateDetailsCell({ template }: { template: SavedTemplate }) {
+  const textClassName = 'text-[10px] text-gray-600 truncate block max-w-[200px]';
+  const subject = template.emailSubject?.trim();
+  const bodySnippet = stripHtml(template.emailBody ?? '');
+  const primary = subject || bodySnippet;
+  const display =
+    primary.length > DETAIL_MAX_CHARS ? `${primary.slice(0, DETAIL_MAX_CHARS)}…` : primary || '—';
+  const title = subject
+    ? `${subject}${bodySnippet ? ` — ${bodySnippet}` : ''}`
+    : bodySnippet || undefined;
 
   return (
-    <div className="flex flex-col gap-0.5 text-sm">
-      <span className="font-medium text-gray-900">{nameTitleLine}</span>
-      <span className="text-gray-600">{institutionLine}</span>
-      {email ? (
-        <span className="text-gray-600 truncate max-w-full">{email}</span>
-      ) : (
-        <span className="text-gray-500">—</span>
-      )}
-    </div>
+    <span className={textClassName} title={title}>
+      {display}
+    </span>
   );
 }
 
 const COLUMNS: SortableColumn[] = [
   { key: 'name', label: 'Name', sortable: false },
-  { key: 'contact', label: 'Contact', sortable: false },
-  { key: 'createdDate', label: 'Created', sortable: false },
+  { key: 'details', label: 'Preview', sortable: false },
+  { key: 'createdBy', label: 'Created By', sortable: false },
+  { key: 'createdDate', label: 'Created Date', sortable: false },
   { key: 'view', label: '', sortable: false },
 ];
 
@@ -45,7 +44,8 @@ export function TemplatesTable({ templates, onRowClick }: TemplatesTableProps) {
   const data = templates.map((template) => ({
     id: template.id,
     name: template.name || '—',
-    contact: <TemplateContactDetails template={template} />,
+    details: <TemplateDetailsCell template={template} />,
+    createdBy: template.createdBy?.author?.fullName ?? '—',
     createdDate: formatTimestamp(template.createdDate, false),
     view: (
       <Link

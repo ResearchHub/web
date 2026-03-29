@@ -149,7 +149,7 @@ export const ActivityCard: FC<ActivityCardProps> = ({ entry }) => {
   const contributionAmount = getContributionAmount(entry);
 
   const titleEl = href ? (
-    <Link href={href} className="text-indigo-600 hover:text-indigo-800">
+    <Link href={href} className="text-primary-600 hover:text-primary-800">
       {title}
     </Link>
   ) : (

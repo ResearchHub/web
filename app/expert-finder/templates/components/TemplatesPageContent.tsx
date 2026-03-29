@@ -15,20 +15,19 @@ import { TemplateMobileCard } from './TemplateMobileCard';
 import { TableSkeleton } from '@/components/ui/Table/TableSkeleton';
 import { ListCardSkeleton } from '@/components/ui/ListCardSkeleton';
 import type { SavedTemplate } from '@/types/expertFinder';
-
-const PAGE_SIZE = 10;
+import { EXPERT_FINDER_LIST_PAGE_SIZE } from '@/app/expert-finder/lib/paginationParams';
 
 export function TemplatesPageContent() {
   const router = useRouter();
   const { mdAndUp } = useScreenSize();
   const [page, setPage] = useState(1);
-  const offset = (page - 1) * PAGE_SIZE;
+  const offset = (page - 1) * EXPERT_FINDER_LIST_PAGE_SIZE;
   const [{ templates, pagination, isLoading, error }] = useSavedTemplates({
-    limit: PAGE_SIZE,
+    limit: EXPERT_FINDER_LIST_PAGE_SIZE,
     offset,
   });
 
-  const totalPages = Math.max(1, Math.ceil(pagination.total / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(pagination.total / EXPERT_FINDER_LIST_PAGE_SIZE));
   const hasNextPage = page < totalPages;
   const hasPrevPage = page > 1;
 
@@ -41,9 +40,12 @@ export function TemplatesPageContent() {
       return (
         <div className="p-4">
           {mdAndUp ? (
-            <TableSkeleton columns={TEMPLATES_TABLE_COLUMNS} rowCount={PAGE_SIZE} />
+            <TableSkeleton
+              columns={TEMPLATES_TABLE_COLUMNS}
+              rowCount={EXPERT_FINDER_LIST_PAGE_SIZE}
+            />
           ) : (
-            <ListCardSkeleton rowCount={PAGE_SIZE} />
+            <ListCardSkeleton rowCount={EXPERT_FINDER_LIST_PAGE_SIZE} />
           )}
         </div>
       );
@@ -52,8 +54,7 @@ export function TemplatesPageContent() {
         <div className="px-6 py-12 text-center">
           <p className="text-gray-600 mb-2">No templates yet</p>
           <p className="text-sm text-gray-500 mb-4">
-            Create a template to save your contact details and outreach context for generating
-            emails.
+            Create a reusable email template with subject and body for expert outreach.
           </p>
           <Link href="/expert-finder/templates/new">
             <Button variant="default" size="sm" className="gap-2">
@@ -118,7 +119,8 @@ export function TemplatesPageContent() {
         <div>
           <Breadcrumbs items={[{ label: 'Templates' }]} className="mb-2" />
           <p className="text-sm text-gray-600">
-            Save your contact details and outreach context to reuse when generating emails.
+            Save subject and body templates with placeholders to reuse when generating outreach
+            emails.
           </p>
         </div>
         {templates.length > 0 && (

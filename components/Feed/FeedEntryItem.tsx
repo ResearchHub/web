@@ -5,11 +5,9 @@ import { useInView } from 'react-intersection-observer';
 import {
   FeedCommentContent,
   FeedEntry,
-  FeedBountyContent,
   FeedPostContent,
   FeedPaperContent,
   FeedGrantContent,
-  createFeedEntryFromWork,
 } from '@/types/feed';
 import { FeedItemFundraise } from './items/FeedItemFundraise';
 import { FeedItemPaper } from './items/FeedItemPaper';
@@ -20,6 +18,7 @@ import { FeedItemGrantWithApplicants } from './items/FeedItemGrantWithApplicants
 import { useFeedItemAnalyticsTracking } from '@/hooks/useFeedItemAnalyticsTracking';
 import { getUnifiedDocumentId } from '@/types/analytics';
 import { FeedItemBountyComment } from './items/FeedItemBountyComment';
+import { FeedItemBounty } from './items/FeedItemBounty';
 import { buildWorkUrl } from '@/utils/url';
 import { ContentType } from '@/types/work';
 
@@ -200,138 +199,127 @@ export const FeedEntryItem: FC<FeedEntryItemProps> = ({
 
   let content = null;
 
+  const openBounties = entry.content.bounties?.filter((b) => b.status === 'OPEN') ?? [];
+  const shouldRenderAsBountyCard = showBountyInfo && openBounties.length > 0;
+
   try {
     // Use the contentType field on the FeedEntry object to determine the type of content
-    switch (entry.contentType) {
-      case 'POST':
-        content = (
-          <FeedItemPost
-            entry={entry}
-            showHeader={showPostHeaders}
-            href={href}
-            showActions={!hideActions}
-            maxLength={maxLength}
-            onFeedItemClick={handleFeedItemClick}
-            onAbstractExpanded={handleAbstractExpanded}
-            highlights={highlights}
-            showBountyInfo={showBountyInfo}
-          />
-        );
-        break;
-
-      case 'PREREGISTRATION':
-        content = (
-          <FeedItemFundraise
-            entry={entry}
-            href={href}
-            showHeader={showFundraiseHeaders}
-            showActions={!hideActions}
-            maxLength={maxLength}
-            onFeedItemClick={handleFeedItemClick}
-            showBountyInfo={showBountyInfo}
-          />
-        );
-        break;
-
-      case 'PAPER':
-        content = (
-          <FeedItemPaper
-            entry={entry}
-            href={href}
-            showActions={!hideActions}
-            maxLength={maxLength}
-            onFeedItemClick={handleFeedItemClick}
-            onAbstractExpanded={handleAbstractExpanded}
-            highlights={highlights}
-            showBountyInfo={showBountyInfo}
-            abstractCollapsedByDefault={abstractCollapsedByDefault}
-          />
-        );
-        break;
-
-      case 'BOUNTY': {
-        const bountyEntry = entry.content as FeedBountyContent;
-
-        // Determine which component to render based on relatedWork
-        const relatedWorkEntry = entry.relatedWork
-          ? createFeedEntryFromWork(entry.relatedWork, entry)
-          : null;
-        const workContentType =
-          entry.relatedWork?.contentType || bountyEntry.relatedDocumentContentType;
-
-        if (shouldRenderBountyAsComment) {
+    // When showBountyInfo is set and the entry has open bounties, render as a uniform bounty card
+    if (
+      shouldRenderAsBountyCard &&
+      (entry.contentType === 'POST' ||
+        entry.contentType === 'PAPER' ||
+        entry.contentType === 'PREREGISTRATION')
+    ) {
+      content = (
+        <FeedItemBounty
+          entry={entry}
+          href={href}
+          showActions={!hideActions}
+          maxLength={maxLength}
+          onFeedItemClick={handleFeedItemClick}
+        />
+      );
+    } else
+      switch (entry.contentType) {
+        case 'POST':
           content = (
-            <FeedItemBountyComment
+            <FeedItemPost
               entry={entry}
-              relatedDocumentId={entry.relatedWork?.id}
+              showHeader={showPostHeaders}
               href={href}
-              showContributeButton={false}
-              showFooter={showBountyFooter}
-              showSupportAndCTAButtons={false}
-              showDeadline={false}
+              showActions={!hideActions}
+              maxLength={maxLength}
+              onFeedItemClick={handleFeedItemClick}
+              onAbstractExpanded={handleAbstractExpanded}
+              highlights={highlights}
+              showBountyInfo={showBountyInfo}
+            />
+          );
+          break;
+
+        case 'PREREGISTRATION':
+          content = (
+            <FeedItemFundraise
+              entry={entry}
+              href={href}
+              showHeader={showFundraiseHeaders}
+              showActions={!hideActions}
+              maxLength={maxLength}
+              onFeedItemClick={handleFeedItemClick}
+              showBountyInfo={showBountyInfo}
+            />
+          );
+          break;
+
+        case 'PAPER':
+          content = (
+            <FeedItemPaper
+              entry={entry}
+              href={href}
+              showActions={!hideActions}
+              maxLength={maxLength}
+              onFeedItemClick={handleFeedItemClick}
+              onAbstractExpanded={handleAbstractExpanded}
+              highlights={highlights}
+              showBountyInfo={showBountyInfo}
+              abstractCollapsedByDefault={abstractCollapsedByDefault}
+            />
+          );
+          break;
+
+        case 'BOUNTY': {
+          if (shouldRenderBountyAsComment) {
+            content = (
+              <FeedItemBountyComment
+                entry={entry}
+                relatedDocumentId={entry.relatedWork?.id}
+                href={href}
+                showContributeButton={false}
+                showFooter={showBountyFooter}
+                showSupportAndCTAButtons={false}
+                showDeadline={false}
+                maxLength={maxLength}
+                onFeedItemClick={handleFeedItemClick}
+              />
+            );
+          } else {
+            content = (
+              <FeedItemBounty
+                entry={entry}
+                href={href}
+                showActions={showBountyFooter}
+                maxLength={maxLength}
+                onFeedItemClick={handleFeedItemClick}
+              />
+            );
+          }
+          break;
+        }
+
+        case 'COMMENT':
+          // Use FeedItemComment for comment entries
+          content = (
+            <FeedItemComment
+              showReadMoreCTA={showReadMoreCTA}
+              entry={entry}
+              href={href}
+              showCreatorActions={true}
+              workContentType={entry.relatedWork?.contentType}
+              hideActions={hideActions}
               maxLength={maxLength}
               onFeedItemClick={handleFeedItemClick}
             />
           );
-        } else {
-          content = (
-            <div className="space-y-3">
-              {/* Render Post or Paper based on relatedWork */}
-              {relatedWorkEntry &&
-                (workContentType === 'paper' ? (
-                  <FeedItemPaper
-                    entry={relatedWorkEntry}
-                    href={generateHref(relatedWorkEntry)}
-                    showActions={showBountyFooter}
-                    maxLength={maxLength}
-                    onFeedItemClick={handleFeedItemClick}
-                    onAbstractExpanded={handleAbstractExpanded}
-                    highlights={highlights}
-                    showBountyInfo={showBountyInfo}
-                    abstractCollapsedByDefault={abstractCollapsedByDefault}
-                  />
-                ) : (
-                  <FeedItemPost
-                    entry={relatedWorkEntry}
-                    showHeader={showPostHeaders}
-                    href={generateHref(relatedWorkEntry)}
-                    showActions={showBountyFooter}
-                    maxLength={maxLength}
-                    onFeedItemClick={handleFeedItemClick}
-                    onAbstractExpanded={handleAbstractExpanded}
-                    highlights={highlights}
-                    showBountyInfo={showBountyInfo}
-                  />
-                ))}
-            </div>
-          );
-        }
-        break;
+          break;
+
+        case 'GRANT':
+          content = <FeedItemGrantWithApplicants entry={entry} />;
+          break;
+
+        default:
+          throw new Error(`Unsupported content type: ${entry.contentType}`);
       }
-
-      case 'COMMENT':
-        // Use FeedItemComment for comment entries
-        content = (
-          <FeedItemComment
-            showReadMoreCTA={showReadMoreCTA}
-            entry={entry}
-            href={href}
-            showCreatorActions={true}
-            workContentType={entry.relatedWork?.contentType}
-            hideActions={hideActions}
-            maxLength={maxLength}
-            onFeedItemClick={handleFeedItemClick}
-          />
-        );
-        break;
-
-      case 'GRANT':
-        content = <FeedItemGrantWithApplicants entry={entry} />;
-        break;
-
-      default:
-        throw new Error(`Unsupported content type: ${entry.contentType}`);
-    }
   } catch (error) {}
 
   return (

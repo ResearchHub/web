@@ -2,7 +2,7 @@
 
 import { FC, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { CheckCircle, XCircle, Ban } from 'lucide-react';
+import { CheckCircle, Trash2, Ban } from 'lucide-react';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { UserModerationService } from '@/services/user-moderation.service';
 import { cn } from '@/utils/styles';
@@ -49,7 +49,7 @@ export const ModerationActions: FC<ModerationActionsProps> = ({
 
   return (
     <>
-      <div className={cn('flex items-center space-x-2', className)}>
+      <div className={cn('flex flex-wrap items-center gap-x-1 gap-y-1', className)}>
         <Button
           variant="ghost"
           size="sm"
@@ -66,7 +66,7 @@ export const ModerationActions: FC<ModerationActionsProps> = ({
           onClick={onRemove}
           className="text-red-600 hover:text-red-700 hover:bg-red-50"
         >
-          <XCircle className="h-4 w-4 mr-1" />
+          <Trash2 className="h-4 w-4 mr-1" />
           Remove
         </Button>
 

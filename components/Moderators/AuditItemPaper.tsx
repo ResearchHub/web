@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
@@ -19,6 +19,7 @@ interface AuditItemPaperProps {
   readonly onAction: (action: 'dismiss' | 'remove') => void;
   readonly onRefresh?: () => void;
   readonly view?: 'pending' | 'dismissed' | 'removed';
+  readonly checkbox?: ReactNode;
 }
 
 export const AuditItemPaper: FC<AuditItemPaperProps> = ({
@@ -26,6 +27,7 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({
   onAction,
   onRefresh,
   view = 'pending',
+  checkbox,
 }) => {
   const userInfo = getAuditUserInfo(entry);
   const verdict = entry.verdict;
@@ -72,6 +74,13 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
+      <div className="flex items-start gap-3 mb-3">
+        {checkbox}
+        <div className="flex-1 min-w-0">
+          <ModerationMetadata entry={entry} />
+        </div>
+      </div>
+
       {/* User and unified action */}
       <div className="flex items-center space-x-3 mb-3">
         <Avatar src={userInfo.avatar} alt={userInfo.name} size="sm" authorId={userInfo.authorId} />
@@ -120,9 +129,6 @@ export const AuditItemPaper: FC<AuditItemPaperProps> = ({
           )}
         </h3>
       </div>
-
-      {/* Moderation metadata */}
-      <ModerationMetadata entry={entry} />
 
       {/* Paper abstract */}
       <div className="mb-4 p-3 bg-gray-50 rounded border-l-2 border-blue-300">

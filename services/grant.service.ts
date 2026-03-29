@@ -88,6 +88,22 @@ export class GrantService {
     }
   }
 
+  static async getById(
+    id: number | string
+  ): Promise<{ id: number; title: string; shortTitle?: string } | null> {
+    try {
+      const response = await ApiClient.get<any>(`${this.BASE_PATH}/${id}/`);
+      return {
+        id: response.id,
+        title: response.title || response.short_title || '',
+        shortTitle: response.short_title,
+      };
+    } catch (error) {
+      console.error('Error fetching grant:', error);
+      return null;
+    }
+  }
+
   static async getAvailableFunding(): Promise<AvailableFunding> {
     try {
       const response = await ApiClient.get<AvailableFundingResponse>(

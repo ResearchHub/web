@@ -6,7 +6,6 @@ import { AuditContent } from '@/components/Moderators/AuditContent';
 import { AuditTabs } from '@/components/Moderators/AuditTabs';
 import { Button } from '@/components/ui/Button';
 import { RefreshCw } from 'lucide-react';
-import { ID } from '@/types/root';
 
 const getViewFromStatus = (status: AuditStatus): 'pending' | 'dismissed' | 'removed' => {
   if (status === 'pending') return 'pending';
@@ -28,6 +27,11 @@ export default function AuditPage() {
     refresh,
     removeFlaggedContent,
     dismissFlaggedContent,
+    selectedIds,
+    handleItemSelect,
+    toggleSelectAll,
+    clearSelection,
+    handleBulkAction,
   } = useAudit({
     status: activeStatus,
   });
@@ -41,20 +45,8 @@ export default function AuditPage() {
     }
   };
 
-  const handleDismiss = async (flagIds: ID[]) => {
-    return await dismissFlaggedContent(flagIds);
-  };
-
-  const handleRemove = async (flagIds: ID[]) => {
-    return await removeFlaggedContent(flagIds);
-  };
-
-  const handleStatusChange = (status: AuditStatus) => {
-    setActiveStatus(status);
-  };
-
   return (
-    <div className="h-full flex flex-col  p-4">
+    <div className="h-full flex flex-col p-4">
       {/* Header */}
       <div className="bg-white">
         <div className="flex items-center justify-between mb-4">
@@ -83,14 +75,14 @@ export default function AuditPage() {
         <div className="flex items-center justify-between border-b border-gray-200 mb-6">
           <AuditTabs
             activeStatus={activeStatus}
-            onStatusChange={handleStatusChange}
+            onStatusChange={setActiveStatus}
             loading={isLoading || isRefreshing || isLoadingMore}
           />
         </div>
       </div>
 
       {/* Main content area with audit feed */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1">
         <AuditContent
           entries={entries}
           isLoading={isLoading}
@@ -98,10 +90,15 @@ export default function AuditPage() {
           hasMore={hasMore}
           error={error}
           loadMore={loadMore}
-          onDismiss={handleDismiss}
-          onRemove={handleRemove}
+          onDismiss={dismissFlaggedContent}
+          onRemove={removeFlaggedContent}
           onRefresh={refresh}
           view={getViewFromStatus(activeStatus)}
+          selectedIds={selectedIds}
+          onItemSelect={handleItemSelect}
+          onToggleSelectAll={toggleSelectAll}
+          onClearSelection={clearSelection}
+          onBulkAction={handleBulkAction}
         />
       </div>
     </div>
