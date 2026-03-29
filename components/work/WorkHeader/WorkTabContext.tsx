@@ -8,12 +8,16 @@ interface WorkTabContextValue {
   setActiveTab: (tab: TabType) => void;
 }
 
+const NOOP_TAB_CONTEXT: WorkTabContextValue = {
+  activeTab: 'paper',
+  setActiveTab: () => {},
+};
+
 const WorkTabContext = createContext<WorkTabContextValue | null>(null);
 
 export function useWorkTab() {
   const ctx = useContext(WorkTabContext);
-  if (!ctx) throw new Error('useWorkTab must be used within WorkTabProvider');
-  return ctx;
+  return ctx ?? NOOP_TAB_CONTEXT;
 }
 
 export function WorkTabProvider({

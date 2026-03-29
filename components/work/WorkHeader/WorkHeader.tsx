@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -33,6 +33,17 @@ interface WorkHeaderProps {
   contentType?: 'paper' | 'post' | 'fund';
   updatesCount?: number;
   className?: string;
+  eyebrow?: ReactNode;
+  subtitle?: ReactNode;
+  tabs?: ReactNode;
+  primaryAction?: ReactNode;
+  hideVoteWidget?: boolean;
+  grantModalProps?: {
+    isApplyToGrantModalOpen: boolean;
+    onCloseApplyToGrantModal: () => void;
+    grantId: string;
+    grantAmountUsd?: number;
+  };
 }
 
 export function WorkHeader({
@@ -41,6 +52,12 @@ export function WorkHeader({
   contentType = 'paper',
   updatesCount,
   className,
+  eyebrow: eyebrowOverride,
+  subtitle: subtitleOverride,
+  tabs: tabsOverride,
+  primaryAction,
+  hideVoteWidget = false,
+  grantModalProps,
 }: WorkHeaderProps) {
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
@@ -100,9 +117,18 @@ export function WorkHeader({
       shouldShowConfetti: false,
     });
 
-  const primaryButtons = (
+  const defaultEyebrow = foundationBounty ? (
+    <WorkHeaderBountyEyebrow bountyDisplay={bountyDisplay} reviewsUrl={reviewsUrl} />
+  ) : undefined;
+
+  const resolvedEyebrow = eyebrowOverride !== undefined ? eyebrowOverride : defaultEyebrow;
+  const resolvedSubtitle =
+    subtitleOverride !== undefined ? subtitleOverride : <WorkHeaderSubtitle work={work} />;
+
+  const desktopCta = (
     <div className="hidden sm:flex flex-shrink-0 flex-col items-stretch gap-1.5">
-      <WorkHeaderVoteWidget {...voteState} onVote={voteState.handleVote} />
+      {!hideVoteWidget && <WorkHeaderVoteWidget {...voteState} onVote={voteState.handleVote} />}
+      {primaryAction}
       <WorkHeaderActionBar
         moreMenuItems={menuItems}
         onShare={shareAction}
@@ -115,41 +141,44 @@ export function WorkHeader({
 
   const mobileActions = (
     <div className="flex sm:hidden items-center gap-1.5 flex-shrink-0">
-      <WorkHeaderVoteWidget {...voteState} onVote={voteState.handleVote} size="sm" />
+      {!hideVoteWidget && (
+        <WorkHeaderVoteWidget {...voteState} onVote={voteState.handleVote} size="sm" />
+      )}
       <WorkHeaderActionBar
         moreMenuItems={menuItems}
         onShare={shareAction}
         onSave={handleAddToList}
         isInList={isInList}
         isSaveDisabled={isTogglingDefaultList}
+        primaryAction={primaryAction}
         size="sm"
       />
     </div>
   );
 
+  const defaultTabs = (
+    <WorkTabs
+      work={work}
+      metadata={metadata}
+      contentType={contentType}
+      onTabChange={setActiveTab}
+      updatesCount={updatesCount}
+    />
+  );
+
+  const resolvedTabs = tabsOverride !== undefined ? tabsOverride : defaultTabs;
+
   return (
     <>
       <HeroHeader
         title={work.title}
-        eyebrow={
-          foundationBounty ? (
-            <WorkHeaderBountyEyebrow bountyDisplay={bountyDisplay} reviewsUrl={reviewsUrl} />
-          ) : undefined
-        }
-        subtitle={<WorkHeaderSubtitle work={work} />}
-        cta={primaryButtons}
+        eyebrow={resolvedEyebrow}
+        subtitle={resolvedSubtitle}
+        cta={desktopCta}
         className={className}
       >
         <div className="flex items-end justify-between mt-3 sm:mt-4">
-          <div className="min-w-0 flex-1">
-            <WorkTabs
-              work={work}
-              metadata={metadata}
-              contentType={contentType}
-              onTabChange={setActiveTab}
-              updatesCount={updatesCount}
-            />
-          </div>
+          <div className="min-w-0 flex-1">{resolvedTabs}</div>
           <div className="sm:hidden flex-shrink-0 ml-2">{mobileActions}</div>
         </div>
       </HeroHeader>
@@ -173,6 +202,10 @@ export function WorkHeader({
         onCloseFundraiseModal={closeFundraiseModal}
         onConfirmFundraise={confirmFundraiseAction}
         fundraiseModalConfig={fundraiseModalConfig}
+        isApplyToGrantModalOpen={grantModalProps?.isApplyToGrantModalOpen}
+        onCloseApplyToGrantModal={grantModalProps?.onCloseApplyToGrantModal}
+        grantId={grantModalProps?.grantId}
+        grantAmountUsd={grantModalProps?.grantAmountUsd}
       />
     </>
   );

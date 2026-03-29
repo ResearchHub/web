@@ -14,6 +14,7 @@ export interface WorkHeaderActionBarProps {
   onSave: () => void;
   isInList: boolean;
   isSaveDisabled: boolean;
+  primaryAction?: ReactNode;
   size?: 'sm' | 'lg';
 }
 
@@ -23,11 +24,13 @@ export function WorkHeaderActionBar({
   onSave,
   isInList,
   isSaveDisabled,
+  primaryAction,
   size = 'lg',
 }: WorkHeaderActionBarProps) {
   if (size === 'sm') {
     return (
       <>
+        {primaryAction}
         <BaseMenu
           align="start"
           trigger={

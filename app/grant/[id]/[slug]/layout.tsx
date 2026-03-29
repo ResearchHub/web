@@ -1,12 +1,13 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
+import { MetadataService } from '@/services/metadata.service';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
 import { isDeadlineInFuture } from '@/utils/date';
 import { GrantTabProvider } from '@/components/Funding/GrantPageContent';
-import { GrantBannerWithTabs } from '@/components/Funding/GrantBannerWithTabs';
+import { WorkHeaderGrant } from '@/components/work/WorkHeader/index';
 
 interface Props {
   params: Promise<{
@@ -35,16 +36,20 @@ export default async function GrantSlugLayout({ params, children }: Props) {
   const isPending = grant?.status === 'PENDING';
   const isActive =
     grant?.status === 'OPEN' && (grant?.endDate ? isDeadlineInFuture(grant.endDate) : true);
+
+  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
+
   return (
     <GrantTabProvider defaultTab="details">
       <PageLayout
         topBanner={
-          <GrantBannerWithTabs
+          <WorkHeaderGrant
+            work={work}
+            metadata={metadata}
             amountUsd={grant?.amount?.usd}
             grantId={grantId?.toString()}
             isActive={isActive}
             isPending={isPending}
-            work={work}
             organization={grant?.organization}
           />
         }
