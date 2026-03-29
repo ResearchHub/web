@@ -1,24 +1,19 @@
 'use client';
 
 import { formatTimeAgo } from '@/utils/date';
+import { getSearchDisplayText, getShortAuthorName } from '@/app/expert-finder/lib/utils';
 import type { ExpertSearchListItem } from '@/types/expertFinder';
-
-const QUERY_TRUNCATE_LEN = 80;
-
-export function getSearchDisplayText(search: ExpertSearchListItem): string {
-  const text = (search.name || search.query || '').trim();
-  if (!text) return 'Untitled search';
-  return text.length <= QUERY_TRUNCATE_LEN ? text : text.slice(0, QUERY_TRUNCATE_LEN) + '...';
-}
 
 export interface ExpertSearchListItemDetailProps {
   search: ExpertSearchListItem;
 }
 
 /**
- * Compact display of an expert search list item: query text, expert count, date.
+ * Compact display of an expert search list item: query text, expert count, date, created by.
  */
 export function ExpertSearchListItemDetail({ search }: ExpertSearchListItemDetailProps) {
+  const createdByShort = getShortAuthorName(search.createdBy?.author ?? undefined);
+
   return (
     <>
       <span className="text-sm font-medium text-gray-900 line-clamp-2 break-words">
@@ -31,6 +26,14 @@ export function ExpertSearchListItemDetail({ search }: ExpertSearchListItemDetai
         </span>
         <span className="text-xs text-gray-400">•</span>
         <span className="text-xs text-gray-500">{formatTimeAgo(search.createdAt)}</span>
+        {createdByShort && (
+          <>
+            <span className="text-xs text-gray-400">•</span>
+            <span className="text-xs text-gray-500" title={search.createdBy?.author?.fullName}>
+              by {createdByShort}
+            </span>
+          </>
+        )}
       </div>
     </>
   );

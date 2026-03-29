@@ -9,16 +9,48 @@ export const ALL_CONTENT_TYPES: readonly ContentType[] = [
   'funding_request',
 ];
 
-// URL path segment (first path segment) → ContentType. Aligns with app routes: /paper/, /post/, /question/, /fund/, /grant/
+// URL path segment (first path segment) → ContentType. Aligns with app routes: /paper/, /post/, /question/, /proposal/, /fund/, /grant/
 const ROUTE_SEGMENT_TO_CONTENT_TYPE: Record<string, ContentType> = {
   paper: 'paper',
   post: 'post',
   question: 'question',
+  proposal: 'preregistration',
   fund: 'preregistration',
   grant: 'funding_request',
 };
 
 const SUPPORTED_ROUTE_SEGMENTS = Object.keys(ROUTE_SEGMENT_TO_CONTENT_TYPE).join(', ');
+
+/** Hostname without leading www. for same-site checks. */
+function hostnameWithoutWww(hostname: string): string {
+  const h = hostname.toLowerCase();
+  return h.startsWith('www.') ? h.slice(4) : h;
+}
+
+/**
+ * Adds https:// when the string has no scheme so URL() accepts pastes like
+ * `www.researchhub.com/paper/123` or `researchhub.com/paper/123`.
+ */
+function normalizeUrlInputForParsing(input: string): string {
+  const t = input.trim();
+  if (!t) return t;
+  if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(t)) {
+    return t;
+  }
+  return `https://${t}`;
+}
+
+function urlMatchesConfiguredSite(userUrl: URL, siteUrlString: string): boolean {
+  let siteParsed: URL;
+  try {
+    siteParsed = new URL(siteUrlString);
+  } catch {
+    return userUrl.origin === siteUrlString;
+  }
+  if (userUrl.protocol !== siteParsed.protocol) return false;
+  if (userUrl.port !== siteParsed.port) return false;
+  return hostnameWithoutWww(userUrl.hostname) === hostnameWithoutWww(siteParsed.hostname);
+}
 
 export type ParsedResearchHubUrl = {
   contentType: ContentType;
@@ -33,9 +65,11 @@ export function validateResearchHubUrl(
     return { success: false, error: 'URL is required' };
   }
 
+  const toParse = normalizeUrlInputForParsing(trimmedUrl);
+
   let parsed: URL;
   try {
-    parsed = new URL(trimmedUrl);
+    parsed = new URL(toParse);
   } catch {
     return {
       success: false,
@@ -48,13 +82,13 @@ export function validateResearchHubUrl(
     (typeof window !== 'undefined' ? window.location.origin : '');
 
   if (siteUrl) {
-    let siteOrigin: string;
-    try {
-      siteOrigin = new URL(siteUrl).origin;
-    } catch {
-      siteOrigin = siteUrl;
-    }
-    if (parsed.origin !== siteOrigin) {
+    if (!urlMatchesConfiguredSite(parsed, siteUrl)) {
+      let siteOrigin: string;
+      try {
+        siteOrigin = new URL(siteUrl).origin;
+      } catch {
+        siteOrigin = siteUrl;
+      }
       return {
         success: false,
         error: `URL must be from ${siteOrigin}. Received a URL from ${parsed.origin}`,

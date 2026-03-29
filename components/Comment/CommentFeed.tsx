@@ -283,7 +283,7 @@ function CommentFeedContent({
                 <CommentSortAndFilters commentType={commentType} commentCount={count} />
                 <Button
                   onClick={() => executeAuthenticatedAction(handleCreateBounty)}
-                  variant="default"
+                  variant="outlined"
                   size="sm"
                   className="flex items-center gap-2"
                 >

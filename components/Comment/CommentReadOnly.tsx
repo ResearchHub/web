@@ -4,7 +4,7 @@ import { ContentFormat, Comment } from '@/types/comment';
 import { ContentType } from '@/types/work';
 import 'highlight.js/styles/atom-one-dark.css';
 import React, { ReactNode, useState } from 'react';
-import { Star } from 'lucide-react';
+import { Star, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { parseContent, extractTextFromTipTap } from './lib/commentContentUtils';
@@ -25,6 +25,7 @@ interface CommentReadOnlyProps {
   showReadMoreButton?: boolean;
   createdDate?: string | Date;
   updatedDate?: string | Date;
+  className?: string;
 }
 
 // Simple read-only stars component for displaying review score
@@ -67,6 +68,7 @@ export const CommentReadOnly = ({
   showReadMoreButton = true,
   createdDate,
   updatedDate,
+  className,
 }: CommentReadOnlyProps) => {
   const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
 
@@ -236,7 +238,7 @@ export const CommentReadOnly = ({
             {/* Left side: Button or Spacer */}
             {shouldTruncate && showReadMoreButton ? (
               <button
-                className="text-blue-600 hover:text-blue-800 hover:underline text-sm cursor-pointer"
+                className="text-blue-600 hover:text-blue-800 hover:underline text-[inherit] cursor-pointer inline-flex items-center gap-0.5"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -244,6 +246,7 @@ export const CommentReadOnly = ({
                 }}
               >
                 {isExpanded ? 'Show less' : 'Read more'}
+                {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </button>
             ) : showEditedStatus ? (
               /* Spacer to push edited status to the right if no button */
@@ -268,7 +271,8 @@ export const CommentReadOnly = ({
     <div
       className={cn(
         'comment-content prose prose-sm max-w-none',
-        contentFormat === 'QUILL_EDITOR' && 'quill-content'
+        contentFormat === 'QUILL_EDITOR' && 'quill-content',
+        className
       )}
     >
       <style jsx global>{`

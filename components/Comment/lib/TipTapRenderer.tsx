@@ -372,7 +372,7 @@ const RenderNode: React.FC<RenderNodeProps> = ({
       return (
         <>
           {renderTextWithMarks(truncatedText, node.marks || [])}
-          <span className="text-gray-500 text-sm font-semibold">[...]</span>
+          <span className="text-gray-500 font-semibold">...</span>
         </>
       );
     }

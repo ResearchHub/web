@@ -18,7 +18,7 @@ export default function NotebookPage() {
     const currentParams = new URLSearchParams(searchParams.toString());
     const queryString = currentParams.toString() ? `?${currentParams.toString()}` : '';
 
-    return router.push(`/notebook/${selectedOrg.slug}${queryString}`);
+    return router.replace(`/notebook/${selectedOrg.slug}${queryString}`);
   }, [selectedOrg, router, searchParams]);
 
   // Loading state

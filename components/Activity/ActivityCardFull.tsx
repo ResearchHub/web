@@ -1,0 +1,274 @@
+'use client';
+
+import { FC, useState } from 'react';
+import Link from 'next/link';
+import { Star, MessageCircle, Bell, Coins, ChevronDown, ChevronUp } from 'lucide-react';
+import { Avatar } from '@/components/ui/Avatar';
+import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
+import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
+import { formatTimeAgo } from '@/utils/date';
+import { buildWorkUrl } from '@/utils/url';
+import { formatCurrency } from '@/utils/currency';
+import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import type {
+  FeedEntry,
+  FeedPostContent,
+  FeedPaperContent,
+  FeedGrantContent,
+  FeedCommentContent,
+} from '@/types/feed';
+import type { ContentType } from '@/types/work';
+import type { CommentType } from '@/types/comment';
+
+const COMMENT_ACTION_LABELS: Record<CommentType, string> = {
+  GENERIC_COMMENT: 'commented on',
+  REVIEW: 'peer reviewed',
+  AUTHOR_UPDATE: 'posted an update on',
+  ANSWER: 'answered on',
+  BOUNTY: 'contributed to',
+};
+
+const DOC_ACTION_LABELS: Record<string, string> = {
+  GRANT: 'opened funding',
+  PREREGISTRATION: 'submitted proposal',
+  POST: 'posted discussion',
+  PAPER: 'published preprint',
+};
+
+const CONTENT_TYPE_MAP: Record<string, ContentType> = {
+  GRANT: 'funding_request',
+  PREREGISTRATION: 'preregistration',
+  POST: 'post',
+  PAPER: 'paper',
+};
+
+function getActionLabel(entry: FeedEntry): string {
+  if (entry.contentType === 'COMMENT') {
+    const comment = (entry.content as FeedCommentContent).comment;
+    return COMMENT_ACTION_LABELS[comment?.commentType] || 'commented on';
+  }
+  if (entry.contentType === 'BOUNTY') return 'contributed to';
+  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE')
+    return 'Funded Proposal';
+  return DOC_ACTION_LABELS[entry.contentType] || 'contributed';
+}
+
+function getEntryMeta(entry: FeedEntry) {
+  const content = entry.content;
+  const author = content.createdBy;
+
+  if (entry.contentType === 'COMMENT' || entry.contentType === 'BOUNTY') {
+    const work = entry.relatedWork;
+    const isReview =
+      entry.contentType === 'COMMENT' &&
+      (content as FeedCommentContent).comment?.commentType === 'REVIEW';
+    return {
+      title: work?.title,
+      author,
+      href: work
+        ? buildWorkUrl({
+            id: work.id,
+            slug: work.slug,
+            contentType: work.contentType,
+            tab: isReview ? 'reviews' : undefined,
+          })
+        : undefined,
+    };
+  }
+
+  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
+    const post = content as FeedPostContent;
+    return {
+      title: post.title,
+      author,
+      href: post.unifiedDocumentId
+        ? buildWorkUrl({
+            id: post.unifiedDocumentId,
+            slug: post.slug,
+            contentType: 'preregistration',
+          })
+        : undefined,
+    };
+  }
+
+  const titled = content as FeedPostContent | FeedPaperContent | FeedGrantContent;
+  return {
+    title: titled.title,
+    author,
+    href: CONTENT_TYPE_MAP[entry.contentType]
+      ? buildWorkUrl({
+          id: titled.id,
+          slug: titled.slug,
+          contentType: CONTENT_TYPE_MAP[entry.contentType],
+        })
+      : undefined,
+  };
+}
+
+function getFundingAmount(entry: FeedEntry): number | undefined {
+  if (entry.contentType !== 'GRANT') return undefined;
+  const grant = (entry.content as FeedGrantContent).grant;
+  return grant?.amount?.usd || undefined;
+}
+
+function getActionIcon(entry: FeedEntry): React.ReactNode {
+  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE')
+    return <Coins size={14} className="inline -mt-0.5 ml-1 text-gray-600" />;
+  if (entry.contentType !== 'COMMENT') return null;
+  const commentType = (entry.content as FeedCommentContent).comment?.commentType;
+  if (commentType === 'AUTHOR_UPDATE')
+    return <Bell size={14} className="inline -mt-0.5 ml-1 text-gray-600" />;
+  if (commentType === 'GENERIC_COMMENT' || commentType === 'ANSWER')
+    return <MessageCircle size={14} className="inline -mt-0.5 ml-1 text-gray-600" />;
+  return null;
+}
+
+function getReviewScore(entry: FeedEntry): number | undefined {
+  if (entry.contentType !== 'COMMENT') return undefined;
+  const commentContent = entry.content as FeedCommentContent;
+  if (commentContent.comment?.commentType !== 'REVIEW') return undefined;
+  return commentContent.review?.score || commentContent.comment.reviewScore || undefined;
+}
+
+function getContribution(entry: FeedEntry): { amount: number; currency: string } | undefined {
+  if (entry.contentType !== 'USDFUNDRAISECONTRIBUTION' && entry.contentType !== 'PURCHASE')
+    return undefined;
+  const post = entry.content as FeedPostContent;
+  if (!post.fundraiseContribution?.amount) return undefined;
+  return {
+    amount: post.fundraiseContribution.amount,
+    currency: post.fundraiseContribution.currency || 'USD',
+  };
+}
+
+function getCommentContent(entry: FeedEntry) {
+  if (entry.contentType !== 'COMMENT') return null;
+  const commentContent = entry.content as FeedCommentContent;
+  const { comment } = commentContent;
+  if (!comment?.content) return null;
+  const isReview = comment.commentType === 'REVIEW';
+  return { content: comment.content, format: comment.contentFormat, isReview };
+}
+
+interface ActivityCardFullProps {
+  entry: FeedEntry;
+}
+
+export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
+  const { title, author, href } = getEntryMeta(entry);
+  const [reviewExpanded, setReviewExpanded] = useState(false);
+  const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
+
+  if (!title) return null;
+
+  const actionLabel = getActionLabel(entry);
+  const actionIcon = getActionIcon(entry);
+  const reviewScore = getReviewScore(entry);
+  const fundingAmount = getFundingAmount(entry);
+  const contribution = getContribution(entry);
+  const commentData = getCommentContent(entry);
+
+  const titleEl = href ? (
+    <Link href={href} className="text-primary-600 hover:text-primary-800">
+      {title}
+    </Link>
+  ) : (
+    <span className="text-gray-500">{title}</span>
+  );
+
+  return (
+    <div className="py-4 border-b border-gray-100 last:border-b-0">
+      <div className="grid grid-cols-[auto_1fr] gap-x-2.5 items-start">
+        <div className="row-span-3 pt-0.5">
+          <AuthorTooltip authorId={author?.id} placement="bottom">
+            <Avatar
+              src={author?.profileImage}
+              alt={author?.fullName || 'User'}
+              size={32}
+              authorId={author?.id}
+              disableTooltip
+            />
+          </AuthorTooltip>
+        </div>
+        <span className="text-sm font-medium text-gray-900 leading-tight truncate">
+          {author?.fullName || 'Unknown'}
+        </span>
+        <span className="text-sm leading-tight mb-1">
+          <span className="text-gray-500">{actionLabel}</span>
+          {actionIcon}
+          {reviewScore && (
+            <span className="inline-flex items-center gap-1 ml-1.5 text-xs text-gray-600 align-middle">
+              <Star size={13} className="fill-amber-400 text-amber-400" />
+              {reviewScore.toFixed(1)}
+            </span>
+          )}
+          {fundingAmount && (
+            <span className="ml-1.5 text-xs font-medium text-gray-900">
+              {formatCurrency({
+                amount: fundingAmount,
+                showUSD: true,
+                exchangeRate: 1,
+                skipConversion: true,
+                shorten: true,
+              })}
+            </span>
+          )}
+          {contribution && (
+            <span className="ml-1.5 text-xs font-medium font-mono text-gray-900">
+              +
+              {formatCurrency({
+                amount: contribution.amount,
+                showUSD: contribution.currency === 'USD' ? true : showUSD,
+                exchangeRate,
+                skipConversion: contribution.currency === 'USD',
+                shorten: true,
+              })}
+            </span>
+          )}
+        </span>
+        <span className="text-sm leading-tight">{titleEl}</span>
+      </div>
+
+      {commentData && !commentData.isReview && (
+        <div className="mt-2 ml-[42px]">
+          <CommentReadOnly
+            content={commentData.content}
+            contentFormat={commentData.format}
+            maxLength={250}
+            showReadMoreButton={true}
+            className="text-sm"
+          />
+        </div>
+      )}
+
+      {commentData && commentData.isReview && (
+        <div className="mt-2 ml-[42px]">
+          <button
+            className="text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer inline-flex items-center gap-0.5"
+            onClick={() => setReviewExpanded(!reviewExpanded)}
+          >
+            {reviewExpanded ? 'Hide review' : 'Read review'}
+            {reviewExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+          {reviewExpanded && (
+            <div className="mt-2">
+              <CommentReadOnly
+                content={commentData.content}
+                contentFormat={commentData.format}
+                initiallyExpanded={true}
+                showReadMoreButton={false}
+                className="text-sm"
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      <span className="block text-xs text-gray-400 mt-1 ml-[42px]">
+        {formatTimeAgo(entry.timestamp)}
+      </span>
+    </div>
+  );
+};

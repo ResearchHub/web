@@ -47,7 +47,10 @@ function PageLayoutInner({
   const { isHidden: isMobileTopNavHidden } = useMobileNavScroll({ scrollContainerRef });
 
   return (
-    <ScrollContainerProvider scrollContainerRef={scrollContainerRef}>
+    <ScrollContainerProvider
+      scrollContainerRef={scrollContainerRef}
+      isMobileTopNavHidden={isMobileTopNavHidden}
+    >
       <div className="flex h-screen">
         <TopBarContainer
           isMobileTopNavHidden={isMobileTopNavHidden}

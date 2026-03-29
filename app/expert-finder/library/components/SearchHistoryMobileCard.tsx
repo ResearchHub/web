@@ -2,7 +2,7 @@
 
 import { SearchStatusBadge } from './SearchStatusBadge';
 import { formatTimestamp } from '@/utils/date';
-import { getDisplayText } from './SearchHistoryTable';
+import { getSearchTableDisplayText } from '@/app/expert-finder/lib/utils';
 import type { ExpertSearchListItem } from '@/types/expertFinder';
 import { Badge } from '@/components/ui/Badge';
 import { ListCard } from '@/components/ui/ListCard';
@@ -18,12 +18,14 @@ export function SearchHistoryMobileCard({
   onClick,
   className,
 }: SearchHistoryMobileCardProps) {
-  const displayName = getDisplayText(search);
+  const displayName = getSearchTableDisplayText(search);
   const expertCount = search.status === 'completed' ? search.expertCount : null;
+  const createdByName = search.createdBy?.author?.fullName;
 
   return (
     <ListCard onClick={onClick} className={className}>
       <h3 className="text-sm font-medium text-gray-900 truncate">{displayName}</h3>
+      {createdByName && <p className="text-xs text-gray-500 mt-0.5">by {createdByName}</p>}
       <div className="flex flex-wrap items-center gap-2 mt-2">
         {expertCount !== null && (
           <span className="text-xs text-gray-500">

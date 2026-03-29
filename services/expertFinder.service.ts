@@ -1,3 +1,4 @@
+import { EXPERT_FINDER_LIST_PAGE_SIZE } from '@/app/expert-finder/lib/paginationParams';
 import { ApiClient } from './client';
 import { PaperService } from './paper.service';
 import { PostService } from './post.service';
@@ -89,28 +90,28 @@ export type EmailTemplateKind =
 
 // ── Generated emails API ───────────────────────────────────────────────────
 
-export type GeneratedEmailStatus = 'draft' | 'sent';
+/** GeneratedEmail.status */
+export const GENERATED_EMAIL_STATUS_VALUES = [
+  'draft',
+  'sent',
+  'processing',
+  'failed',
+  'sending',
+  'send_failed',
+  'closed',
+] as const;
 
-export interface TemplateData {
-  contact_name?: string;
-  contact_title?: string;
-  contact_institution?: string;
-  contact_email?: string;
-  contact_phone?: string;
-  contact_website?: string;
-}
+export type GeneratedEmailStatus = (typeof GENERATED_EMAIL_STATUS_VALUES)[number];
 
 export interface GenerateEmailPayload {
   expert_name: string;
-  template: string;
+  template: string | null;
   expert_title?: string;
   expert_affiliation?: string;
   expert_email?: string;
   expertise?: string;
   notes?: string;
   expert_search_id?: number | null;
-  outreach_context?: string;
-  template_data?: TemplateData;
   template_id?: number | null;
 }
 
@@ -129,32 +130,15 @@ export interface CreateDraftEmailPayload {
 }
 
 export type UpdateGeneratedEmailPayload = Partial<CreateDraftEmailPayload>;
-export type SavedTemplateType = 'prompt-context' | 'fixed-template';
 
 export interface CreateSavedTemplatePayload {
   name: string;
-  template_type: SavedTemplateType;
-  contact_name?: string;
-  contact_title?: string;
-  contact_institution?: string;
-  contact_email?: string;
-  contact_phone?: string;
-  contact_website?: string;
-  outreach_context?: string;
   email_subject?: string;
   email_body?: string;
 }
 
 export interface UpdateSavedTemplatePayload {
   name?: string;
-  template_type?: SavedTemplateType;
-  contact_name?: string;
-  contact_title?: string;
-  contact_institution?: string;
-  contact_email?: string;
-  contact_phone?: string;
-  contact_website?: string;
-  outreach_context?: string;
   email_subject?: string;
   email_body?: string;
 }
@@ -188,7 +172,7 @@ export class ExpertFinderService {
     limit?: number;
     offset?: number;
   }): Promise<ExpertSearchListResponse> {
-    const limit = params?.limit ?? 10;
+    const limit = params?.limit ?? EXPERT_FINDER_LIST_PAGE_SIZE;
     const offset = params?.offset ?? 0;
 
     const response = await ApiClient.get<any>(
@@ -293,7 +277,7 @@ export class ExpertFinderService {
     offset?: number;
     search_id?: number | string;
   }): Promise<GeneratedEmailListResponse> {
-    const limit = Math.min(params?.limit ?? 20, 100);
+    const limit = params?.limit ?? EXPERT_FINDER_LIST_PAGE_SIZE;
     const offset = params?.offset ?? 0;
     const searchParams = new URLSearchParams({
       limit: String(limit),
@@ -362,10 +346,17 @@ export class ExpertFinderService {
    * Send generated email(s) to the current user for preview/testing.
    * POST /api/research_ai/expert-finder/emails/preview/
    */
-  static async previewEmails(generatedEmailIds: number[]): Promise<{ sent: number }> {
-    const raw = await ApiClient.post<{ sent: number }>(`${this.BASE_PATH}/emails/preview/`, {
-      generated_email_ids: generatedEmailIds,
-    });
+  static async previewEmails(payload: {
+    generated_email_ids: number[];
+    reply_to?: string;
+  }): Promise<{ sent: number }> {
+    const body: Record<string, unknown> = {
+      generated_email_ids: payload.generated_email_ids,
+    };
+    if (payload.reply_to != null && payload.reply_to !== '') {
+      body.reply_to = payload.reply_to;
+    }
+    const raw = await ApiClient.post<{ sent: number }>(`${this.BASE_PATH}/emails/preview/`, body);
     return { sent: raw.sent ?? 0 };
   }
 
@@ -375,7 +366,7 @@ export class ExpertFinderService {
     limit?: number;
     offset?: number;
   }): Promise<SavedTemplateListResponse> {
-    const limit = Math.min(params?.limit ?? 20, 100);
+    const limit = params?.limit ?? EXPERT_FINDER_LIST_PAGE_SIZE;
     const offset = params?.offset ?? 0;
     const response = await ApiClient.get<{
       templates: Record<string, unknown>[];

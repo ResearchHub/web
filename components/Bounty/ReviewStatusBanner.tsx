@@ -44,7 +44,7 @@ export const ReviewStatusBanner = ({ bounties }: ReviewStatusBannerProps) => {
         <div className="flex flex-col gap-1">
           <div className="font-semibold">Editor Assessment Period</div>
           <div className="text-sm font-normal">
-            Editors are reviewing any submissions and will award top reviews.
+            Editors are reviewing submissions and will award top reviews.
           </div>
         </div>
       </Alert>

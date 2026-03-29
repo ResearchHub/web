@@ -32,6 +32,8 @@ interface PillTabsProps {
   className?: string;
   /** When set, persists horizontal scroll position across remounts via a module-level cache. */
   scrollCacheKey?: string;
+  /** Custom class for the scroll chevron buttons */
+  chevronClassName?: string;
 }
 
 const _scrollCache = new Map<string, number>();
@@ -118,6 +120,7 @@ export const PillTabs: React.FC<PillTabsProps> = ({
   colorScheme = 'default',
   className,
   scrollCacheKey,
+  chevronClassName,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -190,7 +193,10 @@ export const PillTabs: React.FC<PillTabsProps> = ({
       >
         <button
           onClick={() => scroll('left')}
-          className="p-1 rounded-full hover:bg-gray-200/80 text-gray-500 hover:text-gray-700"
+          className={cn(
+            'p-1 rounded-full hover:bg-gray-200/80 text-gray-500 hover:text-gray-700',
+            chevronClassName
+          )}
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -223,14 +229,17 @@ export const PillTabs: React.FC<PillTabsProps> = ({
 
       <div
         className={cn(
-          'absolute right-0 top-0 bottom-0 z-10 flex items-center pl-2 transition-opacity duration-200',
+          'absolute right-0 top-0 bottom-0 z-10 flex items-center pl-2 pr-2 transition-opacity duration-200',
           canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'
         )}
         style={{ background: 'linear-gradient(to right, transparent, white 40%)' }}
       >
         <button
           onClick={() => scroll('right')}
-          className="p-1 rounded-full hover:bg-gray-200/80 text-gray-500 hover:text-gray-700"
+          className={cn(
+            'p-1 rounded-full hover:bg-gray-200/80 text-gray-500 hover:text-gray-700',
+            chevronClassName
+          )}
         >
           <ChevronRight className="w-4 h-4" />
         </button>
