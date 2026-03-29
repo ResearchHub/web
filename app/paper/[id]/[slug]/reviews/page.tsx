@@ -1,12 +1,8 @@
-import { Suspense } from 'react';
 import { PaperService } from '@/services/paper.service';
 import { MetadataService } from '@/services/metadata.service';
-import { Work } from '@/types/work';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkDocument } from '@/components/work/WorkDocument';
-import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { getWorkMetadata } from '@/lib/metadata-helpers';
@@ -33,7 +29,6 @@ async function getWork(id: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const work = await getWork(resolvedParams.id);
-
   return getWorkMetadata({
     work: work,
     url: `/paper/${resolvedParams.id}/${resolvedParams.slug}/reviews`,
@@ -50,12 +45,10 @@ export default async function WorkReviewsPage({ params }: Props) {
   }
 
   return (
-    <PageLayout rightSidebar={<WorkRightSidebar work={work} metadata={metadata} />}>
-      <Suspense>
-        <WorkDocument work={work} metadata={metadata} defaultTab="reviews" />
-        <SearchHistoryTracker work={work} />
-        <WorkDocumentTracker work={work} metadata={metadata} tab="reviews" />
-      </Suspense>
-    </PageLayout>
+    <>
+      <WorkDocument work={work} metadata={metadata} />
+      <SearchHistoryTracker work={work} />
+      <WorkDocumentTracker work={work} metadata={metadata} tab="reviews" />
+    </>
   );
 }

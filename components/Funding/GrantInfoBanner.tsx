@@ -178,6 +178,20 @@ export const GrantInfoBanner = ({
       )}
 
       <div className="hidden sm:flex items-center gap-2 justify-center">
+        <BaseMenu
+          align="start"
+          trigger={
+            <button
+              className="h-12 px-3 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="More options"
+            >
+              <MoreHorizontal className="h-5 w-5" />
+            </button>
+          }
+        >
+          {moreMenuItems}
+        </BaseMenu>
+
         <Button
           variant="outlined"
           size="lg"
@@ -202,23 +216,25 @@ export const GrantInfoBanner = ({
             <span className="text-sm">Save</span>
           </Button>
         )}
-
-        <BaseMenu
-          align="end"
-          trigger={
-            <Button variant="outlined" size="lg" className="gap-2 !px-3" aria-label="More options">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          }
-        >
-          {moreMenuItems}
-        </BaseMenu>
       </div>
     </div>
   );
 
   const mobileSecondaryActions = (
     <div className="flex sm:hidden items-center gap-1.5 flex-shrink-0 mb-2">
+      <BaseMenu
+        align="start"
+        trigger={
+          <button
+            className="h-8 px-2 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+            aria-label="More options"
+          >
+            <MoreHorizontal className="h-[18px] w-[18px]" />
+          </button>
+        }
+      >
+        {moreMenuItems}
+      </BaseMenu>
       <Button variant="outlined" size="sm" aria-label="Share" onClick={shareAction}>
         <Share className="h-3.5 w-3.5" />
       </Button>
@@ -234,16 +250,6 @@ export const GrantInfoBanner = ({
           <FontAwesomeIcon icon={isInList ? faBookmarkSolid : faBookmark} className="h-3.5 w-3.5" />
         </Button>
       )}
-      <BaseMenu
-        align="end"
-        trigger={
-          <Button variant="outlined" size="sm" aria-label="More options">
-            <MoreHorizontal className="h-3.5 w-3.5" />
-          </Button>
-        }
-      >
-        {moreMenuItems}
-      </BaseMenu>
     </div>
   );
 

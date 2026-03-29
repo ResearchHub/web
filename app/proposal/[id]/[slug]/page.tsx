@@ -1,16 +1,12 @@
-import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
 import { CommentService } from '@/services/comment.service';
 import { Work } from '@/types/work';
-import { PageLayout } from '@/app/layouts/PageLayout';
-import { ProposalSidebar } from '@/components/work/ProposalSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { FundDocument } from '@/components/work/FundDocument';
-
 import { getWorkMetadata } from '@/lib/metadata-helpers';
 
 interface Props {
@@ -58,10 +54,8 @@ export default async function FundingProjectPage({ params }: Props) {
   const resolvedParams = await params;
   const id = resolvedParams.id;
 
-  // First fetch the work to get the unifiedDocumentId
   const work = await getFundingProject(id);
 
-  // Fetch all required data in parallel
   const [metadata, content, authorUpdates] = await Promise.all([
     MetadataService.get(work.unifiedDocumentId?.toString() || ''),
     getWorkHTMLContent(work),
@@ -72,18 +66,15 @@ export default async function FundingProjectPage({ params }: Props) {
   ]);
 
   return (
-    <PageLayout rightSidebar={<ProposalSidebar work={work} metadata={metadata} />}>
-      <Suspense>
-        <FundDocument
-          work={work}
-          metadata={metadata}
-          content={content}
-          defaultTab="paper"
-          authorUpdates={authorUpdates}
-        />
-        <SearchHistoryTracker work={work} />
-        <WorkDocumentTracker work={work} metadata={metadata} tab="paper" />
-      </Suspense>
-    </PageLayout>
+    <>
+      <FundDocument
+        work={work}
+        metadata={metadata}
+        content={content}
+        authorUpdates={authorUpdates}
+      />
+      <SearchHistoryTracker work={work} />
+      <WorkDocumentTracker work={work} metadata={metadata} tab="paper" />
+    </>
   );
 }

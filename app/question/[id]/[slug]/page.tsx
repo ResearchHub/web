@@ -7,6 +7,7 @@ import { notFound } from 'next/navigation';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkDocument } from '@/components/work/WorkDocument';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
+import { WorkTabProvider } from '@/components/work/WorkHeader/WorkTabContext';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { PostDocument } from '@/components/work/PostDocument';
@@ -74,16 +75,18 @@ export default async function QuestionPage({ params }: Props) {
   }
 
   return (
-    <PageLayout rightSidebar={<WorkRightSidebar work={post} metadata={metadata} />}>
-      <Suspense>
-        {content ? (
-          <PostDocument work={post} metadata={metadata} content={content} defaultTab="paper" />
-        ) : (
-          <WorkDocument work={post} metadata={metadata} defaultTab="paper" />
-        )}
-        <SearchHistoryTracker work={post} />
-        <WorkDocumentTracker work={post} metadata={metadata} tab="paper" />
-      </Suspense>
-    </PageLayout>
+    <WorkTabProvider>
+      <PageLayout rightSidebar={<WorkRightSidebar work={post} metadata={metadata} />}>
+        <Suspense>
+          {content ? (
+            <PostDocument work={post} metadata={metadata} content={content} defaultTab="paper" />
+          ) : (
+            <WorkDocument work={post} metadata={metadata} />
+          )}
+          <SearchHistoryTracker work={post} />
+          <WorkDocumentTracker work={post} metadata={metadata} tab="paper" />
+        </Suspense>
+      </PageLayout>
+    </WorkTabProvider>
   );
 }
