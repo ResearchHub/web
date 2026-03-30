@@ -93,7 +93,12 @@ export function SelectFundingOpportunityModal({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Select Funding Opportunity"
+      title={
+        <div className="flex flex-col gap-1">
+          <span className="text-lg font-medium text-gray-900">Funding Opportunity</span>
+          <span className="text-sm text-gray-500">Apply to specific funding opportunity</span>
+        </div>
+      }
       maxWidth="max-w-[600px]"
       padding="p-6"
       contentClassName="!pb-10"
