@@ -2,13 +2,10 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { BarChart2 } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Comment } from '@/types/comment';
-import { WorkLineItems } from './WorkLineItems';
-import { PageHeader } from '@/components/ui/PageHeader';
-import { WorkTabs, TabType } from './WorkTabs';
+import { TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
@@ -20,13 +17,12 @@ import { useShareModalContext } from '@/contexts/ShareContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '../ui/Button';
-import { buildWorkUrl } from '@/utils/url';
+import { useWorkTab } from './WorkHeader/WorkTabContext';
 
 interface FundDocumentProps {
   work: Work;
   metadata: WorkMetadata;
   content?: string;
-  defaultTab?: TabType;
   authorUpdates?: Comment[];
 }
 
@@ -34,10 +30,9 @@ export const FundDocument = ({
   work,
   metadata,
   content,
-  defaultTab = 'paper',
   authorUpdates = [],
 }: FundDocumentProps) => {
-  const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
+  const { activeTab } = useWorkTab();
   const [showMobileMetrics, setShowMobileMetrics] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [overlayVisible, setOverlayVisible] = useState(false);
@@ -72,11 +67,6 @@ export const FundDocument = ({
     }
   }, [searchParams, router, pathname, work.title, showShareModal]);
 
-  // Handle tab change
-  const handleTabChange = (tab: TabType) => {
-    setActiveTab(tab);
-  };
-
   useEffect(() => {
     if (showMobileMetrics) {
       setShowOverlay(true);
@@ -94,7 +84,35 @@ export const FundDocument = ({
       case 'paper':
         return (
           <div className="mt-6">
-            {/* Content section */}
+            {metadata.fundraising && (
+              <div className="mb-6">
+                <FundraiseProgress
+                  fundraise={{
+                    id: metadata.fundraising.id,
+                    status: metadata.fundraising.status,
+                    amountRaised: {
+                      rsc: metadata.fundraising.amountRaised.rsc,
+                      usd: metadata.fundraising.amountRaised.usd,
+                    },
+                    goalAmount: {
+                      rsc: metadata.fundraising.goalAmount.rsc,
+                      usd: metadata.fundraising.goalAmount.usd,
+                    },
+                    endDate: metadata.fundraising.endDate,
+                    contributors: {
+                      numContributors: metadata.fundraising.contributors.topContributors.length,
+                      topContributors: metadata.fundraising.contributors.topContributors,
+                    },
+                    createdDate: metadata.fundraising.createdDate || '',
+                    updatedDate: metadata.fundraising.updatedDate || '',
+                    goalCurrency: metadata.fundraising.goalCurrency || 'RSC',
+                  }}
+                  fundraiseTitle={work.title}
+                  work={work}
+                  onContribute={() => {}}
+                />
+              </div>
+            )}
             {work.previewContent ? (
               <PostBlockEditor content={work.previewContent} />
             ) : content ? (
@@ -191,78 +209,6 @@ export const FundDocument = ({
 
   return (
     <div>
-      {work.type === 'preprint' && (
-        <div className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
-          Preprint
-        </div>
-      )}
-      <PageHeader
-        title={work.title}
-        className="text-2xl md:!text-3xl mt-0"
-        hasBounty={metadata.openBounties > 0}
-        bountyUrl={buildWorkUrl({
-          id: work.id,
-          contentType: work.contentType === 'paper' ? 'paper' : 'post',
-          slug: work.slug,
-          tab: 'bounties',
-        })}
-      />
-
-      <WorkLineItems
-        work={work}
-        metadata={metadata}
-        showClaimButton={false}
-        insightsButton={
-          <button
-            className="lg:!hidden flex items-center px-4 py-2.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
-            onClick={() => setShowMobileMetrics(true)}
-          >
-            <BarChart2 className="h-5 w-5" />
-          </button>
-        }
-      />
-      {/* FundraiseProgress - now placed between line items and tabs */}
-      {metadata.fundraising && (
-        <div className="my-6">
-          <FundraiseProgress
-            fundraise={{
-              id: metadata.fundraising.id,
-              status: metadata.fundraising.status,
-              amountRaised: {
-                rsc: metadata.fundraising.amountRaised.rsc,
-                usd: metadata.fundraising.amountRaised.usd,
-              },
-              goalAmount: {
-                rsc: metadata.fundraising.goalAmount.rsc,
-                usd: metadata.fundraising.goalAmount.usd,
-              },
-              endDate: metadata.fundraising.endDate,
-              contributors: {
-                numContributors: metadata.fundraising.contributors.topContributors.length,
-                topContributors: metadata.fundraising.contributors.topContributors,
-              },
-              createdDate: metadata.fundraising.createdDate || '',
-              updatedDate: metadata.fundraising.updatedDate || '',
-              goalCurrency: metadata.fundraising.goalCurrency || 'RSC',
-            }}
-            fundraiseTitle={work.title}
-            work={work}
-            onContribute={() => {
-              // Handle contribute action
-            }}
-          />
-        </div>
-      )}
-      {/* Tabs */}
-      <WorkTabs
-        work={work}
-        metadata={metadata}
-        defaultTab={defaultTab}
-        contentType="fund"
-        onTabChange={handleTabChange}
-        updatesCount={authorUpdates.length}
-      />
-      {/* Tab Content */}
       {renderTabContent}
 
       {/* Mobile overlay */}
