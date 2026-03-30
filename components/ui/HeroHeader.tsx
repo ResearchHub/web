@@ -7,6 +7,7 @@ interface HeroHeaderProps {
   eyebrow?: React.ReactNode;
   subtitle?: React.ReactNode;
   cta?: React.ReactNode;
+  actions?: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
 }
@@ -16,6 +17,7 @@ export function HeroHeader({
   eyebrow,
   subtitle,
   cta,
+  actions,
   children,
   className,
 }: HeroHeaderProps) {
@@ -25,10 +27,16 @@ export function HeroHeader({
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
           <div className="flex-1 min-w-0">
             {eyebrow && <div className="mb-2.5">{eyebrow}</div>}
-            <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight leading-snug text-gray-900">
+            <h1
+              className={cn(
+                'font-semibold tracking-tight leading-snug text-gray-900',
+                title.length > 100 ? 'text-2xl sm:text-3xl' : 'text-2xl sm:text-4xl'
+              )}
+            >
               {title}
             </h1>
             {subtitle && <div className="mt-2.5">{subtitle}</div>}
+            {actions && <div className="mt-3">{actions}</div>}
           </div>
 
           {cta && !children && <div className="flex flex-shrink-0 flex-col gap-2">{cta}</div>}

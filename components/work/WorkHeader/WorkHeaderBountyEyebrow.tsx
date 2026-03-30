@@ -13,7 +13,7 @@ export function WorkHeaderBountyEyebrow({
   return (
     <Link
       href={reviewsUrl}
-      className="inline-flex items-center gap-1.5 font-medium text-sm px-2.5 py-1 rounded-md text-green-700 bg-green-100 hover:bg-green-200 transition-colors"
+      className="inline-flex items-center gap-1.5 font-medium text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-green-700 bg-green-100 hover:bg-green-200 transition-colors"
     >
       <RadiatingDot color="bg-green-500" size="sm" isRadiating />
       Peer review for <span className="font-mono font-bold">{bountyDisplay}</span>

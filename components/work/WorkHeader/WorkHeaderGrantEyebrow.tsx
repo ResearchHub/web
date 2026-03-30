@@ -24,7 +24,7 @@ export function WorkHeaderGrantEyebrow({
       {amountUsd != null && amountUsd > 0 && (
         <span
           className={cn(
-            'inline-flex items-center font-mono font-bold text-sm px-2.5 py-1 rounded-md tabular-nums',
+            'inline-flex items-center font-mono font-bold text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md tabular-nums',
             isActive ? 'text-green-700 bg-green-100' : 'text-gray-600 bg-gray-100'
           )}
         >
@@ -32,7 +32,7 @@ export function WorkHeaderGrantEyebrow({
         </span>
       )}
       {isPending && (
-        <span className="inline-flex items-center font-medium text-sm px-2.5 py-1 rounded-md text-yellow-700 bg-yellow-100">
+        <span className="inline-flex items-center font-medium text-xs sm:text-sm px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-yellow-700 bg-yellow-100">
           Pending Review
         </span>
       )}

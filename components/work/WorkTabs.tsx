@@ -290,6 +290,11 @@ export const WorkTabs = ({
   }, [baseTabs, hasResearchHubJournalVersions, activeTab, work.versions?.length]);
 
   return (
-    <Tabs tabs={tabs} activeTab={activeTab} onTabChange={(id) => handleTabChange(id as TabType)} />
+    <Tabs
+      tabs={tabs}
+      activeTab={activeTab}
+      onTabChange={(id) => handleTabChange(id as TabType)}
+      className="border-b-0"
+    />
   );
 };

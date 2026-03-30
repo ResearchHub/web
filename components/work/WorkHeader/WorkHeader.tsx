@@ -1,6 +1,10 @@
 'use client';
 
 import { ReactNode, useState } from 'react';
+import { Share, MoreHorizontal } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookmark } from '@fortawesome/free-regular-svg-icons';
+import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -15,12 +19,13 @@ import {
   findLatestFoundationBounty,
   getBountyDisplayAmount,
 } from '@/components/Bounty/lib/bountyUtil';
+import { BaseMenu } from '@/components/ui/form/BaseMenu';
+import { cn } from '@/utils/styles';
 import toast from 'react-hot-toast';
 
 import { useWorkVote, useWorkPermissions } from './WorkHeaderHooks';
 import { useWorkHeaderMenuItems } from './useWorkHeaderMenu';
 import { WorkHeaderVoteWidget } from './WorkHeaderVoteWidget';
-import { WorkHeaderActionBar } from './WorkHeaderActionBar';
 import { WorkHeaderSubtitle } from './WorkHeaderSubtitle';
 import { WorkHeaderBountyEyebrow } from './WorkHeaderBountyEyebrow';
 import { WorkHeaderModals } from './WorkHeaderModals';
@@ -125,34 +130,41 @@ export function WorkHeader({
   const resolvedSubtitle =
     subtitleOverride !== undefined ? subtitleOverride : <WorkHeaderSubtitle work={work} />;
 
-  const desktopCta = (
-    <div className="hidden sm:flex flex-shrink-0 flex-col items-stretch gap-1.5">
-      {!hideVoteWidget && <WorkHeaderVoteWidget {...voteState} onVote={voteState.handleVote} />}
-      {primaryAction}
-      <WorkHeaderActionBar
-        moreMenuItems={menuItems}
-        onShare={shareAction}
-        onSave={handleAddToList}
-        isInList={isInList}
-        isSaveDisabled={isTogglingDefaultList}
-      />
-    </div>
-  );
+  const btnClass =
+    'p-2 flex items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors';
 
-  const mobileActions = (
-    <div className="flex sm:hidden items-center gap-1.5 flex-shrink-0">
+  const actionBar = (
+    <div className="flex items-center gap-3">
       {!hideVoteWidget && (
-        <WorkHeaderVoteWidget {...voteState} onVote={voteState.handleVote} size="sm" />
+        <div className="flex items-center rounded-lg bg-gray-100">
+          <WorkHeaderVoteWidget {...voteState} onVote={voteState.handleVote} size="sm" />
+        </div>
       )}
-      <WorkHeaderActionBar
-        moreMenuItems={menuItems}
-        onShare={shareAction}
-        onSave={handleAddToList}
-        isInList={isInList}
-        isSaveDisabled={isTogglingDefaultList}
-        primaryAction={primaryAction}
-        size="sm"
-      />
+      <button
+        onClick={handleAddToList}
+        disabled={isTogglingDefaultList}
+        className={cn(
+          btnClass,
+          isInList && 'text-green-600',
+          isTogglingDefaultList && 'opacity-50 cursor-not-allowed'
+        )}
+        aria-label="Save"
+      >
+        <FontAwesomeIcon icon={isInList ? faBookmarkSolid : faBookmark} className="h-5 w-5" />
+      </button>
+      <button onClick={shareAction} className={btnClass} aria-label="Share">
+        <Share className="h-5 w-5" />
+      </button>
+      <BaseMenu
+        align="start"
+        trigger={
+          <button className={btnClass} aria-label="More options">
+            <MoreHorizontal className="h-5 w-5" />
+          </button>
+        }
+      >
+        {menuItems}
+      </BaseMenu>
     </div>
   );
 
@@ -174,12 +186,12 @@ export function WorkHeader({
         title={work.title}
         eyebrow={resolvedEyebrow}
         subtitle={resolvedSubtitle}
-        cta={desktopCta}
+        actions={actionBar}
+        cta={primaryAction}
         className={className}
       >
-        <div className="flex items-end justify-between mt-3 sm:mt-4">
-          <div className="min-w-0 flex-1">{resolvedTabs}</div>
-          <div className="sm:hidden flex-shrink-0 ml-2">{mobileActions}</div>
+        <div className="mt-3 sm:mt-4">
+          <div className="min-w-0">{resolvedTabs}</div>
         </div>
       </HeroHeader>
 

@@ -4,7 +4,7 @@ import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
 import { CommentService } from '@/services/comment.service';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { WorkHeader, WorkTabProvider } from '@/components/work/WorkHeader/index';
+import { WorkHeaderProposal, WorkTabProvider } from '@/components/work/WorkHeader/index';
 import { ProposalSidebar } from '@/components/work/ProposalSidebar';
 
 interface Props {
@@ -41,12 +41,7 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
     <WorkTabProvider>
       <PageLayout
         topBanner={
-          <WorkHeader
-            work={work}
-            metadata={metadata}
-            contentType="fund"
-            updatesCount={authorUpdates.length}
-          />
+          <WorkHeaderProposal work={work} metadata={metadata} updatesCount={authorUpdates.length} />
         }
         rightSidebar={<ProposalSidebar work={work} metadata={metadata} />}
       >
