@@ -1,12 +1,9 @@
-import { Suspense } from 'react';
 import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
 import { Work } from '@/types/work';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { PageLayout } from '@/app/layouts/PageLayout';
 import { PostDocument } from '@/components/work/PostDocument';
-import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
 import { SearchHistoryTracker } from '@/components/work/SearchHistoryTracker';
 import { WorkDocumentTracker } from '@/components/WorkDocumentTracker';
 import { handleFundraiseRedirect } from '@/utils/navigation';
@@ -57,11 +54,9 @@ export default async function QuestionBountiesPage({ params }: Props) {
   const resolvedParams = await params;
   const post = await getPost(resolvedParams.id);
 
-  // Handle fundraise redirection
   handleFundraiseRedirect(post, resolvedParams.id, resolvedParams.slug);
 
   const metadata = await MetadataService.get(post.unifiedDocumentId?.toString() || '');
-
   const content = await getPostContent(post);
 
   if (!post) {
@@ -69,16 +64,10 @@ export default async function QuestionBountiesPage({ params }: Props) {
   }
 
   return (
-    <PageLayout rightSidebar={<WorkRightSidebar work={post} metadata={metadata} />}>
-      <Suspense>
-        {content ? (
-          <PostDocument work={post} metadata={metadata} content={content} defaultTab="bounties" />
-        ) : (
-          <PostDocument work={post} metadata={metadata} defaultTab="bounties" />
-        )}
-        <SearchHistoryTracker work={post} />
-        <WorkDocumentTracker work={post} metadata={metadata} tab="bounties" />
-      </Suspense>
-    </PageLayout>
+    <>
+      <PostDocument work={post} metadata={metadata} content={content} />
+      <SearchHistoryTracker work={post} />
+      <WorkDocumentTracker work={post} metadata={metadata} tab="bounties" />
+    </>
   );
 }

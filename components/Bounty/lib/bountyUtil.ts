@@ -279,19 +279,6 @@ export const filterOutCreator = (contributors: Contributor[]): Contributor[] => 
  * @returns Array of contributors for display
  */
 export const extractContributorsForDisplay = (bounty: Bounty): Contributor[] => {
-  // Debug log to help diagnose issues
-  console.log('extractContributorsForDisplay input:', {
-    bountyId: bounty.id,
-    hasContributions: !!bounty.contributions && bounty.contributions.length > 0,
-    contributionsCount: bounty.contributions?.length || 0,
-    contributionsData: bounty.contributions?.map((c) => ({
-      id: c.id,
-      amount: c.amount,
-      createdById: c.createdBy?.id,
-      hasAuthorProfile: !!c.createdBy?.authorProfile,
-    })),
-  });
-
   // If there are no contributions, return an empty array
   if (!bounty.contributions || bounty.contributions.length === 0) {
     return [];

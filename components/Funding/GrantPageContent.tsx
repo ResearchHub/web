@@ -1,7 +1,8 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-import type { GrantBannerTab } from '@/components/Funding/GrantInfoBanner';
+
+export type GrantBannerTab = 'proposals' | 'details';
 
 interface GrantTabContextValue {
   activeTab: GrantBannerTab;

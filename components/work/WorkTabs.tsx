@@ -39,7 +39,6 @@ interface WorkTabsProps {
 export const WorkTabs = ({
   work,
   metadata,
-  defaultTab = 'paper',
   contentType = 'paper',
   onTabChange,
   updatesCount = 0,
@@ -50,31 +49,25 @@ export const WorkTabs = ({
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
 
-  // Format score to show with one decimal place (same as FeedItemActions)
   const formatScore = (score: number): string => {
     return score.toFixed(1);
   };
 
-  // Calculate total bounty amount for open bounties (handles Foundation bounties with flat $150 USD)
   const openBounties = useMemo(() => getOpenBounties(metadata.bounties || []), [metadata.bounties]);
   const { amount: totalBountyAmount } = useMemo(
     () => getTotalBountyDisplayAmount(openBounties, exchangeRate, showUSD),
     [openBounties, exchangeRate, showUSD]
   );
 
-  // Check if we can display the bounty amount (exchange rate loaded if USD preferred)
   const canDisplayBountyAmount =
     !showUSD || (showUSD && !isExchangeRateLoading && exchangeRate > 0);
 
-  // Check if we have open bounties
   const hasOpenBounties = openBounties.length > 0;
 
-  // Check if any version is part of the ResearchHub journal
   const hasResearchHubJournalVersions = useMemo(() => {
     return (work.versions || []).some((version) => version.isResearchHubJournal);
   }, [work.versions]);
 
-  // Get the active tab based on current path
   const getActiveTabFromPath = (path: string): TabType => {
     if (path.includes('/updates')) return 'updates';
     if (path.includes('/conversation')) return 'conversation';
@@ -85,10 +78,8 @@ export const WorkTabs = ({
     return 'paper';
   };
 
-  // Initialize activeTab from URL or props
-  const [activeTab, setActiveTab] = useState<TabType>(() => defaultTab);
+  const [activeTab, setActiveTab] = useState<TabType>(() => getActiveTabFromPath(pathname));
 
-  // Update active tab when pathname changes
   useEffect(() => {
     const tabFromPath = getActiveTabFromPath(pathname);
     if (tabFromPath !== activeTab) {
@@ -97,15 +88,12 @@ export const WorkTabs = ({
     }
   }, [pathname, onTabChange, hasResearchHubJournalVersions]);
 
-  // Handle tab change
   const handleTabChange = (tab: TabType) => {
-    // Only update if the tab is actually changing
     if (tab === activeTab) return;
 
     setActiveTab(tab);
     onTabChange(tab);
 
-    // Track tab click analytics
     try {
       const payload = buildPayloadForDocumentTabClick(work, {
         clickedTab: tab,
@@ -116,7 +104,6 @@ export const WorkTabs = ({
       console.warn('Failed to track document tab click analytics:', error);
     }
 
-    // Update the URL without triggering a navigation
     if (typeof window !== 'undefined') {
       const baseUrl =
         contentType === 'paper'
@@ -137,7 +124,6 @@ export const WorkTabs = ({
       };
       const newUrl = tabUrlMap[tab] || baseUrl;
 
-      // Use history.replaceState to update URL without navigation
       window.history.replaceState(null, '', newUrl);
     }
   };
@@ -304,13 +290,11 @@ export const WorkTabs = ({
   }, [baseTabs, hasResearchHubJournalVersions, activeTab, work.versions?.length]);
 
   return (
-    <div className="border-b mb-6">
-      <Tabs
-        tabs={tabs}
-        activeTab={activeTab}
-        onTabChange={(id) => handleTabChange(id as TabType)}
-        className="mt-6"
-      />
-    </div>
+    <Tabs
+      tabs={tabs}
+      activeTab={activeTab}
+      onTabChange={(id) => handleTabChange(id as TabType)}
+      className="border-b-0"
+    />
   );
 };
