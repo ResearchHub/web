@@ -56,7 +56,7 @@ const grantTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: "Briefly introduce your organization and explain why you are issuing this RFP now, including the overarching problem or topic you\'re targeting.",
+          text: "Briefly introduce your organization and explain why you are issuing this funding opportunity now, including the overarching problem or topic you\'re targeting.",
           marks: [{ type: 'italic' }],
         },
       ],
@@ -214,7 +214,7 @@ const grantTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'State the total budget available for this RFP and the award range per project. Indicate whether multiple projects will be funded.',
+          text: 'State the total budget available for this funding opportunity and the award range per project. Indicate whether multiple projects will be funded.',
           marks: [{ type: 'italic' }],
         },
       ],
@@ -228,7 +228,7 @@ const grantTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Total RFP budget:',
+          text: 'Total budget:',
           marks: [{ type: 'bold' }],
         },
         {

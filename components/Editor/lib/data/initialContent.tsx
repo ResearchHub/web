@@ -28,7 +28,7 @@ const researchTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Research Article Title',
+          text: 'Preprint Title',
         },
       ],
     },
@@ -177,7 +177,7 @@ const grantTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'RFP Title',
+          text: 'Funding Opportunity Title',
         },
       ],
     },

@@ -90,6 +90,7 @@ export function WorkHeaderGrant({
               onCloseApplyToGrantModal: () => setIsApplyModalOpen(false),
               grantId,
               grantAmountUsd: amountUsd,
+              grantOrganization: organization,
             }
           : undefined
       }

@@ -37,6 +37,7 @@ export interface WorkHeaderModalsProps {
   onCloseApplyToGrantModal?: () => void;
   grantId?: string;
   grantAmountUsd?: number;
+  grantOrganization?: string;
 }
 
 export function WorkHeaderModals({
@@ -59,6 +60,7 @@ export function WorkHeaderModals({
   onCloseApplyToGrantModal,
   grantId,
   grantAmountUsd,
+  grantOrganization,
 }: WorkHeaderModalsProps) {
   return (
     <>
@@ -109,6 +111,7 @@ export function WorkHeaderModals({
           grantId={grantId}
           grantTitle={work.title}
           grantAmountUsd={grantAmountUsd}
+          grantOrganization={grantOrganization}
         />
       )}
     </>

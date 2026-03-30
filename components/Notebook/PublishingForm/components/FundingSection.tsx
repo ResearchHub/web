@@ -56,7 +56,7 @@ function FundingOpportunitySection() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                {selectedGrant.organization || 'ResearchHub Grant'}
+                {selectedGrant.organization || 'Funding Opportunity'}
               </div>
               <div className="text-sm font-semibold text-gray-900 truncate">
                 {selectedGrant.shortTitle}

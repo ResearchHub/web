@@ -49,7 +49,7 @@ const FEATURE_FLAG_JOURNAL = false;
 
 const PUBLISH_LABEL: Record<string, string> = {
   preregistration: 'Proposal',
-  grant: 'Grant',
+  grant: 'Funding Opportunity',
 };
 
 interface PublishingFormProps {
@@ -484,9 +484,12 @@ export function PublishingForm({
 
       setIsRedirecting(true);
       if (formData.articleType === 'grant' && !formData.workId) {
-        toast.success('Your RFP has been submitted and is pending moderator review.', {
-          duration: 5000,
-        });
+        toast.success(
+          'Your Funding Opportunity has been submitted and is pending moderator review.',
+          {
+            duration: 5000,
+          }
+        );
       } else {
         toast.success(`${PUBLISH_LABEL[formData.articleType] ?? 'Post'} published successfully!`);
       }

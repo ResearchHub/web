@@ -1,12 +1,14 @@
+import { type ReactNode } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { FileText, ChevronDown, Wallet } from 'lucide-react';
+import { FileText, ChevronDown } from 'lucide-react';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { cn } from '@/utils/styles';
 import { SectionHeader } from './SectionHeader';
 import { PublishingFormData } from '../schema';
 import { Button } from '@/components/ui/Button';
 import { useNotebookContext } from '@/contexts/NotebookContext';
-import { Icon } from '@/components/ui/icons/Icon';
+import Icon from '@/components/ui/icons/Icon';
+import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { NoteService } from '@/services/note.service';
 
 const ARTICLE_TYPE_TO_DOCUMENT_TYPE: Record<PublishingFormData['articleType'], string> = {
@@ -17,33 +19,26 @@ const ARTICLE_TYPE_TO_DOCUMENT_TYPE: Record<PublishingFormData['articleType'], s
 
 const articleTypes: Record<
   PublishingFormData['articleType'],
-  { title: string; description: string }
+  { title: string; description: string; icon: ReactNode; selectedIcon: ReactNode }
 > = {
-  discussion: {
-    title: 'Original Research Work',
-    description: 'Publish your original research',
-  },
   preregistration: {
     title: 'Proposal',
-    description: 'Get funding by sharing your research plan',
+    description: 'Crowdfund your research',
+    icon: <FundingIcon size={16} color="#2563eb" />,
+    selectedIcon: <FundingIcon size={16} color="#6b7280" />,
   },
   grant: {
-    title: 'RFP',
-    description: 'Create a request for proposals',
+    title: 'Funding Opportunity',
+    description: 'Fund specific research you care about',
+    icon: <Icon name="fund" size={16} color="#2563eb" />,
+    selectedIcon: <Icon name="fund" size={16} color="#6b7280" />,
   },
-};
-
-const renderSelectedIcon = (articleType: PublishingFormData['articleType'] | undefined) => {
-  if (articleType === 'discussion') {
-    return <FileText className="h-4 w-4 text-gray-500" />;
-  }
-  if (articleType === 'preregistration') {
-    return <Wallet className="h-4 w-4 text-gray-500" />;
-  }
-  if (articleType === 'grant') {
-    return <Icon name="fund" size={16} className="text-gray-500" />;
-  }
-  return <FileText className="h-4 w-4 text-gray-500" />;
+  discussion: {
+    title: 'Preprint',
+    description: 'Publish your research as a preprint',
+    icon: <Icon name="submit1" size={16} color="#2563eb" />,
+    selectedIcon: <Icon name="submit1" size={16} color="#6b7280" />,
+  },
 };
 
 export function WorkTypeSection() {
@@ -57,6 +52,7 @@ export function WorkTypeSection() {
   const { currentNote: note } = useNotebookContext();
 
   const isPublished = Boolean(workId);
+  const currentType = articleType ? articleTypes[articleType] : null;
 
   return (
     <div className="py-3 px-6">
@@ -78,44 +74,56 @@ export function WorkTypeSection() {
               disabled={isPublished}
             >
               <div className="flex items-center gap-2">
-                {renderSelectedIcon(articleType)}
-                <span>
-                  {articleType && articleTypes[articleType]
-                    ? articleTypes[articleType].title
-                    : 'Select work type'}
-                </span>
+                {currentType?.selectedIcon ?? <Icon name="submit1" size={16} color="#6b7280" />}
+                <span>{currentType?.title ?? 'Select work type'}</span>
               </div>
               <ChevronDown className="h-4 w-4 ml-auto" />
             </Button>
           }
           align="start"
-          className="w-[300px]"
+          className="w-[340px] p-2"
         >
-          <div className="text-[.65rem] font-semibold mb-1 uppercase text-neutral-500 px-2">
-            Work Type
+          <div className="space-y-4 pt-2">
+            <div>
+              <div className="px-3 mb-2">
+                <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Work Type
+                </h3>
+              </div>
+              <div className="space-y-2">
+                {Object.entries(articleTypes).map(([type, info]) => (
+                  <BaseMenuItem
+                    key={type}
+                    onClick={() => {
+                      const newType = type as PublishingFormData['articleType'];
+                      setValue('articleType', newType);
+                      if (note && !note.post) {
+                        NoteService.updateNote({
+                          noteId: note.id,
+                          document_type: ARTICLE_TYPE_TO_DOCUMENT_TYPE[newType],
+                        });
+                      }
+                    }}
+                    className={cn('w-full px-2', articleType === type ? 'bg-gray-100' : '')}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0">
+                        <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
+                          {info.icon}
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-base font-medium tracking-[0.02em] text-gray-900">
+                          {info.title}
+                        </div>
+                        <div className="text-sm text-gray-600 mt-0.5">{info.description}</div>
+                      </div>
+                    </div>
+                  </BaseMenuItem>
+                ))}
+              </div>
+            </div>
           </div>
-          {Object.entries(articleTypes).map(([type, info]) => (
-            <BaseMenuItem
-              key={type}
-              onClick={() => {
-                const newType = type as PublishingFormData['articleType'];
-                setValue('articleType', newType);
-                if (note && !note.post) {
-                  NoteService.updateNote({
-                    noteId: note.id,
-                    document_type: ARTICLE_TYPE_TO_DOCUMENT_TYPE[newType],
-                  });
-                }
-              }}
-              className={cn(
-                'flex flex-col items-start py-3',
-                articleType === type ? 'bg-gray-100' : ''
-              )}
-            >
-              <div className="font-medium text-gray-900">{info.title}</div>
-              <div className="text-sm text-gray-500 mt-0.5">{info.description}</div>
-            </BaseMenuItem>
-          ))}
         </BaseMenu>
         {errors.articleType && (
           <div className="mt-1.5 text-sm text-red-500">

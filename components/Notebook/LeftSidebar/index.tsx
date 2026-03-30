@@ -6,7 +6,9 @@ import { SidebarSection } from '@/components/Notebook/LeftSidebar/SidebarSection
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { FileText, Plus, Wallet, Lock, Loader2, type LucideIcon } from 'lucide-react';
+import { Plus, Lock, Loader2, File, FileText, type LucideIcon } from 'lucide-react';
+import { FundingIcon } from '@/components/ui/icons/FundingIcon';
+import Icon from '@/components/ui/icons/Icon';
 import { Organization } from '@/types/organization';
 import { useRouter } from 'next/navigation';
 import { useCallback, useTransition } from 'react';
@@ -16,11 +18,37 @@ import {
   getDocumentTitle,
   getTemplatePlainText,
 } from '@/components/Editor/lib/utils/documentTitle';
-
 import toast from 'react-hot-toast';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
 import proposalTemplate from '@/components/Editor/lib/data/proposalTemplate';
+
+const TEMPLATE_ITEMS = [
+  {
+    id: 'preregistration' as const,
+    title: 'Proposal',
+    description: 'Crowdfund your research',
+    icon: <FundingIcon size={24} color="#2563eb" />,
+  },
+  {
+    id: 'grant' as const,
+    title: 'Funding Opportunity',
+    description: 'Fund specific research you care about',
+    icon: <Icon name="fund" size={24} color="#2563eb" />,
+  },
+  {
+    id: 'research' as const,
+    title: 'Preprint',
+    description: 'Publish your research as a preprint',
+    icon: <Icon name="submit1" size={24} color="#2563eb" />,
+  },
+  {
+    id: 'empty' as const,
+    title: 'Empty',
+    description: 'Start with a blank page',
+    icon: <File className="h-6 w-6 text-blue-600" />,
+  },
+];
 
 export const LeftSidebar = () => {
   const router = useRouter();
@@ -150,77 +178,50 @@ export const LeftSidebar = () => {
         )
       }
       align="start"
-      className="w-56 p-1.5"
+      className="w-[340px] p-2"
     >
-      <div className="text-[.65rem] font-semibold mb-1 uppercase text-neutral-500 px-2">
-        Select Template
+      <div className="space-y-4 pt-2">
+        <div>
+          <div className="px-3 mb-2">
+            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Select Template
+            </h3>
+          </div>
+          <div className="space-y-2">
+            {TEMPLATE_ITEMS.map((item) => (
+              <BaseMenuItem
+                key={item.id}
+                onClick={() => handleTemplateSelect(type, item.id)}
+                className="w-full px-2"
+                disabled={isProcessing}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                      {isProcessing ? (
+                        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                      ) : (
+                        item.icon
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-base font-medium tracking-[0.02em] text-gray-900">
+                      {item.title}
+                    </div>
+                    <div className="text-sm text-gray-600 mt-0.5">{item.description}</div>
+                  </div>
+                </div>
+              </BaseMenuItem>
+            ))}
+          </div>
+        </div>
       </div>
-      <BaseMenuItem
-        onClick={() => handleTemplateSelect(type, 'research')}
-        className="flex items-center gap-2 py-2"
-        disabled={isProcessing}
-      >
-        {isProcessing ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <FileText className="h-4 w-4" />
-        )}
-        <div>
-          <div className="font-medium text-gray-900">Research Article</div>
-          <div className="text-xs text-gray-500">Standard research paper format</div>
-        </div>
-      </BaseMenuItem>
-
-      <BaseMenuItem
-        onClick={() => handleTemplateSelect(type, 'grant')}
-        className="flex items-center gap-2 py-2"
-        disabled={isProcessing}
-      >
-        {isProcessing ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <FileText className="h-4 w-4" />
-        )}
-        <div>
-          <div className="font-medium text-gray-900">RFP</div>
-          <div className="text-xs text-gray-500">Request for Proposals</div>
-        </div>
-      </BaseMenuItem>
-      <BaseMenuItem
-        onClick={() => handleTemplateSelect(type, 'preregistration')}
-        className="flex items-center gap-2 py-2"
-        disabled={isProcessing}
-      >
-        {isProcessing ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Wallet className="h-4 w-4" />
-        )}
-        <div>
-          <div className="font-medium text-gray-900">Proposal</div>
-          <div className="text-xs text-gray-500">Get funding for your research</div>
-        </div>
-      </BaseMenuItem>
-      <BaseMenuItem
-        onClick={() => handleTemplateSelect(type, 'empty')}
-        className="flex items-center gap-2 py-2"
-        disabled={isProcessing}
-      >
-        {isProcessing ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <FileText className="h-4 w-4" />
-        )}
-        <div>
-          <div className="font-medium text-gray-900">Empty</div>
-          <div className="text-xs text-gray-500">Start with a blank page</div>
-        </div>
-      </BaseMenuItem>
     </BaseMenu>
   );
 
   const renderEmptyState = ({
-    icon: Icon,
+    icon: StateIcon,
     title,
     subtitle,
     buttonLabel,
@@ -234,7 +235,7 @@ export const LeftSidebar = () => {
   }) => (
     <div className="flex flex-col items-center justify-center py-6 text-center">
       <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-2.5">
-        <Icon className="h-5 w-5 text-gray-400" />
+        <StateIcon className="h-5 w-5 text-gray-400" />
       </div>
       <p className="text-sm font-medium text-gray-500">{title}</p>
       <p className="text-xs text-gray-400 mt-0.5 mb-3">{subtitle}</p>
