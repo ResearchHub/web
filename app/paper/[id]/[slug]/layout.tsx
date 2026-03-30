@@ -27,7 +27,7 @@ export default async function PaperSlugLayout({ params, children }: Props) {
   } catch {
     notFound();
   }
-
+  console.log('work', work);
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
   return (
