@@ -109,7 +109,7 @@ export function ReviewsPageContent() {
   const tabs: PillTab[] = useMemo(() => {
     const topicTabs: PillTab[] = allTopics.map((t) => ({
       id: String(t.id),
-      label: t.name,
+      label: `#${t.name}`,
     }));
     return [{ id: ALL_TOPICS_ID, label: 'All' }, ...topicTabs];
   }, [allTopics]);

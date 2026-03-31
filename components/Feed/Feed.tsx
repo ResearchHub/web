@@ -88,13 +88,18 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData }) => {
 
   const header = activeTab === 'for-you' ? <ForYouFeedBanner /> : undefined;
 
+  const isFollowing = activeTab === 'following';
+
   const inlineTabs = (
     <FeedTabs
       activeTab={highlightedTab}
       tabs={tabs}
       onTabChange={handleTabChange}
-      showGearIcon
+      showGearIcon={isFollowing}
       onGearClick={handleCustomize}
+      showSorting={isFollowing}
+      sortOption={ordering || 'hot_score_v2'}
+      onSortChange={setOrdering}
     />
   );
 
