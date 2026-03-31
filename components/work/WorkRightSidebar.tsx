@@ -12,6 +12,7 @@ import { FormatsSection } from './components/FormatsSection';
 import { VersionsSection } from './components/VersionsSection';
 import { JournalSection } from './components/JournalSection';
 import { PeerReviewsSection } from './components/PeerReviewsSection';
+import { buildWorkUrl } from '@/utils/url';
 import { useMemo } from 'react';
 
 interface WorkRightSidebarProps {
@@ -32,7 +33,15 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
       )}
       {work.journal && <JournalSection journal={work.journal} />}
       {work.peerReviews && work.peerReviews.length > 0 && (
-        <PeerReviewsSection peerReviews={work.peerReviews} />
+        <PeerReviewsSection
+          peerReviews={work.peerReviews}
+          reviewsUrl={buildWorkUrl({
+            id: work.id,
+            contentType: work.contentType,
+            slug: work.slug,
+            tab: 'reviews',
+          })}
+        />
       )}
       <TopicsSection topics={metadata.topics || []} />
       {work.doi && <DOISection doi={work.doi} />}
