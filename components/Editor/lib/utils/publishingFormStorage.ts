@@ -85,3 +85,42 @@ export const clearPublishingFormStorage = (noteId: string) => {
     console.error('Error clearing publishing form from localStorage:', error);
   }
 };
+
+const PENDING_GRANT_KEY = 'pendingGrant';
+
+export interface SelectedGrantData {
+  id: string;
+  shortTitle: string;
+  imageUrl: string;
+  fundingAmount: number;
+  organization: string;
+}
+
+export const setPendingGrant = (grant: SelectedGrantData) => {
+  if (globalThis.window === undefined) return;
+  try {
+    sessionStorage.setItem(PENDING_GRANT_KEY, JSON.stringify(grant));
+  } catch (error) {
+    console.error('Error saving pending grant:', error);
+  }
+};
+
+export const getPendingGrant = (): SelectedGrantData | null => {
+  if (globalThis.window === undefined) return null;
+  try {
+    const raw = sessionStorage.getItem(PENDING_GRANT_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (error) {
+    console.error('Error reading pending grant:', error);
+    return null;
+  }
+};
+
+export const clearPendingGrant = () => {
+  if (globalThis.window === undefined) return;
+  try {
+    sessionStorage.removeItem(PENDING_GRANT_KEY);
+  } catch (error) {
+    console.error('Error clearing pending grant:', error);
+  }
+};

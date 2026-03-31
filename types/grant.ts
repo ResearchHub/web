@@ -5,6 +5,10 @@ import { Contact, transformContact } from './note';
 
 export type GrantStatus = 'OPEN' | 'CLOSED' | 'PENDING' | 'DECLINED' | 'COMPLETED';
 
+export const GRANT_IMAGE_FALLBACK_GRADIENT =
+  'radial-gradient(ellipse at 25% 35%, rgba(251,146,60,0.55) 0%, transparent 50%), ' +
+  'linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%)';
+
 export const GRANT_STATUS_CONFIG: Record<
   GrantStatus,
   { dotClass: string; badgeClass: string; label: string }

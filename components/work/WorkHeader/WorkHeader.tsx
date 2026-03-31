@@ -48,6 +48,7 @@ interface WorkHeaderProps {
     onCloseApplyToGrantModal: () => void;
     grantId: string;
     grantAmountUsd?: number;
+    grantOrganization?: string;
   };
 }
 
@@ -218,6 +219,7 @@ export function WorkHeader({
         onCloseApplyToGrantModal={grantModalProps?.onCloseApplyToGrantModal}
         grantId={grantModalProps?.grantId}
         grantAmountUsd={grantModalProps?.grantAmountUsd}
+        grantOrganization={grantModalProps?.grantOrganization}
       />
     </>
   );
