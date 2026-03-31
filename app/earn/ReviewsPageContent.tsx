@@ -109,7 +109,7 @@ export function ReviewsPageContent() {
   const tabs: PillTab[] = useMemo(() => {
     const topicTabs: PillTab[] = allTopics.map((t) => ({
       id: String(t.id),
-      label: t.name,
+      label: `#${t.name}`,
     }));
     return [{ id: ALL_TOPICS_ID, label: 'All' }, ...topicTabs];
   }, [allTopics]);
@@ -138,8 +138,8 @@ export function ReviewsPageContent() {
   );
 
   const filters = (
-    <div className="mt-5 relative flex items-center">
-      <div className="min-w-0 flex-1 pr-24">
+    <div className="mt-5 space-y-3">
+      <div className="min-w-0">
         {isLoadingTopics ? (
           pillSkeleton
         ) : (
@@ -153,10 +153,7 @@ export function ReviewsPageContent() {
           />
         )}
       </div>
-      <div
-        className="absolute right-0 top-0 bottom-0 z-20 flex items-center pl-6"
-        style={{ background: 'linear-gradient(to right, transparent, white 30%)' }}
-      >
+      <div className="flex items-center justify-end">
         <BountySortDropdown value={sort} onChange={handleSortChange} />
       </div>
     </div>
