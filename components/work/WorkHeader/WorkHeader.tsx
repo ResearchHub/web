@@ -109,7 +109,7 @@ export function WorkHeader({
     id: work.id,
     contentType: work.contentType,
     slug: work.slug,
-    tab: 'reviews',
+    tab: 'bounties',
   });
 
   const { setActiveTab } = useWorkTab();

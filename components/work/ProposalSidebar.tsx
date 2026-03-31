@@ -4,6 +4,7 @@ import { FundraiseSection } from './components/FundraiseSection';
 import { TopicsSection } from './components/TopicsSection';
 import { NonprofitSection } from './components/NonprofitSection';
 import { FundersSection } from './components/FundersSection';
+import { PeerReviewsSection } from './components/PeerReviewsSection';
 import { DOISection } from './components/DOISection';
 
 interface ProposalSidebarProps {
@@ -25,6 +26,9 @@ export const ProposalSidebar = ({ work, metadata }: ProposalSidebarProps) => {
             work={work}
           />
         )}
+      {work.peerReviews && work.peerReviews.length > 0 && (
+        <PeerReviewsSection peerReviews={work.peerReviews} />
+      )}
       <TopicsSection topics={metadata.topics || []} />
       {work.doi && <DOISection doi={work.doi} />}
     </div>

@@ -11,6 +11,7 @@ import { LicenseSection } from './components/LicenseSection';
 import { FormatsSection } from './components/FormatsSection';
 import { VersionsSection } from './components/VersionsSection';
 import { JournalSection } from './components/JournalSection';
+import { PeerReviewsSection } from './components/PeerReviewsSection';
 import { useMemo } from 'react';
 
 interface WorkRightSidebarProps {
@@ -30,7 +31,9 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
         <VersionsSection versions={work.versions || []} currentPaperId={work.id} slug={work.slug} />
       )}
       {work.journal && <JournalSection journal={work.journal} />}
-      {/* Topics badges should not be hidden/collapsed differently on mobile */}
+      {work.peerReviews && work.peerReviews.length > 0 && (
+        <PeerReviewsSection peerReviews={work.peerReviews} />
+      )}
       <TopicsSection topics={metadata.topics || []} />
       {work.doi && <DOISection doi={work.doi} />}
       {work.postType !== 'QUESTION' && <LicenseSection license={work.license} />}
