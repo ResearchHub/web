@@ -10,6 +10,21 @@ import { stripHtml } from '../utils/stringUtils';
 import { transformUser, TransformedUser } from './user';
 import { transformTip, Tip } from './tip';
 
+export interface PeerReview {
+  id: number;
+  createdBy: {
+    id: number;
+    authorProfile: {
+      id: number;
+      fullName: string;
+      profileImage: string;
+      isVerified: boolean;
+    };
+  };
+  score: number;
+  createdDate: string;
+}
+
 export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration' | 'funding_request';
 
 export type AuthorPosition = 'first' | 'middle' | 'last';
@@ -100,6 +115,7 @@ export interface Work {
   postType?: string;
   fundraise?: any;
   tips?: Tip[];
+  peerReviews?: PeerReview[];
   enrichments?: Enrichment[];
 }
 
@@ -162,6 +178,24 @@ export const transformDocumentVersion = createTransformer<any, DocumentVersion>(
   isVersionOfRecord: raw.is_version_of_record || false,
   isResearchHubJournal: !!raw.publication_status,
 }));
+
+export function transformPeerReview(raw: any): PeerReview {
+  const ap = raw.created_by?.author_profile;
+  return {
+    id: raw.id,
+    createdBy: {
+      id: raw.created_by?.id ?? 0,
+      authorProfile: {
+        id: ap?.id ?? 0,
+        fullName: `${ap?.first_name || ''} ${ap?.last_name || ''}`.trim(),
+        profileImage: ap?.profile_image || '',
+        isVerified: ap?.is_verified || false,
+      },
+    },
+    score: raw.score ?? 0,
+    createdDate: raw.created_date || '',
+  };
+}
 
 export const transformWork = createTransformer<any, Work>((raw) => {
   // Process fullName fields from raw authors if needed
@@ -256,6 +290,7 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     previewContent: raw.full_markdown || '',
     contentUrl: raw.post_src,
     tips: tips,
+    peerReviews: Array.isArray(raw.peer_reviews) ? raw.peer_reviews.map(transformPeerReview) : [],
     image: raw.image_url,
     enrichments: raw.enrichments || [],
   };
