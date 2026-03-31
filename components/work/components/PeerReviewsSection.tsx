@@ -6,12 +6,14 @@ import { Avatar } from '@/components/ui/Avatar';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
 import { PeerReview } from '@/types/work';
 import { Star } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
 interface PeerReviewsSectionProps {
   peerReviews: PeerReview[];
+  reviewsUrl: string;
 }
 
-export const PeerReviewsSection: FC<PeerReviewsSectionProps> = ({ peerReviews }) => {
+export const PeerReviewsSection: FC<PeerReviewsSectionProps> = ({ peerReviews, reviewsUrl }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (peerReviews.length === 0) return null;
@@ -24,29 +26,34 @@ export const PeerReviewsSection: FC<PeerReviewsSectionProps> = ({ peerReviews })
     <div>
       <SidebarHeader title="Peer Reviews" className="mb-3" />
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {displayed.map((review) => {
           const { authorProfile } = review.createdBy;
           return (
-            <div key={review.id} className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Avatar
-                  src={authorProfile.profileImage}
-                  alt={authorProfile.fullName}
-                  size="xs"
-                  authorId={authorProfile.id}
-                />
-                <Link
-                  href={`/author/${authorProfile.id}`}
-                  className="text-sm font-medium text-gray-900 hover:text-blue-600"
-                >
-                  {authorProfile.fullName}
-                </Link>
+            <div key={review.id}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Avatar
+                    src={authorProfile.profileImage}
+                    alt={authorProfile.fullName}
+                    size="xs"
+                    authorId={authorProfile.id}
+                  />
+                  <Link
+                    href={reviewsUrl}
+                    className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                  >
+                    {authorProfile.fullName}
+                  </Link>
+                </div>
+                <div className="flex items-center gap-1 text-sm font-medium text-amber-600">
+                  <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                  <span>{review.score}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-1 text-sm font-medium text-amber-600">
-                <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                <span>{review.score}</span>
-              </div>
+              <p className="text-xs text-gray-400 ml-8 mt-0.5">
+                {formatDistanceToNow(new Date(review.createdDate), { addSuffix: true })}
+              </p>
             </div>
           );
         })}
