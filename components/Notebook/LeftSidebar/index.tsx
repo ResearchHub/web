@@ -206,10 +206,10 @@ export const LeftSidebar = () => {
                     </div>
                   </div>
                   <div className="flex-1">
-                    <div className="text-base font-medium tracking-[0.02em] text-gray-900">
+                    <div className="text-md font-medium tracking-[0.02em] text-gray-900">
                       {item.title}
                     </div>
-                    <div className="text-sm text-gray-600 mt-0.5">{item.description}</div>
+                    <div className="text-xs text-gray-600 mt-0.5">{item.description}</div>
                   </div>
                 </div>
               </BaseMenuItem>

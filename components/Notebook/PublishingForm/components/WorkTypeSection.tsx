@@ -113,10 +113,10 @@ export function WorkTypeSection() {
                         </div>
                       </div>
                       <div className="flex-1">
-                        <div className="text-base font-medium tracking-[0.02em] text-gray-900">
+                        <div className="text-md font-medium tracking-[0.02em] text-gray-900">
                           {info.title}
                         </div>
-                        <div className="text-sm text-gray-600 mt-0.5">{info.description}</div>
+                        <div className="text-xs text-gray-600 mt-0.5">{info.description}</div>
                       </div>
                     </div>
                   </BaseMenuItem>
