@@ -246,13 +246,13 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
 
           {isActive && showContribute ? (
             <Button
-              variant="contribute"
+              variant="default"
               size="sm"
-              className="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold transition-all duration-200 border-0"
+              className="flex items-center gap-1.5"
               onClick={handleContributeClick}
             >
               <Icon name="giveRSC" size={18} color="white" />
-              Fund this research
+              Fund proposal
             </Button>
           ) : onDetailsClick ? (
             <Button

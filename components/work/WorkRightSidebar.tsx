@@ -5,7 +5,6 @@ import type { WorkMetadata } from '@/services/metadata.service';
 import { HaveYouPublishedBanner } from '@/components/banners/HaveYouPublishedBanner';
 import { PublishInJournalBanner } from '@/components/banners/PublishInJournalBanner';
 import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
-import { SupportersSection } from './components/SupportersSection';
 import { TopicsSection } from './components/TopicsSection';
 import { DOISection } from './components/DOISection';
 import { LicenseSection } from './components/LicenseSection';
@@ -30,7 +29,6 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
       {hasResearchHubJournalVersions && (
         <VersionsSection versions={work.versions || []} currentPaperId={work.id} slug={work.slug} />
       )}
-      <SupportersSection tips={work.tips || []} documentId={work.id} />
       {work.journal && <JournalSection journal={work.journal} />}
       {/* Topics badges should not be hidden/collapsed differently on mobile */}
       <TopicsSection topics={metadata.topics || []} />

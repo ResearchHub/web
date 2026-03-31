@@ -1,81 +1,37 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  BarChart2,
-  CheckCircle,
-  FileText,
-  MessageCircle,
-  Play,
-  Star,
-  AlertTriangle,
-  FlaskConicalOff,
-  History,
-  Plus,
-  X,
-} from 'lucide-react';
-import { Work, DocumentVersion } from '@/types/work';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { WorkRightSidebar } from './WorkRightSidebar';
-import { PageHeader } from '@/components/ui/PageHeader';
-import { WorkLineItems } from './WorkLineItems';
+import { useState, useMemo } from 'react';
+import { FlaskConicalOff, Plus } from 'lucide-react';
+import { Work } from '@/types/work';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { WorkMetadata } from '@/services/metadata.service';
 import { DocumentViewer } from './DocumentViewer';
-import { CommentEditor } from '@/components/Comment/CommentEditor';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
-import { formatRSC } from '@/utils/number';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { WorkTabs, TabType } from './WorkTabs';
+import { TabType } from './WorkTabs';
 import { WorkHistoryDisplay } from './WorkHistoryDisplay';
-import { Badge } from '@/components/ui/Badge';
-import { Tooltip } from '@/components/ui/Tooltip';
 
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
-import { EarningOpportunityBanner } from '@/components/banners/EarningOpportunityBanner';
-import { buildWorkUrl } from '@/utils/url';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
+import { useWorkTab } from './WorkHeader/WorkTabContext';
 
 interface WorkDocumentProps {
   work: Work;
   metadata: WorkMetadata;
-  defaultTab?: TabType;
 }
 
-export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocumentProps) => {
+export const WorkDocument = ({ work, metadata }: WorkDocumentProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const pathname = usePathname();
 
   const { user } = useUser();
+  const { activeTab } = useWorkTab();
 
-  // State for active tab
-  const [activeTab, setActiveTab] = useState<TabType>(() => {
-    if (pathname.includes('/conversation')) return 'conversation';
-    if (pathname.includes('/reviews')) return 'reviews';
-    if (pathname.includes('/bounties')) return 'bounties';
-    if (pathname.includes('/history')) return 'history';
-    return defaultTab;
-  });
-
-  const [rewardModalOpen, setRewardModalOpen] = useState(false);
-  const [showMobileMetrics, setShowMobileMetrics] = useState(false);
   const [pdfUnavailable, setPdfUnavailable] = useState(false);
 
-  // Determine if we should auto focus the review editor based on query param
   const shouldFocusReviewEditor = useMemo(() => {
     return searchParams?.get('focus') === 'true';
   }, [searchParams]);
-
-  // Update active tab if defaultTab prop changes
-  useEffect(() => {
-    setActiveTab(defaultTab);
-  }, [defaultTab]);
-
-  // Handle tab change (updates URL via WorkTabs now)
-  const handleTabChange = useCallback((tab: TabType) => {
-    setActiveTab(tab);
-  }, []);
 
   const isAuthor = useMemo(() => {
     if (!user) return false;
@@ -254,75 +210,7 @@ export const WorkDocument = ({ work, metadata, defaultTab = 'paper' }: WorkDocum
 
   return (
     <div>
-      {/* Show on mobile only - desktop shows in right sidebar */}
-      <div className="lg:hidden mb-3">
-        <EarningOpportunityBanner work={work} metadata={metadata} />
-      </div>
-      {/* Title & Actions */}
-      <PageHeader
-        title={work.title}
-        className="text-2xl md:!text-3xl mt-0"
-        hasBounty={metadata.openBounties > 0}
-        bountyUrl={buildWorkUrl({
-          id: work.id,
-          contentType: 'paper',
-          slug: work.slug,
-          tab: 'bounties',
-        })}
-      />
-
-      <WorkLineItems
-        work={work}
-        metadata={metadata}
-        insightsButton={
-          <button
-            className="lg:!hidden flex items-center px-4 py-2.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
-            onClick={() => setShowMobileMetrics(true)}
-          >
-            <BarChart2 className="h-5 w-5" />
-          </button>
-        }
-      />
-
-      {/* Navigation */}
-      <WorkTabs
-        work={work}
-        metadata={metadata}
-        defaultTab={defaultTab}
-        contentType="paper"
-        onTabChange={handleTabChange}
-      />
-
-      {/* Tab Content */}
       <div className="mt-6">{renderTabContent}</div>
-
-      {/* Mobile sidebar overlay */}
-      <div
-        className={`fixed inset-0 bg-black/50 z-[70] lg:hidden ${
-          showMobileMetrics ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setShowMobileMetrics(false)}
-      >
-        <div
-          className={`absolute right-0 top-0 bottom-0 w-80 bg-white shadow-xl transition-transform duration-200 p-4 ${
-            showMobileMetrics ? 'translate-x-0' : 'translate-x-full'
-          }`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="h-full overflow-y-auto relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowMobileMetrics(false)}
-              aria-label="Close sidebar"
-              className="absolute -top-2 right-0 z-10"
-            >
-              <X className="w-4 h-4 text-gray-600" />
-            </Button>
-            <WorkRightSidebar metadata={metadata} work={work} />
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

@@ -150,8 +150,6 @@ export class PaperService {
     // Format hub_ids exactly as in the working example
     apiPayload.hub_ids = payload.hubs;
 
-    console.log('Paper API payload:', JSON.stringify(apiPayload, null, 2));
-
     // Use the correct endpoint
     return ApiClient.post<CreatePaperResponse>(
       `${this.BASE_PATH}/create_researchhub_paper/`,

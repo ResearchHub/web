@@ -60,7 +60,7 @@ export function RightSidebarContainer({
   return (
     <aside
       className={cn(
-        'sticky top-6 overflow-y-auto mt-6',
+        'sticky top-10 overflow-y-auto mt-10',
         'lg:!block !hidden right-sidebar:!block',
         'w-80 flex-shrink-0 bg-gray-50/80 rounded-xl z-30',
         sidebarHeight
