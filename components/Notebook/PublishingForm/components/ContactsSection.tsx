@@ -24,7 +24,7 @@ export function ContactsSection() {
         onChange={(newContacts) => setValue('contacts', newContacts, { shouldValidate: true })}
         placeholder="Search for contacts..."
         error={getFieldErrorMessage(errors.contacts, 'Invalid contacts')}
-        helperText="Add contacts who will be responsible for managing this RFP. These contacts will receive important updates about the RFP's progress."
+        helperText="Add contacts who will be responsible for managing this funding opportunity. These contacts will receive important updates about its progress."
         getOptionValue={getContactId}
       />
     </div>

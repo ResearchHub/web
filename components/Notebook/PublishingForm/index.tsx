@@ -28,6 +28,8 @@ import { toast } from 'react-hot-toast';
 import {
   loadPublishingFormFromStorage,
   savePublishingFormToStorage,
+  getPendingGrant,
+  clearPendingGrant,
 } from '@/components/Editor/lib/utils/publishingFormStorage';
 import { PublishingFormSkeleton } from '@/components/skeletons/PublishingFormSkeleton';
 import { Loader2 } from 'lucide-react';
@@ -47,7 +49,7 @@ const FEATURE_FLAG_JOURNAL = false;
 
 const PUBLISH_LABEL: Record<string, string> = {
   preregistration: 'Proposal',
-  grant: 'Grant',
+  grant: 'Funding Opportunity',
 };
 
 interface PublishingFormProps {
@@ -98,6 +100,7 @@ const FORM_DEFAULTS = {
   budget: '',
   coverImage: null,
   selectedNonprofit: null,
+  selectedGrant: null,
   departmentLabName: '',
   shortDescription: '',
   organization: '',
@@ -269,15 +272,24 @@ export function PublishingForm({
       if (storedData) {
         restoreFromStorage(storedData, methods.setValue);
       } else {
-        const resolved = resolveArticleType(searchParams, defaultArticleType);
-        if (resolved) {
-          methods.setValue('articleType', resolved.type);
+        const articleType =
+          (note.documentType && mapDocumentTypeToArticleType(note.documentType)) ??
+          resolveArticleType(searchParams, defaultArticleType)?.type;
+        if (articleType) {
+          methods.setValue('articleType', articleType);
         }
       }
     }
 
     applyGrantDefaults(methods.getValues, methods.setValue);
     autoAddCurrentUser(methods.getValues, methods.setValue, currentUser);
+
+    const pending = getPendingGrant();
+    if (pending) {
+      methods.setValue('selectedGrant', pending);
+      clearPendingGrant();
+    }
+
     savePublishingFormToStorage(
       note.id.toString(),
       methods.getValues() as Partial<PublishingFormData>
@@ -426,6 +438,9 @@ export function PublishingForm({
         budgetValue = formData.budget || '0';
       }
 
+      const isNewProposal = formData.articleType === 'preregistration' && !formData.workId;
+      const grantId = isNewProposal ? (formData.selectedGrant?.id ?? null) : null;
+
       const response = await upsertPost(
         {
           budget: budgetValue,
@@ -454,6 +469,7 @@ export function PublishingForm({
             formData.articleType === 'grant'
               ? new Date('2029-12-31')
               : formData.applicationDeadline,
+          grantId,
         },
         formData.workId
       );
@@ -468,9 +484,12 @@ export function PublishingForm({
 
       setIsRedirecting(true);
       if (formData.articleType === 'grant' && !formData.workId) {
-        toast.success('Your RFP has been submitted and is pending moderator review.', {
-          duration: 5000,
-        });
+        toast.success(
+          'Your Funding Opportunity has been submitted and is pending moderator review.',
+          {
+            duration: 5000,
+          }
+        );
       } else {
         toast.success(`${PUBLISH_LABEL[formData.articleType] ?? 'Post'} published successfully!`);
       }

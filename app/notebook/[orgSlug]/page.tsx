@@ -35,10 +35,12 @@ export default function OrganizationPage() {
       template,
       queryParam,
       queryValue,
+      documentType,
     }: {
       template: typeof proposalTemplate | typeof initialContent | typeof grantTemplate;
       queryParam?: string;
       queryValue?: string;
+      documentType?: string;
     }
   ) => {
     try {
@@ -47,6 +49,7 @@ export default function OrganizationPage() {
         organizationSlug: orgSlug,
         title,
         grouping: 'WORKSPACE',
+        documentType,
       });
 
       if (newNote) {
@@ -73,18 +76,21 @@ export default function OrganizationPage() {
         template: proposalTemplate,
         queryParam: 'newFunding',
         queryValue: 'true',
+        documentType: 'PREREGISTRATION',
       });
     } else if (isNewResearch) {
       createNoteWithContent(selectedOrg.slug, {
         template: getInitialContent('research'),
         queryParam: 'newResearch',
         queryValue: 'true',
+        documentType: 'DISCUSSION',
       });
     } else if (isNewGrant) {
       createNoteWithContent(selectedOrg.slug, {
         template: grantTemplate,
         queryParam: 'newGrant',
         queryValue: 'true',
+        documentType: 'GRANT',
       });
     }
   }, [selectedOrg, isNewFunding, isNewResearch, isNewGrant]); // eslint-disable-line react-hooks/exhaustive-deps
