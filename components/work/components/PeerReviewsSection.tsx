@@ -46,9 +46,17 @@ export const PeerReviewsSection: FC<PeerReviewsSectionProps> = ({ peerReviews, r
                     {authorProfile.fullName}
                   </Link>
                 </div>
-                <div className="flex items-center gap-1 text-sm font-medium text-amber-600">
-                  <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                  <span>{review.score}</span>
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-3.5 w-3.5 ${
+                        i < review.score
+                          ? 'fill-amber-500 text-amber-500'
+                          : 'fill-none text-gray-300'
+                      }`}
+                    />
+                  ))}
                 </div>
               </div>
               <p className="text-xs text-gray-400 ml-8 mt-0.5">

@@ -25,7 +25,7 @@ export const WorkRightSidebar = ({ work, metadata }: WorkRightSidebarProps) => {
   const hasResearchHubJournalVersions = useMemo(() => {
     return (work.versions || []).some((version) => version.isResearchHubJournal);
   }, [work.versions]);
-
+  console.log('work.peerReviews', work.peerReviews);
   return (
     <div className="space-y-8">
       {hasResearchHubJournalVersions && (
