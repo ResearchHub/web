@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import type { FieldErrors } from 'react-hook-form';
+import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 import { ChevronDown, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
 import { Input } from '@/components/ui/form/Input';
+import { Textarea } from '@/components/ui/form/Textarea';
 import { Dropdown, DropdownItem, MultiSelectDropdown } from '@/components/ui/form/Dropdown';
 import type { ExpertSearchResult } from '@/types/expertFinder';
 import type { ContentType } from '@/types/work';
-import type { AdvancedConfigFormValues } from '../schema';
+import type { AdvancedConfigFormValues, ExpertFinderFormValues } from '../schema';
 import { EXPERT_COUNT_OPTIONS } from '../schema';
 import {
   EXPERTISE_LEVEL_OPTIONS,
@@ -37,6 +38,10 @@ interface AdvancedConfigProps {
   contentType?: ContentType;
   onRerunSelect: (search: ExpertSearchResult | null) => void;
   selectedSearchId: number | null;
+  additionalContextRegister: ReturnType<UseFormRegister<ExpertFinderFormValues>>;
+  additionalContextError?: string;
+  additionalContextCharCount: number;
+  additionalContextMaxLength: number;
 }
 
 export function AdvancedConfig({
@@ -47,6 +52,10 @@ export function AdvancedConfig({
   contentType,
   onRerunSelect,
   selectedSearchId,
+  additionalContextRegister,
+  additionalContextError,
+  additionalContextCharCount,
+  additionalContextMaxLength,
 }: AdvancedConfigProps) {
   const hideInputType = contentType !== 'paper';
   const [isExpanded, setIsExpanded] = useState(false);
@@ -91,6 +100,15 @@ export function AdvancedConfig({
             value={values.searchName ?? ''}
             onChange={(e) => onChange({ ...values, searchName: e.target.value })}
             helperText="Give this search a name to find it easily later."
+          />
+        </div>
+
+        <div className="min-w-0 md:!col-span-2">
+          <Textarea
+            label="Additional guidance (optional)"
+            helperText={`Steers how experts are identified for this search. ${additionalContextCharCount} / ${additionalContextMaxLength} characters`}
+            error={additionalContextError}
+            {...additionalContextRegister}
           />
         </div>
 

@@ -59,6 +59,8 @@ export const REGION_OPTIONS: { value: Region; label: string }[] = [
 
 export const DEFAULT_REGION: Region = 'all_regions';
 
+export const EXPERT_SEARCH_ADDITIONAL_CONTEXT_MAX_LENGTH = 10_000;
+
 export function getRegionLabel(value: Region): string {
   return REGION_OPTIONS.find((o) => o.value === value)?.label ?? value;
 }
@@ -75,6 +77,7 @@ export interface ExpertSearchCreatePayload {
     state: string;
   };
   excluded_expert_names?: string[];
+  additional_context?: string;
 }
 
 // ── Email template kind (purpose) ───────────────────

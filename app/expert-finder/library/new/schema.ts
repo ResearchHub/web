@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { ExpertiseLevel, InputType, Region } from '@/services/expertFinder.service';
+import {
+  ExpertiseLevel,
+  EXPERT_SEARCH_ADDITIONAL_CONTEXT_MAX_LENGTH,
+  InputType,
+  Region,
+} from '@/services/expertFinder.service';
 
 const INPUT_TYPES: InputType[] = ['abstract', 'pdf', 'full_content'];
 
@@ -42,6 +47,7 @@ export const expertFinderFormSchema = z
   .object({
     unifiedDocumentId: z.number().nullable().default(null),
     url: z.string().optional().default(''),
+    additionalContext: z.string().max(EXPERT_SEARCH_ADDITIONAL_CONTEXT_MAX_LENGTH).default(''),
     advanced: advancedConfigSchema,
   })
   .refine((data) => data.unifiedDocumentId != null, {
