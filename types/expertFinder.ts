@@ -63,6 +63,7 @@ export interface ExpertSearchResult {
   updatedAt: string;
   completedAt: string | null;
   work: Work | null;
+  additionalContext: string;
   createdBy: CreatedByInfo | null;
 }
 
@@ -166,6 +167,7 @@ export const transformExpertSearch = createTransformer<any, ExpertSearchResult>(
   updatedAt: raw.updated_at ?? '',
   completedAt: raw.completed_at ?? null,
   work: raw.work ? transformUnifiedDocument(raw.work) : null,
+  additionalContext: raw.additional_context ?? '',
   createdBy: transformCreatedBy(raw.created_by),
 }));
 

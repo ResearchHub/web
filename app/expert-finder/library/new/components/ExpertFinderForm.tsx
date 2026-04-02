@@ -18,6 +18,7 @@ import {
   type InputType,
   type Region,
   DEFAULT_REGION,
+  EXPERT_SEARCH_ADDITIONAL_CONTEXT_MAX_LENGTH,
   ExpertFinderService,
   EXPERTISE_LEVEL_ALL,
 } from '@/services/expertFinder.service';
@@ -42,6 +43,7 @@ function getAvailableInputTypes(work: Work | null): InputType[] {
 const defaultValues: ExpertFinderFormValues = {
   unifiedDocumentId: null,
   url: '',
+  additionalContext: '',
   advanced: {
     expertCount: 25,
     expertiseLevel: [],
@@ -80,6 +82,7 @@ export function ExpertFinderForm() {
 
   const urlValue = watch('url');
   const unifiedDocumentId = watch('unifiedDocumentId');
+  const additionalContextValue = watch('additionalContext');
 
   const [{ work: fetchedWork, isLoading: fetchWorkLoading, error: fetchWorkError }] =
     useWorkByUnifiedDocumentId(unifiedDocumentId);
@@ -168,6 +171,7 @@ export function ExpertFinderForm() {
         ...current,
         unifiedDocumentId: unifiedId,
         url: current.url,
+        additionalContext: search.additionalContext ?? current.additionalContext,
         advanced: {
           expertCount,
           expertiseLevel,
@@ -207,6 +211,8 @@ export function ExpertFinderForm() {
         .map((s) => s.trim())
         .filter(Boolean);
 
+      const trimmedAdditionalContext = data.additionalContext?.trim() ?? '';
+
       const payload: ExpertSearchCreatePayload = {
         unified_document_id: unifiedDocumentId,
         input_type: adv.inputType,
@@ -218,6 +224,7 @@ export function ExpertFinderForm() {
         },
         excluded_expert_names: excludedNames.length > 0 ? excludedNames : undefined,
         ...(adv.searchName?.trim() && { name: adv.searchName.trim() }),
+        ...(trimmedAdditionalContext && { additional_context: trimmedAdditionalContext }),
       };
 
       const response = await createSearch(payload);
@@ -293,6 +300,10 @@ export function ExpertFinderForm() {
               contentType={fetchedWork?.contentType}
               onRerunSelect={handleRerunSelect}
               selectedSearchId={selectedSearchId}
+              additionalContextRegister={register('additionalContext')}
+              additionalContextError={getFieldErrorMessage(errors.additionalContext)}
+              additionalContextCharCount={additionalContextValue?.length ?? 0}
+              additionalContextMaxLength={EXPERT_SEARCH_ADDITIONAL_CONTEXT_MAX_LENGTH}
             />
           )}
         />

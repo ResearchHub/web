@@ -42,6 +42,15 @@ export function SearchDetailHeader({ search }: SearchDetailHeaderProps) {
         )}
       </div>
       {search.work && <RelatedWorkCard work={search.work} size="sm" />}
+      {search.additionalContext.trim() !== '' && (
+        <section
+          className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm mt-4"
+          aria-label="Additional guidance for this search"
+        >
+          <h2 className="text-sm font-semibold text-gray-900 mb-2">Additional guidance</h2>
+          <p className="text-sm text-gray-700 whitespace-pre-wrap">{search.additionalContext}</p>
+        </section>
+      )}
     </>
   );
 }
