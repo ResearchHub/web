@@ -1,19 +1,22 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import { Avatar } from './Avatar';
 import { Tooltip } from './Tooltip';
 import { cn } from '@/utils/styles';
-import { AuthorTooltip } from './AuthorTooltip';
 import { getSingularLabel } from '@/utils/stringUtils';
 
+interface AvatarStackItem {
+  src: string;
+  alt: string;
+  tooltip?: string;
+  tooltipContent?: ReactNode;
+  authorId?: number;
+  badge?: ReactNode;
+}
+
 interface AvatarStackProps {
-  items: {
-    src: string;
-    alt: string;
-    tooltip?: string;
-    authorId?: number;
-  }[];
+  items: AvatarStackItem[];
   size?: 'xxxs' | 'xxs' | 'xs' | 'sm' | 'md';
   maxItems?: number;
   /** Spacing in pixels between avatars. Negative values create overlap. */
@@ -30,12 +33,7 @@ interface AvatarStackProps {
   /** Total count of items (for cases where items provided is already truncated) */
   totalItemsCount?: number;
   /** All items (including those not shown) for tooltip on extraCount */
-  allItems?: {
-    src: string;
-    alt: string;
-    tooltip?: string;
-    authorId?: number;
-  }[];
+  allItems?: AvatarStackItem[];
   /** Label for the extra count tooltip */
   extraCountLabel?: string;
   /** When true, shows the label text after avatars */
@@ -95,7 +93,7 @@ export const AvatarStack: FC<AvatarStackProps> = ({
     }
   };
 
-  const renderAvatar = (item: AvatarStackProps['items'][0], index: number) => {
+  const renderAvatar = (item: AvatarStackItem, index: number) => {
     const avatar = (
       <div
         className="relative inline-flex"
@@ -112,15 +110,23 @@ export const AvatarStack: FC<AvatarStackProps> = ({
           className={`${getRingWidth()} ${ringColorClass}`}
           authorId={item.authorId}
         />
+        {item.badge && (
+          <div className="absolute -bottom-0.5 -right-0.5 z-10 flex items-center justify-center">
+            {item.badge}
+          </div>
+        )}
       </div>
     );
 
     if (disableTooltip) return avatar;
 
     // Only add tooltip if authorId is not present (since Avatar will handle that case)
-    if (!item.authorId && item.tooltip) {
+    if (!item.authorId && (item.tooltipContent || item.tooltip)) {
       return (
-        <Tooltip key={`${item.alt}-${index}`} content={item.tooltip || item.alt}>
+        <Tooltip
+          key={`${item.alt}-${index}`}
+          content={item.tooltipContent || item.tooltip || item.alt}
+        >
           {avatar}
         </Tooltip>
       );

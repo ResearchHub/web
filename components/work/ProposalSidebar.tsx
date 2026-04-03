@@ -7,6 +7,7 @@ import { FundersSection } from './components/FundersSection';
 import { PeerReviewsSection } from './components/PeerReviewsSection';
 import { buildWorkUrl } from '@/utils/url';
 import { DOISection } from './components/DOISection';
+import { AIReviewSidebarSection } from './ai-review/ProposalAIReview';
 
 interface ProposalSidebarProps {
   work: Work;
@@ -14,6 +15,13 @@ interface ProposalSidebarProps {
 }
 
 export const ProposalSidebar = ({ work, metadata }: ProposalSidebarProps) => {
+  const reviewsUrl = buildWorkUrl({
+    id: work.id,
+    contentType: work.contentType,
+    slug: work.slug,
+    tab: 'reviews',
+  });
+
   return (
     <div className="space-y-12">
       {metadata.fundraising && <FundraiseSection fundraise={metadata.fundraising} />}
@@ -27,16 +35,9 @@ export const ProposalSidebar = ({ work, metadata }: ProposalSidebarProps) => {
             work={work}
           />
         )}
+      <AIReviewSidebarSection reviewsUrl={reviewsUrl} />
       {work.peerReviews && work.peerReviews.length > 0 && (
-        <PeerReviewsSection
-          peerReviews={work.peerReviews}
-          reviewsUrl={buildWorkUrl({
-            id: work.id,
-            contentType: work.contentType,
-            slug: work.slug,
-            tab: 'reviews',
-          })}
-        />
+        <PeerReviewsSection peerReviews={work.peerReviews} reviewsUrl={reviewsUrl} />
       )}
       <TopicsSection topics={metadata.topics || []} />
       {work.doi && <DOISection doi={work.doi} />}

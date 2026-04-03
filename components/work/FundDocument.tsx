@@ -12,12 +12,12 @@ import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { useStorageKey } from '@/utils/storageKeys';
 import { ProposalSidebar } from './ProposalSidebar';
 import { useUser } from '@/contexts/UserContext';
-import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/pro-solid-svg-icons';
 import { Button } from '../ui/Button';
 import { useWorkTab } from './WorkHeader/WorkTabContext';
+import { ProposalReviewsPanel } from './ai-review/ProposalAIReview';
 
 interface FundDocumentProps {
   work: Work;
@@ -148,22 +148,7 @@ export const FundDocument = ({
       case 'reviews':
         return (
           <div className="space-y-6" key="reviews-tab">
-            <ReviewStatusBanner bounties={metadata.bounties || []} />
-            <CommentFeed
-              unifiedDocumentId={work.unifiedDocumentId || null}
-              documentId={work.id}
-              contentType={work.contentType}
-              commentType="REVIEW"
-              key={`review-feed-${work.id}`}
-              workAuthors={work.authors}
-              editorProps={{
-                placeholder: 'Write your review...',
-                initialRating: 0,
-                commentType: 'REVIEW',
-                storageKey: `${storageKey}-review-feed-${work.id}`,
-              }}
-              work={work}
-            />
+            <ProposalReviewsPanel work={work} metadata={metadata} storageKey={storageKey} />
           </div>
         );
       case 'bounties':
