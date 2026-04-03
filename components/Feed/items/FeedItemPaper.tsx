@@ -100,8 +100,10 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
         thumbnailUrl ? (
           <ImageSection
             imageUrl={thumbnailUrl}
+            fullSizeImageUrl={paper.previewImage}
             alt={paper.title || 'Paper image'}
             naturalDimensions={true}
+            previewOnClick={!!paper.previewImage}
           />
         ) : undefined
       }
@@ -121,10 +123,12 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
           !isPdfPreview && (
             <ImageSection
               imageUrl={thumbnailUrl}
+              fullSizeImageUrl={paper.previewImage}
               alt={paper.title || 'Paper image'}
               aspectRatio="16/9"
               showFullImage={true}
               expandToFit={true}
+              previewOnClick={!!paper.previewImage}
               className="max-h-[180px] mx-auto"
             />
           )

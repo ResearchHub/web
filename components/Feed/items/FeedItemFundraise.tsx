@@ -117,8 +117,10 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
             <>
               <ImageSection
                 imageUrl={imageUrl}
+                fullSizeImageUrl={imageUrl}
                 alt={post.title || 'Fundraise image'}
                 naturalDimensions
+                previewOnClick={true}
               />
               <div className="absolute top-2 left-2">
                 <FeedItemFundingBadges
@@ -145,8 +147,10 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
           <div className="md:!hidden w-[calc(100%+2rem)] mb-5 -mx-4 -mt-4 overflow-hidden">
             <ImageSection
               imageUrl={imageUrl}
+              fullSizeImageUrl={imageUrl}
               alt={post.title || 'Fundraise image'}
               aspectRatio="16/9"
+              previewOnClick={true}
             />
           </div>
         )}
