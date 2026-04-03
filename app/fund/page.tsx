@@ -17,7 +17,9 @@ export default async function FundPage() {
               Browse funding opportunities to apply for.
             </p>
           }
-        />
+        >
+          <MarketplaceCards selected="grants" />
+        </HeroHeader>
       }
       rightSidebar={
         <Suspense fallback={<ActivitySidebarSkeleton />}>
@@ -25,7 +27,6 @@ export default async function FundPage() {
         </Suspense>
       }
     >
-      <MarketplaceCards selected="grants" />
       <FundGrantsPageContent />
     </PageLayout>
   );

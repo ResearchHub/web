@@ -40,7 +40,9 @@ export default async function FundProposalsPage() {
             </p>
           }
           cta={<SubmitProposalCTA />}
-        />
+        >
+          <MarketplaceCards selected="proposals" />
+        </HeroHeader>
       }
       rightSidebar={
         <Suspense fallback={<ActivitySidebarSkeleton />}>
@@ -48,7 +50,6 @@ export default async function FundProposalsPage() {
         </Suspense>
       }
     >
-      <MarketplaceCards selected="proposals" />
       <div>
         <ProposalSortAndFilters />
         <ProposalFeed />
