@@ -35,7 +35,7 @@ export function MarketplaceCards({ selected = 'grants' }: MarketplaceCardsProps)
       activeTab={selected}
       onTabChange={() => {}}
       variant="primary"
-      className="mb-4"
+      className="mt-4"
     />
   );
 }

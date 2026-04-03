@@ -109,6 +109,10 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
   const content = entry.content as FeedGrantContent;
   const grant = content.grant;
 
+  if (!grant) {
+    return null;
+  }
+
   const href = buildWorkUrl({
     id: content.id,
     contentType: 'funding_request',
