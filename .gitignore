@@ -42,4 +42,5 @@ next-env.d.ts
 
 external_references/
 
-.cursor/
+.cursor/.claude/worktrees/
+.claude/worktrees/

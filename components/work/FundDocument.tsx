@@ -13,6 +13,9 @@ import { useStorageKey } from '@/utils/storageKeys';
 import { ProposalSidebar } from './ProposalSidebar';
 import { useUser } from '@/contexts/UserContext';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
+import { PillTabs, PillTab } from '@/components/ui/PillTabs';
+import { AIReviewFullPanel } from '@/components/work/aiReview/AIReviewFullPanel';
+import { Sparkles, Users } from 'lucide-react';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/pro-solid-svg-icons';
@@ -42,6 +45,7 @@ export const FundDocument = ({
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const [reviewsSubTab, setReviewsSubTab] = useState<'ai' | 'people'>('ai');
 
   // Check if current user is an author of the work
   const isCurrentUserAuthor = useMemo(() => {
@@ -66,6 +70,12 @@ export const FundDocument = ({
       router.replace(url.pathname + url.search, { scroll: false });
     }
   }, [searchParams, router, pathname, work.title, showShareModal]);
+
+  useEffect(() => {
+    const q = searchParams.get('review');
+    if (q === 'people') setReviewsSubTab('people');
+    else if (q === 'ai') setReviewsSubTab('ai');
+  }, [searchParams]);
 
   useEffect(() => {
     if (showMobileMetrics) {
@@ -145,27 +155,67 @@ export const FundDocument = ({
             />
           </div>
         );
-      case 'reviews':
+      case 'reviews': {
+        const reviewPills: PillTab[] = [
+          {
+            id: 'ai',
+            icon: Sparkles,
+            label: (
+              <span className="inline-flex items-center gap-1.5">
+                AI
+                <span className="rounded-full bg-emerald-500/20 text-emerald-800 px-1.5 py-px text-[9px] font-bold uppercase leading-none">
+                  New
+                </span>
+              </span>
+            ),
+          },
+          { id: 'people', icon: Users, label: 'People' },
+        ];
+
+        const onReviewsPillChange = (tabId: string) => {
+          const next = tabId as 'ai' | 'people';
+          setReviewsSubTab(next);
+          if (typeof window !== 'undefined') {
+            const url = new URL(window.location.href);
+            url.searchParams.set('review', next);
+            window.history.replaceState(null, '', url);
+          }
+        };
+
         return (
           <div className="space-y-6" key="reviews-tab">
-            <ReviewStatusBanner bounties={metadata.bounties || []} />
-            <CommentFeed
-              unifiedDocumentId={work.unifiedDocumentId || null}
-              documentId={work.id}
-              contentType={work.contentType}
-              commentType="REVIEW"
-              key={`review-feed-${work.id}`}
-              workAuthors={work.authors}
-              editorProps={{
-                placeholder: 'Write your review...',
-                initialRating: 0,
-                commentType: 'REVIEW',
-                storageKey: `${storageKey}-review-feed-${work.id}`,
-              }}
-              work={work}
+            <PillTabs
+              tabs={reviewPills}
+              activeTab={reviewsSubTab}
+              onTabChange={onReviewsPillChange}
+              size="md"
+              className="border-b border-gray-100 -mt-1"
             />
+            {reviewsSubTab === 'ai' ? (
+              <AIReviewFullPanel />
+            ) : (
+              <>
+                <ReviewStatusBanner bounties={metadata.bounties || []} />
+                <CommentFeed
+                  unifiedDocumentId={work.unifiedDocumentId || null}
+                  documentId={work.id}
+                  contentType={work.contentType}
+                  commentType="REVIEW"
+                  key={`review-feed-${work.id}`}
+                  workAuthors={work.authors}
+                  editorProps={{
+                    placeholder: 'Write your review...',
+                    initialRating: 0,
+                    commentType: 'REVIEW',
+                    storageKey: `${storageKey}-review-feed-${work.id}`,
+                  }}
+                  work={work}
+                />
+              </>
+            )}
           </div>
         );
+      }
       case 'bounties':
         return (
           <div className="space-y-6" key="bounties-tab">
@@ -205,7 +255,7 @@ export const FundDocument = ({
       default:
         return null;
     }
-  }, [activeTab, work, metadata, content, storageKey, isCurrentUserAuthor]);
+  }, [activeTab, work, metadata, content, storageKey, isCurrentUserAuthor, reviewsSubTab]);
 
   return (
     <div>

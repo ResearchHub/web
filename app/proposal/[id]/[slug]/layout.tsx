@@ -6,6 +6,7 @@ import { CommentService } from '@/services/comment.service';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkHeaderProposal, WorkTabProvider } from '@/components/work/WorkHeader/index';
 import { ProposalSidebar } from '@/components/work/ProposalSidebar';
+import { ProposalAIReviewBoundary } from '@/components/work/ProposalAIReviewBoundary';
 
 interface Props {
   params: Promise<{
@@ -39,14 +40,20 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
 
   return (
     <WorkTabProvider>
-      <PageLayout
-        topBanner={
-          <WorkHeaderProposal work={work} metadata={metadata} updatesCount={authorUpdates.length} />
-        }
-        rightSidebar={<ProposalSidebar work={work} metadata={metadata} />}
-      >
-        <Suspense>{children}</Suspense>
-      </PageLayout>
+      <ProposalAIReviewBoundary>
+        <PageLayout
+          topBanner={
+            <WorkHeaderProposal
+              work={work}
+              metadata={metadata}
+              updatesCount={authorUpdates.length}
+            />
+          }
+          rightSidebar={<ProposalSidebar work={work} metadata={metadata} />}
+        >
+          <Suspense>{children}</Suspense>
+        </PageLayout>
+      </ProposalAIReviewBoundary>
     </WorkTabProvider>
   );
 }

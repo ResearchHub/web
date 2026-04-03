@@ -5,6 +5,7 @@ import { TopicsSection } from './components/TopicsSection';
 import { NonprofitSection } from './components/NonprofitSection';
 import { FundersSection } from './components/FundersSection';
 import { PeerReviewsSection } from './components/PeerReviewsSection';
+import { AIReviewSidebarSection } from './aiReview/AIReviewSidebarSection';
 import { buildWorkUrl } from '@/utils/url';
 import { DOISection } from './components/DOISection';
 
@@ -27,6 +28,14 @@ export const ProposalSidebar = ({ work, metadata }: ProposalSidebarProps) => {
             work={work}
           />
         )}
+      <AIReviewSidebarSection
+        reviewsUrl={buildWorkUrl({
+          id: work.id,
+          contentType: work.contentType,
+          slug: work.slug,
+          tab: 'reviews',
+        })}
+      />
       {work.peerReviews && work.peerReviews.length > 0 && (
         <PeerReviewsSection
           peerReviews={work.peerReviews}
