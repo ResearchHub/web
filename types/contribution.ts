@@ -229,9 +229,6 @@ export const transformContributionToFeedEntry = ({
 
     case 'researchhubpost':
     case 'researchhubunifieddocument':
-      // Handle post content
-      contentType = item.unified_document?.document_type === 'GRANT' ? 'GRANT' : contentType;
-
       content = {
         id: item.id,
         contentType,
