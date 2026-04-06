@@ -15,7 +15,7 @@ import { useUser } from '@/contexts/UserContext';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 import { PillTabs, PillTab } from '@/components/ui/PillTabs';
 import { AIReviewFullPanel } from '@/components/work/aiReview/AIReviewFullPanel';
-import { Sparkles, Users } from 'lucide-react';
+import { Bot, Users } from 'lucide-react';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/pro-solid-svg-icons';
@@ -159,17 +159,10 @@ export const FundDocument = ({
         const reviewPills: PillTab[] = [
           {
             id: 'ai',
-            icon: Sparkles,
-            label: (
-              <span className="inline-flex items-center gap-1.5">
-                AI
-                <span className="rounded-full bg-emerald-500/20 text-emerald-800 px-1.5 py-px text-[9px] font-bold uppercase leading-none">
-                  New
-                </span>
-              </span>
-            ),
+            icon: Bot,
+            label: 'AI Review',
           },
-          { id: 'people', icon: Users, label: 'People' },
+          { id: 'people', icon: Users, label: 'Human' },
         ];
 
         const onReviewsPillChange = (tabId: string) => {

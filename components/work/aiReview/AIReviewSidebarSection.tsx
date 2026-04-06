@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Sparkles } from 'lucide-react';
+import { Bot, ChevronRight } from 'lucide-react';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { cn } from '@/utils/styles';
@@ -21,7 +21,8 @@ export function AIReviewSidebarSection({ reviewsUrl, className }: AIReviewSideba
   const { data, userValidations } = useAIReviewMock();
   const { user } = useUser();
 
-  const overall = overallSpectrumPercent(data.categories);
+  // For the POC, pin the overall score at 60%
+  const overall = 60;
 
   const topAvatars = useMemo(() => {
     const ids = collectReviewerIdsForCategories(data.categories);
@@ -52,18 +53,17 @@ export function AIReviewSidebarSection({ reviewsUrl, className }: AIReviewSideba
       <SidebarHeader
         title="AI Review"
         className="mb-3"
-        action={<Sparkles className="w-4 h-4 text-violet-500" aria-hidden />}
+        action={<Bot className="w-4 h-4 text-gray-900" aria-hidden />}
       />
 
       <div className="rounded-lg border border-gray-200 bg-gradient-to-b from-white to-gray-50/80 p-3 shadow-sm">
         <AIReviewSpectrumBar percent={overall} showLabel={false} className="mb-3" />
         <p className="text-[11px] text-gray-500 leading-relaxed mb-2">
-          {data.categories.length} high-level categories with AI scoring and checklist validation;
-          summaries reference this mock proposal.
+          High level AI quality sentiment
         </p>
         {topAvatars.length > 0 && (
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-medium text-gray-500 uppercase">Reviewed by</span>
+            <span className="text-[10px] font-medium text-gray-500 uppercase">Validated by</span>
             <AvatarStack
               items={topAvatars}
               size="xxs"

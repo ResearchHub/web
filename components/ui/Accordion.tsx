@@ -62,7 +62,8 @@ export function AccordionItem({
         <>
           <DisclosureButton
             className={cn(
-              'flex w-full justify-between items-center p-4 text-left text-sm font-medium text-gray-900 hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-primary-500 focus-visible:ring-opacity-50',
+              'flex w-full justify-between items-center p-4 text-left text-sm font-medium text-gray-900 hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-primary-500 focus-visible:ring-opacity-50 rounded-t-lg',
+              open && 'bg-gray-50',
               buttonClassName
             )}
           >
