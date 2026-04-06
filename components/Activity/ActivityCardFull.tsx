@@ -1,22 +1,30 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Star, MessageCircle, Bell, Coins, ChevronDown, ChevronUp } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
+import { Button } from '@/components/ui/Button';
 import { formatTimeAgo } from '@/utils/date';
 import { buildWorkUrl } from '@/utils/url';
 import { formatCurrency } from '@/utils/currency';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { useUser } from '@/contexts/UserContext';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
+import { useFlag } from '@/hooks/useFlagging';
+import type { DocumentType, FlagOptions } from '@/services/reaction.service';
 import type {
   FeedEntry,
   FeedPostContent,
   FeedPaperContent,
   FeedGrantContent,
   FeedCommentContent,
+  FeedBountyContent,
+  FeedApplicationContent,
 } from '@/types/feed';
 import type { ContentType } from '@/types/work';
 import type { CommentType } from '@/types/comment';
@@ -42,6 +50,82 @@ const CONTENT_TYPE_MAP: Record<string, ContentType> = {
   POST: 'post',
   PAPER: 'paper',
 };
+
+function parentDocumentTypeForFlag(related?: ContentType): DocumentType {
+  return related === 'paper' ? 'paper' : 'researchhubpost';
+}
+
+/**
+ * Maps an activity feed row to the flag API payload. Returns null when the row
+ * cannot be targeted safely (e.g. contribution rows without a unified document id).
+ */
+function getActivitySpamFlagPayload(entry: FeedEntry): FlagOptions | null {
+  const { contentType } = entry;
+  const content = entry.content;
+
+  switch (contentType) {
+    case 'PAPER': {
+      const c = content as FeedPaperContent;
+      return {
+        documentType: 'paper',
+        documentId: c.id,
+        reason: 'SPAM',
+      };
+    }
+    case 'POST':
+    case 'PREREGISTRATION':
+    case 'GRANT': {
+      const c = content as FeedPostContent | FeedGrantContent;
+      return {
+        documentType: 'researchhubpost',
+        documentId: c.id,
+        reason: 'SPAM',
+      };
+    }
+    case 'COMMENT': {
+      const c = content as FeedCommentContent;
+      const parentId = c.relatedDocumentId;
+      if (parentId == null || parentId === '') return null;
+      return {
+        documentType: parentDocumentTypeForFlag(c.relatedDocumentContentType),
+        documentId: parentId,
+        commentId: c.comment.id,
+        reason: 'SPAM',
+      };
+    }
+    case 'BOUNTY': {
+      const c = content as FeedBountyContent;
+      const parentId = c.relatedDocumentId;
+      if (parentId == null) return null;
+      return {
+        documentType: parentDocumentTypeForFlag(c.relatedDocumentContentType),
+        documentId: parentId,
+        commentId: c.comment.id,
+        reason: 'SPAM',
+      };
+    }
+    case 'APPLICATION': {
+      const c = content as FeedApplicationContent;
+      return {
+        documentType: 'researchhubpost',
+        documentId: c.preregistration.id,
+        reason: 'SPAM',
+      };
+    }
+    case 'USDFUNDRAISECONTRIBUTION':
+    case 'PURCHASE': {
+      const c = content as FeedPostContent;
+      if (!c.unifiedDocumentId) return null;
+      return {
+        documentType: 'researchhubpost',
+        documentId: c.unifiedDocumentId,
+        reason: 'SPAM',
+      };
+    }
+    default:
+      return null;
+  }
+}
 
 function getActionLabel(entry: FeedEntry): string {
   if (entry.contentType === 'COMMENT') {
@@ -158,8 +242,32 @@ interface ActivityCardFullProps {
 export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
   const { title, author, href } = getEntryMeta(entry);
   const [reviewExpanded, setReviewExpanded] = useState(false);
+  const [spamFlagged, setSpamFlagged] = useState(false);
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
+  const { user } = useUser();
+  const isModerator = !!user?.isModerator;
+  const [{ isLoading: isFlaggingSpam }, flag] = useFlag();
+  const { executeAuthenticatedAction } = useAuthenticatedAction();
+
+  const spamFlagPayload = useMemo(() => getActivitySpamFlagPayload(entry), [entry]);
+
+  const handleModeratorSpamFlag = useCallback(() => {
+    executeAuthenticatedAction(() => {
+      void (async () => {
+        const payload = getActivitySpamFlagPayload(entry);
+        if (!payload) return;
+        try {
+          await flag(payload);
+          toast.success('Flagged as spam');
+          setSpamFlagged(true);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Failed to flag content';
+          toast.error(message);
+        }
+      })();
+    });
+  }, [entry, executeAuthenticatedAction, flag]);
 
   if (!title) return null;
 
@@ -266,9 +374,25 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
         </div>
       )}
 
-      <span className="block text-xs text-gray-400 mt-1 ml-[42px]">
-        {formatTimeAgo(entry.timestamp)}
-      </span>
+      <div className="flex flex-wrap items-center justify-between gap-2 mt-1 ml-[42px]">
+        <span className="text-xs text-gray-400">{formatTimeAgo(entry.timestamp)}</span>
+        {isModerator && spamFlagPayload && (
+          <Button
+            type="button"
+            variant="outlined"
+            size="sm"
+            className="shrink-0 text-xs h-7 px-2"
+            disabled={spamFlagged || isFlaggingSpam}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleModeratorSpamFlag();
+            }}
+            title="Flag this activity as spam"
+          >
+            {spamFlagged ? 'Flagged' : isFlaggingSpam ? 'Flagging…' : 'Spam'}
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
