@@ -5,6 +5,7 @@ import {
   formatNotificationMessage,
   getHubDetailsFromNotification,
   formatNavigationUrl,
+  getBountyForYouUsdOverride,
   getRSCAmountFromNotification,
 } from './lib/formatNotification';
 import { Avatar } from '@/components/ui/Avatar';
@@ -32,6 +33,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const formattedNavigationUrl = formatNavigationUrl(notification);
   const hasNavigationUrl = !!formattedNavigationUrl && formattedNavigationUrl.trim() !== '';
   const rscAmount = getRSCAmountFromNotification(notification);
+  const bountyUsdOverride = showUSD ? getBountyForYouUsdOverride(notification) : null;
 
   const hubDetails = getHubDetailsFromNotification(notification);
 
@@ -83,10 +85,12 @@ export function NotificationItem({ notification }: NotificationItemProps) {
             <TopicAndJournalBadge name={hubDetails.name} slug={hubDetails.slug} size="sm" />
           </div>
         )}
-        {rscAmount && (
+        {(rscAmount || bountyUsdOverride !== null) && (
           <div className="inline-block">
             <CurrencyBadge
-              amount={rscAmount}
+              amount={bountyUsdOverride ?? rscAmount ?? 0}
+              currency={bountyUsdOverride !== null ? 'USD' : 'RSC'}
+              skipConversion={bountyUsdOverride !== null}
               size="xs"
               variant={isReceivedRSC ? 'received' : 'badge'}
               showText

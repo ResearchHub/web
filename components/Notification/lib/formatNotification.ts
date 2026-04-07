@@ -1,4 +1,5 @@
 import { type IconName } from '@/components/ui/icons/Icon';
+import { FOUNDATION_BOUNTY_FLAT_USD } from '@/config/constants';
 import { Notification } from '@/types/notification';
 import { formatUsdValue, formatRSC } from '@/utils/number';
 
@@ -189,6 +190,21 @@ export function getRSCAmountFromNotification(notification: Notification): number
   return null;
 }
 
+const isPeerReviewBountyNotification = (notification: Notification): boolean => {
+  return (
+    notification.type === 'BOUNTY_FOR_YOU' &&
+    notification.extra?.bounty_type?.toUpperCase() === 'REVIEW'
+  );
+};
+
+export function getBountyForYouUsdOverride(notification: Notification): number | null {
+  if (isPeerReviewBountyNotification(notification)) {
+    return FOUNDATION_BOUNTY_FLAT_USD;
+  }
+
+  return null;
+}
+
 /**
  * Transform ResearchHub URLs to relative paths and convert #comments to /conversation
  * Examples:
@@ -303,7 +319,9 @@ export function formatNotificationMessage(
       const amount = notification.extra?.amount || '0';
       const bountyType = notification.extra?.bounty_type || '';
       const bountyTypeAction = getBountyTypeAction(bountyType);
-      const usdValue = formatUsdValue(amount, exchangeRate);
+      const usdAmount = getBountyForYouUsdOverride(notification);
+      const usdValue =
+        usdAmount !== null ? `$${usdAmount.toLocaleString()} USD` : formatUsdValue(amount, exchangeRate);
       return `Your expertise is needed! Earn ${usdValue} for ${bountyTypeAction} "${truncatedTitle}"`;
     }
 
