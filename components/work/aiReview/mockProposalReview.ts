@@ -28,6 +28,12 @@ const rev = (reviewerId: string, agreesWithAi: boolean, note: string): Checklist
 });
 
 export const MOCK_PROPOSAL_AI_REVIEW: AIProposalReviewMock = {
+  consensusReview: {
+    summary:
+      'This proposal presents a well-structured investigation into the parametrization of historical stone softening techniques. The methodology is sound, combining blinded tribology with multi-instrument fingerprinting. Budget allocation is generally proportional to the scope, though contingency margins are thin. The team brings strong domain expertise and institutional support. Key weaknesses include limited methodological novelty at the individual technique level, thin outreach metrics, and some gaps in parameter specification. The statistical analysis plan is adequate but power calculations for secondary endpoints may be insufficient. Overall, the proposal is fundable with minor revisions recommended around budget contingency and translational milestone clarity.',
+    fundingQuality: 'MEDIUM',
+    reviewerIds: ['elena-v', 'marcus-k', 'sam-r', 'priya-m'],
+  },
   reviewers: {
     [R.elena]: {
       id: R.elena,
@@ -82,7 +88,7 @@ export const MOCK_PROPOSAL_AI_REVIEW: AIProposalReviewMock = {
               rev(R.sam, true, 'Stays focused on core deliverables.'),
               rev(R.priya, true, 'Reasonable and bounded.'),
             ]),
-            item('fund-scope-pop', 'Target population is defined', 'PARTIAL', [
+            item('fund-scope-pop', 'Target population is defined', 'NO', [
               rev(R.elena, true, 'Acceptable for phase-I scope.'),
               rev(R.marcus, true, 'Bench-scale target is defined adequately.'),
               rev(
@@ -106,7 +112,7 @@ export const MOCK_PROPOSAL_AI_REVIEW: AIProposalReviewMock = {
               rev(R.sam, true, 'No obvious mismatch.'),
               rev(R.priya, true, 'Consistent with comparable grants.'),
             ]),
-            item('fund-budget-lines', 'Line items are justified', 'PARTIAL', [
+            item('fund-budget-lines', 'Line items are justified', 'NO', [
               rev(
                 R.elena,
                 false,
@@ -128,7 +134,7 @@ export const MOCK_PROPOSAL_AI_REVIEW: AIProposalReviewMock = {
               rev(R.sam, true, 'No concerns.'),
               rev(R.priya, true, 'Consistent with the analytical scope.'),
             ]),
-            item('fund-budget-contingency', 'Contingency is adequate', 'PARTIAL', [
+            item('fund-budget-contingency', 'Contingency is adequate', 'NO', [
               rev(R.elena, true, '8% is tight but workable.'),
               rev(R.marcus, false, 'Would prefer 10\u201312% given travel uncertainties.'),
               rev(R.sam, true, 'Marginal but acceptable.'),
@@ -234,7 +240,7 @@ export const MOCK_PROPOSAL_AI_REVIEW: AIProposalReviewMock = {
               rev(R.sam, true, 'Fresh take on existing claims.'),
               rev(R.priya, true, 'Original and well-motivated.'),
             ]),
-            item('nov-con-model', 'Challenges existing models', 'PARTIAL', [
+            item('nov-con-model', 'Challenges existing models', 'YES', [
               rev(R.elena, true, 'Positioning vs. conventional lime chemistry is plausible.'),
               rev(R.marcus, true, 'Challenges are stated but could be sharper.'),
               rev(R.sam, false, 'Doesn\u2019t fully engage with the mineral ductility literature.'),
@@ -254,7 +260,7 @@ export const MOCK_PROPOSAL_AI_REVIEW: AIProposalReviewMock = {
           summary:
             'Blinded tribology + multi-instrument fingerprinting is a credible package; not wholly new individually, but combination is useful. Open protocol appendix strengthens reproducibility angle (Methods preview, pp. 6\u20137).',
           checklist: [
-            item('nov-meth-new', 'New methods are introduced', 'PARTIAL', [
+            item('nov-meth-new', 'New methods are introduced', 'NO', [
               rev(R.elena, true, 'Blinded tribology approach is relatively new here.'),
               rev(R.marcus, true, 'Methods are adapted, not entirely new.'),
               rev(R.sam, false, 'Individual methods are standard; novelty is in assembly.'),
@@ -294,7 +300,7 @@ export const MOCK_PROPOSAL_AI_REVIEW: AIProposalReviewMock = {
               rev(R.sam, true, 'Addresses an open question.'),
               rev(R.priya, true, 'Strong intellectual merit.'),
             ]),
-            item('imp-sci-general', 'Findings are generalizable', 'PARTIAL', [
+            item('imp-sci-general', 'Findings are generalizable', 'YES', [
               rev(R.elena, true, 'Methods could transfer to other material claims.'),
               rev(R.marcus, false, 'Niche audience limits generalizability.'),
               rev(R.sam, true, 'Framework is transferable even if topic is niche.'),
@@ -330,7 +336,7 @@ export const MOCK_PROPOSAL_AI_REVIEW: AIProposalReviewMock = {
               rev(R.sam, true, 'N/A.'),
               rev(R.priya, true, 'Agreed.'),
             ]),
-            item('imp-clin-milestones', 'Translational milestones are defined', 'PARTIAL', [
+            item('imp-clin-milestones', 'Translational milestones are defined', 'NO', [
               rev(R.elena, true, 'Heritage conservation milestones are present.'),
               rev(R.marcus, false, 'Go/no-go criteria need tightening.'),
               rev(R.sam, true, 'Milestones exist but could be sharper.'),
@@ -350,13 +356,13 @@ export const MOCK_PROPOSAL_AI_REVIEW: AIProposalReviewMock = {
               rev(R.sam, true, 'Well-motivated broader impact.'),
               rev(R.priya, true, 'Strong connection to public interest.'),
             ]),
-            item('imp-soc-comms', 'Public communication is planned', 'PARTIAL', [
+            item('imp-soc-comms', 'Public communication is planned', 'YES', [
               rev(R.elena, true, 'Museum workshops are a nice touch.'),
               rev(R.marcus, true, 'Outreach plan exists.'),
               rev(R.sam, false, 'Metrics for outreach success are missing.'),
               rev(R.priya, true, 'Plan is present but thin on measurement.'),
             ]),
-            item('imp-soc-commercial', 'Commercial application potential is noted', 'PARTIAL', [
+            item('imp-soc-commercial', 'Commercial application potential is noted', 'NO', [
               rev(R.elena, false, 'Potential is speculative; one paragraph would help.'),
               rev(R.marcus, true, 'IP mention is sufficient for this stage.'),
               rev(R.sam, true, 'Restoration market is plausible.'),
@@ -378,13 +384,13 @@ export const MOCK_PROPOSAL_AI_REVIEW: AIProposalReviewMock = {
           summary:
             'Steps reference ASTM-adjacent fixtures where applicable; controls include kiln schedules and supplier blanks. Model system justification is present though abbreviated (Experimental Plan, pp. 8\u201311).',
           checklist: [
-            item('rep-meth-detail', 'Methods are sufficiently detailed', 'PARTIAL', [
+            item('rep-meth-detail', 'Methods are sufficiently detailed', 'NO', [
               rev(R.elena, true, 'Adequate for a proposal; full protocol in appendix.'),
               rev(R.marcus, true, 'Sufficient detail for evaluation.'),
               rev(R.sam, false, 'Some steps need more granularity.'),
               rev(R.priya, true, 'Acceptable level of detail.'),
             ]),
-            item('rep-meth-params', 'Parameters are fully specified', 'PARTIAL', [
+            item('rep-meth-params', 'Parameters are fully specified', 'YES', [
               rev(R.elena, true, 'Key parameters are stated.'),
               rev(R.marcus, true, 'Most are specified; minor gaps.'),
               rev(R.sam, true, 'Broadly acceptable.'),
@@ -416,7 +422,7 @@ export const MOCK_PROPOSAL_AI_REVIEW: AIProposalReviewMock = {
               rev(R.sam, true, 'Comprehensive for a proposal.'),
               rev(R.priya, true, 'Meets expectations.'),
             ]),
-            item('rep-stat-power', 'Power analysis is included', 'PARTIAL', [
+            item('rep-stat-power', 'Power analysis is included', 'NO', [
               rev(R.elena, true, 'Power sketch is present.'),
               rev(R.marcus, false, 'n=24 may be underpowered for secondary endpoints.'),
               rev(R.sam, true, 'Adequate for primary endpoint.'),

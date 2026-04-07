@@ -84,3 +84,28 @@ export const overallSpectrumPercent = (categories: CategoryDefinition[]): number
   const avg = catVals.reduce((a, b) => a + b, 0) / catVals.length;
   return Math.round(avg * 100);
 };
+
+/* ── Issue counting (anything not YES is an issue) ── */
+
+export const subcategoryIssueCount = (category: CategoryDefinition, subId: string): number => {
+  const sub = category.subcategories.find((s) => s.id === subId);
+  if (!sub) return 0;
+  return sub.checklist.filter((c) => c.aiValue !== 'YES').length;
+};
+
+export const categoryIssueCount = (category: CategoryDefinition): number => {
+  return category.subcategories.reduce(
+    (sum, sub) => sum + sub.checklist.filter((c) => c.aiValue !== 'YES').length,
+    0
+  );
+};
+
+export const totalIssueCount = (categories: CategoryDefinition[]): number => {
+  return categories.reduce((sum, cat) => sum + categoryIssueCount(cat), 0);
+};
+
+export const issueLabel = (count: number): string => {
+  if (count === 0) return 'No issues found';
+  if (count === 1) return '1 issue found';
+  return `${count} issues found`;
+};

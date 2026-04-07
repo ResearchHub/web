@@ -1,5 +1,6 @@
 export type ScoreBand = 'LOW' | 'MEDIUM' | 'HIGH';
 export type ChecklistValue = 'NO' | 'PARTIAL' | 'YES';
+export type FundingQuality = 'LOW' | 'MEDIUM' | 'HIGH';
 
 export interface MockReviewer {
   id: string;
@@ -34,9 +35,16 @@ export interface CategoryDefinition {
   subcategories: SubcategoryDefinition[];
 }
 
+export interface ConsensusReview {
+  summary: string;
+  fundingQuality: FundingQuality;
+  reviewerIds: string[];
+}
+
 export interface AIProposalReviewMock {
   categories: CategoryDefinition[];
   reviewers: Record<string, MockReviewer>;
+  consensusReview: ConsensusReview;
 }
 
 export interface UserChecklistValidation {

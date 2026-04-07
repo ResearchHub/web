@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/Button';
 import { ProgressStepper } from '@/components/ui/ProgressStepper';
 import { ChecklistValueBadge } from './ChecklistValueBadge';
 import { useAIReviewMock } from './AIReviewMockContext';
-import { subcategoryScore, scoreBandLabel, scoreBandStyles } from './scoring';
 import type { ChecklistValue, UserChecklistValidation } from './types';
 import { cn } from '@/utils/styles';
 
@@ -167,26 +166,13 @@ export function AIReviewValidationModal({ isOpen, onClose }: AIReviewValidationM
       {currentCategory && (
         <div className="px-6 py-5 space-y-8">
           {currentCategory.subcategories.map((sub) => {
-            const subBand = subcategoryScore(currentCategory, sub.id);
-            const subStyles = scoreBandStyles(subBand);
-
             return (
               <section key={sub.id}>
                 {/* Subcategory header */}
-                <div className="flex items-center gap-2 mb-4">
+                <div className="mb-4">
                   <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500">
                     {sub.title}
                   </h3>
-                  <span
-                    className={cn(
-                      'text-[11px] font-bold uppercase px-2 py-0.5 rounded-full border',
-                      subStyles.text,
-                      subStyles.bg,
-                      subStyles.border
-                    )}
-                  >
-                    {scoreBandLabel(subBand)}
-                  </span>
                 </div>
 
                 {/* Checklist items */}

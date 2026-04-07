@@ -3,14 +3,14 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { Bot, ChevronRight } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleExclamation, faCircleCheck } from '@fortawesome/pro-solid-svg-icons';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { cn } from '@/utils/styles';
-import { useUser } from '@/contexts/UserContext';
-import { AIReviewSpectrumBar } from './AIReviewSpectrumBar';
 import { useAIReviewMock } from './AIReviewMockContext';
-import { overallSpectrumPercent } from './scoring';
-import { collectReviewerIdsForCategories, reviewersFromIds } from './collectReviewers';
+import { totalIssueCount, issueLabel } from './scoring';
+import { reviewersFromIds } from './collectReviewers';
 
 interface AIReviewSidebarSectionProps {
   reviewsUrl: string;
@@ -18,33 +18,20 @@ interface AIReviewSidebarSectionProps {
 }
 
 export function AIReviewSidebarSection({ reviewsUrl, className }: AIReviewSidebarSectionProps) {
-  const { data, userValidations } = useAIReviewMock();
-  const { user } = useUser();
+  const { data } = useAIReviewMock();
 
-  // For the POC, pin the overall score at 60%
-  const overall = 60;
+  const totalIssues = totalIssueCount(data.categories);
+  const { consensusReview } = data;
 
-  const topAvatars = useMemo(() => {
-    const ids = collectReviewerIdsForCategories(data.categories);
-    const items = reviewersFromIds(ids, data.reviewers).map((r) => ({
+  const reviewerAvatars = useMemo(() => {
+    const reviewers = reviewersFromIds(consensusReview.reviewerIds, data.reviewers);
+    return reviewers.map((r) => ({
       src: r.profileImage || '',
       alt: r.fullName,
       authorId: r.authorProfileId,
       tooltip: r.fullName,
     }));
-    if (user?.authorProfile && Object.keys(userValidations).length > 0) {
-      return [
-        {
-          src: user.authorProfile.profileImage || '',
-          alt: 'You',
-          authorId: user.authorProfile.id,
-          tooltip: 'You validated checklist items',
-        },
-        ...items,
-      ];
-    }
-    return items;
-  }, [data.categories, data.reviewers, user?.authorProfile, userValidations]);
+  }, [consensusReview.reviewerIds, data.reviewers]);
 
   const href = `${reviewsUrl}${reviewsUrl.includes('?') ? '&' : '?'}review=ai`;
 
@@ -57,15 +44,24 @@ export function AIReviewSidebarSection({ reviewsUrl, className }: AIReviewSideba
       />
 
       <div className="rounded-lg border border-gray-200 bg-gradient-to-b from-white to-gray-50/80 p-3 shadow-sm">
-        <AIReviewSpectrumBar percent={overall} showLabel={false} className="mb-3" />
-        <p className="text-[11px] text-gray-500 leading-relaxed mb-2">
-          High level AI quality sentiment
-        </p>
-        {topAvatars.length > 0 && (
+        <div className="flex items-center gap-2 text-sm font-medium mb-2">
+          <FontAwesomeIcon
+            icon={totalIssues === 0 ? faCircleCheck : faCircleExclamation}
+            className={cn(
+              'w-3.5 h-3.5',
+              totalIssues === 0 ? 'text-emerald-500' : 'text-orange-400'
+            )}
+          />
+          <span className={totalIssues === 0 ? 'text-emerald-800' : 'text-orange-800'}>
+            {issueLabel(totalIssues)}
+          </span>
+        </div>
+        <p className="text-[11px] text-gray-500 leading-relaxed mb-2">ResearchHub AI Peer Review</p>
+        {reviewerAvatars.length > 0 && (
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-medium text-gray-500 uppercase">Validated by</span>
+            <span className="text-[10px] font-medium text-gray-500 uppercase">Reviewed by</span>
             <AvatarStack
-              items={topAvatars}
+              items={reviewerAvatars}
               size="xxs"
               maxItems={4}
               spacing={-6}
@@ -79,7 +75,7 @@ export function AIReviewSidebarSection({ reviewsUrl, className }: AIReviewSideba
           scroll={false}
           className="flex items-center justify-between gap-2 rounded-md bg-gray-900 text-white text-sm font-medium px-3 py-2 hover:bg-gray-800 transition-colors"
         >
-          <span>Open full AI review</span>
+          <span>See Review</span>
           <ChevronRight className="w-4 h-4 shrink-0 opacity-80" />
         </Link>
       </div>
