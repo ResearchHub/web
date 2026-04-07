@@ -28,7 +28,7 @@ const proposalTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Proposal template [NEW]',
+          text: 'Proposal Template',
         },
       ],
     },
