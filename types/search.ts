@@ -158,7 +158,7 @@ export const transformSearchSuggestion = createTransformer<any, SearchSuggestion
             firstName: raw.first_name || '',
             lastName: raw.last_name || '',
             profileUrl: buildAuthorUrl(raw.id),
-            isClaimed: raw.is_claimed || false,
+            isClaimed: !!raw.user_id,
             isVerified: raw.is_verified || false,
           },
         };
