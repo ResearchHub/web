@@ -14,7 +14,7 @@ export default async function FundPage() {
           title="Funding Opportunities"
           subtitle={
             <p className="text-sm sm:text-base text-gray-500">
-              Browse funding opportunities to apply for.
+              Apply for funding opportunities via proposals.
             </p>
           }
         >

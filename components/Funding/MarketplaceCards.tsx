@@ -20,7 +20,7 @@ const marketplaceTabs = [
   },
   {
     id: 'proposals',
-    label: 'Open Proposals',
+    label: 'Proposals',
     href: '/fund/proposals',
     icon: ArrowUpCircle,
     iconClassName: 'w-5 h-5',
