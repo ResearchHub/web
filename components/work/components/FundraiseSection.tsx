@@ -18,8 +18,8 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
     : Math.min(100, Math.round((fundraise.amountRaised.rsc / fundraise.goalAmount.rsc) * 100));
 
   const raisedAmount = isCompleted
-    ? Math.round(fundraise.amountRaised.rsc)
-    : Math.round(fundraise.amountRaised.rsc);
+    ? Math.round(showUSD ? fundraise.goalAmount.usd : fundraise.amountRaised.rsc)
+    : Math.round(showUSD ? fundraise.amountRaised.usd : fundraise.amountRaised.rsc);
 
   const goalAmount = isCompleted
     ? Math.round(showUSD ? fundraise.goalAmount.usd : fundraise.amountRaised.rsc)
@@ -40,6 +40,7 @@ export function FundraiseSection({ fundraise }: FundraiseSectionProps) {
               showText={false}
               textColor="text-primary-600"
               fontWeight="font-semibold"
+              skipConversion={showUSD}
               shorten
             />
             <span className="text-gray-500">/</span>

@@ -115,6 +115,9 @@ const AvailableFundingSection = () => {
                       shorten: true,
                       skipConversion: true,
                     })}
+                    <span className="text-xs font-sans font-normal text-gray-500 ml-1">
+                      available
+                    </span>
                   </div>
                 </div>
                 {content.previewImage && (
@@ -153,7 +156,7 @@ const NeedsFundingSection = () => {
   return (
     <div>
       <SidebarHeader
-        title="Fund Proposals"
+        title="Proposals"
         action={<ViewAllLink href="/fund/proposals" />}
         className="pb-2"
       />

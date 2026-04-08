@@ -33,7 +33,7 @@ export default async function FundProposalsPage() {
     <PageLayout
       topBanner={
         <HeroHeader
-          title="Open Proposals"
+          title="Proposals"
           subtitle={
             <p className="text-sm sm:text-base text-gray-500">
               Propose research, get reviewed, receive funding.
