@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
-import { Bot, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleExclamation, faCircleCheck } from '@fortawesome/pro-solid-svg-icons';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
@@ -24,59 +24,57 @@ export function AIReviewSidebarSection({ reviewsUrl, className }: AIReviewSideba
   const { consensusReview } = data;
 
   const reviewerAvatars = useMemo(() => {
+    // Bot avatar as inline SVG data URI (sparkles icon on primary bg)
+    const aiAvatar = {
+      src: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="%233971FF"/><path d="M20 10l1.5 4.5L26 16l-4.5 1.5L20 22l-1.5-4.5L14 16l4.5-1.5L20 10z" fill="white"/><path d="M27 22l.8 2.2L30 25l-2.2.8L27 28l-.8-2.2L24 25l2.2-.8L27 22z" fill="white" opacity=".7"/></svg>')}`,
+      alt: 'ResearchHub AI',
+      tooltip: 'ResearchHub AI',
+    };
     const reviewers = reviewersFromIds(consensusReview.reviewerIds, data.reviewers);
-    return reviewers.map((r) => ({
+    const humans = reviewers.map((r) => ({
       src: r.profileImage || '',
       alt: r.fullName,
       authorId: r.authorProfileId,
       tooltip: r.fullName,
     }));
+    return [aiAvatar, ...humans];
   }, [consensusReview.reviewerIds, data.reviewers]);
 
   const href = `${reviewsUrl}${reviewsUrl.includes('?') ? '&' : '?'}review=ai`;
 
   return (
     <div className={cn(className)}>
-      <SidebarHeader
-        title="AI Review"
-        className="mb-3"
-        action={<Bot className="w-4 h-4 text-gray-900" aria-hidden />}
-      />
+      <SidebarHeader title="AI Review" className="mb-3" />
 
-      <div className="rounded-lg border border-gray-200 bg-gradient-to-b from-white to-gray-50/80 p-3 shadow-sm">
-        <div className="flex items-center gap-2 text-sm font-medium mb-2">
-          <FontAwesomeIcon
-            icon={totalIssues === 0 ? faCircleCheck : faCircleExclamation}
-            className={cn(
-              'w-3.5 h-3.5',
-              totalIssues === 0 ? 'text-emerald-500' : 'text-orange-400'
-            )}
-          />
-          <span className={totalIssues === 0 ? 'text-emerald-800' : 'text-orange-800'}>
-            {issueLabel(totalIssues)}
-          </span>
-        </div>
-        <p className="text-[11px] text-gray-500 leading-relaxed mb-2">ResearchHub AI Peer Review</p>
-        {reviewerAvatars.length > 0 && (
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-medium text-gray-500 uppercase">Reviewed by</span>
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <FontAwesomeIcon
+              icon={totalIssues === 0 ? faCircleCheck : faCircleExclamation}
+              className={cn('w-3.5 h-3.5', totalIssues === 0 ? 'text-emerald-400' : 'text-red-400')}
+            />
+            <span className={totalIssues === 0 ? 'text-emerald-600' : 'text-red-500'}>
+              {issueLabel(totalIssues)}
+            </span>
+          </div>
+          {reviewerAvatars.length > 0 && (
             <AvatarStack
               items={reviewerAvatars}
               size="xxs"
-              maxItems={4}
+              maxItems={5}
               spacing={-6}
               showExtraCount
               showLabel={false}
             />
-          </div>
-        )}
+          )}
+        </div>
         <Link
           href={href}
           scroll={false}
-          className="flex items-center justify-between gap-2 rounded-md bg-gray-900 text-white text-sm font-medium px-3 py-2 hover:bg-gray-800 transition-colors"
+          className="flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
         >
-          <span>See Review</span>
-          <ChevronRight className="w-4 h-4 shrink-0 opacity-80" />
+          <span>Read review</span>
+          <ChevronRight className="w-4 h-4 shrink-0" />
         </Link>
       </div>
     </div>
