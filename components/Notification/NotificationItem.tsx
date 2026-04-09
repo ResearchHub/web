@@ -33,7 +33,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const formattedNavigationUrl = formatNavigationUrl(notification);
   const hasNavigationUrl = !!formattedNavigationUrl && formattedNavigationUrl.trim() !== '';
   const rscAmount = getRSCAmountFromNotification(notification);
-  const bountyUsdOverride = showUSD ? getBountyForYouUsdOverride(notification) : null;
+  const bountyUsdOverride = getBountyForYouUsdOverride(notification);
 
   const hubDetails = getHubDetailsFromNotification(notification);
 
