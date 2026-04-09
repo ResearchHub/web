@@ -2,7 +2,6 @@
 export const WS_ROUTES = {
   NOTE: (orgSlug: string) => `${getWebSocketBaseUrl()}${orgSlug}/notebook/`,
   NOTIFICATIONS: (userId: string | number) => `${getWebSocketBaseUrl()}/notifications/${userId}/`,
-  CITATION_ENTRY: (userId: string | number) => `${getWebSocketBaseUrl()}/citation/${userId}/`,
 };
 
 function getWebSocketBaseUrl(): string {
