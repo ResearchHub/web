@@ -49,15 +49,19 @@ function dedupe(entries: MetadataRoute.Sitemap): MetadataRoute.Sitemap {
 
 async function buildSlugSitemap(
   apiPath: string,
-  urlPrefix: string
+  urlPrefix: string,
+  extract: (item: any) => { id: number; slug?: string } = (item) => item
 ): Promise<MetadataRoute.Sitemap> {
-  const items = await fetchAllPages<{ id: number; slug?: string }>(apiPath);
+  const items = await fetchAllPages<any>(apiPath);
   return dedupe(
-    items.map((item) => ({
-      url: SITE_URL + urlPrefix + item.id + (item.slug ? '/' + item.slug : ''),
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    }))
+    items.map((item) => {
+      const { id, slug } = extract(item);
+      return {
+        url: SITE_URL + urlPrefix + id + (slug ? '/' + slug : ''),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      };
+    })
   );
 }
 
@@ -92,7 +96,12 @@ export default async function sitemap({
 }): Promise<MetadataRoute.Sitemap> {
   const sitemapId = Number(id);
   if (sitemapId === 0) return STATIC_ROUTES;
-  if (sitemapId === 1) return buildSlugSitemap('/api/paper/?page_size=100', '/paper/');
+  if (sitemapId === 1)
+    return buildSlugSitemap(
+      '/api/feed/?content_type=PAPER&page_size=100',
+      '/paper/',
+      (item) => item.content_object
+    );
 
   if (sitemapId === 2) {
     const hubs = await fetchAllPages<{ slug: string }>('/api/hub/?page_size=100');
