@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next';
 import { SITE_CONFIG } from '@/lib/metadata';
 
+export const dynamic = 'force-dynamic';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const SITE_URL = SITE_CONFIG.url;
 
