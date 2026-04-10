@@ -13,13 +13,13 @@ async function fetchAllPages<T>(path: string): Promise<T[]> {
   }
 
   const items: T[] = [];
-  const deadline = Date.now() + 25_000;
+  const deadline = Date.now() + 8_000;
   let url: string | null = `${API_URL}${path}`;
 
   while (url && items.length < 50_000 && Date.now() < deadline) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8_000);
+      const timeout = setTimeout(() => controller.abort(), 5_000);
       const response = await fetch(url, {
         headers: { Accept: 'application/json' },
         signal: controller.signal,
