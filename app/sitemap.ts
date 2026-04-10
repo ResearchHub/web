@@ -62,7 +62,7 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
     const papers = await fetchAllPages<{ id: number; slug?: string }>('/api/paper/?page_size=1000');
     return dedupe(
       papers.map((paper) => ({
-        url: `${SITE_URL}/paper/${paper.id}${paper.slug ? `/${paper.slug}` : ''}`,
+        url: SITE_URL + '/paper/' + paper.id + (paper.slug ? '/' + paper.slug : ''),
         changeFrequency: 'weekly' as const,
         priority: 0.7,
       }))
