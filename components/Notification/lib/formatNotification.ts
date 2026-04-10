@@ -396,7 +396,7 @@ export function formatNotificationMessage(
       return `Your funding opportunity has been declined.`;
 
     case 'RSC_YIELD_OPT_IN':
-      return 'Opt in via the My ResearchCoin page to start earning yield today';
+      return 'Start earning yield today by opting in to "Stake" via the My ResearchCoin page';
 
     default:
       console.warn(`Unhandled notification type: ${type}`);
