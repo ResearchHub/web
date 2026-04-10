@@ -5,11 +5,14 @@ import { useState } from 'react';
 import { DepositModal } from '../modals/ResearchCoin/DepositModal';
 import { WithdrawModal } from '../modals/ResearchCoin/WithdrawModal';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useUser } from '@/contexts/UserContext';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { FundingCreditsTooltip } from '@/components/ui/FundingCreditsTooltip';
+import { Switch } from '@/components/ui/Switch';
 import { formatCombinedBalance, formatCombinedBalanceSecondary } from '@/utils/number';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { UserService } from '@/services/user.service';
 
 interface UserBalanceSectionProps {
   balance: {
@@ -52,8 +55,23 @@ export function UserBalanceSection({
 }: UserBalanceSectionProps) {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [isUpdatingStaking, setIsUpdatingStaking] = useState(false);
+  const { user, refreshUser } = useUser();
 
   const { showUSD } = useCurrencyPreference();
+
+  const handleStakingToggle = async (checked: boolean) => {
+    if (!user || isUpdatingStaking) return;
+    setIsUpdatingStaking(true);
+    try {
+      await UserService.updateStakingOptIn(checked);
+      await refreshUser({ silent: true });
+    } catch (error) {
+      console.error('Failed to update staking preference:', error);
+    } finally {
+      setIsUpdatingStaking(false);
+    }
+  };
 
   const isBalanceReady = !isFetchingExchangeRate;
 
@@ -100,12 +118,27 @@ export function UserBalanceSection({
                     <div className="text-sm font-semibold text-gray-900">ResearchCoin</div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm font-semibold text-gray-900 font-mono">
-                    {showUSD ? balance?.formattedUsd || '$0.00' : balance?.formatted || '0 RSC'}
-                  </div>
-                  <div className="text-xs text-gray-500 font-mono mt-0.5">
-                    {showUSD ? balance?.formatted || '0 RSC' : balance?.formattedUsd || '$0.00'}
+                <div className="flex items-center gap-4">
+                  <Tooltip
+                    content={user?.isStakingOptedIn ? 'Staking enabled' : 'Enable staking'}
+                    position="top"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">Stake</span>
+                      <Switch
+                        checked={user?.isStakingOptedIn ?? false}
+                        onCheckedChange={handleStakingToggle}
+                        disabled={isUpdatingStaking}
+                      />
+                    </div>
+                  </Tooltip>
+                  <div className="text-right">
+                    <div className="text-sm font-semibold text-gray-900 font-mono">
+                      {showUSD ? balance?.formattedUsd || '$0.00' : balance?.formatted || '0 RSC'}
+                    </div>
+                    <div className="text-xs text-gray-500 font-mono mt-0.5">
+                      {showUSD ? balance?.formatted || '0 RSC' : balance?.formattedUsd || '$0.00'}
+                    </div>
                   </div>
                 </div>
               </div>
