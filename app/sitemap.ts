@@ -47,6 +47,20 @@ function dedupe(entries: MetadataRoute.Sitemap): MetadataRoute.Sitemap {
   return entries.filter((entry) => !seen.has(entry.url) && seen.add(entry.url));
 }
 
+async function buildSlugSitemap(
+  apiPath: string,
+  urlPrefix: string
+): Promise<MetadataRoute.Sitemap> {
+  const items = await fetchAllPages<{ id: number; slug?: string }>(apiPath);
+  return dedupe(
+    items.map((item) => ({
+      url: SITE_URL + urlPrefix + item.id + (item.slug ? '/' + item.slug : ''),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }))
+  );
+}
+
 const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: SITE_URL, changeFrequency: 'daily', priority: 1 },
   { url: `${SITE_URL}/popular`, changeFrequency: 'hourly', priority: 0.9 },
@@ -78,17 +92,7 @@ export default async function sitemap({
 }): Promise<MetadataRoute.Sitemap> {
   const sitemapId = Number(id);
   if (sitemapId === 0) return STATIC_ROUTES;
-
-  if (sitemapId === 1) {
-    const papers = await fetchAllPages<{ id: number; slug?: string }>('/api/paper/?page_size=100');
-    return dedupe(
-      papers.map((paper) => ({
-        url: SITE_URL + '/paper/' + paper.id + (paper.slug ? '/' + paper.slug : ''),
-        changeFrequency: 'weekly' as const,
-        priority: 0.7,
-      }))
-    );
-  }
+  if (sitemapId === 1) return buildSlugSitemap('/api/paper/?page_size=100', '/paper/');
 
   if (sitemapId === 2) {
     const hubs = await fetchAllPages<{ slug: string }>('/api/hub/?page_size=100');
@@ -101,31 +105,13 @@ export default async function sitemap({
     );
   }
 
-  if (sitemapId === 3) {
-    const proposals = await fetchAllPages<{ id: number; slug?: string }>(
-      '/api/researchhubpost/?document_type=PREREGISTRATION&page_size=100'
+  if (sitemapId === 3)
+    return buildSlugSitemap(
+      '/api/researchhubpost/?document_type=PREREGISTRATION&page_size=100',
+      '/proposal/'
     );
-    return dedupe(
-      proposals.map((proposal) => ({
-        url: SITE_URL + '/proposal/' + proposal.id + (proposal.slug ? '/' + proposal.slug : ''),
-        changeFrequency: 'weekly' as const,
-        priority: 0.7,
-      }))
-    );
-  }
-
-  if (sitemapId === 4) {
-    const grants = await fetchAllPages<{ id: number; slug?: string }>(
-      '/api/researchhubpost/?document_type=GRANT&page_size=100'
-    );
-    return dedupe(
-      grants.map((grant) => ({
-        url: SITE_URL + '/grant/' + grant.id + (grant.slug ? '/' + grant.slug : ''),
-        changeFrequency: 'weekly' as const,
-        priority: 0.7,
-      }))
-    );
-  }
+  if (sitemapId === 4)
+    return buildSlugSitemap('/api/researchhubpost/?document_type=GRANT&page_size=100', '/grant/');
 
   return [];
 }
