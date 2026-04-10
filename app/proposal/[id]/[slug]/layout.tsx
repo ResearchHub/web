@@ -1,8 +1,10 @@
 import { Suspense } from 'react';
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
 import { CommentService } from '@/services/comment.service';
+import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkHeaderProposal, WorkTabProvider } from '@/components/work/WorkHeader/index';
 import { ProposalSidebar } from '@/components/work/ProposalSidebar';
@@ -13,6 +15,21 @@ interface Props {
     slug: string;
   }>;
   children: React.ReactNode;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id, slug } = await params;
+  try {
+    const work = await PostService.get(id);
+    return buildOpenGraphMetadata({
+      title: work.title,
+      description: work.abstract || 'View this research proposal on ResearchHub.',
+      url: `/proposal/${id}/${slug}`,
+      image: work.image,
+    });
+  } catch {
+    return {};
+  }
 }
 
 export default async function ProposalSlugLayout({ params, children }: Props) {

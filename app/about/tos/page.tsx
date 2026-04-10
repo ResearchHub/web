@@ -1,4 +1,12 @@
+import { Metadata } from 'next';
+import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageBanner } from '../components/PageBanner';
+
+export const metadata: Metadata = buildOpenGraphMetadata({
+  title: 'Terms of Service',
+  description: 'ResearchHub terms of service and user agreement.',
+  url: '/about/tos',
+});
 
 const TOSPage = () => {
   return (

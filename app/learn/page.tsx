@@ -1,6 +1,15 @@
+import { Metadata } from 'next';
+import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { LearnRightSidebar } from '@/components/Learn/LearnRightSidebar';
 import { PageLayout } from '../layouts/PageLayout';
 import { PageHeader } from '@/components/ui/PageHeader';
+
+export const metadata: Metadata = buildOpenGraphMetadata({
+  title: 'About Open Science & ResearchCoin',
+  description:
+    'Learn how ResearchHub accelerates science through open access, peer review incentives, and ResearchCoin rewards.',
+  url: '/learn',
+});
 
 export default function LearnPage() {
   return (

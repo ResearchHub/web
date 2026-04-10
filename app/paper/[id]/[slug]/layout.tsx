@@ -1,7 +1,9 @@
 import { Suspense } from 'react';
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PaperService } from '@/services/paper.service';
 import { MetadataService } from '@/services/metadata.service';
+import { buildArticleMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkHeader, WorkTabProvider } from '@/components/work/WorkHeader/index';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
@@ -12,6 +14,24 @@ interface Props {
     slug: string;
   }>;
   children: React.ReactNode;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id, slug } = await params;
+  try {
+    const work = await PaperService.get(id);
+    return buildArticleMetadata({
+      title: work.title,
+      description: work.abstract || 'Read this research paper on ResearchHub.',
+      url: `/paper/${id}/${slug}`,
+      image: work.image,
+      publishedTime: work.publishedDate || work.createdDate,
+      authors: work.authors.map((a) => a.authorProfile.fullName),
+      tags: work.topics.map((t) => t.name),
+    });
+  } catch {
+    return {};
+  }
 }
 
 export default async function PaperSlugLayout({ params, children }: Props) {
@@ -27,7 +47,6 @@ export default async function PaperSlugLayout({ params, children }: Props) {
   } catch {
     notFound();
   }
-  console.log('work', work);
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
   return (

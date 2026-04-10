@@ -1,23 +1,19 @@
-import { LeftSidebar as MainLeftSidebar } from '../layouts/LeftSidebar';
+import { Metadata } from 'next';
+import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { SITE_CONFIG } from '@/lib/metadata';
+import { LeftSidebar as MainLeftSidebar } from '../layouts/LeftSidebar';
 
-export const generateMetadata = () => ({
-  title: 'About | ResearchHub',
-  description: 'Learn more about ResearchHub, our mission, and the team behind the platform.',
-  openGraph: {
-    title: 'About | ResearchHub',
+export const metadata: Metadata = {
+  ...buildOpenGraphMetadata({
+    title: 'About',
     description: 'Learn more about ResearchHub, our mission, and the team behind the platform.',
-    url: `${SITE_CONFIG.url}/about`,
-    type: 'website',
-    images: [SITE_CONFIG.ogImage],
+    url: '/about',
+  }),
+  title: {
+    default: 'About',
+    template: `%s | ${SITE_CONFIG.name}`,
   },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'About | ResearchHub',
-    description: 'Learn more about ResearchHub, our mission, and the team behind the platform.',
-    images: [SITE_CONFIG.ogImage],
-  },
-});
+};
 
 export default function AboutLayout({ children }: { children: React.ReactNode }) {
   return (

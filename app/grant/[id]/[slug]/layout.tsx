@@ -1,7 +1,9 @@
 import { Suspense } from 'react';
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
+import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
@@ -14,6 +16,21 @@ interface Props {
     id: string;
   }>;
   children: React.ReactNode;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const work = await PostService.get(id);
+    return buildOpenGraphMetadata({
+      title: work.title,
+      description: work.abstract || 'View this research grant on ResearchHub.',
+      url: `/grant/${id}/${work.slug}`,
+      image: work.image,
+    });
+  } catch {
+    return {};
+  }
 }
 
 export default async function GrantSlugLayout({ params, children }: Props) {
