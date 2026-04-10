@@ -7,20 +7,34 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const SITE_URL = SITE_CONFIG.url;
 
 async function fetchAllPages<T>(path: string): Promise<T[]> {
+  if (!API_URL) {
+    console.warn('[sitemap] NEXT_PUBLIC_API_URL is not set');
+    return [];
+  }
+
   const items: T[] = [];
+  const deadline = Date.now() + 25_000;
   let url: string | null = `${API_URL}${path}`;
 
-  while (url && items.length < 50_000) {
+  while (url && items.length < 50_000 && Date.now() < deadline) {
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8_000);
       const response = await fetch(url, {
         headers: { Accept: 'application/json' },
+        signal: controller.signal,
         next: { revalidate: 60 * 60 * 24 },
       });
-      if (!response.ok) break;
+      clearTimeout(timeout);
+      if (!response.ok) {
+        console.warn(`[sitemap] API returned ${response.status} for ${url}`);
+        break;
+      }
       const data: { next: string | null; results: T[] } = await response.json();
       items.push(...data.results);
       url = data.next;
-    } catch {
+    } catch (error) {
+      console.warn(`[sitemap] Failed to fetch ${url}:`, error);
       break;
     }
   }
@@ -66,7 +80,7 @@ export default async function sitemap({
   if (sitemapId === 0) return STATIC_ROUTES;
 
   if (sitemapId === 1) {
-    const papers = await fetchAllPages<{ id: number; slug?: string }>('/api/paper/?page_size=1000');
+    const papers = await fetchAllPages<{ id: number; slug?: string }>('/api/paper/?page_size=100');
     return dedupe(
       papers.map((paper) => ({
         url: SITE_URL + '/paper/' + paper.id + (paper.slug ? '/' + paper.slug : ''),
@@ -77,7 +91,7 @@ export default async function sitemap({
   }
 
   if (sitemapId === 2) {
-    const hubs = await fetchAllPages<{ slug: string }>('/api/hub/?page_size=1000');
+    const hubs = await fetchAllPages<{ slug: string }>('/api/hub/?page_size=100');
     return dedupe(
       hubs.map((hub) => ({
         url: `${SITE_URL}/topic/${hub.slug}`,
@@ -89,7 +103,7 @@ export default async function sitemap({
 
   if (sitemapId === 3) {
     const proposals = await fetchAllPages<{ id: number; slug?: string }>(
-      '/api/researchhubpost/?document_type=PREREGISTRATION&page_size=1000'
+      '/api/researchhubpost/?document_type=PREREGISTRATION&page_size=100'
     );
     return dedupe(
       proposals.map((proposal) => ({
@@ -102,7 +116,7 @@ export default async function sitemap({
 
   if (sitemapId === 4) {
     const grants = await fetchAllPages<{ id: number; slug?: string }>(
-      '/api/researchhubpost/?document_type=GRANT&page_size=1000'
+      '/api/researchhubpost/?document_type=GRANT&page_size=100'
     );
     return dedupe(
       grants.map((grant) => ({
