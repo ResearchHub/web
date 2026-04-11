@@ -6,9 +6,11 @@ import {
   ExpertFinderService,
   type CreateSavedTemplatePayload,
   type ExpertSearchCreatePayload,
+  type PatchExpertPayload,
   type UpdateGeneratedEmailPayload,
   type UpdateSavedTemplatePayload,
 } from '@/services/expertFinder.service';
+import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import type {
   ExpertSearchCreated,
   InvitedExperts,
@@ -177,6 +179,40 @@ export function useCreateExpertSearch(): UseCreateExpertSearchReturn {
   );
 
   return [{ created, isLoading, error }, createSearch];
+}
+
+// ── usePatchExpert ────────────────────────────────────────────────────────────
+
+interface UsePatchExpertState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type PatchExpertFn = (expertId: number, payload: PatchExpertPayload) => Promise<void>;
+type UsePatchExpertReturn = [UsePatchExpertState, PatchExpertFn];
+
+/**
+ * PATCH canonical expert (contact / name fields).
+ */
+export function usePatchExpert(): UsePatchExpertReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const patchExpert = useCallback(async (expertId: number, payload: PatchExpertPayload) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await ExpertFinderService.patchExpert(expertId, payload);
+    } catch (err: unknown) {
+      const message = extractApiErrorMessage(err, 'Failed to update expert');
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return [{ isLoading, error }, patchExpert];
 }
 
 // ── useWorkByUnifiedDocumentId ───────────────────────────────────────────────

@@ -35,7 +35,7 @@ export const advancedConfigSchema = z.object({
   expertiseLevel: z.array(z.enum(EXPERTISE_LEVELS_SPECIFIC)).default([]),
   region: z.enum(REGION_VALUES),
   state: z.string(),
-  excludedExpertNames: z.string(),
+  excludedSearchIds: z.array(z.number().int().positive()).default([]),
   inputType: z.enum(INPUT_TYPES as [InputType, ...InputType[]]).default('full_content'),
   searchName: z.string().optional().default(''),
 });

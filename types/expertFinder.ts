@@ -25,11 +25,19 @@ export interface ExpertSourceLink {
 
 /** Single expert as displayed in the app (detail/list rows). */
 export interface ExpertResult {
+  expertId: number | null;
+  honorific: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  nameSuffix: string;
   name: string;
   title: string;
   affiliation: string;
   expertise: string;
   email: string;
+  /** ISO timestamp when an outreach email was last sent to this expert (any search), if known. */
+  lastEmailSentAt: string | null;
   notes?: string;
   sources?: ExpertSourceLink[] | null;
 }
@@ -46,7 +54,7 @@ export interface ExpertSearchResult {
   query: string;
   inputType: InputType;
   config: Record<string, unknown>;
-  excludedExpertNames: string[];
+  excludedSearchIds: number[];
   llmModel: string;
   status: SearchStatus;
   progress: number;
@@ -75,6 +83,7 @@ export interface ExpertSearchListItem {
   status: SearchStatus;
   expertCount: number;
   expertNames: string[];
+  expertIds: number[];
   createdAt: string;
   completedAt: string | null;
   createdBy: CreatedByInfo | null;
@@ -123,6 +132,13 @@ function transformExpertSource(raw: string | Record<string, unknown>): ExpertSou
   return { url, text };
 }
 
+function parseExpertId(raw: any): number | null {
+  const idRaw = raw?.expert_id;
+  if (idRaw == null || idRaw === '') return null;
+  const n = Number(idRaw);
+  return Number.isInteger(n) && n >= 1 ? n : null;
+}
+
 function transformExpertResult(raw: any): ExpertResult {
   const sourcesRaw = Array.isArray(raw.sources) ? raw.sources : null;
   const sources = sourcesRaw
@@ -131,15 +147,50 @@ function transformExpertResult(raw: any): ExpertResult {
         .filter((s: ExpertSourceLink | null): s is ExpertSourceLink => s !== null)
     : null;
 
+  const honorific = String(raw.honorific ?? '').trim();
+  const firstName = String(raw.first_name ?? '').trim();
+  const middleName = String(raw.middle_name ?? '').trim();
+  const lastName = String(raw.last_name ?? '').trim();
+  const nameSuffix = String(raw.name_suffix ?? '').trim();
+
   return {
-    name: raw.name ?? raw.first_name ?? raw.full_name ?? '',
-    title: raw.title ?? raw.job_title ?? raw.position ?? '',
-    affiliation: raw.affiliation ?? raw.organization ?? raw.institution ?? '',
-    expertise: raw.expertise ?? raw.expertise_areas ?? '',
-    email: raw.email ?? '',
+    expertId: parseExpertId(raw),
+    honorific,
+    firstName,
+    middleName,
+    lastName,
+    nameSuffix,
+    name: [firstName, middleName, lastName, nameSuffix].filter(Boolean).join(' ').trim(),
+    title: String(raw.academic_title ?? raw.title ?? raw.job_title ?? raw.position ?? '').trim(),
+    affiliation: String(raw.affiliation ?? raw.organization ?? raw.institution ?? '').trim(),
+    expertise: String(raw.expertise ?? raw.expertise_areas ?? '').trim(),
+    email: String(raw.email ?? '').trim(),
+    lastEmailSentAt:
+      raw.last_email_sent_at != null && String(raw.last_email_sent_at).trim() !== ''
+        ? String(raw.last_email_sent_at).trim()
+        : null,
     notes: raw.notes ?? raw.recommendation_notes,
     sources: sources?.length ? sources : null,
   };
+}
+
+function transformExcludedSearchIds(raw: any): number[] {
+  if (!Array.isArray(raw)) return [];
+  const out: number[] = [];
+  const seen = new Set<number>();
+  for (const v of raw) {
+    const n = Number(v);
+    if (Number.isInteger(n) && n >= 1 && !seen.has(n)) {
+      seen.add(n);
+      out.push(n);
+    }
+  }
+  return out;
+}
+
+function transformExpertIds(raw: any): number[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((x: unknown) => Number(x)).filter((n: number) => Number.isInteger(n) && n >= 1);
 }
 
 export const transformExpertSearch = createTransformer<any, ExpertSearchResult>((raw) => ({
@@ -148,7 +199,7 @@ export const transformExpertSearch = createTransformer<any, ExpertSearchResult>(
   query: raw.query ?? '',
   inputType: raw.input_type ?? 'abstract',
   config: raw.config ?? {},
-  excludedExpertNames: Array.isArray(raw.excluded_expert_names) ? raw.excluded_expert_names : [],
+  excludedSearchIds: transformExcludedSearchIds(raw.excluded_search_ids),
   llmModel: raw.llm_model ?? '',
   status: raw.status ?? 'pending',
   progress: raw.progress ?? 0,
@@ -179,6 +230,7 @@ export const transformExpertSearchListItem = createTransformer<any, ExpertSearch
     status: raw.status ?? 'pending',
     expertCount: raw.expert_count ?? 0,
     expertNames: Array.isArray(raw.expert_names) ? raw.expert_names : [],
+    expertIds: transformExpertIds(raw.expert_ids),
     createdAt: raw.created_at ?? '',
     completedAt: raw.completed_at ?? null,
     createdBy: transformCreatedBy(raw.created_by),
