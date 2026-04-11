@@ -138,6 +138,12 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
     icon: 'openGrant',
     useAvatar: false,
   },
+
+  // RSC yield notifications
+  RSC_YIELD_OPT_IN: {
+    icon: 'fundYourRsc2',
+    useAvatar: false,
+  },
 };
 
 export function getNotificationInfo(notification: Notification): NotificationTypeInfo {
@@ -231,6 +237,10 @@ export function formatNavigationUrl(notification: Notification): string | undefi
 
   if (notification.type === 'GRANT_DECLINED') {
     return undefined;
+  }
+
+  if (notification.type === 'RSC_YIELD_OPT_IN') {
+    return '/researchcoin';
   }
 
   if (notification.type === 'GRANT_APPROVED' && notification.work) {
@@ -402,6 +412,9 @@ export function formatNotificationMessage(
 
     case 'GRANT_DECLINED':
       return `Your funding opportunity has been declined.`;
+
+    case 'RSC_YIELD_OPT_IN':
+      return 'Start earning yield today by opting in to "Stake" via the My ResearchCoin page';
 
     default:
       console.warn(`Unhandled notification type: ${type}`);

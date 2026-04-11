@@ -196,7 +196,7 @@ const mockGrant1: GrantWithMetadata = {
       updatedDate: new Date().toISOString(),
     },
     bounties: [],
-    openBounties: 0,
+    activeBounties: 0,
     closedBounties: 0,
   },
 };
@@ -372,7 +372,7 @@ const mockGrant2: GrantWithMetadata = {
       updatedDate: new Date().toISOString(),
     },
     bounties: [],
-    openBounties: 0,
+    activeBounties: 0,
     closedBounties: 0,
   },
 };

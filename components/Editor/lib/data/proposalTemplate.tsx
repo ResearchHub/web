@@ -41,7 +41,7 @@ const proposalTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: '1. Overview',
+          text: '1. Abstract',
         },
       ],
     },
@@ -54,7 +54,7 @@ const proposalTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Provide a brief overview of: (1) scientific rationale and importance, (2) confirmation of funding/facilities/ethics approvals, (3) estimated timeline, and (4) data sharing commitment.',
+          text: 'Provide a concise abstract (max 200 words) describing (1) scientific rationale, importance and research plan, (2) description of team/facilities/ethics approvals, (3) estimated timeline, and (4) data sharing commitment.',
         },
       ],
     },
@@ -80,7 +80,33 @@ const proposalTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: "Summarize theoretical background, key literature, research questions, and numbered hypotheses (H1, H2, etc.). Explain the study's importance  with an impact statement, regardless of potential outcomes.",
+          text: 'Summarize theoretical background, key literature, and rationale for the proposal.',
+        },
+      ],
+    },
+    {
+      type: 'heading',
+      attrs: {
+        textAlign: 'left',
+        level: 3,
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Hypotheses',
+        },
+      ],
+    },
+    {
+      type: 'paragraph',
+      attrs: {
+        class: null,
+        textAlign: 'left',
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'State numbered hypotheses (H1, H2, etc.) as labeled subheadings. Designate primary vs. secondary outcomes.',
         },
       ],
     },
@@ -171,7 +197,7 @@ const proposalTemplate: Template = {
       content: [
         {
           type: 'text',
-          text: 'Outline analysis pipeline, preprocessing steps, statistical tests, and hypothesis-specific predictions. Include any contingent analysis decisions as IF-THEN statements.',
+          text: 'Outline analysis pipeline, preprocessing steps, statistical tests, and hypothesis-specific predictions. Describe how results will be interpreted regardless of outcome. Describe how deviations from the planned sample will be handled.',
         },
       ],
     },

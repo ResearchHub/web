@@ -76,6 +76,16 @@ export class UserService {
   }
 
   /**
+   * Update the user's RSC staking opt-in preference
+   */
+  static async updateStakingOptIn(isOptedIn: boolean): Promise<User> {
+    const response = await ApiClient.patch<any>(`/api/user/set_staking_opted_in/`, {
+      is_staking_opted_in: isOptedIn,
+    });
+    return transformUser(response);
+  }
+
+  /**
    * Check user permissions using the gatekeeper system
    * @param application The application name to check permissions for
    * @returns Boolean indicating if the user has access to the application
