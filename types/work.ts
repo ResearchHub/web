@@ -293,7 +293,7 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     contentUrl: raw.post_src,
     tips: tips,
     peerReviews: Array.isArray(raw.peer_reviews) ? raw.peer_reviews.map(transformPeerReview) : [],
-    image: raw.image_url,
+    image: raw.image_url || raw.primary_image,
     enrichments: raw.enrichments || [],
   };
 });

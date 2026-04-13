@@ -1,7 +1,7 @@
 import { buildArticleMetadata, buildOpenGraphMetadata } from '@/lib/metadata';
 import { generateDocumentStructuredData } from '@/lib/structured-data';
 import { Work } from '@/types/work';
-import { truncateText } from '@/utils/stringUtils';
+import { stripHtml } from '@/utils/stringUtils';
 
 export function getWorkMetadata({
   work,
@@ -13,7 +13,9 @@ export function getWorkMetadata({
   titleSuffix?: string;
 }) {
   const title = `${work.title}${titleSuffix ? ` - ${titleSuffix}` : ''}`;
-  const description = truncateText(work.abstract || work.title, 65);
+  const previewText = stripHtml(work.previewContent || '').substring(0, 155);
+  const description =
+    (work.abstract && work.abstract.length >= 80 ? work.abstract : previewText) || work.title;
 
   const structuredData = generateDocumentStructuredData({
     ...work,
@@ -23,21 +25,24 @@ export function getWorkMetadata({
     })),
   });
 
+  const articleMetadata = buildArticleMetadata({
+    title,
+    description,
+    url,
+    image: work.image || work.figures?.[0]?.url,
+    publishedTime: work.publishedDate || work.createdDate,
+    modifiedTime: work.updatedDate,
+    authors: work.authors?.map((a) => a.authorProfile?.fullName) || [],
+    section: work.topics?.[0]?.name,
+    tags: work.topics?.map((t) => t.name) || [],
+  });
+
   return {
-    ...buildArticleMetadata({
-      title,
-      description,
-      url,
-      image: work.image,
-      publishedTime: work.createdDate,
-      authors: work.authors?.map((a) => a.authorProfile?.fullName) || [],
-      tags: work.topics?.map((t) => t.name) || [],
-    }),
-    ...(structuredData && {
-      other: {
-        'application/ld+json': JSON.stringify(structuredData),
-      },
-    }),
+    ...articleMetadata,
+    other: {
+      ...(articleMetadata.other as Record<string, string>),
+      ...(structuredData && { 'application/ld+json': JSON.stringify(structuredData) }),
+    },
   };
 }
 
