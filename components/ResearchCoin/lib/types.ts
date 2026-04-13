@@ -74,7 +74,7 @@ const transactionMappings: TransactionMappingRule[] = [
   },
   {
     condition: (tx) => tx.source?.distribution_type === 'STAKING_YIELD',
-    label: 'Staking Yield',
+    label: 'Endowment Yield',
     icon: 'earn1',
     variant: 'positive',
   },
