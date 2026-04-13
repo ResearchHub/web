@@ -1,25 +1,19 @@
 import { Metadata } from 'next';
-import { ListService } from '@/components/UserList/lib/services/list.service';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 
-interface Props {
+interface GenerateMetadataProps {
   params: Promise<{ id: string }>;
-  children: React.ReactNode;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: GenerateMetadataProps): Promise<Metadata> {
   const { id } = await params;
-  try {
-    return buildOpenGraphMetadata({
-      title: 'Research List',
-      description: `A curated research list on ResearchHub.`,
-      url: `/list/${id}`,
-    });
-  } catch {
-    return {};
-  }
+  return buildOpenGraphMetadata({
+    title: 'Research List',
+    description: 'A curated research list on ResearchHub.',
+    url: `/list/${id}`,
+  });
 }
 
-export default function ListDetailLayout({ children }: Props) {
+export default function ListDetailLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return children;
 }

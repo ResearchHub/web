@@ -8,6 +8,6 @@ export const metadata: Metadata = buildOpenGraphMetadata({
   url: '/following',
 });
 
-export default function FollowingLayout({ children }: { children: React.ReactNode }) {
+export default function FollowingLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return children;
 }

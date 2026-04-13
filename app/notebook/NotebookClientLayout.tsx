@@ -1,13 +1,12 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, Fragment, useEffect } from 'react';
 import './globals.css';
 import 'cal-sans';
 import 'katex/dist/katex.min.css';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
 import { ChevronLeft } from 'lucide-react';
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
 import { Button } from '@/components/ui/Button';
 
 import '@fontsource/inter/100.css';
@@ -24,7 +23,7 @@ import { useScreenSize } from '@/hooks/useScreenSize';
 import { NoteEditorLayout } from '@/components/Notebook/NoteEditorLayout';
 import { clearPendingGrant } from '@/components/Editor/lib/utils/publishingFormStorage';
 
-function NotebookLayoutContent({ children }: { children: ReactNode }) {
+function NotebookLayoutContent({ children }: Readonly<{ children: ReactNode }>) {
   const { isLeftSidebarOpen, closeLeftSidebar, openLeftSidebar, closeBothSidebars } = useSidebar();
 
   const { lgAndUp } = useScreenSize();
@@ -138,7 +137,9 @@ function NotebookLayoutContent({ children }: { children: ReactNode }) {
   );
 }
 
-export default function NotebookClientLayout({ children }: { children: React.ReactNode }) {
+export default function NotebookClientLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <NotebookProvider>
       <SidebarProvider>

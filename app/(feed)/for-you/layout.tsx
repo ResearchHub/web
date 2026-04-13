@@ -8,6 +8,6 @@ export const metadata: Metadata = buildOpenGraphMetadata({
   url: '/for-you',
 });
 
-export default function ForYouLayout({ children }: { children: React.ReactNode }) {
+export default function ForYouLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return children;
 }

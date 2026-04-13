@@ -7,6 +7,6 @@ export const metadata: Metadata = buildOpenGraphMetadata({
   url: '/lists',
 });
 
-export default function ListsLayout({ children }: { children: React.ReactNode }) {
+export default function ListsLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return children;
 }

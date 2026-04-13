@@ -5,6 +5,6 @@ export const metadata: Metadata = {
   title: 'Expert Finder',
 };
 
-export default function ExpertFinderLayout({ children }: { children: React.ReactNode }) {
+export default function ExpertFinderLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <ExpertFinderClientLayout>{children}</ExpertFinderClientLayout>;
 }

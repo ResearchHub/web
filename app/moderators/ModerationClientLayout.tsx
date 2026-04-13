@@ -3,10 +3,9 @@
 import { ReactNode, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutWithRightSidebar } from '../layouts/LayoutWithRightSidebar';
-import { ModerationSidebar } from '@/components/Moderators/ModerationSidebar';
+import { ModerationSidebar, ModerationMenu } from '@/components/Moderators/ModerationSidebar';
 import { useUser } from '@/contexts/UserContext';
 import { LoadingSkeleton } from '../layouts/components/LoadingSkeleton';
-import { ModerationMenu } from '@/components/Moderators/ModerationSidebar';
 
 interface ModerationClientLayoutProps {
   readonly children: ReactNode;

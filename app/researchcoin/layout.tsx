@@ -8,6 +8,6 @@ export const metadata: Metadata = buildOpenGraphMetadata({
   url: '/researchcoin',
 });
 
-export default function ResearchCoinLayout({ children }: { children: React.ReactNode }) {
+export default function ResearchCoinLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return children;
 }

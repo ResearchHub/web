@@ -5,6 +5,6 @@ export const metadata: Metadata = {
   title: 'Moderation',
 };
 
-export default function ModerationLayout({ children }: { children: React.ReactNode }) {
+export default function ModerationLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <ModerationClientLayout>{children}</ModerationClientLayout>;
 }

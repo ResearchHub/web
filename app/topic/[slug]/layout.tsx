@@ -2,12 +2,11 @@ import { Metadata } from 'next';
 import { HubService } from '@/services/hub.service';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 
-interface Props {
+interface GenerateMetadataProps {
   params: Promise<{ slug: string }>;
-  children: React.ReactNode;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: GenerateMetadataProps): Promise<Metadata> {
   const { slug } = await params;
   try {
     const topic = await HubService.getHubBySlug(slug);
@@ -24,6 +23,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default function TopicLayout({ children }: Props) {
+export default function TopicLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return children;
 }

@@ -8,6 +8,6 @@ export const metadata: Metadata = buildOpenGraphMetadata({
   url: '/popular',
 });
 
-export default function PopularLayout({ children }: { children: React.ReactNode }) {
+export default function PopularLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return children;
 }

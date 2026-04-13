@@ -3,12 +3,11 @@ import { AuthorService } from '@/services/author.service';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
 
-interface Props {
+interface GenerateMetadataProps {
   params: Promise<{ id: string }>;
-  children: React.ReactNode;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: GenerateMetadataProps): Promise<Metadata> {
   const { id } = await params;
   try {
     const user = await AuthorService.getAuthorInfo(Number(id));
@@ -26,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default function AuthorProfileLayout({ children }: Props) {
+export default function AuthorProfileLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <PageLayout rightSidebar={null}>
       <div className="w-full">{children}</div>

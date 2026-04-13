@@ -5,6 +5,6 @@ export const metadata: Metadata = {
   title: 'Notebook',
 };
 
-export default function NotebookLayout({ children }: { children: React.ReactNode }) {
+export default function NotebookLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <NotebookClientLayout>{children}</NotebookClientLayout>;
 }

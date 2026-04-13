@@ -8,6 +8,6 @@ export const metadata: Metadata = buildOpenGraphMetadata({
   url: '/latest',
 });
 
-export default function LatestLayout({ children }: { children: React.ReactNode }) {
+export default function LatestLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return children;
 }
