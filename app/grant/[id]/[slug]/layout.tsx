@@ -3,7 +3,8 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
-import { buildOpenGraphMetadata } from '@/lib/metadata';
+import { buildArticleMetadata } from '@/lib/metadata';
+import { stripHtml } from '@/utils/stringUtils';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
@@ -22,11 +23,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   try {
     const work = await PostService.get(id);
-    return buildOpenGraphMetadata({
+    const description =
+      work.abstract ||
+      stripHtml(work.previewContent || '').substring(0, 155) ||
+      'View this research grant on ResearchHub.';
+    return buildArticleMetadata({
       title: work.title,
-      description: work.abstract || 'View this research grant on ResearchHub.',
+      description,
       url: `/grant/${id}/${work.slug}`,
       image: work.image,
+      publishedTime: work.publishedDate || work.createdDate,
+      modifiedTime: work.updatedDate,
+      expirationTime: work.note?.post?.grant?.endDate,
+      authors: work.authors.map((a) => a.authorProfile.fullName),
+      section: work.topics[0]?.name,
+      tags: work.topics.map((t) => t.name),
     });
   } catch {
     return {};

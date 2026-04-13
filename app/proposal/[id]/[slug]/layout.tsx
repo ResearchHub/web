@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
 import { CommentService } from '@/services/comment.service';
-import { buildOpenGraphMetadata } from '@/lib/metadata';
+import { buildArticleMetadata } from '@/lib/metadata';
+import { stripHtml } from '@/utils/stringUtils';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkHeaderProposal, WorkTabProvider } from '@/components/work/WorkHeader/index';
 import { ProposalSidebar } from '@/components/work/ProposalSidebar';
@@ -21,11 +22,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id, slug } = await params;
   try {
     const work = await PostService.get(id);
-    return buildOpenGraphMetadata({
+    const description =
+      work.abstract ||
+      stripHtml(work.previewContent || '').substring(0, 155) ||
+      'View this research proposal on ResearchHub.';
+    return buildArticleMetadata({
       title: work.title,
-      description: work.abstract || 'View this research proposal on ResearchHub.',
+      description,
       url: `/proposal/${id}/${slug}`,
       image: work.image,
+      publishedTime: work.publishedDate || work.createdDate,
+      modifiedTime: work.updatedDate,
+      authors: work.authors.map((a) => a.authorProfile.fullName),
+      section: work.topics[0]?.name,
+      tags: work.topics.map((t) => t.name),
     });
   } catch {
     return {};

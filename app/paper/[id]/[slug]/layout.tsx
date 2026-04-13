@@ -24,9 +24,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: work.title,
       description: work.abstract || 'Read this research paper on ResearchHub.',
       url: `/paper/${id}/${slug}`,
-      image: work.image,
+      image: work.image || work.figures?.[0]?.url,
       publishedTime: work.publishedDate || work.createdDate,
+      modifiedTime: work.updatedDate,
       authors: work.authors.map((a) => a.authorProfile.fullName),
+      section: work.topics[0]?.name,
       tags: work.topics.map((t) => t.name),
     });
   } catch {
