@@ -52,7 +52,7 @@ export function getReferralMetadata({
 }) {
   const baseTitle = isJoinPage
     ? 'Join ResearchHub - Accelerate Science Together'
-    : 'Refer a Funder, Accelerate Science - ResearchHub';
+    : 'Refer a Funder, Accelerate Science';
 
   const baseDescription = isJoinPage
     ? 'Join ResearchHub and accelerate science together. Get invited by a friend and earn bonus rewards when you fund research.'

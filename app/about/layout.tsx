@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
-import { buildOpenGraphMetadata } from '@/lib/metadata';
-import { SITE_CONFIG } from '@/lib/metadata';
+import { buildOpenGraphMetadata, SITE_CONFIG } from '@/lib/metadata';
 import { LeftSidebar as MainLeftSidebar } from '../layouts/LeftSidebar';
 
 export const metadata: Metadata = {
