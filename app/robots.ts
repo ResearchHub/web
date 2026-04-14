@@ -19,7 +19,6 @@ export default function robots(): MetadataRoute.Robots {
         '/following/',
         '/notebook/',
         '/moderators/',
-        '/expert-finder/',
         '/paper/create',
         '/paper/submit',
       ],

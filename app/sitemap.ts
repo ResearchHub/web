@@ -23,7 +23,7 @@ async function fetchAllPages<T>(path: string): Promise<T[]> {
       const response = await fetch(url, {
         headers: { Accept: 'application/json' },
         signal: controller.signal,
-        next: { revalidate: 60 * 60 * 24 },
+        next: { revalidate: 3600 },
       });
       clearTimeout(timeout);
       if (!response.ok) {
@@ -98,13 +98,13 @@ export default async function sitemap({
   if (sitemapId === 0) return STATIC_ROUTES;
   if (sitemapId === 1)
     return buildSlugSitemap(
-      '/api/feed/?content_type=PAPER&page_size=100',
+      '/api/feed/?content_type=PAPER&page_size=1000',
       '/paper/',
       (item) => item.content_object
     );
 
   if (sitemapId === 2) {
-    const hubs = await fetchAllPages<{ slug: string }>('/api/hub/?page_size=100');
+    const hubs = await fetchAllPages<{ slug: string }>('/api/hub/?page_size=1000');
     return dedupe(
       hubs.map((hub) => ({
         url: `${SITE_URL}/topic/${hub.slug}`,
@@ -116,7 +116,7 @@ export default async function sitemap({
 
   if (sitemapId === 3)
     return buildSlugSitemap(
-      '/api/researchhubpost/?document_type=PREREGISTRATION&page_size=100',
+      '/api/researchhubpost/?document_type=PREREGISTRATION&page_size=1000',
       '/proposal/'
     );
   if (sitemapId === 4)
