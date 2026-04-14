@@ -95,7 +95,6 @@ export default function ResearchCoinPage() {
               icon={<Icon name="rscThin" size={28} />}
               title="My Wallet"
               subtitle="Manage your wallet and view transactions"
-              showTitle={false}
             />
           </div>
           <div className="flex">

@@ -36,7 +36,6 @@ export function BrowsePageHeader({
               icon={<FontAwesomeIcon icon={faGrid3Light} fontSize={24} color="#3971ff" />}
               title="Browse"
               subtitle="Discover and follow research topics"
-              showTitle={false}
             />
           </div>
         )}
