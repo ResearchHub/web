@@ -24,9 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const work = await PostService.get(id);
     const previewText = stripHtml(work.previewContent || '').substring(0, 155);
-    const description =
-      (work.abstract && work.abstract.length >= 80 ? work.abstract : previewText) ||
-      'View this research grant on ResearchHub.';
+    const description = work.abstract || previewText || 'View this research grant on ResearchHub.';
     return buildArticleMetadata({
       title: work.title,
       description,

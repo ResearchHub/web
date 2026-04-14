@@ -14,8 +14,7 @@ export function getWorkMetadata({
 }) {
   const title = `${work.title}${titleSuffix ? ` - ${titleSuffix}` : ''}`;
   const previewText = stripHtml(work.previewContent || '').substring(0, 155);
-  const description =
-    (work.abstract && work.abstract.length >= 80 ? work.abstract : previewText) || work.title;
+  const description = work.abstract || previewText || work.title;
 
   const structuredData = generateDocumentStructuredData({
     ...work,
