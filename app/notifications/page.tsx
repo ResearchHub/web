@@ -42,6 +42,7 @@ export default function NotificationsPage() {
             icon={<Icon name="notification" size={24} className="text-gray-900" />}
             title="Notifications"
             subtitle="Stay updated with your latest activity"
+            showTitle={false}
           />
         </div>
 

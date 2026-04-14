@@ -93,6 +93,7 @@ export function SearchPageContent({ searchParams }: SearchPageContentProps) {
         icon={<SearchIcon className="w-6 h-6 text-primary-500" />}
         title="Search"
         subtitle="Find papers, grants, authors, and peer reviews"
+        showTitle={false}
       />
     </div>
   );

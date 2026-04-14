@@ -114,6 +114,7 @@ export function LeaderboardContent({ defaultTab }: LeaderboardContentProps) {
         icon={<ChartNoAxesColumnIncreasing size={28} color="#3971ff" />}
         title="Leaderboard"
         subtitle="See top contributors in the ResearchHub community"
+        showTitle={false}
       />
 
       <div className="max-w-4xl mx-auto">
