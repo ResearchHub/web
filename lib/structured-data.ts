@@ -108,7 +108,7 @@ export function generateOrganizationStructuredData() {
   };
 }
 
-export function generateProfileStructuredData(profile: {
+export function buildProfileSEOMeta(profile: {
   name: string;
   firstName?: string;
   lastName?: string;
@@ -116,8 +116,8 @@ export function generateProfileStructuredData(profile: {
   image?: string;
   headline?: string;
   description?: string;
-}) {
-  return {
+}): Record<string, string> {
+  const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ProfilePage',
     mainEntity: {
@@ -130,6 +130,12 @@ export function generateProfileStructuredData(profile: {
       ...(profile.headline && { jobTitle: profile.headline }),
       ...(profile.description && { description: profile.description }),
     },
+  };
+
+  return {
+    ...(profile.firstName && { 'profile:first_name': profile.firstName }),
+    ...(profile.lastName && { 'profile:last_name': profile.lastName }),
+    'application/ld+json': JSON.stringify(jsonLd),
   };
 }
 
