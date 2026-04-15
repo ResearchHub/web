@@ -1,7 +1,10 @@
 import { Suspense } from 'react';
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PostService } from '@/services/post.service';
 import { MetadataService } from '@/services/metadata.service';
+import { buildArticleMetadata } from '@/lib/metadata';
+import { stripHtml } from '@/utils/stringUtils';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { FundingSidebarServer } from '@/components/Funding/FundingSidebarServer';
 import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSkeleton';
@@ -14,6 +17,29 @@ interface Props {
     id: string;
   }>;
   children: React.ReactNode;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const work = await PostService.get(id);
+    const previewText = stripHtml(work.previewContent || '').substring(0, 155);
+    const description = work.abstract || previewText || 'View this research grant on ResearchHub.';
+    return buildArticleMetadata({
+      title: work.title,
+      description,
+      url: `/grant/${id}/${work.slug}`,
+      image: work.image,
+      publishedTime: work.publishedDate || work.createdDate,
+      modifiedTime: work.updatedDate,
+      expirationTime: work.note?.post?.grant?.endDate,
+      authors: work.authors.map((a) => a.authorProfile.fullName),
+      section: work.topics[0]?.name,
+      tags: work.topics.map((t) => t.name),
+    });
+  } catch {
+    return {};
+  }
 }
 
 export default async function GrantSlugLayout({ params, children }: Props) {

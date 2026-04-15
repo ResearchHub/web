@@ -1,4 +1,12 @@
+import { Metadata } from 'next';
+import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageBanner } from '../components/PageBanner';
+
+export const metadata: Metadata = buildOpenGraphMetadata({
+  title: 'Privacy Policy',
+  description: 'ResearchHub privacy policy. Learn how we collect, use, and protect your data.',
+  url: '/about/privacy',
+});
 
 const PrivacyPage = () => {
   return (

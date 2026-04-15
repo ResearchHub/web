@@ -91,6 +91,7 @@ export interface Work {
   title: string;
   slug: string;
   createdDate: string;
+  updatedDate?: string;
   publishedDate?: string;
   authors: Authorship[];
   abstract: string;
@@ -227,6 +228,7 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     title: stripHtml(raw.title || raw.paper_title || ''),
     slug: raw.slug,
     createdDate: raw.created_date,
+    updatedDate: raw.updated_date || undefined,
     publishedDate: raw.paper_publish_date,
     authors: processedAuthors,
     abstract: stripHtml(raw.abstract || raw.renderable_text || ''),
@@ -291,7 +293,7 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     contentUrl: raw.post_src,
     tips: tips,
     peerReviews: Array.isArray(raw.peer_reviews) ? raw.peer_reviews.map(transformPeerReview) : [],
-    image: raw.image_url,
+    image: raw.image_url || raw.primary_image,
     enrichments: raw.enrichments || [],
   };
 });

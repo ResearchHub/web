@@ -1,21 +1,12 @@
+import { Metadata } from 'next';
+import { buildOpenGraphMetadata } from '@/lib/metadata';
 import ReturnHomeButton from '@/components/ReturnHomeButton';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { SITE_CONFIG } from '@/lib/metadata';
 
-export const generateMetadata = () => ({
-  title: '404 | ResearchHub',
-  description: 'Page not found',
-  openGraph: {
-    title: '404 | ResearchHub',
-    description: 'Page not found',
-    url: `${SITE_CONFIG.url}/404`,
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: '404 | ResearchHub',
-    description: 'Page not found',
-  },
+export const metadata: Metadata = buildOpenGraphMetadata({
+  title: 'Page Not Found',
+  description: 'The page you are looking for does not exist.',
+  url: '/404',
 });
 
 const NotFoundPage = () => {
