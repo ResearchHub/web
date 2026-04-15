@@ -41,9 +41,9 @@ export const PromoBanner = () => (
   <div className="bg-gradient-to-b from-primary-50/80 to-white p-6 rounded-lg border border-primary-100">
     <div className="flex items-center gap-3 mb-6">
       <BookOpen className="h-7 w-7 text-primary-700" />
-      <h1 className="text-xl font-semibold text-primary-900 text-center">
+      <h2 className="text-xl font-semibold text-primary-900 text-center">
         Accelerate Your Research Impact with ResearchHub Journal
-      </h1>
+      </h2>
     </div>
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -171,9 +171,9 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab }) => {
             <span className="h-2 w-2 rounded-full bg-[#dc9814] block"></span>
           </div>
           <div className="ml-5">
-            <h1 className="text-xl font-semibold text-gray-800 mb-2">
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
               The following preprints have been submitted and are currently under review.
-            </h1>
+            </h2>
             <p className="text-gray-600 text-sm">
               Help advance scientific knowledge by participating in our peer review process.
             </p>
@@ -212,9 +212,9 @@ export const JournalFeed: FC<JournalFeedProps> = ({ activeTab }) => {
             <span className="h-2 w-2 rounded-full bg-green-500 block"></span>
           </div>
           <div className="ml-5">
-            <h1 className="text-xl font-semibold text-gray-800 mb-2">
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
               The following papers have been peer reviewed and approved by our editorial team.
-            </h1>
+            </h2>
             <p className="text-gray-600 text-sm">
               These works have successfully completed our rigorous peer review process.
             </p>
