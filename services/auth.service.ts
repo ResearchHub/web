@@ -5,6 +5,8 @@ import {
   type RegisterApiRequest,
   type CheckAccountApiResponse,
   type PasswordResetConfirmRequest,
+  type VerifyMfaApiRequest,
+  type VerifyMfaApiResponse,
   ApiError,
 } from './types';
 import type { User } from '@/types/user';
@@ -87,6 +89,24 @@ export class AuthService {
       }
 
       throw new ApiError('Password reset confirmation failed', 500);
+    }
+  }
+
+  static async verifyMfa(data: VerifyMfaApiRequest) {
+    try {
+      return await ApiClient.post<VerifyMfaApiResponse>(`${this.BASE_PATH}/auth/mfa/verify/`, data);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        const errorValues = Object.values(error.errors as Record<string, string[]>)?.[0];
+        const errorMessage = Array.isArray(errorValues)
+          ? errorValues[0]
+          : typeof errorValues === 'string'
+            ? errorValues
+            : 'MFA verification failed';
+        throw new ApiError(errorMessage, error.status, error.errors);
+      }
+
+      throw new ApiError('MFA verification failed', 500);
     }
   }
 
