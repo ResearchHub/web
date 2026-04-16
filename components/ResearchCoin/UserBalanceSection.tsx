@@ -1,7 +1,7 @@
 'use client';
 
 import { ArrowDownToLine, ArrowUpFromLine, HelpCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DepositModal } from '../modals/ResearchCoin/DepositModal';
 import { WithdrawModal } from '../modals/ResearchCoin/WithdrawModal';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -56,7 +56,14 @@ export function UserBalanceSection({
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [isUpdatingStaking, setIsUpdatingStaking] = useState(false);
+  const [apy, setApy] = useState<number | null>(null);
   const { user, refreshUser } = useUser();
+
+  useEffect(() => {
+    UserService.getStakingYieldDetails()
+      .then((data) => setApy(data.apy))
+      .catch(() => {});
+  }, []);
 
   const { showUSD } = useCurrencyPreference();
 
@@ -124,7 +131,9 @@ export function UserBalanceSection({
                     position="top"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">Stake</span>
+                      <span className="text-xs text-gray-500">
+                        {apy !== null ? `Earn ${Math.round(apy)}%` : 'Earn'}
+                      </span>
                       <Switch
                         checked={user?.isStakingOptedIn ?? false}
                         onCheckedChange={handleStakingToggle}

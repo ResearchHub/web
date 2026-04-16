@@ -86,6 +86,14 @@ export class UserService {
   }
 
   /**
+   * Get staking yield details including APY
+   */
+  static async getStakingYieldDetails(): Promise<{ apy: number }> {
+    const response = await ApiClient.get<{ apy: number }>(`/api/staking_yield/details/`);
+    return response;
+  }
+
+  /**
    * Check user permissions using the gatekeeper system
    * @param application The application name to check permissions for
    * @returns Boolean indicating if the user has access to the application
