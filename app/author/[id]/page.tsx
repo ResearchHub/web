@@ -14,63 +14,20 @@ import Achievements, { AchievementsSkeleton } from './components/Achievements';
 import KeyStats, { KeyStatsSkeleton } from './components/KeyStats';
 import { SearchEmpty } from '@/components/ui/SearchEmpty';
 import Moderation from './components/Moderation';
-import AuthorProfile from './components/AuthorProfile';
 import { useAuthorPublications } from '@/hooks/usePublications';
 import { transformPublicationToFeedEntry } from '@/types/publication';
 import PinnedFundraise from './components/PinnedFundraise';
-import { OrcidSyncBanner } from '@/components/Orcid/OrcidSyncBanner';
 import { useOrcidCallback } from '@/components/Orcid/lib/hooks/useOrcidCallback';
+import {
+  ProfileHeroBanner,
+  ProfileHeroBannerSkeleton,
+} from '@/components/Author/ProfileHeroBanner';
+import { PageLayout } from '@/app/layouts/PageLayout';
+
 function toNumberOrNull(value: any): number | null {
   if (value === '' || value === null || value === undefined) return null;
   const num = Number(value);
   return Number.isFinite(num) ? num : null;
-}
-
-function AuthorProfileSkeleton() {
-  return (
-    <div className="flex flex-col sm:!flex-row gap-6 animate-pulse">
-      {/* Left column - Avatar */}
-      <div className="flex-shrink-0 flex justify-between items-start w-full sm:!w-auto">
-        <div className="mx-auto sm:mx-0">
-          <div className="w-32 h-32 bg-gray-200 rounded-full ring-4 ring-white" />
-        </div>
-      </div>
-
-      {/* Right column - Content */}
-      <div className="flex flex-col flex-1 min-w-0 gap-4">
-        {/* Header with name and edit button */}
-        <div className="flex flex-col sm:!flex-row justify-between items-start gap-4">
-          <div className="flex flex-col items-start gap-2">
-            <div className="h-9 bg-gray-200 rounded w-48" />
-            <div className="h-5 bg-gray-200 rounded w-40" />
-          </div>
-        </div>
-        {/* Education */}
-        <div className="flex items-center gap-2 mb-1">
-          <div className="h-4 w-4 bg-gray-200 rounded" />
-          <div className="h-5 bg-gray-200 rounded w-64" />
-        </div>
-        {/* Member since */}
-        <div className="flex items-center gap-2 mb-4">
-          <div className="h-4 w-4 bg-gray-200 rounded" />
-          <div className="h-4 bg-gray-200 rounded w-48" />
-        </div>
-        {/* Description */}
-        <div className="mb-4 space-y-2">
-          <div className="h-4 bg-gray-200 rounded w-full" />
-          <div className="h-4 bg-gray-200 rounded w-5/6" />
-          <div className="h-4 bg-gray-200 rounded w-4/6" />
-        </div>
-        {/* Social Icons */}
-        <div className="flex gap-2 mt-2">
-          <div className="w-8 h-8 bg-gray-200 rounded" />
-          <div className="w-8 h-8 bg-gray-200 rounded" />
-          <div className="w-8 h-8 bg-gray-200 rounded" />
-          <div className="w-8 h-8 bg-gray-200 rounded" />
-        </div>
-      </div>
-    </div>
-  );
 }
 
 function AuthorProfileError({ error }: { error: string }) {
@@ -258,17 +215,18 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const [{ author: user, isLoading, error }, refetchAuthorInfo] = useAuthorInfo(authorId);
   useOrcidCallback({ onSuccess: refreshUser });
   const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
-  const [{ achievements, isLoading: isAchievementsLoading, error: achievementsError }] =
-    useAuthorAchievements(authorId);
-  const [{ summaryStats, isLoading: isSummaryStatsLoading, error: summaryStatsError }] =
-    useAuthorSummaryStats(authorId);
+  const [{ achievements, isLoading: isAchievementsLoading }] = useAuthorAchievements(authorId);
+  const [{ summaryStats, isLoading: isSummaryStatsLoading }] = useAuthorSummaryStats(authorId);
 
-  if (isLoading || isUserLoading) {
-    return (
-      <>
-        <Card className="mt-4 bg-gray-50">
-          <AuthorProfileSkeleton />
-        </Card>
+  const topBanner = (() => {
+    if (isLoading || isUserLoading) return <ProfileHeroBannerSkeleton />;
+    if (error || userError || !user?.authorProfile) return undefined;
+    return <ProfileHeroBanner author={user.authorProfile} refetchAuthorInfo={refetchAuthorInfo} />;
+  })();
+
+  const renderContent = () => {
+    if (isLoading || isUserLoading) {
+      return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="mt-4 bg-gray-50">
             <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Achievements</h3>
@@ -279,55 +237,52 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
             <KeyStatsSkeleton />
           </Card>
         </div>
-      </>
-    );
-  }
+      );
+    }
 
-  if (error || userError) {
-    return <AuthorProfileError error={error || userError?.message || 'Unknown error'} />;
-  }
+    if (error || userError) {
+      return <AuthorProfileError error={error || userError?.message || 'Unknown error'} />;
+    }
 
-  if (!user || !user.authorProfile) {
-    return <AuthorProfileError error="Author not found" />;
-  }
+    if (!user || !user.authorProfile) {
+      return <AuthorProfileError error="Author not found" />;
+    }
 
-  const isOwnProfile = Boolean(
-    currentUser?.authorProfile?.id && user.authorProfile.id === currentUser.authorProfile.id
-  );
-  const isOrcidConnected = Boolean(currentUser?.authorProfile?.isOrcidConnected);
-
-  return (
-    <>
-      <OrcidSyncBanner isOwnProfile={isOwnProfile} isOrcidConnected={isOrcidConnected} />
-      <Card className="mt-4 bg-gray-50">
-        <AuthorProfile author={user.authorProfile} refetchAuthorInfo={refetchAuthorInfo} />
-      </Card>
-      {(currentUser?.moderator || isHubEditor) && user.authorProfile?.userId && (
-        <Card className="mt-4 bg-gray-50">
-          <Moderation
-            userId={user.authorProfile.userId.toString()}
-            authorId={user.authorProfile.id}
-            refetchAuthorInfo={refetchAuthorInfo}
-          />
-        </Card>
-      )}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="mt-4 bg-gray-50">
-          <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Achievements</h3>
-          <Achievements achievements={achievements} isLoading={isAchievementsLoading} />
-        </Card>
-        {summaryStats && (
+    return (
+      <>
+        {(currentUser?.moderator || isHubEditor) && user.authorProfile?.userId && (
           <Card className="mt-4 bg-gray-50">
-            <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Key Stats</h3>
-            <KeyStats
-              summaryStats={summaryStats}
-              profile={user}
-              isLoading={isSummaryStatsLoading}
+            <Moderation
+              userId={user.authorProfile.userId.toString()}
+              authorId={user.authorProfile.id}
+              refetchAuthorInfo={refetchAuthorInfo}
             />
           </Card>
         )}
-      </div>
-      <AuthorTabs authorId={user.authorProfile.id} userId={user.authorProfile.userId} />
-    </>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="mt-4 bg-gray-50">
+            <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Achievements</h3>
+            <Achievements achievements={achievements} isLoading={isAchievementsLoading} />
+          </Card>
+          {summaryStats && (
+            <Card className="mt-4 bg-gray-50">
+              <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Key Stats</h3>
+              <KeyStats
+                summaryStats={summaryStats}
+                profile={user}
+                isLoading={isSummaryStatsLoading}
+              />
+            </Card>
+          )}
+        </div>
+        <AuthorTabs authorId={user.authorProfile.id} userId={user.authorProfile.userId} />
+      </>
+    );
+  };
+
+  return (
+    <PageLayout rightSidebar={null} topBanner={topBanner}>
+      <div className="w-full">{renderContent()}</div>
+    </PageLayout>
   );
 }
