@@ -240,9 +240,9 @@ export function UserBalanceSection({
         isOpen={isOptOutConfirmOpen}
         onClose={() => setIsOptOutConfirmOpen(false)}
         onConfirm={() => performStakingUpdate(false)}
-        title="Opt out of staking?"
-        message="Are you sure you want to opt out of staking? You will stop earning yield on your ResearchCoin."
-        confirmText="Opt Out"
+        title="Turn off earnings?"
+        message="You will no longer earn funding credits on your ResearchCoin balance."
+        confirmText="Turn off"
         cancelText="Cancel"
       />
     </>
