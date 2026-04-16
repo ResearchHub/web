@@ -33,7 +33,39 @@ export interface ApplicationFundraise {
   reviewMetrics?: ReviewMetrics;
 }
 
+/**
+ * When a fundraise is COMPLETED, derive USD from the ratio (goalUsd / raisedRsc)
+ * so each contributor's USD is their proportional share of the goal. Returns null for active fundraises.
+ */
+function computeGoalRate(status: string, goalUsd: number, raisedRsc: number): number | null {
+  return status === 'COMPLETED' && raisedRsc > 0 ? goalUsd / raisedRsc : null;
+}
+
+function resolveContributionAmounts(
+  totalContribution: any,
+  goalRate: number | null
+): { usd: number; rsc: number } {
+  if (typeof totalContribution === 'number') {
+    return {
+      usd: goalRate != null ? totalContribution * goalRate : 0,
+      rsc: totalContribution,
+    };
+  }
+
+  const rsc = totalContribution?.rsc ?? totalContribution?.RSC ?? 0;
+  return {
+    usd:
+      goalRate != null ? rsc * goalRate : (totalContribution?.usd ?? totalContribution?.USD ?? 0),
+    rsc,
+  };
+}
+
 export function transformApplicationFundraise(raw: any): ApplicationFundraise {
+  const goalUsd = raw.goal_amount?.usd ?? 0;
+  const goalRsc = raw.goal_amount?.rsc ?? 0;
+  const raisedRsc = raw.amount_raised?.rsc ?? 0;
+  const goalRate = computeGoalRate(raw.status, goalUsd, raisedRsc);
+
   const topContributors = (raw.contributors?.top ?? []).map((c: any) => {
     const firstName = c.first_name ?? '';
     const lastName = c.last_name ?? '';
@@ -44,10 +76,7 @@ export function transformApplicationFundraise(raw: any): ApplicationFundraise {
       lastName,
       fullName: [firstName, lastName].filter(Boolean).join(' ') || 'Contributor',
       profileImage: c.profile_image ?? '',
-      totalContribution: {
-        usd: c.total_contribution?.usd ?? c.total_contribution?.USD ?? 0,
-        rsc: c.total_contribution?.rsc ?? c.total_contribution?.RSC ?? 0,
-      },
+      totalContribution: resolveContributionAmounts(c.total_contribution, goalRate),
     };
   });
 
@@ -56,12 +85,12 @@ export function transformApplicationFundraise(raw: any): ApplicationFundraise {
     title: raw.title,
     status: raw.status as FundraiseStatus,
     goalAmount: {
-      usd: raw.goal_amount?.usd ?? 0,
-      rsc: raw.goal_amount?.rsc ?? 0,
+      usd: goalUsd,
+      rsc: goalRsc,
     },
     amountRaised: {
-      usd: raw.amount_raised?.usd ?? 0,
-      rsc: raw.amount_raised?.rsc ?? 0,
+      usd: goalRate != null ? raisedRsc * goalRate : (raw.amount_raised?.usd ?? 0),
+      rsc: raisedRsc,
     },
     contributors: {
       total: raw.contributors?.total ?? 0,
@@ -138,50 +167,48 @@ export interface Fundraise {
   reviewMetrics?: ReviewMetrics;
 }
 
-export const transformFundraise = createTransformer<any, Fundraise>((raw) => ({
-  id: raw.id,
-  amountRaised: {
-    usd: raw.amount_raised.usd,
-    rsc: raw.amount_raised.rsc,
-  },
-  goalAmount: {
-    usd: raw.goal_amount.usd,
-    rsc: raw.goal_amount.rsc,
-  },
-  contributors: {
-    numContributors: raw.contributors.total,
-    topContributors: raw.contributors.top.map((contributor: any) => ({
-      id: contributor.id,
-      authorProfile: transformAuthorProfile(contributor.author_profile),
-      totalContribution: (() => {
-        if (typeof contributor.total_contribution === 'number') {
-          return { usd: 0, rsc: contributor.total_contribution };
-        }
+export const transformFundraise = createTransformer<any, Fundraise>((raw) => {
+  const goalUsd = raw.goal_amount.usd;
+  const goalRsc = raw.goal_amount.rsc;
+  const raisedRsc = raw.amount_raised.rsc;
+  const goalRate = computeGoalRate(raw.status, goalUsd, raisedRsc);
 
-        return {
-          usd: contributor.total_contribution?.usd ?? contributor.total_contribution?.USD ?? 0,
-          rsc: contributor.total_contribution?.rsc ?? contributor.total_contribution?.RSC ?? 0,
-        };
-      })(),
-      contributions: (contributor.contributions || []).map((contribution: any) => ({
-        amount: contribution.amount,
-        date: contribution.date,
+  return {
+    id: raw.id,
+    amountRaised: {
+      usd: goalRate != null ? raisedRsc * goalRate : raw.amount_raised.usd,
+      rsc: raisedRsc,
+    },
+    goalAmount: {
+      usd: goalUsd,
+      rsc: goalRsc,
+    },
+    contributors: {
+      numContributors: raw.contributors.total,
+      topContributors: raw.contributors.top.map((contributor: any) => ({
+        id: contributor.id,
+        authorProfile: transformAuthorProfile(contributor.author_profile),
+        totalContribution: resolveContributionAmounts(contributor.total_contribution, goalRate),
+        contributions: (contributor.contributions || []).map((contribution: any) => ({
+          amount: contribution.amount,
+          date: contribution.date,
+        })),
       })),
-    })),
-  },
-  createdBy: transformUser(raw.created_by),
-  status: raw.status as FundraiseStatus,
-  goalCurrency: raw.goal_currency as Currency,
-  startDate: raw.start_date || undefined,
-  endDate: raw.end_date || undefined,
-  createdDate: raw.created_date,
-  updatedDate: raw.updated_date,
-  postId: raw.post_id || undefined,
-  postTitle: raw.post_title || undefined,
-  postSlug: raw.post_slug || undefined,
-  postImage: raw.post_image || null,
-  reviewMetrics:
-    raw.review_metrics?.avg != null
-      ? { avg: raw.review_metrics.avg, count: raw.review_metrics.count ?? 0 }
-      : undefined,
-}));
+    },
+    createdBy: transformUser(raw.created_by),
+    status: raw.status as FundraiseStatus,
+    goalCurrency: raw.goal_currency as Currency,
+    startDate: raw.start_date || undefined,
+    endDate: raw.end_date || undefined,
+    createdDate: raw.created_date,
+    updatedDate: raw.updated_date,
+    postId: raw.post_id || undefined,
+    postTitle: raw.post_title || undefined,
+    postSlug: raw.post_slug || undefined,
+    postImage: raw.post_image || null,
+    reviewMetrics:
+      raw.review_metrics?.avg != null
+        ? { avg: raw.review_metrics.avg, count: raw.review_metrics.count ?? 0 }
+        : undefined,
+  };
+});
