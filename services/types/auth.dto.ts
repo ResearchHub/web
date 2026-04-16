@@ -13,6 +13,15 @@ export interface LoginApiResponse {
   ephemeral_token?: string;
 }
 
+export interface VerifyMfaApiRequest {
+  ephemeral_token: string;
+  code: string;
+}
+
+export interface VerifyMfaApiResponse {
+  key?: string;
+}
+
 export interface RegisterApiRequest {
   email: string;
   password1: string;
