@@ -13,6 +13,7 @@ import { formatCombinedBalance, formatCombinedBalanceSecondary } from '@/utils/n
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { UserService } from '@/services/user.service';
+import { ConfirmModal } from '../modals/ConfirmModal';
 
 interface UserBalanceSectionProps {
   balance: {
@@ -56,6 +57,7 @@ export function UserBalanceSection({
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [isUpdatingStaking, setIsUpdatingStaking] = useState(false);
+  const [isOptOutConfirmOpen, setIsOptOutConfirmOpen] = useState(false);
   const [apy, setApy] = useState<number | null>(null);
   const { user, refreshUser } = useUser();
 
@@ -69,6 +71,14 @@ export function UserBalanceSection({
 
   const handleStakingToggle = async (checked: boolean) => {
     if (!user || isUpdatingStaking) return;
+    if (!checked) {
+      setIsOptOutConfirmOpen(true);
+      return;
+    }
+    await performStakingUpdate(checked);
+  };
+
+  const performStakingUpdate = async (checked: boolean) => {
     setIsUpdatingStaking(true);
     try {
       await UserService.updateStakingOptIn(checked);
@@ -132,7 +142,9 @@ export function UserBalanceSection({
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-500">
-                        {apy !== null ? `Earn ${Math.round(apy)}%` : 'Earn'}
+                        {apy !== null && !user?.isStakingOptedIn
+                          ? `Earn ${Math.round(apy)}%`
+                          : 'Earn'}
                       </span>
                       <Switch
                         checked={user?.isStakingOptedIn ?? false}
@@ -224,6 +236,15 @@ export function UserBalanceSection({
           />
         </>
       )}
+      <ConfirmModal
+        isOpen={isOptOutConfirmOpen}
+        onClose={() => setIsOptOutConfirmOpen(false)}
+        onConfirm={() => performStakingUpdate(false)}
+        title="Opt out of staking?"
+        message="Are you sure you want to opt out of staking? You will stop earning yield on your ResearchCoin."
+        confirmText="Opt Out"
+        cancelText="Cancel"
+      />
     </>
   );
 }
