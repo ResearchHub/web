@@ -9,6 +9,7 @@ interface HeroHeaderProps {
   cta?: React.ReactNode;
   actions?: React.ReactNode;
   children?: React.ReactNode;
+  tabBar?: React.ReactNode;
   className?: string;
 }
 
@@ -19,16 +20,17 @@ export function HeroHeader({
   cta,
   actions,
   children,
+  tabBar,
   className,
 }: HeroHeaderProps) {
   const hasHeader = title || eyebrow || subtitle || actions || cta;
 
   return (
-    <div className={cn('w-full bg-gray-50/80 border-b border-gray-200', className)}>
+    <div className={cn('w-full bg-gray-50/80', !tabBar && 'border-b border-gray-200', className)}>
       <div
         className={cn(
           'max-w-[1180px] mx-auto px-4 tablet:!px-8',
-          hasHeader && children ? 'pt-6' : 'py-6'
+          children || tabBar ? 'pt-6' : 'py-6'
         )}
       >
         {hasHeader && (
@@ -65,6 +67,12 @@ export function HeroHeader({
 
         {children}
       </div>
+
+      {tabBar && (
+        <div className="w-full border-b border-gray-200 mt-6">
+          <div className="max-w-[1180px] mx-auto px-4 tablet:!px-8">{tabBar}</div>
+        </div>
+      )}
     </div>
   );
 }

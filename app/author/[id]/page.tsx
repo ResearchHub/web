@@ -3,17 +3,15 @@
 import { use, useTransition } from 'react';
 import { useAuthorAchievements, useAuthorInfo, useAuthorSummaryStats } from '@/hooks/useAuthor';
 import { useUser } from '@/contexts/UserContext';
-import { Card } from '@/components/ui/Card';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Tabs } from '@/components/ui/Tabs';
 import { useContributions } from '@/hooks/useContributions';
 import { ContributionType } from '@/services/contribution.service';
 import { transformContributionToFeedEntry } from '@/types/contribution';
 import { FeedContent } from '@/components/Feed/FeedContent';
-import Achievements, { AchievementsSkeleton } from './components/Achievements';
-import KeyStats, { KeyStatsSkeleton } from './components/KeyStats';
 import { SearchEmpty } from '@/components/ui/SearchEmpty';
-import Moderation from './components/Moderation';
+import { ModerationTab } from '@/components/Author/ModerationTab';
+import { ProfileStatsCards } from '@/components/Author/ProfileStatsCards';
 import { useAuthorPublications } from '@/hooks/usePublications';
 import { transformPublicationToFeedEntry } from '@/types/publication';
 import PinnedFundraise from './components/PinnedFundraise';
@@ -39,7 +37,6 @@ function AuthorProfileError({ error }: { error: string }) {
   );
 }
 
-// Add this mapping at the component level
 const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
   contributions: 'ALL',
   publications: 'ARTICLE',
@@ -48,21 +45,29 @@ const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
   bounties: 'BOUNTY',
 };
 
-function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number }) {
-  const [isPending, startTransition] = useTransition();
-  const tabs = [
-    { id: 'contributions', label: 'Overview' },
-    { id: 'publications', label: 'Publications' },
-    { id: 'peer-reviews', label: 'Peer Reviews' },
-    { id: 'comments', label: 'Comments' },
-    { id: 'bounties', label: 'Bounties' },
-  ];
+const AUTHOR_TABS = [
+  { id: 'contributions', label: 'Overview' },
+  { id: 'publications', label: 'Publications' },
+  { id: 'peer-reviews', label: 'Peer Reviews' },
+  { id: 'comments', label: 'Comments' },
+  { id: 'bounties', label: 'Bounties' },
+];
 
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const currentTab = searchParams.get('tab') || 'contributions';
+const MODERATION_TAB = { id: 'moderation', label: 'Moderation' };
 
-  // Get the contribution type based on the current tab
+function AuthorTabContent({
+  authorId,
+  userId,
+  currentTab,
+  isPending,
+  overviewHeader,
+}: {
+  authorId: number;
+  userId?: number;
+  currentTab: string;
+  isPending: boolean;
+  overviewHeader?: React.ReactNode;
+}) {
   const contributionType = TAB_TO_CONTRIBUTION_TYPE[currentTab] || 'ALL';
 
   const {
@@ -81,7 +86,6 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
     activeTab: currentTab,
   });
 
-  // Filter out reviews from comments tab
   const contributions =
     currentTab === 'comments'
       ? allContributions.filter((contribution) => !contribution.item?.review?.score)
@@ -102,108 +106,83 @@ function AuthorTabs({ authorId, userId }: { authorId: number; userId?: number })
     activeTab: currentTab,
   });
 
-  const handleTabChange = (tabId: string) => {
-    startTransition(() => {
-      const params = new URLSearchParams(searchParams);
-      params.set('tab', tabId);
-      router.replace(`/author/${authorId}?${params.toString()}`, { scroll: false });
-    });
-  };
-
-  const renderTabContent = () => {
-    if (currentTab === 'publications') {
-      if (publicationsError) {
-        return <div>Error: {publicationsError.message}</div>;
-      }
-
-      const entries =
-        restoredPublicationsEntries ||
-        publications
-          .filter((publication) => {
-            try {
-              const entry = transformPublicationToFeedEntry(publication);
-              return !!entry;
-            } catch (error) {
-              console.error('[Publication] Could not parse publication', error);
-              return false;
-            }
-          })
-          .map((publication) => transformPublicationToFeedEntry(publication));
-
-      return (
-        <div>
-          <FeedContent
-            entries={isPending ? [] : entries}
-            isLoading={isPending || isPublicationsLoading}
-            hasMore={hasMorePublications}
-            loadMore={loadMorePublications}
-            showBountyFooter={false}
-            hideActions={true}
-            isLoadingMore={isLoadingMorePublications}
-            noEntriesElement={<SearchEmpty title="No publications found." className="mb-10" />}
-            maxLength={150}
-            activeTab={currentTab}
-            restoredScrollPosition={restoredPublicationsScrollPosition}
-            lastClickedEntryId={lastClickedPublicationsEntryId ?? undefined}
-            shouldRenderBountyAsComment={true}
-          />
-        </div>
-      );
-    }
-
-    if (contributionsError) {
-      return <div>Error: {contributionsError.message}</div>;
+  if (currentTab === 'publications') {
+    if (publicationsError) {
+      return <div>Error: {publicationsError.message}</div>;
     }
 
     const entries =
-      restoredContributionsEntries ||
-      contributions.map((contribution) =>
-        transformContributionToFeedEntry({
-          contribution,
-          contributionType,
+      restoredPublicationsEntries ||
+      publications
+        .filter((publication) => {
+          try {
+            const entry = transformPublicationToFeedEntry(publication);
+            return !!entry;
+          } catch (error) {
+            console.error('[Publication] Could not parse publication', error);
+            return false;
+          }
         })
-      );
+        .map((publication) => transformPublicationToFeedEntry(publication));
 
     return (
-      <div>
-        {/* Add PinnedFundraise as the first item in Overview tab */}
-        {currentTab === 'contributions' && userId && (
-          <div className="mb-6">
-            <PinnedFundraise userId={userId} compact={true} />
-          </div>
-        )}
-        <FeedContent
-          entries={isPending ? [] : entries}
-          isLoading={isPending || isContributionsLoading}
-          hasMore={hasMoreContributions}
-          loadMore={loadMoreContributions}
-          showBountyFooter={false}
-          hideActions={true}
-          isLoadingMore={isLoadingMoreContributions}
-          noEntriesElement={
-            <SearchEmpty title="No author activity found in this section." className="mb-10" />
-          }
-          maxLength={150}
-          showReadMoreCTA={true}
-          activeTab={currentTab}
-          restoredScrollPosition={restoredContributionsScrollPosition}
-          lastClickedEntryId={lastClickedContributionsEntryId ?? undefined}
-          shouldRenderBountyAsComment={true}
-        />
-      </div>
+      <FeedContent
+        entries={isPending ? [] : entries}
+        isLoading={isPending || isPublicationsLoading}
+        hasMore={hasMorePublications}
+        loadMore={loadMorePublications}
+        showBountyFooter={false}
+        hideActions={true}
+        isLoadingMore={isLoadingMorePublications}
+        noEntriesElement={<SearchEmpty title="No publications found." className="mb-10" />}
+        maxLength={150}
+        activeTab={currentTab}
+        restoredScrollPosition={restoredPublicationsScrollPosition}
+        lastClickedEntryId={lastClickedPublicationsEntryId ?? undefined}
+        shouldRenderBountyAsComment={true}
+      />
     );
-  };
+  }
+
+  if (contributionsError) {
+    return <div>Error: {contributionsError.message}</div>;
+  }
+
+  const entries =
+    restoredContributionsEntries ||
+    contributions.map((contribution) =>
+      transformContributionToFeedEntry({
+        contribution,
+        contributionType,
+      })
+    );
 
   return (
-    <div className="mt-8">
-      <Tabs
-        tabs={tabs}
+    <div>
+      {currentTab === 'contributions' && overviewHeader}
+      {currentTab === 'contributions' && userId && (
+        <div className="mb-6">
+          <PinnedFundraise userId={userId} compact={true} />
+        </div>
+      )}
+      <FeedContent
+        entries={isPending ? [] : entries}
+        isLoading={isPending || isContributionsLoading}
+        hasMore={hasMoreContributions}
+        loadMore={loadMoreContributions}
+        showBountyFooter={false}
+        hideActions={true}
+        isLoadingMore={isLoadingMoreContributions}
+        noEntriesElement={
+          <SearchEmpty title="No author activity found in this section." className="mb-10" />
+        }
+        maxLength={150}
+        showReadMoreCTA={true}
         activeTab={currentTab}
-        onTabChange={handleTabChange}
-        variant="primary"
-        className="border-b"
+        restoredScrollPosition={restoredContributionsScrollPosition}
+        lastClickedEntryId={lastClickedContributionsEntryId ?? undefined}
+        shouldRenderBountyAsComment={true}
       />
-      <div className="mt-6">{renderTabContent()}</div>
     </div>
   );
 }
@@ -218,71 +197,95 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const [{ achievements, isLoading: isAchievementsLoading }] = useAuthorAchievements(authorId);
   const [{ summaryStats, isLoading: isSummaryStatsLoading }] = useAuthorSummaryStats(authorId);
 
+  // Tab state — lifted here so the tab bar can live in the hero banner
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const currentTab = searchParams.get('tab') || 'contributions';
+
+  const handleTabChange = (tabId: string) => {
+    startTransition(() => {
+      const params = new URLSearchParams(searchParams);
+      params.set('tab', tabId);
+      router.replace(`/author/${authorId}?${params.toString()}`, { scroll: false });
+    });
+  };
+
+  const canModerate = !!(currentUser?.moderator || isHubEditor) && !!user?.authorProfile?.userId;
+  const tabs = canModerate ? [...AUTHOR_TABS, MODERATION_TAB] : AUTHOR_TABS;
+
+  const tabBar = (
+    <Tabs tabs={tabs} activeTab={currentTab} onTabChange={handleTabChange} variant="primary" />
+  );
+
   const topBanner = (() => {
-    if (isLoading || isUserLoading) return <ProfileHeroBannerSkeleton />;
+    if (isLoading || isUserLoading) return <ProfileHeroBannerSkeleton tabBar={tabBar} />;
     if (error || userError || !user?.authorProfile) return undefined;
-    return <ProfileHeroBanner author={user.authorProfile} refetchAuthorInfo={refetchAuthorInfo} />;
+    return (
+      <ProfileHeroBanner
+        author={user.authorProfile}
+        refetchAuthorInfo={refetchAuthorInfo}
+        tabBar={tabBar}
+      />
+    );
   })();
 
-  const renderContent = () => {
-    if (isLoading || isUserLoading) {
+  const profileLoading = isLoading || isUserLoading;
+  const author = user?.authorProfile;
+  const profileError = error || userError;
+
+  const statsCards = (
+    <ProfileStatsCards
+      user={user}
+      achievements={achievements}
+      summaryStats={summaryStats}
+      isAchievementsLoading={profileLoading || isAchievementsLoading}
+      isSummaryStatsLoading={profileLoading || isSummaryStatsLoading}
+    />
+  );
+
+  const renderMain = () => {
+    if (profileError) {
+      const message = error || userError?.message || 'Unknown error';
+      return <AuthorProfileError error={message} />;
+    }
+    if (!profileLoading && !author) {
+      return <AuthorProfileError error="Author not found" />;
+    }
+    if (!author) return <div className="md:hidden">{statsCards}</div>;
+
+    if (currentTab === 'moderation' && canModerate) {
       return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="mt-4 bg-gray-50">
-            <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Achievements</h3>
-            <AchievementsSkeleton />
-          </Card>
-          <Card className="mt-4 bg-gray-50">
-            <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Key Stats</h3>
-            <KeyStatsSkeleton />
-          </Card>
-        </div>
+        <ModerationTab
+          userId={author.userId!.toString()}
+          authorId={author.id}
+          refetchAuthorInfo={refetchAuthorInfo}
+        />
       );
     }
 
-    if (error || userError) {
-      return <AuthorProfileError error={error || userError?.message || 'Unknown error'} />;
-    }
-
-    if (!user || !user.authorProfile) {
-      return <AuthorProfileError error="Author not found" />;
-    }
+    // Below md, sidebar is hidden, so render the cards inline at the top of Overview.
+    const overviewHeader = <div className="md:hidden mb-6">{statsCards}</div>;
 
     return (
-      <>
-        {(currentUser?.moderator || isHubEditor) && user.authorProfile?.userId && (
-          <Card className="mt-4 bg-gray-50">
-            <Moderation
-              userId={user.authorProfile.userId.toString()}
-              authorId={user.authorProfile.id}
-              refetchAuthorInfo={refetchAuthorInfo}
-            />
-          </Card>
-        )}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="mt-4 bg-gray-50">
-            <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Achievements</h3>
-            <Achievements achievements={achievements} isLoading={isAchievementsLoading} />
-          </Card>
-          {summaryStats && (
-            <Card className="mt-4 bg-gray-50">
-              <h3 className="text-sm font-base uppercase text-gray-500 mb-3">Key Stats</h3>
-              <KeyStats
-                summaryStats={summaryStats}
-                profile={user}
-                isLoading={isSummaryStatsLoading}
-              />
-            </Card>
-          )}
-        </div>
-        <AuthorTabs authorId={user.authorProfile.id} userId={user.authorProfile.userId} />
-      </>
+      <AuthorTabContent
+        authorId={author.id}
+        userId={author.userId}
+        currentTab={currentTab}
+        isPending={isPending}
+        overviewHeader={overviewHeader}
+      />
     );
   };
 
   return (
-    <PageLayout rightSidebar={null} topBanner={topBanner}>
-      <div className="w-full">{renderContent()}</div>
+    <PageLayout rightSidebar={null} topBanner={topBanner} className="tablet:!max-w-full">
+      <div className="flex gap-6 items-start">
+        <div className="flex-1 min-w-0">{renderMain()}</div>
+        <aside className="hidden md:block w-72 lg:w-80 flex-shrink-0 sticky top-4">
+          {!profileError && statsCards}
+        </aside>
+      </div>
     </PageLayout>
   );
 }

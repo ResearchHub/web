@@ -24,9 +24,10 @@ import { ProfileEditModal } from './ProfileEditModal';
 interface ProfileHeroBannerProps {
   author: AuthorProfile;
   refetchAuthorInfo: () => Promise<void>;
+  tabBar?: React.ReactNode;
 }
 
-export function ProfileHeroBanner({ author, refetchAuthorInfo }: ProfileHeroBannerProps) {
+export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: ProfileHeroBannerProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { user: currentUser } = useUser();
   const isOwnProfile = currentUser?.authorProfile?.id === author.id;
@@ -53,7 +54,7 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo }: ProfileHeroBann
 
   return (
     <>
-      <HeroHeader>
+      <HeroHeader tabBar={tabBar}>
         <div className="flex flex-col sm:!flex-row gap-6">
           {/* Left column - Avatar */}
           <div className="flex-shrink-0 flex justify-between items-start">
@@ -171,9 +172,9 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo }: ProfileHeroBann
   );
 }
 
-export function ProfileHeroBannerSkeleton() {
+export function ProfileHeroBannerSkeleton({ tabBar }: { tabBar?: React.ReactNode }) {
   return (
-    <HeroHeader>
+    <HeroHeader tabBar={tabBar}>
       <div className="animate-pulse flex flex-col sm:flex-row gap-6">
         <div className="flex-shrink-0">
           <div className="w-32 h-32 bg-gray-200 rounded-full ring-4 ring-white" />
