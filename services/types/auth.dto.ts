@@ -9,6 +9,8 @@ export interface LoginApiResponse {
   user?: User;
   token?: string;
   key?: string;
+  mfa_required?: boolean;
+  ephemeral_token?: string;
 }
 
 export interface RegisterApiRequest {
