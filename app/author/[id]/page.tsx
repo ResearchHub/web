@@ -4,6 +4,7 @@ import { use, useTransition } from 'react';
 import { useAuthorAchievements, useAuthorInfo, useAuthorSummaryStats } from '@/hooks/useAuthor';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Shield } from 'lucide-react';
 import { Tabs } from '@/components/ui/Tabs';
 import { useContributions } from '@/hooks/useContributions';
 import { ContributionType } from '@/services/contribution.service';
@@ -12,6 +13,7 @@ import { FeedContent } from '@/components/Feed/FeedContent';
 import { SearchEmpty } from '@/components/ui/SearchEmpty';
 import { ModerationTab } from '@/components/Author/ModerationTab';
 import { ProfileStatsCards } from '@/components/Author/ProfileStatsCards';
+import { OrcidSyncBanner } from '@/components/Orcid/OrcidSyncBanner';
 import { useAuthorPublications } from '@/hooks/usePublications';
 import { transformPublicationToFeedEntry } from '@/types/publication';
 import PinnedFundraise from './components/PinnedFundraise';
@@ -53,7 +55,12 @@ const AUTHOR_TABS = [
   { id: 'bounties', label: 'Bounties' },
 ];
 
-const MODERATION_TAB = { id: 'moderation', label: 'Moderation' };
+const MODERATION_TAB = {
+  id: 'moderation',
+  label: 'Moderation',
+  icon: Shield,
+  iconClassName: 'w-4 h-4',
+};
 
 function AuthorTabContent({
   authorId,
@@ -233,15 +240,23 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const profileLoading = isLoading || isUserLoading;
   const author = user?.authorProfile;
   const profileError = error || userError;
+  const isOwnProfile = !!(
+    currentUser?.authorProfile?.id && author?.id === currentUser.authorProfile.id
+  );
 
-  const statsCards = (
-    <ProfileStatsCards
-      user={user}
-      achievements={achievements}
-      summaryStats={summaryStats}
-      isAchievementsLoading={profileLoading || isAchievementsLoading}
-      isSummaryStatsLoading={profileLoading || isSummaryStatsLoading}
-    />
+  const sidebarContent = (
+    <div className="flex flex-col gap-4">
+      {author && (
+        <OrcidSyncBanner isOwnProfile={isOwnProfile} isOrcidConnected={!!author.isOrcidConnected} />
+      )}
+      <ProfileStatsCards
+        user={user}
+        achievements={achievements}
+        summaryStats={summaryStats}
+        isAchievementsLoading={profileLoading || isAchievementsLoading}
+        isSummaryStatsLoading={profileLoading || isSummaryStatsLoading}
+      />
+    </div>
   );
 
   const renderMain = () => {
@@ -252,7 +267,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     if (!profileLoading && !author) {
       return <AuthorProfileError error="Author not found" />;
     }
-    if (!author) return <div className="md:hidden">{statsCards}</div>;
+    if (!author) return <div className="md:hidden">{sidebarContent}</div>;
 
     if (currentTab === 'moderation' && canModerate) {
       return (
@@ -265,7 +280,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     }
 
     // Below md, sidebar is hidden, so render the cards inline at the top of Overview.
-    const overviewHeader = <div className="md:hidden mb-6">{statsCards}</div>;
+    const overviewHeader = <div className="md:hidden mb-6">{sidebarContent}</div>;
 
     return (
       <AuthorTabContent
@@ -283,7 +298,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
       <div className="flex gap-6 items-start">
         <div className="flex-1 min-w-0">{renderMain()}</div>
         <aside className="hidden md:block w-72 lg:w-80 flex-shrink-0 sticky top-4">
-          {!profileError && statsCards}
+          {!profileError && sidebarContent}
         </aside>
       </div>
     </PageLayout>

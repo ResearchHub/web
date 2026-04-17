@@ -1,21 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { Avatar } from '@/components/ui/Avatar';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { Button } from '@/components/ui/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBirthdayCake } from '@fortawesome/pro-light-svg-icons';
-import { faOrcid } from '@fortawesome/free-brands-svg-icons';
 import { specificTimeSince } from '@/utils/date';
 import { AuthorProfile } from '@/types/authorProfile';
 import { calculateProfileCompletion } from '@/utils/profileCompletion';
 import { useUser } from '@/contexts/UserContext';
 import { useSyncOrcid } from '@/components/Orcid/lib/hooks/useSyncOrcid';
-import { useDismissableFeature } from '@/hooks/useDismissableFeature';
-import { OrcidConnectButton } from '@/components/Orcid/OrcidConnectButton';
 import { ProfileEditButton } from './ProfileEditButton';
 import { ProfileSocialLinks } from './ProfileSocialLinks';
 import { ProfileEducation } from './ProfileEducation';
@@ -44,9 +40,6 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
     : { percent: 0, missing: [] };
 
   const { sync: syncAuthorship, isSyncing } = useSyncOrcid({ onSuccess: refetchAuthorInfo });
-  const { isDismissed, dismissFeature, dismissStatus } = useDismissableFeature('orcid_sync_banner');
-  const showOrcidPrompt =
-    isOwnProfile && !isOrcidConnected && dismissStatus === 'checked' && !isDismissed;
 
   useEffect(() => {
     if (!isOwnProfile) setIsEditModalOpen(false);
@@ -135,27 +128,6 @@ export function ProfileHeroBanner({ author, refetchAuthorInfo, tabBar }: Profile
             )}
 
             <ProfileSocialLinks author={author} />
-            {showOrcidPrompt && (
-              <div className="flex items-center gap-2 text-sm bg-orcid-50 rounded-md px-3 py-1.5 border border-orcid-200 w-fit">
-                <FontAwesomeIcon icon={faOrcid} className="h-4 w-4 text-orcid-500 flex-shrink-0" />
-                <span className="text-gray-700 whitespace-nowrap">Sync your publications</span>
-                <OrcidConnectButton
-                  variant="link"
-                  size="sm"
-                  className="p-0 h-auto text-orcid-600 hover:text-orcid-700"
-                  showIcon={false}
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={dismissFeature}
-                  className="h-5 w-5 p-0 text-gray-400 hover:text-gray-600 hover:bg-orcid-100 rounded flex-shrink-0"
-                  aria-label="Dismiss"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            )}
           </div>
         </div>
       </HeroHeader>
