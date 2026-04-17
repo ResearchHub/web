@@ -16,18 +16,18 @@ export const SearchEmpty = ({
   className,
 }: SearchEmptyProps) => {
   return (
-    <div className={cn('flex flex-col items-center justify-start w-full', className)}>
+    <div className={cn('flex flex-col items-center justify-start w-full tablet:!mb-20', className)}>
       <img
         src="/search-empty-state.png"
         alt={title}
         loading="lazy"
-        className="w-[400px] mt-10 object-contain max-w-full sm:w-[70%]"
+        className="w-[400px] mt-10 tablet:!mt-4 object-contain max-w-full sm:w-[70%]"
       />
-      <span className="text-center text-[22px] text-gray-900 mt-5 font-medium md:text-[16px] sm:w-[85%]">
+      <span className="text-center text-[16px] tablet:!text-[18px] text-gray-900 mt-5 font-medium sm:w-[85%]">
         {title}
       </span>
       {subtitle && (
-        <span className="text-center text-[18px] text-gray-500 mt-2 mb-4 md:text-[14px] sm:w-[85%]">
+        <span className="text-center text-[14px] tablet:!text-[15px] text-gray-500 mt-2 mb-4 sm:w-[85%]">
           {subtitle}
         </span>
       )}
