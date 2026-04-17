@@ -29,7 +29,7 @@ export function ProfileEditButton({
       {isOrcidConnected && (
         <BaseMenu
           trigger={
-            <Button variant="outlined" size="sm" aria-label="More actions">
+            <Button variant="outlined" aria-label="More actions">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           }
