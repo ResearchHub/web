@@ -1,7 +1,7 @@
 'use client';
 
 import { ArrowDownToLine, ArrowUpFromLine, HelpCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DepositModal } from '../modals/ResearchCoin/DepositModal';
 import { WithdrawModal } from '../modals/ResearchCoin/WithdrawModal';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -13,6 +13,7 @@ import { formatCombinedBalance, formatCombinedBalanceSecondary } from '@/utils/n
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { UserService } from '@/services/user.service';
+import { ConfirmModal } from '../modals/ConfirmModal';
 
 interface UserBalanceSectionProps {
   balance: {
@@ -56,12 +57,28 @@ export function UserBalanceSection({
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [isUpdatingStaking, setIsUpdatingStaking] = useState(false);
+  const [isOptOutConfirmOpen, setIsOptOutConfirmOpen] = useState(false);
+  const [apy, setApy] = useState<number | null>(null);
   const { user, refreshUser } = useUser();
+
+  useEffect(() => {
+    UserService.getStakingYieldDetails()
+      .then((data) => setApy(data.apy))
+      .catch(() => {});
+  }, []);
 
   const { showUSD } = useCurrencyPreference();
 
   const handleStakingToggle = async (checked: boolean) => {
     if (!user || isUpdatingStaking) return;
+    if (!checked) {
+      setIsOptOutConfirmOpen(true);
+      return;
+    }
+    await performStakingUpdate(checked);
+  };
+
+  const performStakingUpdate = async (checked: boolean) => {
     setIsUpdatingStaking(true);
     try {
       await UserService.updateStakingOptIn(checked);
@@ -124,7 +141,11 @@ export function UserBalanceSection({
                     position="top"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">Stake</span>
+                      <span className="text-xs text-gray-500">
+                        {apy !== null && !user?.isStakingOptedIn
+                          ? `Earn ${Math.round(apy)}%`
+                          : 'Earn'}
+                      </span>
                       <Switch
                         checked={user?.isStakingOptedIn ?? false}
                         onCheckedChange={handleStakingToggle}
@@ -215,6 +236,15 @@ export function UserBalanceSection({
           />
         </>
       )}
+      <ConfirmModal
+        isOpen={isOptOutConfirmOpen}
+        onClose={() => setIsOptOutConfirmOpen(false)}
+        onConfirm={() => performStakingUpdate(false)}
+        title="Turn off earnings?"
+        message="You will no longer earn funding credits on your ResearchCoin balance."
+        confirmText="Turn off"
+        cancelText="Cancel"
+      />
     </>
   );
 }
