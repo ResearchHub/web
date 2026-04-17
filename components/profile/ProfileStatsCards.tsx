@@ -1,6 +1,6 @@
 'use client';
 
-import Achievements from '@/app/author/[id]/components/Achievements';
+import ProfileAchievements from '@/components/profile/ProfileAchievements';
 import KeyStats, { KeyStatsSkeleton } from '@/app/author/[id]/components/KeyStats';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
 import { Achievement, AuthorSummaryStats } from '@/types/authorProfile';
@@ -25,7 +25,7 @@ export function ProfileStatsCards({
     <>
       <section>
         <SidebarHeader title="Achievements" />
-        <Achievements achievements={achievements} isLoading={isAchievementsLoading} />
+        <ProfileAchievements achievements={achievements} isLoading={isAchievementsLoading} />
       </section>
       <section>
         <SidebarHeader title="Key Stats" />
