@@ -52,12 +52,25 @@ export function ModerationPreview({ userId }: ModerationPreviewProps) {
     'NO'
   );
 
+  let statusLabel = 'Active';
+  let statusClass = 'text-green-600';
+  if (userDetails.isSuspended) {
+    statusLabel = 'Suspended';
+    statusClass = 'text-red-600';
+  } else if (userDetails.isProbableSpammer) {
+    statusLabel = 'Probable Spammer';
+    statusClass = 'text-amber-600';
+  }
+
   return (
     <section>
       <SidebarHeader title="Moderation" />
       <ul className="flex flex-col gap-1.5">
         <Row label="Email" value={emailWithId} />
-        <Row label="Suspended?" value={userDetails.isSuspended ? 'Yes' : 'No'} />
+        <Row
+          label="Status"
+          value={<span className={`font-medium ${statusClass}`}>{statusLabel}</span>}
+        />
         <Row label="Verified" value={verifiedValue} />
         <Row label="ORCID connected?" value={userDetails.isOrcidConnected ? 'Yes' : 'No'} />
       </ul>
