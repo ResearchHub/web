@@ -25,15 +25,20 @@ interface ContributorModalProps {
   contributors: Contributor[];
   onContribute?: () => void;
   disableContribute?: boolean;
+  isCompleted?: boolean;
 }
 
 export const ContributorModal: FC<ContributorModalProps> = ({
   isOpen,
   onClose,
   contributors = [],
+  isCompleted = false,
 }) => {
   const { showUSD } = useCurrencyPreference();
-  const totalRsc = contributors.reduce((sum, c) => sum + c.amounts.rsc, 0);
+  const showGoalUsd = isCompleted && showUSD;
+  const totalAmount = Math.round(
+    contributors.reduce((sum, c) => sum + (showGoalUsd ? c.amounts.usd : c.amounts.rsc), 0)
+  );
 
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
@@ -49,7 +54,7 @@ export const ContributorModal: FC<ContributorModalProps> = ({
               <div className="text-sm text-gray-500 flex items-center gap-1">
                 <span>Total:</span>
                 <CurrencyBadge
-                  amount={Math.round(totalRsc)}
+                  amount={totalAmount}
                   variant="text"
                   size="xs"
                   currency={showUSD ? 'USD' : 'RSC'}
@@ -57,6 +62,7 @@ export const ContributorModal: FC<ContributorModalProps> = ({
                   textColor="text-gray-700"
                   fontWeight="font-semibold"
                   showExchangeRate={false}
+                  skipConversion={showGoalUsd}
                 />
               </div>
             </div>
@@ -101,7 +107,9 @@ export const ContributorModal: FC<ContributorModalProps> = ({
                   <div className="flex items-center text-sm font-medium font-mono text-primary-600">
                     <span className="mr-0.5">+</span>
                     <CurrencyBadge
-                      amount={contributor.amounts.rsc}
+                      amount={
+                        showGoalUsd ? Math.round(contributor.amounts.usd) : contributor.amounts.rsc
+                      }
                       variant="text"
                       size="xs"
                       currency={showUSD ? 'USD' : 'RSC'}
@@ -109,6 +117,7 @@ export const ContributorModal: FC<ContributorModalProps> = ({
                       textColor="text-primary-600"
                       fontWeight="font-semibold"
                       className="font-mono"
+                      skipConversion={showGoalUsd}
                     />
                   </div>
                 </div>

@@ -27,6 +27,8 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
   const { showShareModal } = useShareModalContext();
   const { showUSD } = useCurrencyPreference();
   const router = useRouter();
+  const isCompleted = fundraise.status === 'COMPLETED';
+  const showGoalUsd = isCompleted && showUSD;
   const hasContributors =
     fundraise.contributors &&
     fundraise.contributors.numContributors > 0 &&
@@ -97,7 +99,11 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
                   <div className="flex items-center text-sm font-medium font-mono text-primary-600">
                     <span className="mr-0.5">+</span>
                     <CurrencyBadge
-                      amount={contributor.totalContribution.rsc}
+                      amount={
+                        showGoalUsd
+                          ? Math.round(contributor.totalContribution.usd)
+                          : contributor.totalContribution.rsc
+                      }
                       variant="text"
                       size="xs"
                       currency={showUSD ? 'USD' : 'RSC'}
@@ -105,6 +111,7 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
                       textColor="text-primary-600"
                       fontWeight="font-semibold"
                       className="font-mono"
+                      skipConversion={showGoalUsd}
                     />
                   </div>
                 </div>
@@ -132,6 +139,7 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           contributors={modalContributors}
+          isCompleted={isCompleted}
         />
       )}
 
