@@ -67,13 +67,11 @@ function AuthorTabContent({
   userId,
   currentTab,
   isPending,
-  overviewHeader,
 }: {
   authorId: number;
   userId?: number;
   currentTab: string;
   isPending: boolean;
-  overviewHeader?: React.ReactNode;
 }) {
   const contributionType = TAB_TO_CONTRIBUTION_TYPE[currentTab] || 'ALL';
 
@@ -166,7 +164,6 @@ function AuthorTabContent({
 
   return (
     <div>
-      {currentTab === 'contributions' && overviewHeader}
       {currentTab === 'contributions' && userId && (
         <div className="mb-6">
           <PinnedFundraise userId={userId} compact={true} />
@@ -267,7 +264,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     if (!profileLoading && !author) {
       return <AuthorProfileError error="Author not found" />;
     }
-    if (!author) return <div className="md:hidden">{sidebarContent}</div>;
+    if (!author) return null;
 
     if (currentTab === 'moderation' && canModerate) {
       return (
@@ -279,25 +276,22 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
       );
     }
 
-    // Below md, sidebar is hidden, so render the cards inline at the top of Overview.
-    const overviewHeader = <div className="md:hidden mb-6">{sidebarContent}</div>;
-
     return (
       <AuthorTabContent
         authorId={author.id}
         userId={author.userId}
         currentTab={currentTab}
         isPending={isPending}
-        overviewHeader={overviewHeader}
       />
     );
   };
 
   return (
     <PageLayout rightSidebar={null} topBanner={topBanner} className="tablet:!max-w-full">
-      <div className="flex gap-6 items-start">
-        <div className="flex-1 min-w-0">{renderMain()}</div>
-        <aside className="hidden md:block w-72 lg:w-80 flex-shrink-0 sticky top-4">
+      <div className="flex flex-col sidebar-profile:flex-row gap-6 items-start">
+        {!profileError && <div className="w-full sidebar-profile:hidden">{sidebarContent}</div>}
+        <div className="flex-1 min-w-0 w-full">{renderMain()}</div>
+        <aside className="hidden sidebar-profile:block w-72 lg:w-80 flex-shrink-0 sticky top-4">
           {!profileError && sidebarContent}
         </aside>
       </div>
