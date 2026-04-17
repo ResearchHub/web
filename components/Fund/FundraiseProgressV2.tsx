@@ -372,6 +372,7 @@ export const FundraiseProgress: FC<FundraiseProgressProps> = ({
                     label={`Supporters`}
                     size="md"
                     disableContribute={!isActive}
+                    isCompleted={fundraise.status === 'COMPLETED'}
                   />
                 </div>
               )}
