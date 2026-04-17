@@ -3,7 +3,7 @@
 import React, { ReactElement } from 'react';
 import { Achievement } from '@/types/authorProfile';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { getAchievementDetails, TIER_COLORS, TIER_INDICES } from './Achievements.utils';
+import { getAchievementDetails, TIER_COLORS, TIER_INDICES } from './ProfileAchievements.utils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { cn } from '@/utils/styles';
 import { faTrophyStar } from '@fortawesome/pro-light-svg-icons';
@@ -124,13 +124,15 @@ const Achievements: React.FC<AchievementsProps> = ({ achievements, isLoading }) 
 
   if (achievements.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 p-6 text-gray-500">
+      <div className="flex flex-col items-start sidebar-profile:items-center justify-center gap-4 sidebar-profile:p-6 text-gray-500">
         <FontAwesomeIcon
           icon={faTrophyStar}
           style={{ fontSize: '60px' }}
-          className="text-gray-400"
+          className="hidden sidebar-profile:block text-gray-400"
         />
-        <div className="text-center">This user has not unlocked any achievements yet.</div>
+        <div className="text-left sidebar-profile:text-center">
+          This user has not unlocked any achievements yet.
+        </div>
       </div>
     );
   }

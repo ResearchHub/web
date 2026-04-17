@@ -2,7 +2,6 @@ import { Metadata } from 'next';
 import { AuthorService } from '@/services/author.service';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { buildProfileSEOMeta } from '@/lib/structured-data';
-import { PageLayout } from '@/app/layouts/PageLayout';
 
 interface GenerateMetadataProps {
   params: Promise<{ id: string }>;
@@ -45,9 +44,5 @@ export async function generateMetadata({ params }: GenerateMetadataProps): Promi
 }
 
 export default function AuthorProfileLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <PageLayout rightSidebar={null}>
-      <div className="w-full">{children}</div>
-    </PageLayout>
-  );
+  return <>{children}</>;
 }
