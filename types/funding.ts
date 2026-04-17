@@ -47,7 +47,7 @@ function resolveContributionAmounts(
 ): { usd: number; rsc: number } {
   if (typeof totalContribution === 'number') {
     return {
-      usd: goalRate != null ? totalContribution * goalRate : 0,
+      usd: goalRate == null ? 0 : totalContribution * goalRate,
       rsc: totalContribution,
     };
   }
@@ -55,7 +55,7 @@ function resolveContributionAmounts(
   const rsc = totalContribution?.rsc ?? totalContribution?.RSC ?? 0;
   return {
     usd:
-      goalRate != null ? rsc * goalRate : (totalContribution?.usd ?? totalContribution?.USD ?? 0),
+      goalRate == null ? (totalContribution?.usd ?? totalContribution?.USD ?? 0) : rsc * goalRate,
     rsc,
   };
 }
@@ -89,7 +89,7 @@ export function transformApplicationFundraise(raw: any): ApplicationFundraise {
       rsc: goalRsc,
     },
     amountRaised: {
-      usd: goalRate != null ? raisedRsc * goalRate : (raw.amount_raised?.usd ?? 0),
+      usd: goalRate == null ? (raw.amount_raised?.usd ?? 0) : raisedRsc * goalRate,
       rsc: raisedRsc,
     },
     contributors: {
@@ -176,7 +176,7 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => {
   return {
     id: raw.id,
     amountRaised: {
-      usd: goalRate != null ? raisedRsc * goalRate : raw.amount_raised.usd,
+      usd: goalRate == null ? raw.amount_raised.usd : raisedRsc * goalRate,
       rsc: raisedRsc,
     },
     goalAmount: {
