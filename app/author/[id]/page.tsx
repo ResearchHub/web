@@ -249,13 +249,15 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
       )}
       <div className="bg-gray-50/80 rounded-xl p-4 flex flex-col gap-6">
         {canModerate && author?.userId && <ModerationPreview userId={author.userId.toString()} />}
-        <ProfileStatsCards
-          user={user}
-          achievements={achievements}
-          summaryStats={summaryStats}
-          isAchievementsLoading={profileLoading || isAchievementsLoading}
-          isSummaryStatsLoading={profileLoading || isSummaryStatsLoading}
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 sidebar-profile:grid-cols-1 gap-6">
+          <ProfileStatsCards
+            user={user}
+            achievements={achievements}
+            summaryStats={summaryStats}
+            isAchievementsLoading={profileLoading || isAchievementsLoading}
+            isSummaryStatsLoading={profileLoading || isSummaryStatsLoading}
+          />
+        </div>
       </div>
     </div>
   );
