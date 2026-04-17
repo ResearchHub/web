@@ -5,6 +5,7 @@ import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from './api/auth/[...nextauth]/auth.config';
 import { SITE_CONFIG } from '@/lib/metadata';
+import { generateOrganizationStructuredData } from '@/lib/structured-data';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Analytics } from '@vercel/analytics/react';
 import Clarity from '@/components/Clarity';
@@ -86,6 +87,9 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
+  },
+  other: {
+    'application/ld+json': JSON.stringify(generateOrganizationStructuredData()),
   },
 };
 
