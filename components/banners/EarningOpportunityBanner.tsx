@@ -5,7 +5,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { Button } from '@/components/ui/Button';
-import { getOpenBounties, getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
+import { getActiveBounties, getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import { buildWorkUrl } from '@/utils/url';
 import { useRouter } from 'next/navigation';
 import { Work } from '@/types/work';
@@ -27,16 +27,19 @@ export const EarningOpportunityBanner = ({
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
   const router = useRouter();
 
-  // Don't show banner if no open bounties
-  if (!metadata.bounties || metadata.openBounties === 0) {
+  // Don't show banner if no active bounties
+  if (!metadata.bounties || metadata.activeBounties === 0) {
     return null;
   }
 
   // Calculate display amount (handles Foundation bounties with flat $150 USD)
-  const openBounties = useMemo(() => getOpenBounties(metadata.bounties || []), [metadata.bounties]);
+  const activeBounties = useMemo(
+    () => getActiveBounties(metadata.bounties || []),
+    [metadata.bounties]
+  );
   const { amount: displayAmount } = useMemo(
-    () => getTotalBountyDisplayAmount(openBounties, exchangeRate, showUSD),
-    [openBounties, exchangeRate, showUSD]
+    () => getTotalBountyDisplayAmount(activeBounties, exchangeRate, showUSD),
+    [activeBounties, exchangeRate, showUSD]
   );
 
   // Check if we can display the bounty amount (exchange rate loaded if USD preferred)
@@ -104,7 +107,7 @@ export const EarningOpportunityBanner = ({
             }}
             size="sm"
             className="flex-shrink-0 bg-orange-500 hover:bg-orange-600 text-white font-medium shadow-sm group-hover:shadow transition-all duration-200 text-xs px-3"
-            aria-label={`View ${metadata.openBounties} available ${metadata.openBounties === 1 ? 'bounty' : 'bounties'}`}
+            aria-label={`View ${metadata.activeBounties} available ${metadata.activeBounties === 1 ? 'bounty' : 'bounties'}`}
           >
             View
           </Button>
@@ -150,7 +153,7 @@ export const EarningOpportunityBanner = ({
             }}
             size="sm"
             className="w-full mt-3 bg-orange-500 hover:bg-orange-600 text-white font-medium shadow-sm group-hover:shadow transition-all duration-200"
-            aria-label={`View ${metadata.openBounties} available ${metadata.openBounties === 1 ? 'bounty' : 'bounties'}`}
+            aria-label={`View ${metadata.activeBounties} available ${metadata.activeBounties === 1 ? 'bounty' : 'bounties'}`}
           >
             View Bounties
           </Button>

@@ -42,11 +42,11 @@ export function LandingPageFooter() {
     },
     {
       label: 'Get paid to peer review',
-      href: 'https://airtable.com/apptLQP8XMy1kaiID/pag5tkxt0V18Xobje/form',
+      href: '/earn',
     },
     {
-      label: 'Author guidelines',
-      href: 'https://drive.google.com/file/d/1qKlGnNSA-98kg-RhmTFKYVB85X0PJWYr/view?usp=sharing',
+      label: 'About the Journal',
+      href: 'https://docs.researchhub.com/researchhub-foundation/programs-and-initiatives/researchhub-journal-rhj',
     },
   ];
 

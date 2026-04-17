@@ -103,8 +103,17 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData }) => {
     />
   );
 
+  const feedTitles: Record<string, string> = {
+    popular: 'Popular Research',
+    latest: 'Latest Research',
+    'for-you': 'Recommended Research',
+    following: 'Research You Follow',
+  };
+  const feedTitle = feedTitles[activeTab] || 'Research Feed';
+
   return (
     <>
+      <h1 className="sr-only">{feedTitle}</h1>
       <FeedContent
         showFundraiseHeaders={false}
         showGrantHeaders={false}

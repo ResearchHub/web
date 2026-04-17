@@ -197,7 +197,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
           <div className="flex gap-5">
             {[
               {
-                label: 'Funding',
+                label: 'Available Funding',
                 value: formatCompact(budgetAmount, showUSD, exchangeRate),
                 accent: true,
               },
@@ -205,7 +205,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
               { label: 'Duration', value: 'Rolling', accent: false },
             ].map((stat) => (
               <div key={stat.label} className="sm:text-right">
-                <div className="text-[9px] uppercase tracking-wider font-semibold text-white/[0.38]">
+                <div className="text-[9px] uppercase tracking-wider font-semibold text-white/60">
                   {stat.label}
                 </div>
                 <div

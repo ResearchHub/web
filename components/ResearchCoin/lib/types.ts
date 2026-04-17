@@ -72,6 +72,12 @@ const transactionMappings: TransactionMappingRule[] = [
     label: 'Deposit',
     icon: 'wallet1',
   },
+  {
+    condition: (tx) => tx.source?.distribution_type === 'STAKING_YIELD',
+    label: 'Endowment Yield',
+    icon: 'earn1',
+    variant: 'positive',
+  },
 
   // Specific Purchase Types & Associated Fees (Fees checked first)
   {

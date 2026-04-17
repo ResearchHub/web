@@ -14,7 +14,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import Icon from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { getOpenBounties, getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
+import { getActiveBounties, getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import { formatCurrency } from '@/utils/currency';
 import { colors } from '@/app/styles/colors';
 
@@ -53,16 +53,19 @@ export const WorkTabs = ({
     return score.toFixed(1);
   };
 
-  const openBounties = useMemo(() => getOpenBounties(metadata.bounties || []), [metadata.bounties]);
+  const activeBounties = useMemo(
+    () => getActiveBounties(metadata.bounties || []),
+    [metadata.bounties]
+  );
   const { amount: totalBountyAmount } = useMemo(
-    () => getTotalBountyDisplayAmount(openBounties, exchangeRate, showUSD),
-    [openBounties, exchangeRate, showUSD]
+    () => getTotalBountyDisplayAmount(activeBounties, exchangeRate, showUSD),
+    [activeBounties, exchangeRate, showUSD]
   );
 
   const canDisplayBountyAmount =
     !showUSD || (showUSD && !isExchangeRateLoading && exchangeRate > 0);
 
-  const hasOpenBounties = openBounties.length > 0;
+  const hasActiveBounties = activeBounties.length > 0;
 
   const hasResearchHubJournalVersions = useMemo(() => {
     return (work.versions || []).some((version) => version.isResearchHubJournal);
@@ -236,7 +239,7 @@ export const WorkTabs = ({
                 : 'bg-gray-100 text-gray-600'
             }`}
           >
-            {hasOpenBounties && canDisplayBountyAmount ? (
+            {hasActiveBounties && canDisplayBountyAmount ? (
               <>
                 {!showUSD && (
                   <ResearchCoinIcon
