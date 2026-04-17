@@ -11,9 +11,10 @@ import { ContributionType } from '@/services/contribution.service';
 import { transformContributionToFeedEntry } from '@/types/contribution';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { SearchEmpty } from '@/components/ui/SearchEmpty';
-import { ModerationTab } from '@/components/Author/ModerationTab';
-import { ProfileStatsCards } from '@/components/Author/ProfileStatsCards';
-import { OrcidSyncBanner } from '@/components/Orcid/OrcidSyncBanner';
+import { ModerationTab } from '@/components/profile/ModerationTab';
+import { ModerationPreview } from '@/components/profile/ModerationPreview';
+import { ProfileStatsCards } from '@/components/profile/ProfileStatsCards';
+import { OrcidSyncBanner } from '@/components/profile/OrcidSyncBanner';
 import { useAuthorPublications } from '@/hooks/usePublications';
 import { transformPublicationToFeedEntry } from '@/types/publication';
 import PinnedFundraise from './components/PinnedFundraise';
@@ -21,7 +22,7 @@ import { useOrcidCallback } from '@/components/Orcid/lib/hooks/useOrcidCallback'
 import {
   ProfileHeroBanner,
   ProfileHeroBannerSkeleton,
-} from '@/components/Author/ProfileHeroBanner';
+} from '@/components/profile/ProfileHeroBanner';
 import { PageLayout } from '@/app/layouts/PageLayout';
 
 function toNumberOrNull(value: any): number | null {
@@ -247,6 +248,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
         <OrcidSyncBanner isOwnProfile={isOwnProfile} isOrcidConnected={!!author.isOrcidConnected} />
       )}
       <div className="bg-gray-50/80 rounded-xl p-4 flex flex-col gap-6">
+        {canModerate && author?.userId && <ModerationPreview userId={author.userId.toString()} />}
         <ProfileStatsCards
           user={user}
           achievements={achievements}
