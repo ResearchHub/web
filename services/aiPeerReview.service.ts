@@ -79,6 +79,15 @@ export class AiPeerReviewService {
   }
 
   /**
+   * GET /api/ai_peer_review/proposal-review/<review_id>/pdf/
+   *
+   * Returns the PDF bytes when the review is `completed` with `result_data`.
+   */
+  static async getProposalReviewPdf(reviewId: number | string): Promise<Blob> {
+    return ApiClient.getBlob(`${BASE_PATH}/proposal-review/${reviewId}/pdf/`);
+  }
+
+  /**
    * GET /api/ai_peer_review/proposal-review/grant/<grant_id>/
    */
   static async getGrantComparison(grantId: number | string): Promise<GrantComparisonResponse> {
