@@ -6,6 +6,7 @@ import { Work, transformPaper, transformPost, FundingRequest, ContentType } from
 import { Bounty, BountyWithComment, transformBounty } from './bounty';
 import { Comment, CommentType, ContentFormat, transformComment } from './comment';
 import { Fundraise, transformFundraise, Application, transformApplication } from './funding';
+import { transformAiPeerReviewFeedSummary, type AiPeerReviewFeedSummary } from './aiPeerReview';
 import { Journal } from './journal';
 import { UserVoteType } from './reaction';
 import { User } from './user';
@@ -296,6 +297,7 @@ export interface FeedEntry {
   externalMetrics?: ExternalMetrics;
   nonprofit?: Nonprofit;
   associatedGrants?: AssociatedGrant[];
+  aiPeerReview?: AiPeerReviewFeedSummary | null;
   searchMetadata?: {
     highlightedTitle?: string;
     highlightedSnippet?: string;
@@ -391,6 +393,7 @@ export interface RawApiFeedEntry {
     vote_type: number;
     item: number;
   };
+  ai_peer_review?: unknown;
   metrics?: {
     votes: number;
     adjusted_score?: number;
@@ -1069,6 +1072,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           baseWalletAddress: nonprofit.base_wallet_address,
         }
       : undefined,
+    aiPeerReview: transformAiPeerReviewFeedSummary(feedEntry.ai_peer_review),
   } as FeedEntry;
 };
 
