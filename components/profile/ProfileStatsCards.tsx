@@ -14,6 +14,20 @@ interface ProfileStatsCardsProps {
   isSummaryStatsLoading: boolean;
 }
 
+function hasAnyStats(summaryStats: AuthorSummaryStats | null, user?: User | null): boolean {
+  if (!summaryStats) return false;
+  const hIndex = user?.authorProfile?.hIndex ?? 0;
+  const i10 = user?.authorProfile?.i10Index ?? 0;
+  return (
+    summaryStats.upvotesReceived > 0 ||
+    summaryStats.worksCount > 0 ||
+    summaryStats.citationCount > 0 ||
+    summaryStats.amountFunded > 0 ||
+    hIndex > 0 ||
+    i10 > 0
+  );
+}
+
 export function ProfileStatsCards({
   user,
   achievements,
@@ -21,20 +35,33 @@ export function ProfileStatsCards({
   isAchievementsLoading,
   isSummaryStatsLoading,
 }: ProfileStatsCardsProps) {
+  const showAchievements = isAchievementsLoading || achievements.length > 0;
+  const showStats = isSummaryStatsLoading || hasAnyStats(summaryStats, user);
+
+  if (!showAchievements && !showStats) return null;
+
   return (
     <>
-      <section>
-        <SidebarHeader title="Achievements" />
-        <ProfileAchievements achievements={achievements} isLoading={isAchievementsLoading} />
-      </section>
-      <section>
-        <SidebarHeader title="Key Stats" />
-        {user && summaryStats ? (
-          <KeyStats summaryStats={summaryStats} profile={user} isLoading={isSummaryStatsLoading} />
-        ) : (
-          <KeyStatsSkeleton />
-        )}
-      </section>
+      {showAchievements && (
+        <section>
+          <SidebarHeader title="Achievements" />
+          <ProfileAchievements achievements={achievements} isLoading={isAchievementsLoading} />
+        </section>
+      )}
+      {showStats && (
+        <section>
+          <SidebarHeader title="Key Stats" />
+          {user && summaryStats ? (
+            <KeyStats
+              summaryStats={summaryStats}
+              profile={user}
+              isLoading={isSummaryStatsLoading}
+            />
+          ) : (
+            <KeyStatsSkeleton />
+          )}
+        </section>
+      )}
     </>
   );
 }

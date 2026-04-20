@@ -138,7 +138,7 @@ const Achievements: React.FC<AchievementsProps> = ({ achievements, isLoading }) 
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-1.5">
       {achievements.map((achievement) => {
         const achievementDetails = getAchievementDetails({ achievement });
         return (
@@ -153,14 +153,14 @@ const Achievements: React.FC<AchievementsProps> = ({ achievements, isLoading }) 
           >
             <div
               className={cn(
-                'flex items-center gap-2 text-sm font-medium rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-default w-full'
+                'flex items-center gap-1.5 text-xs font-medium rounded hover:bg-gray-100 dark:hover:bg-gray-700 cursor-default w-full'
               )}
             >
               <div className="flex justify-center">
                 {React.cloneElement(achievementDetails.icon as React.ReactElement<any>, {
                   style: {
                     ...(achievementDetails.icon as React.ReactElement<any>).props.style,
-                    fontSize: '18px',
+                    fontSize: '14px',
                   },
                 })}
               </div>

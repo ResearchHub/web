@@ -14,6 +14,8 @@ import { SearchEmpty } from '@/components/ui/SearchEmpty';
 import { ModerationTab } from '@/components/profile/ModerationTab';
 import { ModerationPreview } from '@/components/profile/ModerationPreview';
 import { ProfileStatsCards } from '@/components/profile/ProfileStatsCards';
+import { ProfileStatsStrip } from '@/components/profile/ProfileStatsStrip';
+import ProfileAchievements from '@/components/profile/ProfileAchievements';
 import { OrcidSyncBanner } from '@/components/profile/OrcidSyncBanner';
 import { useAuthorPublications } from '@/hooks/usePublications';
 import { transformPublicationToFeedEntry } from '@/types/publication';
@@ -292,11 +294,49 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     );
   };
 
+  // Compact mobile header shown inside the Overview tab only, to avoid filler
+  // space on other tabs at narrow widths. Tablet+ uses the full `sidebarContent`.
+  const hasAnyStats =
+    !!summaryStats &&
+    (summaryStats.upvotesReceived > 0 ||
+      summaryStats.worksCount > 0 ||
+      summaryStats.citationCount > 0 ||
+      summaryStats.amountFunded > 0 ||
+      (user?.authorProfile?.hIndex ?? 0) > 0 ||
+      (user?.authorProfile?.i10Index ?? 0) > 0);
+  const mobileOverviewHeader = !profileError && author && (
+    <div className="tablet:hidden flex flex-col gap-4 mb-4">
+      <OrcidSyncBanner isOwnProfile={isOwnProfile} isOrcidConnected={!!author.isOrcidConnected} />
+      {canModerate && author.userId && <ModerationPreview userId={author.userId.toString()} />}
+      {hasAnyStats && summaryStats && user && (
+        <section>
+          <h3 className="text-md font-semibold text-gray-800 mb-2">Stats</h3>
+          <div className="rounded-lg border border-gray-200 p-4">
+            <ProfileStatsStrip summaryStats={summaryStats} profile={user} />
+          </div>
+        </section>
+      )}
+      {achievements.length > 0 && (
+        <section>
+          <h3 className="text-md font-semibold text-gray-800 mb-2">Achievements</h3>
+          <div className="rounded-lg border border-gray-200 p-4">
+            <ProfileAchievements achievements={achievements} isLoading={false} />
+          </div>
+        </section>
+      )}
+    </div>
+  );
+
   return (
     <PageLayout rightSidebar={null} topBanner={topBanner} className="tablet:!max-w-full">
       <div className="flex flex-col sidebar-profile:flex-row gap-6 items-start">
-        {!profileError && <div className="w-full sidebar-profile:hidden">{sidebarContent}</div>}
-        <div className="flex-1 min-w-0 w-full">{renderMain()}</div>
+        {!profileError && (
+          <div className="w-full hidden tablet:block sidebar-profile:hidden">{sidebarContent}</div>
+        )}
+        <div className="flex-1 min-w-0 w-full">
+          {currentTab === 'contributions' && mobileOverviewHeader}
+          {renderMain()}
+        </div>
         <aside className="hidden sidebar-profile:block w-72 lg:w-80 flex-shrink-0 sticky top-4">
           {!profileError && sidebarContent}
         </aside>
