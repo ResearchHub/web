@@ -16,6 +16,8 @@ import { ModerationPreview } from '@/components/profile/ModerationPreview';
 import { ProfileStatsCards } from '@/components/profile/ProfileStatsCards';
 import { ProfileStatsStrip } from '@/components/profile/ProfileStatsStrip';
 import ProfileAchievements from '@/components/profile/ProfileAchievements';
+import { ProfileFundingFeed } from '@/components/profile/ProfileFundingFeed';
+import { ProfileProposalsFeed } from '@/components/profile/ProfileProposalsFeed';
 import { OrcidSyncBanner } from '@/components/profile/OrcidSyncBanner';
 import { useAuthorPublications } from '@/hooks/usePublications';
 import { transformPublicationToFeedEntry } from '@/types/publication';
@@ -52,6 +54,8 @@ const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
 
 const AUTHOR_TABS = [
   { id: 'contributions', label: 'Overview' },
+  { id: 'funding', label: 'Funding' },
+  { id: 'proposals', label: 'Proposals' },
   { id: 'publications', label: 'Publications' },
   { id: 'peer-reviews', label: 'Peer Reviews' },
   { id: 'comments', label: 'Comments' },
@@ -282,6 +286,14 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
           refetchAuthorInfo={refetchAuthorInfo}
         />
       );
+    }
+
+    if (currentTab === 'funding' && author.userId) {
+      return <ProfileFundingFeed userId={author.userId} />;
+    }
+
+    if (currentTab === 'proposals' && author.userId) {
+      return <ProfileProposalsFeed userId={author.userId} />;
     }
 
     return (
