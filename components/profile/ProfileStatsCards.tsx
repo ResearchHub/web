@@ -14,6 +14,11 @@ interface ProfileStatsCardsProps {
   isSummaryStatsLoading: boolean;
 }
 
+/**
+ * Used in the tablet+ sidebar. Always renders both Achievements and Key Stats
+ * sections, even when empty — the narrow mobile overview hides empty sections
+ * separately via its own gating logic.
+ */
 export function ProfileStatsCards({
   user,
   achievements,
