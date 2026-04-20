@@ -16,8 +16,13 @@ import { ModerationPreview } from '@/components/profile/ModerationPreview';
 import { ProfileStatsCards } from '@/components/profile/ProfileStatsCards';
 import { ProfileStatsStrip } from '@/components/profile/ProfileStatsStrip';
 import ProfileAchievements from '@/components/profile/ProfileAchievements';
-import { ProfileFundingFeed } from '@/components/profile/ProfileFundingFeed';
-import { ProfileProposalsFeed } from '@/components/profile/ProfileProposalsFeed';
+import { ProfileFundingTab, isFundingPill } from '@/components/profile/ProfileFundingTab';
+import {
+  ProfileActivityTab,
+  ACTIVITY_PILLS,
+  isActivityPill,
+  type ActivityPillId,
+} from '@/components/profile/ProfileActivityTab';
 import { OrcidSyncBanner } from '@/components/profile/OrcidSyncBanner';
 import { useAuthorPublications } from '@/hooks/usePublications';
 import { transformPublicationToFeedEntry } from '@/types/publication';
@@ -52,15 +57,25 @@ const TAB_TO_CONTRIBUTION_TYPE: Record<string, ContributionType> = {
   bounties: 'BOUNTY',
 };
 
-const AUTHOR_TABS = [
-  { id: 'contributions', label: 'Overview' },
+type TabGroupId = 'overview' | 'funding' | 'activity' | 'moderation';
+
+const TOP_LEVEL_TABS: Array<{ id: TabGroupId; label: string }> = [
+  { id: 'overview', label: 'Overview' },
   { id: 'funding', label: 'Funding' },
-  { id: 'proposals', label: 'Proposals' },
-  { id: 'publications', label: 'Publications' },
-  { id: 'peer-reviews', label: 'Peer Reviews' },
-  { id: 'comments', label: 'Comments' },
-  { id: 'bounties', label: 'Bounties' },
+  { id: 'activity', label: 'Activity' },
 ];
+
+/**
+ * Resolve a tab id (either a group id or a pill id from within a group) to its
+ * top-level group. The url stores a single `tab` param which may be either.
+ */
+function getTabGroup(tabId: string): TabGroupId {
+  if (tabId === 'overview' || tabId === 'contributions') return 'overview';
+  if (tabId === 'funding' || isFundingPill(tabId)) return 'funding';
+  if (tabId === 'activity' || isActivityPill(tabId)) return 'activity';
+  if (tabId === 'moderation') return 'moderation';
+  return 'overview';
+}
 
 const MODERATION_TAB = {
   id: 'moderation',
@@ -214,7 +229,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const [isPending, startTransition] = useTransition();
   const currentTab = searchParams.get('tab') || 'contributions';
 
-  const handleTabChange = (tabId: string) => {
+  const setTab = (tabId: string) => {
     startTransition(() => {
       const params = new URLSearchParams(searchParams);
       params.set('tab', tabId);
@@ -222,11 +237,35 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     });
   };
 
+  const activeGroup = getTabGroup(currentTab);
+
+  /**
+   * Top-level tab clicks: jump to the group's landing state. For Activity this
+   * means its first pill; for Funding it's the group token (`funding`) which
+   * lets `ProfileFundingTab` decide the default pill based on fetched data.
+   */
+  const handleTopTabChange = (groupId: string) => {
+    switch (groupId) {
+      case 'overview':
+        setTab('contributions');
+        break;
+      case 'funding':
+        setTab('funding');
+        break;
+      case 'activity':
+        setTab(ACTIVITY_PILLS[0].id);
+        break;
+      case 'moderation':
+        setTab('moderation');
+        break;
+    }
+  };
+
   const canModerate = !!(currentUser?.moderator || isHubEditor) && !!user?.authorProfile?.userId;
-  const tabs = canModerate ? [...AUTHOR_TABS, MODERATION_TAB] : AUTHOR_TABS;
+  const tabs = canModerate ? [...TOP_LEVEL_TABS, MODERATION_TAB] : TOP_LEVEL_TABS;
 
   const tabBar = (
-    <Tabs tabs={tabs} activeTab={currentTab} onTabChange={handleTabChange} variant="primary" />
+    <Tabs tabs={tabs} activeTab={activeGroup} onTabChange={handleTopTabChange} variant="primary" />
   );
 
   const topBanner = (() => {
@@ -278,7 +317,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
     }
     if (!author) return null;
 
-    if (currentTab === 'moderation' && canModerate) {
+    if (activeGroup === 'moderation' && canModerate) {
       return (
         <ModerationTab
           userId={author.userId!.toString()}
@@ -288,19 +327,32 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
       );
     }
 
-    if (currentTab === 'funding' && author.userId) {
-      return <ProfileFundingFeed userId={author.userId} />;
+    if (activeGroup === 'funding' && author.userId) {
+      return (
+        <ProfileFundingTab userId={author.userId} currentTab={currentTab} onPillChange={setTab} />
+      );
     }
 
-    if (currentTab === 'proposals' && author.userId) {
-      return <ProfileProposalsFeed userId={author.userId} />;
+    if (activeGroup === 'activity') {
+      const activePill: ActivityPillId = isActivityPill(currentTab) ? currentTab : 'publications';
+      return (
+        <ProfileActivityTab activePill={activePill} onPillChange={setTab}>
+          <AuthorTabContent
+            authorId={author.id}
+            userId={author.userId}
+            currentTab={activePill}
+            isPending={isPending}
+          />
+        </ProfileActivityTab>
+      );
     }
 
+    // Overview (default)
     return (
       <AuthorTabContent
         authorId={author.id}
         userId={author.userId}
-        currentTab={currentTab}
+        currentTab="contributions"
         isPending={isPending}
       />
     );
@@ -346,7 +398,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
           <div className="w-full hidden tablet:block sidebar-profile:hidden">{sidebarContent}</div>
         )}
         <div className="flex-1 min-w-0 w-full">
-          {currentTab === 'contributions' && mobileOverviewHeader}
+          {activeGroup === 'overview' && mobileOverviewHeader}
           {renderMain()}
         </div>
         <aside className="hidden sidebar-profile:block w-72 lg:w-80 flex-shrink-0 sticky top-4">
