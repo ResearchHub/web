@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Search as SearchIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Icon } from '@/components/ui/icons';
@@ -5,6 +6,8 @@ import { Button } from '@/components/ui/Button';
 import UserMenu from '@/components/menus/UserMenu';
 import type { User } from '@/types/user';
 import { TopBarSearchButton } from './TopBarSearchButton';
+import { formatRSC } from '@/utils/number';
+import { UserService } from '@/services/user.service';
 
 interface TopBarUserControlsProps {
   user: User | null;
@@ -40,6 +43,19 @@ export const TopBarUserControls = ({
   variant,
 }: TopBarUserControlsProps) => {
   const isMobile = variant === 'mobile';
+  const rscDelta = user?.balanceHistory ?? 0;
+  const [showDelta, setShowDelta] = useState(rscDelta > 0);
+
+  useEffect(() => {
+    setShowDelta(rscDelta > 0);
+  }, [rscDelta]);
+
+  const handleRscClick = () => {
+    if (showDelta) {
+      setShowDelta(false);
+      UserService.updateBalanceHistoryClicked().catch(console.error);
+    }
+  };
 
   if (isMobile) {
     return (
@@ -81,9 +97,14 @@ export const TopBarUserControls = ({
 
       {user && (
         <>
-          <Link href="/researchcoin" className="flex items-center">
-            <div className="flex items-center justify-center hover:bg-gray-100 rounded-md p-2">
+          <Link href="/researchcoin" className="flex items-center" onClick={handleRscClick}>
+            <div className="flex items-center justify-center hover:bg-gray-100 rounded-md p-2 relative">
               <Icon name="rscThin" size={28} className="text-gray-500" />
+              {showDelta && (
+                <div className="absolute -top-1 -right-2 bg-green-100 text-green-700 text-[10px] font-semibold px-1.5 py-0.5 rounded-full shadow-sm whitespace-nowrap">
+                  + {formatRSC({ amount: Math.round(rscDelta * 100) / 100, shorten: true })}
+                </div>
+              )}
             </div>
           </Link>
 
