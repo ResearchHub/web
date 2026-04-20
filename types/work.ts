@@ -9,6 +9,7 @@ import { ProxyService } from '../services/proxy.service';
 import { stripHtml } from '../utils/stringUtils';
 import { transformUser, TransformedUser } from './user';
 import { transformTip, Tip } from './tip';
+import { transformProposalReview, type ProposalReview } from './aiPeerReview';
 
 export interface PeerReview {
   id: number;
@@ -117,6 +118,11 @@ export interface Work {
   fundraise?: any;
   tips?: Tip[];
   peerReviews?: PeerReview[];
+  /**
+   * Preregistration posts only.
+   * Currently we take **only the first** `grants[0]` row’s review.
+   */
+  aiPeerReview?: ProposalReview | null;
   enrichments?: Enrichment[];
 }
 
@@ -196,6 +202,18 @@ export function transformPeerReview(raw: any): PeerReview {
     score: raw.score ?? 0,
     createdDate: raw.created_date || '',
   };
+}
+
+/**
+ * Reads `raw.grants[0].proposal.ai_peer_review` for preregistration payloads.
+ * **Only the first grant in the list** is considered;
+ */
+function pickPreregistrationAiPeerReviewFromGrants(raw: any): ProposalReview | null {
+  if (!Array.isArray(raw.grants) || raw.grants.length === 0) return null;
+  const proposal = raw.grants[0]?.proposal ?? {};
+  const apr = proposal.ai_peer_review ?? proposal.aiPeerReview;
+
+  return apr ? transformProposalReview(apr) : null;
 }
 
 export const transformWork = createTransformer<any, Work>((raw) => {
@@ -298,22 +316,29 @@ export const transformWork = createTransformer<any, Work>((raw) => {
   };
 });
 
-export const transformPost = createTransformer<any, Work>((raw) => ({
-  ...transformWork(raw),
-  contentType:
-    raw.unified_document?.document_type === 'PREREGISTRATION' || raw.type === 'PREREGISTRATION'
+export const transformPost = createTransformer<any, Work>((raw) => {
+  const isPreregistration =
+    raw.unified_document?.document_type === 'PREREGISTRATION' || raw.type === 'PREREGISTRATION';
+
+  const base = transformWork(raw);
+
+  return {
+    ...base,
+    contentType: isPreregistration
       ? 'preregistration'
       : raw.unified_document?.document_type === 'GRANT' || raw.type === 'GRANT'
         ? 'funding_request'
         : 'post',
-  note: raw.note ? transformNoteWithContent(raw.note) : undefined,
-  publishedDate: raw.created_date, // Posts use created_date for both
-  previewContent: raw.full_markdown || '',
-  contentUrl: raw.post_src,
-  formats: [], // Posts don't have formats
-  license: undefined,
-  pdfCopyrightAllowsDisplay: true,
-}));
+    note: raw.note ? transformNoteWithContent(raw.note) : undefined,
+    publishedDate: raw.created_date, // Posts use created_date for both
+    previewContent: raw.full_markdown || '',
+    contentUrl: raw.post_src,
+    formats: [], // Posts don't have formats
+    license: undefined,
+    pdfCopyrightAllowsDisplay: true,
+    ...(isPreregistration ? { aiPeerReview: pickPreregistrationAiPeerReviewFromGrants(raw) } : {}),
+  };
+});
 
 export const transformPaper = createTransformer<any, Work>((raw) => ({
   ...transformWork(raw),
