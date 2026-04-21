@@ -13,6 +13,7 @@ import { useStorageKey } from '@/utils/storageKeys';
 import { ProposalSidebar } from './ProposalSidebar';
 import { useUser } from '@/contexts/UserContext';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
+import { AiPeerReviewCard } from '@/components/work/AiPeerReviewCard';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXmark } from '@fortawesome/pro-solid-svg-icons';
@@ -148,6 +149,7 @@ export const FundDocument = ({
       case 'reviews':
         return (
           <div className="space-y-6" key="reviews-tab">
+            {user?.isModerator && <AiPeerReviewCard aiPeerReview={work.aiPeerReview} />}
             <ReviewStatusBanner bounties={metadata.bounties || []} />
             <CommentFeed
               unifiedDocumentId={work.unifiedDocumentId || null}
