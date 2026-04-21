@@ -1,11 +1,12 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Star, MessageCircle, Bell, Coins, ChevronDown, ChevronUp } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
+import { ActivityEmbed, extractFirstEmbed } from '@/components/Activity/ActivityEmbed';
 import { formatTimeAgo } from '@/utils/date';
 import { buildWorkUrl } from '@/utils/url';
 import { formatCurrency } from '@/utils/currency';
@@ -148,8 +149,73 @@ function getCommentContent(entry: FeedEntry) {
   const { comment } = commentContent;
   if (!comment?.content) return null;
   const isReview = comment.commentType === 'REVIEW';
-  return { content: comment.content, format: comment.contentFormat, isReview };
+  const isAuthorUpdate = comment.commentType === 'AUTHOR_UPDATE';
+  const embed = isAuthorUpdate
+    ? extractFirstEmbed(
+        typeof comment.content === 'string' ? comment.content : JSON.stringify(comment.content)
+      )
+    : null;
+  return { content: comment.content, format: comment.contentFormat, isReview, embed };
 }
+
+function normalizeUrl(raw: string): string {
+  return raw.replace(/[.,;:!?)\]]+$/, '').replace(/\/+$/, '');
+}
+
+const CommentTextWithLinkChip: FC<{ embedUrl?: string; children: React.ReactNode }> = ({
+  embedUrl,
+  children,
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!embedUrl || !ref.current) return;
+    const target = normalizeUrl(embedUrl);
+    let host: string;
+    try {
+      host = new URL(embedUrl).hostname.replace(/^www\./, '');
+    } catch {
+      return;
+    }
+
+    const transform = () => {
+      const anchors = ref.current?.querySelectorAll<HTMLAnchorElement>('a[href]');
+      if (!anchors) return;
+      anchors.forEach((a) => {
+        if (a.dataset.chipped) return;
+        const href = a.getAttribute('href') || '';
+        if (normalizeUrl(href) !== target) return;
+        a.dataset.chipped = '1';
+        a.textContent = '';
+        a.className =
+          'inline-flex items-center gap-1 max-w-[240px] align-middle px-2 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-xs text-gray-600 hover:bg-gray-100 no-underline';
+        a.style.textDecoration = 'none';
+        const span = document.createElement('span');
+        span.className = 'truncate';
+        span.textContent = host;
+        a.appendChild(span);
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', 'currentColor');
+        svg.setAttribute('stroke-width', '2');
+        svg.setAttribute('stroke-linecap', 'round');
+        svg.setAttribute('stroke-linejoin', 'round');
+        svg.setAttribute('class', 'w-3 h-3 shrink-0');
+        svg.innerHTML =
+          '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>';
+        a.appendChild(svg);
+      });
+    };
+
+    transform();
+    const observer = new MutationObserver(transform);
+    observer.observe(ref.current, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [embedUrl]);
+
+  return <div ref={ref}>{children}</div>;
+};
 
 interface ActivityCardFullProps {
   entry: FeedEntry;
@@ -233,13 +299,20 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
 
       {commentData && !commentData.isReview && (
         <div className="mt-2 ml-[42px]">
-          <CommentReadOnly
-            content={commentData.content}
-            contentFormat={commentData.format}
-            maxLength={250}
-            showReadMoreButton={true}
-            className="text-sm"
-          />
+          <CommentTextWithLinkChip embedUrl={commentData.embed?.url}>
+            <CommentReadOnly
+              content={commentData.content}
+              contentFormat={commentData.format}
+              maxLength={250}
+              showReadMoreButton={true}
+              className="text-sm"
+            />
+          </CommentTextWithLinkChip>
+          {commentData.embed && (
+            <div className="mt-3">
+              <ActivityEmbed embed={commentData.embed} />
+            </div>
+          )}
         </div>
       )}
 

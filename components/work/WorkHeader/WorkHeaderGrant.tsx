@@ -66,7 +66,7 @@ export function WorkHeaderGrant({
       </SubmitProposalTooltip>
     ) : undefined;
 
-  const activityCount = activity.entries.length;
+  const activityCount = activity.count;
 
   const grantTabs = [
     { id: 'details' as const, label: 'Details' },
@@ -76,15 +76,17 @@ export function WorkHeaderGrant({
       label: (
         <div className="flex items-center">
           <span>Activity</span>
-          <span
-            className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-              activeTab === 'activity'
-                ? 'bg-primary-100 text-primary-600'
-                : 'bg-gray-100 text-gray-600'
-            }`}
-          >
-            {activityCount}
-          </span>
+          {activityCount > 0 && (
+            <span
+              className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                activeTab === 'activity'
+                  ? 'bg-primary-100 text-primary-600'
+                  : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {activityCount}
+            </span>
+          )}
         </div>
       ),
     },

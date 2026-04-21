@@ -16,6 +16,7 @@ export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {})
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
+  const [count, setCount] = useState(0);
   const pageRef = useRef(1);
 
   const fetchInitial = useCallback(async () => {
@@ -31,6 +32,7 @@ export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {})
       });
       setEntries(result.entries);
       setHasMore(result.hasMore);
+      setCount(result.count);
     } catch (error) {
       console.error('Error fetching activity feed:', error);
     } finally {
@@ -56,6 +58,7 @@ export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {})
       });
       setEntries((prev) => [...prev, ...result.entries]);
       setHasMore(result.hasMore);
+      setCount(result.count);
       pageRef.current = nextPage;
     } catch (error) {
       console.error('Error loading more activity:', error);
@@ -69,6 +72,7 @@ export function useActivityFeed({ scope, grantId }: UseActivityFeedOptions = {})
     isLoading,
     isLoadingMore,
     hasMore,
+    count,
     loadMore,
   };
 }
