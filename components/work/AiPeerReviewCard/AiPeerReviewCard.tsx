@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import type { ProposalReview } from '@/types/aiPeerReview';
 import { CATEGORY_KEYS } from '@/types/aiPeerReview';
-import { cn } from '@/utils/styles';
 import { AiPeerReviewVerdictBadge } from './AiPeerReviewVerdictBadge';
 import { AiPeerReviewProsConsList } from './AiPeerReviewProsConsList';
 import { AiPeerReviewCategorySection } from './AiPeerReviewCategorySection';
@@ -16,62 +15,39 @@ interface AiPeerReviewCardProps {
 
 export function AiPeerReviewCard({ aiPeerReview }: AiPeerReviewCardProps) {
   const [expanded, setExpanded] = useState(false);
-  const [summaryExpanded, setSummaryExpanded] = useState(false);
 
   if (!aiPeerReview || aiPeerReview.status !== 'completed' || !aiPeerReview.resultData) return null;
 
-  const { overallSummary, overallRating, majorStrengths, majorWeaknesses, categories } =
-    aiPeerReview.resultData;
+  const { overallRating, majorStrengths, majorWeaknesses, categories } = aiPeerReview.resultData;
 
-  const presentCategories = CATEGORY_KEYS.filter((k) => categories[k]);
-  const hasMoreProsCons = majorStrengths.length > 3 || majorWeaknesses.length > 3;
-  const canExpand = hasMoreProsCons || presentCategories.length > 0;
+  const HIDDEN_CATEGORIES = new Set<string>([
+    'clinical_or_translational_impact',
+    'societal_and_broader_impact',
+  ]);
+  const presentCategories = CATEGORY_KEYS.filter(
+    (k) => !HIDDEN_CATEGORIES.has(k) && categories[k]?.rationale
+  );
+  const canExpand = presentCategories.length > 0;
 
   return (
     <Card className="border-indigo-100">
       <div className="space-y-5">
-        <h3 className="text-base font-semibold text-gray-900">AI Peer Review</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-base font-semibold text-gray-900">Automated Review</h3>
+          <AiPeerReviewVerdictBadge rating={overallRating} />
+        </div>
 
-        <AiPeerReviewVerdictBadge rating={overallRating} />
-
-        {overallSummary && (
-          <div>
-            <p
-              className={cn(
-                'text-sm leading-relaxed text-gray-700',
-                !summaryExpanded && 'line-clamp-4'
-              )}
-            >
-              {overallSummary}
-            </p>
-            <button
-              type="button"
-              onClick={() => setSummaryExpanded((v) => !v)}
-              className="mt-1.5 text-sm font-medium text-primary-600 hover:text-primary-700"
-            >
-              {summaryExpanded ? 'Show less' : 'Read more'}
-            </button>
-          </div>
-        )}
-
-        <AiPeerReviewProsConsList
-          strengths={majorStrengths}
-          weaknesses={majorWeaknesses}
-          expanded={expanded}
-        />
+        <AiPeerReviewProsConsList strengths={majorStrengths} weaknesses={majorWeaknesses} />
 
         {expanded && presentCategories.length > 0 && (
-          <div>
-            <h4 className="mb-2.5 text-sm font-semibold text-gray-900">Categories</h4>
-            <div className="space-y-2">
-              {presentCategories.map((key) => (
-                <AiPeerReviewCategorySection
-                  key={key}
-                  label={CATEGORY_LABELS[key]}
-                  block={categories[key]!}
-                />
-              ))}
-            </div>
+          <div className="space-y-4">
+            {presentCategories.map((key) => (
+              <AiPeerReviewCategorySection
+                key={key}
+                label={CATEGORY_LABELS[key]}
+                block={categories[key]!}
+              />
+            ))}
           </div>
         )}
 

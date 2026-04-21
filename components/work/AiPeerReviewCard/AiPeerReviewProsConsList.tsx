@@ -8,10 +8,9 @@ import { Tooltip } from '@/components/ui/Tooltip';
 interface ProsConsListProps {
   strengths: string[];
   weaknesses: string[];
-  expanded: boolean;
 }
 
-const PREVIEW_COUNT = 3;
+const MAX_COUNT = 3;
 
 function splitAtColon(text: string): { head: string; rest: string } {
   const idx = text.indexOf(':');
@@ -60,42 +59,29 @@ interface ListProps {
   title: string;
   items: string[];
   variant: 'pros' | 'cons';
-  expanded: boolean;
 }
 
-function List({ title, items, variant, expanded }: ListProps) {
+function List({ title, items, variant }: ListProps) {
   if (items.length === 0) return null;
-  const hasMore = items.length > PREVIEW_COUNT;
-
+  const visible = items.slice(0, MAX_COUNT);
   return (
     <div>
       <h4 className="mb-2.5 text-sm font-semibold text-gray-900">{title}</h4>
-      <ul
-        className={cn(
-          'space-y-2.5',
-          !expanded && hasMore && 'relative max-h-[120px] overflow-hidden'
-        )}
-      >
-        {items.map((item, i) => (
+      <ul className="space-y-2.5">
+        {visible.map((item, i) => (
           <ItemRow key={i} item={item} variant={variant} />
         ))}
-        {!expanded && hasMore && (
-          <li
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white via-white/90 to-transparent"
-          />
-        )}
       </ul>
     </div>
   );
 }
 
-export function AiPeerReviewProsConsList({ strengths, weaknesses, expanded }: ProsConsListProps) {
+export function AiPeerReviewProsConsList({ strengths, weaknesses }: ProsConsListProps) {
   if (strengths.length === 0 && weaknesses.length === 0) return null;
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-      <List title="Pros" items={strengths} variant="pros" expanded={expanded} />
-      <List title="Cons" items={weaknesses} variant="cons" expanded={expanded} />
+      <List title="Pros" items={strengths} variant="pros" />
+      <List title="Cons" items={weaknesses} variant="cons" />
     </div>
   );
 }
