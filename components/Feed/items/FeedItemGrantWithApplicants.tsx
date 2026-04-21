@@ -6,14 +6,60 @@ import Link from 'next/link';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
-import { ArrowRight, CalendarOff, Star } from 'lucide-react';
+import { ArrowRight, CalendarOff, ShieldCheck, ShieldQuestion, ShieldX, Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { buildWorkUrl, generateSlug } from '@/utils/url';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { useUser } from '@/contexts/UserContext';
 import { formatCurrency } from '@/utils/currency';
 import { Application } from '@/types/funding';
+import type { OverallRating } from '@/types/aiPeerReview';
+
+const AI_VERDICT_CONFIG: Record<
+  Exclude<OverallRating, null>,
+  { label: string; tooltip: string; badge: string; Icon: typeof ShieldCheck }
+> = {
+  excellent: {
+    label: 'Excellent',
+    tooltip: 'AI review: sufficient to test the hypothesis.',
+    badge: 'bg-green-50 border-green-200 text-green-700',
+    Icon: ShieldCheck,
+  },
+  good: {
+    label: 'Good',
+    tooltip: 'AI review: may be sufficient to test the hypothesis.',
+    badge: 'bg-orange-50 border-orange-200 text-orange-600',
+    Icon: ShieldQuestion,
+  },
+  poor: {
+    label: 'Poor',
+    tooltip: 'AI review: not sufficient to test the hypothesis.',
+    badge: 'bg-red-50 border-red-200 text-red-600',
+    Icon: ShieldX,
+  },
+};
+
+const AiVerdictBadge: FC<{ rating: OverallRating | null }> = ({ rating }) => {
+  if (!rating) return null;
+  const cfg = AI_VERDICT_CONFIG[rating];
+  const Icon = cfg.Icon;
+  return (
+    <Tooltip content={cfg.tooltip} width="w-56" position="top">
+      <span
+        className={cn(
+          'inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[12px] font-medium',
+          cfg.badge
+        )}
+      >
+        <Icon size={13} />
+        {cfg.label}
+      </span>
+    </Tooltip>
+  );
+};
 
 interface FeedItemGrantWithApplicantsProps {
   entry: FeedEntry;
@@ -31,9 +77,16 @@ interface ProposalRowProps {
   showUSD: boolean;
   exchangeRate: number;
   isLast: boolean;
+  showAiVerdict: boolean;
 }
 
-const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate, isLast }) => {
+const ProposalRow: FC<ProposalRowProps> = ({
+  application,
+  showUSD,
+  exchangeRate,
+  isLast,
+  showAiVerdict,
+}) => {
   const { profile, fundraise: fundraiseRaw } = application;
   const fundraise = fundraiseRaw!;
 
@@ -83,15 +136,18 @@ const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate,
         </div>
       </div>
 
-      {/* Review badge */}
-      <div className="flex-shrink-0 flex justify-end">
+      {/* Review badge + AI verdict */}
+      <div className="flex-shrink-0 flex items-center gap-2 justify-end">
         {fundraise.reviewMetrics && fundraise.reviewMetrics.avg > 0 ? (
-          <span className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium bg-amber-50 border border-amber-200 text-amber-700">
-            <Star size={11} className="fill-amber-400 text-amber-400" />
+          <span className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[12px] font-medium bg-amber-50 border border-amber-200 text-amber-700">
+            <Star size={13} className="fill-amber-400 text-amber-400" />
             {fundraise.reviewMetrics.avg.toFixed(1)}
           </span>
         ) : (
-          <span className="text-[10.5px] text-gray-400 whitespace-nowrap">No reviews</span>
+          <span className="text-[11px] text-gray-400 whitespace-nowrap">No reviews</span>
+        )}
+        {showAiVerdict && (
+          <AiVerdictBadge rating={application.aiPeerReview?.overallRating ?? null} />
         )}
       </div>
     </Link>
@@ -104,7 +160,9 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
 }) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
+  const { user } = useUser();
   const [expanded, setExpanded] = useState(false);
+  const showAiVerdict = !!user?.isModerator;
 
   const content = entry.content as FeedGrantContent;
   const grant = content.grant;
@@ -240,6 +298,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
                 isLast={
                   i === shown.length - 1 && (expanded || allProposals.length <= VISIBLE_PROPOSALS)
                 }
+                showAiVerdict={showAiVerdict}
               />
             ))}
             {!expanded && remaining > 0 && (
