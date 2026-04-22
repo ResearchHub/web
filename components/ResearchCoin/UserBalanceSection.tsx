@@ -30,24 +30,6 @@ interface UserBalanceSectionProps {
   onTransactionSuccess?: () => void;
 }
 
-function AssetRowSkeleton() {
-  return (
-    <div className="flex items-center justify-between py-4">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse" />
-        <div>
-          <div className="h-4 w-24 bg-gray-200 animate-pulse rounded mb-1.5" />
-          <div className="h-3 w-16 bg-gray-200 animate-pulse rounded" />
-        </div>
-      </div>
-      <div className="text-right">
-        <div className="h-4 w-20 bg-gray-200 animate-pulse rounded mb-1.5" />
-        <div className="h-3 w-14 bg-gray-200 animate-pulse rounded ml-auto" />
-      </div>
-    </div>
-  );
-}
-
 export function UserBalanceSection({
   balance,
   lockedBalance,
@@ -95,10 +77,37 @@ export function UserBalanceSection({
   return (
     <>
       <div className="mb-6 mx-auto w-full">
-        {/* Total Balance */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div>
-            <h2 className="text-gray-500 text-sm font-medium mb-3">Balance Overview</h2>
+        {/* Consolidated ResearchCoin card */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          {/* Header: identity + earning control + total balance */}
+          <div className="p-6">
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <ResearchCoinIcon size={32} />
+                <span className="text-sm font-semibold text-gray-900">ResearchCoin</span>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`w-2 h-2 rounded-full shrink-0 ${
+                      user?.isStakingOptedIn ? 'bg-emerald-500' : 'bg-red-500'
+                    }`}
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    {user?.isStakingOptedIn
+                      ? apy !== null
+                        ? `Earning ${Math.round(apy)}%`
+                        : 'Earning'
+                      : 'Not earning'}
+                  </span>
+                </div>
+                <Switch
+                  checked={user?.isStakingOptedIn ?? false}
+                  onCheckedChange={handleStakingToggle}
+                  disabled={isUpdatingStaking || !isBalanceReady}
+                />
+              </div>
+            </div>
             {!isBalanceReady ? (
               <div>
                 <div className="h-10 w-48 bg-gray-100 animate-pulse rounded mb-2" />
@@ -115,80 +124,33 @@ export function UserBalanceSection({
               </div>
             )}
           </div>
-        </div>
 
-        {/* Asset Rows */}
-        <div className="bg-white rounded-xl border border-gray-200 mt-3 px-5">
-          {!isBalanceReady ? (
-            <>
-              <AssetRowSkeleton />
-              <div className="border-t border-gray-100" />
-              <AssetRowSkeleton />
-            </>
-          ) : (
-            <>
-              {/* ResearchCoin */}
-              <div className="flex items-center justify-between py-4">
-                <div className="flex items-center gap-3">
-                  <ResearchCoinIcon size={32} />
-                  <div>
-                    <div className="text-sm font-semibold text-gray-900">ResearchCoin</div>
-                  </div>
+          {/* Funding Credits sub-row (iconless, balance-only) */}
+          <div className="border-t border-gray-100 px-6 py-3.5 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 min-w-0">
+              <ResearchCoinIcon size={20} color="#6366f1" outlined />
+              <span className="text-sm font-medium text-gray-700">Funding Credits</span>
+              <Tooltip content={<FundingCreditsTooltip />} position="top" width="w-fit">
+                <HelpCircle className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 cursor-help transition-colors" />
+              </Tooltip>
+            </div>
+            {!isBalanceReady ? (
+              <div className="h-4 w-24 bg-gray-100 animate-pulse rounded" />
+            ) : (
+              <div className="text-right">
+                <div className="text-sm font-medium text-gray-900 font-mono">
+                  {showUSD
+                    ? lockedBalance?.formattedUsd || '$0.00'
+                    : lockedBalance?.formatted || '0 RSC'}
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">
-                      {apy !== null && !user?.isStakingOptedIn
-                        ? `Earn ${Math.round(apy)}%`
-                        : 'Earn'}
-                    </span>
-                    <Switch
-                      checked={user?.isStakingOptedIn ?? false}
-                      onCheckedChange={handleStakingToggle}
-                      disabled={isUpdatingStaking}
-                    />
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-semibold text-gray-900 font-mono">
-                      {showUSD ? balance?.formattedUsd || '$0.00' : balance?.formatted || '0 RSC'}
-                    </div>
-                    <div className="text-xs text-gray-500 font-mono mt-0.5">
-                      {showUSD ? balance?.formatted || '0 RSC' : balance?.formattedUsd || '$0.00'}
-                    </div>
-                  </div>
+                <div className="text-xs text-gray-500 font-mono mt-0.5">
+                  {showUSD
+                    ? lockedBalance?.formatted || '0 RSC'
+                    : lockedBalance?.formattedUsd || '$0.00'}
                 </div>
               </div>
-
-              <div className="border-t border-gray-100" />
-
-              {/* Funding Credits */}
-              <div className="flex items-center justify-between py-4">
-                <div className="flex items-center gap-3">
-                  <ResearchCoinIcon size={32} color="#6366f1" outlined />
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-semibold text-gray-900">Funding Credits</span>
-                      <Tooltip content={<FundingCreditsTooltip />} position="top" width="w-fit">
-                        <HelpCircle className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 cursor-help transition-colors" />
-                      </Tooltip>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-semibold text-gray-900 font-mono">
-                    {showUSD
-                      ? lockedBalance?.formattedUsd || '$0.00'
-                      : lockedBalance?.formatted || '0 RSC'}
-                  </div>
-                  <div className="text-xs text-gray-500 font-mono mt-0.5">
-                    {showUSD
-                      ? lockedBalance?.formatted || '0 RSC'
-                      : lockedBalance?.formattedUsd || '$0.00'}
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Earn / Staking */}
