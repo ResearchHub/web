@@ -75,7 +75,7 @@ const ProposalRow: FC<ProposalRowProps> = ({
         </div>
       </div>
 
-      {/* Title + author + org */}
+      {/* Title + author + org + score */}
       <div className="min-w-0">
         <p className="text-[12.5px] font-bold text-gray-900 truncate leading-snug mb-0.5">
           {fundraise.title || profile.fullName}
@@ -89,19 +89,20 @@ const ProposalRow: FC<ProposalRowProps> = ({
               <span className="text-[11px] text-gray-500 truncate">{fundraise.nonprofit.name}</span>
             </>
           )}
+          {fundraise.reviewMetrics && fundraise.reviewMetrics.avg > 0 && (
+            <>
+              <span className="text-gray-300">·</span>
+              <span className="inline-flex items-center gap-1 text-[12px] text-gray-600 whitespace-nowrap">
+                <Star size={12} className="fill-amber-400 text-amber-400" />
+                {fundraise.reviewMetrics.avg.toFixed(1)}
+              </span>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Review badge + AI verdict */}
-      <div className="flex-shrink-0 flex items-center gap-2 justify-end">
-        {fundraise.reviewMetrics && fundraise.reviewMetrics.avg > 0 ? (
-          <span className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium bg-amber-50 border-amber-200 text-amber-700">
-            <Star size={11} className="fill-amber-400 text-amber-400" />
-            {fundraise.reviewMetrics.avg.toFixed(1)}
-          </span>
-        ) : (
-          <span className="text-[11px] text-gray-400 whitespace-nowrap">No reviews</span>
-        )}
+      {/* Top-rated AI verdict (excellent only) */}
+      <div className="flex-shrink-0 flex items-center justify-end">
         {showAiVerdict && (
           <AiVerdictBadge rating={application.aiPeerReview?.overallRating ?? null} />
         )}
