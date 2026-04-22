@@ -63,7 +63,7 @@ const ProposalRow: FC<ProposalRowProps> = ({
         'grid items-center gap-3 px-5 py-2.5 hover:bg-gray-50/80 transition-colors cursor-pointer',
         !isLast && 'border-b border-gray-100'
       )}
-      style={{ gridTemplateColumns: '75px 1fr auto' }}
+      style={{ gridTemplateColumns: '75px 1fr' }}
     >
       {/* Ask amount */}
       <div className="text-center py-1 px-0.5  border-r border-gray-200">
@@ -89,22 +89,22 @@ const ProposalRow: FC<ProposalRowProps> = ({
               <span className="text-[11px] text-gray-500 truncate">{fundraise.nonprofit.name}</span>
             </>
           )}
+          {fundraise.reviewMetrics && fundraise.reviewMetrics.avg > 0 && (
+            <>
+              <span className="text-gray-300">·</span>
+              <span className="inline-flex items-center gap-1 text-[12px] text-gray-600 whitespace-nowrap">
+                <Star size={12} className="fill-amber-400 text-amber-400" />
+                {fundraise.reviewMetrics.avg.toFixed(1)}
+              </span>
+            </>
+          )}
+          {showAiVerdict && application.aiPeerReview?.overallRating === 'excellent' && (
+            <>
+              <span className="text-gray-300">·</span>
+              <AiVerdictBadge rating="excellent" size="sm" />
+            </>
+          )}
         </div>
-      </div>
-
-      {/* Review badge + AI verdict */}
-      <div className="flex-shrink-0 flex items-center gap-2 justify-end">
-        {fundraise.reviewMetrics && fundraise.reviewMetrics.avg > 0 ? (
-          <span className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium bg-amber-50 border-amber-200 text-amber-700">
-            <Star size={11} className="fill-amber-400 text-amber-400" />
-            {fundraise.reviewMetrics.avg.toFixed(1)}
-          </span>
-        ) : (
-          <span className="text-[11px] text-gray-400 whitespace-nowrap">No reviews</span>
-        )}
-        {showAiVerdict && (
-          <AiVerdictBadge rating={application.aiPeerReview?.overallRating ?? null} />
-        )}
       </div>
     </Link>
   );
