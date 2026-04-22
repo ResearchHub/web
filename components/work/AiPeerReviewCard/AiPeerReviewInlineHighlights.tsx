@@ -12,7 +12,7 @@ interface AiPeerReviewInlineHighlightsProps {
 
 const MAX_PER_KIND = 3;
 
-const SHORT_PREVIEW_CHARS = 40;
+const SHORT_PREVIEW_CHARS = 60;
 
 function shortPreview(text: string): string {
   const idx = text.indexOf(':');
