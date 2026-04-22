@@ -63,7 +63,7 @@ const ProposalRow: FC<ProposalRowProps> = ({
         'grid items-center gap-3 px-5 py-2.5 hover:bg-gray-50/80 transition-colors cursor-pointer',
         !isLast && 'border-b border-gray-100'
       )}
-      style={{ gridTemplateColumns: '75px 1fr auto' }}
+      style={{ gridTemplateColumns: '75px 1fr' }}
     >
       {/* Ask amount */}
       <div className="text-center py-1 px-0.5  border-r border-gray-200">
@@ -98,14 +98,13 @@ const ProposalRow: FC<ProposalRowProps> = ({
               </span>
             </>
           )}
+          {showAiVerdict && application.aiPeerReview?.overallRating === 'excellent' && (
+            <>
+              <span className="text-gray-300">·</span>
+              <AiVerdictBadge rating="excellent" size="sm" />
+            </>
+          )}
         </div>
-      </div>
-
-      {/* Top-rated AI verdict (excellent only) */}
-      <div className="flex-shrink-0 flex items-center justify-end">
-        {showAiVerdict && (
-          <AiVerdictBadge rating={application.aiPeerReview?.overallRating ?? null} />
-        )}
       </div>
     </Link>
   );

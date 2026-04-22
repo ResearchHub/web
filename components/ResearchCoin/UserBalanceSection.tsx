@@ -191,6 +191,42 @@ export function UserBalanceSection({
           )}
         </div>
 
+        {/* Earn / Staking */}
+        {isBalanceReady && (
+          <div className="mt-3 bg-white rounded-xl border border-gray-200 p-5 flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span
+                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                    user?.isStakingOptedIn ? 'bg-emerald-500' : 'bg-red-500'
+                  }`}
+                />
+                <span className="text-sm font-semibold text-gray-900">
+                  {user?.isStakingOptedIn ? 'Earning' : 'Not earning'}
+                </span>
+                {apy !== null && <span className="text-sm text-gray-400">·</span>}
+                {apy !== null && (
+                  <span className="text-sm font-medium text-gray-600">{Math.round(apy)}% APY</span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {user?.isStakingOptedIn ? 'Paid daily as ' : 'Turn on to accrue daily yield as '}
+                <Tooltip content={<FundingCreditsTooltip />} position="top" width="w-fit">
+                  <span className="underline decoration-dotted decoration-gray-400 underline-offset-2 cursor-help">
+                    Funding Credits
+                  </span>
+                </Tooltip>
+                .
+              </p>
+            </div>
+            <Switch
+              checked={user?.isStakingOptedIn ?? false}
+              onCheckedChange={handleStakingToggle}
+              disabled={isUpdatingStaking}
+            />
+          </div>
+        )}
+
         {/* Action buttons */}
         <div className="mt-4 grid grid-cols-2 gap-3">
           <Button
