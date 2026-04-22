@@ -16,6 +16,7 @@ const TOSPage = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="prose prose-lg max-w-none">
           <div className="space-y-6">
+            <p className="text-sm text-gray-600">Effective Date: April 21, 2026</p>
             <p className="font-bold">
               ResearchHub powers hundreds of thousands of distinct online communities.
             </p>
@@ -200,6 +201,17 @@ const TOSPage = () => {
               Content or Content posted by other users of the Services.
             </p>
             <p>
+              A distinct category of Your Content, "<strong>Peer Review Content</strong>," means any
+              expert evaluation, critique, assessment, referee report, or other commentary that you
+              submit through, or that is designated by the Services as part of, ResearchHub's peer
+              review workflow, including pre-registered reviews, bounty-funded reviews, invited
+              reviews, and any evaluation that the Services label or categorize as a peer review.
+              Peer Review Content includes the full text, underlying notes, structured ratings, and
+              any accompanying materials of such a review, together with all copyrightable
+              expression therein. Peer Review Content is governed by Section 4A below and is not
+              licensed under the Creative Commons Attribution license described in this Section 4.
+            </p>
+            <p>
               By submitting Your Content to the Services, you represent and warrant that you have
               all rights, power, and authority necessary to grant the rights to Your Content
               contained within these Terms. Because you alone are responsible for Your Content, you
@@ -208,28 +220,34 @@ const TOSPage = () => {
             </p>
             <p>
               You retain any ownership rights you have in Your Content, but you agree that all
-              Content that you upload or post to the Services will be licensed by you to all users
-              of the Services under the terms and conditions of the Creative Commons Attribution
-              License (CC BY 4.0). This license allows anyone to reuse the content for any purpose,
-              as long as attribution is provided. We consider a hyperlink or URL back to the source
-              page on the ResearchHub Services sufficient attribution. You agree to include in Your
-              Content an express notice that Your Content is licensed under the CC BY 4.0 license.
+              Content that you upload or post to the Services, other than Peer Review Content (which
+              is governed solely by Section 4A below), will be licensed by you to all users of the
+              Services under the terms and conditions of the Creative Commons Attribution License
+              (CC BY 4.0). This license allows anyone to reuse the content for any purpose, as long
+              as attribution is provided. We consider a hyperlink or URL back to the source page on
+              the ResearchHub Services sufficient attribution. You agree to include in Your Content
+              (other than Peer Review Content) an express notice that such Content is licensed under
+              the CC BY 4.0 license.
             </p>
             <p>
               In addition to the rights granted under the CC BY 4.0 license, you grant to
-              ResearchHub the following license with respect to Your Content:
+              ResearchHub the following license with respect to Your Content other than Peer Review
+              Content (the license applicable to Peer Review Content is set forth separately in
+              Section 4A):
             </p>
             <p>
-              When Your Content is created with or submitted to the Services, you grant us a
-              worldwide, royalty-free, perpetual, irrevocable, non-exclusive, transferable, and
-              sublicensable license to use, copy, modify, adapt, prepare derivative works from,
-              distribute, perform, and display Your Content and any name, username, voice, or
-              likeness provided in connection with Your Content in all media formats and channels
-              now known or later developed. This license includes the right for us to make Your
-              Content available for syndication, broadcast, distribution, or publication by other
-              companies, organizations, or individuals who partner with ResearchHub. You also agree
-              that we may remove metadata associated with Your Content, and you irrevocably waive
-              any claims and assertions of moral rights or attribution with respect to Your Content.
+              When Your Content (other than Peer Review Content) is created with or submitted to the
+              Services, you grant us a worldwide, royalty-free, perpetual, irrevocable,
+              non-exclusive, transferable, and sublicensable license to use, copy, modify, adapt,
+              prepare derivative works from, distribute, perform, and display such Content and any
+              name, username, voice, or likeness provided in connection with such Content in all
+              media formats and channels now known or later developed. This license includes the
+              right for us to make such Content available for syndication, broadcast, distribution,
+              or publication by other companies, organizations, or individuals who partner with
+              ResearchHub. You also agree that we may remove metadata associated with such Content,
+              and you irrevocably waive any claims and assertions of moral rights or attribution
+              with respect to such Content. This paragraph does not apply to Peer Review Content;
+              the license that applies to Peer Review Content is set forth separately in Section 4A.
             </p>
             <p>
               Any ideas, suggestions, and feedback about ResearchHub or our Services that you
@@ -242,6 +260,157 @@ const TOSPage = () => {
               including for a violation of these Terms, a violation of the Policy posted on our
               website, as may be amended from time to time (the "Content Policy"), or if you
               otherwise create liability for us.
+            </p>
+
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <strong>4A. Peer Review Content &mdash; License and AI Training Prohibition</strong>
+            </h2>
+            <p>
+              This Section 4A governs all Peer Review Content and operates as a standalone license,
+              separate from the license that applies to other Your Content under Section 4.
+            </p>
+
+            <p className="pl-8">
+              4A.1 Reviewer Ownership. You retain all right, title, and interest in and to the Peer
+              Review Content you submit, including all copyright and moral rights recognized under
+              applicable law. Except for the licenses expressly granted in Sections 4A.2 and 4A.3,
+              no license, right, or interest in Peer Review Content is granted to ResearchHub, to
+              other users, or to any third party, whether by implication, estoppel, exhaustion, or
+              otherwise.
+            </p>
+
+            <p className="pl-8">
+              4A.2 License to ResearchHub. In consideration of the compensation that ResearchHub
+              provides for Peer Review Content (including any bounty, ResearchCoin reward, or other
+              monetary or in-kind consideration) and of your participation in the Services, you
+              grant ResearchHub a worldwide, perpetual, irrevocable, royalty-free, non-exclusive,
+              transferable, and sublicensable (through multiple tiers) license to use, host, store,
+              reproduce, copy, modify, adapt, translate, create derivative works from, publicly
+              display, publicly perform, broadcast, transmit, distribute, syndicate, commercialize,
+              and otherwise exploit your Peer Review Content, in whole or in part, in any and all
+              media and channels now known or later developed. This license expressly includes the
+              right for ResearchHub and its authorized licensees, assignees, and successors to: (a)
+              use Peer Review Content to train, fine-tune, ground, benchmark, evaluate, or otherwise
+              develop artificial intelligence, machine learning, large language models, embedding
+              models, or generative AI systems, whether developed by or for ResearchHub; (b) enter
+              into licensing, data, syndication, or other commercial agreements with third parties
+              (including academic publishers, research institutions, and AI and machine learning
+              developers) that authorize such third parties to use Peer Review Content for the
+              purposes described in clause (a) or for any other purpose permitted by this Section
+              4A.2; and (c) include Peer Review Content in datasets, corpora, indices, or other
+              compilations intended for commercial or non-commercial research, publishing, or AI
+              development. The license granted in this Section 4A.2 is perpetual and irrevocable and
+              continues in full force after the deletion of Peer Review Content, the deactivation or
+              deletion of your Account, and the termination of these Terms. Where reasonably
+              practicable, ResearchHub will use commercially reasonable efforts to preserve reviewer
+              attribution when exercising the rights granted in this Section 4A.2, except (i) for
+              anonymous, pseudonymous, or double-blind reviews, (ii) where the reviewer has
+              requested otherwise, or (iii) where attribution is not technically feasible given the
+              nature of the use (such as incorporation of Peer Review Content into model weights).
+            </p>
+
+            <p className="pl-8">
+              4A.3 Limited License to Readers. Other users and members of the public who access Peer
+              Review Content through the Services are granted a limited, personal, non-transferable,
+              non-sublicensable license to (a) read Peer Review Content on the Services; (b) cite
+              Peer Review Content, with attribution to the reviewer and a hyperlink back to the
+              source page on the Services; and (c) quote limited excerpts of Peer Review Content for
+              purposes of news reporting, criticism, commentary, scholarship, teaching, and
+              research, in each case consistent with the fair use doctrine under 17 U.S.C. &sect;
+              107 and analogous doctrines under applicable non-U.S. law. This license does not
+              authorize bulk reproduction, bulk download, redistribution, inclusion in any dataset
+              or corpus, commercial re-use, or any use described in the prohibitions set forth in
+              Section 4A.4. Nothing in this Section 4A.3 grants any rights to automated agents or
+              systems.
+            </p>
+
+            <p className="pl-8">
+              4A.4 Prohibition on Unauthorized AI/ML Training and Text and Data Mining. Other than
+              ResearchHub and its authorized licensees, assignees, and successors exercising rights
+              validly granted under Section 4A.2, no person or entity may use, reproduce, ingest,
+              copy, download, index, cache, transmit, scrape, extract, harvest, compile, or
+              otherwise access Peer Review Content, in whole or in part, for the purpose of:
+            </p>
+            <ul className="list-disc pl-16 space-y-2">
+              <li>
+                training, pre-training, fine-tuning, instruction-tuning, aligning, grounding,
+                retrieval-augmented-generation, distilling, benchmarking, or evaluating any
+                artificial intelligence, machine learning, large language model, multimodal model,
+                generative AI system, embedding model, or any similar technology, whether now
+                existing or hereafter developed;
+              </li>
+              <li>
+                creating, compiling, enriching, curating, or contributing to any dataset, corpus,
+                index, or knowledge base that is used, or is intended to be used, for any of the
+                purposes described in the preceding bullet; or
+              </li>
+              <li>
+                performing text and data mining within the meaning of Article 3 or Article 4 of
+                Directive (EU) 2019/790, the United Kingdom Copyright, Designs and Patents Act 1988,
+                or any analogous provision of applicable law,
+              </li>
+            </ul>
+            <p className="pl-8">
+              in each case whether for commercial or non-commercial purposes, and whether carried
+              out directly or through a third-party service, contractor, affiliate, or agent,
+              without ResearchHub's prior express written consent, obtained through a signed written
+              agreement that specifically identifies the Peer Review Content, the intended uses, and
+              the consideration provided. For the avoidance of doubt, a valid sublicense from
+              ResearchHub issued under Section 4A.2 satisfies this consent requirement, and no
+              separate consent from individual reviewers is required. This prohibition applies
+              notwithstanding any general-purpose license (including any Creative Commons license)
+              that ResearchHub applies to other Content on the Services, and notwithstanding any
+              fair use, fair dealing, or text-and-data-mining exception to copyright; ResearchHub
+              expressly reserves all rights not granted herein, including under 17 U.S.C. &sect;
+              106, Article 4(3) of Directive (EU) 2019/790 (the "DSM Directive") (opting out of the
+              text-and-data-mining exception), the United Kingdom Copyright, Designs and Patents Act
+              1988, and analogous rights under the laws of all other jurisdictions worldwide. This
+              reservation of rights constitutes an express, machine-readable-equivalent opt-out for
+              purposes of any applicable text-and-data-mining regime that recognizes rightsholder
+              reservations.
+            </p>
+
+            <p className="pl-8">
+              4A.5 No Implied License. Nothing in these Terms, the Services, the display of Peer
+              Review Content on publicly accessible pages, the indexing of the Services by search
+              engines, the absence of technical protection measures, or any course of dealing shall
+              be construed to grant any person or entity any license, permission, or authorization,
+              whether express or implied, to use Peer Review Content for any purpose prohibited by
+              Section 4A.4. There is no implied permission to ingest Peer Review Content for
+              artificial intelligence training or text and data mining.
+            </p>
+
+            <p className="pl-8">
+              4A.6 Remedies and Reservation of Rights. Any violation of this Section 4A will cause
+              irreparable harm to ResearchHub and to the reviewer, for which monetary damages would
+              be an inadequate remedy. ResearchHub and each affected reviewer expressly reserve the
+              right to seek injunctive and other equitable relief, without the requirement of
+              posting a bond, in addition to all other remedies available at law or in equity,
+              including: (a) claims for copyright infringement, including statutory damages and
+              attorneys' fees under 17 U.S.C. &sect;&sect; 504 and 505; (b) claims under 17 U.S.C.
+              &sect; 1202 for the intentional removal or alteration of copyright management
+              information, attribution, or license notices associated with Peer Review Content; (c)
+              claims for breach of contract for violation of these Terms; (d) claims under the
+              Computer Fraud and Abuse Act, 18 U.S.C. &sect; 1030, and analogous state
+              computer-trespass statutes, where access to Peer Review Content exceeds the
+              authorization granted by these Terms; (e) claims for unjust enrichment,
+              misappropriation, and tortious interference; and (f) any other claims available under
+              applicable law. Nothing in Section 13 (Dispute Resolution) limits ResearchHub's or a
+              reviewer's right to seek injunctive or other equitable relief from a court of
+              competent jurisdiction to prevent or enjoin a violation of this Section 4A.
+            </p>
+
+            <p className="pl-8">
+              4A.7 Third-Party Beneficiaries. Each reviewer is an intended third-party beneficiary
+              of Section 4A with respect to his, her, or its own Peer Review Content solely for
+              purposes of enforcing (a) the attribution efforts contemplated by Section 4A.2, (b)
+              the prohibition on removal or alteration of copyright management information under
+              Section 4A.6(b), and (c) any moral rights recognized under applicable law, in each
+              case to the extent not inconsistent with the license granted to ResearchHub in Section
+              4A.2. Reviewers are not third-party beneficiaries with respect to ResearchHub's
+              exercise of its rights under Section 4A.2 or ResearchHub's decisions to license,
+              sublicense, or otherwise commercialize Peer Review Content, which are reserved to
+              ResearchHub's sole discretion.
             </p>
 
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
@@ -328,6 +497,35 @@ const TOSPage = () => {
                 conditionally grant permission to crawl the Services for the sole purpose of and
                 solely to the extent necessary for creating publicly available searchable indices of
                 the materials subject to the parameters set forth in our robots.txt file.
+              </li>
+              <li>
+                Use any automated means&mdash;including web crawlers, scrapers, spiders, bots,
+                browser extensions, headless browsers, retrieval agents, or any other
+                software&mdash;to access, collect, download, copy, or extract Content from the
+                Services for the purpose of training, fine-tuning, grounding, benchmarking, or
+                evaluating any artificial intelligence, machine learning, large language model, or
+                generative AI system, or for the purpose of compiling any dataset or corpus intended
+                for any such use, or for the purpose of text and data mining. The conditional crawl
+                permission in the preceding bullet does not extend to, and is expressly withheld
+                for, any of the foregoing purposes. This prohibition applies in addition to, and is
+                not limited by, any permission that may be granted for search-engine indexing or
+                other human-facing discovery.
+              </li>
+              <li>
+                Circumvent, disable, or otherwise interfere with any rate limits, authentication
+                requirements, paywalls, access controls, robots.txt directives, HTTP header
+                reservations (including any <code>tdm-reservation</code> or analogous
+                machine-readable opt-out signal), <code>noai</code> or <code>noimageai</code> meta
+                tags, or other technical measures that ResearchHub uses to protect Peer Review
+                Content or to signal reservation of rights against text and data mining or AI
+                training.
+              </li>
+              <li>
+                Remove, alter, obscure, or strip any attribution, copyright notice, license notice,{' '}
+                <code>&lt;meta&gt;</code> tag, structured-data marker, or other copyright management
+                information that identifies Peer Review Content, its author, its license terms, or
+                its restrictions, in each case in violation of 17 U.S.C. &sect; 1202 or any
+                analogous provision of applicable law.
               </li>
             </ul>
 
@@ -636,6 +834,16 @@ const TOSPage = () => {
               these Terms, the Additional Terms govern with respect to your use of the corresponding
               Service.
             </p>
+            <p>
+              Peer Review Content, in particular, may be accompanied by additional, content-specific
+              terms, machine-readable signals (such as <code>noai</code>, <code>noimageai</code>, or{' '}
+              <code>tdm-reservation</code> metadata), or license notices that ResearchHub surfaces
+              at the time of submission or display. Such additional terms and signals are
+              incorporated by reference into, and supplement (but do not diminish), the protections
+              afforded to Peer Review Content under Section 4A. In the event of any conflict between
+              an additional term or signal and Section 4A, the provision most protective of the
+              reviewer's and ResearchHub's reserved rights will control.
+            </p>
 
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               <strong>15. Termination</strong>
@@ -659,9 +867,14 @@ const TOSPage = () => {
             </p>
             <p>
               The following sections will survive any termination of these Terms or of your
-              Accounts: 4 (Your Content), 6 (Things You Cannot Do), 9 (Indemnity), 10 (Disclaimers),
-              11 (Limitation of Liability), 12 (Governing Law and Venue; Dispute Resolution), 15
-              (Termination), and 16 (Miscellaneous).
+              Accounts: 4 (Your Content), 4A (Peer Review Content &mdash; License and AI Training
+              Prohibition), 6 (Things You Cannot Do), 9 (Indemnity), 10 (Disclaimers), 11
+              (Limitation of Liability), 12 (Governing Law and Venue; Dispute Resolution), 15
+              (Termination), and 16 (Miscellaneous). For clarity, the license granted to ResearchHub
+              in Section 4A.2 and the prohibitions and reservations of rights in Sections 4A.4
+              through 4A.7 survive indefinitely and are not limited by the deletion of a reviewer's
+              Account, the deletion of particular Peer Review Content, or the termination of these
+              Terms.
             </p>
 
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
