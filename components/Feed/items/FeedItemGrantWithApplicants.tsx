@@ -75,7 +75,7 @@ const ProposalRow: FC<ProposalRowProps> = ({
         </div>
       </div>
 
-      {/* Title + author + org */}
+      {/* Title + author + org + score */}
       <div className="min-w-0">
         <p className="text-[12.5px] font-bold text-gray-900 truncate leading-snug mb-0.5">
           {fundraise.title || profile.fullName}

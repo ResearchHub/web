@@ -135,12 +135,26 @@ export function UserBalanceSection({
                     <div className="text-sm font-semibold text-gray-900">ResearchCoin</div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm font-semibold text-gray-900 font-mono">
-                    {showUSD ? balance?.formattedUsd || '$0.00' : balance?.formatted || '0 RSC'}
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">
+                      {apy !== null && !user?.isStakingOptedIn
+                        ? `Earn ${Math.round(apy)}%`
+                        : 'Earn'}
+                    </span>
+                    <Switch
+                      checked={user?.isStakingOptedIn ?? false}
+                      onCheckedChange={handleStakingToggle}
+                      disabled={isUpdatingStaking}
+                    />
                   </div>
-                  <div className="text-xs text-gray-500 font-mono mt-0.5">
-                    {showUSD ? balance?.formatted || '0 RSC' : balance?.formattedUsd || '$0.00'}
+                  <div className="text-right">
+                    <div className="text-sm font-semibold text-gray-900 font-mono">
+                      {showUSD ? balance?.formattedUsd || '$0.00' : balance?.formatted || '0 RSC'}
+                    </div>
+                    <div className="text-xs text-gray-500 font-mono mt-0.5">
+                      {showUSD ? balance?.formatted || '0 RSC' : balance?.formattedUsd || '$0.00'}
+                    </div>
                   </div>
                 </div>
               </div>
