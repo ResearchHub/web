@@ -13,7 +13,7 @@ interface ReviewInsightsSectionProps {
   reviewsUrl: string;
 }
 
-const SHORT_PREVIEW_CHARS = 40;
+const SHORT_PREVIEW_CHARS = 60;
 
 function shortPreview(text: string): string {
   const idx = text.indexOf(':');
