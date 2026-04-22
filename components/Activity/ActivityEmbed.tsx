@@ -263,17 +263,6 @@ const EmbedCard: FC<CardProps> = ({
       <div className="flex w-full items-stretch">
         {clickable}
         <div className="flex items-start gap-1 p-2 shrink-0">
-          {expandable && (
-            <a
-              href={embed.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600"
-              aria-label="Open link in new tab"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          )}
           {expandable ? (
             <button
               type="button"

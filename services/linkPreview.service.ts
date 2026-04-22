@@ -32,12 +32,45 @@ const META_REGEX_REVERSED =
   /<meta\s+(?:[^>]*?\s+)?content=["']([^"']*)["']\s+(?:[^>]*?\s+)?(?:property|name)=["']([^"']+)["']/gi;
 const TITLE_REGEX = /<title[^>]*>([^<]+)<\/title>/i;
 
+// We only need <head>. Cap bytes read from the network; typical heads are < 10KB.
+const HEAD_BYTE_CAP = 32_000;
+
 function extractMeta(html: string): Record<string, string> {
   const meta: Record<string, string> = {};
   let m;
   while ((m = META_REGEX.exec(html))) meta[m[1].toLowerCase()] = m[2];
   while ((m = META_REGEX_REVERSED.exec(html))) meta[m[2].toLowerCase()] = m[1];
   return meta;
+}
+
+/**
+ * Streams the response body and stops as soon as `</head>` is seen or
+ * HEAD_BYTE_CAP bytes have been buffered. Avoids downloading the full page.
+ */
+async function readHead(res: Response): Promise<string> {
+  if (!res.body) return '';
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder('utf-8', { fatal: false });
+  let buf = '';
+  let bytes = 0;
+  try {
+    while (bytes < HEAD_BYTE_CAP) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      buf += decoder.decode(value, { stream: true });
+      const headEnd = buf.search(/<\/head\s*>/i);
+      if (headEnd !== -1) {
+        buf = buf.slice(0, headEnd);
+        break;
+      }
+    }
+    buf += decoder.decode();
+  } finally {
+    // Cancel the rest of the body so the underlying connection can be released.
+    reader.cancel().catch(() => {});
+  }
+  return buf;
 }
 
 function abs(maybeUrl: string | undefined, base: string): string | undefined {
@@ -122,9 +155,13 @@ async function fetchGenericOG(url: string): Promise<PreviewResponse | null> {
       signal: AbortSignal.timeout(6000),
     });
     if (!res.ok) return null;
-    const html = (await res.text()).slice(0, 200_000);
-    const meta = extractMeta(html);
-    const titleTag = html.match(TITLE_REGEX)?.[1];
+    // Skip non-HTML responses — no point streaming binary / JSON.
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType && !/text\/html|application\/xhtml\+xml/i.test(contentType)) return null;
+
+    const head = await readHead(res);
+    const meta = extractMeta(head);
+    const titleTag = head.match(TITLE_REGEX)?.[1];
     const parsed = new URL(url);
     return {
       url,

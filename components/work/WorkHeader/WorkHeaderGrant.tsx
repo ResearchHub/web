@@ -75,7 +75,7 @@ export function WorkHeaderGrant({
       id: 'activity' as const,
       label: (
         <div className="flex items-center">
-          <span>Activity</span>
+          <span>Updates</span>
           {activityCount > 0 && (
             <span
               className={`ml-2 py-0.5 px-2 rounded-full text-xs ${

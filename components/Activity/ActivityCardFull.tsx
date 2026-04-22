@@ -247,7 +247,7 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
   return (
     <div className="py-4 border-b border-gray-100 last:border-b-0">
       <div className="grid grid-cols-[auto_1fr] gap-x-2.5 items-start">
-        <div className="row-span-3 pt-0.5">
+        <div className="row-span-2 pt-0.5">
           <AuthorTooltip authorId={author?.id} placement="bottom">
             <Avatar
               src={author?.profileImage}
@@ -258,20 +258,18 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
             />
           </AuthorTooltip>
         </div>
-        <span className="text-sm font-medium text-gray-900 leading-tight truncate">
-          {author?.fullName || 'Unknown'}
-        </span>
-        <span className="text-sm leading-tight mb-1">
+        <div className="flex flex-wrap items-center gap-x-1.5 text-sm leading-tight mb-1">
+          <span className="font-medium text-gray-900">{author?.fullName || 'Unknown'}</span>
           <span className="text-gray-500">{actionLabel}</span>
           {actionIcon}
           {reviewScore && (
-            <span className="inline-flex items-center gap-1 ml-1.5 text-xs text-gray-600 align-middle">
+            <span className="inline-flex items-center gap-1 text-xs text-gray-600 align-middle">
               <Star size={13} className="fill-amber-400 text-amber-400" />
               {reviewScore.toFixed(1)}
             </span>
           )}
           {fundingAmount && (
-            <span className="ml-1.5 text-xs font-medium text-gray-900">
+            <span className="text-xs font-medium text-gray-900">
               {formatCurrency({
                 amount: fundingAmount,
                 showUSD: true,
@@ -282,7 +280,7 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
             </span>
           )}
           {contribution && (
-            <span className="ml-1.5 text-xs font-medium font-mono text-gray-900">
+            <span className="text-xs font-medium font-mono text-gray-900">
               +
               {formatCurrency({
                 amount: contribution.amount,
@@ -293,7 +291,7 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
               })}
             </span>
           )}
-        </span>
+        </div>
         <span className="text-sm leading-tight">{titleEl}</span>
       </div>
 
