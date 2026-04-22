@@ -5,7 +5,7 @@ export const CATEGORY_LABELS: Record<CategoryKey, string> = {
   methods_rigor: 'Methods Rigor',
   statistical_analysis_plan: 'Statistical Analysis Plan',
   feasibility_and_execution: 'Feasibility and Execution',
-  scientific_impact: 'Scientific Impact',
+  scientific_impact: 'Impact',
   clinical_or_translational_impact: 'Clinical or Translational Impact',
   societal_and_broader_impact: 'Societal and Broader Impact',
 };

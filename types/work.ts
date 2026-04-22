@@ -24,6 +24,8 @@ export interface PeerReview {
   };
   score: number;
   createdDate: string;
+  /** First-sentence excerpt of the review body, if provided by the API. */
+  contentPreview?: string;
 }
 
 export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration' | 'funding_request';
@@ -186,6 +188,25 @@ export const transformDocumentVersion = createTransformer<any, DocumentVersion>(
   isResearchHubJournal: !!raw.publication_status,
 }));
 
+/** Pulls the first sentence out of a review body, regardless of how it's shaped. */
+function extractFirstSentence(raw: any): string | undefined {
+  const candidates: Array<string | undefined> = [
+    raw?.content_preview,
+    raw?.comment_preview,
+    raw?.preview,
+    raw?.comment?.renderable_text,
+    raw?.renderable_text,
+  ];
+  const text = candidates.find((c) => typeof c === 'string' && c.trim().length > 0);
+  if (!text) return undefined;
+  const stripped = stripHtml(text).trim();
+  if (!stripped) return undefined;
+  const match = stripped.match(/^[^.!?]+[.!?]/);
+  const sentence = (match ? match[0] : stripped).trim();
+  // Cap at ~160 chars to stay a one-liner
+  return sentence.length > 160 ? `${sentence.slice(0, 157).trimEnd()}…` : sentence;
+}
+
 export function transformPeerReview(raw: any): PeerReview {
   const ap = raw.created_by?.author_profile;
   return {
@@ -201,6 +222,7 @@ export function transformPeerReview(raw: any): PeerReview {
     },
     score: raw.score ?? 0,
     createdDate: raw.created_date || '',
+    contentPreview: extractFirstSentence(raw),
   };
 }
 

@@ -1,55 +1,44 @@
 'use client';
 
 import { FC } from 'react';
-import { ShieldCheck, ShieldQuestion, ShieldX } from 'lucide-react';
+import { Gem } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Tooltip } from '@/components/ui/Tooltip';
 import type { OverallRating } from '@/types/aiPeerReview';
 
-const AI_VERDICT_CONFIG: Record<
-  Exclude<OverallRating, null>,
-  { label: string; tooltip: string; badge: string; Icon: typeof ShieldCheck }
-> = {
-  excellent: {
-    label: 'Excellent',
-    tooltip: 'AI review: sufficient to test the hypothesis.',
-    badge: 'bg-green-50 border-green-200 text-green-700',
-    Icon: ShieldCheck,
-  },
-  good: {
-    label: 'Good',
-    tooltip: 'AI review: may be sufficient to test the hypothesis.',
-    badge: 'bg-orange-50 border-orange-200 text-orange-600',
-    Icon: ShieldQuestion,
-  },
-  poor: {
-    label: 'Poor',
-    tooltip: 'AI review: not sufficient to test the hypothesis.',
-    badge: 'bg-red-50 border-red-200 text-red-600',
-    Icon: ShieldX,
-  },
-};
-
 interface AiVerdictBadgeProps {
   rating: OverallRating | null;
   className?: string;
+  size?: 'default' | 'sm';
 }
 
-export const AiVerdictBadge: FC<AiVerdictBadgeProps> = ({ rating, className }) => {
-  if (!rating) return null;
-  const cfg = AI_VERDICT_CONFIG[rating];
-  const Icon = cfg.Icon;
+/**
+ * Surfaces the automated review verdict only when it landed in the top tier.
+ * Lower verdicts render nothing — we don't want to publicly tag a proposal as
+ * "good" or "poor" since those reads are easy to misinterpret as a final call.
+ */
+export const AiVerdictBadge: FC<AiVerdictBadgeProps> = ({
+  rating,
+  className,
+  size = 'default',
+}) => {
+  if (rating !== 'excellent') return null;
+  const isSmall = size === 'sm';
   return (
-    <Tooltip content={cfg.tooltip} width="w-56" position="top">
+    <Tooltip
+      content="Automated quality check rated this proposal in the top tier."
+      width="w-64"
+      position="top"
+    >
       <span
         className={cn(
-          'inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium',
-          cfg.badge,
+          'inline-flex items-center rounded-md border border-green-200 bg-green-50 font-medium text-green-700',
+          isSmall ? 'gap-0.5 px-1.5 py-0 text-[10px]' : 'gap-1 px-2 py-0.5 text-[11px]',
           className
         )}
       >
-        <Icon size={11} />
-        {cfg.label}
+        <Gem size={isSmall ? 9 : 11} />
+        Top rated
       </span>
     </Tooltip>
   );
