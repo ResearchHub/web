@@ -262,11 +262,21 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   };
 
   const canModerate = !!(currentUser?.moderator || isHubEditor) && !!user?.authorProfile?.userId;
-  const tabs = canModerate ? [...TOP_LEVEL_TABS, MODERATION_TAB] : TOP_LEVEL_TABS;
-
-  const tabBar = (
-    <Tabs tabs={tabs} activeTab={activeGroup} onTabChange={handleTopTabChange} variant="primary" />
+  const viewingOwnProfile = !!(
+    currentUser?.authorProfile?.id && user?.authorProfile?.id === currentUser.authorProfile.id
   );
+  const canViewFunding = viewingOwnProfile || !!currentUser?.moderator;
+  const tabs = [
+    TOP_LEVEL_TABS[0],
+    ...(canViewFunding ? [TOP_LEVEL_TABS[1]] : []),
+    TOP_LEVEL_TABS[2],
+    ...(canModerate ? [MODERATION_TAB] : []),
+  ];
+
+  const tabsReady = !isLoading && !isUserLoading && !!user?.authorProfile;
+  const tabBar = tabsReady ? (
+    <Tabs tabs={tabs} activeTab={activeGroup} onTabChange={handleTopTabChange} variant="primary" />
+  ) : undefined;
 
   const topBanner = (() => {
     if (isLoading || isUserLoading) return <ProfileHeroBannerSkeleton tabBar={tabBar} />;
@@ -283,9 +293,7 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
   const profileLoading = isLoading || isUserLoading;
   const author = user?.authorProfile;
   const profileError = error || userError;
-  const isOwnProfile = !!(
-    currentUser?.authorProfile?.id && author?.id === currentUser.authorProfile.id
-  );
+  const isOwnProfile = viewingOwnProfile;
 
   const sidebarContent = (
     <div className="flex flex-col gap-4">
@@ -327,16 +335,14 @@ export default function AuthorProfilePage({ params }: { params: Promise<{ id: st
       );
     }
 
-    if (activeGroup === 'funding' && author.userId) {
-      return (
-        <ProfileFundingTab userId={author.userId} currentTab={currentTab} onPillChange={setTab} />
-      );
+    if (activeGroup === 'funding' && canViewFunding && author.userId) {
+      return <ProfileFundingTab userId={author.userId} />;
     }
 
     if (activeGroup === 'activity') {
       const activePill: ActivityPillId = isActivityPill(currentTab) ? currentTab : 'publications';
       return (
-        <ProfileActivityTab activePill={activePill} onPillChange={setTab}>
+        <ProfileActivityTab activePill={activePill} onPillChange={setTab} userId={author.userId}>
           <AuthorTabContent
             authorId={author.id}
             userId={author.userId}
