@@ -149,7 +149,13 @@ export const FundDocument = ({
       case 'reviews':
         return (
           <div className="space-y-6" key="reviews-tab">
-            {user?.isModerator && <AiPeerReviewCard aiPeerReview={work.aiPeerReview} />}
+            {user?.isModerator && (
+              <AiPeerReviewCard
+                aiPeerReview={work.aiPeerReview}
+                peerReviews={work.peerReviews}
+                averageReviewScore={work.metrics?.reviewScore}
+              />
+            )}
             <ReviewStatusBanner bounties={metadata.bounties || []} />
             <CommentFeed
               unifiedDocumentId={work.unifiedDocumentId || null}
