@@ -90,6 +90,10 @@ export function WorkHeader({
     closeFundraiseModal,
     confirmFundraiseAction,
     fundraiseModalConfig,
+    showReopenModal,
+    closeReopenModal,
+    confirmReopenFundraise,
+    isReopeningFundraise,
   } = useWorkHeaderMenuItems({
     work,
     metadata,
@@ -220,6 +224,10 @@ export function WorkHeader({
         grantId={grantModalProps?.grantId}
         grantAmountUsd={grantModalProps?.grantAmountUsd}
         grantOrganization={grantModalProps?.grantOrganization}
+        showReopenModal={showReopenModal}
+        onCloseReopenModal={closeReopenModal}
+        onConfirmReopen={confirmReopenFundraise}
+        isReopeningFundraise={isReopeningFundraise}
       />
     </>
   );
