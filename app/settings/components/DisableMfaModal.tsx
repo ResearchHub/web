@@ -13,7 +13,7 @@ interface DisableMfaModalProps {
   onSuccess: () => void;
 }
 
-export function DisableMfaModal({ isOpen, onClose, onSuccess }: DisableMfaModalProps) {
+export function DisableMfaModal({ isOpen, onClose, onSuccess }: Readonly<DisableMfaModalProps>) {
   const [code, setCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
