@@ -155,6 +155,7 @@ export function EnableMfaModal({ isOpen, onClose, onSuccess }: EnableMfaModalPro
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="123456"
+              maxLength={6}
               className="w-full p-3 border rounded"
               autoComplete="one-time-code"
               inputMode="numeric"
