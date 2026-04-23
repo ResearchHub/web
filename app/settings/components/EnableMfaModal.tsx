@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ChevronDown, ChevronRight, Copy } from 'lucide-react';
+import { ChevronDown, ChevronRight, Copy, Loader2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'react-hot-toast';
 import { BaseModal } from '@/components/ui/BaseModal';
@@ -125,7 +125,14 @@ export function EnableMfaModal({ isOpen, onClose, onSuccess }: Readonly<EnableMf
             disabled={isVerifying || isInitLoading || !setupData}
             className="w-full"
           >
-            {isVerifying ? 'Verifying…' : 'Verify and enable'}
+            {isVerifying ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Verifying...
+              </>
+            ) : (
+              'Verify and enable'
+            )}
           </Button>
         ) : (
           <Button onClick={handleDone} className="w-full">
