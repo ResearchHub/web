@@ -18,7 +18,7 @@ interface EnableMfaModalProps {
 
 type Step = 'setup' | 'recovery';
 
-export function EnableMfaModal({ isOpen, onClose, onSuccess }: EnableMfaModalProps) {
+export function EnableMfaModal({ isOpen, onClose, onSuccess }: Readonly<EnableMfaModalProps>) {
   const [step, setStep] = useState<Step>('setup');
   const [setupData, setSetupData] = useState<MfaTotpActivateInitApiResponse | null>(null);
   const [code, setCode] = useState('');
