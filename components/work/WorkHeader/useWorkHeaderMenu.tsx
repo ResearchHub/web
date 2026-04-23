@@ -1,14 +1,23 @@
 'use client';
 
 import { useState, useCallback, ReactNode } from 'react';
-import { Edit, Flag, FileUp, Octagon, CheckCircle, Download, Search } from 'lucide-react';
+import {
+  Edit,
+  Flag,
+  FileUp,
+  Octagon,
+  CheckCircle,
+  Download,
+  Search,
+  RotateCcw,
+} from 'lucide-react';
 import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Icon } from '@/components/ui/icons/Icon';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
-import { useCloseFundraise, useCompleteFundraise } from '@/hooks/useFundraise';
+import { useCloseFundraise, useCompleteFundraise, useReopenFundraise } from '@/hooks/useFundraise';
 import { PaperService } from '@/services/paper.service';
 import { handleDownload } from '@/utils/download';
 import { FundraiseModalConfig } from './WorkHeaderModals';
@@ -44,6 +53,7 @@ export function useWorkHeaderMenuItems({
   const [isPublishing, setIsPublishing] = useState(false);
   const [showFundraiseActionModal, setShowFundraiseActionModal] = useState(false);
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | null>(null);
+  const [showReopenModal, setShowReopenModal] = useState(false);
 
   const latestVersion = work.versions?.find((v) => v.isLatest);
   const isPublished = latestVersion?.publicationStatus === 'PUBLISHED';
@@ -99,6 +109,7 @@ export function useWorkHeaderMenuItems({
 
   const [{ isLoading: isClosingFundraise }, closeFundraise] = useCloseFundraise();
   const [{ isLoading: isCompletingFundraise }, completeFundraise] = useCompleteFundraise();
+  const [{ isLoading: isReopeningFundraise }, reopenFundraise] = useReopenFundraise();
 
   const confirmFundraiseAction = useCallback(async () => {
     if (!metadata.fundraising?.id) {
@@ -122,6 +133,39 @@ export function useWorkHeaderMenuItems({
       );
     }
   }, [metadata.fundraising?.id, fundraiseAction, closeFundraise, completeFundraise, router]);
+
+  const confirmReopenFundraise = useCallback(
+    async (durationDays: number) => {
+      if (!metadata.fundraising?.id) {
+        toast.error('No fundraise found');
+        return;
+      }
+      try {
+        await reopenFundraise(metadata.fundraising.id, durationDays);
+        toast.success('Fundraise reopened successfully');
+        setShowReopenModal(false);
+        router.refresh();
+      } catch (error: any) {
+        toast.error(
+          error instanceof Error ? error.message : 'Failed to reopen fundraise. Please try again.'
+        );
+      }
+    },
+    [metadata.fundraising?.id, reopenFundraise, router]
+  );
+
+  const canReopenFundraise = (() => {
+    const fundraise = metadata.fundraising;
+    if (!fundraise) return false;
+    if (fundraise.status === 'CLOSED') return true;
+    if (
+      fundraise.status === 'OPEN' &&
+      fundraise.endDate &&
+      new Date(fundraise.endDate) < new Date()
+    )
+      return true;
+    return false;
+  })();
 
   const fundraiseModalConfig: FundraiseModalConfig = (() => {
     if (fundraiseAction === 'close')
@@ -194,6 +238,19 @@ export function useWorkHeaderMenuItems({
             <CheckCircle className="h-4 w-4 mr-2" />
             <span>Complete fundraise</span>
           </BaseMenuItem>
+          {canReopenFundraise && (
+            <BaseMenuItem
+              disabled={isReopeningFundraise}
+              onSelect={() =>
+                executeAuthenticatedAction(() => {
+                  setShowReopenModal(true);
+                })
+              }
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              <span>Reopen fundraise</span>
+            </BaseMenuItem>
+          )}
         </>
       )}
       {pdfFormat && (
@@ -228,5 +285,9 @@ export function useWorkHeaderMenuItems({
     },
     confirmFundraiseAction,
     fundraiseModalConfig,
+    showReopenModal,
+    closeReopenModal: () => setShowReopenModal(false),
+    confirmReopenFundraise,
+    isReopeningFundraise,
   };
 }

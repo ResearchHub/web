@@ -62,6 +62,19 @@ export class FundraiseService {
   }
 
   /**
+   * Reopen (or extend) a fundraise
+   * @param fundraiseId The ID of the fundraise to reopen
+   * @param durationDays Number of days from now to keep the fundraise open
+   * @returns The updated fundraise with OPEN status and new end_date
+   */
+  static async reopenFundraise(fundraiseId: ID, durationDays: number): Promise<Fundraise> {
+    const response = await ApiClient.post<any>(`${this.BASE_PATH}/${fundraiseId}/reopen/`, {
+      duration_days: durationDays,
+    });
+    return transformFundraise(response);
+  }
+
+  /**
    * Alias for contributeToFundraise to maintain backwards compatibility with existing hooks
    * @param id The ID of the fundraise to contribute to
    * @param payload The payload containing the amount and optional currency

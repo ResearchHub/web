@@ -13,6 +13,7 @@ import {
   ArrowUp,
   ArrowDown,
   Search,
+  RotateCcw,
 } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
@@ -21,10 +22,11 @@ import { Work } from '@/types/work';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useVote } from '@/hooks/useVote';
 import { useUserVotes } from '@/hooks/useUserVotes';
-import { useCloseFundraise, useCompleteFundraise } from '@/hooks/useFundraise';
+import { useCloseFundraise, useCompleteFundraise, useReopenFundraise } from '@/hooks/useFundraise';
 import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
+import { ReopenFundraiseModal } from '@/components/modals/ReopenFundraiseModal';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useRouter } from 'next/navigation';
 import { TipContentModal } from '@/components/modals/TipContentModal';
@@ -63,6 +65,7 @@ export const WorkPrimaryActions = ({
   const [isPublishing, setIsPublishing] = useState(false);
   const [showFundraiseActionModal, setShowFundraiseActionModal] = useState(false);
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | null>(null);
+  const [showReopenModal, setShowReopenModal] = useState(false);
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { vote, isVoting } = useVote({
@@ -276,6 +279,7 @@ export const WorkPrimaryActions = ({
 
   const [{ isLoading: isClosingFundraise }, closeFundraise] = useCloseFundraise();
   const [{ isLoading: isCompletingFundraise }, completeFundraise] = useCompleteFundraise();
+  const [{ isLoading: isReopeningFundraise }, reopenFundraise] = useReopenFundraise();
 
   const handleCloseFundraise = useCallback(() => {
     setFundraiseAction('close');
@@ -286,6 +290,43 @@ export const WorkPrimaryActions = ({
     setFundraiseAction('complete');
     setShowFundraiseActionModal(true);
   }, []);
+
+  const canReopenFundraise = (() => {
+    const fundraise = metadata.fundraising;
+    if (!fundraise) return false;
+    if (fundraise.status === 'CLOSED') return true;
+    if (
+      fundraise.status === 'OPEN' &&
+      fundraise.endDate &&
+      new Date(fundraise.endDate) < new Date()
+    )
+      return true;
+    return false;
+  })();
+
+  const confirmReopenFundraise = useCallback(
+    async (durationDays: number) => {
+      if (!metadata.fundraising?.id) {
+        toast.error('No fundraise found');
+        return;
+      }
+      try {
+        await reopenFundraise(metadata.fundraising.id, durationDays);
+        toast.success('Fundraise reopened successfully');
+        setShowReopenModal(false);
+        if (typeof router.refresh === 'function') {
+          router.refresh();
+        } else if (typeof window !== 'undefined') {
+          window.location.reload();
+        }
+      } catch (error: any) {
+        toast.error(
+          error instanceof Error ? error.message : 'Failed to reopen fundraise. Please try again.'
+        );
+      }
+    },
+    [metadata.fundraising?.id, reopenFundraise, router]
+  );
 
   const confirmFundraiseAction = useCallback(async () => {
     if (!metadata.fundraising?.id) {
@@ -463,6 +504,15 @@ export const WorkPrimaryActions = ({
                   <CheckCircle className="h-4 w-4 mr-2" />
                   <span>Complete fundraise</span>
                 </BaseMenuItem>
+                {canReopenFundraise && (
+                  <BaseMenuItem
+                    disabled={isReopeningFundraise}
+                    onSelect={() => executeAuthenticatedAction(() => setShowReopenModal(true))}
+                  >
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    <span>Reopen fundraise</span>
+                  </BaseMenuItem>
+                )}
               </>
             )}
             {pdfFormat && (
@@ -538,6 +588,13 @@ export const WorkPrimaryActions = ({
         cancelText="Cancel"
         confirmButtonClass={modalConfig.confirmButtonClass}
         cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+      />
+
+      <ReopenFundraiseModal
+        isOpen={showReopenModal}
+        onClose={() => setShowReopenModal(false)}
+        onConfirm={confirmReopenFundraise}
+        isLoading={isReopeningFundraise}
       />
     </div>
   );
