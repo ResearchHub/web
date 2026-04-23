@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { ShieldOff } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
 import { AuthService } from '@/services/auth.service';
@@ -56,7 +57,12 @@ export function DisableMfaModal({ isOpen, onClose, onSuccess }: DisableMfaModalP
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Disable two-factor authentication"
+      title={
+        <span className="flex items-center gap-2">
+          <ShieldOff className="h-5 w-5" />
+          Disable two-factor authentication
+        </span>
+      }
       size="md"
       footer={
         <div className="flex gap-3">
