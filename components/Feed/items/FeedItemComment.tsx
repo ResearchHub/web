@@ -18,6 +18,8 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { Badge } from '@/components/ui/Badge';
 import { useUser } from '@/contexts/UserContext';
+import { FOUNDATION_USER_ID } from '@/config/constants';
+import { Clock } from 'lucide-react';
 
 // Define the recursive rendering component for parent comments
 const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> = ({
@@ -116,6 +118,11 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   // Check if current user is the comment author to prevent self-tipping
   const isCurrentUserAuthor = user?.authorProfile?.id === author?.id;
   const isAwardedByFoundation = entry.awardedBountyAmount && entry.awardedBountyAmount > 0;
+  const hasFoundationTip =
+    FOUNDATION_USER_ID != null &&
+    (entry.tips || []).some((tip) => tip?.user?.id === FOUNDATION_USER_ID);
+  const isAssessedByFoundation = Boolean(isAwardedByFoundation) || hasFoundationTip;
+  const isPendingAssessment = isReview && !isAssessedByFoundation;
 
   const menuItems = [];
   if (showCreatorActions) {
@@ -199,13 +206,37 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
               ) : (
                 renderAwardedBadge()
               ))}
+            {isPendingAssessment && (
+              <Tooltip
+                content={
+                  <div className="text-left">
+                    This review has not yet been assessed by the ResearchHub Foundation Editor Team.
+                    Interpret with caution.
+                  </div>
+                }
+                position="top"
+                width="w-[280px]"
+              >
+                <Badge
+                  variant="default"
+                  className="gap-1.5 py-1 border-amber-300 bg-amber-50 text-amber-800 cursor-help"
+                >
+                  <Clock className="h-3.5 w-3.5" />
+                  Pending assessment
+                </Badge>
+              </Tooltip>
+            )}
           </div>
         )}
 
         {isReview && reviewScore > 0 && !isRemoved && (
           <div className="mb-4 text-gray-700 text-sm mt-0.5">
             <span className="font-medium">Review score: </span>
-            <span className="text-yellow-500 font-medium">{reviewScore}/5</span>
+            <span
+              className={`font-medium ${isPendingAssessment ? 'text-gray-400' : 'text-yellow-500'}`}
+            >
+              {reviewScore}/5
+            </span>
           </div>
         )}
 
@@ -217,7 +248,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
             showReadMoreButton={showReadMoreCTA}
             createdDate={commentEntry.createdDate}
             updatedDate={commentEntry.updatedDate}
-            maxLength={maxLength}
+            maxLength={isPendingAssessment ? 280 : maxLength}
           />
         </div>
 
