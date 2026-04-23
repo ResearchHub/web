@@ -15,6 +15,8 @@ interface PaymentRequestButtonProps {
   amountInRsc: number;
   /** Fundraise ID for the contribution */
   fundraiseId: ID;
+  /** Whether to apply earned funding credits on top of the wallet payment */
+  applyFundingCredits?: boolean;
   /** Label shown in the payment sheet */
   label?: string;
   /** Button text to show when payment method is not available */
@@ -35,6 +37,7 @@ function PaymentRequestButtonInner({
   amountCents,
   amountInRsc,
   fundraiseId,
+  applyFundingCredits = false,
   label = 'Fund Research',
   unavailableText = 'Not available on this device',
   onSuccess,
@@ -104,7 +107,11 @@ function PaymentRequestButtonInner({
 
       try {
         // Create payment intent on our backend
-        const { clientSecret } = await PaymentService.createPaymentIntent(amountInRsc, fundraiseId);
+        const { clientSecret } = await PaymentService.createPaymentIntent(
+          amountInRsc,
+          fundraiseId,
+          applyFundingCredits
+        );
 
         // Confirm the payment with the payment method from Apple Pay/Google Pay
         const { error: confirmError, paymentIntent } = await stripe!.confirmCardPayment(

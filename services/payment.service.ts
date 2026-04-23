@@ -46,7 +46,8 @@ export class PaymentService {
    */
   static async createPaymentIntent(
     amount: number,
-    fundraiseId: ID
+    fundraiseId: ID,
+    applyFundingCredits: boolean = false
   ): Promise<PaymentIntentResponse> {
     const response = await ApiClient.post<PaymentIntentApiResponse>(
       `${this.BASE_PATH}/payment-intent/`,
@@ -54,6 +55,7 @@ export class PaymentService {
         amount: roundRscAmount(amount),
         currency: 'RSC',
         fundraise_id: fundraiseId,
+        apply_funding_credits: applyFundingCredits,
       }
     );
 

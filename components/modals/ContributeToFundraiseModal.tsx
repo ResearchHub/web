@@ -108,9 +108,17 @@ function ContributeToFundraiseModalInner({
     stripeContextRef.current = context;
   }, []);
 
-  // Get balance from user fields
-  // Use totalRsc since users can use both available RSC and funding credits for funding
-  const rscBalance = user?.totalRsc ?? 0;
+  // Spendable RSC (available balance, excluding locked/earned credits)
+  const rscBalance = user?.balance ?? 0;
+  // Earned funding credits (locked RSC) — surfaced as an opt-in toggle
+  const lockedBalance = user?.lockedBalance ?? 0;
+  const [applyFundingCredits, setApplyFundingCredits] = useState(false);
+
+  // Default the toggle to ON whenever the user has any funding credits available.
+  // Runs on mount and whenever the user's locked balance changes (e.g., after refresh).
+  useEffect(() => {
+    setApplyFundingCredits(lockedBalance > 0);
+  }, [lockedBalance]);
 
   // Calculate conversions
   const rscToUsd = (rsc: number) => (exchangeRate ? rsc * exchangeRate : 0);
@@ -217,8 +225,13 @@ function ContributeToFundraiseModalInner({
       setError(null);
 
       if (paymentMethod === 'rsc') {
-        // Direct RSC payment from user's balance
-        await FundraiseService.contributeToFundraise(fundraise.id, amountInRsc, 'rsc');
+        // Direct RSC payment from user's balance (plus credits if toggle is on)
+        await FundraiseService.contributeToFundraise(
+          fundraise.id,
+          amountInRsc,
+          'rsc',
+          applyFundingCredits
+        );
         toast.success('Your contribution has been successfully added to the fundraise.');
       } else if (paymentMethod === 'credit_card') {
         // Credit card payment flow:
@@ -244,7 +257,8 @@ function ContributeToFundraiseModalInner({
         // Step 1: Create payment intent with amount and fundraise ID (backend adds fees and handles contribution)
         const { clientSecret } = await PaymentService.createPaymentIntent(
           amountInRsc,
-          fundraise.id
+          fundraise.id,
+          applyFundingCredits
         );
 
         // Step 2: Confirm payment with Stripe
@@ -467,6 +481,9 @@ function ContributeToFundraiseModalInner({
             amountInUsd={amountUsd}
             amountDisplay={getAmountDisplay()}
             rscBalance={rscBalance}
+            lockedBalance={lockedBalance}
+            applyFundingCredits={applyFundingCredits}
+            onApplyFundingCreditsChange={setApplyFundingCredits}
             fundraiseId={fundraise.id}
             isProcessing={isContributing}
             error={error}
