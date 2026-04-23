@@ -26,7 +26,10 @@ import { useCloseFundraise, useCompleteFundraise, useReopenFundraise } from '@/h
 import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
-import { ReopenFundraiseModal } from '@/components/modals/ReopenFundraiseModal';
+import {
+  ReopenFundraiseModal,
+  FUNDRAISE_MODAL_MODE,
+} from '@/components/modals/ReopenFundraiseModal';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useRouter } from 'next/navigation';
 import { TipContentModal } from '@/components/modals/TipContentModal';
@@ -593,7 +596,11 @@ export const WorkPrimaryActions = ({
         onClose={() => setShowReopenModal(false)}
         onConfirm={confirmReopenFundraise}
         isLoading={isReopeningFundraise}
-        isExtend={metadata.fundraising?.status === 'OPEN'}
+        mode={
+          metadata.fundraising?.status === 'OPEN'
+            ? FUNDRAISE_MODAL_MODE.EXTEND
+            : FUNDRAISE_MODAL_MODE.REOPEN
+        }
       />
     </div>
   );

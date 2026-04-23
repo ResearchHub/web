@@ -29,6 +29,7 @@ import { WorkHeaderVoteWidget } from './WorkHeaderVoteWidget';
 import { WorkHeaderSubtitle } from './WorkHeaderSubtitle';
 import { WorkHeaderBountyEyebrow } from './WorkHeaderBountyEyebrow';
 import { WorkHeaderModals } from './WorkHeaderModals';
+import { FUNDRAISE_MODAL_MODE } from '@/components/modals/ReopenFundraiseModal';
 import { WorkTabs } from '@/components/work/WorkTabs';
 import { useWorkTab } from './WorkTabContext';
 
@@ -228,7 +229,11 @@ export function WorkHeader({
         onCloseReopenModal={closeReopenModal}
         onConfirmReopen={confirmReopenFundraise}
         isReopeningFundraise={isReopeningFundraise}
-        isExtendFundraise={metadata.fundraising?.status === 'OPEN'}
+        fundraiseModalMode={
+          metadata.fundraising?.status === 'OPEN'
+            ? FUNDRAISE_MODAL_MODE.EXTEND
+            : FUNDRAISE_MODAL_MODE.REOPEN
+        }
       />
     </>
   );

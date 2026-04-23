@@ -3,12 +3,19 @@
 import { useState } from 'react';
 import { Modal } from '@/components/ui/form/Modal';
 
+export const FUNDRAISE_MODAL_MODE = {
+  REOPEN: 'reopen',
+  EXTEND: 'extend',
+} as const;
+
+export type FundraiseModalMode = (typeof FUNDRAISE_MODAL_MODE)[keyof typeof FUNDRAISE_MODAL_MODE];
+
 interface ReopenFundraiseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (durationDays: number) => void;
   isLoading: boolean;
-  isExtend?: boolean;
+  mode: FundraiseModalMode;
 }
 
 const PRESET_DAYS = [7, 14, 30];
@@ -18,12 +25,13 @@ export const ReopenFundraiseModal = ({
   onClose,
   onConfirm,
   isLoading,
-  isExtend = false,
+  mode,
 }: ReopenFundraiseModalProps) => {
-  const [durationDays, setDurationDays] = useState<number>(14);
+  const [durationDays, setDurationDays] = useState<number>(30);
 
   const isValid = Number.isInteger(durationDays) && durationDays >= 1;
 
+  const isExtend = mode === FUNDRAISE_MODAL_MODE.EXTEND;
   const title = isExtend ? 'Extend fundraise' : 'Reopen fundraise';
   const loadingText = isExtend ? 'Extending...' : 'Reopening...';
   const description = isExtend
