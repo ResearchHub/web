@@ -76,9 +76,24 @@ export interface ExpertSearchCreatePayload {
     region: Region;
     state: string;
   };
-  excluded_expert_names?: string[];
+  excluded_search_ids?: number[];
   additional_context?: string;
 }
+
+/** PATCH body for canonical expert (wire format, snake_case). */
+export type PatchExpertPayload = Partial<{
+  honorific: string;
+  first_name: string;
+  middle_name: string;
+  last_name: string;
+  name_suffix: string;
+  academic_title: string;
+  affiliation: string;
+  expertise: string;
+  notes: string;
+  email: string;
+  sources: Array<{ url: string; text?: string } | string>;
+}>;
 
 // ── Email template kind (purpose) ───────────────────
 
@@ -165,6 +180,14 @@ export class ExpertFinderService {
   static async getSearch(searchId: number | string): Promise<ExpertSearchResult> {
     const response = await ApiClient.get<any>(`${this.BASE_PATH}/search/${searchId}/`);
     return transformExpertSearch(response);
+  }
+
+  /**
+   * Partial update of a canonical expert row.
+   * PATCH /api/research_ai/expert-finder/experts/:expertId/
+   */
+  static async patchExpert(expertId: number | string, payload: PatchExpertPayload): Promise<void> {
+    await ApiClient.patch<void>(`${this.BASE_PATH}/experts/${expertId}/`, payload);
   }
 
   /**

@@ -1,13 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { Award, Building2, ExternalLink, GraduationCap, Info, Mail } from 'lucide-react';
-import { Button, buttonVariants } from '@/components/ui/Button';
+import { Award, Building2, ExternalLink, GraduationCap, Info, Mail, Pencil } from 'lucide-react';
+import { Alert } from '@/components/ui/Alert';
+import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/form/Checkbox';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
+import { formatTimestamp } from '@/utils/date';
 import type { ExpertResult } from '@/types/expertFinder';
+import type { PatchExpertPayload } from '@/services/expertFinder.service';
+import { ExpertEditModal } from './ExpertEditModal';
 
 interface ExpertResultCardProps {
   expert: ExpertResult;
@@ -15,6 +18,7 @@ interface ExpertResultCardProps {
   selected?: boolean;
   onToggleSelect?: (index: number) => void;
   onGenerateEmail?: (expert: ExpertResult) => void;
+  onSaveExpert?: (expertId: number, payload: PatchExpertPayload) => Promise<void>;
 }
 
 function empty(value: string | undefined): string {
@@ -30,8 +34,11 @@ export function ExpertResultCard({
   selected,
   onToggleSelect,
   onGenerateEmail,
+  onSaveExpert,
 }: ExpertResultCardProps) {
+  const [editOpen, setEditOpen] = useState(false);
   const name = empty(expert.name);
+  const canEditContact = expert.expertId != null && Boolean(onSaveExpert);
   const title = empty(expert.title);
   const affiliation = empty(expert.affiliation);
   const expertiseStr = empty(expert.expertise);
@@ -47,18 +54,39 @@ export function ExpertResultCard({
 
   const [notesExpanded, setNotesExpanded] = useState(false);
   const showNotesToggle = notes.length > NOTES_READ_MORE_MIN_LENGTH || notesExpanded;
+  const emailedBefore = Boolean(expert.lastEmailSentAt);
 
   return (
     <article
       className={cn(
         'flex h-full min-h-0 flex-col rounded-lg border bg-white p-5 shadow-sm',
-        selected ? 'border-primary-600 ring-2 ring-primary-200' : 'border-gray-200'
+        selected
+          ? 'border-primary-600 ring-2 ring-primary-200'
+          : emailedBefore
+            ? 'border-yellow-300'
+            : 'border-gray-200'
       )}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
         <header className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h3 className="text-base font-semibold text-gray-900 shrink-0">{name || '—'}</h3>
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            {canEditContact ? (
+              <button
+                type="button"
+                className="inline-flex shrink-0 rounded p-0.5 text-gray-500 transition-colors hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
+                aria-label="Edit name"
+                title="Edit name"
+                onClick={() => setEditOpen(true)}
+              >
+                <Pencil className="h-4 w-4 shrink-0" aria-hidden />
+              </button>
+            ) : null}
+            <h3
+              className="min-w-0 max-w-full flex-1 basis-0 truncate text-base font-semibold text-gray-900"
+              title={name || undefined}
+            >
+              {name || '—'}
+            </h3>
             {sources.length > 0
               ? sources.map((src, i) => (
                   <a
@@ -168,6 +196,16 @@ export function ExpertResultCard({
             </div>
           </div>
         ) : null}
+
+        {expert.lastEmailSentAt ? (
+          <Alert variant="warning" className="py-2.5 px-3">
+            Emailed before
+            <span className="font-normal text-yellow-800/90">
+              {' '}
+              · {formatTimestamp(expert.lastEmailSentAt)}
+            </span>
+          </Alert>
+        ) : null}
       </div>
 
       <div className="mt-auto pt-4 shrink-0 flex flex-col gap-2">
@@ -196,6 +234,16 @@ export function ExpertResultCard({
           </a>
         )}
       </div>
+
+      {canEditContact && expert.expertId != null && onSaveExpert ? (
+        <ExpertEditModal
+          isOpen={editOpen}
+          onClose={() => setEditOpen(false)}
+          expert={expert}
+          expertId={expert.expertId}
+          onSave={onSaveExpert}
+        />
+      ) : null}
     </article>
   );
 }
