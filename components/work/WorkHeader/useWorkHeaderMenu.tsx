@@ -157,14 +157,8 @@ export function useWorkHeaderMenuItems({
   const canReopenFundraise = (() => {
     const fundraise = metadata.fundraising;
     if (!fundraise) return false;
-    if (fundraise.status === 'CLOSED') return true;
-    if (
-      fundraise.status === 'OPEN' &&
-      fundraise.endDate &&
-      new Date(fundraise.endDate) < new Date()
-    )
-      return true;
-    return false;
+    if (fundraise.status === 'COMPLETED') return false;
+    return fundraise.status === 'CLOSED' || fundraise.status === 'OPEN';
   })();
 
   const fundraiseModalConfig: FundraiseModalConfig = (() => {
