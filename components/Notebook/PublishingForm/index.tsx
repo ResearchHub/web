@@ -195,11 +195,15 @@ const autoAddCurrentUser = (
 
   if (getValues(field).length === 0) {
     const profile = currentUser.authorProfile;
+    const authorId = profile?.id?.toString();
+
+    if (!isGrant && !authorId) {
+      return;
+    }
+
     setValue(field, [
       {
-        value: isGrant
-          ? currentUser.id.toString()
-          : profile?.id?.toString() || currentUser.id.toString(),
+        value: isGrant ? currentUser.id.toString() : authorId!,
         label: currentUser.fullName || currentUser.email || 'Unknown User',
       },
     ]);
@@ -498,7 +502,7 @@ export function PublishingForm({
       const fallback = 'Error publishing. Please try again.';
       if (error instanceof ApiError) {
         const errorData = error.errors as Record<string, any> | undefined;
-        toast.error(errorData?.msg || errorData?.message || fallback);
+        toast.error(errorData?.msg || errorData?.message || error.message || fallback);
       } else {
         toast.error(fallback);
       }
