@@ -1,46 +1,47 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AuthService } from '@/services/auth.service';
 import type { MfaStatusApiResponse } from '@/services/types';
 import { formatDate } from '@/utils/date';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { EnableMfaModal } from './EnableMfaModal';
 
 export function SecuritySection() {
   const [status, setStatus] = useState<MfaStatusApiResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEnableOpen, setIsEnableOpen] = useState(false);
+
+  const fetchStatus = useCallback(async () => {
+    try {
+      const data = await AuthService.getMfaStatus();
+      setStatus(data);
+      setError(null);
+    } catch {
+      setError('Failed to load security settings');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const data = await AuthService.getMfaStatus();
-        if (!cancelled) {
-          setStatus(data);
-        }
-      } catch {
-        if (!cancelled) {
-          setError('Failed to load security settings');
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    fetchStatus();
+  }, [fetchStatus]);
 
   return (
     <section className="rounded-lg border border-gray-200 bg-white p-6">
-      <header className="mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">Two-factor authentication</h2>
-        <p className="text-sm text-gray-500">
-          Add an extra layer of security by requiring a one-time code at sign-in.
-        </p>
+      <header className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">Two-factor authentication</h2>
+          <p className="text-sm text-gray-500">
+            Add an extra layer of security by requiring a one-time code at sign-in.
+          </p>
+        </div>
+        {!isLoading && !error && !status?.mfa_enabled && (
+          <Button onClick={() => setIsEnableOpen(true)}>Enable</Button>
+        )}
       </header>
 
       {isLoading ? (
@@ -60,6 +61,12 @@ export function SecuritySection() {
       ) : (
         <Badge className="border-red-700 bg-white text-red-700">Not enabled</Badge>
       )}
+
+      <EnableMfaModal
+        isOpen={isEnableOpen}
+        onClose={() => setIsEnableOpen(false)}
+        onSuccess={fetchStatus}
+      />
     </section>
   );
 }
