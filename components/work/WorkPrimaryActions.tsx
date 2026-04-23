@@ -310,8 +310,8 @@ export const WorkPrimaryActions = ({
         setShowReopenModal(false);
         if (typeof router.refresh === 'function') {
           router.refresh();
-        } else if (typeof window !== 'undefined') {
-          window.location.reload();
+        } else if (typeof globalThis.window !== 'undefined') {
+          globalThis.location.reload();
         }
       } catch (error: any) {
         toast.error(

@@ -25,6 +25,7 @@ export const ReopenFundraiseModal = ({
   const isValid = Number.isInteger(durationDays) && durationDays >= 1;
 
   const title = isExtend ? 'Extend fundraise' : 'Reopen fundraise';
+  const loadingText = isExtend ? 'Extending...' : 'Reopening...';
   const description = isExtend
     ? 'This will extend the fundraise end date. Choose how many additional days from now.'
     : 'This will reopen the fundraise so it can accept contributions again. Choose how many days to keep it open.';
@@ -35,7 +36,12 @@ export const ReopenFundraiseModal = ({
         <p className="mb-4 text-sm text-gray-600">{description}</p>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Duration (days)</label>
+          <label
+            htmlFor="reopen-fundraise-duration"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Duration (days)
+          </label>
           <div className="flex items-center gap-2 mb-2">
             {PRESET_DAYS.map((days) => (
               <button
@@ -53,12 +59,13 @@ export const ReopenFundraiseModal = ({
             ))}
           </div>
           <input
+            id="reopen-fundraise-duration"
             type="number"
             min={1}
             step={1}
             value={durationDays}
             onChange={(e) => {
-              const val = parseInt(e.target.value, 10);
+              const val = Number.parseInt(e.target.value, 10);
               setDurationDays(Number.isNaN(val) ? 0 : val);
             }}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -83,7 +90,7 @@ export const ReopenFundraiseModal = ({
             }}
             disabled={!isValid || isLoading}
           >
-            {isLoading ? (isExtend ? 'Extending...' : 'Reopening...') : title}
+            {isLoading ? loadingText : title}
           </button>
         </div>
       </div>
