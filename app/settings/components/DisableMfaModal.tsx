@@ -100,7 +100,7 @@ export function DisableMfaModal({ isOpen, onClose, onSuccess }: Readonly<Disable
             onChange={(e) => setCode(e.target.value)}
             placeholder="123456"
             maxLength={6}
-            className="w-full p-3 border rounded"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
             autoComplete="one-time-code"
             inputMode="numeric"
             autoFocus
