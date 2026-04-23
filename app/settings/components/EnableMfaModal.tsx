@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Copy } from 'lucide-react';
+import { ChevronDown, ChevronRight, Copy } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'react-hot-toast';
 import { BaseModal } from '@/components/ui/BaseModal';
@@ -26,6 +26,7 @@ export function EnableMfaModal({ isOpen, onClose, onSuccess }: Readonly<EnableMf
   const [isInitLoading, setIsInitLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSecret, setShowSecret] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
@@ -34,6 +35,7 @@ export function EnableMfaModal({ isOpen, onClose, onSuccess }: Readonly<EnableMf
       setCode('');
       setRecoveryCodes([]);
       setError(null);
+      setShowSecret(false);
       return;
     }
 
@@ -99,6 +101,16 @@ export function EnableMfaModal({ isOpen, onClose, onSuccess }: Readonly<EnableMf
     }
   };
 
+  const copySecret = async () => {
+    if (!setupData?.secret) return;
+    try {
+      await navigator.clipboard.writeText(setupData.secret);
+      toast.success('Setup key copied to clipboard');
+    } catch {
+      toast.error('Failed to copy');
+    }
+  };
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -139,9 +151,37 @@ export function EnableMfaModal({ isOpen, onClose, onSuccess }: Readonly<EnableMf
           </div>
 
           {setupData && (
-            <div className="text-xs text-gray-500 text-center">
-              Can't scan? You can use this setup key to manually configure your authenticator app:{' '}
-              <span className="font-mono text-gray-700 break-all">{setupData.secret}</span>
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setShowSecret(!showSecret)}
+                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+              >
+                {showSecret ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+                Can't scan the QR code?
+              </button>
+              {showSecret && (
+                <div className="mt-2 space-y-2">
+                  <p className="text-xs text-gray-500">
+                    Use this setup key to manually configure your authenticator app:
+                  </p>
+                  <div className="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                    <span className="font-mono text-sm text-gray-800">{setupData.secret}</span>
+                    <button
+                      type="button"
+                      onClick={copySecret}
+                      className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded transition-colors"
+                      aria-label="Copy setup key"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
