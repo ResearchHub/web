@@ -51,9 +51,9 @@ export function useWorkHeaderMenuItems({
   const { user, selectedOrg, isModerator, isHubEditor, isAuthor, canEdit } = permissions;
 
   const [isPublishing, setIsPublishing] = useState(false);
-  const [showFundraiseActionModal, setShowFundraiseActionModal] = useState(false);
-  const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | null>(null);
-  const [showReopenModal, setShowReopenModal] = useState(false);
+  const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | 'reopen' | null>(
+    null
+  );
 
   const latestVersion = work.versions?.find((v) => v.isLatest);
   const isPublished = latestVersion?.publicationStatus === 'PUBLISHED';
@@ -143,7 +143,7 @@ export function useWorkHeaderMenuItems({
       try {
         await reopenFundraise(metadata.fundraising.id, durationDays);
         toast.success('Fundraise reopened successfully');
-        setShowReopenModal(false);
+        setFundraiseAction(null);
         router.refresh();
       } catch (error: any) {
         toast.error(
@@ -213,7 +213,6 @@ export function useWorkHeaderMenuItems({
             onSelect={() =>
               executeAuthenticatedAction(() => {
                 setFundraiseAction('close');
-                setShowFundraiseActionModal(true);
               })
             }
           >
@@ -225,7 +224,6 @@ export function useWorkHeaderMenuItems({
             onSelect={() =>
               executeAuthenticatedAction(() => {
                 setFundraiseAction('complete');
-                setShowFundraiseActionModal(true);
               })
             }
           >
@@ -237,7 +235,7 @@ export function useWorkHeaderMenuItems({
               disabled={isReopeningFundraise}
               onSelect={() =>
                 executeAuthenticatedAction(() => {
-                  setShowReopenModal(true);
+                  setFundraiseAction('reopen');
                 })
               }
             >
@@ -274,15 +272,12 @@ export function useWorkHeaderMenuItems({
 
   return {
     menuItems,
-    showFundraiseActionModal,
-    closeFundraiseModal: () => {
-      setShowFundraiseActionModal(false);
-      setFundraiseAction(null);
-    },
+    showFundraiseActionModal: fundraiseAction === 'close' || fundraiseAction === 'complete',
+    closeFundraiseModal: () => setFundraiseAction(null),
     confirmFundraiseAction,
     fundraiseModalConfig,
-    showReopenModal,
-    closeReopenModal: () => setShowReopenModal(false),
+    showReopenModal: fundraiseAction === 'reopen',
+    closeReopenModal: () => setFundraiseAction(null),
     confirmReopenFundraise,
     isReopeningFundraise,
   };

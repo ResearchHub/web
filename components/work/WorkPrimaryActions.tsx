@@ -66,9 +66,9 @@ export const WorkPrimaryActions = ({
 }: WorkPrimaryActionsProps) => {
   const [isTipModalOpen, setIsTipModalOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
-  const [showFundraiseActionModal, setShowFundraiseActionModal] = useState(false);
-  const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | null>(null);
-  const [showReopenModal, setShowReopenModal] = useState(false);
+  const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | 'reopen' | null>(
+    null
+  );
   const [isAddToListModalOpen, setIsAddToListModalOpen] = useState(false);
   const { executeAuthenticatedAction } = useAuthenticatedAction();
   const { vote, isVoting } = useVote({
@@ -286,12 +286,10 @@ export const WorkPrimaryActions = ({
 
   const handleCloseFundraise = useCallback(() => {
     setFundraiseAction('close');
-    setShowFundraiseActionModal(true);
   }, []);
 
   const handleCompleteFundraise = useCallback(() => {
     setFundraiseAction('complete');
-    setShowFundraiseActionModal(true);
   }, []);
 
   const canReopenFundraise = (() => {
@@ -310,7 +308,7 @@ export const WorkPrimaryActions = ({
       try {
         await reopenFundraise(metadata.fundraising.id, durationDays);
         toast.success('Fundraise reopened successfully');
-        setShowReopenModal(false);
+        setFundraiseAction(null);
         if (typeof router.refresh === 'function') {
           router.refresh();
         } else if (typeof globalThis.window !== 'undefined') {
@@ -504,7 +502,7 @@ export const WorkPrimaryActions = ({
                 {canReopenFundraise && (
                   <BaseMenuItem
                     disabled={isReopeningFundraise}
-                    onSelect={() => executeAuthenticatedAction(() => setShowReopenModal(true))}
+                    onSelect={() => executeAuthenticatedAction(() => setFundraiseAction('reopen'))}
                   >
                     <RotateCcw className="h-4 w-4 mr-2" />
                     <span>
@@ -577,11 +575,8 @@ export const WorkPrimaryActions = ({
       )}
 
       <ConfirmModal
-        isOpen={showFundraiseActionModal}
-        onClose={() => {
-          setShowFundraiseActionModal(false);
-          setFundraiseAction(null);
-        }}
+        isOpen={fundraiseAction === 'close' || fundraiseAction === 'complete'}
+        onClose={() => setFundraiseAction(null)}
         onConfirm={confirmFundraiseAction}
         title={modalConfig.title}
         message={modalConfig.message}
@@ -592,8 +587,8 @@ export const WorkPrimaryActions = ({
       />
 
       <ReopenFundraiseModal
-        isOpen={showReopenModal}
-        onClose={() => setShowReopenModal(false)}
+        isOpen={fundraiseAction === 'reopen'}
+        onClose={() => setFundraiseAction(null)}
         onConfirm={confirmReopenFundraise}
         isLoading={isReopeningFundraise}
         mode={
