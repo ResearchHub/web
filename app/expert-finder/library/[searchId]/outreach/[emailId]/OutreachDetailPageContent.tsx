@@ -454,7 +454,7 @@ export function OutreachDetailPageContent({
           )}
         </div>
 
-        {(isClosed || email.status === 'sent') && email.notes?.trim() ? (
+        {isClosed && email.notes?.trim() ? (
           <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
             <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Notes</p>
             <p className="text-sm text-gray-800 mt-1 whitespace-pre-wrap">{email.notes}</p>

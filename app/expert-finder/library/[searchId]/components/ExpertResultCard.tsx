@@ -56,9 +56,14 @@ export function ExpertResultCard({
       )}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
-        <header className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h3 className="text-base font-semibold text-gray-900 shrink-0">{name || '—'}</h3>
+        <header className="min-w-0 flex-1 pr-1">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            <h3
+              className="min-w-0 max-w-full break-words text-base font-semibold text-gray-900"
+              title={name || undefined}
+            >
+              {name || '—'}
+            </h3>
             {sources.length > 0
               ? sources.map((src, i) => (
                   <a
