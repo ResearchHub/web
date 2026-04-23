@@ -61,7 +61,10 @@ export function SecuritySection() {
         </div>
 
         {isLoading ? (
-          <div className="text-sm text-gray-500">Loading...</div>
+          <div className="flex items-center gap-2">
+            <div className="h-5 w-16 animate-pulse rounded-full bg-gray-200" />
+            <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+          </div>
         ) : error ? (
           <div className="text-sm text-red-600">{error}</div>
         ) : status?.mfa_enabled ? (
