@@ -7,10 +7,13 @@ import type { MfaStatusApiResponse } from '@/services/types';
 import { formatDate } from '@/utils/date';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { useUser } from '@/contexts/UserContext';
 import { EnableMfaModal } from './EnableMfaModal';
 import { DisableMfaModal } from './DisableMfaModal';
 
 export function SecuritySection() {
+  const { user } = useUser();
+  const isGoogleAccount = user?.authProvider === 'google';
   const [status, setStatus] = useState<MfaStatusApiResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +54,17 @@ export function SecuritySection() {
             </p>
           </div>
           {!isLoading && !error && !status?.mfa_enabled && (
-            <Button onClick={() => setIsEnableOpen(true)}>Enable</Button>
+            <Button
+              onClick={() => setIsEnableOpen(true)}
+              disabled={isGoogleAccount}
+              tooltip={
+                isGoogleAccount
+                  ? 'Two-factor authentication is not yet available for Google accounts.'
+                  : undefined
+              }
+            >
+              Enable
+            </Button>
           )}
           {!isLoading && !error && status?.mfa_enabled && (
             <Button variant="outlined" onClick={() => setIsDisableOpen(true)}>
