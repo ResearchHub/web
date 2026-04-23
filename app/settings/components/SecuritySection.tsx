@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { Shield } from 'lucide-react';
 import { AuthService } from '@/services/auth.service';
 import type { MfaStatusApiResponse } from '@/services/types';
 import { formatDate } from '@/utils/date';
@@ -35,7 +36,10 @@ export function SecuritySection() {
   return (
     <section className="rounded-lg border border-gray-200 bg-white">
       <header className="rounded-t-lg border-b border-gray-200 bg-gray-50 px-6 py-4">
-        <h2 className="text-lg font-semibold text-gray-900">Security</h2>
+        <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+          <Shield className="h-5 w-5" />
+          Security
+        </h2>
       </header>
 
       <div className="p-6">
