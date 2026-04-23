@@ -35,7 +35,7 @@ export const ReopenFundraiseModal = ({
   const title = isExtend ? 'Extend fundraise' : 'Reopen fundraise';
   const loadingText = isExtend ? 'Extending...' : 'Reopening...';
   const description = isExtend
-    ? 'This will extend the fundraise end date. Choose how many additional days from now.'
+    ? 'This will set the fundraise end date to the selected number of days from now.'
     : 'This will reopen the fundraise so it can accept contributions again. Choose how many days to keep it open.';
 
   return (
