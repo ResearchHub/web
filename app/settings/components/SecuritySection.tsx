@@ -39,7 +39,7 @@ export function SecuritySection() {
       </header>
 
       <div className="p-6">
-        <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="mb-2 flex items-start justify-between gap-4">
           <div>
             <h3 className="text-base font-semibold text-gray-900">Two-factor authentication</h3>
             <p className="text-sm text-gray-500">
