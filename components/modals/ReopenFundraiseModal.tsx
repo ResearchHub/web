@@ -3,19 +3,11 @@
 import { useState } from 'react';
 import { Modal } from '@/components/ui/form/Modal';
 
-export const FUNDRAISE_MODAL_MODE = {
-  REOPEN: 'reopen',
-  EXTEND: 'extend',
-} as const;
-
-export type FundraiseModalMode = (typeof FUNDRAISE_MODAL_MODE)[keyof typeof FUNDRAISE_MODAL_MODE];
-
 interface ReopenFundraiseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (durationDays: number) => void;
   isLoading: boolean;
-  mode: FundraiseModalMode;
 }
 
 const PRESET_DAYS = [7, 14, 30];
@@ -25,23 +17,17 @@ export const ReopenFundraiseModal = ({
   onClose,
   onConfirm,
   isLoading,
-  mode,
 }: ReopenFundraiseModalProps) => {
   const [durationDays, setDurationDays] = useState<number>(30);
 
   const isValid = Number.isInteger(durationDays) && durationDays >= 1;
 
-  const isExtend = mode === FUNDRAISE_MODAL_MODE.EXTEND;
-  const title = isExtend ? 'Extend fundraise' : 'Reopen fundraise';
-  const loadingText = isExtend ? 'Extending...' : 'Reopening...';
-  const description = isExtend
-    ? 'This will set the fundraise end date to the selected number of days from now.'
-    : 'This will reopen the fundraise so it can accept contributions again. Choose how many days to keep it open.';
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title}>
+    <Modal isOpen={isOpen} onClose={onClose} title="Reopen/Extend fundraise">
       <div className="py-0">
-        <p className="mb-4 text-sm text-gray-600">{description}</p>
+        <p className="mb-4 text-sm text-gray-600">
+          Set the fundraise end date to the selected number of days from now.
+        </p>
 
         <div className="mb-4">
           <label
@@ -98,7 +84,7 @@ export const ReopenFundraiseModal = ({
             }}
             disabled={!isValid || isLoading}
           >
-            {isLoading ? loadingText : title}
+            {isLoading ? 'Submitting...' : 'Reopen/Extend fundraise'}
           </button>
         </div>
       </div>

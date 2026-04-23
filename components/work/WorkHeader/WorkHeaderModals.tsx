@@ -8,11 +8,7 @@ import { TipContentModal } from '@/components/modals/TipContentModal';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { WorkEditModal } from '../WorkEditModal';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
-import {
-  ReopenFundraiseModal,
-  FUNDRAISE_MODAL_MODE,
-  type FundraiseModalMode,
-} from '@/components/modals/ReopenFundraiseModal';
+import { ReopenFundraiseModal } from '@/components/modals/ReopenFundraiseModal';
 
 export interface FundraiseModalConfig {
   title: string;
@@ -47,7 +43,6 @@ export interface WorkHeaderModalsProps {
   onCloseReopenModal?: () => void;
   onConfirmReopen?: (durationDays: number) => void;
   isReopeningFundraise?: boolean;
-  fundraiseModalMode?: FundraiseModalMode;
 }
 
 export function WorkHeaderModals({
@@ -75,7 +70,6 @@ export function WorkHeaderModals({
   onCloseReopenModal,
   onConfirmReopen,
   isReopeningFundraise = false,
-  fundraiseModalMode = FUNDRAISE_MODAL_MODE.REOPEN,
 }: WorkHeaderModalsProps) {
   return (
     <>
@@ -124,7 +118,6 @@ export function WorkHeaderModals({
           onClose={onCloseReopenModal}
           onConfirm={onConfirmReopen}
           isLoading={isReopeningFundraise}
-          mode={fundraiseModalMode}
         />
       )}
       {grantId && onCloseApplyToGrantModal && (

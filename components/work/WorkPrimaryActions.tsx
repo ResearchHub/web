@@ -26,10 +26,7 @@ import { useCloseFundraise, useCompleteFundraise, useReopenFundraise } from '@/h
 import toast from 'react-hot-toast';
 import { FlagContentModal } from '@/components/modals/FlagContentModal';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
-import {
-  ReopenFundraiseModal,
-  FUNDRAISE_MODAL_MODE,
-} from '@/components/modals/ReopenFundraiseModal';
+import { ReopenFundraiseModal } from '@/components/modals/ReopenFundraiseModal';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useRouter } from 'next/navigation';
 import { TipContentModal } from '@/components/modals/TipContentModal';
@@ -505,11 +502,7 @@ export const WorkPrimaryActions = ({
                     onSelect={() => executeAuthenticatedAction(() => setFundraiseAction('reopen'))}
                   >
                     <RotateCcw className="h-4 w-4 mr-2" />
-                    <span>
-                      {metadata.fundraising?.status === 'OPEN'
-                        ? 'Extend fundraise'
-                        : 'Reopen fundraise'}
-                    </span>
+                    <span>Reopen/Extend fundraise</span>
                   </BaseMenuItem>
                 )}
               </>
@@ -591,11 +584,6 @@ export const WorkPrimaryActions = ({
         onClose={() => setFundraiseAction(null)}
         onConfirm={confirmReopenFundraise}
         isLoading={isReopeningFundraise}
-        mode={
-          metadata.fundraising?.status === 'OPEN'
-            ? FUNDRAISE_MODAL_MODE.EXTEND
-            : FUNDRAISE_MODAL_MODE.REOPEN
-        }
       />
     </div>
   );
