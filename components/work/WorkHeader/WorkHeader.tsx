@@ -228,6 +228,7 @@ export function WorkHeader({
         onCloseReopenModal={closeReopenModal}
         onConfirmReopen={confirmReopenFundraise}
         isReopeningFundraise={isReopeningFundraise}
+        isExtendFundraise={metadata.fundraising?.status === 'OPEN'}
       />
     </>
   );

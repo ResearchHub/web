@@ -43,6 +43,7 @@ export interface WorkHeaderModalsProps {
   onCloseReopenModal?: () => void;
   onConfirmReopen?: (durationDays: number) => void;
   isReopeningFundraise?: boolean;
+  isExtendFundraise?: boolean;
 }
 
 export function WorkHeaderModals({
@@ -70,6 +71,7 @@ export function WorkHeaderModals({
   onCloseReopenModal,
   onConfirmReopen,
   isReopeningFundraise = false,
+  isExtendFundraise = false,
 }: WorkHeaderModalsProps) {
   return (
     <>
@@ -118,6 +120,7 @@ export function WorkHeaderModals({
           onClose={onCloseReopenModal}
           onConfirm={onConfirmReopen}
           isLoading={isReopeningFundraise}
+          isExtend={isExtendFundraise}
         />
       )}
       {grantId && onCloseApplyToGrantModal && (

@@ -242,7 +242,9 @@ export function useWorkHeaderMenuItems({
               }
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              <span>Reopen fundraise</span>
+              <span>
+                {metadata.fundraising?.status === 'OPEN' ? 'Extend fundraise' : 'Reopen fundraise'}
+              </span>
             </BaseMenuItem>
           )}
         </>

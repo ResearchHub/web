@@ -8,6 +8,7 @@ interface ReopenFundraiseModalProps {
   onClose: () => void;
   onConfirm: (durationDays: number) => void;
   isLoading: boolean;
+  isExtend?: boolean;
 }
 
 const PRESET_DAYS = [7, 14, 30];
@@ -17,18 +18,21 @@ export const ReopenFundraiseModal = ({
   onClose,
   onConfirm,
   isLoading,
+  isExtend = false,
 }: ReopenFundraiseModalProps) => {
   const [durationDays, setDurationDays] = useState<number>(14);
 
   const isValid = Number.isInteger(durationDays) && durationDays >= 1;
 
+  const title = isExtend ? 'Extend fundraise' : 'Reopen fundraise';
+  const description = isExtend
+    ? 'This will extend the fundraise end date. Choose how many additional days from now.'
+    : 'This will reopen the fundraise so it can accept contributions again. Choose how many days to keep it open.';
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Reopen fundraise">
+    <Modal isOpen={isOpen} onClose={onClose} title={title}>
       <div className="py-0">
-        <p className="mb-4 text-sm text-gray-600">
-          This will reopen the fundraise so it can accept contributions again. Choose how many days
-          to keep it open.
-        </p>
+        <p className="mb-4 text-sm text-gray-600">{description}</p>
 
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">Duration (days)</label>
@@ -79,7 +83,7 @@ export const ReopenFundraiseModal = ({
             }}
             disabled={!isValid || isLoading}
           >
-            {isLoading ? 'Reopening...' : 'Reopen fundraise'}
+            {isLoading ? (isExtend ? 'Extending...' : 'Reopening...') : title}
           </button>
         </div>
       </div>

@@ -504,7 +504,11 @@ export const WorkPrimaryActions = ({
                     onSelect={() => executeAuthenticatedAction(() => setShowReopenModal(true))}
                   >
                     <RotateCcw className="h-4 w-4 mr-2" />
-                    <span>Reopen fundraise</span>
+                    <span>
+                      {metadata.fundraising?.status === 'OPEN'
+                        ? 'Extend fundraise'
+                        : 'Reopen fundraise'}
+                    </span>
                   </BaseMenuItem>
                 )}
               </>
@@ -589,6 +593,7 @@ export const WorkPrimaryActions = ({
         onClose={() => setShowReopenModal(false)}
         onConfirm={confirmReopenFundraise}
         isLoading={isReopeningFundraise}
+        isExtend={metadata.fundraising?.status === 'OPEN'}
       />
     </div>
   );
