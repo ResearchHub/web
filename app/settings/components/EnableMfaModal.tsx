@@ -54,7 +54,7 @@ export function EnableMfaModal({ isOpen, onClose, onSuccess }: EnableMfaModalPro
     };
   }, [isOpen]);
 
-  const handleVerify = async (e: React.FormEvent) => {
+  const handleVerify = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!setupData) return;
 
