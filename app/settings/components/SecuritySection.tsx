@@ -52,19 +52,14 @@ export function SecuritySection() {
             <p className="text-sm text-gray-500">
               Add an extra layer of security by requiring a one-time code at sign-in.
             </p>
+            {isGoogleAccount && (
+              <p className="mt-1 text-sm italic text-gray-400">
+                Not yet available for Google accounts.
+              </p>
+            )}
           </div>
-          {!isLoading && !error && !status?.mfa_enabled && (
-            <Button
-              onClick={() => setIsEnableOpen(true)}
-              disabled={isGoogleAccount}
-              tooltip={
-                isGoogleAccount
-                  ? 'Two-factor authentication is not yet available for Google accounts.'
-                  : undefined
-              }
-            >
-              Enable
-            </Button>
+          {!isLoading && !error && !status?.mfa_enabled && !isGoogleAccount && (
+            <Button onClick={() => setIsEnableOpen(true)}>Enable</Button>
           )}
           {!isLoading && !error && status?.mfa_enabled && (
             <Button variant="outlined" onClick={() => setIsDisableOpen(true)}>
