@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { AuthService } from '@/services/auth.service';
 import type { MfaStatusApiResponse } from '@/services/types';
 import { formatDate } from '@/utils/date';
+import { Badge } from '@/components/ui/Badge';
 
 export function SecuritySection() {
   const [status, setStatus] = useState<MfaStatusApiResponse | null>(null);
@@ -47,17 +48,17 @@ export function SecuritySection() {
       ) : error ? (
         <div className="text-sm text-red-600">{error}</div>
       ) : status?.mfa_enabled ? (
-        <div className="text-sm text-gray-700">
-          Enabled
+        <div className="flex items-center gap-2 text-sm">
+          <Badge className="border-green-700 bg-white text-green-700">Enabled</Badge>
           {status.created_at && (
-            <span className="text-gray-400"> - Registered on {formatDate(status.created_at)}</span>
+            <span className="text-gray-400">Registered on {formatDate(status.created_at)}</span>
           )}
           {status.last_used_at && (
-            <span className="text-gray-400"> | Last used on {formatDate(status.last_used_at)}</span>
+            <span className="text-gray-400">| Last used on {formatDate(status.last_used_at)}</span>
           )}
         </div>
       ) : (
-        <div className="text-sm text-gray-700">Not enabled.</div>
+        <Badge className="border-red-700 bg-white text-red-700">Not enabled</Badge>
       )}
     </section>
   );
