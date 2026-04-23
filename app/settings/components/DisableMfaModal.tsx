@@ -77,10 +77,10 @@ export function DisableMfaModal({ isOpen, onClose, onSuccess }: Readonly<Disable
             className="flex-1"
           >
             {isSubmitting ? (
-              <>
+              <span className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Disabling...
-              </>
+              </span>
             ) : (
               'Disable'
             )}

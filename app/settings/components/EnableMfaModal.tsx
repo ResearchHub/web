@@ -126,10 +126,10 @@ export function EnableMfaModal({ isOpen, onClose, onSuccess }: Readonly<EnableMf
             className="w-full"
           >
             {isVerifying ? (
-              <>
+              <span className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Verifying...
-              </>
+              </span>
             ) : (
               'Verify and enable'
             )}
@@ -149,9 +149,9 @@ export function EnableMfaModal({ isOpen, onClose, onSuccess }: Readonly<EnableMf
 
           <div className="flex justify-center py-2">
             {isInitLoading ? (
-              <div className="h-[192px] w-[192px] bg-gray-100 rounded animate-pulse" />
+              <div className="h-[192px] w-[192px] bg-gray-100 rounded-lg animate-pulse" />
             ) : setupData ? (
-              <div className="p-3 bg-white border border-gray-200 rounded">
+              <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
                 <QRCodeSVG value={setupData.totp_url} size={192} />
               </div>
             ) : null}
@@ -219,7 +219,7 @@ export function EnableMfaModal({ isOpen, onClose, onSuccess }: Readonly<EnableMf
             lose access to your authenticator app. You won't be able to see them again.
           </div>
 
-          <div className="relative bg-gray-50 border border-gray-200 rounded p-4 font-mono text-sm">
+          <div className="relative bg-gray-50 border border-gray-200 rounded-lg p-4 font-mono text-sm">
             <button
               type="button"
               onClick={copyRecoveryCodes}
