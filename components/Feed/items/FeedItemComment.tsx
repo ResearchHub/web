@@ -21,6 +21,7 @@ import { useUser } from '@/contexts/UserContext';
 import { FOUNDATION_USER_ID } from '@/config/constants';
 import { PendingAssessmentBadge } from '@/components/ui/badges/PendingAssessmentBadge';
 import { isFoundationBounty } from '@/components/Bounty/lib/bountyUtil';
+import { useOptionalComments } from '@/contexts/CommentContext';
 
 // Define the recursive rendering component for parent comments
 const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> = ({
@@ -123,10 +124,13 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
     FOUNDATION_USER_ID != null &&
     (entry.tips || []).some((tip) => tip?.user?.id === FOUNDATION_USER_ID);
   const isAssessedByFoundation = Boolean(isAwardedByFoundation) || hasFoundationTip;
-  const hasOpenFoundationBounty = (commentEntry.bounties || []).some(
-    (bounty) => isFoundationBounty(bounty) && bounty.status === 'OPEN'
+  const commentsContext = useOptionalComments();
+  const workBounties = commentsContext?.workBounties || [];
+  const hasActiveFoundationBounty = workBounties.some(
+    (bounty) =>
+      isFoundationBounty(bounty) && (bounty.status === 'OPEN' || bounty.status === 'ASSESSMENT')
   );
-  const isPendingAssessment = isReview && !isAssessedByFoundation && hasOpenFoundationBounty;
+  const isPendingAssessment = isReview && !isAssessedByFoundation && hasActiveFoundationBounty;
 
   const menuItems = [];
   if (showCreatorActions) {
