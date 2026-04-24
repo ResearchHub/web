@@ -193,23 +193,20 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         {isReview && (
           <div className="flex items-center gap-2 mb-3">
             <ContentTypeBadge type="review" />
-            {isAwardedByFoundation &&
-              (entry.isAwardedForFoundationBounty ? (
-                <Tooltip
-                  content={
-                    <div className="flex items-start gap-3 text-left">
-                      <CheckCircle className="h-10 w-10 text-green-600" />
-                      <div>Reviewed and approved by the ResearchHub Foundation Editor Team.</div>
-                    </div>
-                  }
-                  position="top"
-                  width="w-[320px]"
-                >
-                  {renderAwardedBadge()}
-                </Tooltip>
-              ) : (
-                renderAwardedBadge()
-              ))}
+            {isAssessedByFoundation && (
+              <Tooltip
+                content={
+                  <div className="flex items-start gap-3 text-left">
+                    <CheckCircle className="h-10 w-10 text-green-600" />
+                    <div>Reviewed and approved by the ResearchHub Foundation Editor Team.</div>
+                  </div>
+                }
+                position="top"
+                width="w-[320px]"
+              >
+                {renderAwardedBadge()}
+              </Tooltip>
+            )}
             {isPendingAssessment && <PendingAssessmentBadge />}
           </div>
         )}
