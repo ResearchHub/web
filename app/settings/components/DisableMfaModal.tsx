@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ShieldOff } from 'lucide-react';
+import { Loader2, ShieldOff } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
 import { AuthService } from '@/services/auth.service';
@@ -76,7 +76,14 @@ export function DisableMfaModal({ isOpen, onClose, onSuccess }: Readonly<Disable
             variant="destructive"
             className="flex-1"
           >
-            {isSubmitting ? 'Disabling…' : 'Disable'}
+            {isSubmitting ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Disabling...
+              </span>
+            ) : (
+              'Disable'
+            )}
           </Button>
         </div>
       }
@@ -100,7 +107,7 @@ export function DisableMfaModal({ isOpen, onClose, onSuccess }: Readonly<Disable
             onChange={(e) => setCode(e.target.value)}
             placeholder="123456"
             maxLength={6}
-            className="w-full p-3 border rounded"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
             autoComplete="one-time-code"
             inputMode="numeric"
             autoFocus
