@@ -1,14 +1,5 @@
 import type { ContentType } from '@/types/work';
 
-export const ALL_CONTENT_TYPES: readonly ContentType[] = [
-  'paper',
-  'post',
-  'preregistration',
-  'question',
-  'discussion',
-  'funding_request',
-];
-
 // URL path segment (first path segment) → ContentType. Aligns with app routes: /paper/, /post/, /question/, /proposal/, /fund/, /grant/
 const ROUTE_SEGMENT_TO_CONTENT_TYPE: Record<string, ContentType> = {
   paper: 'paper',

@@ -17,12 +17,10 @@ export interface EditorFilters {
     startDate: Date;
     endDate: Date;
   };
-  orderBy?: OrderByOption;
-}
-
-export interface OrderByOption {
-  value: 'asc' | 'desc';
-  label: string;
+  orderBy?: {
+    value: 'asc' | 'desc';
+    label: string;
+  };
 }
 
 export interface ActiveContributorsData {

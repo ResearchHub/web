@@ -1,6 +1,5 @@
 import { Topic, transformTopicSuggestions, transformTopic } from '@/types/topic';
 import { ApiClient } from './client';
-import { createTransformer, BaseTransformed } from '@/types/transformer';
 
 interface HubResponse {
   id: number;
@@ -56,17 +55,6 @@ export interface Hub {
   imageUrl?: string;
   description?: string;
 }
-
-export type TransformedHub = Hub & BaseTransformed;
-
-// Transform the API response to our internal Hub model
-export const transformHub = createTransformer<HubResponse, Hub>((hub) => ({
-  id: hub.id,
-  name: hub.name,
-  slug: hub.slug,
-  imageUrl: hub.hub_image || undefined,
-  description: hub.description,
-}));
 
 export class HubService {
   private static readonly BASE_PATH = '/api/hub';

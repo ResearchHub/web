@@ -380,10 +380,3 @@ export function usePinchZoom<T extends HTMLElement = HTMLElement>({
     transformOrigin,
   };
 }
-
-/**
- * Utility to detect if a touch event is a pinch gesture
- */
-export function isPinchGesture(e: TouchEvent): boolean {
-  return e.touches.length === 2;
-}
