@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ChevronDown, ChevronRight, Copy, Loader2 } from 'lucide-react';
+import { Copy, Loader2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'react-hot-toast';
 import { BaseModal } from '@/components/ui/BaseModal';
@@ -162,13 +162,8 @@ export function EnableMfaModal({ isOpen, onClose, onSuccess }: Readonly<EnableMf
               <button
                 type="button"
                 onClick={() => setShowSecret(!showSecret)}
-                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
               >
-                {showSecret ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
                 Can't scan the QR code?
               </button>
               {showSecret && (
