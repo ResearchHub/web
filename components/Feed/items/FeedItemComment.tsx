@@ -18,6 +18,9 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { Badge } from '@/components/ui/Badge';
 import { useUser } from '@/contexts/UserContext';
+import { FOUNDATION_USER_ID } from '@/config/constants';
+import { PendingAssessmentBadge } from '@/components/ui/badges/PendingAssessmentBadge';
+import { isFoundationBounty } from '@/components/Bounty/lib/bountyUtil';
 
 // Define the recursive rendering component for parent comments
 const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> = ({
@@ -116,6 +119,14 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
   // Check if current user is the comment author to prevent self-tipping
   const isCurrentUserAuthor = user?.authorProfile?.id === author?.id;
   const isAwardedByFoundation = entry.awardedBountyAmount && entry.awardedBountyAmount > 0;
+  const hasFoundationTip =
+    FOUNDATION_USER_ID != null &&
+    (entry.tips || []).some((tip) => tip?.user?.id === FOUNDATION_USER_ID);
+  const isAssessedByFoundation = Boolean(isAwardedByFoundation) || hasFoundationTip;
+  const hasOpenFoundationBounty = (commentEntry.bounties || []).some(
+    (bounty) => isFoundationBounty(bounty) && bounty.status === 'OPEN'
+  );
+  const isPendingAssessment = isReview && !isAssessedByFoundation && hasOpenFoundationBounty;
 
   const menuItems = [];
   if (showCreatorActions) {
@@ -182,30 +193,32 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         {isReview && (
           <div className="flex items-center gap-2 mb-3">
             <ContentTypeBadge type="review" />
-            {isAwardedByFoundation &&
-              (entry.isAwardedForFoundationBounty ? (
-                <Tooltip
-                  content={
-                    <div className="flex items-start gap-3 text-left">
-                      <CheckCircle className="h-10 w-10 text-green-600" />
-                      <div>Reviewed and approved by the ResearchHub Foundation Editor Team.</div>
-                    </div>
-                  }
-                  position="top"
-                  width="w-[320px]"
-                >
-                  {renderAwardedBadge()}
-                </Tooltip>
-              ) : (
-                renderAwardedBadge()
-              ))}
+            {isAssessedByFoundation && (
+              <Tooltip
+                content={
+                  <div className="flex items-start gap-3 text-left">
+                    <CheckCircle className="h-10 w-10 text-green-600" />
+                    <div>Reviewed and approved by the ResearchHub Foundation Editor Team.</div>
+                  </div>
+                }
+                position="top"
+                width="w-[320px]"
+              >
+                {renderAwardedBadge()}
+              </Tooltip>
+            )}
+            {isPendingAssessment && <PendingAssessmentBadge />}
           </div>
         )}
 
         {isReview && reviewScore > 0 && !isRemoved && (
           <div className="mb-4 text-gray-700 text-sm mt-0.5">
             <span className="font-medium">Review score: </span>
-            <span className="text-yellow-500 font-medium">{reviewScore}/5</span>
+            <span
+              className={`font-medium ${isPendingAssessment ? 'text-gray-400' : 'text-yellow-500'}`}
+            >
+              {reviewScore}/5
+            </span>
           </div>
         )}
 
@@ -217,7 +230,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
             showReadMoreButton={showReadMoreCTA}
             createdDate={commentEntry.createdDate}
             updatedDate={commentEntry.updatedDate}
-            maxLength={maxLength}
+            maxLength={isPendingAssessment ? 280 : maxLength}
           />
         </div>
 

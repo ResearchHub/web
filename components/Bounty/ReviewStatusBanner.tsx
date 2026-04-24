@@ -3,7 +3,7 @@
 import { Alert } from '@/components/ui/Alert';
 import { Bounty } from '@/types/bounty';
 import { findLatestFoundationBounty } from './lib/bountyUtil';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Clock } from 'lucide-react';
 
 interface ReviewStatusBannerProps {
   bounties: Bounty[];
@@ -38,8 +38,8 @@ export const ReviewStatusBanner = ({ bounties }: ReviewStatusBannerProps) => {
     return (
       <Alert
         variant="warning"
-        className="mb-6"
-        icon={<AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />}
+        className="mb-6 bg-amber-50 text-amber-800 border border-amber-300"
+        icon={<Clock className="h-4 w-4 shrink-0 mt-0.5 text-amber-800" />}
       >
         <div className="flex flex-col gap-1">
           <div className="font-semibold">Editor Assessment Period</div>
