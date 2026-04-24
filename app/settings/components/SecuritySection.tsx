@@ -7,12 +7,14 @@ import { formatDate } from '@/utils/date';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { EnableMfaModal } from './EnableMfaModal';
+import { DisableMfaModal } from './DisableMfaModal';
 
 export function SecuritySection() {
   const [status, setStatus] = useState<MfaStatusApiResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEnableOpen, setIsEnableOpen] = useState(false);
+  const [isDisableOpen, setIsDisableOpen] = useState(false);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -42,6 +44,11 @@ export function SecuritySection() {
         {!isLoading && !error && !status?.mfa_enabled && (
           <Button onClick={() => setIsEnableOpen(true)}>Enable</Button>
         )}
+        {!isLoading && !error && status?.mfa_enabled && (
+          <Button variant="outlined" onClick={() => setIsDisableOpen(true)}>
+            Disable
+          </Button>
+        )}
       </header>
 
       {isLoading ? (
@@ -65,6 +72,12 @@ export function SecuritySection() {
       <EnableMfaModal
         isOpen={isEnableOpen}
         onClose={() => setIsEnableOpen(false)}
+        onSuccess={fetchStatus}
+      />
+
+      <DisableMfaModal
+        isOpen={isDisableOpen}
+        onClose={() => setIsDisableOpen(false)}
         onSuccess={fetchStatus}
       />
     </section>
