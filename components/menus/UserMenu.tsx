@@ -52,7 +52,7 @@ export default function UserMenu({
   const [isMobile, setIsMobile] = useState(false);
   const { openVerificationModal } = useVerification();
   const searchParams = useSearchParams();
-  const showSettingsLink = searchParams?.has('security') ?? false;
+  const showSettingsLink = searchParams?.has('ff-settings') ?? false;
   // Use controlled or uncontrolled menu state
   const menuOpenState = isMenuOpen !== undefined ? isMenuOpen : internalMenuOpen;
   const setMenuOpenState = (open: boolean) => {
