@@ -177,24 +177,6 @@ export const WorkTabs = ({
           },
         ]
       : []),
-    {
-      id: 'conversation',
-      label: (
-        <div className="flex items-center">
-          <MessageCircle className="h-4 w-4 mr-2" />
-          <span>{work.postType === 'QUESTION' ? 'Answers' : 'Conversation'}</span>
-          <span
-            className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-              activeTab === 'conversation'
-                ? 'bg-primary-100 text-primary-600'
-                : 'bg-gray-100 text-gray-600'
-            }`}
-          >
-            {metadata.metrics.conversationComments || 0}
-          </span>
-        </div>
-      ),
-    },
     // Show Reviews tab only if not a question
     ...(work.postType === 'QUESTION'
       ? []
@@ -222,6 +204,24 @@ export const WorkTabs = ({
             ),
           },
         ]),
+    {
+      id: 'conversation',
+      label: (
+        <div className="flex items-center">
+          <MessageCircle className="h-4 w-4 mr-2" />
+          <span>{work.postType === 'QUESTION' ? 'Answers' : 'Conversation'}</span>
+          <span
+            className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+              activeTab === 'conversation'
+                ? 'bg-primary-100 text-primary-600'
+                : 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            {metadata.metrics.conversationComments || 0}
+          </span>
+        </div>
+      ),
+    },
     {
       id: 'bounties',
       label: (

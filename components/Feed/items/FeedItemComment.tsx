@@ -19,7 +19,7 @@ import { TipContentModal } from '@/components/modals/TipContentModal';
 import { Badge } from '@/components/ui/Badge';
 import { useUser } from '@/contexts/UserContext';
 import { FOUNDATION_USER_ID } from '@/config/constants';
-import { Clock } from 'lucide-react';
+import { PendingAssessmentBadge } from '@/components/ui/badges/PendingAssessmentBadge';
 
 // Define the recursive rendering component for parent comments
 const RenderParentComment: FC<{ comment: ParentCommentPreview; level: number }> = ({
@@ -206,26 +206,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
               ) : (
                 renderAwardedBadge()
               ))}
-            {isPendingAssessment && (
-              <Tooltip
-                content={
-                  <div className="text-left">
-                    This review has not yet been assessed by the ResearchHub Foundation Editor Team.
-                    Interpret with caution.
-                  </div>
-                }
-                position="top"
-                width="w-[280px]"
-              >
-                <Badge
-                  variant="default"
-                  className="gap-1.5 py-1 border-amber-300 bg-amber-50 text-amber-800 cursor-help"
-                >
-                  <Clock className="h-3.5 w-3.5" />
-                  Pending assessment
-                </Badge>
-              </Tooltip>
-            )}
+            {isPendingAssessment && <PendingAssessmentBadge />}
           </div>
         )}
 
