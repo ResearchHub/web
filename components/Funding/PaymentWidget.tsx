@@ -17,6 +17,7 @@ import {
 } from './lib';
 import { CreditCardForm, type StripePaymentContext } from './CreditCardForm';
 import { useEndaoment } from '@/contexts/EndaomentContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { EndaomentFundSelector } from '@/components/Endaoment/EndaomentFundSelector';
 import { useDisconnectEndaoment } from '@/components/Endaoment/lib/hooks/useDisconnectEndaoment';
 import { EndaomentFund } from '@/services/endaoment.service';
@@ -25,7 +26,7 @@ import { formatUsdValue } from '@/utils/number';
 interface PaymentOption {
   id: PaymentMethodType;
   title: string;
-  description?: string; // Optional - only for RSC and Endaoment
+  description?: React.ReactNode; // Optional - only for RSC and Endaoment
   icon: React.ReactNode;
   badge?: string;
 }
@@ -37,8 +38,10 @@ interface PaymentWidgetProps {
   amountInUsd: number;
   /** Amount display string (e.g., "$100.00") */
   amountDisplay: string;
-  /** User's RSC balance */
+  /** User's spendable RSC balance */
   rscBalance: number;
+  /** User's locked RSC balance (earned funding credits) */
+  lockedBalance?: number;
   /** Called when user clicks "Preview Payment" (for payment methods with preview) */
   onPreviewTransaction: (paymentMethod: Exclude<PaymentMethodType, 'endaoment' | 'other'>) => void;
   /** Called when user clicks "Login to Endaoment" */
@@ -75,6 +78,7 @@ export function PaymentWidget({
   amountInUsd,
   amountDisplay,
   rscBalance,
+  lockedBalance = 0,
   onPreviewTransaction,
   onEndaomentLogin,
   onDepositRsc,
@@ -135,14 +139,30 @@ export function PaymentWidget({
     onEndaomentFundSelected?.(selectedEndaomentFund);
   }, [selectedEndaomentFund, onEndaomentFundSelected]);
 
-  const formatRsc = (amount: number) =>
-    `${amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} RSC`;
+  const { exchangeRate } = useExchangeRate();
+  const formatWhole = (amount: number) =>
+    amount.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  const renderRscBalance = (rsc: number) => {
+    const usd = exchangeRate ? rsc * exchangeRate : 0;
+    return (
+      <>
+        <span className="text-gray-700 font-medium">${formatWhole(usd)}</span>
+        <span className="text-gray-500"> · {formatWhole(rsc)} RSC</span>
+      </>
+    );
+  };
 
   const paymentOptions: PaymentOption[] = [
     {
+      id: 'funding_credits',
+      title: 'Funding Credits',
+      description: renderRscBalance(lockedBalance),
+      icon: <ResearchCoinIcon size={18} color="#6366f1" outlined />,
+    },
+    {
       id: 'rsc',
       title: 'ResearchCoin',
-      description: `Balance: ${formatRsc(rscBalance)}`,
+      description: renderRscBalance(rscBalance),
       icon: <ResearchCoinIcon size={18} />,
     },
     {
@@ -196,6 +216,9 @@ export function PaymentWidget({
   //   options that may not be available
   const visiblePaymentOptions = paymentOptions.filter((option) => {
     if (HIDDEN_PAYMENT_METHODS.includes(option.id)) return false;
+    if (option.id === 'funding_credits') {
+      return lockedBalance > 0;
+    }
     if (option.id === 'endaoment') {
       return hasNonprofit;
     }

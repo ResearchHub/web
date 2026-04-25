@@ -108,9 +108,10 @@ function ContributeToFundraiseModalInner({
     stripeContextRef.current = context;
   }, []);
 
-  // Get balance from user fields
-  // Use totalRsc since users can use both available RSC and funding credits for funding
-  const rscBalance = user?.totalRsc ?? 0;
+  // Spendable RSC (available balance, excluding locked/earned credits)
+  const rscBalance = user?.balance ?? 0;
+  // Earned funding credits (locked RSC) — offered as its own payment method
+  const lockedBalance = user?.lockedBalance ?? 0;
 
   // Calculate conversions
   const rscToUsd = (rsc: number) => (exchangeRate ? rsc * exchangeRate : 0);
@@ -216,9 +217,16 @@ function ContributeToFundraiseModalInner({
       setIsContributing(true);
       setError(null);
 
-      if (paymentMethod === 'rsc') {
-        // Direct RSC payment from user's balance
-        await FundraiseService.contributeToFundraise(fundraise.id, amountInRsc, 'rsc');
+      if (paymentMethod === 'rsc' || paymentMethod === 'funding_credits') {
+        // RSC-based contribution. Locked funding credits are consumed when the
+        // user picks the Funding Credits option; otherwise the backend draws
+        // from spendable balance only.
+        await FundraiseService.contributeToFundraise(
+          fundraise.id,
+          amountInRsc,
+          'rsc',
+          paymentMethod === 'funding_credits'
+        );
         toast.success('Your contribution has been successfully added to the fundraise.');
       } else if (paymentMethod === 'credit_card') {
         // Credit card payment flow:
@@ -467,6 +475,7 @@ function ContributeToFundraiseModalInner({
             amountInUsd={amountUsd}
             amountDisplay={getAmountDisplay()}
             rscBalance={rscBalance}
+            lockedBalance={lockedBalance}
             fundraiseId={fundraise.id}
             isProcessing={isContributing}
             error={error}

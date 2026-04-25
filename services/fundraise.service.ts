@@ -26,7 +26,8 @@ export class FundraiseService {
   static async contributeToFundraise(
     fundraiseId: ID,
     amount: number,
-    currency: 'usd' | 'rsc' = 'rsc'
+    currency: 'usd' | 'rsc' = 'rsc',
+    useCredits: boolean = false
   ): Promise<Fundraise> {
     // Round RSC amounts to 3 decimal places for API compatibility
     const finalAmount = currency === 'rsc' ? roundRscAmount(amount) : amount;
@@ -36,6 +37,7 @@ export class FundraiseService {
       {
         amount: finalAmount,
         currency,
+        use_credits: useCredits,
       }
     );
     return transformFundraise(response);
@@ -81,7 +83,12 @@ export class FundraiseService {
    * @returns The updated fundraise
    */
   static async createContribution(id: ID, payload: any): Promise<Fundraise> {
-    return this.contributeToFundraise(id, payload.amount, payload.currency || 'rsc');
+    return this.contributeToFundraise(
+      id,
+      payload.amount,
+      payload.currency || 'rsc',
+      payload.useCredits ?? false
+    );
   }
 
   /**
