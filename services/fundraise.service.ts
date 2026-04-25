@@ -27,7 +27,7 @@ export class FundraiseService {
     fundraiseId: ID,
     amount: number,
     currency: 'usd' | 'rsc' = 'rsc',
-    applyFundingCredits: boolean = false
+    useCredits: boolean = false
   ): Promise<Fundraise> {
     // Round RSC amounts to 3 decimal places for API compatibility
     const finalAmount = currency === 'rsc' ? roundRscAmount(amount) : amount;
@@ -37,7 +37,7 @@ export class FundraiseService {
       {
         amount: finalAmount,
         currency,
-        apply_funding_credits: applyFundingCredits,
+        use_credits: useCredits,
       }
     );
     return transformFundraise(response);
@@ -87,7 +87,7 @@ export class FundraiseService {
       id,
       payload.amount,
       payload.currency || 'rsc',
-      payload.applyFundingCredits ?? false
+      payload.useCredits ?? false
     );
   }
 

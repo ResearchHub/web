@@ -7,7 +7,6 @@ export { PaymentRequestButton } from './PaymentRequestButton';
 export { StripeProvider } from './StripeProvider';
 export { FundingImpactPreview } from './FundingImpactPreview';
 export { QuickAmountSelector } from './QuickAmountSelector';
-export { FundingCreditsToggle } from './FundingCreditsToggle';
 
 // Funding feed components
 export { FundingProposalCard } from './FundingProposalCard';

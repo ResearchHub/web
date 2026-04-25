@@ -10,9 +10,7 @@ import { PaymentWidget } from './PaymentWidget';
 import { PaymentRequestButton } from './PaymentRequestButton';
 import { EndaomentPaymentButton } from '@/components/Endaoment/EndaomentPaymentButton';
 import { InsufficientBalanceAlert } from './InsufficientBalanceAlert';
-import { FundingCreditsToggle } from './FundingCreditsToggle';
 import { EndaomentInsufficientFundsAlert } from '@/components/Endaoment/EndaomentInsufficientFundsAlert';
-import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import type { EndaomentFund } from '@/services/endaoment.service';
 import {
   usePaymentCalculations,
@@ -41,10 +39,6 @@ interface PaymentStepProps {
   rscBalance: number;
   /** User's locked RSC balance (earned funding credits) */
   lockedBalance?: number;
-  /** Whether funding credits should be applied on top of the primary payment method */
-  applyFundingCredits?: boolean;
-  /** Called when the funding credits toggle changes */
-  onApplyFundingCreditsChange?: (checked: boolean) => void;
   /** Fundraise ID for payment request button */
   fundraiseId: ID;
   /** Wallet payment method availability from Stripe (resolved at modal level) */
@@ -79,8 +73,6 @@ export function PaymentStep({
   amountDisplay,
   rscBalance,
   lockedBalance = 0,
-  applyFundingCredits = false,
-  onApplyFundingCreditsChange,
   fundraiseId,
   walletAvailability,
   hasNonprofit = false,
@@ -92,19 +84,16 @@ export function PaymentStep({
   onDepositRsc,
   onStripeReady,
 }: PaymentStepProps) {
-  const { exchangeRate } = useExchangeRate();
-  // Credits top up the spendable balance only when the toggle is on.
-  const effectiveRscBalance = rscBalance + (applyFundingCredits ? lockedBalance : 0);
-
   const defaultPaymentMethod = useMemo(
     () =>
       getDefaultPaymentMethod(
-        effectiveRscBalance,
+        rscBalance,
+        lockedBalance,
         amountInRsc,
         PLATFORM_FEE_PERCENTAGE_RSC,
         walletAvailability
       ),
-    [effectiveRscBalance, amountInRsc, walletAvailability]
+    [rscBalance, lockedBalance, amountInRsc, walletAvailability]
   );
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | null>(
@@ -120,11 +109,14 @@ export function PaymentStep({
   const [isCreditCardComplete, setIsCreditCardComplete] = useState(false);
   const [selectedEndaomentFund, setSelectedEndaomentFund] = useState<EndaomentFund | null>(null);
 
-  // Get RSC balance check (only relevant for RSC payment method)
+  // Balance check uses the balance that matches the selected method
+  // (spendable RSC for 'rsc', locked balance for 'funding_credits').
+  const balanceForSelectedMethod =
+    selectedMethod === 'funding_credits' ? lockedBalance : rscBalance;
   const { insufficientBalance } = usePaymentCalculations({
     amountInRsc,
-    rscBalance: effectiveRscBalance,
-    paymentMethod: 'rsc',
+    rscBalance: balanceForSelectedMethod,
+    paymentMethod: selectedMethod === 'funding_credits' ? 'funding_credits' : 'rsc',
   });
 
   // Calculate fees in USD - fees are ADDED on top of user's input
@@ -142,22 +134,13 @@ export function PaymentStep({
       PAYMENT_PROCESSING_FEE.fixedCents / 100
     : 0;
 
-  const preCreditsTotalUsd = amountInUsd + platformFeeUsd + processingFeeUsd;
+  const totalDueUsd = amountInUsd + platformFeeUsd + processingFeeUsd;
 
-  // Cap so the remainder never goes negative; backend is source of truth.
-  const lockedBalanceUsd = exchangeRate ? lockedBalance * exchangeRate : 0;
-  const creditsAppliedUsd =
-    applyFundingCredits && lockedBalance > 0 ? Math.min(lockedBalanceUsd, preCreditsTotalUsd) : 0;
-
-  const totalDueUsd = Math.max(0, preCreditsTotalUsd - creditsAppliedUsd);
-  const creditsCoverFullAmount = applyFundingCredits && totalDueUsd === 0;
-
-  // Format USD
   const formatUsd = (amount: number) =>
     `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  // Check if selected method has insufficient balance
-  const isRscInsufficientBalance = selectedMethod === 'rsc' && insufficientBalance;
+  const isRscInsufficientBalance =
+    (selectedMethod === 'rsc' || selectedMethod === 'funding_credits') && insufficientBalance;
 
   // Check if selected Endaoment fund has insufficient balance
   const isEndaomentInsufficientBalance = Boolean(
@@ -169,21 +152,15 @@ export function PaymentStep({
   // Check if credit card is selected but not complete
   const isCreditCardIncomplete = selectedMethod === 'credit_card' && !isCreditCardComplete;
 
-  // Determine if button should be disabled
-  const isDisabled = creditsCoverFullAmount
-    ? isProcessing
-    : isProcessing || !selectedMethod || isRscInsufficientBalance || isCreditCardIncomplete;
+  const isDisabled =
+    isProcessing || !selectedMethod || isRscInsufficientBalance || isCreditCardIncomplete;
 
   const handleConfirm = useCallback(() => {
-    if (creditsCoverFullAmount) {
-      onConfirmPayment('rsc');
-      return;
-    }
     // Endaoment uses a separate flow (handleEndaomentConfirm).
     if (selectedMethod && selectedMethod !== 'endaoment') {
       onConfirmPayment(selectedMethod);
     }
-  }, [creditsCoverFullAmount, selectedMethod, onConfirmPayment]);
+  }, [selectedMethod, onConfirmPayment]);
 
   const handleEndaomentConfirm = useCallback(() => {
     if (selectedEndaomentFund && onEndaomentPaymentConfirm) {
@@ -226,6 +203,7 @@ export function PaymentStep({
           amountInUsd={amountInUsd}
           amountDisplay={amountDisplay}
           rscBalance={rscBalance}
+          lockedBalance={lockedBalance}
           onPreviewTransaction={handlePreviewTransaction}
           onDepositRsc={onDepositRsc}
           selectedPaymentMethod={selectedMethod}
@@ -237,17 +215,6 @@ export function PaymentStep({
           walletAvailability={walletAvailability}
           hasNonprofit={hasNonprofit}
         />
-
-        {lockedBalance > 0 && onApplyFundingCreditsChange && (
-          <div className="border-b border-gray-100 pb-4">
-            <FundingCreditsToggle
-              lockedBalance={lockedBalance}
-              contributionAmountUsd={preCreditsTotalUsd}
-              checked={applyFundingCredits}
-              onCheckedChange={onApplyFundingCreditsChange}
-            />
-          </div>
-        )}
 
         {/* Receipt-style line items */}
         {selectedMethod && (
@@ -299,7 +266,7 @@ export function PaymentStep({
                   >
                     <Info className="h-4 w-4 text-gray-500 cursor-help" />
                   </Tooltip>
-                  {selectedMethod === 'rsc' && (
+                  {(selectedMethod === 'rsc' || selectedMethod === 'funding_credits') && (
                     <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
                       Lowest fee
                     </span>
@@ -309,7 +276,7 @@ export function PaymentStep({
               </div>
 
               {/* Payment processing fee - only for non-RSC methods */}
-              {hasProcessingFee && !creditsCoverFullAmount && (
+              {hasProcessingFee && (
                 <div className="py-1.5 flex items-center justify-between">
                   <span className="text-sm text-gray-600">
                     Payment processing ({PAYMENT_PROCESSING_FEE.percentage}% + $0.30)
@@ -318,18 +285,20 @@ export function PaymentStep({
                 </div>
               )}
 
-              {/* Funding credits applied */}
-              {creditsAppliedUsd > 0 && (
-                <div className="py-1.5 flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Funding credits applied</span>
-                  <span className="text-sm text-green-700">-{formatUsd(creditsAppliedUsd)}</span>
-                </div>
-              )}
-
               {/* Total due with divider */}
-              <div className="pt-3 mt-2 flex items-center justify-between border-t border-gray-200">
+              <div className="pt-3 mt-2 flex items-start justify-between border-t border-gray-200">
                 <span className="text-base font-semibold text-gray-900">Total Due</span>
-                <span className="text-lg font-bold text-gray-900">{formatUsd(totalDueUsd)}</span>
+                <div className="flex flex-col items-end">
+                  <span className="text-lg font-bold text-gray-900">{formatUsd(totalDueUsd)}</span>
+                  {(selectedMethod === 'rsc' || selectedMethod === 'funding_credits') && (
+                    <span className="text-xs text-gray-500">
+                      {(amountInRsc * (1 + currentFeePercentage / 100)).toLocaleString(undefined, {
+                        maximumFractionDigits: 0,
+                      })}{' '}
+                      RSC
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -355,23 +324,11 @@ export function PaymentStep({
       {/* Payment Button - pinned to bottom */}
       {selectedMethod && (
         <div className="pt-6">
-          {creditsCoverFullAmount ? (
-            // Route through RSC regardless of selected method to avoid a $0 Stripe charge.
-            <Button
-              type="button"
-              variant="default"
-              disabled={isProcessing}
-              className="w-full h-12 text-base"
-              onClick={handleConfirm}
-            >
-              {isProcessing ? 'Processing...' : 'Confirm'}
-            </Button>
-          ) : selectedMethod === 'apple_pay' || selectedMethod === 'google_pay' ? (
+          {selectedMethod === 'apple_pay' || selectedMethod === 'google_pay' ? (
             <PaymentRequestButton
               amountCents={Math.round(totalDueUsd * 100)}
               amountInRsc={amountInRsc}
               fundraiseId={fundraiseId}
-              applyFundingCredits={applyFundingCredits}
               label="Fund Research"
               unavailableText={
                 selectedMethod === 'apple_pay'
