@@ -18,7 +18,6 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { TipContentModal } from '@/components/modals/TipContentModal';
 import { Badge } from '@/components/ui/Badge';
 import { useUser } from '@/contexts/UserContext';
-import { FOUNDATION_USER_ID } from '@/config/constants';
 import { PendingAssessmentBadge } from '@/components/ui/badges/PendingAssessmentBadge';
 import { isFoundationBounty } from '@/components/Bounty/lib/bountyUtil';
 import { useOptionalComments } from '@/contexts/CommentContext';
@@ -119,11 +118,7 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
   // Check if current user is the comment author to prevent self-tipping
   const isCurrentUserAuthor = user?.authorProfile?.id === author?.id;
-  const isAwardedByFoundation = entry.awardedBountyAmount && entry.awardedBountyAmount > 0;
-  const hasFoundationTip =
-    FOUNDATION_USER_ID != null &&
-    (entry.tips || []).some((tip) => tip?.user?.id === FOUNDATION_USER_ID);
-  const isAssessedByFoundation = Boolean(isAwardedByFoundation) || hasFoundationTip;
+  const isAssessedByFoundation = Boolean(entry.isAssessed ?? comment.isAssessed);
   const commentsContext = useOptionalComments();
   const workBounties = commentsContext?.workBounties || [];
   const hasActiveFoundationBounty = workBounties.some(
