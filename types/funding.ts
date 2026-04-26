@@ -3,6 +3,7 @@ import { createTransformer } from './transformer';
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { transformUser, User } from './user';
 import { transformAiPeerReviewFeedSummary, type AiPeerReviewFeedSummary } from './aiPeerReview';
+import type { Review } from './feed';
 
 export type FundraiseStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
 
@@ -110,6 +111,7 @@ export interface Application {
   preregistrationPostId?: number;
   fundraise?: ApplicationFundraise;
   aiPeerReview?: AiPeerReviewFeedSummary | null;
+  reviews?: Review[];
 }
 
 export function transformApplication(raw: any): Application {
@@ -118,6 +120,21 @@ export function transformApplication(raw: any): Application {
     preregistrationPostId: raw.preregistration_post_id ?? undefined,
     fundraise: raw.fundraise ? transformApplicationFundraise(raw.fundraise) : undefined,
     aiPeerReview: transformAiPeerReviewFeedSummary(raw.ai_peer_review),
+    reviews: Array.isArray(raw.fundraise?.reviews)
+      ? raw.fundraise.reviews.map((review: any) => ({
+          id: review.id,
+          score: review.score,
+          author: transformAuthorProfile(review.author),
+          isAssessed: review.is_assessed ?? false,
+        }))
+      : Array.isArray(raw.reviews)
+        ? raw.reviews.map((review: any) => ({
+            id: review.id,
+            score: review.score,
+            author: transformAuthorProfile(review.author),
+            isAssessed: review.is_assessed ?? false,
+          }))
+        : [],
   };
 }
 

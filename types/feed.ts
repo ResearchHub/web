@@ -69,6 +69,7 @@ export interface Review {
   id: number;
   score: number;
   author: AuthorProfile;
+  isAssessed?: boolean;
 }
 
 // Create a base interface for all feed content types
@@ -672,6 +673,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                 id: review.id,
                 score: review.score,
                 author: transformAuthorProfile(review.author),
+                isAssessed: review.is_assessed ?? false,
               }))
             : [],
         };

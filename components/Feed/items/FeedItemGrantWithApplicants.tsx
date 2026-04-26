@@ -10,6 +10,8 @@ import { ArrowRight, CalendarOff, Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { AiVerdictBadge } from '@/components/Feed/AiVerdictBadge';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { buildWorkUrl, generateSlug } from '@/utils/url';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -56,6 +58,11 @@ const ProposalRow: FC<ProposalRowProps> = ({
     slug: fundraise.title ? generateSlug(fundraise.title) : undefined,
   });
 
+  const reviews = application.reviews ?? [];
+  const reviewAvg =
+    reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.score, 0) / reviews.length : 0;
+  const hasReviews = reviews.length > 0;
+
   return (
     <Link
       href={proposalHref}
@@ -89,13 +96,28 @@ const ProposalRow: FC<ProposalRowProps> = ({
               <span className="text-[11px] text-gray-500 truncate">{fundraise.nonprofit.name}</span>
             </>
           )}
-          {fundraise.reviewMetrics && fundraise.reviewMetrics.avg > 0 && (
+          {hasReviews && (
             <>
               <span className="text-gray-300">·</span>
-              <span className="inline-flex items-center gap-1 text-[12px] text-gray-600 whitespace-nowrap">
-                <Star size={12} className="fill-amber-400 text-amber-400" />
-                {fundraise.reviewMetrics.avg.toFixed(1)}
-              </span>
+              <Tooltip
+                content={
+                  <PeerReviewTooltip
+                    reviews={reviews}
+                    averageScore={reviewAvg}
+                    href={proposalHref}
+                  />
+                }
+                position="top"
+                width="w-[320px]"
+              >
+                <span
+                  className="inline-flex items-center gap-1 text-[12px] text-gray-600 whitespace-nowrap cursor-help"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Star size={12} className="fill-amber-400 text-amber-400" />
+                  {reviewAvg.toFixed(1)}
+                </span>
+              </Tooltip>
             </>
           )}
           {showAiVerdict && application.aiPeerReview?.overallRating === 'excellent' && (
