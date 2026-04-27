@@ -7,10 +7,13 @@ import type { MfaStatusApiResponse } from '@/services/types';
 import { formatDate } from '@/utils/date';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { useUser } from '@/contexts/UserContext';
 import { EnableMfaModal } from './EnableMfaModal';
 import { DisableMfaModal } from './DisableMfaModal';
 
 export function SecuritySection() {
+  const { user } = useUser();
+  const isGoogleAccount = user?.authProvider === 'google';
   const [status, setStatus] = useState<MfaStatusApiResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,8 +52,13 @@ export function SecuritySection() {
             <p className="text-sm text-gray-500">
               Add an extra layer of security by requiring a one-time code at sign-in.
             </p>
+            {isGoogleAccount && (
+              <p className="mt-1 text-sm italic text-gray-400">
+                Not yet available for Google accounts.
+              </p>
+            )}
           </div>
-          {!isLoading && !error && !status?.mfa_enabled && (
+          {!isLoading && !error && !status?.mfa_enabled && !isGoogleAccount && (
             <Button onClick={() => setIsEnableOpen(true)}>Enable</Button>
           )}
           {!isLoading && !error && status?.mfa_enabled && (
