@@ -117,6 +117,13 @@ export function WorkHeader({
     tab: 'bounties',
   });
 
+  const reviewsTabUrl = buildWorkUrl({
+    id: work.id,
+    contentType: work.contentType,
+    slug: work.slug,
+    tab: 'reviews',
+  });
+
   const { setActiveTab } = useWorkTab();
 
   const shareAction = () =>
@@ -133,7 +140,11 @@ export function WorkHeader({
 
   const resolvedEyebrow = eyebrowOverride !== undefined ? eyebrowOverride : defaultEyebrow;
   const resolvedSubtitle =
-    subtitleOverride !== undefined ? subtitleOverride : <WorkHeaderSubtitle work={work} />;
+    subtitleOverride !== undefined ? (
+      subtitleOverride
+    ) : (
+      <WorkHeaderSubtitle work={work} metadata={metadata} reviewsUrl={reviewsTabUrl} />
+    );
 
   const btnClass =
     'p-2 flex items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors';

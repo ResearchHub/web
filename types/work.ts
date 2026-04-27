@@ -26,6 +26,7 @@ export interface PeerReview {
   createdDate: string;
   /** First-sentence excerpt of the review body, if provided by the API. */
   contentPreview?: string;
+  isAssessed?: boolean;
 }
 
 export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration' | 'funding_request';
@@ -223,6 +224,7 @@ export function transformPeerReview(raw: any): PeerReview {
     score: raw.score ?? 0,
     createdDate: raw.created_date || '',
     contentPreview: extractFirstSentence(raw),
+    isAssessed: raw.is_assessed ?? false,
   };
 }
 
