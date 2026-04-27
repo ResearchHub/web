@@ -21,6 +21,7 @@ export function PeerReviewTooltip({ reviews, averageScore, href }: PeerReviewToo
 
   const assessedReviews = reviews.filter((r) => r.isAssessed);
   const visibleReviews = assessedReviews.slice(0, MAX_VISIBLE_REVIEWERS);
+  const reviewsHref = href ? (href.endsWith('/reviews') ? href : `${href}/reviews`) : undefined;
 
   return (
     <div className="space-y-3 text-left" onClick={handleClick}>
@@ -62,9 +63,9 @@ export function PeerReviewTooltip({ reviews, averageScore, href }: PeerReviewToo
 
       {/* CTA */}
       <div className="pt-2 border-t border-gray-200 text-center">
-        {href ? (
+        {reviewsHref ? (
           <Link
-            href={`${href}/reviews`}
+            href={reviewsHref}
             className="text-sm text-primary-600 hover:text-primary-700 cursor-pointer font-medium"
           >
             View all reviews
