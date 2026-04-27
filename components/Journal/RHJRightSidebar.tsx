@@ -11,7 +11,7 @@ interface RHJRightSidebarProps {
 
 const quickLinks = [
   {
-    href: 'https://drive.google.com/file/d/1qKlGnNSA-98kg-RhmTFKYVB85X0PJWYr/view?usp=sharing',
+    href: 'https://docs.researchhub.com/researchhub-foundation/programs-and-initiatives/researchhub-journal-rhj/author-guidelines',
     text: 'Author Guidelines',
     icon: Feather,
   },

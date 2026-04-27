@@ -6,7 +6,7 @@ import {
   faGrid3 as faGrid3Light,
   faMagnifyingGlass,
 } from '@fortawesome/pro-light-svg-icons';
-import { ChartNoAxesColumnIncreasing, Shield, Hash, Users, Activity } from 'lucide-react';
+import { ChartNoAxesColumnIncreasing, Shield, Hash, Users, Activity, Settings } from 'lucide-react';
 import Image from 'next/image';
 import { Icon } from '@/components/ui/icons';
 import { getTopicEmoji } from '@/components/Topic/TopicEmojis';
@@ -35,6 +35,7 @@ export const ROOT_NAVIGATION_PATHS = new Set([
   '/browse',
   '/leaderboard',
   '/lists',
+  '/settings',
 ]);
 
 export const isRootNavigationPage = (pathname: string): boolean =>
@@ -142,6 +143,13 @@ const ROUTE_RULES: RouteRule[] = [
     getInfo: () => ({
       title: 'Activity',
       icon: <Activity size={24} className="text-gray-900" />,
+    }),
+  },
+  {
+    match: (p) => p === '/settings' || p.startsWith('/settings/'),
+    getInfo: () => ({
+      title: 'Settings',
+      icon: <Settings size={24} className="text-gray-900" />,
     }),
   },
   {

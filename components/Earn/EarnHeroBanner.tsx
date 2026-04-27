@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { Button } from '@/components/ui/Button';
 import { BaseModal } from '@/components/ui/BaseModal';
-import { Search, FileText, Coins, ExternalLink, BookOpen, ClipboardList } from 'lucide-react';
+import { Search, FileText, Coins, ExternalLink, BookOpen } from 'lucide-react';
 
 const steps = [
   {
@@ -69,7 +69,7 @@ export function EarnHeroBanner() {
           <h3 className="text-sm font-semibold text-gray-900 mb-4">Resources</h3>
           <div className="space-y-3">
             <a
-              href="https://blog.researchhub.foundation/peer-reviewing-on-researchhub/"
+              href="https://docs.researchhub.com/researchhub-foundation/programs-and-initiatives/peer-review-program/peer-review-guidelines"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-between gap-3 text-sm text-blue-600 hover:text-blue-700 transition-colors"
@@ -77,18 +77,6 @@ export function EarnHeroBanner() {
               <span className="flex items-center gap-2.5">
                 <BookOpen size={16} className="flex-shrink-0" />
                 Peer Review Walkthrough
-              </span>
-              <ExternalLink size={14} className="flex-shrink-0 text-gray-400" />
-            </a>
-            <a
-              href="https://drive.google.com/file/d/1t7NpL39ghnBY9ImWjuunbc6gzmzrhqUt/view?ref=blog.researchhub.foundation"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-between gap-3 text-sm text-blue-600 hover:text-blue-700 transition-colors"
-            >
-              <span className="flex items-center gap-2.5">
-                <ClipboardList size={16} className="flex-shrink-0" />
-                Peer Review Guidelines (Preprint)
               </span>
               <ExternalLink size={14} className="flex-shrink-0 text-gray-400" />
             </a>

@@ -1,7 +1,7 @@
 'use client';
 
 import { EditorContent } from '@tiptap/react';
-import { useRef, useCallback, useState } from 'react';
+import { useRef, useCallback, useState, useEffect } from 'react';
 import 'highlight.js/styles/atom-one-dark.css';
 import { CommentType } from '@/types/comment';
 import { useCommentEditor } from './lib/hooks/useCommentEditor';
@@ -14,6 +14,8 @@ import { EditorModals } from './components/EditorModals';
 import { CommentContent } from './lib/types';
 import { useIsMac } from '@/hooks/useIsMac';
 import { CommentEditorBanner } from './components/CommentEditorBanner';
+import { ConfirmModal } from '@/components/modals/ConfirmModal';
+import { CollapsedCommentEditor } from './CollapsedCommentEditor';
 
 const REVIEW_WORD_LIMIT = 3000;
 
@@ -70,6 +72,10 @@ export const CommentEditor = ({
   const [isBountyReplyBannerDismissed, setIsBountyReplyBannerDismissed] = useState(false);
   const isMac = useIsMac();
   const isReview = commentType === 'REVIEW';
+  const [isCollapsed, setIsCollapsed] = useState(
+    !isReadOnly && !editing && !autoFocus && (initialContent === '' || initialContent == null)
+  );
+  const [isDiscardModalOpen, setIsDiscardModalOpen] = useState(false);
 
   // Ref to store refetchAvailability from render prop for use in handler
   const refetchAvailabilityRef = useRef<() => void>(() => {});
@@ -195,7 +201,41 @@ export const CommentEditor = ({
     });
   }
 
+  // Auto-expand if a draft was restored into the editor
+  useEffect(() => {
+    if (!editor || !isCollapsed) return;
+    const text = editor.getText().trim();
+    if (text.length > 0) setIsCollapsed(false);
+  }, [editor, isCollapsed]);
+
+  const handleExpand = useCallback(() => {
+    setIsCollapsed(false);
+    setTimeout(() => editor?.commands.focus('end'), 0);
+  }, [editor]);
+
+  const handleDiscard = useCallback(() => {
+    if (editor && editor.getText().trim().length > 0) {
+      setIsDiscardModalOpen(true);
+      return;
+    }
+    setIsCollapsed(true);
+  }, [editor]);
+
+  const confirmDiscard = useCallback(() => {
+    if (editor) {
+      editor.commands.clearContent();
+    }
+    clearDraft();
+    setRating(0);
+    setSectionRatings({});
+    setIsCollapsed(true);
+  }, [editor, clearDraft, setRating, setSectionRatings]);
+
   if (!editor) return null;
+
+  if (isCollapsed) {
+    return <CollapsedCommentEditor commentType={commentType} onExpand={handleExpand} />;
+  }
 
   const renderEditor = (canReview: boolean, banner: React.ReactNode = null) => (
     <div className="relative border border-gray-200 rounded-lg overflow-hidden bg-white focus-within:ring-blue-500 focus-within:border-blue-500 transition-all duration-200">
@@ -255,6 +295,7 @@ export const CommentEditor = ({
           formatLastSaved={formatLastSaved}
           onCancel={onCancel}
           onReset={onReset}
+          onDiscard={!onCancel && !editing ? handleDiscard : undefined}
           onSubmit={handleSubmit}
           clearDraft={clearDraft}
           isSubmitting={isSubmitting}
@@ -264,6 +305,16 @@ export const CommentEditor = ({
           wordLimit={wordLimit}
         />
       )}
+
+      {/* Discard confirmation */}
+      <ConfirmModal
+        isOpen={isDiscardModalOpen}
+        onClose={() => setIsDiscardModalOpen(false)}
+        onConfirm={confirmDiscard}
+        title="Discard draft?"
+        message="Your draft will be deleted and cannot be recovered."
+        confirmText="Discard"
+      />
 
       {/* Modals */}
       <EditorModals

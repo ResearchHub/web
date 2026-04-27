@@ -1,25 +1,47 @@
+import { Metadata } from 'next';
+import { buildOpenGraphMetadata, SITE_CONFIG } from '@/lib/metadata';
+import { generateFAQStructuredData } from '@/lib/structured-data';
 import { LeftSidebar as MainLeftSidebar } from '../layouts/LeftSidebar';
-import { SITE_CONFIG } from '@/lib/metadata';
 
-export const generateMetadata = () => ({
-  title: 'About | ResearchHub',
-  description: 'Learn more about ResearchHub, our mission, and the team behind the platform.',
-  openGraph: {
-    title: 'About | ResearchHub',
-    description: 'Learn more about ResearchHub, our mission, and the team behind the platform.',
-    url: `${SITE_CONFIG.url}/about`,
-    type: 'website',
-    images: [SITE_CONFIG.ogImage],
+const faqItems = [
+  {
+    question: 'Is content created on ResearchHub open?',
+    answer:
+      'Yes. User contributions to ResearchHub are shared under the Creative Commons Attribution License (CC BY 4.0), allowing anyone to reuse the content for any purpose with attribution.',
   },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'About | ResearchHub',
-    description: 'Learn more about ResearchHub, our mission, and the team behind the platform.',
-    images: [SITE_CONFIG.ogImage],
+  {
+    question: 'What papers can I legally upload to ResearchHub?',
+    answer:
+      'Users can create a ResearchHub page for any paper. However, only papers released under CC BY or CC0 open licenses are eligible for fulltext PDF upload.',
   },
-});
+  {
+    question: 'Who created this site?',
+    answer:
+      'ResearchHub is being developed by a small team of passionate founders working in San Francisco, CA.',
+  },
+  {
+    question: 'How can I help?',
+    answer:
+      'Sign in, upload a paper, write or edit a summary, upvote or downvote papers, start a discussion, or follow us on Twitter.',
+  },
+];
 
-export default function AboutLayout({ children }: { children: React.ReactNode }) {
+export const metadata: Metadata = {
+  ...buildOpenGraphMetadata({
+    title: 'About',
+    description: 'Learn more about ResearchHub, our mission, and the team behind the platform.',
+    url: '/about',
+  }),
+  title: {
+    default: 'About',
+    template: `%s | ${SITE_CONFIG.name}`,
+  },
+  other: {
+    'application/ld+json': JSON.stringify(generateFAQStructuredData(faqItems)),
+  },
+};
+
+export default function AboutLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div className="min-h-screen bg-gray-50">
       <div

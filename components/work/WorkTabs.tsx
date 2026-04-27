@@ -49,9 +49,10 @@ export const WorkTabs = ({
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
 
-  const formatScore = (score: number): string => {
-    return score.toFixed(1);
-  };
+  const assessedReviewCount = useMemo(
+    () => (work.peerReviews || []).filter((r) => r.isAssessed).length,
+    [work.peerReviews]
+  );
 
   const activeBounties = useMemo(
     () => getActiveBounties(metadata.bounties || []),
@@ -177,24 +178,6 @@ export const WorkTabs = ({
           },
         ]
       : []),
-    {
-      id: 'conversation',
-      label: (
-        <div className="flex items-center">
-          <MessageCircle className="h-4 w-4 mr-2" />
-          <span>{work.postType === 'QUESTION' ? 'Answers' : 'Conversation'}</span>
-          <span
-            className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-              activeTab === 'conversation'
-                ? 'bg-primary-100 text-primary-600'
-                : 'bg-gray-100 text-gray-600'
-            }`}
-          >
-            {metadata.metrics.conversationComments || 0}
-          </span>
-        </div>
-      ),
-    },
     // Show Reviews tab only if not a question
     ...(work.postType === 'QUESTION'
       ? []
@@ -216,12 +199,30 @@ export const WorkTabs = ({
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {metadata.metrics.reviewScore ? formatScore(metadata.metrics.reviewScore) : 0}
+                  {assessedReviewCount}
                 </span>
               </div>
             ),
           },
         ]),
+    {
+      id: 'conversation',
+      label: (
+        <div className="flex items-center">
+          <MessageCircle className="h-4 w-4 mr-2" />
+          <span>{work.postType === 'QUESTION' ? 'Answers' : 'Conversation'}</span>
+          <span
+            className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+              activeTab === 'conversation'
+                ? 'bg-primary-100 text-primary-600'
+                : 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            {metadata.metrics.conversationComments || 0}
+          </span>
+        </div>
+      ),
+    },
     {
       id: 'bounties',
       label: (

@@ -2,27 +2,14 @@ import { PostService } from '@/services/post.service';
 import { Work } from '@/types/work';
 import { ChangelogEntry } from '@/components/changelog/ChangelogEntry';
 import { notFound } from 'next/navigation';
-import { Metadata } from 'next';
-import { SITE_CONFIG } from '@/lib/metadata';
+import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
 
-export const metadata: Metadata = {
-  title: 'Changelog | ResearchHub',
+export const metadata = buildOpenGraphMetadata({
+  title: 'Changelog',
   description: 'Stay updated with the latest ResearchHub product updates and improvements.',
-  openGraph: {
-    title: 'Changelog | ResearchHub',
-    description: 'Stay updated with the latest ResearchHub product updates and improvements.',
-    url: `${SITE_CONFIG.url}/changelog`,
-    type: 'website',
-    images: [SITE_CONFIG.ogImage],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Changelog | ResearchHub',
-    description: 'Stay updated with the latest ResearchHub product updates and improvements.',
-    images: [SITE_CONFIG.ogImage],
-  },
-};
+  url: '/changelog',
+});
 
 interface PostWithContent {
   work: Work;

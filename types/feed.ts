@@ -6,6 +6,7 @@ import { Work, transformPaper, transformPost, FundingRequest, ContentType } from
 import { Bounty, BountyWithComment, transformBounty } from './bounty';
 import { Comment, CommentType, ContentFormat, transformComment } from './comment';
 import { Fundraise, transformFundraise, Application, transformApplication } from './funding';
+import { transformAiPeerReviewFeedSummary, type AiPeerReviewFeedSummary } from './aiPeerReview';
 import { Journal } from './journal';
 import { UserVoteType } from './reaction';
 import { User } from './user';
@@ -68,6 +69,7 @@ export interface Review {
   id: number;
   score: number;
   author: AuthorProfile;
+  isAssessed?: boolean;
 }
 
 // Create a base interface for all feed content types
@@ -133,6 +135,7 @@ export interface FeedCommentContent extends BaseFeedContent {
     commentType: CommentType;
     score: number;
     reviewScore?: number;
+    isAssessed?: boolean;
     thread?: {
       id: number;
       threadType: string;
@@ -291,11 +294,13 @@ export interface FeedEntry {
   userVote?: UserVoteType;
   awardedBountyAmount?: number;
   isAwardedForFoundationBounty?: boolean;
+  isAssessed?: boolean;
   hotScoreV2?: number;
   hotScoreBreakdown?: HotScoreBreakdown;
   externalMetrics?: ExternalMetrics;
   nonprofit?: Nonprofit;
   associatedGrants?: AssociatedGrant[];
+  aiPeerReview?: AiPeerReviewFeedSummary | null;
   searchMetadata?: {
     highlightedTitle?: string;
     highlightedSnippet?: string;
@@ -391,6 +396,7 @@ export interface RawApiFeedEntry {
     vote_type: number;
     item: number;
   };
+  ai_peer_review?: unknown;
   metrics?: {
     votes: number;
     adjusted_score?: number;
@@ -667,6 +673,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
                 id: review.id,
                 score: review.score,
                 author: transformAuthorProfile(review.author),
+                isAssessed: review.is_assessed ?? false,
               }))
             : [],
         };
@@ -741,6 +748,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
             commentType: content_object.comment_type as CommentType,
             score: transformedComment.score || 0,
             reviewScore: transformedComment.reviewScore || 0,
+            isAssessed: transformedComment.isAssessed ?? false,
             thread: content_object.thread_id
               ? {
                   id: content_object.thread_id,
@@ -1048,6 +1056,13 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     tips: [], // Default empty tips
     awardedBountyAmount: (content as any)?.awardedBountyAmount,
     isAwardedForFoundationBounty: (content as any)?.bounty_creator_id,
+    isAssessed:
+      (content as any)?.isAssessed ??
+      (content as any)?.review?.is_assessed ??
+      (content as any)?.is_assessed ??
+      feedEntry.content_object?.review?.is_assessed ??
+      feedEntry.content_object?.is_assessed ??
+      false,
     associatedGrants: associated_grants?.map((g) => ({
       id: g.id,
       postId: g.post_id,
@@ -1069,6 +1084,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           baseWalletAddress: nonprofit.base_wallet_address,
         }
       : undefined,
+    aiPeerReview: transformAiPeerReviewFeedSummary(feedEntry.ai_peer_review),
   } as FeedEntry;
 };
 
@@ -1133,6 +1149,7 @@ export const transformCommentToFeedItem = (
       commentType: comment.commentType,
       score: comment.score,
       reviewScore: comment.reviewScore,
+      isAssessed: comment.isAssessed ?? false,
       thread: comment.thread
         ? {
             id: comment.thread.id,
@@ -1172,6 +1189,7 @@ export const transformCommentToFeedItem = (
     awardedBountyAmount: comment.awardedBountyAmount,
     isAwardedForFoundationBounty:
       comment.bountyCreatorId?.toString() === FOUNDATION_USER_ID?.toString(),
+    isAssessed: comment.isAssessed ?? false,
   };
 };
 
@@ -1230,6 +1248,7 @@ export const transformBountyCommentToFeedItem = (
     userVote: comment.userVote,
     tips: comment.tips,
     awardedBountyAmount: comment.awardedBountyAmount,
+    isAssessed: comment.isAssessed ?? false,
   };
 };
 

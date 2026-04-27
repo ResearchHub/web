@@ -1,8 +1,17 @@
+import { Metadata } from 'next';
 import { getServerSession } from 'next-auth/next';
+import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { handleTrendingRedirect } from '@/utils/navigation';
 import { LandingPage } from '@/components/landing/LandingPage';
 import { headers } from 'next/headers';
 import { ExperimentVariant } from '@/utils/experiment';
+
+export const metadata: Metadata = buildOpenGraphMetadata({
+  title: 'Open Science Community & Research Platform',
+  description:
+    'ResearchHub is a collaborative platform for sharing, reviewing, and funding scientific research. Join the open science community.',
+  url: '/',
+});
 
 export default async function Home({
   searchParams,

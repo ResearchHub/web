@@ -24,9 +24,9 @@ export const TopBarBreadcrumb = ({ pageInfo, variant }: TopBarBreadcrumbProps) =
         className={`${isMobile ? '' : 'min-w-0 '}flex items-center gap-1.5${isMobile ? ' min-w-0' : ''}`}
       >
         {pageInfo.title ? (
-          <h1 className={titleClass} style={titleStyle}>
+          <span className={titleClass} style={titleStyle}>
             {pageInfo.title}
-          </h1>
+          </span>
         ) : (
           pageInfo.icon && (
             <div className="flex-shrink-0 opacity-90 scale-90 origin-left">{pageInfo.icon}</div>

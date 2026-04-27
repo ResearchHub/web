@@ -37,9 +37,9 @@ export const PageBanner = ({
         }`}
       >
         <h1 className="text-3xl md:!text-5xl font-normal text-white pt-8">{title}</h1>
-        <h3 className="text-xl md:!text-3xl font-light text-white text-center max-w-3xl mt-2 leading-relaxed">
+        <p className="text-xl md:!text-3xl font-light text-white text-center max-w-3xl mt-2 leading-relaxed">
           {subtitle}
-        </h3>
+        </p>
       </div>
     </div>
   );

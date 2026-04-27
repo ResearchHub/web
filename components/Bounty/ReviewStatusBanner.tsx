@@ -3,7 +3,8 @@
 import { Alert } from '@/components/ui/Alert';
 import { Bounty } from '@/types/bounty';
 import { findLatestFoundationBounty } from './lib/bountyUtil';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Clock } from 'lucide-react';
+import dayjs from 'dayjs';
 
 interface ReviewStatusBannerProps {
   bounties: Bounty[];
@@ -17,6 +18,10 @@ export const ReviewStatusBanner = ({ bounties }: ReviewStatusBannerProps) => {
   }
 
   if (activeFoundationBounty.status === 'OPEN') {
+    const expiresIn = activeFoundationBounty.expirationDate
+      ? dayjs(activeFoundationBounty.expirationDate).fromNow(true)
+      : null;
+
     return (
       <Alert
         variant="info"
@@ -24,10 +29,12 @@ export const ReviewStatusBanner = ({ bounties }: ReviewStatusBannerProps) => {
         icon={<AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />}
       >
         <div className="flex flex-col gap-1">
-          <div className="font-semibold">Review Submission Period</div>
+          <div className="font-semibold">Submit your peer review.</div>
           <div className="text-sm font-normal">
-            Editors will assess and award top reviews following bounty closure. Reviews are
-            currently unassessed.
+            {expiresIn
+              ? `Please submit your review before bounty expires in ${expiresIn}. `
+              : 'Please submit your review before the bounty expires. '}
+            Editors will assess and award top reviews following bounty closure.
           </div>
         </div>
       </Alert>
@@ -38,8 +45,8 @@ export const ReviewStatusBanner = ({ bounties }: ReviewStatusBannerProps) => {
     return (
       <Alert
         variant="warning"
-        className="mb-6"
-        icon={<AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />}
+        className="mb-6 bg-amber-50 text-amber-800 border border-amber-300"
+        icon={<Clock className="h-4 w-4 shrink-0 mt-0.5 text-amber-800" />}
       >
         <div className="flex flex-col gap-1">
           <div className="font-semibold">Editor Assessment Period</div>

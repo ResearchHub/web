@@ -7,6 +7,7 @@ interface EditorFooterProps {
   formatLastSaved: () => string;
   onCancel?: () => void;
   onReset?: () => void;
+  onDiscard?: () => void;
   onSubmit: () => void;
   clearDraft: () => void;
   isSubmitting: boolean;
@@ -23,6 +24,7 @@ export const EditorFooter = ({
   formatLastSaved,
   onCancel,
   onReset,
+  onDiscard,
   onSubmit,
   clearDraft,
   isSubmitting,
@@ -63,6 +65,11 @@ export const EditorFooter = ({
             disabled={isSubmitting}
           >
             Cancel
+          </Button>
+        )}
+        {!onCancel && onDiscard && (
+          <Button variant="outlined" size="sm" onClick={onDiscard} disabled={isSubmitting}>
+            Discard
           </Button>
         )}
         {!hideSubmit && (

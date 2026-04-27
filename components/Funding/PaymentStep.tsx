@@ -35,8 +35,10 @@ interface PaymentStepProps {
   amountInUsd: number;
   /** Amount display string */
   amountDisplay: string;
-  /** User's current RSC balance */
+  /** User's spendable RSC balance (excludes locked/funding credits) */
   rscBalance: number;
+  /** User's locked RSC balance (earned funding credits) */
+  lockedBalance?: number;
   /** Fundraise ID for payment request button */
   fundraiseId: ID;
   /** Wallet payment method availability from Stripe (resolved at modal level) */
@@ -70,6 +72,7 @@ export function PaymentStep({
   amountInUsd,
   amountDisplay,
   rscBalance,
+  lockedBalance = 0,
   fundraiseId,
   walletAvailability,
   hasNonprofit = false,
@@ -81,17 +84,16 @@ export function PaymentStep({
   onDepositRsc,
   onStripeReady,
 }: PaymentStepProps) {
-  // Compute the default payment method based on balance and actual wallet availability
-  // Use RSC fee percentage since we're checking if user can afford RSC payment
   const defaultPaymentMethod = useMemo(
     () =>
       getDefaultPaymentMethod(
         rscBalance,
+        lockedBalance,
         amountInRsc,
         PLATFORM_FEE_PERCENTAGE_RSC,
         walletAvailability
       ),
-    [rscBalance, amountInRsc, walletAvailability]
+    [rscBalance, lockedBalance, amountInRsc, walletAvailability]
   );
 
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodType | null>(
@@ -107,11 +109,14 @@ export function PaymentStep({
   const [isCreditCardComplete, setIsCreditCardComplete] = useState(false);
   const [selectedEndaomentFund, setSelectedEndaomentFund] = useState<EndaomentFund | null>(null);
 
-  // Get RSC balance check (only relevant for RSC payment method)
+  // Balance check uses the balance that matches the selected method
+  // (spendable RSC for 'rsc', locked balance for 'funding_credits').
+  const balanceForSelectedMethod =
+    selectedMethod === 'funding_credits' ? lockedBalance : rscBalance;
   const { insufficientBalance } = usePaymentCalculations({
     amountInRsc,
-    rscBalance,
-    paymentMethod: 'rsc',
+    rscBalance: balanceForSelectedMethod,
+    paymentMethod: selectedMethod === 'funding_credits' ? 'funding_credits' : 'rsc',
   });
 
   // Calculate fees in USD - fees are ADDED on top of user's input
@@ -129,15 +134,13 @@ export function PaymentStep({
       PAYMENT_PROCESSING_FEE.fixedCents / 100
     : 0;
 
-  // Total due = user's input plus all fees
   const totalDueUsd = amountInUsd + platformFeeUsd + processingFeeUsd;
 
-  // Format USD
   const formatUsd = (amount: number) =>
     `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  // Check if selected method has insufficient balance
-  const isRscInsufficientBalance = selectedMethod === 'rsc' && insufficientBalance;
+  const isRscInsufficientBalance =
+    (selectedMethod === 'rsc' || selectedMethod === 'funding_credits') && insufficientBalance;
 
   // Check if selected Endaoment fund has insufficient balance
   const isEndaomentInsufficientBalance = Boolean(
@@ -149,12 +152,11 @@ export function PaymentStep({
   // Check if credit card is selected but not complete
   const isCreditCardIncomplete = selectedMethod === 'credit_card' && !isCreditCardComplete;
 
-  // Determine if button should be disabled
   const isDisabled =
     isProcessing || !selectedMethod || isRscInsufficientBalance || isCreditCardIncomplete;
 
   const handleConfirm = useCallback(() => {
-    // Endaoment has a separate flow, so we only handle other payment methods here
+    // Endaoment uses a separate flow (handleEndaomentConfirm).
     if (selectedMethod && selectedMethod !== 'endaoment') {
       onConfirmPayment(selectedMethod);
     }
@@ -201,6 +203,7 @@ export function PaymentStep({
           amountInUsd={amountInUsd}
           amountDisplay={amountDisplay}
           rscBalance={rscBalance}
+          lockedBalance={lockedBalance}
           onPreviewTransaction={handlePreviewTransaction}
           onDepositRsc={onDepositRsc}
           selectedPaymentMethod={selectedMethod}
@@ -263,7 +266,7 @@ export function PaymentStep({
                   >
                     <Info className="h-4 w-4 text-gray-500 cursor-help" />
                   </Tooltip>
-                  {selectedMethod === 'rsc' && (
+                  {(selectedMethod === 'rsc' || selectedMethod === 'funding_credits') && (
                     <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
                       Lowest fee
                     </span>
@@ -283,9 +286,19 @@ export function PaymentStep({
               )}
 
               {/* Total due with divider */}
-              <div className="pt-3 mt-2 flex items-center justify-between border-t border-gray-200">
+              <div className="pt-3 mt-2 flex items-start justify-between border-t border-gray-200">
                 <span className="text-base font-semibold text-gray-900">Total Due</span>
-                <span className="text-lg font-bold text-gray-900">{formatUsd(totalDueUsd)}</span>
+                <div className="flex flex-col items-end">
+                  <span className="text-lg font-bold text-gray-900">{formatUsd(totalDueUsd)}</span>
+                  {(selectedMethod === 'rsc' || selectedMethod === 'funding_credits') && (
+                    <span className="text-xs text-gray-500">
+                      {(amountInRsc * (1 + currentFeePercentage / 100)).toLocaleString(undefined, {
+                        maximumFractionDigits: 0,
+                      })}{' '}
+                      RSC
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
