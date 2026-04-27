@@ -3,7 +3,6 @@
 import { useCallback, useState, useEffect, memo, useMemo } from 'react';
 import { Comment, CommentType } from '@/types/comment';
 import { ContentType, Work } from '@/types/work';
-import { Bounty } from '@/types/bounty';
 import { CommentItem } from './CommentItem';
 import { CommentEditor, CommentEditorProps } from './CommentEditor';
 import { Button } from '@/components/ui/Button';
@@ -36,7 +35,6 @@ interface CommentFeedProps {
   unifiedDocumentId: number | null;
   work?: Work;
   workAuthors?: Work['authors'];
-  workBounties?: Bounty[];
 }
 
 function CommentFeed({
@@ -51,7 +49,6 @@ function CommentFeed({
   unifiedDocumentId,
   work,
   workAuthors,
-  workBounties,
 }: CommentFeedProps) {
   // Add debugging for mount/unmount if debug is enabled
   useEffect(() => {
@@ -80,7 +77,6 @@ function CommentFeed({
       commentType={commentType}
       debug={debug}
       work={work}
-      workBounties={workBounties}
     >
       <div className={cn('space-y-6', className)}>
         <CommentFeedContent

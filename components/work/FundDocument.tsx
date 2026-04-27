@@ -164,7 +164,6 @@ export const FundDocument = ({
               commentType="REVIEW"
               key={`review-feed-${work.id}`}
               workAuthors={work.authors}
-              workBounties={metadata.bounties || []}
               editorProps={{
                 placeholder: 'Write your review...',
                 initialRating: 0,
