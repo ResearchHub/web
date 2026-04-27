@@ -235,7 +235,7 @@ export function transformPeerReview(raw: any): PeerReview {
 function pickPreregistrationAiPeerReviewFromGrants(raw: any): ProposalReview | null {
   if (!Array.isArray(raw.grants) || raw.grants.length === 0) return null;
   const proposal = raw.grants[0]?.proposal ?? {};
-  const apr = proposal.ai_peer_review ?? proposal.aiPeerReview;
+  const apr = proposal.ai_peer_review;
 
   return apr ? transformProposalReview(apr) : null;
 }
