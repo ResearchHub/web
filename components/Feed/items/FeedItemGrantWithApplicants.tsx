@@ -6,12 +6,13 @@ import Link from 'next/link';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
-import { ArrowRight, CalendarOff, Star } from 'lucide-react';
+import { ArrowRight, CalendarOff, Clock, Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { AiVerdictBadge } from '@/components/Feed/AiVerdictBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
+import { PendingAssessmentTooltip } from '@/components/tooltips/PendingAssessmentTooltip';
 import { buildWorkUrl, generateSlug } from '@/utils/url';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -59,9 +60,13 @@ const ProposalRow: FC<ProposalRowProps> = ({
   });
 
   const reviews = application.reviews ?? [];
+  const assessedReviews = reviews.filter((r) => r.isAssessed);
   const reviewAvg =
-    reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.score, 0) / reviews.length : 0;
-  const hasReviews = reviews.length > 0;
+    assessedReviews.length > 0
+      ? assessedReviews.reduce((sum, r) => sum + r.score, 0) / assessedReviews.length
+      : 0;
+  const hasAssessedReviews = assessedReviews.length > 0;
+  const hasOnlyPendingReviews = !hasAssessedReviews && reviews.length > 0;
 
   return (
     <Link
@@ -96,7 +101,7 @@ const ProposalRow: FC<ProposalRowProps> = ({
               <span className="text-[11px] text-gray-500 truncate">{fundraise.nonprofit.name}</span>
             </>
           )}
-          {hasReviews && (
+          {hasAssessedReviews && (
             <>
               <span className="text-gray-300">·</span>
               <Tooltip
@@ -116,6 +121,24 @@ const ProposalRow: FC<ProposalRowProps> = ({
                 >
                   <Star size={12} className="fill-amber-400 text-amber-400" />
                   {reviewAvg.toFixed(1)}
+                </span>
+              </Tooltip>
+            </>
+          )}
+          {hasOnlyPendingReviews && (
+            <>
+              <span className="text-gray-300">·</span>
+              <Tooltip
+                className="!bg-amber-50 !border-amber-300 !text-amber-900 !text-left"
+                content={<PendingAssessmentTooltip />}
+                position="top"
+                width="w-[320px]"
+              >
+                <span
+                  className="inline-flex items-center cursor-help"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Clock size={12} className="text-amber-600" />
                 </span>
               </Tooltip>
             </>

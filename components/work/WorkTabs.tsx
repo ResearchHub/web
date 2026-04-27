@@ -49,9 +49,10 @@ export const WorkTabs = ({
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
 
-  const formatScore = (score: number): string => {
-    return score.toFixed(1);
-  };
+  const assessedReviewCount = useMemo(
+    () => (work.peerReviews || []).filter((r) => r.isAssessed).length,
+    [work.peerReviews]
+  );
 
   const activeBounties = useMemo(
     () => getActiveBounties(metadata.bounties || []),
@@ -198,7 +199,7 @@ export const WorkTabs = ({
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {metadata.metrics.reviewScore ? formatScore(metadata.metrics.reviewScore) : 0}
+                  {assessedReviewCount}
                 </span>
               </div>
             ),
