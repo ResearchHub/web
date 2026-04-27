@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
-import type { ProposalReview } from '@/types/aiPeerReview';
+import type { KeyInsightItem, KeyInsightItemType, ProposalReview } from '@/types/aiPeerReview';
 import { cn } from '@/utils/styles';
 
 interface ReviewInsightsSectionProps {
@@ -26,6 +26,18 @@ function shortPreview(text: string): string {
 interface InsightRowProps {
   text: string;
   variant: 'pro' | 'con';
+}
+
+function firstKeyInsightTeaser(
+  items: KeyInsightItem[] | undefined,
+  itemType: KeyInsightItemType
+): string | undefined {
+  if (!items?.length) return undefined;
+  const row = [...items]
+    .filter((i) => i.itemType === itemType)
+    .sort((a, b) => a.order - b.order || a.id - b.id)[0];
+  if (!row) return undefined;
+  return row.label ? `${row.label}: ${row.description}`.trim() : row.description;
 }
 
 const InsightRow: FC<InsightRowProps> = ({ text, variant }) => {
@@ -50,13 +62,13 @@ export const ReviewInsightsSection: FC<ReviewInsightsSectionProps> = ({
 }) => {
   const { user } = useUser();
   if (!user?.isModerator) return null;
-  if (!aiPeerReview || aiPeerReview.status !== 'completed' || !aiPeerReview.resultData) {
+  if (!aiPeerReview || aiPeerReview.status !== 'completed' || !aiPeerReview.keyInsight) {
     return null;
   }
 
-  const { majorStrengths, majorWeaknesses } = aiPeerReview.resultData;
-  const topStrength = majorStrengths[0];
-  const topWeakness = majorWeaknesses[0];
+  const { keyInsight } = aiPeerReview;
+  const topStrength = firstKeyInsightTeaser(keyInsight?.items, 'strength');
+  const topWeakness = firstKeyInsightTeaser(keyInsight?.items, 'weakness');
 
   if (!topStrength && !topWeakness) return null;
 
