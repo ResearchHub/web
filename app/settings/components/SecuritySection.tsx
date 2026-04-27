@@ -8,8 +8,8 @@ import { formatDate } from '@/utils/date';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { useUser } from '@/contexts/UserContext';
-import { EnableMfaModal } from './EnableMfaModal';
-import { DisableMfaModal } from './DisableMfaModal';
+import { EnableMfaModal } from '@/components/modals/MFA/EnableMfaModal';
+import { DisableMfaModal } from '@/components/modals/MFA/DisableMfaModal';
 
 export function SecuritySection() {
   const { user } = useUser();
