@@ -19,6 +19,7 @@ import toast from 'react-hot-toast';
 import { WithdrawalSuccessView } from './WithdrawalSuccessView';
 import { isValidEthereumAddress } from '@/utils/stringUtils';
 import { useCopyAddress } from '@/hooks/useCopyAddress';
+import { AuthService } from '@/services/auth.service';
 
 // Minimum withdrawal amount in RSC
 const MIN_WITHDRAWAL_AMOUNT = 150;
@@ -39,6 +40,8 @@ export function WithdrawModal({
   const [amount, setAmount] = useState<string>('');
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkType>('BASE');
   const [destinationAddress, setDestinationAddress] = useState<string>('');
+  const [mfaCode, setMfaCode] = useState<string>('');
+  const [isMfaEnabled, setIsMfaEnabled] = useState<boolean>(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const [{ txStatus, isLoading, fee, isFeeLoading, feeError }, withdrawRSC, resetTransaction] =
     useWithdrawRSC({
@@ -55,12 +58,30 @@ export function WithdrawModal({
         setAmount('');
         setSelectedNetwork('BASE');
         setDestinationAddress('');
+        setMfaCode('');
+        setIsMfaEnabled(false);
         resetTransaction();
       }, 300);
 
       return () => clearTimeout(timeoutId);
     }
   }, [isOpen, resetTransaction]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    AuthService.getMfaStatus()
+      .then((status) => {
+        if (!cancelled) setIsMfaEnabled(!!status?.mfa_enabled);
+      })
+      .catch(() => {
+        // Don't show the field if MFA status check fails
+        if (!cancelled) setIsMfaEnabled(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
 
   const isAddressValid = useMemo(() => {
     return isValidEthereumAddress(destinationAddress);
@@ -125,7 +146,8 @@ export function WithdrawModal({
       isBelowMinimum ||
       amountUserWillReceive <= 0 ||
       !isAddressValid ||
-      !destinationAddress,
+      !destinationAddress ||
+      (isMfaEnabled && !mfaCode.trim()),
     [
       amount,
       withdrawAmount,
@@ -137,6 +159,8 @@ export function WithdrawModal({
       amountUserWillReceive,
       isAddressValid,
       destinationAddress,
+      isMfaEnabled,
+      mfaCode,
     ]
   );
 
@@ -160,6 +184,7 @@ export function WithdrawModal({
       agreed_to_terms: true,
       amount: amount,
       network: selectedNetwork,
+      ...(isMfaEnabled && mfaCode.trim() ? { mfa_code: mfaCode.trim() } : {}),
     });
 
     if (result && txStatus.state === 'success' && onSuccess) {
@@ -174,6 +199,8 @@ export function WithdrawModal({
     onSuccess,
     fee,
     selectedNetwork,
+    isMfaEnabled,
+    mfaCode,
   ]);
 
   const { isCopied: isAddressCopied, copyAddress } = useCopyAddress();
@@ -393,6 +420,24 @@ export function WithdrawModal({
                 </div>
               </Alert>
             </div>
+
+            {/* MFA Code (if the user has MFA enabled) */}
+            {isMfaEnabled && (
+              <div className="space-y-2">
+                <span className="text-[15px] text-gray-700">Authentication code</span>
+                <Input
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value)}
+                  placeholder="Authenticator code"
+                  disabled={isInputDisabled()}
+                  autoComplete="one-time-code"
+                  autoCapitalize="none"
+                />
+                <p className="text-sm text-gray-500">
+                  Enter the 6-digit code from your authenticator app.
+                </p>
+              </div>
+            )}
 
             {/* Balance Display */}
             <BalanceDisplay
