@@ -5,9 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { GRANT_IMAGE_FALLBACK_GRADIENT } from '@/types/grant';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
-import { FeedService } from '@/services/feed.service';
 import { GrantService } from '@/services/grant.service';
-import { FeedPostContent, FeedGrantContent } from '@/types/feed';
+import { FeedGrantContent } from '@/types/feed';
 import { buildWorkUrl, generateSlug } from '@/utils/url';
 import { formatCompactAmount } from '@/utils/currency';
 
@@ -20,36 +19,27 @@ interface ConnectedGrant {
 }
 
 interface FundingOpportunitySectionProps {
-  workId: number;
+  grantIds: number[];
 }
 
-export function FundingOpportunitySection({ workId }: FundingOpportunitySectionProps) {
+export function FundingOpportunitySection({ grantIds }: FundingOpportunitySectionProps) {
   const [grant, setGrant] = useState<ConnectedGrant | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
+    const connectedIds = new Set(grantIds);
 
     async function findConnectedGrant() {
       try {
-        const [{ entries }, { grants: grantEntries }] = await Promise.all([
-          FeedService.getFeed({ endpoint: 'funding_feed', pageSize: 100 }),
-          GrantService.getGrants({ pageSize: 50 }),
-        ]);
+        const { grants: grantEntries } = await GrantService.getGrants({ pageSize: 50 });
         if (cancelled) return;
-
-        const proposalEntry = entries.find(
-          (entry) => (entry.content as FeedPostContent).id === workId
-        );
-        const connectedGrantIds = new Set(proposalEntry?.associatedGrants?.map((g) => g.id) ?? []);
-
-        if (connectedGrantIds.size === 0) return;
 
         let bestMatch: ConnectedGrant | null = null;
 
         for (const entry of grantEntries) {
           const content = entry.content as FeedGrantContent;
-          if (!content.grant || !connectedGrantIds.has(content.grant.id)) continue;
+          if (!content.grant || !connectedIds.has(content.grant.id)) continue;
 
           const fundingAmount = Number(content.grant.amount?.usd) || 0;
           if (!bestMatch || fundingAmount > bestMatch.fundingAmount) {
@@ -75,7 +65,7 @@ export function FundingOpportunitySection({ workId }: FundingOpportunitySectionP
     return () => {
       cancelled = true;
     };
-  }, [workId]);
+  }, [grantIds]);
 
   if (loading) {
     return (
