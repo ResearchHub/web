@@ -430,6 +430,7 @@ export function WithdrawModal({
                   onChange={(e) => setMfaCode(e.target.value)}
                   placeholder="123456"
                   maxLength={6}
+                  inputMode="numeric"
                   disabled={isInputDisabled()}
                   autoComplete="one-time-code"
                   autoCapitalize="none"
