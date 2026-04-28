@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { GRANT_IMAGE_FALLBACK_GRADIENT } from '@/types/grant';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
-import { GrantService } from '@/services/grant.service';
+import { FeedService } from '@/services/feed.service';
 import { FeedGrantContent } from '@/types/feed';
 import { buildWorkUrl, generateSlug } from '@/utils/url';
 import { formatCompactAmount } from '@/utils/currency';
@@ -26,18 +26,27 @@ export function FundingOpportunitySection({ grantIds }: FundingOpportunitySectio
   const [grant, setGrant] = useState<ConnectedGrant | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const grantIdKey = grantIds.join(',');
+
   useEffect(() => {
     let cancelled = false;
     const connectedIds = new Set(grantIds);
 
-    async function findConnectedGrant() {
+    async function fetchConnectedGrants() {
       try {
-        const { grants: grantEntries } = await GrantService.getGrants({ pageSize: 50 });
+        const results = await Promise.all(
+          grantIds.map((id) =>
+            FeedService.getFeed({ endpoint: 'grant_feed', grantId: id, pageSize: 1 })
+          )
+        );
         if (cancelled) return;
 
         let bestMatch: ConnectedGrant | null = null;
 
-        for (const entry of grantEntries) {
+        for (const { entries } of results) {
+          const entry = entries[0];
+          if (!entry) continue;
+
           const content = entry.content as FeedGrantContent;
           if (!content.grant || !connectedIds.has(content.grant.id)) continue;
 
@@ -61,11 +70,12 @@ export function FundingOpportunitySection({ grantIds }: FundingOpportunitySectio
       }
     }
 
-    findConnectedGrant();
+    fetchConnectedGrants();
     return () => {
       cancelled = true;
     };
-  }, [grantIds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [grantIdKey]);
 
   if (loading) {
     return (
