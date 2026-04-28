@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { formatCompactAmount } from '@/utils/currency';
 import { GRANT_IMAGE_FALLBACK_GRADIENT } from '@/types/grant';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
+import { FeedService } from '@/services/feed.service';
 import { GrantService } from '@/services/grant.service';
-import { FeedGrantContent } from '@/types/feed';
+import { FeedPostContent, FeedGrantContent } from '@/types/feed';
 import { buildWorkUrl, generateSlug } from '@/utils/url';
+import { formatCompactAmount } from '@/utils/currency';
 
 interface ConnectedGrant {
   id: number;
@@ -31,28 +32,34 @@ export function FundingOpportunitySection({ workId }: FundingOpportunitySectionP
 
     async function findConnectedGrant() {
       try {
-        const { grants: feedEntries } = await GrantService.getGrants({ pageSize: 50 });
+        const [{ entries }, { grants: grantEntries }] = await Promise.all([
+          FeedService.getFeed({ endpoint: 'funding_feed', pageSize: 100 }),
+          GrantService.getGrants({ pageSize: 50 }),
+        ]);
         if (cancelled) return;
+
+        const proposalEntry = entries.find(
+          (entry) => (entry.content as FeedPostContent).id === workId
+        );
+        const connectedGrantIds = new Set(proposalEntry?.associatedGrants?.map((g) => g.id) ?? []);
+
+        if (connectedGrantIds.size === 0) return;
 
         let bestMatch: ConnectedGrant | null = null;
 
-        for (const entry of feedEntries) {
+        for (const entry of grantEntries) {
           const content = entry.content as FeedGrantContent;
-          const isConnected = content.grant?.applicants?.some(
-            (app) => app.preregistrationPostId === workId
-          );
+          if (!content.grant || !connectedGrantIds.has(content.grant.id)) continue;
 
-          if (isConnected) {
-            const fundingAmount = Number(content.grant.amount?.usd) || 0;
-            if (!bestMatch || fundingAmount > bestMatch.fundingAmount) {
-              bestMatch = {
-                id: content.id,
-                shortTitle: content.grant.shortTitle || content.title || '',
-                organization: content.grant.organization || '',
-                fundingAmount,
-                imageUrl: content.previewImage || '',
-              };
-            }
+          const fundingAmount = Number(content.grant.amount?.usd) || 0;
+          if (!bestMatch || fundingAmount > bestMatch.fundingAmount) {
+            bestMatch = {
+              id: content.id,
+              shortTitle: content.grant.shortTitle || content.title || '',
+              organization: content.grant.organization || '',
+              fundingAmount,
+              imageUrl: content.previewImage || '',
+            };
           }
         }
 
