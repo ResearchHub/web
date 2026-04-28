@@ -424,11 +424,12 @@ export function WithdrawModal({
             {/* MFA Code (if the user has MFA enabled) */}
             {isMfaEnabled && (
               <div className="space-y-2">
-                <span className="text-[15px] text-gray-700">Authentication code</span>
+                <span className="text-[15px] text-gray-700">Authenticator code</span>
                 <Input
                   value={mfaCode}
                   onChange={(e) => setMfaCode(e.target.value)}
-                  placeholder="Authenticator code"
+                  placeholder="123456"
+                  maxLength={6}
                   disabled={isInputDisabled()}
                   autoComplete="one-time-code"
                   autoCapitalize="none"
