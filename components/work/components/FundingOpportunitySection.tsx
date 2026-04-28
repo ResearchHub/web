@@ -34,6 +34,8 @@ export function FundingOpportunitySection({ workId }: FundingOpportunitySectionP
         const { grants: feedEntries } = await GrantService.getGrants({ pageSize: 50 });
         if (cancelled) return;
 
+        let bestMatch: ConnectedGrant | null = null;
+
         for (const entry of feedEntries) {
           const content = entry.content as FeedGrantContent;
           const isConnected = content.grant?.applicants?.some(
@@ -41,16 +43,20 @@ export function FundingOpportunitySection({ workId }: FundingOpportunitySectionP
           );
 
           if (isConnected) {
-            setGrant({
-              id: content.id,
-              shortTitle: content.grant.shortTitle || content.title || '',
-              organization: content.grant.organization || '',
-              fundingAmount: content.grant.amount?.usd || 0,
-              imageUrl: content.previewImage || '',
-            });
-            break;
+            const fundingAmount = content.grant.amount?.usd || 0;
+            if (!bestMatch || fundingAmount > bestMatch.fundingAmount) {
+              bestMatch = {
+                id: content.id,
+                shortTitle: content.grant.shortTitle || content.title || '',
+                organization: content.grant.organization || '',
+                fundingAmount,
+                imageUrl: content.previewImage || '',
+              };
+            }
           }
         }
+
+        if (bestMatch) setGrant(bestMatch);
       } catch {
         // Section will hide after loading
       } finally {
