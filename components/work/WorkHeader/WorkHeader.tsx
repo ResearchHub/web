@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useState } from 'react';
-import { Share, MoreHorizontal, ChevronLeft } from 'lucide-react';
+import { Share, MoreHorizontal, Lightbulb } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
@@ -125,7 +125,6 @@ export function WorkHeader({
   });
 
   const { setActiveTab, setMobileSidebarOpen } = useWorkTab();
-  const showInsightsButton = contentType === 'fund';
 
   const shareAction = () =>
     showShareModal({
@@ -139,25 +138,7 @@ export function WorkHeader({
     <WorkHeaderBountyEyebrow bountyDisplay={bountyDisplay} reviewsUrl={reviewsUrl} />
   ) : undefined;
 
-  const baseEyebrow = eyebrowOverride !== undefined ? eyebrowOverride : defaultEyebrow;
-  const insightsTrigger = showInsightsButton ? (
-    <button
-      type="button"
-      onClick={() => setMobileSidebarOpen(true)}
-      className="lg:hidden inline-flex items-center gap-1 text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-      aria-label="Show insights"
-    >
-      <ChevronLeft className="h-4 w-4" />
-      Insights
-    </button>
-  ) : null;
-  const resolvedEyebrow =
-    baseEyebrow || insightsTrigger ? (
-      <div className="flex items-center justify-between gap-3">
-        <div>{baseEyebrow}</div>
-        {insightsTrigger}
-      </div>
-    ) : undefined;
+  const resolvedEyebrow = eyebrowOverride !== undefined ? eyebrowOverride : defaultEyebrow;
   const resolvedSubtitle =
     subtitleOverride !== undefined ? (
       subtitleOverride
@@ -189,6 +170,13 @@ export function WorkHeader({
       </button>
       <button onClick={shareAction} className={btnClass} aria-label="Share">
         <Share className="h-5 w-5" />
+      </button>
+      <button
+        onClick={() => setMobileSidebarOpen(true)}
+        className={cn(btnClass, 'lg:hidden')}
+        aria-label="Show insights"
+      >
+        <Lightbulb className="h-5 w-5" />
       </button>
       <BaseMenu
         align="start"
