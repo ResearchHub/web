@@ -22,7 +22,7 @@ interface FundingOpportunitySectionProps {
   grantIds: number[];
 }
 
-export function FundingOpportunitySection({ grantIds }: FundingOpportunitySectionProps) {
+export function FundingOpportunitySection({ grantIds }: Readonly<FundingOpportunitySectionProps>) {
   const [grant, setGrant] = useState<ConnectedGrant | null>(null);
   const [loading, setLoading] = useState(true);
 
