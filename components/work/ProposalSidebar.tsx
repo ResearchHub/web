@@ -1,6 +1,7 @@
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { FundraiseSection } from './components/FundraiseSection';
+import { FundingOpportunitySection } from './components/FundingOpportunitySection';
 import { TopicsSection } from './components/TopicsSection';
 import { NonprofitSection } from './components/NonprofitSection';
 import { FundersSection } from './components/FundersSection';
@@ -18,6 +19,7 @@ export const ProposalSidebar = ({ work, metadata }: ProposalSidebarProps) => {
   return (
     <div className="space-y-12">
       {metadata.fundraising && <FundraiseSection fundraise={metadata.fundraising} />}
+      {work.linkedGrantId && <FundingOpportunitySection workId={work.id} />}
       {metadata.fundraising && <NonprofitSection fundraiseId={metadata.fundraising.id} />}
       {metadata.fundraising &&
         metadata.fundraising.contributors &&

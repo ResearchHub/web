@@ -127,6 +127,7 @@ export interface Work {
    */
   aiPeerReview?: ProposalReview | null;
   enrichments?: Enrichment[];
+  linkedGrantId?: number | null;
 }
 
 export interface FundingRequest extends Work {
@@ -238,6 +239,11 @@ function pickPreregistrationAiPeerReviewFromGrants(raw: any): ProposalReview | n
   const apr = proposal.ai_peer_review ?? proposal.aiPeerReview;
 
   return apr ? transformProposalReview(apr) : null;
+}
+
+function pickLinkedGrantId(raw: any): number | null {
+  if (!Array.isArray(raw.grants) || raw.grants.length === 0) return null;
+  return raw.grants[0]?.id ?? null;
 }
 
 export const transformWork = createTransformer<any, Work>((raw) => {
@@ -361,6 +367,7 @@ export const transformPost = createTransformer<any, Work>((raw) => {
     license: undefined,
     pdfCopyrightAllowsDisplay: true,
     ...(isPreregistration ? { aiPeerReview: pickPreregistrationAiPeerReviewFromGrants(raw) } : {}),
+    ...(isPreregistration ? { linkedGrantId: pickLinkedGrantId(raw) } : {}),
   };
 });
 
