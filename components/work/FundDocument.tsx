@@ -33,8 +33,11 @@ export const FundDocument = ({
   content,
   authorUpdates = [],
 }: FundDocumentProps) => {
-  const { activeTab } = useWorkTab();
-  const [showMobileMetrics, setShowMobileMetrics] = useState(false);
+  const {
+    activeTab,
+    mobileSidebarOpen: showMobileMetrics,
+    setMobileSidebarOpen: setShowMobileMetrics,
+  } = useWorkTab();
   const [showOverlay, setShowOverlay] = useState(false);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const storageKey = useStorageKey('rh-comments');
@@ -156,7 +159,6 @@ export const FundDocument = ({
                 averageReviewScore={work.metrics?.reviewScore}
               />
             )}
-            <ReviewStatusBanner bounties={metadata.bounties || []} />
             <CommentFeed
               unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}
@@ -164,6 +166,7 @@ export const FundDocument = ({
               commentType="REVIEW"
               key={`review-feed-${work.id}`}
               workAuthors={work.authors}
+              belowEditor={<ReviewStatusBanner bounties={metadata.bounties || []} />}
               editorProps={{
                 placeholder: 'Write your review...',
                 initialRating: 0,
@@ -231,7 +234,7 @@ export const FundDocument = ({
       {/* Right Sidebar Container (Sticky) */}
       <div
         className={`
-          fixed top-[64px] right-0 w-[280px] sm:!w-80 h-[calc(100vh-64px)] bg-white shadow-xl p-4
+          fixed top-0 right-0 w-[280px] sm:!w-80 h-screen bg-white shadow-xl p-4
           z-[70] lg:hidden
           transition-transform duration-300 ease-in-out
           ${showMobileMetrics ? 'translate-x-0' : 'translate-x-full'}

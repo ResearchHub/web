@@ -35,6 +35,7 @@ interface CommentFeedProps {
   unifiedDocumentId: number | null;
   work?: Work;
   workAuthors?: Work['authors'];
+  belowEditor?: React.ReactNode;
 }
 
 function CommentFeed({
@@ -49,6 +50,7 @@ function CommentFeed({
   unifiedDocumentId,
   work,
   workAuthors,
+  belowEditor,
 }: CommentFeedProps) {
   // Add debugging for mount/unmount if debug is enabled
   useEffect(() => {
@@ -91,6 +93,7 @@ function CommentFeed({
           unifiedDocumentId={unifiedDocumentId}
           work={work}
           workAuthors={workAuthors}
+          belowEditor={belowEditor}
         />
       </div>
       <CreateBountyModal
@@ -115,6 +118,7 @@ function CommentFeedContent({
   onCreateBounty,
   work,
   workAuthors,
+  belowEditor,
 }: Omit<CommentFeedProps, 'documentId'> & { onCreateBounty: () => void }) {
   // Add debugging for content component if debug is enabled
   useEffect(() => {
@@ -264,6 +268,7 @@ function CommentFeedContent({
             storageKey={storageKey}
             {...editorProps}
           />
+          {belowEditor && <div className="mt-6">{belowEditor}</div>}
           <div className="mt-12 mb-2">
             {commentType !== 'BOUNTY' && (
               <CommentSortAndFilters commentType={commentType} commentCount={count} />
