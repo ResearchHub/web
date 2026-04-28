@@ -3,7 +3,7 @@
 import { FC, useState } from 'react';
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
-import { Fundraise } from '@/types/funding';
+import { computeGoalRate, Fundraise, getContributionTotal } from '@/types/funding';
 import { Work } from '@/types/work';
 import { isDeadlineInFuture } from '@/utils/date';
 import { ContributorModal } from '@/components/modals/ContributorModal';
@@ -13,6 +13,7 @@ import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useRouter } from 'next/navigation';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 
 interface FundersSectionProps {
   fundraise: Fundraise;
@@ -26,9 +27,18 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
   const { showShareModal } = useShareModalContext();
   const { showUSD } = useCurrencyPreference();
+  const { exchangeRate } = useExchangeRate();
   const router = useRouter();
   const isCompleted = fundraise.status === 'COMPLETED';
-  const showGoalUsd = isCompleted && showUSD;
+  // For COMPLETED fundraises, use the goal rate so per-contributor totals sum to the goal.
+  // For active fundraises, use the live RSC→USD rate.
+  const goalRate = computeGoalRate(
+    fundraise.status,
+    fundraise.goalAmount.usd,
+    fundraise.amountRaised.rsc
+  );
+  const effectiveRate = goalRate ?? exchangeRate;
+  const displayCurrency: 'USD' | 'RSC' = showUSD ? 'USD' : 'RSC';
   const hasContributors =
     fundraise.contributors &&
     fundraise.contributors.numContributors > 0 &&
@@ -99,19 +109,22 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
                   <div className="flex items-center text-sm font-medium font-mono text-primary-600">
                     <span className="mr-0.5">+</span>
                     <CurrencyBadge
-                      amount={
-                        showGoalUsd
-                          ? Math.round(contributor.totalContribution.usd)
-                          : contributor.totalContribution.rsc
-                      }
+                      amount={(() => {
+                        const total = getContributionTotal(
+                          contributor.totalContribution,
+                          displayCurrency,
+                          effectiveRate
+                        );
+                        return showUSD ? Math.round(total) : total;
+                      })()}
                       variant="text"
                       size="xs"
-                      currency={showUSD ? 'USD' : 'RSC'}
+                      currency={displayCurrency}
                       showText={true}
                       textColor="text-primary-600"
                       fontWeight="font-semibold"
                       className="font-mono"
-                      skipConversion={showGoalUsd}
+                      skipConversion={true}
                     />
                   </div>
                 </div>
@@ -140,6 +153,7 @@ export const FundersSection: FC<FundersSectionProps> = ({ fundraise, fundraiseTi
           onClose={() => setIsModalOpen(false)}
           contributors={modalContributors}
           isCompleted={isCompleted}
+          rscToUsdRate={effectiveRate}
         />
       )}
 

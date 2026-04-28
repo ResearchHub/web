@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { CurrencyBadge } from '@/components/ui/CurrencyBadge';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import type { ContributionTotals } from '@/types/funding';
+import { useExchangeRate } from '@/contexts/ExchangeRateContext';
+import { ContributionTotals, getContributionTotal } from '@/types/funding';
 
 interface Contributor {
   profile: {
@@ -26,6 +27,11 @@ interface ContributorModalProps {
   onContribute?: () => void;
   disableContribute?: boolean;
   isCompleted?: boolean;
+  /**
+   * Rate used to combine RSC + direct USD contributions.
+   * Pass the fundraise goal rate when COMPLETED; falls back to the live exchange rate.
+   */
+  rscToUsdRate?: number;
 }
 
 export const ContributorModal: FC<ContributorModalProps> = ({
@@ -33,12 +39,17 @@ export const ContributorModal: FC<ContributorModalProps> = ({
   onClose,
   contributors = [],
   isCompleted = false,
+  rscToUsdRate,
 }) => {
   const { showUSD } = useCurrencyPreference();
-  const showGoalUsd = isCompleted && showUSD;
-  const totalAmount = Math.round(
-    contributors.reduce((sum, c) => sum + (showGoalUsd ? c.amounts.usd : c.amounts.rsc), 0)
+  const { exchangeRate } = useExchangeRate();
+  const effectiveRate = rscToUsdRate ?? exchangeRate;
+  const displayCurrency: 'USD' | 'RSC' = showUSD ? 'USD' : 'RSC';
+  const totalAmount = contributors.reduce(
+    (sum, c) => sum + getContributionTotal(c.amounts, displayCurrency, effectiveRate),
+    0
   );
+  const formattedTotal = showUSD ? Math.round(totalAmount) : totalAmount;
 
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
@@ -54,15 +65,15 @@ export const ContributorModal: FC<ContributorModalProps> = ({
               <div className="text-sm text-gray-500 flex items-center gap-1">
                 <span>Total:</span>
                 <CurrencyBadge
-                  amount={totalAmount}
+                  amount={formattedTotal}
                   variant="text"
                   size="xs"
-                  currency={showUSD ? 'USD' : 'RSC'}
+                  currency={displayCurrency}
                   showText={true}
                   textColor="text-gray-700"
                   fontWeight="font-semibold"
                   showExchangeRate={false}
-                  skipConversion={showGoalUsd}
+                  skipConversion={true}
                 />
               </div>
             </div>
@@ -107,17 +118,22 @@ export const ContributorModal: FC<ContributorModalProps> = ({
                   <div className="flex items-center text-sm font-medium font-mono text-primary-600">
                     <span className="mr-0.5">+</span>
                     <CurrencyBadge
-                      amount={
-                        showGoalUsd ? Math.round(contributor.amounts.usd) : contributor.amounts.rsc
-                      }
+                      amount={(() => {
+                        const total = getContributionTotal(
+                          contributor.amounts,
+                          displayCurrency,
+                          effectiveRate
+                        );
+                        return showUSD ? Math.round(total) : total;
+                      })()}
                       variant="text"
                       size="xs"
-                      currency={showUSD ? 'USD' : 'RSC'}
+                      currency={displayCurrency}
                       showText={true}
                       textColor="text-primary-600"
                       fontWeight="font-semibold"
                       className="font-mono"
-                      skipConversion={showGoalUsd}
+                      skipConversion={true}
                     />
                   </div>
                 </div>
