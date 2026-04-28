@@ -1,6 +1,7 @@
 import { type IconName } from '@/components/ui/icons/Icon';
 import { Notification } from '@/types/notification';
 import { formatUsdValue, formatRSC } from '@/utils/number';
+import { FOUNDATION_BOUNTY_FLAT_USD } from '@/config/constants';
 
 export interface NotificationTypeInfo {
   icon: IconName;
@@ -290,6 +291,20 @@ function getBountyTypeAction(bountyType: string): string {
   }
 }
 
+/**
+ * Check if a BOUNTY_FOR_YOU notification should display the flat Foundation bounty amount
+ * (applies to peer-review bounties)
+ */
+export function getBountyForYouUsdOverride(notification: Notification): number | null {
+  if (notification.type === 'BOUNTY_FOR_YOU') {
+    const bountyType = notification.extra?.bounty_type || '';
+    if (bountyType.toUpperCase() === 'REVIEW') {
+      return FOUNDATION_BOUNTY_FLAT_USD;
+    }
+  }
+  return null;
+}
+
 export function formatNotificationMessage(
   notification: Notification,
   exchangeRate: number = 0,
@@ -310,10 +325,12 @@ export function formatNotificationMessage(
       return `${userName} awarded you RSC for your work on "${truncatedTitle}"`;
 
     case 'BOUNTY_FOR_YOU': {
-      const amount = notification.extra?.amount || '0';
       const bountyType = notification.extra?.bounty_type || '';
       const bountyTypeAction = getBountyTypeAction(bountyType);
-      const usdValue = formatUsdValue(amount, exchangeRate);
+      const usdOverride = getBountyForYouUsdOverride(notification);
+      const usdValue = usdOverride !== null
+        ? `$${usdOverride} USD`
+        : formatUsdValue(notification.extra?.amount || '0', exchangeRate);
       return `Your expertise is needed! Earn ${usdValue} for ${bountyTypeAction} "${truncatedTitle}"`;
     }
 
