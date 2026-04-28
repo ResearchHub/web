@@ -49,10 +49,7 @@ export const WorkTabs = ({
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
 
-  const assessedReviewCount = useMemo(
-    () => (work.peerReviews || []).filter((r) => r.isAssessed).length,
-    [work.peerReviews]
-  );
+  const reviewCount = work.peerReviews?.length ?? 0;
 
   const activeBounties = useMemo(
     () => getActiveBounties(metadata.bounties || []),
@@ -199,7 +196,7 @@ export const WorkTabs = ({
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {assessedReviewCount}
+                  {reviewCount}
                 </span>
               </div>
             ),

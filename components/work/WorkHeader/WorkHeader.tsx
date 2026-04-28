@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useState } from 'react';
-import { Share, MoreHorizontal } from 'lucide-react';
+import { Share, MoreHorizontal, Lightbulb } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
@@ -124,7 +124,7 @@ export function WorkHeader({
     tab: 'reviews',
   });
 
-  const { setActiveTab } = useWorkTab();
+  const { setActiveTab, setMobileSidebarOpen } = useWorkTab();
 
   const shareAction = () =>
     showShareModal({
@@ -170,6 +170,13 @@ export function WorkHeader({
       </button>
       <button onClick={shareAction} className={btnClass} aria-label="Share">
         <Share className="h-5 w-5" />
+      </button>
+      <button
+        onClick={() => setMobileSidebarOpen(true)}
+        className={cn(btnClass, 'lg:hidden')}
+        aria-label="Show insights"
+      >
+        <Lightbulb className="h-5 w-5" />
       </button>
       <BaseMenu
         align="start"
