@@ -43,7 +43,7 @@ export function FundingOpportunitySection({ workId }: FundingOpportunitySectionP
           );
 
           if (isConnected) {
-            const fundingAmount = content.grant.amount?.usd || 0;
+            const fundingAmount = Number(content.grant.amount?.usd) || 0;
             if (!bestMatch || fundingAmount > bestMatch.fundingAmount) {
               bestMatch = {
                 id: content.id,
