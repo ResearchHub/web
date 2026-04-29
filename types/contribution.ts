@@ -132,6 +132,9 @@ export const transformContributionToFeedEntry = ({
 }): FeedEntry => {
   const { content_type, created_by, created_date, hubs, item } = contribution;
 
+  const contentTypeName = content_type?.name || '';
+  const authorProfile = created_by?.author_profile;
+
   const effectiveHubs: Hub[] = (hubs?.length ? hubs : item?.hubs?.length ? item.hubs : []).slice(
     0,
     2
@@ -139,50 +142,48 @@ export const transformContributionToFeedEntry = ({
 
   // Base feed entry properties
   const baseFeedEntry: Partial<FeedEntry> = {
-    id: contribution.item.id?.toString() || '',
+    id: item?.id?.toString() || contribution.id?.toString() || '',
     recommendationId: contribution.recommendation_id,
     timestamp: created_date,
-    action: getActionType(content_type.name),
+    action: getActionType(contentTypeName),
   };
 
   // Transform content based on content type
   let content: any;
   let relatedWork: any;
-  let contentType: FeedContentType = getContentType(content_type.name);
+  let contentType: FeedContentType = getContentType(contentTypeName);
 
-  switch (content_type.name.toLowerCase()) {
+  switch (contentTypeName.toLowerCase()) {
     case 'bounty':
-      // Handle bounty content
       content = {
-        id: item.id,
+        id: item?.id,
         contentType: 'BOUNTY',
         createdDate: created_date,
         bounty: {
           ...transformBounty({
             ...item,
             created_by: created_by,
-            amount: item.amount,
-            content: item.item?.comment_content_json,
+            amount: item?.amount,
+            content: item?.item?.comment_content_json,
           }),
-          expirationDate: item.expiration_date,
+          expirationDate: item?.expiration_date,
         },
-        createdBy: transformAuthorProfile(created_by.author_profile),
-        relatedDocumentId: item.item?.thread?.content_object?.id,
+        createdBy: transformAuthorProfile(authorProfile),
+        relatedDocumentId: item?.item?.thread?.content_object?.id,
         relatedDocumentContentType: mapApiDocumentTypeToClientType(
-          item.item?.thread?.content_object?.unified_document?.document_type
+          item?.item?.thread?.content_object?.unified_document?.document_type
         ),
         comment: {
-          id: item.item?.id,
-          content: item.item?.comment_content_json,
+          id: item?.item?.id,
+          content: item?.item?.comment_content_json,
           contentFormat: 'TIPTAP',
           commentType: 'BOUNTY',
         },
       };
 
-      // Set related work if available
-      if (item.item?.thread?.content_object) {
+      if (item?.item?.thread?.content_object) {
         relatedWork = transformUnifiedDocumentToWork({
-          raw: item.item?.thread?.content_object,
+          raw: item.item.thread.content_object,
           hubs: effectiveHubs,
         });
       }
@@ -190,19 +191,18 @@ export const transformContributionToFeedEntry = ({
       break;
 
     case 'rhcommentmodel':
-      const reviewScore = item.review?.score || undefined;
-      // Handle comment content
+      const reviewScore = item?.review?.score || undefined;
       content = {
-        id: item.id,
+        id: item?.id,
         contentType: 'COMMENT',
         createdDate: created_date,
-        createdBy: transformAuthorProfile(created_by.author_profile),
+        createdBy: transformAuthorProfile(authorProfile),
         comment: {
-          id: item.id,
-          content: item.comment_content_json,
+          id: item?.id,
+          content: item?.comment_content_json,
           contentFormat: 'TIPTAP',
           commentType: contributionType === 'REVIEW' || reviewScore ? 'REVIEW' : 'GENERIC_COMMENT',
-          thread: item.thread
+          thread: item?.thread?.content_object
             ? {
                 id: item.thread.content_object.id,
                 threadType: item.thread.thread_type,
@@ -212,14 +212,13 @@ export const transformContributionToFeedEntry = ({
           reviewScore,
         },
         review: reviewScore ? { score: reviewScore } : undefined,
-        relatedDocumentId: item.thread?.content_object?.id,
+        relatedDocumentId: item?.thread?.content_object?.id,
         relatedDocumentContentType: mapApiDocumentTypeToClientType(
-          item.thread?.content_object?.unified_document?.document_type
+          item?.thread?.content_object?.unified_document?.document_type
         ),
       };
 
-      // Set related work if available
-      if (item.thread?.content_object) {
+      if (item?.thread?.content_object) {
         relatedWork = transformUnifiedDocumentToWork({
           raw: item.thread.content_object,
           hubs: effectiveHubs,
@@ -230,33 +229,32 @@ export const transformContributionToFeedEntry = ({
     case 'researchhubpost':
     case 'researchhubunifieddocument':
       content = {
-        id: item.id,
+        id: item?.id,
         contentType,
         createdDate: created_date,
-        textPreview: item.renderable_text || '',
-        slug: item.slug,
-        title: item.title,
-        authors: [transformAuthorProfile(created_by.author_profile)],
+        textPreview: item?.renderable_text || '',
+        slug: item?.slug,
+        title: item?.title,
+        authors: [transformAuthorProfile(authorProfile)],
         topics: effectiveHubs.map((hub) => transformTopic(hub)),
-        createdBy: transformAuthorProfile(created_by.author_profile),
+        createdBy: transformAuthorProfile(authorProfile),
         unifiedDocumentId: getUnifiedDocumentId(item),
       };
       break;
 
     case 'paper':
-      // Handle paper content
       content = {
-        id: item.id,
+        id: item?.id,
         contentType: 'PAPER',
         createdDate: created_date,
-        textPreview: stripHtml(item.abstract || ''),
-        slug: item.slug,
-        title: item.title,
-        authors: [transformAuthorProfile(created_by.author_profile)],
+        textPreview: stripHtml(item?.abstract || ''),
+        slug: item?.slug,
+        title: item?.title,
+        authors: [transformAuthorProfile(authorProfile)],
         topics: effectiveHubs.map((hub) => transformTopic(hub)),
-        createdBy: transformAuthorProfile(created_by.author_profile),
+        createdBy: transformAuthorProfile(authorProfile),
         unifiedDocumentId: getUnifiedDocumentId(item),
-        journal: item.journal || {
+        journal: item?.journal || {
           id: 0,
           name: '',
           slug: '',
@@ -267,11 +265,10 @@ export const transformContributionToFeedEntry = ({
       break;
 
     default:
-      console.warn(`Unsupported content type: ${content_type.name}`);
+      console.warn(`Unsupported content type: ${contentTypeName}`);
       break;
   }
 
-  // Complete the feed entry
   return {
     ...baseFeedEntry,
     contentType,
