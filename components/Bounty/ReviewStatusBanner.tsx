@@ -4,7 +4,6 @@ import { Alert } from '@/components/ui/Alert';
 import { Bounty } from '@/types/bounty';
 import { findLatestFoundationBounty } from './lib/bountyUtil';
 import { AlertCircle, Clock } from 'lucide-react';
-import dayjs from 'dayjs';
 
 interface ReviewStatusBannerProps {
   bounties: Bounty[];
@@ -18,10 +17,6 @@ export const ReviewStatusBanner = ({ bounties }: ReviewStatusBannerProps) => {
   }
 
   if (activeFoundationBounty.status === 'OPEN') {
-    const expiresIn = activeFoundationBounty.expirationDate
-      ? dayjs(activeFoundationBounty.expirationDate).fromNow(true)
-      : null;
-
     return (
       <Alert
         variant="info"
@@ -31,10 +26,8 @@ export const ReviewStatusBanner = ({ bounties }: ReviewStatusBannerProps) => {
         <div className="flex flex-col gap-1">
           <div className="font-semibold">Submit your peer review.</div>
           <div className="text-sm font-normal">
-            {expiresIn
-              ? `Please submit your review before bounty expires in ${expiresIn}. `
-              : 'Please submit your review before the bounty expires. '}
-            Editors will assess and award top reviews following bounty closure.
+            Please submit your review before the bounty expires. Editors will assess and award top
+            reviews following bounty closure.
           </div>
         </div>
       </Alert>

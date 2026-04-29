@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -10,14 +10,10 @@ import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { useStorageKey } from '@/utils/storageKeys';
-import { ProposalSidebar } from './ProposalSidebar';
 import { useUser } from '@/contexts/UserContext';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 import { AiPeerReviewCard } from '@/components/work/AiPeerReviewCard';
 import { useShareModalContext } from '@/contexts/ShareContext';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faXmark } from '@fortawesome/pro-solid-svg-icons';
-import { Button } from '../ui/Button';
 import { useWorkTab } from './WorkHeader/WorkTabContext';
 
 interface FundDocumentProps {
@@ -34,9 +30,6 @@ export const FundDocument = ({
   authorUpdates = [],
 }: FundDocumentProps) => {
   const { activeTab } = useWorkTab();
-  const [showMobileMetrics, setShowMobileMetrics] = useState(false);
-  const [showOverlay, setShowOverlay] = useState(false);
-  const [overlayVisible, setOverlayVisible] = useState(false);
   const storageKey = useStorageKey('rh-comments');
   const { user } = useUser();
   const { showShareModal } = useShareModalContext();
@@ -67,17 +60,6 @@ export const FundDocument = ({
       router.replace(url.pathname + url.search, { scroll: false });
     }
   }, [searchParams, router, pathname, work.title, showShareModal]);
-
-  useEffect(() => {
-    if (showMobileMetrics) {
-      setShowOverlay(true);
-      setTimeout(() => setOverlayVisible(true), 0);
-    } else {
-      setOverlayVisible(false);
-      const timeout = setTimeout(() => setShowOverlay(false), 300);
-      return () => clearTimeout(timeout);
-    }
-  }, [showMobileMetrics]);
 
   // Render tab content based on activeTab
   const renderTabContent = useMemo(() => {
@@ -156,7 +138,6 @@ export const FundDocument = ({
                 averageReviewScore={work.metrics?.reviewScore}
               />
             )}
-            <ReviewStatusBanner bounties={metadata.bounties || []} />
             <CommentFeed
               unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}
@@ -164,7 +145,7 @@ export const FundDocument = ({
               commentType="REVIEW"
               key={`review-feed-${work.id}`}
               workAuthors={work.authors}
-              workBounties={metadata.bounties || []}
+              belowEditor={<ReviewStatusBanner bounties={metadata.bounties || []} />}
               editorProps={{
                 placeholder: 'Write your review...',
                 initialRating: 0,
@@ -216,42 +197,5 @@ export const FundDocument = ({
     }
   }, [activeTab, work, metadata, content, storageKey, isCurrentUserAuthor]);
 
-  return (
-    <div>
-      {renderTabContent}
-
-      {/* Mobile overlay */}
-      {showOverlay && (
-        <div
-          className={`fixed inset-0 bg-black ${
-            overlayVisible ? 'opacity-50' : 'opacity-0'
-          } z-[70] lg:!hidden transition-opacity duration-300 ease-in-out`}
-          onClick={() => setShowMobileMetrics(false)}
-        />
-      )}
-      {/* Right Sidebar Container (Sticky) */}
-      <div
-        className={`
-          fixed top-[64px] right-0 w-[280px] sm:!w-80 h-[calc(100vh-64px)] bg-white shadow-xl p-4
-          z-[70] lg:hidden
-          transition-transform duration-300 ease-in-out
-          ${showMobileMetrics ? 'translate-x-0' : 'translate-x-full'}
-        `}
-      >
-        <div className="h-full overflow-y-auto relative">
-          {/* Close button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowMobileMetrics(false)}
-            aria-label="Close sidebar"
-            className="absolute -top-2 right-0 z-10"
-          >
-            <FontAwesomeIcon icon={faXmark} className="w-4 h-4 text-gray-600" />
-          </Button>
-          <ProposalSidebar work={work} metadata={metadata} />
-        </div>
-      </div>
-    </div>
-  );
+  return <div>{renderTabContent}</div>;
 };

@@ -37,29 +37,40 @@ export interface ApplicationFundraise {
 
 /**
  * When a fundraise is COMPLETED, derive USD from the ratio (goalUsd / raisedRsc)
- * so each contributor's USD is their proportional share of the goal. Returns null for active fundraises.
+ * so the displayed total matches the goal. Returns null for active fundraises (use live rate).
  */
-function computeGoalRate(status: string, goalUsd: number, raisedRsc: number): number | null {
+export function computeGoalRate(status: string, goalUsd: number, raisedRsc: number): number | null {
   return status === 'COMPLETED' && raisedRsc > 0 ? goalUsd / raisedRsc : null;
 }
 
-function resolveContributionAmounts(
-  totalContribution: any,
-  goalRate: number | null
-): { usd: number; rsc: number } {
-  if (typeof totalContribution === 'number') {
-    return {
-      usd: goalRate == null ? 0 : totalContribution * goalRate,
-      rsc: totalContribution,
-    };
-  }
-
-  const rsc = totalContribution?.rsc ?? totalContribution?.RSC ?? 0;
+/**
+ * Pull raw RSC + direct USD contribution amounts out of a backend payload.
+ * Conversion between currencies happens at render time using the live exchange rate
+ * (or the fundraise's goal rate for COMPLETED fundraises).
+ */
+function resolveContributionAmounts(totalContribution: any): { usd: number; rsc: number } {
   return {
-    usd:
-      goalRate == null ? (totalContribution?.usd ?? totalContribution?.USD ?? 0) : rsc * goalRate,
-    rsc,
+    rsc: totalContribution?.rsc ?? 0,
+    usd: totalContribution?.usd ?? 0,
   };
+}
+
+/**
+ * Combine RSC + direct USD contributions into a single display amount, using the
+ * provided RSC→USD rate (goal rate for completed fundraises, live rate otherwise).
+ */
+export function getContributionTotal(
+  amounts: { rsc: number; usd: number },
+  displayCurrency: 'USD' | 'RSC',
+  rscToUsdRate: number
+): number {
+  if (rscToUsdRate <= 0) {
+    return displayCurrency === 'USD' ? amounts.usd : amounts.rsc;
+  }
+  if (displayCurrency === 'USD') {
+    return amounts.rsc * rscToUsdRate + amounts.usd;
+  }
+  return amounts.rsc + amounts.usd / rscToUsdRate;
 }
 
 export function transformApplicationFundraise(raw: any): ApplicationFundraise {
@@ -78,7 +89,7 @@ export function transformApplicationFundraise(raw: any): ApplicationFundraise {
       lastName,
       fullName: [firstName, lastName].filter(Boolean).join(' ') || 'Contributor',
       profileImage: c.profile_image ?? '',
-      totalContribution: resolveContributionAmounts(c.total_contribution, goalRate),
+      totalContribution: resolveContributionAmounts(c.total_contribution),
     };
   });
 
@@ -208,9 +219,10 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => {
       topContributors: raw.contributors.top.map((contributor: any) => ({
         id: contributor.id,
         authorProfile: transformAuthorProfile(contributor.author_profile),
-        totalContribution: resolveContributionAmounts(contributor.total_contribution, goalRate),
+        totalContribution: resolveContributionAmounts(contributor.total_contribution),
         contributions: (contributor.contributions || []).map((contribution: any) => ({
           amount: contribution.amount,
+          currency: contribution.currency,
           date: contribution.date,
         })),
       })),

@@ -4,7 +4,6 @@ import { createContext, useContext, useReducer, useEffect, useCallback, useMemo 
 import { Comment, CommentFilter, CommentSort, CommentType, QuillContent } from '@/types/comment';
 import { UserVoteType } from '@/types/reaction';
 import { ContentType, Work } from '@/types/work';
-import { Bounty } from '@/types/bounty';
 import { CommentService } from '@/services/comment.service';
 import {
   extractUserMentions,
@@ -35,7 +34,6 @@ interface CommentContextType {
   replyingToCommentId: number | null;
   workContentType: ContentType;
   work?: Work;
-  workBounties: Bounty[];
 
   // Actions
   fetchComments: (page?: number) => Promise<void>;
@@ -96,7 +94,6 @@ export const CommentProvider = ({
   commentType = 'GENERIC_COMMENT',
   debug = true,
   work,
-  workBounties = [],
 }: {
   children: React.ReactNode;
   documentId: number;
@@ -104,7 +101,6 @@ export const CommentProvider = ({
   commentType?: CommentType;
   debug?: boolean;
   work?: Work;
-  workBounties?: Bounty[];
 }) => {
   const [state, dispatch] = useReducer(commentReducer, {
     ...initialCommentState,
@@ -826,7 +822,6 @@ export const CommentProvider = ({
     replyingToCommentId: state.replyingToCommentId,
     workContentType: contentType,
     work,
-    workBounties,
     fetchComments,
     refresh,
     loadMore,
@@ -863,9 +858,4 @@ export function useComments() {
     throw new Error('useComments must be used within a CommentProvider');
   }
   return context;
-}
-
-// Safe variant that returns null outside of a CommentProvider.
-export function useOptionalComments() {
-  return useContext(CommentContext);
 }

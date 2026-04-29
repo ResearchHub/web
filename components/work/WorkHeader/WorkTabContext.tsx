@@ -7,11 +7,15 @@ import type { TabType } from '@/components/work/WorkTabs';
 interface WorkTabContextValue {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
+  mobileSidebarOpen: boolean;
+  setMobileSidebarOpen: (open: boolean) => void;
 }
 
 const NOOP_TAB_CONTEXT: WorkTabContextValue = {
   activeTab: 'paper',
   setActiveTab: () => {},
+  mobileSidebarOpen: false,
+  setMobileSidebarOpen: () => {},
 };
 
 const WorkTabContext = createContext<WorkTabContextValue | null>(null);
@@ -40,8 +44,11 @@ export function WorkTabProvider({
 }) {
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<TabType>(() => defaultTab ?? getTabFromPath(pathname));
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   return (
-    <WorkTabContext.Provider value={{ activeTab, setActiveTab }}>
+    <WorkTabContext.Provider
+      value={{ activeTab, setActiveTab, mobileSidebarOpen, setMobileSidebarOpen }}
+    >
       {children}
     </WorkTabContext.Provider>
   );
