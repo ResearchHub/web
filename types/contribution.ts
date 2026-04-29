@@ -190,7 +190,7 @@ export const transformContributionToFeedEntry = ({
 
       break;
 
-    case 'rhcommentmodel':
+    case 'rhcommentmodel': {
       const reviewScore = item?.review?.score || undefined;
       content = {
         id: item?.id,
@@ -225,6 +225,7 @@ export const transformContributionToFeedEntry = ({
         });
       }
       break;
+    }
 
     case 'researchhubpost':
     case 'researchhubunifieddocument':
