@@ -40,7 +40,7 @@ export function ApyChart() {
     labels,
     datasets: [
       {
-        label: 'APY',
+        label: 'Yield',
         data: apyData,
         borderColor: '#3971ff',
         backgroundColor: 'rgba(57, 113, 255, 0.08)',
@@ -64,7 +64,7 @@ export function ApyChart() {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (ctx: any) => `APY: ${ctx.parsed.y.toFixed(2)}%`,
+          label: (ctx: any) => `Yield: ${ctx.parsed.y.toFixed(2)}%`,
         },
       },
     },
@@ -88,7 +88,7 @@ export function ApyChart() {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">Supply APY</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Supply Yield</h2>
         <div className="flex gap-1">
           {RANGE_OPTIONS.map((opt) => (
             <button
