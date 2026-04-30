@@ -326,26 +326,33 @@ export function WithdrawModal({
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-700">Amount:</span>
-                  <span className="font-medium">{formatRSC({ amount: withdrawAmount })} RSC</span>
+                  <span className="text-gray-700">Amount</span>
+                  <span>
+                    <span className="font-medium">{formatRSC({ amount: withdrawAmount })}</span>
+                    <span className="text-gray-500"> RSC</span>
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-700">Network fee:</span>
-                  <span className="text-gray-700">-{formatRSC({ amount: fee || 0 })} RSC</span>
+                  <span className="text-gray-700">Network fee</span>
+                  <span>
+                    <span className="text-gray-700">-{formatRSC({ amount: fee || 0 })}</span>
+                    <span className="text-gray-500"> RSC</span>
+                  </span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-gray-200">
-                  <span className="text-gray-700">You will receive:</span>
+                  <span className="text-gray-700">You will receive</span>
                   <div className="flex items-center gap-1">
                     <ResearchCoinIcon size={14} />
                     <span className="font-semibold text-gray-900">
-                      {formatRSC({ amount: amountUserWillReceive })} RSC
+                      {formatRSC({ amount: amountUserWillReceive })}
                     </span>
+                    <span className="text-gray-500">RSC</span>
                   </div>
                 </div>
               </div>
               <div className="pt-2 border-t border-gray-200 space-y-1">
                 <div className="text-sm text-gray-700">
-                  Destination Address ({networkConfig.name}):
+                  Destination Address ({networkConfig.name})
                 </div>
                 <div className="font-mono text-sm text-gray-800 break-all">
                   {destinationAddress}
@@ -468,7 +475,7 @@ export function WithdrawModal({
                   {withdrawAmount > 0 && (fee || isFeeLoading) && (
                     <div className="mt-3 pt-3 border-t border-gray-200">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-700">You will receive:</span>
+                        <span className="text-sm font-medium text-gray-700">You will receive</span>
                         <div className="flex items-center gap-1">
                           <ResearchCoinIcon size={16} />
                           {isFeeLoading ? (
