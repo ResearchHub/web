@@ -63,6 +63,7 @@ export function ApyChart() {
     plugins: {
       legend: { display: false },
       tooltip: {
+        usePointStyle: true,
         callbacks: {
           label: (ctx: any) => `Yield: ${ctx.parsed.y.toFixed(2)}%`,
         },
