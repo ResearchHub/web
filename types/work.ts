@@ -254,7 +254,7 @@ function pickPreregistrationAiPeerReviewFromGrants(raw: any): ProposalReview | n
   return apr ? transformProposalReview(apr) : null;
 }
 
-function pickLinkedGrant(raw: any): LinkedGrant | null {
+function transformAndPickLinkedGrant(raw: any): LinkedGrant | null {
   if (!Array.isArray(raw.grants) || raw.grants.length === 0) return null;
   const g = raw.grants[0];
   if (!g || typeof g.id !== 'number') return null;
@@ -393,7 +393,7 @@ export const transformPost = createTransformer<any, Work>((raw) => {
     license: undefined,
     pdfCopyrightAllowsDisplay: true,
     ...(isPreregistration ? { aiPeerReview: pickPreregistrationAiPeerReviewFromGrants(raw) } : {}),
-    ...(isPreregistration ? { linkedGrant: pickLinkedGrant(raw) } : {}),
+    ...(isPreregistration ? { linkedGrant: transformAndPickLinkedGrant(raw) } : {}),
   };
 });
 
