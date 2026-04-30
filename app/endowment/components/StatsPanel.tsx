@@ -111,10 +111,10 @@ export function StatsPanel({ stats, isLoading }: Readonly<StatsPanelProps>) {
           })}
         </p>
       )}
+      <StatRow label="Issued Today" value={formatCurrency(stats.issued_today_usd)} highlight />
       <StatRow label="Annualized Yield" value={`${stats.apy.toFixed(2)}%`} highlight />
       <StatRow label="30d Avg Annualized Yield" value={`${stats.apy_30d_avg.toFixed(2)}%`} />
       <StatRow label="Holders" value={formatNumber(stats.holders)} />
-      <StatRow label="Top 10%" value={`${stats.top_10_concentration_pct.toFixed(1)}%`} />
       <StatRow label="Total Staked" value={`${formatRSC(stats.total_staked_rsc)} RSC`} />
       <StatRow label="Total Value Locked" value={formatCurrency(stats.total_value_locked_usd)} />
       <StatRow label="% of Supply Staked" value={`${stats.pct_of_supply_staked.toFixed(2)}%`} />
