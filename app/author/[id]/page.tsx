@@ -146,7 +146,7 @@ function AuthorTabContent({
           try {
             return transformPublicationToFeedEntry(publication);
           } catch (error) {
-            console.error('[Publication] Could not parse publication', error);
+            console.warn('[Publication] Could not parse publication', error);
             return null;
           }
         })
