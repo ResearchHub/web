@@ -107,15 +107,17 @@ export function ApyChart() {
       </div>
 
       <div className="h-[300px]">
-        {isLoading ? (
+        {isLoading && (
           <div className="h-full flex items-center justify-center">
             <div className="animate-pulse h-full w-full bg-gray-50 rounded" />
           </div>
-        ) : history?.results.length === 0 ? (
+        )}
+        {!isLoading && history?.results.length === 0 && (
           <div className="h-full flex items-center justify-center text-gray-400 text-sm">
             No data available for this period
           </div>
-        ) : (
+        )}
+        {!isLoading && history && history.results.length > 0 && (
           <Line data={chartData} options={options} />
         )}
       </div>

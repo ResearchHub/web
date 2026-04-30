@@ -35,7 +35,7 @@ interface StatRowProps {
   highlight?: boolean;
 }
 
-function StatRow({ label, value, highlight }: StatRowProps) {
+function StatRow({ label, value, highlight }: Readonly<StatRowProps>) {
   return (
     <div className="flex items-center justify-between py-2.5 border-b border-gray-100 last:border-b-0">
       <span className="text-sm text-gray-500">{label}</span>
@@ -55,7 +55,7 @@ function StatsSkeleton() {
   return (
     <div className="animate-pulse space-y-4">
       {Array.from({ length: 7 }).map((_, i) => (
-        <div key={i} className="flex justify-between py-2.5">
+        <div key={`skeleton-${i}`} className="flex justify-between py-2.5">
           <div className="h-4 w-24 bg-gray-200 rounded" />
           <div className="h-4 w-16 bg-gray-200 rounded" />
         </div>
@@ -64,7 +64,7 @@ function StatsSkeleton() {
   );
 }
 
-export function StatsPanel({ stats, isLoading }: StatsPanelProps) {
+export function StatsPanel({ stats, isLoading }: Readonly<StatsPanelProps>) {
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6">
