@@ -326,18 +326,15 @@ export function WithdrawModal({
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Amount:</span>
-                  <div className="flex items-center gap-1">
-                    <ResearchCoinIcon size={14} />
-                    <span className="font-medium">{formatRSC({ amount: withdrawAmount })} RSC</span>
-                  </div>
+                  <span className="text-gray-700">Amount:</span>
+                  <span className="font-medium">{formatRSC({ amount: withdrawAmount })} RSC</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-700">Network fee:</span>
                   <span className="text-gray-700">-{formatRSC({ amount: fee || 0 })} RSC</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-gray-200">
-                  <span className="text-gray-600">You will receive:</span>
+                  <span className="text-gray-700">You will receive:</span>
                   <div className="flex items-center gap-1">
                     <ResearchCoinIcon size={14} />
                     <span className="font-semibold text-gray-900">
