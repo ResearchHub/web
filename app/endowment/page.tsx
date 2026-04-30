@@ -2,7 +2,7 @@
 
 import { useStakingYieldStats } from '@/hooks/useStakingYield';
 import { StatsPanel } from './components/StatsPanel';
-import { ApyChart } from './components/ApyChart';
+import { YieldChart } from '@/components/charts/YieldChart';
 
 export default function EndowmentPage() {
   const { stats, isLoading } = useStakingYieldStats();
@@ -21,7 +21,7 @@ export default function EndowmentPage() {
           <StatsPanel stats={stats} isLoading={isLoading} />
         </div>
         <div className="lg:col-span-2">
-          <ApyChart />
+          <YieldChart />
         </div>
       </div>
     </div>

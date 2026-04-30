@@ -23,8 +23,24 @@ const RANGE_OPTIONS: { value: StakingYieldRange; label: string }[] = [
   { value: 'all', label: 'All' },
 ];
 
-export function ApyChart() {
-  const { history, isLoading, range, setRange } = useStakingYieldHistory('90d');
+interface YieldChartProps {
+  compact?: boolean;
+  height?: number;
+  defaultRange?: StakingYieldRange;
+  showRangeSelector?: boolean;
+  title?: string;
+}
+
+export function YieldChart({
+  compact = false,
+  height,
+  defaultRange = '90d',
+  showRangeSelector = true,
+  title = 'Supply Yield',
+}: Readonly<YieldChartProps>) {
+  const { history, isLoading, range, setRange } = useStakingYieldHistory(defaultRange);
+
+  const chartHeight = height ?? (compact ? 150 : 300);
 
   const labels =
     history?.results.map((r) =>
@@ -47,8 +63,8 @@ export function ApyChart() {
         fill: true,
         tension: 0.3,
         pointRadius: 0,
-        pointHoverRadius: 4,
-        borderWidth: 2,
+        pointHoverRadius: compact ? 2 : 4,
+        borderWidth: compact ? 1.5 : 2,
       },
     ],
   };
@@ -72,7 +88,11 @@ export function ApyChart() {
     scales: {
       x: {
         grid: { display: false },
-        ticks: { maxTicksLimit: 8, color: '#9ca3af', font: { size: 11 } },
+        ticks: {
+          maxTicksLimit: compact ? 4 : 8,
+          color: '#9ca3af',
+          font: { size: compact ? 10 : 11 },
+        },
       },
       y: {
         beginAtZero: true,
@@ -80,34 +100,48 @@ export function ApyChart() {
         ticks: {
           callback: (value: any) => `${value}%`,
           color: '#9ca3af',
-          font: { size: 11 },
+          font: { size: compact ? 10 : 11 },
         },
       },
     },
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">Supply Yield</h2>
-        <div className="flex gap-1">
-          {RANGE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setRange(opt.value)}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                range === opt.value
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+    <div className={compact ? '' : 'bg-white rounded-lg border border-gray-200 p-6'}>
+      {(!compact || title) && (
+        <div className={`flex items-center justify-between ${compact ? 'mb-3' : 'mb-6'}`}>
+          {title && (
+            <h2
+              className={
+                compact
+                  ? 'text-sm font-semibold text-gray-900'
+                  : 'text-lg font-semibold text-gray-900'
+              }
             >
-              {opt.label}
-            </button>
-          ))}
+              {title}
+            </h2>
+          )}
+          {showRangeSelector && (
+            <div className="flex gap-1">
+              {RANGE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setRange(opt.value)}
+                  className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                    range === opt.value
+                      ? 'bg-primary-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
-      <div className="h-[300px]">
+      <div style={{ height: chartHeight }}>
         {isLoading && (
           <div className="h-full flex items-center justify-center">
             <div className="animate-pulse h-full w-full bg-gray-50 rounded" />
