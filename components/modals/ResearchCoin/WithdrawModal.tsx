@@ -324,7 +324,6 @@ export function WithdrawModal({
 
             {/* Withdrawal Summary */}
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-              <h3 className="font-medium text-gray-900">Confirm Withdrawal</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Amount:</span>
