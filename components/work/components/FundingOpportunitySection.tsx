@@ -2,11 +2,12 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Users } from 'lucide-react';
+import { HelpCircle, Users } from 'lucide-react';
 import { GRANT_IMAGE_FALLBACK_GRADIENT } from '@/types/grant';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { formatCompactAmount } from '@/utils/currency';
+import { Button } from '@/components/ui/Button';
 import { buildWorkUrl, generateSlug } from '@/utils/url';
 import { LinkedGrant } from '@/types/work';
 
@@ -68,7 +69,9 @@ export function FundingOpportunitySection({ grant }: Readonly<FundingOpportunity
           position="top"
           width="w-56"
         >
-          <span className="text-gray-400 hover:text-gray-600 cursor-help text-xs">ⓘ</span>
+          <Button className="text-gray-400 hover:text-gray-600" variant="ghost" size="icon">
+            <HelpCircle className="h-4 w-4" />
+          </Button>
         </Tooltip>
       }
     />
