@@ -50,11 +50,13 @@ export function SecuritySection() {
           <div>
             <h3 className="text-base font-semibold text-gray-900">Two-factor authentication</h3>
             <p className="text-sm text-gray-500">
-              Add an extra layer of security by requiring a one-time code at sign-in.
+              Add an extra layer of security by requiring a one-time code{' '}
+              {!isGoogleAccount && 'at sign-in and'} for every withdrawal.
             </p>
             {isGoogleAccount && (
-              <p className="mt-1 text-sm italic text-gray-400">
-                Not yet available for Google accounts.
+              <p className="mt-1 text-sm italic text-gray-500">
+                Since you sign in with Google, this will only apply to withdrawals. Your sign-in
+                security is managed through your Google account settings.
               </p>
             )}
           </div>
