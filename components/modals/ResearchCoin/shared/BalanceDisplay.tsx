@@ -20,7 +20,7 @@ export function BalanceDisplay({
   return (
     <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-600">Current Balance:</span>
+        <span className="text-sm text-gray-600">Current Balance</span>
         <div className="text-right flex items-center gap-2">
           <div className="flex items-center gap-2">
             <ResearchCoinIcon size={16} />
@@ -36,7 +36,7 @@ export function BalanceDisplay({
         <>
           <div className="my-2 border-t border-gray-200" />
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">{futureBalanceLabel}:</span>
+            <span className="text-sm text-gray-600">{futureBalanceLabel}</span>
             <div className="text-right flex items-center gap-2">
               <div className="flex items-center gap-2">
                 <ResearchCoinIcon size={16} />
