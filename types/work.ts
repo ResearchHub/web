@@ -127,7 +127,20 @@ export interface Work {
    */
   aiPeerReview?: ProposalReview | null;
   enrichments?: Enrichment[];
-  linkedGrantIds?: number[];
+  linkedGrant?: LinkedGrant | null;
+}
+
+export interface LinkedGrant {
+  id: number;
+  postId: number | null;
+  title: string | null;
+  shortTitle: string | null;
+  organization: string;
+  fundingAmount: number;
+  currency: string;
+  status: string;
+  imageUrl: string | null;
+  applicantCount: number;
 }
 
 export interface FundingRequest extends Work {
@@ -241,11 +254,22 @@ function pickPreregistrationAiPeerReviewFromGrants(raw: any): ProposalReview | n
   return apr ? transformProposalReview(apr) : null;
 }
 
-function pickLinkedGrantIds(raw: any): number[] {
-  if (!Array.isArray(raw.grants) || raw.grants.length === 0) return [];
-  return raw.grants
-    .map((g: any) => g?.id)
-    .filter((id: unknown): id is number => typeof id === 'number');
+function pickLinkedGrant(raw: any): LinkedGrant | null {
+  if (!Array.isArray(raw.grants) || raw.grants.length === 0) return null;
+  const g = raw.grants[0];
+  if (!g || typeof g.id !== 'number') return null;
+  return {
+    id: g.id,
+    postId: g.post_id ?? null,
+    title: g.title ?? null,
+    shortTitle: g.short_title ?? null,
+    organization: g.organization ?? '',
+    fundingAmount: Number(g.amount) || 0,
+    currency: g.currency ?? 'USD',
+    status: g.status ?? '',
+    imageUrl: g.image_url ?? null,
+    applicantCount: g.applicant_count ?? 0,
+  };
 }
 
 export const transformWork = createTransformer<any, Work>((raw) => {
@@ -369,7 +393,7 @@ export const transformPost = createTransformer<any, Work>((raw) => {
     license: undefined,
     pdfCopyrightAllowsDisplay: true,
     ...(isPreregistration ? { aiPeerReview: pickPreregistrationAiPeerReviewFromGrants(raw) } : {}),
-    ...(isPreregistration ? { linkedGrantIds: pickLinkedGrantIds(raw) } : {}),
+    ...(isPreregistration ? { linkedGrant: pickLinkedGrant(raw) } : {}),
   };
 });
 
