@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { Check, AlertCircle, Loader2, Copy } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
-import { formatRSC } from '@/utils/number';
+import { formatRSC, getMaxDecimalPlaces } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useWithdrawRSC } from '@/hooks/useWithdrawRSC';
 import { cn } from '@/utils/styles';
@@ -115,6 +115,10 @@ export function WithdrawModal({
     if (!fee) return 0;
     return Math.max(0, withdrawAmount - fee);
   }, [withdrawAmount, fee]);
+
+  const summaryDecimals = useMemo(() => {
+    return getMaxDecimalPlaces(withdrawAmount, fee || 0, amountUserWillReceive);
+  }, [withdrawAmount, fee, amountUserWillReceive]);
 
   const isBelowMinimum = useMemo(
     () => withdrawAmount > 0 && withdrawAmount < MIN_WITHDRAWAL_AMOUNT,
@@ -328,23 +332,27 @@ export function WithdrawModal({
                 <div className="flex justify-between">
                   <span className="text-gray-700">Amount</span>
                   <span>
-                    <span className="font-medium">{formatRSC({ amount: withdrawAmount })}</span>
+                    <span className="font-medium">
+                      {formatRSC({ amount: withdrawAmount, decimalPlaces: summaryDecimals })}
+                    </span>
                     <span className="text-gray-500"> RSC</span>
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-700">Network fee</span>
                   <span>
-                    <span className="text-gray-700">-{formatRSC({ amount: fee || 0 })}</span>
+                    <span className="text-gray-700">
+                      -{formatRSC({ amount: fee || 0, decimalPlaces: summaryDecimals })}
+                    </span>
                     <span className="text-gray-500"> RSC</span>
                   </span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-gray-200">
-                  <span className="text-gray-700">You will receive</span>
+                  <span className="font-medium text-gray-700">You will receive</span>
                   <div className="flex items-center gap-1">
                     <ResearchCoinIcon size={14} />
                     <span className="font-semibold text-gray-900">
-                      {formatRSC({ amount: amountUserWillReceive })}
+                      {formatRSC({ amount: amountUserWillReceive, decimalPlaces: summaryDecimals })}
                     </span>
                     <span className="text-gray-500">RSC</span>
                   </div>
