@@ -334,7 +334,7 @@ export function WithdrawModal({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-700">Network fee:</span>
-                  <span className="text-gray-700">-{fee} RSC</span>
+                  <span className="text-gray-700">-{formatRSC({ amount: fee || 0 })} RSC</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-gray-200">
                   <span className="text-gray-600">You will receive:</span>
