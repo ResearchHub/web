@@ -42,6 +42,8 @@ export function WithdrawModal({
   const [destinationAddress, setDestinationAddress] = useState<string>('');
   const [mfaCode, setMfaCode] = useState<string>('');
   const [isMfaEnabled, setIsMfaEnabled] = useState<boolean>(false);
+  const [isMfaStatusLoading, setIsMfaStatusLoading] = useState<boolean>(true);
+  const [mfaStatusError, setMfaStatusError] = useState<boolean>(false);
   const [showMfaConfirmation, setShowMfaConfirmation] = useState<boolean>(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const [{ txStatus, isLoading, fee, isFeeLoading, feeError }, withdrawRSC, resetTransaction] =
@@ -61,6 +63,8 @@ export function WithdrawModal({
         setDestinationAddress('');
         setMfaCode('');
         setIsMfaEnabled(false);
+        setIsMfaStatusLoading(true);
+        setMfaStatusError(false);
         setShowMfaConfirmation(false);
         resetTransaction();
       }, 300);
@@ -72,13 +76,20 @@ export function WithdrawModal({
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
+    setIsMfaStatusLoading(true);
+    setMfaStatusError(false);
     AuthService.getMfaStatus()
       .then((status) => {
-        if (!cancelled) setIsMfaEnabled(!!status?.mfa_enabled);
+        if (!cancelled) {
+          setIsMfaEnabled(!!status?.mfa_enabled);
+          setIsMfaStatusLoading(false);
+        }
       })
       .catch(() => {
-        // Don't show the field if MFA status check fails
-        if (!cancelled) setIsMfaEnabled(false);
+        if (!cancelled) {
+          setMfaStatusError(true);
+          setIsMfaStatusLoading(false);
+        }
       });
     return () => {
       cancelled = true;
@@ -93,6 +104,7 @@ export function WithdrawModal({
     if (txStatus.state === 'error') {
       const errorMessage = 'message' in txStatus ? txStatus.message : 'Transaction failed';
       toast.error(errorMessage);
+      setMfaCode('');
     }
   }, [txStatus]);
 
@@ -152,7 +164,8 @@ export function WithdrawModal({
       !isBelowMinimum &&
       amountUserWillReceive > 0 &&
       isAddressValid &&
-      destinationAddress,
+      destinationAddress &&
+      !isMfaStatusLoading,
     [
       amount,
       withdrawAmount,
@@ -164,6 +177,7 @@ export function WithdrawModal({
       amountUserWillReceive,
       isAddressValid,
       destinationAddress,
+      isMfaStatusLoading,
     ]
   );
 
@@ -373,7 +387,7 @@ export function WithdrawModal({
               <span className="text-[15px] text-gray-700">Authenticator code</span>
               <Input
                 value={mfaCode}
-                onChange={(e) => setMfaCode(e.target.value)}
+                onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
                 placeholder="123456"
                 maxLength={6}
                 inputMode="numeric"
@@ -398,6 +412,12 @@ export function WithdrawModal({
                     <div className="text-sm font-normal opacity-90">{txStatus.message}</div>
                   )}
                 </div>
+              </Alert>
+            )}
+
+            {mfaStatusError && (
+              <Alert variant="warning">
+                Could not verify MFA status. If you have MFA enabled, the withdrawal may fail.
               </Alert>
             )}
 
