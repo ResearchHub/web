@@ -54,12 +54,34 @@ interface StatsPanelProps {
 function StatsSkeleton() {
   return (
     <div className="animate-pulse space-y-4">
-      {Array.from({ length: 7 }).map((_, i) => (
-        <div key={`skeleton-${i}`} className="flex justify-between py-2.5">
-          <div className="h-4 w-24 bg-gray-200 rounded" />
-          <div className="h-4 w-16 bg-gray-200 rounded" />
-        </div>
-      ))}
+      <div className="flex justify-between py-2.5">
+        <div className="h-4 w-24 bg-gray-200 rounded" />
+        <div className="h-4 w-16 bg-gray-200 rounded" />
+      </div>
+      <div className="flex justify-between py-2.5">
+        <div className="h-4 w-24 bg-gray-200 rounded" />
+        <div className="h-4 w-16 bg-gray-200 rounded" />
+      </div>
+      <div className="flex justify-between py-2.5">
+        <div className="h-4 w-24 bg-gray-200 rounded" />
+        <div className="h-4 w-16 bg-gray-200 rounded" />
+      </div>
+      <div className="flex justify-between py-2.5">
+        <div className="h-4 w-24 bg-gray-200 rounded" />
+        <div className="h-4 w-16 bg-gray-200 rounded" />
+      </div>
+      <div className="flex justify-between py-2.5">
+        <div className="h-4 w-24 bg-gray-200 rounded" />
+        <div className="h-4 w-16 bg-gray-200 rounded" />
+      </div>
+      <div className="flex justify-between py-2.5">
+        <div className="h-4 w-24 bg-gray-200 rounded" />
+        <div className="h-4 w-16 bg-gray-200 rounded" />
+      </div>
+      <div className="flex justify-between py-2.5">
+        <div className="h-4 w-24 bg-gray-200 rounded" />
+        <div className="h-4 w-16 bg-gray-200 rounded" />
+      </div>
     </div>
   );
 }
