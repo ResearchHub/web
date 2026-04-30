@@ -3,7 +3,6 @@
 import { useCallback, useState, useEffect, memo, useMemo } from 'react';
 import { Comment, CommentType } from '@/types/comment';
 import { ContentType, Work } from '@/types/work';
-import { Bounty } from '@/types/bounty';
 import { CommentItem } from './CommentItem';
 import { CommentEditor, CommentEditorProps } from './CommentEditor';
 import { Button } from '@/components/ui/Button';
@@ -36,7 +35,7 @@ interface CommentFeedProps {
   unifiedDocumentId: number | null;
   work?: Work;
   workAuthors?: Work['authors'];
-  workBounties?: Bounty[];
+  belowEditor?: React.ReactNode;
 }
 
 function CommentFeed({
@@ -51,7 +50,7 @@ function CommentFeed({
   unifiedDocumentId,
   work,
   workAuthors,
-  workBounties,
+  belowEditor,
 }: CommentFeedProps) {
   // Add debugging for mount/unmount if debug is enabled
   useEffect(() => {
@@ -80,7 +79,6 @@ function CommentFeed({
       commentType={commentType}
       debug={debug}
       work={work}
-      workBounties={workBounties}
     >
       <div className={cn('space-y-6', className)}>
         <CommentFeedContent
@@ -95,6 +93,7 @@ function CommentFeed({
           unifiedDocumentId={unifiedDocumentId}
           work={work}
           workAuthors={workAuthors}
+          belowEditor={belowEditor}
         />
       </div>
       <CreateBountyModal
@@ -119,6 +118,7 @@ function CommentFeedContent({
   onCreateBounty,
   work,
   workAuthors,
+  belowEditor,
 }: Omit<CommentFeedProps, 'documentId'> & { onCreateBounty: () => void }) {
   // Add debugging for content component if debug is enabled
   useEffect(() => {
@@ -268,6 +268,7 @@ function CommentFeedContent({
             storageKey={storageKey}
             {...editorProps}
           />
+          {belowEditor && <div className="mt-6">{belowEditor}</div>}
           <div className="mt-12 mb-2">
             {commentType !== 'BOUNTY' && (
               <CommentSortAndFilters commentType={commentType} commentCount={count} />

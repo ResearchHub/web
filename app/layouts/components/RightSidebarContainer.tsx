@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { RHJRightSidebar } from '@/components/Journal/RHJRightSidebar';
 import { cn } from '@/lib/utils';
+import { useWorkTab } from '@/components/work/WorkHeader/WorkTabContext';
+import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 
 const RightSidebar = dynamic(() => import('../RightSidebar').then((mod) => mod.RightSidebar), {
   ssr: true,
@@ -56,21 +58,36 @@ export function RightSidebarContainer({
   contentClassName,
 }: RightSidebarContainerProps) {
   const sidebarHeight = isCompact ? 'h-[calc(100vh-48px)]' : 'h-[calc(100vh-64px)]';
+  const { mobileSidebarOpen, setMobileSidebarOpen } = useWorkTab();
 
   return (
-    <aside
-      className={cn(
-        'sticky top-10 overflow-y-auto mt-10',
-        'lg:!block !hidden right-sidebar:!block',
-        'w-80 flex-shrink-0 bg-gray-50/80 rounded-xl z-30',
-        sidebarHeight
-      )}
-    >
-      <div className={cn('p-4 h-full', contentClassName)}>
-        <Suspense fallback={<RightSidebarSkeleton />}>
-          <RightSidebarContent rightSidebar={rightSidebar} />
-        </Suspense>
+    <>
+      <aside
+        className={cn(
+          'sticky top-10 overflow-y-auto mt-10',
+          'lg:!block !hidden right-sidebar:!block',
+          'w-80 flex-shrink-0 bg-gray-50/80 rounded-xl z-30',
+          sidebarHeight
+        )}
+      >
+        <div className={cn('p-4 h-full', contentClassName)}>
+          <Suspense fallback={<RightSidebarSkeleton />}>
+            <RightSidebarContent rightSidebar={rightSidebar} />
+          </Suspense>
+        </div>
+      </aside>
+
+      <div className="lg:hidden">
+        <SwipeableDrawer
+          isOpen={mobileSidebarOpen}
+          onClose={() => setMobileSidebarOpen(false)}
+          height="85vh"
+        >
+          <Suspense fallback={<RightSidebarSkeleton />}>
+            <RightSidebarContent rightSidebar={rightSidebar} />
+          </Suspense>
+        </SwipeableDrawer>
       </div>
-    </aside>
+    </>
   );
 }

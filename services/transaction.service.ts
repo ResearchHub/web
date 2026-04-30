@@ -73,6 +73,7 @@ export interface WithdrawalRequest {
   amount: string;
   transaction_fee: string;
   network: 'ETHEREUM' | 'BASE';
+  mfa_code?: string;
 }
 
 export interface WithdrawalResponse {

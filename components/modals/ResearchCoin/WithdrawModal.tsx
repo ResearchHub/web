@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { Check, AlertCircle, Loader2, Copy } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
-import { formatRSC } from '@/utils/number';
+import { formatRSC, getMaxDecimalPlaces } from '@/utils/number';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { useWithdrawRSC } from '@/hooks/useWithdrawRSC';
 import { cn } from '@/utils/styles';
@@ -19,6 +19,7 @@ import toast from 'react-hot-toast';
 import { WithdrawalSuccessView } from './WithdrawalSuccessView';
 import { isValidEthereumAddress } from '@/utils/stringUtils';
 import { useCopyAddress } from '@/hooks/useCopyAddress';
+import { AuthService } from '@/services/auth.service';
 
 // Minimum withdrawal amount in RSC
 const MIN_WITHDRAWAL_AMOUNT = 150;
@@ -39,6 +40,11 @@ export function WithdrawModal({
   const [amount, setAmount] = useState<string>('');
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkType>('BASE');
   const [destinationAddress, setDestinationAddress] = useState<string>('');
+  const [mfaCode, setMfaCode] = useState<string>('');
+  const [isMfaEnabled, setIsMfaEnabled] = useState<boolean>(false);
+  const [isMfaStatusLoading, setIsMfaStatusLoading] = useState<boolean>(true);
+  const [mfaStatusError, setMfaStatusError] = useState<boolean>(false);
+  const [showMfaConfirmation, setShowMfaConfirmation] = useState<boolean>(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const [{ txStatus, isLoading, fee, isFeeLoading, feeError }, withdrawRSC, resetTransaction] =
     useWithdrawRSC({
@@ -55,12 +61,40 @@ export function WithdrawModal({
         setAmount('');
         setSelectedNetwork('BASE');
         setDestinationAddress('');
+        setMfaCode('');
+        setIsMfaEnabled(false);
+        setIsMfaStatusLoading(true);
+        setMfaStatusError(false);
+        setShowMfaConfirmation(false);
         resetTransaction();
       }, 300);
 
       return () => clearTimeout(timeoutId);
     }
   }, [isOpen, resetTransaction]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    setIsMfaStatusLoading(true);
+    setMfaStatusError(false);
+    AuthService.getMfaStatus()
+      .then((status) => {
+        if (!cancelled) {
+          setIsMfaEnabled(!!status?.mfa_enabled);
+          setIsMfaStatusLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setMfaStatusError(true);
+          setIsMfaStatusLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
 
   const isAddressValid = useMemo(() => {
     return isValidEthereumAddress(destinationAddress);
@@ -70,6 +104,7 @@ export function WithdrawModal({
     if (txStatus.state === 'error') {
       const errorMessage = 'message' in txStatus ? txStatus.message : 'Transaction failed';
       toast.error(errorMessage);
+      setMfaCode('');
     }
   }, [txStatus]);
 
@@ -93,6 +128,10 @@ export function WithdrawModal({
     return Math.max(0, withdrawAmount - fee);
   }, [withdrawAmount, fee]);
 
+  const summaryDecimals = useMemo(() => {
+    return getMaxDecimalPlaces(withdrawAmount, fee || 0, amountUserWillReceive);
+  }, [withdrawAmount, fee, amountUserWillReceive]);
+
   const isBelowMinimum = useMemo(
     () => withdrawAmount > 0 && withdrawAmount < MIN_WITHDRAWAL_AMOUNT,
     [withdrawAmount]
@@ -113,19 +152,20 @@ export function WithdrawModal({
     [withdrawAmount, availableBalance]
   );
 
-  // Determine if withdraw button should be disabled
-  const isButtonDisabled = useMemo(
+  // Determine if the form is valid (to proceed to either MFA confirmation or direct withdrawal)
+  const isFormValid = useMemo(
     () =>
-      !amount ||
-      withdrawAmount <= 0 ||
-      txStatus.state === 'pending' ||
-      isFeeLoading ||
-      !fee ||
-      hasInsufficientBalance ||
-      isBelowMinimum ||
-      amountUserWillReceive <= 0 ||
-      !isAddressValid ||
-      !destinationAddress,
+      amount &&
+      withdrawAmount > 0 &&
+      txStatus.state !== 'pending' &&
+      !isFeeLoading &&
+      fee &&
+      !hasInsufficientBalance &&
+      !isBelowMinimum &&
+      amountUserWillReceive > 0 &&
+      isAddressValid &&
+      destinationAddress &&
+      !isMfaStatusLoading,
     [
       amount,
       withdrawAmount,
@@ -137,7 +177,14 @@ export function WithdrawModal({
       amountUserWillReceive,
       isAddressValid,
       destinationAddress,
+      isMfaStatusLoading,
     ]
+  );
+
+  // Determine if confirm button in MFA step should be disabled
+  const isConfirmDisabled = useMemo(
+    () => !isFormValid || (isMfaEnabled && !mfaCode.trim()) || txStatus.state === 'pending',
+    [isFormValid, isMfaEnabled, mfaCode, txStatus.state]
   );
 
   const isInputDisabled = useCallback(() => {
@@ -151,7 +198,7 @@ export function WithdrawModal({
   }, [availableBalance, isInputDisabled, fee]);
 
   const handleWithdraw = useCallback(async () => {
-    if (!destinationAddress || !amount || isButtonDisabled || !fee) {
+    if (!destinationAddress || !amount || !isFormValid || !fee) {
       return;
     }
 
@@ -160,6 +207,7 @@ export function WithdrawModal({
       agreed_to_terms: true,
       amount: amount,
       network: selectedNetwork,
+      ...(isMfaEnabled && mfaCode.trim() ? { mfa_code: mfaCode.trim() } : {}),
     });
 
     if (result && txStatus.state === 'success' && onSuccess) {
@@ -168,12 +216,14 @@ export function WithdrawModal({
   }, [
     destinationAddress,
     amount,
-    isButtonDisabled,
+    isFormValid,
     withdrawRSC,
     txStatus.state,
     onSuccess,
     fee,
     selectedNetwork,
+    isMfaEnabled,
+    mfaCode,
   ]);
 
   const { isCopied: isAddressCopied, copyAddress } = useCopyAddress();
@@ -193,9 +243,49 @@ export function WithdrawModal({
       return <TransactionFooter txHash={txHash} blockExplorerUrl={blockExplorerUrl} />;
     }
 
+    // MFA confirmation step footer
+    if (showMfaConfirmation) {
+      return (
+        <TransactionFooter blockExplorerUrl={blockExplorerUrl}>
+          <div className="flex gap-3 w-full">
+            <Button
+              variant="outlined"
+              onClick={() => setShowMfaConfirmation(false)}
+              disabled={txStatus.state === 'pending'}
+              className="flex-1"
+              size="lg"
+            >
+              Back
+            </Button>
+            <Button
+              onClick={handleWithdraw}
+              disabled={isConfirmDisabled}
+              className="flex-1"
+              size="lg"
+            >
+              {txStatus.state === 'pending' ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Confirm Withdrawal'
+              )}
+            </Button>
+          </div>
+        </TransactionFooter>
+      );
+    }
+
+    // Main form footer
     return (
       <TransactionFooter blockExplorerUrl={blockExplorerUrl}>
-        <Button onClick={handleWithdraw} disabled={isButtonDisabled} className="w-full" size="lg">
+        <Button
+          onClick={() => (isMfaEnabled ? setShowMfaConfirmation(true) : handleWithdraw())}
+          disabled={!isFormValid}
+          className="w-full"
+          size="lg"
+        >
           {isFeeLoading || txStatus.state === 'pending' ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -207,7 +297,16 @@ export function WithdrawModal({
         </Button>
       </TransactionFooter>
     );
-  }, [txStatus, blockExplorerUrl, isButtonDisabled, handleWithdraw, isFeeLoading]);
+  }, [
+    txStatus,
+    blockExplorerUrl,
+    isFormValid,
+    isConfirmDisabled,
+    handleWithdraw,
+    isFeeLoading,
+    showMfaConfirmation,
+    isMfaEnabled,
+  ]);
 
   return (
     <BaseModal
@@ -227,6 +326,81 @@ export function WithdrawModal({
             networkConfig={networkConfig}
             address={destinationAddress || ''}
           />
+        ) : showMfaConfirmation ? (
+          /* MFA Confirmation View */
+          <>
+            {txStatus.state === 'error' && (
+              <Alert variant="error">
+                <div className="space-y-1">
+                  <div className="font-medium">Withdrawal failed</div>
+                  {'message' in txStatus && txStatus.message && (
+                    <div className="text-sm font-normal opacity-90">{txStatus.message}</div>
+                  )}
+                </div>
+              </Alert>
+            )}
+
+            {/* Withdrawal Summary */}
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-700">Amount</span>
+                  <span>
+                    <span className="font-medium">
+                      {formatRSC({ amount: withdrawAmount, decimalPlaces: summaryDecimals })}
+                    </span>
+                    <span className="text-gray-500"> RSC</span>
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-700">Network fee</span>
+                  <span>
+                    <span className="text-gray-700">
+                      -{formatRSC({ amount: fee || 0, decimalPlaces: summaryDecimals })}
+                    </span>
+                    <span className="text-gray-500"> RSC</span>
+                  </span>
+                </div>
+                <div className="flex justify-between pt-2 border-t border-gray-200">
+                  <span className="font-medium text-gray-700">You will receive</span>
+                  <div className="flex items-center gap-1">
+                    <ResearchCoinIcon size={14} />
+                    <span className="font-semibold text-gray-900">
+                      {formatRSC({ amount: amountUserWillReceive, decimalPlaces: summaryDecimals })}
+                    </span>
+                    <span className="text-gray-500">RSC</span>
+                  </div>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-gray-200 space-y-1">
+                <div className="text-sm text-gray-700">
+                  Destination Address ({networkConfig.name})
+                </div>
+                <div className="font-mono text-sm text-gray-800 break-all">
+                  {destinationAddress}
+                </div>
+              </div>
+            </div>
+
+            {/* MFA Code Input */}
+            <div className="space-y-2">
+              <span className="text-[15px] text-gray-700">Authenticator code</span>
+              <Input
+                value={mfaCode}
+                onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                placeholder="123456"
+                maxLength={6}
+                inputMode="numeric"
+                disabled={txStatus.state === 'pending'}
+                autoComplete="one-time-code"
+                autoCapitalize="none"
+                autoFocus
+              />
+              <p className="text-sm text-gray-500">
+                Enter the 6-digit code from your authenticator app to confirm this withdrawal.
+              </p>
+            </div>
+          </>
         ) : (
           /* Form View */
           <>
@@ -238,6 +412,12 @@ export function WithdrawModal({
                     <div className="text-sm font-normal opacity-90">{txStatus.message}</div>
                   )}
                 </div>
+              </Alert>
+            )}
+
+            {mfaStatusError && (
+              <Alert variant="warning">
+                Could not verify MFA status. If you have MFA enabled, the withdrawal may fail.
               </Alert>
             )}
 
@@ -323,7 +503,7 @@ export function WithdrawModal({
                   {withdrawAmount > 0 && (fee || isFeeLoading) && (
                     <div className="mt-3 pt-3 border-t border-gray-200">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-700">You will receive:</span>
+                        <span className="text-sm font-medium text-gray-700">You will receive</span>
                         <div className="flex items-center gap-1">
                           <ResearchCoinIcon size={16} />
                           {isFeeLoading ? (
