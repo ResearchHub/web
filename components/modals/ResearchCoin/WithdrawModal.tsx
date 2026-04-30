@@ -327,18 +327,18 @@ export function WithdrawModal({
               <h3 className="font-medium text-gray-900">Confirm Withdrawal</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Amount</span>
+                  <span className="text-gray-600">Amount:</span>
                   <div className="flex items-center gap-1">
                     <ResearchCoinIcon size={14} />
                     <span className="font-medium">{formatRSC({ amount: withdrawAmount })} RSC</span>
                   </div>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Network fee</span>
+                  <span className="text-gray-700">Network fee:</span>
                   <span className="text-gray-700">-{fee} RSC</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-gray-200">
-                  <span className="text-gray-600">You will receive</span>
+                  <span className="text-gray-600">You will receive:</span>
                   <div className="flex items-center gap-1">
                     <ResearchCoinIcon size={14} />
                     <span className="font-semibold text-gray-900">
@@ -347,12 +347,13 @@ export function WithdrawModal({
                   </div>
                 </div>
               </div>
-              <div className="pt-2 border-t border-gray-200">
-                <div className="text-sm text-gray-600 mb-1">Destination</div>
-                <div className="font-mono text-xs text-gray-800 bg-white px-2 py-1.5 rounded border border-gray-200 break-all">
+              <div className="pt-2 border-t border-gray-200 space-y-1">
+                <div className="text-sm text-gray-700">
+                  Destination Address ({networkConfig.name}):
+                </div>
+                <div className="font-mono text-sm text-gray-800 break-all">
                   {destinationAddress}
                 </div>
-                <div className="text-xs text-gray-500 mt-1">{networkConfig.name}</div>
               </div>
             </div>
 
