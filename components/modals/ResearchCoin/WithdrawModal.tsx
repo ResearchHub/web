@@ -104,6 +104,7 @@ export function WithdrawModal({
     if (txStatus.state === 'error') {
       const errorMessage = 'message' in txStatus ? txStatus.message : 'Transaction failed';
       toast.error(errorMessage);
+      setMfaCode('');
     }
   }, [txStatus]);
 
