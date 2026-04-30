@@ -78,7 +78,8 @@ export function StatsPanel({ stats, isLoading }: Readonly<StatsPanelProps>) {
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">ResearchHub Endowment Yield</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">ResearchHub Endowment Yield</h2>
+        <div className="h-4 w-32 bg-gray-200 rounded animate-pulse mb-4" />
         <StatsSkeleton />
       </div>
     );
