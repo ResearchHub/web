@@ -19,7 +19,6 @@ export const ProposalSidebar = ({ work, metadata }: ProposalSidebarProps) => {
   return (
     <div className="space-y-12">
       {metadata.fundraising && <FundraiseSection fundraise={metadata.fundraising} />}
-      {work.linkedGrant && <FundingOpportunitySection grant={work.linkedGrant} />}
       {metadata.fundraising && <NonprofitSection fundraiseId={metadata.fundraising.id} />}
       {metadata.fundraising &&
         metadata.fundraising.contributors &&
@@ -50,6 +49,7 @@ export const ProposalSidebar = ({ work, metadata }: ProposalSidebarProps) => {
           })}
         />
       )}
+      {work.linkedGrant && <FundingOpportunitySection grant={work.linkedGrant} />}
       <TopicsSection topics={metadata.topics || []} />
       {work.doi && <DOISection doi={work.doi} />}
     </div>
