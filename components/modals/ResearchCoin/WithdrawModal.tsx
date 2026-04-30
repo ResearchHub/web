@@ -386,7 +386,7 @@ export function WithdrawModal({
               <span className="text-[15px] text-gray-700">Authenticator code</span>
               <Input
                 value={mfaCode}
-                onChange={(e) => setMfaCode(e.target.value)}
+                onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
                 placeholder="123456"
                 maxLength={6}
                 inputMode="numeric"
