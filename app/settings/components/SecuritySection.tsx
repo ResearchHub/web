@@ -60,7 +60,7 @@ export function SecuritySection() {
               </p>
             )}
           </div>
-          {!isLoading && !error && !status?.mfa_enabled && !isGoogleAccount && (
+          {!isLoading && !error && !status?.mfa_enabled && (
             <Button onClick={() => setIsEnableOpen(true)}>Enable</Button>
           )}
           {!isLoading && !error && status?.mfa_enabled && (
