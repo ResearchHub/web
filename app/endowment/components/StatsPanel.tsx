@@ -51,37 +51,25 @@ interface StatsPanelProps {
   isLoading: boolean;
 }
 
+function SkeletonRow() {
+  return (
+    <div className="flex items-center justify-between py-2.5 border-b border-gray-100 last:border-b-0">
+      <div className="h-4 w-24 bg-gray-200 rounded" />
+      <div className="h-4 w-16 bg-gray-200 rounded" />
+    </div>
+  );
+}
+
 function StatsSkeleton() {
   return (
-    <div className="animate-pulse space-y-4">
-      <div className="flex justify-between py-2.5">
-        <div className="h-4 w-24 bg-gray-200 rounded" />
-        <div className="h-4 w-16 bg-gray-200 rounded" />
-      </div>
-      <div className="flex justify-between py-2.5">
-        <div className="h-4 w-24 bg-gray-200 rounded" />
-        <div className="h-4 w-16 bg-gray-200 rounded" />
-      </div>
-      <div className="flex justify-between py-2.5">
-        <div className="h-4 w-24 bg-gray-200 rounded" />
-        <div className="h-4 w-16 bg-gray-200 rounded" />
-      </div>
-      <div className="flex justify-between py-2.5">
-        <div className="h-4 w-24 bg-gray-200 rounded" />
-        <div className="h-4 w-16 bg-gray-200 rounded" />
-      </div>
-      <div className="flex justify-between py-2.5">
-        <div className="h-4 w-24 bg-gray-200 rounded" />
-        <div className="h-4 w-16 bg-gray-200 rounded" />
-      </div>
-      <div className="flex justify-between py-2.5">
-        <div className="h-4 w-24 bg-gray-200 rounded" />
-        <div className="h-4 w-16 bg-gray-200 rounded" />
-      </div>
-      <div className="flex justify-between py-2.5">
-        <div className="h-4 w-24 bg-gray-200 rounded" />
-        <div className="h-4 w-16 bg-gray-200 rounded" />
-      </div>
+    <div className="animate-pulse">
+      <SkeletonRow />
+      <SkeletonRow />
+      <SkeletonRow />
+      <SkeletonRow />
+      <SkeletonRow />
+      <SkeletonRow />
+      <SkeletonRow />
     </div>
   );
 }
