@@ -7,7 +7,7 @@ export default function EndowmentPage() {
   const { stats, isLoading } = useStakingYieldStats();
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div>
       <div className="bg-white rounded-lg border border-gray-200 px-6 pt-4 pb-6 mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">About</h2>
         <p className="text-sm text-gray-900">

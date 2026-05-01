@@ -1,7 +1,6 @@
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata, SITE_CONFIG } from '@/lib/metadata';
-import { LeftSidebar as MainLeftSidebar } from '../layouts/LeftSidebar';
-import { EndowmentTopBar } from './components/EndowmentTopBar';
+import { PageLayout } from '@/app/layouts/PageLayout';
 
 export const metadata: Metadata = {
   ...buildOpenGraphMetadata({
@@ -16,22 +15,5 @@ export const metadata: Metadata = {
 };
 
 export default function EndowmentLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div
-        className="grid min-h-screen w-full"
-        style={{
-          gridTemplateColumns: '70px minmax(0, 1fr)',
-        }}
-      >
-        <div className="border-r border-gray-200 h-screen sticky top-0 overflow-y-auto">
-          <MainLeftSidebar forceMinimize={true} />
-        </div>
-        <div className="relative">
-          <EndowmentTopBar />
-          <main>{children}</main>
-        </div>
-      </div>
-    </div>
-  );
+  return <PageLayout rightSidebar={false}>{children}</PageLayout>;
 }
