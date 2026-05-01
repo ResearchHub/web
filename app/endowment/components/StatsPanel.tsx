@@ -88,7 +88,7 @@ export function StatsPanel({ stats, isLoading }: Readonly<StatsPanelProps>) {
   if (!stats) return null;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 w-full">
+    <div className="bg-white rounded-lg border border-gray-200 px-6 pt-4 pb-6 w-full">
       <h2 className="text-lg font-semibold text-gray-900 mb-1">Yield Stats</h2>
       {stats.accrual_date && (
         <p className="text-xs text-gray-400 mb-4">

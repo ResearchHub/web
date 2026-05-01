@@ -140,7 +140,9 @@ export function YieldChart({
   return (
     <div
       className={
-        compact ? '' : 'bg-white rounded-lg border border-gray-200 p-6 w-full flex flex-col'
+        compact
+          ? ''
+          : 'bg-white rounded-lg border border-gray-200 px-6 pt-4 pb-6 w-full flex flex-col'
       }
     >
       {(!compact || title) && (
