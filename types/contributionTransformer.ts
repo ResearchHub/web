@@ -230,14 +230,15 @@ const parseHub = (raw: any): Hub => {
 
 // Helper functions for parsing contribution items
 const parseCommentContributionItem = (raw: any): CommentContributionItem => {
+  const unifiedDoc = raw.item?.thread?.content_object?.unified_document;
   return {
-    content: raw.item.comment_content_json,
-    createdBy: raw.created_by || raw.item.created_by,
-    unifiedDocument: parseUnifiedDocument(raw.item.thread.content_object.unified_document),
-    id: raw.item.id,
+    content: raw.item?.comment_content_json,
+    createdBy: raw.created_by || raw.item?.created_by,
+    unifiedDocument: parseUnifiedDocument(unifiedDoc),
+    id: raw.item?.id,
     createdDate: raw.created_date,
-    postType: raw.item.thread?.thread_type,
-    parent: raw.item.parent
+    postType: raw.item?.thread?.thread_type,
+    parent: raw.item?.parent
       ? {
           id: raw.item.parent.id,
           content: raw.item.parent.comment_content_json,
@@ -248,7 +249,9 @@ const parseCommentContributionItem = (raw: any): CommentContributionItem => {
 };
 
 const parseBountyContributionItem = (raw: any): BountyContributionItem => {
-  raw.item.item.content_type = raw.item.content_type;
+  if (raw.item?.item) {
+    raw.item.item.content_type = raw.item.content_type;
+  }
 
   return {
     createdBy: raw.created_by,
@@ -257,12 +260,12 @@ const parseBountyContributionItem = (raw: any): BountyContributionItem => {
     ),
     id: raw.id,
     createdDate: raw.created_date,
-    amount: raw.item.amount || raw.item,
+    amount: raw.item?.amount || raw.item,
     content: raw?.item?.item?.comment_content_json,
-    ...(raw.item.bounty_parent && {
+    ...(raw.item?.bounty_parent && {
       parent: raw.item.bounty_parent,
     }),
-    expirationDate: raw.item.expiration_date,
+    expirationDate: raw.item?.expiration_date,
   };
 };
 
