@@ -102,13 +102,17 @@ export function StatsPanel({ stats, isLoading }: Readonly<StatsPanelProps>) {
       )}
       <StatRow label="Annualized Yield" value={`${stats.apy.toFixed(2)}%`} highlight />
       <StatRow
-        label="Issued Today"
-        value={
-          formatCurrency(stats.issued_today_usd) +
-          (stats.issued_today_rsc ? ' (' + formatRSC(stats.issued_today_rsc) + ' RSC)' : '')
-        }
+        label="Issued Today (USD)"
+        value={formatCurrency(stats.issued_today_usd)}
         highlight
       />
+      {stats.issued_today_rsc && (
+        <StatRow
+          label="Issued Today (RSC)"
+          value={formatRSC(stats.issued_today_rsc) + ' RSC'}
+          highlight
+        />
+      )}
       <StatRow label="30d Avg Annualized Yield" value={`${stats.apy_30d_avg.toFixed(2)}%`} />
       <StatRow label="Holders" value={formatNumber(stats.holders)} />
       <StatRow label="Total Staked" value={`${formatRSC(stats.total_staked_rsc)} RSC`} />
