@@ -3,13 +3,11 @@
 import { useStakingYieldStats } from '@/hooks/useStakingYield';
 import { StatsPanel } from './components/StatsPanel';
 import { YieldChart } from '@/components/charts/YieldChart';
-import { PageLayout } from '../layouts/PageLayout';
-
 export default function EndowmentPage() {
   const { stats, isLoading } = useStakingYieldStats();
 
   return (
-    <PageLayout rightSidebar={false}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
         <p className="text-sm text-gray-900">
           <span className="font-semibold text-gray-900">
@@ -38,6 +36,6 @@ export default function EndowmentPage() {
           <YieldChart />
         </div>
       </div>
-    </PageLayout>
+    </div>
   );
 }
