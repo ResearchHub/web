@@ -4,14 +4,11 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import type { KeyInsightData, ProposalReview } from '@/types/aiPeerReview';
-import type { PeerReview } from '@/types/work';
 import { AiPeerReviewVerdictBadge } from './AiPeerReviewVerdictBadge';
 import { AiPeerReviewInlineHighlights } from './AiPeerReviewInlineHighlights';
 
 interface AiPeerReviewCardProps {
   aiPeerReview: ProposalReview | null | undefined;
-  peerReviews?: PeerReview[];
-  averageReviewScore?: number;
 }
 
 const TLDR_MAX_CHARS = 300;
