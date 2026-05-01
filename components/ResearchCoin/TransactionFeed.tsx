@@ -17,8 +17,6 @@ interface TransactionFeedProps {
   exchangeRate: number;
   showUSD?: boolean;
   isExporting: boolean;
-  onRefresh?: () => Promise<void>;
-  isRefreshing?: boolean;
 }
 
 export type TransactionFeedHandle = {
@@ -26,30 +24,29 @@ export type TransactionFeedHandle = {
 };
 
 export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeedProps>(
-  function TransactionFeed(
-    { onExport, exchangeRate, showUSD = false, isExporting, onRefresh, isRefreshing = false },
-    ref
-  ) {
+  function TransactionFeed({ onExport, exchangeRate, showUSD = false, isExporting }, ref) {
     const { data: session, status } = useSession();
     const [transactions, setTransactions] = useState<TransactionAPIRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true); // For initial load
     const [isLoadingMore, setIsLoadingMore] = useState(false); // For loading more on button click
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(INITIAL_PAGE);
     const [hasNextPage, setHasNextPage] = useState(false);
 
     const abortController = useRef<AbortController | null>(null);
 
-    useImperativeHandle(
-      ref,
-      () => ({
-        refresh: async () => {
-          if (!session) return;
-          return fetchTransactions(INITIAL_PAGE);
-        },
-      }),
-      [session]
-    );
+    const refresh = async () => {
+      if (!session || isRefreshing) return;
+      setIsRefreshing(true);
+      try {
+        await fetchTransactions(INITIAL_PAGE);
+      } finally {
+        setIsRefreshing(false);
+      }
+    };
+
+    useImperativeHandle(ref, () => ({ refresh }), [session, isRefreshing]);
 
     // Initial data fetch
     useEffect(() => {
@@ -130,17 +127,15 @@ export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeed
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {onRefresh && (
-                <button
-                  className="flex items-center justify-center p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
-                  onClick={onRefresh}
-                  disabled={isRefreshing}
-                  aria-label="Refresh"
-                  title="Refresh transactions"
-                >
-                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                </button>
-              )}
+              <button
+                className="flex items-center justify-center p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
+                onClick={refresh}
+                disabled={isRefreshing}
+                aria-label="Refresh"
+                title="Refresh transactions"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </button>
               <Button disabled variant="outlined" size="default" className="gap-2">
                 <FileDown className="h-4 w-4" />
                 Export
@@ -219,17 +214,15 @@ export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeed
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {onRefresh && (
-              <button
-                className="flex items-center justify-center p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
-                onClick={onRefresh}
-                disabled={isRefreshing}
-                aria-label="Refresh"
-                title="Refresh transactions"
-              >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              </button>
-            )}
+            <button
+              className="flex items-center justify-center p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
+              onClick={refresh}
+              disabled={isRefreshing}
+              aria-label="Refresh"
+              title="Refresh transactions"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
             <Button
               onClick={onExport}
               disabled={isLoading || !transactions.length || isExporting}
