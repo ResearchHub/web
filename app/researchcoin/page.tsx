@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { PageLayout } from '../layouts/PageLayout';
 import { ResearchCoinRightSidebar } from '@/components/ResearchCoin/ResearchCoinRightSidebar';
 import { WalletOverview } from '@/components/ResearchCoin/WalletOverview';
+import { StakingOverview } from '@/components/ResearchCoin/StakingOverview';
 import { TransactionFeed } from '@/components/ResearchCoin/TransactionFeed';
 import { PendingDepositFeed } from '@/components/ResearchCoin/PendingDepositFeed';
 import { ExportFilterModal } from '@/components/modals/ResearchCoin/ExportFilterModal';
@@ -79,7 +80,10 @@ export default function ResearchCoinPage() {
               )}
 
               {status === 'authenticated' && (
-                <WalletOverview onTransactionSuccess={refreshTransactions} />
+                <>
+                  <WalletOverview onTransactionSuccess={refreshTransactions} />
+                  <StakingOverview />
+                </>
               )}
 
               {hasPendingDepositFeed && status === 'authenticated' && <PendingDepositFeed />}
