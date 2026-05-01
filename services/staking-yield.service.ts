@@ -12,6 +12,7 @@ export interface StakingYieldStats {
   pct_of_supply_staked: number;
   issued_today_rsc: string | null;
   issued_today_usd: string | null;
+  issued_today_rsc: string | null;
 }
 
 export interface StakingYieldHistoryEntry {
