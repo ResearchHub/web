@@ -9,6 +9,7 @@ import { Tabs } from '@/components/ui/Tabs';
 import { useContributions } from '@/hooks/useContributions';
 import { ContributionType } from '@/services/contribution.service';
 import { transformContributionToFeedEntry } from '@/types/contribution';
+import { FeedEntry } from '@/types/feed';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { SearchEmpty } from '@/components/ui/SearchEmpty';
 import { ModerationTab } from '@/components/profile/ModerationTab';
@@ -141,16 +142,15 @@ function AuthorTabContent({
     const entries =
       restoredPublicationsEntries ||
       publications
-        .filter((publication) => {
+        .map((publication) => {
           try {
-            const entry = transformPublicationToFeedEntry(publication);
-            return !!entry;
+            return transformPublicationToFeedEntry(publication);
           } catch (error) {
-            console.error('[Publication] Could not parse publication', error);
-            return false;
+            console.warn('[Publication] Could not parse publication', error);
+            return null;
           }
         })
-        .map((publication) => transformPublicationToFeedEntry(publication));
+        .filter((entry): entry is FeedEntry => !!entry);
 
     return (
       <FeedContent
@@ -177,12 +177,16 @@ function AuthorTabContent({
 
   const entries =
     restoredContributionsEntries ||
-    contributions.map((contribution) =>
-      transformContributionToFeedEntry({
-        contribution,
-        contributionType,
+    contributions
+      .map((contribution) => {
+        try {
+          return transformContributionToFeedEntry({ contribution, contributionType });
+        } catch (error) {
+          console.error('[Contribution] Could not transform contribution', error);
+          return null;
+        }
       })
-    );
+      .filter((entry): entry is FeedEntry => !!entry);
 
   return (
     <div>

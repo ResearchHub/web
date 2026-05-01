@@ -199,15 +199,15 @@ export interface Fundraise {
 }
 
 export const transformFundraise = createTransformer<any, Fundraise>((raw) => {
-  const goalUsd = raw.goal_amount.usd;
-  const goalRsc = raw.goal_amount.rsc;
-  const raisedRsc = raw.amount_raised.rsc;
+  const goalUsd = raw.goal_amount?.usd ?? 0;
+  const goalRsc = raw.goal_amount?.rsc ?? 0;
+  const raisedRsc = raw.amount_raised?.rsc ?? 0;
   const goalRate = computeGoalRate(raw.status, goalUsd, raisedRsc);
 
   return {
     id: raw.id,
     amountRaised: {
-      usd: goalRate == null ? raw.amount_raised.usd : raisedRsc * goalRate,
+      usd: goalRate == null ? (raw.amount_raised?.usd ?? 0) : raisedRsc * goalRate,
       rsc: raisedRsc,
     },
     goalAmount: {
@@ -215,8 +215,8 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => {
       rsc: goalRsc,
     },
     contributors: {
-      numContributors: raw.contributors.total,
-      topContributors: raw.contributors.top.map((contributor: any) => ({
+      numContributors: raw.contributors?.total ?? 0,
+      topContributors: (raw.contributors?.top ?? []).map((contributor: any) => ({
         id: contributor.id,
         authorProfile: transformAuthorProfile(contributor.author_profile),
         totalContribution: resolveContributionAmounts(contributor.total_contribution),
@@ -228,12 +228,12 @@ export const transformFundraise = createTransformer<any, Fundraise>((raw) => {
       })),
     },
     createdBy: transformUser(raw.created_by),
-    status: raw.status as FundraiseStatus,
-    goalCurrency: raw.goal_currency as Currency,
+    status: (raw.status as FundraiseStatus) || 'OPEN',
+    goalCurrency: (raw.goal_currency as Currency) || 'USD',
     startDate: raw.start_date || undefined,
     endDate: raw.end_date || undefined,
-    createdDate: raw.created_date,
-    updatedDate: raw.updated_date,
+    createdDate: raw.created_date || '',
+    updatedDate: raw.updated_date || '',
     postId: raw.post_id || undefined,
     postTitle: raw.post_title || undefined,
     postSlug: raw.post_slug || undefined,
