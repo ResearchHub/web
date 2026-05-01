@@ -50,8 +50,6 @@ export function YieldChart({
 }: Readonly<YieldChartProps>) {
   const { history, isLoading, range, setRange } = useStakingYieldHistory(defaultRange);
   const { stats, isLoading: isStatsLoading } = useStakingYieldStats();
-  const includeStats = showStats;
-
   const chartHeight = height ?? (compact ? 150 : 300);
 
   const labels =
@@ -140,7 +138,11 @@ export function YieldChart({
   };
 
   return (
-    <div className={compact ? '' : 'bg-white rounded-lg border border-gray-200 p-6'}>
+    <div
+      className={
+        compact ? '' : 'bg-white rounded-lg border border-gray-200 p-6 w-full flex flex-col'
+      }
+    >
       {(!compact || title) && (
         <div className={`flex items-center justify-between ${compact ? 'mb-3' : 'mb-6'}`}>
           {title && (
@@ -174,7 +176,7 @@ export function YieldChart({
         </div>
       )}
 
-      {includeStats && (
+      {showStats && (
         <div className="mb-3 space-y-1.5 text-xs">
           <StatLine
             label="Yield"
@@ -202,7 +204,7 @@ export function YieldChart({
         </div>
       )}
 
-      <div style={{ height: chartHeight }}>
+      <div className={compact ? '' : 'flex-1'} style={{ minHeight: chartHeight }}>
         {isLoading && (
           <div className="h-full flex items-center justify-center">
             <div className="animate-pulse h-full w-full bg-gray-50 rounded" />
