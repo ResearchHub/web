@@ -232,7 +232,7 @@ function StatLine({
 }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-gray-500">{label}</span>
+      <span className="text-gray-600">{label}</span>
       {isLoading ? (
         <div className="h-3 w-20 bg-gray-100 animate-pulse rounded" />
       ) : (
