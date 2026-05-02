@@ -1,6 +1,7 @@
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { FundraiseSection } from './components/FundraiseSection';
+import { FundingOpportunitySection } from './components/FundingOpportunitySection';
 import { TopicsSection } from './components/TopicsSection';
 import { NonprofitSection } from './components/NonprofitSection';
 import { FundersSection } from './components/FundersSection';
@@ -38,6 +39,7 @@ export const ProposalSidebar = ({ work, metadata }: ProposalSidebarProps) => {
           })}
         />
       )}
+      {work.linkedGrant && <FundingOpportunitySection grant={work.linkedGrant} />}
       <TopicsSection topics={metadata.topics || []} />
       {work.doi && <DOISection doi={work.doi} />}
     </div>
