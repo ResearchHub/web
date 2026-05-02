@@ -12,7 +12,8 @@ export function DafTooltip({ children }: DafTooltipProps) {
     <div className="text-left">
       <div className="text-sm font-bold text-white mb-1">Donor-Advised Fund</div>
       <p className="text-xs text-gray-300 leading-snug">
-        Donate appreciated assets through a tax-advantaged DAF and route the proceeds to research.
+        Donate through a tax-advantaged DAF and route the proceeds to research. At this time, the
+        only supported DAF Provider is Endaoment.
       </p>
     </div>
   );

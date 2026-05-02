@@ -1,10 +1,19 @@
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
+import {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  forwardRef,
+  useImperativeHandle,
+  useCallback,
+} from 'react';
 import { useInView } from 'react-intersection-observer';
 import { TransactionService } from '@/services/transaction.service';
-import { FundraiseService } from '@/services/fundraise.service';
+import { FundraiseService, type UsdContribution } from '@/services/fundraise.service';
+import type { TransactionAPIRequest } from '@/services/types/transaction.dto';
 import { TransactionFeedItem } from './TransactionFeedItem';
 import { TransactionSkeleton } from '@/components/skeletons/TransactionSkeleton';
-import { formatTransaction, formatUsdContribution, type FormattedTransaction } from './lib/types';
+import { formatTransaction, formatUsdContribution } from './lib/types';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/Button';
 import { PillTabs } from '@/components/ui/PillTabs';
@@ -32,7 +41,8 @@ export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeed
   function TransactionFeed({ onExport, exchangeRate, showUSD = false, isExporting }, ref) {
     const { data: session, status } = useSession();
     const [feedCurrency, setFeedCurrency] = useState<FeedCurrency>('RSC');
-    const [transactions, setTransactions] = useState<FormattedTransaction[]>([]);
+    const [rscItems, setRscItems] = useState<TransactionAPIRequest[]>([]);
+    const [usdItems, setUsdItems] = useState<UsdContribution[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -64,20 +74,22 @@ export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeed
             setIsLoading(true);
           }
 
-          let formatted: FormattedTransaction[];
           let next: string | null;
 
           if (currency === 'USD') {
             const response = await FundraiseService.getUsdContributions({ page });
-            formatted = response.results.map(formatUsdContribution);
+            setUsdItems((prev) =>
+              page === INITIAL_PAGE ? response.results : [...prev, ...response.results]
+            );
             next = response.next;
           } else {
             const response = await TransactionService.getTransactions(page);
-            formatted = response.results.map((tx) => formatTransaction(tx, exchangeRate, showUSD));
+            setRscItems((prev) =>
+              page === INITIAL_PAGE ? response.results : [...prev, ...response.results]
+            );
             next = response.next;
           }
 
-          setTransactions((prev) => (page === INITIAL_PAGE ? formatted : [...prev, ...formatted]));
           setHasNextPage(!!next);
           setCurrentPage(page);
           setError(null);
@@ -91,7 +103,7 @@ export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeed
           setIsLoadingMore(false);
         }
       },
-      [session, feedCurrency, exchangeRate, showUSD]
+      [session, feedCurrency]
     );
 
     const refresh = async () => {
@@ -129,10 +141,17 @@ export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeed
     const handleCurrencyChange = (next: FeedCurrency) => {
       if (next === feedCurrency) return;
       setFeedCurrency(next);
-      setTransactions([]);
+      setRscItems([]);
+      setUsdItems([]);
       setCurrentPage(INITIAL_PAGE);
       setHasNextPage(false);
     };
+
+    const transactions = useMemo(() => {
+      return feedCurrency === 'USD'
+        ? usdItems.map(formatUsdContribution)
+        : rscItems.map((tx) => formatTransaction(tx, exchangeRate, showUSD));
+    }, [feedCurrency, rscItems, usdItems, exchangeRate, showUSD]);
 
     const canExport = !isLoading && transactions.length > 0 && !isExporting;
     const headerActions = (
@@ -216,11 +235,11 @@ export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeed
             </div>
             <div className="text-center max-w-md">
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {feedCurrency === 'USD' ? 'No USD Contributions Yet' : 'No Transactions Yet'}
+                {feedCurrency === 'USD' ? 'No DAF Contributions Yet' : 'No Transactions Yet'}
               </h3>
               <p className="text-sm text-gray-600 mb-6">
                 {feedCurrency === 'USD'
-                  ? "You haven't made any USD contributions to fundraises yet."
+                  ? 'Connect your Endaoment DAF to start funding research.'
                   : 'Get started by depositing ResearchCoin or earning RSC by contributing to the community.'}
               </p>
               {feedCurrency === 'RSC' && (
@@ -268,7 +287,7 @@ export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeed
   }
 );
 
-function SectionCard({
+export function SectionCard({
   title,
   actions,
   children,
@@ -280,7 +299,7 @@ function SectionCard({
   return (
     <div className="mb-4 mx-auto w-full">
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-4 sm:px-6 py-4 flex items-center justify-between gap-3 border-b border-gray-100">
+        <div className="px-4 sm:px-6 py-4 flex flex-col items-stretch gap-3 border-b border-gray-100 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-sm sm:text-base font-bold text-gray-900">{title}</h2>
           {actions}
         </div>
@@ -300,8 +319,8 @@ function CurrencyToggle({
   return (
     <PillTabs
       tabs={[
-        { id: 'RSC', label: 'RSC' },
-        { id: 'USD', label: 'USD' },
+        { id: 'RSC', label: 'ResearchCoin' },
+        { id: 'USD', label: 'DAF Contributions' },
       ]}
       activeTab={value}
       onTabChange={(id) => onChange(id as FeedCurrency)}

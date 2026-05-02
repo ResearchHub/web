@@ -32,17 +32,19 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
               <div className="flex flex-col sm:!flex-row items-start sm:!items-center gap-2">
                 <div className="flex items-center gap-2">
                   <p className="font-medium text-gray-900">{transaction.typeInfo.label}</p>
-                  {transaction.isLocked && !transaction.typeInfo.hideLockedBadge && (
-                    <FundingCreditsTooltip>
-                      <Badge
-                        variant="primary"
-                        size="default"
-                        className="bg-blue-100 text-blue-700 border-0 font-normal px-2.5 py-0.5 cursor-help"
-                      >
-                        Funding only
-                      </Badge>
-                    </FundingCreditsTooltip>
-                  )}
+                  {transaction.isLocked &&
+                    transaction.isPositive &&
+                    !transaction.typeInfo.hideLockedBadge && (
+                      <FundingCreditsTooltip>
+                        <Badge
+                          variant="primary"
+                          size="default"
+                          className="bg-blue-100 text-blue-700 border-0 font-normal px-2.5 py-0.5 cursor-help"
+                        >
+                          Funding only
+                        </Badge>
+                      </FundingCreditsTooltip>
+                    )}
                 </div>
               </div>
               <div className="text-xs text-gray-600 mt-0.5">{transaction.formattedDate}</div>
@@ -53,14 +55,13 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
                 <div className="flex flex-col items-end">
                   <span
                     className={cn(
-                      'text-base font-medium truncate',
-                      transaction.isPositive ? 'text-green-600' : 'text-gray-900',
-                      transaction.isLocked && 'text-gray-500'
+                      'text-sm font-bold truncate',
+                      transaction.typeInfo.label === 'Deposit' ? 'text-green-600' : 'text-gray-900'
                     )}
                   >
                     {transaction.formattedAmount}
                   </span>
-                  <span className="text-xs text-gray-500 truncate">
+                  <span className="text-[11px] text-gray-500 mt-0.5 truncate">
                     {transaction.formattedUsdValue}
                   </span>
                 </div>

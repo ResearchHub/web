@@ -55,7 +55,7 @@ export function StakingMultiplierTooltip({
       width="w-72"
       className="bg-gray-900 text-white border-gray-900 text-left"
     >
-      <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors shrink-0" />
+      <HelpCircle className="h-[18px] w-[18px] text-gray-500 hover:text-gray-700 cursor-help transition-colors shrink-0" />
     </Tooltip>
   );
 }

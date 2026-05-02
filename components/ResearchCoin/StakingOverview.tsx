@@ -2,20 +2,20 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Sprout } from 'lucide-react';
-import { Switch } from '@/components/ui/Switch';
-import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ConfirmModal } from '../modals/ConfirmModal';
+import { cn } from '@/utils/styles';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { UserService, type StakingYieldDetails } from '@/services/user.service';
 import { StakingMultiplierTooltip } from '@/components/tooltips/StakingMultiplierTooltip';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { getNextTierDetails, formatFundingCreditsAmount } from './lib/stakingUtil';
 
 const EMPTY = '—';
 
 export function StakingOverview() {
-  const { user, refreshUser } = useUser();
+  const { user, isLoading: isUserLoading, refreshUser } = useUser();
   const { exchangeRate } = useExchangeRate();
   const { showUSD } = useCurrencyPreference();
   const [details, setDetails] = useState<StakingYieldDetails | null>(null);
@@ -65,7 +65,7 @@ export function StakingOverview() {
   const fundingCreditsBottom = showUSD
     ? fundingCreditsEarned.rsc
     : fundingCreditsEarned.usd
-      ? `≈ ${fundingCreditsEarned.usd}`
+      ? `${fundingCreditsEarned.usd}`
       : null;
 
   const nextTier = useMemo(() => getNextTierDetails(details?.balanceLots), [details]);
@@ -83,25 +83,55 @@ export function StakingOverview() {
                   <span className="sm:hidden">Endowment</span>
                   <span className="hidden sm:inline">ResearchHub Endowment</span>
                 </div>
-                <div className="text-xs text-gray-500 mt-0.5">Earn funding credits</div>
+                <div className="text-xs text-gray-500 mt-0.5">
+                  Earn funding credits by holding ResearchCoin
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <RadiatingDot
-                color={isOptedIn ? 'bg-emerald-500' : 'bg-red-500'}
-                isRadiating={false}
-              />
-              <span
-                className={`text-xs font-semibold ${isOptedIn ? 'text-gray-900' : 'text-gray-500'}`}
+            {isUserLoading || !user ? (
+              <div
+                className="flex items-center gap-2 shrink-0 rounded-full px-3 py-1.5 bg-gray-100"
+                aria-label="Loading earning status"
               >
-                Earning
-              </span>
-              <Switch
-                checked={isOptedIn}
-                onCheckedChange={handleStakingToggle}
-                disabled={isUpdatingStaking}
-              />
-            </div>
+                <span className="h-2 w-2 rounded-full bg-gray-300 animate-pulse" />
+                <span className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
+              </div>
+            ) : (
+              <Tooltip
+                content={
+                  <div className="text-left">
+                    <div className="text-sm font-bold text-white mb-1">Earn ResearchCoin</div>
+                    <p className="text-xs text-gray-300 leading-snug">
+                      Toggle earning of funding credits
+                    </p>
+                  </div>
+                }
+                position="top"
+                width="w-56"
+                className="bg-gray-900 text-white border-gray-900 text-left"
+                disableTouchClick
+              >
+                <button
+                  type="button"
+                  onClick={() => handleStakingToggle(!isOptedIn)}
+                  disabled={isUpdatingStaking}
+                  className={cn(
+                    'flex items-center gap-2 shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60',
+                    isOptedIn
+                      ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'h-2 w-2 rounded-full',
+                      isOptedIn ? 'bg-emerald-500' : 'bg-red-500'
+                    )}
+                  />
+                  {isOptedIn ? 'Earning' : 'Not earning'}
+                </button>
+              </Tooltip>
+            )}
           </div>
 
           <ul>
