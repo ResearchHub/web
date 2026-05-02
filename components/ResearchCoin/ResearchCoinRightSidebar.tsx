@@ -20,8 +20,8 @@ export const ResearchCoinRightSidebar = () => {
   };
 
   return (
-    <div className="w-80 sticky top-[64px] h-[calc(100vh-64px)] overscroll-contain">
-      <div className="h-full overflow-y-auto pb-16 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+    <div className="w-full">
+      <div className="pb-4">
         {/* Supply Yield chart */}
         <div className="px-6 mb-5 mt-3">
           <SidebarHeader title="Supply yield" />
@@ -135,8 +135,6 @@ export const ResearchCoinRightSidebar = () => {
           </div>
         </div>
       </div>
-
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-50 via-gray-50/90 to-transparent pointer-events-none" />
     </div>
   );
 };
