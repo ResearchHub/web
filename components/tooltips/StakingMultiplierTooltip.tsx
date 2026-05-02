@@ -23,7 +23,7 @@ export function StakingMultiplierTooltip({
   const content = (
     <div className="text-left">
       <div className="text-sm font-bold text-white mb-1">Matched funding multiplier</div>
-      <p className="text-[11px] text-gray-300 leading-snug mb-3">
+      <p className="text-xs text-gray-300 leading-snug mb-3">
         To incentivize long-term funding of science, we give outsized matching to stakers who commit
         longer.
       </p>
@@ -31,15 +31,15 @@ export function StakingMultiplierTooltip({
       {hasNextTier && (
         <div className="border-t border-gray-700 pt-3">
           <div className="flex items-baseline justify-between mb-2">
-            <span className="text-[11px] text-gray-300">Progress to next tier</span>
-            <span className="text-[11px] text-white font-semibold">
+            <span className="text-xs text-gray-300">Progress to next tier</span>
+            <span className="text-xs text-white font-semibold">
               {currentMultiplier.toFixed(2)}× → {nextMultiplier!.toFixed(2)}×
             </span>
           </div>
           <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden mb-2">
             <div className="h-full bg-amber-400 rounded-full" style={{ width: `${fillPct}%` }} />
           </div>
-          <div className="text-[11px] text-gray-400 text-right inline-flex items-center gap-1 w-full justify-end">
+          <div className="text-xs text-gray-400 text-right inline-flex items-center gap-1 w-full justify-end">
             <Zap className="h-3 w-3" />
             {daysUntilNext} {daysUntilNext === 1 ? 'day' : 'days'} to {nextMultiplier!.toFixed(2)}×
           </div>

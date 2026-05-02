@@ -12,7 +12,8 @@ import {
   Filler,
 } from 'chart.js';
 import { StakingYieldRange } from '@/services/staking-yield.service';
-import { useStakingYieldHistory } from '@/hooks/useStakingYield';
+import { useStakingYieldHistory, useStakingYieldStats } from '@/hooks/useStakingYield';
+import { formatRSC } from '@/utils/number';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler);
 
@@ -29,6 +30,12 @@ interface YieldChartProps {
   defaultRange?: StakingYieldRange;
   showRangeSelector?: boolean;
   title?: string;
+  /** Show numeric axis labels + grid. Defaults to true. */
+  showAxes?: boolean;
+  /** Use a top-to-bottom gradient fill instead of a flat opacity tint. */
+  gradientFill?: boolean;
+  /** Show summary stats (yield, total staked, tokens issued today) above the chart. */
+  showStats?: boolean;
 }
 
 export function YieldChart({
@@ -37,8 +44,13 @@ export function YieldChart({
   defaultRange = '90d',
   showRangeSelector = true,
   title = 'Supply Yield',
+  showAxes = true,
+  gradientFill = false,
+  showStats = false,
 }: Readonly<YieldChartProps>) {
   const { history, isLoading, range, setRange } = useStakingYieldHistory(defaultRange);
+  const { stats, isLoading: isStatsLoading } = useStakingYieldStats();
+  const includeStats = showStats;
 
   const chartHeight = height ?? (compact ? 150 : 300);
 
@@ -51,6 +63,22 @@ export function YieldChart({
     ) ?? [];
 
   const apyData = history?.results.map((r) => r.apy) ?? [];
+  const latestApy = stats?.apy ?? (apyData.length ? apyData[apyData.length - 1] : null);
+
+  const totalStakedRsc = stats ? parseFloat(stats.total_staked_rsc) : null;
+  const issuedTodayRsc = stats?.issued_today_rsc ? parseFloat(stats.issued_today_rsc) : null;
+
+  const lineColor = '#3971ff';
+  const fillBackground = gradientFill
+    ? (context: any) => {
+        const { ctx, chartArea } = context.chart;
+        if (!chartArea) return undefined;
+        const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+        gradient.addColorStop(0, 'rgba(57, 113, 255, 0.28)');
+        gradient.addColorStop(1, 'rgba(57, 113, 255, 0)');
+        return gradient;
+      }
+    : 'rgba(57, 113, 255, 0.08)';
 
   const chartData = {
     labels,
@@ -58,8 +86,8 @@ export function YieldChart({
       {
         label: 'Yield',
         data: apyData,
-        borderColor: '#3971ff',
-        backgroundColor: 'rgba(57, 113, 255, 0.08)',
+        borderColor: lineColor,
+        backgroundColor: fillBackground,
         fill: true,
         tension: 0.3,
         pointRadius: 0,
@@ -85,25 +113,30 @@ export function YieldChart({
         },
       },
     },
-    scales: {
-      x: {
-        grid: { display: false },
-        ticks: {
-          maxTicksLimit: compact ? 4 : 8,
-          color: '#9ca3af',
-          font: { size: compact ? 10 : 11 },
+    scales: showAxes
+      ? {
+          x: {
+            grid: { display: false },
+            ticks: {
+              maxTicksLimit: compact ? 4 : 8,
+              color: '#9ca3af',
+              font: { size: compact ? 10 : 11 },
+            },
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: '#f3f4f6' },
+            ticks: {
+              callback: (value: any) => `${value}%`,
+              color: '#9ca3af',
+              font: { size: compact ? 10 : 11 },
+            },
+          },
+        }
+      : {
+          x: { display: false, grid: { display: false } },
+          y: { display: false, beginAtZero: true, grid: { display: false } },
         },
-      },
-      y: {
-        beginAtZero: true,
-        grid: { color: '#f3f4f6' },
-        ticks: {
-          callback: (value: any) => `${value}%`,
-          color: '#9ca3af',
-          font: { size: compact ? 10 : 11 },
-        },
-      },
-    },
   };
 
   return (
@@ -141,6 +174,34 @@ export function YieldChart({
         </div>
       )}
 
+      {includeStats && (
+        <div className="mb-3 space-y-1.5 text-xs">
+          <StatLine
+            label="Yield"
+            value={latestApy != null ? `${latestApy.toFixed(1)}%` : null}
+            isLoading={isStatsLoading && latestApy == null}
+          />
+          <StatLine
+            label="Total staked"
+            value={
+              totalStakedRsc != null
+                ? `${formatRSC({ amount: totalStakedRsc, shorten: true })} RSC`
+                : null
+            }
+            isLoading={isStatsLoading}
+          />
+          <StatLine
+            label="Issued today"
+            value={
+              issuedTodayRsc != null
+                ? `${formatRSC({ amount: issuedTodayRsc, shorten: true })} RSC`
+                : null
+            }
+            isLoading={isStatsLoading}
+          />
+        </div>
+      )}
+
       <div style={{ height: chartHeight }}>
         {isLoading && (
           <div className="h-full flex items-center justify-center">
@@ -156,6 +217,27 @@ export function YieldChart({
           <Line data={chartData} options={options} />
         )}
       </div>
+    </div>
+  );
+}
+
+function StatLine({
+  label,
+  value,
+  isLoading,
+}: {
+  label: string;
+  value: string | null;
+  isLoading: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-gray-500">{label}</span>
+      {isLoading ? (
+        <div className="h-3 w-20 bg-gray-100 animate-pulse rounded" />
+      ) : (
+        <span className="text-gray-900 font-medium">{value ?? '—'}</span>
+      )}
     </div>
   );
 }

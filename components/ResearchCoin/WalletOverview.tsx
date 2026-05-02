@@ -22,8 +22,8 @@ import { useUser } from '@/contexts/UserContext';
 import { formatBalance } from '@/components/ResearchCoin/lib/types';
 import { connectEndaomentAccount } from '@/services/endaoment.service';
 import { useDisconnectEndaoment } from '@/components/Endaoment/lib/hooks/useDisconnectEndaoment';
-import { Tooltip } from '@/components/ui/Tooltip';
-import { FundingCreditsTooltip } from '@/components/ui/FundingCreditsTooltip';
+import { FundingCreditsTooltip } from '@/components/tooltips/FundingCreditsTooltip';
+import { DafTooltip } from '@/components/tooltips/DafTooltip';
 import { formatRSC, formatUsdValue } from '@/utils/number';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
@@ -215,9 +215,9 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
                 name={
                   <span className="inline-flex items-center gap-1.5">
                     Funding Credits
-                    <Tooltip content={<FundingCreditsTooltip />} position="top" width="w-fit">
+                    <FundingCreditsTooltip>
                       <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors shrink-0" />
-                    </Tooltip>
+                    </FundingCreditsTooltip>
                   </span>
                 }
                 balance={
@@ -251,13 +251,9 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
                 name={
                   <span className="inline-flex items-center gap-1.5">
                     Donor-Advised Fund
-                    <Tooltip
-                      content="Donate appreciated assets through a tax-advantaged DAF and route the proceeds to research."
-                      position="top"
-                      width="w-64"
-                    >
+                    <DafTooltip>
                       <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors shrink-0" />
-                    </Tooltip>
+                    </DafTooltip>
                   </span>
                 }
                 subtext={

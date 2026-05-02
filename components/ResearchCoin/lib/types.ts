@@ -2,11 +2,17 @@ import { formatUsdValue, formatRSC } from '@/utils/number';
 import { formatTimestamp } from '@/utils/date';
 import type { TransactionAPIRequest } from '@/services/types/transaction.dto';
 import type { IconName } from '@/components/ui/icons/Icon';
+import type { UsdContribution } from '@/services/fundraise.service';
+import { Sprout, type LucideIcon } from 'lucide-react';
 
 export interface TransactionTypeInfo {
   label: string;
   icon: IconName;
+  /** Optional lucide-react icon. When set, takes precedence over `icon`. */
+  iconComponent?: LucideIcon;
   variant?: 'default' | 'positive' | 'negative';
+  /** Suppress the "Funding only" badge on locked transactions of this type. */
+  hideLockedBadge?: boolean;
 }
 
 // Define mapping rules in order of priority
@@ -76,7 +82,9 @@ const transactionMappings: TransactionMappingRule[] = [
     condition: (tx) => tx.source?.distribution_type === 'STAKING_YIELD',
     label: 'Endowment Yield',
     icon: 'earn1',
+    iconComponent: Sprout,
     variant: 'positive',
+    hideLockedBadge: true,
   },
 
   // Specific Purchase Types & Associated Fees (Fees checked first)
@@ -132,7 +140,9 @@ interface TransactionMappingRule {
   condition: (tx: TransactionAPIRequest) => boolean;
   label: string;
   icon: IconName;
+  iconComponent?: LucideIcon;
   variant?: 'default' | 'positive' | 'negative';
+  hideLockedBadge?: boolean;
 }
 
 export function getTransactionTypeInfo(tx: TransactionAPIRequest): TransactionTypeInfo {
@@ -141,7 +151,9 @@ export function getTransactionTypeInfo(tx: TransactionAPIRequest): TransactionTy
       return {
         label: rule.label,
         icon: rule.icon,
+        iconComponent: rule.iconComponent,
         variant: rule.variant || 'default',
+        hideLockedBadge: rule.hideLockedBadge,
       };
     }
   }
@@ -197,6 +209,40 @@ export function formatTransaction(
     typeInfo: getTransactionTypeInfo(tx),
     isLocked: tx.is_locked,
     isPositive,
+  };
+}
+
+/**
+ * Adapt a USD contribution into a `FormattedTransaction`-shaped object so it
+ * can render through the existing `TransactionFeedItem`. The non-presentational
+ * `TransactionAPIRequest` fields are stubbed (USD contributions don't have a
+ * source/object_id/etc.).
+ */
+export function formatUsdContribution(c: UsdContribution): FormattedTransaction {
+  const usdLabel = c.amountUsd.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const rscLabel = formatRSC({ amount: c.amountRsc, decimalPlaces: 2 });
+  return {
+    id: c.id,
+    is_locked: false,
+    readable_content_type: 'fundraise_usd',
+    content_title: null,
+    content_id: null,
+    content_slug: null,
+    object_id: c.fundraise as number,
+    amount: c.amountRsc.toString(),
+    created_date: c.createdDate,
+    updated_date: c.updatedDate,
+    user: 0,
+    content_type: 0,
+    formattedAmount: `-$${usdLabel}`,
+    formattedUsdValue: `${rscLabel} RSC equivalent`,
+    formattedDate: formatTimestamp(c.createdDate),
+    typeInfo: { label: 'Fundraise Contribution', icon: 'fund' },
+    isLocked: false,
+    isPositive: false,
   };
 }
 

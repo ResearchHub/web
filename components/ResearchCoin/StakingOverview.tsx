@@ -76,13 +76,15 @@ export function StakingOverview() {
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           {/* Header */}
           <div className="px-4 sm:px-6 py-4 flex items-start justify-between gap-3 border-b border-gray-100">
-            <div className="min-w-0">
-              <div className="text-sm sm:text-base font-bold text-gray-900 flex items-center gap-2">
-                <Sprout className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
-                <span className="sm:hidden">Endowment</span>
-                <span className="hidden sm:inline">ResearchHub Endowment</span>
+            <div className="flex items-center gap-3 min-w-0">
+              <Sprout className="h-7 w-7 sm:h-8 sm:w-8 text-emerald-600 shrink-0" />
+              <div className="min-w-0">
+                <div className="text-sm sm:text-base font-bold text-gray-900">
+                  <span className="sm:hidden">Endowment</span>
+                  <span className="hidden sm:inline">ResearchHub Endowment</span>
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">Earn funding credits</div>
               </div>
-              <div className="text-xs text-gray-500 mt-0.5">Earn funding credits</div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <RadiatingDot
@@ -102,7 +104,6 @@ export function StakingOverview() {
             </div>
           </div>
 
-          {/* Rows */}
           <ul>
             <StatRow
               label="Annualized Yield"
