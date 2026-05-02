@@ -9,6 +9,7 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { UserService, type StakingYieldDetails } from '@/services/user.service';
 import { StakingMultiplierTooltip } from '@/components/tooltips/StakingMultiplierTooltip';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { getNextTierDetails, formatFundingCreditsAmount } from './lib/stakingUtil';
 
 const EMPTY = '—';
@@ -87,22 +88,40 @@ export function StakingOverview() {
                 </div>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => handleStakingToggle(!isOptedIn)}
-              disabled={isUpdatingStaking}
-              className={cn(
-                'flex items-center gap-2 shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60',
-                isOptedIn
-                  ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              )}
+            <Tooltip
+              content={
+                <div className="text-left">
+                  <div className="text-sm font-bold text-white mb-1">Earn ResearchCoin</div>
+                  <p className="text-xs text-gray-300 leading-snug">
+                    Toggle earning of funding credits
+                  </p>
+                </div>
+              }
+              position="top"
+              width="w-56"
+              className="bg-gray-900 text-white border-gray-900 text-left"
+              disableTouchClick
             >
-              <span
-                className={cn('h-2 w-2 rounded-full', isOptedIn ? 'bg-emerald-500' : 'bg-red-500')}
-              />
-              {isOptedIn ? 'Earning' : 'Not earning'}
-            </button>
+              <button
+                type="button"
+                onClick={() => handleStakingToggle(!isOptedIn)}
+                disabled={isUpdatingStaking}
+                className={cn(
+                  'flex items-center gap-2 shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60',
+                  isOptedIn
+                    ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                )}
+              >
+                <span
+                  className={cn(
+                    'h-2 w-2 rounded-full',
+                    isOptedIn ? 'bg-emerald-500' : 'bg-red-500'
+                  )}
+                />
+                {isOptedIn ? 'Earning' : 'Not earning'}
+              </button>
+            </Tooltip>
           </div>
 
           <ul>

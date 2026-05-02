@@ -15,6 +15,8 @@ interface TooltipProps {
   hideDelay?: number;
   position?: 'top' | 'bottom' | 'left' | 'right';
   width?: string; // Width class for the tooltip (e.g., 'w-38', 'w-80', 'w-96')
+  /** When true, disable the tap-to-open behavior on touch devices (tooltip won't show at all there). */
+  disableTouchClick?: boolean;
 }
 
 const TooltipContent = ({
@@ -119,6 +121,7 @@ export function Tooltip({
   hideDelay = 200,
   position = 'bottom',
   width = 'w-38',
+  disableTouchClick = false,
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isHoveringTooltip, setIsHoveringTooltip] = useState(false);
@@ -188,7 +191,9 @@ export function Tooltip({
   useOutsidePointerDown(triggerRef, () => setIsVisible(false), isTouchDevice && isVisible);
 
   const triggerHandlers = isTouchDevice
-    ? { onClick: () => (isVisible ? setIsVisible(false) : showTooltip()) }
+    ? disableTouchClick
+      ? {}
+      : { onClick: () => (isVisible ? setIsVisible(false) : showTooltip()) }
     : {
         onMouseEnter: showTooltip,
         onMouseLeave: hideTooltip,
