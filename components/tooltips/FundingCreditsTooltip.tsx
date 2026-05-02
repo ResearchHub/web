@@ -30,8 +30,8 @@ export function FundingCreditsTooltip({ children }: FundingCreditsTooltipProps) 
               href="/referral"
               className="text-primary-400 hover:text-primary-300 font-semibold inline-flex items-center gap-0.5"
             >
-              (Learn more
-              <span className="text-[10px]">→</span>)
+              Learn more
+              <span className="text-[10px]">→</span>
             </Link>
           </span>
         </li>

@@ -24,6 +24,7 @@ import { connectEndaomentAccount } from '@/services/endaoment.service';
 import { useDisconnectEndaoment } from '@/components/Endaoment/lib/hooks/useDisconnectEndaoment';
 import { FundingCreditsTooltip } from '@/components/tooltips/FundingCreditsTooltip';
 import { DafTooltip } from '@/components/tooltips/DafTooltip';
+import { EndaomentTooltip } from '@/components/tooltips/EndaomentTooltip';
 import { formatRSC, formatUsdValue } from '@/utils/number';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
@@ -216,7 +217,7 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
                   <span className="inline-flex items-center gap-1.5">
                     Funding Credits
                     <FundingCreditsTooltip>
-                      <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors shrink-0" />
+                      <HelpCircle className="h-[18px] w-[18px] text-gray-500 hover:text-gray-700 cursor-help transition-colors shrink-0" />
                     </FundingCreditsTooltip>
                   </span>
                 }
@@ -252,14 +253,18 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
                   <span className="inline-flex items-center gap-1.5">
                     Donor-Advised Fund
                     <DafTooltip>
-                      <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors shrink-0" />
+                      <HelpCircle className="h-[18px] w-[18px] text-gray-500 hover:text-gray-700 cursor-help transition-colors shrink-0" />
                     </DafTooltip>
                   </span>
                 }
                 subtext={
                   <>
                     <span className="hidden sm:inline">Fund in USD · tax-deductible · </span>
-                    <span className="font-semibold text-primary-600">via Endaoment</span>
+                    <EndaomentTooltip>
+                      <span className="font-semibold text-primary-600 cursor-help underline decoration-dotted underline-offset-2">
+                        via Endaoment
+                      </span>
+                    </EndaomentTooltip>
                   </>
                 }
                 balance={
