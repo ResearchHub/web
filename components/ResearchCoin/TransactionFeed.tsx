@@ -235,11 +235,11 @@ export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeed
             </div>
             <div className="text-center max-w-md">
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {feedCurrency === 'USD' ? 'No USD Contributions Yet' : 'No Transactions Yet'}
+                {feedCurrency === 'USD' ? 'No DAF Contributions Yet' : 'No Transactions Yet'}
               </h3>
               <p className="text-sm text-gray-600 mb-6">
                 {feedCurrency === 'USD'
-                  ? "You haven't made any USD contributions to fundraises yet."
+                  ? 'Connect your Endaoment DAF to start funding research.'
                   : 'Get started by depositing ResearchCoin or earning RSC by contributing to the community.'}
               </p>
               {feedCurrency === 'RSC' && (
