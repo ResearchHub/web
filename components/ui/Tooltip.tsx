@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/utils/styles';
 import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
+import { useOutsidePointerDown } from '@/hooks/useOutsidePointerDown';
 
 interface TooltipProps {
   children: React.ReactNode;
@@ -184,18 +185,22 @@ export function Tooltip({
     };
   }, []);
 
-  if (isTouchDevice) {
-    return <>{children}</>;
-  }
+  useOutsidePointerDown(triggerRef, () => setIsVisible(false), isTouchDevice && isVisible);
+
+  const triggerHandlers = isTouchDevice
+    ? { onClick: () => (isVisible ? setIsVisible(false) : showTooltip()) }
+    : {
+        onMouseEnter: showTooltip,
+        onMouseLeave: hideTooltip,
+        onFocus: showTooltip,
+        onBlur: hideTooltip,
+      };
 
   return (
     <>
       <div
         ref={triggerRef}
-        onMouseEnter={showTooltip}
-        onMouseLeave={hideTooltip}
-        onFocus={showTooltip}
-        onBlur={hideTooltip}
+        {...triggerHandlers}
         className={cn('inline-flex h-full', wrapperClassName)}
       >
         {children}

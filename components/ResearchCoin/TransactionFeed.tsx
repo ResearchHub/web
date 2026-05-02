@@ -280,7 +280,7 @@ function SectionCard({
   return (
     <div className="mb-4 mx-auto w-full">
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-4 sm:px-6 py-4 flex items-center justify-between gap-3 border-b border-gray-100">
+        <div className="px-4 sm:px-6 py-4 flex flex-col items-stretch gap-3 border-b border-gray-100 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-sm sm:text-base font-bold text-gray-900">{title}</h2>
           {actions}
         </div>
@@ -300,8 +300,8 @@ function CurrencyToggle({
   return (
     <PillTabs
       tabs={[
-        { id: 'RSC', label: 'RSC' },
-        { id: 'USD', label: 'USD' },
+        { id: 'RSC', label: 'ResearchCoin' },
+        { id: 'USD', label: 'DAF Contributions' },
       ]}
       activeTab={value}
       onTabChange={(id) => onChange(id as FeedCurrency)}
