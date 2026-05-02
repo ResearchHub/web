@@ -24,6 +24,10 @@ export type {
 // ── Constants  ───────────────────────────────────
 
 export const CATEGORY_KEYS: readonly CategoryKey[] = [
+  'overall_impact',
+  'importance_significance_innovation',
+  'rigor_and_feasibility',
+  'additional_review_criteria',
   'funding_opportunity_fit',
   'methods_rigor',
   'statistical_analysis_plan',
@@ -34,6 +38,28 @@ export const CATEGORY_KEYS: readonly CategoryKey[] = [
 ];
 
 export const CATEGORY_ITEMS: Record<CategoryKey, readonly string[]> = {
+  overall_impact: ['novelty', 'rigor', 'reproducibility', 'field_impact'],
+  importance_significance_innovation: [
+    'hypothesis_strength',
+    'work_novelty',
+    'question_importance',
+    'advances_knowledge',
+  ],
+  rigor_and_feasibility: [
+    'study_design',
+    'methodology',
+    'timeline_feasibility',
+    'team_qualifications',
+    'research_environment',
+    'budget_appropriateness_justification',
+  ],
+  additional_review_criteria: [
+    'human_or_animal_protections',
+    'resubmission_critiques_addressed',
+    'open_science_adherence',
+    'ai_use_disclosed',
+    'conflicts_of_interest_disclosed',
+  ],
   funding_opportunity_fit: ['fit_modality', 'fit_aims', 'fit_deliverables', 'fit_scope'],
   methods_rigor: [
     'methods_detail',
@@ -84,14 +110,27 @@ export interface CategoryBlock {
   items: Record<string, ItemDecision>;
 }
 
+export type KeyInsightItemType = 'strength' | 'weakness';
+
+export interface KeyInsightItem {
+  id: number;
+  order: number;
+  itemType: KeyInsightItemType;
+  label: string;
+  description: string;
+}
+
+export interface KeyInsightData {
+  tldr: string;
+  items: KeyInsightItem[];
+}
+
 export interface ProposalReviewResultData {
   overallSummary: string;
   overallRating: OverallRating | null;
   overallRationale: string;
   overallConfidence: OverallConfidence | null;
   overallScoreNumeric: number | null;
-  majorStrengths: string[];
-  majorWeaknesses: string[];
   fatalFlaws: string[];
   categories: Partial<Record<CategoryKey, CategoryBlock>>;
 }
@@ -123,6 +162,7 @@ export interface ProposalReview {
   overallConfidence: OverallConfidence | null;
   overallScoreNumeric: number | null;
   resultData: ProposalReviewResultData | null;
+  keyInsight: KeyInsightData | null;
   errorMessage: string;
   progress: number;
   currentStep: string;
@@ -234,6 +274,35 @@ function transformCategoryBlock(
   };
 }
 
+function transformKeyInsightItemRow(raw: Record<string, unknown>): KeyInsightItem | null {
+  const itemTypeRaw = raw.item_type;
+  if (itemTypeRaw !== 'strength' && itemTypeRaw !== 'weakness') return null;
+  return {
+    id: numOrNull(raw.id) ?? 0,
+    order: numOrNull(raw.order) ?? 0,
+    itemType: itemTypeRaw,
+    label: str(raw.label),
+    description: str(raw.description),
+  };
+}
+
+export function transformKeyInsight(raw: unknown): KeyInsightData | null {
+  if (raw == null || typeof raw !== 'object') return null;
+  const o = raw as Record<string, unknown>;
+  const itemsRaw = Array.isArray(o.items) ? o.items : [];
+  const items: KeyInsightItem[] = [];
+  for (const row of itemsRaw) {
+    if (row && typeof row === 'object') {
+      const it = transformKeyInsightItemRow(row as Record<string, unknown>);
+      if (it) items.push(it);
+    }
+  }
+  items.sort((a, b) => a.order - b.order || a.id - b.id);
+  const tldr = str(o.tldr);
+  if (items.length === 0 && !tldr) return null;
+  return { tldr, items };
+}
+
 export function transformResultData(raw: unknown): ProposalReviewResultData | null {
   if (raw == null || typeof raw !== 'object') return null;
   const o = raw as Record<string, unknown>;
@@ -251,38 +320,26 @@ export function transformResultData(raw: unknown): ProposalReviewResultData | nu
     }
   }
 
-  const or = (o.overall_rating ?? o.overallRating) as OverallRating | undefined;
+  const or = o.overall_rating as OverallRating | undefined;
   const ratings: OverallRating[] = ['excellent', 'good', 'poor'];
-  const oc = (o.overall_confidence ?? o.overallConfidence) as OverallConfidence | undefined;
+  const oc = o.overall_confidence as OverallConfidence | undefined;
   const confidences: OverallConfidence[] = ['High', 'Medium', 'Low'];
 
   return {
-    overallSummary: str(o.overall_summary ?? o.overallSummary),
+    overallSummary: str(o.overall_summary),
     overallRating: or && ratings.includes(or) ? or : null,
-    overallRationale: str(o.overall_rationale ?? o.overallRationale),
+    overallRationale: str(o.overall_rationale),
     overallConfidence: oc && confidences.includes(oc) ? oc : null,
-    overallScoreNumeric: numOrNull(o.overall_score_numeric ?? o.overallScoreNumeric),
-    majorStrengths: Array.isArray(o.major_strengths)
-      ? (o.major_strengths as unknown[]).map((x) => String(x))
-      : Array.isArray(o.majorStrengths)
-        ? (o.majorStrengths as unknown[]).map((x) => String(x))
-        : [],
-    majorWeaknesses: Array.isArray(o.major_weaknesses)
-      ? (o.major_weaknesses as unknown[]).map((x) => String(x))
-      : Array.isArray(o.majorWeaknesses)
-        ? (o.majorWeaknesses as unknown[]).map((x) => String(x))
-        : [],
+    overallScoreNumeric: numOrNull(o.overall_score_numeric),
     fatalFlaws: Array.isArray(o.fatal_flaws)
       ? (o.fatal_flaws as unknown[]).map((x) => String(x))
-      : Array.isArray(o.fatalFlaws)
-        ? (o.fatalFlaws as unknown[]).map((x) => String(x))
-        : [],
+      : [],
     categories,
   };
 }
 
 function transformEditorialCategory(raw: Record<string, unknown>): EditorialCategory | null {
-  const code = (raw.category_code ?? raw.categoryCode) as string | undefined;
+  const code = raw.category_code as string | undefined;
   if (!code || !(CATEGORY_KEYS as readonly string[]).includes(code)) return null;
   const scoreRaw = (raw.score as string | undefined)?.toLowerCase();
   const scores: EditorialCategoryScore[] = ['high', 'medium', 'low'];
@@ -308,13 +365,13 @@ export function transformEditorialFeedback(raw: unknown): EditorialFeedback | nu
   }
   return {
     id: numOrNull(o.id) ?? 0,
-    unifiedDocumentId: numOrNull(o.unified_document_id ?? o.unifiedDocumentId) ?? 0,
-    createdById: numOrNull(o.created_by_id ?? o.createdById),
-    updatedById: numOrNull(o.updated_by_id ?? o.updatedById),
+    unifiedDocumentId: numOrNull(o.unified_document_id) ?? 0,
+    createdById: numOrNull(o.created_by_id),
+    updatedById: numOrNull(o.updated_by_id),
     categories,
-    expertInsights: str(o.expert_insights ?? o.expertInsights),
-    createdDate: str(o.created_date ?? o.createdDate),
-    updatedDate: str(o.updated_date ?? o.updatedDate),
+    expertInsights: str(o.expert_insights),
+    createdDate: str(o.created_date),
+    updatedDate: str(o.updated_date),
   };
 }
 
@@ -346,49 +403,48 @@ export function transformAiPeerReviewFeedSummary(raw: unknown): AiPeerReviewFeed
   const o = raw as Record<string, unknown>;
   const id = numOrNull(o.id);
   if (id == null) return null;
-  const ud = o.updated_date ?? o.updatedDate;
+  const ud = o.updated_date;
   const updatedDate = ud == null || ud === '' ? null : str(ud);
   return {
     id,
     status: parseReviewStatus(o.status),
-    overallRating: parseOverallRating(o.overall_rating ?? o.overallRating),
-    overallScoreNumeric: numOrNull(o.overall_score_numeric ?? o.overallScoreNumeric),
-    grantId: numOrNull(o.grant_id ?? o.grantId),
+    overallRating: parseOverallRating(o.overall_rating),
+    overallScoreNumeric: numOrNull(o.overall_score_numeric),
+    grantId: numOrNull(o.grant_id),
     updatedDate,
   };
 }
 
 export const transformProposalReview = createTransformer<any, ProposalReview>((raw) => {
   const status = parseReviewStatus(raw.status);
-  const rd = transformResultData(raw.result_data ?? raw.resultData);
+  const rd = transformResultData(raw.result_data);
+  const keyInsight = transformKeyInsight(raw.key_insight);
+
   return {
     id: numOrNull(raw.id) ?? 0,
-    unifiedDocumentId: numOrNull(raw.unified_document_id ?? raw.unifiedDocumentId) ?? 0,
-    grantId: numOrNull(raw.grant_id ?? raw.grantId),
-    createdById: numOrNull(raw.created_by_id ?? raw.createdById),
+    unifiedDocumentId: numOrNull(raw.unified_document_id) ?? 0,
+    grantId: numOrNull(raw.grant_id),
+    createdById: numOrNull(raw.created_by_id),
     status,
-    overallRating: parseOverallRating(raw.overall_rating ?? raw.overallRating),
-    overallRationale: str(raw.overall_rationale ?? raw.overallRationale),
-    overallConfidence: parseOverallConfidence(raw.overall_confidence ?? raw.overallConfidence),
-    overallScoreNumeric: numOrNull(raw.overall_score_numeric ?? raw.overallScoreNumeric),
+    overallRating: parseOverallRating(raw.overall_rating),
+    overallRationale: str(raw.overall_rationale),
+    overallConfidence: parseOverallConfidence(raw.overall_confidence),
+    overallScoreNumeric: numOrNull(raw.overall_score_numeric),
     resultData: rd,
-    errorMessage: str(raw.error_message ?? raw.errorMessage),
+    keyInsight,
+    errorMessage: str(raw.error_message),
     progress: Number.isFinite(Number(raw.progress)) ? Number(raw.progress) : 0,
-    currentStep: str(raw.current_step ?? raw.currentStep),
-    llmModel: str(raw.llm_model ?? raw.llmModel),
+    currentStep: str(raw.current_step),
+    llmModel: str(raw.llm_model),
     processingTime: (() => {
-      const p = raw.processing_time ?? raw.processingTime;
+      const p = raw.processing_time;
       if (p == null || p === '') return null;
       const n = Number(p);
       return Number.isFinite(n) ? n : null;
     })(),
-    createdDate: str(raw.created_date ?? raw.createdDate),
-    updatedDate: str(raw.updated_date ?? raw.updatedDate),
-    editorialFeedback: transformEditorialFeedback(raw.editorial_feedback ?? raw.editorialFeedback),
-    alreadyExists:
-      raw.already_exists !== undefined || raw.alreadyExists !== undefined
-        ? Boolean(raw.already_exists ?? raw.alreadyExists)
-        : undefined,
+    createdDate: str(raw.created_date),
+    updatedDate: str(raw.updated_date),
+    editorialFeedback: transformEditorialFeedback(raw.editorial_feedback),
   };
 });
 
@@ -417,62 +473,55 @@ function transformComparisonCategories(
 export const transformGrantComparisonRow = createTransformer<any, GrantComparisonRow>((raw) => {
   const st = raw.status;
   return {
-    unifiedDocumentId: numOrNull(raw.unified_document_id ?? raw.unifiedDocumentId) ?? 0,
-    proposalTitle: str(raw.proposal_title ?? raw.proposalTitle),
-    reviewId: numOrNull(raw.review_id ?? raw.reviewId),
+    unifiedDocumentId: numOrNull(raw.unified_document_id) ?? 0,
+    proposalTitle: str(raw.proposal_title),
+    reviewId: numOrNull(raw.review_id),
     status: st == null || st === '' ? null : parseReviewStatus(st),
-    overallRating: parseOverallRating(raw.overall_rating ?? raw.overallRating),
-    overallScoreNumeric: numOrNull(raw.overall_score_numeric ?? raw.overallScoreNumeric),
+    overallRating: parseOverallRating(raw.overall_rating),
+    overallScoreNumeric: numOrNull(raw.overall_score_numeric),
     categories: transformComparisonCategories(raw.categories),
-    editorialFeedback: transformEditorialFeedback(raw.editorial_feedback ?? raw.editorialFeedback),
+    editorialFeedback: transformEditorialFeedback(raw.editorial_feedback),
   };
 });
 
 export const transformGrantComparisonResponse = createTransformer<any, GrantComparisonResponse>(
   (raw) => ({
-    grantId: numOrNull(raw.grant_id ?? raw.grantId) ?? 0,
+    grantId: numOrNull(raw.grant_id) ?? 0,
     proposals: Array.isArray(raw.proposals)
       ? raw.proposals.map((p: any) => transformGrantComparisonRow(p))
       : [],
-    executiveSummary: str(raw.executive_summary ?? raw.executiveSummary),
+    executiveSummary: str(raw.executive_summary),
   })
 );
 
 export const transformRfpSummary = createTransformer<any, RfpSummary>((raw) => ({
   id: numOrNull(raw.id) ?? 0,
-  grantId: numOrNull(raw.grant_id ?? raw.grantId) ?? 0,
+  grantId: numOrNull(raw.grant_id) ?? 0,
   status: parseRfpStatus(raw.status),
-  summaryContent: str(raw.summary_content ?? raw.summaryContent),
-  executiveComparisonSummary: str(
-    raw.executive_comparison_summary ?? raw.executiveComparisonSummary
-  ),
+  summaryContent: str(raw.summary_content),
+  executiveComparisonSummary: str(raw.executive_comparison_summary),
   executiveComparisonUpdatedDate:
     raw.executive_comparison_updated_date != null && raw.executive_comparison_updated_date !== ''
       ? str(raw.executive_comparison_updated_date)
-      : raw.executiveComparisonUpdatedDate != null && raw.executiveComparisonUpdatedDate !== ''
-        ? str(raw.executiveComparisonUpdatedDate)
-        : null,
-  errorMessage: str(raw.error_message ?? raw.errorMessage),
-  llmModel: str(raw.llm_model ?? raw.llmModel),
+      : null,
+  errorMessage: str(raw.error_message),
+  llmModel: str(raw.llm_model),
   processingTime: (() => {
-    const p = raw.processing_time ?? raw.processingTime;
+    const p = raw.processing_time;
     if (p == null || p === '') return null;
     const n = Number(p);
     return Number.isFinite(n) ? n : null;
   })(),
-  createdDate: str(raw.created_date ?? raw.createdDate),
-  updatedDate: str(raw.updated_date ?? raw.updatedDate),
-  alreadyExists:
-    raw.already_exists !== undefined || raw.alreadyExists !== undefined
-      ? Boolean(raw.already_exists ?? raw.alreadyExists)
-      : undefined,
+  createdDate: str(raw.created_date),
+  updatedDate: str(raw.updated_date),
+  alreadyExists: raw.already_exists !== undefined ? Boolean(raw.already_exists) : undefined,
 }));
 
 export const transformExecutiveSummary = createTransformer<any, ExecutiveSummaryResponse>(
   (raw) => ({
-    grantId: numOrNull(raw.grant_id ?? raw.grantId) ?? 0,
-    executiveSummary: str(raw.executive_summary ?? raw.executiveSummary),
-    updatedDate: str(raw.updated_date ?? raw.updatedDate),
+    grantId: numOrNull(raw.grant_id) ?? 0,
+    executiveSummary: str(raw.executive_summary),
+    updatedDate: str(raw.updated_date),
   })
 );
 
