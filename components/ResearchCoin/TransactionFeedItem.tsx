@@ -3,15 +3,14 @@ import Icon from '@/components/ui/icons/Icon';
 import { cn } from '@/utils/styles';
 import { colors } from '@/app/styles/colors';
 import { Badge } from '@/components/ui/Badge';
-import { Tooltip } from '@/components/ui/Tooltip';
-import { FundingCreditsTooltip } from '@/components/ui/FundingCreditsTooltip';
+import { FundingCreditsTooltip } from '@/components/tooltips/FundingCreditsTooltip';
 
 interface TransactionFeedItemProps {
   transaction: FormattedTransaction;
 }
 
 export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
-  const { icon } = transaction.typeInfo;
+  const { icon, iconComponent: IconComponent } = transaction.typeInfo;
 
   // Use consistent neutral gray color for all icons
   const iconColor = colors.gray[600];
@@ -22,15 +21,19 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
         <div className="flex items-center justify-between">
           <div className="flex gap-3 w-full">
             <div className="w-[38px] h-[38px] flex items-center justify-center rounded-full bg-gray-50">
-              <Icon name={icon} size={18} color={iconColor} />
+              {IconComponent ? (
+                <IconComponent size={18} color={iconColor} />
+              ) : (
+                <Icon name={icon} size={18} color={iconColor} />
+              )}
             </div>
 
             <div className="flex-1">
               <div className="flex flex-col sm:!flex-row items-start sm:!items-center gap-2">
                 <div className="flex items-center gap-2">
                   <p className="font-medium text-gray-900">{transaction.typeInfo.label}</p>
-                  {transaction.isLocked && (
-                    <Tooltip content={<FundingCreditsTooltip />} position="top" width="w-fit">
+                  {transaction.isLocked && !transaction.typeInfo.hideLockedBadge && (
+                    <FundingCreditsTooltip>
                       <Badge
                         variant="primary"
                         size="default"
@@ -38,7 +41,7 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
                       >
                         Funding only
                       </Badge>
-                    </Tooltip>
+                    </FundingCreditsTooltip>
                   )}
                 </div>
               </div>

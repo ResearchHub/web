@@ -10,6 +10,7 @@ export interface StakingYieldStats {
   total_value_locked_usd: string | null;
   circulating_supply_rsc: string;
   pct_of_supply_staked: number;
+  issued_today_rsc: string | null;
   issued_today_usd: string | null;
 }
 
