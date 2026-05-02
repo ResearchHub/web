@@ -238,7 +238,7 @@ export function formatUsdContribution(c: UsdContribution): FormattedTransaction 
     user: 0,
     content_type: 0,
     formattedAmount: `-$${usdLabel}`,
-    formattedUsdValue: `${rscLabel} RSC equivalent`,
+    formattedUsdValue: `${rscLabel} RSC`,
     formattedDate: formatTimestamp(c.createdDate),
     typeInfo: { label: 'Fundraise Contribution', icon: 'fund' },
     isLocked: false,

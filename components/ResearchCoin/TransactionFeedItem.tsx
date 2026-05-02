@@ -54,8 +54,7 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
                   <span
                     className={cn(
                       'text-base font-medium truncate',
-                      transaction.isPositive ? 'text-green-600' : 'text-gray-900',
-                      transaction.isLocked && 'text-gray-500'
+                      transaction.typeInfo.label === 'Deposit' ? 'text-green-600' : 'text-gray-900'
                     )}
                   >
                     {transaction.formattedAmount}
