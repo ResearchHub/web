@@ -22,7 +22,6 @@ import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { AuthSharingService } from '@/services/auth-sharing.service';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { Button } from '@/components/ui/Button';
@@ -51,8 +50,6 @@ export default function UserMenu({
   const [internalMenuOpen, setInternalMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { openVerificationModal } = useVerification();
-  const searchParams = useSearchParams();
-  const showSettingsLink = searchParams?.has('ff-settings') ?? false;
   // Use controlled or uncontrolled menu state
   const menuOpenState = isMenuOpen !== undefined ? isMenuOpen : internalMenuOpen;
   const setMenuOpenState = (open: boolean) => {
@@ -239,16 +236,14 @@ export default function UserMenu({
           </div>
         </Link>
 
-        {showSettingsLink && (
-          <Link href="/settings" className="block" onClick={() => setMenuOpenState(false)}>
-            <div className="px-6 py-2 hover:bg-gray-50">
-              <div className="flex items-center">
-                <Settings className="h-5 w-5 mr-3 text-gray-500" />
-                <span className="text-sm text-gray-700">Settings</span>
-              </div>
+        <Link href="/settings" className="block" onClick={() => setMenuOpenState(false)}>
+          <div className="px-6 py-2 hover:bg-gray-50">
+            <div className="flex items-center">
+              <Settings className="h-5 w-5 mr-3 text-gray-500" />
+              <span className="text-sm text-gray-700">Settings</span>
             </div>
-          </Link>
-        )}
+          </div>
+        </Link>
 
         {!user.isVerified && (
           <div
@@ -438,16 +433,14 @@ export default function UserMenu({
               </div>
             </Link>
 
-            {showSettingsLink && (
-              <Link href="/settings" className="block" onClick={() => setMenuOpenState(false)}>
-                <div className="w-full px-4 py-2 hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <Settings className="h-5 w-5 mr-3 text-gray-500" />
-                    <span className="text-sm text-gray-700">Settings</span>
-                  </div>
+            <Link href="/settings" className="block" onClick={() => setMenuOpenState(false)}>
+              <div className="w-full px-4 py-2 hover:bg-gray-50">
+                <div className="flex items-center">
+                  <Settings className="h-5 w-5 mr-3 text-gray-500" />
+                  <span className="text-sm text-gray-700">Settings</span>
                 </div>
-              </Link>
-            )}
+              </div>
+            </Link>
 
             {!user.isVerified && (
               <BaseMenuItem onClick={() => openVerificationModal()} className="w-full px-4 py-2">
