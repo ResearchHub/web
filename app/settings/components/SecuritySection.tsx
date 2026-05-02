@@ -50,17 +50,35 @@ export function SecuritySection() {
           <div>
             <h3 className="text-base font-semibold text-gray-900">Two-factor authentication</h3>
             <p className="text-sm text-gray-500">
-              Add an extra layer of security by requiring a one-time code{' '}
+              Add an extra layer of security by requiring a one-time authenticator code{' '}
               {!isGoogleAccount && 'at sign-in and'} for every withdrawal.
             </p>
             {isGoogleAccount && (
-              <p className="mt-1 text-sm italic text-gray-500">
-                Since you sign in with Google, this will only apply to withdrawals. Your sign-in
-                security is managed through your Google account settings.
-              </p>
+              <details className="mt-1 text-sm text-gray-500 group">
+                <summary className="cursor-pointer list-none">
+                  You won't need the authenticator code for sign-in since you use a Google account.{' '}
+                  <span className="text-primary-600 hover:text-primary-700 hover:underline">
+                    <span className="group-open:hidden">Learn more</span>
+                    <span className="hidden group-open:inline">Show less</span>
+                  </span>
+                </summary>
+                <p className="mt-2 pl-3 border-l-2 border-gray-200 text-gray-500">
+                  Your sign-in security is managed by Google, which offers its own two-factor
+                  authentication. You can enable it in your{' '}
+                  <a
+                    href="https://myaccount.google.com/security"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary-600 hover:underline"
+                  >
+                    Google account settings
+                  </a>
+                  . The authenticator code you set up here will only be required for withdrawals.
+                </p>
+              </details>
             )}
           </div>
-          {!isLoading && !error && !status?.mfa_enabled && !isGoogleAccount && (
+          {!isLoading && !error && !status?.mfa_enabled && (
             <Button onClick={() => setIsEnableOpen(true)}>Enable</Button>
           )}
           {!isLoading && !error && status?.mfa_enabled && (
