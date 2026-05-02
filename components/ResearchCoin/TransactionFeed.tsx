@@ -287,7 +287,7 @@ export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeed
   }
 );
 
-function SectionCard({
+export function SectionCard({
   title,
   actions,
   children,

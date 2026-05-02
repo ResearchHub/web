@@ -32,7 +32,7 @@ export default function ResearchCoinPage() {
     transactionFeedRef.current?.refresh();
   };
 
-  const { hasPendingDepositFeed } = usePendingDeposits({
+  usePendingDeposits({
     onDepositResolved: () => {
       refreshUser({ silent: true });
       refreshTransactions();
@@ -86,7 +86,7 @@ export default function ResearchCoinPage() {
                 </>
               )}
 
-              {hasPendingDepositFeed && status === 'authenticated' && <PendingDepositFeed />}
+              {status === 'authenticated' && <PendingDepositFeed />}
 
               <TransactionFeed
                 ref={transactionFeedRef}
