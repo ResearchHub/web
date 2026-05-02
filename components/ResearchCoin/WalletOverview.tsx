@@ -195,7 +195,7 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
                       secondary={
                         showUSD
                           ? `${balance?.formatted ?? '0'} RSC`
-                          : `≈ ${balance?.formattedUsd ?? '$0.00'}`
+                          : `${balance?.formattedUsd ?? '$0.00'}`
                       }
                     />
                   ) : (
@@ -231,7 +231,7 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
                       secondary={
                         showUSD
                           ? `${lockedBalance?.formatted ?? '0'} RSC`
-                          : `≈ ${lockedBalance?.formattedUsd ?? '$0.00'}`
+                          : `${lockedBalance?.formattedUsd ?? '$0.00'}`
                       }
                     />
                   ) : (
@@ -278,7 +278,7 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
                           secondary={
                             showUSD
                               ? `${formatRSC({ amount: dafRsc })} RSC`
-                              : `≈ ${formatUsd(dafTotalUsd)}`
+                              : `${formatUsd(dafTotalUsd)}`
                           }
                         />
                       );

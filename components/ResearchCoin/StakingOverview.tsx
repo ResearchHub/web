@@ -65,7 +65,7 @@ export function StakingOverview() {
   const fundingCreditsBottom = showUSD
     ? fundingCreditsEarned.rsc
     : fundingCreditsEarned.usd
-      ? `≈ ${fundingCreditsEarned.usd}`
+      ? `${fundingCreditsEarned.usd}`
       : null;
 
   const nextTier = useMemo(() => getNextTierDetails(details?.balanceLots), [details]);

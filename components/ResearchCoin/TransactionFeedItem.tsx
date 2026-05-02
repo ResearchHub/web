@@ -53,13 +53,13 @@ export function TransactionFeedItem({ transaction }: TransactionFeedItemProps) {
                 <div className="flex flex-col items-end">
                   <span
                     className={cn(
-                      'text-base font-medium truncate',
+                      'text-sm font-bold truncate',
                       transaction.typeInfo.label === 'Deposit' ? 'text-green-600' : 'text-gray-900'
                     )}
                   >
                     {transaction.formattedAmount}
                   </span>
-                  <span className="text-xs text-gray-500 truncate">
+                  <span className="text-[11px] text-gray-500 mt-0.5 truncate">
                     {transaction.formattedUsdValue}
                   </span>
                 </div>
