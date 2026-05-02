@@ -2,9 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Sprout } from 'lucide-react';
-import { Switch } from '@/components/ui/Switch';
-import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ConfirmModal } from '../modals/ConfirmModal';
+import { cn } from '@/utils/styles';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -86,22 +85,22 @@ export function StakingOverview() {
                 <div className="text-xs text-gray-500 mt-0.5">Earn funding credits</div>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <RadiatingDot
-                color={isOptedIn ? 'bg-emerald-500' : 'bg-red-500'}
-                isRadiating={false}
-              />
+            <button
+              type="button"
+              onClick={() => handleStakingToggle(!isOptedIn)}
+              disabled={isUpdatingStaking}
+              className={cn(
+                'flex items-center gap-2 shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60',
+                isOptedIn
+                  ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              )}
+            >
               <span
-                className={`text-xs font-semibold ${isOptedIn ? 'text-gray-900' : 'text-gray-500'}`}
-              >
-                Earning
-              </span>
-              <Switch
-                checked={isOptedIn}
-                onCheckedChange={handleStakingToggle}
-                disabled={isUpdatingStaking}
+                className={cn('h-2 w-2 rounded-full', isOptedIn ? 'bg-emerald-500' : 'bg-red-500')}
               />
-            </div>
+              {isOptedIn ? 'Earning' : 'Not earning'}
+            </button>
           </div>
 
           <ul>
