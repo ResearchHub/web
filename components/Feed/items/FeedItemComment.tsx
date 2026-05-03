@@ -115,7 +115,10 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
   // Check if current user is the comment author to prevent self-tipping
   const isCurrentUserAuthor = user?.authorProfile?.id === author?.id;
-  const isAssessedByFoundation = Boolean(entry.isAssessed ?? comment.isAssessed);
+  const aiReviewUserId = process.env.NEXT_PUBLIC_AI_REVIEW_USER_ID;
+  const isAiReviewer =
+    aiReviewUserId != null && String(author?.user?.id ?? '') === String(aiReviewUserId);
+  const isAssessedByFoundation = Boolean(entry.isAssessed ?? comment.isAssessed) && !isAiReviewer;
 
   const menuItems = [];
   if (showCreatorActions) {
