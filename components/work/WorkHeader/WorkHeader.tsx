@@ -19,7 +19,7 @@ import {
   findLatestFoundationBounty,
   getBountyDisplayAmount,
 } from '@/components/Bounty/lib/bountyUtil';
-import { BaseMenu } from '@/components/ui/form/BaseMenu';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { cn } from '@/utils/styles';
 import toast from 'react-hot-toast';
 
@@ -168,15 +168,15 @@ export function WorkHeader({
       >
         <FontAwesomeIcon icon={isInList ? faBookmarkSolid : faBookmark} className="h-5 w-5" />
       </button>
-      <button onClick={shareAction} className={btnClass} aria-label="Share">
-        <Share className="h-5 w-5" />
-      </button>
       <button
         onClick={() => setMobileSidebarOpen(true)}
         className={cn(btnClass, 'lg:hidden')}
         aria-label="Show insights"
       >
         <Lightbulb className="h-5 w-5" />
+      </button>
+      <button onClick={shareAction} className={cn(btnClass, '!hidden lg:!flex')} aria-label="Share">
+        <Share className="h-5 w-5" />
       </button>
       <BaseMenu
         align="start"
@@ -186,6 +186,12 @@ export function WorkHeader({
           </button>
         }
       >
+        <div className="lg:hidden">
+          <BaseMenuItem onSelect={shareAction}>
+            <Share className="h-4 w-4 mr-2" />
+            Share
+          </BaseMenuItem>
+        </div>
         {menuItems}
       </BaseMenu>
     </div>

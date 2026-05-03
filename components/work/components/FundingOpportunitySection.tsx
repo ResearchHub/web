@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { HelpCircle, Users } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 import { GRANT_IMAGE_FALLBACK_GRADIENT } from '@/types/grant';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -21,19 +21,10 @@ export function FundingOpportunitySection({ grant }: Readonly<FundingOpportunity
 
   const content = (
     <>
-      <div className="min-w-0 flex-1 h-16 flex flex-col justify-center">
-        <h4 className="text-sm font-medium text-gray-900 leading-snug line-clamp-1">
+      <div className="min-w-0 flex-1 flex flex-col justify-center">
+        <h4 className="text-sm font-medium text-gray-900 leading-snug break-words">
           {displayTitle}
         </h4>
-        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-          <span className="truncate">{grant.organization}</span>
-          {grant.applicantCount > 0 && (
-            <span className="flex items-center gap-1 flex-shrink-0">
-              <Users size={12} />
-              {grant.applicantCount}
-            </span>
-          )}
-        </div>
         {grant.fundingAmount > 0 && (
           <div className="mt-1 text-sm font-semibold font-mono text-gray-900">
             {formatCompactAmount(grant.fundingAmount)}
@@ -57,8 +48,7 @@ export function FundingOpportunitySection({ grant }: Readonly<FundingOpportunity
     </>
   );
 
-  const className =
-    'flex items-center gap-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors px-1';
+  const className = 'flex items-center gap-3 rounded-lg hover:bg-gray-100 transition-colors px-1';
 
   const header = (
     <SidebarHeader
