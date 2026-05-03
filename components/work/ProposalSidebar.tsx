@@ -6,6 +6,7 @@ import { TopicsSection } from './components/TopicsSection';
 import { NonprofitSection } from './components/NonprofitSection';
 import { FundersSection } from './components/FundersSection';
 import { PeerReviewsSection } from './components/PeerReviewsSection';
+import { AiPeerReviewSection } from './components/AiPeerReviewSection';
 import { buildWorkUrl } from '@/utils/url';
 import { DOISection } from './components/DOISection';
 
@@ -17,6 +18,7 @@ interface ProposalSidebarProps {
 export const ProposalSidebar = ({ work, metadata }: ProposalSidebarProps) => {
   return (
     <div className="space-y-12">
+      {work.aiPeerReview && <AiPeerReviewSection aiPeerReview={work.aiPeerReview} />}
       {metadata.fundraising && <FundraiseSection fundraise={metadata.fundraising} />}
       {metadata.fundraising && <NonprofitSection fundraiseId={metadata.fundraising.id} />}
       {metadata.fundraising &&

@@ -1,1 +1,0 @@
-export { AiPeerReviewCard } from './AiPeerReviewCard';
