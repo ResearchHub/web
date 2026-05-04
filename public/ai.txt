@@ -28,9 +28,17 @@ Disallow: /_next/
 Disallow: /sw.js
 Disallow: /workbox-*
 
-# User-contributed content (excluding peer reviews) is licensed under CC BY 4.0.
-# Peer review content is governed separately (see Terms of Service, Section 4A).
-# Attribution via hyperlink to the source page is sufficient.
+# Licensing and AI/ML training policy
+#
+# Non-peer-review user content is licensed under CC BY 4.0.
+# Hyperlink attribution to the source page is sufficient.
 # https://creativecommons.org/licenses/by/4.0/
-
+#
+# Peer Review Content is NOT licensed under CC BY 4.0 and may not be used
+# for AI/ML training, benchmarking, retrieval-augmented generation indexing,
+# dataset or corpus creation, or text and data mining without ResearchHub's
+# prior express written permission or a valid sublicense.
+# See Terms of Service, Sections 4A and 6.
+# https://researchhub.com/about/tos
+#
 # AI partnership and training inquiries: hello@researchhub.com

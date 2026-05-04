@@ -23,6 +23,8 @@ export default function robots(): MetadataRoute.Robots {
         '/settings',
         '/paper/submit',
         '/_next/',
+        '/sw.js',
+        '/workbox-*',
       ],
     },
     sitemap: `${SITE_CONFIG.url}/sitemap.xml`,
