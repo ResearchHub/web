@@ -1,25 +1,21 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Check } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { MonoLabel } from './MonoLabel';
-import { pipelineSteps } from './data/pipelineSteps';
+import { pipelineSteps, type PipelineStep } from './data/pipelineSteps';
 
-const ProductImagePlaceholder = ({ stepNumber }: { stepNumber: string }) => (
-  <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white/70 min-h-[170px] md:min-h-[220px]">
-    <div
-      aria-hidden
-      className="absolute inset-0 opacity-60"
-      style={{
-        backgroundImage:
-          'repeating-linear-gradient(135deg, rgba(148,163,184,0.18) 0, rgba(148,163,184,0.18) 1px, transparent 1px, transparent 14px)',
-      }}
+const StepProductImage = ({ step }: { step: PipelineStep }) => (
+  <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm h-[170px] md:h-[220px]">
+    <Image
+      src={step.imageSrc}
+      alt={step.imageAlt}
+      fill
+      sizes="(min-width: 768px) 360px, calc(100vw - 64px)"
+      className="object-contain"
     />
-    <div className="absolute inset-0 bg-gradient-to-br from-white/70 via-transparent to-primary-50/70" />
-    <MonoLabel className="absolute bottom-4 left-4 text-[10px] uppercase tracking-[0.18em] text-gray-500">
-      Fig. step-{stepNumber} · Product image
-    </MonoLabel>
   </div>
 );
 
@@ -105,7 +101,7 @@ export const FundingPipeline = () => {
                 {current.description}
               </p>
             </div>
-            <ProductImagePlaceholder stepNumber={current.number} />
+            <StepProductImage step={current} />
           </div>
         </div>
       </div>
@@ -131,7 +127,7 @@ export const FundingPipeline = () => {
                 {step.description}
               </p>
               <div className="mt-3">
-                <ProductImagePlaceholder stepNumber={step.number} />
+                <StepProductImage step={step} />
               </div>
             </li>
           ))}
