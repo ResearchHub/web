@@ -8,7 +8,16 @@ export default function EndowmentPage() {
 
   return (
     <div>
-      <div className="bg-white rounded-lg border border-gray-200 px-6 pt-4 pb-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
+        <div className="lg:col-span-2 flex">
+          <StatsPanel stats={stats} isLoading={isLoading} />
+        </div>
+        <div className="lg:col-span-3 flex">
+          <YieldChart />
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg border border-gray-200 px-6 pt-4 pb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">About</h2>
         <p className="text-sm text-gray-900">
           <span className="font-semibold text-gray-900">
@@ -29,15 +38,6 @@ export default function EndowmentPage() {
         >
           Learn how the endowment works <span aria-hidden="true">↗</span>
         </a>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-2 flex">
-          <StatsPanel stats={stats} isLoading={isLoading} />
-        </div>
-        <div className="lg:col-span-3 flex">
-          <YieldChart />
-        </div>
       </div>
     </div>
   );
