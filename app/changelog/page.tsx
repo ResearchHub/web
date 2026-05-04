@@ -39,6 +39,7 @@ async function fetchPostWithContent(postId: string): Promise<PostWithContent | n
 export default async function ChangelogPage() {
   // Post IDs for changelog entries
   const postIds = [
+    '32266',
     '32263',
     '32262',
     '32261',
