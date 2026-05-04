@@ -184,13 +184,6 @@ export interface FeedGrantContent extends BaseFeedContent {
       rsc: number;
       formatted: string;
     };
-    // MOCK: replace with API field `amount_distributed` — total funds the funder
-    // has paid out from this grant's pool. Used to fill the funder dashboard
-    // pool progress bar (`amountDistributed / amount`).
-    amountDistributed?: {
-      usd: number;
-      rsc: number;
-    };
     organization: string;
     description: string;
     status: GrantStatus;
@@ -851,16 +844,6 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
             grant: {
               id: content_object.grant.id,
               amount: content_object.grant.amount,
-              // MOCK: fall back to a percentage of total when API doesn't ship `amount_distributed` yet
-              amountDistributed: content_object.grant.amount_distributed
-                ? {
-                    rsc: content_object.grant.amount_distributed.rsc ?? 0,
-                    usd: content_object.grant.amount_distributed.usd ?? 0,
-                  }
-                : {
-                    rsc: Math.round((content_object.grant.amount?.rsc ?? 0) * 0.62),
-                    usd: Math.round((content_object.grant.amount?.usd ?? 0) * 0.62),
-                  },
               organization: content_object.grant.organization,
               description: content_object.grant.description,
               status: content_object.grant.status,

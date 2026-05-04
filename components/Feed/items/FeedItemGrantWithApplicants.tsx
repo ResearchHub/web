@@ -16,17 +16,10 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatCurrency } from '@/utils/currency';
 import { Application } from '@/types/funding';
-import { FundraiseProgressBar } from '@/components/Funding/FundraiseProgressBar';
 
 interface FeedItemGrantWithApplicantsProps {
   entry: FeedEntry;
   className?: string;
-  /**
-   * Funder-dashboard variant: render a "Funding pool" progress bar between
-   * the gradient header and the proposal list, filled to
-   * `grant.amountDistributed / grant.amount`.
-   */
-  showFundingPool?: boolean;
 }
 
 const VISIBLE_PROPOSALS = 3;
@@ -137,7 +130,6 @@ const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate,
 export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> = ({
   entry,
   className,
-  showFundingPool = false,
 }) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
@@ -159,12 +151,6 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
   const budgetAmount = showUSD
     ? Math.round(grant.amount?.usd || 0)
     : Math.round(grant.amount?.rsc || 0);
-
-  const distributedAmount = showUSD
-    ? Math.round(grant.amountDistributed?.usd || 0)
-    : Math.round(grant.amountDistributed?.rsc || 0);
-  const distributedPct =
-    budgetAmount > 0 ? Math.min(100, Math.round((distributedAmount / budgetAmount) * 100)) : 0;
 
   const allProposals = grant.applicants?.filter((a) => a.fundraise) ?? [];
   const shown = expanded ? allProposals : allProposals.slice(0, VISIBLE_PROPOSALS);
@@ -264,27 +250,6 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
           </div>
         </div>
       </Link>
-
-      {/* Funding pool — funder-dashboard variant only */}
-      {showFundingPool && (
-        <div className="flex items-center gap-3.5 px-5 py-3.5 border-b border-gray-100">
-          <div className="min-w-[108px] text-xs font-semibold text-gray-700">
-            Funding pool
-            <div className="font-medium text-gray-500 mt-px">{distributedPct}% distributed</div>
-          </div>
-          <FundraiseProgressBar
-            raisedAmount={distributedAmount}
-            goalAmount={budgetAmount}
-            className="flex-1"
-          />
-          <div className="text-xs text-gray-500 whitespace-nowrap">
-            <span className="font-semibold text-gray-900">
-              {formatCompact(distributedAmount, showUSD, exchangeRate)}
-            </span>{' '}
-            of {formatCompact(budgetAmount, showUSD, exchangeRate)}
-          </div>
-        </div>
-      )}
 
       {/* Proposal rows */}
       {hasProposals && (
