@@ -4,10 +4,11 @@ import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import {
   Check,
   AlertCircle,
-  AlertTriangle,
+  ShieldCheck,
   Loader2,
   Copy,
   ArrowLeft,
+  ArrowRight,
   ChevronDown,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -411,7 +412,7 @@ export function WithdrawModal({
             <Alert
               variant="warning"
               className="bg-amber-50 border border-amber-200 text-amber-800"
-              icon={<AlertTriangle className="h-4 w-4 text-amber-600" />}
+              icon={<ShieldCheck className="h-4 w-4 text-amber-600" />}
             >
               Verify your wallet supports {NETWORK_CONFIG[selectedNetwork].name}.
             </Alert>
@@ -458,7 +459,7 @@ export function WithdrawModal({
             {!isMfaStatusLoading && !mfaStatusError && !isMfaEnabled && (
               <div className="flex flex-col items-center text-center py-6 space-y-4">
                 <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
-                  <AlertTriangle className="h-6 w-6 text-amber-600" />
+                  <ShieldCheck className="h-6 w-6 text-amber-600" />
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-lg font-semibold text-gray-900">
@@ -471,10 +472,11 @@ export function WithdrawModal({
                 </div>
                 <Link
                   href="/settings"
-                  className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors"
                   onClick={onClose}
                 >
                   Enable 2FA
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             )}
