@@ -11,6 +11,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { formatRSC, getMaxDecimalPlaces } from '@/utils/number';
@@ -266,6 +267,10 @@ export function WithdrawModal({
     }
 
     // Main form footer
+    if (!isMfaEnabled) {
+      return null; // don't show if MFA is not enabled
+    }
+
     return (
       <TransactionFooter blockExplorerUrl={blockExplorerUrl}>
         <div className="w-full flex flex-col items-center gap-2">
@@ -296,6 +301,7 @@ export function WithdrawModal({
     handleWithdraw,
     isFeeLoading,
     showMfaConfirmation,
+    isMfaEnabled,
   ]);
 
   return (
@@ -445,118 +451,145 @@ export function WithdrawModal({
             )}
 
             {mfaStatusError && (
-              <Alert variant="warning">
-                Could not verify MFA status. If you have MFA enabled, the withdrawal may fail.
-              </Alert>
+              <Alert variant="warning">Could not verify MFA status. Please try again later.</Alert>
             )}
 
-            {/* Destination Address ("To") + inline network selector */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[15px] text-gray-700">To</span>
-                <InlineNetworkPicker
-                  value={selectedNetwork}
-                  onChange={setSelectedNetwork}
-                  disabled={isInputDisabled()}
-                />
-              </div>
-              <Input
-                value={destinationAddress}
-                onChange={handleAddressChange}
-                placeholder="0x..."
-                disabled={isInputDisabled()}
-                className={cn(
-                  'font-mono text-sm',
-                  destinationAddress &&
-                    !isAddressValid &&
-                    'border-red-500 focus:border-red-500 focus:ring-red-500'
-                )}
-                rightElement={
-                  destinationAddress && (
-                    <button
-                      onClick={handleCopyAddress}
-                      className="flex items-center gap-2 px-4 py-2 h-full text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors border-l border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-r-lg flex-shrink-0"
-                      type="button"
-                    >
-                      {isAddressCopied ? (
-                        <Check className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </button>
-                  )
-                }
-              />
-              {destinationAddress && !isAddressValid ? (
-                <p className="text-sm text-red-600" role="alert">
-                  Please enter a valid Ethereum address (0x followed by 40 hex characters).
-                </p>
-              ) : null}
-            </div>
-
-            {/* Amount Input */}
-            <div className="space-y-2">
-              <span className="text-[15px] text-gray-700">Amount</span>
-              <div className="relative">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="\d*"
-                  value={amount}
-                  onChange={handleAmountChange}
-                  placeholder="0"
-                  disabled={isInputDisabled()}
-                  aria-label="Amount to withdraw"
-                  className={cn(
-                    'w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400',
-                    'focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200',
-                    isInputDisabled() && 'bg-gray-100 cursor-not-allowed'
-                  )}
-                />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-4">
-                  <span className="text-gray-500">RSC</span>
+            {!isMfaStatusLoading && !mfaStatusError && !isMfaEnabled && (
+              <div className="flex flex-col items-center text-center py-6 space-y-4">
+                <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                  <AlertTriangle className="h-6 w-6 text-amber-600" />
                 </div>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">
-                  Balance:{' '}
-                  <span className="text-gray-700 font-medium">
-                    {formatRSC({ amount: availableBalance })} RSC
-                  </span>
-                  {fee != null && !isFeeLoading && (
-                    <span className="text-gray-400"> (− {fee} RSC fee)</span>
-                  )}
-                </span>
-                <button
-                  onClick={handleMaxAmount}
-                  disabled={isInputDisabled() || isFeeLoading || !fee}
-                  className="text-primary-500 font-semibold hover:text-primary-600 disabled:opacity-50 disabled:hover:text-primary-500"
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Two-factor authentication required
+                  </h3>
+                  <p className="text-sm text-gray-600 max-w-sm">
+                    To protect your funds, withdrawals require two-factor authentication. Please
+                    enable it in your account settings to continue.
+                  </p>
+                </div>
+                <Link
+                  href="/settings"
+                  className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors"
+                  onClick={onClose}
                 >
-                  MAX
-                </button>
+                  Go to Settings
+                </Link>
               </div>
-              {feeError && (
-                <p className="text-sm text-red-600 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-2" />
-                  Unable to fetch fee: {feeError}
-                </p>
-              )}
-              {isBelowMinimum && (
-                <p className="text-sm text-red-600" role="alert">
-                  Minimum withdrawal amount is {MIN_WITHDRAWAL_AMOUNT} RSC.
-                </p>
-              )}
-              {hasInsufficientBalance && (
-                <p className="text-sm text-red-600" role="alert">
-                  Withdrawal amount exceeds your available balance.
-                </p>
-              )}
-              {!isFeeLoading && amountUserWillReceive <= 0 && withdrawAmount > 0 && fee && (
-                <p className="text-sm text-red-600" role="alert">
-                  Withdrawal amount must be greater than the network fee.
-                </p>
-              )}
-            </div>
+            )}
+
+            {/* Form fields - only show when MFA is enabled */}
+            {isMfaEnabled && (
+              <>
+                {/* Destination Address ("To") + inline network selector */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[15px] text-gray-700">To</span>
+                    <InlineNetworkPicker
+                      value={selectedNetwork}
+                      onChange={setSelectedNetwork}
+                      disabled={isInputDisabled()}
+                    />
+                  </div>
+                  <Input
+                    value={destinationAddress}
+                    onChange={handleAddressChange}
+                    placeholder="0x..."
+                    disabled={isInputDisabled()}
+                    className={cn(
+                      'font-mono text-sm',
+                      destinationAddress &&
+                        !isAddressValid &&
+                        'border-red-500 focus:border-red-500 focus:ring-red-500'
+                    )}
+                    rightElement={
+                      destinationAddress && (
+                        <button
+                          onClick={handleCopyAddress}
+                          className="flex items-center gap-2 px-4 py-2 h-full text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors border-l border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-r-lg flex-shrink-0"
+                          type="button"
+                        >
+                          {isAddressCopied ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </button>
+                      )
+                    }
+                  />
+                  {destinationAddress && !isAddressValid ? (
+                    <p className="text-sm text-red-600" role="alert">
+                      Please enter a valid Ethereum address (0x followed by 40 hex characters).
+                    </p>
+                  ) : null}
+                </div>
+
+                {/* Amount Input */}
+                <div className="space-y-2">
+                  <span className="text-[15px] text-gray-700">Amount</span>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="\d*"
+                      value={amount}
+                      onChange={handleAmountChange}
+                      placeholder="0"
+                      disabled={isInputDisabled()}
+                      aria-label="Amount to withdraw"
+                      className={cn(
+                        'w-full h-12 px-4 rounded-lg border border-gray-300 placeholder:text-gray-400',
+                        'focus:border-primary-500 focus:ring-2 focus:ring-primary-500 transition duration-200',
+                        isInputDisabled() && 'bg-gray-100 cursor-not-allowed'
+                      )}
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+                      <span className="text-gray-500">RSC</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">
+                      Balance:{' '}
+                      <span className="text-gray-700 font-medium">
+                        {formatRSC({ amount: availableBalance })} RSC
+                      </span>
+                      {fee != null && !isFeeLoading && (
+                        <span className="text-gray-400"> (− {fee} RSC fee)</span>
+                      )}
+                    </span>
+                    <button
+                      onClick={handleMaxAmount}
+                      disabled={isInputDisabled() || isFeeLoading || !fee}
+                      className="text-primary-500 font-semibold hover:text-primary-600 disabled:opacity-50 disabled:hover:text-primary-500"
+                    >
+                      MAX
+                    </button>
+                  </div>
+                  {feeError && (
+                    <p className="text-sm text-red-600 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-2" />
+                      Unable to fetch fee: {feeError}
+                    </p>
+                  )}
+                  {isBelowMinimum && (
+                    <p className="text-sm text-red-600" role="alert">
+                      Minimum withdrawal amount is {MIN_WITHDRAWAL_AMOUNT} RSC.
+                    </p>
+                  )}
+                  {hasInsufficientBalance && (
+                    <p className="text-sm text-red-600" role="alert">
+                      Withdrawal amount exceeds your available balance.
+                    </p>
+                  )}
+                  {!isFeeLoading && amountUserWillReceive <= 0 && withdrawAmount > 0 && fee && (
+                    <p className="text-sm text-red-600" role="alert">
+                      Withdrawal amount must be greater than the network fee.
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
           </>
         )}
       </div>
