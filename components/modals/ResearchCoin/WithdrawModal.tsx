@@ -237,6 +237,11 @@ export function WithdrawModal({
   }, []);
 
   const footer = useMemo(() => {
+    // Don't show footer if MFA is not enabled
+    if (!isMfaEnabled) {
+      return null;
+    }
+
     const txHash = txStatus.state === 'success' ? txStatus.txHash : undefined;
 
     if (txHash) {
@@ -267,10 +272,6 @@ export function WithdrawModal({
     }
 
     // Main form footer
-    if (!isMfaEnabled) {
-      return null; // don't show if MFA is not enabled
-    }
-
     return (
       <TransactionFooter blockExplorerUrl={blockExplorerUrl}>
         <div className="w-full flex flex-col items-center gap-2">
