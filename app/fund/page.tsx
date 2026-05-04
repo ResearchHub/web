@@ -42,11 +42,11 @@ export default async function FundPage() {
           proposal to pitch your own research for funding consideration.
         </p>
         <p>
-          Each funding opportunity includes a defined scope of work, funding amount in ResearchCoin
-          (RSC) or USD, and a deadline for submissions. Opportunities span a range of disciplines —
-          biomedical sciences, computational biology, physics, economics, and beyond — so there is
-          likely one relevant to your area of expertise. Researchers who find a match can apply
-          directly, with all materials submitted and reviewed on-platform.
+          Each funding opportunity includes a defined scope of work, funding amount in USD, and a
+          deadline for submissions. Opportunities span a range of disciplines — biomedical sciences,
+          computational biology, physics, economics, and beyond — so there is likely one relevant to
+          your area of expertise. Researchers who find a match can apply directly, with all
+          materials submitted and reviewed on-platform.
         </p>
         <p>
           Researchers can also create their own proposals to pursue original work. Each proposal
@@ -60,6 +60,14 @@ export default async function FundPage() {
           timelines. The entire process is visible on-platform from submission to funding decision.
           Browse the open opportunities below, or switch to the Proposals tab to see
           community-submitted research plans seeking support.
+        </p>
+        <p>
+          Researchers at US-based institutions can attach their University nonprofit to their
+          fundraise to enable tax deductible contributions from funders. Additionally, nonprofit
+          attachment enables quick delivery of funds to the researcher's university bank account,
+          typically landing as discretionary funds within 2-3 weeks from fundraise close. These
+          funds are not typically subject to university indirects or overhead fees, and may only be
+          subject to a gift fee as specified by the researcher's university.
         </p>
       </section>
       <FundGrantsPageContent />

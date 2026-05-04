@@ -45,10 +45,10 @@ export const JournalPage: FC = () => {
           </p>
           <p>
             Every paper submitted is immediately available as a preprint, giving your work
-            visibility from day one. Peer reviews are conducted openly and published alongside the
-            paper, so readers can see how each submission was evaluated. Reviewers are compensated
-            with ResearchCoin (RSC) for their contributions, which incentivizes thorough and timely
-            feedback.
+            visibility from day one. Peer reviews are conducted openly via unblinded peer review and
+            published alongside the paper, so readers can see how each submission was evaluated.
+            Reviewers are compensated with $150 in ResearchCoin (RSC) for their contributions, which
+            incentivizes thorough and timely feedback.
           </p>
           <p>
             Our editorial process is designed to be rigorous without being slow. Submissions move
