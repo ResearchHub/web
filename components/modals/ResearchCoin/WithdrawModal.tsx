@@ -474,7 +474,7 @@ export function WithdrawModal({
                   className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors"
                   onClick={onClose}
                 >
-                  Go to Settings
+                  Enable 2FA
                 </Link>
               </div>
             )}
