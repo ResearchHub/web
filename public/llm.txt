@@ -1,0 +1,14 @@
+# ResearchHub
+
+> ResearchHub is an open science platform where researchers publish, peer review, fund, and discuss scientific research. Contributors earn ResearchCoin (RSC) for their work.
+
+ResearchHub's mission is to accelerate the pace of scientific research. It operates as "a GitHub for science" — a collaborative platform for publishing preprints, conducting open peer review, funding research, and discussing findings in topic-specific communities called Hubs. The platform compensates peer reviewers ($150 per review), publishes content open access, and completes peer review in as few as 14 days. User-contributed content (excluding peer reviews) is licensed under CC BY 4.0. Maintained by the ResearchHub Foundation and ResearchHub, Inc.
+
+- Website: https://researchhub.com
+- Documentation: https://docs.researchhub.com
+- Foundation: https://researchhub.foundation
+- X: https://x.com/researchhub
+- GitHub: https://github.com/ResearchHub
+- LinkedIn: https://www.linkedin.com/company/researchhubtechnologies
+- Email: hello@researchhub.com
+- Full reference: https://researchhub.com/llms-full.txt

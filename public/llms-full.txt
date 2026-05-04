@@ -1,0 +1,114 @@
+# ResearchHub — Full Reference
+
+> ResearchHub is an open science platform where researchers publish, peer review, fund, and discuss scientific research. Contributors earn ResearchCoin (RSC) for their work.
+
+## About ResearchHub
+
+ResearchHub's mission is to accelerate the pace of scientific research. It operates as "a GitHub for science" — a collaborative platform for publishing preprints, conducting open peer review, funding research, and discussing findings in topic-specific communities called Hubs. The platform compensates accepted peer reviewers ($150 per review), publishes content open access, and completes peer review in as few as 14 days. User-contributed content (excluding peer reviews) is licensed under CC BY 4.0. Maintained by the ResearchHub Foundation and ResearchHub, Inc.
+
+The platform is maintained by two entities:
+
+- **ResearchHub, Inc.** — the technology company that builds and operates the platform, based in San Francisco, CA.
+- **ResearchHub Foundation** — the nonprofit that funds research, manages the endowment, and oversees editorial programs including the ResearchHub Journal.
+
+ResearchHub differs from traditional academic publishers because it compensates peer reviewers ($150 per accepted review), publishes content open access, completes peer review in as few as 14 days, and uses a token-based incentive system (ResearchCoin) to reward contributions. User-contributed content (excluding peer reviews) is licensed under CC BY 4.0; peer review content is governed by a separate license (see Terms of Service, Section 4A).
+
+## Core Values
+
+ResearchHub believes scientific research should be:
+
+- **Accessible** — No paywalls, no costs to participate. Summaries in plain English.
+- **Collaborative** — Academics and non-academics interact publicly, incentivized by ResearchCoin.
+- **Efficient** — Traditional funding-to-publication cycles take 3–5 years. ResearchHub aims for at least one order of magnitude faster.
+
+## Products & Services
+
+### ResearchHub Journal
+
+An open access, peer-reviewed scientific journal built for speed and transparency.
+
+- Accepts research across all scientific disciplines.
+- Peer review turnaround in as few as 14 days.
+- Submissions are immediately available as preprints.
+- Reviews are conducted openly (unblinded) and published alongside the paper.
+- Reviewers are compensated $150 in RSC per accepted review.
+- Papers that complete review are published as the version of record.
+
+More: https://researchhub.com/journal
+
+### Peer Review Program
+
+ResearchHub compensates researchers for peer-reviewing scientific preprints. Unlike traditional peer review — typically unpaid and months-long — accepted reviews on ResearchHub are paid $150 each with turnaround around 10 days.
+
+Reviewers build a public track record that strengthens their academic profile. Peer reviews provide context for authors, funders, and readers — they are not used to gatekeep publication.
+
+Guidelines: https://docs.researchhub.com/researchhub-foundation/programs-and-initiatives/peer-review-program/peer-review-guidelines
+
+More: https://researchhub.com/earn
+
+### Research Funding
+
+Direct funding pathways for scientific research:
+
+- **Grants:** Open opportunities from the Foundation and community funders, with defined scope, funding amount in USD, and deadlines. Spans biomedical sciences, computational biology, physics, economics, and more.
+- **Proposals:** Researchers submit their own proposals for original work. Each undergoes open peer review evaluating methodology, significance, and feasibility. Funded projects receive RSC directly.
+- **Nonprofit attachment:** US-based researchers can attach their university nonprofit for tax-deductible contributions and fast fund delivery (typically 2–3 weeks).
+
+More: https://researchhub.com/fund
+
+### ResearchCoin (RSC)
+
+ResearchCoin (RSC) is an ERC-20 token earned by contributing to ResearchHub.
+
+Uses:
+
+- Create bounties for peer reviews and specific tasks.
+- Tip users for valuable contributions.
+- Fund research proposals.
+
+Documentation: https://docs.researchhub.com
+
+### Hubs (Topics)
+
+Research is organized into "Hubs" by discipline. Each Hub acts as a live journal, with highly upvoted content rising to the top. Users can browse, follow, and contribute to any Hub. Within each Hub, content can be viewed by Popular or Latest.
+
+Browse: https://researchhub.com/browse
+
+## Frequently Asked Questions
+
+### Is content on ResearchHub open?
+
+Yes. User-contributed content (excluding peer reviews) is shared under Creative Commons Attribution 4.0 (CC BY 4.0). Anyone can reuse that content for any purpose with attribution — a hyperlink back to the source page is sufficient. Peer review content is governed by a separate license under the Terms of Service (Section 4A). CC BY is the gold standard for scholarly content, used by PLOS, eLife, and BMC.
+
+### What papers can be uploaded?
+
+Users can create a page for any paper to enable summary and discussion. Fulltext PDF uploads are limited to papers released under CC BY or CC0 licenses that are already publicly available elsewhere.
+
+### How does peer review work?
+
+Researchers browse open peer-review bounties, find papers in their field, and submit structured reviews following published guidelines. Reviews are evaluated by the requesting author or editorial team. Approved reviews earn $150 in RSC and are published openly alongside the paper.
+
+### How does research funding work?
+
+Researchers apply to open grants or create their own proposals. Proposals undergo open peer review. Funded projects receive RSC directly. US-based researchers can attach a university nonprofit for tax-deductible contributions.
+
+### Who created ResearchHub?
+
+A team based in San Francisco, CA. The idea was initially proposed by Brian Armstrong. The platform is maintained through a partnership between the ResearchHub Foundation and ResearchHub, Inc.
+
+## Key Links
+
+- Website: https://researchhub.com
+- About: https://researchhub.com/about
+- Journal: https://researchhub.com/journal
+- Funding: https://researchhub.com/fund
+- Peer Review: https://researchhub.com/earn
+- Browse Hubs: https://researchhub.com/browse
+- Documentation: https://docs.researchhub.com
+- Foundation: https://researchhub.foundation
+- X: https://x.com/researchhub
+- GitHub: https://github.com/ResearchHub
+- LinkedIn: https://www.linkedin.com/company/researchhubtechnologies
+- Email: hello@researchhub.com
+- Privacy Policy: https://researchhub.com/about/privacy
+- Terms of Service: https://researchhub.com/about/tos

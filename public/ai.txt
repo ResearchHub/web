@@ -1,0 +1,36 @@
+# ai.txt — ResearchHub AI Policy
+# https://researchhub.com/ai.txt
+# Last updated: 2026-05-04
+
+# This file states how AI systems may interact with public content
+# on researchhub.com. It is a policy declaration, not access control.
+
+User-Agent: *
+
+Allow: /
+
+Disallow: /api/
+Disallow: /auth/
+Disallow: /verify/
+Disallow: /reset/
+Disallow: /org/join/
+Disallow: /dashboard/
+Disallow: /notifications/
+Disallow: /activity/
+Disallow: /for-you/
+Disallow: /following/
+Disallow: /notebook/
+Disallow: /moderators/
+Disallow: /expert-finder/
+Disallow: /settings
+Disallow: /paper/submit
+Disallow: /_next/
+Disallow: /sw.js
+Disallow: /workbox-*
+
+# User-contributed content (excluding peer reviews) is licensed under CC BY 4.0.
+# Peer review content is governed separately (see Terms of Service, Section 4A).
+# Attribution via hyperlink to the source page is sufficient.
+# https://creativecommons.org/licenses/by/4.0/
+
+# AI partnership and training inquiries: hello@researchhub.com

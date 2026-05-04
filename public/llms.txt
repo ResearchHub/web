@@ -1,0 +1,60 @@
+# ResearchHub
+
+> ResearchHub is an open science platform where researchers publish, peer review, fund, and discuss scientific research. Contributors earn ResearchCoin (RSC) for their work.
+
+ResearchHub's mission is to accelerate the pace of scientific research. It operates as "a GitHub for science" — a collaborative platform for publishing preprints, conducting open peer review, funding research, and discussing findings in topic-specific communities called Hubs. The platform compensates approved peer reviewers ($150 per review), publishes content open access, and completes peer review in as few as 14 days. User-contributed content (excluding peer reviews) is licensed under CC BY 4.0. Maintained by the ResearchHub Foundation and ResearchHub, Inc.
+
+## Core
+
+- [Home](https://researchhub.com/): Open science community and research platform
+- [About](https://researchhub.com/about): Mission, values, and vision
+- [Team](https://researchhub.com/team): The people behind ResearchHub
+- [Changelog](https://researchhub.com/changelog): Product updates
+
+## Research & Discovery
+
+- [Browse Hubs](https://researchhub.com/browse): Research topics organized into Hubs by discipline
+- [Search](https://researchhub.com/search): Search papers, grants, authors, and peer reviews
+- [Popular](https://researchhub.com/popular): Popular research ranked by community engagement
+
+Content URL patterns:
+
+- `/paper/{id}/{slug}` — research papers with conversation, reviews, bounties, and version history
+- `/topic/{slug}` — Hub pages by discipline (e.g., biology, machine learning, economics)
+- `/author/{id}` — researcher profiles with publications, reviews, and reputation
+- `/post/{id}/{slug}` — community discussions and research summaries
+- `/proposal/{id}/{slug}` — funding proposals with peer review and updates
+- `/grant/{id}/{slug}` — funding opportunities with scope and deadlines
+## Publishing & Peer Review
+
+- [ResearchHub Journal](https://researchhub.com/journal): Open access, peer-reviewed journal with review in as few as 14 days
+- [Earn for Peer Reviews](https://researchhub.com/earn): Earn $150 in RSC per peer review
+
+## Funding
+
+- [Funding Opportunities](https://researchhub.com/fund): Browse open grants and apply for research funding
+- [Proposals](https://researchhub.com/fund/proposals): Community research proposals seeking funding
+- [Endowment](https://researchhub.com/endowment): Endowment yield and historical performance
+
+## Community
+
+- [Referral Program](https://researchhub.com/referral): Invite researchers and earn rewards
+
+## ResearchCoin (RSC)
+
+ResearchCoin (RSC) is an ERC-20 token earned by contributing to ResearchHub. RSC is used to create bounties, tip users, and fund proposals.
+
+## Connect
+
+- Website: https://researchhub.com
+- X: https://x.com/researchhub
+- GitHub: https://github.com/ResearchHub
+- LinkedIn: https://www.linkedin.com/company/researchhubtechnologies
+- Documentation: https://docs.researchhub.com
+- Foundation: https://researchhub.foundation
+- Email: hello@researchhub.com
+
+## Optional
+
+- [Privacy Policy](https://researchhub.com/about/privacy): How ResearchHub collects, uses, and protects user data
+- [Terms of Service](https://researchhub.com/about/tos): User agreement and terms of use
