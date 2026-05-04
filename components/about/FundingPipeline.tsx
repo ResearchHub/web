@@ -8,7 +8,7 @@ import { MonoLabel } from './MonoLabel';
 import { pipelineSteps, type PipelineStep } from './data/pipelineSteps';
 
 const StepProductImage = ({ step }: { step: PipelineStep }) => (
-  <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm h-[170px] md:h-[220px]">
+  <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm h-[220px] md:h-[220px]">
     <Image
       src={step.imageSrc}
       alt={step.imageAlt}
@@ -123,7 +123,7 @@ export const FundingPipeline = () => {
                   {step.title}
                 </h4>
               </div>
-              <p className="mt-2 text-[14px] sm:text-[15px] text-gray-500 leading-[1.55]">
+              <p className="hidden sm:block mt-2 text-[14px] sm:text-[15px] text-gray-500 leading-[1.55]">
                 {step.description}
               </p>
               <div className="mt-3">
