@@ -19,7 +19,7 @@ const useCases: RscUseCase[] = [
     number: '01',
     tag: 'Endowments',
     title: 'Earn high-yield Funding Credits',
-    body: 'With our Endowments feature, principal deposits automatically earn high-yield Funding Credits — so every dollar you commit funds more science over time, instead of sitting idle in a grant account.',
+    body: 'Endowments let committed funds keep earning, so more of every dollar goes toward science over time.',
     cta: 'How Endowments work',
     href: '#',
   },
@@ -27,7 +27,7 @@ const useCases: RscUseCase[] = [
     number: '02',
     tag: 'Bounties',
     title: 'Reward the work that moves research forward',
-    body: 'Researchers post RSC bounties for peer review, replication, data, and discussion. Rewards scale with community-judged value (upvotes), and turnaround averages under 10 days.',
+    body: 'Researchers use RSC bounties to reward peer review, replication, data, and useful discussion.',
     cta: 'Browse open bounties',
     href: '/bounties',
   },
@@ -35,7 +35,7 @@ const useCases: RscUseCase[] = [
     number: '03',
     tag: 'Self-funding',
     title: 'Fund your own research with what you earn',
-    body: 'RSC you earn from peer reviewing, sharing data, or moderating can be pooled straight into your own proposals and bounties — turning community contributions into a compounding research budget for your lab.',
+    body: 'Earn RSC from community contributions, then put it back into your own proposals and bounties.',
     cta: 'Start a proposal',
     href: '/grants',
   },
@@ -45,12 +45,25 @@ export const ResearchCoin = () => {
   return (
     <section id="rsc" className="py-12 sm:py-20 md:py-28 lg:py-32 bg-primary-50">
       <AboutContainer>
-        <div className="grid gap-8 md:grid-cols-12 md:gap-12 items-start mb-10 sm:mb-12 md:mb-20">
-          <div className="md:col-span-5 md:sticky md:top-24">
+        <div className="grid gap-6 md:grid-cols-12 md:gap-10 items-start mb-8 sm:mb-12 md:mb-16">
+          <div className="md:col-span-5">
             <Eyebrow className="mb-4 sm:mb-5">§ 04 · RSC</Eyebrow>
-            <div className="flex items-center gap-3 sm:gap-4 mb-5 sm:mb-6">
+            <h2
+              className="font-medium tracking-[-0.022em] leading-[1.05] md:leading-[1.02] text-gray-900"
+              style={{ fontSize: 'clamp(28px, 6vw, 56px)', textWrap: 'balance' }}
+            >
+              The incentive layer <span className="italic font-light">for open science.</span>
+            </h2>
+          </div>
+          <div className="md:col-span-7 md:pt-6">
+            <p className="text-base sm:text-[17px] md:text-[18px] leading-[1.6] text-gray-500">
+              <span className="text-gray-900 font-medium">ResearchCoin (RSC)</span> is an ERC20
+              token that rewards the work that actually advances science — funding it, reviewing it,
+              replicating it, discussing it.
+            </p>
+            <div className="mt-5 sm:mt-6 inline-flex w-full sm:w-auto items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
               <div
-                className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary-500 flex items-center justify-center flex-shrink-0"
+                className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-primary-500 flex items-center justify-center flex-shrink-0"
                 aria-hidden
               >
                 <Icon name="rscFlask" size={22} color="#ffffff" />
@@ -64,25 +77,6 @@ export const ResearchCoin = () => {
                 </div>
               </div>
             </div>
-            <h2
-              className="font-medium tracking-[-0.022em] leading-[1.05] md:leading-[1.02] text-gray-900"
-              style={{ fontSize: 'clamp(26px, 5.5vw, 44px)', textWrap: 'balance' }}
-            >
-              The incentive layer <br className="hidden md:block" />
-              <span className="italic font-light">for open science.</span>
-            </h2>
-          </div>
-          <div className="md:col-span-7 text-base sm:text-[17px] leading-[1.65] text-gray-500 space-y-4 sm:space-y-5">
-            <p>
-              <span className="text-gray-900 font-medium">ResearchCoin (RSC)</span> is an ERC20
-              token that rewards the work that actually advances science — funding it, reviewing it,
-              replicating it, discussing it.
-            </p>
-            <p>
-              Instead of static grant dollars and unpaid peer review, RSC turns every step of the
-              research lifecycle into something the community can fund, reward, and track
-              transparently on-chain.
-            </p>
           </div>
         </div>
 

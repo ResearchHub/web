@@ -47,4 +47,4 @@ export const SOCIAL_LABELS: Record<SocialKey, string> = {
   rh: 'ResearchHub',
 };
 
-export const SOCIAL_ORDER: SocialKey[] = ['x', 'github', 'linkedin', 'rh'];
+export const SOCIAL_ORDER: SocialKey[] = ['rh', 'linkedin', 'x', 'github'];
