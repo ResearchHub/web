@@ -457,7 +457,7 @@ export function WithdrawModal({
             )}
 
             {!isMfaStatusLoading && !mfaStatusError && !isMfaEnabled && (
-              <div className="flex flex-col items-center text-center py-6 space-y-4">
+              <div className="flex flex-col items-center text-center py-2 space-y-4">
                 <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
                   <ShieldCheck className="h-6 w-6 text-amber-600" />
                 </div>
