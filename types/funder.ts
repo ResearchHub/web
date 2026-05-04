@@ -14,17 +14,16 @@ export interface FunderOverview {
   matchedFunds: CurrencyAmount;
   distributedFunds: CurrencyAmount;
   supportedResearchers: SupportedResearcher[];
-  // MOCK: replace with API field `total_given` — display headline ($1.24M)
+  // Display headline ($1.24M) — alias of distributedFunds for the hero copy.
   totalGiven: CurrencyAmount;
-  // MOCK: replace with API field `community_match`
+  // Alias of matchedFunds for the hero copy.
   communityMatch: CurrencyAmount;
-  // MOCK: replace with API field `total_deployed` (your + match combined)
+  // Combined: your funding + community match.
   totalDeployed: CurrencyAmount;
-  // MOCK: replace with API field `match_ratio` — string like "1 : 0.49"
+  // Formatted ratio string, e.g. "1 : 0.49".
   matchRatio: string;
-  // MOCK: replace with API field `supported_scientists_count`
   supportedScientistsCount: number;
-  // MOCK: replace with API field `supported_institution_count`
+  // TODO: replace with API field `supported_institution_count` once backend ships it.
   supportedInstitutionCount: number;
 }
 
@@ -51,20 +50,15 @@ export function transformFunderOverview(raw: any): FunderOverview {
     usd: raw.matched_funds?.usd ?? 0,
   };
 
-  // MOCK: derive new hero fields from existing API fields where possible,
-  // fall back to mocked values that match the design spec ($1.24M / $612K / etc.).
-  const totalGiven: CurrencyAmount = raw.total_given ?? {
-    rsc: distributedFunds.rsc || 1_240_000,
-    usd: distributedFunds.usd || 1_240_000,
-  };
-  const communityMatch: CurrencyAmount = raw.community_match ?? {
-    rsc: matchedFunds.rsc || 612_000,
-    usd: matchedFunds.usd || 612_000,
-  };
-  const totalDeployed: CurrencyAmount = raw.total_deployed ?? {
+  const totalGiven = distributedFunds;
+  const communityMatch = matchedFunds;
+  const totalDeployed: CurrencyAmount = {
     rsc: totalGiven.rsc + communityMatch.rsc,
     usd: totalGiven.usd + communityMatch.usd,
   };
+
+  const matchRatio =
+    totalGiven.usd > 0 ? `1 : ${(communityMatch.usd / totalGiven.usd).toFixed(2)}` : '—';
 
   return {
     matchedFunds,
@@ -73,8 +67,9 @@ export function transformFunderOverview(raw: any): FunderOverview {
     totalGiven,
     communityMatch,
     totalDeployed,
-    matchRatio: raw.match_ratio ?? '1 : 0.49',
-    supportedScientistsCount: raw.supported_scientists_count ?? (researchers.length || 47),
-    supportedInstitutionCount: raw.supported_institution_count ?? 12,
+    matchRatio,
+    supportedScientistsCount: researchers.length,
+    // TODO: replace with API field `supported_institution_count` once backend ships it.
+    supportedInstitutionCount: raw.supported_institution_count ?? 0,
   };
 }

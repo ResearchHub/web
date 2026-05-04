@@ -7,37 +7,9 @@ import { Button } from '@/components/ui/Button';
 import { FunderHero } from '@/components/Funding/dashboard/FunderHero';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { FunderService } from '@/services/funder.service';
-import { useImpactData } from '@/components/Funding/dashboard/hooks/useImpactData';
 import { useFeed } from '@/hooks/useFeed';
 import { useUser } from '@/contexts/UserContext';
 import { FunderOverview } from '@/types/funder';
-import { FundingPoint } from '@/types/fundingImpactData';
-
-// MOCK: generate a synthetic 12-month curve when the API returns empty
-// funding_over_time. Replace with real data once backend ships history.
-function hasMeaningfulFundingData(points: FundingPoint[] | undefined): boolean {
-  if (!points?.length) return false;
-  return points.some((p) => p.userContributions > 0 || p.matchedContributions > 0);
-}
-
-function buildMockFundingOverTime(overview: FunderOverview): FundingPoint[] {
-  const months = 12;
-  const userTotal = overview.totalGiven.usd || 1_240_000;
-  const matchTotal = overview.communityMatch.usd || 612_000;
-  const points: FundingPoint[] = [];
-  const now = new Date();
-  for (let i = months - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const t = (months - 1 - i) / (months - 1);
-    const eased = Math.pow(t, 1.4);
-    points.push({
-      month: d.toISOString().slice(0, 7),
-      userContributions: Math.round(userTotal * eased),
-      matchedContributions: Math.round(matchTotal * eased),
-    });
-  }
-  return points;
-}
 
 export const FunderDashboardPage: FC = () => {
   const router = useRouter();
@@ -46,8 +18,6 @@ export const FunderDashboardPage: FC = () => {
 
   const [overview, setOverview] = useState<FunderOverview | null>(null);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
-
-  const { data: impactData } = useImpactData(userId);
 
   const grantFeedOptions = useMemo(
     () => ({
@@ -115,14 +85,7 @@ export const FunderDashboardPage: FC = () => {
       {isLoadingOverview ? (
         <div className="h-[320px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
       ) : overview ? (
-        <FunderHero
-          overview={overview}
-          fundingOverTime={
-            hasMeaningfulFundingData(impactData?.fundingOverTime)
-              ? impactData!.fundingOverTime
-              : buildMockFundingOverTime(overview)
-          }
-        />
+        <FunderHero overview={overview} />
       ) : null}
 
       {/* Opportunities */}
