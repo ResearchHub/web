@@ -49,12 +49,17 @@ export default {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        'logo-marquee': {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'pulse-dot': 'pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         radiate: 'radiate-circle 2.5s cubic-bezier(0, 0, 0.2, 1) infinite',
         fadeIn: 'fadeIn 0.3s ease-out',
+        'logo-marquee': 'logo-marquee 32s linear infinite',
       },
     },
   },

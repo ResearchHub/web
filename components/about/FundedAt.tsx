@@ -15,24 +15,40 @@ export const FundedAt = () => {
           </MonoLabel>
         </div>
 
-        <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-8 sm:gap-x-8 sm:gap-y-10">
-          {fundedInstitutions.map((institution) => (
-            <div
-              key={institution.name}
-              className="relative h-12 flex items-center justify-center"
-              style={{ flex: '0 1 clamp(118px, 42vw, 170px)' }}
-              title={institution.name}
-            >
-              <Image
-                src={institution.src}
-                alt={institution.name}
-                width={160}
-                height={48}
-                className="w-auto h-auto object-contain"
-                style={{ maxWidth: '100%', maxHeight: 42 }}
-              />
-            </div>
-          ))}
+        <div
+          className="mt-8 sm:mt-10 -mx-4 sm:-mx-6 md:-mx-10 overflow-hidden"
+          style={{
+            maskImage:
+              'linear-gradient(90deg, transparent 0, black 10%, black 90%, transparent 100%)',
+            WebkitMaskImage:
+              'linear-gradient(90deg, transparent 0, black 10%, black 90%, transparent 100%)',
+          }}
+        >
+          <div className="flex w-max items-center gap-10 sm:gap-12 animate-logo-marquee motion-reduce:animate-none">
+            {[0, 1].map((setIndex) => (
+              <div
+                key={setIndex}
+                className="flex items-center gap-10 sm:gap-12"
+                aria-hidden={setIndex === 1}
+              >
+                {fundedInstitutions.map((institution) => (
+                  <div
+                    key={`${setIndex}-${institution.name}`}
+                    className="relative h-14 w-[160px] sm:w-[180px] flex-none flex items-center justify-center"
+                    title={institution.name}
+                  >
+                    <Image
+                      src={institution.src}
+                      alt={institution.name}
+                      width={180}
+                      height={54}
+                      className="max-h-11 sm:max-h-12 max-w-full w-auto h-auto object-contain"
+                    />
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </AboutContainer>
     </section>
