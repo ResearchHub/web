@@ -18,7 +18,7 @@ const links: CtaLink[] = [
 
 export const CTASection = () => {
   return (
-    <section className="py-12 sm:py-20 md:py-28 lg:py-32 bg-white">
+    <section className="py-12 sm:py-16 md:py-24 lg:py-28 bg-white border-t border-gray-100">
       <AboutContainer>
         <div className="rounded-2xl sm:rounded-3xl bg-primary-500 text-white p-5 sm:p-10 md:p-16 lg:p-20 relative overflow-hidden">
           <div className="relative grid gap-6 md:grid-cols-12 md:gap-10 md:items-end">

@@ -9,7 +9,7 @@ const isSocialKey = (key: string): key is SocialKey =>
 
 export const TeamSection = () => {
   return (
-    <section className="py-12 sm:py-20 md:py-28 lg:py-32 bg-gray-50">
+    <section className="py-12 sm:py-16 md:py-24 lg:py-28 bg-white border-t border-gray-100">
       <AboutContainer>
         <Eyebrow className="mb-4 sm:mb-5">§ 06 · Team</Eyebrow>
         <h2
@@ -22,7 +22,7 @@ export const TeamSection = () => {
           {team.map((member) => (
             <div
               key={member.name}
-              className="rounded-xl sm:rounded-2xl border border-gray-200 bg-white overflow-hidden"
+              className="rounded-xl sm:rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm"
             >
               <div className="aspect-[5/4] bg-gray-100 overflow-hidden flex items-center justify-center">
                 <Image

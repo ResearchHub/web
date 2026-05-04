@@ -11,7 +11,7 @@ const stats = [
 
 export const Endaoment = () => {
   return (
-    <section className="py-12 sm:py-20 md:py-28 lg:py-32 bg-white">
+    <section className="py-12 sm:py-16 md:py-24 lg:py-28 bg-white border-t border-gray-100">
       <AboutContainer>
         <div className="grid gap-8 md:grid-cols-12 md:gap-10 items-start">
           <div className="md:col-span-6">
@@ -46,7 +46,7 @@ export const Endaoment = () => {
           </div>
 
           <div className="md:col-span-6">
-            <div className="rounded-xl sm:rounded-2xl border border-gray-200 bg-white p-5 sm:p-8 md:p-10 flex flex-col items-center text-center">
+            <div className="rounded-xl sm:rounded-2xl border border-gray-200 bg-white p-5 sm:p-8 md:p-10 flex flex-col items-center text-center shadow-sm">
               <MonoLabel className="text-[10px] uppercase tracking-[0.18em] text-gray-500 mb-5 sm:mb-6">
                 Powered by
               </MonoLabel>

@@ -5,7 +5,7 @@ import { fundedInstitutions } from './data/fundedInstitutions';
 
 export const FundedAt = () => {
   return (
-    <section className="relative py-10 sm:py-14 md:py-16 lg:py-20 bg-gray-50">
+    <section className="relative py-10 sm:py-14 md:py-16 lg:py-20 bg-white border-y border-gray-100">
       <AboutContainer>
         <div className="flex flex-col items-center text-center">
           <MonoLabel className="flex items-center gap-3 text-[11px] uppercase tracking-[0.18em] text-gray-500">

@@ -29,7 +29,7 @@ const rows: ComparisonRow[] = [
 
 export const Solution = () => {
   return (
-    <section className="relative py-12 sm:py-20 md:py-28 lg:py-32 bg-gray-50">
+    <section className="relative py-12 sm:py-16 md:py-24 lg:py-28 bg-white border-t border-gray-100">
       <AboutContainer>
         <SectionHeader
           eyebrow="§ 02 · The solution"
@@ -52,7 +52,7 @@ export const Solution = () => {
               {rows.map((row) => (
                 <div
                   key={row.old}
-                  className="rounded-2xl border border-primary-100 bg-white p-4 shadow-sm"
+                  className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
                 >
                   <div className="flex items-start gap-3 text-gray-900">
                     <Check className="w-4 h-4 mt-0.5 flex-shrink-0 text-primary-600" aria-hidden />

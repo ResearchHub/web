@@ -43,7 +43,10 @@ const useCases: RscUseCase[] = [
 
 export const ResearchCoin = () => {
   return (
-    <section id="rsc" className="py-12 sm:py-20 md:py-28 lg:py-32 bg-primary-50">
+    <section
+      id="rsc"
+      className="py-12 sm:py-16 md:py-24 lg:py-28 bg-white border-t border-gray-100"
+    >
       <AboutContainer>
         <div className="grid gap-6 md:grid-cols-12 md:gap-10 items-start mb-8 sm:mb-12 md:mb-16">
           <div className="md:col-span-5">
@@ -84,11 +87,11 @@ export const ResearchCoin = () => {
           {useCases.map((useCase) => (
             <div
               key={useCase.number}
-              className="relative rounded-xl sm:rounded-2xl border border-gray-200 bg-white p-4 sm:p-7 md:p-8 flex flex-col"
+              className="relative rounded-xl sm:rounded-2xl border border-gray-200 bg-white p-4 sm:p-7 md:p-8 flex flex-col shadow-sm"
             >
               <div className="flex items-center justify-between mb-4 sm:mb-6">
                 <MonoLabel className="text-[11px] text-gray-500">{useCase.number}</MonoLabel>
-                <MonoLabel className="text-[10px] uppercase tracking-[0.16em] px-2 py-1 rounded-full bg-primary-50 text-gray-500 border border-gray-200">
+                <MonoLabel className="text-[10px] uppercase tracking-[0.16em] px-2 py-1 rounded-full bg-white text-gray-500 border border-gray-200">
                   {useCase.tag}
                 </MonoLabel>
               </div>
@@ -98,7 +101,7 @@ export const ResearchCoin = () => {
               >
                 {useCase.title}
               </h3>
-              <p className="text-[14px] sm:text-[15px] leading-[1.55] text-gray-500 mb-4 sm:mb-6 flex-1">
+              <p className="hidden sm:block text-[14px] sm:text-[15px] leading-[1.55] text-gray-500 mb-4 sm:mb-6 flex-1">
                 {useCase.body}
               </p>
               <a
@@ -111,10 +114,10 @@ export const ResearchCoin = () => {
           ))}
         </div>
 
-        <div className="mt-8 sm:mt-10 md:mt-12 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 sm:gap-6 rounded-xl sm:rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 md:p-7">
+        <div className="mt-8 sm:mt-10 md:mt-12 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 sm:gap-6 rounded-xl sm:rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 md:p-7 shadow-sm">
           <div className="flex items-start sm:items-center gap-3 sm:gap-4">
             <div
-              className="w-11 h-11 sm:w-10 sm:h-10 rounded-full bg-primary-500/10 flex items-center justify-center flex-shrink-0"
+              className="w-11 h-11 sm:w-10 sm:h-10 rounded-full border border-gray-200 bg-white flex items-center justify-center flex-shrink-0"
               aria-hidden
             >
               <Icon name="rscFlask" size={18} color={colors.primary[500]} />
