@@ -11,7 +11,7 @@ const stats = [
 
 export const Endaoment = () => {
   return (
-    <section className="py-16 sm:py-20 md:py-28 lg:py-32 bg-white">
+    <section className="py-12 sm:py-20 md:py-28 lg:py-32 bg-white">
       <AboutContainer>
         <div className="grid gap-8 md:grid-cols-12 md:gap-10 items-start">
           <div className="md:col-span-6">
@@ -46,7 +46,7 @@ export const Endaoment = () => {
           </div>
 
           <div className="md:col-span-6">
-            <div className="rounded-xl sm:rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 md:p-10 flex flex-col items-center text-center">
+            <div className="rounded-xl sm:rounded-2xl border border-gray-200 bg-white p-5 sm:p-8 md:p-10 flex flex-col items-center text-center">
               <MonoLabel className="text-[10px] uppercase tracking-[0.18em] text-gray-500 mb-5 sm:mb-6">
                 Powered by
               </MonoLabel>
@@ -55,11 +55,11 @@ export const Endaoment = () => {
                 alt="Endaoment"
                 width={1080}
                 height={250}
-                className="w-full max-w-[260px] sm:max-w-[340px] h-auto"
+                className="w-full max-w-[220px] sm:max-w-[340px] h-auto"
                 priority={false}
               />
 
-              <div className="mt-8 sm:mt-10 w-full grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 pt-6 sm:pt-8 border-t border-gray-200">
+              <div className="mt-8 sm:mt-10 w-full grid grid-cols-2 gap-5 sm:gap-6 pt-6 sm:pt-8 border-t border-gray-200">
                 {stats.map((stat) => (
                   <div key={stat.label}>
                     <div

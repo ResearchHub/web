@@ -29,7 +29,7 @@ const rows: ComparisonRow[] = [
 
 export const Solution = () => {
   return (
-    <section className="relative py-16 sm:py-20 md:py-28 lg:py-32 bg-gray-50">
+    <section className="relative py-12 sm:py-20 md:py-28 lg:py-32 bg-gray-50">
       <AboutContainer>
         <SectionHeader
           eyebrow="§ 02 · The solution"
@@ -56,7 +56,7 @@ export const Solution = () => {
           {rows.map((row, index) => (
             <div
               key={row.old}
-              className={`px-4 sm:px-6 md:px-10 py-5 sm:py-6 md:py-7 grid gap-4 md:grid-cols-2 md:gap-0 ${
+              className={`px-4 sm:px-6 md:px-10 py-4 sm:py-6 md:py-7 grid gap-3 md:grid-cols-2 md:gap-0 ${
                 index < rows.length - 1 ? 'border-b border-gray-200' : ''
               }`}
             >

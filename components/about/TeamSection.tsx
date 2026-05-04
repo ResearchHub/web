@@ -9,7 +9,7 @@ const isSocialKey = (key: string): key is SocialKey =>
 
 export const TeamSection = () => {
   return (
-    <section className="py-16 sm:py-20 md:py-28 lg:py-32 bg-gray-50">
+    <section className="py-12 sm:py-20 md:py-28 lg:py-32 bg-gray-50">
       <AboutContainer>
         <Eyebrow className="mb-4 sm:mb-5">§ 06 · Team</Eyebrow>
         <h2
@@ -19,7 +19,7 @@ export const TeamSection = () => {
           A small team of <span className="italic font-light">passionate founders</span> working in
           San Francisco, CA.
         </h2>
-        <div className="mt-10 sm:mt-12 md:mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="mt-10 sm:mt-12 md:mt-14 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {team.map((member) => (
             <div
               key={member.name}
@@ -34,12 +34,12 @@ export const TeamSection = () => {
                   className="w-full h-full object-cover object-top"
                 />
               </div>
-              <div className="p-4 sm:p-5 border-t border-gray-200">
-                <div className="text-[15px] sm:text-[16px] font-medium text-gray-900">
+              <div className="p-3 sm:p-5 border-t border-gray-200">
+                <div className="text-[14px] sm:text-[16px] font-medium text-gray-900">
                   {member.name}
                 </div>
-                <div className="text-[13px] text-gray-500 mt-0.5">{member.role}</div>
-                <div className="mt-4 pt-4 border-t border-gray-200 flex items-center gap-3">
+                <div className="text-[12px] sm:text-[13px] text-gray-500 mt-0.5">{member.role}</div>
+                <div className="mt-3 pt-3 sm:mt-4 sm:pt-4 border-t border-gray-200 flex items-center gap-2 sm:gap-3">
                   {SOCIAL_ORDER.filter((key) => member.links[key]).map((key) => {
                     if (!isSocialKey(key)) return null;
                     const href = member.links[key]!;
@@ -51,7 +51,7 @@ export const TeamSection = () => {
                         rel="noopener noreferrer"
                         aria-label={`${member.name} on ${SOCIAL_LABELS[key]}`}
                         title={SOCIAL_LABELS[key]}
-                        className="w-10 h-10 sm:w-9 sm:h-9 rounded-full border border-gray-200 bg-white flex items-center justify-center transition-colors hover:bg-gray-50 hover:border-gray-300"
+                        className="w-9 h-9 sm:w-9 sm:h-9 rounded-full border border-gray-200 bg-white flex items-center justify-center transition-colors hover:bg-gray-50 hover:border-gray-300"
                       >
                         <TeamSocialIcon kind={key} className="w-4 h-4" />
                       </a>

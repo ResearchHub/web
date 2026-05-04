@@ -4,7 +4,7 @@ import { FundingPipeline } from './FundingPipeline';
 
 export const FundingMarketplace = () => {
   return (
-    <section id="funding" className="py-16 sm:py-20 md:py-28 lg:py-32 bg-white">
+    <section id="funding" className="py-12 sm:py-20 md:py-28 lg:py-32 bg-white">
       <AboutContainer>
         <div className="grid gap-6 md:grid-cols-12 md:gap-10 items-start">
           <div className="md:col-span-5">

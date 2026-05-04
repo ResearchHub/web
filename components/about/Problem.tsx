@@ -37,9 +37,9 @@ const issues: Issue[] = [
 
 export const Problem = () => {
   return (
-    <section id="problem" className="relative py-16 sm:py-20 md:py-28 lg:py-32 bg-white">
+    <section id="problem" className="relative py-12 sm:py-20 md:py-28 lg:py-32 bg-white">
       <AboutContainer>
-        <div className="grid gap-8 md:grid-cols-12 md:gap-10">
+        <div className="grid gap-6 md:grid-cols-12 md:gap-10">
           <div className="md:col-span-5">
             <Eyebrow className="mb-4 sm:mb-5">§ 01 · The problem</Eyebrow>
             <h2
@@ -57,7 +57,7 @@ export const Problem = () => {
             {issues.map((issue) => (
               <div
                 key={issue.key}
-                className="bg-white p-5 sm:p-6 md:p-7 grid grid-cols-[auto_1fr] gap-4 sm:gap-5 md:gap-7 items-start"
+                className="bg-white p-4 sm:p-6 md:p-7 grid grid-cols-[auto_1fr] gap-4 sm:gap-5 md:gap-7 items-start"
               >
                 <MonoLabel className="text-[11px] uppercase tracking-[0.16em] text-gray-500 pt-1">
                   {issue.key}
@@ -66,7 +66,7 @@ export const Problem = () => {
                   <h3 className="text-[17px] sm:text-[19px] md:text-[21px] font-medium text-gray-900 tracking-[-0.01em]">
                     {issue.title}
                   </h3>
-                  <p className="mt-2 text-[14px] sm:text-[15px] leading-[1.6] text-gray-500">
+                  <p className="hidden sm:block mt-2 text-[14px] sm:text-[15px] leading-[1.6] text-gray-500">
                     {issue.description}
                   </p>
                 </div>

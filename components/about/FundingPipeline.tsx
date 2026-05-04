@@ -13,7 +13,7 @@ export const FundingPipeline = () => {
   const progress = total > 1 ? active / (total - 1) : 0;
 
   return (
-    <div className="mt-10 sm:mt-14 md:mt-20">
+    <div className="mt-8 sm:mt-12 md:mt-20">
       <div className="flex items-center justify-between mb-4 sm:mb-5">
         <MonoLabel className="text-[10px] sm:text-[11px] uppercase tracking-[0.16em] text-gray-500">
           Funding pipeline
@@ -91,21 +91,21 @@ export const FundingPipeline = () => {
       {/* Mobile: vertical stepper with thin connector line */}
       <div className="md:hidden relative">
         <div aria-hidden className="absolute left-5 top-5 bottom-5 w-px bg-gray-200" />
-        <ol className="space-y-3 sm:space-y-4">
+        <ol className="space-y-2.5 sm:space-y-4">
           {pipelineSteps.map((step) => (
             <li
               key={step.number}
-              className="relative border border-gray-200 rounded-xl p-4 sm:p-5 bg-white"
+              className="relative border border-gray-200 rounded-xl p-4 bg-white"
             >
               <div className="flex items-center gap-3 sm:gap-4">
-                <span className="relative z-10 w-10 h-10 rounded-full bg-primary-500 text-white flex items-center justify-center text-[13px] flex-shrink-0">
+                <span className="relative z-10 w-9 h-9 rounded-full bg-primary-500 text-white flex items-center justify-center text-[13px] flex-shrink-0">
                   <MonoLabel>{step.number}</MonoLabel>
                 </span>
                 <h4 className="font-medium text-[16px] sm:text-[17px] text-gray-900 leading-snug">
                   {step.title}
                 </h4>
               </div>
-              <p className="mt-3 text-[14px] sm:text-[15px] text-gray-500 leading-[1.55]">
+              <p className="mt-2 text-[14px] sm:text-[15px] text-gray-500 leading-[1.55]">
                 {step.description}
               </p>
             </li>

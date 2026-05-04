@@ -32,7 +32,7 @@ export const Hero = () => {
         }}
       />
 
-      <AboutContainer className="relative pt-12 sm:pt-16 md:pt-24 lg:pt-28 pb-12 sm:pb-16 md:pb-20 lg:pb-24">
+      <AboutContainer className="relative pt-10 sm:pt-16 md:pt-24 lg:pt-28 pb-10 sm:pb-16 md:pb-20 lg:pb-24">
         <div className="flex items-center gap-2 mb-6 sm:mb-8 md:mb-10">
           <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/30 bg-white/10 backdrop-blur">
             <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse-dot" />
@@ -53,13 +53,13 @@ export const Hero = () => {
           the <span className="italic font-light">future</span> of science.
         </h1>
 
-        <div className="mt-8 md:mt-10 grid md:grid-cols-12 gap-6 md:gap-8 items-end">
+        <div className="mt-6 md:mt-10 grid md:grid-cols-12 gap-6 md:gap-8 items-end">
           <p className="md:col-span-7 text-base sm:text-[17px] md:text-[20px] leading-[1.55] text-white/95 max-w-2xl">
             ResearchHub is an online platform designed to enhance the speed and transparency of
             science — built on a simple premise: that science provides the most benefit when
             it&apos;s done quickly, openly, and with a high level of rigor and reproducibility.
           </p>
-          <div className="md:col-span-5 md:pl-8 pt-6 md:pt-0 border-t border-white/25 md:border-t-0 md:border-l">
+          <div className="md:col-span-5 md:pl-8 pt-5 md:pt-0 border-t border-white/25 md:border-t-0 md:border-l">
             <Eyebrow tone="onDark" className="mb-3">
               Jump to
             </Eyebrow>
@@ -68,7 +68,7 @@ export const Hero = () => {
                 <li key={href}>
                   <a
                     href={href}
-                    className="group flex items-center justify-between py-1 border-b border-white/25 text-white hover:text-white transition-colors"
+                    className="group flex items-center justify-between py-2.5 border-b border-white/25 text-white hover:text-white transition-colors"
                   >
                     <span>{label}</span>
                     <ArrowRight
@@ -82,7 +82,7 @@ export const Hero = () => {
           </div>
         </div>
 
-        <div className="mt-12 sm:mt-14 md:mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-10 pt-8 sm:pt-10 border-t border-white/25">
+        <div className="mt-10 sm:mt-12 md:mt-20 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-6 sm:gap-6 md:gap-10 pt-8 sm:pt-10 border-t border-white/25">
           {stats.map((stat) => (
             <div key={stat.label}>
               <div

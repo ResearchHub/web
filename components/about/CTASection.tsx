@@ -18,10 +18,10 @@ const links: CtaLink[] = [
 
 export const CTASection = () => {
   return (
-    <section className="py-16 sm:py-20 md:py-28 lg:py-32 bg-white">
+    <section className="py-12 sm:py-20 md:py-28 lg:py-32 bg-white">
       <AboutContainer>
-        <div className="rounded-2xl sm:rounded-3xl bg-primary-500 text-white p-6 sm:p-10 md:p-16 lg:p-20 relative overflow-hidden">
-          <div className="relative grid gap-8 md:grid-cols-12 md:gap-10 md:items-end">
+        <div className="rounded-2xl sm:rounded-3xl bg-primary-500 text-white p-5 sm:p-10 md:p-16 lg:p-20 relative overflow-hidden">
+          <div className="relative grid gap-6 md:grid-cols-12 md:gap-10 md:items-end">
             <div className="md:col-span-8">
               <Eyebrow tone="onDark" className="mb-4 sm:mb-5">
                 Get involved
@@ -44,7 +44,7 @@ export const CTASection = () => {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    'group flex items-center justify-between gap-3 w-full px-4 sm:px-5 py-3.5 sm:py-4 rounded-xl font-medium transition-colors',
+                    'group flex items-center justify-between gap-3 w-full px-4 sm:px-5 py-4 rounded-xl font-medium transition-colors',
                     link.primary
                       ? 'bg-white text-primary-700 hover:bg-primary-50'
                       : 'border border-white/40 bg-white/10 text-white hover:bg-white/20'
