@@ -206,7 +206,7 @@ export function YieldChart({
         </div>
       )}
 
-      <div className={compact ? '' : 'flex-1'} style={{ minHeight: chartHeight }}>
+      <div className={compact ? '' : 'flex-1'} style={{ height: chartHeight }}>
         {isLoading && (
           <div className="h-full flex items-center justify-center">
             <div className="animate-pulse h-full w-full bg-gray-50 rounded" />
