@@ -18,8 +18,14 @@ export default function EndowmentPage() {
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 px-6 pt-4 pb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">About</h2>
-        <p className="text-sm text-gray-900">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">How it Works</h2>
+        <video
+          className="w-full rounded-lg"
+          controls
+          preload="metadata"
+          src="https://assets.prod.researchhub.com/videos/researchHub-endowments.MP4"
+        />
+        <p className="text-sm text-gray-900 mt-4">
           <span className="font-semibold text-gray-900">
             ResearchHub Endowment turns your RSC holdings into a continuous stream of research
             funding.
@@ -38,15 +44,6 @@ export default function EndowmentPage() {
         >
           Learn how the endowment works <span aria-hidden="true">↗</span>
         </a>
-      </div>
-
-      <div className="bg-white rounded-lg border border-gray-200 px-6 pt-4 pb-6 mt-6">
-        <video
-          className="w-full rounded-lg"
-          controls
-          preload="metadata"
-          src="https://assets.prod.researchhub.com/videos/researchHub-endowments.MP4"
-        />
       </div>
     </div>
   );
