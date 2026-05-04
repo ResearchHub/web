@@ -2,7 +2,7 @@
 
 import { FC, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FunderHero } from '@/components/Funding/dashboard/FunderHero';
 import { FeedContent } from '@/components/Feed/FeedContent';
@@ -65,20 +65,10 @@ export const FunderDashboardPage: FC = () => {
           </h1>
           <p className="text-sm text-gray-500 mt-1">Here&apos;s where your funding stands today.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outlined" size="sm" disabled>
-            All time
-            <ChevronDown size={14} />
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => router.push('/notebook?newGrant=true')}
-          >
-            <Plus size={14} />
-            New opportunity
-          </Button>
-        </div>
+        <Button variant="default" size="sm" onClick={() => router.push('/notebook?newGrant=true')}>
+          <Plus size={14} />
+          New opportunity
+        </Button>
       </div>
 
       {/* Hero */}

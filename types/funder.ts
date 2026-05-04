@@ -27,6 +27,23 @@ export interface FunderOverview {
   supportedInstitutionCount: number;
 }
 
+/**
+ * Format a "1 : X" match ratio. Snap to a whole number when within 0.1
+ * (so 1.95 → "1 : 2"); otherwise round to 2 significant digits (1.755 → "1 : 1.8").
+ * Uses RSC if available, else USD.
+ */
+function formatMatchRatio(given: CurrencyAmount, match: CurrencyAmount): string {
+  const denom = given.rsc > 0 ? given.rsc : given.usd;
+  const numer = given.rsc > 0 ? match.rsc : match.usd;
+  if (denom <= 0) return '—';
+  const ratio = numer / denom;
+  const nearestWhole = Math.round(ratio);
+  if (Math.abs(ratio - nearestWhole) <= 0.1) {
+    return `1 : ${nearestWhole}`;
+  }
+  return `1 : ${parseFloat(ratio.toPrecision(2))}`;
+}
+
 export function transformFunderOverview(raw: any): FunderOverview {
   const seen = new Set<number>();
   const researchers: SupportedResearcher[] = [];
@@ -57,8 +74,7 @@ export function transformFunderOverview(raw: any): FunderOverview {
     usd: totalGiven.usd + communityMatch.usd,
   };
 
-  const matchRatio =
-    totalGiven.usd > 0 ? `1 : ${(communityMatch.usd / totalGiven.usd).toFixed(2)}` : '—';
+  const matchRatio = formatMatchRatio(totalGiven, communityMatch);
 
   return {
     matchedFunds,
