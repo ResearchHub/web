@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/utils/styles';
 import { useIsTouchDevice } from '@/hooks/useIsTouchDevice';
+import { useOutsidePointerDown } from '@/hooks/useOutsidePointerDown';
 
 interface TooltipProps {
   children: React.ReactNode;
@@ -14,6 +15,8 @@ interface TooltipProps {
   hideDelay?: number;
   position?: 'top' | 'bottom' | 'left' | 'right';
   width?: string; // Width class for the tooltip (e.g., 'w-38', 'w-80', 'w-96')
+  /** When true, disable the tap-to-open behavior on touch devices (tooltip won't show at all there). */
+  disableTouchClick?: boolean;
 }
 
 const TooltipContent = ({
@@ -118,6 +121,7 @@ export function Tooltip({
   hideDelay = 200,
   position = 'bottom',
   width = 'w-38',
+  disableTouchClick = false,
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isHoveringTooltip, setIsHoveringTooltip] = useState(false);
@@ -184,18 +188,24 @@ export function Tooltip({
     };
   }, []);
 
-  if (isTouchDevice) {
-    return <>{children}</>;
-  }
+  useOutsidePointerDown(triggerRef, () => setIsVisible(false), isTouchDevice && isVisible);
+
+  const triggerHandlers = isTouchDevice
+    ? disableTouchClick
+      ? {}
+      : { onClick: () => (isVisible ? setIsVisible(false) : showTooltip()) }
+    : {
+        onMouseEnter: showTooltip,
+        onMouseLeave: hideTooltip,
+        onFocus: showTooltip,
+        onBlur: hideTooltip,
+      };
 
   return (
     <>
       <div
         ref={triggerRef}
-        onMouseEnter={showTooltip}
-        onMouseLeave={hideTooltip}
-        onFocus={showTooltip}
-        onBlur={hideTooltip}
+        {...triggerHandlers}
         className={cn('inline-flex h-full', wrapperClassName)}
       >
         {children}

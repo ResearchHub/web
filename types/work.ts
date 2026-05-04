@@ -9,6 +9,7 @@ import { ProxyService } from '../services/proxy.service';
 import { stripHtml } from '../utils/stringUtils';
 import { transformUser, TransformedUser } from './user';
 import { transformTip, Tip } from './tip';
+import { transformProposalReview, type ProposalReview } from './aiPeerReview';
 
 export interface PeerReview {
   id: number;
@@ -23,6 +24,9 @@ export interface PeerReview {
   };
   score: number;
   createdDate: string;
+  /** First-sentence excerpt of the review body, if provided by the API. */
+  contentPreview?: string;
+  isAssessed?: boolean;
 }
 
 export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration' | 'funding_request';
@@ -117,7 +121,26 @@ export interface Work {
   fundraise?: any;
   tips?: Tip[];
   peerReviews?: PeerReview[];
+  /**
+   * Preregistration posts only.
+   * Currently we take **only the first** `grants[0]` row’s review.
+   */
+  aiPeerReview?: ProposalReview | null;
   enrichments?: Enrichment[];
+  linkedGrant?: LinkedGrant | null;
+}
+
+export interface LinkedGrant {
+  id: number;
+  postId: number | null;
+  title: string | null;
+  shortTitle: string | null;
+  organization: string;
+  fundingAmount: number;
+  currency: string;
+  status: string;
+  imageUrl: string | null;
+  applicantCount: number;
 }
 
 export interface FundingRequest extends Work {
@@ -180,6 +203,25 @@ export const transformDocumentVersion = createTransformer<any, DocumentVersion>(
   isResearchHubJournal: !!raw.publication_status,
 }));
 
+/** Pulls the first sentence out of a review body, regardless of how it's shaped. */
+function extractFirstSentence(raw: any): string | undefined {
+  const candidates: Array<string | undefined> = [
+    raw?.content_preview,
+    raw?.comment_preview,
+    raw?.preview,
+    raw?.comment?.renderable_text,
+    raw?.renderable_text,
+  ];
+  const text = candidates.find((c) => typeof c === 'string' && c.trim().length > 0);
+  if (!text) return undefined;
+  const stripped = stripHtml(text).trim();
+  if (!stripped) return undefined;
+  const match = stripped.match(/^[^.!?]+[.!?]/);
+  const sentence = (match ? match[0] : stripped).trim();
+  // Cap at ~160 chars to stay a one-liner
+  return sentence.length > 160 ? `${sentence.slice(0, 157).trimEnd()}…` : sentence;
+}
+
 export function transformPeerReview(raw: any): PeerReview {
   const ap = raw.created_by?.author_profile;
   return {
@@ -195,6 +237,38 @@ export function transformPeerReview(raw: any): PeerReview {
     },
     score: raw.score ?? 0,
     createdDate: raw.created_date || '',
+    contentPreview: extractFirstSentence(raw),
+    isAssessed: raw.is_assessed ?? false,
+  };
+}
+
+/**
+ * Reads `raw.grants[0].proposal.ai_peer_review` for preregistration payloads.
+ * **Only the first grant in the list** is considered;
+ */
+function pickPreregistrationAiPeerReviewFromGrants(raw: any): ProposalReview | null {
+  if (!Array.isArray(raw.grants) || raw.grants.length === 0) return null;
+  const proposal = raw.grants[0]?.proposal ?? {};
+  const apr = proposal.ai_peer_review;
+
+  return apr ? transformProposalReview(apr) : null;
+}
+
+function transformAndPickLinkedGrant(raw: any): LinkedGrant | null {
+  if (!Array.isArray(raw.grants) || raw.grants.length === 0) return null;
+  const g = raw.grants[0];
+  if (!g || typeof g.id !== 'number') return null;
+  return {
+    id: g.id,
+    postId: g.post_id ?? null,
+    title: g.title ?? null,
+    shortTitle: g.short_title ?? null,
+    organization: g.organization ?? '',
+    fundingAmount: Number(g.amount) || 0,
+    currency: g.currency ?? 'USD',
+    status: g.status ?? '',
+    imageUrl: g.image_url ?? null,
+    applicantCount: g.applicant_count ?? 0,
   };
 }
 
@@ -298,22 +372,30 @@ export const transformWork = createTransformer<any, Work>((raw) => {
   };
 });
 
-export const transformPost = createTransformer<any, Work>((raw) => ({
-  ...transformWork(raw),
-  contentType:
-    raw.unified_document?.document_type === 'PREREGISTRATION' || raw.type === 'PREREGISTRATION'
+export const transformPost = createTransformer<any, Work>((raw) => {
+  const isPreregistration =
+    raw.unified_document?.document_type === 'PREREGISTRATION' || raw.type === 'PREREGISTRATION';
+
+  const base = transformWork(raw);
+
+  return {
+    ...base,
+    contentType: isPreregistration
       ? 'preregistration'
       : raw.unified_document?.document_type === 'GRANT' || raw.type === 'GRANT'
         ? 'funding_request'
         : 'post',
-  note: raw.note ? transformNoteWithContent(raw.note) : undefined,
-  publishedDate: raw.created_date, // Posts use created_date for both
-  previewContent: raw.full_markdown || '',
-  contentUrl: raw.post_src,
-  formats: [], // Posts don't have formats
-  license: undefined,
-  pdfCopyrightAllowsDisplay: true,
-}));
+    note: raw.note ? transformNoteWithContent(raw.note) : undefined,
+    publishedDate: raw.created_date, // Posts use created_date for both
+    previewContent: raw.full_markdown || '',
+    contentUrl: raw.post_src,
+    formats: [], // Posts don't have formats
+    license: undefined,
+    pdfCopyrightAllowsDisplay: true,
+    ...(isPreregistration ? { aiPeerReview: pickPreregistrationAiPeerReviewFromGrants(raw) } : {}),
+    ...(isPreregistration ? { linkedGrant: transformAndPickLinkedGrant(raw) } : {}),
+  };
+});
 
 export const transformPaper = createTransformer<any, Work>((raw) => ({
   ...transformWork(raw),

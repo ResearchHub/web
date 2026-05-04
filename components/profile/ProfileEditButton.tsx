@@ -20,32 +20,27 @@ export function ProfileEditButton({
   isSyncing,
   className,
 }: ProfileEditButtonProps) {
-  if (!isOrcidConnected) {
-    return (
-      <Button onClick={onEditClick} variant="outlined" className={className}>
+  return (
+    <div className={className}>
+      <Button onClick={onEditClick} variant="outlined">
         <Icon name="edit" className="h-4 w-4 mr-2" />
         Edit Profile
       </Button>
-    );
-  }
-
-  return (
-    <BaseMenu
-      trigger={
-        <Button variant="outlined" size="sm" className={className}>
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      }
-      align="end"
-    >
-      <BaseMenuItem onClick={onEditClick}>
-        <Icon name="edit" className="h-4 w-4 mr-2" />
-        Edit Profile
-      </BaseMenuItem>
-      <BaseMenuItem onClick={onSyncClick} disabled={isSyncing}>
-        <FontAwesomeIcon icon={faOrcid} className="h-4 w-4 mr-2 text-orcid-500" />
-        {isSyncing ? 'Syncing...' : 'Sync ORCID'}
-      </BaseMenuItem>
-    </BaseMenu>
+      {isOrcidConnected && (
+        <BaseMenu
+          trigger={
+            <Button variant="outlined" aria-label="More actions">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          }
+          align="end"
+        >
+          <BaseMenuItem onClick={onSyncClick} disabled={isSyncing}>
+            <FontAwesomeIcon icon={faOrcid} className="h-4 w-4 mr-2 text-orcid-500" />
+            {isSyncing ? 'Syncing...' : 'Sync ORCID'}
+          </BaseMenuItem>
+        </BaseMenu>
+      )}
+    </div>
   );
 }

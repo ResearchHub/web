@@ -22,7 +22,7 @@ export function OrcidSyncBanner({ isOwnProfile, isOrcidConnected }: OrcidSyncBan
   }
 
   return (
-    <div className="relative mb-6 rounded-lg border border-orcid-200 bg-orcid-50 p-4">
+    <div className="relative rounded-lg border border-orcid-200 bg-orcid-50 p-4">
       <Button
         variant="ghost"
         size="icon"
@@ -33,8 +33,8 @@ export function OrcidSyncBanner({ isOwnProfile, isOrcidConnected }: OrcidSyncBan
         <X className="h-4 w-4" />
       </Button>
 
-      <div className="flex flex-col gap-3 sm:!flex-row sm:!items-center sm:!pr-8">
-        <div className="flex flex-1 items-start gap-3 pr-8 sm:!pr-0">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-start gap-3 pr-8">
           <div className="flex shrink-0 items-center justify-center rounded-lg bg-orcid-100 p-2">
             <FontAwesomeIcon icon={faOrcid} className="h-5 w-5 text-orcid-500" />
           </div>
@@ -49,7 +49,7 @@ export function OrcidSyncBanner({ isOwnProfile, isOrcidConnected }: OrcidSyncBan
 
         <OrcidConnectButton
           variant="default"
-          className="w-full shrink-0 !bg-orcid-500 !text-white hover:!bg-orcid-600 !border-orcid-500 sm:!w-auto"
+          className="w-full !bg-orcid-500 !text-white hover:!bg-orcid-600 !border-orcid-500"
         />
       </div>
     </div>

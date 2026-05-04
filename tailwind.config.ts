@@ -20,6 +20,7 @@ export default {
       screens: {
         mobile: '480px',
         tablet: '768px',
+        'sidebar-profile': '1000px',
         'sidebar-compact': '1240px',
         'right-sidebar': '1100px',
         'topbar-hide': '1110px',

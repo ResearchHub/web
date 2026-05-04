@@ -55,7 +55,6 @@ export default async function FundingProjectPage({ params }: Props) {
   const id = resolvedParams.id;
 
   const work = await getFundingProject(id);
-
   const [metadata, content, authorUpdates] = await Promise.all([
     MetadataService.get(work.unifiedDocumentId?.toString() || ''),
     getWorkHTMLContent(work),

@@ -132,6 +132,7 @@ interface ContributorsButtonProps {
   hideLabel?: boolean;
   size?: number | 'xxs' | 'xs' | 'sm' | 'md' | 'lg';
   disableContribute?: boolean;
+  isCompleted?: boolean;
 }
 
 export function ContributorsButton({
@@ -141,6 +142,7 @@ export function ContributorsButton({
   hideLabel = false,
   size = 'xs',
   disableContribute,
+  isCompleted = false,
 }: ContributorsButtonProps) {
   const [showModal, setShowModal] = useState(false);
 
@@ -237,6 +239,7 @@ export function ContributorsButton({
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         contributors={contributors}
+        isCompleted={isCompleted}
       />
     </>
   );

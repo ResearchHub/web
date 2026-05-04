@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
@@ -16,11 +16,13 @@ interface PeerReviewsSectionProps {
 export const PeerReviewsSection: FC<PeerReviewsSectionProps> = ({ peerReviews, reviewsUrl }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (peerReviews.length === 0) return null;
+  const assessedReviews = useMemo(() => peerReviews.filter((r) => r.isAssessed), [peerReviews]);
+
+  if (assessedReviews.length === 0) return null;
 
   const displayLimit = 5;
-  const displayed = isExpanded ? peerReviews : peerReviews.slice(0, displayLimit);
-  const hasMore = peerReviews.length > displayLimit;
+  const displayed = isExpanded ? assessedReviews : assessedReviews.slice(0, displayLimit);
+  const hasMore = assessedReviews.length > displayLimit;
 
   return (
     <div>
@@ -32,7 +34,7 @@ export const PeerReviewsSection: FC<PeerReviewsSectionProps> = ({ peerReviews, r
           return (
             <div key={review.id}>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-0">
                   <Avatar
                     src={authorProfile.profileImage}
                     alt={authorProfile.fullName}
@@ -41,12 +43,12 @@ export const PeerReviewsSection: FC<PeerReviewsSectionProps> = ({ peerReviews, r
                   />
                   <Link
                     href={reviewsUrl}
-                    className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                    className="text-sm font-medium text-gray-900 hover:text-blue-600 truncate"
                   >
                     {authorProfile.fullName}
                   </Link>
                 </div>
-                <div className="flex items-center gap-0.5">
+                <div className="flex items-center gap-0.5 shrink-0">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star
                       key={i}
@@ -72,7 +74,7 @@ export const PeerReviewsSection: FC<PeerReviewsSectionProps> = ({ peerReviews, r
           onClick={() => setIsExpanded(true)}
           className="text-sm text-blue-600 hover:text-blue-800 font-medium mt-3 w-full text-center"
         >
-          View all ({peerReviews.length})
+          View all ({assessedReviews.length})
         </button>
       )}
     </div>

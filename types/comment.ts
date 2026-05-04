@@ -57,6 +57,7 @@ export interface Comment {
   bountyAmount?: number;
   awardedBountyAmount?: number;
   bountyCreatorId?: number;
+  isAssessed?: boolean;
   expirationDate?: string;
   isPublic?: boolean;
   isRemoved?: boolean;
@@ -142,6 +143,7 @@ export const transformComment = (raw: any): Comment => {
     bountyAmount: raw.amount,
     awardedBountyAmount: raw.awarded_bounty_amount,
     bountyCreatorId: raw.bounty_creator_id,
+    isAssessed: raw.review?.is_assessed ?? raw.is_assessed ?? false,
     expirationDate: raw.expiration_date,
     isPublic: raw.is_public,
     isRemoved: raw.is_removed,

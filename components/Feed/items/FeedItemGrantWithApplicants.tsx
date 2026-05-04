@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/Button';
 import { ArrowRight, CalendarOff, Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { buildWorkUrl, generateSlug } from '@/utils/url';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -47,6 +49,13 @@ const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate,
     slug: fundraise.title ? generateSlug(fundraise.title) : undefined,
   });
 
+  const assessedReviews = (application.reviews ?? []).filter((r) => r.isAssessed);
+  const reviewAvg =
+    assessedReviews.length > 0
+      ? assessedReviews.reduce((sum, r) => sum + r.score, 0) / assessedReviews.length
+      : 0;
+  const hasAssessedReviews = assessedReviews.length > 0;
+
   return (
     <Link
       href={proposalHref}
@@ -54,7 +63,7 @@ const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate,
         'grid items-center gap-3 px-5 py-2.5 hover:bg-gray-50/80 transition-colors cursor-pointer',
         !isLast && 'border-b border-gray-100'
       )}
-      style={{ gridTemplateColumns: '75px 1fr auto' }}
+      style={{ gridTemplateColumns: '75px 1fr' }}
     >
       {/* Ask amount */}
       <div className="text-center py-1 px-0.5  border-r border-gray-200">
@@ -66,33 +75,53 @@ const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate,
         </div>
       </div>
 
-      {/* Title + author + org */}
+      {/* Title + author + org + score */}
       <div className="min-w-0">
         <p className="text-[12.5px] font-bold text-gray-900 truncate leading-snug mb-0.5">
           {fundraise.title || profile.fullName}
         </p>
         <div className="flex items-center gap-1.5">
           <Avatar src={profile.profileImage || ''} alt={profile.fullName} size="xxs" />
-          <span className="text-[12px] text-gray-500 truncate">{profile.fullName}</span>
-          {fundraise.nonprofit?.name && (
+          {/* Desktop: always show name */}
+          <span className="text-[12px] text-gray-500 truncate hidden sm:inline">
+            {profile.fullName}
+          </span>
+          {fundraise.nonprofit?.name ? (
+            <>
+              {/* Desktop: separator between name and org */}
+              <span className="text-gray-300 hidden sm:inline">·</span>
+              {/* Both: org name (mobile primary label) */}
+              <span className="text-[11px] text-gray-500 truncate">{fundraise.nonprofit.name}</span>
+            </>
+          ) : (
+            /* Mobile fallback: name when no org */
+            <span className="text-[12px] text-gray-500 truncate sm:hidden">{profile.fullName}</span>
+          )}
+          {hasAssessedReviews && (
             <>
               <span className="text-gray-300">·</span>
-              <span className="text-[11px] text-gray-500 truncate">{fundraise.nonprofit.name}</span>
+              <Tooltip
+                content={
+                  <PeerReviewTooltip
+                    reviews={assessedReviews}
+                    averageScore={reviewAvg}
+                    href={proposalHref}
+                  />
+                }
+                position="top"
+                width="w-[320px]"
+              >
+                <span
+                  className="inline-flex items-center gap-1 text-[12px] text-gray-600 whitespace-nowrap cursor-help"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Star size={12} className="fill-amber-400 text-amber-400" />
+                  {reviewAvg.toFixed(1)}
+                </span>
+              </Tooltip>
             </>
           )}
         </div>
-      </div>
-
-      {/* Review badge */}
-      <div className="flex-shrink-0 flex justify-end">
-        {fundraise.reviewMetrics && fundraise.reviewMetrics.avg > 0 ? (
-          <span className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium bg-amber-50 border border-amber-200 text-amber-700">
-            <Star size={11} className="fill-amber-400 text-amber-400" />
-            {fundraise.reviewMetrics.avg.toFixed(1)}
-          </span>
-        ) : (
-          <span className="text-[10.5px] text-gray-400 whitespace-nowrap">No reviews</span>
-        )}
       </div>
     </Link>
   );
@@ -186,7 +215,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
             background: 'rgba(0,0,0,0.5)',
           }}
         >
-          <div>
+          <div className="min-w-0">
             <div className="text-[9px] font-semibold uppercase tracking-wider text-white/40 mb-0.5">
               {grant.organization || content.organization || 'ResearchHub Grant'}
             </div>
@@ -194,7 +223,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
               {grant.shortTitle || content.title}
             </div>
           </div>
-          <div className="flex gap-5">
+          <div className="flex gap-5 flex-shrink-0">
             {[
               {
                 label: 'Available Funding',
@@ -205,7 +234,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
               { label: 'Duration', value: 'Rolling', accent: false },
             ].map((stat) => (
               <div key={stat.label} className="sm:text-right">
-                <div className="text-[9px] uppercase tracking-wider font-semibold text-white/60">
+                <div className="text-[9px] uppercase tracking-wider font-semibold text-white/60 whitespace-nowrap">
                   {stat.label}
                 </div>
                 <div

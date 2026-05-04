@@ -1,86 +1,63 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { ShieldCheck } from 'lucide-react';
 import { PageLayout } from '../layouts/PageLayout';
 import { ResearchCoinRightSidebar } from '@/components/ResearchCoin/ResearchCoinRightSidebar';
-import { UserBalanceSection } from '@/components/ResearchCoin/UserBalanceSection';
+import { WalletOverview } from '@/components/ResearchCoin/WalletOverview';
+import { StakingOverview } from '@/components/ResearchCoin/StakingOverview';
 import { TransactionFeed } from '@/components/ResearchCoin/TransactionFeed';
 import { PendingDepositFeed } from '@/components/ResearchCoin/PendingDepositFeed';
 import { ExportFilterModal } from '@/components/modals/ResearchCoin/ExportFilterModal';
-import { TransactionService } from '@/services/transaction.service';
 import { useSession } from 'next-auth/react';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
-import { formatBalance } from '@/components/ResearchCoin/lib/types';
 import { usePendingDeposits } from '@/hooks/usePendingDeposits';
 import { useUser } from '@/contexts/UserContext';
 import { useVerification } from '@/contexts/VerificationContext';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
-import { Button } from '@/components/ui/Button';
-import { MainPageHeader } from '@/components/ui/MainPageHeader';
-import { Icon } from '@/components/ui/icons';
+import { CalloutBanner } from '@/components/banners/CalloutBanner';
+import { AuthService } from '@/services/auth.service';
 import './researchcoin-wallet.css';
 
 export default function ResearchCoinPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [balance, setBalance] = useState<number | null>(null);
-  const { exchangeRate, isLoading: isFetchingExchangeRate } = useExchangeRate();
+  const { exchangeRate } = useExchangeRate();
   const { showUSD } = useCurrencyPreference();
-  const { user } = useUser();
-  const {
-    hasPendingDepositFeed,
-    isLoading: isLoadingPendingDeposits,
-    refreshDeposits,
-  } = usePendingDeposits({
+  const { user, refreshUser } = useUser();
+  const { openVerificationModal } = useVerification();
+  const router = useRouter();
+  const [isMfaEnabled, setIsMfaEnabled] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    let cancelled = false;
+    AuthService.getMfaStatus()
+      .then((s) => {
+        if (!cancelled) setIsMfaEnabled(!!s?.mfa_enabled);
+      })
+      .catch(() => {
+        if (!cancelled) setIsMfaEnabled(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [status]);
+
+  const transactionFeedRef = useRef<{ refresh: () => Promise<void> }>(null);
+  const refreshTransactions = () => {
+    transactionFeedRef.current?.refresh();
+  };
+
+  usePendingDeposits({
     onDepositResolved: () => {
-      fetchBalance();
-      transactionFeedRef.current?.refresh();
+      refreshUser({ silent: true });
+      refreshTransactions();
     },
   });
-  const transactionFeedRef = useRef<{ refresh: () => Promise<void> }>(null);
-  const { openVerificationModal } = useVerification();
-
-  // Fetch initial data
-  useEffect(() => {
-    if (status === 'loading') return;
-
-    if (!session) {
-      return;
-    }
-
-    fetchBalance();
-  }, [session, status]);
-
-  const fetchBalance = async () => {
-    try {
-      const balanceResponse = await TransactionService.getUserBalance();
-      setBalance(balanceResponse);
-    } catch (error) {
-      console.error('Failed to fetch balance:', error);
-    }
-  };
-
-  const handleRefresh = async () => {
-    if (isRefreshing) return;
-
-    setIsRefreshing(true);
-    try {
-      // Refresh all data in parallel
-      await Promise.all([
-        refreshDeposits(),
-        fetchBalance(),
-        // Also refresh transaction feed if ref is available
-        transactionFeedRef.current?.refresh() || Promise.resolve(),
-      ]);
-    } catch (error) {
-      console.error('Failed to refresh data:', error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
 
   const handleExport = () => {
     setIsExportModalOpen(true);
@@ -91,55 +68,50 @@ export default function ResearchCoinPage() {
       <div className="w-full">
         <div className="">
           <div className="">
-            <MainPageHeader
-              icon={<Icon name="rscThin" size={28} />}
-              title="My Wallet"
-              subtitle="Manage your wallet and view transactions"
-              showTitle={false}
-            />
+            <h1 className="sr-only">My Wallet</h1>
           </div>
           <div className="flex">
             <div className="flex-1">
-              {/* Verification Banner */}
-              {status === 'authenticated' && user && !user.isVerified && (
-                <div className="mb-6 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl px-6 py-5 flex items-center justify-between shadow-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-2.5 flex items-center justify-center">
-                      <VerifiedBadge size="lg" className="brightness-0 invert" />
-                    </div>
-                    <div>
-                      <h3 className="text-white font-semibold text-base">
-                        Verify your profile for enhanced benefits
-                      </h3>
-                      <p className="text-white/90 text-sm mt-0.5">
-                        Unlock faster withdrawals, exclusive features, and peer review opportunities
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    onClick={() => openVerificationModal()}
-                    variant="secondary"
-                    size="default"
-                    className="bg-white text-blue-600 hover:bg-gray-50 font-medium px-5"
-                  >
-                    Verify Now
-                  </Button>
-                </div>
-              )}
+              {/* Banners — show MFA banner if user has funds and no MFA;
+                  otherwise fall back to verification banner. Never both. */}
+              {(() => {
+                if (status !== 'authenticated' || !user) return null;
+                const hasFunds = (user.balance ?? 0) + (user.lockedBalance ?? 0) > 0;
+                if (hasFunds && isMfaEnabled === false) {
+                  return (
+                    <CalloutBanner
+                      tone="amber"
+                      icon={<ShieldCheck className="h-5 w-5" />}
+                      title="Secure your account with two-factor authentication"
+                      description="Protect your funds and account access now"
+                      ctaLabel="Enable 2FA"
+                      onCtaClick={() => router.push('/settings')}
+                    />
+                  );
+                }
+                if (!user.isVerified) {
+                  return (
+                    <CalloutBanner
+                      tone="blue"
+                      icon={<VerifiedBadge size="lg" />}
+                      title="Verify your profile for enhanced benefits"
+                      description="Unlock faster withdrawals, exclusive features, and peer review opportunities"
+                      ctaLabel="Verify Now"
+                      onCtaClick={() => openVerificationModal()}
+                    />
+                  );
+                }
+                return null;
+              })()}
 
               {status === 'authenticated' && (
-                <UserBalanceSection
-                  balance={formatBalance(balance || 0, exchangeRate)}
-                  isFetchingExchangeRate={isFetchingExchangeRate}
-                  onTransactionSuccess={handleRefresh}
-                  lockedBalance={
-                    user?.lockedBalance ? formatBalance(user.lockedBalance, exchangeRate) : null
-                  }
-                />
+                <>
+                  <WalletOverview onTransactionSuccess={refreshTransactions} />
+                  <StakingOverview />
+                </>
               )}
 
-              {(hasPendingDepositFeed || isLoadingPendingDeposits) &&
-                status === 'authenticated' && <PendingDepositFeed />}
+              {status === 'authenticated' && <PendingDepositFeed />}
 
               <TransactionFeed
                 ref={transactionFeedRef}
@@ -147,8 +119,6 @@ export default function ResearchCoinPage() {
                 exchangeRate={exchangeRate}
                 showUSD={showUSD}
                 isExporting={isExporting}
-                onRefresh={handleRefresh}
-                isRefreshing={isRefreshing}
               />
 
               {isExportModalOpen && (

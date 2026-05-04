@@ -20,6 +20,7 @@ export class ActivityService {
   static async getActivity(params?: GetActivityParams): Promise<{
     entries: FeedEntry[];
     hasMore: boolean;
+    count: number;
   }> {
     const pageSize = params?.pageSize ?? this.DEFAULT_PAGE_SIZE;
     const queryParams = new URLSearchParams();
@@ -44,10 +45,10 @@ export class ActivityService {
         })
         .filter((e): e is FeedEntry => e !== null);
 
-      return { entries, hasMore: !!response.next };
+      return { entries, hasMore: !!response.next, count: response.count ?? entries.length };
     } catch (error) {
       console.error('Error fetching activity feed:', error);
-      return { entries: [], hasMore: false };
+      return { entries: [], hasMore: false, count: 0 };
     }
   }
 }

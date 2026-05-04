@@ -1,6 +1,15 @@
 'use client';
 
-import { User as UserIcon, LogOut, BadgeCheck, Bell, Shield, UserPlus, Search } from 'lucide-react';
+import {
+  User as UserIcon,
+  LogOut,
+  BadgeCheck,
+  Bell,
+  Shield,
+  UserPlus,
+  Search,
+  Settings,
+} from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
@@ -227,6 +236,15 @@ export default function UserMenu({
           </div>
         </Link>
 
+        <Link href="/settings" className="block" onClick={() => setMenuOpenState(false)}>
+          <div className="px-6 py-2 hover:bg-gray-50">
+            <div className="flex items-center">
+              <Settings className="h-5 w-5 mr-3 text-gray-500" />
+              <span className="text-sm text-gray-700">Settings</span>
+            </div>
+          </div>
+        </Link>
+
         {!user.isVerified && (
           <div
             className="px-6 py-2 hover:bg-gray-50"
@@ -411,6 +429,15 @@ export default function UserMenu({
                 <div className="flex items-center">
                   <FontAwesomeIcon icon={faBookmark} className="h-5 w-5 mr-3 text-gray-500" />
                   <span className="text-sm text-gray-700">Your Lists</span>
+                </div>
+              </div>
+            </Link>
+
+            <Link href="/settings" className="block" onClick={() => setMenuOpenState(false)}>
+              <div className="w-full px-4 py-2 hover:bg-gray-50">
+                <div className="flex items-center">
+                  <Settings className="h-5 w-5 mr-3 text-gray-500" />
+                  <span className="text-sm text-gray-700">Settings</span>
                 </div>
               </div>
             </Link>

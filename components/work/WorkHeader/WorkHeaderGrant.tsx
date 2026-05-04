@@ -11,11 +11,6 @@ import { useGrantTab, type GrantBannerTab } from '@/components/Funding/GrantPage
 import { WorkHeader } from './WorkHeader';
 import { WorkHeaderGrantEyebrow } from './WorkHeaderGrantEyebrow';
 
-const GRANT_TABS = [
-  { id: 'details' as const, label: 'Details' },
-  { id: 'proposals' as const, label: 'Proposals' },
-];
-
 interface WorkHeaderGrantProps {
   work: Work;
   metadata: WorkMetadata;
@@ -38,7 +33,7 @@ export function WorkHeaderGrant({
   className,
 }: WorkHeaderGrantProps) {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
-  const { activeTab, setActiveTab } = useGrantTab();
+  const { activeTab, setActiveTab, activity } = useGrantTab();
 
   const handleTabChange = useCallback(
     (tabId: string) => setActiveTab(tabId as GrantBannerTab),
@@ -71,7 +66,33 @@ export function WorkHeaderGrant({
       </SubmitProposalTooltip>
     ) : undefined;
 
-  const tabs = <Tabs tabs={GRANT_TABS} activeTab={activeTab} onTabChange={handleTabChange} />;
+  const activityCount = activity.count;
+
+  const grantTabs = [
+    { id: 'details' as const, label: 'Details' },
+    { id: 'proposals' as const, label: 'Proposals' },
+    {
+      id: 'activity' as const,
+      label: (
+        <div className="flex items-center">
+          <span>Updates</span>
+          {activityCount > 0 && (
+            <span
+              className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                activeTab === 'activity'
+                  ? 'bg-primary-100 text-primary-600'
+                  : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {activityCount}
+            </span>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  const tabs = <Tabs tabs={grantTabs} activeTab={activeTab} onTabChange={handleTabChange} />;
 
   return (
     <WorkHeader

@@ -66,7 +66,7 @@ export default async function GrantSlugLayout({ params, children }: Props) {
   const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
 
   return (
-    <GrantTabProvider defaultTab="details">
+    <GrantTabProvider defaultTab="details" grantId={grantId}>
       <PageLayout
         topBanner={
           <WorkHeaderGrant
