@@ -220,16 +220,6 @@ export interface ExecutiveSummaryResponse {
   updatedDate: string;
 }
 
-/** Compact AI peer review on `funding_feed` / `grant_feed`. */
-export interface AiPeerReviewFeedSummary {
-  id: number;
-  status: ReviewStatus;
-  overallRating: OverallRating | null;
-  overallScoreNumeric: number | null;
-  grantId: number | null;
-  updatedDate: string | null;
-}
-
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function numOrNull(v: unknown): number | null {
@@ -396,23 +386,6 @@ function parseOverallConfidence(v: unknown): OverallConfidence | null {
   if (v == null || v === '') return null;
   const c = v as OverallConfidence;
   return ['High', 'Medium', 'Low'].includes(c) ? c : null;
-}
-
-export function transformAiPeerReviewFeedSummary(raw: unknown): AiPeerReviewFeedSummary | null {
-  if (raw == null || typeof raw !== 'object') return null;
-  const o = raw as Record<string, unknown>;
-  const id = numOrNull(o.id);
-  if (id == null) return null;
-  const ud = o.updated_date;
-  const updatedDate = ud == null || ud === '' ? null : str(ud);
-  return {
-    id,
-    status: parseReviewStatus(o.status),
-    overallRating: parseOverallRating(o.overall_rating),
-    overallScoreNumeric: numOrNull(o.overall_score_numeric),
-    grantId: numOrNull(o.grant_id),
-    updatedDate,
-  };
 }
 
 export const transformProposalReview = createTransformer<any, ProposalReview>((raw) => {
