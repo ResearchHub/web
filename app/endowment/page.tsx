@@ -39,6 +39,15 @@ export default function EndowmentPage() {
           Learn how the endowment works <span aria-hidden="true">↗</span>
         </a>
       </div>
+
+      <div className="bg-white rounded-lg border border-gray-200 px-6 pt-4 pb-6 mt-6">
+        <video
+          className="w-full rounded-lg"
+          controls
+          preload="metadata"
+          src="https://assets.prod.researchhub.com/videos/researchHub-endowments.MP4"
+        />
+      </div>
     </div>
   );
 }
