@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { AboutContainer } from './AboutContainer';
 import { Eyebrow } from './Eyebrow';
 import { MonoLabel } from './MonoLabel';
@@ -53,25 +54,46 @@ export const Problem = () => {
               suffering as a result. There must be a better way.
             </p>
           </div>
-          <div className="md:col-span-7 space-y-px bg-gray-200 border border-gray-200 rounded-xl sm:rounded-2xl overflow-hidden">
-            {issues.map((issue) => (
-              <div
-                key={issue.key}
-                className="bg-white p-4 sm:p-6 md:p-7 grid grid-cols-[auto_1fr] gap-4 sm:gap-5 md:gap-7 items-start"
-              >
-                <MonoLabel className="text-[11px] uppercase tracking-[0.16em] text-gray-500 pt-1">
-                  {issue.key}
-                </MonoLabel>
-                <div>
-                  <h3 className="text-[17px] sm:text-[19px] md:text-[21px] font-medium text-gray-900 tracking-[-0.01em]">
-                    {issue.title}
-                  </h3>
-                  <p className="hidden sm:block mt-2 text-[14px] sm:text-[15px] leading-[1.6] text-gray-500">
-                    {issue.description}
-                  </p>
-                </div>
+          <div className="md:col-span-7">
+            <div className="md:hidden">
+              <MonoLabel className="block text-[10px] uppercase tracking-[0.16em] text-gray-500 mb-3">
+                Traditionally
+              </MonoLabel>
+              <div className="grid gap-3">
+                {issues.map((issue) => (
+                  <div
+                    key={issue.key}
+                    className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
+                  >
+                    <div className="flex items-start gap-3 text-gray-900">
+                      <X className="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-400" aria-hidden />
+                      <span className="text-[15px] leading-[1.45] font-medium">{issue.title}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            <div className="hidden md:block space-y-px bg-gray-200 border border-gray-200 rounded-2xl overflow-hidden">
+              {issues.map((issue) => (
+                <div
+                  key={issue.key}
+                  className="bg-white p-7 grid grid-cols-[auto_1fr] gap-7 items-start"
+                >
+                  <MonoLabel className="text-[11px] uppercase tracking-[0.16em] text-gray-500 pt-1">
+                    {issue.key}
+                  </MonoLabel>
+                  <div>
+                    <h3 className="text-[21px] font-medium text-gray-900 tracking-[-0.01em]">
+                      {issue.title}
+                    </h3>
+                    <p className="mt-2 text-[15px] leading-[1.6] text-gray-500">
+                      {issue.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </AboutContainer>
