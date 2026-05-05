@@ -2,7 +2,7 @@
 
 > ResearchHub is an open science platform where researchers publish, peer review, fund, and discuss scientific research. Contributors earn ResearchCoin (RSC) for their work.
 
-ResearchHub's mission is to accelerate the pace of scientific research. It operates as "a GitHub for science" — a collaborative platform for publishing preprints, conducting open peer review, funding research, and discussing findings in topic-specific communities called Hubs. Approved peer reviews earn $150 worth of RSC, all content is published open access, and peer review completes in as few as 14 days. User-contributed content (excluding peer reviews) is licensed under CC BY 4.0. Maintained by the ResearchHub Foundation and ResearchHub, Inc.
+ResearchHub's mission is to accelerate the pace of scientific research. It is a collaborative platform centered on funding scientific work and conducting open peer review of both proposals and preprints, alongside discussion in topic-specific communities called Hubs. Funded proposals have a clear path from idea to execution, with payouts in RSC or — when a nonprofit is attached — USD. Approved peer reviews earn $150 worth of RSC, all content is published open access, and peer review completes in as few as 14 days. The home feed includes a personalized "For You" view that surfaces preprints based on a researcher's interests and activity. The ResearchHub Endowment lets RSC holders earn yield as Funding Credits — a non-transferable currency that can only be spent on funding preregistered research proposals — turning one-time capital into perpetual research funding. User-contributed content (excluding peer reviews) is licensed under CC BY 4.0. Maintained by the ResearchHub Foundation and ResearchHub, Inc.
 
 Dynamic content follows these URL patterns: papers at `/paper/{id}/{slug}`, topics at `/topic/{slug}`, authors at `/author/{id}`, posts at `/post/{id}/{slug}`, proposals at `/proposal/{id}/{slug}`, and grants at `/grant/{id}/{slug}`.
 
@@ -16,19 +16,19 @@ Dynamic content follows these URL patterns: papers at `/paper/{id}/{slug}`, topi
 ## Research & Discovery
 
 - [Browse Hubs](https://researchhub.com/browse): Research topics organized into Hubs by discipline
-- [Search](https://researchhub.com/search): Search papers, grants, authors, and peer reviews
+- [For You](https://researchhub.com/for-you): Personalized preprint feed based on your interests and activity
 - [Popular](https://researchhub.com/popular): Popular research ranked by community engagement
-
-## Publishing & Peer Review
-
-- [ResearchHub Journal](https://researchhub.com/journal): Open access, peer-reviewed journal with review in as few as 14 days
-- [Earn for Peer Reviews](https://researchhub.com/earn): Approved reviews earn $150 worth of RSC
 
 ## Funding
 
-- [Funding Opportunities](https://researchhub.com/fund): Browse open grants and apply for research funding
+- [Funding Opportunities](https://researchhub.com/fund): Browse open funding opportunities and apply for research funding
 - [Proposals](https://researchhub.com/fund/proposals): Community research proposals seeking funding
-- [Endowment](https://researchhub.com/endowment): Endowment yield and historical performance
+- [Endowment](https://researchhub.com/endowment): Hold RSC on the platform to earn Funding Credits — yield distributed daily that can only be spent on funding preregistered research proposals. No lockups, principal is always revocable.
+
+## Peer Review & Publishing
+
+- [Earn for Peer Reviews](https://researchhub.com/earn): Approved reviews of preprints and proposals earn $150 worth of RSC
+- [ResearchHub Journal](https://researchhub.com/journal): Open access, peer-reviewed journal with review in as few as 14 days
 
 ## Community
 
@@ -36,7 +36,7 @@ Dynamic content follows these URL patterns: papers at `/paper/{id}/{slug}`, topi
 
 ## ResearchCoin (RSC)
 
-ResearchCoin (RSC) is an ERC-20 token earned by contributing to ResearchHub. RSC is used to create bounties, tip users, and fund proposals.
+ResearchCoin (RSC) is an ERC-20 token earned by contributing to ResearchHub. RSC is used to create bounties, tip users, and fund proposals. Holding RSC on the platform also earns Funding Credits through the ResearchHub Endowment, which can only be used to fund research proposals.
 
 ## Connect
 

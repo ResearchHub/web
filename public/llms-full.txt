@@ -4,12 +4,12 @@
 
 ## About ResearchHub
 
-ResearchHub's mission is to accelerate the pace of scientific research. It operates as "a GitHub for science" — a collaborative platform for publishing preprints, conducting open peer review, funding research, and discussing findings in topic-specific communities called Hubs.
+ResearchHub's mission is to accelerate the pace of scientific research. It is a collaborative platform centered on funding scientific work and conducting open peer review of both proposals and preprints, with discussion happening in topic-specific communities called Hubs. Funded proposals have a clear path from idea to execution.
 
 The platform is maintained by two entities:
 
 - **ResearchHub, Inc.** — the technology company that builds and operates the platform, based in San Francisco, CA.
-- **ResearchHub Foundation** — the nonprofit that funds research, manages the endowment, and oversees editorial programs including the ResearchHub Journal.
+- **ResearchHub Foundation** — helps fund research, runs the editorial program for peer reviews, and houses the community.
 
 ResearchHub differs from traditional academic publishers because approved peer reviews earn $150 worth of RSC, all content is published open access, peer review completes in as few as 14 days, and a token-based incentive system (ResearchCoin) rewards contributions. User-contributed content (excluding peer reviews) is licensed under CC BY 4.0; peer review content is governed by a separate license (see Terms of Service, Section 4A).
 
@@ -22,6 +22,50 @@ ResearchHub believes scientific research should be:
 - **Efficient** — Traditional funding-to-publication cycles take 3–5 years. ResearchHub aims for at least one order of magnitude faster.
 
 ## Products & Services
+
+### Research Funding
+
+Direct funding pathways for scientific research. Funded proposals have a clear path from idea to execution.
+
+- **Funding Opportunities:** Open opportunities from the Foundation and community funders, with defined scope, funding amount in USD, and deadlines. Spans biomedical sciences, computational biology, physics, economics, and more.
+- **Proposals:** Researchers submit their own proposals for original work. Each undergoes open peer review evaluating methodology, significance, and feasibility. Funded projects can be supported with RSC, donor-advised funds (DAF), or credit card contributions.
+- **Nonprofit attachment:** US-based researchers can attach their university nonprofit for tax-deductible contributions and fast fund delivery (typically 2–3 weeks).
+
+More: https://researchhub.com/fund
+
+### ResearchHub Endowment
+
+The ResearchHub Endowment turns RSC holdings into a continuous stream of research funding. Anyone holding RSC in their ResearchHub account automatically earns yield in the form of **Funding Credits** — a non-transferable currency that tracks the price of RSC but can *only* be used to fund preregistered research proposals on the platform. The more RSC you hold, the more science you can fund.
+
+Key properties:
+
+- **Automatic yield, no action required.** RSC held in a ResearchHub account earns Funding Credits without staking, locking, or signing transactions.
+- **Daily distribution.** Credits are distributed every day based on each holder's share of total RSC held on the platform. Holders can begin funding research almost immediately after depositing.
+- **No lockups, principal always revocable.** Holders can withdraw their RSC principal at any time. There are no gas fees and no penalty for exiting.
+- **Restricted use by design.** Funding Credits cannot be transferred, traded, cashed out, or spent on bounties or tips. They exist only to fund preregistered research proposals — the yield must flow to science.
+- **Self-balancing yield.** The protocol emits new RSC on a decaying schedule (starting at 9.5M RSC in Year 1, halving every 64 years). Annual yield rate depends on what share of total RSC supply is held on the platform: lower platform participation produces higher per-holder yields, higher participation produces lower yields. At an estimated average 30% participation scenario, Year 1 yield is approximately 23.6%.
+- **One-time capital, perpetual funding.** A traditional $1M grant funds research once. The same $1M deposited as RSC can fund research every year in perpetuity while the principal remains the holder's. Under the 30% participation scenario, $1M of RSC funds approximately $236K of research in Year 1 and roughly $1.8M cumulatively over 10 years (assuming RSC's USD value remains unchanged).
+
+This makes the Endowment a vehicle for individual donors, institutions, and foundations to convert one-time capital into ongoing, transparent research funding without giving up the underlying assets.
+
+More: https://researchhub.com/endowment
+Documentation: https://docs.researchhub.com/researchhub/product-features/fund/researchhub-endowment
+
+### Peer Review Program
+
+ResearchHub compensates researchers for peer-reviewing both scientific preprints and funding proposals. Unlike traditional peer review — typically unpaid and months-long — approved reviews on ResearchHub earn $150 worth of RSC with turnaround around 10 days.
+
+Reviewers build a public track record that strengthens their academic profile. Peer reviews provide context for authors, funders, and readers — they are not used to gatekeep publication.
+
+Guidelines: https://docs.researchhub.com/researchhub-foundation/programs-and-initiatives/peer-review-program/peer-review-guidelines
+
+More: https://researchhub.com/earn
+
+### Personalized Home Feed
+
+The home feed includes a personalized "For You" view that surfaces preprints tailored to each researcher based on their interests, followed Hubs, and activity on the platform — making it easier to keep up with relevant new work without manually filtering.
+
+More: https://researchhub.com/for-you
 
 ### ResearchHub Journal
 
@@ -36,26 +80,6 @@ An open access, peer-reviewed scientific journal built for speed and transparenc
 
 More: https://researchhub.com/journal
 
-### Peer Review Program
-
-ResearchHub compensates researchers for peer-reviewing scientific preprints. Unlike traditional peer review — typically unpaid and months-long — approved reviews on ResearchHub earn $150 worth of RSC with turnaround around 10 days.
-
-Reviewers build a public track record that strengthens their academic profile. Peer reviews provide context for authors, funders, and readers — they are not used to gatekeep publication.
-
-Guidelines: https://docs.researchhub.com/researchhub-foundation/programs-and-initiatives/peer-review-program/peer-review-guidelines
-
-More: https://researchhub.com/earn
-
-### Research Funding
-
-Direct funding pathways for scientific research:
-
-- **Grants:** Open opportunities from the Foundation and community funders, with defined scope, funding amount in USD, and deadlines. Spans biomedical sciences, computational biology, physics, economics, and more.
-- **Proposals:** Researchers submit their own proposals for original work. Each undergoes open peer review evaluating methodology, significance, and feasibility. Funded projects receive RSC directly.
-- **Nonprofit attachment:** US-based researchers can attach their university nonprofit for tax-deductible contributions and fast fund delivery (typically 2–3 weeks).
-
-More: https://researchhub.com/fund
-
 ### ResearchCoin (RSC)
 
 ResearchCoin (RSC) is an ERC-20 token earned by contributing to ResearchHub.
@@ -65,6 +89,7 @@ Uses:
 - Create bounties for peer reviews and specific tasks.
 - Tip users for valuable contributions.
 - Fund research proposals.
+- Earn Funding Credits via the ResearchHub Endowment by holding RSC on the platform.
 
 Documentation: https://docs.researchhub.com
 
@@ -86,23 +111,25 @@ Users can create a page for any paper to enable summary and discussion. Fulltext
 
 ### How does peer review work?
 
-Researchers browse open peer-review bounties, find papers in their field, and submit structured reviews following published guidelines. Reviews are evaluated by the requesting author or editorial team. Approved reviews earn $150 worth of RSC and are published openly alongside the paper.
+Researchers browse open peer-review bounties — covering both preprints and funding proposals — find work in their field, and submit structured reviews following published guidelines. Reviews are evaluated by the requesting author or editorial team. Approved reviews earn $150 worth of RSC and are published openly alongside the paper or proposal.
 
 ### How does research funding work?
 
-Researchers apply to open grants or create their own proposals. Proposals undergo open peer review. Funded projects receive RSC directly. US-based researchers can attach a university nonprofit for tax-deductible contributions.
+Researchers apply to open funding opportunities or create their own proposals. Proposals undergo open peer review. Funded projects receive RSC by default; if a researcher attaches a linked nonprofit (such as their university), the funding is delivered as USD to that nonprofit, enabling tax-deductible contributions.
 
-### Who created ResearchHub?
+### How does the ResearchHub Endowment work?
 
-A team based in San Francisco, CA. The idea was initially proposed by Brian Armstrong. The platform is maintained through a partnership between the ResearchHub Foundation and ResearchHub, Inc.
+By holding RSC in a ResearchHub account, holders automatically earn yield as Funding Credits — distributed daily based on their share of total RSC held on the platform. Funding Credits are non-transferable and can only be spent on funding preregistered research proposals; they cannot be cashed out, traded, or used for bounties or tips. There are no lockups and the RSC principal is always revocable. Yield rates are self-balancing: when less RSC is held on the platform, per-holder yield is higher; when more is held, yield is lower. The mechanism converts one-time capital into perpetual research funding while leaving the principal under the holder's control.
 
 ## Key Links
 
 - [Website](https://researchhub.com): Main ResearchHub platform
 - [About](https://researchhub.com/about): Mission and values
-- [Journal](https://researchhub.com/journal): ResearchHub Journal
 - [Funding](https://researchhub.com/fund): Research funding opportunities
+- [Endowment](https://researchhub.com/endowment): Earn Funding Credits by holding RSC
 - [Peer Review](https://researchhub.com/earn): Earn for peer reviews
+- [For You](https://researchhub.com/for-you): Personalized preprint feed
+- [Journal](https://researchhub.com/journal): ResearchHub Journal
 - [Browse Hubs](https://researchhub.com/browse): Explore research by discipline
 - [Documentation](https://docs.researchhub.com): ResearchHub documentation
 - [Foundation](https://researchhub.foundation): ResearchHub Foundation
