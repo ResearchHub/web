@@ -5,9 +5,7 @@ import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-b
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
-
-const CHANGELOG_VERSION = 'v1.0.1';
-const CHANGELOG_STORAGE_KEY = `rh-changelog-seen-${CHANGELOG_VERSION}`;
+import { CHANGELOG_STORAGE_KEY } from '@/constants/changelog';
 
 export const FooterLinks: React.FC = () => {
   const { showUSD, toggleCurrency } = useCurrencyPreference();

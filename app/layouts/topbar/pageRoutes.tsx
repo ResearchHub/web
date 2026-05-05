@@ -36,6 +36,7 @@ export const ROOT_NAVIGATION_PATHS = new Set([
   '/leaderboard',
   '/lists',
   '/settings',
+  '/endowment',
 ]);
 
 export const isRootNavigationPage = (pathname: string): boolean =>
@@ -150,6 +151,13 @@ const ROUTE_RULES: RouteRule[] = [
     getInfo: () => ({
       title: 'Settings',
       icon: <Settings size={24} className="text-gray-900" />,
+    }),
+  },
+  {
+    match: (p) => p === '/endowment',
+    getInfo: () => ({
+      title: 'ResearchHub Endowment',
+      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     }),
   },
   {

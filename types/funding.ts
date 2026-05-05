@@ -2,13 +2,8 @@ import { Currency, ID } from './root';
 import { createTransformer } from './transformer';
 import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { transformUser, User } from './user';
-import {
-  transformAiPeerReviewFeedSummary,
-  transformKeyInsight,
-  type AiPeerReviewFeedSummary,
-  type KeyInsightData,
-} from './aiPeerReview';
 import type { Review } from './feed';
+import { transformKeyInsight, type KeyInsightData } from './aiPeerReview';
 
 export type FundraiseStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
 
@@ -126,19 +121,16 @@ export interface Application {
   profile: AuthorProfile;
   preregistrationPostId?: number;
   fundraise?: ApplicationFundraise;
-  aiPeerReview?: AiPeerReviewFeedSummary | null;
-  /** AI-generated tldr + strengths/weaknesses for funder-facing previews. */
-  keyInsight?: KeyInsightData | null;
   reviews?: Review[];
+  keyInsight?: KeyInsightData | null;
 }
 
 export function transformApplication(raw: any): Application {
   return {
     profile: transformAuthorProfile(raw.applicant),
     preregistrationPostId: raw.preregistration_post_id ?? undefined,
-    fundraise: raw.fundraise ? transformApplicationFundraise(raw.fundraise) : undefined,
-    aiPeerReview: transformAiPeerReviewFeedSummary(raw.ai_peer_review),
     keyInsight: transformKeyInsight(raw.key_insight),
+    fundraise: raw.fundraise ? transformApplicationFundraise(raw.fundraise) : undefined,
     reviews: Array.isArray(raw.fundraise?.reviews)
       ? raw.fundraise.reviews.map((review: any) => ({
           id: review.id,
