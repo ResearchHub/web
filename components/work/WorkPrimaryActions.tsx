@@ -444,7 +444,7 @@ export const WorkPrimaryActions = ({
                 shouldShowConfetti: false,
               })
             }
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
+            className="hidden sm:!flex items-center space-x-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100"
           >
             <Share className="h-6 w-6" />
           </button>
@@ -459,6 +459,20 @@ export const WorkPrimaryActions = ({
               </button>
             }
           >
+            <BaseMenuItem
+              className="sm:hidden"
+              onSelect={() =>
+                showShareModal({
+                  url: window.location.href,
+                  docTitle: work.title,
+                  action: 'USER_SHARED_DOCUMENT',
+                  shouldShowConfetti: false,
+                })
+              }
+            >
+              <Share className="h-4 w-4 mr-2" />
+              <span>Share</span>
+            </BaseMenuItem>
             {canEdit && (
               <BaseMenuItem onSelect={handleEdit}>
                 <Edit className="h-4 w-4 mr-2" />

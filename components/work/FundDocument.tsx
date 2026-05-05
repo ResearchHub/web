@@ -12,7 +12,6 @@ import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
 import { useStorageKey } from '@/utils/storageKeys';
 import { useUser } from '@/contexts/UserContext';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
-import { AiPeerReviewCard } from '@/components/work/AiPeerReviewCard';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useWorkTab } from './WorkHeader/WorkTabContext';
 
@@ -131,13 +130,6 @@ export const FundDocument = ({
       case 'reviews':
         return (
           <div className="space-y-6" key="reviews-tab">
-            {user?.isModerator && (
-              <AiPeerReviewCard
-                aiPeerReview={work.aiPeerReview}
-                peerReviews={work.peerReviews}
-                averageReviewScore={work.metrics?.reviewScore}
-              />
-            )}
             <CommentFeed
               unifiedDocumentId={work.unifiedDocumentId || null}
               documentId={work.id}

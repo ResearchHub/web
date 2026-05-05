@@ -4,6 +4,7 @@ import { ChangelogEntry } from '@/components/changelog/ChangelogEntry';
 import { notFound } from 'next/navigation';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
+import { CHANGELOG_POST_IDS } from '@/constants/changelog';
 
 export const metadata = buildOpenGraphMetadata({
   title: 'Changelog',
@@ -37,21 +38,9 @@ async function fetchPostWithContent(postId: string): Promise<PostWithContent | n
 }
 
 export default async function ChangelogPage() {
-  // Post IDs for changelog entries
-  const postIds = [
-    '17886',
-    '17884',
-    '17874',
-    '17859',
-    '17850',
-    '17846',
-    '17841',
-    '17839',
-    '17833',
-    '4594',
-  ];
-
-  const postsWithContent = await Promise.all(postIds.map((id) => fetchPostWithContent(id)));
+  const postsWithContent = await Promise.all(
+    CHANGELOG_POST_IDS.map((id) => fetchPostWithContent(id))
+  );
 
   const validPosts = postsWithContent
     .filter((post): post is PostWithContent => post !== null)

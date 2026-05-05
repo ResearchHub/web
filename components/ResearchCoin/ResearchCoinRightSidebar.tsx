@@ -1,28 +1,120 @@
 'use client';
 
 import React from 'react';
-import { CollapsibleItem, SimpleCollapsibleSection } from '@/components/ui/CollapsibleSection';
-import { Card } from '@/components/ui/Card';
-import { ExternalLink } from 'lucide-react';
+import { SidebarHeader } from '@/components/ui/SidebarHeader';
+import { YieldChart } from '@/components/charts/YieldChart';
+import { FundingIcon } from '@/components/ui/icons/FundingIcon';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { ExternalLink, Sprout, Star, Vote } from 'lucide-react';
 
 import Icon from '@/components/ui/icons/Icon';
 
-export const ResearchCoinRightSidebar = () => {
-  const [openSections, setOpenSections] = React.useState<string[]>([]);
+interface SidebarItem {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}
 
-  const toggleSection = (section: string) => {
-    setOpenSections((prev) =>
-      prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]
-    );
-  };
+const useItems: SidebarItem[] = [
+  {
+    title: 'Fund research',
+    description: 'Support open research proposals on the platform.',
+    icon: <Icon name="fund" size={16} color="#4b5563" />,
+  },
+  {
+    title: 'Tip contributions',
+    description: 'Reward authors and reviewers for great contributions.',
+    icon: <Icon name="tipRSC" size={16} color="#4b5563" />,
+  },
+  {
+    title: 'Govern the platform',
+    description: 'Vote on proposals and shape research incentives.',
+    icon: <Vote className="w-4 h-4 text-gray-600" />,
+  },
+];
 
+const earnItems: SidebarItem[] = [
+  {
+    title: 'Create proposal',
+    description: 'Submit a research proposal for community funding.',
+    icon: <FundingIcon size={16} color="#4b5563" />,
+  },
+  {
+    title: 'Complete Peer Reviews',
+    description: 'Earn RSC by peer reviewing preprints or proposals on ResearchHub.',
+    icon: <Star className="w-4 h-4 text-gray-600" />,
+  },
+  {
+    title: 'Stake tokens',
+    description: 'Stake RSC and earn yield in the form of funding credits.',
+    icon: <Sprout className="w-4 h-4 text-gray-600" />,
+  },
+];
+
+function SidebarRow({ title, description, icon }: SidebarItem) {
   return (
-    <div className="w-80 sticky top-[64px] h-[calc(100vh-64px)] overscroll-contain">
-      <div className="h-full overflow-y-auto pb-16 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+    <Tooltip
+      content={
+        <div className="text-left">
+          <div className="text-sm font-bold text-white mb-1">{title}</div>
+          <p className="text-xs text-gray-300 leading-snug">{description}</p>
+        </div>
+      }
+      position="left"
+      width="w-64"
+      className="bg-gray-900 text-white border-gray-900 text-left"
+    >
+      <div className="flex items-center gap-2.5 py-2 px-2 -mx-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors cursor-default">
+        <div className="text-primary-600 flex-shrink-0">{icon}</div>
+        <div className="text-sm font-medium">{title}</div>
+      </div>
+    </Tooltip>
+  );
+}
+
+export const ResearchCoinRightSidebar = () => {
+  return (
+    <div className="w-full">
+      <div className="pb-4">
+        {/* Supply Yield chart */}
+        <div className="px-6 mb-5 mt-3">
+          <SidebarHeader title="Supply yield" />
+          <YieldChart
+            compact
+            height={120}
+            showRangeSelector={false}
+            title=""
+            defaultRange="30d"
+            showAxes={false}
+            gradientFill
+            showStats
+          />
+        </div>
+
+        {/* Use ResearchCoin Section */}
+        <div className="px-6 mb-4">
+          <SidebarHeader title="Use ResearchCoin" />
+          <div className="pl-1 ml-1">
+            {useItems.map((item) => (
+              <SidebarRow key={item.title} {...item} />
+            ))}
+          </div>
+        </div>
+
+        {/* Earn ResearchCoin Section */}
+        <div className="px-6 mb-4">
+          <SidebarHeader title="Earn ResearchCoin" />
+          <div className="pl-1 ml-1">
+            {earnItems.map((item) => (
+              <SidebarRow key={item.title} {...item} />
+            ))}
+          </div>
+        </div>
+
         {/* Resources Section */}
-        <div className="px-6 mb-4 mt-3">
-          <h3 className="text-lg font-semibold mb-3 text-gray-900">Resources</h3>
-          <div className="space-y-2">
+        <div className="px-6 mb-4">
+          <SidebarHeader title="Resources" />
+          <div className="space-y-2 pl-1 ml-1">
             <a
               href="https://blog.researchhub.foundation/researchcoin/"
               target="_blank"
@@ -30,8 +122,7 @@ export const ResearchCoinRightSidebar = () => {
               className="flex items-center justify-between text-sm text-primary-600 hover:text-primary-700 transition-colors px-3 py-2 rounded-lg hover:bg-gray-50 -mx-3"
             >
               <div className="flex items-center gap-2.5">
-                <Icon name="earn2" size={16} color="#2563eb" />
-                <span className="font-medium">About RSC</span>
+                <span className="font-medium">Learn about ResearchCoin</span>
               </div>
               <div className="ml-4">
                 <ExternalLink size={14} className="text-gray-400" />
@@ -39,120 +130,7 @@ export const ResearchCoinRightSidebar = () => {
             </a>
           </div>
         </div>
-
-        {/* RSC Utility Section */}
-        <SimpleCollapsibleSection title="Use ResearchCoin" className="px-6 mb-3">
-          <div className="text-gray-600 text-sm space-y-0 pl-7">
-            <CollapsibleItem
-              title="Create bounties"
-              icon={<Icon name="createBounty" size={14} />}
-              isOpen={openSections.includes('create-reward')}
-              onToggle={() => toggleSection('create-reward')}
-            >
-              <div className="mt-2 leading-relaxed">
-                RSC empowers the bounty system on ResearchHub, connecting researchers with tailored
-                opportunities. Users can create bounties to engage experts for tasks like data
-                processing and literature reviews.
-              </div>
-            </CollapsibleItem>
-
-            <CollapsibleItem
-              title="Fund open science"
-              icon={<Icon name="fundYourRsc2" size={14} />}
-              isOpen={openSections.includes('fund-science')}
-              onToggle={() => toggleSection('fund-science')}
-            >
-              <div className="mt-2 leading-relaxed">
-                RSC enables the community to fund scientific projects through open access proposals,
-                streamlining the funding process.
-              </div>
-            </CollapsibleItem>
-
-            <CollapsibleItem
-              title="Tip authors"
-              icon={<Icon name="fund" size={14} />}
-              isOpen={openSections.includes('tip-authors')}
-              onToggle={() => toggleSection('tip-authors')}
-            >
-              <div className="mt-2 leading-relaxed">
-                RSC incentivizes actions in the ResearchHub ecosystem, providing targeted rewards
-                for individual contributions and broader research goals.
-              </div>
-            </CollapsibleItem>
-
-            <CollapsibleItem
-              title="Govern the platform"
-              icon={<Icon name="settings" size={14} />}
-              isOpen={openSections.includes('governance')}
-              onToggle={() => toggleSection('governance')}
-            >
-              <div className="mt-2 leading-relaxed">
-                RSC puts governance in the hands of researchers, allowing them to collectively shape
-                the incentive structures in their fields. Through voting and proposal mechanisms,
-                the research community can determine how to best reward different types of
-                contributions.
-              </div>
-            </CollapsibleItem>
-          </div>
-        </SimpleCollapsibleSection>
-
-        {/* Earning Section */}
-        <SimpleCollapsibleSection title="Earn ResearchCoin" className="px-6">
-          <div className="text-gray-600 text-sm space-y-0 pl-7">
-            <CollapsibleItem
-              title="Share a peer review"
-              icon={<Icon name="peerReview1" size={14} />}
-              isOpen={openSections.includes('peer-review')}
-              onToggle={() => toggleSection('peer-review')}
-            >
-              <div className="mt-2 leading-relaxed">
-                Researchers earn RSC by peer reviewing preprints on ResearchHub. After verifying
-                identity, peer review opportunities will be surfaced.
-              </div>
-            </CollapsibleItem>
-
-            <CollapsibleItem
-              title="Complete a bounty"
-              icon={<Icon name="earn1" size={14} />}
-              isOpen={openSections.includes('answer-reward')}
-              onToggle={() => toggleSection('answer-reward')}
-            >
-              <div className="mt-2 leading-relaxed">
-                Researchers earn RSC by completing bounties on ResearchHub, from peer reviews to
-                specialized research assistance, allowing monetization of expertise.
-              </div>
-            </CollapsibleItem>
-
-            <CollapsibleItem
-              title="Do reproducible research"
-              icon={<Icon name="workType" size={14} />}
-              isOpen={openSections.includes('reproducible-research')}
-              onToggle={() => toggleSection('reproducible-research')}
-            >
-              <div className="mt-2 leading-relaxed">
-                Authors earn RSC on their published papers, earning multipliers for open science
-                practices to promote transparency and reproducibility in research.
-                <div className="mt-3 space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-primary-600 font-medium text-xs">•</span>
-                    <span className="text-sm">(Required): Open access</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-primary-600 font-medium text-xs">•</span>
-                    <span className="text-sm">2x: Has open data</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-primary-600 font-medium text-xs">•</span>
-                    <span className="text-sm">3x: Was preregistered</span>
-                  </div>
-                </div>
-              </div>
-            </CollapsibleItem>
-          </div>
-        </SimpleCollapsibleSection>
       </div>
-
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-gray-50 via-gray-50/90 to-transparent pointer-events-none" />
     </div>
   );
 };

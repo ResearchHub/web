@@ -29,6 +29,10 @@ export type RfpStatus = 'pending' | 'processing' | 'completed' | 'failed';
 export type EditorialCategoryScore = 'high' | 'medium' | 'low';
 
 export type CategoryKey =
+  | 'overall_impact'
+  | 'importance_significance_innovation'
+  | 'rigor_and_feasibility'
+  | 'additional_review_criteria'
   | 'funding_opportunity_fit'
   | 'methods_rigor'
   | 'statistical_analysis_plan'

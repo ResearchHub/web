@@ -270,7 +270,7 @@ export const CommentReadOnly = ({
   return (
     <div
       className={cn(
-        'comment-content prose prose-sm max-w-none',
+        'comment-content prose prose-sm max-w-none [&_.tiptap-paragraph]:!text-[14px] [&_.tiptap-list-item]:!text-[14px] [&_.tiptap-blockquote]:!text-[14px]',
         contentFormat === 'QUILL_EDITOR' && 'quill-content',
         className
       )}
