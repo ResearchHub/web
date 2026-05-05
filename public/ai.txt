@@ -26,7 +26,6 @@ Disallow: /settings
 Disallow: /paper/submit
 Disallow: /_next/
 Disallow: /sw.js
-Disallow: /workbox-*
 
 # Licensing and AI/ML training policy
 #
