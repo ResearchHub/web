@@ -16,6 +16,10 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { formatCurrency } from '@/utils/currency';
 import { Application } from '@/types/funding';
+import { KeyInsightsModal } from '@/components/modals/KeyInsightsModal';
+import { KeyInsightsLine } from '@/components/work/KeyInsights/KeyInsightsLine';
+import { KeyInsightsPanel } from '@/components/work/KeyInsights/KeyInsightsPanel';
+import { useShouldShowKeyInsights } from '@/components/work/KeyInsights/useShouldShowKeyInsights';
 
 interface FeedItemGrantWithApplicantsProps {
   entry: FeedEntry;
@@ -33,11 +37,24 @@ interface ProposalRowProps {
   showUSD: boolean;
   exchangeRate: number;
   isLast: boolean;
+  showKeyInsights?: boolean;
 }
 
-const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate, isLast }) => {
+const ProposalRow: FC<ProposalRowProps> = ({
+  application,
+  showUSD,
+  exchangeRate,
+  isLast,
+  showKeyInsights,
+}) => {
   const { profile, fundraise: fundraiseRaw } = application;
   const fundraise = fundraiseRaw!;
+  const [isInsightsModalOpen, setIsInsightsModalOpen] = useState(false);
+  const openInsightsModal = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsInsightsModalOpen(true);
+  };
 
   const askAmount = showUSD
     ? Math.round(fundraise.goalAmount.usd)
@@ -61,9 +78,11 @@ const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate,
       href={proposalHref}
       className={cn(
         'grid items-center gap-3 px-5 py-2.5 hover:bg-gray-50/80 transition-colors cursor-pointer',
-        !isLast && 'border-b border-gray-100'
+        !isLast && 'border-b border-gray-100',
+        showKeyInsights
+          ? 'grid-cols-[75px_1fr] funder-wide:grid-cols-[75px_1fr_340px]'
+          : 'grid-cols-[75px_1fr]'
       )}
-      style={{ gridTemplateColumns: '75px 1fr' }}
     >
       {/* Ask amount */}
       <div className="text-center py-1 px-0.5  border-r border-gray-200">
@@ -122,7 +141,34 @@ const ProposalRow: FC<ProposalRowProps> = ({ application, showUSD, exchangeRate,
             </>
           )}
         </div>
+
+        {/* Inline insights — all widths below funder-wide. Sits below the author meta row,
+            wrapped in a subtle gradient callout. */}
+        {showKeyInsights && application.keyInsight && (
+          <div className="funder-wide:hidden">
+            <KeyInsightsLine keyInsight={application.keyInsight} onOpenModal={openInsightsModal} />
+          </div>
+        )}
       </div>
+
+      {/* Side panel insights — funder-wide+ */}
+      {showKeyInsights && (
+        <div className="hidden funder-wide:block self-stretch border-l border-gray-200 pl-4">
+          {application.keyInsight ? (
+            <KeyInsightsPanel keyInsight={application.keyInsight} onOpenModal={openInsightsModal} />
+          ) : (
+            <div className="text-[11px] text-gray-400 italic pt-1">No insights yet</div>
+          )}
+        </div>
+      )}
+
+      {application.keyInsight && (
+        <KeyInsightsModal
+          isOpen={isInsightsModalOpen}
+          onClose={() => setIsInsightsModalOpen(false)}
+          keyInsight={application.keyInsight}
+        />
+      )}
     </Link>
   );
 };
@@ -134,6 +180,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const [expanded, setExpanded] = useState(false);
+  const showKeyInsights = useShouldShowKeyInsights();
 
   const content = entry.content as FeedGrantContent;
   const grant = content.grant;
@@ -269,6 +316,7 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
                 isLast={
                   i === shown.length - 1 && (expanded || allProposals.length <= VISIBLE_PROPOSALS)
                 }
+                showKeyInsights={showKeyInsights}
               />
             ))}
             {!expanded && remaining > 0 && (

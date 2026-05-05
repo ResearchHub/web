@@ -127,6 +127,7 @@ export const FunderDashboardPage: FC = () => {
           isLoading={isLoadingOpportunities}
           hasMore={hasMore}
           loadMore={loadMore}
+          wideContent
           showGrantHeaders={false}
           showPostHeaders={false}
           showFundraiseHeaders={false}
