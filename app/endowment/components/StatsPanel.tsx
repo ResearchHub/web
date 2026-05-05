@@ -77,8 +77,8 @@ function StatsSkeleton() {
 export function StatsPanel({ stats, isLoading }: Readonly<StatsPanelProps>) {
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">ResearchHub Endowment Yield</h2>
+      <div className="bg-white rounded-lg border border-gray-200 px-6 pt-4 pb-6 w-full">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">Yield Stats</h2>
         <div className="h-4 w-32 bg-gray-200 rounded animate-pulse mb-4" />
         <StatsSkeleton />
       </div>
@@ -88,8 +88,8 @@ export function StatsPanel({ stats, isLoading }: Readonly<StatsPanelProps>) {
   if (!stats) return null;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-1">ResearchHub Endowment Yield</h2>
+    <div className="bg-white rounded-lg border border-gray-200 px-6 pt-4 pb-6 w-full">
+      <h2 className="text-lg font-semibold text-gray-900 mb-1">Yield Stats</h2>
       {stats.accrual_date && (
         <p className="text-xs text-gray-400 mb-4">
           Last updated{' '}
@@ -101,7 +101,18 @@ export function StatsPanel({ stats, isLoading }: Readonly<StatsPanelProps>) {
         </p>
       )}
       <StatRow label="Annualized Yield" value={`${stats.apy.toFixed(2)}%`} highlight />
-      <StatRow label="Issued Today" value={formatCurrency(stats.issued_today_usd)} highlight />
+      <StatRow
+        label="Issued Today (USD)"
+        value={formatCurrency(stats.issued_today_usd)}
+        highlight
+      />
+      {stats.issued_today_rsc && (
+        <StatRow
+          label="Issued Today (RSC)"
+          value={formatRSC(stats.issued_today_rsc) + ' RSC'}
+          highlight
+        />
+      )}
       <StatRow label="30d Avg Annualized Yield" value={`${stats.apy_30d_avg.toFixed(2)}%`} />
       <StatRow label="Holders" value={formatNumber(stats.holders)} />
       <StatRow label="Total Staked" value={`${formatRSC(stats.total_staked_rsc)} RSC`} />

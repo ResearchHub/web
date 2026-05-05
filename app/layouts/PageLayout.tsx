@@ -25,6 +25,12 @@ interface PageLayoutProps {
   className?: string;
   sidebarContentClassName?: string;
   topBanner?: ReactNode;
+  /**
+   * Drop the 860px main-content cap and let content fill the page container
+   * (~1180px). Useful when `rightSidebar` is false and the page wants the
+   * extra horizontal space.
+   */
+  wideContent?: boolean;
 }
 
 function PageLayoutInner({
@@ -33,6 +39,7 @@ function PageLayoutInner({
   className,
   sidebarContentClassName,
   topBanner,
+  wideContent = false,
 }: PageLayoutProps) {
   const {
     scrollContainerRef,
@@ -79,7 +86,13 @@ function PageLayoutInner({
                 topBanner ? 'py-3 sm:py-6' : 'py-6 mt-4'
               )}
             >
-              <div className={cn('w-full max-w-full tablet:!max-w-[860px]', className)}>
+              <div
+                className={cn(
+                  'w-full max-w-full',
+                  !wideContent && 'tablet:!max-w-[860px]',
+                  className
+                )}
+              >
                 {children}
               </div>
             </main>

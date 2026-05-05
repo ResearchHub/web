@@ -3,7 +3,6 @@
 import { ReactNode, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { FunderOverview } from '@/components/Funding/FunderOverview';
 import { CreateGrantButton } from '@/components/Grant/CreateGrantButton';
 import { GrantDraftCarousel } from '@/components/Funding/GrantDraftCarousel';
 import { MockPublishedGrantCarousel } from '@/components/Funding/MockPublishedGrantCarousel';
@@ -15,10 +14,9 @@ import type { Note } from '@/types/note';
 
 interface DashboardPageClientProps {
   children: ReactNode;
-  userId?: number;
 }
 
-export function DashboardPageClient({ children, userId }: DashboardPageClientProps) {
+export function DashboardPageClient({ children }: DashboardPageClientProps) {
   const { selectedOrg } = useOrganizationContext();
   const [drafts, setDrafts] = useState<Note[]>([]);
   const [isDraftsLoading, setIsDraftsLoading] = useState(true);
@@ -87,8 +85,6 @@ export function DashboardPageClient({ children, userId }: DashboardPageClientPro
 
   return (
     <PageLayout rightSidebar={false}>
-      <FunderOverview className="mt-4" userId={userId} />
-
       <div className="flex items-center justify-between pt-6 pb-2 mt-6">
         <h2 className="text-sm font-medium text-gray-500">My Opportunities</h2>
         <CreateGrantButton />

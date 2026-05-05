@@ -163,15 +163,24 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
                 </div>
               )}
             </div>
-            <Button
-              onClick={() => setIsDepositModalOpen(true)}
-              variant="default"
-              disabled={!isBalanceReady}
-              className="shrink-0"
-            >
-              <ArrowDownToLine className="h-4 w-4 mr-1.5" />
-              Deposit
-            </Button>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                onClick={() => setIsDepositModalOpen(true)}
+                variant="default"
+                disabled={!isBalanceReady}
+              >
+                <ArrowDownToLine className="h-4 w-4 mr-1.5" />
+                Deposit
+              </Button>
+              <Button
+                onClick={() => setIsWithdrawModalOpen(true)}
+                variant="outlined"
+                disabled={!isBalanceReady}
+              >
+                <ArrowUpFromLine className="h-4 w-4 mr-1.5" />
+                Withdraw
+              </Button>
+            </div>
           </div>
 
           {/* Asset table — fixed columns guarantee alignment across rows */}
