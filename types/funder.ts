@@ -10,6 +10,14 @@ export interface SupportedResearcher {
   authorProfile: AuthorProfile;
 }
 
+export interface SupportedInstitution {
+  id: number;
+  name: string;
+  imageUrl?: string;
+  city?: string;
+  countryCode?: string;
+}
+
 export interface FunderOverview {
   matchedFunds: CurrencyAmount;
   distributedFunds: CurrencyAmount;
@@ -23,7 +31,7 @@ export interface FunderOverview {
   // Formatted ratio string, e.g. "1 : 0.49".
   matchRatio: string;
   supportedScientistsCount: number;
-  // TODO: replace with API field `supported_institution_count` once backend ships it.
+  supportedInstitutions: SupportedInstitution[];
   supportedInstitutionCount: number;
 }
 
@@ -60,11 +68,11 @@ export function transformFunderOverview(raw: any): FunderOverview {
 
   const distributedFunds: CurrencyAmount = {
     rsc: raw.distributed_funds?.rsc ?? 0,
-    usd: raw.distributed_funds?.usd ?? 0,
+    usd: usdFromAmount(raw.distributed_funds),
   };
   const matchedFunds: CurrencyAmount = {
     rsc: raw.matched_funds?.rsc ?? 0,
-    usd: raw.matched_funds?.usd ?? 0,
+    usd: usdFromAmount(raw.matched_funds),
   };
 
   const totalGiven = distributedFunds;
@@ -75,6 +83,7 @@ export function transformFunderOverview(raw: any): FunderOverview {
   };
 
   const matchRatio = formatMatchRatio(totalGiven, communityMatch);
+  const supportedInstitutions = extractInstitutions(raw);
 
   return {
     matchedFunds,
@@ -85,7 +94,35 @@ export function transformFunderOverview(raw: any): FunderOverview {
     totalDeployed,
     matchRatio,
     supportedScientistsCount: researchers.length,
-    // TODO: replace with API field `supported_institution_count` once backend ships it.
-    supportedInstitutionCount: raw.supported_institution_count ?? 0,
+    supportedInstitutions,
+    supportedInstitutionCount: supportedInstitutions.length,
   };
+}
+
+/**
+ * USD display value for an amount object. Sums any direct USD contributions
+ * with `rsc_usd_snapshot` (the USD-equivalent of RSC frozen at contribution
+ * time), so the display reflects the value at the moment funds were committed
+ * rather than the live RSC price.
+ */
+function usdFromAmount(amount: any): number {
+  if (!amount) return 0;
+  return (amount.rsc_usd_snapshot ?? 0) + (amount.usd ?? 0);
+}
+
+function extractInstitutions(raw: any): SupportedInstitution[] {
+  // Backend may use either `supported_institutions` (rich OpenAlex data)
+  // or `supported_nonprofits` (Endaoment data). Map either to the same shape.
+  const rows = Array.isArray(raw.supported_institutions)
+    ? raw.supported_institutions
+    : Array.isArray(raw.supported_nonprofits)
+      ? raw.supported_nonprofits
+      : [];
+  return rows.map((n: any) => ({
+    id: n.id,
+    name: n.display_name ?? n.name ?? '',
+    imageUrl: n.image_thumbnail_url ?? n.image_url ?? undefined,
+    city: n.city ?? undefined,
+    countryCode: n.country_code ?? undefined,
+  }));
 }

@@ -19,7 +19,7 @@ import { Application } from '@/types/funding';
 import { KeyInsightsModal } from '@/components/modals/KeyInsightsModal';
 import { KeyInsightsLine } from '@/components/work/KeyInsights/KeyInsightsLine';
 import { KeyInsightsPanel } from '@/components/work/KeyInsights/KeyInsightsPanel';
-import { useShouldShowKeyInsights } from '@/components/work/KeyInsights/useShouldShowKeyInsights';
+import { useIsFunderDashboard } from '@/components/work/KeyInsights/useIsFunderDashboard';
 
 interface FeedItemGrantWithApplicantsProps {
   entry: FeedEntry;
@@ -180,7 +180,10 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
   const [expanded, setExpanded] = useState(false);
-  const showKeyInsights = useShouldShowKeyInsights();
+  const isFunderDashboard = useIsFunderDashboard();
+  // On the funder dashboard the row is read-only (insights instead of Apply CTA).
+  const showKeyInsights = isFunderDashboard;
+  const showApplyFooter = !isFunderDashboard;
 
   const content = entry.content as FeedGrantContent;
   const grant = content.grant;
@@ -356,8 +359,8 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
         </div>
       )}
 
-      {/* Footer */}
-      {!isClosed && (
+      {/* Footer — Apply CTA, hidden on the funder dashboard */}
+      {showApplyFooter && !isClosed && (
         <div className="flex items-center justify-between px-5 py-2.5 border-t border-gray-100">
           <span className="text-[11px] text-gray-400">
             {hasProposals
