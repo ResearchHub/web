@@ -37,9 +37,15 @@ export const FunderDashboardPage: FC = () => {
     () => ({
       endpoint: 'grant_feed' as const,
       contentType: 'GRANT',
-      createdBy: userId,
+      // The override `funderId` is resolved at the call site and passed in
+      // as `created_by` so we don't have to duplicate the override logic in
+      // the lower-level services.
+      createdBy: funderId,
+      // Defer the initial fetch until funderId is known so we don't fire a
+      // first request without `created_by` and a second with it.
+      enabled: funderId != null,
     }),
-    [userId]
+    [funderId]
   );
 
   const {
