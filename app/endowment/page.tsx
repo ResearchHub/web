@@ -23,7 +23,7 @@ export default function EndowmentPage() {
           className="w-full rounded-lg"
           controls
           preload="metadata"
-          src="https://assets.prod.researchhub.com/videos/researchHub-endowments.MP4"
+          src="https://assets.prod.researchhub.com/videos/researchHub-endowments.MP4#t=2"
         />
         <p className="text-sm text-gray-900 mt-4">
           <span className="font-semibold text-gray-900">
