@@ -71,7 +71,6 @@ export const ActivityStoryBackgroundCard: FC<ActivityStoryBackgroundCardProps> =
           src={details.author.profileImage}
           alt={details.author.fullName || 'User'}
           size={36}
-          authorId={details.author.id}
           disableTooltip
           className="ring-2 ring-white/70"
         />

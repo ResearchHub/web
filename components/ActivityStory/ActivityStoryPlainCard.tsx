@@ -39,7 +39,6 @@ export const ActivityStoryPlainCard: FC<ActivityStoryPlainCardProps> = ({
         src={details.author.profileImage}
         alt={details.author.fullName || 'User'}
         size={36}
-        authorId={details.author.id}
         disableTooltip
       />
       <div className="min-w-0 flex-1">
