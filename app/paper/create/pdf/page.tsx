@@ -234,8 +234,6 @@ export default function UploadPDFPage() {
       if (currentStepIndex < steps.length - 1) {
         setCurrentStepIndex(currentStepIndex + 1);
         window.scrollTo(0, 0);
-      } else if (submitToJournal) {
-        handleSubmit();
       } else {
         withVerification(() => handleSubmit());
       }
