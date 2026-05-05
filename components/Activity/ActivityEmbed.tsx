@@ -73,7 +73,7 @@ function classifyUrl(url: string): DetectedEmbed | null {
   return { kind: 'webpage', url };
 }
 
-interface PreviewData {
+export interface PreviewData {
   url: string;
   siteName?: string;
   title?: string;
@@ -82,7 +82,7 @@ interface PreviewData {
   html?: string;
 }
 
-function useLinkPreview(url: string, enabled = true) {
+export function useLinkPreview(url: string, enabled = true) {
   const [data, setData] = useState<PreviewData | null>(null);
   const [isLoading, setIsLoading] = useState(enabled);
 
@@ -286,7 +286,7 @@ const EmbedCard: FC<CardProps> = ({
   );
 };
 
-const XEmbedIframe: FC<{ tweetId: string }> = ({ tweetId }) => {
+export const XEmbedIframe: FC<{ tweetId: string }> = ({ tweetId }) => {
   const [height, setHeight] = useState(200);
   const frameId = `x-embed-${tweetId}`;
 
