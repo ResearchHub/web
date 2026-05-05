@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FunderHero } from '@/components/Funding/dashboard/FunderHero';
+import { useFunderActivity } from '@/components/Funding/dashboard/hooks/useFunderActivity';
+import { ActivityStoryCarousel } from '@/components/ActivityStory/ActivityStoryCarousel';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { FunderService } from '@/services/funder.service';
 import { useFeed } from '@/hooks/useFeed';
@@ -34,6 +36,13 @@ export const FunderDashboardPage: FC = () => {
     hasMore,
     loadMore,
   } = useFeed('all', grantFeedOptions);
+
+  const {
+    entries: activityEntries,
+    isLoading: isLoadingActivity,
+    hasMore: hasMoreActivity,
+    loadMore: loadMoreActivity,
+  } = useFunderActivity(userId);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,6 +86,18 @@ export const FunderDashboardPage: FC = () => {
       ) : overview ? (
         <FunderHero overview={overview} />
       ) : null}
+
+      {/* Activity stories */}
+      {userId && (
+        <ActivityStoryCarousel
+          entries={activityEntries}
+          isLoading={isLoadingActivity}
+          hasMore={hasMoreActivity}
+          loadMore={loadMoreActivity}
+          title="Recent activity"
+          className="mt-6"
+        />
+      )}
 
       {/* Opportunities */}
       <div className="mt-6">
