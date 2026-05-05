@@ -30,6 +30,7 @@ import { Switch } from '@/components/ui/Switch';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { Callout } from '@/components/ui/Callout';
+import { useVerifiedAction } from '@/hooks/useVerifiedAction';
 
 // Define the steps of our flow
 const steps: SimpleStep[] = [
@@ -46,6 +47,7 @@ export default function UploadPDFPage() {
   const router = useRouter();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const { smAndDown } = useScreenSize();
+  const { withVerification } = useVerifiedAction();
 
   // Form state
   const [title, setTitle] = useState('');
@@ -233,7 +235,7 @@ export default function UploadPDFPage() {
         setCurrentStepIndex(currentStepIndex + 1);
         window.scrollTo(0, 0);
       } else {
-        handleSubmit();
+        withVerification(() => handleSubmit());
       }
     }
   };
