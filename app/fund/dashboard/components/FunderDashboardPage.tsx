@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FunderHero } from '@/components/Funding/dashboard/FunderHero';
@@ -13,10 +13,22 @@ import { useFeed } from '@/hooks/useFeed';
 import { useUser } from '@/contexts/UserContext';
 import { FunderOverview } from '@/types/funder';
 
+function parseFunderIdParam(raw: string | null): number | undefined {
+  if (!raw) return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
 export const FunderDashboardPage: FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useUser();
   const userId = user?.id;
+
+  // Optional ?funder_id=N override scopes the funder-specific data (hero
+  // overview + activity feed) to that funder. Falls back to the logged-in user.
+  const funderIdOverride = parseFunderIdParam(searchParams.get('funder_id'));
+  const funderId = funderIdOverride ?? userId;
 
   const [overview, setOverview] = useState<FunderOverview | null>(null);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
@@ -42,12 +54,12 @@ export const FunderDashboardPage: FC = () => {
     isLoading: isLoadingActivity,
     hasMore: hasMoreActivity,
     loadMore: loadMoreActivity,
-  } = useFunderActivity(userId);
+  } = useFunderActivity(funderId);
 
   useEffect(() => {
     let cancelled = false;
     setIsLoadingOverview(true);
-    FunderService.getFundingOverview(userId)
+    FunderService.getFundingOverview(funderId)
       .then((data) => {
         if (!cancelled) setOverview(data);
       })
@@ -60,7 +72,7 @@ export const FunderDashboardPage: FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [funderId]);
 
   const firstName = user?.firstName?.trim() || 'there';
 
@@ -88,7 +100,7 @@ export const FunderDashboardPage: FC = () => {
       ) : null}
 
       {/* Activity stories */}
-      {userId && (
+      {funderId && (
         <ActivityStoryCarousel
           entries={activityEntries}
           isLoading={isLoadingActivity}
