@@ -44,7 +44,6 @@ Key properties:
 - **No lockups, principal always revocable.** Holders can withdraw their RSC principal at any time. There are no gas fees and no penalty for exiting.
 - **Restricted use by design.** Funding Credits cannot be transferred, traded, cashed out, or spent on bounties or tips. They exist only to fund preregistered research proposals — the yield must flow to science.
 - **Self-balancing yield.** The protocol emits new RSC on a decaying schedule (starting at 9.5M RSC in Year 1, halving every 64 years). Annual yield rate depends on what share of total RSC supply is held on the platform: lower platform participation produces higher per-holder yields, higher participation produces lower yields. At an estimated average 30% participation scenario, Year 1 yield is approximately 23.6%.
-- **One-time capital, perpetual funding.** A traditional $1M grant funds research once. The same $1M deposited as RSC can fund research every year in perpetuity while the principal remains the holder's. Under the 30% participation scenario, $1M of RSC funds approximately $236K of research in Year 1 and roughly $1.8M cumulatively over 10 years (assuming RSC's USD value remains unchanged).
 
 This makes the Endowment a vehicle for individual donors, institutions, and foundations to convert one-time capital into ongoing, transparent research funding without giving up the underlying assets.
 
