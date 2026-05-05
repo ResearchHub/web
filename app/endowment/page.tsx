@@ -3,26 +3,47 @@
 import { useStakingYieldStats } from '@/hooks/useStakingYield';
 import { StatsPanel } from './components/StatsPanel';
 import { YieldChart } from '@/components/charts/YieldChart';
-
 export default function EndowmentPage() {
   const { stats, isLoading } = useStakingYieldStats();
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">ResearchHub Endowment</h1>
-        <p className="mt-2 text-gray-500">
-          ResearchHub Endowment yield overview and historical performance.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
+    <div>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
+        <div className="lg:col-span-2 flex">
           <StatsPanel stats={stats} isLoading={isLoading} />
         </div>
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-3 flex">
           <YieldChart />
         </div>
+      </div>
+
+      <div className="bg-white rounded-lg border border-gray-200 px-6 pt-4 pb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">How it Works</h2>
+        <video
+          className="w-full rounded-lg"
+          controls
+          preload="metadata"
+          src="https://assets.prod.researchhub.com/videos/researchHub-endowments.MP4#t=2"
+        />
+        <p className="text-sm text-gray-900 mt-4">
+          <span className="font-semibold text-gray-900">
+            ResearchHub Endowment turns your RSC holdings into a continuous stream of research
+            funding.
+          </span>{' '}
+          By holding RSC on the platform, you automatically earn Funding Credits—a currency that can
+          only be used to fund preregistered research proposals. Funding Credits are distributed
+          daily, with transparent updates on the My Wallet page. There are no lockup periods — you
+          may withdraw your principal any time. Yield rates vary based on platform participation.
+          See below for current and historical performance metrics.
+        </p>
+        <a
+          href="https://docs.researchhub.com/researchhub/product-features/fund/researchhub-endowment"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 mt-3 text-sm text-primary-500 hover:underline"
+        >
+          Learn how the endowment works <span aria-hidden="true">↗</span>
+        </a>
       </div>
     </div>
   );
