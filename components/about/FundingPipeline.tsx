@@ -7,8 +7,57 @@ import { cn } from '@/utils/styles';
 import { MonoLabel } from './MonoLabel';
 import { pipelineSteps, type PipelineStep } from './data/pipelineSteps';
 
-const StepProductImage = ({ step }: { step: PipelineStep }) => (
-  <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm h-[220px] md:h-[220px]">
+interface StepIndicatorProps {
+  step: PipelineStep;
+  isActive: boolean;
+  isDone: boolean;
+  onClick: () => void;
+  size?: 'sm' | 'md';
+}
+
+const StepIndicator = ({ step, isActive, isDone, onClick, size = 'md' }: StepIndicatorProps) => {
+  const isMd = size === 'md';
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-current={isActive ? 'step' : undefined}
+      className={cn('group', isMd ? 'text-left' : 'flex flex-col items-center text-center')}
+    >
+      <div
+        className={cn(
+          'rounded-full flex items-center justify-center font-medium transition-all border-2',
+          isMd ? 'w-11 h-11 text-[13px]' : 'w-9 h-9 text-[12px]',
+          isActive && 'bg-primary-500 border-primary-500 text-white scale-105',
+          !isActive && isDone && 'bg-primary-500 border-primary-500 text-white',
+          !isActive &&
+            !isDone &&
+            'bg-white border-gray-200 text-gray-500 group-hover:border-gray-900'
+        )}
+      >
+        {isDone ? (
+          <Check className={isMd ? 'w-4 h-4' : 'w-3.5 h-3.5'} aria-hidden />
+        ) : (
+          <MonoLabel>{step.number}</MonoLabel>
+        )}
+      </div>
+      <div
+        className={cn(
+          'transition-colors',
+          isMd
+            ? 'mt-4 text-[15px] font-medium tracking-[-0.005em]'
+            : 'mt-2 text-[11px] leading-tight',
+          isActive ? 'text-gray-900 font-medium' : 'text-gray-500 group-hover:text-gray-900'
+        )}
+      >
+        {step.title}
+      </div>
+    </button>
+  );
+};
+
+const StepDetailImage = ({ step }: { step: PipelineStep }) => (
+  <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm h-[220px]">
     <Image
       src={step.imageSrc}
       alt={step.imageAlt}
@@ -20,10 +69,10 @@ const StepProductImage = ({ step }: { step: PipelineStep }) => (
 );
 
 export const FundingPipeline = () => {
-  const [active, setActive] = useState(0);
-  const current = pipelineSteps[active];
-  const total = pipelineSteps.length;
-  const progress = total > 1 ? active / (total - 1) : 0;
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const currentStep = pipelineSteps[activeStepIndex];
+  const totalSteps = pipelineSteps.length;
+  const progress = totalSteps > 1 ? activeStepIndex / (totalSteps - 1) : 0;
 
   return (
     <div className="mt-8 sm:mt-12 md:mt-20">
@@ -32,11 +81,11 @@ export const FundingPipeline = () => {
           Funding pipeline
         </MonoLabel>
         <MonoLabel className="text-[10px] sm:text-[11px] uppercase tracking-[0.16em] text-gray-500">
-          {String(total).padStart(2, '0')} steps
+          {String(totalSteps).padStart(2, '0')} steps
         </MonoLabel>
       </div>
 
-      {/* Desktop: horizontal stepper */}
+      {/* Desktop: horizontal stepper with detail card */}
       <div className="hidden md:block">
         <div className="relative">
           <div className="absolute top-[22px] left-[22px] right-[22px] h-px bg-gray-200" />
@@ -45,68 +94,38 @@ export const FundingPipeline = () => {
             style={{ width: `calc((100% - 44px) * ${progress})` }}
           />
           <div className="grid grid-cols-4 gap-6 relative">
-            {pipelineSteps.map((step, index) => {
-              const isActive = index === active;
-              const isDone = index < active;
-              return (
-                <button
-                  key={step.number}
-                  type="button"
-                  onClick={() => setActive(index)}
-                  aria-current={isActive ? 'step' : undefined}
-                  className="group text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={cn(
-                        'w-11 h-11 rounded-full flex items-center justify-center text-[13px] font-medium transition-all border-2',
-                        isActive && 'bg-primary-500 border-primary-500 text-white scale-105',
-                        !isActive && isDone && 'bg-primary-500 border-primary-500 text-white',
-                        !isActive &&
-                          !isDone &&
-                          'bg-white border-gray-200 text-gray-500 group-hover:border-gray-900'
-                      )}
-                    >
-                      {isDone ? (
-                        <Check className="w-4 h-4" aria-hidden />
-                      ) : (
-                        <MonoLabel>{step.number}</MonoLabel>
-                      )}
-                    </div>
-                  </div>
-                  <div
-                    className={cn(
-                      'mt-4 text-[15px] font-medium tracking-[-0.005em] transition-colors',
-                      isActive ? 'text-gray-900' : 'text-gray-500 group-hover:text-gray-900'
-                    )}
-                  >
-                    {step.title}
-                  </div>
-                </button>
-              );
-            })}
+            {pipelineSteps.map((step, index) => (
+              <StepIndicator
+                key={step.number}
+                step={step}
+                isActive={index === activeStepIndex}
+                isDone={index < activeStepIndex}
+                onClick={() => setActiveStepIndex(index)}
+                size="md"
+              />
+            ))}
           </div>
         </div>
 
-        <div className="mt-10 rounded-2xl border border-gray-200 bg-white p-8 md:p-10 shadow-sm">
-          <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(280px,0.85fr)] md:items-center">
+        <div className="mt-10 rounded-2xl border border-gray-200 bg-white p-10 shadow-sm">
+          <div className="grid gap-8 grid-cols-[minmax(0,1fr)_minmax(280px,0.85fr)] items-center">
             <div>
               <MonoLabel className="text-[11px] uppercase tracking-[0.16em] text-primary-500">
-                Step {current.number}
+                Step {currentStep.number}
               </MonoLabel>
-              <h4 className="mt-3 text-[28px] md:text-[32px] font-medium tracking-[-0.015em] text-gray-900">
-                {current.title}
+              <h4 className="mt-3 text-[32px] font-medium tracking-[-0.015em] text-gray-900">
+                {currentStep.title}
               </h4>
-              <p className="mt-4 text-[16px] leading-[1.6] text-gray-500 max-w-2xl">
-                {current.description}
+              <p className="mt-4 text-base leading-[1.6] text-gray-500 max-w-2xl">
+                {currentStep.description}
               </p>
             </div>
-            <StepProductImage step={current} />
+            <StepDetailImage step={currentStep} />
           </div>
         </div>
       </div>
 
-      {/* Mobile: compact step selector with one active detail card */}
+      {/* Mobile: compact step selector with detail card */}
       <div className="md:hidden">
         <div className="relative">
           <div className="absolute top-[18px] left-[18px] right-[18px] h-px bg-gray-200" />
@@ -115,56 +134,28 @@ export const FundingPipeline = () => {
             style={{ width: `calc((100% - 36px) * ${progress})` }}
           />
           <div className="relative grid grid-cols-4 gap-2">
-            {pipelineSteps.map((step, index) => {
-              const isActive = index === active;
-              const isDone = index < active;
-              return (
-                <button
-                  key={step.number}
-                  type="button"
-                  onClick={() => setActive(index)}
-                  aria-current={isActive ? 'step' : undefined}
-                  className="group flex flex-col items-center text-center"
-                >
-                  <span
-                    className={cn(
-                      'w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-medium transition-all border-2',
-                      isActive && 'bg-primary-500 border-primary-500 text-white scale-105',
-                      !isActive && isDone && 'bg-primary-500 border-primary-500 text-white',
-                      !isActive &&
-                        !isDone &&
-                        'bg-white border-gray-200 text-gray-500 group-hover:border-gray-900'
-                    )}
-                  >
-                    {isDone ? (
-                      <Check className="w-3.5 h-3.5" aria-hidden />
-                    ) : (
-                      <MonoLabel>{step.number}</MonoLabel>
-                    )}
-                  </span>
-                  <span
-                    className={cn(
-                      'mt-2 text-[11px] leading-tight transition-colors',
-                      isActive ? 'text-gray-900 font-medium' : 'text-gray-500'
-                    )}
-                  >
-                    {step.title}
-                  </span>
-                </button>
-              );
-            })}
+            {pipelineSteps.map((step, index) => (
+              <StepIndicator
+                key={step.number}
+                step={step}
+                isActive={index === activeStepIndex}
+                isDone={index < activeStepIndex}
+                onClick={() => setActiveStepIndex(index)}
+                size="sm"
+              />
+            ))}
           </div>
         </div>
 
         <div className="mt-5 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <MonoLabel className="text-[10px] uppercase tracking-[0.16em] text-primary-500">
-            Step {current.number}
+            Step {currentStep.number}
           </MonoLabel>
           <h4 className="mt-2 font-medium text-[17px] text-gray-900 leading-snug">
-            {current.title}
+            {currentStep.title}
           </h4>
           <div className="mt-3">
-            <StepProductImage step={current} />
+            <StepDetailImage step={currentStep} />
           </div>
         </div>
       </div>

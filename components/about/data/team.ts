@@ -7,6 +7,15 @@ export interface TeamMember {
   links: Partial<Record<SocialKey, string>>;
 }
 
+export const SOCIAL_LABELS: Record<SocialKey, string> = {
+  x: 'X / Twitter',
+  linkedin: 'LinkedIn',
+  github: 'GitHub',
+  rh: 'ResearchHub',
+};
+
+export const SOCIAL_ORDER: readonly SocialKey[] = ['rh', 'linkedin', 'x', 'github'];
+
 export const team: TeamMember[] = [
   {
     name: 'Brian Armstrong',

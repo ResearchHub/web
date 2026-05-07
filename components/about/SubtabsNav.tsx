@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/utils/styles';
+import { AboutContainer } from './AboutContainer';
 
 export interface SubtabsSection {
   id: string;
@@ -12,27 +13,21 @@ export interface SubtabsSection {
 
 interface SubtabsNavProps {
   sections: ReadonlyArray<SubtabsSection>;
-  /**
-   * Approximate height of the sticky bar; used as the scroll-spy probe offset
-   * and the smooth-scroll target offset on click. Defaults to the desktop bar
-   * height; a few pixels of tolerance on mobile is intentional.
-   */
   offset?: number;
 }
 
-const prefersReducedMotion = () => {
-  if (typeof window === 'undefined') return false;
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-};
+const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export const SubtabsNav = ({ sections, offset = 56 }: SubtabsNavProps) => {
   const [active, setActive] = useState<string>(sections[0]?.id ?? '');
 
   useEffect(() => {
-    if (typeof window === 'undefined' || sections.length === 0) return;
+    if (sections.length === 0) return;
 
     const ids = sections.map((s) => s.id);
-    const handleScroll = () => {
+    let rafId = 0;
+
+    const updateActiveSection = () => {
       const probeY = window.scrollY + offset + 40;
       let current = ids[0];
       for (const id of ids) {
@@ -42,28 +37,38 @@ export const SubtabsNav = ({ sections, offset = 56 }: SubtabsNavProps) => {
       setActive(current);
     };
 
-    handleScroll();
+    const handleScroll = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(updateActiveSection);
+    };
+
+    updateActiveSection();
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      cancelAnimationFrame(rafId);
+    };
   }, [sections, offset]);
 
-  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-    event.preventDefault();
-    const el = document.getElementById(id);
-    if (!el) return;
-    const top = el.getBoundingClientRect().top + window.scrollY - offset;
-    window.scrollTo({
-      top,
-      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-    });
-    if (typeof window !== 'undefined' && window.history?.replaceState) {
+  const handleClick = useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+      event.preventDefault();
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      const top = el.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({
+        top,
+        behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+      });
       window.history.replaceState(null, '', `#${id}`);
-    }
-  };
+    },
+    [offset]
+  );
 
   return (
     <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
-      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 md:px-10 h-[52px] sm:h-14 flex items-center justify-between gap-3">
+      <AboutContainer className="h-[52px] sm:h-14 flex items-center justify-between gap-3">
         <Link
           href="/"
           aria-label="Back to ResearchHub"
@@ -73,16 +78,14 @@ export const SubtabsNav = ({ sections, offset = 56 }: SubtabsNavProps) => {
           <Logo size={28} className="hidden sm:block" />
         </Link>
 
-        <nav role="tablist" aria-label="About sections" className="flex items-center gap-1">
+        <nav aria-label="About sections" className="flex items-center gap-1">
           {sections.map((section) => {
             const isActive = active === section.id;
             return (
               <a
                 key={section.id}
-                role="tab"
-                aria-selected={isActive}
-                aria-controls={section.id}
                 href={`#${section.id}`}
+                aria-current={isActive ? 'true' : undefined}
                 onClick={(event) => handleClick(event, section.id)}
                 className={cn(
                   'px-3 sm:px-4 py-1.5 rounded-full text-sm font-medium transition-colors',
@@ -97,7 +100,7 @@ export const SubtabsNav = ({ sections, offset = 56 }: SubtabsNavProps) => {
             );
           })}
         </nav>
-      </div>
+      </AboutContainer>
     </div>
   );
 };
