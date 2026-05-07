@@ -742,13 +742,13 @@ const TOSPage = () => {
               the American Arbitration Association ("<strong>AAA</strong>") under its Consumer
               Arbitration Rules (the "AAA Rules") then in effect, except as modified by these Terms.
               The AAA Rules are available at{' '}
-              <a href="http://www.adr.org" className="text-primary-600 hover:text-primary-500">
+              <a href="https://www.adr.org" className="text-primary-600 hover:text-primary-500">
                 www.adr.org
               </a>{' '}
               or by calling 1-800-778-7879. A party who wishes to start arbitration must submit a
               written Demand for Arbitration to AAA and give notice to the other party as specified
               in the AAA Rules. The AAA provides a form Demand for Arbitration at{' '}
-              <a href="http://www.adr.org" className="text-primary-600 hover:text-primary-500">
+              <a href="https://www.adr.org" className="text-primary-600 hover:text-primary-500">
                 www.adr.org
               </a>
             </p>
