@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { AboutContainer } from './AboutContainer';
 import { Eyebrow } from './Eyebrow';
@@ -31,6 +32,7 @@ const ItemContent = ({ label }: { label: string }) => (
 
 export const CTASection = () => {
   const { showAuthModal } = useAuthModalContext();
+  const router = useRouter();
 
   const items: CtaItem[] = [
     {
@@ -40,7 +42,11 @@ export const CTASection = () => {
       primary: true,
       external: false,
     },
-    { kind: 'action', label: 'Join ResearchHub', onAction: showAuthModal },
+    {
+      kind: 'action',
+      label: 'Join ResearchHub',
+      onAction: () => showAuthModal(() => router.push('/popular')),
+    },
     { kind: 'link', href: '/fund', label: 'Fund science', external: true },
   ];
 
