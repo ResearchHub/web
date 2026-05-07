@@ -29,11 +29,13 @@ import { SendConfirmationModal } from '@/app/expert-finder/components/SendConfir
 import { Textarea } from '@/components/ui/form/Textarea';
 import {
   getGeneratedEmailStatusPresentation,
+  isGeneratedEmailBounced,
   isGeneratedEmailClosed,
   isGeneratedEmailDraftLike,
   isGeneratedEmailFailed,
   isGeneratedEmailPipelineBusy,
 } from '@/app/expert-finder/lib/generatedEmailStatus';
+import { formatExactTime } from '@/utils/date';
 import { cn } from '@/utils/styles';
 import {
   useGeneratedEmailDetail,
@@ -370,6 +372,11 @@ export function OutreachDetailPageContent({
           <div className="hidden sm:!block">{neighborNavBar}</div>
           <div className="flex flex-wrap items-center gap-2 justify-start md:!justify-end">
             <Badge variant={statusPresentation.variant}>{statusPresentation.label}</Badge>
+            {isGeneratedEmailBounced(email.status) && email.bouncedAt && (
+              <span className="text-xs text-gray-500">
+                Bounced on {formatExactTime(email.bouncedAt)}
+              </span>
+            )}
             {isDraftLike && (
               <Button
                 variant="default"
