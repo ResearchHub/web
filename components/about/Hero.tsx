@@ -37,23 +37,27 @@ export const Hero = () => (
         <MonoLabel className="text-[11px] uppercase tracking-[0.16em]">About ResearchHub</MonoLabel>
       </span>
 
-      <h1
-        className="font-normal tracking-[-0.025em] leading-[1.05] md:leading-[0.98] text-[clamp(34px,8vw,104px)]"
-        style={{ textWrap: 'balance' }}
-      >
-        Science <span className="italic font-light">Reimagined</span>
-      </h1>
-
-      <div className="mt-6 md:mt-10 grid md:grid-cols-12 gap-6 md:gap-8 items-end">
-        <p className="md:col-span-7 text-base sm:text-[17px] md:text-[20px] leading-[1.6] text-white/95 max-w-2xl">
-          ResearchHub is an online platform designed to accelerate science. It&apos;s built on a
-          simple premise: that science works best when it&apos;s done openly and rigorously.
-        </p>
-        <div className="md:col-span-5 md:pl-8 pt-5 md:pt-0 md:border-l border-white/25">
-          <Eyebrow tone="onDark" className="mb-3">
-            Jump to
-          </Eyebrow>
-          <JumpLinks links={jumpLinks} />
+      <div className="grid lg:grid-cols-12 lg:gap-8">
+        <div className="lg:col-span-7">
+          <h1
+            className="font-normal tracking-[-0.025em] leading-[1.05] md:leading-[0.98] text-[clamp(34px,8vw,104px)]"
+            style={{ textWrap: 'balance' }}
+          >
+            Science <br className="hidden md:block" />
+            <span className="italic font-light">Reimagined</span>
+          </h1>
+          <p className="mt-4 md:mt-6 text-base sm:text-[17px] md:text-[20px] leading-[1.6] text-white/95 max-w-2xl">
+            ResearchHub is an online platform designed to accelerate science. It&apos;s built on a
+            simple premise: that science works best when it&apos;s done openly and rigorously.
+          </p>
+        </div>
+        <div className="lg:col-span-5 pt-5 lg:pt-0 lg:flex lg:flex-col lg:justify-end">
+          <div className="lg:border-l border-white/25 lg:pl-8">
+            <Eyebrow tone="onDark" className="mb-3">
+              Jump to
+            </Eyebrow>
+            <JumpLinks links={jumpLinks} />
+          </div>
         </div>
       </div>
 
