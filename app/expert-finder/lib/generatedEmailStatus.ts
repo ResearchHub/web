@@ -10,6 +10,10 @@ export function isGeneratedEmailPipelineBusy(status: string): boolean {
   return status === 'processing' || status === 'sending';
 }
 
+export function isGeneratedEmailBounced(status: string): boolean {
+  return status === 'bounced';
+}
+
 export function isGeneratedEmailFailed(status: string): boolean {
   return status === 'failed' || status === 'send_failed';
 }
@@ -26,6 +30,8 @@ export function getGeneratedEmailStatusPresentation(status: string): {
   variant: GeneratedEmailStatusBadgeVariant;
 } {
   switch (status) {
+    case 'bounced':
+      return { label: 'Bounced', variant: 'error' };
     case 'draft':
       return { label: 'Draft', variant: 'primary' };
     case 'sent':
