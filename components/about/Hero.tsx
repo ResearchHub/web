@@ -31,7 +31,7 @@ export const Hero = () => (
       }}
     />
 
-    <AboutContainer className="relative pt-10 sm:pt-16 md:pt-24 lg:pt-28 pb-10 sm:pb-16 md:pb-20 lg:pb-24">
+    <AboutContainer className="relative pt-10 sm:pt-16 lg:pt-28 pb-10 sm:pb-16 md:pb-20 lg:pb-24">
       <span className="inline-flex items-center gap-2 px-3 py-1.5 mb-6 sm:mb-8 md:mb-10 rounded-full border border-white/30 bg-white/10 backdrop-blur">
         <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse-dot" />
         <MonoLabel className="text-[11px] uppercase tracking-[0.16em]">About ResearchHub</MonoLabel>
@@ -43,7 +43,7 @@ export const Hero = () => (
             className="font-normal tracking-[-0.025em] leading-[1.05] md:leading-[0.98] text-[clamp(34px,8vw,104px)]"
             style={{ textWrap: 'balance' }}
           >
-            Science <br className="hidden md:block" />
+            Science <br className="hidden lg:block" />
             <span className="italic font-light">Reimagined</span>
           </h1>
           <p className="mt-4 md:mt-6 text-base sm:text-[17px] md:text-[20px] leading-[1.6] text-white/95 max-w-2xl">
