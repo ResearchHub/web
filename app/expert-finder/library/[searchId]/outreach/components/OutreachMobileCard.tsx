@@ -39,7 +39,7 @@ export function OutreachMobileCard({
   const subject = truncateSubject(email.emailSubject);
   const templateLabel = getTemplateDisplayLabel(email.template);
   const templateDescription = getTemplateDescription(email.template);
-  const statusPresentation = getGeneratedEmailStatusPresentation(email.status);
+  const statusPresentation = getGeneratedEmailStatusPresentation(email.status, email.openCount);
   const createdByName = email.createdBy?.author?.fullName;
 
   const selectTrailing =

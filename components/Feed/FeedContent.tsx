@@ -47,6 +47,11 @@ interface FeedContentProps {
   shouldRenderBountyAsComment?: boolean;
   showBountyInfo?: boolean;
   abstractCollapsedByDefault?: boolean;
+  /**
+   * Drop the default `max-w-4xl` cap on the feed list so it fills its parent.
+   * Use when the surrounding layout is already wider (e.g. sidebar-less pages).
+   */
+  wideContent?: boolean;
 }
 
 export const FeedContent: FC<FeedContentProps> = ({
@@ -76,6 +81,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   shouldRenderBountyAsComment,
   showBountyInfo = false,
   abstractCollapsedByDefault,
+  wideContent = false,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -149,7 +155,7 @@ export const FeedContent: FC<FeedContentProps> = ({
     <>
       {header}
 
-      <div className="max-w-4xl mx-auto">
+      <div className={wideContent ? undefined : 'max-w-4xl mx-auto'}>
         {tabs && <div ref={tabsSentinelRef}>{tabs}</div>}
 
         {filters && <div>{filters}</div>}

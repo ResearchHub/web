@@ -9,7 +9,9 @@ export interface GetActivityParams {
   page?: number;
   pageSize?: number;
   documentType?: ActivityDocumentType;
+  contentType?: string;
   grantId?: number | string;
+  funderId?: number | string;
   scope?: ActivityScope;
 }
 
@@ -27,7 +29,9 @@ export class ActivityService {
     if (params?.page) queryParams.append('page', params.page.toString());
     queryParams.append('page_size', pageSize.toString());
     if (params?.documentType) queryParams.append('document_type', params.documentType);
+    if (params?.contentType) queryParams.append('content_type', params.contentType);
     if (params?.grantId) queryParams.append('grant_id', params.grantId.toString());
+    if (params?.funderId) queryParams.append('funder_id', params.funderId.toString());
     if (params?.scope) queryParams.append('scope', params.scope);
 
     const qs = queryParams.toString();
