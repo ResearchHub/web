@@ -251,6 +251,8 @@ export interface GeneratedEmail {
   status: string;
   notes: string;
   bouncedAt: string | null;
+  openedAt: string | null;
+  openCount: number;
   createdAt: string;
   updatedAt: string;
   createdBy: CreatedByInfo | null;
@@ -278,6 +280,8 @@ export const transformGeneratedEmail = createTransformer<any, GeneratedEmail>((r
   status: raw.status ?? 'draft',
   notes: raw.notes ?? '',
   bouncedAt: raw.bounced_at ?? null,
+  openedAt: raw.opened_at ?? null,
+  openCount: raw.open_count ?? 0,
   createdAt: raw.created_at ?? '',
   updatedAt: raw.updated_at ?? '',
   createdBy: transformCreatedBy(raw.created_by),

@@ -25,10 +25,16 @@ export type GeneratedEmailStatusBadgeVariant =
   | 'warning'
   | 'error';
 
-export function getGeneratedEmailStatusPresentation(status: string): {
+export function getGeneratedEmailStatusPresentation(
+  status: string,
+  openCount: number = 0
+): {
   label: string;
   variant: GeneratedEmailStatusBadgeVariant;
 } {
+  if (status === 'sent' && openCount > 0) {
+    return { label: 'Opened', variant: 'success' };
+  }
   switch (status) {
     case 'bounced':
       return { label: 'Bounced', variant: 'error' };
