@@ -27,7 +27,8 @@ export const TeamSection = () => (
                 alt={member.name}
                 width={400}
                 height={500}
-                className="w-full h-full object-cover object-top"
+                className="w-full h-full object-cover"
+                style={{ objectPosition: member.objectPosition ?? 'top' }}
               />
             </div>
             <div className="p-3 sm:p-4 border-t border-gray-200">

@@ -24,7 +24,7 @@ const rows: ComparisonRow[] = [
   },
   {
     before: 'Most grant money goes to indirect costs',
-    after: 'Capped indirect costs — more money to the actual experiments',
+    after: 'Low to no indirect costs — more money to the actual experiments',
   },
 ];
 

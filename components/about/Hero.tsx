@@ -51,7 +51,7 @@ export const Hero = () => (
           science — built on a simple premise: that science provides the most benefit when it&apos;s
           done quickly, openly, and with a high level of rigor and reproducibility.
         </p>
-        <div className="md:col-span-5 md:pl-8 pt-5 md:pt-0 border-t border-white/25 md:border-t-0 md:border-l">
+        <div className="md:col-span-5 md:pl-8 pt-5 md:pt-0 md:border-l border-white/25">
           <Eyebrow tone="onDark" className="mb-3">
             Jump to
           </Eyebrow>
@@ -59,7 +59,7 @@ export const Hero = () => (
         </div>
       </div>
 
-      <div className="mt-10 sm:mt-12 md:mt-20 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-6 sm:gap-6 md:gap-8 pt-8 sm:pt-10 border-t border-white/25">
+      <div className="mt-10 sm:mt-12 md:mt-20 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-6 sm:gap-6 md:gap-8 md:pt-10 md:border-t border-white/25">
         {heroStats.map((stat) => (
           <div key={stat.label}>
             <div className="leading-none tracking-[-0.02em] font-medium text-[clamp(22px,5vw,44px)]">

@@ -101,8 +101,8 @@ export function generateOrganizationStructuredData() {
       'Reproducibility',
     ],
     founders: [
-      { '@type': 'Person', name: 'Brian Armstrong', jobTitle: 'Co-founder' },
-      { '@type': 'Person', name: 'Patrick Joyce', jobTitle: 'Co-founder, CEO' },
+      { '@type': 'Person', name: 'Brian Armstrong', jobTitle: 'Cofounder, CEO' },
+      { '@type': 'Person', name: 'Patrick Joyce', jobTitle: 'Cofounder, COO' },
     ],
     member: [
       { '@type': 'Person', name: 'Kobe Attias', jobTitle: 'Founding Engineer' },

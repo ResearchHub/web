@@ -4,6 +4,7 @@ export interface TeamMember {
   name: string;
   role: string;
   src: string;
+  objectPosition?: string;
   links: Partial<Record<SocialKey, string>>;
 }
 
@@ -19,22 +20,22 @@ export const SOCIAL_ORDER: readonly SocialKey[] = ['rh', 'linkedin', 'x', 'githu
 export const team: TeamMember[] = [
   {
     name: 'Brian Armstrong',
-    role: 'Co-founder',
+    role: 'Cofounder, CEO',
     src: '/team/brian.jpeg',
     links: {
       x: 'https://x.com/brian_armstrong',
       linkedin: 'https://www.linkedin.com/in/barmstrong/',
-      rh: '/',
+      rh: 'https://www.researchhub.com/author/11',
     },
   },
   {
     name: 'Patrick Joyce',
-    role: 'Co-founder, CEO',
+    role: 'Cofounder, COO',
     src: '/team/joyce.jpeg',
     links: {
       x: 'https://x.com/joycesticks',
       linkedin: 'https://www.linkedin.com/in/patrick-joyce-396b953b/',
-      rh: '/',
+      rh: 'https://www.researchhub.com/author/22',
     },
   },
   {
@@ -44,7 +45,7 @@ export const team: TeamMember[] = [
     links: {
       github: 'https://github.com/yattias',
       linkedin: 'https://www.linkedin.com/in/kobe-attias-5a9a9421/',
-      rh: '/',
+      rh: 'https://www.researchhub.com/author/549103',
     },
   },
   {
@@ -54,17 +55,18 @@ export const team: TeamMember[] = [
     links: {
       github: 'https://github.com/koutst',
       linkedin: 'https://www.linkedin.com/in/taki-k/',
-      rh: '/',
+      rh: 'https://www.researchhub.com/author/990291',
     },
   },
   {
     name: 'Tyler Diorio, PhD',
     role: 'Chief of Staff',
     src: '/team/tyler.png',
+    objectPosition: 'center 10%',
     links: {
       x: 'https://x.com/TylerDiorio',
       linkedin: 'https://www.linkedin.com/in/tyler-diorio-351325aa/',
-      rh: '/',
+      rh: 'https://www.researchhub.com/author/956713',
     },
   },
 ];

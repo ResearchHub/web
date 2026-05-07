@@ -17,7 +17,7 @@ export const pipelineSteps: PipelineStep[] = [
   },
   {
     number: '02',
-    title: 'Open peer critique',
+    title: 'Open peer review',
     description:
       'Qualified domain researchers review preregistered proposals openly, with paid turnaround in under 10 days.',
     imageAlt: 'ResearchHub peer review card',
