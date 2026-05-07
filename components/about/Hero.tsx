@@ -41,15 +41,13 @@ export const Hero = () => (
         className="font-normal tracking-[-0.025em] leading-[1.05] md:leading-[0.98] text-[clamp(34px,8vw,104px)]"
         style={{ textWrap: 'balance' }}
       >
-        You&apos;ve discovered <br className="hidden sm:inline" />
-        the <span className="italic font-light">future</span> of science.
+        Science <span className="italic font-light">Reimagined</span>
       </h1>
 
       <div className="mt-6 md:mt-10 grid md:grid-cols-12 gap-6 md:gap-8 items-end">
         <p className="md:col-span-7 text-base sm:text-[17px] md:text-[20px] leading-[1.6] text-white/95 max-w-2xl">
-          ResearchHub is an online platform designed to enhance the speed and transparency of
-          science — built on a simple premise: that science provides the most benefit when it&apos;s
-          done quickly, openly, and with a high level of rigor and reproducibility.
+          ResearchHub is an online platform designed to accelerate science. It&apos;s built on a
+          simple premise: that science works best when it&apos;s done openly and rigorously.
         </p>
         <div className="md:col-span-5 md:pl-8 pt-5 md:pt-0 md:border-l border-white/25">
           <Eyebrow tone="onDark" className="mb-3">

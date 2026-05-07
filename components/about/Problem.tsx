@@ -44,7 +44,8 @@ export const Problem = () => (
           eyebrow="§ 01 · The problem"
           title={
             <>
-              Science works, <span className="italic font-light text-gray-500">but barely.</span>
+              Science works,{' '}
+              <span className="italic font-light text-gray-500">but could it work better?</span>
             </>
           }
           lead="It's no secret — just ask any scientist. The system is antiquated, and science is suffering as a result. There must be a better way."
