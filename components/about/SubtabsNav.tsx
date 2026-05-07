@@ -16,7 +16,8 @@ interface SubtabsNavProps {
   offset?: number;
 }
 
-const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const prefersReducedMotion = () =>
+  globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export const SubtabsNav = ({ sections, offset = 56 }: SubtabsNavProps) => {
   const [active, setActive] = useState<string>(sections[0]?.id ?? '');
@@ -28,7 +29,7 @@ export const SubtabsNav = ({ sections, offset = 56 }: SubtabsNavProps) => {
     let rafId = 0;
 
     const updateActiveSection = () => {
-      const probeY = window.scrollY + offset + 40;
+      const probeY = globalThis.scrollY + offset + 40;
       let current = ids[0];
       for (const id of ids) {
         const el = document.getElementById(id);
@@ -43,9 +44,9 @@ export const SubtabsNav = ({ sections, offset = 56 }: SubtabsNavProps) => {
     };
 
     updateActiveSection();
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    globalThis.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      globalThis.removeEventListener('scroll', handleScroll);
       cancelAnimationFrame(rafId);
     };
   }, [sections, offset]);
@@ -56,12 +57,12 @@ export const SubtabsNav = ({ sections, offset = 56 }: SubtabsNavProps) => {
       const el = document.getElementById(id);
       if (!el) return;
 
-      const top = el.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({
+      const top = el.getBoundingClientRect().top + globalThis.scrollY - offset;
+      globalThis.scrollTo({
         top,
         behavior: prefersReducedMotion() ? 'auto' : 'smooth',
       });
-      window.history.replaceState(null, '', `#${id}`);
+      globalThis.history.replaceState(null, '', `#${id}`);
     },
     [offset]
   );

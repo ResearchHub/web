@@ -8,8 +8,7 @@ export const FundedAt = () => (
     <AboutContainer>
       <div className="flex flex-col items-center text-center">
         <MonoLabel className="flex items-center gap-3 text-[11px] uppercase tracking-[0.16em] text-gray-500">
-          <span className="h-px w-8 bg-gray-200" />
-          Funding researchers at
+          <span className="h-px w-8 bg-gray-200" /> Funding researchers at{' '}
           <span className="h-px w-8 bg-gray-200" />
         </MonoLabel>
       </div>

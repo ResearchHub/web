@@ -23,13 +23,13 @@ export const JumpLinks = ({ links, offset = NAV_HEIGHT }: JumpLinksProps) => {
       if (!el) return;
 
       event.preventDefault();
-      const top = el.getBoundingClientRect().top + window.scrollY - offset;
-      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      window.scrollTo({
+      const top = el.getBoundingClientRect().top + globalThis.scrollY - offset;
+      const prefersReduced = globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      globalThis.scrollTo({
         top,
         behavior: prefersReduced ? 'auto' : 'smooth',
       });
-      window.history.replaceState(null, '', href);
+      globalThis.history.replaceState(null, '', href);
     },
     [offset]
   );
