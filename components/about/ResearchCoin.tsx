@@ -39,7 +39,7 @@ const useCases: ResearchCoinUseCase[] = [
     title: 'Fund your own research with what you earn',
     body: 'Earn RSC from community contributions, then put it back into your own proposals and bounties.',
     cta: 'Start a proposal',
-    href: '/fund',
+    href: '/fund/proposals',
   },
 ];
 
