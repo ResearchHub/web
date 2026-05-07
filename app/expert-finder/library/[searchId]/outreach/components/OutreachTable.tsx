@@ -1,30 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { Eye } from 'lucide-react';
 import { TableContainer, SortableColumn } from '@/components/ui/Table/TableContainer';
 import { Badge } from '@/components/ui/Badge';
 import { formatTimestamp } from '@/utils/date';
 import type { GeneratedEmail } from '@/types/expertFinder';
-import {
-  getGeneratedEmailStatusPresentation,
-  isGeneratedEmailBounced,
-} from '@/app/expert-finder/lib/generatedEmailStatus';
+import { getGeneratedEmailStatusPresentation } from '@/app/expert-finder/lib/generatedEmailStatus';
 
 function statusCell(email: GeneratedEmail) {
-  const { label, variant } = getGeneratedEmailStatusPresentation(email.status);
-  const showOpened = email.openCount > 0 && !isGeneratedEmailBounced(email.status);
-  return (
-    <div className="flex flex-col items-start gap-1">
-      <Badge variant={variant}>{label}</Badge>
-      {showOpened && (
-        <span className="inline-flex items-center gap-1 text-xs text-gray-500">
-          <Eye className="h-3 w-3" aria-hidden />
-          {email.openCount === 1 ? 'Opened' : `Opened ${email.openCount}x`}
-        </span>
-      )}
-    </div>
-  );
+  const { label, variant } = getGeneratedEmailStatusPresentation(email.status, email.openCount);
+  return <Badge variant={variant}>{label}</Badge>;
 }
 
 const SUBJECT_TRUNCATE_LENGTH = 50;

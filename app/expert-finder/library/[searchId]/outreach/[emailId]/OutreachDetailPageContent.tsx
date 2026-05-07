@@ -268,7 +268,7 @@ export function OutreachDetailPageContent({
 
   const isClosed = isGeneratedEmailClosed(email.status);
   const isSent = email.status === 'sent';
-  const statusPresentation = getGeneratedEmailStatusPresentation(email.status);
+  const statusPresentation = getGeneratedEmailStatusPresentation(email.status, email.openCount);
   const pipelineBusy = isGeneratedEmailPipelineBusy(email.status);
   /** No overflow actions once the message is sent or retired (draft / failed / in-flight still get Preview, etc.). */
   const showOutreachMoreMenu = !isClosed && !isSent;

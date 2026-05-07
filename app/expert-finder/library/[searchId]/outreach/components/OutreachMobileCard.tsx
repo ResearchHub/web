@@ -1,7 +1,6 @@
 'use client';
 
 import type { MouseEvent } from 'react';
-import { Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { formatTimestamp } from '@/utils/date';
@@ -11,10 +10,7 @@ import {
   getTemplateDescription,
 } from '@/app/expert-finder/library/[searchId]/components/GenerateEmailModal';
 import type { GeneratedEmail } from '@/types/expertFinder';
-import {
-  getGeneratedEmailStatusPresentation,
-  isGeneratedEmailBounced,
-} from '@/app/expert-finder/lib/generatedEmailStatus';
+import { getGeneratedEmailStatusPresentation } from '@/app/expert-finder/lib/generatedEmailStatus';
 
 const SUBJECT_TRUNCATE_LENGTH = 50;
 
@@ -43,7 +39,7 @@ export function OutreachMobileCard({
   const subject = truncateSubject(email.emailSubject);
   const templateLabel = getTemplateDisplayLabel(email.template);
   const templateDescription = getTemplateDescription(email.template);
-  const statusPresentation = getGeneratedEmailStatusPresentation(email.status);
+  const statusPresentation = getGeneratedEmailStatusPresentation(email.status, email.openCount);
   const createdByName = email.createdBy?.author?.fullName;
 
   const selectTrailing =
@@ -72,12 +68,6 @@ export function OutreachMobileCard({
         <Badge variant={statusPresentation.variant} size="sm">
           {statusPresentation.label}
         </Badge>
-        {email.openCount > 0 && !isGeneratedEmailBounced(email.status) && (
-          <span className="inline-flex items-center gap-1 text-xs text-gray-500">
-            <Eye className="h-3 w-3" aria-hidden />
-            {email.openCount === 1 ? 'Opened' : `Opened ${email.openCount}x`}
-          </span>
-        )}
         {templateDescription ? (
           <Tooltip content={templateDescription} width="w-72" position="top">
             <span className="text-xs text-gray-500 truncate max-w-[140px] cursor-help underline decoration-dotted decoration-gray-400 underline-offset-1">

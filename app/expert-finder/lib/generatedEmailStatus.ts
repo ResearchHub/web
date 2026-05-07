@@ -22,7 +22,6 @@ export type GeneratedEmailStatusBadgeVariant =
   | 'default'
   | 'primary'
   | 'success'
-  | 'successStrong'
   | 'warning'
   | 'error';
 
@@ -34,10 +33,7 @@ export function getGeneratedEmailStatusPresentation(
   variant: GeneratedEmailStatusBadgeVariant;
 } {
   if (status === 'sent' && openCount > 0) {
-    return {
-      label: openCount === 1 ? 'Opened' : `Opened ${openCount}x`,
-      variant: 'successStrong',
-    };
+    return { label: 'Opened', variant: 'success' };
   }
   switch (status) {
     case 'bounced':
