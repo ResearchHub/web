@@ -9,6 +9,43 @@ export interface LoginApiResponse {
   user?: User;
   token?: string;
   key?: string;
+  mfa_required?: boolean;
+  ephemeral_token?: string;
+}
+
+export interface VerifyMfaApiRequest {
+  ephemeral_token: string;
+  code: string;
+}
+
+export interface VerifyMfaApiResponse {
+  key?: string;
+}
+
+export interface MfaStatusApiResponse {
+  mfa_enabled: boolean;
+  created_at: string | null;
+  last_used_at: string | null;
+}
+
+export interface MfaTotpActivateInitApiResponse {
+  secret: string;
+  totp_url: string;
+  qr_code_data_uri: string;
+  activation_token: string;
+}
+
+export interface MfaTotpActivateConfirmApiRequest {
+  activation_token: string;
+  code: string;
+}
+
+export interface MfaTotpActivateConfirmApiResponse {
+  recovery_codes: string[];
+}
+
+export interface MfaTotpDeactivateApiRequest {
+  code: string;
 }
 
 export interface RegisterApiRequest {

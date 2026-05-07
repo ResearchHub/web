@@ -14,7 +14,7 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import Icon from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import { getOpenBounties, getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
+import { getActiveBounties, getTotalBountyDisplayAmount } from '@/components/Bounty/lib/bountyUtil';
 import { formatCurrency } from '@/utils/currency';
 import { colors } from '@/app/styles/colors';
 
@@ -49,20 +49,21 @@ export const WorkTabs = ({
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate, isLoading: isExchangeRateLoading } = useExchangeRate();
 
-  const formatScore = (score: number): string => {
-    return score.toFixed(1);
-  };
+  const reviewCount = work.peerReviews?.length ?? 0;
 
-  const openBounties = useMemo(() => getOpenBounties(metadata.bounties || []), [metadata.bounties]);
+  const activeBounties = useMemo(
+    () => getActiveBounties(metadata.bounties || []),
+    [metadata.bounties]
+  );
   const { amount: totalBountyAmount } = useMemo(
-    () => getTotalBountyDisplayAmount(openBounties, exchangeRate, showUSD),
-    [openBounties, exchangeRate, showUSD]
+    () => getTotalBountyDisplayAmount(activeBounties, exchangeRate, showUSD),
+    [activeBounties, exchangeRate, showUSD]
   );
 
   const canDisplayBountyAmount =
     !showUSD || (showUSD && !isExchangeRateLoading && exchangeRate > 0);
 
-  const hasOpenBounties = openBounties.length > 0;
+  const hasActiveBounties = activeBounties.length > 0;
 
   const hasResearchHubJournalVersions = useMemo(() => {
     return (work.versions || []).some((version) => version.isResearchHubJournal);
@@ -174,24 +175,6 @@ export const WorkTabs = ({
           },
         ]
       : []),
-    {
-      id: 'conversation',
-      label: (
-        <div className="flex items-center">
-          <MessageCircle className="h-4 w-4 mr-2" />
-          <span>{work.postType === 'QUESTION' ? 'Answers' : 'Conversation'}</span>
-          <span
-            className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
-              activeTab === 'conversation'
-                ? 'bg-primary-100 text-primary-600'
-                : 'bg-gray-100 text-gray-600'
-            }`}
-          >
-            {metadata.metrics.conversationComments || 0}
-          </span>
-        </div>
-      ),
-    },
     // Show Reviews tab only if not a question
     ...(work.postType === 'QUESTION'
       ? []
@@ -213,12 +196,30 @@ export const WorkTabs = ({
                       : 'bg-gray-100 text-gray-600'
                   }`}
                 >
-                  {metadata.metrics.reviewScore ? formatScore(metadata.metrics.reviewScore) : 0}
+                  {reviewCount}
                 </span>
               </div>
             ),
           },
         ]),
+    {
+      id: 'conversation',
+      label: (
+        <div className="flex items-center">
+          <MessageCircle className="h-4 w-4 mr-2" />
+          <span>{work.postType === 'QUESTION' ? 'Answers' : 'Conversation'}</span>
+          <span
+            className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+              activeTab === 'conversation'
+                ? 'bg-primary-100 text-primary-600'
+                : 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            {metadata.metrics.conversationComments || 0}
+          </span>
+        </div>
+      ),
+    },
     {
       id: 'bounties',
       label: (
@@ -236,7 +237,7 @@ export const WorkTabs = ({
                 : 'bg-gray-100 text-gray-600'
             }`}
           >
-            {hasOpenBounties && canDisplayBountyAmount ? (
+            {hasActiveBounties && canDisplayBountyAmount ? (
               <>
                 {!showUSD && (
                   <ResearchCoinIcon

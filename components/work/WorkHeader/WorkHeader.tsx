@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useState } from 'react';
-import { Share, MoreHorizontal } from 'lucide-react';
+import { Share, MoreHorizontal, Lightbulb } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
@@ -19,7 +19,7 @@ import {
   findLatestFoundationBounty,
   getBountyDisplayAmount,
 } from '@/components/Bounty/lib/bountyUtil';
-import { BaseMenu } from '@/components/ui/form/BaseMenu';
+import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { cn } from '@/utils/styles';
 import toast from 'react-hot-toast';
 
@@ -90,6 +90,10 @@ export function WorkHeader({
     closeFundraiseModal,
     confirmFundraiseAction,
     fundraiseModalConfig,
+    showReopenModal,
+    closeReopenModal,
+    confirmReopenFundraise,
+    isReopeningFundraise,
   } = useWorkHeaderMenuItems({
     work,
     metadata,
@@ -113,7 +117,14 @@ export function WorkHeader({
     tab: 'bounties',
   });
 
-  const { setActiveTab } = useWorkTab();
+  const reviewsTabUrl = buildWorkUrl({
+    id: work.id,
+    contentType: work.contentType,
+    slug: work.slug,
+    tab: 'reviews',
+  });
+
+  const { setActiveTab, setMobileSidebarOpen } = useWorkTab();
 
   const shareAction = () =>
     showShareModal({
@@ -129,7 +140,11 @@ export function WorkHeader({
 
   const resolvedEyebrow = eyebrowOverride !== undefined ? eyebrowOverride : defaultEyebrow;
   const resolvedSubtitle =
-    subtitleOverride !== undefined ? subtitleOverride : <WorkHeaderSubtitle work={work} />;
+    subtitleOverride !== undefined ? (
+      subtitleOverride
+    ) : (
+      <WorkHeaderSubtitle work={work} metadata={metadata} reviewsUrl={reviewsTabUrl} />
+    );
 
   const btnClass =
     'p-2 flex items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors';
@@ -153,7 +168,14 @@ export function WorkHeader({
       >
         <FontAwesomeIcon icon={isInList ? faBookmarkSolid : faBookmark} className="h-5 w-5" />
       </button>
-      <button onClick={shareAction} className={btnClass} aria-label="Share">
+      <button
+        onClick={() => setMobileSidebarOpen(true)}
+        className={cn(btnClass, 'lg:hidden')}
+        aria-label="Show insights"
+      >
+        <Lightbulb className="h-5 w-5" />
+      </button>
+      <button onClick={shareAction} className={cn(btnClass, '!hidden lg:!flex')} aria-label="Share">
         <Share className="h-5 w-5" />
       </button>
       <BaseMenu
@@ -164,6 +186,12 @@ export function WorkHeader({
           </button>
         }
       >
+        <div className="lg:hidden">
+          <BaseMenuItem onSelect={shareAction}>
+            <Share className="h-4 w-4 mr-2" />
+            Share
+          </BaseMenuItem>
+        </div>
         {menuItems}
       </BaseMenu>
     </div>
@@ -220,6 +248,10 @@ export function WorkHeader({
         grantId={grantModalProps?.grantId}
         grantAmountUsd={grantModalProps?.grantAmountUsd}
         grantOrganization={grantModalProps?.grantOrganization}
+        showReopenModal={showReopenModal}
+        onCloseReopenModal={closeReopenModal}
+        onConfirmReopen={confirmReopenFundraise}
+        isReopeningFundraise={isReopeningFundraise}
       />
     </>
   );

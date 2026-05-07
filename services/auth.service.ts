@@ -5,6 +5,13 @@ import {
   type RegisterApiRequest,
   type CheckAccountApiResponse,
   type PasswordResetConfirmRequest,
+  type VerifyMfaApiRequest,
+  type VerifyMfaApiResponse,
+  type MfaStatusApiResponse,
+  type MfaTotpActivateInitApiResponse,
+  type MfaTotpActivateConfirmApiRequest,
+  type MfaTotpActivateConfirmApiResponse,
+  type MfaTotpDeactivateApiRequest,
   ApiError,
 } from './types';
 import type { User } from '@/types/user';
@@ -88,6 +95,45 @@ export class AuthService {
 
       throw new ApiError('Password reset confirmation failed', 500);
     }
+  }
+
+  static async verifyMfa(data: VerifyMfaApiRequest) {
+    try {
+      return await ApiClient.post<VerifyMfaApiResponse>(`${this.BASE_PATH}/auth/mfa/verify/`, data);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        const errorValues = Object.values(error.errors as Record<string, string[]>)?.[0];
+        const errorMessage = Array.isArray(errorValues)
+          ? errorValues[0]
+          : typeof errorValues === 'string'
+            ? errorValues
+            : 'MFA verification failed';
+        throw new ApiError(errorMessage, error.status, error.errors);
+      }
+
+      throw new ApiError('MFA verification failed', 500);
+    }
+  }
+
+  static async getMfaStatus() {
+    return ApiClient.get<MfaStatusApiResponse>(`${this.BASE_PATH}/auth/mfa/status/`);
+  }
+
+  static async initMfaSetup() {
+    return ApiClient.get<MfaTotpActivateInitApiResponse>(
+      `${this.BASE_PATH}/auth/mfa/totp/activate/`
+    );
+  }
+
+  static async activateMfa(data: MfaTotpActivateConfirmApiRequest) {
+    return ApiClient.post<MfaTotpActivateConfirmApiResponse>(
+      `${this.BASE_PATH}/auth/mfa/totp/activate/`,
+      data
+    );
+  }
+
+  static async deactivateMfa(data: MfaTotpDeactivateApiRequest) {
+    return ApiClient.post<{ detail: string }>(`${this.BASE_PATH}/auth/mfa/totp/deactivate/`, data);
   }
 
   static async getUser() {

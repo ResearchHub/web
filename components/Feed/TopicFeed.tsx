@@ -51,6 +51,7 @@ export const TopicFeed: FC<TopicFeedProps> = ({ defaultTab }) => {
 
   return (
     <PageLayout>
+      {hub && <h1 className="sr-only">{hub.name}</h1>}
       <FeedContent
         entries={entries}
         isLoading={isLoading}

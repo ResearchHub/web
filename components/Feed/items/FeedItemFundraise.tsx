@@ -15,7 +15,9 @@ import { Button } from '@/components/ui/Button';
 import { ContributeToFundraiseModal } from '@/components/modals/ContributeToFundraiseModal';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { FeedItemFundingBadges } from '@/components/Feed/FeedItemFundingBadges';
-import { Pin, ArrowRight } from 'lucide-react';
+import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { Pin, ArrowRight, Star } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { buildWorkUrl } from '@/utils/url';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
@@ -62,6 +64,8 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
     entry.raw?.is_nonprofit === true && post.contentType === 'PREREGISTRATION' && post.fundraise;
 
   const primaryAuthor = post.authors?.[0];
+  const reviewScore = entry.metrics?.reviewScore;
+  const hasReviewScore = reviewScore !== undefined && reviewScore > 0;
 
   const fundingPageUrl =
     href ||
@@ -120,11 +124,10 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                 fullSizeImageUrl={imageUrl}
                 alt={post.title || 'Fundraise image'}
                 naturalDimensions
-                previewOnClick={true}
+                previewOnClick={false}
               />
-              <div className="absolute top-2 left-2">
+              <div className="absolute top-2 left-2 flex items-center gap-1.5">
                 <FeedItemFundingBadges
-                  reviewScore={entry.metrics?.reviewScore}
                   reviews={post.reviews}
                   href={fundingPageUrl}
                   isNonprofit={!!isNonprofit}
@@ -233,6 +236,30 @@ export const FeedItemFundraise: FC<FeedItemFundraiseProps> = ({
                       totalItemsCount={fundraise.contributors.numContributors}
                       extraCountLabel="Backers"
                     />
+                  </div>
+                )}
+
+                {hasReviewScore && (
+                  <div className="hidden sm:flex flex-col leading-tight whitespace-nowrap">
+                    <span className="text-xs text-gray-500 uppercase tracking-wide">
+                      Peer Review
+                    </span>
+                    <Tooltip
+                      content={
+                        <PeerReviewTooltip
+                          reviews={post.reviews ?? []}
+                          averageScore={reviewScore!}
+                          href={fundingPageUrl}
+                        />
+                      }
+                      position="top"
+                      width="w-[320px]"
+                    >
+                      <span className="inline-flex items-center gap-1 text-xl font-semibold text-gray-900 cursor-help">
+                        <Star size={18} className="fill-amber-400 text-amber-400" />
+                        {reviewScore!.toFixed(1)}
+                      </span>
+                    </Tooltip>
                   </div>
                 )}
               </div>

@@ -9,7 +9,9 @@ export interface GetActivityParams {
   page?: number;
   pageSize?: number;
   documentType?: ActivityDocumentType;
+  contentType?: string;
   grantId?: number | string;
+  funderId?: number | string;
   scope?: ActivityScope;
 }
 
@@ -20,13 +22,16 @@ export class ActivityService {
   static async getActivity(params?: GetActivityParams): Promise<{
     entries: FeedEntry[];
     hasMore: boolean;
+    count: number;
   }> {
     const pageSize = params?.pageSize ?? this.DEFAULT_PAGE_SIZE;
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
     queryParams.append('page_size', pageSize.toString());
     if (params?.documentType) queryParams.append('document_type', params.documentType);
+    if (params?.contentType) queryParams.append('content_type', params.contentType);
     if (params?.grantId) queryParams.append('grant_id', params.grantId.toString());
+    if (params?.funderId) queryParams.append('funder_id', params.funderId.toString());
     if (params?.scope) queryParams.append('scope', params.scope);
 
     const qs = queryParams.toString();
@@ -44,10 +49,10 @@ export class ActivityService {
         })
         .filter((e): e is FeedEntry => e !== null);
 
-      return { entries, hasMore: !!response.next };
+      return { entries, hasMore: !!response.next, count: response.count ?? entries.length };
     } catch (error) {
       console.error('Error fetching activity feed:', error);
-      return { entries: [], hasMore: false };
+      return { entries: [], hasMore: false, count: 0 };
     }
   }
 }

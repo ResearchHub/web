@@ -36,12 +36,12 @@ export const isActiveBounty = (bounty: Bounty): boolean => {
 };
 
 /**
- * Filters an array of bounties to only include open bounties
+ * Filters an array of bounties to only include active bounties (OPEN or ASSESSMENT)
  * @param bounties Array of bounties to filter
- * @returns Array of open bounties
+ * @returns Array of active bounties
  */
-export const getOpenBounties = (bounties: Bounty[]): Bounty[] => {
-  return bounties.filter(isOpenBounty);
+export const getActiveBounties = (bounties: Bounty[]): Bounty[] => {
+  return bounties.filter(isActiveBounty);
 };
 
 /**
@@ -54,12 +54,12 @@ export const getClosedBounties = (bounties: Bounty[]): Bounty[] => {
 };
 
 /**
- * Counts the number of open bounties in an array
+ * Counts the number of active bounties (OPEN or ASSESSMENT) in an array
  * @param bounties Array of bounties to count
- * @returns Number of open bounties
+ * @returns Number of active bounties
  */
-export const countOpenBounties = (bounties: Bounty[]): number => {
-  return getOpenBounties(bounties).length;
+export const countActiveBounties = (bounties: Bounty[]): number => {
+  return getActiveBounties(bounties).length;
 };
 
 /**
@@ -78,15 +78,6 @@ export const countClosedBounties = (bounties: Bounty[]): number => {
  */
 export const calculateTotalBountyAmount = (bounties: Bounty[]): number => {
   return bounties.reduce((sum, bounty) => sum + parseFloat(bounty.amount), 0);
-};
-
-/**
- * Calculates the total amount of open bounties in an array
- * @param bounties Array of bounties to sum
- * @returns Total amount of open bounties as a number
- */
-export const calculateOpenBountiesAmount = (bounties: Bounty[]): number => {
-  return getOpenBounties(bounties).reduce((sum, bounty) => sum + parseFloat(bounty.amount), 0);
 };
 
 /**

@@ -34,19 +34,15 @@ export function buildOpenGraphMetadata(data: OpenGraphData): Metadata {
     url,
     type = 'website',
     publishedTime,
-    modifiedTime,
-    expirationTime,
     authors,
     tags,
-    section,
     determiner,
     locale = SITE_CONFIG.locale,
   } = data;
 
-  // Practice #2: Keep titles under 55-60 characters, descriptions under 60-65 characters
   const truncatedTitle = title.length > 60 ? title.substring(0, 57) + '...' : title;
   const truncatedDescription =
-    description.length > 65 ? description.substring(0, 62) + '...' : description;
+    description.length > 155 ? description.substring(0, 152) + '...' : description;
 
   // Use dynamic OG image generation if no custom image is provided
   const ogImage =
@@ -62,17 +58,12 @@ export function buildOpenGraphMetadata(data: OpenGraphData): Metadata {
       canonical: fullUrl,
     },
     openGraph: {
-      // Practice #1: Specify content type
       type,
-      // Practice #7: Use unique locale
       locale,
-      // Practice #5: Canonical URL
       url: fullUrl,
-      // Practice #6: Site name for brand consistency
       siteName: SITE_CONFIG.name,
       title: truncatedTitle,
       description: truncatedDescription,
-      // Practice #3 & #4: High-quality images with dimensions
       images: [
         {
           url: ogImage,
@@ -81,16 +72,11 @@ export function buildOpenGraphMetadata(data: OpenGraphData): Metadata {
           alt: truncatedTitle,
         },
       ],
-      // Practice #9: Include updated time
       ...(publishedTime && { publishedTime }),
-      ...(modifiedTime && { modifiedTime }),
-      ...(expirationTime && { expirationTime }),
       ...(authors && { authors }),
       ...(tags && { tags }),
-      ...(section && { section }),
       ...(determiner && { determiner }),
     },
-    // Practice #14: Leverage Twitter Cards
     twitter: {
       card: 'summary_large_image',
       title: truncatedTitle,
@@ -110,8 +96,15 @@ export function buildArticleMetadata(
     section?: string;
   }
 ): Metadata {
-  return buildOpenGraphMetadata({
-    ...data,
-    type: 'article',
-  });
+  const base = buildOpenGraphMetadata({ ...data, type: 'article' });
+
+  const articleMeta: Record<string, string> = {};
+  if (data.modifiedTime) articleMeta['article:modified_time'] = data.modifiedTime;
+  if (data.expirationTime) articleMeta['article:expiration_time'] = data.expirationTime;
+  if (data.section) articleMeta['article:section'] = data.section;
+
+  return {
+    ...base,
+    other: Object.keys(articleMeta).length > 0 ? articleMeta : undefined,
+  };
 }

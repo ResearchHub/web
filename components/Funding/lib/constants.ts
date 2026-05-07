@@ -31,11 +31,18 @@ export const METHODS_WITH_PROCESSING_FEE: PaymentMethodType[] = [
 ];
 
 /**
+ * RSC-based payment methods (spendable balance or earned funding credits).
+ * Used to decide when the contribution is settled in RSC rather than via Stripe.
+ */
+export const RSC_PAYMENT_METHODS: PaymentMethodType[] = ['rsc', 'funding_credits'];
+
+/**
  * Per-method platform fee percentages.
  * RSC payments have a lower fee; credit card / wallet methods have a higher fee.
  */
 export const PAYMENT_FEES = {
   rsc: PLATFORM_FEE_PERCENTAGE_RSC,
+  funding_credits: PLATFORM_FEE_PERCENTAGE_RSC,
   credit_card: PLATFORM_FEE_PERCENTAGE_CARD,
   apple_pay: PLATFORM_FEE_PERCENTAGE_CARD,
   google_pay: PLATFORM_FEE_PERCENTAGE_CARD,
@@ -48,6 +55,7 @@ export const PAYMENT_FEES = {
  */
 export type PaymentMethodType =
   | 'rsc'
+  | 'funding_credits'
   | 'credit_card'
   | 'endaoment'
   | 'apple_pay'
@@ -65,6 +73,7 @@ export const HIDDEN_PAYMENT_METHODS: PaymentMethodType[] = ['paypal'];
  */
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethodType, string> = {
   rsc: 'ResearchCoin',
+  funding_credits: 'Funding Credits',
   credit_card: 'Credit Card',
   endaoment: 'Endaoment',
   apple_pay: 'Apple Pay',

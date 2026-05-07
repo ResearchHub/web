@@ -8,7 +8,7 @@ import { FeedItemHeader } from '@/components/Feed/FeedItemHeader';
 import { FeedItemActions } from '@/components/Feed/FeedItemActions';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
 import { ContentType } from '@/types/work';
-import { Pen, Trash2, CheckCircle } from 'lucide-react';
+import { Pen, Trash2, CheckCircle, Star } from 'lucide-react';
 import { ContentTypeBadge } from '@/components/ui/ContentTypeBadge';
 import { RelatedWorkCard } from '@/components/Paper/RelatedWorkCard';
 import { Avatar } from '@/components/ui/Avatar';
@@ -115,7 +115,10 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
 
   // Check if current user is the comment author to prevent self-tipping
   const isCurrentUserAuthor = user?.authorProfile?.id === author?.id;
-  const isAwardedByFoundation = entry.awardedBountyAmount && entry.awardedBountyAmount > 0;
+  const aiReviewUserId = process.env.NEXT_PUBLIC_AI_REVIEW_USER_ID;
+  const isAiReviewer =
+    aiReviewUserId != null && String(author?.user?.id ?? '') === String(aiReviewUserId);
+  const isAssessedByFoundation = Boolean(entry.isAssessed ?? comment.isAssessed) && !isAiReviewer;
 
   const menuItems = [];
   if (showCreatorActions) {
@@ -180,10 +183,31 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
         onFeedItemClick={onFeedItemClick}
       >
         {isReview && (
-          <div className="flex items-center gap-2 mb-3">
-            <ContentTypeBadge type="review" />
-            {isAwardedByFoundation &&
-              (entry.isAwardedForFoundationBounty ? (
+          <div className="flex items-center justify-between flex-wrap gap-x-3 gap-y-2 mb-3">
+            {reviewScore > 0 && !isRemoved ? (
+              <div className="flex items-center gap-1.5">
+                <span className="hidden sm:inline text-xs font-medium text-gray-500">
+                  Overall Score
+                </span>
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-4 w-4 ${
+                        i < reviewScore
+                          ? 'fill-amber-500 text-amber-500'
+                          : 'fill-none text-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <span />
+            )}
+            <div className="flex items-center gap-2">
+              <ContentTypeBadge type="review" />
+              {isAssessedByFoundation && (
                 <Tooltip
                   content={
                     <div className="flex items-start gap-3 text-left">
@@ -196,16 +220,8 @@ export const FeedItemComment: FC<FeedItemCommentProps> = ({
                 >
                   {renderAwardedBadge()}
                 </Tooltip>
-              ) : (
-                renderAwardedBadge()
-              ))}
-          </div>
-        )}
-
-        {isReview && reviewScore > 0 && !isRemoved && (
-          <div className="mb-4 text-gray-700 text-sm mt-0.5">
-            <span className="font-medium">Review score: </span>
-            <span className="text-yellow-500 font-medium">{reviewScore}/5</span>
+              )}
+            </div>
           </div>
         )}
 

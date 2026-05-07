@@ -22,6 +22,65 @@ interface UniversityApiResponse {
   results: University[];
 }
 
+/**
+ * Per-balance-lot staking detail. Each lot tracks a chunk of stake with its own age
+ * and multiplier progression (the longer it's been staked, the higher the multiplier).
+ */
+export interface StakingBalanceLot {
+  amount: number;
+  createdDate: string;
+  effectiveStartDate: string;
+  ageDays: number;
+  currentMultiplier: number;
+  nextMultiplier: number | null;
+  daysUntilNextMultiplier: number | null;
+  nextMultiplierDate: string | null;
+  projectedOverallMultiplier: number | null;
+}
+
+export interface StakingYieldDetails {
+  isStakingOptedIn: boolean;
+  stakingOptedInDate: string | null;
+  currentStake: number;
+  currentMultiplier: number;
+  currentWeightedStake: number;
+  totalYieldEarned: number;
+  latestAccrualDate: string | null;
+  apy: number;
+  balanceLots: StakingBalanceLot[];
+}
+
+function transformStakingBalanceLot(raw: any): StakingBalanceLot {
+  return {
+    amount: parseFloat(raw.amount),
+    createdDate: raw.created_date,
+    effectiveStartDate: raw.effective_start_date,
+    ageDays: raw.age_days,
+    currentMultiplier: parseFloat(raw.current_multiplier),
+    nextMultiplier: raw.next_multiplier == null ? null : parseFloat(raw.next_multiplier),
+    daysUntilNextMultiplier: raw.days_until_next_multiplier,
+    nextMultiplierDate: raw.next_multiplier_date,
+    projectedOverallMultiplier:
+      raw.projected_overall_multiplier == null
+        ? null
+        : parseFloat(raw.projected_overall_multiplier),
+  };
+}
+
+function transformStakingYieldDetails(raw: any): StakingYieldDetails {
+  return {
+    isStakingOptedIn: raw.is_staking_opted_in,
+    stakingOptedInDate: raw.staking_opted_in_date,
+    currentStake: parseFloat(raw.current_stake),
+    currentMultiplier: parseFloat(raw.current_multiplier),
+    currentWeightedStake: parseFloat(raw.current_weighted_stake),
+    totalYieldEarned: parseFloat(raw.total_yield_earned),
+    latestAccrualDate: raw.latest_accrual_date,
+    apy: raw.apy,
+    balanceLots: (raw.balance_lots ?? []).map(transformStakingBalanceLot),
+  };
+}
+
 export class UserService {
   /**
    * Get author profile information using the profile ID
@@ -73,6 +132,32 @@ export class UserService {
       console.error(`Error fetching user details for ID ${userId}:`, error);
       throw error;
     }
+  }
+
+  /**
+   * Update the user's RSC staking opt-in preference
+   */
+  static async updateStakingOptIn(isOptedIn: boolean): Promise<User> {
+    const response = await ApiClient.patch<any>(`/api/user/set_staking_opted_in/`, {
+      is_staking_opted_in: isOptedIn,
+    });
+    return transformUser(response);
+  }
+
+  /**
+   * Get staking yield details for the current user (APY, current stake, total yield earned, balance lots, etc).
+   */
+  static async getStakingYieldDetails(): Promise<StakingYieldDetails> {
+    const response = await ApiClient.get<any>(`/api/staking_yield/details/`);
+    return transformStakingYieldDetails(response);
+  }
+
+  /**
+   * Notify the backend that the user has clicked the RSC icon,
+   * resetting the balance_history delta to 0.
+   */
+  static async updateBalanceHistoryClicked(): Promise<void> {
+    await ApiClient.post<void>(`/api/user/update_balance_history_clicked/`);
   }
 
   /**

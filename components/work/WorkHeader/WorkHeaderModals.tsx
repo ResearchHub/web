@@ -8,6 +8,7 @@ import { TipContentModal } from '@/components/modals/TipContentModal';
 import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { WorkEditModal } from '../WorkEditModal';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
+import { ReopenFundraiseModal } from '@/components/modals/ReopenFundraiseModal';
 
 export interface FundraiseModalConfig {
   title: string;
@@ -38,6 +39,10 @@ export interface WorkHeaderModalsProps {
   grantId?: string;
   grantAmountUsd?: number;
   grantOrganization?: string;
+  showReopenModal?: boolean;
+  onCloseReopenModal?: () => void;
+  onConfirmReopen?: (durationDays: number) => void;
+  isReopeningFundraise?: boolean;
 }
 
 export function WorkHeaderModals({
@@ -61,6 +66,10 @@ export function WorkHeaderModals({
   grantId,
   grantAmountUsd,
   grantOrganization,
+  showReopenModal = false,
+  onCloseReopenModal,
+  onConfirmReopen,
+  isReopeningFundraise = false,
 }: WorkHeaderModalsProps) {
   return (
     <>
@@ -103,6 +112,14 @@ export function WorkHeaderModals({
         confirmButtonClass={fundraiseModalConfig.confirmButtonClass}
         cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
       />
+      {onCloseReopenModal && onConfirmReopen && (
+        <ReopenFundraiseModal
+          isOpen={showReopenModal}
+          onClose={onCloseReopenModal}
+          onConfirm={onConfirmReopen}
+          isLoading={isReopeningFundraise}
+        />
+      )}
       {grantId && onCloseApplyToGrantModal && (
         <ApplyToGrantModal
           isOpen={isApplyToGrantModalOpen}
