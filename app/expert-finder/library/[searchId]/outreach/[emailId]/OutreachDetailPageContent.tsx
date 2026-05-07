@@ -377,6 +377,13 @@ export function OutreachDetailPageContent({
                 Bounced on {formatExactTime(email.bouncedAt)}
               </span>
             )}
+            {!isGeneratedEmailBounced(email.status) && email.openCount > 0 && email.openedAt && (
+              <span className="text-xs text-gray-500">
+                {email.openCount === 1
+                  ? `Opened on ${formatExactTime(email.openedAt)}`
+                  : `Opened ${email.openCount} times, first on ${formatExactTime(email.openedAt)}`}
+              </span>
+            )}
             {isDraftLike && (
               <Button
                 variant="default"
