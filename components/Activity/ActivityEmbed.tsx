@@ -9,6 +9,7 @@ import {
   Link as LinkIcon,
   Linkedin,
 } from 'lucide-react';
+import { URL_REGEX, trimUrlTrailingPunctuation } from '@/utils/url';
 
 export type EmbedKind = 'youtube' | 'tiktok' | 'x' | 'linkedin' | 'webpage';
 
@@ -20,14 +21,12 @@ export interface DetectedEmbed {
   tweetId?: string;
 }
 
-const URL_REGEX = /https?:\/\/[^\s<>"'`)]+/gi;
-
 export function extractFirstEmbed(text: string): DetectedEmbed | null {
   if (!text) return null;
   const matches = text.match(URL_REGEX);
   if (!matches) return null;
   for (const raw of matches) {
-    const url = raw.replace(/[.,;:!?)\]]+$/, '');
+    const url = trimUrlTrailingPunctuation(raw);
     const detected = classifyUrl(url);
     if (detected) return detected;
   }
@@ -182,7 +181,7 @@ const EmbedCard: FC<CardProps> = ({
   const effectiveImage = embed.kind === 'linkedin' ? undefined : image;
   const favicon = !effectiveImage && !brand ? faviconFor(embed.url) : undefined;
   const thumbNode = (
-    <div className="relative w-32 h-24 shrink-0 bg-gray-100">
+    <div className="relative w-32 shrink-0 bg-gray-100">
       {effectiveImage ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -260,7 +259,7 @@ const EmbedCard: FC<CardProps> = ({
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden bg-white max-w-xl">
-      <div className="flex w-full items-stretch">
+      <div className="flex w-full items-stretch h-32">
         {clickable}
         <div className="flex items-start gap-1 p-2 shrink-0">
           {expandable ? (

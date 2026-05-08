@@ -55,9 +55,9 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
     notFound();
   }
 
-  const [metadata, authorUpdates] = await Promise.all([
+  const [metadata, authorPosts] = await Promise.all([
     MetadataService.get(work.unifiedDocumentId?.toString() || ''),
-    CommentService.fetchAuthorUpdates({
+    CommentService.fetchAuthorPosts({
       documentId: work.id,
       contentType: work.contentType,
     }),
@@ -67,7 +67,7 @@ export default async function ProposalSlugLayout({ params, children }: Props) {
     <WorkTabProvider>
       <PageLayout
         topBanner={
-          <WorkHeaderProposal work={work} metadata={metadata} updatesCount={authorUpdates.length} />
+          <WorkHeaderProposal work={work} metadata={metadata} updatesCount={authorPosts.length} />
         }
         rightSidebar={<ProposalSidebar work={work} metadata={metadata} />}
       >

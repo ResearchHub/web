@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -9,32 +9,45 @@ import { TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
+import { AuthorPosts } from '@/components/Activity/AuthorPosts';
+import { PostVideoCallout } from './components/PostVideoCallout';
 import { useStorageKey } from '@/utils/storageKeys';
 import { useUser } from '@/contexts/UserContext';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
-import { useShareModalContext } from '@/contexts/ShareContext';
+import { NewlyCreatedProposalModal } from '@/components/modals/NewlyCreatedProposalModal';
 import { useWorkTab } from './WorkHeader/WorkTabContext';
 
 interface FundDocumentProps {
   work: Work;
   metadata: WorkMetadata;
   content?: string;
-  authorUpdates?: Comment[];
+  authorPosts?: Comment[];
 }
 
-export const FundDocument = ({
-  work,
-  metadata,
-  content,
-  authorUpdates = [],
-}: FundDocumentProps) => {
+export const FundDocument = ({ work, metadata, content, authorPosts = [] }: FundDocumentProps) => {
   const { activeTab } = useWorkTab();
   const storageKey = useStorageKey('rh-comments');
   const { user } = useUser();
-  const { showShareModal } = useShareModalContext();
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const [isProposalVideoModalOpen, setIsProposalVideoModalOpen] = useState(false);
+  const [videoModalInitialStep, setVideoModalInitialStep] = useState<1 | 2>(1);
+  // Whether the author has dismissed the rich "Show funders who you are" CTA.
+  // Hydrated from localStorage in the effect below; the brief flash on first
+  // paint is acceptable for a one-line CTA shown only to the author.
+  const [isVideoCtaDismissed, setIsVideoCtaDismissed] = useState(false);
+
+  // Two independent flags, intentionally separate keys:
+  //   - cta-dismissed: hides the inline PostVideoCallout. Only set when the
+  //     author explicitly clicks the X on the callout. A new post implicitly
+  //     hides it via `authorPosts.length === 0` flipping false.
+  //   - modal-seen: suppresses re-auto-opening the NewlyCreatedProposalModal
+  //     on subsequent ?new=true visits. Set whenever the modal is closed.
+  // Closing the modal must NOT touch the cta-dismissed flag — the callout
+  // sticks around until the author posts or explicitly dismisses it.
+  const videoCtaDismissKey = `proposal-video-cta-dismissed:${work.id}`;
+  const videoModalSeenKey = `proposal-video-modal-seen:${work.id}`;
 
   // Check if current user is an author of the work
   const isCurrentUserAuthor = useMemo(() => {
@@ -45,20 +58,52 @@ export const FundDocument = ({
   }, [user?.id, work.authors]);
 
   useEffect(() => {
+    try {
+      setIsVideoCtaDismissed(!!localStorage.getItem(videoCtaDismissKey));
+    } catch {
+      // localStorage unavailable (private mode, etc.) — non-fatal.
+    }
+  }, [videoCtaDismissKey]);
+
+  useEffect(() => {
     const newParam = searchParams.get('new');
     if (newParam === 'true') {
-      showShareModal({
-        action: 'USER_OPENED_PROPOSAL',
-        docTitle: work.title,
-        url: `${window.location.origin}${pathname}`,
-        shouldShowConfetti: true,
-      });
+      if (!localStorage.getItem(videoModalSeenKey)) {
+        setVideoModalInitialStep(1);
+        setIsProposalVideoModalOpen(true);
+      }
 
       const url = new URL(window.location.href);
       url.searchParams.delete('new');
       router.replace(url.pathname + url.search, { scroll: false });
     }
-  }, [searchParams, router, pathname, work.title, showShareModal]);
+  }, [searchParams, router, pathname, videoModalSeenKey]);
+
+  const persistVideoCtaDismissal = () => {
+    try {
+      localStorage.setItem(videoCtaDismissKey, `dismissed:${new Date().toISOString()}`);
+    } catch {
+      // localStorage unavailable (private mode, etc.) — non-fatal.
+    }
+    setIsVideoCtaDismissed(true);
+  };
+
+  const handleCloseProposalVideoModal = () => {
+    setIsProposalVideoModalOpen(false);
+    // Mark the modal as seen so it doesn't auto-open on later ?new=true
+    // visits — but DO NOT hide the callout. The callout only goes away when
+    // the author posts or explicitly clicks its X.
+    try {
+      localStorage.setItem(videoModalSeenKey, `seen:${new Date().toISOString()}`);
+    } catch {
+      // localStorage unavailable (private mode, etc.) — non-fatal.
+    }
+  };
+
+  const handleShowVideoGuide = () => {
+    setVideoModalInitialStep(2);
+    setIsProposalVideoModalOpen(true);
+  };
 
   // Render tab content based on activeTab
   const renderTabContent = useMemo(() => {
@@ -92,8 +137,33 @@ export const FundDocument = ({
                   fundraiseTitle={work.title}
                   work={work}
                   onContribute={() => {}}
+                  // Match the gray border used by AuthorPosts and PostBlockEditor
+                  // on this page; the component's own primary-100 default is
+                  // designed for use on backgrounds where the brand tint reads.
+                  className="border-gray-200"
                 />
               </div>
+            )}
+            {/*
+              Render the rich callout *or* the AuthorPosts section, never both.
+              The callout is the empty-state surface for authors who haven't
+              posted yet and haven't dismissed the prompt; once they post or
+              dismiss, the AuthorPosts section takes over with the same
+              "+ New post" affordance in its header.
+            */}
+            {isCurrentUserAuthor && !isVideoCtaDismissed && authorPosts.length === 0 ? (
+              <PostVideoCallout
+                proposalTitle={work.title}
+                onShowGuide={handleShowVideoGuide}
+                onDismiss={persistVideoCtaDismissal}
+              />
+            ) : (
+              <AuthorPosts
+                posts={authorPosts}
+                documentId={work.id}
+                contentType={work.contentType}
+                documentAuthors={work.authors}
+              />
             )}
             {work.previewContent ? (
               <PostBlockEditor content={work.previewContent} />
@@ -187,7 +257,26 @@ export const FundDocument = ({
       default:
         return null;
     }
-  }, [activeTab, work, metadata, content, storageKey, isCurrentUserAuthor]);
+  }, [
+    activeTab,
+    work,
+    metadata,
+    content,
+    storageKey,
+    isCurrentUserAuthor,
+    authorPosts,
+    isVideoCtaDismissed,
+  ]);
 
-  return <div>{renderTabContent}</div>;
+  return (
+    <div>
+      {renderTabContent}
+      <NewlyCreatedProposalModal
+        isOpen={isProposalVideoModalOpen}
+        onClose={handleCloseProposalVideoModal}
+        initialStep={videoModalInitialStep}
+        proposalTitle={work.title}
+      />
+    </div>
+  );
 };

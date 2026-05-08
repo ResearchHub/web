@@ -21,6 +21,31 @@ const ROUTE_SEGMENT_TO_CONTENT_TYPE: Record<string, ContentType> = {
 
 const SUPPORTED_ROUTE_SEGMENTS = Object.keys(ROUTE_SEGMENT_TO_CONTENT_TYPE).join(', ');
 
+/**
+ * Matches an HTTP/HTTPS URL anywhere in a string. Stops at whitespace and a
+ * few characters that commonly bracket URLs in prose. The match may include
+ * trailing punctuation — strip it with `trimUrlTrailingPunctuation` if you
+ * need a clean URL.
+ *
+ * Safe to share across modules for `String.prototype.match` and
+ * `String.prototype.replace`; do not use with `regex.exec` / `matchAll`
+ * without recreating the regex (the `g` flag is stateful in those APIs).
+ */
+export const URL_REGEX = /https?:\/\/[^\s<>"'`)]+/gi;
+
+/**
+ * Strips trailing sentence/parenthesis punctuation that `URL_REGEX` greedily
+ * picks up when a URL appears inline in prose (e.g. "see https://x.com." →
+ * "https://x.com").
+ */
+export const trimUrlTrailingPunctuation = (url: string): string => url.replace(/[.,;:!?)\]]+$/, '');
+
+/**
+ * Removes all HTTP/HTTPS URLs from a text blob. Whitespace left behind is not
+ * collapsed; the caller can normalize as needed.
+ */
+export const stripUrls = (text: string): string => text.replace(URL_REGEX, '');
+
 /** Hostname without leading www. for same-site checks. */
 function hostnameWithoutWww(hostname: string): string {
   const h = hostname.toLowerCase();
