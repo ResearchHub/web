@@ -82,6 +82,43 @@ function abs(maybeUrl: string | undefined, base: string): string | undefined {
   }
 }
 
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: "'",
+  nbsp: ' ',
+};
+
+/**
+ * Decodes HTML entities (named like `&amp;`, decimal like `&#39;`, hex like
+ * `&#x27;`) iteratively so doubly-encoded values (e.g. LinkedIn's
+ * `&amp;#39;` for an apostrophe) collapse to the original character.
+ *
+ * Edge-runtime safe: pure regex + String.fromCodePoint, no DOMParser.
+ */
+function decodeHtmlEntities(input: string | undefined): string | undefined {
+  if (!input) return input;
+  let s = input;
+  for (let i = 0; i < 4; i++) {
+    if (!/&(#x?[0-9a-f]+|[a-z]+);/i.test(s)) break;
+    s = s.replace(/&(#x[0-9a-f]+|#[0-9]+|[a-z]+);/gi, (full, body: string) => {
+      if (body.startsWith('#x') || body.startsWith('#X')) {
+        const code = parseInt(body.slice(2), 16);
+        return Number.isFinite(code) ? String.fromCodePoint(code) : full;
+      }
+      if (body.startsWith('#')) {
+        const code = parseInt(body.slice(1), 10);
+        return Number.isFinite(code) ? String.fromCodePoint(code) : full;
+      }
+      const named = NAMED_ENTITIES[body.toLowerCase()];
+      return named ?? full;
+    });
+  }
+  return s;
+}
+
 async function fetchXOEmbed(url: string): Promise<PreviewResponse | null> {
   try {
     const oembed = `https://publish.twitter.com/oembed?omit_script=true&hide_thread=true&url=${encodeURIComponent(url)}`;
@@ -165,9 +202,16 @@ async function fetchGenericOG(url: string): Promise<PreviewResponse | null> {
     const parsed = new URL(url);
     return {
       url,
-      siteName: meta['og:site_name'] || parsed.hostname.replace(/^www\./, ''),
-      title: meta['og:title'] || meta['twitter:title'] || titleTag || parsed.hostname,
-      description: meta['og:description'] || meta['twitter:description'] || meta['description'],
+      // Decode all human-visible fields. Site authors (notably LinkedIn) often
+      // double-encode special chars in og:title — e.g. `I&amp;#39;ve` for
+      // `I've` — and React would render the entities verbatim otherwise.
+      siteName: decodeHtmlEntities(meta['og:site_name'] || parsed.hostname.replace(/^www\./, '')),
+      title: decodeHtmlEntities(
+        meta['og:title'] || meta['twitter:title'] || titleTag || parsed.hostname
+      ),
+      description: decodeHtmlEntities(
+        meta['og:description'] || meta['twitter:description'] || meta['description']
+      ),
       image: abs(meta['og:image'] || meta['twitter:image'], url),
     };
   } catch {

@@ -2,7 +2,8 @@
 
 import { FC } from 'react';
 import { BookOpen, Eye, ExternalLink, Play } from 'lucide-react';
-import { XEmbedIframe, type DetectedEmbed } from '@/components/Activity/ActivityEmbed';
+import { XEmbedIframe } from '@/components/Embed';
+import type { DetectedUrl } from '@/utils/url';
 import { isExternalKind, isVideoKind } from '../types';
 import { cn } from '@/utils/styles';
 
@@ -28,7 +29,7 @@ export const ReadReviewButton: FC<{ onClick: () => void }> = ({ onClick }) => (
 );
 
 export const EmbedActionButton: FC<{
-  embed: DetectedEmbed;
+  embed: DetectedUrl;
   favicon?: string;
   onPlay: () => void;
 }> = ({ embed, favicon, onPlay }) => {
@@ -87,7 +88,7 @@ export const EmbedActionButton: FC<{
 };
 
 /** Renders the actual provider iframe; sized to fill its parent. */
-export const PlayingIframe: FC<{ embed: DetectedEmbed }> = ({ embed }) => {
+export const PlayingIframe: FC<{ embed: DetectedUrl }> = ({ embed }) => {
   // Stop the parent <Link> from intercepting iframe interaction.
   const stop: React.MouseEventHandler = (e) => e.stopPropagation();
 

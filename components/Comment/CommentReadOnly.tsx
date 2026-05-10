@@ -14,6 +14,8 @@ import { CommentContent } from './lib/types';
 import QuillRenderer from './lib/QuillRenderer';
 import { formatTimeAgo } from '@/utils/date';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { extractDocEmbeds } from './lib/embedDoc';
+import { EmbedCarousel } from '@/components/Embed';
 
 interface CommentReadOnlyProps {
   content: CommentContent;
@@ -73,6 +75,11 @@ export const CommentReadOnly = ({
   const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
 
   const parsedContent = parseContent(content, contentFormat);
+
+  // Embeds derived from the comment doc — surfaced as a carousel below the
+  // body so a single saved comment can show multiple link previews without
+  // breaking the prose flow. Only meaningful for TipTap content.
+  const carouselEmbeds = contentFormat === 'TIPTAP' ? extractDocEmbeds(parsedContent) : [];
 
   const textContent =
     contentFormat === 'TIPTAP'
@@ -238,7 +245,7 @@ export const CommentReadOnly = ({
             {/* Left side: Button or Spacer */}
             {shouldTruncate && showReadMoreButton ? (
               <button
-                className="text-blue-600 hover:text-blue-800 hover:underline text-[inherit] cursor-pointer inline-flex items-center gap-0.5"
+                className="text-blue-600 hover:text-blue-800 hover:underline text-[14px] cursor-pointer inline-flex items-center gap-0.5"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -367,6 +374,13 @@ export const CommentReadOnly = ({
         }
       `}</style>
       {getFormattedContent()}
+      {carouselEmbeds.length > 0 && (
+        // Footer carousel: every URL the comment references gets a card,
+        // even ones that are quoted as "[click here](https://…)". The
+        // component owns its top divider so callers don't need to layout
+        // around it.
+        <EmbedCarousel embeds={carouselEmbeds} size="sm" />
+      )}
     </div>
   );
 };

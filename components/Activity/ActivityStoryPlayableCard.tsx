@@ -3,7 +3,8 @@
 import { FC, useState } from 'react';
 import { ExternalLink, X } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
-import { useLinkPreview, type DetectedEmbed } from '@/components/Activity/ActivityEmbed';
+import { useLinkPreview } from '@/components/Embed';
+import type { DetectedUrl } from '@/utils/url';
 import { formatTimeAgo } from '@/utils/date';
 import { ACCENT, faviconFor, resolveEmbedThumb, type StoryDetails } from './types';
 import { BRAND, PlatformChip } from './lib/ActivityStoryBadges';
@@ -12,7 +13,7 @@ import { cn } from '@/utils/styles';
 
 interface ActivityStoryPlayableCardProps {
   details: StoryDetails;
-  embed: DetectedEmbed;
+  embed: DetectedUrl;
   timestamp: string;
 }
 

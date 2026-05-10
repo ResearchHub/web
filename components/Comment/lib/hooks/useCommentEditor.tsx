@@ -11,9 +11,11 @@ import typescript from 'highlight.js/lib/languages/typescript';
 import python from 'highlight.js/lib/languages/python';
 import { useState, useEffect, useRef } from 'react';
 import { ExitLinkOnSpace } from '../extensions/ExitLinkOnSpace';
+import { RichLinkExtension } from '../extensions/RichLinkExtension';
 import { MentionExtension } from '../MentionExtension';
 import { ReviewExtension } from '../ReviewExtension';
 import { parseContent } from '../commentContentUtils';
+import { normalizeRichLinks } from '../embedDoc';
 import { CommentType } from '@/types/comment';
 import { useCommentDraft } from '../useCommentDraft';
 import { CommentContent } from '../types';
@@ -112,6 +114,11 @@ export const useCommentEditor = ({
         codeBlock: false,
       }),
       Underline,
+      // Listed before Link so its paste handler intercepts standalone URLs
+      // and converts them to inline `richLink` nodes (with favicon + creator
+      // + title rendering and hover preview) instead of letting Link's paste
+      // rule wrap them as plain link marks.
+      RichLinkExtension,
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
@@ -192,22 +199,30 @@ export const useCommentEditor = ({
       isFirstRender.current = false;
 
       if (loadedContent && (!initialContent || initialContent === '')) {
-        // Load content from localStorage
+        // Load content from localStorage. Normalize so any URLs typed into
+        // a previous draft (before the rich-link extension existed) get
+        // upgraded into richLink nodes when the draft is restored.
         if (debug) console.log('Loading content from localStorage:', loadedContent);
-        editor.commands.setContent(loadedContent);
+        editor.commands.setContent(normalizeRichLinks(loadedContent));
       } else if (initialContent) {
-        // If format is HTML, set the content directly
+        // If format is HTML, set the content directly. TipTap's HTML parser
+        // will route any `a[data-type="rich-link"]` tags through the
+        // RichLinkExtension's parseHTML, so already-saved richLinks survive
+        // the round-trip; raw `<a href>` links remain as link marks and get
+        // visually upgraded by the read-only renderer's normalize pass.
         if (format === 'html' && typeof initialContent === 'string') {
           if (debug) console.log('Setting HTML content directly:', initialContent);
           editor.commands.setContent(initialContent);
         } else {
-          // Parse the initial content to ensure it's in the correct format
+          // Parse the initial content to ensure it's in the correct format,
+          // then upgrade URL-only text/links into richLink nodes so editing
+          // an old comment shows the same inline preview as a fresh paste.
           const parsedContent = parseContent(initialContent, 'TIPTAP', debug);
+          const normalized = normalizeRichLinks(parsedContent);
           if (debug)
-            console.log('Setting initial content:', initialContent, 'Parsed:', parsedContent);
+            console.log('Setting initial content:', initialContent, 'Normalized:', normalized);
 
-          // Set initial content if provided
-          editor.commands.setContent(parsedContent);
+          editor.commands.setContent(normalized);
         }
       }
     }

@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FunderHero } from '@/components/Funding/dashboard/FunderHero';
 import { useFunderActivity } from '@/components/Funding/dashboard/hooks/useFunderActivity';
-import { ActivityStoryCarousel } from '@/components/ActivityStory/ActivityStoryCarousel';
+import { ActivityStoryCarousel } from '@/components/Activity/ActivityStoryCarousel';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { FunderService } from '@/services/funder.service';
 import { useFeed } from '@/hooks/useFeed';

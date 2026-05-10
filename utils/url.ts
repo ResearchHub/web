@@ -46,6 +46,87 @@ export const trimUrlTrailingPunctuation = (url: string): string => url.replace(/
  */
 export const stripUrls = (text: string): string => text.replace(URL_REGEX, '');
 
+/**
+ * URL classification primitives. Pure functions / data — no React, no DOM.
+ *
+ * `classifyUrl` looks at a URL and tags it with one of a small set of "kinds"
+ * so callers can decide how to render or handle it (e.g. embed it as a
+ * playable card, render an inline rich link, etc.). The result is intentionally
+ * lightweight (kind + url + a few optional ids) so it can flow through the
+ * codebase as plain JSON.
+ */
+export type UrlKind = 'youtube' | 'tiktok' | 'x' | 'linkedin' | 'webpage';
+
+export interface DetectedUrl {
+  kind: UrlKind;
+  url: string;
+  videoId?: string;
+  linkedinUrn?: string;
+  tweetId?: string;
+}
+
+export function classifyUrl(url: string): DetectedUrl | null {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return null;
+  }
+  const host = u.hostname.replace(/^www\./, '');
+
+  if (host === 'youtube.com' || host === 'm.youtube.com') {
+    const v = u.searchParams.get('v');
+    if (v) return { kind: 'youtube', url, videoId: v };
+    const shorts = u.pathname.match(/^\/shorts\/([\w-]+)/);
+    if (shorts) return { kind: 'youtube', url, videoId: shorts[1] };
+  }
+  if (host === 'youtu.be') {
+    const id = u.pathname.slice(1);
+    if (id) return { kind: 'youtube', url, videoId: id };
+  }
+  if (host.endsWith('tiktok.com')) {
+    const m = u.pathname.match(/\/video\/(\d+)/);
+    if (m) return { kind: 'tiktok', url, videoId: m[1] };
+    return { kind: 'tiktok', url };
+  }
+  if (host === 'x.com' || host === 'twitter.com' || host === 'mobile.twitter.com') {
+    const m = u.pathname.match(/\/status\/(\d+)/);
+    return { kind: 'x', url, tweetId: m ? m[1] : undefined };
+  }
+  if (host === 'linkedin.com' || host.endsWith('.linkedin.com')) {
+    // Two URL shapes carry an activity ID:
+    //   1. `urn:li:activity:1234567890123456789` (shows up in /feed/update/ paths)
+    //   2. `…/posts/<slug>-1234567890123456789-XYZA?…` (default share URL)
+    // Try the explicit `activity[-:]` form first; fall back to the trailing
+    // `-DIGITS-` segment used in /posts/ slugs (15–25 digits, then `-suffix`
+    // or path/query terminator).
+    const activityMatch =
+      url.match(/activity[-:](\d{15,25})/) || url.match(/-(\d{15,25})(?=-|\/|\?|#|$)/);
+    return {
+      kind: 'linkedin',
+      url,
+      linkedinUrn: activityMatch ? activityMatch[1] : undefined,
+    };
+  }
+  return { kind: 'webpage', url };
+}
+
+/**
+ * Scans `text` for the first URL and returns it as a `DetectedUrl`, trimming
+ * trailing prose punctuation. Returns `null` if no classifiable URL is found.
+ */
+export function extractFirstUrl(text: string): DetectedUrl | null {
+  if (!text) return null;
+  const matches = text.match(URL_REGEX);
+  if (!matches) return null;
+  for (const raw of matches) {
+    const url = trimUrlTrailingPunctuation(raw);
+    const detected = classifyUrl(url);
+    if (detected) return detected;
+  }
+  return null;
+}
+
 /** Hostname without leading www. for same-site checks. */
 function hostnameWithoutWww(hostname: string): string {
   const h = hostname.toLowerCase();

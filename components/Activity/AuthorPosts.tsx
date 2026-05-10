@@ -10,11 +10,8 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 import { Carousel } from '@/components/ui/Carousel';
 import { CommentEditor } from '@/components/Comment/CommentEditor';
-import {
-  ActivityEmbed,
-  extractFirstEmbed,
-  type DetectedEmbed,
-} from '@/components/Activity/ActivityEmbed';
+import { Embed } from '@/components/Embed';
+import { extractFirstUrl, type DetectedUrl } from '@/utils/url';
 import { Comment } from '@/types/comment';
 import { Authorship, ContentType } from '@/types/work';
 import { extractTextFromTipTap, parseContent } from '@/components/Comment/lib/commentContentUtils';
@@ -203,13 +200,13 @@ interface AuthorPostsProps {
 
 interface EmbeddedPost {
   comment: Comment;
-  embed: DetectedEmbed;
+  embed: DetectedUrl;
 }
 
-const extractEmbedFromComment = (comment: Comment): DetectedEmbed | null => {
+const extractEmbedFromComment = (comment: Comment): DetectedUrl | null => {
   const text =
     typeof comment.content === 'string' ? comment.content : JSON.stringify(comment.content);
-  return extractFirstEmbed(text);
+  return extractFirstUrl(text);
 };
 
 const getCommentSnippet = (comment: Comment, maxLength = 200): string => {
@@ -365,7 +362,7 @@ const EmbeddedPostCard: FC<EmbeddedPostCardProps> = ({ post, onEdit }) => {
       )}
 
       <div className="mt-2">
-        <ActivityEmbed embed={embed} />
+        <Embed embed={embed} />
       </div>
     </article>
   );

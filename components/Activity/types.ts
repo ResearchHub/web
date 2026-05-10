@@ -1,9 +1,4 @@
-import {
-  extractFirstEmbed,
-  type DetectedEmbed,
-  type EmbedKind,
-} from '@/components/Activity/ActivityEmbed';
-import { buildWorkUrl } from '@/utils/url';
+import { buildWorkUrl, extractFirstUrl, type DetectedUrl, type UrlKind } from '@/utils/url';
 import type { FeedEntry, FeedCommentContent } from '@/types/feed';
 
 // ─────────────────── Domain types ───────────────────
@@ -22,7 +17,7 @@ export interface StoryDetails {
   /** review-only */
   score?: number;
   /** update-only */
-  embed?: DetectedEmbed | null;
+  embed?: DetectedUrl | null;
 }
 
 export type Background =
@@ -37,7 +32,7 @@ export const ACCENT: Record<StoryKind, string> = {
 
 // ─────────────────── Embed kind helpers ───────────────────
 
-export function isPlayable(embed: DetectedEmbed | null | undefined): boolean {
+export function isPlayable(embed: DetectedUrl | null | undefined): boolean {
   if (!embed) return false;
   if (embed.kind === 'youtube' && embed.videoId) return true;
   if (embed.kind === 'tiktok' && embed.videoId) return true;
@@ -47,12 +42,12 @@ export function isPlayable(embed: DetectedEmbed | null | undefined): boolean {
   return false;
 }
 
-export function isVideoKind(kind: EmbedKind): boolean {
+export function isVideoKind(kind: UrlKind): boolean {
   return kind === 'youtube' || kind === 'tiktok';
 }
 
 /** "External" = clicking opens a new tab rather than playing inline. */
-export function isExternalKind(kind: EmbedKind): boolean {
+export function isExternalKind(kind: UrlKind): boolean {
   return kind === 'webpage';
 }
 
@@ -85,7 +80,7 @@ export function resolveBackground(details: StoryDetails): Background | undefined
 }
 
 export function resolveEmbedThumb(
-  embed: DetectedEmbed,
+  embed: DetectedUrl,
   preview: { image?: string } | null
 ): string | null {
   if (embed.kind === 'youtube' && embed.videoId) {
@@ -143,7 +138,7 @@ export function transformStoryDetails(entry: FeedEntry): StoryDetails | null {
     author,
     content: c.comment?.content,
     contentFormat: c.comment?.contentFormat,
-    embed: extractFirstEmbed(text),
+    embed: extractFirstUrl(text),
     workTitle: work?.title,
     workImage: work?.image,
     href,

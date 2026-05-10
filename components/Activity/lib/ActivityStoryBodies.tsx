@@ -3,7 +3,7 @@
 import { FC } from 'react';
 import { ExternalLink, Linkedin } from 'lucide-react';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
-import type { DetectedEmbed } from '@/components/Activity/ActivityEmbed';
+import type { DetectedUrl } from '@/utils/url';
 import type { StoryDetails } from '../types';
 import { cn } from '@/utils/styles';
 
@@ -64,7 +64,7 @@ export const UpdateBody: FC<{
 );
 
 /** Inline link chip used inside <UpdateBody> when no full background embed is shown. */
-export const EmbedChip: FC<{ embed: DetectedEmbed; dark?: boolean }> = ({ embed, dark }) => {
+export const EmbedChip: FC<{ embed: DetectedUrl; dark?: boolean }> = ({ embed, dark }) => {
   let host = '';
   try {
     host = new URL(embed.url).hostname.replace(/^www\./, '');

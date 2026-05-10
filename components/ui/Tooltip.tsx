@@ -17,6 +17,13 @@ interface TooltipProps {
   width?: string; // Width class for the tooltip (e.g., 'w-38', 'w-80', 'w-96')
   /** When true, disable the tap-to-open behavior on touch devices (tooltip won't show at all there). */
   disableTouchClick?: boolean;
+  /**
+   * When true, the tooltip closes as soon as the user clicks anywhere inside
+   * its content. Useful for popover-style tooltips whose content contains
+   * primary actions (e.g. an embed card that opens a modal on click) — the
+   * tooltip should yield to the action surface rather than linger on top of it.
+   */
+  closeOnContentClick?: boolean;
 }
 
 const TooltipContent = ({
@@ -28,6 +35,7 @@ const TooltipContent = ({
   width = 'w-38',
   onMouseEnter,
   onMouseLeave,
+  onContentClick,
 }: {
   content: React.ReactNode;
   triggerRect: DOMRect | null;
@@ -37,6 +45,7 @@ const TooltipContent = ({
   width?: string;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  onContentClick?: () => void;
 }) => {
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
@@ -105,6 +114,14 @@ const TooltipContent = ({
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      // Use bubble-phase `onClick` (not `mousedown`-capture) so the click
+      // event still gets a chance to reach the actual interactive element
+      // inside the tooltip first. Tearing the portal down on mousedown
+      // unmounts the click target before `mouseup`, so the browser never
+      // dispatches a `click` and the user's intended action is dropped.
+      // React batches the resulting two state updates (action + tooltip
+      // close) into the same render, so visually they happen together.
+      onClick={onContentClick}
     >
       {content}
     </div>,
@@ -122,6 +139,7 @@ export function Tooltip({
   position = 'bottom',
   width = 'w-38',
   disableTouchClick = false,
+  closeOnContentClick = false,
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isHoveringTooltip, setIsHoveringTooltip] = useState(false);
@@ -220,6 +238,16 @@ export function Tooltip({
           width={width}
           onMouseEnter={handleTooltipMouseEnter}
           onMouseLeave={handleTooltipMouseLeave}
+          onContentClick={
+            closeOnContentClick
+              ? () => {
+                  if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                  if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+                  setIsHoveringTooltip(false);
+                  setIsVisible(false);
+                }
+              : undefined
+          }
         />
       )}
     </>

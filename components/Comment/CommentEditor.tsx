@@ -1,7 +1,7 @@
 'use client';
 
 import { EditorContent } from '@tiptap/react';
-import { useRef, useCallback, useState, useEffect } from 'react';
+import { useRef, useCallback, useState, useEffect, useMemo } from 'react';
 import 'highlight.js/styles/atom-one-dark.css';
 import { CommentType } from '@/types/comment';
 import { useCommentEditor } from './lib/hooks/useCommentEditor';
@@ -16,6 +16,8 @@ import { useIsMac } from '@/hooks/useIsMac';
 import { CommentEditorBanner } from './components/CommentEditorBanner';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { CollapsedCommentEditor } from './CollapsedCommentEditor';
+import { EmbedCarousel } from '@/components/Embed';
+import { extractDocEmbeds } from './lib/embedDoc';
 
 const REVIEW_WORD_LIMIT = 3000;
 
@@ -208,6 +210,29 @@ export const CommentEditor = ({
     if (text.length > 0) setIsCollapsed(false);
   }, [editor, isCollapsed]);
 
+  // Track the editor's doc shape so the embed carousel below stays in sync
+  // with whatever URLs the user has typed/pasted. Bumping a counter is
+  // cheaper than serialising the doc twice per keystroke; we read JSON
+  // lazily inside the memo when the counter changes.
+  const [docVersion, setDocVersion] = useState(0);
+  useEffect(() => {
+    if (!editor) return;
+    const onUpdate = () => setDocVersion((v) => v + 1);
+    editor.on('update', onUpdate);
+    onUpdate();
+    return () => {
+      editor.off('update', onUpdate);
+    };
+  }, [editor]);
+
+  const carouselEmbeds = useMemo(
+    () => (editor ? extractDocEmbeds(editor.getJSON()) : []),
+    // `docVersion` is the trigger — `editor` is stable for the lifetime of
+    // this component once initialised.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [editor, docVersion]
+  );
+
   const handleExpand = useCallback(() => {
     setIsCollapsed(false);
     setTimeout(() => editor?.commands.focus('end'), 0);
@@ -285,6 +310,18 @@ export const CommentEditor = ({
         )}
 
         <EditorContent editor={editor} />
+
+        {/*
+         * Embed carousel for the URLs the user has typed/pasted. Lives
+         * inside the editor's bordered surface (just above the footer) so
+         * it visually attaches to the comment being authored. The component
+         * itself renders a horizontal divider above the strip.
+         */}
+        {carouselEmbeds.length > 0 && (
+          <div className="px-4 pb-3">
+            <EmbedCarousel embeds={carouselEmbeds} size="sm" />
+          </div>
+        )}
       </div>
 
       {/* Editor footer */}
