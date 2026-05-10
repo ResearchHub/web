@@ -1,7 +1,7 @@
 import type { Work } from './work';
 import { transformUnifiedDocument } from './work';
 import { createTransformer } from './transformer';
-import { InputType, SearchStatus } from '@/services/expertFinder.service';
+import type { InputType, SearchStatus } from '@/services/expertFinder.service';
 import type { AuthorProfile } from './authorProfile';
 import { transformAuthorProfile } from './authorProfile';
 
@@ -61,7 +61,6 @@ export interface ExpertSearchResult {
   currentStep: string;
   expertResults: ExpertResult[];
   expertCount: number;
-  expertNames: string[];
   reportUrls: ReportUrls | null;
   reportPdfUrl: string;
   reportCsvUrl: string;
@@ -82,8 +81,7 @@ export interface ExpertSearchListItem {
   query: string;
   status: SearchStatus;
   expertCount: number;
-  expertNames: string[];
-  expertIds: number[];
+  excludedSearchIds: number[];
   createdAt: string;
   completedAt: string | null;
   createdBy: CreatedByInfo | null;
@@ -133,7 +131,7 @@ function transformExpertSource(raw: string | Record<string, unknown>): ExpertSou
 }
 
 function parseExpertId(raw: any): number | null {
-  const idRaw = raw?.expert_id;
+  const idRaw = raw?.id ?? raw?.expert_id;
   if (idRaw == null || idRaw === '') return null;
   const n = Number(idRaw);
   return Number.isInteger(n) && n >= 1 ? n : null;
@@ -152,6 +150,8 @@ function transformExpertResult(raw: any): ExpertResult {
   const middleName = String(raw.middle_name ?? '').trim();
   const lastName = String(raw.last_name ?? '').trim();
   const nameSuffix = String(raw.name_suffix ?? '').trim();
+  const displayName = String(raw.display_name ?? '').trim();
+  const fromParts = [firstName, middleName, lastName, nameSuffix].filter(Boolean).join(' ').trim();
 
   return {
     expertId: parseExpertId(raw),
@@ -160,7 +160,7 @@ function transformExpertResult(raw: any): ExpertResult {
     middleName,
     lastName,
     nameSuffix,
-    name: [firstName, middleName, lastName, nameSuffix].filter(Boolean).join(' ').trim(),
+    name: fromParts || displayName,
     title: String(raw.academic_title ?? raw.title ?? raw.job_title ?? raw.position ?? '').trim(),
     affiliation: String(raw.affiliation ?? raw.organization ?? raw.institution ?? '').trim(),
     expertise: String(raw.expertise ?? raw.expertise_areas ?? '').trim(),
@@ -188,39 +188,39 @@ function transformExcludedSearchIds(raw: any): number[] {
   return out;
 }
 
-function transformExpertIds(raw: any): number[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.map((x: unknown) => Number(x)).filter((n: number) => Number.isInteger(n) && n >= 1);
+function pickExpertRows(raw: any): any[] {
+  return Array.isArray(raw.experts) ? raw.experts : [];
 }
 
-export const transformExpertSearch = createTransformer<any, ExpertSearchResult>((raw) => ({
-  searchId: raw.search_id ?? 0,
-  name: raw.name ?? '',
-  query: raw.query ?? '',
-  inputType: raw.input_type ?? 'abstract',
-  config: raw.config ?? {},
-  excludedSearchIds: transformExcludedSearchIds(raw.excluded_search_ids),
-  llmModel: raw.llm_model ?? '',
-  status: raw.status ?? 'pending',
-  progress: raw.progress ?? 0,
-  currentStep: raw.current_step ?? '',
-  expertResults: Array.isArray(raw.expert_results)
-    ? raw.expert_results.map(transformExpertResult)
-    : [],
-  expertCount: raw.expert_count ?? 0,
-  expertNames: Array.isArray(raw.expert_names) ? raw.expert_names : [],
-  reportUrls: raw.report_urls ?? null,
-  reportPdfUrl: raw.report_pdf_url ?? '',
-  reportCsvUrl: raw.report_csv_url ?? '',
-  processingTime: raw.processing_time ?? null,
-  errorMessage: raw.error_message ?? '',
-  createdAt: raw.created_at ?? '',
-  updatedAt: raw.updated_at ?? '',
-  completedAt: raw.completed_at ?? null,
-  work: raw.work ? transformUnifiedDocument(raw.work) : null,
-  additionalContext: raw.additional_context ?? '',
-  createdBy: transformCreatedBy(raw.created_by),
-}));
+export const transformExpertSearch = createTransformer<any, ExpertSearchResult>((raw) => {
+  const expertResults = pickExpertRows(raw).map(transformExpertResult);
+
+  return {
+    searchId: raw.search_id ?? 0,
+    name: raw.name ?? '',
+    query: raw.query ?? '',
+    inputType: raw.input_type ?? 'abstract',
+    config: raw.config ?? {},
+    excludedSearchIds: transformExcludedSearchIds(raw.excluded_search_ids),
+    llmModel: raw.llm_model ?? '',
+    status: raw.status ?? 'pending',
+    progress: raw.progress ?? 0,
+    currentStep: raw.current_step ?? '',
+    expertResults,
+    expertCount: raw.expert_count ?? 0,
+    reportUrls: raw.report_urls ?? null,
+    reportPdfUrl: raw.report_pdf_url ?? '',
+    reportCsvUrl: raw.report_csv_url ?? '',
+    processingTime: raw.processing_time ?? null,
+    errorMessage: raw.error_message ?? '',
+    createdAt: raw.created_at ?? '',
+    updatedAt: raw.updated_at ?? '',
+    completedAt: raw.completed_at ?? null,
+    work: raw.work ? transformUnifiedDocument(raw.work) : null,
+    additionalContext: raw.additional_context ?? '',
+    createdBy: transformCreatedBy(raw.created_by),
+  };
+});
 
 export const transformExpertSearchListItem = createTransformer<any, ExpertSearchListItem>(
   (raw) => ({
@@ -229,8 +229,7 @@ export const transformExpertSearchListItem = createTransformer<any, ExpertSearch
     query: raw.query ?? '',
     status: raw.status ?? 'pending',
     expertCount: raw.expert_count ?? 0,
-    expertNames: Array.isArray(raw.expert_names) ? raw.expert_names : [],
-    expertIds: transformExpertIds(raw.expert_ids),
+    excludedSearchIds: transformExcludedSearchIds(raw.excluded_search_ids),
     createdAt: raw.created_at ?? '',
     completedAt: raw.completed_at ?? null,
     createdBy: transformCreatedBy(raw.created_by),
@@ -299,7 +298,7 @@ export interface GeneratedEmail {
   expertise: string;
   emailSubject: string;
   emailBody: string;
-  template: string;
+  template: string | null;
   status: string;
   notes: string;
   bouncedAt: string | null;
@@ -356,7 +355,7 @@ export interface InvitedExperts {
 }
 
 export const transformInvitedExpert = createTransformer<any, InvitedExpert>((raw) => ({
-  author: transformAuthorProfile(raw.author),
+  author: transformAuthorProfile(raw?.user?.author ?? raw.author),
   expertSearchId: raw.expert_search_id ?? 0,
   generatedEmailId: raw.generated_email_id ?? 0,
   invitedAt: raw.invited_at ?? raw.created_at,
