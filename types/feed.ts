@@ -141,6 +141,7 @@ export interface FeedCommentContent extends BaseFeedContent {
       objectId: number;
     };
   };
+  hasBounties?: boolean;
   isRemoved?: boolean;
   relatedDocumentId?: number | string;
   relatedDocumentContentType?: ContentType;
@@ -729,6 +730,9 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         // Transform the comment to get score and other properties
         const transformedComment = transformComment(commentData);
 
+        const hasBounties =
+          Array.isArray(content_object.bounties) && content_object.bounties.length > 0;
+
         // Create a FeedCommentContent object
         const commentContent: FeedCommentContent = {
           id: content_object.id,
@@ -738,6 +742,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           updatedDate: content_object.updated_date || action_date || created_date,
           createdBy: transformAuthorProfile(author || content_object.author),
           isRemoved: content_object.is_removed,
+          hasBounties,
           comment: {
             id: content_object.id,
             content: content_object.comment_content_json,
@@ -945,7 +950,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       contentType = content_type as 'PURCHASE' | 'USDFUNDRAISECONTRIBUTION';
       try {
         const contributionEntry: FeedPostContent = {
-          id: content_object.id || id,
+          id: content_object.post_id ?? content_object.id ?? id,
           unifiedDocumentId: content_object.unified_document_id,
           contentType: 'PREREGISTRATION',
           createdDate: action_date || created_date,
