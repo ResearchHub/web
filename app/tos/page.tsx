@@ -1,17 +1,32 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
-import { PageBanner } from '../components/PageBanner';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'Terms of Service',
   description: 'ResearchHub terms of service and user agreement.',
-  url: '/about/tos',
+  url: '/tos',
 });
 
 const TOSPage = () => {
   return (
     <div>
-      <PageBanner title="Terms of Service" subtitle="ResearchHub User Agreement" />
+      <div className="border-b border-gray-200 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <Link
+            href="/about"
+            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to About
+          </Link>
+          <h1 className="text-3xl md:text-4xl font-medium tracking-[-0.02em] text-gray-900">
+            Terms of Service
+          </h1>
+          <p className="mt-2 text-gray-500">ResearchHub User Agreement</p>
+        </div>
+      </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="prose prose-lg max-w-none">
@@ -450,7 +465,7 @@ const TOSPage = () => {
               vulnerabilities. To report a security issue, please send an email to{' '}
               <a
                 href="mailto:hello@researchhub.com"
-                className="text-indigo-600 hover:text-indigo-500"
+                className="text-primary-600 hover:text-primary-500"
               >
                 hello@researchhub.com
               </a>
@@ -584,7 +599,7 @@ const TOSPage = () => {
             <p>
               <a
                 href="mailto:hello@researchhub.com"
-                className="text-indigo-600 hover:text-indigo-500"
+                className="text-primary-600 hover:text-primary-500"
               >
                 hello@researchhub.com
               </a>
@@ -677,7 +692,7 @@ const TOSPage = () => {
               and concerns here or by emailing us at{' '}
               <a
                 href="mailto:hello@researchhub.com"
-                className="text-indigo-600 hover:text-indigo-500"
+                className="text-primary-600 hover:text-primary-500"
               >
                 hello@researchhub.com
               </a>
@@ -715,7 +730,7 @@ const TOSPage = () => {
               if you provide us with written notice of your desire to do so by email at{' '}
               <a
                 href="mailto:hello@researchhub.com"
-                className="text-indigo-600 hover:text-indigo-500"
+                className="text-primary-600 hover:text-primary-500"
               >
                 hello@researchhub.com
               </a>{' '}
@@ -727,13 +742,13 @@ const TOSPage = () => {
               the American Arbitration Association ("<strong>AAA</strong>") under its Consumer
               Arbitration Rules (the "AAA Rules") then in effect, except as modified by these Terms.
               The AAA Rules are available at{' '}
-              <a href="http://www.adr.org" className="text-indigo-600 hover:text-indigo-500">
+              <a href="https://www.adr.org" className="text-primary-600 hover:text-primary-500">
                 www.adr.org
               </a>{' '}
               or by calling 1-800-778-7879. A party who wishes to start arbitration must submit a
               written Demand for Arbitration to AAA and give notice to the other party as specified
               in the AAA Rules. The AAA provides a form Demand for Arbitration at{' '}
-              <a href="http://www.adr.org" className="text-indigo-600 hover:text-indigo-500">
+              <a href="https://www.adr.org" className="text-primary-600 hover:text-primary-500">
                 www.adr.org
               </a>
             </p>
@@ -775,7 +790,7 @@ const TOSPage = () => {
               (including by email to{' '}
               <a
                 href="mailto:hello@researchhub.com"
-                className="text-indigo-600 hover:text-indigo-500"
+                className="text-primary-600 hover:text-primary-500"
               >
                 hello@researchhub.com
               </a>
@@ -897,7 +912,7 @@ const TOSPage = () => {
             <p>
               <a
                 href="mailto:hello@researchhub.com"
-                className="text-indigo-600 hover:text-indigo-500"
+                className="text-primary-600 hover:text-primary-500"
               >
                 hello@researchhub.com
               </a>

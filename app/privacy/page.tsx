@@ -1,17 +1,32 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
-import { PageBanner } from '../components/PageBanner';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'Privacy Policy',
   description: 'ResearchHub privacy policy. Learn how we collect, use, and protect your data.',
-  url: '/about/privacy',
+  url: '/privacy',
 });
 
 const PrivacyPage = () => {
   return (
     <div>
-      <PageBanner title="Privacy Policy" subtitle="ResearchHub Privacy Policy" />
+      <div className="border-b border-gray-200 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <Link
+            href="/about"
+            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to About
+          </Link>
+          <h1 className="text-3xl md:text-4xl font-medium tracking-[-0.02em] text-gray-900">
+            Privacy Policy
+          </h1>
+          <p className="mt-2 text-gray-500">ResearchHub Privacy Policy</p>
+        </div>
+      </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="prose prose-lg max-w-none">
@@ -436,7 +451,7 @@ const PrivacyPage = () => {
               If you would like to get in contact with us, please reach out to{' '}
               <a
                 href="mailto:hello@researchhub.com"
-                className="text-indigo-600 hover:text-indigo-500"
+                className="text-primary-600 hover:text-primary-500"
               >
                 hello@ResearchHub.com
               </a>

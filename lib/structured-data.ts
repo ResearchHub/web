@@ -84,26 +84,30 @@ export function generateOrganizationStructuredData() {
     name: SITE_CONFIG.name,
     url: SITE_CONFIG.url,
     logo: `${SITE_CONFIG.url}/logo.png`,
-    description: SITE_CONFIG.description,
+    description:
+      'ResearchHub is an open platform designed to accelerate the speed and transparency of science through open-access publishing, paid peer review, and a transparent funding marketplace.',
     sameAs: [
-      'https://twitter.com/researchhub',
+      'https://x.com/researchhub',
       'https://github.com/ResearchHub',
       'https://www.linkedin.com/company/researchhub',
     ],
     foundingDate: '2019',
+    knowsAbout: [
+      'Open Science',
+      'Peer Review',
+      'Research Funding',
+      'Scientific Publishing',
+      'Preregistration',
+      'Reproducibility',
+    ],
     founders: [
-      {
-        '@type': 'Person',
-        name: 'Brian Armstrong',
-      },
-      {
-        '@type': 'Person',
-        name: 'Patrick Joyce',
-      },
-      {
-        '@type': 'Person',
-        name: 'Kobe Attias',
-      },
+      { '@type': 'Person', name: 'Brian Armstrong', jobTitle: 'Cofounder, CEO' },
+      { '@type': 'Person', name: 'Patrick Joyce', jobTitle: 'Cofounder, COO' },
+    ],
+    member: [
+      { '@type': 'Person', name: 'Kobe Attias', jobTitle: 'Founding Engineer' },
+      { '@type': 'Person', name: 'Taki Koustomitis', jobTitle: 'Founding Engineer' },
+      { '@type': 'Person', name: 'Tyler Diorio', jobTitle: 'Chief of Staff' },
     ],
   };
 }

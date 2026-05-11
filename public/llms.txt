@@ -50,5 +50,5 @@ ResearchCoin (RSC) is an ERC-20 token earned by contributing to ResearchHub. RSC
 
 ## Optional
 
-- [Privacy Policy](https://researchhub.com/about/privacy): How ResearchHub collects, uses, and protects user data
-- [Terms of Service](https://researchhub.com/about/tos): User agreement and terms of use
+- [Privacy Policy](https://researchhub.com/privacy): How ResearchHub collects, uses, and protects user data
+- [Terms of Service](https://researchhub.com/tos): User agreement and terms of use

@@ -327,10 +327,10 @@ export const MobileBottomNav: React.FC = () => {
 
             {/* Utility Links */}
             <div className="flex flex-wrap gap-3 text-sm text-gray-500">
-              <a href="https://www.researchhub.com/about/tos" className="hover:text-gray-700">
+              <a href="https://www.researchhub.com/tos" className="hover:text-gray-700">
                 Terms
               </a>
-              <a href="https://www.researchhub.com/about/privacy" className="hover:text-gray-700">
+              <a href="https://www.researchhub.com/privacy" className="hover:text-gray-700">
                 Privacy
               </a>
               <a
