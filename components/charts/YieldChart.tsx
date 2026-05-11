@@ -43,7 +43,7 @@ export function YieldChart({
   height,
   defaultRange = '90d',
   showRangeSelector = true,
-  title = 'Supply Yield',
+  title = 'Annualized Yield',
   showAxes = true,
   gradientFill = false,
   showStats = false,
@@ -61,13 +61,18 @@ export function YieldChart({
     ) ?? [];
 
   const apyData = history?.results.map((r) => r.apy) ?? [];
+  const tvlData =
+    history?.results.map((r) =>
+      r.total_value_locked_usd ? parseFloat(r.total_value_locked_usd) : null
+    ) ?? [];
   const latestApy = stats?.apy ?? (apyData.length ? apyData[apyData.length - 1] : null);
 
   const totalStakedRsc = stats ? parseFloat(stats.total_staked_rsc) : null;
   const issuedTodayRsc = stats?.issued_today_rsc ? parseFloat(stats.issued_today_rsc) : null;
 
-  const lineColor = '#3971ff';
-  const fillBackground = gradientFill
+  const yieldColor = '#3971ff';
+  const tvlColor = '#10b981';
+  const yieldFill = gradientFill
     ? (context: any) => {
         const { ctx, chartArea } = context.chart;
         if (!chartArea) return undefined;
@@ -78,20 +83,40 @@ export function YieldChart({
       }
     : 'rgba(57, 113, 255, 0.08)';
 
+  const hasTvl = tvlData.some((v) => v != null);
+
   const chartData = {
     labels,
     datasets: [
       {
         label: 'Yield',
         data: apyData,
-        borderColor: lineColor,
-        backgroundColor: fillBackground,
+        borderColor: yieldColor,
+        backgroundColor: yieldFill,
         fill: true,
         tension: 0.3,
         pointRadius: 0,
         pointHoverRadius: compact ? 2 : 4,
         borderWidth: compact ? 1.5 : 2,
+        yAxisID: 'y',
       },
+      ...(hasTvl
+        ? [
+            {
+              label: 'TVL',
+              data: tvlData,
+              borderColor: tvlColor,
+              backgroundColor: 'transparent',
+              fill: false,
+              tension: 0.3,
+              pointRadius: 0,
+              pointHoverRadius: compact ? 2 : 4,
+              borderWidth: compact ? 1.5 : 2,
+              borderDash: [4, 3],
+              yAxisID: 'y1',
+            },
+          ]
+        : []),
     ],
   };
 
@@ -107,7 +132,15 @@ export function YieldChart({
       tooltip: {
         usePointStyle: true,
         callbacks: {
-          label: (ctx: any) => `Yield: ${ctx.parsed.y.toFixed(2)}%`,
+          label: (ctx: any) => {
+            if (ctx.dataset.yAxisID === 'y1') {
+              const val = ctx.parsed.y;
+              if (val >= 1_000_000) return `TVL: $${(val / 1_000_000).toFixed(2)}m`;
+              if (val >= 1_000) return `TVL: $${(val / 1_000).toFixed(1)}k`;
+              return `TVL: $${val.toFixed(2)}`;
+            }
+            return `Yield: ${ctx.parsed.y.toFixed(2)}%`;
+          },
         },
       },
     },
@@ -122,6 +155,7 @@ export function YieldChart({
             },
           },
           y: {
+            position: 'left' as const,
             beginAtZero: true,
             grid: { color: '#f3f4f6' },
             ticks: {
@@ -130,10 +164,31 @@ export function YieldChart({
               font: { size: compact ? 10 : 11 },
             },
           },
+          ...(hasTvl
+            ? {
+                y1: {
+                  position: 'right' as const,
+                  beginAtZero: true,
+                  grid: { display: false },
+                  ticks: {
+                    callback: (value: any) => {
+                      if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}m`;
+                      if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}k`;
+                      return `$${value}`;
+                    },
+                    color: '#9ca3af',
+                    font: { size: compact ? 10 : 11 },
+                  },
+                },
+              }
+            : {}),
         }
       : {
           x: { display: false, grid: { display: false } },
           y: { display: false, beginAtZero: true, grid: { display: false } },
+          ...(hasTvl
+            ? { y1: { display: false, beginAtZero: true, grid: { display: false } } }
+            : {}),
         },
   };
 
@@ -178,6 +233,25 @@ export function YieldChart({
         </div>
       )}
 
+      {!compact && hasTvl && (
+        <div className="flex items-center gap-4 mb-3 text-xs text-gray-500">
+          <span className="flex items-center gap-1.5">
+            <span
+              className="inline-block w-3 h-0.5 rounded"
+              style={{ backgroundColor: yieldColor }}
+            />
+            Yield
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span
+              className="inline-block w-3 h-0.5 rounded border-t border-dashed"
+              style={{ borderColor: tvlColor }}
+            />
+            TVL
+          </span>
+        </div>
+      )}
+
       {showStats && (
         <div className="mb-3 space-y-1.5 text-xs">
           <StatLine
@@ -186,7 +260,7 @@ export function YieldChart({
             isLoading={isStatsLoading && latestApy == null}
           />
           <StatLine
-            label="Total staked"
+            label="Total Value Locked"
             value={
               totalStakedRsc != null
                 ? `${formatRSC({ amount: totalStakedRsc, shorten: true })} RSC`

@@ -20,7 +20,7 @@ export function FundingCreditsTooltip({ children }: FundingCreditsTooltipProps) 
       <ul className="space-y-1.5">
         <li className="flex items-start gap-2 text-xs text-gray-200">
           <Check className="h-3 w-3 text-emerald-400 mt-0.5 shrink-0" />
-          <span>Staking tokens</span>
+          <span>Creating endowments</span>
         </li>
         <li className="flex items-start gap-2 text-xs text-gray-200">
           <Check className="h-3 w-3 text-emerald-400 mt-0.5 shrink-0" />
