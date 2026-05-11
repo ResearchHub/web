@@ -42,11 +42,13 @@ const CONTENT_TYPE_MAP: Record<string, ContentType> = {
 
 function getActionLabel(entry: FeedEntry): string {
   if (entry.contentType === 'COMMENT') {
-    const comment = (entry.content as FeedCommentContent).comment;
-    return COMMENT_ACTION_LABELS[comment?.commentType] || 'commented on';
+    const commentContent = entry.content as FeedCommentContent;
+    if (commentContent.hasBounties) return 'opened a bounty';
+    return COMMENT_ACTION_LABELS[commentContent.comment?.commentType] || 'commented on';
   }
   if (entry.contentType === 'BOUNTY') return 'contributed to';
-  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION') return 'Funded Proposal';
+  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE')
+    return 'Funded Proposal';
   return DOC_ACTION_LABELS[entry.contentType] || 'contributed';
 }
 
@@ -56,9 +58,16 @@ function getEntryMeta(entry: FeedEntry) {
 
   if (entry.contentType === 'COMMENT' || entry.contentType === 'BOUNTY') {
     const work = entry.relatedWork;
-    const isReview =
-      entry.contentType === 'COMMENT' &&
-      (content as FeedCommentContent).comment?.commentType === 'REVIEW';
+    const commentContent = entry.contentType === 'COMMENT' ? (content as FeedCommentContent) : null;
+    const isReview = commentContent?.comment?.commentType === 'REVIEW';
+    const hasBounties = entry.contentType === 'BOUNTY' || commentContent?.hasBounties === true;
+    const tab = isReview
+      ? 'reviews'
+      : hasBounties
+        ? 'bounties'
+        : entry.contentType === 'COMMENT'
+          ? 'conversation'
+          : undefined;
     return {
       title: work?.title,
       author,
@@ -67,21 +76,22 @@ function getEntryMeta(entry: FeedEntry) {
             id: work.id,
             slug: work.slug,
             contentType: work.contentType,
-            tab: isReview ? 'reviews' : undefined,
+            tab,
           })
         : undefined,
     };
   }
 
-  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION') {
+  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
     const post = content as FeedPostContent;
+    const proposalId = post.id;
     return {
       title: post.title,
       author,
-      href: post.unifiedDocumentId
+      href: proposalId
         ? buildWorkUrl({
-            id: post.unifiedDocumentId,
-            slug: post.slug,
+            id: proposalId,
+            slug: post.slug || undefined,
             contentType: 'preregistration',
           })
         : undefined,
@@ -109,10 +119,15 @@ function getFundingAmount(entry: FeedEntry): number | undefined {
 }
 
 function getActionIcon(entry: FeedEntry): React.ReactNode {
-  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION')
+  if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE')
+    return <Coins size={14} className="inline -mt-0.5 ml-1 text-gray-600" />;
+  if (entry.contentType === 'BOUNTY')
     return <Coins size={14} className="inline -mt-0.5 ml-1 text-gray-600" />;
   if (entry.contentType !== 'COMMENT') return null;
-  const commentType = (entry.content as FeedCommentContent).comment?.commentType;
+  const commentContent = entry.content as FeedCommentContent;
+  if (commentContent.hasBounties)
+    return <Coins size={14} className="inline -mt-0.5 ml-1 text-gray-600" />;
+  const commentType = commentContent.comment?.commentType;
   if (commentType === 'AUTHOR_UPDATE')
     return <Bell size={14} className="inline -mt-0.5 ml-1 text-gray-600" />;
   if (commentType === 'GENERIC_COMMENT' || commentType === 'ANSWER')
@@ -128,7 +143,8 @@ function getReviewScore(entry: FeedEntry): number | undefined {
 }
 
 function getContributionAmount(entry: FeedEntry): number | undefined {
-  if (entry.contentType !== 'USDFUNDRAISECONTRIBUTION') return undefined;
+  if (entry.contentType !== 'USDFUNDRAISECONTRIBUTION' && entry.contentType !== 'PURCHASE')
+    return undefined;
   const post = entry.content as FeedPostContent;
   return post.fundraiseContribution?.amount || undefined;
 }
