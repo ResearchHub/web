@@ -3,8 +3,6 @@ import { getServerSession } from 'next-auth/next';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { handleTrendingRedirect } from '@/utils/navigation';
 import { LandingPage } from '@/components/landing/LandingPage';
-import { headers } from 'next/headers';
-import { ExperimentVariant } from '@/utils/experiment';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'Open Science Community & Research Platform',
@@ -20,9 +18,6 @@ export default async function Home({
 }) {
   const session = await getServerSession();
 
-  const headersList = await headers();
-  const homepageExperimentVariant = headersList.get('x-homepage-experiment');
-
   const resolvedSearchParams = await searchParams;
 
   const urlSearchParams = new URLSearchParams();
@@ -36,11 +31,7 @@ export default async function Home({
     }
   });
 
-  handleTrendingRedirect(
-    !!session?.user,
-    urlSearchParams,
-    homepageExperimentVariant as ExperimentVariant | null
-  );
+  handleTrendingRedirect(!!session?.user, urlSearchParams);
 
   return <LandingPage />;
 }

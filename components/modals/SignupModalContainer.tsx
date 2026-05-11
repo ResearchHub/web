@@ -5,7 +5,6 @@ import { useSession } from 'next-auth/react';
 import SignupPromoModal from '@/components/modals/SignupPromoModal';
 import AnalyticsService, { LogEvent } from '@/services/analytics.service';
 import { usePathname } from 'next/navigation';
-import { isExperimentEnabled, Experiment } from '@/utils/experiment';
 
 const EXCLUDED_PATHS = [
   '/', // landing page
@@ -21,16 +20,9 @@ export default function SignupModalContainer() {
 
   useEffect(() => {
     const modalDismissed = sessionStorage.getItem('signupModalDismissed') === 'true';
-    const isHomepageExperimentEnabled = isExperimentEnabled(Experiment.HomepageExperiment);
     const isExcludedPath = EXCLUDED_PATHS.some((path) => pathname.startsWith(path));
 
-    if (
-      status === 'unauthenticated' &&
-      !modalDismissed &&
-      pathname !== '/' &&
-      !isExcludedPath &&
-      isHomepageExperimentEnabled
-    ) {
+    if (status === 'unauthenticated' && !modalDismissed && pathname !== '/' && !isExcludedPath) {
       const timer = setTimeout(() => {
         setShowModal(true);
         AnalyticsService.logEvent(LogEvent.SIGNUP_PROMO_MODAL_OPENED);
