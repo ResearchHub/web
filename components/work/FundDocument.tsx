@@ -33,6 +33,10 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
   const pathname = usePathname();
   const [isProposalVideoModalOpen, setIsProposalVideoModalOpen] = useState(false);
   const [videoModalInitialStep, setVideoModalInitialStep] = useState<1 | 2>(1);
+  // Experimental "Author Posts" surface (callout + populated section). Hidden
+  // by default; opt in with `?exp_posts` (presence-only — value is ignored).
+  // Same shape as the `?exp=tabs` flag in components/Feed/FeedTabs.tsx.
+  const isAuthorPostsExpEnabled = searchParams.has('exp_posts');
   // Whether the author has dismissed the rich "Show funders who you are" CTA.
   // Hydrated from localStorage in the effect below; the brief flash on first
   // paint is acceptable for a one-line CTA shown only to the author.
@@ -150,21 +154,23 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
               posted yet and haven't dismissed the prompt; once they post or
               dismiss, the AuthorPosts section takes over with the same
               "+ New post" affordance in its header.
+              Gated behind `?exp_posts` while the surface is being validated.
             */}
-            {isCurrentUserAuthor && !isVideoCtaDismissed && authorPosts.length === 0 ? (
-              <PostVideoCallout
-                proposalTitle={work.title}
-                onShowGuide={handleShowVideoGuide}
-                onDismiss={persistVideoCtaDismissal}
-              />
-            ) : (
-              <AuthorPosts
-                posts={authorPosts}
-                documentId={work.id}
-                contentType={work.contentType}
-                documentAuthors={work.authors}
-              />
-            )}
+            {isAuthorPostsExpEnabled &&
+              (isCurrentUserAuthor && !isVideoCtaDismissed && authorPosts.length === 0 ? (
+                <PostVideoCallout
+                  proposalTitle={work.title}
+                  onShowGuide={handleShowVideoGuide}
+                  onDismiss={persistVideoCtaDismissal}
+                />
+              ) : (
+                <AuthorPosts
+                  posts={authorPosts}
+                  documentId={work.id}
+                  contentType={work.contentType}
+                  documentAuthors={work.authors}
+                />
+              ))}
             {work.previewContent ? (
               <PostBlockEditor content={work.previewContent} />
             ) : content ? (
