@@ -76,9 +76,9 @@ export const ResearchCoinRightSidebar = () => {
   return (
     <div className="w-full">
       <div className="pb-4">
-        {/* Supply Yield chart */}
+        {/* Annualized Yield chart */}
         <div className="px-6 mb-5 mt-3">
-          <SidebarHeader title="Supply yield" />
+          <SidebarHeader title="Annualized Yield" />
           <YieldChart
             compact
             height={120}

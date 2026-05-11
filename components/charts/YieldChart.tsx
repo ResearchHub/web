@@ -43,7 +43,7 @@ export function YieldChart({
   height,
   defaultRange = '90d',
   showRangeSelector = true,
-  title = 'Supply Yield',
+  title = 'Annualized Yield',
   showAxes = true,
   gradientFill = false,
   showStats = false,
@@ -186,7 +186,7 @@ export function YieldChart({
             isLoading={isStatsLoading && latestApy == null}
           />
           <StatLine
-            label="Total staked"
+            label="Total Value Locked"
             value={
               totalStakedRsc != null
                 ? `${formatRSC({ amount: totalStakedRsc, shorten: true })} RSC`
