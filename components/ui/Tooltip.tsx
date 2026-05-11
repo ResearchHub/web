@@ -24,6 +24,14 @@ interface TooltipProps {
    * tooltip should yield to the action surface rather than linger on top of it.
    */
   closeOnContentClick?: boolean;
+  /**
+   * HTML element to use for the trigger wrapper. Defaults to `'div'` (block-
+   * compatible default for layout contexts). Set to `'span'` when the tooltip
+   * is rendered inside inline-only HTML (e.g. inside a `<p>` paragraph) so
+   * the resulting DOM is valid — `<div>` cannot legally descend from `<p>`
+   * regardless of CSS display, which triggers React's hydration warning.
+   */
+  wrapperAs?: 'div' | 'span';
 }
 
 const TooltipContent = ({
@@ -140,11 +148,16 @@ export function Tooltip({
   width = 'w-38',
   disableTouchClick = false,
   closeOnContentClick = false,
+  wrapperAs = 'div',
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isHoveringTooltip, setIsHoveringTooltip] = useState(false);
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
-  const triggerRef = useRef<HTMLDivElement>(null);
+  // Trigger ref is on the wrapper element; it can be HTMLDivElement or
+  // HTMLSpanElement depending on `wrapperAs`. Both extend HTMLElement so we
+  // type the ref as such — the only API we use on it is
+  // `getBoundingClientRect`, which lives on HTMLElement.
+  const triggerRef = useRef<HTMLElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTouchDevice = useIsTouchDevice();
@@ -219,15 +232,20 @@ export function Tooltip({
         onBlur: hideTooltip,
       };
 
+  // The trigger wrapper element is `wrapperAs` (defaults to `<div>`). When
+  // the tooltip is hosted inside inline-only HTML (e.g. a TipTap `<p>`
+  // paragraph for InlineRichLink), callers should pass `wrapperAs="span"`
+  // so the resulting DOM is valid — see TooltipProps.wrapperAs.
+  const Wrapper = wrapperAs;
   return (
     <>
-      <div
-        ref={triggerRef}
+      <Wrapper
+        ref={triggerRef as React.Ref<HTMLDivElement & HTMLSpanElement>}
         {...triggerHandlers}
         className={cn('inline-flex h-full', wrapperClassName)}
       >
         {children}
-      </div>
+      </Wrapper>
       {triggerRect && isVisible && (
         <TooltipContent
           content={content}

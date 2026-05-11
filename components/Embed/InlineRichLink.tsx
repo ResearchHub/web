@@ -184,6 +184,12 @@ export const InlineRichLink: FC<InlineRichLinkProps> = ({ url, embed, disabled, 
         // styling owns the visual surface (no nested borders).
         className="!border-0 !bg-transparent !p-0 !text-left !shadow-none"
         wrapperClassName="inline"
+        // The chip lives inline inside a TipTap `<p>` paragraph (richLink is
+        // a schema-inline atom). Tooltip's default `<div>` wrapper would
+        // make `<div>` a descendant of `<p>` — invalid HTML and a hydration
+        // warning. `<span>` is inline-valid and accepts `inline-flex` just
+        // as well.
+        wrapperAs="span"
       >
         {chip}
       </Tooltip>
