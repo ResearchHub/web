@@ -1,13 +1,13 @@
-import { SubtabsNav, type SubtabsSection } from './SubtabsNav';
-import { Hero } from './Hero';
-import { FundedAt } from './FundedAt';
-import { Problem } from './Problem';
-import { Solution } from './Solution';
-import { FundingMarketplace } from './FundingMarketplace';
-import { ResearchCoin } from './ResearchCoin';
-import { PartnershipSection } from './PartnershipSection';
-import { TeamSection } from './TeamSection';
-import { CTASection } from './CTASection';
+import { SubtabsNav, type SubtabsSection } from './components/SubtabsNav';
+import { Hero } from './components/Hero';
+import { FundedAt } from './components/FundedAt';
+import { Problem } from './components/Problem';
+import { Solution } from './components/Solution';
+import { FundingMarketplace } from './components/FundingMarketplace';
+import { ResearchCoin } from './components/ResearchCoin';
+import { PartnershipSection } from './components/PartnershipSection';
+import { TeamSection } from './components/TeamSection';
+import { CTASection } from './components/CTASection';
 import { LandingPageFooter } from '@/components/landing/LandingPageFooter';
 
 const sections: ReadonlyArray<SubtabsSection> = [
