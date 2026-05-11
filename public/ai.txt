@@ -38,6 +38,6 @@ Disallow: /sw.js
 # dataset or corpus creation, or text and data mining without ResearchHub's
 # prior express written permission or a valid sublicense.
 # See Terms of Service, Sections 4A and 6.
-# https://researchhub.com/about/tos
+# https://researchhub.com/tos
 #
 # AI partnership and training inquiries: hello@researchhub.com

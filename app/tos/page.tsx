@@ -6,7 +6,7 @@ import { buildOpenGraphMetadata } from '@/lib/metadata';
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'Terms of Service',
   description: 'ResearchHub terms of service and user agreement.',
-  url: '/about/tos',
+  url: '/tos',
 });
 
 const TOSPage = () => {

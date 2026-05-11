@@ -6,7 +6,7 @@ import { buildOpenGraphMetadata } from '@/lib/metadata';
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'Privacy Policy',
   description: 'ResearchHub privacy policy. Learn how we collect, use, and protect your data.',
-  url: '/about/privacy',
+  url: '/privacy',
 });
 
 const PrivacyPage = () => {

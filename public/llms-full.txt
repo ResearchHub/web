@@ -136,5 +136,5 @@ By holding RSC in a ResearchHub account, holders automatically earn yield as Fun
 - [GitHub](https://github.com/ResearchHub): Open-source repositories
 - [LinkedIn](https://www.linkedin.com/company/researchhubtechnologies): ResearchHub on LinkedIn
 - [Email](mailto:hello@researchhub.com): hello@researchhub.com
-- [Privacy Policy](https://researchhub.com/about/privacy): Privacy policy
-- [Terms of Service](https://researchhub.com/about/tos): User agreement
+- [Privacy Policy](https://researchhub.com/privacy): Privacy policy
+- [Terms of Service](https://researchhub.com/tos): User agreement

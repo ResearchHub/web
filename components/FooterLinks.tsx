@@ -83,10 +83,10 @@ export const FooterLinks: React.FC = () => {
           {!hasSeenChangelog && <RadiatingDot color="bg-orange-500" size="sm" />}
           Changelog
         </a>
-        <a href="https://www.researchhub.com/about/tos" className="hover:text-gray-700">
+        <a href="https://www.researchhub.com/tos" className="hover:text-gray-700">
           Terms
         </a>
-        <a href="https://www.researchhub.com/about/privacy" className="hover:text-gray-700">
+        <a href="https://www.researchhub.com/privacy" className="hover:text-gray-700">
           Privacy
         </a>
         <a
