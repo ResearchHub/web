@@ -180,11 +180,20 @@ async function fetchTikTokOEmbed(url: string): Promise<PreviewResponse | null> {
   }
 }
 
+// Several CDN-protected sites (Wikipedia, Washington Post, Cloudflare-fronted
+// pages) block the historical `facebookexternalhit/1.1` UA we used here with a
+// 403, even though they happily serve `og:` meta to a real browser. A current
+// desktop Chrome UA gets us through those gates without hurting the sites that
+// previously *required* a social-bot UA — LinkedIn, for example, still
+// returns a login-wall HTML page that contains the same `og:title` we want.
+const BROWSER_USER_AGENT =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+
 async function fetchGenericOG(url: string): Promise<PreviewResponse | null> {
   try {
     const res = await fetch(url, {
       headers: {
-        'user-agent': 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+        'user-agent': BROWSER_USER_AGENT,
         accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'accept-language': 'en-US,en;q=0.9',
       },
