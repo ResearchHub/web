@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Copy, Check } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import Link from 'next/link';
+import { Loader2, Copy, Check, AlertCircle } from 'lucide-react';
+import { Button, buttonVariants } from '@/components/ui/Button';
+import { cn } from '@/utils/styles';
 import { useExpertSearchProgress } from '@/hooks/useExpertSearchProgress';
+import { ExpertFinderService } from '@/services/expertFinder.service';
 import toast from 'react-hot-toast';
 
 const SEARCH_DETAIL_PATH = '/expert-finder/library';
@@ -20,16 +23,39 @@ function getDetailPageUrl(searchId: number): string {
 
 export function SearchSubmissionProgress({ searchId }: SearchSubmissionProgressProps) {
   const router = useRouter();
-  const { status, error } = useExpertSearchProgress(searchId);
+  const { status, error, currentStep } = useExpertSearchProgress(searchId);
   const [isCopied, setIsCopied] = useState(false);
+  const [detailErrorMessage, setDetailErrorMessage] = useState<string | null>(null);
   const detailUrl = getDetailPageUrl(searchId);
 
-  const isDone = status === 'completed' || status === 'failed';
+  const inProgress =
+    status !== 'completed' && status !== 'failed' && status !== null && status !== undefined;
 
   useEffect(() => {
-    if (!isDone) return;
+    if (status !== 'completed') return;
     router.push(`${SEARCH_DETAIL_PATH}/${searchId}`);
-  }, [isDone, searchId, router]);
+  }, [status, searchId, router]);
+
+  useEffect(() => {
+    if (status !== 'failed') {
+      setDetailErrorMessage(null);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const d = await ExpertFinderService.getSearch(searchId);
+        if (!cancelled && d.errorMessage?.trim()) {
+          setDetailErrorMessage(d.errorMessage.trim());
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [status, searchId]);
 
   const handleCopy = () => {
     if (!detailUrl) return;
@@ -43,28 +69,67 @@ export function SearchSubmissionProgress({ searchId }: SearchSubmissionProgressP
     );
   };
 
+  const failureMessage = error?.trim() || detailErrorMessage;
+
   let statusHeading: string;
-  if (!isDone) {
-    statusHeading = 'Search in progress';
+  if (status === 'failed') {
+    statusHeading = 'Search failed';
   } else if (status === 'completed') {
     statusHeading = 'Search completed';
   } else {
-    statusHeading = 'Search finished';
+    statusHeading = 'Search in progress';
   }
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
       <h3 className="text-sm font-semibold text-gray-900 mb-3">{statusHeading}</h3>
 
-      <div className="flex items-center gap-3 mb-4">
-        <Loader2 className="h-6 w-6 animate-spin text-primary-600 shrink-0" />
-        <p className="text-sm text-gray-600">Finding experts… This can take a bit of time.</p>
-      </div>
+      {status === 'failed' ? (
+        <div className="flex items-start gap-3 mb-4">
+          <AlertCircle className="h-6 w-6 text-red-600 shrink-0 mt-0.5" aria-hidden />
+          <div className="min-w-0 space-y-2">
+            <p className="text-sm text-gray-700">
+              The search did not finish successfully. Details may include model output validation
+              (for example strict table format) rather than only a network or timeout error.
+            </p>
+            {failureMessage ? (
+              <p className="text-sm text-red-700 font-medium whitespace-pre-wrap">
+                {failureMessage}
+              </p>
+            ) : null}
+            {currentStep ? (
+              <p className="text-sm text-gray-600">
+                <span className="font-medium text-gray-800">Last step:</span> {currentStep}
+              </p>
+            ) : null}
+            <Link
+              href={`${SEARCH_DETAIL_PATH}/${searchId}`}
+              className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'mt-2 inline-flex')}
+            >
+              Open search details
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center gap-3 mb-4">
+            <Loader2 className="h-6 w-6 animate-spin text-primary-600 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-sm text-gray-600">Finding experts… This can take a bit of time.</p>
+              {inProgress && currentStep ? (
+                <p className="text-sm text-gray-500 mt-1">
+                  <span className="font-medium text-gray-700">Progress:</span> {currentStep}
+                </p>
+              ) : null}
+            </div>
+          </div>
+          {error ? <p className="text-sm text-red-600 mb-4">{error}</p> : null}
+        </>
+      )}
+
       <p className="text-sm text-gray-500 mb-4">
         Feel free to close this window and check results later by visiting the search details page.
       </p>
-
-      {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 
       <div className="flex items-stretch gap-2">
         <input
