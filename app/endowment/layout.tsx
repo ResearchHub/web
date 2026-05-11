@@ -5,7 +5,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 export const metadata: Metadata = {
   ...buildOpenGraphMetadata({
     title: 'Endowment',
-    description: 'RSC staking yield overview and historical performance on ResearchHub.',
+    description: 'RSC endowment yield overview and historical performance on ResearchHub.',
     url: '/endowment',
   }),
   title: {

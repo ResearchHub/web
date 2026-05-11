@@ -45,8 +45,8 @@ const earnItems: SidebarItem[] = [
     icon: <Star className="w-4 h-4 text-gray-600" />,
   },
   {
-    title: 'Stake tokens',
-    description: 'Stake RSC and earn yield in the form of funding credits.',
+    title: 'Create endowment',
+    description: 'Lock RSC in an endowment and earn yield in the form of funding credits.',
     icon: <Sprout className="w-4 h-4 text-gray-600" />,
   },
 ];
