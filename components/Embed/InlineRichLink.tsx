@@ -1,6 +1,7 @@
 'use client';
 
 import { FC, MouseEvent, useState } from 'react';
+import { ExternalLink } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { BaseModal } from '@/components/ui/BaseModal';
@@ -79,12 +80,28 @@ export const InlineRichLink: FC<InlineRichLinkProps> = ({ url, embed, disabled, 
   const fallbackText = isLoading ? shortenUrl(url) : shortenUrl(url);
   const titleText = title || fallbackText;
 
-  const handleClick = disabled
-    ? (e: MouseEvent<HTMLAnchorElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    : undefined;
+  // Click semantics:
+  //   - editor (`disabled`): swallow the click — TipTap owns caret placement.
+  //   - embeddable kinds (LinkedIn/X/YouTube/TikTok with a usable id): open the
+  //     in-app modal preview rather than punting the user to the source site.
+  //     The `<a>` still has `href={url}`, so middle-click / cmd-click / right-
+  //     click "Open in new tab" continue to work as users expect.
+  //   - everything else: default — let the link navigate.
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (disabled) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    // Honor modifier keys / non-primary buttons — don't hijack power-user gestures.
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+      return;
+    }
+    if (expandable) {
+      e.preventDefault();
+      setPreviewModalOpen(true);
+    }
+  };
 
   const chip = (
     <a
@@ -151,13 +168,18 @@ export const InlineRichLink: FC<InlineRichLinkProps> = ({ url, embed, disabled, 
   // `preview.title` returns for X/LinkedIn — the full post text) just
   // crowds the header. Use `{author} on {provider}` when we know the
   // creator, falling back to a short provider-flavored label.
-  const modalTitle = (() => {
+  const modalTitleText = (() => {
     if (detected.kind === 'youtube') return title || 'YouTube video';
     if (detected.kind === 'tiktok') return author ? `${author} on TikTok` : 'TikTok video';
     if (detected.kind === 'x') return author ? `${author} on X` : 'X post';
     if (detected.kind === 'linkedin') return author ? `${author} on LinkedIn` : 'LinkedIn post';
     return title || data?.siteName || shortenUrl(url);
   })();
+
+  // The modal renders embedded content in our own iframe. Many users still
+  // want to jump to the source (to reply, follow the author, etc.). The CTA
+  // lives in the modal footer rather than next to the title — a real tap
+  // target with a label is friendlier on touch devices than an inline icon.
 
   return (
     <>
@@ -180,6 +202,12 @@ export const InlineRichLink: FC<InlineRichLinkProps> = ({ url, embed, disabled, 
         // the tooltip in the same render so it doesn't linger on top of
         // the modal backdrop.
         closeOnContentClick
+        // On touch devices, the tap-to-preview tooltip is redundant with the
+        // chip's primary click action (which opens the modal directly for
+        // embeddable kinds, or navigates for plain URLs). Suppressing it
+        // avoids the awkward "first tap shows tooltip, second tap activates"
+        // dance and matches expectations on mobile.
+        disableTouchClick
         // Strip the tooltip's own padding/border/shadow so the embed card's
         // styling owns the visual surface (no nested borders).
         className="!border-0 !bg-transparent !p-0 !text-left !shadow-none"
@@ -197,9 +225,20 @@ export const InlineRichLink: FC<InlineRichLinkProps> = ({ url, embed, disabled, 
         <BaseModal
           isOpen={previewModalOpen}
           onClose={() => setPreviewModalOpen(false)}
-          title={modalTitle}
+          title={modalTitleText}
           size="2xl"
           padding="p-0"
+          footer={
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+            >
+              View external source
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          }
         >
           <EmbedExpandedContent embed={detected} />
         </BaseModal>

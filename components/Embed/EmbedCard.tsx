@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { Play, Link as LinkIcon, Linkedin } from 'lucide-react';
+import { Play, Link as LinkIcon, Linkedin, ExternalLink } from 'lucide-react';
 import type { DetectedUrl, UrlKind } from '@/utils/url';
 import { BaseModal } from '@/components/ui/BaseModal';
 import type { EmbedSize, PreviewData } from './types';
@@ -272,7 +272,31 @@ export const EmbedCard: FC<EmbedCardProps> = ({
         a tooltip portal that contains us closing on click).
       */}
       {!onActivate && expandable && expandedContent && (
-        <BaseModal isOpen={expanded} onClose={onToggle} title={title} size="2xl" padding="p-0">
+        <BaseModal
+          isOpen={expanded}
+          onClose={onToggle}
+          // Preview titles for X/LinkedIn embeds can be the entire post body —
+          // clamp to two lines so the modal header doesn't grow indefinitely.
+          title={<span className="line-clamp-2">{title}</span>}
+          size="2xl"
+          padding="p-0"
+          // The modal hosts an in-app iframe of the source content, but many
+          // users still want to jump to the source (to comment, follow the
+          // author, etc.). The CTA lives in the footer so it's a real tap
+          // target — friendlier on touch devices than an inline icon and
+          // doesn't fight with the title for horizontal space.
+          footer={
+            <a
+              href={embed.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+            >
+              View external source
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          }
+        >
           {expandedContent}
         </BaseModal>
       )}
