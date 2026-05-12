@@ -72,6 +72,11 @@ export function classifyUrl(url: string): DetectedUrl | null {
   } catch {
     return null;
   }
+  // Restrict to web URLs so things like `mailto:`, `tel:`, `ftp:` don't end
+  // up classified as embeddable webpages. The carousel + chip + paste-handler
+  // all key off this, so excluding them here is enough to keep emails out of
+  // the EmbedCarousel that renders below comments.
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
   const host = u.hostname.replace(/^www\./, '');
 
   if (host === 'youtube.com' || host === 'm.youtube.com') {
