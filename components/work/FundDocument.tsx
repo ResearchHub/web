@@ -15,6 +15,7 @@ import { useStorageKey } from '@/utils/storageKeys';
 import { useUser } from '@/contexts/UserContext';
 import { ReviewStatusBanner } from '@/components/Bounty/ReviewStatusBanner';
 import { NewlyCreatedProposalModal } from '@/components/modals/NewlyCreatedProposalModal';
+import { useShareModalContext } from '@/contexts/ShareContext';
 import { useWorkTab } from './WorkHeader/WorkTabContext';
 
 interface FundDocumentProps {
@@ -28,30 +29,28 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
   const { activeTab } = useWorkTab();
   const storageKey = useStorageKey('rh-comments');
   const { user } = useUser();
+  const { showShareModal } = useShareModalContext();
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const [isProposalVideoModalOpen, setIsProposalVideoModalOpen] = useState(false);
   const [videoModalInitialStep, setVideoModalInitialStep] = useState<1 | 2>(1);
-  // Experimental "Author Posts" surface (callout + populated section). Hidden
-  // by default; opt in with `?exp_posts` (presence-only — value is ignored).
-  // Same shape as the `?exp=tabs` flag in components/Feed/FeedTabs.tsx.
-  const isAuthorPostsExpEnabled = searchParams.has('exp_posts');
   // Whether the author has dismissed the rich "Show funders who you are" CTA.
   // Hydrated from localStorage in the effect below; the brief flash on first
   // paint is acceptable for a one-line CTA shown only to the author.
   const [isVideoCtaDismissed, setIsVideoCtaDismissed] = useState(false);
 
-  // Two independent flags, intentionally separate keys:
-  //   - cta-dismissed: hides the inline PostVideoCallout. Only set when the
-  //     author explicitly clicks the X on the callout. A new post implicitly
-  //     hides it via `authorPosts.length === 0` flipping false.
-  //   - modal-seen: suppresses re-auto-opening the NewlyCreatedProposalModal
-  //     on subsequent ?new=true visits. Set whenever the modal is closed.
-  // Closing the modal must NOT touch the cta-dismissed flag — the callout
-  // sticks around until the author posts or explicitly dismisses it.
+  // Experimental "Author Posts" flag (presence-only — value is ignored). Same
+  // shape as the `?exp=tabs` flag in components/Feed/FeedTabs.tsx. Controls:
+  //   1. The PostVideoCallout / AuthorPosts surface on the paper tab.
+  //   2. The `?new=true` post-creation modal: enabled => NewlyCreatedProposalModal
+  //      (the video-prompting flow), disabled => the legacy ShareModal.
+  const isAuthorPostsExpEnabled = searchParams.has('exp_posts');
+
+  // Only the inline PostVideoCallout's "X" dismissal is persisted. The new-
+  // proposal modal itself is gated purely by `?new=true` (consumed on first
+  // mount), matching the old ShareModal behavior — no modal-seen flag.
   const videoCtaDismissKey = `proposal-video-cta-dismissed:${work.id}`;
-  const videoModalSeenKey = `proposal-video-modal-seen:${work.id}`;
 
   // Check if current user is an author of the work
   const isCurrentUserAuthor = useMemo(() => {
@@ -71,17 +70,26 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
 
   useEffect(() => {
     const newParam = searchParams.get('new');
-    if (newParam === 'true') {
-      if (!localStorage.getItem(videoModalSeenKey)) {
-        setVideoModalInitialStep(1);
-        setIsProposalVideoModalOpen(true);
-      }
+    if (newParam !== 'true') return;
 
-      const url = new URL(window.location.href);
-      url.searchParams.delete('new');
-      router.replace(url.pathname + url.search, { scroll: false });
+    if (isAuthorPostsExpEnabled) {
+      setVideoModalInitialStep(1);
+      setIsProposalVideoModalOpen(true);
+    } else {
+      showShareModal({
+        action: 'USER_OPENED_PROPOSAL',
+        docTitle: work.title,
+        url: `${window.location.origin}${pathname}`,
+        shouldShowConfetti: true,
+      });
     }
-  }, [searchParams, router, pathname, videoModalSeenKey]);
+
+    // Consume the flag so the modal doesn't re-open on subsequent re-renders
+    // or back/forward navigation.
+    const url = new URL(window.location.href);
+    url.searchParams.delete('new');
+    router.replace(url.pathname + url.search, { scroll: false });
+  }, [searchParams, router, pathname, work.title, showShareModal, isAuthorPostsExpEnabled]);
 
   const persistVideoCtaDismissal = () => {
     try {
@@ -94,14 +102,6 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
 
   const handleCloseProposalVideoModal = () => {
     setIsProposalVideoModalOpen(false);
-    // Mark the modal as seen so it doesn't auto-open on later ?new=true
-    // visits — but DO NOT hide the callout. The callout only goes away when
-    // the author posts or explicitly clicks its X.
-    try {
-      localStorage.setItem(videoModalSeenKey, `seen:${new Date().toISOString()}`);
-    } catch {
-      // localStorage unavailable (private mode, etc.) — non-fatal.
-    }
   };
 
   const handleShowVideoGuide = () => {
@@ -272,6 +272,7 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
     isCurrentUserAuthor,
     authorPosts,
     isVideoCtaDismissed,
+    isAuthorPostsExpEnabled,
   ]);
 
   return (
