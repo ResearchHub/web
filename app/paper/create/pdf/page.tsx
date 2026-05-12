@@ -463,7 +463,7 @@ export default function UploadPDFPage() {
                     By checking this box, you confirm that you have read and agree to the
                     ResearchHub{' '}
                     <a
-                      href="https://www.researchhub.com/about/tos"
+                      href="https://www.researchhub.com/tos"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary-600 hover:text-primary-700 hover:underline"

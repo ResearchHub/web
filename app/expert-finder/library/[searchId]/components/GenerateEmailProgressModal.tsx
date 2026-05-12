@@ -69,34 +69,20 @@ export function GenerateEmailProgressModal({
           return next;
         });
 
-        const basePayload = {
-          expert_name: expert.name?.trim() || 'Expert',
-          expert_title: expert.title || undefined,
-          expert_affiliation: expert.affiliation || undefined,
-          expert_email: expert.email || undefined,
-          expertise: expert.expertise || undefined,
-          notes: expert.notes || undefined,
-          expert_search_id: Number(searchId) || undefined,
-        };
-
         try {
           if (generation.mode === 'ai') {
-            await ExpertFinderService.generateEmail(
-              {
-                ...basePayload,
-                template: generation.template,
-              },
-              { save: true }
-            );
+            await ExpertFinderService.generateEmail({
+              expert_search_id: Number(searchId),
+              expert_email: expert.email?.trim() ?? '',
+              template: generation.template,
+            });
           } else {
-            await ExpertFinderService.generateEmail(
-              {
-                ...basePayload,
-                template: null,
-                template_id: generation.templateId,
-              },
-              { save: true }
-            );
+            await ExpertFinderService.generateEmail({
+              expert_search_id: Number(searchId),
+              expert_email: expert.email?.trim() ?? '',
+              template: null,
+              template_id: generation.templateId,
+            });
           }
           if (cancelled) return;
           setRows((prev) => {

@@ -78,8 +78,8 @@ export function AdvancedConfig({
   const regionLabel = getRegionLabel(values.region);
 
   const handleExcludeChange = useCallback(
-    (excludedExpertNames: string) => {
-      onChange({ ...values, excludedExpertNames });
+    (excludedSearchIds: number[]) => {
+      onChange({ ...values, excludedSearchIds });
     },
     [onChange, values]
   );
@@ -282,7 +282,10 @@ export function AdvancedConfig({
               />
             </div>
             <div className="min-w-0">
-              <ExcludeExpertsFromSearchesDropdown onExcludeChange={handleExcludeChange} />
+              <ExcludeExpertsFromSearchesDropdown
+                value={values.excludedSearchIds}
+                onExcludeChange={handleExcludeChange}
+              />
             </div>
           </div>
         </div>

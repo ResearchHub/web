@@ -45,8 +45,8 @@ const earnItems: SidebarItem[] = [
     icon: <Star className="w-4 h-4 text-gray-600" />,
   },
   {
-    title: 'Stake tokens',
-    description: 'Stake RSC and earn yield in the form of funding credits.',
+    title: 'Create endowment',
+    description: 'Lock RSC in an endowment and earn yield in the form of funding credits.',
     icon: <Sprout className="w-4 h-4 text-gray-600" />,
   },
 ];
@@ -76,9 +76,9 @@ export const ResearchCoinRightSidebar = () => {
   return (
     <div className="w-full">
       <div className="pb-4">
-        {/* Supply Yield chart */}
+        {/* Annualized Yield chart */}
         <div className="px-6 mb-5 mt-3">
-          <SidebarHeader title="Supply yield" />
+          <SidebarHeader title="Annualized Yield" />
           <YieldChart
             compact
             height={120}

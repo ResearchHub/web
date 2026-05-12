@@ -1,10 +1,7 @@
 import { createTransformer, BaseTransformed } from './transformer';
 import { User, transformUser } from './user';
-import { ContentType } from './work';
-import { ContentMetrics } from './metrics';
-import { Journal } from './journal';
-import { Topic } from './topic';
-import { AuthorProfile } from './authorProfile';
+import type { ContentType } from './work';
+import { mapApiDocumentTypeToClientType } from '@/utils/contentTypeMapping';
 
 export interface NotificationHub {
   name: string;
@@ -40,6 +37,7 @@ export interface Notification {
     id: number;
     title: string;
     slug?: string;
+    contentType?: ContentType;
   };
   type: string;
   body: NotificationBodyElement[];
@@ -53,6 +51,8 @@ export interface Notification {
 export type TransformedNotification = Notification & BaseTransformed;
 export type TransformedNotificationExtra = NotificationExtra & BaseTransformed;
 export type TransformedNotificationBodyElement = NotificationBodyElement & BaseTransformed;
+
+export type NotificationWork = NonNullable<Notification['work']>;
 
 // Helper function to transform notification extra without using createTransformer
 const transformNotificationExtraRaw = (raw: any): NotificationExtra | undefined => {
@@ -112,8 +112,10 @@ export const transformNotificationBody = (body: any): NotificationBodyElement[] 
 };
 
 // Helper function to transform work without using createTransformer
-const transformWorkRaw = (raw: any): { id: number; title: string; slug?: string } | undefined => {
+const transformWorkRaw = (raw: any): NotificationWork | undefined => {
   if (!raw) return undefined;
+
+  const contentType = mapApiDocumentTypeToClientType(raw.document_type);
 
   // Direct extraction when raw is already a unified_document
   if (raw.documents) {
@@ -125,6 +127,7 @@ const transformWorkRaw = (raw: any): { id: number; title: string; slug?: string 
         id: firstDoc.id,
         title: firstDoc.title || firstDoc.paper_title || '',
         slug: firstDoc.slug,
+        contentType: contentType,
       };
     }
     // Handle single document object
@@ -133,6 +136,7 @@ const transformWorkRaw = (raw: any): { id: number; title: string; slug?: string 
         id: raw.documents.id,
         title: raw.documents.title || raw.documents.paper_title || '',
         slug: raw.documents.slug,
+        contentType: contentType,
       };
     }
   }
@@ -148,6 +152,7 @@ const transformWorkRaw = (raw: any): { id: number; title: string; slug?: string 
       id: raw.id,
       title: raw.title || raw.paper_title || '',
       slug: raw.slug,
+      contentType: contentType,
     };
   }
 
@@ -157,9 +162,7 @@ const transformWorkRaw = (raw: any): { id: number; title: string; slug?: string 
 export const transformWork = (raw: any) => {
   const transformed = transformWorkRaw(raw);
   if (!transformed) return undefined;
-  return createTransformer<any, { id: number; title: string; slug?: string }>(() => transformed)(
-    raw
-  );
+  return createTransformer<any, NotificationWork>(() => transformed)(raw);
 };
 
 export const transformNotification = createTransformer<any, Notification>((raw) => ({

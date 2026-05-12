@@ -9,7 +9,6 @@ import { faChevronLeft } from '@fortawesome/pro-light-svg-icons';
 import { Button } from '@/components/ui/Button';
 import { useReferral } from '@/contexts/ReferralContext';
 import AnalyticsService from '@/services/analytics.service';
-import { Experiment, ExperimentVariant, isExperimentEnabled } from '@/utils/experiment';
 
 interface Props extends BaseScreenProps {
   onBack: () => void;
@@ -61,11 +60,7 @@ export default function Signup({
 
       await AuthService.register(registrationData);
 
-      AnalyticsService.logSignedUp('credentials', {
-        homepage_experiment: isExperimentEnabled(Experiment.HomepageExperiment)
-          ? ExperimentVariant.B
-          : ExperimentVariant.A,
-      });
+      AnalyticsService.logSignedUp('credentials');
 
       onVerify();
     } catch (err) {

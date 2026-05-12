@@ -9,7 +9,8 @@ import { Alert } from '@/components/ui/Alert';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
 import { Tabs } from '@/components/ui/Tabs';
-import { useExpertSearchDetail } from '@/hooks/useExpertFinder';
+import { useExpertSearchDetail, usePatchExpert } from '@/hooks/useExpertFinder';
+import type { PatchExpertPayload } from '@/services/expertFinder.service';
 import { SearchDetailHeader } from './SearchDetailHeader';
 import { ExpertResultCard } from './ExpertResultCard';
 import { GenerateEmailModal, type GenerateEmailConfirmPayload } from './GenerateEmailModal';
@@ -27,6 +28,15 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   const tab = searchParams?.get('tab') === TAB_OUTREACH ? TAB_OUTREACH : TAB_EXPERT_RESULTS;
 
   const [{ searchDetail, isLoading, error }, refetch] = useExpertSearchDetail(searchId);
+  const [, patchExpert] = usePatchExpert();
+
+  const handleSaveExpert = useCallback(
+    async (expertId: number, payload: PatchExpertPayload) => {
+      await patchExpert(expertId, payload);
+      await refetch();
+    },
+    [patchExpert, refetch]
+  );
 
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
   const [showGenerateModal, setShowGenerateModal] = useState(false);
@@ -102,6 +112,11 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
     return null;
   }
 
+  const displayedExpertTotal =
+    searchDetail.status === 'completed'
+      ? Math.max(searchDetail.expertCount, searchDetail.expertResults.length)
+      : searchDetail.expertResults.length;
+
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-6">
       <Breadcrumbs
@@ -125,6 +140,15 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
               <p className="font-semibold mb-1">Search failed</p>
               <p className="font-normal">
                 {searchDetail.errorMessage || 'An error occurred while running the search.'}
+              </p>
+              {searchDetail.currentStep ? (
+                <p className="font-normal text-sm mt-2 text-red-900/90">
+                  Step: {searchDetail.currentStep}
+                </p>
+              ) : null}
+              <p className="font-normal text-sm mt-2 text-red-900/80">
+                If the model output did not match the required table format, validation errors will
+                appear above.
               </p>
             </div>
           </Alert>
@@ -209,7 +233,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
             <section>
               <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                 <h2 className="text-lg font-semibold text-gray-900 mb-[2px] mt-[2px]">
-                  Results ({searchDetail.expertResults.length})
+                  Results ({displayedExpertTotal})
                 </h2>
                 <div className="flex flex-wrap items-center gap-2">
                   {selectedIndices.size === searchDetail.expertResults.length ? (
@@ -250,15 +274,16 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                   </Button>
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-4 sm:!grid-cols-2 md:!grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:!grid-cols-2">
                 {searchDetail.expertResults.map((expert, index) => (
                   <ExpertResultCard
-                    key={`expert-${index}`}
+                    key={expert.expertId != null ? `expert-${expert.expertId}` : `idx-${index}`}
                     expert={expert}
                     index={index}
                     selected={selectedIndices.has(index)}
                     onToggleSelect={toggleSelection}
                     onGenerateEmail={(expert) => openGenerateForExperts([expert])}
+                    onSaveExpert={handleSaveExpert}
                   />
                 ))}
               </div>

@@ -66,9 +66,8 @@ export function getRegionLabel(value: Region): string {
 }
 
 export interface ExpertSearchCreatePayload {
-  unified_document_id?: number | null;
-  query?: string;
-  input_type?: InputType;
+  unified_document_id: number;
+  input_type: InputType;
   name?: string;
   config: {
     expert_count: number;
@@ -76,9 +75,23 @@ export interface ExpertSearchCreatePayload {
     region: Region;
     state: string;
   };
-  excluded_expert_names?: string[];
+  excluded_search_ids?: number[];
   additional_context?: string;
 }
+
+/** PATCH body for canonical expert (wire format, snake_case). */
+export type PatchExpertPayload = Partial<{
+  honorific: string;
+  first_name: string;
+  middle_name: string;
+  last_name: string;
+  name_suffix: string;
+  academic_title: string;
+  affiliation: string;
+  expertise: string;
+  notes: string;
+  email: string;
+}>;
 
 // ── Email template kind (purpose) ───────────────────
 
@@ -107,14 +120,9 @@ export const GENERATED_EMAIL_STATUS_VALUES = [
 export type GeneratedEmailStatus = (typeof GENERATED_EMAIL_STATUS_VALUES)[number];
 
 export interface GenerateEmailPayload {
-  expert_name: string;
-  template: string | null;
-  expert_title?: string;
-  expert_affiliation?: string;
-  expert_email?: string;
-  expertise?: string;
-  notes?: string;
-  expert_search_id?: number | null;
+  expert_search_id: number;
+  expert_email: string;
+  template?: string | null;
   template_id?: number | null;
 }
 
@@ -151,20 +159,31 @@ export class ExpertFinderService {
 
   /**
    * Submit a new expert search.
-   * POST /api/research_ai/expert-finder/search/
+   * POST /api/research_ai/expert-finder/searches/
    */
   static async createSearch(payload: ExpertSearchCreatePayload): Promise<ExpertSearchCreated> {
-    const raw = await ApiClient.post<Record<string, unknown>>(`${this.BASE_PATH}/search/`, payload);
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/searches/`,
+      payload
+    );
     return transformExpertSearchCreateResponse(raw);
   }
 
   /**
    * Fetch full detail for a single expert search.
-   * GET /api/research_ai/expert-finder/search/:searchId/
+   * GET /api/research_ai/expert-finder/searches/:searchId/
    */
   static async getSearch(searchId: number | string): Promise<ExpertSearchResult> {
-    const response = await ApiClient.get<any>(`${this.BASE_PATH}/search/${searchId}/`);
+    const response = await ApiClient.get<any>(`${this.BASE_PATH}/searches/${searchId}/`);
     return transformExpertSearch(response);
+  }
+
+  /**
+   * Partial update of a canonical expert row.
+   * PATCH /api/research_ai/expert-finder/experts/:expertId/
+   */
+  static async patchExpert(expertId: number | string, payload: PatchExpertPayload): Promise<void> {
+    await ApiClient.patch<void>(`${this.BASE_PATH}/experts/${expertId}/`, payload);
   }
 
   /**
@@ -254,24 +273,11 @@ export class ExpertFinderService {
 
   // ── Generated emails ─────────────────────────────────────────────────────
 
-  static async generateEmail(
-    payload: GenerateEmailPayload,
-    options?: { save?: boolean; action?: 'generate' }
-  ): Promise<any | GeneratedEmail> {
-    const preview = options?.save === false || options?.action === 'generate';
-    const query = preview
-      ? `?${options?.action === 'generate' ? 'action=generate' : 'save=false'}`
-      : '';
+  static async generateEmail(payload: GenerateEmailPayload): Promise<GeneratedEmail> {
     const raw = await ApiClient.post<Record<string, unknown>>(
-      `${this.BASE_PATH}/generate-email/${query}`,
+      `${this.BASE_PATH}/generate-email/`,
       payload
     );
-    if (preview) {
-      return {
-        subject: (raw.subject as string) ?? '',
-        body: (raw.body as string) ?? '',
-      };
-    }
     return transformGeneratedEmail(raw);
   }
 

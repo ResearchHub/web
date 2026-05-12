@@ -102,22 +102,24 @@ export function StatsPanel({ stats, isLoading }: Readonly<StatsPanelProps>) {
       )}
       <StatRow label="Annualized Yield" value={`${stats.apy.toFixed(2)}%`} highlight />
       <StatRow
-        label="Issued Today (USD)"
-        value={formatCurrency(stats.issued_today_usd)}
+        label="Issued Today"
+        value={
+          stats.issued_today_rsc
+            ? `${formatCurrency(stats.issued_today_usd)} (${formatRSC(stats.issued_today_rsc)} RSC)`
+            : formatCurrency(stats.issued_today_usd)
+        }
         highlight
       />
-      {stats.issued_today_rsc && (
-        <StatRow
-          label="Issued Today (RSC)"
-          value={formatRSC(stats.issued_today_rsc) + ' RSC'}
-          highlight
-        />
-      )}
       <StatRow label="30d Avg Annualized Yield" value={`${stats.apy_30d_avg.toFixed(2)}%`} />
-      <StatRow label="Holders" value={formatNumber(stats.holders)} />
-      <StatRow label="Total Staked" value={`${formatRSC(stats.total_staked_rsc)} RSC`} />
-      <StatRow label="Total Value Locked" value={formatCurrency(stats.total_value_locked_usd)} />
-      <StatRow label="% of Supply Staked" value={`${stats.pct_of_supply_staked.toFixed(2)}%`} />
+      <StatRow label="Earners" value={formatNumber(stats.holders)} />
+      <StatRow
+        label="Total Value Locked"
+        value={`${formatCurrency(stats.total_value_locked_usd)} (${formatRSC(stats.total_staked_rsc)} RSC)`}
+      />
+      <StatRow
+        label="% of Supply in Endowments"
+        value={`${stats.pct_of_supply_staked.toFixed(2)}%`}
+      />
     </div>
   );
 }
