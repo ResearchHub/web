@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { CHANGELOG_STORAGE_KEY } from '@/constants/changelog';
 import { cn } from '@/utils/styles';
@@ -28,7 +29,7 @@ export const ChangelogLink: React.FC<ChangelogLinkProps> = ({ className }) => {
   };
 
   return (
-    <a
+    <Link
       href="/changelog"
       onClick={handleClick}
       className={cn(
@@ -39,6 +40,6 @@ export const ChangelogLink: React.FC<ChangelogLinkProps> = ({ className }) => {
     >
       {!hasSeenChangelog && <RadiatingDot color="bg-orange-500" size="sm" />}
       Changelog
-    </a>
+    </Link>
   );
 };
