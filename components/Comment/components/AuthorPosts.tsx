@@ -23,11 +23,6 @@ import { formatTimestamp } from '@/utils/date';
 import { stripUrls } from '@/utils/url';
 import { cn } from '@/utils/styles';
 
-// ---------------------------------------------------------------------------
-// Composer hook + modal — exported so other surfaces (e.g. PostVideoCallout)
-// can reuse the same submission logic and modal UI without duplicating state.
-// ---------------------------------------------------------------------------
-
 type ComposerState = { mode: 'create' } | { mode: 'edit'; comment: Comment } | null;
 
 interface UseAuthorPostComposerArgs {
@@ -45,12 +40,6 @@ export interface AuthorPostComposer {
   openForEdit: (comment: Comment) => void;
 }
 
-/**
- * Hook that owns the create/edit composer state and submission logic for an
- * author post (backed by the `AUTHOR_UPDATE` comment filter). The returned
- * object is spreadable into `<PostComposerModal {...composer} />` and also
- * exposes `open` / `openForEdit` for triggering from the consumer's UI.
- */
 export function useAuthorPostComposer({
   documentId,
   contentType,
@@ -146,8 +135,6 @@ export const PostComposerModal: FC<PostComposerModalProps> = ({
         autoFocus
         commentType="AUTHOR_UPDATE"
         placeholder="Share something with your audience. Paste a YouTube, TikTok, X or LinkedIn link to embed it."
-        // Per-comment key when editing so an in-flight edit doesn't pollute the
-        // create-mode draft, and vice versa.
         storageKey={
           editingComment
             ? `author-post-edit-${editingComment.id}`
@@ -163,38 +150,20 @@ export const PostComposerModal: FC<PostComposerModalProps> = ({
   );
 };
 
-/**
- * Quiet, single-line empty state — modeled after LinkedIn's "no recent posts"
- * pattern. Lives here (rather than alongside any one consumer) because every
- * AuthorPosts surface eventually wants the same fallback.
- */
 export const ViewerPostsEmptyState: FC = () => (
   <p className="m-0 text-sm text-gray-500">
     No posts from the author yet — they'll show up here when shared.
   </p>
 );
 
-// ---------------------------------------------------------------------------
-// AuthorPosts section
-// ---------------------------------------------------------------------------
-
 interface AuthorPostsProps {
-  /**
-   * Posts (AUTHOR_UPDATE comments) for the document, expected to be sorted
-   * newest-first by the server. Drives the carousel; non-embed posts are
-   * filtered out client-side.
-   */
   posts: Comment[];
   documentId: number;
   contentType: ContentType;
   /** Authors of the underlying document. Used to gate the "New post" CTA. */
   documentAuthors: Authorship[];
   className?: string;
-  /**
-   * Override for the empty state. Receives `isAuthor` so the consumer can
-   * render different UI for the author vs. visitors. Return `null` to hide the
-   * section entirely. Defaults to {@link ViewerPostsEmptyState}.
-   */
+  /** Return `null` to hide the section entirely. Defaults to `ViewerPostsEmptyState`. */
   emptyState?: (props: { isAuthor: boolean }) => ReactNode;
 }
 

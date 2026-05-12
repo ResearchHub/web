@@ -9,7 +9,7 @@ import { TabType } from './WorkTabs';
 import { CommentFeed } from '@/components/Comment/CommentFeed';
 import { PostBlockEditor } from './PostBlockEditor';
 import { FundraiseProgress } from '@/components/Fund/FundraiseProgress';
-import { AuthorPosts } from '@/components/Activity/AuthorPosts';
+import { AuthorPosts } from '@/components/Comment/components/AuthorPosts';
 import { PostVideoCallout } from './components/PostVideoCallout';
 import { useStorageKey } from '@/utils/storageKeys';
 import { useUser } from '@/contexts/UserContext';

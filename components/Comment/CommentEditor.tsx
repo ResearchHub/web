@@ -214,15 +214,6 @@ export const CommentEditor = ({
   // with whatever URLs the user has typed/pasted. Bumping a counter is
   // cheaper than serialising the doc twice per keystroke; we read JSON
   // lazily inside the memo when the counter changes.
-  //
-  // We listen for `transaction` (filtered to `docChanged`) rather than
-  // `update` because TipTap's `update` event is suppressed by some
-  // programmatic mutations — most importantly `editor.commands.clearContent()`
-  // defaults to `emitUpdate = false`, so on submit the editor clears but
-  // listeners that only watch `update` go stale (the carousel kept showing
-  // its pre-submit chips). `transaction` fires for every transaction, and
-  // the `docChanged` filter keeps the listener as quiet as `update` was on
-  // selection-only events (cursor moves, text selection).
   const [docVersion, setDocVersion] = useState(0);
   useEffect(() => {
     if (!editor) return;
