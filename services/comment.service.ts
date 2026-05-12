@@ -268,7 +268,12 @@ export class CommentService {
     return { replies, count };
   }
 
-  static async fetchAuthorUpdates({
+  /**
+   * Fetches all author posts for a document. Backed by the AUTHOR_UPDATE
+   * comment filter — the backend constant remains unchanged for compatibility
+   * even though the frontend surfaces these as "posts".
+   */
+  static async fetchAuthorPosts({
     documentId,
     contentType,
   }: {
@@ -281,13 +286,13 @@ export class CommentService {
         contentType,
         filter: 'AUTHOR_UPDATE',
         sort: 'CREATED_DATE',
-        ascending: true,
-        pageSize: 100, // Get all updates
+        ascending: false, // newest first — consumed by the AuthorPosts carousel
+        pageSize: 100,
       });
 
       return comments;
     } catch (error) {
-      console.error('Error fetching author updates:', error);
+      console.error('Error fetching author posts:', error);
       return [];
     }
   }

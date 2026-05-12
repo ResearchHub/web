@@ -1,7 +1,7 @@
 'use client';
 
 import { EditorContent } from '@tiptap/react';
-import { useRef, useCallback, useState, useEffect } from 'react';
+import { useRef, useCallback, useState, useEffect, useMemo } from 'react';
 import 'highlight.js/styles/atom-one-dark.css';
 import { CommentType } from '@/types/comment';
 import { useCommentEditor } from './lib/hooks/useCommentEditor';
@@ -16,6 +16,8 @@ import { useIsMac } from '@/hooks/useIsMac';
 import { CommentEditorBanner } from './components/CommentEditorBanner';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { CollapsedCommentEditor } from './CollapsedCommentEditor';
+import { EmbedCarousel } from '@/components/Embed';
+import { extractDocEmbeds } from './lib/embedDoc';
 
 const REVIEW_WORD_LIMIT = 3000;
 
@@ -179,8 +181,35 @@ export const CommentEditor = ({
           if (link) {
             event.preventDefault();
             const rect = link.getBoundingClientRect();
-            setLinkMenuPosition({ x: rect.left, y: rect.bottom + window.scrollY });
-            setSelectedLink({ url: link.href, text: link.textContent || '' });
+            // Viewport coords; the menu wrapper renders with `position: fixed`.
+            setLinkMenuPosition({ x: rect.left, y: rect.bottom });
+            // RichLink chips render as `<a data-rich-link-chip>` from
+            // `InlineRichLink`; everything else is a regular link mark.
+            // The bubble menu uses this to pick which actions to show
+            // (and which conversion command to wire up).
+            const isChip = link.hasAttribute('data-rich-link-chip');
+            // Resolve the atom's true doc position. ProseMirror's
+            // handleClick `pos` lands AFTER an inline atom most of the
+            // time, so we fall back to `pos - 1` when nodeAt(pos) isn't
+            // the chip we just clicked.
+            let chipPos: number | undefined;
+            if (isChip) {
+              const nodeAt = view.state.doc.nodeAt(pos);
+              if (nodeAt && nodeAt.type.name === 'richLink') {
+                chipPos = pos;
+              } else {
+                const nodeBefore = pos > 0 ? view.state.doc.nodeAt(pos - 1) : null;
+                if (nodeBefore && nodeBefore.type.name === 'richLink') {
+                  chipPos = pos - 1;
+                }
+              }
+            }
+            setSelectedLink({
+              url: link.href,
+              text: link.textContent || '',
+              kind: isChip ? 'richLink' : 'link',
+              pos: chipPos,
+            });
             return true;
           } else {
             setLinkMenuPosition(null);
@@ -207,6 +236,32 @@ export const CommentEditor = ({
     const text = editor.getText().trim();
     if (text.length > 0) setIsCollapsed(false);
   }, [editor, isCollapsed]);
+
+  // Track the editor's doc shape so the embed carousel below stays in sync
+  // with whatever URLs the user has typed/pasted. Bumping a counter is
+  // cheaper than serialising the doc twice per keystroke; we read JSON
+  // lazily inside the memo when the counter changes.
+  const [docVersion, setDocVersion] = useState(0);
+  useEffect(() => {
+    if (!editor) return;
+    const onTransaction = ({ transaction }: { transaction: { docChanged: boolean } }) => {
+      if (transaction.docChanged) setDocVersion((v) => v + 1);
+    };
+    editor.on('transaction', onTransaction);
+    // Capture the initial doc on mount.
+    setDocVersion((v) => v + 1);
+    return () => {
+      editor.off('transaction', onTransaction);
+    };
+  }, [editor]);
+
+  const carouselEmbeds = useMemo(
+    () => (editor ? extractDocEmbeds(editor.getJSON()) : []),
+    // `docVersion` is the trigger — `editor` is stable for the lifetime of
+    // this component once initialised.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [editor, docVersion]
+  );
 
   const handleExpand = useCallback(() => {
     setIsCollapsed(false);
@@ -285,6 +340,18 @@ export const CommentEditor = ({
         )}
 
         <EditorContent editor={editor} />
+
+        {/*
+         * Embed carousel for the URLs the user has typed/pasted. Lives
+         * inside the editor's bordered surface (just above the footer) so
+         * it visually attaches to the comment being authored. The component
+         * itself renders a horizontal divider above the strip.
+         */}
+        {carouselEmbeds.length > 0 && (
+          <div className="px-4 pb-3">
+            <EmbedCarousel embeds={carouselEmbeds} size="sm" />
+          </div>
+        )}
       </div>
 
       {/* Editor footer */}
@@ -316,7 +383,7 @@ export const CommentEditor = ({
         confirmText="Discard"
       />
 
-      {/* Modals */}
+      {/* Link/image modals + the link bubble menu */}
       <EditorModals
         editor={editor}
         isImageModalOpen={isImageModalOpen}

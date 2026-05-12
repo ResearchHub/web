@@ -6,9 +6,9 @@ import { Star, MessageCircle, Bell, Coins, ChevronDown, ChevronUp } from 'lucide
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
-import { ActivityEmbed, extractFirstEmbed } from '@/components/Activity/ActivityEmbed';
+import { Embed } from '@/components/Embed';
 import { formatTimeAgo } from '@/utils/date';
-import { buildWorkUrl } from '@/utils/url';
+import { buildWorkUrl, extractFirstUrl } from '@/utils/url';
 import { formatCurrency } from '@/utils/currency';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -151,7 +151,7 @@ function getCommentContent(entry: FeedEntry) {
   const isReview = comment.commentType === 'REVIEW';
   const isAuthorUpdate = comment.commentType === 'AUTHOR_UPDATE';
   const embed = isAuthorUpdate
-    ? extractFirstEmbed(
+    ? extractFirstUrl(
         typeof comment.content === 'string' ? comment.content : JSON.stringify(comment.content)
       )
     : null;
@@ -308,7 +308,7 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
           </CommentTextWithLinkChip>
           {commentData.embed && (
             <div className="mt-3">
-              <ActivityEmbed embed={commentData.embed} />
+              <Embed embed={commentData.embed} />
             </div>
           )}
         </div>

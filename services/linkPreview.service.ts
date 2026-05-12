@@ -32,8 +32,17 @@ const META_REGEX_REVERSED =
   /<meta\s+(?:[^>]*?\s+)?content=["']([^"']*)["']\s+(?:[^>]*?\s+)?(?:property|name)=["']([^"']+)["']/gi;
 const TITLE_REGEX = /<title[^>]*>([^<]+)<\/title>/i;
 
-// We only need <head>. Cap bytes read from the network; typical heads are < 10KB.
-const HEAD_BYTE_CAP = 32_000;
+// Cap bytes read from the network. Frameworks like Next.js App Router stream
+// React metadata (<title>, <meta og:*>) *after* </head> via React 19's
+// streaming-metadata pattern. On heavy data-fetching pages — e.g. a populated
+// ResearchHub proposal — `generateMetadata` resolves only after the awaited
+// server data, pushing og:title past byte 120KB on a ~1.1MB page. 192KB gives
+// us headroom for those cases while still short-circuiting multi-MB downloads.
+// In practice we exit far earlier via the og:title fast-path below.
+const HEAD_BYTE_CAP = 192_000;
+// Detect either an og:title or twitter:title meta tag — used to stop reading
+// early on traditional static pages where metadata lives in <head>.
+const TITLE_META_REGEX = /<meta[^>]*(?:property|name)=["'](?:og:title|twitter:title)["']/i;
 
 function extractMeta(html: string): Record<string, string> {
   const meta: Record<string, string> = {};
@@ -44,8 +53,13 @@ function extractMeta(html: string): Record<string, string> {
 }
 
 /**
- * Streams the response body and stops as soon as `</head>` is seen or
- * HEAD_BYTE_CAP bytes have been buffered. Avoids downloading the full page.
+ * Streams the response body and stops as soon as we've seen an og:title or
+ * twitter:title (the fast path for static pages) or HEAD_BYTE_CAP bytes have
+ * been buffered. Intentionally does NOT bail at `</head>` — frameworks like
+ * Next.js App Router emit `<title>` / `<meta og:*>` *after* `</head>` via
+ * React's streaming-metadata flow, so closing the head doesn't mean the meta
+ * is gone. The browser's parser hoists those tags back into <head> at parse
+ * time; we just need to keep reading.
  */
 async function readHead(res: Response): Promise<string> {
   if (!res.body) return '';
@@ -59,11 +73,7 @@ async function readHead(res: Response): Promise<string> {
       if (done) break;
       bytes += value.byteLength;
       buf += decoder.decode(value, { stream: true });
-      const headEnd = buf.search(/<\/head\s*>/i);
-      if (headEnd !== -1) {
-        buf = buf.slice(0, headEnd);
-        break;
-      }
+      if (TITLE_META_REGEX.test(buf)) break;
     }
     buf += decoder.decode();
   } finally {
@@ -80,6 +90,43 @@ function abs(maybeUrl: string | undefined, base: string): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: "'",
+  nbsp: ' ',
+};
+
+/**
+ * Decodes HTML entities (named like `&amp;`, decimal like `&#39;`, hex like
+ * `&#x27;`) iteratively so doubly-encoded values (e.g. LinkedIn's
+ * `&amp;#39;` for an apostrophe) collapse to the original character.
+ *
+ * Edge-runtime safe: pure regex + String.fromCodePoint, no DOMParser.
+ */
+function decodeHtmlEntities(input: string | undefined): string | undefined {
+  if (!input) return input;
+  let s = input;
+  for (let i = 0; i < 4; i++) {
+    if (!/&(#x?[0-9a-f]+|[a-z]+);/i.test(s)) break;
+    s = s.replace(/&(#x[0-9a-f]+|#[0-9]+|[a-z]+);/gi, (full, body: string) => {
+      if (body.startsWith('#x') || body.startsWith('#X')) {
+        const code = parseInt(body.slice(2), 16);
+        return Number.isFinite(code) ? String.fromCodePoint(code) : full;
+      }
+      if (body.startsWith('#')) {
+        const code = parseInt(body.slice(1), 10);
+        return Number.isFinite(code) ? String.fromCodePoint(code) : full;
+      }
+      const named = NAMED_ENTITIES[body.toLowerCase()];
+      return named ?? full;
+    });
+  }
+  return s;
 }
 
 async function fetchXOEmbed(url: string): Promise<PreviewResponse | null> {
@@ -143,11 +190,20 @@ async function fetchTikTokOEmbed(url: string): Promise<PreviewResponse | null> {
   }
 }
 
+// Several CDN-protected sites (Wikipedia, Washington Post, Cloudflare-fronted
+// pages) block the historical `facebookexternalhit/1.1` UA we used here with a
+// 403, even though they happily serve `og:` meta to a real browser. A current
+// desktop Chrome UA gets us through those gates without hurting the sites that
+// previously *required* a social-bot UA — LinkedIn, for example, still
+// returns a login-wall HTML page that contains the same `og:title` we want.
+const BROWSER_USER_AGENT =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+
 async function fetchGenericOG(url: string): Promise<PreviewResponse | null> {
   try {
     const res = await fetch(url, {
       headers: {
-        'user-agent': 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+        'user-agent': BROWSER_USER_AGENT,
         accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'accept-language': 'en-US,en;q=0.9',
       },
@@ -165,9 +221,16 @@ async function fetchGenericOG(url: string): Promise<PreviewResponse | null> {
     const parsed = new URL(url);
     return {
       url,
-      siteName: meta['og:site_name'] || parsed.hostname.replace(/^www\./, ''),
-      title: meta['og:title'] || meta['twitter:title'] || titleTag || parsed.hostname,
-      description: meta['og:description'] || meta['twitter:description'] || meta['description'],
+      // Decode all human-visible fields. Site authors (notably LinkedIn) often
+      // double-encode special chars in og:title — e.g. `I&amp;#39;ve` for
+      // `I've` — and React would render the entities verbatim otherwise.
+      siteName: decodeHtmlEntities(meta['og:site_name'] || parsed.hostname.replace(/^www\./, '')),
+      title: decodeHtmlEntities(
+        meta['og:title'] || meta['twitter:title'] || titleTag || parsed.hostname
+      ),
+      description: decodeHtmlEntities(
+        meta['og:description'] || meta['twitter:description'] || meta['description']
+      ),
       image: abs(meta['og:image'] || meta['twitter:image'], url),
     };
   } catch {

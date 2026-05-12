@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { LinkPreviewService, InvalidUrlError } from '@/services/linkPreview.service';
 
 export const runtime = 'edge';
-export const revalidate = 86400;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

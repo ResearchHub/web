@@ -2,7 +2,7 @@
 
 import { FC, ReactNode } from 'react';
 import { Star, Bell, ExternalLink, Linkedin, Play } from 'lucide-react';
-import type { DetectedEmbed, EmbedKind } from '@/components/Activity/ActivityEmbed';
+import type { DetectedUrl, UrlKind } from '@/utils/url';
 import { faviconFor, type StoryDetails, type StoryKind } from '../types';
 import { cn } from '@/utils/styles';
 
@@ -12,7 +12,7 @@ export const XGlyph: FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-export const PLATFORM_LABEL: Record<EmbedKind, string> = {
+export const PLATFORM_LABEL: Record<UrlKind, string> = {
   youtube: 'YouTube',
   tiktok: 'TikTok',
   x: 'X',
@@ -32,7 +32,7 @@ export const BRAND: Record<'x' | 'linkedin', { bg: string; glyph: ReactNode }> =
   },
 };
 
-export const PlatformChip: FC<{ embed: DetectedEmbed }> = ({ embed }) => {
+export const PlatformChip: FC<{ embed: DetectedUrl }> = ({ embed }) => {
   if (embed.kind === 'webpage') {
     let host = '';
     try {

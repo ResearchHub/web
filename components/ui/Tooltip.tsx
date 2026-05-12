@@ -17,6 +17,21 @@ interface TooltipProps {
   width?: string; // Width class for the tooltip (e.g., 'w-38', 'w-80', 'w-96')
   /** When true, disable the tap-to-open behavior on touch devices (tooltip won't show at all there). */
   disableTouchClick?: boolean;
+  /**
+   * When true, the tooltip closes as soon as the user clicks anywhere inside
+   * its content. Useful for popover-style tooltips whose content contains
+   * primary actions (e.g. an embed card that opens a modal on click) — the
+   * tooltip should yield to the action surface rather than linger on top of it.
+   */
+  closeOnContentClick?: boolean;
+  /**
+   * HTML element to use for the trigger wrapper. Defaults to `'div'` (block-
+   * compatible default for layout contexts). Set to `'span'` when the tooltip
+   * is rendered inside inline-only HTML (e.g. inside a `<p>` paragraph) so
+   * the resulting DOM is valid — `<div>` cannot legally descend from `<p>`
+   * regardless of CSS display, which triggers React's hydration warning.
+   */
+  wrapperAs?: 'div' | 'span';
 }
 
 const TooltipContent = ({
@@ -28,6 +43,7 @@ const TooltipContent = ({
   width = 'w-38',
   onMouseEnter,
   onMouseLeave,
+  onContentClick,
 }: {
   content: React.ReactNode;
   triggerRect: DOMRect | null;
@@ -37,6 +53,7 @@ const TooltipContent = ({
   width?: string;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  onContentClick?: () => void;
 }) => {
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
@@ -105,6 +122,14 @@ const TooltipContent = ({
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      // Use bubble-phase `onClick` (not `mousedown`-capture) so the click
+      // event still gets a chance to reach the actual interactive element
+      // inside the tooltip first. Tearing the portal down on mousedown
+      // unmounts the click target before `mouseup`, so the browser never
+      // dispatches a `click` and the user's intended action is dropped.
+      // React batches the resulting two state updates (action + tooltip
+      // close) into the same render, so visually they happen together.
+      onClick={onContentClick}
     >
       {content}
     </div>,
@@ -122,11 +147,17 @@ export function Tooltip({
   position = 'bottom',
   width = 'w-38',
   disableTouchClick = false,
+  closeOnContentClick = false,
+  wrapperAs = 'div',
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isHoveringTooltip, setIsHoveringTooltip] = useState(false);
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
-  const triggerRef = useRef<HTMLDivElement>(null);
+  // Trigger ref is on the wrapper element; it can be HTMLDivElement or
+  // HTMLSpanElement depending on `wrapperAs`. Both extend HTMLElement so we
+  // type the ref as such — the only API we use on it is
+  // `getBoundingClientRect`, which lives on HTMLElement.
+  const triggerRef = useRef<HTMLElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTouchDevice = useIsTouchDevice();
@@ -201,15 +232,20 @@ export function Tooltip({
         onBlur: hideTooltip,
       };
 
+  // The trigger wrapper element is `wrapperAs` (defaults to `<div>`). When
+  // the tooltip is hosted inside inline-only HTML (e.g. a TipTap `<p>`
+  // paragraph for InlineRichLink), callers should pass `wrapperAs="span"`
+  // so the resulting DOM is valid — see TooltipProps.wrapperAs.
+  const Wrapper = wrapperAs;
   return (
     <>
-      <div
-        ref={triggerRef}
+      <Wrapper
+        ref={triggerRef as React.Ref<HTMLDivElement & HTMLSpanElement>}
         {...triggerHandlers}
         className={cn('inline-flex h-full', wrapperClassName)}
       >
         {children}
-      </div>
+      </Wrapper>
       {triggerRect && isVisible && (
         <TooltipContent
           content={content}
@@ -220,6 +256,16 @@ export function Tooltip({
           width={width}
           onMouseEnter={handleTooltipMouseEnter}
           onMouseLeave={handleTooltipMouseLeave}
+          onContentClick={
+            closeOnContentClick
+              ? () => {
+                  if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                  if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+                  setIsHoveringTooltip(false);
+                  setIsVisible(false);
+                }
+              : undefined
+          }
         />
       )}
     </>
