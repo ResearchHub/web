@@ -1,6 +1,7 @@
 import { type IconName } from '@/components/ui/icons/Icon';
 import { Notification } from '@/types/notification';
 import { formatUsdValue, formatRSC } from '@/utils/number';
+import { buildWorkUrl } from '@/utils/url';
 
 export interface NotificationTypeInfo {
   icon: IconName;
@@ -204,8 +205,8 @@ export function getRSCAmountFromNotification(notification: Notification): number
  * - https://xyz-researchhub.vercel.app/paper/9348486/title → /paper/9348486/title
  *
  * For notifications with null/empty URLs:
- * - Creates relative paper URLs for any notification with a paper ID
- * - Adds /bounties suffix specifically for BOUNTY_FOR_YOU notifications
+ * - Builds a path with {@link buildWorkUrl} using work.contentType (from API document_type) or paper as default
+ * - Adds /bounties tab for selected bounty notification types
  */
 export function formatNavigationUrl(notification: Notification): string | undefined {
   if (
@@ -238,21 +239,23 @@ export function formatNavigationUrl(notification: Notification): string | undefi
 
   // Handle null/empty URL when we have document data
   if ((!url || url.trim() === '') && notification.work?.id) {
-    const paperId = notification.work.id;
-    let basePath = notification.work.slug
-      ? `/paper/${paperId}/${notification.work.slug}`
-      : `/paper/${paperId}`;
+    const contentType = notification.work.contentType ?? 'paper';
+    const bountyTabTypes = [
+      'BOUNTY_FOR_YOU',
+      'BOUNTY_EXPIRING_SOON',
+      'BOUNTY_HUB_EXPIRING_SOON',
+      'BOUNTY_PAYOUT',
+    ] as const;
+    const tab = bountyTabTypes.includes(notification.type as (typeof bountyTabTypes)[number])
+      ? 'bounties'
+      : undefined;
 
-    if (
-      notification.type === 'BOUNTY_FOR_YOU' ||
-      notification.type === 'BOUNTY_EXPIRING_SOON' ||
-      notification.type === 'BOUNTY_HUB_EXPIRING_SOON' ||
-      notification.type === 'BOUNTY_PAYOUT'
-    ) {
-      basePath += '/bounties';
-    }
-
-    return basePath;
+    return buildWorkUrl({
+      id: notification.work.id,
+      slug: notification.work.slug,
+      contentType,
+      tab,
+    });
   }
 
   if (!url) return undefined;
