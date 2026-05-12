@@ -5,7 +5,7 @@ import { Eyebrow } from './Eyebrow';
 import { MonoLabel } from './MonoLabel';
 
 const partnershipStats = [
-  { value: '$145.62M', label: 'Total impact' },
+  { value: '$150M+', label: 'Total impact', href: 'https://impact.endaoment.org/' },
   { value: '1.8M', label: 'Eligible orgs' },
 ];
 
@@ -63,9 +63,23 @@ export const PartnershipSection = () => (
                   <div className="font-medium tracking-[-0.02em] text-gray-900 leading-none text-[clamp(26px,5vw,40px)]">
                     {stat.value}
                   </div>
-                  <MonoLabel className="mt-2 block text-[10px] uppercase tracking-[0.16em] text-gray-500">
-                    {stat.label}
-                  </MonoLabel>
+                  {stat.href ? (
+                    <a
+                      href={stat.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-flex items-center gap-1.5 text-gray-500 hover:text-gray-900 hover:gap-2 transition-all"
+                    >
+                      <MonoLabel className="text-[10px] uppercase tracking-[0.16em] underline decoration-dotted underline-offset-4">
+                        {stat.label}
+                      </MonoLabel>
+                      <ExternalLink className="w-3 h-3" aria-hidden />
+                    </a>
+                  ) : (
+                    <MonoLabel className="mt-2 block text-[10px] uppercase tracking-[0.16em] text-gray-500">
+                      {stat.label}
+                    </MonoLabel>
+                  )}
                 </div>
               ))}
             </div>
