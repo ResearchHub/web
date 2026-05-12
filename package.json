@@ -106,7 +106,6 @@
     "lodash-es": "^4.18.1",
     "lowlight": "^3.1.0",
     "lucide-react": "^0.461.0",
-    "mermaid": "^11.7.0",
     "nanoid": "^5.0.9",
     "next": "^15.5.10",
     "next-auth": "^4.24.11",
