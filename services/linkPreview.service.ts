@@ -32,8 +32,17 @@ const META_REGEX_REVERSED =
   /<meta\s+(?:[^>]*?\s+)?content=["']([^"']*)["']\s+(?:[^>]*?\s+)?(?:property|name)=["']([^"']+)["']/gi;
 const TITLE_REGEX = /<title[^>]*>([^<]+)<\/title>/i;
 
-// We only need <head>. Cap bytes read from the network; typical heads are < 10KB.
-const HEAD_BYTE_CAP = 32_000;
+// Cap bytes read from the network. Frameworks like Next.js App Router stream
+// React metadata (<title>, <meta og:*>) *after* </head> via React 19's
+// streaming-metadata pattern. On heavy data-fetching pages — e.g. a populated
+// ResearchHub proposal — `generateMetadata` resolves only after the awaited
+// server data, pushing og:title past byte 120KB on a ~1.1MB page. 192KB gives
+// us headroom for those cases while still short-circuiting multi-MB downloads.
+// In practice we exit far earlier via the og:title fast-path below.
+const HEAD_BYTE_CAP = 192_000;
+// Detect either an og:title or twitter:title meta tag — used to stop reading
+// early on traditional static pages where metadata lives in <head>.
+const TITLE_META_REGEX = /<meta[^>]*(?:property|name)=["'](?:og:title|twitter:title)["']/i;
 
 function extractMeta(html: string): Record<string, string> {
   const meta: Record<string, string> = {};
@@ -44,8 +53,13 @@ function extractMeta(html: string): Record<string, string> {
 }
 
 /**
- * Streams the response body and stops as soon as `</head>` is seen or
- * HEAD_BYTE_CAP bytes have been buffered. Avoids downloading the full page.
+ * Streams the response body and stops as soon as we've seen an og:title or
+ * twitter:title (the fast path for static pages) or HEAD_BYTE_CAP bytes have
+ * been buffered. Intentionally does NOT bail at `</head>` — frameworks like
+ * Next.js App Router emit `<title>` / `<meta og:*>` *after* `</head>` via
+ * React's streaming-metadata flow, so closing the head doesn't mean the meta
+ * is gone. The browser's parser hoists those tags back into <head> at parse
+ * time; we just need to keep reading.
  */
 async function readHead(res: Response): Promise<string> {
   if (!res.body) return '';
@@ -59,11 +73,7 @@ async function readHead(res: Response): Promise<string> {
       if (done) break;
       bytes += value.byteLength;
       buf += decoder.decode(value, { stream: true });
-      const headEnd = buf.search(/<\/head\s*>/i);
-      if (headEnd !== -1) {
-        buf = buf.slice(0, headEnd);
-        break;
-      }
+      if (TITLE_META_REGEX.test(buf)) break;
     }
     buf += decoder.decode();
   } finally {
