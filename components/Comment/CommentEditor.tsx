@@ -181,8 +181,35 @@ export const CommentEditor = ({
           if (link) {
             event.preventDefault();
             const rect = link.getBoundingClientRect();
-            setLinkMenuPosition({ x: rect.left, y: rect.bottom + window.scrollY });
-            setSelectedLink({ url: link.href, text: link.textContent || '' });
+            // Viewport coords; the menu wrapper renders with `position: fixed`.
+            setLinkMenuPosition({ x: rect.left, y: rect.bottom });
+            // RichLink chips render as `<a data-rich-link-chip>` from
+            // `InlineRichLink`; everything else is a regular link mark.
+            // The bubble menu uses this to pick which actions to show
+            // (and which conversion command to wire up).
+            const isChip = link.hasAttribute('data-rich-link-chip');
+            // Resolve the atom's true doc position. ProseMirror's
+            // handleClick `pos` lands AFTER an inline atom most of the
+            // time, so we fall back to `pos - 1` when nodeAt(pos) isn't
+            // the chip we just clicked.
+            let chipPos: number | undefined;
+            if (isChip) {
+              const nodeAt = view.state.doc.nodeAt(pos);
+              if (nodeAt && nodeAt.type.name === 'richLink') {
+                chipPos = pos;
+              } else {
+                const nodeBefore = pos > 0 ? view.state.doc.nodeAt(pos - 1) : null;
+                if (nodeBefore && nodeBefore.type.name === 'richLink') {
+                  chipPos = pos - 1;
+                }
+              }
+            }
+            setSelectedLink({
+              url: link.href,
+              text: link.textContent || '',
+              kind: isChip ? 'richLink' : 'link',
+              pos: chipPos,
+            });
             return true;
           } else {
             setLinkMenuPosition(null);
@@ -356,7 +383,7 @@ export const CommentEditor = ({
         confirmText="Discard"
       />
 
-      {/* Modals */}
+      {/* Link/image modals + the link bubble menu */}
       <EditorModals
         editor={editor}
         isImageModalOpen={isImageModalOpen}

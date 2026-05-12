@@ -1,7 +1,7 @@
 import { useEditor, Content, JSONContent } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
 import { Underline } from '@tiptap/extension-underline';
-import { Link } from '@tiptap/extension-link';
+import { CommentLink } from '../extensions/CommentLink';
 import { Image } from '@tiptap/extension-image';
 import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight';
 import { Placeholder } from '@tiptap/extension-placeholder';
@@ -119,7 +119,7 @@ export const useCommentEditor = ({
       // + title rendering and hover preview) instead of letting Link's paste
       // rule wrap them as plain link marks.
       RichLinkExtension,
-      Link.configure({
+      CommentLink.configure({
         openOnClick: false,
         HTMLAttributes: {
           class: 'text-blue-600 hover:text-blue-800 cursor-pointer relative group',

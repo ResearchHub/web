@@ -36,7 +36,17 @@ export const useEditorHandlers = ({
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [linkMenuPosition, setLinkMenuPosition] = useState<{ x: number; y: number } | null>(null);
-  const [selectedLink, setSelectedLink] = useState<{ url: string; text: string } | null>(null);
+  // `kind` distinguishes a plain `link` mark (whose anchor text is editable
+  // via the existing LinkEditModal) from a `richLink` atom node (whose
+  // representation is fixed — to "edit" it the user converts it back to a
+  // plain link via the bubble menu). `pos` is set only for richLink chips
+  // so the conversion command knows which atom to replace.
+  const [selectedLink, setSelectedLink] = useState<{
+    url: string;
+    text: string;
+    kind: 'link' | 'richLink';
+    pos?: number;
+  } | null>(null);
 
   const handleSubmit = async () => {
     // Check if editor exists
@@ -123,6 +133,7 @@ export const useEditorHandlers = ({
     setSelectedLink({
       url: '',
       text: selectedText || '',
+      kind: 'link',
     });
     setIsLinkModalOpen(true);
   };
@@ -223,7 +234,11 @@ export const useEditorHandlers = ({
       event.preventDefault();
       const rect = link.getBoundingClientRect();
       setLinkMenuPosition({ x: rect.left, y: rect.bottom + window.scrollY });
-      setSelectedLink({ url: link.href, text: link.textContent || '' });
+      setSelectedLink({
+        url: link.href,
+        text: link.textContent || '',
+        kind: link.hasAttribute('data-rich-link-chip') ? 'richLink' : 'link',
+      });
     } else {
       setLinkMenuPosition(null);
       setSelectedLink(null);

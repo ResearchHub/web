@@ -62,6 +62,16 @@ const findLinkMarkHref = (marks: any[] | undefined): string | undefined => {
 };
 
 /**
+ * True if the text node carries a `link` mark that the user explicitly
+ * demoted from a chip via the bubble menu (`noRichPreview: true`). When set,
+ * we treat the link as authoritative and skip the URL-text → chip upgrade.
+ */
+const linkOptedOutOfRichPreview = (marks: any[] | undefined): boolean => {
+  if (!marks) return false;
+  return marks.some((m) => m.type === 'link' && m.attrs?.noRichPreview === true);
+};
+
+/**
  * Recursively visits every node in a TipTap document and yields any URL we
  * can detect — whether it's a `richLink` atom node, a `link` mark, or a
  * raw URL inside a text node. Used by both extraction and rendering paths.
@@ -188,9 +198,12 @@ function rewriteTextNode(node: any): any | any[] {
   // `coldtherapy.acoer.com` (text) ↔ `http://coldtherapy.acoer.com` (href)
   // upgrade to a chip just like a fully-qualified URL would. Anchor text
   // that is genuinely different from the href (`[click here](…)`) returns
-  // `null` from `canonicalUrlKey` and falls through unchanged.
+  // `null` from `canonicalUrlKey` and falls through unchanged. Links the
+  // user explicitly demoted from a chip carry `noRichPreview` and are also
+  // left alone, even when text == href.
   const linkHref = findLinkMarkHref(node.marks);
   if (linkHref) {
+    if (linkOptedOutOfRichPreview(node.marks)) return node;
     const trimmed = text.trim();
     const textKey = canonicalUrlKey(trimmed);
     const hrefKey = canonicalUrlKey(linkHref);

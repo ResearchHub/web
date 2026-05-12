@@ -51,9 +51,11 @@ interface InlineRichLinkProps {
   /** Pre-classified URL (skip a redundant `classifyUrl` call). */
   embed?: DetectedUrl | null;
   /**
-   * When true (editor context), the chip doesn't navigate on click — the
-   * editor's own click handling takes over so the user can position their
-   * caret. The hover preview still shows.
+   * When true (editor context), the chip is "quiet": no navigation on click,
+   * no hover preview tooltip, no modal. The editor owns all interactions
+   * (selection + the link menu bubble) and the carousel under the editor
+   * provides the canonical preview surface — keeping a popover on the chip
+   * here just creates a duplicate that fights the user's mouse position.
    */
   disabled?: boolean;
   className?: string;
@@ -157,6 +159,11 @@ export const InlineRichLink: FC<InlineRichLinkProps> = ({ url, embed, disabled, 
       </span>
     </a>
   );
+
+  // Editor context (`disabled`) — render the chip alone. No hover preview,
+  // no click-to-modal; the editor's own bubble menu handles open / convert /
+  // remove, and the carousel under the editor renders the rich preview.
+  if (disabled) return chip;
 
   // No detected URL (shouldn't normally happen since the extension only
   // creates richLink nodes for classifiable URLs) — render the chip alone
