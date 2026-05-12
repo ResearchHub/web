@@ -118,5 +118,13 @@ export function handleTrendingRedirect(isUserLoggedIn: boolean, searchParams?: U
     }
 
     redirect(redirectUrl);
+  } else {
+    let popularUrl = '/popular';
+
+    if (searchParams && searchParams.toString()) {
+      popularUrl += `?${searchParams.toString()}`;
+    }
+
+    redirect(popularUrl);
   }
 }
