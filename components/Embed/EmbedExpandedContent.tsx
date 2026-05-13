@@ -94,9 +94,10 @@ export const EmbedExpandedContent: FC<{ embed: DetectedUrl }> = ({ embed }) => {
     );
   }
   if (embed.kind === 'linkedin' && embed.linkedinUrn) {
+    const urnType = embed.linkedinUrnType ?? 'activity';
     return (
       <iframe
-        src={`https://www.linkedin.com/embed/feed/update/urn:li:activity:${embed.linkedinUrn}`}
+        src={`https://www.linkedin.com/embed/feed/update/urn:li:${urnType}:${embed.linkedinUrn}`}
         title="LinkedIn post"
         allowFullScreen
         className="w-full bg-white"

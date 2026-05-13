@@ -9,9 +9,7 @@ export interface PreviewData {
   title?: string;
   description?: string;
   image?: string;
-  html?: string;
   authorName?: string;
-  authorImage?: string;
 }
 
 /**
