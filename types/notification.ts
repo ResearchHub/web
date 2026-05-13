@@ -52,7 +52,7 @@ export type TransformedNotification = Notification & BaseTransformed;
 export type TransformedNotificationExtra = NotificationExtra & BaseTransformed;
 export type TransformedNotificationBodyElement = NotificationBodyElement & BaseTransformed;
 
-export type NotificationWork = NonNullable<Notification['work']>;
+export type NotificationForWork = NonNullable<Notification['work']>;
 
 // Helper function to transform notification extra without using createTransformer
 const transformNotificationExtraRaw = (raw: any): NotificationExtra | undefined => {
@@ -112,7 +112,7 @@ export const transformNotificationBody = (body: any): NotificationBodyElement[] 
 };
 
 // Helper function to transform work without using createTransformer
-const transformWorkRaw = (raw: any): NotificationWork | undefined => {
+const transformWorkRaw = (raw: any): NotificationForWork | undefined => {
   if (!raw) return undefined;
 
   const contentType = mapApiDocumentTypeToClientType(raw.document_type);
@@ -162,7 +162,7 @@ const transformWorkRaw = (raw: any): NotificationWork | undefined => {
 export const transformWork = (raw: any) => {
   const transformed = transformWorkRaw(raw);
   if (!transformed) return undefined;
-  return createTransformer<any, NotificationWork>(() => transformed)(raw);
+  return createTransformer<any, NotificationForWork>(() => transformed)(raw);
 };
 
 export const transformNotification = createTransformer<any, Notification>((raw) => ({
