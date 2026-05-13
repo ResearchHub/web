@@ -57,11 +57,22 @@ export const stripUrls = (text: string): string => text.replace(URL_REGEX, '');
  */
 export type UrlKind = 'youtube' | 'tiktok' | 'x' | 'linkedin' | 'webpage';
 
+/**
+ * LinkedIn post IDs live in one of three URN namespaces depending on what
+ * kind of object the post is (a native post, a re-share, or a generic UGC
+ * object). The numeric ID alone is *not* enough to embed — `urn:li:activity:`
+ * vs `urn:li:share:` vs `urn:li:ugcPost:` resolve to different posts (or
+ * 404). LinkedIn share URLs encode the right namespace as a keyword
+ * immediately before the ID: `…-<type>-<id>-<XYZA>`.
+ */
+export type LinkedInUrnType = 'activity' | 'share' | 'ugcPost';
+
 export interface DetectedUrl {
   kind: UrlKind;
   url: string;
   videoId?: string;
   linkedinUrn?: string;
+  linkedinUrnType?: LinkedInUrnType;
   tweetId?: string;
 }
 
@@ -99,18 +110,30 @@ export function classifyUrl(url: string): DetectedUrl | null {
     return { kind: 'x', url, tweetId: m ? m[1] : undefined };
   }
   if (host === 'linkedin.com' || host.endsWith('.linkedin.com')) {
-    // Two URL shapes carry an activity ID:
-    //   1. `urn:li:activity:1234567890123456789` (shows up in /feed/update/ paths)
-    //   2. `…/posts/<slug>-1234567890123456789-XYZA?…` (default share URL)
-    // Try the explicit `activity[-:]` form first; fall back to the trailing
-    // `-DIGITS-` segment used in /posts/ slugs (15–25 digits, then `-suffix`
-    // or path/query terminator).
-    const activityMatch =
-      url.match(/activity[-:](\d{15,25})/) || url.match(/-(\d{15,25})(?=-|\/|\?|#|$)/);
+    // LinkedIn carries the URN type in two places:
+    //   1. Explicit URN form `urn:li:<type>:<id>` (used in /feed/update/ paths).
+    //   2. Share-URL slug `…/posts/<slug>-<type>-<id>-<XYZA>?…` where <type>
+    //      is one of activity/share/ugcPost. Older /posts/ URLs omit the
+    //      keyword and just have `…-<id>-<XYZA>`; we fall back to `activity`
+    //      for those (the historical default).
+    // Picking the wrong URN type is what produces a 404 in the embed
+    // iframe — `urn:li:activity:<share-id>` doesn't resolve.
+    const explicit = url.match(/urn:li:(activity|share|ugcPost):(\d{15,25})/i);
+    const slug = url.match(/-(?:(activity|share|ugcPost)-)?(\d{15,25})-[A-Za-z0-9]+(?=\?|\/|#|$)/i);
+    const id = explicit?.[2] || slug?.[2];
+    const rawType = explicit?.[1] || slug?.[1];
+    const linkedinUrnType: LinkedInUrnType = (() => {
+      if (!rawType) return 'activity';
+      const lower = rawType.toLowerCase();
+      if (lower === 'ugcpost') return 'ugcPost';
+      if (lower === 'share') return 'share';
+      return 'activity';
+    })();
     return {
       kind: 'linkedin',
       url,
-      linkedinUrn: activityMatch ? activityMatch[1] : undefined,
+      linkedinUrn: id,
+      linkedinUrnType: id ? linkedinUrnType : undefined,
     };
   }
   return { kind: 'webpage', url };
