@@ -13,6 +13,7 @@ import {
   faBars,
 } from '@fortawesome/pro-light-svg-icons';
 import { faXTwitter, faDiscord, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
+import { ChangelogLink } from '@/components/changelog/ChangelogLink';
 import { Icon } from '@/components/ui/icons';
 import { IconName } from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
@@ -356,6 +357,7 @@ export const MobileBottomNav: React.FC = () => {
               <a href="https://www.researchhub.com/about" className="hover:text-gray-700">
                 About
               </a>
+              <ChangelogLink />
             </div>
           </div>
         </div>

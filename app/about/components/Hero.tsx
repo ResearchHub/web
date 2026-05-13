@@ -38,20 +38,20 @@ export const Hero = () => (
       </span>
 
       <div className="grid lg:grid-cols-12 lg:gap-8">
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-9">
           <h1
             className="font-normal tracking-[-0.025em] leading-[1.05] md:leading-[0.98] text-[clamp(34px,8vw,104px)]"
             style={{ textWrap: 'balance' }}
           >
-            Science <br className="hidden lg:block" />
-            <span className="italic font-light">Reimagined</span>
+            A market for <br className="hidden lg:block" />
+            <span className="italic font-light lg:whitespace-nowrap">the best science.</span>
           </h1>
           <p className="mt-4 md:mt-6 text-base sm:text-[17px] md:text-[20px] leading-[1.6] text-white/95 max-w-2xl">
-            ResearchHub is an online platform designed to accelerate science. It&apos;s built on a
-            simple premise: that science works best when it&apos;s done openly and rigorously.
+            Open peer review, transparent funding, and real-time progress updates. The shortest path
+            from dollars to discovery for funders who want to fund the work, not the overhead.
           </p>
         </div>
-        <div className="lg:col-span-5 pt-5 lg:pt-0 lg:flex lg:flex-col lg:justify-end">
+        <div className="lg:col-span-3 pt-5 lg:pt-0 lg:flex lg:flex-col lg:justify-end">
           <div className="lg:border-l border-white/25 lg:pl-8">
             <Eyebrow tone="onDark" className="mb-3">
               Jump to
