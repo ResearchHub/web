@@ -5,8 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FunderHero } from '@/components/Funding/dashboard/FunderHero';
-import { useFunderActivity } from '@/components/Funding/dashboard/hooks/useFunderActivity';
-import { ActivityStoryCarousel } from '@/components/Activity/ActivityStoryCarousel';
+import { FunderAuthorPostsSection } from '@/components/Funding/dashboard/FunderAuthorPostsSection';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { FunderService } from '@/services/funder.service';
 import { useFeed } from '@/hooks/useFeed';
@@ -55,13 +54,6 @@ export const FunderDashboardPage: FC = () => {
     loadMore,
   } = useFeed('all', grantFeedOptions);
 
-  const {
-    entries: activityEntries,
-    isLoading: isLoadingActivity,
-    hasMore: hasMoreActivity,
-    loadMore: loadMoreActivity,
-  } = useFunderActivity(funderId);
-
   useEffect(() => {
     let cancelled = false;
     setIsLoadingOverview(true);
@@ -105,17 +97,8 @@ export const FunderDashboardPage: FC = () => {
         <FunderHero overview={overview} />
       ) : null}
 
-      {/* Activity stories */}
-      {funderId && (
-        <ActivityStoryCarousel
-          entries={activityEntries}
-          isLoading={isLoadingActivity}
-          hasMore={hasMoreActivity}
-          loadMore={loadMoreActivity}
-          title="Recent activity"
-          className="mt-6"
-        />
-      )}
+      {/* Recent activity — aggregated AUTHOR_UPDATE posts across this funder's RFPs */}
+      {funderId && <FunderAuthorPostsSection funderId={funderId} className="mt-6" />}
 
       {/* Opportunities */}
       <div className="mt-6">
