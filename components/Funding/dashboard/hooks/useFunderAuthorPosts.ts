@@ -13,10 +13,15 @@ interface UseFunderAuthorPostsResult {
 
 /**
  * Pulls the funder activity feed and adapts each entry into the
- * `PostCardData` shape consumed by `AuthorPostsCarousel`. Drops entries
- * that aren't AUTHOR_UPDATE comments and entries without an embeddable URL
- * (the card UI is built around the embed). Pagination is forwarded
- * unchanged so the carousel can trigger `loadMore` on scroll.
+ * `PostCardData` shape consumed by `AuthorPostsCarousel`. Emits two card
+ * variants:
+ *  - `'post'` for AUTHOR_UPDATE comments that contain an embeddable URL
+ *    (text-only updates are dropped — the post card UI requires an embed).
+ *  - `'review'` for REVIEW comments (rendered with score + a "Read review"
+ *    CTA that opens `PeerReviewModal`).
+ *
+ * Pagination is forwarded unchanged so the carousel can trigger `loadMore`
+ * on scroll.
  */
 export function useFunderAuthorPosts(funderId: number | undefined): UseFunderAuthorPostsResult {
   const { entries, isLoading, hasMore, loadMore } = useFunderActivity(funderId);

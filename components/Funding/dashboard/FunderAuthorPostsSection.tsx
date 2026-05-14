@@ -11,16 +11,16 @@ interface FunderAuthorPostsSectionProps {
 
 const EmptyState: FC = () => (
   <p className="m-0 text-sm text-gray-500">
-    No updates from your applicants yet — they&apos;ll show up here as posts roll in.
+    No activity yet — author updates and peer reviews from your applicants will show up here.
   </p>
 );
 
 /**
- * Funder dashboard surface that aggregates `AUTHOR_UPDATE` posts across all
- * of the funder's RFPs. Uses the same carousel + card primitives as the
- * proposal page, with `showRelatedWork` turned on so each card links back
- * to the proposal it belongs to (the bit of context that's redundant on the
- * proposal page itself).
+ * Funder dashboard surface that aggregates author updates and peer reviews
+ * across all of the funder's RFPs. Uses the same carousel + card primitives
+ * as the proposal page, with `showRelatedWork` turned on so each card links
+ * back to the proposal it belongs to (the bit of context that's redundant
+ * on the proposal page itself).
  */
 export const FunderAuthorPostsSection: FC<FunderAuthorPostsSectionProps> = ({
   funderId,
@@ -36,6 +36,7 @@ export const FunderAuthorPostsSection: FC<FunderAuthorPostsSectionProps> = ({
       loadMore={loadMore}
       title="Recent activity"
       showRelatedWork
+      showTypeBadge
       emptyState={<EmptyState />}
       variant="card"
       className={className}

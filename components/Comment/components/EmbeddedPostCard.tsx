@@ -2,16 +2,16 @@
 
 import { FC } from 'react';
 import Link from 'next/link';
-import { MoreHorizontal, Pencil } from 'lucide-react';
+import { MoreHorizontal, Pencil, MessageSquare } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Embed } from '@/components/Embed';
 import { formatTimestamp } from '@/utils/date';
 import { cn } from '@/utils/styles';
-import type { PostCardData } from '../lib/postCard';
+import type { PostCardPost } from '../lib/postCard';
 
 interface EmbeddedPostCardProps {
-  data: PostCardData;
+  data: PostCardPost;
   /**
    * When true (and `data.relatedWork` is set), renders a small "From: <title>"
    * link below the embed pointing to the source document. Off by default so
@@ -19,23 +19,38 @@ interface EmbeddedPostCardProps {
    * context the viewer already has.
    */
   showRelatedWork?: boolean;
+  /**
+   * When true, renders a small "Update" badge in the top-right of the card.
+   * Intended for mixed feeds (e.g. the funder dashboard) where viewers need
+   * to tell post cards apart from review cards at a glance.
+   */
+  showTypeBadge?: boolean;
   className?: string;
 }
 
+const UpdateBadge: FC = () => (
+  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700">
+    <MessageSquare size={10} />
+    Update
+  </span>
+);
+
 /**
- * Pure post card: author header + optional snippet + embed + optional source
- * link. Knows nothing about comments, documents, or composers — it just
- * renders the `PostCardData` view-model and surfaces an `onEdit` callback
- * when one is provided.
+ * Pure "author post" card: author header + optional snippet + embed + optional
+ * source link. Knows nothing about comments, documents, or composers — it
+ * just renders the `PostCardPost` view-model and surfaces an `onEdit`
+ * callback when one is provided.
  */
 export const EmbeddedPostCard: FC<EmbeddedPostCardProps> = ({
   data,
   showRelatedWork = false,
+  showTypeBadge = false,
   className,
 }) => {
   const { author, createdDate, snippet, embed, relatedWork, onEdit } = data;
   const authorLabel = author.fullName || 'Author';
   const dateLabel = formatTimestamp(createdDate, false);
+  const showHeaderRight = showTypeBadge || !!onEdit;
 
   return (
     <article
@@ -53,23 +68,28 @@ export const EmbeddedPostCard: FC<EmbeddedPostCardProps> = ({
         />
         <span className="truncate text-sm font-medium text-gray-900">{authorLabel}</span>
         <span className="shrink-0 whitespace-nowrap text-xs text-gray-500">· {dateLabel}</span>
-        {onEdit && (
-          <BaseMenu
-            trigger={
-              <button
-                type="button"
-                aria-label="More options"
-                className="ml-auto inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+        {showHeaderRight && (
+          <div className="ml-auto flex shrink-0 items-center gap-1.5">
+            {showTypeBadge && <UpdateBadge />}
+            {onEdit && (
+              <BaseMenu
+                trigger={
+                  <button
+                    type="button"
+                    aria-label="More options"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+                }
               >
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
-            }
-          >
-            <BaseMenuItem onSelect={onEdit}>
-              <Pencil className="mr-2 h-3.5 w-3.5" />
-              Edit
-            </BaseMenuItem>
-          </BaseMenu>
+                <BaseMenuItem onSelect={onEdit}>
+                  <Pencil className="mr-2 h-3.5 w-3.5" />
+                  Edit
+                </BaseMenuItem>
+              </BaseMenu>
+            )}
+          </div>
         )}
       </header>
 

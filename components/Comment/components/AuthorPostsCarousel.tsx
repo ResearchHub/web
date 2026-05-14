@@ -5,11 +5,19 @@ import { Carousel } from '@/components/ui/Carousel';
 import { cn } from '@/utils/styles';
 import type { PostCardData } from '../lib/postCard';
 import { EmbeddedPostCard } from './EmbeddedPostCard';
+import { ReviewPostCard } from './ReviewPostCard';
 
 interface AuthorPostsCarouselProps {
   cards: PostCardData[];
-  /** Forwarded to every rendered card. See `EmbeddedPostCard`. */
+  /** Forwarded to every rendered card. See `EmbeddedPostCard` / `ReviewPostCard`. */
   showRelatedWork?: boolean;
+  /**
+   * Forwarded to every rendered card. When true, each card shows a small
+   * type badge ("Update" or "Peer review") in its top-right so viewers can
+   * tell variants apart in mixed feeds. Leave off for single-variant
+   * surfaces.
+   */
+  showTypeBadge?: boolean;
 
   /** Section title. Omit to render the carousel without a header. */
   title?: ReactNode;
@@ -32,6 +40,49 @@ interface AuthorPostsCarouselProps {
   className?: string;
 }
 
+/**
+ * Dispatches a single `PostCardData` to the right variant component. Adding
+ * a new `kind` to `PostCardData` will surface here as an exhaustiveness
+ * error — keep the union and this switch in sync.
+ */
+const CardForVariant: FC<{
+  card: PostCardData;
+  showRelatedWork?: boolean;
+  showTypeBadge?: boolean;
+}> = ({ card, showRelatedWork, showTypeBadge }) => {
+  switch (card.kind) {
+    case 'post':
+      return (
+        <EmbeddedPostCard
+          data={card}
+          showRelatedWork={showRelatedWork}
+          showTypeBadge={showTypeBadge}
+        />
+      );
+    case 'review':
+      return (
+        <ReviewPostCard
+          data={card}
+          showRelatedWork={showRelatedWork}
+          showTypeBadge={showTypeBadge}
+        />
+      );
+  }
+};
+
+/**
+ * Pluralization helper for the header counter. Mixed feeds (posts +
+ * reviews) fall back to a neutral "updates" label so we don't claim that a
+ * review is a "post".
+ */
+const summarizeCount = (cards: PostCardData[]): string => {
+  if (cards.length === 0) return '';
+  const kinds = new Set(cards.map((c) => c.kind));
+  const singular = kinds.size === 1 && kinds.has('review') ? 'review' : 'update';
+  const plural = singular === 'review' ? 'reviews' : 'updates';
+  return `${cards.length} ${cards.length === 1 ? singular : plural}`;
+};
+
 const INITIAL_SKELETONS = 4;
 const PAGE_SKELETONS = 2;
 
@@ -47,6 +98,7 @@ const Skeleton: FC = () => (
 export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
   cards,
   showRelatedWork,
+  showTypeBadge,
   title,
   headerAction,
   isLoading,
@@ -75,9 +127,7 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
           title
         )}
         {hasCards && (
-          <span className="text-xs font-medium text-gray-500">
-            {cards.length} {cards.length === 1 ? 'post' : 'posts'}
-          </span>
+          <span className="text-xs font-medium text-gray-500">{summarizeCount(cards)}</span>
         )}
       </div>
       {headerAction}
@@ -94,7 +144,11 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
               key={card.key}
               className="flex-shrink-0 snap-start w-[88vw] sm:!w-[420px] max-w-[440px]"
             >
-              <EmbeddedPostCard data={card} showRelatedWork={showRelatedWork} />
+              <CardForVariant
+                card={card}
+                showRelatedWork={showRelatedWork}
+                showTypeBadge={showTypeBadge}
+              />
             </div>
           ))}
           {showPageSkeletons &&

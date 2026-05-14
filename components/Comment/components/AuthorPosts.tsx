@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import type { Comment } from '@/types/comment';
 import type { Authorship, ContentType } from '@/types/work';
 import { useUser } from '@/contexts/UserContext';
-import { commentToPostCard, type PostCardData } from '../lib/postCard';
+import { commentToPostCard, type PostCardPost } from '../lib/postCard';
 import { AuthorPostsCarousel } from './AuthorPostsCarousel';
 import { PostComposerModal } from './PostComposerModal';
 import { useAuthorPostComposer } from './useAuthorPostComposer';
@@ -61,7 +61,7 @@ export const AuthorPosts: FC<AuthorPostsProps> = ({
     );
   }, [user?.authorProfile?.id, documentAuthors]);
 
-  const cards = useMemo<PostCardData[]>(() => {
+  const cards = useMemo<PostCardPost[]>(() => {
     return posts
       .map((comment) => {
         const isOwn = !!user?.id && comment.createdBy?.id === user.id;
@@ -69,7 +69,7 @@ export const AuthorPosts: FC<AuthorPostsProps> = ({
           onEdit: isOwn ? () => composer.openForEdit(comment) : undefined,
         });
       })
-      .filter((c): c is PostCardData => c !== null);
+      .filter((c): c is PostCardPost => c !== null);
   }, [posts, user?.id, composer]);
 
   const hasCards = cards.length > 0;
