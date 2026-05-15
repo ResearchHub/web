@@ -6,6 +6,9 @@ import { AuditItemComment } from './AuditItemComment';
 import { AuditItemPost } from './AuditItemPost';
 import { AuditItemPaper } from './AuditItemPaper';
 import { SelectionCheckbox } from './SelectionCheckbox';
+import { ModerationMetadata } from './ModerationMetadata';
+import { ModerationActions } from './ModerationActions';
+import { getAuditUserInfo } from './utils/auditUtils';
 
 interface AuditItemCardProps {
   entry: FlaggedContent;
@@ -56,6 +59,35 @@ export const AuditItemCard: FC<AuditItemCardProps> = ({
   ) : null;
 
   const sharedProps = { entry, onAction, onRefresh, view, checkbox };
+
+  // API can return flags whose underlying content was deleted.
+  if (entry.item == null) {
+    const userInfo = getAuditUserInfo(entry);
+    const verdict = entry.verdict;
+
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
+        <div className="flex items-start gap-3 mb-3">
+          {checkbox}
+          <div className="flex-1 min-w-0">
+            <ModerationMetadata entry={entry} />
+          </div>
+        </div>
+        <p className="text-sm text-gray-600 mb-4">
+          The flagged content is no longer available (it may have been removed).
+        </p>
+        <ModerationActions
+          onDismiss={() => onAction('dismiss')}
+          onRemove={() => onAction('remove')}
+          view={view}
+          hasVerdict={!!verdict}
+          authorId={userInfo.authorId}
+          authorName={userInfo.name}
+          onRefresh={onRefresh}
+        />
+      </div>
+    );
+  }
 
   switch (contentType) {
     case 'comment':
