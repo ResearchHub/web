@@ -5,6 +5,7 @@ import { FlaggedContent } from '@/services/audit.service';
 import { AuditItemComment } from './AuditItemComment';
 import { AuditItemPost } from './AuditItemPost';
 import { AuditItemPaper } from './AuditItemPaper';
+import { AuditItemMissingContent } from './AuditItemMissingContent';
 import { SelectionCheckbox } from './SelectionCheckbox';
 
 interface AuditItemCardProps {
@@ -56,6 +57,18 @@ export const AuditItemCard: FC<AuditItemCardProps> = ({
   ) : null;
 
   const sharedProps = { entry, onAction, onRefresh, view, checkbox };
+
+  if (entry.item == null) {
+    return (
+      <AuditItemMissingContent
+        entry={entry}
+        onAction={onAction}
+        onRefresh={onRefresh}
+        view={view}
+        checkbox={checkbox}
+      />
+    );
+  }
 
   switch (contentType) {
     case 'comment':
