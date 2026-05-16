@@ -26,7 +26,12 @@ interface AchievementIconBadgeProps {
   className?: string;
 }
 
-function AchievementIconBadge({ icon, tier, size = 'sm', className }: AchievementIconBadgeProps) {
+function AchievementIconBadge({
+  icon,
+  tier,
+  size = 'sm',
+  className,
+}: Readonly<AchievementIconBadgeProps>) {
   const { box, icon: iconClass } = BADGE_SIZE[size];
   return (
     <span
@@ -62,7 +67,7 @@ interface TierPillProps {
   className?: string;
 }
 
-function TierPill({ tier, className }: TierPillProps) {
+function TierPill({ tier, className }: Readonly<TierPillProps>) {
   return (
     <span
       className={cn(
@@ -78,11 +83,18 @@ function TierPill({ tier, className }: TierPillProps) {
   );
 }
 
+const SKELETON_ROWS = [
+  'achievement-skeleton-1',
+  'achievement-skeleton-2',
+  'achievement-skeleton-3',
+  'achievement-skeleton-4',
+] as const;
+
 export function AchievementsSkeleton() {
   return (
     <div className="flex flex-col gap-1.5">
-      {[...Array(4)].map((_, i) => (
-        <div key={i} className="flex items-center gap-2.5 py-1.5 px-1.5 rounded-lg w-full">
+      {SKELETON_ROWS.map((rowId) => (
+        <div key={rowId} className="flex items-center gap-2.5 py-1.5 px-1.5 rounded-lg w-full">
           <div className="h-8 w-8 rounded-lg bg-gray-200 animate-pulse flex-shrink-0" />
           <div className="flex-1 h-4 bg-gray-200 rounded animate-pulse" />
           <div className="h-4 w-12 bg-gray-200 rounded-full animate-pulse" />
@@ -96,7 +108,7 @@ interface AchievementTooltipProps {
   achievement: Achievement;
 }
 
-function AchievementTooltipContent({ achievement }: AchievementTooltipProps) {
+function AchievementTooltipContent({ achievement }: Readonly<AchievementTooltipProps>) {
   const {
     meta,
     tier,
@@ -123,7 +135,19 @@ function AchievementTooltipContent({ achievement }: AchievementTooltipProps) {
 
       <p className="text-xs leading-relaxed text-gray-600">{meta.describe(displayValue)}</p>
 
-      {!isTopTier ? (
+      {isTopTier ? (
+        <div
+          className={cn(
+            'inline-flex items-center gap-1.5 self-start rounded-full border px-2 py-1 text-[11px] font-semibold',
+            tier.pillBg,
+            tier.pillText,
+            tier.pillBorder
+          )}
+        >
+          <FontAwesomeIcon icon={faSparkles} className="text-[10px]" />
+          {currentTierName} tier achieved
+        </div>
+      ) : (
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between text-[11px] text-gray-500">
             <span>
@@ -140,18 +164,6 @@ function AchievementTooltipContent({ achievement }: AchievementTooltipProps) {
               style={{ width: `${progressPct}%` }}
             />
           </div>
-        </div>
-      ) : (
-        <div
-          className={cn(
-            'inline-flex items-center gap-1.5 self-start rounded-full border px-2 py-1 text-[11px] font-semibold',
-            tier.pillBg,
-            tier.pillText,
-            tier.pillBorder
-          )}
-        >
-          <FontAwesomeIcon icon={faSparkles} className="text-[10px]" />
-          {currentTierName} tier achieved
         </div>
       )}
     </div>
