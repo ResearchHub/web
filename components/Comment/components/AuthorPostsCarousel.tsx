@@ -23,6 +23,14 @@ interface AuthorPostsCarouselProps {
   title?: ReactNode;
   /** Right-aligned slot in the header, e.g. a "New post" button. */
   headerAction?: ReactNode;
+  /**
+   * Visual treatment of the header (when `title` is a string — custom
+   * `ReactNode` titles render as provided).
+   * - `compact`: `h3 text-base font-bold` — for cards/wrapped sections.
+   * - `page`: `h2 text-lg font-semibold tracking-tight` — matches the
+   *   sibling page-level section headers (e.g. "My funding opportunities").
+   */
+  headerVariant?: 'compact' | 'page';
 
   isLoading?: boolean;
   hasMore?: boolean;
@@ -101,6 +109,7 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
   showTypeBadge,
   title,
   headerAction,
+  headerVariant = 'compact',
   isLoading,
   hasMore,
   loadMore,
@@ -118,16 +127,35 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
   // didn't provide an empty state — mirrors ActivityStoryCarousel's behavior.
   if (!isLoading && !hasCards && !emptyState) return null;
 
+  const isPageHeader = headerVariant === 'page';
   const header = (title || headerAction) && (
-    <div className="mb-4 flex items-center justify-between gap-3">
-      <div className="flex items-baseline gap-2">
+    <div
+      className={cn(
+        'mb-4 flex justify-between gap-3',
+        isPageHeader ? 'items-baseline' : 'items-center'
+      )}
+    >
+      <div className={cn('flex items-baseline', isPageHeader ? 'gap-2.5' : 'gap-2')}>
         {typeof title === 'string' ? (
-          <h3 className="text-base font-bold text-gray-900">{title}</h3>
+          isPageHeader ? (
+            <h2 className="text-lg font-semibold tracking-tight text-gray-900">{title}</h2>
+          ) : (
+            <h3 className="text-base font-bold text-gray-900">{title}</h3>
+          )
         ) : (
           title
         )}
         {hasCards && (
-          <span className="text-xs font-medium text-gray-500">{summarizeCount(cards)}</span>
+          <span
+            className={cn(
+              'text-xs text-gray-500',
+              // Compact header pairs with bolder card-section copy; bump the
+              // counter weight a touch so it still reads at the smaller size.
+              !isPageHeader && 'font-medium'
+            )}
+          >
+            {summarizeCount(cards)}
+          </span>
         )}
       </div>
       {headerAction}

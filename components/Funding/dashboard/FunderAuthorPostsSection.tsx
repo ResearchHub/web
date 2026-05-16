@@ -9,10 +9,14 @@ interface FunderAuthorPostsSectionProps {
   className?: string;
 }
 
+// Mirrors the dashed-border empty state used by the "My funding opportunities"
+// section below so both sections feel like one page rhythm.
 const EmptyState: FC = () => (
-  <p className="m-0 text-sm text-gray-500">
-    No activity yet — author updates and peer reviews from your applicants will show up here.
-  </p>
+  <div className="rounded-xl border border-dashed border-gray-200 px-6 py-12 text-center">
+    <p className="text-sm text-gray-500">
+      No activity yet — author updates and peer reviews from your applicants will show up here.
+    </p>
+  </div>
 );
 
 /**
@@ -35,10 +39,11 @@ export const FunderAuthorPostsSection: FC<FunderAuthorPostsSectionProps> = ({
       hasMore={hasMore}
       loadMore={loadMore}
       title="Recent activity"
+      headerVariant="page"
       showRelatedWork
       showTypeBadge
       emptyState={<EmptyState />}
-      variant="card"
+      variant="plain"
       className={className}
     />
   );

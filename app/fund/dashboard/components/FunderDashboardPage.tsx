@@ -21,8 +21,17 @@ function parseFunderIdParam(raw: string | null): number | undefined {
 export const FunderDashboardPage: FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useUser();
+  const { user, isLoading: isLoadingUser } = useUser();
   const userId = user?.id;
+
+  // Funder dashboard is a "my account"-style surface — bounce logged-out
+  // viewers home rather than rendering an empty page. Waits for the user
+  // load to settle so we don't flash-redirect before auth resolves.
+  useEffect(() => {
+    if (!isLoadingUser && !user) {
+      router.replace('/');
+    }
+  }, [isLoadingUser, user, router]);
 
   // Optional ?funder_id=N override scopes the funder-specific data (hero
   // overview + activity feed) to that funder. Falls back to the logged-in user.
@@ -55,6 +64,7 @@ export const FunderDashboardPage: FC = () => {
   } = useFeed('all', grantFeedOptions);
 
   useEffect(() => {
+    if (isLoadingUser || !user) return;
     let cancelled = false;
     setIsLoadingOverview(true);
     FunderService.getFundingOverview(funderId)
@@ -70,9 +80,11 @@ export const FunderDashboardPage: FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [funderId]);
+  }, [funderId, isLoadingUser, user]);
 
-  const firstName = user?.firstName?.trim() || 'there';
+  if (isLoadingUser || !user) return null;
+
+  const firstName = user.firstName?.trim();
 
   return (
     <div className="px-4 tablet:px-8 py-6 max-w-[1180px] mx-auto w-full">
@@ -80,7 +92,7 @@ export const FunderDashboardPage: FC = () => {
       <div className="flex flex-wrap items-end justify-between gap-4 mb-5">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-            Welcome back, {firstName}.
+            {firstName ? `Welcome back, ${firstName}.` : 'Welcome back.'}
           </h1>
           <p className="text-sm text-gray-500 mt-1">Here&apos;s where your funding stands today.</p>
         </div>
