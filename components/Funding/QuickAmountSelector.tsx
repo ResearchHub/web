@@ -5,6 +5,14 @@ import { cn } from '@/utils/styles';
 
 const QUICK_AMOUNTS_USD = [100, 1000, 5000, 10000];
 
+const formatQuickAmountLabel = (amount: number) => {
+  if (amount >= 1000) {
+    return `$${amount / 1000}K`;
+  }
+
+  return `$${amount}`;
+};
+
 interface QuickAmountSelectorProps {
   /** Currently selected quick amount (in USD) */
   selectedAmount: number | null;
@@ -66,7 +74,7 @@ export const QuickAmountSelector: FC<QuickAmountSelectorProps> = ({
               : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400 hover:bg-primary-50'
           )}
         >
-          ${amount.toLocaleString()}
+          {formatQuickAmountLabel(amount)}
         </button>
       ))}
 
