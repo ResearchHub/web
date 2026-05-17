@@ -59,7 +59,7 @@ export const QuickAmountSelector: FC<QuickAmountSelectorProps> = ({
   }
 
   return (
-    <div className={cn('flex flex-wrap items-center gap-2', className)}>
+    <div className={cn('flex flex-nowrap items-center gap-2', className)}>
       {/* Quick amount buttons */}
       {visibleAmounts.map((amount) => (
         <button
