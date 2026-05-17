@@ -1,11 +1,12 @@
 'use client';
 
 import { FC } from 'react';
-import { BookOpen, Zap, Eye, Globe, Award } from 'lucide-react';
+import { Zap, Eye, Globe, Award } from 'lucide-react';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import Link from 'next/link';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { useJournalFeed } from '@/hooks/useJournalFeed';
+import Icon from '@/components/ui/icons/Icon';
 
 // Sample journal contributors for social proof
 const journalContributors = [
@@ -40,7 +41,7 @@ const journalContributors = [
 export const PromoBanner = () => (
   <div className="bg-gradient-to-b from-primary-50/80 to-white p-6 rounded-lg border border-primary-100">
     <div className="flex items-center gap-3 mb-6">
-      <BookOpen className="h-7 w-7 text-primary-700" />
+      <Icon name="rhJournal2" size={28} color="currentColor" className="text-primary-700" />
       <h2 className="text-xl font-semibold text-primary-900 text-center">
         Accelerate Your Research Impact with ResearchHub Journal
       </h2>
@@ -54,9 +55,7 @@ export const PromoBanner = () => (
           </div>
           <div>
             <h3 className="font-medium text-gray-800">Fast Review Process</h3>
-            <p className="text-sm text-gray-600">
-              Get expert feedback and decisions in weeks, not months
-            </p>
+            <p className="text-sm text-gray-600">Get expert feedback in days not months.</p>
           </div>
         </div>
 
