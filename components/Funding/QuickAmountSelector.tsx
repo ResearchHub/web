@@ -3,6 +3,16 @@
 import { FC, useCallback, useMemo } from 'react';
 import { cn } from '@/utils/styles';
 
+const QUICK_AMOUNTS_USD = [100, 1000, 5000, 10000];
+
+const formatQuickAmountLabel = (amount: number) => {
+  if (amount >= 1000) {
+    return `$${amount / 1000}K`;
+  }
+
+  return `$${amount}`;
+};
+
 interface QuickAmountSelectorProps {
   /** Currently selected quick amount (in USD) */
   selectedAmount: number | null;
@@ -16,12 +26,7 @@ interface QuickAmountSelectorProps {
 
 /**
  * Quick amount selector with preset USD amounts and a "Remaining" button.
- * Dynamically shows amounts based on remaining goal:
- * - Remaining >= $1000: Show $50, $100, $250, $1000
- * - Remaining $500-$999: Show $50, $100, $250
- * - Remaining $250-$499: Show $50, $100, $250
- * - Remaining $100-$249: Show $50, $100
- * - Remaining < $100: Hide quick buttons (only Remaining shown)
+ * Presets above the remaining goal are hidden so quick selections stay valid.
  */
 export const QuickAmountSelector: FC<QuickAmountSelectorProps> = ({
   selectedAmount,
@@ -44,17 +49,8 @@ export const QuickAmountSelector: FC<QuickAmountSelectorProps> = ({
     onAmountSelect(Math.round(remainingGoalUsd));
   }, [remainingGoalUsd, onAmountSelect]);
 
-  // Determine which quick amounts to show based on remaining goal
   const visibleAmounts = useMemo(() => {
-    if (remainingGoalUsd < 100) {
-      return []; // Hide all quick buttons
-    } else if (remainingGoalUsd < 250) {
-      return [50, 100]; // Show $50, $100
-    } else if (remainingGoalUsd < 1000) {
-      return [50, 100, 250]; // Show $50, $100, $250
-    } else {
-      return [50, 100, 250, 1000]; // Show all
-    }
+    return QUICK_AMOUNTS_USD.filter((amount) => amount <= remainingGoalUsd);
   }, [remainingGoalUsd]);
 
   // If no quick amounts and no remaining, don't render anything
@@ -75,12 +71,10 @@ export const QuickAmountSelector: FC<QuickAmountSelectorProps> = ({
             'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
             isQuickAmountSelected(amount)
               ? 'bg-primary-600 text-white border-primary-600'
-              : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400 hover:bg-primary-50',
-            // Hide $50 button on mobile to fit all buttons on one line
-            amount === 50 && 'hidden tablet:!block'
+              : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400 hover:bg-primary-50'
           )}
         >
-          ${amount}
+          {formatQuickAmountLabel(amount)}
         </button>
       ))}
 
