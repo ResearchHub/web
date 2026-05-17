@@ -55,9 +55,7 @@ export const PromoBanner = () => (
           </div>
           <div>
             <h3 className="font-medium text-gray-800">Fast Review Process</h3>
-            <p className="text-sm text-gray-600">
-              Get expert feedback and decisions in weeks, not months
-            </p>
+            <p className="text-sm text-gray-600">Get expert feedback in days not months.</p>
           </div>
         </div>
 
