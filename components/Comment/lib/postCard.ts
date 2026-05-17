@@ -3,68 +3,36 @@ import type { Comment, ContentFormat } from '@/types/comment';
 import type { FeedEntry, FeedCommentContent } from '@/types/feed';
 import { extractTextFromTipTap, parseContent } from './commentContentUtils';
 
-/**
- * Shared shape across every post-card variant. The `kind` discriminator on
- * `PostCardData` decides which extra fields are present (embed for posts,
- * review body + score for reviews, etc.).
- */
 interface PostCardBase {
-  /** Stable React key. Use the underlying comment id when available. */
   key: string | number;
   author: {
     id?: number;
     fullName?: string;
     profileImage?: string;
-    /** Threaded through to <Avatar authorId={…} /> for tooltip + linking. */
     authorProfileId?: number;
   };
   createdDate: string;
-  /** Plain-text excerpt with URLs stripped — already truncated. */
   snippet?: string;
-  /**
-   * Pointer to the source document. Always provided when available; the
-   * card decides whether to render it via `showRelatedWork`.
-   */
   relatedWork?: { title: string; href: string };
 }
 
-/**
- * "Author post" card: embeds a YouTube/TikTok/X/LinkedIn/webpage URL with
- * the author's note as context. Editable when `onEdit` is supplied.
- */
 export interface PostCardPost extends PostCardBase {
   kind: 'post';
   embed: DetectedUrl;
-  /** When provided, the card shows a 3-dots menu with an Edit action. */
   onEdit?: () => void;
 }
 
-/**
- * "Peer review" card: surfaces a reviewer + score, and lets the viewer
- * pop open the full review body via `PeerReviewModal`.
- */
 export interface PostCardReview extends PostCardBase {
   kind: 'review';
   score?: number;
-  /** Raw review body + format, passed straight to PeerReviewModal. */
   reviewContent: any;
   reviewContentFormat?: ContentFormat;
 }
 
-/**
- * Discriminated union of every card variant the AuthorPostsCarousel can
- * render. Add a new `kind` here when introducing a new variant; the card
- * dispatcher will exhaustively check against it.
- */
 export type PostCardData = PostCardPost | PostCardReview;
 
 const SNIPPET_MAX_LENGTH = 200;
 
-/**
- * Reads a comment's TipTap/Quill body and returns a short plain-text excerpt
- * with URLs stripped (URLs render via the embed, so duplicating them in the
- * snippet just adds noise).
- */
 export const getCommentSnippet = (comment: Comment, maxLength = SNIPPET_MAX_LENGTH): string => {
   try {
     const parsed = parseContent(comment.content, comment.contentFormat);
@@ -77,11 +45,6 @@ export const getCommentSnippet = (comment: Comment, maxLength = SNIPPET_MAX_LENG
   }
 };
 
-/**
- * Pulls the first embeddable URL out of a comment body. Comments without an
- * embeddable URL aren't shown as "post" cards — the post card UI is built
- * around the embed, not the text.
- */
 export const extractEmbedFromComment = (comment: Comment): DetectedUrl | null => {
   const text =
     typeof comment.content === 'string' ? comment.content : JSON.stringify(comment.content);
@@ -92,11 +55,6 @@ interface CommentToPostCardOptions {
   onEdit?: () => void;
 }
 
-/**
- * Maps a domain `Comment` into a `PostCardPost`. Returns `null` when the
- * comment has no embeddable URL (we don't render text-only post cards on
- * the proposal-page surface).
- */
 export const commentToPostCard = (
   comment: Comment,
   options: CommentToPostCardOptions = {}
@@ -127,16 +85,6 @@ export const commentToPostCard = (
   };
 };
 
-/**
- * Builds a `PostCardData` from a feed entry. Emits:
- *  - `kind: 'post'` for AUTHOR_UPDATE comments that contain an embeddable URL.
- *  - `kind: 'review'` for REVIEW comments (no embed requirement — reviews
- *    are surfaced via a different card variant that opens the full review
- *    body in a modal).
- *
- * Returns `null` for any other content type, and for AUTHOR_UPDATE comments
- * that lack an embed (the post card UI requires one).
- */
 export const feedEntryToPostCard = (entry: FeedEntry): PostCardData | null => {
   if (entry.contentType !== 'COMMENT') return null;
   const content = entry.content as FeedCommentContent;
@@ -166,9 +114,6 @@ export const feedEntryToPostCard = (entry: FeedEntry): PostCardData | null => {
   const rawContent = content.comment.content;
   const contentFormat = content.comment.contentFormat;
 
-  // Reuse the same snippet pipeline as comments by funneling the feed
-  // payload through a Comment-shaped object — keeps the truncation /
-  // url-strip behavior identical across surfaces.
   const snippet = getCommentSnippet({
     content: rawContent,
     contentFormat,
@@ -188,7 +133,6 @@ export const feedEntryToPostCard = (entry: FeedEntry): PostCardData | null => {
     };
   }
 
-  // AUTHOR_UPDATE — requires an embeddable URL.
   const text = typeof rawContent === 'string' ? rawContent : JSON.stringify(rawContent ?? '');
   const embed = extractFirstUrl(text);
   if (!embed) return null;

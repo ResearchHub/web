@@ -9,8 +9,6 @@ interface FunderAuthorPostsSectionProps {
   className?: string;
 }
 
-// Mirrors the dashed-border empty state used by the "My funding opportunities"
-// section below so both sections feel like one page rhythm.
 const EmptyState: FC = () => (
   <div className="rounded-xl border border-dashed border-gray-200 px-6 py-12 text-center">
     <p className="text-sm text-gray-500">
@@ -19,13 +17,6 @@ const EmptyState: FC = () => (
   </div>
 );
 
-/**
- * Funder dashboard surface that aggregates author updates and peer reviews
- * across all of the funder's RFPs. Uses the same carousel + card primitives
- * as the proposal page, with `showRelatedWork` turned on so each card links
- * back to the proposal it belongs to (the bit of context that's redundant
- * on the proposal page itself).
- */
 export const FunderAuthorPostsSection: FC<FunderAuthorPostsSectionProps> = ({
   funderId,
   className,
@@ -39,6 +30,7 @@ export const FunderAuthorPostsSection: FC<FunderAuthorPostsSectionProps> = ({
       hasMore={hasMore}
       loadMore={loadMore}
       title="Recent activity"
+      subtitle="Recent updates from authors and peer-reviewers"
       headerVariant="page"
       showRelatedWork
       showTypeBadge

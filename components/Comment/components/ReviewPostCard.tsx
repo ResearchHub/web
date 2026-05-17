@@ -11,26 +11,11 @@ import type { PostCardReview } from '../lib/postCard';
 
 interface ReviewPostCardProps {
   data: PostCardReview;
-  /**
-   * When true (and `data.relatedWork` is set), renders a small "From: <title>"
-   * link pointing to the reviewed document. Off by default so the
-   * document-scoped surfaces don't duplicate context the viewer already has.
-   */
   showRelatedWork?: boolean;
-  /**
-   * When true, renders a small "Peer review" badge in the top-right of the
-   * card so the viewer can tell review cards apart from post cards at a
-   * glance. Intended for mixed feeds (e.g. the funder dashboard) — surfaces
-   * that only show one variant can leave this off.
-   */
   showTypeBadge?: boolean;
   className?: string;
 }
 
-/**
- * Renders a 1–5 star row. No numeric score on purpose — the stars are the
- * scale on the card; the precise score still shows in `PeerReviewModal`.
- */
 const ScoreStars: FC<{ score: number }> = ({ score }) => {
   const rounded = Math.round(score);
   return (
@@ -55,12 +40,6 @@ const PeerReviewBadge: FC = () => (
   </span>
 );
 
-/**
- * Pure "peer review" card: reviewer header + stars + snippet with a
- * "Read more" affordance that opens the full review body in
- * `PeerReviewModal`. Same outer shape as `EmbeddedPostCard` so they sit
- * comfortably side-by-side in the same carousel.
- */
 export const ReviewPostCard: FC<ReviewPostCardProps> = ({
   data,
   showRelatedWork = false,
@@ -107,12 +86,6 @@ export const ReviewPostCard: FC<ReviewPostCardProps> = ({
           {snippet && (
             <p className="m-0 line-clamp-4 text-sm leading-snug text-gray-700">{snippet}</p>
           )}
-          {/*
-            Mirrors the "Read more" affordance used by CommentReadOnly (same
-            color, weight, size). Clicking opens the full review in
-            PeerReviewModal instead of expanding inline — the card has no
-            room to grow.
-          */}
           <button
             type="button"
             onClick={(e) => {

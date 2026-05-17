@@ -26,12 +26,6 @@ export interface AuthorPostComposer {
   openForEdit: (comment: Comment) => void;
 }
 
-/**
- * Encapsulates the create/edit lifecycle for the AUTHOR_UPDATE composer:
- * tracks which mode the modal is in, handles the API call, surfaces toasts,
- * and triggers a router refresh on success so SSR-rendered post lists
- * pick up the change.
- */
 export function useAuthorPostComposer({
   documentId,
   contentType,
@@ -61,7 +55,6 @@ export function useAuthorPostComposer({
           mentions,
         });
       } else {
-        // Backed by the AUTHOR_UPDATE comment type — kept for backend compat.
         await CommentService.createComment({
           workId: documentId,
           contentType,

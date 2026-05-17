@@ -13,7 +13,6 @@ export interface SupportedResearcher {
 export interface SupportedInstitution {
   id: number;
   name: string;
-  imageUrl?: string;
   city?: string;
   countryCode?: string;
 }
@@ -121,7 +120,6 @@ function extractInstitutions(raw: any): SupportedInstitution[] {
   return rows.map((n: any) => ({
     id: n.id,
     name: n.display_name ?? n.name ?? '',
-    imageUrl: n.image_thumbnail_url ?? n.image_url ?? undefined,
     city: n.city ?? undefined,
     countryCode: n.country_code ?? undefined,
   }));

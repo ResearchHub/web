@@ -2,7 +2,7 @@
 
 import { FC } from 'react';
 import Link from 'next/link';
-import { MoreHorizontal, Pencil, MessageSquare } from 'lucide-react';
+import { MoreHorizontal, Pencil, Bell } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Embed } from '@/components/Embed';
@@ -12,35 +12,18 @@ import type { PostCardPost } from '../lib/postCard';
 
 interface EmbeddedPostCardProps {
   data: PostCardPost;
-  /**
-   * When true (and `data.relatedWork` is set), renders a small "From: <title>"
-   * link below the embed pointing to the source document. Off by default so
-   * the document-scoped surfaces (e.g. the proposal page) don't duplicate
-   * context the viewer already has.
-   */
   showRelatedWork?: boolean;
-  /**
-   * When true, renders a small "Update" badge in the top-right of the card.
-   * Intended for mixed feeds (e.g. the funder dashboard) where viewers need
-   * to tell post cards apart from review cards at a glance.
-   */
   showTypeBadge?: boolean;
   className?: string;
 }
 
 const UpdateBadge: FC = () => (
-  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700">
-    <MessageSquare size={10} />
+  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-gray-200 bg-gray-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-gray-800">
+    <Bell size={10} className="text-gray-600" />
     Update
   </span>
 );
 
-/**
- * Pure "author post" card: author header + optional snippet + embed + optional
- * source link. Knows nothing about comments, documents, or composers — it
- * just renders the `PostCardPost` view-model and surfaces an `onEdit`
- * callback when one is provided.
- */
 export const EmbeddedPostCard: FC<EmbeddedPostCardProps> = ({
   data,
   showRelatedWork = false,

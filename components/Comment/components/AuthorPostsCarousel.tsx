@@ -9,50 +9,21 @@ import { ReviewPostCard } from './ReviewPostCard';
 
 interface AuthorPostsCarouselProps {
   cards: PostCardData[];
-  /** Forwarded to every rendered card. See `EmbeddedPostCard` / `ReviewPostCard`. */
   showRelatedWork?: boolean;
-  /**
-   * Forwarded to every rendered card. When true, each card shows a small
-   * type badge ("Update" or "Peer review") in its top-right so viewers can
-   * tell variants apart in mixed feeds. Leave off for single-variant
-   * surfaces.
-   */
   showTypeBadge?: boolean;
-
-  /** Section title. Omit to render the carousel without a header. */
   title?: ReactNode;
-  /** Right-aligned slot in the header, e.g. a "New post" button. */
+  subtitle?: ReactNode;
   headerAction?: ReactNode;
-  /**
-   * Visual treatment of the header (when `title` is a string — custom
-   * `ReactNode` titles render as provided).
-   * - `compact`: `h3 text-base font-bold` — for cards/wrapped sections.
-   * - `page`: `h2 text-lg font-semibold tracking-tight` — matches the
-   *   sibling page-level section headers (e.g. "My funding opportunities").
-   */
   headerVariant?: 'compact' | 'page';
-
   isLoading?: boolean;
   hasMore?: boolean;
   loadMore?: () => void;
-
-  /** Rendered in place of the carousel when there are no cards (and not loading). */
   emptyState?: ReactNode;
-
-  /**
-   * Visual treatment of the section.
-   * - `card`: wrapped in a rounded white card with border + shadow.
-   * - `plain`: no chrome, integrates with surrounding page background.
-   */
   variant?: 'card' | 'plain';
+  arrowOffset?: 'inset' | 'outset';
   className?: string;
 }
 
-/**
- * Dispatches a single `PostCardData` to the right variant component. Adding
- * a new `kind` to `PostCardData` will surface here as an exhaustiveness
- * error — keep the union and this switch in sync.
- */
 const CardForVariant: FC<{
   card: PostCardData;
   showRelatedWork?: boolean;
@@ -78,11 +49,6 @@ const CardForVariant: FC<{
   }
 };
 
-/**
- * Pluralization helper for the header counter. Mixed feeds (posts +
- * reviews) fall back to a neutral "updates" label so we don't claim that a
- * review is a "post".
- */
 const summarizeCount = (cards: PostCardData[]): string => {
   if (cards.length === 0) return '';
   const kinds = new Set(cards.map((c) => c.kind));
@@ -98,16 +64,12 @@ const Skeleton: FC = () => (
   <div className="snap-start shrink-0 w-[88vw] sm:!w-[420px] max-w-[440px] h-[360px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
 );
 
-/**
- * Document-agnostic carousel of embedded post cards. Owns the carousel
- * shell, header, pagination triggers, and skeleton/empty states; defers the
- * card content + the meaning of "edit" to its consumer via `PostCardData`.
- */
 export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
   cards,
   showRelatedWork,
   showTypeBadge,
   title,
+  subtitle,
   headerAction,
   headerVariant = 'compact',
   isLoading,
@@ -115,58 +77,58 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
   loadMore,
   emptyState,
   variant = 'plain',
+  arrowOffset,
   className,
 }) => {
+  const resolvedArrowOffset = arrowOffset ?? (variant === 'plain' ? 'outset' : 'inset');
   const hasCards = cards.length > 0;
   const showInitialSkeletons = !!isLoading && !hasCards;
   const showPageSkeletons = !!isLoading && hasCards;
-  // Only fire loadMore when we actually have more pages and aren't already loading.
   const handleReachEnd = hasMore && !isLoading ? loadMore : undefined;
 
-  // Hide the section entirely when there's nothing to show and the consumer
-  // didn't provide an empty state — mirrors ActivityStoryCarousel's behavior.
-  if (!isLoading && !hasCards && !emptyState) return null;
-
   const isPageHeader = headerVariant === 'page';
-  const header = (title || headerAction) && (
-    <div
-      className={cn(
-        'mb-4 flex justify-between gap-3',
-        isPageHeader ? 'items-baseline' : 'items-center'
-      )}
-    >
-      <div className={cn('flex items-baseline', isPageHeader ? 'gap-2.5' : 'gap-2')}>
-        {typeof title === 'string' ? (
-          isPageHeader ? (
-            <h2 className="text-lg font-semibold tracking-tight text-gray-900">{title}</h2>
+
+  const header = (title || subtitle || headerAction) && (
+    <div className="mb-4">
+      <div
+        className={cn(
+          'flex justify-between gap-3',
+          isPageHeader ? 'items-baseline' : 'items-center'
+        )}
+      >
+        <div className={cn('flex items-baseline', isPageHeader ? 'gap-2.5' : 'gap-2')}>
+          {typeof title === 'string' ? (
+            isPageHeader ? (
+              <h2 className="text-lg font-semibold tracking-tight text-gray-900">{title}</h2>
+            ) : (
+              <h3 className="text-base font-bold text-gray-900">{title}</h3>
+            )
           ) : (
-            <h3 className="text-base font-bold text-gray-900">{title}</h3>
-          )
-        ) : (
-          title
-        )}
-        {hasCards && (
-          <span
-            className={cn(
-              'text-xs text-gray-500',
-              // Compact header pairs with bolder card-section copy; bump the
-              // counter weight a touch so it still reads at the smaller size.
-              !isPageHeader && 'font-medium'
-            )}
-          >
-            {summarizeCount(cards)}
-          </span>
-        )}
+            title
+          )}
+          {hasCards && (
+            <span className={cn('text-xs text-gray-500', !isPageHeader && 'font-medium')}>
+              {summarizeCount(cards)}
+            </span>
+          )}
+        </div>
+        {headerAction}
       </div>
-      {headerAction}
+      {subtitle &&
+        (typeof subtitle === 'string' ? (
+          <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
+        ) : (
+          <div className="mt-1">{subtitle}</div>
+        ))}
     </div>
   );
 
+  const carouselWrapperClass = 'mx-3';
   let body: ReactNode;
   if (hasCards) {
     body = (
-      <div className="overflow-hidden">
-        <Carousel onReachEnd={handleReachEnd}>
+      <div className={carouselWrapperClass}>
+        <Carousel onReachEnd={handleReachEnd} arrowOffset={resolvedArrowOffset}>
           {cards.map((card) => (
             <div
               key={card.key}
@@ -186,8 +148,8 @@ export const AuthorPostsCarousel: FC<AuthorPostsCarouselProps> = ({
     );
   } else if (showInitialSkeletons) {
     body = (
-      <div className="overflow-hidden">
-        <Carousel>
+      <div className={carouselWrapperClass}>
+        <Carousel arrowOffset={resolvedArrowOffset}>
           {Array.from({ length: INITIAL_SKELETONS }).map((_, i) => (
             <Skeleton key={`init-${i}`} />
           ))}

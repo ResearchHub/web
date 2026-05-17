@@ -24,17 +24,12 @@ export const FunderDashboardPage: FC = () => {
   const { user, isLoading: isLoadingUser } = useUser();
   const userId = user?.id;
 
-  // Funder dashboard is a "my account"-style surface — bounce logged-out
-  // viewers home rather than rendering an empty page. Waits for the user
-  // load to settle so we don't flash-redirect before auth resolves.
   useEffect(() => {
     if (!isLoadingUser && !user) {
       router.replace('/');
     }
   }, [isLoadingUser, user, router]);
 
-  // Optional ?funder_id=N override scopes the funder-specific data (hero
-  // overview + activity feed) to that funder. Falls back to the logged-in user.
   const funderIdOverride = parseFunderIdParam(searchParams.get('funder_id'));
   const funderId = funderIdOverride ?? userId;
 
@@ -88,38 +83,40 @@ export const FunderDashboardPage: FC = () => {
 
   return (
     <div className="px-4 tablet:px-8 py-6 max-w-[1180px] mx-auto w-full">
-      {/* Welcome row */}
-      <div className="flex flex-wrap items-end justify-between gap-4 mb-5">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-            {firstName ? `Welcome back, ${firstName}.` : 'Welcome back.'}
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">Here&apos;s where your funding stands today.</p>
-        </div>
-        <Button variant="default" size="sm" onClick={() => router.push('/notebook?newGrant=true')}>
-          <Plus size={14} />
-          New opportunity
-        </Button>
+      <div className="mb-5">
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+          {firstName ? `Welcome back, ${firstName}.` : 'Welcome back.'}
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">Here&apos;s where your funding stands today.</p>
       </div>
 
-      {/* Hero */}
       {isLoadingOverview ? (
         <div className="h-[320px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
       ) : overview ? (
         <FunderHero overview={overview} />
       ) : null}
 
-      {/* Recent activity — aggregated AUTHOR_UPDATE posts across this funder's RFPs */}
       {funderId && <FunderAuthorPostsSection funderId={funderId} className="mt-6" />}
 
-      {/* Opportunities */}
       <div className="mt-6">
-        <div className="flex items-baseline gap-2.5 mb-4">
-          <h2 className="text-lg font-semibold tracking-tight text-gray-900">
-            My funding opportunities
-          </h2>
-          {!isLoadingOpportunities && (
-            <span className="text-xs text-gray-500">{opportunities.length} active</span>
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2">
+          <div className="flex items-baseline gap-2.5">
+            <h2 className="text-lg font-semibold tracking-tight text-gray-900">
+              My funding opportunities
+            </h2>
+            {!isLoadingOpportunities && (
+              <span className="text-xs text-gray-500">{opportunities.length} active</span>
+            )}
+          </div>
+          {!isLoadingOpportunities && opportunities.length > 0 && (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => router.push('/notebook?newGrant=true')}
+            >
+              <Plus size={14} />
+              New opportunity
+            </Button>
           )}
         </div>
 

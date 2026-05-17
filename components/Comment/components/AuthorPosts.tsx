@@ -11,38 +11,39 @@ import { AuthorPostsCarousel } from './AuthorPostsCarousel';
 import { PostComposerModal } from './PostComposerModal';
 import { useAuthorPostComposer } from './useAuthorPostComposer';
 
-// Re-exports for callers that still import these from here. The actual
-// implementations now live in co-located files so the funder dashboard (and
-// any future consumer) can import them without pulling in the proposal-page
-// section wrapper below.
 export { useAuthorPostComposer } from './useAuthorPostComposer';
 export { PostComposerModal } from './PostComposerModal';
 export type { AuthorPostComposer } from './useAuthorPostComposer';
 
-export const ViewerPostsEmptyState: FC = () => (
-  <p className="m-0 text-sm text-gray-500">
-    No posts from the author yet — they&apos;ll show up here when shared.
-  </p>
+const AuthorPostsEmptyShell: FC<{ children: ReactNode }> = ({ children }) => (
+  <div className="rounded-xl border border-dashed border-gray-200 px-6 py-12 text-center">
+    <p className="m-0 text-sm text-gray-500">{children}</p>
+  </div>
 );
+
+const AuthorEmptyState: FC = () => (
+  <AuthorPostsEmptyShell>
+    No posts yet — share an update to keep funders and reviewers in the loop.
+  </AuthorPostsEmptyShell>
+);
+
+const ViewerEmptyState: FC = () => (
+  <AuthorPostsEmptyShell>
+    No posts from the author yet — they&apos;ll show up here when shared.
+  </AuthorPostsEmptyShell>
+);
+
+export const ViewerPostsEmptyState = ViewerEmptyState;
 
 interface AuthorPostsProps {
   posts: Comment[];
   documentId: number;
   contentType: ContentType;
-  /** Authors of the underlying document. Used to gate the "New post" CTA. */
   documentAuthors: Authorship[];
   className?: string;
-  /** Return `null` to hide the section entirely. Defaults to `ViewerPostsEmptyState`. */
   emptyState?: (props: { isAuthor: boolean }) => ReactNode;
 }
 
-/**
- * Proposal-page section for "author posts": owns the create/edit composer
- * and gates the "New post" CTA on document authorship. Card rendering and
- * pagination live in `AuthorPostsCarousel`; this wrapper just produces the
- * `PostCardData[]` (with an `onEdit` callback wired into the composer for
- * comments the viewer owns).
- */
 export const AuthorPosts: FC<AuthorPostsProps> = ({
   posts,
   documentId,
@@ -73,16 +74,13 @@ export const AuthorPosts: FC<AuthorPostsProps> = ({
   }, [posts, user?.id, composer]);
 
   const hasCards = cards.length > 0;
-  // Consumer can hide the section by returning `null` from `emptyState`; we
-  // fall back to `ViewerPostsEmptyState` otherwise so the surface still
-  // renders the header + "New post" CTA for authors.
   const resolvedEmptyState: ReactNode = hasCards ? undefined : emptyState ? (
     emptyState({ isAuthor: isCurrentUserAuthor })
+  ) : isCurrentUserAuthor ? (
+    <AuthorEmptyState />
   ) : (
-    <ViewerPostsEmptyState />
+    <ViewerEmptyState />
   );
-
-  if (!hasCards && resolvedEmptyState === null) return null;
 
   return (
     <>

@@ -10,7 +10,6 @@ interface PostComposerModalProps {
   isOpen: boolean;
   onClose: () => void;
   documentId: number;
-  /** When provided, the modal opens in edit mode for this comment. */
   editingComment?: Comment;
   onSubmit: (payload: { content: CommentContent }) => Promise<boolean>;
 }
