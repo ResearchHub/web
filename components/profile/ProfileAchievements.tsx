@@ -43,14 +43,10 @@ function AchievementIconBadge({
     >
       <span
         className="absolute inset-0 shadow-sm"
-        style={{ background: tier.outline, clipPath: CRYSTAL_SHIELD_CLIP }}
-      />
-      <span
-        className="absolute inset-[2px]"
         style={{ background: tier.fill, clipPath: CRYSTAL_SHIELD_CLIP }}
       />
       <span
-        className="absolute inset-[5px]"
+        className="absolute inset-[3px]"
         style={{ background: tier.facet, clipPath: CRYSTAL_SHIELD_CLIP }}
       />
       <FontAwesomeIcon
@@ -112,6 +108,7 @@ function AchievementTooltipContent({ achievement }: Readonly<AchievementTooltipP
   const {
     meta,
     tier,
+    nextTier,
     currentTierName,
     nextTierName,
     displayValue,
@@ -151,7 +148,10 @@ function AchievementTooltipContent({ achievement }: Readonly<AchievementTooltipP
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between text-[11px] text-gray-500">
             <span>
-              Next: <span className={cn('font-semibold', tier.pillText)}>{nextTierName}</span>
+              Next:{' '}
+              <span className={cn('font-semibold', (nextTier ?? tier).pillText)}>
+                {nextTierName}
+              </span>
             </span>
             <span className="font-medium text-gray-700">
               {displayValue} / {nextTierDisplayValue}

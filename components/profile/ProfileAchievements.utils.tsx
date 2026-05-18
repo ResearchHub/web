@@ -15,7 +15,6 @@ export type TierName = (typeof TIER_INDICES)[number];
 export interface TierStyle {
   name: TierName;
   label: string;
-  outline: string;
   fill: string;
   facet: string;
   iconColor: string;
@@ -28,39 +27,39 @@ export interface TierStyle {
 export const TIER_STYLES: Record<TierName, TierStyle> = {
   Tier1: {
     name: 'Tier1',
-    label: 'Tier 1',
-    outline: '#93C5FD',
-    fill: 'linear-gradient(145deg,#F8FBFF 0%,#DBEAFE 46%,#9CC9FF 100%)',
-    facet: 'linear-gradient(145deg,#FFFFFF 0%,#EFF6FF 48%,#CFE3FF 100%)',
-    iconColor: '#1D4ED8',
-    pillBg: 'bg-primary-50',
-    pillText: 'text-primary-700',
-    pillBorder: 'border-primary-200',
-    barFill: 'bg-gradient-to-r from-primary-200 to-primary-400',
+    label: 'Bronze',
+    fill: 'linear-gradient(145deg,#E0A26B 0%,#B57440 48%,#7C3A1A 100%)',
+    facet:
+      'linear-gradient(145deg,rgba(255,238,212,0.55) 0%,rgba(255,200,140,0.18) 48%,rgba(120,60,20,0) 100%)',
+    iconColor: '#FFFFFF',
+    pillBg: 'bg-amber-50',
+    pillText: 'text-amber-800',
+    pillBorder: 'border-amber-200',
+    barFill: 'bg-gradient-to-r from-amber-700 to-amber-400',
   },
   Tier2: {
     name: 'Tier2',
-    label: 'Tier 2',
-    outline: '#3971FF',
-    fill: 'linear-gradient(145deg,#DBEAFE 0%,#3971FF 58%,#1D4ED8 100%)',
-    facet: 'rgba(255, 255, 255, 0.24)',
+    label: 'Silver',
+    fill: 'linear-gradient(145deg,#E2E8F0 0%,#94A3B8 48%,#475569 100%)',
+    facet:
+      'linear-gradient(145deg,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0.18) 48%,rgba(255,255,255,0) 100%)',
     iconColor: '#FFFFFF',
-    pillBg: 'bg-primary-100',
-    pillText: 'text-primary-800',
-    pillBorder: 'border-primary-300',
-    barFill: 'bg-gradient-to-r from-primary-400 to-primary-700',
+    pillBg: 'bg-slate-100',
+    pillText: 'text-slate-700',
+    pillBorder: 'border-slate-300',
+    barFill: 'bg-gradient-to-r from-slate-600 to-slate-300',
   },
   Tier3: {
     name: 'Tier3',
-    label: 'Tier 3',
-    outline: '#172554',
-    fill: 'linear-gradient(145deg,#3971FF 0%,#1E40AF 54%,#0B1B5E 100%)',
-    facet: 'rgba(255, 255, 255, 0.2)',
+    label: 'Gold',
+    fill: 'linear-gradient(145deg,#FFE08A 0%,#D79A18 48%,#8A5A00 100%)',
+    facet:
+      'linear-gradient(145deg,rgba(255,255,255,0.55) 0%,rgba(255,235,170,0.18) 48%,rgba(255,255,255,0) 100%)',
     iconColor: '#FFFFFF',
-    pillBg: 'bg-blue-50',
-    pillText: 'text-blue-900',
-    pillBorder: 'border-blue-200',
-    barFill: 'bg-gradient-to-r from-primary-600 to-blue-950',
+    pillBg: 'bg-amber-100',
+    pillText: 'text-amber-900',
+    pillBorder: 'border-amber-300',
+    barFill: 'bg-gradient-to-r from-yellow-600 to-yellow-300',
   },
 };
 
@@ -155,6 +154,8 @@ export const getAchievementMeta = (type: AchievementType): AchievementMeta => {
 export interface ResolvedAchievement {
   meta: AchievementMeta;
   tier: TierStyle;
+  /** Styling for the next tier above the current one, when one exists. */
+  nextTier: TierStyle | undefined;
   currentTierName: string;
   nextTierName: string;
   displayValue: string;
@@ -166,9 +167,11 @@ export const resolveAchievement = (achievement: Achievement): ResolvedAchievemen
   const meta = getAchievementMeta(achievement.type);
   const tier = getTierStyleForIndex(achievement.currentMilestoneIndex);
   const currentTierName = tier.label;
-  const nextTierName = achievement.milestones[achievement.currentMilestoneIndex + 1]
-    ? getTierLabelForIndex(achievement.currentMilestoneIndex + 1)
-    : 'Max Tier';
+  const hasNextTier = Boolean(achievement.milestones[achievement.currentMilestoneIndex + 1]);
+  const nextTier = hasNextTier
+    ? getTierStyleForIndex(achievement.currentMilestoneIndex + 1)
+    : undefined;
+  const nextTierName = nextTier?.label ?? 'Max Tier';
 
   const isTopTier =
     achievement.currentMilestoneIndex === achievement.milestones.length - 1 ||
@@ -179,6 +182,7 @@ export const resolveAchievement = (achievement: Achievement): ResolvedAchievemen
   return {
     meta,
     tier,
+    nextTier,
     currentTierName,
     nextTierName,
     displayValue: meta.formatValue(achievement.value),
