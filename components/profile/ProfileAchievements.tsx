@@ -135,7 +135,7 @@ const AchievementTooltipContent = ({ resolved }: AchievementTooltipContentProps)
           <div
             className={cn(
               'h-full rounded-full transition-all duration-300',
-              isTopTier ? 'bg-gradient-to-r from-emerald-600 to-emerald-300' : nextTier!.barFill
+              isTopTier ? 'bg-gradient-to-r from-emerald-600 to-emerald-300' : tier.barFill
             )}
             style={{ width: `${progressPct}%` }}
           />
