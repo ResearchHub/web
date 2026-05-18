@@ -30,7 +30,7 @@ const TIER_STYLES: Record<TierName, Omit<TierStyle, 'label'>> = {
     pillBg: 'bg-amber-50',
     pillText: 'text-amber-800',
     pillBorder: 'border-amber-200',
-    barFill: 'bg-gradient-to-r from-amber-700 to-amber-400',
+    barFill: 'bg-gradient-to-r from-[#A86238] to-[#C98750]',
   },
   Silver: {
     fill: 'linear-gradient(145deg,#E2E8F0 0%,#94A3B8 48%,#475569 100%)',
