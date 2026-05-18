@@ -9,53 +9,42 @@ import {
 } from '@fortawesome/pro-solid-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
-export const TIER_INDICES = ['Tier1', 'Tier2', 'Tier3'] as const;
-export type TierName = (typeof TIER_INDICES)[number];
+const TIER_NAMES = ['Bronze', 'Silver', 'Gold'] as const;
+type TierName = (typeof TIER_NAMES)[number];
 
 export interface TierStyle {
-  name: TierName;
-  label: string;
+  label: TierName;
   fill: string;
   facet: string;
-  iconColor: string;
   pillBg: string;
   pillText: string;
   pillBorder: string;
   barFill: string;
 }
 
-export const TIER_STYLES: Record<TierName, TierStyle> = {
-  Tier1: {
-    name: 'Tier1',
-    label: 'Bronze',
+const TIER_STYLES: Record<TierName, Omit<TierStyle, 'label'>> = {
+  Bronze: {
     fill: 'linear-gradient(145deg,#E0A26B 0%,#B57440 48%,#7C3A1A 100%)',
     facet:
       'linear-gradient(145deg,rgba(255,238,212,0.55) 0%,rgba(255,200,140,0.18) 48%,rgba(120,60,20,0) 100%)',
-    iconColor: '#FFFFFF',
     pillBg: 'bg-amber-50',
     pillText: 'text-amber-800',
     pillBorder: 'border-amber-200',
     barFill: 'bg-gradient-to-r from-amber-700 to-amber-400',
   },
-  Tier2: {
-    name: 'Tier2',
-    label: 'Silver',
+  Silver: {
     fill: 'linear-gradient(145deg,#E2E8F0 0%,#94A3B8 48%,#475569 100%)',
     facet:
       'linear-gradient(145deg,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0.18) 48%,rgba(255,255,255,0) 100%)',
-    iconColor: '#FFFFFF',
     pillBg: 'bg-slate-100',
     pillText: 'text-slate-700',
     pillBorder: 'border-slate-300',
     barFill: 'bg-gradient-to-r from-slate-600 to-slate-300',
   },
-  Tier3: {
-    name: 'Tier3',
-    label: 'Gold',
+  Gold: {
     fill: 'linear-gradient(145deg,#FFE08A 0%,#D79A18 48%,#8A5A00 100%)',
     facet:
       'linear-gradient(145deg,rgba(255,255,255,0.55) 0%,rgba(255,235,170,0.18) 48%,rgba(255,255,255,0) 100%)',
-    iconColor: '#FFFFFF',
     pillBg: 'bg-amber-100',
     pillText: 'text-amber-900',
     pillBorder: 'border-amber-300',
@@ -63,19 +52,13 @@ export const TIER_STYLES: Record<TierName, TierStyle> = {
   },
 };
 
-const getTierNameForIndex = (index: number): TierName => {
-  const boundedIndex = Math.min(Math.max(index, 0), TIER_INDICES.length - 1);
-  return TIER_INDICES[boundedIndex];
+const getTierStyleForIndex = (index: number): TierStyle => {
+  const bounded = Math.min(Math.max(index, 0), TIER_NAMES.length - 1);
+  const name = TIER_NAMES[bounded];
+  return { label: name, ...TIER_STYLES[name] };
 };
 
-export const getTierStyleForIndex = (index: number): TierStyle => {
-  const name = getTierNameForIndex(index);
-  return TIER_STYLES[name];
-};
-
-export const getTierLabelForIndex = (index: number): string => getTierStyleForIndex(index).label;
-
-export interface AchievementMeta {
+interface AchievementMeta {
   icon: IconDefinition;
   title: string;
   unit: string;
@@ -86,38 +69,39 @@ export interface AchievementMeta {
 }
 
 const integerFormatter = (value: number) => Math.round(value).toLocaleString();
+
 const percentFormatter = (value: number) => {
-  const percentage = value * 100;
-  const displayValue = Number.isInteger(percentage) ? percentage.toString() : percentage.toFixed(1);
-  return `${displayValue}%`;
+  const pct = value * 100;
+  const formatted = Number.isInteger(pct) ? pct.toString() : pct.toFixed(1);
+  return `${formatted}%`;
 };
 
 const ACHIEVEMENT_META: Record<AchievementType, AchievementMeta> = {
   OPEN_SCIENCE_SUPPORTER: {
     icon: faHandHoldingHeart,
     title: 'Open Science Supporter',
-    unit: ' RSC',
+    unit: 'RSC',
     formatValue: integerFormatter,
     describe: (value) => `Funded open science using ${value} RSC.`,
   },
   CITED_AUTHOR: {
     icon: faQuoteLeft,
     title: 'Cited Author',
-    unit: ' citations',
+    unit: 'citations',
     formatValue: integerFormatter,
     describe: (value) => `Publications have been cited ${value} times.`,
   },
   EXPERT_PEER_REVIEWER: {
     icon: faGlasses,
     title: 'Peer Reviewer',
-    unit: ' reviews',
+    unit: 'reviews',
     formatValue: integerFormatter,
     describe: (value) => `Peer reviewed ${value} publications.`,
   },
   HIGHLY_UPVOTED: {
     icon: faFire,
     title: 'Active User',
-    unit: ' upvotes',
+    unit: 'upvotes',
     formatValue: integerFormatter,
     describe: (value) => `Received ${value} upvotes from the community.`,
   },
@@ -125,7 +109,6 @@ const ACHIEVEMENT_META: Record<AchievementType, AchievementMeta> = {
     icon: faChartNetwork,
     title: 'Open Access Advocate',
     unit: '',
-    // Stored as a 0-1 ratio in the API payload; surface as a percentage.
     formatValue: percentFormatter,
     describe: (value) => `${value} of works published as open access.`,
   },
@@ -139,16 +122,13 @@ const FALLBACK_META: AchievementMeta = {
   describe: (value) => `Achieved ${value} points.`,
 };
 
-export const getAchievementMeta = (type: AchievementType): AchievementMeta => {
-  const meta = ACHIEVEMENT_META[type];
-  if (meta) return meta;
+const toTitleCase = (text: string) =>
+  text
+    .replace(/_/g, ' ')
+    .replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.substring(1).toLowerCase());
 
-  return {
-    ...FALLBACK_META,
-    title: (type as string)
-      .replace(/_/g, ' ')
-      .replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()),
-  };
+const getAchievementMeta = (type: AchievementType): AchievementMeta => {
+  return ACHIEVEMENT_META[type] ?? { ...FALLBACK_META, title: toTitleCase(type) };
 };
 
 export interface ResolvedAchievement {
@@ -156,8 +136,6 @@ export interface ResolvedAchievement {
   tier: TierStyle;
   /** Styling for the next tier above the current one, when one exists. */
   nextTier: TierStyle | undefined;
-  currentTierName: string;
-  nextTierName: string;
   displayValue: string;
   /**
    * The value the progress row compares against on the right of the bar.
@@ -166,22 +144,20 @@ export interface ResolvedAchievement {
    * `value / threshold` (often value > threshold for max tier).
    */
   targetDisplayValue: string;
+  progressPct: number;
   isTopTier: boolean;
 }
 
 export const resolveAchievement = (achievement: Achievement): ResolvedAchievement => {
   const meta = getAchievementMeta(achievement.type);
   const tier = getTierStyleForIndex(achievement.currentMilestoneIndex);
-  const currentTierName = tier.label;
-  const hasNextTier = Boolean(achievement.milestones[achievement.currentMilestoneIndex + 1]);
+
+  const hasNextTier = achievement.currentMilestoneIndex + 1 < achievement.milestones.length;
   const nextTier = hasNextTier
     ? getTierStyleForIndex(achievement.currentMilestoneIndex + 1)
     : undefined;
-  const nextTierName = nextTier?.label ?? 'Max Tier';
 
-  const isTopTier =
-    achievement.currentMilestoneIndex === achievement.milestones.length - 1 ||
-    achievement.currentMilestoneIndex >= TIER_INDICES.length - 1;
+  const isTopTier = !hasNextTier || achievement.currentMilestoneIndex >= TIER_NAMES.length - 1;
 
   const targetRawValue = isTopTier
     ? (achievement.milestones[achievement.currentMilestoneIndex] ?? 0)
@@ -191,10 +167,9 @@ export const resolveAchievement = (achievement: Achievement): ResolvedAchievemen
     meta,
     tier,
     nextTier,
-    currentTierName,
-    nextTierName,
     displayValue: meta.formatValue(achievement.value),
     targetDisplayValue: meta.formatValue(targetRawValue),
+    progressPct: Math.min(100, Math.max(0, achievement.pctProgress * 100)),
     isTopTier,
   };
 };
