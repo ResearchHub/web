@@ -1,17 +1,20 @@
 'use client';
 
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FunderHero } from '@/components/Funding/dashboard/FunderHero';
-import { useFunderActivity } from '@/components/Funding/dashboard/hooks/useFunderActivity';
-import { ActivityStoryCarousel } from '@/components/Activity/ActivityStoryCarousel';
+import { FunderAuthorPostsSection } from '@/components/Funding/dashboard/FunderAuthorPostsSection';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { FunderService } from '@/services/funder.service';
 import { useFeed } from '@/hooks/useFeed';
 import { useUser } from '@/contexts/UserContext';
 import { FunderOverview } from '@/types/funder';
+import {
+  SearchableUserSingleSelect,
+  UserOption,
+} from '@/components/ui/form/SearchableUserSingleSelect';
 
 function parseFunderIdParam(raw: string | null): number | undefined {
   if (!raw) return undefined;
@@ -22,13 +25,33 @@ function parseFunderIdParam(raw: string | null): number | undefined {
 export const FunderDashboardPage: FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useUser();
+  const { user, isLoading: isLoadingUser } = useUser();
   const userId = user?.id;
 
-  // Optional ?funder_id=N override scopes the funder-specific data (hero
-  // overview + activity feed) to that funder. Falls back to the logged-in user.
+  useEffect(() => {
+    if (!isLoadingUser && !user) {
+      router.replace('/');
+    }
+  }, [isLoadingUser, user, router]);
+
   const funderIdOverride = parseFunderIdParam(searchParams.get('funder_id'));
   const funderId = funderIdOverride ?? userId;
+
+  const [selectedUser, setSelectedUser] = useState<UserOption | null>(null);
+
+  const handleUserSelect = useCallback(
+    (selected: UserOption | null) => {
+      setSelectedUser(selected);
+      const params = new URLSearchParams(searchParams.toString());
+      if (selected) {
+        params.set('funder_id', selected.value);
+      } else {
+        params.delete('funder_id');
+      }
+      router.push(`?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
 
   const [overview, setOverview] = useState<FunderOverview | null>(null);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
@@ -55,14 +78,8 @@ export const FunderDashboardPage: FC = () => {
     loadMore,
   } = useFeed('all', grantFeedOptions);
 
-  const {
-    entries: activityEntries,
-    isLoading: isLoadingActivity,
-    hasMore: hasMoreActivity,
-    loadMore: loadMoreActivity,
-  } = useFunderActivity(funderId);
-
   useEffect(() => {
+    if (isLoadingUser || !user) return;
     let cancelled = false;
     setIsLoadingOverview(true);
     FunderService.getFundingOverview(funderId)
@@ -78,53 +95,61 @@ export const FunderDashboardPage: FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [funderId]);
+  }, [funderId, isLoadingUser, user]);
 
-  const firstName = user?.firstName?.trim() || 'there';
+  if (isLoadingUser || !user) return null;
+
+  const firstName = user.firstName?.trim();
 
   return (
     <div className="px-4 tablet:px-8 py-6 max-w-[1180px] mx-auto w-full">
-      {/* Welcome row */}
-      <div className="flex flex-wrap items-end justify-between gap-4 mb-5">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-            Welcome back, {firstName}.
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">Here&apos;s where your funding stands today.</p>
+      {user.isModerator && (
+        <div className="mb-5 max-w-xs">
+          <label className="text-xs font-medium text-gray-500 mb-1 block">
+            View as user (moderator only)
+          </label>
+          <SearchableUserSingleSelect
+            value={selectedUser}
+            onChange={handleUserSelect}
+            placeholder="Search for a funder..."
+          />
         </div>
-        <Button variant="default" size="sm" onClick={() => router.push('/notebook?newGrant=true')}>
-          <Plus size={14} />
-          New opportunity
-        </Button>
+      )}
+
+      <div className="mb-5">
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+          {firstName ? `Welcome back, ${firstName}.` : 'Welcome back.'}
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">Here&apos;s where your funding stands today.</p>
       </div>
 
-      {/* Hero */}
       {isLoadingOverview ? (
         <div className="h-[320px] rounded-xl border border-gray-200 bg-gray-50 animate-pulse" />
       ) : overview ? (
         <FunderHero overview={overview} />
       ) : null}
 
-      {/* Activity stories */}
-      {funderId && (
-        <ActivityStoryCarousel
-          entries={activityEntries}
-          isLoading={isLoadingActivity}
-          hasMore={hasMoreActivity}
-          loadMore={loadMoreActivity}
-          title="Recent activity"
-          className="mt-6"
-        />
-      )}
+      {funderId && <FunderAuthorPostsSection funderId={funderId} className="mt-6" />}
 
-      {/* Opportunities */}
       <div className="mt-6">
-        <div className="flex items-baseline gap-2.5 mb-4">
-          <h2 className="text-lg font-semibold tracking-tight text-gray-900">
-            My funding opportunities
-          </h2>
-          {!isLoadingOpportunities && (
-            <span className="text-xs text-gray-500">{opportunities.length} active</span>
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2">
+          <div className="flex items-baseline gap-2.5">
+            <h2 className="text-lg font-semibold tracking-tight text-gray-900">
+              My funding opportunities
+            </h2>
+            {!isLoadingOpportunities && (
+              <span className="text-xs text-gray-500">{opportunities.length} active</span>
+            )}
+          </div>
+          {!isLoadingOpportunities && opportunities.length > 0 && (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => router.push('/notebook?newGrant=true')}
+            >
+              <Plus size={14} />
+              New opportunity
+            </Button>
           )}
         </div>
 
