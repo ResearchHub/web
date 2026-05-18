@@ -21,6 +21,7 @@ export interface User {
   moderator: boolean;
   editorOfHubs?: Hub[];
   isModerator?: boolean;
+  isFunder?: boolean;
   referralCode?: string;
   authProvider?: 'google' | 'credentials';
   isStakingOptedIn?: boolean;
@@ -48,6 +49,7 @@ const baseTransformUser = (raw: any): User => {
       createdDate: undefined,
       moderator: false,
       isModerator: false,
+      isFunder: false,
       authProvider: undefined,
       isStakingOptedIn: false,
       balanceHistory: 0,
@@ -82,6 +84,7 @@ const baseTransformUser = (raw: any): User => {
     moderator: raw.moderator || false,
     editorOfHubs: editorOfHubs,
     isModerator: raw.moderator || false,
+    isFunder: raw.is_funder || false,
     referralCode: raw.referral_code || undefined,
     authProvider: raw.auth_provider
       ? raw.auth_provider === 'google'
@@ -112,6 +115,7 @@ export const transformUser = (raw: any): TransformedUser => {
       moderator: false,
       raw: null,
       isModerator: false,
+      isFunder: false,
       authProvider: undefined,
       isStakingOptedIn: false,
       balanceHistory: 0,
