@@ -60,17 +60,19 @@ export const ReviewPostCard: FC<ReviewPostCardProps> = ({
           className
         )}
       >
-        <header className="flex min-w-0 items-center gap-2">
+        <header className="flex min-w-0 items-center gap-2.5">
           <Avatar
             src={author.profileImage}
             alt={authorLabel}
-            size="xs"
+            size="sm"
             authorId={author.authorProfileId}
           />
-          <span className="truncate text-sm font-medium text-gray-900">{authorLabel}</span>
-          <span className="shrink-0 whitespace-nowrap text-xs text-gray-500">· {dateLabel}</span>
+          <div className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-medium text-gray-900">{authorLabel}</span>
+            <span className="block text-xs text-gray-500">{dateLabel}</span>
+          </div>
           {showTypeBadge && (
-            <div className="ml-auto">
+            <div className="shrink-0">
               <PeerReviewBadge />
             </div>
           )}

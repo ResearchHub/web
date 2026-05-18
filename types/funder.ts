@@ -8,6 +8,18 @@ export interface CurrencyAmount {
 export interface SupportedResearcher {
   id: number;
   authorProfile: AuthorProfile;
+  fundedAmount: CurrencyAmount;
+}
+
+export interface SupportedProposal {
+  id: number;
+  title: string;
+  slug: string;
+  createdBy: {
+    id: number;
+    authorProfile: AuthorProfile;
+  };
+  fundedAmount: CurrencyAmount;
 }
 
 export interface SupportedInstitution {
@@ -21,6 +33,7 @@ export interface FunderOverview {
   matchedFunds: CurrencyAmount;
   distributedFunds: CurrencyAmount;
   supportedResearchers: SupportedResearcher[];
+  supportedProposals: SupportedProposal[];
   // Display headline ($1.24M) — alias of distributedFunds for the hero copy.
   totalGiven: CurrencyAmount;
   // Alias of matchedFunds for the hero copy.
@@ -52,18 +65,8 @@ function formatMatchRatio(given: CurrencyAmount, match: CurrencyAmount): string 
 }
 
 export function transformFunderOverview(raw: any): FunderOverview {
-  const seen = new Set<number>();
-  const researchers: SupportedResearcher[] = [];
-
-  for (const proposal of raw.supported_proposals ?? []) {
-    const creator = proposal.created_by;
-    if (!creator || seen.has(creator.id)) continue;
-    seen.add(creator.id);
-    researchers.push({
-      id: creator.id,
-      authorProfile: transformAuthorProfile(creator.author_profile),
-    });
-  }
+  const proposals = extractProposals(raw.supported_proposals);
+  const researchers = extractResearchers(proposals);
 
   const distributedFunds: CurrencyAmount = {
     rsc: raw.distributed_funds?.rsc ?? 0,
@@ -88,6 +91,7 @@ export function transformFunderOverview(raw: any): FunderOverview {
     matchedFunds,
     distributedFunds,
     supportedResearchers: researchers,
+    supportedProposals: proposals,
     totalGiven,
     communityMatch,
     totalDeployed,
@@ -96,6 +100,45 @@ export function transformFunderOverview(raw: any): FunderOverview {
     supportedInstitutions,
     supportedInstitutionCount: supportedInstitutions.length,
   };
+}
+
+function extractProposals(rawProposals: any[]): SupportedProposal[] {
+  return (rawProposals ?? [])
+    .filter((p: any) => p.created_by)
+    .map((p: any) => ({
+      id: p.id,
+      title: p.unified_document?.title ?? '',
+      slug: p.unified_document?.slug ?? '',
+      createdBy: {
+        id: p.created_by.id,
+        authorProfile: transformAuthorProfile(p.created_by.author_profile),
+      },
+      fundedAmount: {
+        rsc: p.funded_amount?.rsc ?? 0,
+        usd: usdFromAmount(p.funded_amount),
+      },
+    }));
+}
+
+function extractResearchers(proposals: SupportedProposal[]): SupportedResearcher[] {
+  const map = new Map<number, SupportedResearcher>();
+
+  for (const proposal of proposals) {
+    const { id, authorProfile } = proposal.createdBy;
+    const existing = map.get(id);
+    if (existing) {
+      existing.fundedAmount.rsc += proposal.fundedAmount.rsc;
+      existing.fundedAmount.usd += proposal.fundedAmount.usd;
+    } else {
+      map.set(id, {
+        id,
+        authorProfile,
+        fundedAmount: { ...proposal.fundedAmount },
+      });
+    }
+  }
+
+  return Array.from(map.values());
 }
 
 /**
