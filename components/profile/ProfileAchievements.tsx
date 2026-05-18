@@ -9,12 +9,13 @@ import { faTrophyStar } from '@fortawesome/pro-light-svg-icons';
 import { faSparkles } from '@fortawesome/pro-solid-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
-type BadgeSize = 'sm' | 'md' | 'lg';
+type BadgeSize = 'xs' | 'sm' | 'md' | 'lg';
 
-const BADGE_SIZE: Record<BadgeSize, { box: string; icon: string }> = {
-  sm: { box: 'h-8 w-8', icon: 'text-[11px]' },
-  md: { box: 'h-10 w-10', icon: 'text-[14px]' },
-  lg: { box: 'h-14 w-14', icon: 'text-[20px]' },
+const BADGE_SIZE: Record<BadgeSize, { box: string; icon: string; facetInset: string }> = {
+  xs: { box: 'h-5 w-5', icon: 'text-[8px]', facetInset: 'inset-[2px]' },
+  sm: { box: 'h-8 w-8', icon: 'text-[11px]', facetInset: 'inset-[3px]' },
+  md: { box: 'h-10 w-10', icon: 'text-[14px]', facetInset: 'inset-[3px]' },
+  lg: { box: 'h-14 w-14', icon: 'text-[20px]', facetInset: 'inset-[5px]' },
 };
 
 const CRYSTAL_SHIELD_CLIP = 'polygon(50% 0%, 91% 16%, 84% 70%, 50% 100%, 16% 70%, 9% 16%)';
@@ -32,7 +33,7 @@ function AchievementIconBadge({
   size = 'sm',
   className,
 }: Readonly<AchievementIconBadgeProps>) {
-  const { box, icon: iconClass } = BADGE_SIZE[size];
+  const { box, icon: iconClass, facetInset } = BADGE_SIZE[size];
   return (
     <span
       className={cn(
@@ -46,7 +47,7 @@ function AchievementIconBadge({
         style={{ background: tier.fill, clipPath: CRYSTAL_SHIELD_CLIP }}
       />
       <span
-        className="absolute inset-[3px]"
+        className={cn('absolute', facetInset)}
         style={{ background: tier.facet, clipPath: CRYSTAL_SHIELD_CLIP }}
       />
       <FontAwesomeIcon
@@ -105,16 +106,8 @@ interface AchievementTooltipProps {
 }
 
 function AchievementTooltipContent({ achievement }: Readonly<AchievementTooltipProps>) {
-  const {
-    meta,
-    tier,
-    nextTier,
-    currentTierName,
-    nextTierName,
-    displayValue,
-    nextTierDisplayValue,
-    isTopTier,
-  } = resolveAchievement(achievement);
+  const { meta, tier, nextTier, displayValue, nextTierDisplayValue, isTopTier } =
+    resolveAchievement(achievement);
 
   const progressPct = Math.min(100, Math.max(0, achievement.pctProgress * 100));
 
@@ -142,16 +135,14 @@ function AchievementTooltipContent({ achievement }: Readonly<AchievementTooltipP
           )}
         >
           <FontAwesomeIcon icon={faSparkles} className="text-[10px]" />
-          {currentTierName} tier achieved
+          Max tier achieved.
         </div>
       ) : (
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between text-[11px] text-gray-500">
-            <span>
-              Next:{' '}
-              <span className={cn('font-semibold', (nextTier ?? tier).pillText)}>
-                {nextTierName}
-              </span>
+            <span className="inline-flex items-center gap-1">
+              Next:
+              <AchievementIconBadge icon={meta.icon} tier={nextTier ?? tier} size="xs" />
             </span>
             <span className="font-medium text-gray-700">
               {displayValue} / {nextTierDisplayValue}
