@@ -124,7 +124,7 @@ const FALLBACK_META: AchievementMeta = {
 
 const toTitleCase = (text: string) =>
   text
-    .replace(/_/g, ' ')
+    .replaceAll('_', ' ')
     .replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.substring(1).toLowerCase());
 
 const getAchievementMeta = (type: AchievementType): AchievementMeta => {
