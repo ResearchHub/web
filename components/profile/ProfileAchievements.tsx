@@ -130,9 +130,7 @@ const AchievementTooltipContent = ({ resolved }: AchievementTooltipContentProps)
             </span>
           )}
           <span className="font-medium text-gray-700">
-            {isTopTier
-              ? [displayValue, meta.unit].filter(Boolean).join(' ')
-              : [displayValue, '/', targetDisplayValue, meta.unit].filter(Boolean).join(' ')}
+            {[displayValue, '/', targetDisplayValue, meta.unit].filter(Boolean).join(' ')}
           </span>
         </div>
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
