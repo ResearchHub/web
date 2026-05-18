@@ -14,7 +14,9 @@ import type { TransactionAPIRequest } from '@/services/types/transaction.dto';
 import { TransactionFeedItem } from './TransactionFeedItem';
 import { TransactionSkeleton } from '@/components/skeletons/TransactionSkeleton';
 import { formatTransaction, formatUsdContribution } from './lib/types';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { Button } from '@/components/ui/Button';
 import { PillTabs } from '@/components/ui/PillTabs';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
@@ -39,6 +41,8 @@ export type TransactionFeedHandle = {
 
 export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeedProps>(
   function TransactionFeed({ onExport, exchangeRate, showUSD = false, isExporting }, ref) {
+    const router = useRouter();
+    const { executeAuthenticatedAction } = useAuthenticatedAction();
     const { data: session, status } = useSession();
     const [feedCurrency, setFeedCurrency] = useState<FeedCurrency>('RSC');
     const [rscItems, setRscItems] = useState<TransactionAPIRequest[]>([]);
@@ -209,18 +213,13 @@ export const TransactionFeed = forwardRef<TransactionFeedHandle, TransactionFeed
               <Coins className="h-8 w-8 text-gray-400" />
             </div>
             <div className="text-center max-w-md">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Welcome to ResearchCoin</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Welcome to ResearchHub</h3>
               <p className="text-sm text-gray-600 mb-6">
                 Sign in to start earning and managing your ResearchCoin. Track your balance, view
                 transaction history, and participate in the ResearchHub economy.
               </p>
               <Button
-                onClick={() => {
-                  const signInButton = document.querySelector('[data-testid="sign-in-button"]');
-                  if (signInButton instanceof HTMLElement) {
-                    signInButton.click();
-                  }
-                }}
+                onClick={() => executeAuthenticatedAction(() => router.refresh())}
                 variant="default"
                 size="lg"
               >

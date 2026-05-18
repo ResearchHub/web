@@ -40,7 +40,8 @@ export interface FlaggedContent {
     name: string;
     slug: string;
   }>;
-  item?: {
+  /** Missing when the underlying content was deleted; API sends JSON `null`. */
+  item?: null | {
     id: ID;
     createdBy?: AuthorProfile;
     commentContentJson?: string | object;

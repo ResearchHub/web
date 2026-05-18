@@ -5,7 +5,7 @@ import { Problem } from './components/Problem';
 import { Solution } from './components/Solution';
 import { FundingMarketplace } from './components/FundingMarketplace';
 import { ResearchCoin } from './components/ResearchCoin';
-// import { PartnershipSection } from './components/PartnershipSection';
+import { PartnershipSection } from './components/PartnershipSection';
 import { TeamSection } from './components/TeamSection';
 import { CTASection } from './components/CTASection';
 import { LandingPageFooter } from '@/components/landing/LandingPageFooter';
@@ -26,7 +26,7 @@ const AboutPage = () => (
       <FundingMarketplace />
       <FundedAt />
       <ResearchCoin />
-      {/* <PartnershipSection /> */}
+      <PartnershipSection />
     </section>
 
     <section id="team">
