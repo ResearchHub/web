@@ -130,8 +130,9 @@ const AchievementTooltipContent = ({ resolved }: AchievementTooltipContentProps)
             </span>
           )}
           <span className="font-medium text-gray-700">
-            {displayValue} / {targetDisplayValue}
-            {meta.unit && ` ${meta.unit}`}
+            {isTopTier
+              ? `${displayValue}${meta.unit ? ` ${meta.unit}` : ''}`
+              : `${displayValue} / ${targetDisplayValue}${meta.unit ? ` ${meta.unit}` : ''}`}
           </span>
         </div>
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
