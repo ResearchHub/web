@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -11,6 +11,10 @@ import { FunderService } from '@/services/funder.service';
 import { useFeed } from '@/hooks/useFeed';
 import { useUser } from '@/contexts/UserContext';
 import { FunderOverview } from '@/types/funder';
+import {
+  SearchableUserSingleSelect,
+  UserOption,
+} from '@/components/ui/form/SearchableUserSingleSelect';
 
 function parseFunderIdParam(raw: string | null): number | undefined {
   if (!raw) return undefined;
@@ -32,6 +36,22 @@ export const FunderDashboardPage: FC = () => {
 
   const funderIdOverride = parseFunderIdParam(searchParams.get('funder_id'));
   const funderId = funderIdOverride ?? userId;
+
+  const [selectedUser, setSelectedUser] = useState<UserOption | null>(null);
+
+  const handleUserSelect = useCallback(
+    (selected: UserOption | null) => {
+      setSelectedUser(selected);
+      const params = new URLSearchParams(searchParams.toString());
+      if (selected) {
+        params.set('funder_id', selected.value);
+      } else {
+        params.delete('funder_id');
+      }
+      router.push(`?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
 
   const [overview, setOverview] = useState<FunderOverview | null>(null);
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
@@ -83,6 +103,19 @@ export const FunderDashboardPage: FC = () => {
 
   return (
     <div className="px-4 tablet:px-8 py-6 max-w-[1180px] mx-auto w-full">
+      {user.isModerator && (
+        <div className="mb-5 max-w-xs">
+          <label className="text-xs font-medium text-gray-500 mb-1 block">
+            View as user (moderator only)
+          </label>
+          <SearchableUserSingleSelect
+            value={selectedUser}
+            onChange={handleUserSelect}
+            placeholder="Search for a funder..."
+          />
+        </div>
+      )}
+
       <div className="mb-5">
         <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
           {firstName ? `Welcome back, ${firstName}.` : 'Welcome back.'}
