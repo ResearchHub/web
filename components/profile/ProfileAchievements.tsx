@@ -11,8 +11,6 @@ import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
 type BadgeSize = 'xs' | 'sm' | 'md';
 
-const BADGE_ICON_COLOR = '#FFFFFF';
-
 const BADGE_SIZE: Record<BadgeSize, { box: string; iconText: string; facetInset: string }> = {
   xs: { box: 'h-5 w-5', iconText: 'text-[8px]', facetInset: 'inset-[2px]' },
   sm: { box: 'h-8 w-8', iconText: 'text-[11px]', facetInset: 'inset-[3px]' },
@@ -54,7 +52,7 @@ const AchievementIconBadge = ({
       <FontAwesomeIcon
         icon={icon}
         className={cn('relative drop-shadow-sm', iconText)}
-        style={{ color: BADGE_ICON_COLOR }}
+        style={{ color: '#FFFFFF' }}
       />
     </span>
   );
