@@ -106,7 +106,7 @@ interface AchievementTooltipProps {
 }
 
 function AchievementTooltipContent({ achievement }: Readonly<AchievementTooltipProps>) {
-  const { meta, tier, nextTier, displayValue, nextTierDisplayValue, isTopTier } =
+  const { meta, tier, nextTier, displayValue, targetDisplayValue, isTopTier } =
     resolveAchievement(achievement);
 
   const progressPct = Math.min(100, Math.max(0, achievement.pctProgress * 100));
@@ -125,38 +125,34 @@ function AchievementTooltipContent({ achievement }: Readonly<AchievementTooltipP
 
       <p className="text-xs leading-relaxed text-gray-600">{meta.describe(displayValue)}</p>
 
-      {isTopTier ? (
-        <div
-          className={cn(
-            'inline-flex items-center gap-1.5 self-start rounded-full border px-2 py-1 text-[11px] font-semibold',
-            tier.pillBg,
-            tier.pillText,
-            tier.pillBorder
-          )}
-        >
-          <FontAwesomeIcon icon={faSparkles} className="text-[10px]" />
-          Max tier achieved.
-        </div>
-      ) : (
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between text-[11px] text-gray-500">
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between text-[11px] text-gray-500">
+          {isTopTier ? (
+            <span className="inline-flex items-center gap-1 font-semibold text-emerald-600">
+              <FontAwesomeIcon icon={faSparkles} className="text-[10px]" />
+              Max tier achieved
+            </span>
+          ) : (
             <span className="inline-flex items-center gap-1">
               Next:
               <AchievementIconBadge icon={meta.icon} tier={nextTier ?? tier} size="xs" />
             </span>
-            <span className="font-medium text-gray-700">
-              {displayValue} / {nextTierDisplayValue}
-              {meta.unit}
-            </span>
-          </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
-            <div
-              className={cn('h-full rounded-full transition-all duration-300', tier.barFill)}
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
+          )}
+          <span className="font-medium text-gray-700">
+            {displayValue} / {targetDisplayValue}
+            {meta.unit}
+          </span>
         </div>
-      )}
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+          <div
+            className={cn(
+              'h-full rounded-full transition-all duration-300',
+              isTopTier ? 'bg-gradient-to-r from-emerald-600 to-emerald-300' : tier.barFill
+            )}
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+      </div>
     </div>
   );
 }

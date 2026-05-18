@@ -159,7 +159,13 @@ export interface ResolvedAchievement {
   currentTierName: string;
   nextTierName: string;
   displayValue: string;
-  nextTierDisplayValue: string;
+  /**
+   * The value the progress row compares against on the right of the bar.
+   * For in-progress tiers this is the next tier's milestone; for the top
+   * tier it's the top tier's own milestone, so the row reads as
+   * `value / threshold` (often value > threshold for max tier).
+   */
+  targetDisplayValue: string;
   isTopTier: boolean;
 }
 
@@ -177,7 +183,9 @@ export const resolveAchievement = (achievement: Achievement): ResolvedAchievemen
     achievement.currentMilestoneIndex === achievement.milestones.length - 1 ||
     achievement.currentMilestoneIndex >= TIER_INDICES.length - 1;
 
-  const nextRawValue = achievement.milestones[achievement.currentMilestoneIndex + 1] ?? 0;
+  const targetRawValue = isTopTier
+    ? (achievement.milestones[achievement.currentMilestoneIndex] ?? 0)
+    : (achievement.milestones[achievement.currentMilestoneIndex + 1] ?? 0);
 
   return {
     meta,
@@ -186,7 +194,7 @@ export const resolveAchievement = (achievement: Achievement): ResolvedAchievemen
     currentTierName,
     nextTierName,
     displayValue: meta.formatValue(achievement.value),
-    nextTierDisplayValue: meta.formatValue(nextRawValue),
+    targetDisplayValue: meta.formatValue(targetRawValue),
     isTopTier,
   };
 };
