@@ -286,7 +286,7 @@ export const buildWorkUrl = ({
   contentType: ContentType;
   doi?: string | null;
   slug?: string;
-  tab?: 'reviews' | 'bounties' | 'conversation';
+  tab?: 'reviews' | 'bounties' | 'conversation' | 'updates';
 }) => {
   let baseUrl = '';
 

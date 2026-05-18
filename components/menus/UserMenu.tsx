@@ -9,9 +9,10 @@ import {
   UserPlus,
   Search,
   Settings,
+  Bookmark,
 } from 'lucide-react';
+import Icon from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark } from '@fortawesome/free-regular-svg-icons';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { useState, useEffect } from 'react';
 import type { User } from '@/types/user';
@@ -167,6 +168,17 @@ export default function UserMenu({
           </div>
         </div>
 
+        {(user?.isFunder || user?.isModerator) && (
+          <Link href="/fund/dashboard" className="block" onClick={() => setMenuOpenState(false)}>
+            <div className="px-6 py-2 hover:bg-gray-50">
+              <div className="flex items-center">
+                <Icon name="fund" size={20} color="#4B5563" className="mr-3" />
+                <span className="text-sm text-gray-700">Your Funding</span>
+              </div>
+            </div>
+          </Link>
+        )}
+
         <Link
           href="/notifications"
           className="block sidebar-compact:!hidden"
@@ -189,18 +201,6 @@ export default function UserMenu({
             <div className="flex items-center">
               <ResearchCoinIcon outlined className="h-5 w-5 mr-3 text-gray-500" color="#676767" />
               <span className="text-sm text-gray-700">My ResearchCoin</span>
-            </div>
-          </div>
-        </Link>
-
-        <Link href="/referral" className="block" onClick={() => setMenuOpenState(false)}>
-          <div className="px-6 py-2 hover:bg-gray-50">
-            <div className="flex items-center">
-              <UserPlus className="h-5 w-5 mr-3 text-gray-500" />
-              <span className="text-sm text-gray-700">Refer and earn 10%</span>
-              <span className="ml-auto text-xs bg-blue-100 text-blue-600 font-semibold px-2 py-0.5 rounded-full">
-                New
-              </span>
             </div>
           </div>
         </Link>
@@ -230,7 +230,7 @@ export default function UserMenu({
         <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
           <div className="px-6 py-2 hover:bg-gray-50">
             <div className="flex items-center">
-              <FontAwesomeIcon icon={faBookmark} className="h-5 w-5 mr-3 text-gray-500" />
+              <Bookmark className="h-5 w-5 mr-3 text-gray-500" />
               <span className="text-sm text-gray-700">Your Lists</span>
             </div>
           </div>
@@ -271,6 +271,18 @@ export default function UserMenu({
             </div>
           </div>
         )}
+
+        <Link href="/referral" className="block" onClick={() => setMenuOpenState(false)}>
+          <div className="px-6 py-2 hover:bg-gray-50">
+            <div className="flex items-center">
+              <UserPlus className="h-5 w-5 mr-3 text-gray-500" />
+              <span className="text-sm text-gray-700">Refer and earn 10%</span>
+              <span className="ml-auto text-xs bg-blue-100 text-blue-600 font-semibold px-2 py-0.5 rounded-full">
+                New
+              </span>
+            </div>
+          </div>
+        </Link>
 
         <div
           className="px-6 py-2 hover:bg-gray-50"
@@ -360,6 +372,21 @@ export default function UserMenu({
               </div>
             </BaseMenuItem>
 
+            {(user?.isFunder || user?.isModerator) && (
+              <Link
+                href="/fund/dashboard"
+                className="block"
+                onClick={() => setMenuOpenState(false)}
+              >
+                <div className="w-full px-4 py-2 hover:bg-gray-50">
+                  <div className="flex items-center">
+                    <Icon name="fund" size={20} color="#4B5563" className="mr-3" />
+                    <span className="text-sm text-gray-700">Your Funding</span>
+                  </div>
+                </div>
+              </Link>
+            )}
+
             <Link
               href="/notifications"
               className="block sidebar-compact:hidden"
@@ -390,18 +417,6 @@ export default function UserMenu({
               </div>
             </Link>
 
-            <Link href="/referral" className="block" onClick={() => setMenuOpenState(false)}>
-              <div className="w-full px-4 py-2 hover:bg-gray-50">
-                <div className="flex items-center">
-                  <UserPlus className="h-5 w-5 mr-3 text-gray-500" />
-                  <span className="text-sm text-gray-700">Refer and earn 10%</span>
-                  <span className="ml-auto text-xs bg-blue-100 text-blue-600 font-semibold px-2 py-0.5 rounded-full">
-                    New
-                  </span>
-                </div>
-              </div>
-            </Link>
-
             {user?.isModerator && (
               <Link href="/moderators" className="block" onClick={() => setMenuOpenState(false)}>
                 <div className="w-full px-4 py-2 hover:bg-gray-50">
@@ -427,7 +442,7 @@ export default function UserMenu({
             <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
               <div className="w-full px-4 py-2 hover:bg-gray-50">
                 <div className="flex items-center">
-                  <FontAwesomeIcon icon={faBookmark} className="h-5 w-5 mr-3 text-gray-500" />
+                  <Bookmark className="h-5 w-5 mr-3 text-gray-500" />
                   <span className="text-sm text-gray-700">Your Lists</span>
                 </div>
               </div>
@@ -452,6 +467,18 @@ export default function UserMenu({
                 </div>
               </BaseMenuItem>
             )}
+
+            <Link href="/referral" className="block" onClick={() => setMenuOpenState(false)}>
+              <div className="w-full px-4 py-2 hover:bg-gray-50">
+                <div className="flex items-center">
+                  <UserPlus className="h-5 w-5 mr-3 text-gray-500" />
+                  <span className="text-sm text-gray-700">Refer and earn 10%</span>
+                  <span className="ml-auto text-xs bg-blue-100 text-blue-600 font-semibold px-2 py-0.5 rounded-full">
+                    New
+                  </span>
+                </div>
+              </div>
+            </Link>
 
             <BaseMenuItem
               onClick={() => AuthSharingService.signOutFromBothApps()}

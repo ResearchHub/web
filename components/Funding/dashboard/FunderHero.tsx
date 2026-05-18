@@ -41,13 +41,13 @@ export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
   return (
     <section
       className={cn(
-        'relative overflow-hidden rounded-xl border border-gray-200 bg-white px-5 py-6 tablet:px-7 shadow-sm',
+        'relative overflow-hidden rounded-xl border border-gray-200 bg-white px-5 py-4 tablet:py-6 tablet:px-7 shadow-sm',
         'bg-[radial-gradient(1200px_400px_at_-10%_-50%,rgba(57,113,255,.08),transparent_50%),radial-gradient(800px_320px_at_110%_-30%,rgba(57,113,255,.06),transparent_55%)]',
         className
       )}
       aria-label="Funding impact"
     >
-      <div className="grid grid-cols-1 gap-7 content-md:grid-cols-[minmax(0,1fr)_1px_minmax(0,1fr)] content-md:gap-7">
+      <div className="grid grid-cols-1 gap-4 content-md:grid-cols-[minmax(0,1fr)_1px_minmax(0,1fr)] content-md:gap-7">
         {/* Left — KPIs */}
         <div>
           <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
@@ -73,7 +73,7 @@ export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
             </span>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-3">
+          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-3 tablet:mt-4">
             <Stat
               label="Community match"
               value={communityMatch}
@@ -101,7 +101,7 @@ export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
         <div className="hidden content-md:block w-px self-stretch bg-gray-200" />
 
         {/* Right — two stacked sections: scientists + institutions */}
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-3 tablet:gap-5">
           <Section label="Scientists supported" count={overview.supportedScientistsCount}>
             {avatarItems.length > 0 ? (
               <AvatarStack
@@ -112,6 +112,7 @@ export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
                 showExtraCount
                 totalItemsCount={overview.supportedScientistsCount}
                 showLabel={false}
+                className="!flex"
               />
             ) : (
               <span className="text-xs text-gray-400">None yet</span>
@@ -194,19 +195,9 @@ const InstitutionPills: FC<{ institutions: SupportedInstitution[] }> = ({ instit
       {visible.map((inst) => (
         <span
           key={inst.id}
-          className="inline-flex items-center gap-1.5 max-w-[200px] pl-1 pr-2 py-0.5 rounded-full bg-white border border-gray-200 text-[11px] font-medium text-gray-700"
+          className="inline-flex items-center max-w-[200px] px-2.5 py-0.5 rounded-full bg-white border border-gray-200 text-[11px] font-medium text-gray-700"
           title={inst.name}
         >
-          {inst.imageUrl ? (
-            <img
-              src={inst.imageUrl}
-              alt=""
-              className="w-4 h-4 rounded-full object-cover bg-gray-50 shrink-0"
-              loading="lazy"
-            />
-          ) : (
-            <span className="w-4 h-4 rounded-full bg-gray-100 shrink-0" />
-          )}
           <span className="truncate">{inst.name}</span>
         </span>
       ))}
