@@ -547,10 +547,6 @@ export default function UploadPDFPage() {
                   </li>
                   <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-700">DOI Assignment</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
                     <span className="text-sm text-gray-700">Indexed on ResearchHub</span>
                   </li>
                   <li className="flex items-center">
@@ -592,10 +588,6 @@ export default function UploadPDFPage() {
                   <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
                     <span className="text-sm text-gray-700">Open Access Publication</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
-                    <span className="text-sm text-gray-700">DOI Assignment</span>
                   </li>
                   <li className="flex items-center">
                     <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />{' '}
