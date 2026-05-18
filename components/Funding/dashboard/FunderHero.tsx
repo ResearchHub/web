@@ -1,14 +1,17 @@
 'use client';
 
-import { FC, ReactNode } from 'react';
-import { HelpCircle } from 'lucide-react';
+import { FC, ReactNode, useState } from 'react';
+import { ChevronRight } from 'lucide-react';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { FunderOverview, SupportedInstitution } from '@/types/funder';
+import { FunderOverview, SupportedInstitution, SupportedResearcher } from '@/types/funder';
 import { formatCurrency } from '@/utils/currency';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { cn } from '@/utils/styles';
+import { Avatar } from '@/components/ui/Avatar';
+import { BaseModal } from '@/components/ui/BaseModal';
+import { FundingBreakdownModal } from './FundingBreakdownModal';
 
 interface FunderHeroProps {
   overview: FunderOverview;
@@ -18,6 +21,9 @@ interface FunderHeroProps {
 export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate } = useExchangeRate();
+  const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
+  const [isScientistsOpen, setIsScientistsOpen] = useState(false);
+  const [isInstitutionsOpen, setIsInstitutionsOpen] = useState(false);
 
   const fmt = (rsc: number, usd: number) =>
     formatCurrency({
@@ -53,25 +59,19 @@ export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
           <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
             You have given
           </div>
-          <div className="mt-1 text-4xl tablet:text-5xl font-semibold tracking-tight text-gray-900">
-            {totalGiven}
-            <span className="inline-flex items-center gap-1 text-lg font-semibold text-gray-500 ml-2 align-baseline">
-              total
-              <Tooltip
-                content={
-                  <TooltipBody
-                    title="Amount given"
-                    body="Displayed amount is based on RSC conversion rate at the time of funding. Slight discrepancy is expected."
-                  />
-                }
-                position="top"
-                width="w-64"
-                className="bg-gray-900 text-white border-gray-900 text-left"
-              >
-                <HelpCircle size={14} className="text-gray-400 hover:text-gray-600 cursor-help" />
-              </Tooltip>
+          <button
+            type="button"
+            onClick={() => setIsBreakdownOpen(true)}
+            className="mt-1 flex items-center gap-2 group text-left"
+          >
+            <span className="text-4xl tablet:text-5xl font-semibold tracking-tight text-primary-600 border-b-[3px] border-transparent group-hover:border-primary-600 transition-all">
+              {totalGiven}
             </span>
-          </div>
+            <ChevronRight
+              size={20}
+              className="text-primary-400 group-hover:text-primary-600 transition-colors mt-1"
+            />
+          </button>
 
           <div className="mt-3 flex flex-wrap gap-x-6 gap-y-3 tablet:mt-4">
             <Stat
@@ -92,8 +92,6 @@ export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
                 <TooltipBody title="Total deployed" body="Your funding plus the community match." />
               }
             />
-            <div className="hidden tablet:block w-px self-stretch bg-gray-200" />
-            <Stat label="Match ratio" value={overview.matchRatio} />
           </div>
         </div>
 
@@ -104,16 +102,23 @@ export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
         <div className="flex flex-col gap-3 tablet:gap-5">
           <Section label="Scientists supported" count={overview.supportedScientistsCount}>
             {avatarItems.length > 0 ? (
-              <AvatarStack
-                items={avatarItems}
-                size="md"
-                maxItems={7}
-                spacing={-8}
-                showExtraCount
-                totalItemsCount={overview.supportedScientistsCount}
-                showLabel={false}
-                className="!flex"
-              />
+              <button
+                type="button"
+                onClick={() => setIsScientistsOpen(true)}
+                className="cursor-pointer hover:opacity-80 transition-opacity"
+              >
+                <AvatarStack
+                  items={avatarItems}
+                  size="md"
+                  maxItems={7}
+                  spacing={-8}
+                  showExtraCount
+                  disableTooltip
+                  totalItemsCount={overview.supportedScientistsCount}
+                  showLabel={false}
+                  className="!flex"
+                />
+              </button>
             ) : (
               <span className="text-xs text-gray-400">None yet</span>
             )}
@@ -121,13 +126,34 @@ export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
 
           <Section label="Institutions supported" count={overview.supportedInstitutionCount}>
             {overview.supportedInstitutions.length > 0 ? (
-              <InstitutionPills institutions={overview.supportedInstitutions} />
+              <InstitutionPills
+                institutions={overview.supportedInstitutions}
+                onShowAll={() => setIsInstitutionsOpen(true)}
+              />
             ) : (
               <span className="text-xs text-gray-400">None yet</span>
             )}
           </Section>
         </div>
       </div>
+
+      <FundingBreakdownModal
+        isOpen={isBreakdownOpen}
+        onClose={() => setIsBreakdownOpen(false)}
+        overview={overview}
+      />
+
+      <ScientistsModal
+        isOpen={isScientistsOpen}
+        onClose={() => setIsScientistsOpen(false)}
+        researchers={overview.supportedResearchers}
+      />
+
+      <InstitutionsModal
+        isOpen={isInstitutionsOpen}
+        onClose={() => setIsInstitutionsOpen(false)}
+        institutions={overview.supportedInstitutions}
+      />
     </section>
   );
 };
@@ -135,28 +161,30 @@ export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
 interface StatProps {
   label: string;
   value: string;
-  /** Optional explanation rendered in a tooltip next to the label. */
   tooltip?: ReactNode;
 }
 
-const Stat: FC<StatProps> = ({ label, value, tooltip }) => (
-  <div className="flex flex-col gap-0.5">
-    <span className="inline-flex items-center gap-1 text-[11px] leading-none text-gray-500">
-      {label}
-      {tooltip && (
-        <Tooltip
-          content={tooltip}
-          position="top"
-          width="w-64"
-          className="bg-gray-900 text-white border-gray-900 text-left"
-        >
-          <HelpCircle size={11} className="text-gray-400 hover:text-gray-600 cursor-help block" />
-        </Tooltip>
-      )}
-    </span>
-    <span className="text-lg font-semibold tracking-tight text-gray-900">{value}</span>
-  </div>
-);
+const Stat: FC<StatProps> = ({ label, value, tooltip }) => {
+  const content = (
+    <div className={cn('flex flex-col gap-0.5', tooltip && 'cursor-help')}>
+      <span className="text-[11px] leading-none text-gray-500">{label}</span>
+      <span className="text-lg font-semibold tracking-tight text-gray-900">{value}</span>
+    </div>
+  );
+
+  if (!tooltip) return content;
+
+  return (
+    <Tooltip
+      content={tooltip}
+      position="top"
+      width="w-64"
+      className="bg-gray-900 text-white border-gray-900 text-left"
+    >
+      {content}
+    </Tooltip>
+  );
+};
 
 /** Shared dark-tooltip body — title + paragraph, matches FundingCreditsTooltip style. */
 const TooltipBody: FC<{ title: string; body: string }> = ({ title, body }) => (
@@ -187,7 +215,10 @@ const Section: FC<SectionProps> = ({ label, count, children }) => (
 
 const MAX_VISIBLE_INSTITUTIONS = 3;
 
-const InstitutionPills: FC<{ institutions: SupportedInstitution[] }> = ({ institutions }) => {
+const InstitutionPills: FC<{ institutions: SupportedInstitution[]; onShowAll?: () => void }> = ({
+  institutions,
+  onShowAll,
+}) => {
   const visible = institutions.slice(0, MAX_VISIBLE_INSTITUTIONS);
   const extra = institutions.length - visible.length;
   return (
@@ -201,7 +232,67 @@ const InstitutionPills: FC<{ institutions: SupportedInstitution[] }> = ({ instit
           <span className="truncate">{inst.name}</span>
         </span>
       ))}
-      {extra > 0 && <span className="text-[11px] font-medium text-gray-500">+{extra} more</span>}
+      {extra > 0 && (
+        <button
+          type="button"
+          onClick={onShowAll}
+          className="text-[11px] font-medium text-primary-600 hover:text-primary-700 transition-colors"
+        >
+          +{extra} more
+        </button>
+      )}
     </div>
   );
 };
+
+const ScientistsModal: FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  researchers: SupportedResearcher[];
+}> = ({ isOpen, onClose, researchers }) => (
+  <BaseModal isOpen={isOpen} onClose={onClose} title="Scientists supported" size="md">
+    <div className="space-y-1">
+      {researchers.map((r) => (
+        <div key={r.id} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
+          <Avatar
+            src={r.authorProfile.profileImage}
+            alt={r.authorProfile.fullName}
+            size="sm"
+            disableTooltip
+            className="flex-shrink-0"
+          />
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-medium text-gray-900 truncate">
+              {r.authorProfile.fullName}
+            </div>
+            {r.authorProfile.headline && (
+              <div className="text-xs text-gray-500 truncate">{r.authorProfile.headline}</div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  </BaseModal>
+);
+
+const InstitutionsModal: FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  institutions: SupportedInstitution[];
+}> = ({ isOpen, onClose, institutions }) => (
+  <BaseModal isOpen={isOpen} onClose={onClose} title="Institutions supported" size="md">
+    <div className="space-y-1">
+      {institutions.map((inst) => (
+        <div key={inst.id} className="px-2 py-2 rounded-lg hover:bg-gray-50">
+          <div className="text-sm font-medium text-gray-900">{inst.name}</div>
+          {inst.city && (
+            <div className="text-xs text-gray-500">
+              {inst.city}
+              {inst.countryCode ? `, ${inst.countryCode}` : ''}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  </BaseModal>
+);

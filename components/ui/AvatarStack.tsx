@@ -177,7 +177,7 @@ export const AvatarStack: FC<AvatarStackProps> = ({
         ))}
 
         {/* Extra count avatar */}
-        {hasExtra && !disableTooltip && (
+        {hasExtra && (
           <div
             className="relative inline-flex"
             style={{
@@ -185,11 +185,7 @@ export const AvatarStack: FC<AvatarStackProps> = ({
               zIndex: displayItems.length,
             }}
           >
-            <Tooltip
-              content={getExtraCountTooltip()}
-              position="top"
-              width={extraItems.length > 0 ? 'w-[200px]' : undefined}
-            >
+            {disableTooltip ? (
               <Avatar
                 src={null}
                 alt={`+${extraCount}`}
@@ -200,7 +196,24 @@ export const AvatarStack: FC<AvatarStackProps> = ({
                 labelClassName="font-semibold"
                 labelStyle={{ fontSize: getExtraCountFontSize() }}
               />
-            </Tooltip>
+            ) : (
+              <Tooltip
+                content={getExtraCountTooltip()}
+                position="top"
+                width={extraItems.length > 0 ? 'w-[200px]' : undefined}
+              >
+                <Avatar
+                  src={null}
+                  alt={`+${extraCount}`}
+                  size={size}
+                  className={`${getRingWidth()} ${ringColorClass} bg-gray-100`}
+                  disableTooltip
+                  label={`+${extraCount}`}
+                  labelClassName="font-semibold"
+                  labelStyle={{ fontSize: getExtraCountFontSize() }}
+                />
+              </Tooltip>
+            )}
           </div>
         )}
       </div>
