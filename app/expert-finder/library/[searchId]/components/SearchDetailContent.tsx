@@ -4,17 +4,18 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { TAB_EXPERT_RESULTS, TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
-import { Loader2, RefreshCw, FileText, Download, Mail } from 'lucide-react';
+import { Loader2, RefreshCw, FileText, Download, Mail, UserPlus } from 'lucide-react';
 import { Alert } from '@/components/ui/Alert';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
 import { Tabs } from '@/components/ui/Tabs';
-import { useExpertSearchDetail, usePatchExpert } from '@/hooks/useExpertFinder';
+import { useExpertSearchDetail, usePatchExpert, useAddExpert } from '@/hooks/useExpertFinder';
 import type { PatchExpertPayload } from '@/services/expertFinder.service';
 import { SearchDetailHeader } from './SearchDetailHeader';
 import { ExpertResultCard } from './ExpertResultCard';
 import { GenerateEmailModal, type GenerateEmailConfirmPayload } from './GenerateEmailModal';
 import { GenerateEmailProgressModal } from './GenerateEmailProgressModal';
+import { AddExpertModal } from './AddExpertModal';
 import { GeneratedEmailsList } from '@/app/expert-finder/library/[searchId]/outreach/components/GeneratedEmailsList';
 import type { ExpertResult } from '@/types/expertFinder';
 
@@ -29,6 +30,8 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
 
   const [{ searchDetail, isLoading, error }, refetch] = useExpertSearchDetail(searchId);
   const [, patchExpert] = usePatchExpert();
+  const [, addExpert] = useAddExpert();
+  const [showAddExpertModal, setShowAddExpertModal] = useState(false);
 
   const handleSaveExpert = useCallback(
     async (expertId: number, payload: PatchExpertPayload) => {
@@ -272,6 +275,15 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                     <Mail className="h-4 w-4" aria-hidden />
                     Generate emails
                   </Button>
+                  <Button
+                    variant="outlined"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => setShowAddExpertModal(true)}
+                  >
+                    <UserPlus className="h-4 w-4" aria-hidden />
+                    Add expert
+                  </Button>
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:!grid-cols-2">
@@ -289,13 +301,29 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
               </div>
             </section>
           ) : tab === TAB_EXPERT_RESULTS ? (
-            <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-gray-600">
-              No experts found for this search.
+            <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-gray-600 space-y-3">
+              <p>No experts found for this search.</p>
+              <Button
+                variant="outlined"
+                size="sm"
+                className="gap-2"
+                onClick={() => setShowAddExpertModal(true)}
+              >
+                <UserPlus className="h-4 w-4" aria-hidden />
+                Add expert manually
+              </Button>
             </div>
           ) : null}
         </>
       )}
 
+      <AddExpertModal
+        isOpen={showAddExpertModal}
+        onClose={() => setShowAddExpertModal(false)}
+        onAdd={addExpert}
+        searchId={searchId}
+        onSuccess={refetch}
+      />
       <GenerateEmailModal
         isOpen={showGenerateModal}
         onClose={() => setShowGenerateModal(false)}

@@ -137,7 +137,7 @@ function parseExpertId(raw: any): number | null {
   return Number.isInteger(n) && n >= 1 ? n : null;
 }
 
-function transformExpertResult(raw: any): ExpertResult {
+export function transformExpertResult(raw: any): ExpertResult {
   const sourcesRaw = Array.isArray(raw.sources) ? raw.sources : null;
   const sources = sourcesRaw
     ? sourcesRaw
