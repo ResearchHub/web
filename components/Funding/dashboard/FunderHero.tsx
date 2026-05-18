@@ -1,7 +1,8 @@
 'use client';
 
 import { FC, ReactNode, useState } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChartPie } from '@fortawesome/pro-solid-svg-icons';
 import { AvatarStack } from '@/components/ui/AvatarStack';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { FunderOverview, SupportedInstitution, SupportedResearcher } from '@/types/funder';
@@ -67,9 +68,10 @@ export const FunderHero: FC<FunderHeroProps> = ({ overview, className }) => {
             <span className="text-4xl tablet:text-5xl font-semibold tracking-tight text-primary-600 border-b-[3px] border-transparent group-hover:border-primary-600 transition-all">
               {totalGiven}
             </span>
-            <ChevronRight
-              size={20}
-              className="text-primary-400 group-hover:text-primary-600 transition-colors mt-1"
+            <FontAwesomeIcon
+              icon={faChartPie}
+              className="h-5 w-5 text-primary-400 group-hover:text-primary-600 transition-colors mt-1"
+              aria-hidden
             />
           </button>
 
