@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { MoreHorizontal } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useUserDetailsForModerator } from '@/hooks/useAuthor';
@@ -59,6 +60,8 @@ function ModerationSkeleton() {
 
 export function ModerationTab({ userId, authorId, refetchAuthorInfo }: ModerationTabProps) {
   const { user: currentUser } = useUser();
+  const searchParams = useSearchParams();
+  const showRiskScore = searchParams.get('riskscore') === 'true';
   const [{ userDetails, isLoading }, refetchModerationDetails] = useUserDetailsForModerator(userId);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
@@ -155,6 +158,9 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
     { label: 'Verification ID', value: userDetails.verification?.externalId || 'N/A' },
     { label: 'Verified status', value: userDetails.verification?.status || 'N/A' },
     { label: 'ORCID Email', value: userDetails.orcidVerifiedEduEmail || 'N/A' },
+    ...(showRiskScore
+      ? [{ label: 'Risk Score', value: `(${userDetails.riskScoreGrade}) ${userDetails.riskScore}` }]
+      : []),
   ];
 
   return (
