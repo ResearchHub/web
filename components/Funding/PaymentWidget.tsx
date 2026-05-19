@@ -46,8 +46,6 @@ interface PaymentWidgetProps {
   onPreviewTransaction: (paymentMethod: Exclude<PaymentMethodType, 'endaoment' | 'other'>) => void;
   /** Called when user clicks "Login to Endaoment" */
   onEndaomentLogin?: () => void;
-  /** Called when user wants to deposit RSC */
-  onDepositRsc?: () => void;
   /** Whether the CTA button should be disabled */
   isButtonDisabled?: boolean;
   /** Initial/controlled selected payment method */
@@ -81,7 +79,6 @@ export function PaymentWidget({
   lockedBalance = 0,
   onPreviewTransaction,
   onEndaomentLogin,
-  onDepositRsc,
   isButtonDisabled = false,
   selectedPaymentMethod,
   onPaymentMethodChange,
