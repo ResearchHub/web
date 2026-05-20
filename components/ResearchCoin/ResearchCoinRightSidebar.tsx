@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
-import { YieldChart } from '@/components/charts/YieldChart';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { ExternalLink, Sprout, Star, Vote } from 'lucide-react';
@@ -76,23 +75,8 @@ export const ResearchCoinRightSidebar = () => {
   return (
     <div className="w-full">
       <div className="pb-4">
-        {/* Annualized Yield chart */}
-        <div className="px-6 mb-5 mt-3">
-          <SidebarHeader title="Annualized Yield" />
-          <YieldChart
-            compact
-            height={120}
-            showRangeSelector={false}
-            title=""
-            defaultRange="30d"
-            showAxes={false}
-            gradientFill
-            showStats
-          />
-        </div>
-
         {/* Use ResearchCoin Section */}
-        <div className="px-6 mb-4">
+        <div className="px-6 mb-4 mt-3">
           <SidebarHeader title="Use ResearchCoin" />
           <div className="pl-1 ml-1">
             {useItems.map((item) => (
