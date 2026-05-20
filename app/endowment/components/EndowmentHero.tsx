@@ -10,9 +10,6 @@ import { EndowmentTree } from './EndowmentTree';
 import { EndowmentGround } from './EndowmentGround';
 import { PixelBackdrop } from './PixelBackdrop';
 
-const VIDEO_URL =
-  'https://docs.researchhub.com/researchhub/product-features/fund/researchhub-endowment';
-
 export function EndowmentHero() {
   const router = useRouter();
   const { executeAuthenticatedAction } = useAuthenticatedAction();
@@ -20,6 +17,18 @@ export function EndowmentHero() {
   const handleStartEarning = () => {
     executeAuthenticatedAction(() => {
       router.push('/researchcoin');
+    });
+  };
+
+  const handleWatchHowItWorks = () => {
+    const target = document.getElementById('endowment-video');
+    if (!target) return;
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    target.scrollIntoView({
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      block: 'start',
     });
   };
 
@@ -70,15 +79,14 @@ export function EndowmentHero() {
             >
               Start earning
             </Button>
-            <a href={VIDEO_URL} target="_blank" rel="noopener noreferrer">
-              <Button
-                variant="outlined"
-                size="lg"
-                className="!rounded-[14px] !h-[54px] !px-7 !text-base !font-semibold"
-              >
-                Watch how it works
-              </Button>
-            </a>
+            <Button
+              variant="outlined"
+              size="lg"
+              onClick={handleWatchHowItWorks}
+              className="!rounded-[14px] !h-[54px] !px-7 !text-base !font-semibold"
+            >
+              Watch how it works
+            </Button>
           </div>
         </div>
 

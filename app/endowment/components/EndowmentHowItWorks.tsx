@@ -236,7 +236,7 @@ export function EndowmentHowItWorks() {
         </div>
       </div>
 
-      <div className="endowment-section-narrow endowment-video-wrap">
+      <div id="endowment-video" className="endowment-section-narrow endowment-video-wrap">
         <div className="endowment-video-divider" aria-hidden />
         <div className="endowment-video-eyebrow">See it in action</div>
         <VideoBlock />
