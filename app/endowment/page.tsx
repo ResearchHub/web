@@ -25,25 +25,6 @@ export default function EndowmentPage() {
           preload="metadata"
           src="https://assets.prod.researchhub.com/videos/researchHub-endowments.MP4#t=2"
         />
-        <p className="text-sm text-gray-900 mt-4">
-          <span className="font-semibold text-gray-900">
-            ResearchHub Endowment turns your RSC holdings into a continuous stream of research
-            funding.
-          </span>{' '}
-          By holding RSC on the platform, you automatically earn Funding Credits—a currency that can
-          only be used to fund preregistered research proposals. Funding Credits are distributed
-          daily, with transparent updates on the My Wallet page. There are no lockup periods — you
-          may withdraw your principal any time. Yield rates vary based on platform participation.
-          See below for current and historical performance metrics.
-        </p>
-        <a
-          href="https://docs.researchhub.com/researchhub/product-features/fund/researchhub-endowment"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 mt-3 text-sm text-primary-500 hover:underline"
-        >
-          Learn how the endowment works <span aria-hidden="true">↗</span>
-        </a>
       </div>
     </div>
   );

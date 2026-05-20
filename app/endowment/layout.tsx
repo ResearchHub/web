@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata, SITE_CONFIG } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
+import { EndowmentRightSidebar } from './components/EndowmentRightSidebar';
 
 export const metadata: Metadata = {
   ...buildOpenGraphMetadata({
@@ -15,5 +16,5 @@ export const metadata: Metadata = {
 };
 
 export default function EndowmentLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <PageLayout rightSidebar={false}>{children}</PageLayout>;
+  return <PageLayout rightSidebar={<EndowmentRightSidebar />}>{children}</PageLayout>;
 }
