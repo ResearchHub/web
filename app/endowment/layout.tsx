@@ -1,11 +1,11 @@
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata, SITE_CONFIG } from '@/lib/metadata';
-import { PageLayout } from '@/app/layouts/PageLayout';
 
 export const metadata: Metadata = {
   ...buildOpenGraphMetadata({
     title: 'Endowment',
-    description: 'RSC endowment yield overview and historical performance on ResearchHub.',
+    description:
+      'Earn Funding Credits on your ResearchCoin deposits. Daily yield to direct toward open-science research proposals.',
     url: '/endowment',
   }),
   title: {
@@ -15,5 +15,9 @@ export const metadata: Metadata = {
 };
 
 export default function EndowmentLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <PageLayout rightSidebar={false}>{children}</PageLayout>;
+  return (
+    <div className="min-h-screen bg-white">
+      <main className="relative">{children}</main>
+    </div>
+  );
 }

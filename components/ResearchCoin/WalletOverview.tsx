@@ -1,30 +1,16 @@
 'use client';
 
-import {
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  HelpCircle,
-  List,
-  MoreVertical,
-  Plug,
-  Unplug,
-} from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, HelpCircle, MoreVertical } from 'lucide-react';
 import Icon from '@/components/ui/icons/Icon';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DepositModal } from '../modals/ResearchCoin/DepositModal';
 import { WithdrawModal } from '../modals/ResearchCoin/WithdrawModal';
-import { DafListModal } from '../modals/ResearchCoin/DafListModal';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
-import { useEndaoment } from '@/contexts/EndaomentContext';
 import { useUser } from '@/contexts/UserContext';
 import { formatBalance } from '@/components/ResearchCoin/lib/types';
-import { connectEndaomentAccount } from '@/services/endaoment.service';
-import { useDisconnectEndaoment } from '@/components/Endaoment/lib/hooks/useDisconnectEndaoment';
 import { FundingCreditsTooltip } from '@/components/tooltips/FundingCreditsTooltip';
-import { DafTooltip } from '@/components/tooltips/DafTooltip';
-import { EndaomentTooltip } from '@/components/tooltips/EndaomentTooltip';
 import { formatRSC, formatUsdValue } from '@/utils/number';
 import { Button } from '@/components/ui/Button';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
@@ -47,20 +33,11 @@ const formatUsd = (n: number) => formatUsdValue(n.toString(), 0, false);
 export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
-  const [isDafListOpen, setIsDafListOpen] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
   const router = useRouter();
   const { showUSD } = useCurrencyPreference();
   const { exchangeRate, isLoading: isFetchingExchangeRate } = useExchangeRate();
   const { user, refreshUser } = useUser();
   const rawBalance = user?.balance ?? null;
-  const {
-    connected: dafConnected,
-    funds: dafFunds,
-    isLoading: isLoadingDaf,
-    isFundsLoading,
-  } = useEndaoment();
-  const { disconnect, isDisconnecting } = useDisconnectEndaoment();
 
   const balance = useMemo(
     () => (rawBalance != null && exchangeRate ? formatBalance(rawBalance, exchangeRate) : null),
@@ -72,38 +49,20 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
     [user?.lockedBalance, exchangeRate]
   );
 
-  const dafTotalUsd = useMemo(
-    () => dafFunds.reduce((sum, f) => sum + (parseFloat(f.usdcBalance) || 0), 0),
-    [dafFunds]
-  );
-
   const isBalanceReady = !isFetchingExchangeRate && rawBalance != null;
-  const isTotalReady = isBalanceReady && !isLoadingDaf && (!dafConnected || !isFundsLoading);
 
   const handleWithdrawSuccess = () => {
     refreshUser({ silent: true });
     onTransactionSuccess?.();
   };
 
-  const rscTotalRaw = (balance?.raw || 0) + (lockedBalance?.raw || 0);
-  const rscTotalUsd = exchangeRate ? rscTotalRaw * exchangeRate : 0;
-  const totalUsd = rscTotalUsd + dafTotalUsd;
-  const totalRsc = exchangeRate ? totalUsd / exchangeRate : rscTotalRaw;
+  // Wallet total is just the user's RSC holdings (available + locked / funding
+  // credits). DAF balances are no longer surfaced in the wallet.
+  const totalRsc = (balance?.raw || 0) + (lockedBalance?.raw || 0);
+  const totalUsd = exchangeRate ? totalRsc * exchangeRate : 0;
 
   const totalPrimary = showUSD ? formatUsd(totalUsd) : `${formatRSC({ amount: totalRsc })} RSC`;
   const totalSecondary = showUSD ? `${formatRSC({ amount: totalRsc })} RSC` : formatUsd(totalUsd);
-
-  const handleConnectDaf = async () => {
-    if (isConnecting) return;
-    setIsConnecting(true);
-    try {
-      const url = await connectEndaomentAccount(window.location.href);
-      window.location.href = url;
-    } catch (error) {
-      console.error('Failed to start Endaoment connection:', error);
-      setIsConnecting(false);
-    }
-  };
 
   const rscMenuItems: CurrencyMenuItem[] = [
     {
@@ -128,20 +87,6 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
     },
   ];
 
-  const dafMenuItems: CurrencyMenuItem[] = [
-    {
-      label: 'View DAFs',
-      icon: <List className="h-3.5 w-3.5" />,
-      onClick: () => setIsDafListOpen(true),
-    },
-    {
-      label: isDisconnecting ? 'Disconnecting…' : 'Disconnect',
-      icon: <Unplug className="h-3.5 w-3.5" />,
-      onClick: () => disconnect(),
-      disabled: isDisconnecting,
-    },
-  ];
-
   return (
     <>
       <div className="mb-4 mx-auto w-full">
@@ -149,7 +94,7 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
           {/* Header bar — total balance + primary Deposit CTA */}
           <div className="px-4 sm:px-6 py-5 border-b border-gray-100 flex items-center justify-between gap-4">
             <div className="min-w-0">
-              {!isTotalReady ? (
+              {!isBalanceReady ? (
                 <div>
                   <div className="h-9 w-40 bg-gray-100 animate-pulse rounded" />
                   <div className="h-4 w-28 bg-gray-100 animate-pulse rounded mt-2" />
@@ -249,74 +194,6 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
                   )
                 }
                 trailing={<CurrencyMenu items={fcMenuItems} />}
-              />
-
-              {/* Row 3 — Donor-Advised Fund */}
-              <AssetRow
-                icon={
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-primary-500 flex items-center justify-center text-primary-500 font-bold text-xs sm:text-sm">
-                    $
-                  </div>
-                }
-                name={
-                  <span className="inline-flex items-center gap-1.5">
-                    Donor-Advised Fund
-                    <DafTooltip>
-                      <HelpCircle className="h-[18px] w-[18px] text-gray-500 hover:text-gray-700 cursor-help transition-colors shrink-0" />
-                    </DafTooltip>
-                  </span>
-                }
-                subtext={
-                  <>
-                    <span className="hidden sm:inline">Fund in USD · tax-deductible · </span>
-                    <EndaomentTooltip>
-                      <span className="font-semibold text-primary-600 cursor-help underline decoration-dotted underline-offset-2">
-                        via Endaoment
-                      </span>
-                    </EndaomentTooltip>
-                  </>
-                }
-                balance={
-                  isLoadingDaf || (dafConnected && isFundsLoading) ? (
-                    <BalanceSkeleton />
-                  ) : dafConnected ? (
-                    (() => {
-                      const dafRsc = exchangeRate ? dafTotalUsd / exchangeRate : 0;
-                      return (
-                        <BalanceCell
-                          primary={
-                            showUSD
-                              ? formatUsd(dafTotalUsd)
-                              : `${formatRSC({ amount: dafRsc })} RSC`
-                          }
-                          secondary={
-                            showUSD
-                              ? `${formatRSC({ amount: dafRsc })} RSC`
-                              : `${formatUsd(dafTotalUsd)}`
-                          }
-                        />
-                      );
-                    })()
-                  ) : (
-                    <span className="text-sm text-gray-400">—</span>
-                  )
-                }
-                trailing={
-                  <CurrencyMenu
-                    items={
-                      dafConnected
-                        ? dafMenuItems
-                        : [
-                            {
-                              label: isConnecting ? 'Connecting…' : 'Connect',
-                              icon: <Plug className="h-3.5 w-3.5" />,
-                              onClick: handleConnectDaf,
-                              disabled: isConnecting || isLoadingDaf,
-                            },
-                          ]
-                    }
-                  />
-                }
                 isLast
               />
             </tbody>
@@ -335,7 +212,6 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
           />
         </>
       )}
-      <DafListModal isOpen={isDafListOpen} onClose={() => setIsDafListOpen(false)} />
     </>
   );
 }
