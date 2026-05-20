@@ -545,7 +545,7 @@ export const isFoundationBounty = (bounty: Bounty): boolean => {
 
   // Fall back to the public account name so RHF bounty pricing still renders
   // correctly when the public Foundation user ID env var is unavailable.
-  return getCreatorNames(bounty).some((name) => name === 'researchhub foundation');
+  return getCreatorNames(bounty).includes('researchhub foundation');
 };
 
 /**
