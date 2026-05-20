@@ -246,6 +246,7 @@ export function ExpertResultCard({
 
       {canEditContact && expert.expertId != null && onSaveExpert ? (
         <ExpertEditModal
+          mode="edit"
           isOpen={editOpen}
           onClose={() => setEditOpen(false)}
           expert={expert}
