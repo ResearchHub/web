@@ -494,6 +494,43 @@ const getCreatorUserId = (bounty: Bounty): number | undefined => {
   return undefined;
 };
 
+const normalizeCreatorName = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined;
+
+  const normalized = value.trim().replace(/\s+/g, ' ').toLowerCase();
+  return normalized || undefined;
+};
+
+const getProfileName = (profile: any): string | undefined => {
+  if (!profile) return undefined;
+
+  return (
+    normalizeCreatorName(profile.fullName) ||
+    normalizeCreatorName(profile.full_name) ||
+    normalizeCreatorName([profile.firstName, profile.lastName].filter(Boolean).join(' ')) ||
+    normalizeCreatorName([profile.first_name, profile.last_name].filter(Boolean).join(' '))
+  );
+};
+
+const getCreatorNames = (bounty: Bounty): string[] => {
+  const raw = bounty.raw;
+  const firstContribution = bounty.contributions?.[0];
+
+  return [
+    getProfileName(bounty.createdBy),
+    getProfileName(bounty.createdBy?.authorProfile),
+    getProfileName(raw?.created_by),
+    getProfileName(raw?.created_by?.author_profile),
+    getProfileName(raw?.created_by?.user),
+    getProfileName(raw?.author),
+    getProfileName(raw?.author?.user),
+    getProfileName(firstContribution?.createdBy),
+    getProfileName(firstContribution?.createdBy?.authorProfile),
+    getProfileName(firstContribution?.raw?.user),
+    getProfileName(firstContribution?.raw?.author),
+  ].filter((name): name is string => Boolean(name));
+};
+
 /**
  * Checks if a bounty was created by the ResearchHub Foundation account.
  *
@@ -501,10 +538,14 @@ const getCreatorUserId = (bounty: Bounty): number | undefined => {
  * @returns True if the bounty was created by the Foundation account
  */
 export const isFoundationBounty = (bounty: Bounty): boolean => {
-  if (!FOUNDATION_USER_ID) return false;
-
   const creatorUserId = getCreatorUserId(bounty);
-  return creatorUserId === FOUNDATION_USER_ID;
+  if (FOUNDATION_USER_ID && creatorUserId === FOUNDATION_USER_ID) {
+    return true;
+  }
+
+  // Fall back to the public account name so RHF bounty pricing still renders
+  // correctly when the public Foundation user ID env var is unavailable.
+  return getCreatorNames(bounty).some((name) => name === 'researchhub foundation');
 };
 
 /**
