@@ -11,6 +11,7 @@ import {
   isOpenBounty,
   getBountyDisplayAmount,
   isActiveBounty,
+  ENABLE_BOUNTY_BACKING,
 } from '@/components/Bounty/lib/bountyUtil';
 import { ContentFormat } from '@/types/comment';
 import { ID } from '@/types/root';
@@ -84,6 +85,7 @@ interface FeedItemBountyCommentProps {
   onReply?: () => void; // Prop for Reply action
   onContributeSuccess?: () => void; // Prop for handling successful contribution
   isAuthor?: boolean; // Prop to determine if current user is the author
+  canAwardBounty?: boolean; // Foundation account or moderator can award bounties
   showCreatorActions?: boolean; // Prop to determine whether to show creator actions
   actionLabels?: {
     upvote?: string;
@@ -108,13 +110,14 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
   showRelatedWork = true,
   href,
   showTooltips = true, // Default to showing tooltips
-  showContributeButton = true, // Default to showing contribute button
+  showContributeButton = false,
   onViewSolution,
   onAward,
   onEdit,
   onReply,
   onContributeSuccess,
   isAuthor = false,
+  canAwardBounty = false,
   showCreatorActions = true, // Default to showing creator actions
   actionLabels,
   showFooter = true, // Default to showing the footer
@@ -301,8 +304,10 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
     }
   };
 
+  const showBackingUI = ENABLE_BOUNTY_BACKING && showContributeButton;
+
   const awardButton =
-    showCreatorActions && isAuthor && isActiveBounty(bounty) && onAward ? (
+    showCreatorActions && canAwardBounty && isActiveBounty(bounty) && onAward ? (
       <Button
         onClick={handleAwardBounty}
         size="sm"
@@ -414,7 +419,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
                   </span>
                 </div>
 
-                {contributors.length > 0 && (
+                {showBackingUI && contributors.length > 0 && (
                   <div className="hidden sm:flex flex-col leading-tight">
                     <span className="text-xs text-gray-500 uppercase tracking-wide mb-1">
                       Backers
@@ -467,7 +472,7 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
 
               <div className="flex items-center gap-2 flex-shrink-0">
                 {awardButton}
-                {isActive && showContributeButton && !isAuthor && (
+                {showBackingUI && isActive && !isAuthor && (
                   <Button
                     variant="outlined"
                     size="sm"
@@ -495,21 +500,23 @@ export const FeedItemBountyComment: FC<FeedItemBountyCommentProps> = ({
         )}
       </BaseFeedItem>
 
-      <ContributeBountyModal
-        isOpen={isContributeModalOpen}
-        onClose={() => setIsContributeModalOpen(false)}
-        onContributeSuccess={() => {
-          if (onContributeSuccess) {
-            onContributeSuccess();
-          }
-        }}
-        commentId={bountyEntry.comment.id}
-        documentId={bountyEntry.relatedDocumentId || 0}
-        contentType={bountyEntry.relatedDocumentContentType || 'paper'}
-        bountyTitle={'Bounty'}
-        bountyType={bounty.bountyType}
-        expirationDate={bounty.expirationDate}
-      />
+      {ENABLE_BOUNTY_BACKING && (
+        <ContributeBountyModal
+          isOpen={isContributeModalOpen}
+          onClose={() => setIsContributeModalOpen(false)}
+          onContributeSuccess={() => {
+            if (onContributeSuccess) {
+              onContributeSuccess();
+            }
+          }}
+          commentId={bountyEntry.comment.id}
+          documentId={bountyEntry.relatedDocumentId || 0}
+          contentType={bountyEntry.relatedDocumentContentType || 'paper'}
+          bountyTitle={'Bounty'}
+          bountyType={bounty.bountyType}
+          expirationDate={bounty.expirationDate}
+        />
+      )}
     </div>
   );
 };
