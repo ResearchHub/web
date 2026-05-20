@@ -21,6 +21,8 @@ export interface ExpertSearchPickerProps {
   helperText?: string;
   placeholder?: string;
   triggerIcon?: React.ReactNode;
+  disabled?: boolean;
+  loadingLabel?: string;
 }
 
 export function ExpertSearchPicker({
@@ -31,6 +33,8 @@ export function ExpertSearchPicker({
   helperText,
   placeholder,
   triggerIcon,
+  disabled = false,
+  loadingLabel,
 }: ExpertSearchPickerProps) {
   const [{ searches, isLoading, error }, fetchSearches] = useExpertSearches({
     limit: LIST_LIMIT,
@@ -87,7 +91,9 @@ export function ExpertSearchPicker({
   const hasSelection = value.length > 0;
 
   let triggerLabel: string;
-  if (mode === 'single') {
+  if (loadingLabel) {
+    triggerLabel = loadingLabel;
+  } else if (mode === 'single') {
     triggerLabel =
       selectedSearch != null ? getSearchDisplayText(selectedSearch) : (placeholder ?? '');
   } else if (value.length === 0) {
@@ -109,7 +115,7 @@ export function ExpertSearchPicker({
           variant="outlined"
           size="md"
           className="w-full justify-between text-left text-gray-900 font-normal"
-          disabled={isLoading && searches.length === 0 && !error}
+          disabled={disabled || (isLoading && searches.length === 0 && !error)}
         >
           <span className="truncate text-sm">{triggerLabel}</span>
           {triggerIcon != null && (

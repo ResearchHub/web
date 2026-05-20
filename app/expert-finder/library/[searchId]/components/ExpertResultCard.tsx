@@ -89,16 +89,25 @@ export function ExpertResultCard({
             </h3>
             {sources.length > 0
               ? sources.map((src, i) => (
-                  <a
+                  <Tooltip
                     key={`${src.url}-${i}`}
-                    href={src.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex min-w-0 max-w-full items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
+                    content={src.text}
+                    position="top"
+                    width="w-72"
+                    className="text-left"
+                    wrapperClassName="inline-flex shrink-0 items-center"
                   >
-                    <span className="truncate">{src.text}</span>
-                    <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden />
-                  </a>
+                    <a
+                      href={src.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex rounded p-0.5 text-primary-600 transition-colors hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
+                      aria-label={src.text}
+                      title={src.text}
+                    >
+                      <ExternalLink className="h-4 w-4 shrink-0" aria-hidden />
+                    </a>
+                  </Tooltip>
                 ))
               : null}
           </div>
@@ -112,7 +121,7 @@ export function ExpertResultCard({
           ) : null}
         </header>
         {onToggleSelect && (
-          <div className="flex shrink-0 items-center justify-end pt-0.5">
+          <div className="flex shrink-0 items-center justify-end pt-1">
             <Checkbox
               checked={selected ?? false}
               onCheckedChange={() => onToggleSelect(index)}
