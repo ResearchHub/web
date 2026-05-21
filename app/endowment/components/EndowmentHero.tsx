@@ -274,12 +274,36 @@ export function EndowmentHero() {
             max-width: 480px;
           }
         }
+        /* Hide the eyebrow on tablet and below - the headline communicates
+           the page identity at these widths and the centered logo above the
+           hero already establishes the brand. */
+        @media (max-width: 768px) {
+          .endowment-hero-eyebrow {
+            display: none;
+          }
+        }
         @media (max-width: 640px) {
           .endowment-hero {
             /* Top padding clears the absolutely-positioned center logo
                (top: 28px + ~47px logo height = 75px logo bottom + breathing
                room). Was 64px which caused the logo to overlap the eyebrow. */
             padding: 100px 20px 96px;
+          }
+          .endowment-hero-h1 {
+            font-size: 40px;
+            margin: 0 0 20px;
+          }
+          .endowment-hero-lead {
+            font-size: 17px;
+            margin: 0 0 28px;
+          }
+          .endowment-hero-ctas {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+          }
+          .endowment-hero-ctas :global(button) {
+            width: 100%;
           }
           .endowment-hero-inner > :global(.endowment-tree-wrap) {
             margin-bottom: -56px;

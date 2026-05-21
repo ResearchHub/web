@@ -23,7 +23,6 @@ import { PixelBackdrop } from './PixelBackdrop';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler);
 
 const RANGE_OPTIONS: ReadonlyArray<{ value: StakingYieldRange; label: string }> = [
-  { value: '7d', label: '7D' },
   { value: '30d', label: '30D' },
   { value: '90d', label: '90D' },
   { value: 'all', label: 'All' },

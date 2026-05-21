@@ -190,22 +190,45 @@ function VideoBlock() {
         }
         @media (max-width: 768px) {
           .endowment-video-poster {
-            padding: 24px 22px;
+            padding: 18px 18px;
+          }
+          .endowment-video-pill {
+            font-size: 10px;
+            padding: 4px 10px;
+            gap: 6px;
+            letter-spacing: 0.06em;
+          }
+          .endowment-video-pill :global(svg) {
+            width: 10px;
+            height: 10px;
+          }
+          .endowment-play-cluster {
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+          }
+          .endowment-video-text {
+            align-items: center;
           }
           .endowment-video-title {
-            font-size: 22px;
+            font-size: 18px;
+            line-height: 1.2;
           }
+          /* On tablet and below the title alone communicates enough; hiding
+             the sub keeps the cluster compact inside the 16:9 poster. */
           .endowment-video-sub {
-            font-size: 13px;
+            display: none;
           }
           .endowment-play-btn {
-            width: 64px;
-            height: 64px;
+            width: 52px;
+            height: 52px;
           }
           .endowment-play-icon {
-            border-left-width: 16px;
-            border-top-width: 10px;
-            border-bottom-width: 10px;
+            border-left-width: 14px;
+            border-top-width: 9px;
+            border-bottom-width: 9px;
           }
         }
       `}</style>
@@ -410,6 +433,14 @@ export function EndowmentHowItWorks() {
             font-size: 44px;
             top: 16px;
             right: 20px;
+          }
+          /* Reserve horizontal space for the absolutely-positioned step number
+             so single-line titles like "Earn Funding Credits" (224px wide,
+             reaches the card's right edge) wrap before colliding with the
+             "02" glyph (~56px wide at 44px Cal Sans). Verified via runtime
+             measurement: h3.right=349 vs num.left=293.73 → 55px overlap. */
+          .endowment-cascade-step h3 {
+            padding-right: 64px;
           }
         }
       `}</style>
