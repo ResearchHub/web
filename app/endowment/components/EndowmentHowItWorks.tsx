@@ -56,7 +56,7 @@ function VideoBlock() {
           aria-label="Play how it works video"
         >
           <span className="endowment-video-pill">
-            <Play className="w-3 h-3" aria-hidden /> Watch · 3 min
+            <Play className="w-3 h-3" aria-hidden /> Watch &lt; 1 min
           </span>
           <span className="endowment-play-cluster">
             <span className="endowment-play-btn">
@@ -65,7 +65,7 @@ function VideoBlock() {
             <span className="endowment-video-text">
               <span className="endowment-video-title">How the ResearchHub Endowment works</span>
               <span className="endowment-video-sub">
-                From RSC deposit to funded research, the full mechanism in 3 minutes.
+                From RSC deposit to funded research, the full mechanism in under a minute.
               </span>
             </span>
           </span>
