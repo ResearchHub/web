@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { FunderHero } from '@/components/Funding/dashboard/FunderHero';
 import { FunderAuthorPostsSection } from '@/components/Funding/dashboard/FunderAuthorPostsSection';
 import { FeedContent } from '@/components/Feed/FeedContent';
+import { isModeratorUser } from '@/components/Bounty/lib/bountyUtil';
 import { FunderService } from '@/services/funder.service';
 import { useFeed } from '@/hooks/useFeed';
 import { useUser } from '@/contexts/UserContext';
@@ -34,7 +35,10 @@ export const FunderDashboardPage: FC = () => {
     }
   }, [isLoadingUser, user, router]);
 
-  const funderIdOverride = parseFunderIdParam(searchParams.get('funder_id'));
+  // ?funder_id= is moderator-only; non-moderators must not scope API calls to another user.
+  const funderIdOverride = isModeratorUser(user)
+    ? parseFunderIdParam(searchParams.get('funder_id'))
+    : undefined;
   const funderId = funderIdOverride ?? userId;
 
   const [selectedUser, setSelectedUser] = useState<UserOption | null>(null);
@@ -103,7 +107,7 @@ export const FunderDashboardPage: FC = () => {
 
   return (
     <div className="px-4 tablet:px-8 py-6 max-w-[1180px] mx-auto w-full">
-      {user.isModerator && (
+      {isModeratorUser(user) && (
         <div className="mb-5 max-w-xs">
           <label className="text-xs font-medium text-gray-500 mb-1 block">
             View as user (moderator only)
