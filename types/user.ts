@@ -153,7 +153,31 @@ export type UserDetailsForModerator = {
   } | null;
 };
 
-// Add this after the existing UserDetailsForModerator type definition
+export type RiskScoreEvent = {
+  id: number;
+  eventType: string;
+  delta: number;
+  sourceType: string | null;
+  sourceContentId: number | null;
+  createdDate: string;
+};
+
+export type RiskScoreEventsResponse = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: RiskScoreEvent[];
+};
+
+export const transformRiskScoreEvent = (raw: any): RiskScoreEvent => ({
+  id: raw.id,
+  eventType: raw.event_type || '',
+  delta: raw.delta ?? 0,
+  sourceType: raw.source_type || null,
+  sourceContentId: raw.source_content_id ?? null,
+  createdDate: raw.created_date || '',
+});
+
 export const transformUserDetailsForModerator = (raw: any): UserDetailsForModerator => {
   // Handle null or undefined raw data
   if (!raw) {

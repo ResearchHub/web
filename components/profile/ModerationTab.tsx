@@ -10,6 +10,7 @@ import { useUser } from '@/contexts/UserContext';
 import { formatTimestamp } from '@/utils/date';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
+import { RiskScoreEvents } from '@/components/profile/RiskScoreEvents';
 
 type ModerationTabProps = {
   readonly userId: string;
@@ -210,6 +211,8 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
           </li>
         ))}
       </ul>
+
+      {showRiskScore && <RiskScoreEvents userId={userId} />}
     </div>
   );
 }

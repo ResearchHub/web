@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { AuthorService } from '@/services/author.service';
 import type { AuthorUpdatePayload } from '@/services/author.service';
-import type { User } from '@/types/user';
+import type { User, RiskScoreEvent } from '@/types/user';
 import { Achievement } from '@/types/authorProfile';
 import { AuthorSummaryStats } from '@/types/authorProfile';
 import { UserService } from '@/services/user.service';
@@ -250,4 +250,75 @@ export function useUserDetailsForModerator(
   }, [userId, fetchUserDetails]);
 
   return [{ userDetails, isLoading, error }, fetchUserDetails];
+}
+
+// ── useRiskScoreEvents ────────────────────────────────────────────────────────
+
+export interface RiskScoreEventsFilters {
+  page?: number;
+  pageSize?: number;
+  eventType?: string;
+  deltaPositive?: boolean;
+  createdDateAfter?: string;
+  createdDateBefore?: string;
+}
+
+interface UseRiskScoreEventsState {
+  events: RiskScoreEvent[];
+  count: number;
+  page: number;
+  pageSize: number;
+  isLoading: boolean;
+  error: string | null;
+}
+
+type FetchRiskScoreEventsFn = (filters: RiskScoreEventsFilters) => Promise<void>;
+
+type UseRiskScoreEventsReturn = [UseRiskScoreEventsState, FetchRiskScoreEventsFn];
+
+export function useRiskScoreEvents(
+  userId: string | null,
+  initialFilters?: RiskScoreEventsFilters
+): UseRiskScoreEventsReturn {
+  const defaultPageSize = initialFilters?.pageSize ?? 20;
+
+  const [events, setEvents] = useState<RiskScoreEvent[]>([]);
+  const [count, setCount] = useState(0);
+  const [page, setPage] = useState(initialFilters?.page ?? 1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchEvents = useCallback(
+    async (filters: RiskScoreEventsFilters) => {
+      if (!userId) return;
+
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await UserService.fetchRiskScoreEvents(userId, {
+          page: filters.page ?? 1,
+          pageSize: filters.pageSize ?? defaultPageSize,
+          eventType: filters.eventType,
+          deltaPositive: filters.deltaPositive,
+          createdDateAfter: filters.createdDateAfter,
+          createdDateBefore: filters.createdDateBefore,
+        });
+        setEvents(response.results);
+        setCount(response.count);
+        setPage(filters.page ?? 1);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to fetch risk score events';
+        setError(message);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [userId, defaultPageSize]
+  );
+
+  useEffect(() => {
+    fetchEvents({ page: 1, pageSize: defaultPageSize });
+  }, [fetchEvents, defaultPageSize]);
+
+  return [{ events, count, page, pageSize: defaultPageSize, isLoading, error }, fetchEvents];
 }
