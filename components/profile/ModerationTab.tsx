@@ -147,6 +147,10 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
       )}`
     : 'N/A';
 
+  const riskScore = userDetails.riskScore;
+  const riskScoreColor =
+    riskScore >= 150 ? 'text-red-600' : riskScore <= 50 ? 'text-green-600' : '';
+
   const items: { label: string; value: React.ReactNode }[] = [
     { label: 'Email', value: userDetails.email || 'N/A' },
     { label: 'User ID', value: userDetails.id ?? 'N/A' },
@@ -163,16 +167,8 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
           {
             label: 'Risk Score',
             value: (
-              <span
-                className={
-                  userDetails.riskScore >= 150
-                    ? 'text-red-600 font-medium'
-                    : userDetails.riskScore <= 50
-                      ? 'text-green-600 font-medium'
-                      : 'font-medium'
-                }
-              >
-                {userDetails.riskScore === -1 ? 'N/A' : userDetails.riskScore}
+              <span className={`font-medium ${riskScoreColor}`}>
+                {riskScore === -1 ? 'N/A' : riskScore}
               </span>
             ),
           },
