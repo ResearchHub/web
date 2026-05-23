@@ -159,7 +159,24 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
     { label: 'Verified status', value: userDetails.verification?.status || 'N/A' },
     { label: 'ORCID Email', value: userDetails.orcidVerifiedEduEmail || 'N/A' },
     ...(showRiskScore
-      ? [{ label: 'Risk Score', value: `(${userDetails.riskScoreGrade}) ${userDetails.riskScore}` }]
+      ? [
+          {
+            label: 'Risk Score',
+            value: (
+              <span
+                className={
+                  userDetails.riskScore >= 150
+                    ? 'text-red-600 font-medium'
+                    : userDetails.riskScore <= 50
+                      ? 'text-green-600 font-medium'
+                      : 'font-medium'
+                }
+              >
+                {userDetails.riskScore === -1 ? 'N/A' : userDetails.riskScore}
+              </span>
+            ),
+          },
+        ]
       : []),
   ];
 
