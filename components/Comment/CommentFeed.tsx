@@ -19,7 +19,7 @@ import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useUser } from '@/contexts/UserContext';
 import { CommentEmptyState } from './CommentEmptyState';
 import { CreateBountyModal } from '@/components/modals/CreateBountyModal';
-import { comment } from 'postcss';
+import { canManageBounties } from '@/components/Bounty/lib/bountyUtil';
 import { useShareModalContext } from '@/contexts/ShareContext';
 import { useStorageKey } from '@/utils/storageKeys';
 
@@ -62,6 +62,8 @@ function CommentFeed({
     }
   }, [commentType, documentId, debug]);
 
+  const { user } = useUser();
+  const canCreateBounty = canManageBounties(user);
   const [isBountyModalOpen, setIsBountyModalOpen] = useState(false);
 
   const handleCreateBounty = useCallback(() => {
@@ -90,17 +92,20 @@ function CommentFeed({
           contentType={contentType}
           debug={debug}
           onCreateBounty={handleCreateBounty}
+          canCreateBounty={canCreateBounty}
           unifiedDocumentId={unifiedDocumentId}
           work={work}
           workAuthors={workAuthors}
           belowEditor={belowEditor}
         />
       </div>
-      <CreateBountyModal
-        isOpen={isBountyModalOpen}
-        onClose={handleCloseBountyModal}
-        workId={documentId.toString()}
-      />
+      {canCreateBounty && (
+        <CreateBountyModal
+          isOpen={isBountyModalOpen}
+          onClose={handleCloseBountyModal}
+          workId={documentId.toString()}
+        />
+      )}
     </CommentProvider>
   );
 }
@@ -116,10 +121,14 @@ function CommentFeedContent({
   debug = false,
   unifiedDocumentId,
   onCreateBounty,
+  canCreateBounty = false,
   work,
   workAuthors,
   belowEditor,
-}: Omit<CommentFeedProps, 'documentId'> & { onCreateBounty: () => void }) {
+}: Omit<CommentFeedProps, 'documentId'> & {
+  onCreateBounty: () => void;
+  canCreateBounty?: boolean;
+}) {
   // Add debugging for content component if debug is enabled
   useEffect(() => {
     if (debug) {
@@ -285,6 +294,7 @@ function CommentFeedContent({
           <CommentEmptyState
             commentType={commentType || 'GENERIC_COMMENT'}
             onCreateBounty={handleCreateBounty}
+            canCreateBounty={canCreateBounty}
             work={work}
           />
         ) : (
@@ -292,15 +302,17 @@ function CommentFeedContent({
             {commentType === 'BOUNTY' && (
               <div className="flex justify-between items-center mb-4">
                 <CommentSortAndFilters commentType={commentType} commentCount={count} />
-                <Button
-                  onClick={() => executeAuthenticatedAction(handleCreateBounty)}
-                  variant="outlined"
-                  size="sm"
-                  className="flex items-center gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  Create Bounty
-                </Button>
+                {canCreateBounty && (
+                  <Button
+                    onClick={() => executeAuthenticatedAction(handleCreateBounty)}
+                    variant="outlined"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create Bounty
+                  </Button>
+                )}
               </div>
             )}
 

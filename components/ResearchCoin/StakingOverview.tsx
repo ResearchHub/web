@@ -10,6 +10,8 @@ import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { UserService, type StakingYieldDetails } from '@/services/user.service';
 import { StakingMultiplierTooltip } from '@/components/tooltips/StakingMultiplierTooltip';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { Switch } from '@/components/ui/Switch';
+import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import { getNextTierDetails, formatFundingCreditsAmount } from './lib/stakingUtil';
 
 const EMPTY = '—';
@@ -31,6 +33,10 @@ export function StakingOverview() {
   }, []);
 
   const isOptedIn = user?.isStakingOptedIn ?? false;
+  // The endowment yields on the user's available RSC balance. If they hold
+  // none, the endowment effectively cannot earn, so we surface a dedicated
+  // empty state instead of a row of dashes.
+  const hasNoRsc = !!user && (user.balance ?? 0) <= 0;
 
   const handleStakingToggle = async (checked: boolean) => {
     if (!user || isUpdatingStaking) return;
@@ -89,117 +95,131 @@ export function StakingOverview() {
               </div>
             </div>
             {isUserLoading || !user ? (
-              <div
-                className="flex items-center gap-2 shrink-0 rounded-full px-3 py-1.5 bg-gray-100"
-                aria-label="Loading earning status"
-              >
-                <span className="h-2 w-2 rounded-full bg-gray-300 animate-pulse" />
+              <div className="flex items-center gap-2 shrink-0" aria-label="Loading earning status">
                 <span className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
+                <span className="h-6 w-11 bg-gray-200 rounded-full animate-pulse" />
               </div>
             ) : (
-              <Tooltip
-                content={
+              (() => {
+                const switchChecked = !hasNoRsc && isOptedIn;
+                const tooltipContent = hasNoRsc ? (
+                  <div className="text-left">
+                    <div className="text-sm font-bold text-white mb-1">Endowment off</div>
+                    <p className="text-xs text-gray-300 leading-snug">
+                      Deposit ResearchCoin to start earning funding credits.
+                    </p>
+                  </div>
+                ) : (
                   <div className="text-left">
                     <div className="text-sm font-bold text-white mb-1">Earn ResearchCoin</div>
                     <p className="text-xs text-gray-300 leading-snug">
                       Toggle earning of funding credits
                     </p>
                   </div>
-                }
-                position="top"
-                width="w-56"
-                className="bg-gray-900 text-white border-gray-900 text-left"
-                disableTouchClick
-              >
-                <button
-                  type="button"
-                  onClick={() => handleStakingToggle(!isOptedIn)}
-                  disabled={isUpdatingStaking}
-                  className={cn(
-                    'flex items-center gap-2 shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60',
-                    isOptedIn
-                      ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  )}
-                >
-                  <span
-                    className={cn(
-                      'h-2 w-2 rounded-full',
-                      isOptedIn ? 'bg-emerald-500' : 'bg-red-500'
-                    )}
-                  />
-                  {isOptedIn ? 'Earning' : 'Not earning'}
-                </button>
-              </Tooltip>
+                );
+                const label = switchChecked ? 'Earning' : 'Not earning';
+                return (
+                  <Tooltip
+                    content={tooltipContent}
+                    position="top"
+                    width={hasNoRsc ? 'w-60' : 'w-56'}
+                    className="bg-gray-900 text-white border-gray-900 text-left"
+                    disableTouchClick
+                  >
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span
+                        className={cn(
+                          'text-xs font-semibold',
+                          switchChecked ? 'text-emerald-700' : 'text-gray-500'
+                        )}
+                      >
+                        {label}
+                      </span>
+                      <Switch
+                        checked={switchChecked}
+                        onCheckedChange={(next) => handleStakingToggle(next)}
+                        disabled={hasNoRsc || isUpdatingStaking}
+                        className={cn(switchChecked && 'bg-emerald-600')}
+                      />
+                    </div>
+                  </Tooltip>
+                );
+              })()
             )}
           </div>
 
-          <ul>
-            <StatRow
-              label="Annualized Yield"
-              value={
-                annualizedYield != null ? (
-                  <span className="text-sm font-bold text-gray-900">
-                    {annualizedYield.toFixed(1)}%
-                  </span>
-                ) : isLoadingDetails ? (
-                  <ValueSkeleton />
-                ) : (
-                  <EmptyValue />
-                )
-              }
-            />
-            <StatRow
-              label="Funding credits earned"
-              value={
-                fundingCreditsTop ? (
-                  <div className="text-right">
-                    <div className="text-sm font-bold text-gray-900">{fundingCreditsTop}</div>
-                    {fundingCreditsBottom && (
-                      <div className="text-[11px] text-gray-500 mt-0.5">{fundingCreditsBottom}</div>
-                    )}
-                  </div>
-                ) : isLoadingDetails ? (
-                  <ValueSkeleton />
-                ) : (
-                  <EmptyValue />
-                )
-              }
-            />
-            <StatRow
-              label={
-                <span className="inline-flex items-center gap-1.5">
-                  Current multiplier
-                  <StakingMultiplierTooltip
-                    currentMultiplier={currentMultiplier ?? 1}
-                    nextMultiplier={nextTier?.projectedMultiplier ?? null}
-                    daysUntilNext={nextTier?.daysUntilNext ?? null}
-                    progress={nextTier?.progress ?? null}
-                  />
-                </span>
-              }
-              value={
-                currentMultiplier != null ? (
-                  <div className="text-right">
-                    <div className="text-sm font-bold text-amber-600">
-                      {currentMultiplier.toFixed(2)}×
+          {hasNoRsc ? (
+            <EndowmentEmptyState annualizedYield={annualizedYield} />
+          ) : (
+            <ul>
+              <StatRow
+                label="Annualized Yield"
+                value={
+                  annualizedYield != null ? (
+                    <span className="text-sm font-bold text-gray-900">
+                      {annualizedYield.toFixed(1)}%
+                    </span>
+                  ) : isLoadingDetails ? (
+                    <ValueSkeleton />
+                  ) : (
+                    <EmptyValue />
+                  )
+                }
+              />
+              <StatRow
+                label="Funding credits earned"
+                value={
+                  fundingCreditsTop ? (
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-gray-900">{fundingCreditsTop}</div>
+                      {fundingCreditsBottom && (
+                        <div className="text-[11px] text-gray-500 mt-0.5">
+                          {fundingCreditsBottom}
+                        </div>
+                      )}
                     </div>
-                    {nextTier && (
-                      <div className="text-[11px] text-gray-500 mt-0.5">
-                        {nextTier.projectedMultiplier.toFixed(2)}× in {nextTier.daysUntilNext}{' '}
-                        {nextTier.daysUntilNext === 1 ? 'day' : 'days'}
+                  ) : isLoadingDetails ? (
+                    <ValueSkeleton />
+                  ) : (
+                    <EmptyValue />
+                  )
+                }
+              />
+              <StatRow
+                label={
+                  <span className="inline-flex items-center gap-1.5">
+                    Current multiplier
+                    <StakingMultiplierTooltip
+                      currentMultiplier={currentMultiplier ?? 1}
+                      nextMultiplier={nextTier?.projectedMultiplier ?? null}
+                      daysUntilNext={nextTier?.daysUntilNext ?? null}
+                      progress={nextTier?.progress ?? null}
+                    />
+                  </span>
+                }
+                value={
+                  currentMultiplier != null ? (
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-amber-600">
+                        {currentMultiplier.toFixed(2)}×
                       </div>
-                    )}
-                  </div>
-                ) : isLoadingDetails ? (
-                  <ValueSkeleton />
-                ) : (
-                  <EmptyValue />
-                )
-              }
-              isLast
-            />
-          </ul>
+                      {nextTier && (
+                        <div className="text-[11px] text-gray-500 mt-0.5">
+                          {nextTier.projectedMultiplier.toFixed(2)}× in {nextTier.daysUntilNext}{' '}
+                          {nextTier.daysUntilNext === 1 ? 'day' : 'days'}
+                        </div>
+                      )}
+                    </div>
+                  ) : isLoadingDetails ? (
+                    <ValueSkeleton />
+                  ) : (
+                    <EmptyValue />
+                  )
+                }
+                isLast
+              />
+            </ul>
+          )}
         </div>
       </div>
 
@@ -240,4 +260,39 @@ function ValueSkeleton() {
 
 function EmptyValue() {
   return <span className="text-sm text-gray-400">{EMPTY}</span>;
+}
+
+interface EndowmentEmptyStateProps {
+  annualizedYield: number | null;
+}
+
+function EndowmentEmptyState({ annualizedYield }: EndowmentEmptyStateProps) {
+  return (
+    <div className="px-5 sm:px-8 py-6 sm:py-8 flex flex-col items-center text-center">
+      {/* Layered icon — sprout sitting in front of a funding-credits coin badge */}
+      <div className="relative mb-4">
+        <div className="relative flex items-center justify-center h-16 w-16 rounded-full bg-white ring-1 ring-gray-200 shadow-sm">
+          <Sprout className="h-8 w-8 text-emerald-600" />
+          <span className="absolute -bottom-1 -right-1 inline-flex items-center justify-center h-7 w-7 rounded-full bg-white ring-1 ring-gray-200 shadow-sm">
+            <ResearchCoinIcon size={18} color="#6366f1" outlined />
+          </span>
+        </div>
+      </div>
+
+      <h3 className="text-base sm:text-lg font-bold text-gray-900">Your endowment is off</h3>
+      <p className="mt-1.5 max-w-sm text-sm text-gray-600">
+        Deposit ResearchCoin to activate the endowment and start earning funding credits
+        {annualizedYield != null ? (
+          <>
+            {' '}
+            at{' '}
+            <span className="font-semibold text-emerald-700">
+              {annualizedYield.toFixed(1)}% APY
+            </span>
+          </>
+        ) : null}
+        .
+      </p>
+    </div>
+  );
 }

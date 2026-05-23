@@ -2,6 +2,7 @@
 
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
+import { EndowmentPromoBanner } from './EndowmentPromoBanner';
 
 const TopBar = dynamic(() => import('../TopBar').then((mod) => mod.TopBar), {
   ssr: true,
@@ -31,6 +32,7 @@ export function TopBarContainer({
         transition-transform duration-300 ease-in-out tablet:!transform-none
         ${shouldHide ? '-translate-y-full' : 'translate-y-0'}`}
     >
+      <EndowmentPromoBanner />
       <Suspense fallback={<TopBarSkeleton />}>
         <TopBar onMenuClick={onMenuClick} />
       </Suspense>
