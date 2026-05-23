@@ -40,6 +40,12 @@ function StatusBadges({
   );
 }
 
+function getRiskScoreColor(score: number) {
+  if (score >= 150) return 'text-red-600';
+  if (score <= 50) return 'text-green-600';
+  return '';
+}
+
 function ModerationSkeleton() {
   return (
     <div className="flex flex-col gap-4">
@@ -148,8 +154,7 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
     : 'N/A';
 
   const riskScore = userDetails.riskScore;
-  const riskScoreColor =
-    riskScore >= 150 ? 'text-red-600' : riskScore <= 50 ? 'text-green-600' : '';
+  const riskScoreColor = getRiskScoreColor(riskScore);
 
   const items: { label: string; value: React.ReactNode }[] = [
     { label: 'Email', value: userDetails.email || 'N/A' },
