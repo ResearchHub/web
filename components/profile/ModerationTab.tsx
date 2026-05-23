@@ -41,6 +41,12 @@ function StatusBadges({
   );
 }
 
+function getRiskScoreColor(score: number) {
+  if (score >= 150) return 'text-red-600';
+  if (score <= 50) return 'text-green-600';
+  return '';
+}
+
 function ModerationSkeleton() {
   return (
     <div className="flex flex-col gap-4">
@@ -148,6 +154,9 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
       )}`
     : 'N/A';
 
+  const riskScore = userDetails.riskScore;
+  const riskScoreColor = getRiskScoreColor(riskScore);
+
   const items: { label: string; value: React.ReactNode }[] = [
     { label: 'Email', value: userDetails.email || 'N/A' },
     { label: 'User ID', value: userDetails.id ?? 'N/A' },
@@ -160,7 +169,16 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
     { label: 'Verified status', value: userDetails.verification?.status || 'N/A' },
     { label: 'ORCID Email', value: userDetails.orcidVerifiedEduEmail || 'N/A' },
     ...(showRiskScore
-      ? [{ label: 'Risk Score', value: `(${userDetails.riskScoreGrade}) ${userDetails.riskScore}` }]
+      ? [
+          {
+            label: 'Risk Score',
+            value: (
+              <span className={`font-medium ${riskScoreColor}`}>
+                {riskScore === -1 ? 'N/A' : riskScore}
+              </span>
+            ),
+          },
+        ]
       : []),
   ];
 
