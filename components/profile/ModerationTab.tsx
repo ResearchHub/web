@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { MoreHorizontal } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useUserDetailsForModerator } from '@/hooks/useAuthor';
@@ -39,6 +40,12 @@ function StatusBadges({
   );
 }
 
+function getRiskScoreColor(score: number) {
+  if (score >= 150) return 'text-red-600';
+  if (score <= 50) return 'text-green-600';
+  return '';
+}
+
 function ModerationSkeleton() {
   return (
     <div className="flex flex-col gap-4">
@@ -59,6 +66,8 @@ function ModerationSkeleton() {
 
 export function ModerationTab({ userId, authorId, refetchAuthorInfo }: ModerationTabProps) {
   const { user: currentUser } = useUser();
+  const searchParams = useSearchParams();
+  const showRiskScore = searchParams.get('riskscore') === 'true';
   const [{ userDetails, isLoading }, refetchModerationDetails] = useUserDetailsForModerator(userId);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
@@ -144,6 +153,9 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
       )}`
     : 'N/A';
 
+  const riskScore = userDetails.riskScore;
+  const riskScoreColor = getRiskScoreColor(riskScore);
+
   const items: { label: string; value: React.ReactNode }[] = [
     { label: 'Email', value: userDetails.email || 'N/A' },
     { label: 'User ID', value: userDetails.id ?? 'N/A' },
@@ -155,6 +167,18 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
     { label: 'Verification ID', value: userDetails.verification?.externalId || 'N/A' },
     { label: 'Verified status', value: userDetails.verification?.status || 'N/A' },
     { label: 'ORCID Email', value: userDetails.orcidVerifiedEduEmail || 'N/A' },
+    ...(showRiskScore
+      ? [
+          {
+            label: 'Risk Score',
+            value: (
+              <span className={`font-medium ${riskScoreColor}`}>
+                {riskScore === -1 ? 'N/A' : riskScore}
+              </span>
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (
