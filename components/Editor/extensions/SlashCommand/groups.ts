@@ -28,12 +28,28 @@ export const GROUPS: Group[] = [
     title: 'Format',
     commands: [
       {
+        name: 'paragraph',
+        label: 'Paragraph',
+        iconName: 'Pilcrow',
+        description: 'Plain text paragraph',
+        aliases: ['p', 'text'],
+        action: (editor) => {
+          editor.chain().focus().setParagraph().run();
+        },
+        convertAction: (editor) => {
+          editor.chain().focus().setParagraph().run();
+        },
+      },
+      {
         name: 'heading1',
         label: 'Heading 1',
         iconName: 'Heading1',
         description: 'High priority section title',
         aliases: ['h1'],
         action: (editor) => {
+          editor.chain().focus().setHeading({ level: 1 }).run();
+        },
+        convertAction: (editor) => {
           editor.chain().focus().setHeading({ level: 1 }).run();
         },
       },
@@ -46,6 +62,9 @@ export const GROUPS: Group[] = [
         action: (editor) => {
           editor.chain().focus().setHeading({ level: 2 }).run();
         },
+        convertAction: (editor) => {
+          editor.chain().focus().setHeading({ level: 2 }).run();
+        },
       },
       {
         name: 'heading3',
@@ -54,6 +73,9 @@ export const GROUPS: Group[] = [
         description: 'Low priority section title',
         aliases: ['h3'],
         action: (editor) => {
+          editor.chain().focus().setHeading({ level: 3 }).run();
+        },
+        convertAction: (editor) => {
           editor.chain().focus().setHeading({ level: 3 }).run();
         },
       },
@@ -66,6 +88,9 @@ export const GROUPS: Group[] = [
         action: (editor) => {
           editor.chain().focus().toggleBulletList().run();
         },
+        convertAction: (editor) => {
+          editor.chain().focus().toggleBulletList().run();
+        },
       },
       {
         name: 'numberedList',
@@ -74,6 +99,9 @@ export const GROUPS: Group[] = [
         description: 'Ordered list of items',
         aliases: ['ol'],
         action: (editor) => {
+          editor.chain().focus().toggleOrderedList().run();
+        },
+        convertAction: (editor) => {
           editor.chain().focus().toggleOrderedList().run();
         },
       },
@@ -86,6 +114,9 @@ export const GROUPS: Group[] = [
         action: (editor) => {
           editor.chain().focus().toggleTaskList().run();
         },
+        convertAction: (editor) => {
+          editor.chain().focus().toggleTaskList().run();
+        },
       },
       {
         name: 'toggleList',
@@ -94,6 +125,9 @@ export const GROUPS: Group[] = [
         description: 'Toggles can show and hide content',
         aliases: ['toggle'],
         action: (editor) => {
+          editor.chain().focus().setDetails().run();
+        },
+        convertAction: (editor) => {
           editor.chain().focus().setDetails().run();
         },
       },
@@ -105,6 +139,9 @@ export const GROUPS: Group[] = [
         action: (editor) => {
           editor.chain().focus().setBlockquote().run();
         },
+        convertAction: (editor) => {
+          editor.chain().focus().setBlockquote().run();
+        },
       },
       {
         name: 'codeBlock',
@@ -113,6 +150,9 @@ export const GROUPS: Group[] = [
         description: 'Code block with syntax highlighting',
         shouldBeHidden: (editor) => editor.isActive('columns'),
         action: (editor) => {
+          editor.chain().focus().setCodeBlock().run();
+        },
+        convertAction: (editor) => {
           editor.chain().focus().setCodeBlock().run();
         },
       },
@@ -185,6 +225,10 @@ export const GROUPS: Group[] = [
         iconName: 'Calculator',
         aliases: ['math', 'equation', 'latex'],
         description: 'Insert an inline math equation',
+        // Inline math is inline-level content; it can't replace a block
+        // node, so hide it from the "Turn into" menu while keeping it
+        // available from the slash menu and the `+` button.
+        hideFromTurnInto: true,
         action: (editor) => {
           editor
             .chain()
