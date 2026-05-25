@@ -11,7 +11,7 @@ import GROUPS from '@/components/Editor/extensions/SlashCommand/groups';
 import { Command } from '@/components/Editor/extensions/SlashCommand/types';
 import useContentItemActions from './hooks/useContentItemActions';
 import { useData } from './hooks/useData';
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 
 export type ContentItemMenuProps = {
   editor: Editor;
@@ -81,8 +81,8 @@ export const ContentItemMenu = ({ editor }: ContentItemMenuProps) => {
                     <DropdownMenu.SubContent sideOffset={4} alignOffset={-8}>
                       <Surface className="p-2 flex flex-col min-w-[16rem] max-h-[min(80vh,24rem)] overflow-auto">
                         {turnIntoGroups.map((group) => (
-                          <div key={group.name} className="flex flex-col">
-                            <div className="text-neutral-500 text-[0.65rem] mx-2 mt-2 mb-1 font-semibold tracking-wider select-none uppercase first:mt-0">
+                          <Fragment key={group.name}>
+                            <div className="text-neutral-500 text-[0.65rem] mx-2 mt-4 mb-1 font-semibold tracking-wider select-none uppercase first:mt-0">
                               {group.title}
                             </div>
                             {group.commands.map((command: Command) => (
@@ -97,7 +97,7 @@ export const ContentItemMenu = ({ editor }: ContentItemMenuProps) => {
                                 </DropdownButton>
                               </DropdownMenu.Item>
                             ))}
-                          </div>
+                          </Fragment>
                         ))}
                       </Surface>
                     </DropdownMenu.SubContent>
