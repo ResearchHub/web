@@ -3,15 +3,12 @@
 import { NoteList } from '@/components/Notebook/LeftSidebar/NoteList';
 import { OrganizationSwitcher } from '@/components/Notebook/LeftSidebar/OrganizationSwitcher';
 import { SidebarSection } from '@/components/Notebook/LeftSidebar/SidebarSection';
-import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { Plus, Lock, Loader2, File, FileText, type LucideIcon } from 'lucide-react';
-import { FundingIcon } from '@/components/ui/icons/FundingIcon';
-import Icon from '@/components/ui/icons/Icon';
+import { Plus, Lock, Loader2, FileText, type LucideIcon } from 'lucide-react';
 import { Organization } from '@/types/organization';
 import { useRouter } from 'next/navigation';
-import { useCallback, useTransition } from 'react';
+import { useCallback, useState, useTransition } from 'react';
 import { useNoteContent, useCreateNote } from '@/hooks/useNote';
 import { getInitialContent } from '@/components/Editor/lib/data/initialContent';
 import {
@@ -22,33 +19,48 @@ import toast from 'react-hot-toast';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
 import proposalTemplate from '@/components/Editor/lib/data/proposalTemplate';
+import { NoteCreationModal, NoteCreationType } from '@/components/Notebook/NoteCreationModal';
+import { importDocumentToTiptap } from '@/components/Editor/lib/convert';
 
-const TEMPLATE_ITEMS = [
-  {
-    id: 'preregistration' as const,
-    title: 'Proposal',
-    description: 'Crowdfund your research',
-    icon: <FundingIcon size={24} color="#2563eb" />,
-  },
-  {
-    id: 'grant' as const,
-    title: 'Funding Opportunity',
-    description: 'Fund specific research you care about',
-    icon: <Icon name="fund" size={24} color="#2563eb" />,
-  },
-  {
-    id: 'research' as const,
-    title: 'Preprint',
-    description: 'Publish your research as a preprint',
-    icon: <Icon name="submit1" size={24} color="#2563eb" />,
-  },
-  {
-    id: 'empty' as const,
-    title: 'Empty',
-    description: 'Start with a blank page',
-    icon: <File className="h-6 w-6 text-blue-600" />,
-  },
-];
+type Grouping = 'workspace' | 'private';
+
+type TemplateId = 'preregistration' | 'grant' | 'research';
+
+// Map our internal template ids onto the Django document_type strings the
+// publishing form and downstream APIs key off of. Mirrors the mapping used in
+// `app/notebook/[orgSlug]/page.tsx`.
+const TEMPLATE_TO_DOCUMENT_TYPE: Record<TemplateId, string> = {
+  preregistration: 'PREREGISTRATION',
+  grant: 'GRANT',
+  research: 'DISCUSSION',
+};
+
+const EMPTY_TEMPLATE = {
+  type: 'doc' as const,
+  content: [
+    {
+      type: 'heading',
+      attrs: { textAlign: 'left', level: 1 },
+      content: [{ type: 'text', text: 'Untitled' }],
+    },
+    {
+      type: 'paragraph',
+      attrs: { class: null, textAlign: 'left' },
+    },
+  ],
+};
+
+const getTemplateContent = (templateId: TemplateId) => {
+  switch (templateId) {
+    case 'grant':
+      return grantTemplate;
+    case 'preregistration':
+      return proposalTemplate;
+    case 'research':
+    default:
+      return getInitialContent('research');
+  }
+};
 
 export const LeftSidebar = () => {
   const router = useRouter();
@@ -64,6 +76,13 @@ export const LeftSidebar = () => {
   } = useOrganizationContext();
   const { notes, isLoading: isLoadingNotes, refreshNotes } = useNotebookContext();
 
+  // Which section's "+" was clicked, or null when the modal is closed.
+  const [activeModalGrouping, setActiveModalGrouping] = useState<Grouping | null>(null);
+  // Distinct from createNote/updateNote loading because the conversion call
+  // happens before either of those fire — we want the modal to show "Importing"
+  // for the full duration including the network round-trip.
+  const [isImporting, setIsImporting] = useState(false);
+
   const handleOrgSelect = useCallback(
     async (org: Organization) => {
       setSelectedOrg(org);
@@ -77,62 +96,39 @@ export const LeftSidebar = () => {
         toast.error('Failed to switch organization. Please try again.');
       }
     },
-    [router, startTransition]
+    [router, setSelectedOrg]
   );
 
-  const handleTemplateSelect = useCallback(
-    async (
-      type: 'workspace' | 'private',
-      template: 'research' | 'grant' | 'preregistration' | 'empty'
-    ) => {
+  const createNoteWithContent = useCallback(
+    async ({
+      grouping,
+      template,
+      templateContent,
+      documentType,
+    }: {
+      grouping: Grouping;
+      template: TemplateId | 'empty';
+      templateContent: ReturnType<typeof getTemplateContent> | typeof EMPTY_TEMPLATE;
+      documentType?: string;
+    }) => {
       if (!selectedOrg) return;
 
       try {
-        let contentTemplate;
-        switch (template) {
-          case 'research':
-            contentTemplate = getInitialContent('research');
-            break;
-          case 'grant':
-            contentTemplate = grantTemplate;
-            break;
-          case 'preregistration':
-            contentTemplate = proposalTemplate;
-            break;
-          case 'empty':
-            contentTemplate = {
-              type: 'doc',
-              content: [
-                {
-                  type: 'heading',
-                  attrs: { textAlign: 'left', level: 1 },
-                  content: [{ type: 'text', text: 'Untitled' }],
-                },
-                {
-                  type: 'paragraph',
-                  attrs: { class: null, textAlign: 'left' },
-                },
-              ],
-            };
-            break;
-          default:
-            contentTemplate = getInitialContent('research');
-            break;
-        }
-
         const newNote = await createNote({
-          title: getDocumentTitle(contentTemplate) || 'Untitled',
-          grouping: type.toUpperCase() as 'WORKSPACE' | 'PRIVATE',
+          title: getDocumentTitle(templateContent) || 'Untitled',
+          grouping: grouping.toUpperCase() as 'WORKSPACE' | 'PRIVATE',
           organizationSlug: selectedOrg.slug,
+          documentType,
         });
 
         await updateNoteContent({
           note: newNote.id,
-          fullJson: JSON.stringify(contentTemplate),
-          plainText: getTemplatePlainText(contentTemplate),
+          fullJson: JSON.stringify(templateContent),
+          plainText: getTemplatePlainText(templateContent),
         });
 
         refreshNotes();
+        setActiveModalGrouping(null);
         router.push(`/notebook/${selectedOrg.slug}/${newNote.id}?template=${template}`);
       } catch (error) {
         console.error('Error creating note:', error);
@@ -141,97 +137,121 @@ export const LeftSidebar = () => {
         });
       }
     },
-    [createNote, updateNoteContent, router, selectedOrg, refreshNotes]
+    [createNote, updateNoteContent, refreshNotes, router, selectedOrg]
   );
 
-  const isProcessing = isCreatingNote || isUpdatingContent;
+  const handleCreateFromTemplate = useCallback(
+    async (grouping: Grouping, type: TemplateId) => {
+      await createNoteWithContent({
+        grouping,
+        template: type,
+        templateContent: getTemplateContent(type),
+        documentType: TEMPLATE_TO_DOCUMENT_TYPE[type],
+      });
+    },
+    [createNoteWithContent]
+  );
+
+  const handleCreateBlank = useCallback(
+    async (grouping: Grouping) => {
+      await createNoteWithContent({
+        grouping,
+        template: 'empty',
+        templateContent: EMPTY_TEMPLATE,
+      });
+    },
+    [createNoteWithContent]
+  );
+
+  const handleCreateFromUpload = useCallback(
+    async (grouping: Grouping, { file, type }: { file: File; type: NoteCreationType }) => {
+      if (!selectedOrg) return;
+      setIsImporting(true);
+      try {
+        const result = await importDocumentToTiptap(file);
+        const documentType =
+          type === 'other' ? undefined : TEMPLATE_TO_DOCUMENT_TYPE[type as TemplateId];
+
+        const newNote = await createNote({
+          title: result.title,
+          grouping: grouping.toUpperCase() as 'WORKSPACE' | 'PRIVATE',
+          organizationSlug: selectedOrg.slug,
+          documentType,
+        });
+
+        await updateNoteContent({
+          note: newNote.id,
+          fullSrc: result.html,
+          fullJson: JSON.stringify(result.json),
+          plainText: result.plainText,
+        });
+
+        refreshNotes();
+        setActiveModalGrouping(null);
+        // No ?template= query — the import gave us real content, not a scaffold.
+        router.push(`/notebook/${selectedOrg.slug}/${newNote.id}`);
+      } catch (error) {
+        console.error('Error importing document:', error);
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Failed to import document. Please try a different file.';
+        toast.error(message, { style: { width: '320px' } });
+      } finally {
+        setIsImporting(false);
+      }
+    },
+    [createNote, updateNoteContent, refreshNotes, router, selectedOrg]
+  );
+
+  const isProcessing = isCreatingNote || isUpdatingContent || isImporting;
 
   const hasWorkspaceNotes = notes?.some((n) => n.access === 'WORKSPACE' || n.access === 'SHARED');
   const hasPrivateNotes = notes?.some((n) => n.access === 'PRIVATE');
 
-  const renderTemplateMenu = (type: 'workspace' | 'private', triggerLabel?: string) => (
-    <BaseMenu
-      trigger={
-        triggerLabel ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={isProcessing}
-            className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-700"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            {triggerLabel}
-          </Button>
+  const openModalFor = (grouping: Grouping) => () => setActiveModalGrouping(grouping);
+
+  const renderAddButton = (grouping: Grouping, triggerLabel?: string) =>
+    triggerLabel ? (
+      <Button
+        variant="ghost"
+        size="sm"
+        disabled={isProcessing}
+        onClick={openModalFor(grouping)}
+        className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-700"
+      >
+        <Plus className="h-3.5 w-3.5" />
+        {triggerLabel}
+      </Button>
+    ) : (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="w-6 h-6 transition-opacity"
+        disabled={isProcessing}
+        onClick={openModalFor(grouping)}
+        aria-label={`Add new ${grouping} note`}
+      >
+        {isProcessing ? (
+          <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
         ) : (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-6 h-6 transition-opacity"
-            disabled={isProcessing}
-          >
-            {isProcessing ? (
-              <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
-            ) : (
-              <Plus className="h-4 w-4 text-gray-500" />
-            )}
-          </Button>
-        )
-      }
-      align="start"
-      className="w-[340px] p-2"
-    >
-      <div className="space-y-4 pt-2">
-        <div>
-          <div className="px-3 mb-2">
-            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Select Template
-            </h3>
-          </div>
-          <div className="space-y-2">
-            {TEMPLATE_ITEMS.map((item) => (
-              <BaseMenuItem
-                key={item.id}
-                onClick={() => handleTemplateSelect(type, item.id)}
-                className="w-full px-2"
-                disabled={isProcessing}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                      {isProcessing ? (
-                        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                      ) : (
-                        item.icon
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-md font-medium tracking-[0.02em] text-gray-900">
-                      {item.title}
-                    </div>
-                    <div className="text-xs text-gray-600 mt-0.5">{item.description}</div>
-                  </div>
-                </div>
-              </BaseMenuItem>
-            ))}
-          </div>
-        </div>
-      </div>
-    </BaseMenu>
-  );
+          <Plus className="h-4 w-4 text-gray-500" />
+        )}
+      </Button>
+    );
 
   const renderEmptyState = ({
     icon: StateIcon,
     title,
     subtitle,
     buttonLabel,
-    type,
+    grouping,
   }: {
     icon: LucideIcon;
     title: string;
     subtitle: string;
     buttonLabel: string;
-    type: 'workspace' | 'private';
+    grouping: Grouping;
   }) => (
     <div className="flex flex-col items-center justify-center py-6 text-center">
       <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-2.5">
@@ -239,7 +259,7 @@ export const LeftSidebar = () => {
       </div>
       <p className="text-sm font-medium text-gray-500">{title}</p>
       <p className="text-xs text-gray-400 mt-0.5 mb-3">{subtitle}</p>
-      {renderTemplateMenu(type, buttonLabel)}
+      {renderAddButton(grouping, buttonLabel)}
     </div>
   );
 
@@ -258,7 +278,7 @@ export const LeftSidebar = () => {
             title="Workspace"
             icon={FileText}
             iconPosition="after"
-            action={renderTemplateMenu('workspace')}
+            action={renderAddButton('workspace')}
           >
             {hasWorkspaceNotes || isLoadingNotes || isLoadingOrgs ? (
               <NoteList
@@ -272,7 +292,7 @@ export const LeftSidebar = () => {
                 title: 'No notes yet',
                 subtitle: 'Create your first note to get started',
                 buttonLabel: 'Add New Note',
-                type: 'workspace',
+                grouping: 'workspace',
               })
             )}
           </SidebarSection>
@@ -283,7 +303,7 @@ export const LeftSidebar = () => {
             title="Private"
             icon={Lock}
             iconPosition="after"
-            action={renderTemplateMenu('private')}
+            action={renderAddButton('private')}
           >
             {hasPrivateNotes || isLoadingNotes || isLoadingOrgs ? (
               <NoteList
@@ -297,12 +317,28 @@ export const LeftSidebar = () => {
                 title: 'No private notes yet',
                 subtitle: 'Private notes are only visible to you',
                 buttonLabel: 'Add Private Note',
-                type: 'private',
+                grouping: 'private',
               })
             )}
           </SidebarSection>
         </div>
       </div>
+
+      <NoteCreationModal
+        isOpen={activeModalGrouping !== null}
+        onClose={() => {
+          if (!isProcessing) setActiveModalGrouping(null);
+        }}
+        grouping={activeModalGrouping ?? 'workspace'}
+        onCreateFromTemplate={(type) =>
+          handleCreateFromTemplate(activeModalGrouping ?? 'workspace', type)
+        }
+        onCreateBlank={() => handleCreateBlank(activeModalGrouping ?? 'workspace')}
+        onCreateFromUpload={(params) =>
+          handleCreateFromUpload(activeModalGrouping ?? 'workspace', params)
+        }
+        isProcessing={isProcessing}
+      />
     </div>
   );
 };
