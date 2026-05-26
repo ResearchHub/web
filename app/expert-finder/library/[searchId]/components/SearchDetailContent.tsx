@@ -15,7 +15,7 @@ import { SearchDetailHeader } from './SearchDetailHeader';
 import { ExpertResultCard } from './ExpertResultCard';
 import { GenerateEmailModal, type GenerateEmailConfirmPayload } from './GenerateEmailModal';
 import { GenerateEmailProgressModal } from './GenerateEmailProgressModal';
-import { ExpertEditModal } from './ExpertEditModal';
+import { ExpertFormModal } from './ExpertFormModal';
 import { GeneratedEmailsList } from '@/app/expert-finder/library/[searchId]/outreach/components/GeneratedEmailsList';
 import type { ExpertResult } from '@/types/expertFinder';
 
@@ -317,7 +317,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
         </>
       )}
 
-      <ExpertEditModal
+      <ExpertFormModal
         mode="add"
         isOpen={showAddExpertModal}
         onClose={() => setShowAddExpertModal(false)}

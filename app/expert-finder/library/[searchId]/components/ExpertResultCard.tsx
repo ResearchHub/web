@@ -10,7 +10,7 @@ import { cn } from '@/utils/styles';
 import { formatTimestamp } from '@/utils/date';
 import type { ExpertResult } from '@/types/expertFinder';
 import type { PatchExpertPayload } from '@/services/expertFinder.service';
-import { ExpertEditModal } from './ExpertEditModal';
+import { ExpertFormModal } from './ExpertFormModal';
 
 interface ExpertResultCardProps {
   expert: ExpertResult;
@@ -245,7 +245,7 @@ export function ExpertResultCard({
       </div>
 
       {canEditContact && expert.expertId != null && onSaveExpert ? (
-        <ExpertEditModal
+        <ExpertFormModal
           mode="edit"
           isOpen={editOpen}
           onClose={() => setEditOpen(false)}

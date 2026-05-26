@@ -24,7 +24,7 @@ interface AddModeProps {
   onSuccess: () => Promise<void>;
 }
 
-export type ExpertEditModalProps = {
+export type ExpertFormModalProps = {
   isOpen: boolean;
   onClose: () => void;
 } & (EditModeProps | AddModeProps);
@@ -76,7 +76,7 @@ function buildAddPayload(values: {
   return payload;
 }
 
-export function ExpertEditModal(props: ExpertEditModalProps) {
+export function ExpertFormModal(props: ExpertFormModalProps) {
   const { isOpen, onClose } = props;
 
   const [email, setEmail] = useState('');
