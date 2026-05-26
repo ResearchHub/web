@@ -9,16 +9,16 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import { formatTimestamp } from '@/utils/date';
 import type { ExpertResult } from '@/types/expertFinder';
-import type { PatchExpertPayload } from '@/services/expertFinder.service';
 import { ExpertFormModal } from './ExpertFormModal';
 
 interface ExpertResultCardProps {
   expert: ExpertResult;
   index: number;
+  searchId: string;
   selected?: boolean;
   onToggleSelect?: (index: number) => void;
   onGenerateEmail?: (expert: ExpertResult) => void;
-  onSaveExpert?: (expertId: number, payload: PatchExpertPayload) => Promise<void>;
+  onSuccess?: () => Promise<void>;
 }
 
 function empty(value: string | undefined): string {
@@ -31,14 +31,15 @@ const NOTES_READ_MORE_MIN_LENGTH = 25;
 export function ExpertResultCard({
   expert,
   index,
+  searchId,
   selected,
   onToggleSelect,
   onGenerateEmail,
-  onSaveExpert,
+  onSuccess,
 }: ExpertResultCardProps) {
   const [editOpen, setEditOpen] = useState(false);
   const name = empty(expert.name);
-  const canEditContact = expert.expertId != null && Boolean(onSaveExpert);
+  const canEditContact = expert.expertId != null && Boolean(onSuccess);
   const title = empty(expert.title);
   const affiliation = empty(expert.affiliation);
   const expertiseStr = empty(expert.expertise);
@@ -244,14 +245,13 @@ export function ExpertResultCard({
         )}
       </div>
 
-      {canEditContact && expert.expertId != null && onSaveExpert ? (
+      {canEditContact && onSuccess ? (
         <ExpertFormModal
-          mode="edit"
           isOpen={editOpen}
           onClose={() => setEditOpen(false)}
+          searchId={searchId}
           expert={expert}
-          expertId={expert.expertId}
-          onSave={onSaveExpert}
+          onSuccess={onSuccess}
         />
       ) : null}
     </article>

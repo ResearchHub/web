@@ -9,25 +9,15 @@ import { LoadingButton } from '@/components/ui/LoadingButton';
 import type { ExpertResult } from '@/types/expertFinder';
 import type { AddExpertPayload, PatchExpertPayload } from '@/services/expertFinder.service';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
+import { usePatchExpert, useAddExpert } from '@/hooks/useExpertFinder';
 
-interface EditModeProps {
-  mode: 'edit';
-  expert: ExpertResult;
-  expertId: number;
-  onSave: (expertId: number, payload: PatchExpertPayload) => Promise<void>;
-}
-
-interface AddModeProps {
-  mode: 'add';
-  searchId: string;
-  onAdd: (searchId: string, payload: AddExpertPayload) => Promise<unknown>;
-  onSuccess: () => Promise<void>;
-}
-
-export type ExpertFormModalProps = {
+export interface ExpertFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-} & (EditModeProps | AddModeProps);
+  searchId: string;
+  expert?: ExpertResult;
+  onSuccess: () => Promise<void>;
+}
 
 function buildEditPayload(values: {
   honorific: string;
@@ -76,8 +66,16 @@ function buildAddPayload(values: {
   return payload;
 }
 
-export function ExpertFormModal(props: ExpertFormModalProps) {
-  const { isOpen, onClose } = props;
+export function ExpertFormModal({
+  isOpen,
+  onClose,
+  searchId,
+  expert,
+  onSuccess,
+}: ExpertFormModalProps) {
+  const [, patchExpert] = usePatchExpert();
+  const [, addExpert] = useAddExpert();
+  const isAdd = expert == null;
 
   const [email, setEmail] = useState('');
   const [honorific, setHonorific] = useState('');
@@ -95,12 +93,12 @@ export function ExpertFormModal(props: ExpertFormModalProps) {
   useEffect(() => {
     if (!isOpen) return;
     setSubmitError(null);
-    if (props.mode === 'edit') {
-      setHonorific(props.expert.honorific);
-      setFirstName(props.expert.firstName);
-      setMiddleName(props.expert.middleName);
-      setLastName(props.expert.lastName);
-      setNameSuffix(props.expert.nameSuffix);
+    if (expert != null) {
+      setHonorific(expert.honorific);
+      setFirstName(expert.firstName);
+      setMiddleName(expert.middleName);
+      setLastName(expert.lastName);
+      setNameSuffix(expert.nameSuffix);
     } else {
       setEmail('');
       setHonorific('');
@@ -114,13 +112,13 @@ export function ExpertFormModal(props: ExpertFormModalProps) {
       setNotes('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, props.mode]);
+  }, [isOpen, isAdd]);
 
   const handleSubmit = async () => {
     setSubmitError(null);
     setIsSubmitting(true);
     try {
-      if (props.mode === 'edit') {
+      if (expert != null) {
         const payload = buildEditPayload({
           honorific,
           firstName,
@@ -133,8 +131,7 @@ export function ExpertFormModal(props: ExpertFormModalProps) {
           setIsSubmitting(false);
           return;
         }
-        await props.onSave(props.expertId, payload);
-        onClose();
+        await patchExpert(expert.expertId!, payload);
       } else {
         const trimmedEmail = email.trim();
         if (!trimmedEmail) {
@@ -142,35 +139,32 @@ export function ExpertFormModal(props: ExpertFormModalProps) {
           setIsSubmitting(false);
           return;
         }
-        const payload = buildAddPayload({
-          email,
-          honorific,
-          firstName,
-          middleName,
-          lastName,
-          nameSuffix,
-          academicTitle,
-          affiliation,
-          expertise,
-          notes,
-        });
-        await props.onAdd(props.searchId, payload);
-        await props.onSuccess();
-        onClose();
+        await addExpert(
+          searchId,
+          buildAddPayload({
+            email,
+            honorific,
+            firstName,
+            middleName,
+            lastName,
+            nameSuffix,
+            academicTitle,
+            affiliation,
+            expertise,
+            notes,
+          })
+        );
       }
+      await onSuccess();
+      onClose();
     } catch (err) {
       setSubmitError(
-        extractApiErrorMessage(
-          err,
-          props.mode === 'edit' ? 'Failed to update expert' : 'Failed to add expert'
-        )
+        extractApiErrorMessage(err, isAdd ? 'Failed to add expert' : 'Failed to update expert')
       );
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  const isAdd = props.mode === 'add';
 
   return (
     <BaseModal

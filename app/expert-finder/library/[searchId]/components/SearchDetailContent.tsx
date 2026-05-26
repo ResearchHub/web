@@ -9,8 +9,7 @@ import { Alert } from '@/components/ui/Alert';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { Button } from '@/components/ui/Button';
 import { Tabs } from '@/components/ui/Tabs';
-import { useExpertSearchDetail, usePatchExpert, useAddExpert } from '@/hooks/useExpertFinder';
-import type { PatchExpertPayload } from '@/services/expertFinder.service';
+import { useExpertSearchDetail } from '@/hooks/useExpertFinder';
 import { SearchDetailHeader } from './SearchDetailHeader';
 import { ExpertResultCard } from './ExpertResultCard';
 import { GenerateEmailModal, type GenerateEmailConfirmPayload } from './GenerateEmailModal';
@@ -29,17 +28,7 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
   const tab = searchParams?.get('tab') === TAB_OUTREACH ? TAB_OUTREACH : TAB_EXPERT_RESULTS;
 
   const [{ searchDetail, isLoading, error }, refetch] = useExpertSearchDetail(searchId);
-  const [, patchExpert] = usePatchExpert();
-  const [, addExpert] = useAddExpert();
   const [showAddExpertModal, setShowAddExpertModal] = useState(false);
-
-  const handleSaveExpert = useCallback(
-    async (expertId: number, payload: PatchExpertPayload) => {
-      await patchExpert(expertId, payload);
-      await refetch();
-    },
-    [patchExpert, refetch]
-  );
 
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
   const [showGenerateModal, setShowGenerateModal] = useState(false);
@@ -295,7 +284,8 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
                     selected={selectedIndices.has(index)}
                     onToggleSelect={toggleSelection}
                     onGenerateEmail={(expert) => openGenerateForExperts([expert])}
-                    onSaveExpert={handleSaveExpert}
+                    searchId={searchId}
+                    onSuccess={refetch}
                   />
                 ))}
               </div>
@@ -318,10 +308,8 @@ export function SearchDetailContent({ searchId }: SearchDetailContentProps) {
       )}
 
       <ExpertFormModal
-        mode="add"
         isOpen={showAddExpertModal}
         onClose={() => setShowAddExpertModal(false)}
-        onAdd={addExpert}
         searchId={searchId}
         onSuccess={refetch}
       />
