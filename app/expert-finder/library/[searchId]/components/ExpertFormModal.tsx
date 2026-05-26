@@ -74,7 +74,7 @@ export function ExpertFormModal({
   onSuccess,
 }: ExpertFormModalProps) {
   const [, patchExpert] = usePatchExpert();
-  const [, addExpert] = useAddExpert();
+  const [, createExpert] = useAddExpert();
   const isAdd = expert == null;
 
   const [email, setEmail] = useState('');
@@ -128,18 +128,15 @@ export function ExpertFormModal({
         });
         if (Object.keys(payload).length === 0) {
           setSubmitError('Change at least one field to save.');
-          setIsSubmitting(false);
           return;
         }
         await patchExpert(expert.expertId!, payload);
       } else {
-        const trimmedEmail = email.trim();
-        if (!trimmedEmail) {
+        if (!email.trim()) {
           setSubmitError('Email is required.');
-          setIsSubmitting(false);
           return;
         }
-        await addExpert(
+        await createExpert(
           searchId,
           buildAddPayload({
             email,
@@ -158,9 +155,7 @@ export function ExpertFormModal({
       await onSuccess();
       onClose();
     } catch (err) {
-      setSubmitError(
-        extractApiErrorMessage(err, isAdd ? 'Failed to add expert' : 'Failed to update expert')
-      );
+      setSubmitError(extractApiErrorMessage(err, 'Failed to save expert'));
     } finally {
       setIsSubmitting(false);
     }
