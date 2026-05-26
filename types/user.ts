@@ -141,6 +141,7 @@ export type UserDetailsForModerator = {
   createdData: string;
   isOrcidConnected: boolean;
   orcidVerifiedEduEmail: string | null;
+  riskScore: number;
   verification: {
     createdDate: string;
     externalId: string;
@@ -163,6 +164,7 @@ export const transformUserDetailsForModerator = (raw: any): UserDetailsForModera
       createdData: '',
       isOrcidConnected: false,
       orcidVerifiedEduEmail: null,
+      riskScore: -1,
       verification: null,
     };
   }
@@ -175,6 +177,7 @@ export const transformUserDetailsForModerator = (raw: any): UserDetailsForModera
     createdData: raw.created_date || '',
     isOrcidConnected: raw.is_orcid_connected || false,
     orcidVerifiedEduEmail: raw.orcid_verified_edu_email || null,
+    riskScore: raw.risk_score ?? -1,
     verification: raw.verification
       ? {
           createdDate: raw.verification.created_date || '',
