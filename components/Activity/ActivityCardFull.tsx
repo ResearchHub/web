@@ -94,7 +94,7 @@ export const ActivityCardFull: FC<ActivityCardFullProps> = ({ entry }) => {
         <div className="mt-2 ml-[42px]">
           <button
             className="text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer inline-flex items-center gap-0.5"
-            onClick={() => setReviewExpanded(!reviewExpanded)}
+            onClick={() => setReviewExpanded((open) => !open)}
           >
             {reviewExpanded ? 'Hide review' : 'Read review'}
             {reviewExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}

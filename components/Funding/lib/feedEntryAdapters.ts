@@ -38,7 +38,7 @@ export function getActionLabel(entry: FeedEntry): string {
   if (entry.contentType === 'COMMENT') {
     const commentContent = entry.content as FeedCommentContent;
     if (commentContent.hasBounties) return 'opened a bounty';
-    return COMMENT_ACTION_LABELS[commentContent.comment?.commentType] || 'commented on';
+    return COMMENT_ACTION_LABELS[commentContent.comment?.commentType] ?? 'commented on';
   }
   if (entry.contentType === 'BOUNTY') return 'contributed to';
   if (entry.contentType === 'USDFUNDRAISECONTRIBUTION' || entry.contentType === 'PURCHASE') {
@@ -139,7 +139,7 @@ export function getReviewScore(entry: FeedEntry): number | undefined {
   if (entry.contentType !== 'COMMENT') return undefined;
   const commentContent = entry.content as FeedCommentContent;
   if (commentContent.comment?.commentType !== 'REVIEW') return undefined;
-  return commentContent.review?.score ?? commentContent.comment.reviewScore ?? undefined;
+  return commentContent.review?.score ?? commentContent.comment.reviewScore;
 }
 
 export interface FeedContribution {
@@ -155,6 +155,25 @@ export function getContribution(entry: FeedEntry): FeedContribution | undefined 
   const contribution = post.fundraiseContribution;
   if (contribution?.amount == null) return undefined;
   return { amount: contribution.amount, currency: contribution.currency };
+}
+
+export interface DisplayedAmount {
+  amount: number;
+  inUSD: boolean;
+}
+
+export function resolveDisplayedContribution(
+  contribution: FeedContribution,
+  showUSD: boolean,
+  exchangeRate: number
+): DisplayedAmount {
+  const sourceIsUSD = contribution.currency === 'USD';
+  const canConvert = exchangeRate > 0;
+  const inUSD = canConvert ? showUSD : sourceIsUSD;
+
+  if (sourceIsUSD === inUSD) return { amount: contribution.amount, inUSD };
+  if (sourceIsUSD) return { amount: contribution.amount / exchangeRate, inUSD };
+  return { amount: contribution.amount * exchangeRate, inUSD };
 }
 
 export interface FeedGrantAmount {
