@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { type RiskScoreEventsFilters } from '@/hooks/useAuthor';
 import { type RiskScoreEvent, type SourceDetail } from '@/types/user';
@@ -89,15 +90,11 @@ const EVENT_ACTION_LABELS: Record<string, string> = {
   PEER_REVIEW_ASSESSED: 'Assessed',
 };
 
-function formatEventType(eventType: string): string {
-  return snakeCaseToTitleCase(eventType);
-}
-
 function formatEventLabel(event: RiskScoreEvent): string {
-  if (!event.sourceDetail) return formatEventType(event.eventType);
+  if (!event.sourceDetail) return snakeCaseToTitleCase(event.eventType);
   const source = getSourceLabel(event.sourceDetail);
   const action = EVENT_ACTION_LABELS[event.eventType];
-  if (!action) return formatEventType(event.eventType);
+  if (!action) return snakeCaseToTitleCase(event.eventType);
   return `${source} ${action}`;
 }
 
@@ -115,6 +112,7 @@ export function RiskScoreEvents({
   const [dateAfter, setDateAfter] = useState('');
   const [dateBefore, setDateBefore] = useState('');
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   const totalPages = Math.ceil(count / pageSize);
 
@@ -131,72 +129,90 @@ export function RiskScoreEvents({
   const goToPage = (newPage: number) => fetchEvents(buildFilters({ page: newPage }));
 
   return (
-    <div className="border border-gray-100 rounded-lg overflow-hidden pb-20">
-      {/* Header + Filters */}
+    <div className="border border-gray-100 rounded-lg overflow-hidden">
+      {/* Header */}
       <div className="bg-gray-50 px-4 py-3 border-b border-gray-100">
-        <h4 className="text-sm font-semibold text-gray-800 mb-2">Score Events</h4>
-        <div className="flex flex-wrap items-center gap-2">
-          <select
-            value={eventTypeFilter}
-            onChange={(e) => {
-              setEventTypeFilter(e.target.value);
-              fetchEvents(buildFilters({ eventType: e.target.value || undefined }));
-            }}
-            className={FILTER_INPUT_CLASS}
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-semibold text-gray-800">Score Events</h4>
+          <button
+            type="button"
+            onClick={() => setShowFilters(!showFilters)}
+            className={cn(
+              'inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md transition-colors',
+              showFilters
+                ? 'bg-gray-200 text-gray-700'
+                : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+            )}
           >
-            {EVENT_TYPE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={deltaFilter}
-            onChange={(e) => {
-              const val = e.target.value as 'all' | 'true' | 'false';
-              setDeltaFilter(val);
-              fetchEvents(
-                buildFilters({ deltaPositive: val === 'all' ? undefined : val === 'true' })
-              );
-            }}
-            className={FILTER_INPUT_CLASS}
-          >
-            {DELTA_FILTER_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-
-          <input
-            type="date"
-            value={dateAfter}
-            onChange={(e) => {
-              setDateAfter(e.target.value);
-              fetchEvents(
-                buildFilters({
-                  createdDateAfter: e.target.value ? `${e.target.value}T00:00:00Z` : undefined,
-                })
-              );
-            }}
-            className={FILTER_INPUT_CLASS}
-          />
-
-          <input
-            type="date"
-            value={dateBefore}
-            onChange={(e) => {
-              setDateBefore(e.target.value);
-              fetchEvents(
-                buildFilters({
-                  createdDateBefore: e.target.value ? `${e.target.value}T23:59:59Z` : undefined,
-                })
-              );
-            }}
-            className={FILTER_INPUT_CLASS}
-          />
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            Filters
+          </button>
         </div>
+
+        {showFilters && (
+          <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+            <select
+              value={eventTypeFilter}
+              onChange={(e) => {
+                setEventTypeFilter(e.target.value);
+                fetchEvents(buildFilters({ eventType: e.target.value || undefined }));
+              }}
+              className={FILTER_INPUT_CLASS}
+            >
+              {EVENT_TYPE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={deltaFilter}
+              onChange={(e) => {
+                const val = e.target.value as 'all' | 'true' | 'false';
+                setDeltaFilter(val);
+                fetchEvents(
+                  buildFilters({ deltaPositive: val === 'all' ? undefined : val === 'true' })
+                );
+              }}
+              className={FILTER_INPUT_CLASS}
+            >
+              {DELTA_FILTER_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+
+            <input
+              type="date"
+              value={dateAfter}
+              onChange={(e) => {
+                setDateAfter(e.target.value);
+                fetchEvents(
+                  buildFilters({
+                    createdDateAfter: e.target.value ? `${e.target.value}T00:00:00Z` : undefined,
+                  })
+                );
+              }}
+              className={FILTER_INPUT_CLASS}
+            />
+
+            <input
+              type="date"
+              value={dateBefore}
+              onChange={(e) => {
+                setDateBefore(e.target.value);
+                fetchEvents(
+                  buildFilters({
+                    createdDateBefore: e.target.value ? `${e.target.value}T23:59:59Z` : undefined,
+                  })
+                );
+              }}
+              className={FILTER_INPUT_CLASS}
+            />
+          </div>
+        )}
       </div>
 
       {/* Event List */}
