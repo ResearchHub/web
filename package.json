@@ -44,6 +44,7 @@
     "@tiptap-pro/extension-drag-handle-react": "^2.16.0",
     "@tiptap-pro/extension-emoji": "^2.16.0",
     "@tiptap-pro/extension-file-handler": "^2.16.0",
+    "@tiptap-pro/extension-import": "^2.21.8",
     "@tiptap-pro/extension-mathematics": "^2.16.0",
     "@tiptap-pro/extension-node-range": "^2.16.0",
     "@tiptap-pro/extension-table-of-contents": "^2.16.0",
