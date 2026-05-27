@@ -3,6 +3,11 @@ import { Plugin, PluginKey } from '@tiptap/pm/state';
 
 // @ts-ignore
 function nodeEqualsType({ types, node }) {
+  // Guard against a null `node` (state.init can see a doc whose lastChild is
+  // null, e.g. when the editor is constructed with empty content). Returning
+  // false here means the plugin will append the trailing node, which is the
+  // correct behavior for an empty document.
+  if (!node) return false;
   return (Array.isArray(types) && types.includes(node.type)) || node.type === types;
 }
 
