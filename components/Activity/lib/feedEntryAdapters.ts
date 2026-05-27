@@ -162,6 +162,12 @@ export interface DisplayedAmount {
   inUSD: boolean;
 }
 
+/**
+ * Picks the right amount and currency to render for a contribution. Honors the
+ * user's preference when an exchange rate is available, otherwise falls back to
+ * the stored currency so we never multiply by a 0 rate. `formatCurrency` only
+ * converts RSC → USD, so the reverse direction is computed here.
+ */
 export function resolveDisplayedContribution(
   contribution: FeedContribution,
   showUSD: boolean,

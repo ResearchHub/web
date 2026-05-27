@@ -14,10 +14,10 @@ import {
   getEntryMeta,
   getGrantAmount,
   getReviewScore,
-} from './lib/feedEntryAdapters';
-import { ContributionAmount } from './ContributionAmount';
-import { FeedEntryIcon } from './FeedEntryIcon';
-import { GrantFundingAmount } from './GrantFundingAmount';
+} from '@/components/Activity/lib/feedEntryAdapters';
+import { ContributionAmount } from '@/components/Activity/ContributionAmount';
+import { FeedEntryIcon } from '@/components/Activity/FeedEntryIcon';
+import { GrantFundingAmount } from '@/components/Activity/GrantFundingAmount';
 
 interface ActivityCardProps {
   entry: FeedEntry;

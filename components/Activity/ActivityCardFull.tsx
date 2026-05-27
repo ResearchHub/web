@@ -6,9 +6,9 @@ import { Star, ChevronDown, ChevronUp } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { AuthorTooltip } from '@/components/ui/AuthorTooltip';
 import { CommentReadOnly } from '@/components/Comment/CommentReadOnly';
-import { ContributionAmount } from '@/components/Funding/ContributionAmount';
-import { FeedEntryIcon } from '@/components/Funding/FeedEntryIcon';
-import { GrantFundingAmount } from '@/components/Funding/GrantFundingAmount';
+import { ContributionAmount } from './ContributionAmount';
+import { FeedEntryIcon } from './FeedEntryIcon';
+import { GrantFundingAmount } from './GrantFundingAmount';
 import {
   getActionIcon,
   getActionLabel,
@@ -17,7 +17,7 @@ import {
   getEntryMeta,
   getGrantAmount,
   getReviewScore,
-} from '@/components/Funding/lib/feedEntryAdapters';
+} from './lib/feedEntryAdapters';
 import { formatTimeAgo } from '@/utils/date';
 import type { FeedEntry } from '@/types/feed';
 
