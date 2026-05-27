@@ -87,7 +87,7 @@ export interface FeedPostContent extends BaseFeedContent {
   contentType: 'PREREGISTRATION' | 'POST';
   postType?: string; // The actual type from content_object.type
   fundraise?: Fundraise;
-  fundraiseContribution?: { amount: number; currency: string };
+  fundraiseContribution?: { amount: number; currency: 'USD' | 'RSC' };
   textPreview: string;
   slug: string;
   title: string;
@@ -972,7 +972,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           createdBy: transformAuthorProfile(author),
           fundraiseContribution: {
             amount: content_object.amount || 0,
-            currency: content_object.currency || 'USD',
+            currency: content_object.currency === 'RSC' ? 'RSC' : 'USD',
           },
         };
         content = contributionEntry;
