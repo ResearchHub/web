@@ -162,12 +162,10 @@ export interface DisplayedAmount {
   inUSD: boolean;
 }
 
-/**
- * Picks the right amount and currency to render for a contribution. Honors the
- * user's preference when an exchange rate is available, otherwise falls back to
- * the stored currency so we never multiply by a 0 rate. `formatCurrency` only
- * converts RSC → USD, so the reverse direction is computed here.
- */
+function toDisplayPrecision(amount: number): number {
+  return Math.round(amount * 100) / 100;
+}
+
 export function resolveDisplayedContribution(
   contribution: FeedContribution,
   showUSD: boolean,
@@ -177,9 +175,9 @@ export function resolveDisplayedContribution(
   const canConvert = exchangeRate > 0;
   const inUSD = canConvert ? showUSD : sourceIsUSD;
 
-  if (sourceIsUSD === inUSD) return { amount: contribution.amount, inUSD };
-  if (sourceIsUSD) return { amount: contribution.amount / exchangeRate, inUSD };
-  return { amount: contribution.amount * exchangeRate, inUSD };
+  if (sourceIsUSD === inUSD) return { amount: toDisplayPrecision(contribution.amount), inUSD };
+  if (sourceIsUSD) return { amount: toDisplayPrecision(contribution.amount / exchangeRate), inUSD };
+  return { amount: toDisplayPrecision(contribution.amount * exchangeRate), inUSD };
 }
 
 export interface FeedGrantAmount {
