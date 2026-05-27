@@ -6,6 +6,7 @@ import {
   transformUser,
   transformUserDetailsForModerator,
   transformRiskScoreEvent,
+  transformInsight,
 } from '@/types/user';
 
 interface University {
@@ -192,6 +193,7 @@ export class UserService {
       next: response.next ?? null,
       previous: response.previous ?? null,
       results: (response.results ?? []).map(transformRiskScoreEvent),
+      insights: (response.insights ?? []).map(transformInsight),
     };
   }
 

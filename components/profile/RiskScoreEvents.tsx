@@ -1,9 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, TrendingDown, TrendingUp } from 'lucide-react';
-import { useRiskScoreEvents, type RiskScoreEventsFilters } from '@/hooks/useAuthor';
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+} from 'lucide-react';
+import { type RiskScoreEventsFilters } from '@/hooks/useAuthor';
+import { type RiskScoreEvent, type SourceDetail } from '@/types/user';
 import { formatTimestamp } from '@/utils/date';
+import { snakeCaseToTitleCase } from '@/utils/stringUtils';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
 
@@ -30,27 +39,82 @@ const DELTA_FILTER_OPTIONS = [
   { label: 'Rewards only', value: 'false' },
 ];
 
+const FILTER_INPUT_CLASS =
+  'text-xs border border-gray-200 rounded-lg px-2.5 py-2 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-300 transition-colors';
+
 interface RiskScoreEventsProps {
-  userId: string;
+  events: RiskScoreEvent[];
+  count: number;
+  page: number;
+  pageSize: number;
+  isLoading: boolean;
+  error: string | null;
+  fetchEvents: (filters: RiskScoreEventsFilters) => Promise<void>;
 }
+
+const DOCUMENT_LABELS: Record<string, string> = {
+  PAPER: 'Paper',
+  DISCUSSION: 'Work',
+  PREREGISTRATION: 'Proposal',
+  GRANT: 'Funding Opportunity',
+  QUESTION: 'Question',
+  NOTE: 'Note',
+  BOUNTY: 'Bounty',
+  POSTS: 'Work',
+};
+
+const COMMENT_LABELS: Record<string, string> = {
+  GENERIC_COMMENT: 'Comment',
+  PEER_REVIEW: 'Peer Review',
+  REVIEW: 'Community Review',
+  ANSWER: 'Answer',
+  SUMMARY: 'Summary',
+  AUTHOR_UPDATE: 'Author Update',
+  REPLICABILITY_COMMENT: 'Replicability Comment',
+  INNER_CONTENT_COMMENT: 'Inline Comment',
+};
+
+function getSourceLabel(detail: SourceDetail): string {
+  if (detail.commentType) return COMMENT_LABELS[detail.commentType] ?? 'Comment';
+  if (detail.documentType) return DOCUMENT_LABELS[detail.documentType] ?? 'Document';
+  return 'Item';
+}
+
+const EVENT_ACTION_LABELS: Record<string, string> = {
+  CONTENT_CENSORED: 'Censored',
+  WORK_APPROVED: 'Approved',
+  WORK_DECLINED: 'Declined',
+  BOUNTY_AWARDED: 'Bounty Awarded',
+  PEER_REVIEW_TIPPED: 'Tipped',
+  PEER_REVIEW_ASSESSED: 'Assessed',
+};
 
 function formatEventType(eventType: string): string {
-  return eventType
-    .split('_')
-    .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
-    .join(' ');
+  return snakeCaseToTitleCase(eventType);
 }
 
-export function RiskScoreEvents({ userId }: RiskScoreEventsProps) {
+function formatEventLabel(event: RiskScoreEvent): string {
+  if (!event.sourceDetail) return formatEventType(event.eventType);
+  const source = getSourceLabel(event.sourceDetail);
+  const action = EVENT_ACTION_LABELS[event.eventType];
+  if (!action) return formatEventType(event.eventType);
+  return `${source} ${action}`;
+}
+
+export function RiskScoreEvents({
+  events,
+  count,
+  page,
+  pageSize,
+  isLoading,
+  error,
+  fetchEvents,
+}: RiskScoreEventsProps) {
   const [eventTypeFilter, setEventTypeFilter] = useState('');
   const [deltaFilter, setDeltaFilter] = useState<'all' | 'true' | 'false'>('all');
   const [dateAfter, setDateAfter] = useState('');
   const [dateBefore, setDateBefore] = useState('');
-
-  const [{ events, count, page, pageSize, isLoading, error }, fetchEvents] = useRiskScoreEvents(
-    userId,
-    { pageSize: 10 }
-  );
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const totalPages = Math.ceil(count / pageSize);
 
@@ -67,125 +131,182 @@ export function RiskScoreEvents({ userId }: RiskScoreEventsProps) {
   const goToPage = (newPage: number) => fetchEvents(buildFilters({ page: newPage }));
 
   return (
-    <div className="flex flex-col gap-3 mt-4 pb-20">
-      <h4 className="text-xs font-medium uppercase text-gray-500">Risk Score Events</h4>
+    <div className="border border-gray-100 rounded-lg overflow-hidden pb-20">
+      {/* Header + Filters */}
+      <div className="bg-gray-50 px-4 py-3 border-b border-gray-100">
+        <h4 className="text-sm font-semibold text-gray-800 mb-2">Score Events</h4>
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={eventTypeFilter}
+            onChange={(e) => {
+              setEventTypeFilter(e.target.value);
+              fetchEvents(buildFilters({ eventType: e.target.value || undefined }));
+            }}
+            className={FILTER_INPUT_CLASS}
+          >
+            {EVENT_TYPE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <select
-          value={eventTypeFilter}
-          onChange={(e) => {
-            setEventTypeFilter(e.target.value);
-            fetchEvents(buildFilters({ eventType: e.target.value || undefined }));
-          }}
-          className="text-xs border border-gray-200 rounded-md px-2 py-1.5 bg-white text-gray-700"
-        >
-          {EVENT_TYPE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          <select
+            value={deltaFilter}
+            onChange={(e) => {
+              const val = e.target.value as 'all' | 'true' | 'false';
+              setDeltaFilter(val);
+              fetchEvents(
+                buildFilters({ deltaPositive: val === 'all' ? undefined : val === 'true' })
+              );
+            }}
+            className={FILTER_INPUT_CLASS}
+          >
+            {DELTA_FILTER_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
 
-        <select
-          value={deltaFilter}
-          onChange={(e) => {
-            const val = e.target.value as 'all' | 'true' | 'false';
-            setDeltaFilter(val);
-            fetchEvents(
-              buildFilters({ deltaPositive: val === 'all' ? undefined : val === 'true' })
-            );
-          }}
-          className="text-xs border border-gray-200 rounded-md px-2 py-1.5 bg-white text-gray-700"
-        >
-          {DELTA_FILTER_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          <input
+            type="date"
+            value={dateAfter}
+            onChange={(e) => {
+              setDateAfter(e.target.value);
+              fetchEvents(
+                buildFilters({
+                  createdDateAfter: e.target.value ? `${e.target.value}T00:00:00Z` : undefined,
+                })
+              );
+            }}
+            className={FILTER_INPUT_CLASS}
+          />
 
-        <input
-          type="date"
-          value={dateAfter}
-          onChange={(e) => {
-            setDateAfter(e.target.value);
-            fetchEvents(
-              buildFilters({
-                createdDateAfter: e.target.value ? `${e.target.value}T00:00:00Z` : undefined,
-              })
-            );
-          }}
-          placeholder="From"
-          className="text-xs border border-gray-200 rounded-md px-2 py-1.5 bg-white text-gray-700"
-        />
-
-        <input
-          type="date"
-          value={dateBefore}
-          onChange={(e) => {
-            setDateBefore(e.target.value);
-            fetchEvents(
-              buildFilters({
-                createdDateBefore: e.target.value ? `${e.target.value}T23:59:59Z` : undefined,
-              })
-            );
-          }}
-          placeholder="To"
-          className="text-xs border border-gray-200 rounded-md px-2 py-1.5 bg-white text-gray-700"
-        />
+          <input
+            type="date"
+            value={dateBefore}
+            onChange={(e) => {
+              setDateBefore(e.target.value);
+              fetchEvents(
+                buildFilters({
+                  createdDateBefore: e.target.value ? `${e.target.value}T23:59:59Z` : undefined,
+                })
+              );
+            }}
+            className={FILTER_INPUT_CLASS}
+          />
+        </div>
       </div>
 
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {/* Event List */}
+      <div className="px-4 py-2">
+        {error && <p className="text-xs text-red-600 py-2">{error}</p>}
 
-      {isLoading && events.length === 0 ? (
-        <div className="flex flex-col gap-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <span className="bg-gray-200 rounded h-4 w-full animate-pulse" />
-            </div>
-          ))}
-        </div>
-      ) : events.length === 0 ? (
-        <p className="text-xs text-gray-500">No events found.</p>
-      ) : (
-        <div className={cn('flex flex-col gap-0.5', isLoading && 'opacity-50 pointer-events-none')}>
-          {events.map((event) => (
-            <div
-              key={event.id}
-              className="flex items-center justify-between py-1.5 px-2 rounded text-xs hover:bg-gray-50"
-            >
-              <div className="flex items-center gap-2">
-                {event.delta > 0 ? (
-                  <TrendingUp className="w-3.5 h-3.5 text-red-500 shrink-0" />
-                ) : (
-                  <TrendingDown className="w-3.5 h-3.5 text-green-500 shrink-0" />
-                )}
-                <span className="text-gray-700">{formatEventType(event.eventType)}</span>
+        {isLoading && events.length === 0 ? (
+          <div className="flex flex-col gap-2 py-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <span className="bg-gray-100 rounded h-10 w-full animate-pulse" />
               </div>
+            ))}
+          </div>
+        ) : events.length === 0 ? (
+          <p className="text-sm text-gray-400 py-6 text-center">No events found.</p>
+        ) : (
+          <div className={cn('flex flex-col', isLoading && 'opacity-50 pointer-events-none')}>
+            {events.map((event) => {
+              const isPenalty = event.delta > 0;
+              const isExpanded = expandedId === event.id;
+              const hasDetail = !!event.sourceDetail;
+              return (
+                <div key={event.id} className="my-0.5">
+                  <div
+                    role={hasDetail ? 'button' : undefined}
+                    tabIndex={hasDetail ? 0 : undefined}
+                    aria-expanded={hasDetail ? isExpanded : undefined}
+                    onClick={() => hasDetail && setExpandedId(isExpanded ? null : event.id)}
+                    onKeyDown={(e) => {
+                      if (hasDetail && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault();
+                        setExpandedId(isExpanded ? null : event.id);
+                      }
+                    }}
+                    className={cn(
+                      'w-full flex items-center justify-between py-2.5 px-3 border-l-2 rounded-r-md text-sm text-left transition-colors',
+                      isPenalty
+                        ? 'border-l-red-400 bg-red-50/40 hover:bg-red-50'
+                        : 'border-l-green-400 bg-green-50/40 hover:bg-green-50',
+                      hasDetail && 'cursor-pointer'
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      {isPenalty ? (
+                        <ArrowDownRight className="w-4 h-4 text-red-500 shrink-0" />
+                      ) : (
+                        <ArrowUpRight className="w-4 h-4 text-green-500 shrink-0" />
+                      )}
+                      <span className="text-gray-800 font-medium">{formatEventLabel(event)}</span>
+                      {hasDetail && (
+                        <ChevronDown
+                          className={cn(
+                            'w-3.5 h-3.5 text-gray-400 transition-transform',
+                            isExpanded && 'rotate-180'
+                          )}
+                        />
+                      )}
+                    </div>
 
-              <div className="flex items-center gap-3">
-                <span
-                  className={cn(
-                    'font-medium tabular-nums',
-                    event.delta > 0 ? 'text-red-600' : 'text-green-600'
+                    <div className="flex items-center gap-4">
+                      <span
+                        className={cn(
+                          'font-semibold tabular-nums',
+                          isPenalty ? 'text-red-600' : 'text-green-600'
+                        )}
+                      >
+                        {isPenalty ? '+' : ''}
+                        {event.delta}
+                      </span>
+                      <span className="text-gray-400 text-xs w-24 text-right">
+                        {formatTimestamp(event.createdDate)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {isExpanded && event.sourceDetail && (
+                    <div className="ml-9 mr-3 mb-1 mt-0.5 rounded-md bg-white border border-gray-100 px-3 py-2.5 text-xs text-gray-600">
+                      {event.sourceDetail.title && (
+                        <p className="font-medium text-gray-800 mb-1">{event.sourceDetail.title}</p>
+                      )}
+                      {event.sourceDetail.snippet && (
+                        <p className="text-gray-500 leading-relaxed">
+                          {event.sourceDetail.snippet}
+                        </p>
+                      )}
+                      {event.sourceDetail.url && !isPenalty && (
+                        <a
+                          href={event.sourceDetail.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 mt-2 text-blue-600 hover:text-blue-700 font-medium"
+                        >
+                          View source <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
                   )}
-                >
-                  {event.delta > 0 ? '+' : ''}
-                  {event.delta}
-                </span>
-                <span className="text-gray-400 w-24 text-right">
-                  {formatTimestamp(event.createdDate)}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
+      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50">
           <span className="text-xs text-gray-500">
-            {count} total event{count !== 1 ? 's' : ''}
+            {count} event{count !== 1 ? 's' : ''}
           </span>
           <div className="flex items-center gap-1">
             <Button
@@ -193,11 +314,11 @@ export function RiskScoreEvents({ userId }: RiskScoreEventsProps) {
               size="sm"
               onClick={() => goToPage(page - 1)}
               disabled={page <= 1 || isLoading}
-              className="p-1"
+              className="p-1.5 rounded-md"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <span className="text-xs text-gray-600 px-2">
+            <span className="text-xs font-medium text-gray-600 px-2">
               {page} / {totalPages}
             </span>
             <Button
@@ -205,7 +326,7 @@ export function RiskScoreEvents({ userId }: RiskScoreEventsProps) {
               size="sm"
               onClick={() => goToPage(page + 1)}
               disabled={page >= totalPages || isLoading}
-              className="p-1"
+              className="p-1.5 rounded-md"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>

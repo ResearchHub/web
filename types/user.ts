@@ -152,13 +152,49 @@ export type UserDetailsForModerator = {
   } | null;
 };
 
+export type DocumentType =
+  | 'PAPER'
+  | 'DISCUSSION'
+  | 'PREREGISTRATION'
+  | 'GRANT'
+  | 'QUESTION'
+  | 'NOTE'
+  | 'BOUNTY'
+  | 'POSTS';
+
+export type CommentType =
+  | 'GENERIC_COMMENT'
+  | 'PEER_REVIEW'
+  | 'REVIEW'
+  | 'ANSWER'
+  | 'SUMMARY'
+  | 'AUTHOR_UPDATE'
+  | 'REPLICABILITY_COMMENT'
+  | 'INNER_CONTENT_COMMENT';
+
+export type SourceDetail = {
+  title: string;
+  snippet: string;
+  url: string | null;
+  commentType: CommentType | null;
+  documentType: DocumentType | null;
+};
+
 export type RiskScoreEvent = {
   id: number;
   eventType: string;
   delta: number;
   sourceType: string | null;
   sourceContentId: number | null;
+  sourceDetail: SourceDetail | null;
   createdDate: string;
+};
+
+export type Insight = {
+  eventType: string;
+  count: number;
+  totalDelta: number;
+  sentiment: 'POSITIVE' | 'NEGATIVE' | 'MIXED';
 };
 
 export type RiskScoreEventsResponse = {
@@ -166,6 +202,7 @@ export type RiskScoreEventsResponse = {
   next: string | null;
   previous: string | null;
   results: RiskScoreEvent[];
+  insights: Insight[];
 };
 
 export const transformRiskScoreEvent = (raw: any): RiskScoreEvent => ({
@@ -174,7 +211,23 @@ export const transformRiskScoreEvent = (raw: any): RiskScoreEvent => ({
   delta: raw.delta ?? 0,
   sourceType: raw.source_type || null,
   sourceContentId: raw.source_content_id ?? null,
+  sourceDetail: raw.source_detail
+    ? {
+        title: raw.source_detail.title ?? '',
+        snippet: raw.source_detail.snippet ?? '',
+        url: raw.source_detail.url ?? null,
+        commentType: raw.source_detail.comment_type ?? null,
+        documentType: raw.source_detail.document_type ?? null,
+      }
+    : null,
   createdDate: raw.created_date || '',
+});
+
+export const transformInsight = (raw: any): Insight => ({
+  eventType: raw.event_type || '',
+  count: raw.count ?? 0,
+  totalDelta: raw.total_delta ?? 0,
+  sentiment: raw.sentiment || 'MIXED',
 });
 
 export const transformUserDetailsForModerator = (raw: any): UserDetailsForModerator => {

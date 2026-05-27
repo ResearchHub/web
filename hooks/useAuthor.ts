@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { AuthorService } from '@/services/author.service';
 import type { AuthorUpdatePayload } from '@/services/author.service';
-import type { User, RiskScoreEvent } from '@/types/user';
+import type { User, RiskScoreEvent, Insight } from '@/types/user';
 import { Achievement } from '@/types/authorProfile';
 import { AuthorSummaryStats } from '@/types/authorProfile';
 import { UserService } from '@/services/user.service';
@@ -265,6 +265,7 @@ export interface RiskScoreEventsFilters {
 
 interface UseRiskScoreEventsState {
   events: RiskScoreEvent[];
+  insights: Insight[];
   count: number;
   page: number;
   pageSize: number;
@@ -283,6 +284,7 @@ export function useRiskScoreEvents(
   const defaultPageSize = initialFilters?.pageSize ?? 20;
 
   const [events, setEvents] = useState<RiskScoreEvent[]>([]);
+  const [insights, setInsights] = useState<Insight[]>([]);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(initialFilters?.page ?? 1);
   const [isLoading, setIsLoading] = useState(false);
@@ -296,14 +298,12 @@ export function useRiskScoreEvents(
       setError(null);
       try {
         const response = await UserService.fetchRiskScoreEvents(userId, {
+          ...filters,
           page: filters.page ?? 1,
           pageSize: filters.pageSize ?? defaultPageSize,
-          eventType: filters.eventType,
-          deltaPositive: filters.deltaPositive,
-          createdDateAfter: filters.createdDateAfter,
-          createdDateBefore: filters.createdDateBefore,
         });
         setEvents(response.results);
+        setInsights(response.insights);
         setCount(response.count);
         setPage(filters.page ?? 1);
       } catch (err: unknown) {
@@ -320,5 +320,8 @@ export function useRiskScoreEvents(
     fetchEvents({ page: 1, pageSize: defaultPageSize });
   }, [fetchEvents, defaultPageSize]);
 
-  return [{ events, count, page, pageSize: defaultPageSize, isLoading, error }, fetchEvents];
+  return [
+    { events, insights, count, page, pageSize: defaultPageSize, isLoading, error },
+    fetchEvents,
+  ];
 }
