@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ArrowDownRight, ArrowUpRight, Minus, MoreHorizontal } from 'lucide-react';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -13,6 +13,7 @@ import { snakeCaseToTitleCase } from '@/utils/stringUtils';
 import { cn } from '@/utils/styles';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
+import { CopyButton } from '@/components/ui/CopyButton';
 import { RiskScoreEvents } from '@/components/profile/RiskScoreEvents';
 import type { UserDetailsForModerator, Insight } from '@/types/user';
 
@@ -22,9 +23,10 @@ type ModerationTabProps = {
   readonly refetchAuthorInfo: () => Promise<void>;
 };
 
-type RiskTier = 'trusted' | 'moderate' | 'high' | 'unknown';
+type RiskTier = 'trusted' | 'moderate' | 'high' | 'unknown' | 'suspended';
 
-function getRiskTier(score: number): RiskTier {
+function getRiskTier(score: number, isSuspended: boolean): RiskTier {
+  if (isSuspended) return 'suspended';
   if (score === -1) return 'unknown';
   if (score <= 50) return 'trusted';
   if (score >= 150) return 'high';
@@ -47,6 +49,11 @@ const TIER_CONFIG: Record<RiskTier, { label: string; cardClass: string; scoreCla
     cardClass: 'bg-gradient-to-br from-red-50 to-rose-50 border-red-200',
     scoreClass: 'text-red-700',
   },
+  suspended: {
+    label: 'Suspended',
+    cardClass: 'bg-gradient-to-br from-red-100 to-red-50 border-red-300',
+    scoreClass: 'text-red-800',
+  },
   unknown: {
     label: 'Unknown',
     cardClass: 'bg-gradient-to-br from-gray-50 to-slate-50 border-gray-200',
@@ -65,6 +72,12 @@ const SENTIMENT_TO_VARIANT: Record<string, InsightItem['variant']> = {
   NEGATIVE: 'negative',
   MIXED: 'mixed',
 };
+
+const PERSONA_EVENT_TYPES = new Set([
+  'PERSONA_VERIFIED',
+  'PERSONA_VERIFIED_WHITELISTED',
+  'PERSONA_VERIFIED_NON_WHITELISTED',
+]);
 
 function InsightIcon({ variant }: { variant: InsightItem['variant'] }) {
   if (variant === 'positive') return <ArrowUpRight size={14} className="text-green-600 shrink-0" />;
@@ -114,35 +127,54 @@ function getInsightTooltip(insight: Insight): string {
   return `User has ${insight.count} event${insight.count !== 1 ? 's' : ''} of this type`;
 }
 
+function buildVerificationTooltip(userDetails: UserDetailsForModerator): string | undefined {
+  const v = userDetails.verification;
+  if (v?.status !== 'APPROVED') return undefined;
+  return `Verified as ${v.firstName} ${v.lastName} on ${formatTimestamp(v.createdDate)} via ${snakeCaseToTitleCase(v.verifiedVia)}`;
+}
+
 function buildInsights(
   userDetails: UserDetailsForModerator,
   backendInsights: Insight[]
 ): InsightItem[] {
   const items: InsightItem[] = [];
+  const verificationTooltip = buildVerificationTooltip(userDetails);
+  const hasPersonaInsight = backendInsights.some((i) => PERSONA_EVENT_TYPES.has(i.eventType));
 
-  if (userDetails.verification?.status === 'APPROVED') {
-    const v = userDetails.verification;
-    const tooltip = `Verified as ${v.firstName} ${v.lastName} on ${formatTimestamp(v.createdDate)} via ${snakeCaseToTitleCase(v.verifiedVia)}`;
-    items.push({ label: 'Identity Verified', variant: 'positive', tooltip });
-  } else {
-    items.push({
-      label: 'Not Verified',
-      variant: 'negative',
-      tooltip: 'No identity verification on file',
-    });
+  if (!hasPersonaInsight) {
+    items.push(
+      verificationTooltip
+        ? { label: 'Identity Verified', variant: 'positive', tooltip: verificationTooltip }
+        : {
+            label: 'Not Verified',
+            variant: 'negative',
+            tooltip: 'No identity verification on file',
+          }
+    );
   }
 
   if (userDetails.isProbableSpammer) {
-    items.push({ label: 'Flagged as Spammer', variant: 'negative' });
+    items.push({
+      label: 'Flagged as Spammer',
+      variant: 'negative',
+      tooltip: 'User has been flagged as a probable spammer',
+    });
   }
 
   if (userDetails.isSuspended) {
-    items.push({ label: 'User Suspended', variant: 'negative' });
+    items.push({
+      label: 'User Suspended',
+      variant: 'negative',
+      tooltip: 'User account is currently suspended',
+    });
   }
 
   for (const insight of backendInsights) {
     const variant = SENTIMENT_TO_VARIANT[insight.sentiment] ?? 'mixed';
-    const tooltip = getInsightTooltip(insight);
+    const tooltip =
+      PERSONA_EVENT_TYPES.has(insight.eventType) && verificationTooltip
+        ? verificationTooltip
+        : getInsightTooltip(insight);
     items.push({ label: formatEventLabel(insight.eventType, insight.count), variant, tooltip });
   }
 
@@ -191,68 +223,57 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
 
   const refreshAfterAction = () => Promise.all([refetchAuthorInfo(), refetchModerationDetails()]);
 
-  const handleBanUser = () => {
+  const executeAction = (action: () => Promise<void>, successMsg: string, failMsg: string) => {
     setIsMenuOpen(false);
-    suspendUser(authorId.toString())
+    action()
       .then(() => {
-        toast.success('User has been suspended successfully');
+        toast.success(successMsg);
         return refreshAfterAction();
       })
-      .catch((error) => {
-        console.error('Failed to suspend user:', error);
-        toast.error('Failed to suspend user. Please try again.');
-      });
+      .catch(() => toast.error(failMsg));
   };
 
-  const handleReinstateUser = () => {
-    setIsMenuOpen(false);
-    reinstateUser(authorId.toString())
-      .then(() => {
-        toast.success('User has been reinstated successfully');
-        return refreshAfterAction();
-      })
-      .catch((error) => {
-        console.error('Failed to reinstate user:', error);
-        toast.error('Failed to reinstate user. Please try again.');
-      });
-  };
+  const handleBanUser = () =>
+    executeAction(
+      () => suspendUser(authorId.toString()),
+      'User has been suspended',
+      'Failed to suspend user'
+    );
 
-  const handleFlagUser = () => {
-    setIsMenuOpen(false);
-    markProbableSpammer(authorId.toString())
-      .then(() => {
-        toast.success('User flagged as probable spammer');
-        return refreshAfterAction();
-      })
-      .catch((error) => {
-        console.error('Failed to flag user:', error);
-        toast.error('Failed to flag user. Please try again.');
-      });
-  };
+  const handleReinstateUser = () =>
+    executeAction(
+      () => reinstateUser(authorId.toString()),
+      'User has been reinstated',
+      'Failed to reinstate user'
+    );
 
-  const menuItems = useMemo(() => {
-    const items: { id: string; label: string; onClick: () => void; show: boolean }[] = [
-      {
-        id: 'flag_user',
-        label: moderationState.isLoading ? 'Flagging...' : 'Flag user',
-        onClick: handleFlagUser,
-        show: (isModerator || isHubEditor) && !userDetails?.isProbableSpammer,
-      },
-      {
-        id: 'ban_user',
-        label: moderationState.isLoading ? 'Suspending...' : 'Ban User',
-        onClick: handleBanUser,
-        show: isModerator,
-      },
-      {
-        id: 'reinstate_user',
-        label: moderationState.isLoading ? 'Reinstating...' : 'Reinstate User',
-        onClick: handleReinstateUser,
-        show: isModerator,
-      },
-    ];
-    return items.filter((i) => i.show);
-  }, [isModerator, isHubEditor, userDetails, moderationState.isLoading]);
+  const handleFlagUser = () =>
+    executeAction(
+      () => markProbableSpammer(authorId.toString()),
+      'User flagged as probable spammer',
+      'Failed to flag user'
+    );
+
+  const menuItems = [
+    {
+      id: 'flag_user',
+      label: moderationState.isLoading ? 'Flagging...' : 'Flag user',
+      onClick: handleFlagUser,
+      show: (isModerator || isHubEditor) && !userDetails?.isProbableSpammer,
+    },
+    {
+      id: 'ban_user',
+      label: moderationState.isLoading ? 'Suspending...' : 'Ban User',
+      onClick: handleBanUser,
+      show: isModerator,
+    },
+    {
+      id: 'reinstate_user',
+      label: moderationState.isLoading ? 'Reinstating...' : 'Reinstate User',
+      onClick: handleReinstateUser,
+      show: isModerator,
+    },
+  ].filter((i) => i.show);
 
   if (isLoading) return <ModerationSkeleton />;
   if (!userDetails) return null;
@@ -260,24 +281,38 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
   const verifiedName = userDetails.verification
     ? `${userDetails.verification.firstName} ${userDetails.verification.lastName}`
     : 'N/A';
-  const verificationVia = userDetails.verification
-    ? `${snakeCaseToTitleCase(userDetails.verification.verifiedVia)} on ${formatTimestamp(
-        userDetails.verification.createdDate
-      )}`
-    : 'N/A';
 
   const riskScore = userDetails.riskScore;
-  const tier = getRiskTier(riskScore);
+  const tier = getRiskTier(riskScore, userDetails.isSuspended);
   const tierConfig = TIER_CONFIG[tier];
   const insights = buildInsights(userDetails, eventsState.insights);
 
+  const userIdDisplay = String(userDetails.id ?? '');
+  const verificationId = userDetails.verification?.externalId || '';
+
   const detailItems: { label: string; value: React.ReactNode }[] = [
-    { label: 'User ID', value: userDetails.id ?? 'N/A' },
-    { label: 'ORCID Connected', value: userDetails.isOrcidConnected ? 'Yes' : 'No' },
+    { label: 'Email', value: userDetails.email || 'N/A' },
+    {
+      label: 'User ID',
+      value: userIdDisplay ? (
+        <span className="inline-flex items-center gap-1">
+          {userIdDisplay} <CopyButton value={userIdDisplay} />
+        </span>
+      ) : (
+        'N/A'
+      ),
+    },
     { label: 'Verified name', value: verifiedName },
-    { label: 'Verification via', value: verificationVia },
-    { label: 'Verification ID', value: userDetails.verification?.externalId || 'N/A' },
-    { label: 'Verified status', value: userDetails.verification?.status || 'N/A' },
+    {
+      label: 'Verification ID',
+      value: verificationId ? (
+        <span className="inline-flex items-center gap-1">
+          {verificationId} <CopyButton value={verificationId} />
+        </span>
+      ) : (
+        'N/A'
+      ),
+    },
     { label: 'ORCID Email', value: userDetails.orcidVerifiedEduEmail || 'N/A' },
   ];
 
@@ -309,18 +344,11 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
                   </span>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                  {userDetails.isSuspended && (
-                    <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 border border-red-200">
-                      Suspended
-                    </span>
-                  )}
-                  {userDetails.isProbableSpammer && (
-                    <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800 border border-orange-200">
-                      Probable Spammer
-                    </span>
-                  )}
-                </div>
+                {userDetails.isProbableSpammer && (
+                  <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800 border border-orange-200">
+                    Probable Spammer
+                  </span>
+                )}
               </div>
 
               {menuItems.length > 0 && (
@@ -354,62 +382,50 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
           </div>
         )}
 
-        {/* Details */}
+        {/* Details + Insights */}
         <div className={cn('px-5 py-4', showRiskScore && 'border-t border-black/5 mt-4')}>
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-            Details
-          </span>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 mt-2 text-sm">
-            <div className="flex items-baseline gap-1.5 min-w-0">
-              <span className="font-medium text-gray-500 shrink-0">Email:</span>
-              <span className="text-gray-900 break-words min-w-0">
-                {userDetails.email || 'N/A'}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Details Column */}
+            <div>
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                Details
               </span>
-            </div>
-            <div className="flex items-baseline gap-1.5 min-w-0">
-              <span className="font-medium text-gray-500 shrink-0">Suspended:</span>
-              <span
-                className={cn(
-                  'min-w-0',
-                  userDetails.isSuspended ? 'text-red-600 font-medium' : 'text-gray-900'
-                )}
-              >
-                {userDetails.isSuspended ? 'Yes' : 'No'}
-              </span>
-            </div>
-            {detailItems.map((item) => (
-              <div key={item.label} className="flex items-baseline gap-1.5 min-w-0">
-                <span className="font-medium text-gray-500 shrink-0">{item.label}:</span>
-                <span className="text-gray-900 break-words min-w-0">{item.value}</span>
+              <div className="flex flex-col gap-2 mt-2 text-sm">
+                {detailItems.map((item) => (
+                  <div key={item.label} className="flex items-baseline gap-1.5 min-w-0">
+                    <span className="font-medium text-gray-500 shrink-0">{item.label}:</span>
+                    <span className="text-gray-900 break-words min-w-0">{item.value}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Insights Column */}
+            {showRiskScore && insights.length > 0 && (
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                  Insights
+                </span>
+                <div className="flex flex-col gap-2 mt-2">
+                  {insights.map((insight) => (
+                    <div key={insight.label} className="flex items-center gap-1.5">
+                      <InsightIcon variant={insight.variant} />
+                      {insight.tooltip ? (
+                        <Tooltip content={insight.tooltip} position="right" width="w-64">
+                          <span className="text-sm font-medium text-gray-800 border-b border-dotted border-gray-400 cursor-help">
+                            {insight.label}
+                          </span>
+                        </Tooltip>
+                      ) : (
+                        <span className="text-sm font-medium text-gray-800">{insight.label}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Insights */}
-        {showRiskScore && insights.length > 0 && (
-          <div className="px-5 pb-5 pt-3 border-t border-black/5">
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-              Insights
-            </span>
-            <div className="flex flex-col gap-1.5 mt-1.5">
-              {insights.map((insight) => (
-                <div key={insight.label} className="flex items-center gap-1.5">
-                  <InsightIcon variant={insight.variant} />
-                  {insight.tooltip ? (
-                    <Tooltip content={insight.tooltip} position="right" width="w-64">
-                      <span className="text-sm font-medium text-gray-800 border-b border-dotted border-gray-400 cursor-help">
-                        {insight.label}
-                      </span>
-                    </Tooltip>
-                  ) : (
-                    <span className="text-sm font-medium text-gray-800">{insight.label}</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Risk Score Events */}
