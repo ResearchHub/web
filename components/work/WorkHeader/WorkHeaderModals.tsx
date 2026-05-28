@@ -134,7 +134,7 @@ export function WorkHeaderModals({
           onClose={onCloseCloseGrantModal}
           onConfirm={onConfirmCloseGrant}
           title="Close RFP"
-          message="Are you sure you want to close this RFP? It will stop accepting new proposals. This action cannot be undone."
+          message="Are you sure you want to close this RFP? It will stop accepting new proposals."
           confirmText={isClosingGrant ? 'Closing...' : 'Close RFP'}
           cancelText="Cancel"
           confirmButtonClass="bg-red-600 hover:bg-red-700"
