@@ -33,32 +33,12 @@ function getRiskTier(score: number, isSuspended: boolean): RiskTier {
   return 'moderate';
 }
 
-const TIER_CONFIG: Record<RiskTier, { label: string; cardClass: string; scoreClass: string }> = {
-  trusted: {
-    label: 'Trusted',
-    cardClass: 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200',
-    scoreClass: 'text-green-700',
-  },
-  moderate: {
-    label: 'Moderate',
-    cardClass: 'bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200',
-    scoreClass: 'text-amber-700',
-  },
-  high: {
-    label: 'High Risk',
-    cardClass: 'bg-gradient-to-br from-red-50 to-rose-50 border-red-200',
-    scoreClass: 'text-red-700',
-  },
-  suspended: {
-    label: 'Suspended',
-    cardClass: 'bg-gradient-to-br from-red-100 to-red-50 border-red-300',
-    scoreClass: 'text-red-800',
-  },
-  unknown: {
-    label: 'Unknown',
-    cardClass: 'bg-gradient-to-br from-gray-50 to-slate-50 border-gray-200',
-    scoreClass: 'text-gray-600',
-  },
+const TIER_CONFIG: Record<RiskTier, { label: string; scoreClass: string }> = {
+  trusted: { label: 'Trusted', scoreClass: 'text-green-700' },
+  moderate: { label: 'Moderate', scoreClass: 'text-amber-700' },
+  high: { label: 'High Risk', scoreClass: 'text-red-700' },
+  suspended: { label: 'Suspended', scoreClass: 'text-red-800' },
+  unknown: { label: 'Unknown', scoreClass: 'text-gray-600' },
 };
 
 interface InsightItem {
@@ -301,12 +281,7 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
   return (
     <section className="flex flex-col gap-6 pb-20">
       {/* Combined Moderation Card */}
-      <div
-        className={cn(
-          'rounded-xl border overflow-hidden',
-          showRiskScore ? tierConfig.cardClass : 'bg-gray-50 border-gray-200'
-        )}
-      >
+      <div className="rounded-xl border overflow-hidden bg-gray-50/80 border-gray-200">
         {/* Score Header */}
         {showRiskScore && (
           <div className="p-5 pb-0">
