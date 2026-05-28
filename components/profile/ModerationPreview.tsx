@@ -16,11 +16,12 @@ function getScoreLabel(score: number, isSuspended: boolean): string {
   return 'Moderate';
 }
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
+function Row({ label, value, copyValue }: { label: string; value: string; copyValue?: string }) {
   return (
-    <li className="text-sm text-gray-700 flex items-baseline gap-1 min-w-0">
+    <li className="text-sm text-gray-700 flex items-center gap-1 min-w-0">
       <span className="font-medium shrink-0">{label}:</span>
       <span className="truncate min-w-0">{value}</span>
+      {copyValue && <CopyButton value={copyValue} size={11} />}
     </li>
   );
 }
@@ -58,29 +59,13 @@ export function ModerationPreview({ userId }: ModerationPreviewProps) {
       <ul className="flex flex-col gap-1.5">
         <Row
           label="Persona ID"
-          value={
-            personaId !== 'N/A' ? (
-              <span className="inline-flex items-center gap-1 min-w-0">
-                <span className="truncate">{personaId}</span>
-                <CopyButton value={personaId} size={11} />
-              </span>
-            ) : (
-              'N/A'
-            )
-          }
+          value={personaId}
+          copyValue={personaId !== 'N/A' ? personaId : undefined}
         />
         <Row
           label="User ID"
-          value={
-            userIdDisplay !== 'N/A' ? (
-              <span className="inline-flex items-center gap-1 min-w-0">
-                <span className="truncate">{userIdDisplay}</span>
-                <CopyButton value={userIdDisplay} size={11} />
-              </span>
-            ) : (
-              'N/A'
-            )
-          }
+          value={userIdDisplay}
+          copyValue={userIdDisplay !== 'N/A' ? userIdDisplay : undefined}
         />
         <Row label="Verified name" value={verifiedName} />
         <Row label="Email" value={userDetails.email || 'N/A'} />
@@ -88,16 +73,9 @@ export function ModerationPreview({ userId }: ModerationPreviewProps) {
           <Row
             label="Score"
             value={
-              userDetails.riskScore === -1 ? (
-                'N/A'
-              ) : (
-                <span>
-                  {userDetails.riskScore}{' '}
-                  <span className="text-gray-500">
-                    ({getScoreLabel(userDetails.riskScore, userDetails.isSuspended)})
-                  </span>
-                </span>
-              )
+              userDetails.riskScore === -1
+                ? 'N/A'
+                : `${userDetails.riskScore} (${getScoreLabel(userDetails.riskScore, userDetails.isSuspended)})`
             }
           />
         )}

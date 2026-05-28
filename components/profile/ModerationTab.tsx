@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ArrowDownRight, ArrowUpRight, Minus, MoreHorizontal } from 'lucide-react';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -290,29 +290,11 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
   const userIdDisplay = String(userDetails.id ?? '');
   const verificationId = userDetails.verification?.externalId || '';
 
-  const detailItems: { label: string; value: React.ReactNode }[] = [
+  const detailItems: { label: string; value: string; copyable?: boolean }[] = [
     { label: 'Email', value: userDetails.email || 'N/A' },
-    {
-      label: 'User ID',
-      value: userIdDisplay ? (
-        <span className="inline-flex items-center gap-1">
-          {userIdDisplay} <CopyButton value={userIdDisplay} />
-        </span>
-      ) : (
-        'N/A'
-      ),
-    },
+    { label: 'User ID', value: userIdDisplay || 'N/A', copyable: !!userIdDisplay },
     { label: 'Verified name', value: verifiedName },
-    {
-      label: 'Verification ID',
-      value: verificationId ? (
-        <span className="inline-flex items-center gap-1">
-          {verificationId} <CopyButton value={verificationId} />
-        </span>
-      ) : (
-        'N/A'
-      ),
-    },
+    { label: 'Verification ID', value: verificationId || 'N/A', copyable: !!verificationId },
     { label: 'ORCID Email', value: userDetails.orcidVerifiedEduEmail || 'N/A' },
   ];
 
@@ -392,9 +374,10 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
               </span>
               <div className="flex flex-col gap-2 mt-2 text-sm">
                 {detailItems.map((item) => (
-                  <div key={item.label} className="flex items-baseline gap-1.5 min-w-0">
+                  <div key={item.label} className="flex items-center gap-1.5 min-w-0">
                     <span className="font-medium text-gray-500 shrink-0">{item.label}:</span>
-                    <span className="text-gray-900 break-words min-w-0">{item.value}</span>
+                    <span className="text-gray-900 truncate min-w-0">{item.value}</span>
+                    {item.copyable && <CopyButton value={item.value} />}
                   </div>
                 ))}
               </div>
