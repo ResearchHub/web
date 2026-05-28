@@ -32,6 +32,291 @@ function formatCompact(amount: number, showUSD: boolean, exchangeRate: number): 
   return formatCurrency({ amount, showUSD, exchangeRate, skipConversion: true, shorten: true });
 }
 
+interface GrantDeploymentProgressProps {
+  /** Funder's commitment ceiling — the bar is "full" when deployed reaches this. */
+  availableFunding: number;
+  /** Amount the funder themselves has actually contributed so far. */
+  funderContribution: number;
+  /** Amount contributed by the wider community. */
+  communityMatch: number;
+  showUSD: boolean;
+  exchangeRate: number;
+}
+
+/**
+ * Stacked progress bar where a fully-filled bar = 100% of `availableFunding`
+ * deployed. Funder + community contributions split the fill proportionally;
+ * overflow past 100% surfaces as a "+%" badge next to the deployed total
+ * rather than expanding the bar so the visual stays consistent across cards.
+ */
+const GrantDeploymentProgress: FC<GrantDeploymentProgressProps> = ({
+  availableFunding,
+  funderContribution,
+  communityMatch,
+  showUSD,
+  exchangeRate,
+}) => {
+  const totalDeployed = funderContribution + communityMatch;
+  const deployedPct = availableFunding > 0 ? (totalDeployed / availableFunding) * 100 : 0;
+  const isOverflow = deployedPct > 100;
+  const isFull = deployedPct >= 100;
+
+  // Below 100%: each segment occupies its raw share of `availableFunding`.
+  // At/above 100%: keep the bar full and split between funder + community
+  // proportionally to their contributions so the community segment never
+  // disappears even if the funder out-paces them.
+  let funderWidth = 0;
+  let communityWidth = 0;
+  if (availableFunding > 0 && totalDeployed > 0) {
+    if (isOverflow) {
+      funderWidth = (funderContribution / totalDeployed) * 100;
+      communityWidth = (communityMatch / totalDeployed) * 100;
+    } else {
+      funderWidth = (funderContribution / availableFunding) * 100;
+      communityWidth = (communityMatch / availableFunding) * 100;
+    }
+  }
+
+  // Round the percentage label for display; show "<1%" when very small but
+  // non-zero so users know there's activity.
+  const pctLabel =
+    deployedPct === 0 ? '0%' : deployedPct < 1 ? '<1%' : `${Math.round(deployedPct)}%`;
+
+  return (
+    <div className="w-full">
+      <div className="relative h-2 w-full rounded-full bg-white/10 overflow-hidden">
+        {funderWidth > 0 && (
+          <div
+            className={cn(
+              'absolute inset-y-0 left-0 bg-emerald-300/90',
+              // Round only the leading edge unless this segment owns the full bar.
+              communityWidth > 0 ? 'rounded-l-full' : 'rounded-full'
+            )}
+            style={{ width: `${funderWidth}%` }}
+          />
+        )}
+        {communityWidth > 0 && (
+          <div
+            className={cn(
+              'absolute inset-y-0 bg-orange-300/90',
+              funderWidth > 0 ? 'rounded-r-full' : 'rounded-full'
+            )}
+            style={{ left: `${funderWidth}%`, width: `${communityWidth}%` }}
+          />
+        )}
+      </div>
+
+      <div className="mt-1.5 flex items-center justify-between gap-3 text-[10px] text-white/70">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+            <span className="uppercase tracking-wider">Funder</span>
+            <span className="text-white font-mono font-semibold">
+              {formatCompact(funderContribution, showUSD, exchangeRate)}
+            </span>
+          </span>
+          {/* Always surface the community line when there's a match, even
+              when the bar is capped, so it remains attributable. */}
+          {communityMatch > 0 && (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-orange-300" />
+              <span className="uppercase tracking-wider">Community</span>
+              <span className="text-white font-mono font-semibold">
+                {formatCompact(communityMatch, showUSD, exchangeRate)}
+              </span>
+            </span>
+          )}
+        </div>
+        <span className="font-mono font-semibold text-white whitespace-nowrap">
+          {formatCompact(totalDeployed, showUSD, exchangeRate)} deployed
+          <span
+            className={cn(
+              'ml-1.5',
+              isOverflow ? 'text-orange-300' : isFull ? 'text-emerald-300' : 'text-white/60'
+            )}
+          >
+            · {pctLabel}
+          </span>
+        </span>
+      </div>
+    </div>
+  );
+};
+
+interface GrantHeaderMetadataRowProps {
+  organization: string;
+  availableFunding: number;
+  funderContribution: number;
+  communityMatch: number;
+  proposalsCount: number;
+  showUSD: boolean;
+  exchangeRate: number;
+}
+
+const GrantHeaderMetadataRow: FC<GrantHeaderMetadataRowProps> = ({
+  organization,
+  availableFunding,
+  funderContribution,
+  communityMatch,
+  proposalsCount,
+  showUSD,
+  exchangeRate,
+}) => {
+  return (
+    <div className="flex flex-col gap-2.5">
+      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1.5">
+        <div className="min-w-0 max-w-[40%]">
+          <div className="text-[9px] uppercase tracking-wider font-semibold text-white/60 whitespace-nowrap">
+            Offered by
+          </div>
+          <div className="text-base font-extrabold text-white/90 truncate" title={organization}>
+            {organization}
+          </div>
+        </div>
+        <div>
+          <div className="text-[9px] uppercase tracking-wider font-semibold text-white/60 whitespace-nowrap">
+            Available Funding
+          </div>
+          <div className="text-base font-extrabold font-mono text-emerald-300">
+            {formatCompact(availableFunding, showUSD, exchangeRate)}
+          </div>
+        </div>
+        <div>
+          <div className="text-[9px] uppercase tracking-wider font-semibold text-white/60 whitespace-nowrap">
+            Community Match
+          </div>
+          <div className="text-base font-extrabold font-mono text-orange-300">
+            {formatCompact(communityMatch, showUSD, exchangeRate)}
+          </div>
+        </div>
+        <div>
+          <div className="text-[9px] uppercase tracking-wider font-semibold text-white/60 whitespace-nowrap">
+            Proposals
+          </div>
+          <div className="text-base font-extrabold font-mono text-white/85">{proposalsCount}</div>
+        </div>
+        <div>
+          <div className="text-[9px] uppercase tracking-wider font-semibold text-white/60 whitespace-nowrap">
+            Duration
+          </div>
+          <div className="text-base font-extrabold font-mono text-white/85">Rolling</div>
+        </div>
+      </div>
+
+      <GrantDeploymentProgress
+        availableFunding={availableFunding}
+        funderContribution={funderContribution}
+        communityMatch={communityMatch}
+        showUSD={showUSD}
+        exchangeRate={exchangeRate}
+      />
+    </div>
+  );
+};
+
+interface GrantHeaderProps {
+  href: string;
+  title: string;
+  organization: string;
+  previewImage?: string;
+  isClosed: boolean;
+  availableFunding: number;
+  funderContribution: number;
+  communityMatch: number;
+  proposalsCount: number;
+  showUSD: boolean;
+  exchangeRate: number;
+}
+
+/**
+ * Top section of the grant card: hero image with the title overlaid as a
+ * white pill, an "Ended" badge when applicable, and a frosted footer hosting
+ * the metadata row + deployment progress.
+ */
+const GrantHeader: FC<GrantHeaderProps> = ({
+  href,
+  title,
+  organization,
+  previewImage,
+  isClosed,
+  availableFunding,
+  funderContribution,
+  communityMatch,
+  proposalsCount,
+  showUSD,
+  exchangeRate,
+}) => {
+  return (
+    <Link
+      href={href}
+      className="group block relative h-[260px] sm:h-[220px] overflow-hidden bg-gray-900"
+    >
+      {previewImage ? (
+        <Image
+          src={previewImage}
+          alt={title}
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, 660px"
+        />
+      ) : (
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(ellipse at 25% 35%, rgba(251,146,60,0.55) 0%, transparent 50%), ' +
+              'radial-gradient(ellipse at 55% 55%, rgba(59,130,246,0.45) 0%, transparent 45%), ' +
+              'radial-gradient(ellipse at 80% 20%, rgba(244,63,94,0.35) 0%, transparent 40%), ' +
+              'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+          }}
+        />
+      )}
+
+      {isClosed && (
+        <div className="absolute top-3 right-3 z-10">
+          <span className="inline-flex items-center gap-1 bg-gray-500/90 text-white text-[11px] border border-gray-400/80 font-semibold px-2 py-0.5 rounded-md shadow-sm">
+            <CalendarOff size={11} />
+            Ended
+          </span>
+        </div>
+      )}
+
+      {/* Title pill */}
+      <div className="absolute top-4 left-4 right-4 sm:right-auto sm:max-w-[80%]">
+        <h3
+          className={cn(
+            'inline-block max-w-full bg-white rounded-md shadow-md',
+            'px-3.5 py-2 text-base sm:text-lg font-extrabold text-gray-900',
+            'tracking-tight leading-snug line-clamp-2'
+          )}
+        >
+          {title}
+        </h3>
+      </div>
+
+      {/* Frosted footer hosts the metadata row + progress */}
+      <div
+        className="absolute bottom-0 inset-x-0 px-5 py-3 border-t border-white/[0.06]"
+        style={{
+          backdropFilter: 'blur(16px) saturate(1.4)',
+          WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
+          background: 'rgba(0,0,0,0.5)',
+        }}
+      >
+        <GrantHeaderMetadataRow
+          organization={organization}
+          availableFunding={availableFunding}
+          funderContribution={funderContribution}
+          communityMatch={communityMatch}
+          proposalsCount={proposalsCount}
+          showUSD={showUSD}
+          exchangeRate={exchangeRate}
+        />
+      </div>
+    </Link>
+  );
+};
+
 interface ProposalRowProps {
   application: Application;
   showUSD: boolean;
@@ -214,6 +499,43 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
     return sum + ask;
   }, 0);
 
+  // Walk every applicant's contributor list and bucket each contribution into
+  // either the funder's own bucket (when the contributor matches `grant.createdBy`)
+  // or the community match bucket. For USD totals we prefer `rscUsdSnapshot`
+  // (frozen at contribution time) so the displayed sums don't drift with the
+  // live RSC price; we still fall back to the live exchange rate if the
+  // backend doesn't carry a snapshot for older contributions.
+  const funderAuthorProfileId = grant.createdBy?.id;
+  const funderUserId = grant.createdBy?.user?.id ?? grant.createdBy?.userId;
+
+  const { funderContribution, communityMatch } = allProposals.reduce(
+    (acc, application) => {
+      const contributors = application.fundraise?.contributors?.top ?? [];
+      for (const c of contributors) {
+        const rsc = c.totalContribution.rsc ?? 0;
+        const directUsd = c.totalContribution.usd ?? 0;
+        const snapshotUsd = c.totalContribution.rscUsdSnapshot;
+        const value = showUSD
+          ? snapshotUsd != null
+            ? snapshotUsd + directUsd
+            : rsc * exchangeRate + directUsd
+          : rsc;
+
+        const isFunder =
+          (funderAuthorProfileId != null && c.authorProfileId === funderAuthorProfileId) ||
+          (funderUserId != null && c.id === funderUserId);
+
+        if (isFunder) {
+          acc.funderContribution += value;
+        } else {
+          acc.communityMatch += value;
+        }
+      }
+      return acc;
+    },
+    { funderContribution: 0, communityMatch: 0 }
+  );
+
   return (
     <div
       className={cn(
@@ -221,85 +543,19 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
         className
       )}
     >
-      {/* Frosted header */}
-      <Link
+      <GrantHeader
         href={href}
-        className="group block relative h-[200px] sm:h-[160px] overflow-hidden bg-gray-900"
-      >
-        {content.previewImage ? (
-          <Image
-            src={content.previewImage}
-            alt={content.title}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, 660px"
-          />
-        ) : (
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'radial-gradient(ellipse at 25% 35%, rgba(251,146,60,0.55) 0%, transparent 50%), ' +
-                'radial-gradient(ellipse at 55% 55%, rgba(59,130,246,0.45) 0%, transparent 45%), ' +
-                'radial-gradient(ellipse at 80% 20%, rgba(244,63,94,0.35) 0%, transparent 40%), ' +
-                'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-            }}
-          />
-        )}
-
-        {isClosed && (
-          <div className="absolute top-3 left-3 z-10">
-            <span className="inline-flex items-center gap-1 bg-gray-500/90 text-white text-[11px] border border-gray-400/80 font-semibold px-2 py-0.5 rounded-md shadow-sm">
-              <CalendarOff size={11} />
-              Ended
-            </span>
-          </div>
-        )}
-
-        {/* Frosted metadata bar */}
-        <div
-          className="absolute bottom-0 inset-x-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-0 px-5 py-2.5 border-t border-white/[0.06]"
-          style={{
-            backdropFilter: 'blur(16px) saturate(1.4)',
-            WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
-            background: 'rgba(0,0,0,0.5)',
-          }}
-        >
-          <div className="min-w-0">
-            <div className="text-[9px] font-semibold uppercase tracking-wider text-white/40 mb-0.5">
-              {grant.organization || content.organization || 'ResearchHub Grant'}
-            </div>
-            <div className="text-base font-extrabold text-white tracking-tight">
-              {grant.shortTitle || content.title}
-            </div>
-          </div>
-          <div className="flex gap-5 flex-shrink-0">
-            {[
-              {
-                label: 'Available Funding',
-                value: formatCompact(budgetAmount, showUSD, exchangeRate),
-                accent: true,
-              },
-              { label: 'Proposals', value: String(allProposals.length), accent: false },
-              { label: 'Duration', value: 'Rolling', accent: false },
-            ].map((stat) => (
-              <div key={stat.label} className="sm:text-right">
-                <div className="text-[9px] uppercase tracking-wider font-semibold text-white/60 whitespace-nowrap">
-                  {stat.label}
-                </div>
-                <div
-                  className={cn(
-                    'font-extrabold font-mono',
-                    stat.accent ? 'text-base text-emerald-300' : 'text-base text-white/80'
-                  )}
-                >
-                  {stat.value}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Link>
+        title={grant.shortTitle || content.title}
+        organization={grant.organization || content.organization || 'ResearchHub Grant'}
+        previewImage={content.previewImage}
+        isClosed={isClosed}
+        availableFunding={budgetAmount}
+        funderContribution={Math.round(funderContribution)}
+        communityMatch={Math.round(communityMatch)}
+        proposalsCount={allProposals.length}
+        showUSD={showUSD}
+        exchangeRate={exchangeRate}
+      />
 
       {/* Proposal rows */}
       {hasProposals && (
