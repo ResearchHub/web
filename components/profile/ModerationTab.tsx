@@ -173,8 +173,8 @@ function ModerationSkeleton() {
         </div>
         <div className="px-5 py-4 border-t border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={`skeleton-${i}`} className="flex items-center gap-2">
+            {Array.from({ length: 8 }).map((_, skeletonIndex) => (
+              <div key={'detail-skeleton-' + skeletonIndex} className="flex items-center gap-2">
                 <span className="bg-gray-200 rounded h-4 w-24 animate-pulse" />
                 <span className="bg-gray-200 rounded h-4 w-36 animate-pulse" />
               </div>

@@ -132,8 +132,8 @@ export function RiskScoreEvents({
   if (isLoading && events.length === 0) {
     eventListBody = (
       <div className="flex flex-col gap-2 py-3">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={`skeleton-${i}`} className="flex items-center gap-3">
+        {Array.from({ length: 5 }).map((_, skeletonIndex) => (
+          <div key={'event-skeleton-' + skeletonIndex} className="flex items-center gap-3">
             <span className="bg-gray-100 rounded h-10 w-full animate-pulse" />
           </div>
         ))}
