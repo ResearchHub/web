@@ -59,7 +59,7 @@ const PERSONA_EVENT_TYPES = new Set([
   'PERSONA_VERIFIED_NON_WHITELISTED',
 ]);
 
-function InsightIcon({ variant }: { variant: InsightItem['variant'] }) {
+function InsightIcon({ variant }: Readonly<{ variant: InsightItem['variant'] }>) {
   if (variant === 'positive') return <ArrowUpRight size={14} className="text-green-600 shrink-0" />;
   if (variant === 'negative') return <ArrowDownRight size={14} className="text-red-600 shrink-0" />;
   return <Minus size={14} className="text-amber-500 shrink-0" />;
@@ -104,7 +104,7 @@ function getInsightTooltip(insight: Insight): string {
   }
   const base = INSIGHT_TOOLTIPS[insight.eventType];
   if (base) return base;
-  return `User has ${insight.count} event${insight.count !== 1 ? 's' : ''} of this type`;
+  return `User has ${insight.count} event${insight.count === 1 ? '' : 's'} of this type`;
 }
 
 function buildVerificationTooltip(userDetails: UserDetailsForModerator): string | undefined {
@@ -173,8 +173,8 @@ function ModerationSkeleton() {
         </div>
         <div className="px-5 py-4 border-t border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-2">
+            {Array.from({ length: 8 }).map((_, skeletonIndex) => (
+              <div key={'detail-skeleton-' + skeletonIndex} className="flex items-center gap-2">
                 <span className="bg-gray-200 rounded h-4 w-24 animate-pulse" />
                 <span className="bg-gray-200 rounded h-4 w-36 animate-pulse" />
               </div>

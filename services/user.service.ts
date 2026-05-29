@@ -185,7 +185,8 @@ export class UserService {
       searchParams.set('created_date_before', params.createdDateBefore);
 
     const query = searchParams.toString();
-    const url = `/api/moderator/${userId}/risk_score_events/${query ? `?${query}` : ''}`;
+    const queryString = query ? `?${query}` : '';
+    const url = `/api/moderator/${userId}/risk_score_events/${queryString}`;
     const response = await ApiClient.get<any>(url);
 
     return {
