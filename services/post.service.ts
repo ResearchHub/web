@@ -22,6 +22,7 @@ export interface ProposalForModal {
   createdDate: string;
   doi?: string;
   postId: number;
+  isPublic: boolean;
 }
 
 // Transform proposal from API response to modal format
@@ -33,6 +34,7 @@ export const transformProposalForModal = (raw: any): ProposalForModal => {
     createdDate: raw.created_date,
     doi: raw.doi,
     postId: raw.note?.post?.id || raw.id, // Use note.post.id if available, fallback to raw.id
+    isPublic: raw.unified_document?.is_public ?? true,
   };
 };
 
