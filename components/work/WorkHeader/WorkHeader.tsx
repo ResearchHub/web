@@ -98,6 +98,9 @@ export function WorkHeader({
     closeCloseGrantModal,
     confirmCloseGrant,
     isClosingGrant,
+    showInviteExpertsModal,
+    closeInviteExpertsModal,
+    inviteExpertsGrantId,
   } = useWorkHeaderMenuItems({
     work,
     metadata,
@@ -260,6 +263,9 @@ export function WorkHeader({
         onCloseCloseGrantModal={closeCloseGrantModal}
         onConfirmCloseGrant={confirmCloseGrant}
         isClosingGrant={isClosingGrant}
+        showInviteExpertsModal={showInviteExpertsModal}
+        onCloseInviteExpertsModal={closeInviteExpertsModal}
+        inviteExpertsGrantId={inviteExpertsGrantId}
       />
     </>
   );

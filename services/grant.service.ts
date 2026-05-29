@@ -134,4 +134,35 @@ export class GrantService {
     });
     return response;
   }
+
+  static async inviteApplicants(
+    grantId: string | number,
+    params: { emails: string[]; replyTo?: string; cc?: string[] }
+  ): Promise<InviteApplicantsResponse> {
+    const body: Record<string, unknown> = { emails: params.emails };
+    if (params.replyTo) body.reply_to = params.replyTo;
+    if (params.cc && params.cc.length) body.cc = params.cc;
+
+    const response = await ApiClient.post<RawInviteApplicantsResponse>(
+      `/api/research_ai/expert-finder/rfp/${grantId}/invite-applicants/`,
+      body
+    );
+    return {
+      queued: response.queued ?? 0,
+      skippedExisting: response.skipped_existing ?? [],
+      generatedEmailIds: response.generated_email_ids ?? [],
+    };
+  }
+}
+
+interface RawInviteApplicantsResponse {
+  queued: number;
+  skipped_existing: string[];
+  generated_email_ids: number[];
+}
+
+export interface InviteApplicantsResponse {
+  queued: number;
+  skippedExisting: string[];
+  generatedEmailIds: number[];
 }
