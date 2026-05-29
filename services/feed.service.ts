@@ -26,6 +26,7 @@ export class FeedService {
     filter?: string;
     status?: string;
     userId?: string;
+    viewAsUserId?: number;
   }): Promise<{ entries: FeedEntry[]; hasMore: boolean }> {
     const queryParams = new URLSearchParams();
     if (params?.page) queryParams.append('page', params.page.toString());
@@ -47,6 +48,9 @@ export class FeedService {
     if (params?.filter) queryParams.append('filter', params.filter);
     if (params?.status) queryParams.append('status', params.status);
     if (params?.userId) queryParams.append('user_id', params.userId);
+    if (params?.viewAsUserId) {
+      queryParams.append('view_as_user_id', params.viewAsUserId.toString());
+    }
 
     // Determine which endpoint to use
     const basePath =

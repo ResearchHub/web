@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { EXPERT_FINDER_LIST_PAGE_SIZE } from '@/app/expert-finder/lib/paginationParams';
 import {
   ExpertFinderService,
+  type AddExpertPayload,
   type CreateSavedTemplatePayload,
   type ExpertSearchCreatePayload,
   type PatchExpertPayload,
@@ -12,6 +13,7 @@ import {
 } from '@/services/expertFinder.service';
 import { extractApiErrorMessage } from '@/services/lib/serviceUtils';
 import type {
+  ExpertResult,
   ExpertSearchCreated,
   InvitedExperts,
   ExpertSearchResult,
@@ -213,6 +215,44 @@ export function usePatchExpert(): UsePatchExpertReturn {
   }, []);
 
   return [{ isLoading, error }, patchExpert];
+}
+
+// ── useAddExpert ──────────────────────────────────────────────────────────────
+
+interface UseAddExpertState {
+  isLoading: boolean;
+  error: string | null;
+}
+
+type AddExpertFn = (searchId: number | string, payload: AddExpertPayload) => Promise<ExpertResult>;
+type UseAddExpertReturn = [UseAddExpertState, AddExpertFn];
+
+/**
+ * Manually add an expert to an existing search.
+ */
+export function useAddExpert(): UseAddExpertReturn {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const addExpert = useCallback(
+    async (searchId: number | string, payload: AddExpertPayload): Promise<ExpertResult> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const result = await ExpertFinderService.addExpert(searchId, payload);
+        return result;
+      } catch (err: unknown) {
+        const message = extractApiErrorMessage(err, 'Failed to add expert');
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
+  return [{ isLoading, error }, addExpert];
 }
 
 // ── useWorkByUnifiedDocumentId ───────────────────────────────────────────────

@@ -43,6 +43,10 @@ export interface WorkHeaderModalsProps {
   onCloseReopenModal?: () => void;
   onConfirmReopen?: (durationDays: number) => void;
   isReopeningFundraise?: boolean;
+  showCloseGrantModal?: boolean;
+  onCloseCloseGrantModal?: () => void;
+  onConfirmCloseGrant?: () => void;
+  isClosingGrant?: boolean;
 }
 
 export function WorkHeaderModals({
@@ -70,6 +74,10 @@ export function WorkHeaderModals({
   onCloseReopenModal,
   onConfirmReopen,
   isReopeningFundraise = false,
+  showCloseGrantModal = false,
+  onCloseCloseGrantModal,
+  onConfirmCloseGrant,
+  isClosingGrant = false,
 }: WorkHeaderModalsProps) {
   return (
     <>
@@ -118,6 +126,19 @@ export function WorkHeaderModals({
           onClose={onCloseReopenModal}
           onConfirm={onConfirmReopen}
           isLoading={isReopeningFundraise}
+        />
+      )}
+      {onCloseCloseGrantModal && onConfirmCloseGrant && (
+        <ConfirmModal
+          isOpen={showCloseGrantModal}
+          onClose={onCloseCloseGrantModal}
+          onConfirm={onConfirmCloseGrant}
+          title="Close RFP"
+          message="Are you sure you want to close this RFP? It will stop accepting new proposals."
+          confirmText={isClosingGrant ? 'Closing...' : 'Close RFP'}
+          cancelText="Cancel"
+          confirmButtonClass="bg-red-600 hover:bg-red-700"
+          cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
         />
       )}
       {grantId && onCloseApplyToGrantModal && (
