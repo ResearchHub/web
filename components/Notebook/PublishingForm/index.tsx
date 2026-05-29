@@ -294,6 +294,9 @@ export function PublishingForm({
     const pending = getPendingGrant();
     if (pending) {
       methods.setValue('selectedGrant', pending);
+      if (pending.applicationVisibility === 'PRIVATE') {
+        methods.setValue('isPublic', false);
+      }
       clearPendingGrant();
     }
 

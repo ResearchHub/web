@@ -11,6 +11,7 @@ import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
 import { ReopenFundraiseModal } from '@/components/modals/ReopenFundraiseModal';
 import { InviteExpertsModal } from '@/components/modals/InviteExpertsModal';
 import { ID } from '@/types/root';
+import type { GrantApplicationVisibility } from '@/types/grant';
 
 export interface FundraiseModalConfig {
   title: string;
@@ -41,6 +42,7 @@ export interface WorkHeaderModalsProps {
   grantId?: string;
   grantAmountUsd?: number;
   grantOrganization?: string;
+  grantApplicationVisibility?: GrantApplicationVisibility;
   showReopenModal?: boolean;
   onCloseReopenModal?: () => void;
   onConfirmReopen?: (durationDays: number) => void;
@@ -75,6 +77,7 @@ export function WorkHeaderModals({
   grantId,
   grantAmountUsd,
   grantOrganization,
+  grantApplicationVisibility,
   showReopenModal = false,
   onCloseReopenModal,
   onConfirmReopen,
@@ -165,6 +168,7 @@ export function WorkHeaderModals({
           grantTitle={work.title}
           grantAmountUsd={grantAmountUsd}
           grantOrganization={grantOrganization}
+          grantApplicationVisibility={grantApplicationVisibility}
         />
       )}
     </>
