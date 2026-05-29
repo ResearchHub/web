@@ -26,8 +26,7 @@ const EVENT_TYPE_OPTIONS = [
   { label: 'Peer Review Tipped', value: 'PEER_REVIEW_TIPPED' },
   { label: 'Peer Review Assessed', value: 'PEER_REVIEW_ASSESSED' },
   { label: 'Expert Finder Signup', value: 'EXPERT_FINDER_SIGNUP' },
-  { label: 'Edu Email Signup', value: 'EDU_EMAIL_SIGNUP' },
-  { label: 'ORCID Verified Edu', value: 'ORCID_VERIFIED_EDU' },
+  { label: 'Verified Edu Email', value: 'EDU_EMAIL' },
   { label: 'Google Signup', value: 'GOOGLE_SIGNUP' },
   { label: 'Account Age Bonus', value: 'ACCOUNT_AGE_BONUS' },
   { label: 'Persona Verified (Whitelisted)', value: 'PERSONA_VERIFIED_WHITELISTED' },
@@ -90,11 +89,16 @@ const EVENT_ACTION_LABELS: Record<string, string> = {
   PEER_REVIEW_ASSESSED: 'Assessed',
 };
 
+const EVENT_TYPE_LABELS: Record<string, string> = {
+  EDU_EMAIL: 'Verified Edu Email',
+};
+
 function formatEventLabel(event: RiskScoreEvent): string {
-  if (!event.sourceDetail) return snakeCaseToTitleCase(event.eventType);
+  const override = EVENT_TYPE_LABELS[event.eventType];
+  if (!event.sourceDetail) return override ?? snakeCaseToTitleCase(event.eventType);
   const source = getSourceLabel(event.sourceDetail);
   const action = EVENT_ACTION_LABELS[event.eventType];
-  if (!action) return snakeCaseToTitleCase(event.eventType);
+  if (!action) return override ?? snakeCaseToTitleCase(event.eventType);
   return `${source} ${action}`;
 }
 

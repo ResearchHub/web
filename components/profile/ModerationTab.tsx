@@ -80,8 +80,7 @@ const INSIGHT_TOOLTIPS: Record<string, string> = {
   PEER_REVIEW_TIPPED: "The community awarded ResearchCoin to the user's peer review",
   PEER_REVIEW_ASSESSED: "The user's peer review was endorsed by the community or moderation",
   EXPERT_FINDER_SIGNUP: 'The user signed up via an Expert Finder invite',
-  EDU_EMAIL_SIGNUP: 'The user registered with a .edu email address',
-  ORCID_VERIFIED_EDU: "The user's ORCID profile contains a verified .edu email",
+  EDU_EMAIL: 'The user has a verified .edu email address',
   GOOGLE_SIGNUP: 'The user signed up using Google authentication',
   ACCOUNT_AGE_BONUS: 'The user passed the minimum account-age threshold',
   PERSONA_VERIFIED_WHITELISTED:
