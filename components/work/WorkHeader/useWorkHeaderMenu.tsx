@@ -10,7 +10,7 @@ import {
   Download,
   Search,
   RotateCcw,
-  Mail,
+  UserRoundPlus,
 } from 'lucide-react';
 import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Icon } from '@/components/ui/icons/Icon';
@@ -243,7 +243,7 @@ export function useWorkHeaderMenuItems({
             })
           }
         >
-          <Mail className="h-4 w-4 mr-2" />
+          <UserRoundPlus className="h-4 w-4 mr-2" />
           <span>Invite experts</span>
         </BaseMenuItem>
       )}

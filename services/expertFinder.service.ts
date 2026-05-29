@@ -163,6 +163,18 @@ export interface CreateSavedTemplatePayload {
   email_body?: string;
 }
 
+interface RawInviteApplicantsResponse {
+  queued: number;
+  skipped_existing: string[];
+  generated_email_ids: number[];
+}
+
+export interface InviteApplicantsResponse {
+  queued: number;
+  skippedExisting: string[];
+  generatedEmailIds: number[];
+}
+
 export interface UpdateSavedTemplatePayload {
   name?: string;
   email_subject?: string;
@@ -451,5 +463,30 @@ export class ExpertFinderService {
 
   static async deleteTemplate(templateId: number | string): Promise<void> {
     return ApiClient.deleteNoContent(`${this.BASE_PATH}/templates/${templateId}/`);
+  }
+
+  // ── RFP applicant invitations ────────────────────────────────────────────
+
+  /**
+   * Invite experts to apply to an RFP (grant) by email.
+   * POST /api/research_ai/expert-finder/rfp/:grantId/invite-applicants/
+   */
+  static async inviteApplicants(
+    grantId: string | number,
+    params: { emails: string[]; replyTo?: string; cc?: string[] }
+  ): Promise<InviteApplicantsResponse> {
+    const body: Record<string, unknown> = { emails: params.emails };
+    if (params.replyTo) body.reply_to = params.replyTo;
+    if (params.cc && params.cc.length) body.cc = params.cc;
+
+    const response = await ApiClient.post<RawInviteApplicantsResponse>(
+      `${this.BASE_PATH}/rfp/${grantId}/invite-applicants/`,
+      body
+    );
+    return {
+      queued: response.queued ?? 0,
+      skippedExisting: response.skipped_existing ?? [],
+      generatedEmailIds: response.generated_email_ids ?? [],
+    };
   }
 }

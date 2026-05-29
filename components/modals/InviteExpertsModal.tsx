@@ -5,7 +5,7 @@ import { Plus, Trash2, Send, Loader2 } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
-import { GrantService } from '@/services/grant.service';
+import { ExpertFinderService } from '@/services/expertFinder.service';
 import { isValidEmail } from '@/utils/validation';
 import toast from 'react-hot-toast';
 
@@ -18,26 +18,36 @@ interface InviteExpertsModalProps {
 const MAX_EMAILS = 100;
 
 export function InviteExpertsModal({ isOpen, onClose, grantId }: InviteExpertsModalProps) {
-  const [emails, setEmails] = useState<string[]>(['']);
+  const [emails, setEmails] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setEmails(['']);
+      setEmails([]);
       setSubmitting(false);
     }
   }, [isOpen]);
 
+  // Always render at least one input, even when no emails have been entered yet.
+  const displayEmails = emails.length > 0 ? emails : [''];
+
   const updateEmail = (index: number, value: string) => {
-    setEmails((prev) => prev.map((e, i) => (i === index ? value : e)));
+    setEmails((prev) => {
+      const next = prev.length > 0 ? [...prev] : [''];
+      next[index] = value;
+      return next;
+    });
   };
 
   const removeEmail = (index: number) => {
-    setEmails((prev) => (prev.length === 1 ? [''] : prev.filter((_, i) => i !== index)));
+    setEmails((prev) => prev.filter((_, i) => i !== index));
   };
 
   const addEmail = () => {
-    setEmails((prev) => (prev.length >= MAX_EMAILS ? prev : [...prev, '']));
+    setEmails((prev) => {
+      const base = prev.length > 0 ? prev : [''];
+      return base.length >= MAX_EMAILS ? base : [...base, ''];
+    });
   };
 
   const cleanedEmails = emails.map((e) => e.trim()).filter((e) => e.length > 0);
@@ -48,7 +58,7 @@ export function InviteExpertsModal({ isOpen, onClose, grantId }: InviteExpertsMo
     if (!canSubmit) return;
     setSubmitting(true);
     try {
-      const result = await GrantService.inviteApplicants(grantId, { emails: cleanedEmails });
+      const result = await ExpertFinderService.inviteApplicants(grantId, { emails: cleanedEmails });
       const parts: string[] = [];
       if (result.queued > 0) {
         parts.push(`${result.queued} invitation${result.queued === 1 ? '' : 's'} sent`);
@@ -103,7 +113,7 @@ export function InviteExpertsModal({ isOpen, onClose, grantId }: InviteExpertsMo
         </p>
 
         <div className="space-y-2">
-          {emails.map((email, index) => {
+          {displayEmails.map((email, index) => {
             const trimmed = email.trim();
             const showError = trimmed.length > 0 && !isValidEmail(trimmed);
             return (
@@ -123,7 +133,7 @@ export function InviteExpertsModal({ isOpen, onClose, grantId }: InviteExpertsMo
                   variant="ghost"
                   size="icon"
                   onClick={() => removeEmail(index)}
-                  disabled={submitting || (emails.length === 1 && email === '')}
+                  disabled={submitting || (displayEmails.length === 1 && email === '')}
                   aria-label="Remove email"
                   className="text-gray-400 hover:text-red-600 mt-1"
                 >
