@@ -10,18 +10,21 @@ import { FlagReasonKey } from '@/types/work';
 
 const flagOptions = getFlagOptions();
 
-interface DeclineGrantModalProps {
+interface DeclineModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (data: { reasonChoice: FlagReasonKey; reason: string }) => void;
   isSubmitting?: boolean;
+  /** Singular noun for the content being declined (e.g. "RFP", "Proposal"). */
+  itemLabel?: string;
 }
 
-export const DeclineGrantModal: FC<DeclineGrantModalProps> = ({
+export const DeclineModal: FC<DeclineModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
   isSubmitting = false,
+  itemLabel = 'submission',
 }) => {
   const [selectedReason, setSelectedReason] = useState<FlagReasonKey | null>(null);
   const [reasonText, setReasonText] = useState('');
@@ -48,7 +51,7 @@ export const DeclineGrantModal: FC<DeclineGrantModalProps> = ({
     <BaseModal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Decline RFP"
+      title={`Decline ${itemLabel}`}
       maxWidth="max-w-md"
       footer={
         <div className="flex items-center justify-end gap-3">
@@ -68,7 +71,9 @@ export const DeclineGrantModal: FC<DeclineGrantModalProps> = ({
       }
     >
       <div className="space-y-4">
-        <p className="text-xs text-gray-600">I am declining this RFP because of:</p>
+        <p className="text-xs text-gray-600">
+          I am declining this {itemLabel.toLowerCase()} because of:
+        </p>
 
         <FlagRadioGroup
           options={flagOptions}

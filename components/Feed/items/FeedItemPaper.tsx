@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { FeedPaperContent, FeedEntry } from '@/types/feed';
@@ -33,6 +33,7 @@ interface FeedItemPaperProps {
   highlights?: Highlight[];
   showBountyInfo?: boolean;
   abstractCollapsedByDefault?: boolean;
+  footer?: ReactNode;
 }
 
 /**
@@ -49,6 +50,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
   highlights,
   showBountyInfo,
   abstractCollapsedByDefault,
+  footer,
 }) => {
   const searchParams = useSearchParams();
   const isDebugMode = searchParams.has('debug');
@@ -96,6 +98,7 @@ export const FeedItemPaper: FC<FeedItemPaperProps> = ({
       onFeedItemClick={onFeedItemClick}
       showBountyInfo={showBountyInfo}
       hideReportButton={false}
+      footer={footer}
       cardImage={
         thumbnailUrl ? (
           <ImageSection

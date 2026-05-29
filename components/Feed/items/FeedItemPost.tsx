@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import { FeedPostContent, FeedEntry } from '@/types/feed';
 import {
   BaseFeedItem,
@@ -31,6 +31,7 @@ interface FeedItemPostProps {
   highlights?: Highlight[];
   showHeader?: boolean;
   showBountyInfo?: boolean;
+  footer?: ReactNode;
 }
 
 /**
@@ -47,6 +48,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   onAbstractExpanded,
   highlights,
   showBountyInfo,
+  footer,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -88,6 +90,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
       showPeerReviews={post.postType !== 'QUESTION'}
       showBountyInfo={showBountyInfo}
       hideReportButton={false}
+      footer={footer}
     >
       {/* Top section with badges and mobile image */}
       <FeedItemTopSection
