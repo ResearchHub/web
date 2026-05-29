@@ -248,14 +248,17 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
             proposals.map((proposal) => {
               const isSelected = proposal.id === selectedProposalId && !draftNewSelected;
               const isDraft = proposal.status === 'draft';
-              const isSelectable = !isDraft;
+              const requiresPrivate = grantApplicationVisibility === 'PRIVATE';
+              const isIneligibleVisibility = requiresPrivate && proposal.isPublic;
+              const isSelectable = !isDraft && !isIneligibleVisibility;
+              const isDimmed = isDraft || isIneligibleVisibility;
 
               return (
                 <div
                   key={proposal.id}
                   onClick={() => isSelectable && handleSelectProposal(proposal.id)}
                   className={`p-3 rounded-xl border-2 transition-all duration-200 ${
-                    isDraft
+                    isDimmed
                       ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
                       : isSelected
                         ? 'border-blue-300 bg-blue-50 cursor-pointer'
@@ -274,6 +277,11 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                             Published
                           </Badge>
                         )}
+                        {isIneligibleVisibility && (
+                          <Badge variant="default" size="sm">
+                            Public — not eligible
+                          </Badge>
+                        )}
                         {proposal.createdDate && (
                           <>
                             <span className="text-gray-300">&middot;</span>
@@ -284,7 +292,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                         )}
                       </div>
                       <h4
-                        className={`text-sm font-medium leading-snug ${isDraft ? 'text-gray-500' : 'text-gray-900'}`}
+                        className={`text-sm font-medium leading-snug ${isDimmed ? 'text-gray-500' : 'text-gray-900'}`}
                       >
                         {proposal.title}
                       </h4>
@@ -295,9 +303,9 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                       value={proposal.id}
                       checked={isSelected}
                       onChange={() => isSelectable && handleSelectProposal(proposal.id)}
-                      disabled={isDraft}
+                      disabled={!isSelectable}
                       className={`w-4 h-4 flex-shrink-0 focus:ring-2 ${
-                        isDraft
+                        isDimmed
                           ? 'text-gray-400 bg-gray-200 border-gray-300 cursor-not-allowed'
                           : 'text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500'
                       }`}
