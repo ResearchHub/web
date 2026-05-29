@@ -72,7 +72,7 @@ export function ExpertFormModal({
   searchId,
   expert,
   onSuccess,
-}: ExpertFormModalProps) {
+}: Readonly<ExpertFormModalProps>) {
   const [, patchExpert] = usePatchExpert();
   const [, createExpert] = useAddExpert();
   const isAdd = expert == null;
@@ -118,7 +118,7 @@ export function ExpertFormModal({
     setSubmitError(null);
     setIsSubmitting(true);
     try {
-      if (expert != null) {
+      if (expert) {
         const payload = buildEditPayload({
           honorific,
           firstName,
@@ -126,10 +126,6 @@ export function ExpertFormModal({
           lastName,
           nameSuffix,
         });
-        if (Object.keys(payload).length === 0) {
-          setSubmitError('Change at least one field to save.');
-          return;
-        }
         await patchExpert(expert.expertId!, payload);
       } else {
         if (!email.trim()) {
