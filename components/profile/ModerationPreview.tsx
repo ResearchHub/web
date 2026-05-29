@@ -16,7 +16,11 @@ function getScoreLabel(score: number, isSuspended: boolean): string {
   return 'Moderate';
 }
 
-function Row({ label, value, copyValue }: { label: string; value: string; copyValue?: string }) {
+function Row({
+  label,
+  value,
+  copyValue,
+}: Readonly<{ label: string; value: string; copyValue?: string }>) {
   return (
     <li className="text-sm text-gray-700 flex items-center gap-1 min-w-0">
       <span className="font-medium shrink-0">{label}:</span>
@@ -60,12 +64,12 @@ export function ModerationPreview({ userId }: ModerationPreviewProps) {
         <Row
           label="Persona ID"
           value={personaId}
-          copyValue={personaId !== 'N/A' ? personaId : undefined}
+          copyValue={personaId === 'N/A' ? undefined : personaId}
         />
         <Row
           label="User ID"
           value={userIdDisplay}
-          copyValue={userIdDisplay !== 'N/A' ? userIdDisplay : undefined}
+          copyValue={userIdDisplay === 'N/A' ? undefined : userIdDisplay}
         />
         <Row label="Verified name" value={verifiedName} />
         <Row label="Email" value={userDetails.email || 'N/A'} />

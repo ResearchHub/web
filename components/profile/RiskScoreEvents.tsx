@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -106,7 +106,7 @@ export function RiskScoreEvents({
   isLoading,
   error,
   fetchEvents,
-}: RiskScoreEventsProps) {
+}: Readonly<RiskScoreEventsProps>) {
   const [eventTypeFilter, setEventTypeFilter] = useState('');
   const [deltaFilter, setDeltaFilter] = useState<'all' | 'true' | 'false'>('all');
   const [dateAfter, setDateAfter] = useState('');
@@ -128,17 +128,123 @@ export function RiskScoreEvents({
 
   const goToPage = (newPage: number) => fetchEvents(buildFilters({ page: newPage }));
 
+  let eventListBody: ReactNode;
+  if (isLoading && events.length === 0) {
+    eventListBody = (
+      <div className="flex flex-col gap-2 py-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={`skeleton-${i}`} className="flex items-center gap-3">
+            <span className="bg-gray-100 rounded h-10 w-full animate-pulse" />
+          </div>
+        ))}
+      </div>
+    );
+  } else if (events.length === 0) {
+    eventListBody = <p className="text-sm text-gray-400 py-6 text-center">No events found.</p>;
+  } else {
+    eventListBody = (
+      <div className={cn('flex flex-col', isLoading && 'opacity-50 pointer-events-none')}>
+        {events.map((event) => {
+          const isPenalty = event.delta > 0;
+          const isExpanded = expandedId === event.id;
+          const hasDetail = !!event.sourceDetail;
+
+          const rowClassName = cn(
+            'w-full flex items-center justify-between py-2.5 px-3 border-l-2 rounded-none rounded-r-md text-sm text-left transition-colors',
+            isPenalty
+              ? 'border-l-red-400 bg-red-50/40 hover:bg-red-50'
+              : 'border-l-green-400 bg-green-50/40 hover:bg-green-50'
+          );
+
+          const rowContent = (
+            <>
+              <div className="flex items-center gap-2.5">
+                {isPenalty ? (
+                  <ArrowDownRight className="w-4 h-4 text-red-500 shrink-0" />
+                ) : (
+                  <ArrowUpRight className="w-4 h-4 text-green-500 shrink-0" />
+                )}
+                <span className="text-gray-800 font-medium">{formatEventLabel(event)}</span>
+                {hasDetail && (
+                  <ChevronDown
+                    className={cn(
+                      'w-3.5 h-3.5 text-gray-400 transition-transform',
+                      isExpanded && 'rotate-180'
+                    )}
+                  />
+                )}
+              </div>
+
+              <div className="flex items-center gap-4">
+                <span
+                  className={cn(
+                    'font-semibold tabular-nums',
+                    isPenalty ? 'text-red-600' : 'text-green-600'
+                  )}
+                >
+                  {isPenalty ? '+' : ''}
+                  {event.delta}
+                </span>
+                <span className="text-gray-400 text-xs w-24 text-right">
+                  {formatTimestamp(event.createdDate)}
+                </span>
+              </div>
+            </>
+          );
+
+          return (
+            <div key={event.id} className="my-0.5">
+              {hasDetail ? (
+                <Button
+                  variant="ghost"
+                  aria-expanded={isExpanded}
+                  onClick={() => setExpandedId(isExpanded ? null : event.id)}
+                  className={cn(rowClassName, 'h-auto cursor-pointer')}
+                >
+                  {rowContent}
+                </Button>
+              ) : (
+                <div className={rowClassName}>{rowContent}</div>
+              )}
+
+              {isExpanded && event.sourceDetail && (
+                <div className="ml-9 mr-3 mb-1 mt-0.5 rounded-md bg-white border border-gray-100 px-3 py-2.5 text-xs text-gray-600">
+                  {event.sourceDetail.title && (
+                    <p className="font-medium text-gray-800 mb-1">{event.sourceDetail.title}</p>
+                  )}
+                  {event.sourceDetail.snippet && (
+                    <p className="text-gray-500 leading-relaxed">{event.sourceDetail.snippet}</p>
+                  )}
+                  {event.sourceDetail.url && !isPenalty && (
+                    <a
+                      href={event.sourceDetail.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 mt-2 text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      View source <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className="border border-gray-100 rounded-lg overflow-hidden">
       {/* Header */}
       <div className="bg-gray-50 px-4 py-3 border-b border-gray-100">
         <div className="flex items-center justify-between">
           <h4 className="text-sm font-semibold text-gray-800">Score Events</h4>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             onClick={() => setShowFilters(!showFilters)}
             className={cn(
-              'inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md transition-colors',
+              'h-auto gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md',
               showFilters
                 ? 'bg-gray-200 text-gray-700'
                 : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
@@ -146,7 +252,7 @@ export function RiskScoreEvents({
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             Filters
-          </button>
+          </Button>
         </div>
 
         {showFilters && (
@@ -219,110 +325,14 @@ export function RiskScoreEvents({
       <div className="px-4 py-2">
         {error && <p className="text-xs text-red-600 py-2">{error}</p>}
 
-        {isLoading && events.length === 0 ? (
-          <div className="flex flex-col gap-2 py-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <span className="bg-gray-100 rounded h-10 w-full animate-pulse" />
-              </div>
-            ))}
-          </div>
-        ) : events.length === 0 ? (
-          <p className="text-sm text-gray-400 py-6 text-center">No events found.</p>
-        ) : (
-          <div className={cn('flex flex-col', isLoading && 'opacity-50 pointer-events-none')}>
-            {events.map((event) => {
-              const isPenalty = event.delta > 0;
-              const isExpanded = expandedId === event.id;
-              const hasDetail = !!event.sourceDetail;
-              return (
-                <div key={event.id} className="my-0.5">
-                  <div
-                    role={hasDetail ? 'button' : undefined}
-                    tabIndex={hasDetail ? 0 : undefined}
-                    aria-expanded={hasDetail ? isExpanded : undefined}
-                    onClick={() => hasDetail && setExpandedId(isExpanded ? null : event.id)}
-                    onKeyDown={(e) => {
-                      if (hasDetail && (e.key === 'Enter' || e.key === ' ')) {
-                        e.preventDefault();
-                        setExpandedId(isExpanded ? null : event.id);
-                      }
-                    }}
-                    className={cn(
-                      'w-full flex items-center justify-between py-2.5 px-3 border-l-2 rounded-r-md text-sm text-left transition-colors',
-                      isPenalty
-                        ? 'border-l-red-400 bg-red-50/40 hover:bg-red-50'
-                        : 'border-l-green-400 bg-green-50/40 hover:bg-green-50',
-                      hasDetail && 'cursor-pointer'
-                    )}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      {isPenalty ? (
-                        <ArrowDownRight className="w-4 h-4 text-red-500 shrink-0" />
-                      ) : (
-                        <ArrowUpRight className="w-4 h-4 text-green-500 shrink-0" />
-                      )}
-                      <span className="text-gray-800 font-medium">{formatEventLabel(event)}</span>
-                      {hasDetail && (
-                        <ChevronDown
-                          className={cn(
-                            'w-3.5 h-3.5 text-gray-400 transition-transform',
-                            isExpanded && 'rotate-180'
-                          )}
-                        />
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <span
-                        className={cn(
-                          'font-semibold tabular-nums',
-                          isPenalty ? 'text-red-600' : 'text-green-600'
-                        )}
-                      >
-                        {isPenalty ? '+' : ''}
-                        {event.delta}
-                      </span>
-                      <span className="text-gray-400 text-xs w-24 text-right">
-                        {formatTimestamp(event.createdDate)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {isExpanded && event.sourceDetail && (
-                    <div className="ml-9 mr-3 mb-1 mt-0.5 rounded-md bg-white border border-gray-100 px-3 py-2.5 text-xs text-gray-600">
-                      {event.sourceDetail.title && (
-                        <p className="font-medium text-gray-800 mb-1">{event.sourceDetail.title}</p>
-                      )}
-                      {event.sourceDetail.snippet && (
-                        <p className="text-gray-500 leading-relaxed">
-                          {event.sourceDetail.snippet}
-                        </p>
-                      )}
-                      {event.sourceDetail.url && !isPenalty && (
-                        <a
-                          href={event.sourceDetail.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 mt-2 text-blue-600 hover:text-blue-700 font-medium"
-                        >
-                          View source <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+        {eventListBody}
       </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50">
           <span className="text-xs text-gray-500">
-            {count} event{count !== 1 ? 's' : ''}
+            {count} event{count === 1 ? '' : 's'}
           </span>
           <div className="flex items-center gap-1">
             <Button

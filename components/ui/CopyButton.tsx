@@ -9,7 +9,7 @@ interface CopyButtonProps {
   size?: number;
 }
 
-export function CopyButton({ value, size = 12 }: CopyButtonProps) {
+export function CopyButton({ value, size = 12 }: Readonly<CopyButtonProps>) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
