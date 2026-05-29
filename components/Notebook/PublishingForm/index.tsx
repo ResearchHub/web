@@ -13,7 +13,10 @@ import { GrantDescriptionSection } from './components/GrantDescriptionSection';
 import { GrantOrganizationSection } from './components/GrantOrganizationSection';
 import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
 import { GrantApplicationVisibilitySection } from './components/GrantApplicationVisibilitySection';
-import { PreregistrationPrivacySection } from './components/PreregistrationPrivacySection';
+import {
+  PreregistrationPrivacySection,
+  PreregistrationPrivacyLockedAlert,
+} from './components/PreregistrationPrivacySection';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { buildWorkUrl } from '@/utils/url';
@@ -582,6 +585,9 @@ export function PublishingForm({
         </div>
 
         <div className="border-t bg-white p-2 lg:p-6 space-y-3 sticky bottom-0">
+          {articleType === 'preregistration' && !methods.watch('workId') && (
+            <PreregistrationPrivacyLockedAlert />
+          )}
           {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Payment due:</span>
