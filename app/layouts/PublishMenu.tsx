@@ -9,6 +9,7 @@ import Icon from '@/components/ui/icons/Icon';
 import { useUser } from '@/contexts/UserContext';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
+import { OpenFundingOpportunityModal } from '@/components/Funding/OpenFundingOpportunityModal';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useState } from 'react';
 
@@ -80,12 +81,18 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
   const { user } = useUser();
   const { smAndDown } = useScreenSize();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const [isFundingOpportunityModalOpen, setIsFundingOpportunityModalOpen] = useState(false);
 
   const handleFundResearch = () => {
     router.push('/notebook?newFunding=true');
   };
 
   const handleOpenGrant = () => {
+    setIsFundingOpportunityModalOpen(true);
+  };
+
+  const handleConfirmOpenGrant = () => {
+    setIsFundingOpportunityModalOpen(false);
     router.push('/notebook?newGrant=true');
   };
 
@@ -281,6 +288,12 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
           </BaseMenu>
         </>
       )}
+
+      <OpenFundingOpportunityModal
+        isOpen={isFundingOpportunityModalOpen}
+        onClose={() => setIsFundingOpportunityModalOpen(false)}
+        onConfirm={handleConfirmOpenGrant}
+      />
     </div>
   );
 };
