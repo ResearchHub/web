@@ -9,6 +9,8 @@ import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { WorkEditModal } from '../WorkEditModal';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
 import { ReopenFundraiseModal } from '@/components/modals/ReopenFundraiseModal';
+import { InviteExpertsModal } from '@/components/modals/InviteExpertsModal';
+import { ID } from '@/types/root';
 
 export interface FundraiseModalConfig {
   title: string;
@@ -47,6 +49,9 @@ export interface WorkHeaderModalsProps {
   onCloseCloseGrantModal?: () => void;
   onConfirmCloseGrant?: () => void;
   isClosingGrant?: boolean;
+  showInviteExpertsModal?: boolean;
+  onCloseInviteExpertsModal?: () => void;
+  inviteExpertsGrantId?: ID;
 }
 
 export function WorkHeaderModals({
@@ -78,6 +83,9 @@ export function WorkHeaderModals({
   onCloseCloseGrantModal,
   onConfirmCloseGrant,
   isClosingGrant = false,
+  showInviteExpertsModal = false,
+  onCloseInviteExpertsModal,
+  inviteExpertsGrantId,
 }: WorkHeaderModalsProps) {
   return (
     <>
@@ -139,6 +147,13 @@ export function WorkHeaderModals({
           cancelText="Cancel"
           confirmButtonClass="bg-red-600 hover:bg-red-700"
           cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+        />
+      )}
+      {inviteExpertsGrantId && onCloseInviteExpertsModal && (
+        <InviteExpertsModal
+          isOpen={showInviteExpertsModal}
+          onClose={onCloseInviteExpertsModal}
+          grantId={inviteExpertsGrantId}
         />
       )}
       {grantId && onCloseApplyToGrantModal && (

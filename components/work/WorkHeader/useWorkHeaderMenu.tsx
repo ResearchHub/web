@@ -10,6 +10,7 @@ import {
   Download,
   Search,
   RotateCcw,
+  UserRoundPlus,
 } from 'lucide-react';
 import { BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Icon } from '@/components/ui/icons/Icon';
@@ -57,10 +58,16 @@ export function useWorkHeaderMenuItems({
   );
   const [isCloseGrantModalOpen, setIsCloseGrantModalOpen] = useState(false);
   const [isClosingGrant, setIsClosingGrant] = useState(false);
+  const [isInviteExpertsModalOpen, setIsInviteExpertsModalOpen] = useState(false);
 
   const grant = work.note?.post?.grant;
   const canCloseGrant =
     isModerator && work.contentType === 'funding_request' && grant?.status === 'OPEN' && !!grant?.id;
+  const canInviteExperts =
+    work.contentType === 'funding_request' &&
+    grant?.status === 'OPEN' &&
+    !!grant?.id &&
+    canEdit;
 
   const confirmCloseGrant = useCallback(async () => {
     if (!grant?.id) return;
@@ -228,6 +235,18 @@ export function useWorkHeaderMenuItems({
           <span>Publish to Journal</span>
         </BaseMenuItem>
       )}
+      {canInviteExperts && (
+        <BaseMenuItem
+          onSelect={() =>
+            executeAuthenticatedAction(() => {
+              setIsInviteExpertsModalOpen(true);
+            })
+          }
+        >
+          <UserRoundPlus className="h-4 w-4 mr-2" />
+          <span>Invite experts</span>
+        </BaseMenuItem>
+      )}
       {canCloseGrant && (
         <BaseMenuItem
           disabled={isClosingGrant}
@@ -317,5 +336,8 @@ export function useWorkHeaderMenuItems({
     closeCloseGrantModal: () => setIsCloseGrantModalOpen(false),
     confirmCloseGrant,
     isClosingGrant,
+    showInviteExpertsModal: isInviteExpertsModalOpen,
+    closeInviteExpertsModal: () => setIsInviteExpertsModalOpen(false),
+    inviteExpertsGrantId: grant?.id,
   };
 }
