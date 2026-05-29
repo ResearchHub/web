@@ -93,7 +93,7 @@ export function ExpertFormModal({
   useEffect(() => {
     if (!isOpen) return;
     setSubmitError(null);
-    if (expert != null) {
+    if (expert) {
       setHonorific(expert.honorific);
       setFirstName(expert.firstName);
       setMiddleName(expert.middleName);
