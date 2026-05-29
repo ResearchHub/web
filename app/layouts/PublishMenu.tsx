@@ -9,7 +9,10 @@ import Icon from '@/components/ui/icons/Icon';
 import { useUser } from '@/contexts/UserContext';
 import { navigateToAuthorProfile } from '@/utils/navigation';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
-import { OpenFundingOpportunityModal } from '@/components/Funding/OpenFundingOpportunityModal';
+import {
+  OpenFundingOpportunityModal,
+  type FundingOpportunityCreationMethod,
+} from '@/components/Funding/OpenFundingOpportunityModal';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useState } from 'react';
 
@@ -91,9 +94,9 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
     setIsFundingOpportunityModalOpen(true);
   };
 
-  const handleConfirmOpenGrant = () => {
+  const handleConfirmOpenGrant = (method: FundingOpportunityCreationMethod) => {
     setIsFundingOpportunityModalOpen(false);
-    router.push('/notebook?newGrant=true');
+    router.push(`/notebook?newGrant=true&grantSource=${method}`);
   };
 
   const handleViewProfile = () => {

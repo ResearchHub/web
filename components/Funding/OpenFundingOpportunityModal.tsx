@@ -1,17 +1,32 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Dialog } from '@headlessui/react';
-import { ArrowRight, Award, Users, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  Award,
+  File,
+  FileText,
+  Sparkles,
+  Upload,
+  Users,
+  X,
+} from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
 import Icon from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { cn } from '@/utils/styles';
+
+export type FundingOpportunityCreationMethod = 'template' | 'upload' | 'blank';
 
 interface OpenFundingOpportunityModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (method: FundingOpportunityCreationMethod) => void;
 }
 
 interface Benefit {
@@ -52,11 +67,51 @@ const BENEFITS: Benefit[] = [
   },
 ];
 
+interface CreationOption {
+  id: FundingOpportunityCreationMethod;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}
+
+const CREATION_OPTIONS: CreationOption[] = [
+  {
+    id: 'template',
+    title: 'From a template',
+    description: 'Start with our funding opportunity template',
+    icon: <FileText className="h-[22px] w-[22px] text-rhBlue-600" />,
+  },
+  {
+    id: 'upload',
+    title: 'Upload a document',
+    description: 'Import a Word, Markdown, or OpenDocument file',
+    icon: <Upload className="h-[22px] w-[22px] text-rhBlue-600" />,
+  },
+  {
+    id: 'blank',
+    title: 'Start blank',
+    description: 'Begin with an empty page',
+    icon: <File className="h-[22px] w-[22px] text-rhBlue-600" />,
+  },
+];
+
+const WHITE_GLOVE_BOOKING_URL = 'https://cal.com/tyler-diorio/15min';
+
+type Step = 'benefits' | 'method';
+
 export const OpenFundingOpportunityModal = ({
   isOpen,
   onClose,
   onConfirm,
 }: OpenFundingOpportunityModalProps) => {
+  const [step, setStep] = useState<Step>('benefits');
+
+  // Reset to the first step whenever the modal is reopened so a returning user
+  // always starts from the benefits pitch rather than a stale method step.
+  useEffect(() => {
+    if (!isOpen) setStep('benefits');
+  }, [isOpen]);
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -128,48 +183,121 @@ export const OpenFundingOpportunityModal = ({
             <X className="h-4 w-4" />
           </button>
 
-          <div className="mt-1.5 flex flex-col gap-5">
-            {BENEFITS.map((benefit) => (
-              <div key={benefit.id} className="flex items-start gap-4">
-                <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-2xl bg-blue-50">
-                  {benefit.icon}
+          {step === 'benefits' ? (
+            <>
+              <div className="mt-1.5 flex flex-col gap-5">
+                {BENEFITS.map((benefit) => (
+                  <div key={benefit.id} className="flex items-start gap-4">
+                    <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-2xl bg-blue-50">
+                      {benefit.icon}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-base font-semibold leading-[1.3] text-gray-900">
+                        {benefit.title}
+                      </div>
+                      <div className="mt-0.5 text-sm leading-[1.5] text-gray-500">
+                        {benefit.description}
+                      </div>
+
+                      {benefit.learnMoreHref && (
+                        <Link
+                          href={benefit.learnMoreHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1.5 inline-flex items-center gap-1 text-sm font-medium text-rhBlue-600 transition-colors hover:text-rhBlue-700"
+                        >
+                          Learn more
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="-mx-6 mt-8 border-t border-gray-200 px-6 pt-8 md:-mx-10 md:px-10">
+                <div className="flex items-center justify-end">
+                  <Button
+                    variant="default"
+                    onClick={() => setStep('method')}
+                    className="h-[46px] gap-2 px-5 text-sm font-semibold"
+                  >
+                    Get Started
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setStep('benefits')}
+                className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </button>
+
+              <div className="mt-5">
+                <h3 className="text-lg font-semibold text-gray-900">How do you want to start?</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Choose how you&apos;d like to create your funding opportunity.
+                </p>
+              </div>
+
+              <div className="mt-5 flex flex-col gap-2.5">
+                {CREATION_OPTIONS.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => onConfirm(option.id)}
+                    className="group flex w-full items-center gap-4 rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-left transition-colors hover:border-rhBlue-300 hover:bg-blue-50/50"
+                  >
+                    <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-2xl bg-blue-50">
+                      {option.icon}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-base font-semibold leading-[1.3] text-gray-900">
+                        {option.title}
+                      </div>
+                      <div className="mt-0.5 text-sm leading-[1.5] text-gray-500">
+                        {option.description}
+                      </div>
+                    </div>
+                    <ArrowRight className="h-4 w-4 flex-shrink-0 text-gray-300 transition-colors group-hover:text-rhBlue-500" />
+                  </button>
+                ))}
+              </div>
+
+              <div className="my-5 flex items-center gap-3 text-xs font-medium uppercase tracking-wider text-gray-400">
+                <span className="h-px flex-1 bg-gray-200" />
+                or
+                <span className="h-px flex-1 bg-gray-200" />
+              </div>
+
+              <a
+                href={WHITE_GLOVE_BOOKING_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onClose}
+                className="group flex w-full items-center gap-4 rounded-xl border border-rhBlue-200 bg-blue-50/60 px-4 py-3.5 text-left transition-colors hover:border-rhBlue-300 hover:bg-blue-50"
+              >
+                <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-2xl bg-rhBlue-600">
+                  <Sparkles className="h-[22px] w-[22px] text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-base font-semibold leading-[1.3] text-gray-900">
-                    {benefit.title}
+                    White-glove setup
                   </div>
                   <div className="mt-0.5 text-sm leading-[1.5] text-gray-500">
-                    {benefit.description}
+                    Book a 15-minute call and our team will set it up with you.
                   </div>
-
-                  {benefit.learnMoreHref && (
-                    <Link
-                      href={benefit.learnMoreHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-1.5 inline-flex items-center gap-1 text-sm font-medium text-rhBlue-600 transition-colors hover:text-rhBlue-700"
-                    >
-                      Learn more
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
-                  )}
                 </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="-mx-6 mt-8 border-t border-gray-200 px-6 pt-8 md:-mx-10 md:px-10">
-            <div className="flex items-center justify-end">
-              <Button
-                variant="default"
-                onClick={onConfirm}
-                className="h-[46px] gap-2 px-5 text-sm font-semibold"
-              >
-                Get Started
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+                <ArrowUpRight className="h-4 w-4 flex-shrink-0 text-rhBlue-400 transition-colors group-hover:text-rhBlue-600" />
+              </a>
+            </>
+          )}
         </div>
       </div>
     </BaseModal>

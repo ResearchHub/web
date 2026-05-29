@@ -5,7 +5,10 @@ import { useRouter } from 'next/navigation';
 import { Check, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
-import { OpenFundingOpportunityModal } from '@/components/Funding/OpenFundingOpportunityModal';
+import {
+  OpenFundingOpportunityModal,
+  type FundingOpportunityCreationMethod,
+} from '@/components/Funding/OpenFundingOpportunityModal';
 
 const FUNDING_METHODS = ['Funding Credits', 'Donor-advised funds (DAF)', 'USD'];
 
@@ -19,9 +22,9 @@ export function OpenFundingOpportunityCTA() {
     executeAuthenticatedAction(() => setIsModalOpen(true));
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = (method: FundingOpportunityCreationMethod) => {
     setIsModalOpen(false);
-    router.push('/notebook?newGrant=true');
+    router.push(`/notebook?newGrant=true&grantSource=${method}`);
   };
 
   return (
