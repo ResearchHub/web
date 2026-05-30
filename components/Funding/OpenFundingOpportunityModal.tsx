@@ -19,6 +19,7 @@ import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
 import Icon from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import AnimatedResearchCoin from '@/components/ResearchCoin/AnimatedResearchCoin/AnimatedResearchCoin';
 import { cn } from '@/utils/styles';
 
 export type FundingOpportunityCreationMethod = 'template' | 'upload' | 'blank';
@@ -156,17 +157,17 @@ export const OpenFundingOpportunityModal = ({
               maskImage: 'radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 78%)',
             }}
           />
-          <div className="relative z-10">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/25 bg-white/15 backdrop-blur-sm">
-              <Icon name="fund" size={34} color="#ffffff" />
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <div className="mb-4 flex h-[190px] items-center justify-center">
+              <AnimatedResearchCoin size={180} spinDuration={5} floatDuration={5} />
             </div>
             <Dialog.Title
               as="h2"
-              className="mt-7 text-[32px] font-bold leading-[1.08] tracking-[-0.02em] text-white"
+              className="text-[28px] font-bold leading-[1.12] tracking-[-0.02em] text-white"
             >
               Open a funding opportunity
             </Dialog.Title>
-            <p className="mt-3.5 text-base leading-[1.5] text-white/80">
+            <p className="mt-3 text-base leading-[1.5] text-white/80">
               The most efficient way to fund science.
             </p>
           </div>
@@ -185,7 +186,13 @@ export const OpenFundingOpportunityModal = ({
 
           {step === 'benefits' ? (
             <>
-              <div className="mt-1.5 flex flex-col gap-5">
+              <div className="pr-10">
+                <h3 className="text-2xl font-bold tracking-tight text-gray-900">
+                  Why fund on ResearchHub
+                </h3>
+              </div>
+
+              <div className="mt-6 flex flex-col gap-5">
                 {BENEFITS.map((benefit) => (
                   <div key={benefit.id} className="flex items-start gap-4">
                     <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-2xl bg-blue-50">
@@ -241,9 +248,6 @@ export const OpenFundingOpportunityModal = ({
 
               <div className="mt-5">
                 <h3 className="text-lg font-semibold text-gray-900">How do you want to start?</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Choose how you&apos;d like to create your funding opportunity.
-                </p>
               </div>
 
               <div className="mt-5 flex flex-col gap-2.5">
