@@ -94,6 +94,10 @@ export function WorkHeader({
     closeReopenModal,
     confirmReopenFundraise,
     isReopeningFundraise,
+    showCloseGrantModal,
+    closeCloseGrantModal,
+    confirmCloseGrant,
+    isClosingGrant,
   } = useWorkHeaderMenuItems({
     work,
     metadata,
@@ -252,6 +256,10 @@ export function WorkHeader({
         onCloseReopenModal={closeReopenModal}
         onConfirmReopen={confirmReopenFundraise}
         isReopeningFundraise={isReopeningFundraise}
+        showCloseGrantModal={showCloseGrantModal}
+        onCloseCloseGrantModal={closeCloseGrantModal}
+        onConfirmCloseGrant={confirmCloseGrant}
+        isClosingGrant={isClosingGrant}
       />
     </>
   );

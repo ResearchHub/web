@@ -3,6 +3,7 @@ import { ApiClient } from './client';
 import { PaperService } from './paper.service';
 import { PostService } from './post.service';
 import {
+  transformExpertResult,
   transformExpertSearch,
   transformExpertSearchCreateResponse,
   transformExpertSearchListItem,
@@ -10,6 +11,7 @@ import {
   transformSavedTemplate,
   transformInvitedExperts,
   type InvitedExperts,
+  type ExpertResult,
   type ExpertSearchCreated,
   type ExpertSearchResult,
   type ExpertSearchListItem,
@@ -142,6 +144,19 @@ export interface CreateDraftEmailPayload {
 
 export type UpdateGeneratedEmailPayload = Partial<CreateDraftEmailPayload>;
 
+export interface AddExpertPayload {
+  email: string;
+  honorific?: string;
+  first_name?: string;
+  middle_name?: string;
+  last_name?: string;
+  name_suffix?: string;
+  academic_title?: string;
+  affiliation?: string;
+  expertise?: string;
+  notes?: string;
+}
+
 export interface CreateSavedTemplatePayload {
   name: string;
   email_subject?: string;
@@ -184,6 +199,21 @@ export class ExpertFinderService {
    */
   static async patchExpert(expertId: number | string, payload: PatchExpertPayload): Promise<void> {
     await ApiClient.patch<void>(`${this.BASE_PATH}/experts/${expertId}/`, payload);
+  }
+
+  /**
+   * Manually add an expert to an existing search.
+   * POST /api/research_ai/expert-finder/searches/:searchId/experts/
+   */
+  static async addExpert(
+    searchId: number | string,
+    payload: AddExpertPayload
+  ): Promise<ExpertResult> {
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/searches/${searchId}/experts/`,
+      payload
+    );
+    return transformExpertResult(raw);
   }
 
   /**

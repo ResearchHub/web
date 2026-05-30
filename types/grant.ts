@@ -5,6 +5,8 @@ import { Contact, transformContact } from './note';
 
 export type GrantStatus = 'OPEN' | 'CLOSED' | 'PENDING' | 'DECLINED' | 'COMPLETED';
 
+export type GrantApplicationVisibility = 'OPTIONAL' | 'PRIVATE' | 'PUBLIC';
+
 export const GRANT_IMAGE_FALLBACK_GRADIENT =
   'radial-gradient(ellipse at 25% 35%, rgba(251,146,60,0.55) 0%, transparent 50%), ' +
   'linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%)';
@@ -55,6 +57,7 @@ export interface Grant {
   startDate: string;
   endDate: string;
   contacts: Contact[];
+  applicationVisibility: GrantApplicationVisibility;
   applicants?: AuthorProfile[];
   reviewedBy?: {
     id: ID;
@@ -89,6 +92,7 @@ export const transformGrant = createTransformer<any, Grant>((raw) => ({
   contacts: Array.isArray(raw.contacts)
     ? raw.contacts.map((contact: any) => transformContact(contact))
     : undefined,
+  applicationVisibility: (raw.application_visibility as GrantApplicationVisibility) ?? 'OPTIONAL',
   applicants: Array.isArray(raw.applications)
     ? raw.applications.map((application: any) => transformAuthorProfile(application.applicant))
     : undefined,

@@ -19,6 +19,7 @@ import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useRouter } from 'next/navigation';
 import { useCloseFundraise, useCompleteFundraise, useReopenFundraise } from '@/hooks/useFundraise';
 import { PaperService } from '@/services/paper.service';
+import { GrantModerationService } from '@/services/grant-moderation.service';
 import { handleDownload } from '@/utils/download';
 import { FundraiseModalConfig } from './WorkHeaderModals';
 import toast from 'react-hot-toast';
@@ -54,6 +55,27 @@ export function useWorkHeaderMenuItems({
   const [fundraiseAction, setFundraiseAction] = useState<'close' | 'complete' | 'reopen' | null>(
     null
   );
+  const [isCloseGrantModalOpen, setIsCloseGrantModalOpen] = useState(false);
+  const [isClosingGrant, setIsClosingGrant] = useState(false);
+
+  const grant = work.note?.post?.grant;
+  const canCloseGrant =
+    isModerator && work.contentType === 'funding_request' && grant?.status === 'OPEN' && !!grant?.id;
+
+  const confirmCloseGrant = useCallback(async () => {
+    if (!grant?.id) return;
+    setIsClosingGrant(true);
+    try {
+      await GrantModerationService.closeGrant(grant.id);
+      toast.success('RFP closed');
+      setIsCloseGrantModalOpen(false);
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to close RFP');
+    } finally {
+      setIsClosingGrant(false);
+    }
+  }, [grant?.id, router]);
 
   const latestVersion = work.versions?.find((v) => v.isLatest);
   const isPublished = latestVersion?.publicationStatus === 'PUBLISHED';
@@ -206,6 +228,19 @@ export function useWorkHeaderMenuItems({
           <span>Publish to Journal</span>
         </BaseMenuItem>
       )}
+      {canCloseGrant && (
+        <BaseMenuItem
+          disabled={isClosingGrant}
+          onSelect={() =>
+            executeAuthenticatedAction(() => {
+              setIsCloseGrantModalOpen(true);
+            })
+          }
+        >
+          <Octagon className="h-4 w-4 mr-2" />
+          <span>Close RFP</span>
+        </BaseMenuItem>
+      )}
       {isModerator && work.contentType === 'preregistration' && metadata.fundraising?.id && (
         <>
           <BaseMenuItem
@@ -278,5 +313,9 @@ export function useWorkHeaderMenuItems({
     closeReopenModal: () => setFundraiseAction(null),
     confirmReopenFundraise,
     isReopeningFundraise,
+    showCloseGrantModal: isCloseGrantModalOpen,
+    closeCloseGrantModal: () => setIsCloseGrantModalOpen(false),
+    confirmCloseGrant,
+    isClosingGrant,
   };
 }
