@@ -76,7 +76,9 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: Readonly<NoteE
   useEffect(() => {
     if (isDesktop !== true || isModal || tourAutoStarted.current) return;
     tourAutoStarted.current = true;
-    const timer = setTimeout(() => setIsTourOpen(true), 700);
+    // Give the layout a beat to settle (note load + the right sidebar's
+    // slide-in transition) before the highlight appears.
+    const timer = setTimeout(() => setIsTourOpen(true), 1000);
     return () => clearTimeout(timer);
   }, [isDesktop, isModal]);
 

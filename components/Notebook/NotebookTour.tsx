@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
@@ -55,33 +55,30 @@ export function NotebookTour({ run, onClose }: NotebookTourProps) {
     if (run) setStepIndex(0);
   }, [run]);
 
-  const measure = useCallback(() => {
-    const el = document.querySelector(step.selector) as HTMLElement | null;
-    setRect(el ? el.getBoundingClientRect() : null);
-  }, [step]);
-
-  // Track the target rect. We re-measure for a handful of frames so the
-  // spotlight settles after any layout/transition, plus on resize/scroll.
+  // Continuously track the target while the tour is open. The notebook layout
+  // animates (the right sidebar slides in via a grid-template-columns
+  // transition, content reflows on load), so a one-time measurement lands the
+  // highlight out of place. Measuring every frame keeps the ring glued to the
+  // target through any reflow; we only re-render when the rect actually moves.
   useEffect(() => {
     if (!run) return;
-    measure();
     let raf = 0;
-    let frames = 0;
-    const loop = () => {
-      measure();
-      frames += 1;
-      if (frames < 12) raf = requestAnimationFrame(loop);
+    let prevKey = '';
+    const tick = () => {
+      const el = document.querySelector(step.selector) as HTMLElement | null;
+      const r = el ? el.getBoundingClientRect() : null;
+      const key = r
+        ? `${Math.round(r.top)}:${Math.round(r.left)}:${Math.round(r.width)}:${Math.round(r.height)}`
+        : 'none';
+      if (key !== prevKey) {
+        prevKey = key;
+        setRect(r);
+      }
+      raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(loop);
-    const onChange = () => measure();
-    window.addEventListener('resize', onChange);
-    window.addEventListener('scroll', onChange, true);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('resize', onChange);
-      window.removeEventListener('scroll', onChange, true);
-    };
-  }, [run, measure, stepIndex]);
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [run, step]);
 
   // Position the popover relative to the target (or centered as a fallback).
   useEffect(() => {
