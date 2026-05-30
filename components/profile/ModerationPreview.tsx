@@ -1,6 +1,5 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
 import { useUserDetailsForModerator } from '@/hooks/useAuthor';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
 import { CopyButton } from '@/components/ui/CopyButton';
@@ -31,8 +30,6 @@ function Row({
 }
 
 export function ModerationPreview({ userId }: ModerationPreviewProps) {
-  const searchParams = useSearchParams();
-  const showRiskScore = searchParams.get('riskscore') === 'true';
   const [{ userDetails, isLoading }] = useUserDetailsForModerator(userId);
 
   if (isLoading) {
@@ -73,16 +70,14 @@ export function ModerationPreview({ userId }: ModerationPreviewProps) {
         />
         <Row label="Verified name" value={verifiedName} />
         <Row label="Email" value={userDetails.email || 'N/A'} />
-        {showRiskScore && (
-          <Row
-            label="Score"
-            value={
-              userDetails.riskScore === -1
-                ? 'N/A'
-                : `${userDetails.riskScore} (${getScoreLabel(userDetails.riskScore, userDetails.isSuspended)})`
-            }
-          />
-        )}
+        <Row
+          label="Score"
+          value={
+            userDetails.riskScore === -1
+              ? 'N/A'
+              : `${userDetails.riskScore} (${getScoreLabel(userDetails.riskScore, userDetails.isSuspended)})`
+          }
+        />
       </ul>
     </section>
   );

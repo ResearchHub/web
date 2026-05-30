@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { ArrowDownRight, ArrowUpRight, Minus, MoreHorizontal } from 'lucide-react';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { toast } from 'react-hot-toast';
@@ -187,10 +186,8 @@ function ModerationSkeleton() {
 
 export function ModerationTab({ userId, authorId, refetchAuthorInfo }: ModerationTabProps) {
   const { user: currentUser } = useUser();
-  const searchParams = useSearchParams();
-  const showRiskScore = searchParams.get('riskscore') === 'true';
   const [{ userDetails, isLoading }, refetchModerationDetails] = useUserDetailsForModerator(userId);
-  const [eventsState, fetchEvents] = useRiskScoreEvents(showRiskScore ? userId : null, {
+  const [eventsState, fetchEvents] = useRiskScoreEvents(userId, {
     pageSize: 10,
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -282,64 +279,62 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
       {/* Combined Moderation Card */}
       <div className="rounded-xl border overflow-hidden bg-gray-50/80 border-gray-200">
         {/* Score Header */}
-        {showRiskScore && (
-          <div className="p-5 pb-0">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex items-baseline gap-2">
-                  <span className={cn('text-3xl font-bold tabular-nums', tierConfig.scoreClass)}>
-                    {riskScore === -1 ? '—' : riskScore}
-                  </span>
-                  <span
-                    className={cn(
-                      'text-sm font-semibold uppercase tracking-wide',
-                      tierConfig.scoreClass
-                    )}
-                  >
-                    {tierConfig.label}
-                  </span>
-                </div>
-
-                {userDetails.isProbableSpammer && (
-                  <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800 border border-orange-200">
-                    Probable Spammer
-                  </span>
-                )}
+        <div className="p-5 pb-0">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-baseline gap-2">
+                <span className={cn('text-3xl font-bold tabular-nums', tierConfig.scoreClass)}>
+                  {riskScore === -1 ? '—' : riskScore}
+                </span>
+                <span
+                  className={cn(
+                    'text-sm font-semibold uppercase tracking-wide',
+                    tierConfig.scoreClass
+                  )}
+                >
+                  {tierConfig.label}
+                </span>
               </div>
 
-              {menuItems.length > 0 && (
-                <BaseMenu
-                  trigger={
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex items-center text-gray-500 hover:text-gray-700"
-                    >
-                      <MoreHorizontal className="w-5 h-5" />
-                    </Button>
-                  }
-                  align="end"
-                  open={isMenuOpen}
-                  onOpenChange={setIsMenuOpen}
-                >
-                  {menuItems.map((item) => (
-                    <BaseMenuItem
-                      key={item.id}
-                      onClick={item.onClick}
-                      className="flex items-center gap-2"
-                      disabled={moderationState.isLoading}
-                    >
-                      <span>{item.label}</span>
-                    </BaseMenuItem>
-                  ))}
-                </BaseMenu>
+              {userDetails.isProbableSpammer && (
+                <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800 border border-orange-200">
+                  Probable Spammer
+                </span>
               )}
             </div>
+
+            {menuItems.length > 0 && (
+              <BaseMenu
+                trigger={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center text-gray-500 hover:text-gray-700"
+                  >
+                    <MoreHorizontal className="w-5 h-5" />
+                  </Button>
+                }
+                align="end"
+                open={isMenuOpen}
+                onOpenChange={setIsMenuOpen}
+              >
+                {menuItems.map((item) => (
+                  <BaseMenuItem
+                    key={item.id}
+                    onClick={item.onClick}
+                    className="flex items-center gap-2"
+                    disabled={moderationState.isLoading}
+                  >
+                    <span>{item.label}</span>
+                  </BaseMenuItem>
+                ))}
+              </BaseMenu>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Details + Insights */}
-        <div className={cn('px-5 py-4', showRiskScore && 'border-t border-black/5 mt-4')}>
+        <div className="px-5 py-4 border-t border-black/5 mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Details Column */}
             <div>
@@ -358,7 +353,7 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
             </div>
 
             {/* Insights Column */}
-            {showRiskScore && insights.length > 0 && (
+            {insights.length > 0 && (
               <div>
                 <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
                   Insights
@@ -386,17 +381,15 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
       </div>
 
       {/* Risk Score Events */}
-      {showRiskScore && (
-        <RiskScoreEvents
-          events={eventsState.events}
-          count={eventsState.count}
-          page={eventsState.page}
-          pageSize={eventsState.pageSize}
-          isLoading={eventsState.isLoading}
-          error={eventsState.error}
-          fetchEvents={fetchEvents}
-        />
-      )}
+      <RiskScoreEvents
+        events={eventsState.events}
+        count={eventsState.count}
+        page={eventsState.page}
+        pageSize={eventsState.pageSize}
+        isLoading={eventsState.isLoading}
+        error={eventsState.error}
+        fetchEvents={fetchEvents}
+      />
     </section>
   );
 }
