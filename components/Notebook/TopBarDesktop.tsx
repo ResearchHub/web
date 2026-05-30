@@ -5,6 +5,7 @@ import { ChevronRight, ChevronLeft, X } from 'lucide-react';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { PublishedStatusSection } from './PublishingForm/components/PublishedStatusSection';
+import { NotesMenu } from './NotesMenu';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 
 interface TopBarDesktopProps {
@@ -33,7 +34,7 @@ export function TopBarDesktop({ onClose }: Readonly<TopBarDesktopProps>) {
             <X className="h-5 w-5" />
           </Button>
         ) : (
-          <div />
+          <NotesMenu />
         )}
 
         <PublishedStatusSection />

@@ -1,15 +1,14 @@
 'use client';
 
 import { NoteList } from '@/components/Notebook/LeftSidebar/NoteList';
-import { OrganizationSwitcher } from '@/components/Notebook/LeftSidebar/OrganizationSwitcher';
 import { SidebarSection } from '@/components/Notebook/LeftSidebar/SidebarSection';
 import { Button } from '@/components/ui/Button';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { Plus, Lock, Loader2, FileText, type LucideIcon } from 'lucide-react';
-import { Organization } from '@/types/organization';
+import { Plus, Lock, Loader2, FileText, UserPlus, type LucideIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useCallback, useState, useTransition } from 'react';
+import { useCallback, useState } from 'react';
 import { useNoteContent, useCreateNote } from '@/hooks/useNote';
+import { OrganizationSettingsModal } from '@/components/modals/OrganizationSettingsModal';
 import { getInitialContent } from '@/components/Editor/lib/data/initialContent';
 import {
   getDocumentTitle,
@@ -65,15 +64,9 @@ const getTemplateContent = (templateId: TemplateId) => {
 export const LeftSidebar = () => {
   const router = useRouter();
 
-  const [isPending, startTransition] = useTransition();
   const [{ isLoading: isCreatingNote }, createNote] = useCreateNote();
   const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
-  const {
-    organizations,
-    selectedOrg,
-    setSelectedOrg,
-    isLoading: isLoadingOrgs,
-  } = useOrganizationContext();
+  const { selectedOrg, isLoading: isLoadingOrgs } = useOrganizationContext();
   const { notes, isLoading: isLoadingNotes, refreshNotes } = useNotebookContext();
 
   // Which section's "+" was clicked, or null when the modal is closed.
@@ -82,22 +75,9 @@ export const LeftSidebar = () => {
   // happens before either of those fire — we want the modal to show "Importing"
   // for the full duration including the network round-trip.
   const [isImporting, setIsImporting] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
-  const handleOrgSelect = useCallback(
-    async (org: Organization) => {
-      setSelectedOrg(org);
-
-      try {
-        startTransition(() => {
-          router.replace(`/notebook/${org.slug}`);
-        });
-      } catch (error) {
-        console.error('Error navigating to organization:', error);
-        toast.error('Failed to switch organization. Please try again.');
-      }
-    },
-    [router, setSelectedOrg]
-  );
+  const isCurrentUserAdmin = selectedOrg?.userPermission?.accessType === 'ADMIN';
 
   const createNoteWithContent = useCallback(
     async ({
@@ -264,15 +244,8 @@ export const LeftSidebar = () => {
   );
 
   return (
-    <div className="h-full overflow-y-auto">
-      <OrganizationSwitcher
-        organizations={organizations}
-        selectedOrg={selectedOrg}
-        onOrgSelect={handleOrgSelect}
-        isLoading={isLoadingOrgs || isPending}
-      />
-
-      <div className="flex-1 overflow-y-auto">
+    <div className="flex flex-col">
+      <div className="flex-1">
         <div className="px-2 py-3">
           <SidebarSection
             title="Workspace"
@@ -281,11 +254,7 @@ export const LeftSidebar = () => {
             action={renderAddButton('workspace')}
           >
             {hasWorkspaceNotes || isLoadingNotes || isLoadingOrgs ? (
-              <NoteList
-                type="workspace"
-                notes={notes || []}
-                isLoading={isLoadingNotes || isPending}
-              />
+              <NoteList type="workspace" notes={notes || []} isLoading={isLoadingNotes} />
             ) : (
               renderEmptyState({
                 icon: FileText,
@@ -306,11 +275,7 @@ export const LeftSidebar = () => {
             action={renderAddButton('private')}
           >
             {hasPrivateNotes || isLoadingNotes || isLoadingOrgs ? (
-              <NoteList
-                type="private"
-                notes={notes || []}
-                isLoading={isLoadingNotes || isPending}
-              />
+              <NoteList type="private" notes={notes || []} isLoading={isLoadingNotes} />
             ) : (
               renderEmptyState({
                 icon: Lock,
@@ -322,6 +287,19 @@ export const LeftSidebar = () => {
             )}
           </SidebarSection>
         </div>
+      </div>
+
+      <div className="border-t border-gray-200 p-2">
+        <Button
+          variant="ghost"
+          onClick={() => setIsSettingsModalOpen(true)}
+          disabled={!isCurrentUserAdmin}
+          tooltip={isCurrentUserAdmin ? undefined : 'Only admins can invite members'}
+          className="w-full justify-start gap-2 px-2.5 py-2 text-sm font-normal text-gray-600 hover:text-gray-900"
+        >
+          <UserPlus className="h-4 w-4 text-gray-500" />
+          Invite people
+        </Button>
       </div>
 
       <NoteCreationModal
@@ -339,6 +317,13 @@ export const LeftSidebar = () => {
         }
         isProcessing={isProcessing}
       />
+
+      {selectedOrg && isCurrentUserAdmin && (
+        <OrganizationSettingsModal
+          isOpen={isSettingsModalOpen}
+          onClose={() => setIsSettingsModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

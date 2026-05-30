@@ -24,18 +24,19 @@ import { NoteEditorLayout } from '@/components/Notebook/NoteEditorLayout';
 import { clearPendingGrant } from '@/components/Editor/lib/utils/publishingFormStorage';
 
 function NotebookLayoutContent({ children }: Readonly<{ children: ReactNode }>) {
-  const { isLeftSidebarOpen, closeLeftSidebar, openLeftSidebar, closeBothSidebars } = useSidebar();
+  const { isLeftSidebarOpen, closeLeftSidebar, closeBothSidebars } = useSidebar();
 
   const { lgAndUp } = useScreenSize();
   const isDesktop = lgAndUp;
 
+  // On desktop the notebook notes now live in a top-bar dropdown, so there is
+  // no persistent left drawer to open. Just make sure both drawers are closed
+  // when we drop to mobile.
   useEffect(() => {
-    if (lgAndUp) {
-      openLeftSidebar();
-    } else {
+    if (!lgAndUp) {
       closeBothSidebars();
     }
-  }, [lgAndUp, openLeftSidebar, closeBothSidebars]);
+  }, [lgAndUp, closeBothSidebars]);
 
   useEffect(() => {
     return () => clearPendingGrant();
@@ -50,18 +51,13 @@ function NotebookLayoutContent({ children }: Readonly<{ children: ReactNode }>) 
       <div
         className="grid min-h-screen w-full"
         style={{
-          gridTemplateColumns: isDesktop ? '70px 300px minmax(0, 1fr)' : '0px 0px minmax(0, 1fr)',
+          gridTemplateColumns: isDesktop ? '70px minmax(0, 1fr)' : '0px minmax(0, 1fr)',
         }}
       >
         <div
           className={`h-screen sticky top-0 overflow-hidden ${isDesktop ? 'border-r border-gray-200' : ''}`}
         >
           {isDesktop && <MainLeftSidebar forceMinimize={true} />}
-        </div>
-        <div
-          className={`h-screen sticky top-0 overflow-hidden ${isDesktop ? 'border-r border-gray-200' : ''}`}
-        >
-          {isDesktop && <NotebookLeftSidebar />}
         </div>
         <div className={`${isDesktop ? 'h-screen' : 'min-h-screen'} flex flex-col`}>
           <NoteEditorLayout />

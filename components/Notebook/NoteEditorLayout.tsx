@@ -62,7 +62,7 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: Readonly<NoteE
   const { isRightSidebarOpen, closeRightSidebar, openRightSidebar } = useSidebar();
 
   const { selectedOrg } = useOrganizationContext();
-  const { xlAndUp, lgAndUp } = useScreenSize();
+  const { lgAndUp } = useScreenSize();
   const isDesktop = lgAndUp;
 
   const [isLegacyNote, setIsLegacyNote] = useState<boolean | undefined>(undefined);
@@ -84,12 +84,14 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: Readonly<NoteE
 
   useEffect(() => {
     if (!shouldShowRightSidebar) return;
-    if (xlAndUp) {
+    // Now that the notebook's left sidebar is a top-bar dropdown, there's room
+    // to keep the publishing sidebar open across the whole desktop range.
+    if (lgAndUp) {
       openRightSidebar();
     } else {
       closeRightSidebar();
     }
-  }, [xlAndUp, shouldShowRightSidebar, openRightSidebar, closeRightSidebar]);
+  }, [lgAndUp, shouldShowRightSidebar, openRightSidebar, closeRightSidebar]);
 
   const renderTopBar = () =>
     isDesktop ? <TopBarDesktop onClose={onClose} /> : <TopBarMobile onClose={onClose} />;
