@@ -28,6 +28,7 @@ import { useWorkHeaderMenuItems } from './useWorkHeaderMenu';
 import { WorkHeaderVoteWidget } from './WorkHeaderVoteWidget';
 import { WorkHeaderSubtitle } from './WorkHeaderSubtitle';
 import { WorkHeaderBountyEyebrow } from './WorkHeaderBountyEyebrow';
+import { PendingReviewBadge } from './PendingReviewBadge';
 import { WorkHeaderModals } from './WorkHeaderModals';
 import { WorkTabs } from '@/components/work/WorkTabs';
 import { useWorkTab } from './WorkTabContext';
@@ -143,6 +144,19 @@ export function WorkHeader({
   ) : undefined;
 
   const resolvedEyebrow = eyebrowOverride !== undefined ? eyebrowOverride : defaultEyebrow;
+
+  // Papers, posts, and proposals carry their moderation state at the top level.
+  // Grants are exempt (their post stays APPROVED; grant.status drives their own
+  // eyebrow), so this badge never double-renders for them.
+  const finalEyebrow =
+    work.moderationStatus === 'PENDING' ? (
+      <div className="flex flex-wrap items-center gap-1.5">
+        <PendingReviewBadge />
+        {resolvedEyebrow}
+      </div>
+    ) : (
+      resolvedEyebrow
+    );
   const resolvedSubtitle =
     subtitleOverride !== undefined ? (
       subtitleOverride
@@ -217,7 +231,7 @@ export function WorkHeader({
     <>
       <HeroHeader
         title={work.title}
-        eyebrow={resolvedEyebrow}
+        eyebrow={finalEyebrow}
         subtitle={resolvedSubtitle}
         actions={actionBar}
         cta={primaryAction}

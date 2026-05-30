@@ -1,6 +1,6 @@
 import { ApiClient } from './client';
 import { isDOI } from '@/utils/doi';
-import { Work, transformPaper } from '@/types/work';
+import { Work, transformPaper, ModerationStatus } from '@/types/work';
 
 interface CreateByOpenAlexIdResponse {
   paper_id: number;
@@ -46,6 +46,7 @@ export interface CreatePaperPayload {
 interface CreatePaperResponse {
   id: number;
   title: string;
+  status?: ModerationStatus;
 }
 
 interface CheckoutSessionResponse {

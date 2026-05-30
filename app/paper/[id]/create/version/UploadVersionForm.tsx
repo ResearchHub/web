@@ -190,7 +190,11 @@ export default function UploadVersionForm({
       const newPaper = await PaperService.get(String(response.id));
 
       toast.dismiss(loadingToast);
-      toast.success('New version submitted successfully!');
+      toast.success(
+        response.status === 'PENDING'
+          ? 'New version submitted and is pending moderator review.'
+          : 'New version submitted successfully!'
+      );
 
       router.push(`/paper/${newPaper.id}/${newPaper.slug}`);
     } catch (error) {

@@ -297,11 +297,17 @@ export default function UploadPDFPage() {
       const response = await PaperService.create(payload);
 
       toast.dismiss(loadingToast);
-      toast.success('Paper submitted successfully!');
+      const isPending = response.status === 'PENDING';
+      toast.success(
+        isPending
+          ? 'Paper submitted and is pending moderator review.'
+          : 'Paper submitted successfully!'
+      );
 
+      const statusParam = `&status=${response.status ?? ''}`;
       if (submitToJournal) {
         try {
-          const successUrl = `${window.location.origin}/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=true`;
+          const successUrl = `${window.location.origin}/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=true${statusParam}`;
           const failureUrl = `${window.location.origin}/`;
 
           const checkoutData = await PaperService.payForJournalSubmission(
@@ -324,7 +330,7 @@ export default function UploadPDFPage() {
         }
       } else {
         router.push(
-          `/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=${submitToJournal}`
+          `/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=${submitToJournal}${statusParam}`
         );
       }
     } catch (error) {

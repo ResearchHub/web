@@ -496,6 +496,7 @@ export function PublishingForm({
       }
 
       setIsRedirecting(true);
+      const publishLabel = PUBLISH_LABEL[formData.articleType] ?? 'Post';
       if (formData.articleType === 'grant' && !formData.workId) {
         toast.success(
           'Your Funding Opportunity has been submitted and is pending moderator review.',
@@ -503,8 +504,12 @@ export function PublishingForm({
             duration: 5000,
           }
         );
+      } else if (response.moderationStatus === 'PENDING') {
+        toast.success(`Your ${publishLabel} has been submitted and is pending moderator review.`, {
+          duration: 5000,
+        });
       } else {
-        toast.success(`${PUBLISH_LABEL[formData.articleType] ?? 'Post'} published successfully!`);
+        toast.success(`${publishLabel} published successfully!`);
       }
       router.push(getRedirectPath(formData.articleType, String(response.id), response.slug));
     } catch (error: unknown) {
