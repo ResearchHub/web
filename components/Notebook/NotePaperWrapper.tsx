@@ -2,17 +2,23 @@ import { ReactNode } from 'react';
 import { cn } from '@/utils/styles';
 
 /** Shared editor paper card — provides the left gutter (pl-16) and top padding. */
-interface NotePaperProps {
+interface NotePaperProps extends React.HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   className?: string;
   minHeight?: string;
 }
 
-export const NotePaper = ({ children, className, minHeight = '800px' }: NotePaperProps) => {
+export const NotePaper = ({
+  children,
+  className,
+  minHeight = '800px',
+  ...rest
+}: NotePaperProps) => {
   return (
     <div
       className={cn('bg-white rounded-lg pt-8 lg:!pt-16 pl-16', className)}
       style={{ minHeight }}
+      {...rest}
     >
       {children}
     </div>
@@ -40,7 +46,9 @@ export const NotePaperWrapper = ({
               {showBanner}
             </output>
           )}
-          <NotePaper className={cn('shadow-md', className)}>{children}</NotePaper>
+          <NotePaper className={cn('shadow-md', className)} data-tour="notebook-editor">
+            {children}
+          </NotePaper>
         </div>
       </div>
     </div>

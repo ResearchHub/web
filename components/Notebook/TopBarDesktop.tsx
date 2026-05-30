@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/Button';
-import { ChevronRight, ChevronLeft, X } from 'lucide-react';
+import { ChevronRight, ChevronLeft, HelpCircle, X } from 'lucide-react';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { PublishedStatusSection } from './PublishingForm/components/PublishedStatusSection';
@@ -10,9 +10,10 @@ import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 
 interface TopBarDesktopProps {
   onClose?: () => void;
+  onStartTour?: () => void;
 }
 
-export function TopBarDesktop({ onClose }: Readonly<TopBarDesktopProps>) {
+export function TopBarDesktop({ onClose, onStartTour }: Readonly<TopBarDesktopProps>) {
   const { toggleRightSidebar, isRightSidebarOpen } = useSidebar();
   const { currentNote: note } = useNotebookContext();
 
@@ -34,7 +35,20 @@ export function TopBarDesktop({ onClose }: Readonly<TopBarDesktopProps>) {
             <X className="h-5 w-5" />
           </Button>
         ) : (
-          <NotesMenu />
+          <div className="flex items-center gap-1">
+            <NotesMenu />
+            {onStartTour && (
+              <Button
+                onClick={onStartTour}
+                className="p-2 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                aria-label="Start notebook tour"
+                variant="ghost"
+                size="icon"
+              >
+                <HelpCircle className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
         )}
 
         <PublishedStatusSection />

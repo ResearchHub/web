@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/utils/styles';
@@ -12,6 +12,7 @@ import { NotePaperSkeleton } from './NotePaperSkeleton';
 import { TopBarDesktop } from './TopBarDesktop';
 import { TopBarMobile } from './TopBarMobile';
 import { RightSidebar } from './RightSidebar';
+import { NotebookTour } from './NotebookTour';
 
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useNotebookContext } from '@/contexts/NotebookContext';
@@ -66,6 +67,18 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: Readonly<NoteE
   const isDesktop = lgAndUp;
 
   const [isLegacyNote, setIsLegacyNote] = useState<boolean | undefined>(undefined);
+  const [isTourOpen, setIsTourOpen] = useState(false);
+  const tourAutoStarted = useRef(false);
+
+  // Auto-start the tour once per page load on desktop (outside modal mode).
+  // State isn't persisted yet, so it re-shows on a fresh load; a Help button
+  // in the top bar lets users relaunch it on demand.
+  useEffect(() => {
+    if (isDesktop !== true || isModal || tourAutoStarted.current) return;
+    tourAutoStarted.current = true;
+    const timer = setTimeout(() => setIsTourOpen(true), 700);
+    return () => clearTimeout(timer);
+  }, [isDesktop, isModal]);
 
   useEffect(() => {
     if (isLoadingNote) return;
@@ -94,7 +107,11 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: Readonly<NoteE
   }, [lgAndUp, shouldShowRightSidebar, openRightSidebar, closeRightSidebar]);
 
   const renderTopBar = () =>
-    isDesktop ? <TopBarDesktop onClose={onClose} /> : <TopBarMobile onClose={onClose} />;
+    isDesktop ? (
+      <TopBarDesktop onClose={onClose} onStartTour={() => setIsTourOpen(true)} />
+    ) : (
+      <TopBarMobile onClose={onClose} />
+    );
 
   const renderEditor = () => {
     // Still resolving legacy-note status
@@ -189,9 +206,18 @@ export function NoteEditorLayout({ defaultArticleType, onClose }: Readonly<NoteE
       >
         <div className="overflow-auto">{renderEditor()}</div>
         {isDesktop && shouldShowRightSidebar && (
-          <div className="border-l border-gray-200 h-full overflow-hidden">{renderSidebar()}</div>
+          <div
+            className="border-l border-gray-200 h-full overflow-hidden"
+            data-tour="notebook-publish"
+          >
+            {renderSidebar()}
+          </div>
         )}
       </div>
+
+      {isDesktop && !isModal && (
+        <NotebookTour run={isTourOpen} onClose={() => setIsTourOpen(false)} />
+      )}
 
       {!isDesktop && !isModal && (
         <Transition show={isRightSidebarOpen} as={Fragment}>

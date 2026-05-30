@@ -34,6 +34,7 @@ export function NotesMenu() {
     <div className="relative">
       <button
         type="button"
+        data-tour="notebook-notes"
         onClick={() => setIsOpen((open) => !open)}
         className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-gray-700 transition-colors hover:bg-gray-100"
       >
