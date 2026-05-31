@@ -497,14 +497,17 @@ export function PublishingForm({
 
       setIsRedirecting(true);
       const publishLabel = PUBLISH_LABEL[formData.articleType] ?? 'Post';
-      if (formData.articleType === 'grant' && !formData.workId) {
+      const isNewGrant = formData.articleType === 'grant' && !formData.workId;
+      const isNewGrantPending = isNewGrant && response.note?.post?.grant?.status !== 'OPEN';
+
+      if (isNewGrantPending) {
         toast.success(
           'Your Funding Opportunity has been submitted and is pending moderator review.',
           {
             duration: 5000,
           }
         );
-      } else if (response.moderationStatus === 'PENDING') {
+      } else if (!isNewGrant && response.moderationStatus === 'PENDING') {
         toast.success(`Your ${publishLabel} has been submitted and is pending moderator review.`, {
           duration: 5000,
         });
