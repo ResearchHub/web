@@ -1,10 +1,8 @@
 'use client';
 
 import { NoteList } from '@/components/Notebook/LeftSidebar/NoteList';
-import { SidebarSection } from '@/components/Notebook/LeftSidebar/SidebarSection';
-import { Button } from '@/components/ui/Button';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { Plus, Lock, Loader2, FileText, UserPlus, type LucideIcon } from 'lucide-react';
+import { FilePlus, Loader2, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 import { useNoteContent, useCreateNote } from '@/hooks/useNote';
@@ -20,8 +18,6 @@ import grantTemplate from '@/components/Editor/lib/data/grantTemplate';
 import proposalTemplate from '@/components/Editor/lib/data/proposalTemplate';
 import { NoteCreationModal, NoteCreationType } from '@/components/Notebook/NoteCreationModal';
 import { importDocumentToTiptap } from '@/components/Editor/lib/convert';
-
-type Grouping = 'workspace' | 'private';
 
 type TemplateId = 'preregistration' | 'grant' | 'research';
 
@@ -66,11 +62,10 @@ export const LeftSidebar = () => {
 
   const [{ isLoading: isCreatingNote }, createNote] = useCreateNote();
   const [{ isLoading: isUpdatingContent }, updateNoteContent] = useNoteContent();
-  const { selectedOrg, isLoading: isLoadingOrgs } = useOrganizationContext();
+  const { selectedOrg } = useOrganizationContext();
   const { notes, isLoading: isLoadingNotes, refreshNotes } = useNotebookContext();
 
-  // Which section's "+" was clicked, or null when the modal is closed.
-  const [activeModalGrouping, setActiveModalGrouping] = useState<Grouping | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   // Distinct from createNote/updateNote loading because the conversion call
   // happens before either of those fire — we want the modal to show "Importing"
   // for the full duration including the network round-trip.
@@ -81,12 +76,10 @@ export const LeftSidebar = () => {
 
   const createNoteWithContent = useCallback(
     async ({
-      grouping,
       template,
       templateContent,
       documentType,
     }: {
-      grouping: Grouping;
       template: TemplateId | 'empty';
       templateContent: ReturnType<typeof getTemplateContent> | typeof EMPTY_TEMPLATE;
       documentType?: string;
@@ -96,7 +89,7 @@ export const LeftSidebar = () => {
       try {
         const newNote = await createNote({
           title: getDocumentTitle(templateContent) || 'Untitled',
-          grouping: grouping.toUpperCase() as 'WORKSPACE' | 'PRIVATE',
+          grouping: 'WORKSPACE',
           organizationSlug: selectedOrg.slug,
           documentType,
         });
@@ -108,7 +101,7 @@ export const LeftSidebar = () => {
         });
 
         refreshNotes();
-        setActiveModalGrouping(null);
+        setIsCreateModalOpen(false);
         router.push(`/notebook/${selectedOrg.slug}/${newNote.id}?template=${template}`);
       } catch (error) {
         console.error('Error creating note:', error);
@@ -121,9 +114,8 @@ export const LeftSidebar = () => {
   );
 
   const handleCreateFromTemplate = useCallback(
-    async (grouping: Grouping, type: TemplateId) => {
+    async (type: TemplateId) => {
       await createNoteWithContent({
-        grouping,
         template: type,
         templateContent: getTemplateContent(type),
         documentType: TEMPLATE_TO_DOCUMENT_TYPE[type],
@@ -132,19 +124,12 @@ export const LeftSidebar = () => {
     [createNoteWithContent]
   );
 
-  const handleCreateBlank = useCallback(
-    async (grouping: Grouping) => {
-      await createNoteWithContent({
-        grouping,
-        template: 'empty',
-        templateContent: EMPTY_TEMPLATE,
-      });
-    },
-    [createNoteWithContent]
-  );
+  const handleCreateBlank = useCallback(async () => {
+    await createNoteWithContent({ template: 'empty', templateContent: EMPTY_TEMPLATE });
+  }, [createNoteWithContent]);
 
   const handleCreateFromUpload = useCallback(
-    async (grouping: Grouping, { file, type }: { file: File; type: NoteCreationType }) => {
+    async ({ file, type }: { file: File; type: NoteCreationType }) => {
       if (!selectedOrg) return;
       setIsImporting(true);
       try {
@@ -154,7 +139,7 @@ export const LeftSidebar = () => {
 
         const newNote = await createNote({
           title: result.title,
-          grouping: grouping.toUpperCase() as 'WORKSPACE' | 'PRIVATE',
+          grouping: 'WORKSPACE',
           organizationSlug: selectedOrg.slug,
           documentType,
         });
@@ -167,7 +152,7 @@ export const LeftSidebar = () => {
         });
 
         refreshNotes();
-        setActiveModalGrouping(null);
+        setIsCreateModalOpen(false);
         // No ?template= query — the import gave us real content, not a scaffold.
         router.push(`/notebook/${selectedOrg.slug}/${newNote.id}`);
       } catch (error) {
@@ -185,136 +170,58 @@ export const LeftSidebar = () => {
   );
 
   const isProcessing = isCreatingNote || isUpdatingContent || isImporting;
+  const hasNotes = notes?.some((n) => n.access === 'WORKSPACE' || n.access === 'SHARED');
 
-  const hasWorkspaceNotes = notes?.some((n) => n.access === 'WORKSPACE' || n.access === 'SHARED');
-  const hasPrivateNotes = notes?.some((n) => n.access === 'PRIVATE');
-
-  const openModalFor = (grouping: Grouping) => () => setActiveModalGrouping(grouping);
-
-  const renderAddButton = (grouping: Grouping, triggerLabel?: string) =>
-    triggerLabel ? (
-      <Button
-        variant="ghost"
-        size="sm"
+  return (
+    <div className="flex flex-col py-1.5 text-sm">
+      {/* New note */}
+      <button
+        type="button"
+        onClick={() => setIsCreateModalOpen(true)}
         disabled={isProcessing}
-        onClick={openModalFor(grouping)}
-        className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-700"
-      >
-        <Plus className="h-3.5 w-3.5" />
-        {triggerLabel}
-      </Button>
-    ) : (
-      <Button
-        variant="ghost"
-        size="icon"
-        className="w-6 h-6 transition-opacity"
-        disabled={isProcessing}
-        onClick={openModalFor(grouping)}
-        aria-label={`Add new ${grouping} note`}
+        className="mx-1 flex items-center gap-3 rounded-md px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isProcessing ? (
           <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
         ) : (
-          <Plus className="h-4 w-4 text-gray-500" />
+          <FilePlus className="h-4 w-4 text-gray-500" />
         )}
-      </Button>
-    );
+        <span className="font-medium">New note</span>
+      </button>
 
-  const renderEmptyState = ({
-    icon: StateIcon,
-    title,
-    subtitle,
-    buttonLabel,
-    grouping,
-  }: {
-    icon: LucideIcon;
-    title: string;
-    subtitle: string;
-    buttonLabel: string;
-    grouping: Grouping;
-  }) => (
-    <div className="flex flex-col items-center justify-center py-6 text-center">
-      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-2.5">
-        <StateIcon className="h-5 w-5 text-gray-400" />
-      </div>
-      <p className="text-sm font-medium text-gray-500">{title}</p>
-      <p className="text-xs text-gray-400 mt-0.5 mb-3">{subtitle}</p>
-      {renderAddButton(grouping, buttonLabel)}
-    </div>
-  );
+      <div className="my-1.5 border-t border-gray-200" />
 
-  return (
-    <div className="flex flex-col">
-      <div className="flex-1">
-        <div className="px-2 py-3">
-          <SidebarSection
-            title="Workspace"
-            icon={FileText}
-            iconPosition="after"
-            action={renderAddButton('workspace')}
-          >
-            {hasWorkspaceNotes || isLoadingNotes || isLoadingOrgs ? (
-              <NoteList type="workspace" notes={notes || []} isLoading={isLoadingNotes} />
-            ) : (
-              renderEmptyState({
-                icon: FileText,
-                title: 'No notes yet',
-                subtitle: 'Create your first note to get started',
-                buttonLabel: 'Add New Note',
-                grouping: 'workspace',
-              })
-            )}
-          </SidebarSection>
-        </div>
-
-        <div className="px-2 py-3">
-          <SidebarSection
-            title="Private"
-            icon={Lock}
-            iconPosition="after"
-            action={renderAddButton('private')}
-          >
-            {hasPrivateNotes || isLoadingNotes || isLoadingOrgs ? (
-              <NoteList type="private" notes={notes || []} isLoading={isLoadingNotes} />
-            ) : (
-              renderEmptyState({
-                icon: Lock,
-                title: 'No private notes yet',
-                subtitle: 'Private notes are only visible to you',
-                buttonLabel: 'Add Private Note',
-                grouping: 'private',
-              })
-            )}
-          </SidebarSection>
-        </div>
+      {/* Notes */}
+      <div className="max-h-[320px] overflow-y-auto px-1">
+        {hasNotes || isLoadingNotes ? (
+          <NoteList notes={notes || []} isLoading={isLoadingNotes} />
+        ) : (
+          <div className="px-3 py-6 text-center text-sm text-gray-400">No notes yet</div>
+        )}
       </div>
 
-      <div className="border-t border-gray-200 p-2">
-        <Button
-          variant="ghost"
-          onClick={() => setIsSettingsModalOpen(true)}
-          disabled={!isCurrentUserAdmin}
-          tooltip={isCurrentUserAdmin ? undefined : 'Only admins can invite members'}
-          className="w-full justify-start gap-2 px-2.5 py-2 text-sm font-normal text-gray-600 hover:text-gray-900"
-        >
-          <UserPlus className="h-4 w-4 text-gray-500" />
-          Invite people
-        </Button>
-      </div>
+      <div className="my-1.5 border-t border-gray-200" />
+
+      {/* Invite */}
+      <button
+        type="button"
+        onClick={() => setIsSettingsModalOpen(true)}
+        disabled={!isCurrentUserAdmin}
+        title={isCurrentUserAdmin ? undefined : 'Only admins can invite members'}
+        className="mx-1 flex items-center gap-3 rounded-md px-3 py-2 text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <UserPlus className="h-4 w-4 text-gray-500" />
+        <span>Invite people</span>
+      </button>
 
       <NoteCreationModal
-        isOpen={activeModalGrouping !== null}
+        isOpen={isCreateModalOpen}
         onClose={() => {
-          if (!isProcessing) setActiveModalGrouping(null);
+          if (!isProcessing) setIsCreateModalOpen(false);
         }}
-        grouping={activeModalGrouping ?? 'workspace'}
-        onCreateFromTemplate={(type) =>
-          handleCreateFromTemplate(activeModalGrouping ?? 'workspace', type)
-        }
-        onCreateBlank={() => handleCreateBlank(activeModalGrouping ?? 'workspace')}
-        onCreateFromUpload={(params) =>
-          handleCreateFromUpload(activeModalGrouping ?? 'workspace', params)
-        }
+        onCreateFromTemplate={handleCreateFromTemplate}
+        onCreateBlank={handleCreateBlank}
+        onCreateFromUpload={handleCreateFromUpload}
         isProcessing={isProcessing}
       />
 

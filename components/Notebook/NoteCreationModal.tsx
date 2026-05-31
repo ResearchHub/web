@@ -102,19 +102,12 @@ const ACCEPT_ATTR = [
 interface NoteCreationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /** Notebook section the new note will belong to. */
-  grouping: 'workspace' | 'private';
   onCreateFromTemplate: (type: 'preregistration' | 'grant' | 'research') => Promise<void> | void;
   onCreateBlank: () => Promise<void> | void;
   onCreateFromUpload: (params: { file: File; type: NoteCreationType }) => Promise<void> | void;
   /** External processing flag from the parent (e.g. createNote pending). */
   isProcessing?: boolean;
 }
-
-const TITLE_FOR_GROUPING: Record<NoteCreationModalProps['grouping'], string> = {
-  workspace: 'Create workspace note',
-  private: 'Create private note',
-};
 
 // Wizard step the modal is showing. The upload flow has its own sub-step
 // (file picker first, then type tiles) because we don't want to ask users
@@ -128,7 +121,6 @@ type Step =
 export const NoteCreationModal = ({
   isOpen,
   onClose,
-  grouping,
   onCreateFromTemplate,
   onCreateBlank,
   onCreateFromUpload,
@@ -240,7 +232,7 @@ export const NoteCreationModal = ({
           <ArrowLeft className="h-4 w-4" />
         </Button>
       )}
-      <span>{TITLE_FOR_GROUPING[grouping]}</span>
+      <span>Create note</span>
     </div>
   );
 

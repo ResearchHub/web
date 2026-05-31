@@ -7,19 +7,14 @@ import { useTransition } from 'react';
 
 interface NoteListProps {
   notes: Note[];
-  type: 'workspace' | 'private';
   isLoading?: boolean;
 }
 
-export const NoteList: React.FC<NoteListProps> = ({ notes, type, isLoading = false }) => {
+export const NoteList: React.FC<NoteListProps> = ({ notes, isLoading = false }) => {
   const [isPending, startTransition] = useTransition();
 
   const filteredAndSortedNotes = notes
-    .filter((note) =>
-      type === 'workspace'
-        ? note.access === 'WORKSPACE' || note.access === 'SHARED'
-        : note.access === 'PRIVATE'
-    )
+    .filter((note) => note.access === 'WORKSPACE' || note.access === 'SHARED')
     .sort((a, b) => new Date(b.updatedDate).getTime() - new Date(a.updatedDate).getTime());
 
   if (isLoading || notes.length === 0) {
@@ -29,7 +24,7 @@ export const NoteList: React.FC<NoteListProps> = ({ notes, type, isLoading = fal
   if (filteredAndSortedNotes.length === 0) {
     return (
       <div className="flex flex-col items-center py-4 text-center">
-        <p className="text-sm text-gray-400">No {type} notes yet</p>
+        <p className="text-sm text-gray-400">No notes yet</p>
       </div>
     );
   }

@@ -9,6 +9,8 @@ interface SidebarSectionProps {
   icon?: LucideIcon;
   iconPosition?: 'before' | 'after';
   defaultExpanded?: boolean;
+  /** Render a full-width divider beneath the section title. */
+  divider?: boolean;
 }
 
 export const SidebarSection: React.FC<SidebarSectionProps> = ({
@@ -18,6 +20,7 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
   icon: Icon,
   iconPosition = 'before',
   defaultExpanded = true,
+  divider = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
@@ -37,7 +40,9 @@ export const SidebarSection: React.FC<SidebarSectionProps> = ({
         </Button>
         {action && <div className="flex items-center">{action}</div>}
       </div>
-      {isExpanded && children && <div className="mt-1">{children}</div>}
+      {/* Full-bleed divider: -mx-2 cancels the notebook sidebar's px-2 wrapper. */}
+      {divider && <div className="-mx-2 mt-1 border-b border-gray-200" />}
+      {isExpanded && children && <div className="mt-2">{children}</div>}
     </div>
   );
 };

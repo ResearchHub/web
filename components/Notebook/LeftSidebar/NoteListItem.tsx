@@ -1,16 +1,11 @@
 'use client';
 
-import { File, MoreHorizontal, Copy, Trash2, Loader2, Lock, Unlock } from 'lucide-react';
+import { File, MoreHorizontal, Copy, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { useRouter } from 'next/navigation';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
-import {
-  useDeleteNote,
-  useDuplicateNote,
-  useMakeNotePrivate,
-  useUpdateNotePermissions,
-} from '@/hooks/useNote';
+import { useDeleteNote, useDuplicateNote } from '@/hooks/useNote';
 import type { Note } from '@/types/note';
 import toast from 'react-hot-toast';
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -27,27 +22,11 @@ export const NoteListItem = ({ note, disabled, startTransition }: NoteListItemPr
   const { refreshNotes, setNotes, activeNoteId } = useNotebookContext();
   const [{ isLoading: isDeleting }, deleteNote] = useDeleteNote();
   const [{ isLoading: isDuplicating }, duplicateNote] = useDuplicateNote();
-  const [{ isLoading: isMakingPrivate }, makeNotePrivate] = useMakeNotePrivate();
-  const [{ isLoading: isUpdatingPermissions }, updateNotePermissions] = useUpdateNotePermissions();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
 
-  const isPrivate = note.access === 'PRIVATE';
-  const isProcessing = isDeleting || isDuplicating || isMakingPrivate || isUpdatingPermissions;
-  const isTogglingAccess = isMakingPrivate || isUpdatingPermissions;
+  const isProcessing = isDeleting || isDuplicating;
   const isSelected = note.id.toString() === activeNoteId;
-
-  const getAccessIcon = () => {
-    if (isTogglingAccess) return <Loader2 className="h-4 w-4 animate-spin" />;
-    if (isPrivate) return <Unlock className="h-4 w-4" />;
-    return <Lock className="h-4 w-4" />;
-  };
-
-  const getAccessLabel = () => {
-    if (isTogglingAccess) return 'Updating...';
-    if (isPrivate) return 'Move to Workspace';
-    return 'Make Private';
-  };
 
   useEffect(() => {
     if (isSelected && itemRef.current) {
@@ -78,30 +57,6 @@ export const NoteListItem = ({ note, disabled, startTransition }: NoteListItemPr
     } catch (error) {
       console.error('Error duplicating note:', error);
       toast.error('Failed to duplicate note. Please try again.');
-    }
-  };
-
-  const handleToggleAccess = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      if (isPrivate) {
-        await updateNotePermissions({
-          noteId: note.id,
-          organizationId: note.organization.id,
-          accessType: 'ADMIN',
-        });
-        toast.success('Note moved to workspace');
-      } else {
-        await makeNotePrivate(note.id);
-        toast.success('Note made private');
-      }
-
-      refreshNotes();
-    } catch (error) {
-      console.error('Error updating note access:', error);
-      toast.error(
-        `Failed to ${isPrivate ? 'move note to workspace' : 'make note private'}. Please try again.`
-      );
     }
   };
 
@@ -179,12 +134,6 @@ export const NoteListItem = ({ note, disabled, startTransition }: NoteListItemPr
                 <Copy className="h-4 w-4" />
               )}
               <span>{isDuplicating ? 'Duplicating...' : 'Duplicate'}</span>
-            </div>
-          </BaseMenuItem>
-          <BaseMenuItem onClick={handleToggleAccess} disabled={isProcessing}>
-            <div className="flex items-center gap-2">
-              {getAccessIcon()}
-              <span>{getAccessLabel()}</span>
             </div>
           </BaseMenuItem>
           <BaseMenuItem onClick={handleDelete} disabled={isProcessing}>
