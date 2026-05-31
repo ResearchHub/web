@@ -2,7 +2,6 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { publishingFormSchema } from './schema';
 import type { PublishingFormData } from './schema';
-import { WorkTypeSection } from './components/WorkTypeSection';
 import { WorkImageSection } from './components/WorkImageSection';
 import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
@@ -532,7 +531,6 @@ export function PublishingForm({
           )}
         >
           <div className="pb-6">
-            {!isModal && <WorkTypeSection />}
             {(articleType === 'preregistration' || articleType === 'grant') && <WorkImageSection />}
             {articleType === 'grant' && (
               <>
