@@ -174,7 +174,7 @@ export type CommentType =
 
 export type SourceDetail = {
   title: string;
-  snippet: string;
+  text: string;
   url: string | null;
   commentType: CommentType | null;
   documentType: DocumentType | null;
@@ -206,6 +206,15 @@ export type RiskScoreEventsResponse = {
   insights: Insight[];
 };
 
+export interface RiskScoreEventsFilters {
+  page?: number;
+  pageSize?: number;
+  eventType?: string;
+  deltaPositive?: boolean;
+  createdDateAfter?: string;
+  createdDateBefore?: string;
+}
+
 export const transformRiskScoreEvent = (raw: any): RiskScoreEvent => ({
   id: raw.id,
   eventType: raw.event_type || '',
@@ -215,7 +224,7 @@ export const transformRiskScoreEvent = (raw: any): RiskScoreEvent => ({
   sourceDetail: raw.source_detail
     ? {
         title: raw.source_detail.title ?? '',
-        snippet: raw.source_detail.snippet ?? '',
+        text: raw.source_detail.text ?? '',
         url: raw.source_detail.url ?? null,
         commentType: raw.source_detail.comment_type ?? null,
         documentType: raw.source_detail.document_type ?? null,

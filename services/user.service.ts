@@ -3,6 +3,7 @@ import {
   User,
   UserDetailsForModerator,
   RiskScoreEventsResponse,
+  RiskScoreEventsFilters,
   transformUser,
   transformUserDetailsForModerator,
   transformRiskScoreEvent,
@@ -165,14 +166,7 @@ export class UserService {
 
   static async fetchRiskScoreEvents(
     userId: string,
-    params?: {
-      page?: number;
-      pageSize?: number;
-      eventType?: string;
-      deltaPositive?: boolean;
-      createdDateAfter?: string;
-      createdDateBefore?: string;
-    }
+    params?: RiskScoreEventsFilters
   ): Promise<RiskScoreEventsResponse> {
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.set('page', params.page.toString());

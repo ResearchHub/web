@@ -15,6 +15,13 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
 import { CopyButton } from '@/components/ui/CopyButton';
 import { RiskScoreEvents } from '@/components/profile/RiskScoreEvents';
+import {
+  type InsightTone,
+  formatInsightLabel,
+  getInsightTone,
+  getInsightTooltip,
+  isPersonaVerificationEvent,
+} from '@/components/profile/riskScoreEvents.utils';
 import type { UserDetailsForModerator, Insight } from '@/types/user';
 
 type ModerationTabProps = {
@@ -25,11 +32,16 @@ type ModerationTabProps = {
 
 type RiskTier = 'trusted' | 'moderate' | 'high' | 'unknown' | 'suspended';
 
+const MISSING_SCORE = -1;
+const TRUSTED_SCORE_MAX = 50;
+const HIGH_RISK_SCORE_MIN = 150;
+const EVENTS_PAGE_SIZE = 10;
+
 function getRiskTier(score: number, isSuspended: boolean): RiskTier {
   if (isSuspended) return 'suspended';
-  if (score === -1) return 'unknown';
-  if (score <= 50) return 'trusted';
-  if (score >= 150) return 'high';
+  if (score === MISSING_SCORE) return 'unknown';
+  if (score <= TRUSTED_SCORE_MAX) return 'trusted';
+  if (score >= HIGH_RISK_SCORE_MIN) return 'high';
   return 'moderate';
 }
 
@@ -43,80 +55,20 @@ const TIER_CONFIG: Record<RiskTier, { label: string; scoreClass: string }> = {
 
 interface InsightItem {
   label: string;
-  variant: 'positive' | 'negative' | 'mixed';
+  tone: InsightTone;
   tooltip?: string;
 }
 
-function getInsightVariant(insight: Insight): InsightItem['variant'] {
-  const addsRisk = insight.maxDelta > 0;
-  const buildsTrust = insight.minDelta < 0;
-  if (addsRisk && buildsTrust) return 'mixed';
-  if (addsRisk) return 'negative';
-  if (buildsTrust) return 'positive';
-  return 'mixed';
-}
-
-function isMixedInsight(insight: Insight): boolean {
-  return insight.minDelta < 0 && insight.maxDelta > 0;
-}
-
-const PERSONA_EVENT_TYPES = new Set([
-  'PERSONA_VERIFIED',
-  'PERSONA_VERIFIED_WHITELISTED',
-  'PERSONA_VERIFIED_NON_WHITELISTED',
-]);
-
-function InsightIcon({ variant }: Readonly<{ variant: InsightItem['variant'] }>) {
-  if (variant === 'positive') return <ArrowUpRight size={14} className="text-green-600 shrink-0" />;
-  if (variant === 'negative') return <ArrowDownRight size={14} className="text-red-600 shrink-0" />;
+function InsightIcon({ tone }: Readonly<{ tone: InsightTone }>) {
+  if (tone === 'good') return <ArrowUpRight size={14} className="text-green-600 shrink-0" />;
+  if (tone === 'bad') return <ArrowDownRight size={14} className="text-red-600 shrink-0" />;
   return <Minus size={14} className="text-amber-500 shrink-0" />;
 }
 
-function formatEventLabel(eventType: string, count: number): string {
-  const label = snakeCaseToTitleCase(eventType);
-  return count > 1 ? `${label} (x${count})` : label;
-}
-
-const INSIGHT_TOOLTIPS: Record<string, string> = {
-  WORK_APPROVED:
-    'A paper, proposal, or funding opportunity the user authored was approved by a moderator',
-  WORK_DECLINED:
-    'A paper, proposal, or funding opportunity the user authored was declined by a moderator',
-  CONTENT_CENSORED: 'A paper, post, or comment by the user was removed for policy violations',
-  BOUNTY_AWARDED: "The user's solution was selected as the winning answer to a bounty",
-  PEER_REVIEW_TIPPED: "The community awarded ResearchCoin to the user's peer review",
-  PEER_REVIEW_ASSESSED: "The user's peer review was endorsed by the community or moderation",
-  EXPERT_FINDER_SIGNUP: 'The user signed up via an Expert Finder invite',
-  EDU_EMAIL: 'The user has a verified .edu email address',
-  GOOGLE_SIGNUP: 'The user signed up using Google authentication',
-  ACCOUNT_AGE_BONUS: 'The user passed the minimum account-age threshold',
-  PERSONA_VERIFIED_WHITELISTED:
-    'The user passed Persona ID verification from a whitelisted country',
-  PERSONA_VERIFIED_NON_WHITELISTED:
-    'The user passed Persona ID verification from a non-whitelisted country',
-  WORKS_MODERATED: "Total moderation activity on the user's papers, proposals, and grants",
-  PERSONA_VERIFIED: 'The user passed Persona ID verification',
-};
-
-const MIXED_TOOLTIPS: Record<string, string> = {
-  WORKS_MODERATED: 'User has both approved and declined works, possibly worth reviewing',
-  CONTENT_CENSORED: 'User has had content both censored and restored',
-};
-
-function getInsightTooltip(insight: Insight): string {
-  if (isMixedInsight(insight)) {
-    const mixed = MIXED_TOOLTIPS[insight.eventType];
-    if (mixed) return mixed;
-  }
-  const base = INSIGHT_TOOLTIPS[insight.eventType];
-  if (base) return base;
-  return `User has ${insight.count} event${insight.count === 1 ? '' : 's'} of this type`;
-}
-
 function buildVerificationTooltip(userDetails: UserDetailsForModerator): string | undefined {
-  const v = userDetails.verification;
-  if (v?.status !== 'APPROVED') return undefined;
-  return `Verified as ${v.firstName} ${v.lastName} on ${formatTimestamp(v.createdDate)} via ${snakeCaseToTitleCase(v.verifiedVia)}`;
+  const verification = userDetails.verification;
+  if (verification?.status !== 'APPROVED') return undefined;
+  return `Verified as ${verification.firstName} ${verification.lastName} on ${formatTimestamp(verification.createdDate)} via ${snakeCaseToTitleCase(verification.verifiedVia)}`;
 }
 
 function buildInsights(
@@ -125,24 +77,22 @@ function buildInsights(
 ): InsightItem[] {
   const items: InsightItem[] = [];
   const verificationTooltip = buildVerificationTooltip(userDetails);
-  const hasPersonaInsight = backendInsights.some((i) => PERSONA_EVENT_TYPES.has(i.eventType));
+  const hasPersonaInsight = backendInsights.some((insight) =>
+    isPersonaVerificationEvent(insight.eventType)
+  );
 
   if (!hasPersonaInsight) {
     items.push(
       verificationTooltip
-        ? { label: 'Identity Verified', variant: 'positive', tooltip: verificationTooltip }
-        : {
-            label: 'Not Verified',
-            variant: 'negative',
-            tooltip: 'No identity verification on file',
-          }
+        ? { label: 'Identity Verified', tone: 'good', tooltip: verificationTooltip }
+        : { label: 'Not Verified', tone: 'bad', tooltip: 'No identity verification on file' }
     );
   }
 
   if (userDetails.isProbableSpammer) {
     items.push({
       label: 'Flagged as Spammer',
-      variant: 'negative',
+      tone: 'bad',
       tooltip: 'User has been flagged as a probable spammer',
     });
   }
@@ -150,18 +100,21 @@ function buildInsights(
   if (userDetails.isSuspended) {
     items.push({
       label: 'User Suspended',
-      variant: 'negative',
+      tone: 'bad',
       tooltip: 'User account is currently suspended',
     });
   }
 
   for (const insight of backendInsights) {
-    const variant = getInsightVariant(insight);
     const tooltip =
-      PERSONA_EVENT_TYPES.has(insight.eventType) && verificationTooltip
+      isPersonaVerificationEvent(insight.eventType) && verificationTooltip
         ? verificationTooltip
         : getInsightTooltip(insight);
-    items.push({ label: formatEventLabel(insight.eventType, insight.count), variant, tooltip });
+    items.push({
+      label: formatInsightLabel(insight.eventType, insight.count),
+      tone: getInsightTone(insight),
+      tooltip,
+    });
   }
 
   return items;
@@ -198,7 +151,7 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
   const showRiskScore = searchParams.get('riskscore') === 'true';
   const [{ userDetails, isLoading }, refetchModerationDetails] = useUserDetailsForModerator(userId);
   const [eventsState, fetchEvents] = useRiskScoreEvents(showRiskScore ? userId : null, {
-    pageSize: 10,
+    pageSize: EVENTS_PAGE_SIZE,
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
@@ -259,7 +212,7 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
       onClick: handleReinstateUser,
       show: isModerator,
     },
-  ].filter((i) => i.show);
+  ].filter((item) => item.show);
 
   if (isLoading) return <ModerationSkeleton />;
   if (!userDetails) return null;
@@ -286,16 +239,14 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
 
   return (
     <section className="flex flex-col gap-6 pb-20">
-      {/* Combined Moderation Card */}
       <div className="rounded-xl border overflow-hidden bg-gray-50/80 border-gray-200">
-        {/* Score Header */}
         {showRiskScore && (
           <div className="p-5 pb-0">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-4">
                 <div className="flex items-baseline gap-2">
                   <span className={cn('text-3xl font-bold tabular-nums', tierConfig.scoreClass)}>
-                    {riskScore === -1 ? '—' : riskScore}
+                    {riskScore === MISSING_SCORE ? '—' : riskScore}
                   </span>
                   <span
                     className={cn(
@@ -345,10 +296,8 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
           </div>
         )}
 
-        {/* Details + Insights */}
         <div className={cn('px-5 py-4', showRiskScore && 'border-t border-black/5 mt-4')}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Details Column */}
             <div>
               <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
                 Details
@@ -364,7 +313,6 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
               </div>
             </div>
 
-            {/* Insights Column */}
             {showRiskScore && insights.length > 0 && (
               <div>
                 <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
@@ -372,8 +320,11 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
                 </span>
                 <div className="flex flex-col gap-2 mt-2">
                   {insights.map((insight) => (
-                    <div key={insight.label} className="flex items-center gap-1.5">
-                      <InsightIcon variant={insight.variant} />
+                    <div
+                      key={`${insight.tone}-${insight.label}`}
+                      className="flex items-center gap-1.5"
+                    >
+                      <InsightIcon tone={insight.tone} />
                       {insight.tooltip ? (
                         <Tooltip content={insight.tooltip} position="right" width="w-64">
                           <span className="text-sm font-medium text-gray-800 border-b border-dotted border-gray-400 cursor-help">
@@ -392,7 +343,6 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
         </div>
       </div>
 
-      {/* Risk Score Events */}
       {showRiskScore && (
         <RiskScoreEvents
           events={eventsState.events}
