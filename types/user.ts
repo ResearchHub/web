@@ -194,7 +194,8 @@ export type Insight = {
   eventType: string;
   count: number;
   totalDelta: number;
-  sentiment: 'POSITIVE' | 'NEGATIVE' | 'MIXED';
+  maxDelta: number;
+  minDelta: number;
 };
 
 export type RiskScoreEventsResponse = {
@@ -227,7 +228,8 @@ export const transformInsight = (raw: any): Insight => ({
   eventType: raw.event_type || '',
   count: raw.count ?? 0,
   totalDelta: raw.total_delta ?? 0,
-  sentiment: raw.sentiment || 'MIXED',
+  maxDelta: raw.max_delta ?? 0,
+  minDelta: raw.min_delta ?? 0,
 });
 
 export const transformUserDetailsForModerator = (raw: any): UserDetailsForModerator => {

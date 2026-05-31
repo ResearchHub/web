@@ -47,11 +47,18 @@ interface InsightItem {
   tooltip?: string;
 }
 
-const SENTIMENT_TO_VARIANT: Record<string, InsightItem['variant']> = {
-  POSITIVE: 'positive',
-  NEGATIVE: 'negative',
-  MIXED: 'mixed',
-};
+function getInsightVariant(insight: Insight): InsightItem['variant'] {
+  const addsRisk = insight.maxDelta > 0;
+  const buildsTrust = insight.minDelta < 0;
+  if (addsRisk && buildsTrust) return 'mixed';
+  if (addsRisk) return 'negative';
+  if (buildsTrust) return 'positive';
+  return 'mixed';
+}
+
+function isMixedInsight(insight: Insight): boolean {
+  return insight.minDelta < 0 && insight.maxDelta > 0;
+}
 
 const PERSONA_EVENT_TYPES = new Set([
   'PERSONA_VERIFIED',
@@ -97,7 +104,7 @@ const MIXED_TOOLTIPS: Record<string, string> = {
 };
 
 function getInsightTooltip(insight: Insight): string {
-  if (insight.sentiment === 'MIXED') {
+  if (isMixedInsight(insight)) {
     const mixed = MIXED_TOOLTIPS[insight.eventType];
     if (mixed) return mixed;
   }
@@ -149,7 +156,7 @@ function buildInsights(
   }
 
   for (const insight of backendInsights) {
-    const variant = SENTIMENT_TO_VARIANT[insight.sentiment] ?? 'mixed';
+    const variant = getInsightVariant(insight);
     const tooltip =
       PERSONA_EVENT_TYPES.has(insight.eventType) && verificationTooltip
         ? verificationTooltip
