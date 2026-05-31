@@ -16,6 +16,7 @@ import { HubsSelector, Hub } from '@/app/paper/create/components/HubsSelector';
 import { FileText, FileUp, Users, Tags, ArrowLeft, Info, MessageCircle } from 'lucide-react';
 import { UploadFileResult } from '@/services/file.service';
 import { PaperService } from '@/services/paper.service';
+import { ApiError } from '@/services/types';
 import toast from 'react-hot-toast';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
@@ -200,7 +201,13 @@ export default function UploadVersionForm({
     } catch (error) {
       console.error('Submission error:', error);
       toast.dismiss(loadingToast);
-      toast.error('Failed to submit new version. Please try again.');
+      const fallback = 'Failed to submit new version. Please try again.';
+      if (error instanceof ApiError) {
+        const errorData = error.errors as Record<string, any> | undefined;
+        toast.error(errorData?.msg || errorData?.message || errorData?.detail || fallback);
+      } else {
+        toast.error(fallback);
+      }
       setIsSubmitting(false);
     }
   };

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { UploadFileResult } from '@/services/file.service';
 import { PaperService, CreatePaperPayload } from '@/services/paper.service';
+import { ApiError } from '@/services/types';
 import toast from 'react-hot-toast';
 import { Switch } from '@/components/ui/Switch';
 import { AvatarStack } from '@/components/ui/AvatarStack';
@@ -336,7 +337,13 @@ export default function UploadPDFPage() {
     } catch (error) {
       console.error('Submission error:', error);
       toast.dismiss(loadingToast);
-      toast.error('Failed to submit paper. Please try again.');
+      const fallback = 'Failed to submit paper. Please try again.';
+      if (error instanceof ApiError) {
+        const errorData = error.errors as Record<string, any> | undefined;
+        toast.error(errorData?.msg || errorData?.message || errorData?.detail || fallback);
+      } else {
+        toast.error(fallback);
+      }
       setIsSubmitting(false);
     }
   };

@@ -516,7 +516,7 @@ export function PublishingForm({
       const fallback = 'Error publishing. Please try again.';
       if (error instanceof ApiError) {
         const errorData = error.errors as Record<string, any> | undefined;
-        toast.error(errorData?.msg || errorData?.message || fallback);
+        toast.error(errorData?.msg || errorData?.message || errorData?.detail || fallback);
       } else {
         toast.error(fallback);
       }
