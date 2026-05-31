@@ -187,7 +187,7 @@ export type RiskScoreEvent = {
   sourceType: string | null;
   sourceContentId: number | null;
   sourceDetail: SourceDetail | null;
-  createdDate: string;
+  actionDate: string;
 };
 
 export type Insight = {
@@ -211,8 +211,8 @@ export interface RiskScoreEventsFilters {
   pageSize?: number;
   eventType?: string;
   deltaPositive?: boolean;
-  createdDateAfter?: string;
-  createdDateBefore?: string;
+  actionDateAfter?: string;
+  actionDateBefore?: string;
 }
 
 export const transformRiskScoreEvent = (raw: any): RiskScoreEvent => ({
@@ -230,7 +230,7 @@ export const transformRiskScoreEvent = (raw: any): RiskScoreEvent => ({
         documentType: raw.source_detail.document_type ?? null,
       }
     : null,
-  createdDate: raw.created_date || '',
+  actionDate: raw.action_date || '',
 });
 
 export const transformInsight = (raw: any): Insight => ({

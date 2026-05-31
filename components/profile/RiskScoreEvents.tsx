@@ -95,8 +95,8 @@ export function RiskScoreEvents({
     pageSize,
     eventType: next.eventType || undefined,
     deltaPositive: next.delta === 'all' ? undefined : next.delta === 'true',
-    createdDateAfter: startOfDayUtc(next.dateAfter),
-    createdDateBefore: endOfDayUtc(next.dateBefore),
+    actionDateAfter: startOfDayUtc(next.dateAfter),
+    actionDateBefore: endOfDayUtc(next.dateBefore),
   });
 
   const updateFilters = (partial: Partial<EventFilters>) => {
@@ -155,7 +155,7 @@ export function RiskScoreEvents({
                   {event.delta}
                 </span>
                 <span className="text-gray-400 text-xs w-24 text-right">
-                  {formatTimestamp(event.createdDate)}
+                  {formatTimestamp(event.actionDate)}
                 </span>
               </div>
             </>
