@@ -1,21 +1,32 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import { useUserDetailsForModerator } from '@/hooks/useAuthor';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
+import { DetailValue } from '@/components/ui/CopyableText';
+import { cn } from '@/utils/styles';
+import { formatRiskScore } from '@/components/profile/riskScoreEvents.utils';
 
 interface ModerationPreviewProps {
   userId: string;
 }
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
+function Row({
+  label,
+  value,
+  copyable,
+}: Readonly<{ label: string; value: string; copyable?: boolean }>) {
   return (
-    <li className="text-sm text-gray-700">
-      <span className="font-medium">{label}:</span> <span className="break-words">{value}</span>
+    <li className="text-sm text-gray-700 flex items-center gap-1 min-w-0">
+      <span className="font-medium shrink-0">{label}:</span>
+      <DetailValue value={value} copyable={copyable} size={11} />
     </li>
   );
 }
 
 export function ModerationPreview({ userId }: ModerationPreviewProps) {
+  const searchParams = useSearchParams();
+  const showRiskScore = searchParams.get('riskscore') === 'true';
   const [{ userDetails, isLoading }] = useUserDetailsForModerator(userId);
 
   if (isLoading) {
@@ -23,7 +34,7 @@ export function ModerationPreview({ userId }: ModerationPreviewProps) {
       <section>
         <SidebarHeader title="Moderation" />
         <ul className="flex flex-col gap-1.5">
-          {Array.from({ length: 4 }).map((_, i) => (
+          {Array.from({ length: 5 }).map((_, i) => (
             <li key={i} className="text-sm">
               <span className="inline-block bg-gray-200 rounded h-4 w-48 animate-pulse" />
             </li>
@@ -35,44 +46,29 @@ export function ModerationPreview({ userId }: ModerationPreviewProps) {
 
   if (!userDetails) return null;
 
-  const emailWithId = (
-    <>
-      {userDetails.email || 'N/A'}{' '}
-      <span className="text-gray-500">(id: {userDetails.id ?? 'N/A'})</span>
-    </>
-  );
-
   const verification = userDetails.verification;
-  const verifiedValue = verification ? (
-    <>
-      {`${verification.firstName} ${verification.lastName}`}{' '}
-      <span className="text-gray-500">({verification.status || 'N/A'})</span>
-    </>
-  ) : (
-    'NO'
-  );
+  const personaId = verification?.externalId || 'N/A';
+  const userIdDisplay = String(userDetails.id ?? 'N/A');
+  const verifiedName = verification ? `${verification.firstName} ${verification.lastName}` : 'N/A';
 
-  let statusLabel = 'Active';
-  let statusClass = 'text-green-600';
-  if (userDetails.isSuspended) {
-    statusLabel = 'Suspended';
-    statusClass = 'text-red-600';
-  } else if (userDetails.isProbableSpammer) {
-    statusLabel = 'Probable Spammer';
-    statusClass = 'text-amber-600';
-  }
+  const score = formatRiskScore(userDetails.riskScore, userDetails.isSuspended);
 
   return (
     <section>
       <SidebarHeader title="Moderation" />
       <ul className="flex flex-col gap-1.5">
-        <Row label="Email" value={emailWithId} />
-        <Row
-          label="Status"
-          value={<span className={`font-medium ${statusClass}`}>{statusLabel}</span>}
-        />
-        <Row label="Verified" value={verifiedValue} />
-        <Row label="ORCID connected?" value={userDetails.isOrcidConnected ? 'Yes' : 'No'} />
+        {showRiskScore && (
+          <li className="text-sm text-gray-700 flex items-center gap-1">
+            <span className="font-medium shrink-0">Score:</span>
+            <span className={cn('font-semibold tabular-nums', score.scoreClass)}>
+              {score.hasScore ? `${score.display} (${score.label})` : score.display}
+            </span>
+          </li>
+        )}
+        <Row label="Persona ID" value={personaId} copyable={!!verification?.externalId} />
+        <Row label="User ID" value={userIdDisplay} copyable={userDetails.id != null} />
+        <Row label="Verified name" value={verifiedName} />
+        <Row label="Email" value={userDetails.email || 'N/A'} />
       </ul>
     </section>
   );

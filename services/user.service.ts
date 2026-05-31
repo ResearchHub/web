@@ -2,8 +2,12 @@ import { ApiClient } from './client';
 import {
   User,
   UserDetailsForModerator,
+  RiskScoreEventsResponse,
+  RiskScoreEventsFilters,
   transformUser,
   transformUserDetailsForModerator,
+  transformRiskScoreEvent,
+  transformInsight,
 } from '@/types/user';
 
 interface University {
@@ -158,6 +162,33 @@ export class UserService {
    */
   static async updateBalanceHistoryClicked(): Promise<void> {
     await ApiClient.post<void>(`/api/user/update_balance_history_clicked/`);
+  }
+
+  static async fetchRiskScoreEvents(
+    userId: string,
+    params?: RiskScoreEventsFilters
+  ): Promise<RiskScoreEventsResponse> {
+    const searchParams = new URLSearchParams();
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.pageSize) searchParams.set('page_size', params.pageSize.toString());
+    if (params?.eventType) searchParams.set('event_type', params.eventType);
+    if (params?.deltaPositive !== undefined)
+      searchParams.set('delta_positive', String(params.deltaPositive));
+    if (params?.actionDateAfter) searchParams.set('action_date_after', params.actionDateAfter);
+    if (params?.actionDateBefore) searchParams.set('action_date_before', params.actionDateBefore);
+
+    const query = searchParams.toString();
+    const queryString = query ? `?${query}` : '';
+    const url = `/api/moderator/${userId}/risk_score_events/${queryString}`;
+    const response = await ApiClient.get<any>(url);
+
+    return {
+      count: response.count ?? 0,
+      next: response.next ?? null,
+      previous: response.previous ?? null,
+      results: (response.results ?? []).map(transformRiskScoreEvent),
+      insights: (response.insights ?? []).map(transformInsight),
+    };
   }
 
   /**

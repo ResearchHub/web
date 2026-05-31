@@ -29,6 +29,18 @@ export const stripHtml = (html: string): string => {
 };
 
 /**
+ * Converts a snake case string to title case
+ * @param value The snake case string to convert
+ * @returns The title case string
+ */
+export function snakeCaseToTitleCase(value: string): string {
+  return value
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+/**
  * Converts a string to title case
  * @param str The string to convert
  * @returns The string in title case
