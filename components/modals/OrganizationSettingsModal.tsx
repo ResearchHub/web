@@ -1,26 +1,22 @@
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState, useCallback, useEffect } from 'react';
+import { Fragment, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Avatar } from '@/components/ui/Avatar';
-import Image from 'next/image';
-import { Loader2, X, Camera, ChevronDown, Check } from 'lucide-react';
+import { Loader2, X, ChevronDown, Check } from 'lucide-react';
 import { isValidEmail } from '@/utils/validation';
 import { toast } from 'react-hot-toast';
 import { Dropdown, DropdownItem } from '../ui/form/Dropdown';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import {
-  useUpdateOrgDetails,
   useInviteUserToOrg,
   useRemoveUserFromOrg,
   useUpdateUserPermissions,
   useRemoveInvitedUserFromOrg,
-  useUpdateOrgCoverImage,
 } from '@/hooks/useOrganization';
 import { useSession } from 'next-auth/react';
-import { ImageUploadModal } from '@/components/modals/ImageUploadModal';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 
 interface OrganizationSettingsModalProps {
@@ -180,36 +176,24 @@ const UserRow = ({
 };
 
 export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSettingsModalProps) {
-  const { selectedOrg: organization, refreshOrganizations } = useOrganizationContext();
+  const { selectedOrg: organization } = useOrganizationContext();
   const { users: orgUsers, refreshUsers } = useNotebookContext();
   const { data: session } = useSession();
-  const [{ isLoading: isUpdatingOrgName }, updateOrgDetails] = useUpdateOrgDetails();
   const [{ isLoading: isInvitingUser }, inviteUserToOrg] = useInviteUserToOrg();
   const [{ isLoading: isRemovingUser }, removeUserFromOrg] = useRemoveUserFromOrg();
   const [{ isLoading: isUpdatingPermissions }, updateUserPermissions] = useUpdateUserPermissions();
   const [{ isLoading: isRemovingInvitedUser }, removeInvitedUserFromOrg] =
     useRemoveInvitedUserFromOrg();
-  const [
-    { isLoading: isUpdatingOrgCoverImage, error: updateOrgCoverImageError },
-    updateOrgCoverImage,
-  ] = useUpdateOrgCoverImage();
 
-  const [orgName, setOrgName] = useState(organization?.name || '');
   const [inviteEmail, setInviteEmail] = useState('');
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
-  const [isAvatarUploadOpen, setIsAvatarUploadOpen] = useState(false);
 
-  const isCurrentUserAdmin = (() => {
-    if (!session?.userId || !orgUsers?.users) return false;
-
-    const currentUser = orgUsers.users.find((user) => user.id.toString() === session.userId);
-
-    return currentUser?.role === 'ADMIN';
-  })();
-
-  useEffect(() => {
-    setOrgName(organization?.name || '');
-  }, [organization]);
+  // Trust the org-level permission (the same authoritative signal used to gate
+  // opening this modal). Re-deriving admin from the get_organization_users
+  // response + session id was fragile: it broke whenever that list hadn't
+  // loaded, bucketed the user under "members", or used a mismatched id format,
+  // disabling every control even for a real admin.
+  const isCurrentUserAdmin = organization?.userPermission?.accessType === 'ADMIN';
 
   const members =
     orgUsers?.users.map((user) => ({
@@ -242,19 +226,6 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
 
   // Combine all users
   const allUsers = [...memberItems, ...inviteItems];
-
-  const handleUpdateOrganization = useCallback(async () => {
-    try {
-      if (!organization) throw new Error('Organization not found');
-      if (!isCurrentUserAdmin) throw new Error('Only admins can update organization details');
-
-      await updateOrgDetails(organization.id.toString(), orgName);
-      toast.success('Organization updated successfully');
-      refreshOrganizations(true);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'An unknown error occurred');
-    }
-  }, [updateOrgDetails, organization?.id, orgName, isCurrentUserAdmin]);
 
   const handleInviteUser = async () => {
     if (!isValidEmail(inviteEmail)) {
@@ -337,19 +308,6 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
     }
   };
 
-  const handleUpdateOrgCoverImage = async (blob: Blob) => {
-    if (!organization) return Promise.reject(new Error('Organization not found'));
-
-    try {
-      const updatedOrg = await updateOrgCoverImage(organization.id.toString(), blob);
-      refreshOrganizations(true);
-      return updatedOrg;
-    } catch (error) {
-      console.error('Error updating cover image:', error);
-      throw error;
-    }
-  };
-
   if (!organization) return null;
 
   return (
@@ -389,7 +347,7 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
                   {/* Header */}
                   <div className="flex justify-between items-center mb-6">
                     <Dialog.Title as="h2" className="text-2xl font-semibold text-gray-900">
-                      Settings & Members
+                      Manage Members
                     </Dialog.Title>
                     <button
                       type="button"
@@ -403,108 +361,9 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
 
                   <div className="border-t border-gray-200 -mx-6 mb-6" />
 
-                  {/* Organization Name */}
-                  <div className="mb-8">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-grow">
-                        <label
-                          htmlFor="orgName"
-                          className="block text-sm font-medium text-gray-700 mb-2"
-                        >
-                          Organization Name<span className="text-red-500">*</span>
-                        </label>
-                        <form
-                          className="flex items-stretch gap-2"
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                            if (!isUpdatingOrgName && isCurrentUserAdmin) {
-                              handleUpdateOrganization();
-                            }
-                          }}
-                        >
-                          <Input
-                            id="orgName"
-                            autoComplete="off"
-                            value={orgName}
-                            onChange={(e) => setOrgName(e.target.value)}
-                            className="h-9"
-                            wrapperClassName="w-full"
-                            disabled={!isCurrentUserAdmin}
-                            error={orgName === '' ? 'Organization name is required' : ''}
-                          />
-                          <Button
-                            type="submit"
-                            size="sm"
-                            variant="secondary"
-                            disabled={
-                              !isCurrentUserAdmin ||
-                              isUpdatingOrgName ||
-                              !orgName.trim() ||
-                              orgName === organization.name
-                            }
-                            className="flex-shrink-0 h-9 px-2"
-                          >
-                            {isUpdatingOrgName ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                              </svg>
-                            )}
-                          </Button>
-                        </form>
-                      </div>
-                      <div
-                        className="w-40 h-40 bg-gray-100 rounded-full border border-gray-200 overflow-hidden flex-shrink-0 relative group cursor-pointer"
-                        onClick={() => isCurrentUserAdmin && setIsAvatarUploadOpen(true)}
-                      >
-                        {organization.coverImage ? (
-                          <>
-                            <Image
-                              src={organization.coverImage}
-                              alt={organization.name}
-                              width={100}
-                              height={100}
-                              className="object-cover w-full h-full"
-                            />
-                            {isCurrentUserAdmin && (
-                              <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-full">
-                                <Camera className="h-6 w-6 text-white" />
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400 rounded-full">
-                            {isCurrentUserAdmin ? (
-                              <div className="flex flex-col items-center">
-                                <Camera className="h-6 w-6 mb-1" />
-                                <span className="text-xs">Add Image</span>
-                              </div>
-                            ) : (
-                              <span>No Image</span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Invite Users */}
                   {isCurrentUserAdmin && (
                     <div className="mb-8">
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">
-                        Invite users (optional)
-                      </h3>
                       <form
                         className="flex gap-2"
                         onSubmit={(e) => {
@@ -581,15 +440,6 @@ export function OrganizationSettingsModal({ isOpen, onClose }: OrganizationSetti
           </div>
         </div>
       </Dialog>
-      {isAvatarUploadOpen && (
-        <ImageUploadModal
-          isOpen={isAvatarUploadOpen}
-          onClose={() => setIsAvatarUploadOpen(false)}
-          onSave={handleUpdateOrgCoverImage}
-          isLoading={isUpdatingOrgCoverImage}
-          error={updateOrgCoverImageError}
-        />
-      )}
     </Transition>
   );
 }
