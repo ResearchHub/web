@@ -13,11 +13,12 @@ import { snakeCaseToTitleCase } from '@/utils/stringUtils';
 import { cn } from '@/utils/styles';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { Button } from '@/components/ui/Button';
-import { CopyButton } from '@/components/ui/CopyButton';
+import { DetailValue } from '@/components/ui/CopyableText';
 import { RiskScoreEvents } from '@/components/profile/RiskScoreEvents';
 import {
   type InsightTone,
   formatInsightLabel,
+  formatRiskScore,
   getInsightTone,
   getInsightTooltip,
   isPersonaVerificationEvent,
@@ -30,28 +31,7 @@ type ModerationTabProps = {
   readonly refetchAuthorInfo: () => Promise<void>;
 };
 
-type RiskTier = 'trusted' | 'moderate' | 'high' | 'unknown' | 'suspended';
-
-const MISSING_SCORE = -1;
-const TRUSTED_SCORE_MAX = 50;
-const HIGH_RISK_SCORE_MIN = 150;
 const EVENTS_PAGE_SIZE = 10;
-
-function getRiskTier(score: number, isSuspended: boolean): RiskTier {
-  if (isSuspended) return 'suspended';
-  if (score === MISSING_SCORE) return 'unknown';
-  if (score <= TRUSTED_SCORE_MAX) return 'trusted';
-  if (score >= HIGH_RISK_SCORE_MIN) return 'high';
-  return 'moderate';
-}
-
-const TIER_CONFIG: Record<RiskTier, { label: string; scoreClass: string }> = {
-  trusted: { label: 'Trusted', scoreClass: 'text-green-700' },
-  moderate: { label: 'Moderate', scoreClass: 'text-amber-700' },
-  high: { label: 'High Risk', scoreClass: 'text-red-700' },
-  suspended: { label: 'Suspended', scoreClass: 'text-red-800' },
-  unknown: { label: 'Unknown', scoreClass: 'text-gray-600' },
-};
 
 interface InsightItem {
   label: string;
@@ -221,9 +201,7 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
     ? `${userDetails.verification.firstName} ${userDetails.verification.lastName}`
     : 'N/A';
 
-  const riskScore = userDetails.riskScore;
-  const tier = getRiskTier(riskScore, userDetails.isSuspended);
-  const tierConfig = TIER_CONFIG[tier];
+  const score = formatRiskScore(userDetails.riskScore, userDetails.isSuspended);
   const insights = buildInsights(userDetails, eventsState.insights);
 
   const userIdDisplay = String(userDetails.id ?? '');
@@ -245,16 +223,16 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-4">
                 <div className="flex items-baseline gap-2">
-                  <span className={cn('text-3xl font-bold tabular-nums', tierConfig.scoreClass)}>
-                    {riskScore === MISSING_SCORE ? '—' : riskScore}
+                  <span className={cn('text-3xl font-bold tabular-nums', score.scoreClass)}>
+                    {score.display}
                   </span>
                   <span
                     className={cn(
                       'text-sm font-semibold uppercase tracking-wide',
-                      tierConfig.scoreClass
+                      score.scoreClass
                     )}
                   >
-                    {tierConfig.label}
+                    {score.label}
                   </span>
                 </div>
 
@@ -306,8 +284,11 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
                 {detailItems.map((item) => (
                   <div key={item.label} className="flex items-center gap-1.5 min-w-0">
                     <span className="font-medium text-gray-500 shrink-0">{item.label}:</span>
-                    <span className="text-gray-900 truncate min-w-0">{item.value}</span>
-                    {item.copyable && <CopyButton value={item.value} />}
+                    <DetailValue
+                      value={item.value}
+                      copyable={item.copyable}
+                      className="text-gray-900"
+                    />
                   </div>
                 ))}
               </div>
