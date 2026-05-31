@@ -174,9 +174,8 @@ export class UserService {
     if (params?.eventType) searchParams.set('event_type', params.eventType);
     if (params?.deltaPositive !== undefined)
       searchParams.set('delta_positive', String(params.deltaPositive));
-    if (params?.createdDateAfter) searchParams.set('created_date_after', params.createdDateAfter);
-    if (params?.createdDateBefore)
-      searchParams.set('created_date_before', params.createdDateBefore);
+    if (params?.actionDateAfter) searchParams.set('action_date_after', params.actionDateAfter);
+    if (params?.actionDateBefore) searchParams.set('action_date_before', params.actionDateBefore);
 
     const query = searchParams.toString();
     const queryString = query ? `?${query}` : '';
