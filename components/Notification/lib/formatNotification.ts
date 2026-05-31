@@ -139,6 +139,16 @@ const NOTIFICATION_TYPE_MAP: Record<string, NotificationTypeInfo> = {
     useAvatar: false,
   },
 
+  // Content moderation notifications (papers, posts, proposals)
+  CONTENT_APPROVED: {
+    icon: 'verify2',
+    useAvatar: false,
+  },
+  CONTENT_DECLINED: {
+    icon: 'report',
+    useAvatar: false,
+  },
+
   // RSC yield notifications
   RSC_YIELD_OPT_IN: {
     icon: 'fundYourRsc2',
@@ -220,7 +230,7 @@ export function formatNavigationUrl(notification: Notification): string | undefi
     }
   }
 
-  if (notification.type === 'GRANT_DECLINED') {
+  if (notification.type === 'GRANT_DECLINED' || notification.type === 'CONTENT_DECLINED') {
     return undefined;
   }
 
@@ -233,6 +243,14 @@ export function formatNavigationUrl(notification: Notification): string | undefi
     if (id && slug) {
       return `/grant/${id}/${slug}`;
     }
+  }
+
+  if (notification.type === 'CONTENT_APPROVED' && notification.work?.id) {
+    return buildWorkUrl({
+      id: notification.work.id,
+      slug: notification.work.slug,
+      contentType: notification.work.contentType ?? 'paper',
+    });
   }
 
   const url = notification.navigationUrl;
@@ -279,6 +297,19 @@ export function formatNavigationUrl(notification: Notification): string | undefi
   } catch (error) {
     console.error('Error formatting navigation URL:', error);
     return url;
+  }
+}
+
+function getWorkTypeLabel(contentType?: string): string {
+  switch (contentType) {
+    case 'preregistration':
+      return 'proposal';
+    case 'paper':
+      return 'paper';
+    case 'post':
+      return 'post';
+    default:
+      return 'submission';
   }
 }
 
@@ -397,6 +428,13 @@ export function formatNotificationMessage(
 
     case 'GRANT_DECLINED':
       return `Your funding opportunity has been declined.`;
+
+    // Content moderation notifications (papers, posts, proposals)
+    case 'CONTENT_APPROVED':
+      return `Your ${getWorkTypeLabel(work?.contentType)} "${truncatedTitle}" has been approved.`;
+
+    case 'CONTENT_DECLINED':
+      return `Your ${getWorkTypeLabel(work?.contentType)} "${truncatedTitle}" has been declined.`;
 
     case 'RSC_YIELD_OPT_IN':
       return 'Start earning yield today by opting in to "Stake" via the My ResearchCoin page';
