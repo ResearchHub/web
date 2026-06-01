@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/Button';
 import {
   EVENT_TYPE_OPTIONS,
   formatEventRowLabel,
+  isContentRemovedEvent,
 } from '@/components/profile/riskScoreEvents.utils';
 
 type DeltaFilter = 'all' | 'true' | 'false';
@@ -128,6 +129,7 @@ export function RiskScoreEvents({
           const toneStyle = DELTA_TONE_STYLES[tone];
           const isExpanded = expandedId === event.id;
           const hasDetail = !!event.sourceDetail;
+          const isContentRemoved = isContentRemovedEvent(event.eventType);
 
           const rowClassName = cn(
             'w-full flex items-center justify-between py-2.5 px-3 border-l-2 rounded-none rounded-r-md text-sm text-left transition-colors',
@@ -186,7 +188,7 @@ export function RiskScoreEvents({
                       {truncateText(event.sourceDetail.text)}
                     </p>
                   )}
-                  {event.sourceDetail.url && (
+                  {event.sourceDetail.url && !isContentRemoved && (
                     <a
                       href={event.sourceDetail.url}
                       target="_blank"
