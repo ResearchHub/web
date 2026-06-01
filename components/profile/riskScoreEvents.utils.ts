@@ -19,6 +19,41 @@ export type RiskScoreEventType =
 
 export type InsightTone = 'good' | 'bad' | 'mixed';
 
+export type RiskTier = 'trusted' | 'moderate' | 'high' | 'unknown' | 'suspended';
+
+export const MISSING_SCORE = -1;
+const TRUSTED_SCORE_MAX = 50;
+const HIGH_RISK_SCORE_MIN = 150;
+
+export function getRiskTier(score: number, isSuspended: boolean): RiskTier {
+  if (isSuspended) return 'suspended';
+  if (score === MISSING_SCORE) return 'unknown';
+  if (score <= TRUSTED_SCORE_MAX) return 'trusted';
+  if (score >= HIGH_RISK_SCORE_MIN) return 'high';
+  return 'moderate';
+}
+
+export const RISK_TIER_CONFIG: Record<RiskTier, { label: string; scoreClass: string }> = {
+  trusted: { label: 'Trusted', scoreClass: 'text-green-700' },
+  moderate: { label: 'Moderate', scoreClass: 'text-amber-700' },
+  high: { label: 'High Risk', scoreClass: 'text-red-700' },
+  suspended: { label: 'Suspended', scoreClass: 'text-red-800' },
+  unknown: { label: 'Unknown', scoreClass: 'text-gray-600' },
+};
+
+export interface FormattedRiskScore {
+  display: string;
+  label: string;
+  scoreClass: string;
+  hasScore: boolean;
+}
+
+export function formatRiskScore(score: number, isSuspended: boolean): FormattedRiskScore {
+  const { label, scoreClass } = RISK_TIER_CONFIG[getRiskTier(score, isSuspended)];
+  const hasScore = score !== MISSING_SCORE;
+  return { display: hasScore ? String(score) : 'N/A', label, scoreClass, hasScore };
+}
+
 interface RiskScoreEventMeta {
   label?: string;
   action?: string;
