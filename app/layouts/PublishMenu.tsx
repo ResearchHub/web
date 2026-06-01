@@ -13,6 +13,10 @@ import {
   OpenFundingOpportunityModal,
   type FundingOpportunityCreationMethod,
 } from '@/components/Funding/OpenFundingOpportunityModal';
+import {
+  OpenProposalModal,
+  type ProposalCreationMethod,
+} from '@/components/Funding/OpenProposalModal';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useState } from 'react';
 
@@ -85,9 +89,15 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
   const { smAndDown } = useScreenSize();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isFundingOpportunityModalOpen, setIsFundingOpportunityModalOpen] = useState(false);
+  const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
 
   const handleFundResearch = () => {
-    router.push('/notebook?newFunding=true');
+    setIsProposalModalOpen(true);
+  };
+
+  const handleConfirmCreateProposal = (method: ProposalCreationMethod) => {
+    setIsProposalModalOpen(false);
+    router.push(`/notebook?newFunding=true&proposalSource=${method}`);
   };
 
   const handleOpenGrant = () => {
@@ -296,6 +306,12 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
         isOpen={isFundingOpportunityModalOpen}
         onClose={() => setIsFundingOpportunityModalOpen(false)}
         onConfirm={handleConfirmOpenGrant}
+      />
+
+      <OpenProposalModal
+        isOpen={isProposalModalOpen}
+        onClose={() => setIsProposalModalOpen(false)}
+        onConfirm={handleConfirmCreateProposal}
       />
     </div>
   );

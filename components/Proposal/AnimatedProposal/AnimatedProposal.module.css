@@ -1,0 +1,394 @@
+/* AnimatedProposal — CSS Module
+ * A 3D research-proposal composition: a tilted paper sheet behind a spinning
+ * ResearchCoin, with an ambient halo, sparkle motes and a crowdfunding
+ * progress bar that fills to "Funded".
+ *
+ * The composition is authored at a fixed natural size and scaled as a whole
+ * via the `--proposal-scale` custom property (set inline from the `scale`
+ * prop), so every hand-tuned px offset stays pixel-perfect at any size. */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  transform: scale(var(--proposal-scale, 1));
+  transform-origin: center center;
+}
+
+/* ── Scene ───────────────────────────────────────────────── */
+.scene {
+  position: relative;
+  width: 320px;
+  height: 290px;
+  perspective: 1800px;
+  perspective-origin: 50% 48%;
+}
+
+/* ── Ambient halo (centered on composition) ─────────────── */
+.halo {
+  position: absolute;
+  left: 52%;
+  top: 50%;
+  width: 85%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(249, 115, 22, 0.2) 0%,
+    rgba(249, 115, 22, 0.06) 45%,
+    transparent 68%
+  );
+  filter: blur(16px);
+  animation: halo-pulse 4.4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes halo-pulse {
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.07);
+  }
+}
+
+/* ── Sparkle motes ──────────────────────────────────────── */
+.mote {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffedd5 0%, transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.m1 {
+  left: 12%;
+  top: 22%;
+  animation: mote-rise 5s ease-in-out 0s infinite;
+}
+.m2 {
+  left: 78%;
+  top: 18%;
+  animation: mote-rise 5s ease-in-out 1.3s infinite;
+}
+.m3 {
+  left: 8%;
+  top: 55%;
+  animation: mote-rise 5s ease-in-out 2.6s infinite;
+}
+.m4 {
+  left: 88%;
+  top: 50%;
+  animation: mote-rise 5s ease-in-out 3.9s infinite;
+}
+@keyframes mote-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+  }
+  18% {
+    opacity: 0.75;
+  }
+  55% {
+    opacity: 0.35;
+    transform: translateY(-26px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-52px) scale(0.3);
+  }
+}
+
+/* ── Paper ──────────────────────────────────────────────── */
+.paperWrap {
+  position: absolute;
+  top: 18px;
+  left: 69px;
+  z-index: 1;
+  transform-style: preserve-3d;
+}
+
+.paper {
+  position: relative;
+  width: 182px;
+  height: 234px;
+  transform-style: preserve-3d;
+  transform: rotateX(5deg) rotateY(-14deg);
+}
+
+.paperFace {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  border: 1.5px solid #dde8f5;
+  border-radius: 10px;
+  box-shadow:
+    0 10px 36px rgba(57, 113, 255, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.07);
+  transform: translateZ(7px);
+  backface-visibility: hidden;
+  clip-path: polygon(0 0, calc(100% - 28px) 0, 100% 28px, 100% 100%, 0 100%);
+  overflow: hidden;
+}
+.paperFace::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(225deg, #d5e6f8 50%, #ecf4fd 50%);
+  border-radius: 0 8px 0 0;
+  z-index: 1;
+}
+
+.paperEdgeL {
+  position: absolute;
+  top: 1px;
+  left: -7px;
+  width: 7px;
+  height: calc(100% - 2px);
+  background: linear-gradient(to left, #aac2e2, #c6d8f2);
+  border-radius: 2px 0 0 2px;
+  transform: rotateY(-90deg);
+  transform-origin: right center;
+  backface-visibility: hidden;
+}
+.paperEdgeB {
+  position: absolute;
+  top: 234px;
+  left: 1px;
+  width: calc(100% - 2px);
+  height: 7px;
+  background: linear-gradient(to bottom, #aac2e2, #c6d8f2);
+  border-radius: 0 0 2px 2px;
+  transform: rotateX(-90deg);
+  transform-origin: center top;
+  backface-visibility: hidden;
+}
+
+.paperSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  pointer-events: none;
+}
+
+/* ── Coin ───────────────────────────────────────────────── */
+.coinWrap {
+  position: absolute;
+  top: 158px;
+  left: 30px;
+  z-index: 3;
+  transform-style: preserve-3d;
+  animation: float 4s ease-in-out infinite;
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(-5px);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+}
+
+.coinStage {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  transform-style: preserve-3d;
+}
+
+.coin {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  /* Statically tilted, with a gentle side-to-side sway. */
+  transform: rotateX(8deg) rotateY(-28deg);
+  animation: coin-sway var(--sway-duration, 5.2s) ease-in-out infinite;
+}
+@keyframes coin-sway {
+  0%,
+  100% {
+    transform: rotateX(8deg) rotateY(-34deg);
+  }
+  50% {
+    transform: rotateX(8deg) rotateY(-20deg);
+  }
+}
+
+.rim {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(90deg);
+}
+.strip {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 16px;
+  margin-top: -8px;
+  background: linear-gradient(to bottom, #fdba74 0%, #fb923c 40%, #f97316 100%);
+  backface-visibility: hidden;
+}
+
+.coinFace {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  backface-visibility: hidden;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, #fdba74 0%, #fb923c 45%, #f97316 100%);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 237, 213, 0.55),
+    inset 0 0 0 3.5px rgba(124, 45, 18, 0.16);
+}
+.front {
+  transform: translateZ(8px);
+}
+.back {
+  transform: rotateY(180deg) translateZ(8px);
+}
+
+.glyph {
+  width: 66%;
+  height: 66%;
+  filter: drop-shadow(0 1.5px 0 rgba(124, 45, 18, 0.3));
+}
+
+/* ── Progress bar ───────────────────────────────────────── */
+.barArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 11px;
+  width: 240px;
+}
+
+.barTrack {
+  width: 100%;
+  height: 14px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  border: 1.5px solid #e8eff6;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(to right, #ea6d0e, #f97316, #fb923c, #fdba74);
+  width: 3%;
+  position: relative;
+  overflow: hidden;
+  animation: fill-bar 4s cubic-bezier(0.4, 0, 0.2, 1) 1 forwards;
+}
+.barFill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60px;
+  width: 60px;
+  height: 100%;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.45), transparent);
+  animation: shimmer 4s ease-out 1 forwards;
+}
+/* Looping variant: continuously refill */
+.loop {
+  animation: fill-bar-loop 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+.loop::after {
+  animation: shimmer 4.5s ease-out infinite;
+}
+
+@keyframes fill-bar {
+  0% {
+    width: 3%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+@keyframes fill-bar-loop {
+  0% {
+    width: 3%;
+  }
+  70%,
+  100% {
+    width: 100%;
+  }
+}
+@keyframes shimmer {
+  0% {
+    left: -60px;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    left: 220px;
+    opacity: 0;
+  }
+}
+
+.barLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-500, #6b7280);
+  letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rscPip {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f97316;
+  flex-shrink: 0;
+  animation: pip-pulse 2.2s ease-in-out infinite;
+}
+@keyframes pip-pulse {
+  0%,
+  100% {
+    opacity: 0.65;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+}
+
+.fundedBadge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #15803d;
+  letter-spacing: 0.01em;
+  opacity: 0;
+  transform: translateY(5px);
+  animation: funded-in 0.5s cubic-bezier(0, 0, 0.2, 1) 4s 1 forwards;
+}
+@keyframes funded-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

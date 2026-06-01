@@ -16,7 +16,6 @@ import {
 import { useCreateNote, useNoteContent } from '@/hooks/useNote';
 import { NoteCreationPopover } from '@/components/Notebook/NoteCreationPopover';
 import { NotePaperSkeleton } from '@/components/Notebook/NotePaperSkeleton';
-import { FundingTimelineModal } from '@/components/modals/FundingTimelineModal';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { detectImportFormat, importDocumentToTiptap } from '@/components/Editor/lib/convert';
 
@@ -54,15 +53,15 @@ export default function OrganizationPage() {
   const isNewResearch = searchParams.get('newResearch') === 'true';
   const isNewGrant = searchParams.get('newGrant') === 'true';
   const grantSource = searchParams.get('grantSource');
+  const proposalSource = searchParams.get('proposalSource');
 
-  const [showFundingModal, setShowFundingModal] = useState(false);
+  const [showProposalUpload, setShowProposalUpload] = useState(false);
+  const [proposalUploadError, setProposalUploadError] = useState<string | null>(null);
+  const proposalFileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [showGrantUpload, setShowGrantUpload] = useState(false);
   const [grantUploadError, setGrantUploadError] = useState<string | null>(null);
   const grantFileInputRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    if (isNewFunding) setShowFundingModal(true);
-  }, [isNewFunding]);
 
   const stripQueryParam = (key: string) => {
     const url = new URL(globalThis.window.location.href);
@@ -119,6 +118,19 @@ export default function OrganizationPage() {
         queryValue: 'true',
         documentType: 'DISCUSSION',
       });
+    } else if (isNewFunding) {
+      if (proposalSource === 'upload') {
+        // Defer note creation until the user picks a document to import.
+        setShowProposalUpload(true);
+      } else if (proposalSource === 'blank') {
+        createNoteWithContent(selectedOrg.slug, {
+          template: BLANK_DOCUMENT,
+          documentType: 'PREREGISTRATION',
+        });
+      } else {
+        // Default: start from the proposal template.
+        handleStartFromTemplate();
+      }
     } else if (isNewGrant) {
       if (grantSource === 'upload') {
         // Defer note creation until the user picks a document to import.
@@ -132,7 +144,7 @@ export default function OrganizationPage() {
         });
       }
     }
-  }, [selectedOrg, isNewResearch, isNewGrant, grantSource]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedOrg, isNewResearch, isNewFunding, isNewGrant, grantSource, proposalSource]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleStartFromTemplate = async () => {
     if (!selectedOrg) return;
@@ -178,9 +190,34 @@ export default function OrganizationPage() {
     }
   };
 
-  const handleFundingModalClose = () => {
-    setShowFundingModal(false);
+  const openProposalFilePicker = () => {
+    setProposalUploadError(null);
+    proposalFileInputRef.current?.click();
+  };
+
+  const handleProposalFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = event.target.files?.[0] ?? null;
+    event.target.value = ''; // allow re-selecting the same file
+    if (!picked) return;
+
+    if (!detectImportFormat(picked)) {
+      setProposalUploadError('Only .docx, .odt, and .md files are supported.');
+      return;
+    }
+    if (picked.size > MAX_UPLOAD_SIZE) {
+      setProposalUploadError('That file is larger than 25 MB. Try a smaller document.');
+      return;
+    }
+
+    setProposalUploadError(null);
+    void handleUploadFile(picked, 'PREREGISTRATION');
+  };
+
+  const handleProposalUploadClose = () => {
+    if (isImporting) return;
+    setShowProposalUpload(false);
     stripQueryParam('newFunding');
+    stripQueryParam('proposalSource');
   };
 
   const openGrantFilePicker = () => {
@@ -216,18 +253,48 @@ export default function OrganizationPage() {
     return <NotePaperSkeleton />;
   }
 
-  const isProposalProcessing = isCreatingNote || isUpdatingContent || isImporting;
-
   return (
     <>
       <NoteCreationPopover isOpen={isCreatingNote || isUpdatingContent} />
-      <FundingTimelineModal
-        isOpen={showFundingModal}
-        onClose={handleFundingModalClose}
-        onStartFromTemplate={handleStartFromTemplate}
-        onUploadFile={handleUploadFile}
-        isProcessing={isProposalProcessing}
-      />
+
+      <BaseModal
+        isOpen={showProposalUpload}
+        onClose={handleProposalUploadClose}
+        title="Upload your proposal"
+        size="md"
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-gray-500">
+            Import a Word, OpenDocument, or Markdown file to start your proposal.
+          </p>
+          <button
+            type="button"
+            onClick={openProposalFilePicker}
+            disabled={isImporting}
+            className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-10 text-center transition-colors hover:border-blue-400 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-white">
+              <Upload className="h-6 w-6 text-blue-600" />
+            </div>
+            <div className="text-sm font-medium text-gray-900">
+              {isImporting ? 'Importing your document...' : 'Click to upload a document'}
+            </div>
+            <div className="text-xs text-gray-500">Word, OpenDocument, or Markdown · max 25 MB</div>
+          </button>
+          {proposalUploadError && (
+            <p className="text-xs text-red-600" role="alert">
+              {proposalUploadError}
+            </p>
+          )}
+          <input
+            ref={proposalFileInputRef}
+            type="file"
+            accept={UPLOAD_ACCEPT_ATTR}
+            onChange={handleProposalFileChange}
+            className="hidden"
+          />
+        </div>
+      </BaseModal>
 
       <BaseModal
         isOpen={showGrantUpload}
