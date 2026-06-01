@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { ArrowRight, HelpCircle } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
@@ -19,8 +20,18 @@ import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { useUpdateNote } from '@/hooks/useNote';
 import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
+import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { FeatureFlag, isFeatureEnabled } from '@/utils/featureFlags';
 import { LegacyNoteBanner } from '@/components/LegacyNoteBanner';
+
+// Persisted (per-user) flag so the guided tour auto-runs only once — the very
+// first time someone lands in the editor on a freshly-created note.
+const NOTEBOOK_TOUR_FEATURE = 'notebook_tour';
+
+// Query params the note-creation flows append when redirecting to the editor.
+// Their presence means the user just created this note (vs. opening an existing
+// one), which is the only moment we want to auto-launch the tour.
+const NEW_NOTE_PARAMS = ['newResearch', 'newGrant', 'newFunding', 'template'];
 
 // Friendly label for the note's work type, shown at the top-left of the doc.
 function getWorkTypeLabel(
@@ -49,6 +60,7 @@ export function NoteEditorLayout() {
     setEditor,
     updateNoteTitle,
     activeNoteId,
+    editor,
   } = useNotebookContext();
 
   const { selectedOrg } = useOrganizationContext();
@@ -57,11 +69,20 @@ export function NoteEditorLayout() {
 
   const topBarSlot = useTopBarSlot();
   const setLeftSlot = topBarSlot?.setLeftSlot;
+  const searchParams = useSearchParams();
+
+  const {
+    isDismissed: isTourDismissed,
+    dismissFeature: dismissTour,
+    dismissStatus: tourDismissStatus,
+  } = useDismissableFeature(NOTEBOOK_TOUR_FEATURE);
 
   const [isLegacyNote, setIsLegacyNote] = useState<boolean | undefined>(undefined);
   const [activeTab, setActiveTab] = useState<NotebookTab>('document');
   const [isTourOpen, setIsTourOpen] = useState(false);
   const tourAutoStarted = useRef(false);
+
+  const isNewlyCreatedNote = NEW_NOTE_PARAMS.some((param) => searchParams?.has(param));
 
   // Surface the "Notebook" notes dropdown in the shared TopBar's left area.
   useEffect(() => {
@@ -70,13 +91,21 @@ export function NoteEditorLayout() {
     return () => setLeftSlot(null);
   }, [setLeftSlot]);
 
-  // Auto-start the tour once per page load on desktop.
+  // Auto-start the tour exactly once, the first time a user opens a note they
+  // just created. We wait until the note is fully set up (loaded + editor
+  // mounted) so the highlight target already has its final size/position —
+  // opening earlier anchors to the skeleton and the popover jumps when the real
+  // content swaps in.
+  const isNoteReady = !isLoadingNote && Boolean(note) && isLegacyNote === false && Boolean(editor);
   useEffect(() => {
     if (isDesktop !== true || tourAutoStarted.current) return;
+    if (tourDismissStatus !== 'checked' || isTourDismissed) return;
+    if (!isNewlyCreatedNote) return;
+    if (!isNoteReady) return;
     tourAutoStarted.current = true;
-    const timer = setTimeout(() => setIsTourOpen(true), 1000);
-    return () => clearTimeout(timer);
-  }, [isDesktop]);
+    setIsTourOpen(true);
+    dismissTour();
+  }, [isDesktop, isNoteReady, tourDismissStatus, isTourDismissed, isNewlyCreatedNote, dismissTour]);
 
   useEffect(() => {
     if (isLoadingNote) return;
