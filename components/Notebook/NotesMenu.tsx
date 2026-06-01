@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { ChevronDown, NotebookPen } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { LeftSidebar } from '@/components/Notebook/LeftSidebar';
+import Icon from '@/components/ui/icons/Icon';
 import { cn } from '@/utils/styles';
 
 /**
@@ -38,7 +39,7 @@ export function NotesMenu() {
         onClick={() => setIsOpen((open) => !open)}
         className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-gray-700 transition-colors hover:bg-gray-100"
       >
-        <NotebookPen className="h-4 w-4 text-gray-500" />
+        <Icon name="labNotebook2" size={18} color="#6b7280" />
         <span className="font-medium">My Notebook</span>
         <ChevronDown
           className={cn('h-4 w-4 text-gray-500 transition-transform', isOpen && 'rotate-180')}

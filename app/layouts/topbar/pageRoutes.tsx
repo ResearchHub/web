@@ -28,8 +28,6 @@ export const ROOT_NAVIGATION_PATHS = new Set([
   '/earn',
   '/fund',
   '/fund/proposals',
-  '/dashboard',
-  '/dashboard/impact',
   '/journal',
   '/notebook',
   '/browse',
@@ -130,13 +128,6 @@ const ROUTE_RULES: RouteRule[] = [
     getInfo: () => ({
       title: 'Expert Finder',
       icon: <Users size={24} className="text-gray-900" />,
-    }),
-  },
-  {
-    match: (p) => p.startsWith('/dashboard'),
-    getInfo: () => ({
-      title: 'My Dashboard',
-      icon: <Icon name="fund" size={24} className="text-gray-900" />,
     }),
   },
   {

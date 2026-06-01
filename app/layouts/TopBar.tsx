@@ -12,6 +12,7 @@ import { Logo } from '@/components/ui/Logo';
 import { FeedTabs } from '@/components/Feed/FeedTabs';
 import { useFeedTabs } from '@/hooks/useFeedTabs';
 import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
+import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
 import { useSmartBack } from '@/hooks/useSmartBack';
 
 import { getPageInfo, isRootNavigationPage } from './topbar/pageRoutes';
@@ -37,6 +38,11 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const { tabs, activeTab, highlightedTab, handleTabChange, isFeedPage } = useFeedTabs();
   const { contentTabsHidden: feedTabsHidden } = useFeedTabsVisibility();
   const showTopBarFeedTabs = isFeedPage && feedTabsHidden;
+
+  // A page (e.g. the notebook) can inject a custom control here in place of the
+  // default breadcrumb.
+  const topBarSlot = useTopBarSlot();
+  const leftSlot = topBarSlot?.leftSlot;
 
   const currentSearchQuery = pathname === '/search' ? searchParams.get('q') : null;
   const pageInfo = getPageInfo(pathname, searchParams);
@@ -85,13 +91,19 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               </div>
             </Link>
 
-            {showBackButton && <TopBarBackButton onClick={goBack} variant="mobile" />}
+            {leftSlot ? (
+              <div className="flex min-w-0 items-center">{leftSlot}</div>
+            ) : (
+              <>
+                {showBackButton && <TopBarBackButton onClick={goBack} variant="mobile" />}
 
-            {pageInfo && <TopBarBreadcrumb pageInfo={pageInfo} variant="mobile" />}
+                {pageInfo && <TopBarBreadcrumb pageInfo={pageInfo} variant="mobile" />}
 
-            {showBackButton && <TopBarBackButton onClick={goBack} variant="desktop" />}
+                {showBackButton && <TopBarBackButton onClick={goBack} variant="desktop" />}
 
-            {pageInfo && <TopBarBreadcrumb pageInfo={pageInfo} variant="desktop" />}
+                {pageInfo && <TopBarBreadcrumb pageInfo={pageInfo} variant="desktop" />}
+              </>
+            )}
 
             {/* Inline feed tabs — desktop only, shown to the right of the title */}
             {showTopBarFeedTabs && (

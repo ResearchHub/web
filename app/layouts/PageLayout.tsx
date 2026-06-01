@@ -8,6 +8,7 @@ import { ScrollContainerProvider } from '@/contexts/ScrollContainerContext';
 import { GrantProvider } from '@/contexts/GrantContext';
 import { FundraiseProvider } from '@/contexts/FundraiseContext';
 import { FeedTabsVisibilityProvider } from '@/contexts/FeedTabsVisibilityContext';
+import { TopBarSlotProvider } from '@/contexts/TopBarSlotContext';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
 import { usePageLayoutState } from './hooks/usePageLayoutState';
 import { TopBarContainer } from './components/TopBarContainer';
@@ -133,7 +134,9 @@ export function PageLayout(props: PageLayoutProps) {
     <GrantProvider>
       <FundraiseProvider>
         <FeedTabsVisibilityProvider>
-          <PageLayoutInner {...props} />
+          <TopBarSlotProvider>
+            <PageLayoutInner {...props} />
+          </TopBarSlotProvider>
         </FeedTabsVisibilityProvider>
       </FundraiseProvider>
     </GrantProvider>

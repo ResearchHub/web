@@ -29,8 +29,8 @@ const STEPS: TourStep[] = [
     selector: '[data-tour="notebook-publish"]',
     title: 'Add details & publish',
     description:
-      'Use the right sidebar to set details like funding amount, topics, and contacts — then publish when you’re ready.',
-    placement: 'left',
+      'Switch to the Details tab to set funding amount, topics, and contacts — then publish from the button at the bottom.',
+    placement: 'bottom',
   },
 ];
 
