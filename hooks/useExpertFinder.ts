@@ -572,7 +572,7 @@ interface UsePreviewEmailsState {
 
 type PreviewEmailsFn = (payload: {
   generated_email_ids: number[];
-  reply_to?: string;
+  reply_to: string[];
 }) => Promise<{ sent: number }>;
 type UsePreviewEmailsReturn = [UsePreviewEmailsState, PreviewEmailsFn];
 
@@ -586,7 +586,7 @@ export function usePreviewEmails(): UsePreviewEmailsReturn {
   const previewEmails = useCallback(
     async (payload: {
       generated_email_ids: number[];
-      reply_to?: string;
+      reply_to: string[];
     }): Promise<{ sent: number }> => {
       setIsLoading(true);
       setError(null);
@@ -616,7 +616,7 @@ interface UseSendEmailsState {
 
 type SendEmailsFn = (payload: {
   generated_email_ids: number[];
-  reply_to?: string;
+  reply_to: string[];
   cc?: string[];
 }) => Promise<{ sent: number }>;
 type UseSendEmailsReturn = [UseSendEmailsState, SendEmailsFn];
@@ -631,7 +631,7 @@ export function useSendEmails(): UseSendEmailsReturn {
   const sendEmails = useCallback(
     async (payload: {
       generated_email_ids: number[];
-      reply_to?: string;
+      reply_to: string[];
       cc?: string[];
     }): Promise<{ sent: number }> => {
       setIsLoading(true);
