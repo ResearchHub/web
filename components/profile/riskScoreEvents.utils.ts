@@ -142,8 +142,7 @@ const DOCUMENT_LABELS: Record<string, string> = {
 
 const COMMENT_LABELS: Record<string, string> = {
   GENERIC_COMMENT: 'Comment',
-  PEER_REVIEW: 'Peer Review',
-  REVIEW: 'Community Review',
+  REVIEW: 'Peer Review',
   ANSWER: 'Answer',
   SUMMARY: 'Summary',
   AUTHOR_UPDATE: 'Author Update',
