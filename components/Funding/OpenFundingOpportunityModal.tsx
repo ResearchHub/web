@@ -19,7 +19,7 @@ import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
 import Icon from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
-import AnimatedResearchCoin from '@/components/ResearchCoin/AnimatedResearchCoin/AnimatedResearchCoin';
+import AnimatedGlobe from '@/components/Globe/AnimatedGlobe';
 import { cn } from '@/utils/styles';
 
 export type FundingOpportunityCreationMethod = 'template' | 'upload' | 'blank';
@@ -123,12 +123,12 @@ export const OpenFundingOpportunityModal = ({
     >
       <div className="flex h-full flex-col md:flex-row">
         {/* Left gradient rail */}
-        <div className="relative flex flex-shrink-0 flex-col justify-center overflow-hidden bg-[linear-gradient(135deg,#3971ff,#4a7fff_55%,#5b8dff)] px-8 py-10 md:w-[340px] md:px-9 md:py-11">
+        <div className="relative flex flex-shrink-0 flex-col justify-center overflow-hidden bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-10 md:w-[340px] md:px-9 md:py-11">
           {/* Mobile close button (lives in the title section on small screens) */}
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-4 right-4 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30 md:hidden"
+            className="absolute top-4 right-4 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-gray-500 transition-colors hover:bg-black/10 hover:text-gray-700 md:hidden"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
@@ -136,38 +136,25 @@ export const OpenFundingOpportunityModal = ({
           {/* Soft glow blobs */}
           <div
             aria-hidden
-            className="pointer-events-none absolute -right-24 -top-24 h-60 w-60 rounded-full opacity-55 blur-[34px]"
-            style={{ background: '#a9c4ff' }}
+            className="pointer-events-none absolute -right-24 -top-24 h-60 w-60 rounded-full opacity-50 blur-[40px]"
+            style={{ background: '#ffd9b0' }}
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute -bottom-24 -left-20 h-52 w-52 rounded-full opacity-55 blur-[34px]"
-            style={{ background: '#7aa4ff' }}
-          />
-          {/* Grid texture */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            style={{
-              backgroundImage:
-                'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)',
-              backgroundSize: '38px 38px',
-              opacity: 0.16,
-              WebkitMaskImage: 'radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 78%)',
-              maskImage: 'radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 78%)',
-            }}
+            className="pointer-events-none absolute -bottom-24 -left-20 h-52 w-52 rounded-full opacity-50 blur-[40px]"
+            style={{ background: '#bcd2ff' }}
           />
           <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="mb-4 flex h-[190px] items-center justify-center">
-              <AnimatedResearchCoin size={180} spinDuration={5} floatDuration={5} />
+            <div className="mb-4 flex h-[235px] items-center justify-center">
+              <AnimatedGlobe size={235} />
             </div>
             <Dialog.Title
               as="h2"
-              className="text-[28px] font-bold leading-[1.12] tracking-[-0.02em] text-white"
+              className="text-[28px] font-bold leading-[1.12] tracking-[-0.02em] text-gray-900"
             >
               Open a funding opportunity
             </Dialog.Title>
-            <p className="mt-3 text-base leading-[1.5] text-white/80">
+            <p className="mt-3 text-base leading-[1.5] text-gray-600">
               The most efficient way to fund science.
             </p>
           </div>
