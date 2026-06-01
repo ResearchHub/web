@@ -16,9 +16,41 @@ const OPTIONS = [
   },
 ];
 
+function useIsLockedPrivate() {
+  const { watch } = useFormContext();
+  const selectedGrant = watch('selectedGrant');
+  return selectedGrant?.applicationVisibility === 'PRIVATE';
+}
+
+export function PreregistrationPrivacyLockedAlert() {
+  const isLockedPrivate = useIsLockedPrivate();
+
+  if (!isLockedPrivate) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-start gap-2 rounded-lg border border-primary-600 bg-primary-50 p-3">
+      <Lock className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary-700" />
+      <div className="flex-1">
+        <p className="font-medium text-primary-900">Private</p>
+        <p className="text-sm text-primary-700">
+          Only you and reviewers you grant access to can view it.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function PreregistrationPrivacySection() {
   const { watch, setValue } = useFormContext();
   const isPublic = watch('isPublic');
+  const isLockedPrivate = useIsLockedPrivate();
+
+  if (isLockedPrivate) {
+    return null;
+  }
+
   const value = isPublic === false ? 'private' : 'public';
 
   return (

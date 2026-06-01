@@ -174,7 +174,7 @@ export type CommentType =
 
 export type SourceDetail = {
   title: string;
-  snippet: string;
+  text: string;
   url: string | null;
   commentType: CommentType | null;
   documentType: DocumentType | null;
@@ -187,14 +187,15 @@ export type RiskScoreEvent = {
   sourceType: string | null;
   sourceContentId: number | null;
   sourceDetail: SourceDetail | null;
-  createdDate: string;
+  actionDate: string;
 };
 
 export type Insight = {
   eventType: string;
   count: number;
   totalDelta: number;
-  sentiment: 'POSITIVE' | 'NEGATIVE' | 'MIXED';
+  maxDelta: number;
+  minDelta: number;
 };
 
 export type RiskScoreEventsResponse = {
@@ -205,6 +206,15 @@ export type RiskScoreEventsResponse = {
   insights: Insight[];
 };
 
+export interface RiskScoreEventsFilters {
+  page?: number;
+  pageSize?: number;
+  eventType?: string;
+  deltaPositive?: boolean;
+  actionDateAfter?: string;
+  actionDateBefore?: string;
+}
+
 export const transformRiskScoreEvent = (raw: any): RiskScoreEvent => ({
   id: raw.id,
   eventType: raw.event_type || '',
@@ -214,20 +224,21 @@ export const transformRiskScoreEvent = (raw: any): RiskScoreEvent => ({
   sourceDetail: raw.source_detail
     ? {
         title: raw.source_detail.title ?? '',
-        snippet: raw.source_detail.snippet ?? '',
+        text: raw.source_detail.text ?? '',
         url: raw.source_detail.url ?? null,
         commentType: raw.source_detail.comment_type ?? null,
         documentType: raw.source_detail.document_type ?? null,
       }
     : null,
-  createdDate: raw.created_date || '',
+  actionDate: raw.action_date || '',
 });
 
 export const transformInsight = (raw: any): Insight => ({
   eventType: raw.event_type || '',
   count: raw.count ?? 0,
   totalDelta: raw.total_delta ?? 0,
-  sentiment: raw.sentiment || 'MIXED',
+  maxDelta: raw.max_delta ?? 0,
+  minDelta: raw.min_delta ?? 0,
 });
 
 export const transformUserDetailsForModerator = (raw: any): UserDetailsForModerator => {

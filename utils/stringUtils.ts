@@ -36,7 +36,7 @@ export const stripHtml = (html: string): string => {
 export function snakeCaseToTitleCase(value: string): string {
   return value
     .split('_')
-    .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
 }
 

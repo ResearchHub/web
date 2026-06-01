@@ -52,6 +52,16 @@ const nextConfig = {
       destination: '/proposal/:id/:path*',
       permanent: true,
     },
+    {
+      source: '/about/tos',
+      destination: '/tos',
+      permanent: true,
+    },
+    {
+      source: '/about/privacy',
+      destination: '/privacy',
+      permanent: true,
+    },
   ],
   headers: async () => [
     {

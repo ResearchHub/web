@@ -2,29 +2,23 @@
 
 import { useUserDetailsForModerator } from '@/hooks/useAuthor';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
-import { CopyButton } from '@/components/ui/CopyButton';
+import { DetailValue } from '@/components/ui/CopyableText';
+import { cn } from '@/utils/styles';
+import { formatRiskScore } from '@/components/profile/riskScoreEvents.utils';
 
 interface ModerationPreviewProps {
   userId: string;
 }
 
-function getScoreLabel(score: number, isSuspended: boolean): string {
-  if (isSuspended) return 'Suspended';
-  if (score <= 50) return 'Trusted';
-  if (score >= 150) return 'High Risk';
-  return 'Moderate';
-}
-
 function Row({
   label,
   value,
-  copyValue,
-}: Readonly<{ label: string; value: string; copyValue?: string }>) {
+  copyable,
+}: Readonly<{ label: string; value: string; copyable?: boolean }>) {
   return (
     <li className="text-sm text-gray-700 flex items-center gap-1 min-w-0">
       <span className="font-medium shrink-0">{label}:</span>
-      <span className="truncate min-w-0">{value}</span>
-      {copyValue && <CopyButton value={copyValue} size={11} />}
+      <DetailValue value={value} copyable={copyable} size={11} />
     </li>
   );
 }
@@ -54,30 +48,22 @@ export function ModerationPreview({ userId }: ModerationPreviewProps) {
   const userIdDisplay = String(userDetails.id ?? 'N/A');
   const verifiedName = verification ? `${verification.firstName} ${verification.lastName}` : 'N/A';
 
+  const score = formatRiskScore(userDetails.riskScore, userDetails.isSuspended);
+
   return (
     <section>
       <SidebarHeader title="Moderation" />
       <ul className="flex flex-col gap-1.5">
-        <Row
-          label="Persona ID"
-          value={personaId}
-          copyValue={personaId === 'N/A' ? undefined : personaId}
-        />
-        <Row
-          label="User ID"
-          value={userIdDisplay}
-          copyValue={userIdDisplay === 'N/A' ? undefined : userIdDisplay}
-        />
+        <li className="text-sm text-gray-700 flex items-center gap-1">
+          <span className="font-medium shrink-0">Score:</span>
+          <span className={cn('font-semibold tabular-nums', score.scoreClass)}>
+            {score.hasScore ? `${score.display} (${score.label})` : score.display}
+          </span>
+        </li>
+        <Row label="Persona ID" value={personaId} copyable={!!verification?.externalId} />
+        <Row label="User ID" value={userIdDisplay} copyable={userDetails.id != null} />
         <Row label="Verified name" value={verifiedName} />
         <Row label="Email" value={userDetails.email || 'N/A'} />
-        <Row
-          label="Score"
-          value={
-            userDetails.riskScore === -1
-              ? 'N/A'
-              : `${userDetails.riskScore} (${getScoreLabel(userDetails.riskScore, userDetails.isSuspended)})`
-          }
-        />
       </ul>
     </section>
   );

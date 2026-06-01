@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { AuthorService } from '@/services/author.service';
 import type { AuthorUpdatePayload } from '@/services/author.service';
-import type { User, RiskScoreEvent, Insight } from '@/types/user';
+import type { User, RiskScoreEvent, Insight, RiskScoreEventsFilters } from '@/types/user';
 import { Achievement } from '@/types/authorProfile';
 import { AuthorSummaryStats } from '@/types/authorProfile';
 import { UserService } from '@/services/user.service';
@@ -250,17 +250,6 @@ export function useUserDetailsForModerator(
   }, [userId, fetchUserDetails]);
 
   return [{ userDetails, isLoading, error }, fetchUserDetails];
-}
-
-// ── useRiskScoreEvents ────────────────────────────────────────────────────────
-
-export interface RiskScoreEventsFilters {
-  page?: number;
-  pageSize?: number;
-  eventType?: string;
-  deltaPositive?: boolean;
-  createdDateAfter?: string;
-  createdDateBefore?: string;
 }
 
 interface UseRiskScoreEventsState {
