@@ -1,9 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
 import { Dialog } from '@headlessui/react';
 import {
   ArrowLeft,
@@ -12,7 +10,6 @@ import {
   Award,
   File,
   FileText,
-  Loader2,
   Sparkles,
   Upload,
   Users,
@@ -23,9 +20,7 @@ import { Button, buttonVariants } from '@/components/ui/Button';
 import Icon from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import AnimatedGlobe from '@/components/Globe/AnimatedGlobe';
-import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { useCreateNote, useNoteContent } from '@/hooks/useNote';
-import { detectImportFormat, importDocumentToTiptap } from '@/components/Editor/lib/convert';
+import { DocumentUploadStep } from '@/components/Funding/DocumentUploadStep';
 import { cn } from '@/utils/styles';
 
 export type FundingOpportunityCreationMethod = 'template' | 'upload' | 'blank';
@@ -104,19 +99,6 @@ const CREATION_OPTIONS: CreationOption[] = [
 
 const WHITE_GLOVE_BOOKING_URL = 'https://cal.com/tyler-diorio/15min';
 
-// Accepted import formats for the funding-opportunity upload flow.
-const UPLOAD_ACCEPT_ATTR = [
-  '.docx',
-  '.odt',
-  '.md',
-  '.markdown',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.oasis.opendocument.text',
-  'text/markdown',
-].join(',');
-
-const MAX_UPLOAD_SIZE = 25 * 1024 * 1024;
-
 type Step = 'benefits' | 'method' | 'upload';
 
 export const OpenFundingOpportunityModal = ({
@@ -126,81 +108,11 @@ export const OpenFundingOpportunityModal = ({
 }: OpenFundingOpportunityModalProps) => {
   const [step, setStep] = useState<Step>('benefits');
 
-  const router = useRouter();
-  const { selectedOrg } = useOrganizationContext();
-  const [, createNote] = useCreateNote();
-  const [, updateNoteContent] = useNoteContent();
-  const [isImporting, setIsImporting] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
   // Reset to the first step whenever the modal is reopened so a returning user
   // always starts from the benefits pitch rather than a stale step.
   useEffect(() => {
-    if (!isOpen) {
-      setStep('benefits');
-      setUploadError(null);
-      setIsImporting(false);
-      setIsDragging(false);
-    }
+    if (!isOpen) setStep('benefits');
   }, [isOpen]);
-
-  const importFundingDocument = async (file: File) => {
-    if (!selectedOrg || isImporting) return;
-    setIsImporting(true);
-    try {
-      const result = await importDocumentToTiptap(file);
-      const newNote = await createNote({
-        organizationSlug: selectedOrg.slug,
-        title: result.title,
-        grouping: 'WORKSPACE',
-        documentType: 'GRANT',
-      });
-      await updateNoteContent({
-        note: newNote.id,
-        fullSrc: result.html,
-        fullJson: JSON.stringify(result.json),
-        plainText: result.plainText,
-      });
-      onClose();
-      router.push(`/notebook/${selectedOrg.slug}/${newNote.id}`);
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Failed to import document. Please try a different file.';
-      toast.error(message, { style: { width: '320px' } });
-      setIsImporting(false);
-    }
-  };
-
-  const validateAndImport = (file: File | null) => {
-    if (!file) return;
-    if (!detectImportFormat(file)) {
-      setUploadError('Only .docx, .odt, and .md files are supported.');
-      return;
-    }
-    if (file.size > MAX_UPLOAD_SIZE) {
-      setUploadError('That file is larger than 25 MB. Try a smaller document.');
-      return;
-    }
-    setUploadError(null);
-    void importFundingDocument(file);
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const picked = event.target.files?.[0] ?? null;
-    event.target.value = ''; // allow re-selecting the same file
-    validateAndImport(picked);
-  };
-
-  const handleDrop = (event: React.DragEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    setIsDragging(false);
-    if (isImporting) return;
-    validateAndImport(event.dataTransfer.files?.[0] ?? null);
-  };
 
   return (
     <BaseModal
@@ -379,77 +291,13 @@ export const OpenFundingOpportunityModal = ({
               </a>
             </>
           ) : (
-            <>
-              <button
-                type="button"
-                onClick={() => setStep('method')}
-                disabled={isImporting}
-                className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </button>
-
-              <div className="mt-5">
-                <h3 className="text-lg font-semibold text-gray-900">Upload your document</h3>
-                <p className="mt-1 text-sm leading-[1.5] text-gray-500">
-                  Import a Word, OpenDocument, or Markdown file and we&apos;ll set up your funding
-                  opportunity from it.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setUploadError(null);
-                  fileInputRef.current?.click();
-                }}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  if (!isImporting) setIsDragging(true);
-                }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={handleDrop}
-                disabled={isImporting || !selectedOrg}
-                className={cn(
-                  'mt-5 flex w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-4 py-12 text-center transition-colors',
-                  isDragging
-                    ? 'border-rhBlue-400 bg-blue-50'
-                    : 'border-gray-300 bg-gray-50 hover:border-rhBlue-300 hover:bg-blue-50/50',
-                  (isImporting || !selectedOrg) && 'cursor-not-allowed opacity-60'
-                )}
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-white">
-                  {isImporting ? (
-                    <Loader2 className="h-6 w-6 animate-spin text-rhBlue-600" />
-                  ) : (
-                    <Upload className="h-6 w-6 text-rhBlue-600" />
-                  )}
-                </div>
-                <div className="text-sm font-semibold text-gray-900">
-                  {isImporting
-                    ? 'Importing your document\u2026'
-                    : 'Click to upload or drag and drop'}
-                </div>
-                <div className="text-xs text-gray-500">
-                  Word, OpenDocument, or Markdown · max 25 MB
-                </div>
-              </button>
-
-              {uploadError && (
-                <p className="mt-3 text-xs text-red-600" role="alert">
-                  {uploadError}
-                </p>
-              )}
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={UPLOAD_ACCEPT_ATTR}
-                onChange={handleFileChange}
-                className="hidden"
-              />
-            </>
+            <DocumentUploadStep
+              title="Upload your document"
+              description="Import a Word, OpenDocument, or Markdown file and we'll set up your funding opportunity from it."
+              documentType="GRANT"
+              onBack={() => setStep('method')}
+              onClose={onClose}
+            />
           )}
         </div>
       </div>

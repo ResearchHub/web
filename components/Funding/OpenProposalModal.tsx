@@ -17,6 +17,7 @@ import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import AnimatedProposal from '@/components/Proposal/AnimatedProposal';
+import { DocumentUploadStep } from '@/components/Funding/DocumentUploadStep';
 
 export type ProposalCreationMethod = 'template' | 'upload' | 'blank';
 
@@ -88,7 +89,7 @@ const CREATION_OPTIONS: CreationOption[] = [
   },
 ];
 
-type Step = 'benefits' | 'method';
+type Step = 'benefits' | 'method' | 'upload';
 
 export const OpenProposalModal = ({ isOpen, onClose, onConfirm }: OpenProposalModalProps) => {
   const [step, setStep] = useState<Step>('benefits');
@@ -197,7 +198,7 @@ export const OpenProposalModal = ({ isOpen, onClose, onConfirm }: OpenProposalMo
                 </div>
               </div>
             </>
-          ) : (
+          ) : step === 'method' ? (
             <>
               <button
                 type="button"
@@ -219,7 +220,9 @@ export const OpenProposalModal = ({ isOpen, onClose, onConfirm }: OpenProposalMo
                   <button
                     key={option.id}
                     type="button"
-                    onClick={() => onConfirm(option.id)}
+                    onClick={() =>
+                      option.id === 'upload' ? setStep('upload') : onConfirm(option.id)
+                    }
                     className="group flex w-full items-center gap-4 rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-left transition-colors hover:border-rhBlue-300 hover:bg-blue-50/50"
                   >
                     <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-2xl bg-blue-50">
@@ -238,6 +241,14 @@ export const OpenProposalModal = ({ isOpen, onClose, onConfirm }: OpenProposalMo
                 ))}
               </div>
             </>
+          ) : (
+            <DocumentUploadStep
+              title="Upload your document"
+              description="Import a Word, OpenDocument, or Markdown file and we'll set up your proposal from it."
+              documentType="PREREGISTRATION"
+              onBack={() => setStep('method')}
+              onClose={onClose}
+            />
           )}
         </div>
       </div>
