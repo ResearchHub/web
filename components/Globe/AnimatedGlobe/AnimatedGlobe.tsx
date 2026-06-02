@@ -366,65 +366,53 @@ function runArcSlots(slots: ArcSlot[], t: number, cb: ArcCallback) {
   }
 }
 
-/* Experiment glyphs that land on a city, drawn straight from lucide-react icon
-   path data so they render crisply. lucide icons use a 24x24 viewBox, 2px
-   round strokes, no fill — centered at (12, 12). Order: flask, DNA, pulse,
-   rounded flask, test tube. */
-const GLYPH_PATH_DATA: string[][] = [
-  // FlaskConical
-  [
-    'M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2',
-    'M8.5 2h7',
-    'M7 16h10',
-  ],
-  // Dna
-  [
-    'm10 16 1.5 1.5',
-    'm14 8-1.5-1.5',
-    'M15 2c-1.798 1.998-2.518 3.995-2.807 5.993',
-    'm16.5 10.5 1 1',
-    'm17 6-2.891-2.891',
-    'M2 15c6.667-6 13.333 0 20-6',
-    'm20 9 .891.891',
-    'M3.109 14.109 4 15',
-    'm6.5 12.5 1 1',
-    'm7 18 2.891 2.891',
-    'M9 22c1.798-1.998 2.518-3.995 2.807-5.993',
-  ],
-  // Activity (pulse)
-  [
-    'M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2',
-  ],
-  // FlaskRound
-  ['M10 2v7.31', 'M14 9.3V1.99', 'M8.5 2h7', 'M14 9.3a6.5 6.5 0 1 1-4 0', 'M5.52 16h12.96'],
-  // TestTube
-  ['M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5c-1.4 0-2.5-1.1-2.5-2.5V2', 'M8.5 2h7', 'M14.5 16h-5'],
+/* Cartoony scientist avatars that land on a city as funding arrives. The
+   source images are square with the subject framed inside an inscribed circle,
+   so clipping to a circle crops them cleanly. */
+const AVATAR_SRCS = [
+  '/globe-avatars/1.png',
+  '/globe-avatars/2.png',
+  '/globe-avatars/3.png',
+  '/globe-avatars/4.png',
+  '/globe-avatars/5.png',
+  '/globe-avatars/6.png',
 ];
+const AVATAR_COUNT = AVATAR_SRCS.length;
 
-const EXP_COUNT = GLYPH_PATH_DATA.length;
-
-let glyphPathCache: Path2D[][] | null = null;
-function getGlyphPaths(): Path2D[][] {
-  if (!glyphPathCache) {
-    glyphPathCache = GLYPH_PATH_DATA.map((paths) => paths.map((d) => new Path2D(d)));
-  }
-  return glyphPathCache;
+/* lucide FlaskConical path data (24x24 viewBox), used for the corner badge. */
+const FLASK_PATH_DATA = [
+  'M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2',
+  'M8.5 2h7',
+  'M7 16h10',
+];
+let flaskPathCache: Path2D[] | null = null;
+function getFlaskPaths(): Path2D[] {
+  if (!flaskPathCache) flaskPathCache = FLASK_PATH_DATA.map((d) => new Path2D(d));
+  return flaskPathCache;
 }
 
-function drawExperimentGlyph(ctx: Ctx, x: number, y: number, s: number, kind: number) {
-  const cache = getGlyphPaths();
-  const paths = cache[kind] ?? cache[0];
-  const span = 1.9 * s; // px width the 24-unit viewBox should occupy
-  const scale = span / 24;
+/* A small orange flask badge that sits at the corner of a landed avatar. */
+function drawFlaskBadge(ctx: Ctx, bx: number, by: number, br: number) {
   ctx.save();
-  ctx.translate(x, y);
+  ctx.fillStyle = '#F97316';
+  ctx.beginPath();
+  ctx.arc(bx, by, br, 0, TAU);
+  ctx.fill();
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = Math.max(1.5, br * 0.18);
+  ctx.beginPath();
+  ctx.arc(bx, by, br, 0, TAU);
+  ctx.stroke();
+  const scale = (br * 1.3) / 24;
+  ctx.translate(bx, by);
   ctx.scale(scale, scale);
   ctx.translate(-12, -12);
-  ctx.strokeStyle = 'rgba(255,255,255,0.97)';
-  ctx.lineWidth = 2.1; // viewBox units; scales with the context
+  ctx.strokeStyle = '#ffffff';
+  ctx.fillStyle = '#ffffff';
+  ctx.lineWidth = 2.3;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  for (const p of paths) ctx.stroke(p);
+  for (const p of getFlaskPaths()) ctx.stroke(p);
   ctx.restore();
 }
 
@@ -438,13 +426,25 @@ interface Props {
 }
 
 export default function AnimatedGlobe({ size = 280, className }: Props) {
-  const { slots, ph, act } = useMemo(() => {
+  const { slots, ph, acts } = useMemo(() => {
     const rnd = mulberry(73);
     return {
       slots: buildArcSlots(73, 3, 7.5, 5.0, 2.2),
       ph: CITIES.map(() => rnd() * TAU),
-      act: { t: -99, city: -1, kind: 0 },
+      // Multiple landings can be live simultaneously.
+      acts: [] as { t: number; city: number; avatar: number }[],
     };
+  }, []);
+
+  // Preload the avatar images once on the client; drawn onto the canvas as
+  // funding lands on a city.
+  const avatarsRef = useRef<HTMLImageElement[]>([]);
+  useEffect(() => {
+    avatarsRef.current = AVATAR_SRCS.map((src) => {
+      const img = new Image();
+      img.src = src;
+      return img;
+    });
   }, []);
 
   const draw = useCallback<DrawFn>(
@@ -452,7 +452,7 @@ export default function AnimatedGlobe({ size = 280, className }: Props) {
       const cx = w * 0.5;
       const cy = h * 0.5;
       const R = Math.min(w, h) * 0.4;
-      const rot = makeRot(t * 0.042, -0.3);
+      const rot = makeRot(t * 0.35, -0.3);
       drawSphereFill(ctx, cx, cy, R);
       drawWireSphere(ctx, cx, cy, R, rot);
       ctx.strokeStyle = rgba(HS.blue, 0.85);
@@ -465,20 +465,27 @@ export default function AnimatedGlobe({ size = 280, className }: Props) {
       const HOLD = 1.5;
       const FADE_OUT = 1.15;
       const LIFE = FADE_IN + HOLD + FADE_OUT;
+
+      // Drop landings that have fully faded out.
+      for (let k = acts.length - 1; k >= 0; k--) {
+        if (t - acts[k].t > LIFE) acts.splice(k, 1);
+      }
+
       runArcSlots(slots, t, (a, b, t01, fade) => {
         drawArcPath(ctx, cx, cy, R, rot, CITY_VEC[a], CITY_VEC[b], t01, HS.rsc, 0.95 * fade, 1.8);
-        if (t01 >= 0.94 && t - act.t > LIFE) {
+        if (t01 >= 0.94) {
           const pv = applyRot(CITY_VEC[b], rot, R);
-          if (pv.z >= 0.12) {
-            act.t = t;
-            act.city = b;
-            act.kind = (b * 7 + Math.floor(t)) % EXP_COUNT;
+          // Only land if this city isn't already showing a live avatar.
+          const already = acts.some((ac) => ac.city === b);
+          if (pv.z >= 0.12 && !already) {
+            acts.push({ t, city: b, avatar: (b * 7 + Math.floor(t)) % AVATAR_COUNT });
           }
         }
       });
 
+      const activeCities = new Set(acts.map((ac) => ac.city));
       for (let i = 0; i < CITIES.length; i++) {
-        if (i === act.city && t - act.t <= LIFE) continue;
+        if (activeCities.has(i)) continue;
         // Tier-1 hubs plus every other tier-2 city get an ambient dot.
         const tier = CITIES[i][3];
         if (tier >= 3) continue;
@@ -486,46 +493,54 @@ export default function AnimatedGlobe({ size = 280, className }: Props) {
         drawCityDot(ctx, cx, cy, R, rot, CITY_VEC[i], tier, t, ph[i], HS.blueLt);
       }
 
-      if (act.city >= 0) {
-        const age = t - act.t;
-        const p = applyRot(CITY_VEC[act.city], rot, R);
-        if (age <= LIFE && p.z >= 0) {
-          const sx = cx + p.x;
-          const sy = cy + p.y;
-          let env: number;
-          if (age < FADE_IN) env = age / FADE_IN;
-          else if (age < FADE_IN + HOLD) env = 1;
-          else env = Math.max(0, 1 - (age - FADE_IN - HOLD) / FADE_OUT);
-          env = env * env * (3 - 2 * env);
-          const chipR = 26 * (0.62 + 0.38 * env);
-          if (age < FADE_IN) {
-            ctx.strokeStyle = rgba(HS.rsc, 0.45 * (1 - age / FADE_IN));
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.arc(sx, sy, chipR + age * 34, 0, TAU);
-            ctx.stroke();
-          }
-          glow(ctx, sx, sy, chipR * 1.55, HS.rsc, 0.22 * env);
-          const g = ctx.createLinearGradient(sx - chipR, sy - chipR, sx + chipR, sy + chipR);
-          g.addColorStop(0, '#FDBA74');
-          g.addColorStop(0.5, '#FB923C');
-          g.addColorStop(1, '#EA6A12');
-          ctx.globalAlpha = env;
-          ctx.fillStyle = g;
+      for (const ac of acts) {
+        const age = t - ac.t;
+        const p = applyRot(CITY_VEC[ac.city], rot, R);
+        if (age > LIFE || p.z < 0) continue;
+        const sx = cx + p.x;
+        const sy = cy + p.y;
+        let env: number;
+        if (age < FADE_IN) env = age / FADE_IN;
+        else if (age < FADE_IN + HOLD) env = 1;
+        else env = Math.max(0, 1 - (age - FADE_IN - HOLD) / FADE_OUT);
+        env = env * env * (3 - 2 * env);
+        const chipR = 26 * (0.62 + 0.38 * env);
+        if (age < FADE_IN) {
+          ctx.strokeStyle = rgba(HS.rsc, 0.45 * (1 - age / FADE_IN));
+          ctx.lineWidth = 1.5;
           ctx.beginPath();
-          ctx.arc(sx, sy, chipR, 0, TAU);
-          ctx.fill();
-          ctx.strokeStyle = 'rgba(255,237,213,0.75)';
-          ctx.lineWidth = 1.4;
-          ctx.beginPath();
-          ctx.arc(sx, sy, chipR, 0, TAU);
+          ctx.arc(sx, sy, chipR + age * 34, 0, TAU);
           ctx.stroke();
-          drawExperimentGlyph(ctx, sx, sy, chipR * 0.6, act.kind);
-          ctx.globalAlpha = 1;
         }
+        glow(ctx, sx, sy, chipR * 1.55, HS.rsc, 0.22 * env);
+        ctx.save();
+        ctx.globalAlpha = env;
+        ctx.beginPath();
+        ctx.arc(sx, sy, chipR, 0, TAU);
+        ctx.closePath();
+        ctx.clip();
+        // On-brand backstop in case the avatar framing leaves a sliver.
+        ctx.fillStyle = '#eef4ff';
+        ctx.fillRect(sx - chipR, sy - chipR, chipR * 2, chipR * 2);
+        const img = avatarsRef.current[ac.avatar];
+        if (img && img.complete && img.naturalWidth > 0) {
+          const d = chipR * 2;
+          ctx.drawImage(img, sx - chipR, sy - chipR, d, d);
+        }
+        ctx.restore();
+        // Brand ring around the avatar.
+        ctx.globalAlpha = env;
+        ctx.strokeStyle = rgba(HS.rsc, 0.9);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(sx, sy, chipR, 0, TAU);
+        ctx.stroke();
+        // Flask badge tucked into the bottom-right corner.
+        drawFlaskBadge(ctx, sx + chipR * 0.72, sy + chipR * 0.72, chipR * 0.4);
+        ctx.globalAlpha = 1;
       }
     },
-    [slots, ph, act]
+    [slots, ph, acts]
   );
 
   const canvasRef = useHeroCanvas(draw);

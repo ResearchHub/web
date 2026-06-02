@@ -16,7 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonVariants } from '@/components/ui/Button';
 import Icon from '@/components/ui/icons/Icon';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import AnimatedGlobe from '@/components/Globe/AnimatedGlobe';
@@ -173,8 +173,8 @@ export const OpenFundingOpportunityModal = ({
 
           {step === 'benefits' ? (
             <>
-              <div className="pr-10">
-                <h3 className="text-2xl font-bold tracking-tight text-gray-900">
+              <div className="mt-2 pr-10 md:mt-4">
+                <h3 className="text-2xl font-semibold tracking-tight text-gray-900">
                   Why fund on ResearchHub
                 </h3>
               </div>
@@ -192,25 +192,24 @@ export const OpenFundingOpportunityModal = ({
                       <div className="mt-0.5 text-sm leading-[1.5] text-gray-500">
                         {benefit.description}
                       </div>
-
-                      {benefit.learnMoreHref && (
-                        <Link
-                          href={benefit.learnMoreHref}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-1.5 inline-flex items-center gap-1 text-sm font-medium text-rhBlue-600 transition-colors hover:text-rhBlue-700"
-                        >
-                          Learn more
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </Link>
-                      )}
                     </div>
                   </div>
                 ))}
               </div>
 
               <div className="-mx-6 mt-8 border-t border-gray-200 px-6 pt-8 md:-mx-10 md:px-10">
-                <div className="flex items-center justify-end">
+                <div className="flex items-center justify-end gap-3">
+                  <Link
+                    href="/give"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      buttonVariants({ variant: 'outlined' }),
+                      'h-[46px] px-5 text-sm font-semibold'
+                    )}
+                  >
+                    Learn more
+                  </Link>
                   <Button
                     variant="default"
                     onClick={() => setStep('method')}
