@@ -59,10 +59,6 @@ export default function OrganizationPage() {
   const [proposalUploadError, setProposalUploadError] = useState<string | null>(null);
   const proposalFileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [showGrantUpload, setShowGrantUpload] = useState(false);
-  const [grantUploadError, setGrantUploadError] = useState<string | null>(null);
-  const grantFileInputRef = useRef<HTMLInputElement | null>(null);
-
   const stripQueryParam = (key: string) => {
     const url = new URL(globalThis.window.location.href);
     url.searchParams.delete(key);
@@ -132,17 +128,14 @@ export default function OrganizationPage() {
         handleStartFromTemplate();
       }
     } else if (isNewGrant) {
-      if (grantSource === 'upload') {
-        // Defer note creation until the user picks a document to import.
-        setShowGrantUpload(true);
-      } else {
-        createNoteWithContent(selectedOrg.slug, {
-          template: grantSource === 'blank' ? BLANK_DOCUMENT : grantTemplate,
-          queryParam: 'newGrant',
-          queryValue: 'true',
-          documentType: 'GRANT',
-        });
-      }
+      // The "upload a document" path is handled inline in
+      // OpenFundingOpportunityModal, so here we only create from template/blank.
+      createNoteWithContent(selectedOrg.slug, {
+        template: grantSource === 'blank' ? BLANK_DOCUMENT : grantTemplate,
+        queryParam: 'newGrant',
+        queryValue: 'true',
+        documentType: 'GRANT',
+      });
     }
   }, [selectedOrg, isNewResearch, isNewFunding, isNewGrant, grantSource, proposalSource]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -220,35 +213,6 @@ export default function OrganizationPage() {
     stripQueryParam('proposalSource');
   };
 
-  const openGrantFilePicker = () => {
-    setGrantUploadError(null);
-    grantFileInputRef.current?.click();
-  };
-
-  const handleGrantFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const picked = event.target.files?.[0] ?? null;
-    event.target.value = ''; // allow re-selecting the same file
-    if (!picked) return;
-
-    if (!detectImportFormat(picked)) {
-      setGrantUploadError('Only .docx, .odt, and .md files are supported.');
-      return;
-    }
-    if (picked.size > MAX_UPLOAD_SIZE) {
-      setGrantUploadError('That file is larger than 25 MB. Try a smaller document.');
-      return;
-    }
-
-    setGrantUploadError(null);
-    void handleUploadFile(picked, 'GRANT');
-  };
-
-  const handleGrantUploadClose = () => {
-    if (isImporting) return;
-    setShowGrantUpload(false);
-    stripQueryParam('newGrant');
-  };
-
   if (isLoadingOrg) {
     return <NotePaperSkeleton />;
   }
@@ -291,45 +255,6 @@ export default function OrganizationPage() {
             type="file"
             accept={UPLOAD_ACCEPT_ATTR}
             onChange={handleProposalFileChange}
-            className="hidden"
-          />
-        </div>
-      </BaseModal>
-
-      <BaseModal
-        isOpen={showGrantUpload}
-        onClose={handleGrantUploadClose}
-        title="Upload your funding opportunity"
-        size="md"
-      >
-        <div className="space-y-3">
-          <p className="text-sm text-gray-500">
-            Import a Word, OpenDocument, or Markdown file to start your funding opportunity.
-          </p>
-          <button
-            type="button"
-            onClick={openGrantFilePicker}
-            disabled={isImporting}
-            className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-10 text-center transition-colors hover:border-blue-400 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-white">
-              <Upload className="h-6 w-6 text-blue-600" />
-            </div>
-            <div className="text-sm font-medium text-gray-900">
-              {isImporting ? 'Importing your document...' : 'Click to upload a document'}
-            </div>
-            <div className="text-xs text-gray-500">Word, OpenDocument, or Markdown · max 25 MB</div>
-          </button>
-          {grantUploadError && (
-            <p className="text-xs text-red-600" role="alert">
-              {grantUploadError}
-            </p>
-          )}
-          <input
-            ref={grantFileInputRef}
-            type="file"
-            accept={UPLOAD_ACCEPT_ATTR}
-            onChange={handleGrantFileChange}
             className="hidden"
           />
         </div>
