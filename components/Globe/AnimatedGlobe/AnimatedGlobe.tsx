@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { LAND_DOTS_B64 } from './landDots';
 
 /* ─────────────────────────────────────────────────────────────────────────
    Color tokens
@@ -16,6 +17,12 @@ const HS = {
 const rgba = (c: string, a: number) => `rgba(${c},${a})`;
 const TAU = Math.PI * 2;
 const D2R = Math.PI / 180;
+
+// Indigo for the continent mosaic so the landmasses read with strong contrast
+// against the pale-blue sphere fill.
+const LAND_COLOR = '67,56,202'; // #4338CA (indigo-700)
+// Soft aura/atmosphere glow that rings the globe.
+const AURA_COLOR = '99,102,241'; // #6366F1 (indigo-500)
 
 /* Seeded RNG so the animation is deterministic across renders. */
 function mulberry(seed: number): () => number {
@@ -202,9 +209,71 @@ function slerp(a: Vec3, b: Vec3, t: number): Vec3 {
 
 const CITY_VEC: Vec3[] = CITIES.map((c) => unitVec(c[1], c[2]));
 
-function drawWireSphere(ctx: Ctx, cx: number, cy: number, R: number, rot: Rot) {
+/* Decode the base64-packed signed-int8 land sample points into unit vectors.
+   Each point is three bytes (x, y, z) scaled by 127. Generated offline from a
+   world land dataset (see landDots.ts) using equal-area sphere sampling, so the
+   dots form recognizable continents that line up with the city markers. */
+function decodeLandDots(b64: string): Vec3[] {
+  const bin =
+    typeof atob === 'function' ? atob(b64) : Buffer.from(b64, 'base64').toString('binary');
+  const n = Math.floor(bin.length / 3);
+  const out: Vec3[] = new Array(n);
+  for (let i = 0; i < n; i++) {
+    // Sign-extend each byte from uint8 (0..255) to int8 (-128..127).
+    const x = ((bin.charCodeAt(i * 3) << 24) >> 24) / 127;
+    const y = ((bin.charCodeAt(i * 3 + 1) << 24) >> 24) / 127;
+    const z = ((bin.charCodeAt(i * 3 + 2) << 24) >> 24) / 127;
+    out[i] = { x, y, z };
+  }
+  return out;
+}
+
+/* Number of depth buckets used to batch the continent dots. Each bucket is
+   filled with a single color/opacity so the whole mosaic costs only a handful
+   of fillStyle changes per frame instead of one per dot. */
+const LAND_DEPTH_BUCKETS = 6;
+
+function drawLandDots(
+  ctx: Ctx,
+  cx: number,
+  cy: number,
+  R: number,
+  rot: Rot,
+  dots: Vec3[],
+  color: string
+) {
+  const buckets: number[][] = Array.from({ length: LAND_DEPTH_BUCKETS }, () => []);
+  for (let i = 0; i < dots.length; i++) {
+    const p = applyRot(dots[i], rot, R);
+    if (p.z < 0) continue; // hidden on the far side of the globe
+    const depth = p.z / R; // 0 near the limb → 1 at the center
+    let b = Math.floor(depth * LAND_DEPTH_BUCKETS);
+    if (b < 0) b = 0;
+    if (b >= LAND_DEPTH_BUCKETS) b = LAND_DEPTH_BUCKETS - 1;
+    const s = 1.4 + 1.5 * depth; // a touch larger toward the center for volume
+    const list = buckets[b];
+    list.push(cx + p.x, cy + p.y, s);
+  }
+  for (let b = 0; b < LAND_DEPTH_BUCKETS; b++) {
+    const list = buckets[b];
+    if (list.length === 0) continue;
+    const depth = (b + 0.5) / LAND_DEPTH_BUCKETS;
+    const alpha = 0.55 + 0.4 * depth;
+    ctx.fillStyle = rgba(color, alpha);
+    ctx.beginPath();
+    for (let k = 0; k < list.length; k += 3) {
+      const x = list[k];
+      const y = list[k + 1];
+      const s = list[k + 2];
+      ctx.rect(x - s / 2, y - s / 2, s, s);
+    }
+    ctx.fill();
+  }
+}
+
+function drawWireSphere(ctx: Ctx, cx: number, cy: number, R: number, rot: Rot, alphaScale = 1) {
   const drawCurve = (samples: Vec3[], primary: boolean) => {
-    ctx.strokeStyle = rgba(HS.blue, primary ? 0.7 : 0.42);
+    ctx.strokeStyle = rgba(HS.blue, (primary ? 0.7 : 0.42) * alphaScale);
     ctx.lineWidth = primary ? 1.7 : 1.15;
     let drawing = false;
     ctx.beginPath();
@@ -237,11 +306,35 @@ function drawWireSphere(ctx: Ctx, cx: number, cy: number, R: number, rot: Rot) {
   }
 }
 
-function drawSphereFill(ctx: Ctx, cx: number, cy: number, R: number) {
+/* A soft indigo aura ringing the globe. Drawn before the sphere so the bright
+   band sits right at the rim and fades outward into the page (the inner part is
+   covered by the sphere fill). */
+function drawAura(ctx: Ctx, cx: number, cy: number, R: number, color: string, peak: number) {
+  // A tight, round halo that hugs the rim and fades quickly into the page.
+  const outer = R * 1.18;
+  const g = ctx.createRadialGradient(cx, cy, R * 0.95, cx, cy, outer);
+  g.addColorStop(0, rgba(color, 0));
+  g.addColorStop(0.28, rgba(color, peak)); // brightest just outside the rim
+  g.addColorStop(1, rgba(color, 0));
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(cx, cy, outer, 0, TAU);
+  ctx.fill();
+}
+
+function drawSphereFill(ctx: Ctx, cx: number, cy: number, R: number, dark: boolean) {
   const g = ctx.createRadialGradient(cx - R * 0.25, cy - R * 0.25, R * 0.1, cx, cy, R);
-  g.addColorStop(0, rgba(HS.blueLt, 0.18));
-  g.addColorStop(0.55, rgba(HS.blue, 0.12));
-  g.addColorStop(1, rgba(HS.blueDeep, 0.2));
+  if (dark) {
+    // A glassy translucent sphere that reads as a planet floating in space:
+    // a cool highlight at the top-left falling to a deep navy limb.
+    g.addColorStop(0, rgba('96,165,250', 0.34));
+    g.addColorStop(0.55, rgba('37,76,194', 0.32));
+    g.addColorStop(1, rgba('8,12,34', 0.62));
+  } else {
+    g.addColorStop(0, rgba(HS.blueLt, 0.18));
+    g.addColorStop(0.55, rgba(HS.blue, 0.12));
+    g.addColorStop(1, rgba(HS.blueDeep, 0.2));
+  }
   ctx.fillStyle = g;
   ctx.beginPath();
   ctx.arc(cx, cy, R, 0, TAU);
@@ -330,16 +423,32 @@ function buildArcSlots(
   count: number,
   period: number,
   dur: number,
-  gap: number
+  gap: number,
+  minAngleDeg = 10,
+  maxAngleDeg = 48
 ): ArcSlot[] {
   const rnd = mulberry(seed);
+  // Keep arcs regional: only connect cities within a great-circle distance
+  // window so trajectories don't sweep all the way across the globe.
+  const cosNear = Math.cos(minAngleDeg * D2R); // larger dot = closer together
+  const cosFar = Math.cos(maxAngleDeg * D2R); // smaller dot = farther apart
   const slots: ArcSlot[] = [];
   for (let i = 0; i < count; i++) {
     const pairs: [number, number][] = [];
     for (let k = 0; k < 30; k++) {
       const a = Math.floor(rnd() * CITIES.length);
-      let b = Math.floor(rnd() * CITIES.length);
-      if (b === a) b = (b + 1) % CITIES.length;
+      let b = (a + 1) % CITIES.length;
+      for (let attempt = 0; attempt < 48; attempt++) {
+        const cand = Math.floor(rnd() * CITIES.length);
+        if (cand === a) continue;
+        const va = CITY_VEC[a];
+        const vc = CITY_VEC[cand];
+        const dot = va.x * vc.x + va.y * vc.y + va.z * vc.z;
+        if (dot <= cosNear && dot >= cosFar) {
+          b = cand;
+          break;
+        }
+      }
       pairs.push([a, b]);
     }
     slots.push({ offset: i * gap, period, dur, pairs });
@@ -376,6 +485,17 @@ const AVATAR_SRCS = [
   '/globe-avatars/4.png',
   '/globe-avatars/5.png',
   '/globe-avatars/6.png',
+  '/globe-avatars/7.png',
+  '/globe-avatars/8.png',
+  '/globe-avatars/9.png',
+  '/globe-avatars/10.png',
+  '/globe-avatars/11.png',
+  '/globe-avatars/12.png',
+  '/globe-avatars/13.png',
+  '/globe-avatars/14.png',
+  '/globe-avatars/15.png',
+  '/globe-avatars/16.png',
+  '/globe-avatars/17.png',
 ];
 const AVATAR_COUNT = AVATAR_SRCS.length;
 
@@ -422,19 +542,33 @@ function drawFlaskBadge(ctx: Ctx, bx: number, by: number, br: number) {
 interface Props {
   /** Diameter (square edge) of the globe scene in px. Default: 280 */
   size?: number;
+  /** Color treatment. 'dark' brightens the continents/aura for a cosmos
+   *  (dark space) background; 'light' is tuned for light backgrounds. */
+  theme?: 'light' | 'dark';
   className?: string;
 }
 
-export default function AnimatedGlobe({ size = 280, className }: Props) {
-  const { slots, ph, acts } = useMemo(() => {
+export default function AnimatedGlobe({ size = 280, theme = 'light', className }: Props) {
+  const { slots, ph, acts, avatarState } = useMemo(() => {
     const rnd = mulberry(73);
+    // Shuffled order we step through so avatars cycle through the whole set
+    // before repeating, and never show the same face back-to-back.
+    const order = Array.from({ length: AVATAR_COUNT }, (_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
     return {
-      slots: buildArcSlots(73, 3, 7.5, 5.0, 2.2),
+      slots: buildArcSlots(73, 7, 5.5, 4.2, 0.8),
       ph: CITIES.map(() => rnd() * TAU),
       // Multiple landings can be live simultaneously.
       acts: [] as { t: number; city: number; avatar: number }[],
+      avatarState: { order, pos: 0, last: -1 },
     };
   }, []);
+
+  // Continent mosaic points, decoded once.
+  const landDots = useMemo(() => decodeLandDots(LAND_DOTS_B64), []);
 
   // Preload the avatar images once on the client; drawn onto the canvas as
   // funding lands on a city.
@@ -452,10 +586,21 @@ export default function AnimatedGlobe({ size = 280, className }: Props) {
       const cx = w * 0.5;
       const cy = h * 0.5;
       const R = Math.min(w, h) * 0.4;
+      const dark = theme === 'dark';
+      const landColor = dark ? '147,197,253' : LAND_COLOR;
+      const auraColor = dark ? '129,140,248' : AURA_COLOR;
+      const auraPeak = dark ? 0.6 : 0.42;
+      const ringColor = dark ? '147,197,253' : HS.blue;
+      const wireScale = dark ? 0.4 : 0.3;
+
       const rot = makeRot(t * 0.35, -0.3);
-      drawSphereFill(ctx, cx, cy, R);
-      drawWireSphere(ctx, cx, cy, R, rot);
-      ctx.strokeStyle = rgba(HS.blue, 0.85);
+      drawAura(ctx, cx, cy, R, auraColor, auraPeak);
+      drawSphereFill(ctx, cx, cy, R, dark);
+      // Faint graticule behind the continents for structure, then the dotted
+      // continent mosaic on top so the landmasses are the focal point.
+      drawWireSphere(ctx, cx, cy, R, rot, wireScale);
+      drawLandDots(ctx, cx, cy, R, rot, landDots, landColor);
+      ctx.strokeStyle = rgba(ringColor, dark ? 0.7 : 0.85);
       ctx.lineWidth = 1.8;
       ctx.beginPath();
       ctx.arc(cx, cy, R, 0, TAU);
@@ -472,13 +617,47 @@ export default function AnimatedGlobe({ size = 280, className }: Props) {
       }
 
       runArcSlots(slots, t, (a, b, t01, fade) => {
-        drawArcPath(ctx, cx, cy, R, rot, CITY_VEC[a], CITY_VEC[b], t01, HS.rsc, 0.95 * fade, 1.8);
+        const pa = applyRot(CITY_VEC[a], rot, R);
+        const pv = applyRot(CITY_VEC[b], rot, R);
+        // Keep both the origin and destination anchored on the visible front
+        // hemisphere. If either has rotated behind the globe, skip the arc so
+        // it never floats over the back or slides off its anchor point. A soft
+        // fade near the limb keeps arcs from popping in and out.
+        const minZ = Math.min(pa.z, pv.z);
+        if (minZ < 0) return;
+        const edgeFade = Math.min(1, minZ / (R * 0.12));
+        drawArcPath(
+          ctx,
+          cx,
+          cy,
+          R,
+          rot,
+          CITY_VEC[a],
+          CITY_VEC[b],
+          t01,
+          HS.rsc,
+          0.95 * fade * edgeFade,
+          1.8
+        );
         if (t01 >= 0.94) {
-          const pv = applyRot(CITY_VEC[b], rot, R);
           // Only land if this city isn't already showing a live avatar.
           const already = acts.some((ac) => ac.city === b);
           if (pv.z >= 0.12 && !already) {
-            acts.push({ t, city: b, avatar: (b * 7 + Math.floor(t)) % AVATAR_COUNT });
+            // Step through the shuffled order, skipping the last-shown avatar
+            // and any currently-visible one so we cycle without repeats.
+            const activeAvatars = new Set(acts.map((ac) => ac.avatar));
+            let pick = -1;
+            for (let tries = 0; tries < AVATAR_COUNT * 2; tries++) {
+              const cand = avatarState.order[avatarState.pos % AVATAR_COUNT];
+              avatarState.pos++;
+              if (cand !== avatarState.last && !activeAvatars.has(cand)) {
+                pick = cand;
+                break;
+              }
+            }
+            if (pick === -1) pick = (avatarState.last + 1) % AVATAR_COUNT;
+            avatarState.last = pick;
+            acts.push({ t, city: b, avatar: pick });
           }
         }
       });
@@ -540,7 +719,7 @@ export default function AnimatedGlobe({ size = 280, className }: Props) {
         ctx.globalAlpha = 1;
       }
     },
-    [slots, ph, acts]
+    [slots, ph, acts, avatarState, landDots, theme]
   );
 
   const canvasRef = useHeroCanvas(draw);
