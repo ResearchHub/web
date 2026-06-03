@@ -86,9 +86,9 @@ export const transformPost = createTransformer<any, Post>((raw) => ({
   id: raw.id,
   slug: raw.slug,
   contentType:
-    raw.document_type.toLowerCase() === 'preregistration'
+    raw.document_type?.toLowerCase() === 'preregistration'
       ? 'preregistration'
-      : raw.document_type.toLowerCase() === 'grant'
+      : raw.document_type?.toLowerCase() === 'grant'
         ? 'funding_request'
         : 'post',
   fundraise: raw.unified_document?.fundraise
