@@ -212,6 +212,37 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
     { label: 'ORCID Email', value: userDetails.orcidVerifiedEduEmail || 'N/A' },
   ];
 
+  const hasMenu = menuItems.length > 0;
+  const isProbableSpammer = userDetails.isProbableSpammer;
+
+  const actionMenu = hasMenu && (
+    <BaseMenu
+      trigger={
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex items-center text-gray-500 hover:text-gray-700"
+        >
+          <MoreHorizontal className="w-5 h-5" />
+        </Button>
+      }
+      align="end"
+      open={isMenuOpen}
+      onOpenChange={setIsMenuOpen}
+    >
+      {menuItems.map((item) => (
+        <BaseMenuItem
+          key={item.id}
+          onClick={item.onClick}
+          className="flex items-center gap-2"
+          disabled={moderationState.isLoading}
+        >
+          <span>{item.label}</span>
+        </BaseMenuItem>
+      ))}
+    </BaseMenu>
+  );
+
   return (
     <section className="flex flex-col gap-6 pb-20">
       <div className="rounded-xl border overflow-hidden bg-gray-50/80 border-gray-200">
@@ -229,40 +260,14 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
                 </span>
               </div>
 
-              {userDetails.isProbableSpammer && (
+              {isProbableSpammer && (
                 <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800 border border-orange-200">
                   Probable Spammer
                 </span>
               )}
             </div>
 
-            {menuItems.length > 0 && (
-              <BaseMenu
-                trigger={
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center text-gray-500 hover:text-gray-700"
-                  >
-                    <MoreHorizontal className="w-5 h-5" />
-                  </Button>
-                }
-                align="end"
-                open={isMenuOpen}
-                onOpenChange={setIsMenuOpen}
-              >
-                {menuItems.map((item) => (
-                  <BaseMenuItem
-                    key={item.id}
-                    onClick={item.onClick}
-                    className="flex items-center gap-2"
-                    disabled={moderationState.isLoading}
-                  >
-                    <span>{item.label}</span>
-                  </BaseMenuItem>
-                ))}
-              </BaseMenu>
-            )}
+            {actionMenu}
           </div>
         </div>
 

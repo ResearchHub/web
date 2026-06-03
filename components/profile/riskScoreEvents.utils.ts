@@ -60,6 +60,7 @@ interface RiskScoreEventMeta {
   tooltip?: string;
   mixedTooltip?: string;
   isPersonaVerification?: boolean;
+  isContentRemoved?: boolean;
 }
 
 const RISK_SCORE_EVENT_META: Record<RiskScoreEventType, RiskScoreEventMeta> = {
@@ -72,11 +73,13 @@ const RISK_SCORE_EVENT_META: Record<RiskScoreEventType, RiskScoreEventMeta> = {
     action: 'Declined',
     tooltip:
       'A paper, proposal, or funding opportunity the user authored was declined by a moderator',
+    isContentRemoved: true,
   },
   CONTENT_CENSORED: {
     action: 'Censored',
     tooltip: 'A paper, post, or comment by the user was removed for policy violations',
     mixedTooltip: 'User has had content both censored and restored',
+    isContentRemoved: true,
   },
   BOUNTY_AWARDED: {
     action: 'Bounty Awarded',
@@ -142,8 +145,7 @@ const DOCUMENT_LABELS: Record<string, string> = {
 
 const COMMENT_LABELS: Record<string, string> = {
   GENERIC_COMMENT: 'Comment',
-  PEER_REVIEW: 'Peer Review',
-  REVIEW: 'Community Review',
+  REVIEW: 'Peer Review',
   ANSWER: 'Answer',
   SUMMARY: 'Summary',
   AUTHOR_UPDATE: 'Author Update',
@@ -160,6 +162,10 @@ export function getEventLabel(eventType: string): string {
 
 export function isPersonaVerificationEvent(eventType: string): boolean {
   return metaFor(eventType)?.isPersonaVerification ?? false;
+}
+
+export function isContentRemovedEvent(eventType: string): boolean {
+  return metaFor(eventType)?.isContentRemoved ?? false;
 }
 
 export const EVENT_TYPE_OPTIONS: { label: string; value: string }[] = [
