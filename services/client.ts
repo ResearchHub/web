@@ -37,10 +37,7 @@ export class ApiClient {
   private static async initializeToken(): Promise<string | null> {
     try {
       if (typeof window === 'undefined') {
-        const session = await getServerSession(authOptions);
-        if (session?.authToken) {
-          return session.authToken;
-        }
+        return await this.getServerAuthToken();
       } else {
         const session = await getSession();
         if (session?.authToken) {
@@ -52,6 +49,57 @@ export class ApiClient {
     } finally {
       this.tokenInitPromise = null;
     }
+  }
+
+  /**
+   * Resolve the auth token during server-side rendering by decoding the
+   * next-auth session cookie directly from the incoming request headers.
+   *
+   * We deliberately do not rely solely on `getServerSession` here: inside
+   * React Server Components it intermittently returns null even when the
+   * session cookie is present and valid (the `/api/auth/session` route reads
+   * the same cookie fine). When that happens, authenticated SSR fetches go out
+   * with no Authorization header, so the backend 404s private documents and
+   * the page renders a (misleading) not-found. Reading the cookie via
+   * `next/headers` and decoding it with `getToken` is request-scoped and
+   * deterministic. `getServerSession` is kept as a fallback.
+   *
+   * `next/headers` and `next-auth/jwt` are imported dynamically so they are
+   * never pulled into the client bundle (this module is shared with the browser).
+   */
+  private static async getServerAuthToken(): Promise<string | null> {
+    try {
+      const [{ cookies }, { getToken }] = await Promise.all([
+        import('next/headers'),
+        import('next-auth/jwt'),
+      ]);
+      // next-auth's getToken reads cookie values from `req.cookies` (via its
+      // `.getAll()` shape), not from a raw `cookie` header string. Next's
+      // cookie store satisfies that shape, and getToken handles the `__Secure-`
+      // prefix and chunked session cookies automatically. `secret` and
+      // `secureCookie` default to the same env-derived values next-auth used to
+      // set the cookie, so names and the decryption key line up across
+      // prod/preview/dev.
+      const cookieStore = await cookies();
+      const token = await getToken({ req: { cookies: cookieStore } as any });
+      const authToken = token?.authToken;
+      if (typeof authToken === 'string' && authToken.length > 0) {
+        return authToken;
+      }
+    } catch (error) {
+      console.error('Failed to decode auth token from request cookies:', error);
+    }
+
+    try {
+      const session = await getServerSession(authOptions);
+      if (session?.authToken) {
+        return session.authToken;
+      }
+    } catch (error) {
+      console.error('getServerSession fallback failed:', error);
+    }
+
+    return null;
   }
 
   private static isNotFoundError(error: unknown): boolean {
