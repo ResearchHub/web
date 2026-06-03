@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ArrowRight, HelpCircle } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { Button } from '@/components/ui/Button';
 
@@ -99,12 +99,17 @@ export function NoteEditorLayout() {
   const isNoteReady = !isLoadingNote && Boolean(note) && isLegacyNote === false && Boolean(editor);
   useEffect(() => {
     if (isDesktop !== true || tourAutoStarted.current) return;
-    if (tourDismissStatus !== 'checked' || isTourDismissed) return;
-    if (!isNewlyCreatedNote) return;
+    // TEMP (demo): the `useDismissableFeature` gating and new-note check below
+    // are bypassed so the tour replays on every page load of any ready note
+    // (including refresh), not just on creation. Restore the dismiss checks,
+    // the `isNewlyCreatedNote` guard, and the `dismissTour()` call to return to
+    // once-per-user-on-create behavior.
+    // if (tourDismissStatus !== 'checked' || isTourDismissed) return;
+    // if (!isNewlyCreatedNote) return;
     if (!isNoteReady) return;
     tourAutoStarted.current = true;
     setIsTourOpen(true);
-    dismissTour();
+    // dismissTour();
   }, [isDesktop, isNoteReady, tourDismissStatus, isTourDismissed, isNewlyCreatedNote, dismissTour]);
 
   useEffect(() => {
@@ -206,17 +211,6 @@ export function NoteEditorLayout() {
         <div className="mb-4 flex items-center justify-between gap-2">
           <NotebookTabs active={activeTab} onChange={setActiveTab} />
           <div className="flex items-center gap-2">
-            {isDesktop && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsTourOpen(true)}
-                aria-label="Start notebook tour"
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <HelpCircle className="h-5 w-5" />
-              </Button>
-            )}
             {activeTab === 'document' && (
               <Button
                 variant="default"
@@ -224,7 +218,7 @@ export function NoteEditorLayout() {
                 onClick={() => setActiveTab('details')}
                 className="gap-1.5"
               >
-                Review &amp; publish
+                Add details
                 <ArrowRight className="h-4 w-4" />
               </Button>
             )}

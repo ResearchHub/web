@@ -30,21 +30,21 @@ const PUBLISH_MENU_SECTIONS = [
     title: 'Publish on ResearchHub',
     items: [
       {
-        id: 'request-funding',
-        title: 'Proposal',
-        description: 'Crowdfund your research',
-        icon: <FundingIcon size={24} color="#2563eb" />,
-        action: 'function',
-        handler: 'handleFundResearch',
-        requiresAuth: true,
-      },
-      {
         id: 'give-funding',
         title: 'Funding Opportunity',
         description: 'Fund specific research you care about',
         icon: <Icon name="fund" size={24} color="#2563eb" />,
         action: 'function',
         handler: 'handleOpenGrant',
+        requiresAuth: true,
+      },
+      {
+        id: 'request-funding',
+        title: 'Proposal',
+        description: 'Crowdfund your research',
+        icon: <FundingIcon size={24} color="#2563eb" />,
+        action: 'function',
+        handler: 'handleFundResearch',
         requiresAuth: true,
       },
       {

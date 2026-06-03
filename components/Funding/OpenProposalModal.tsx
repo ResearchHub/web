@@ -2,20 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { Dialog } from '@headlessui/react';
-import {
-  ArrowLeft,
-  ArrowRight,
-  File,
-  FileText,
-  Globe,
-  ShieldCheck,
-  Upload,
-  Users,
-  X,
-} from 'lucide-react';
+import { ArrowLeft, ArrowRight, File, FileText, Globe, Lock, Upload, Users, X } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
 import AnimatedProposal from '@/components/Proposal/AnimatedProposal';
 import { DocumentUploadStep } from '@/components/Funding/DocumentUploadStep';
 
@@ -39,25 +28,19 @@ const BENEFITS: Benefit[] = [
     id: 'community',
     title: 'Reach a global community',
     description: 'Put your proposal in front of thousands of funders who care about your field.',
-    icon: <Users className="h-[22px] w-[22px] text-rhBlue-600" />,
+    icon: <Globe className="h-[22px] w-[22px] text-rhBlue-600" />,
   },
   {
     id: 'matching',
     title: 'Community matching',
-    description: 'Every dollar contributed can be stretched further with community matching.',
-    icon: <ResearchCoinIcon size={22} color="#2563eb" outlined />,
+    description: 'Your proposal is eligible for funding from institutions or community members.',
+    icon: <Users className="h-[22px] w-[22px] text-rhBlue-600" />,
   },
   {
     id: 'open',
     title: 'Stay open & in control',
-    description: 'Keep full ownership of your work while funding it transparently and openly.',
-    icon: <ShieldCheck className="h-[22px] w-[22px] text-rhBlue-600" />,
-  },
-  {
-    id: 'visibility',
-    title: 'Built-in visibility',
-    description: 'Share progress, attract collaborators, and build a public track record.',
-    icon: <Globe className="h-[22px] w-[22px] text-rhBlue-600" />,
+    description: 'You can control whether your proposal is public or visible to funders only.',
+    icon: <Lock className="h-[22px] w-[22px] text-rhBlue-600" />,
   },
 ];
 
@@ -110,7 +93,7 @@ export const OpenProposalModal = ({ isOpen, onClose, onConfirm }: OpenProposalMo
     >
       <div className="flex h-full flex-col md:flex-row">
         {/* Left visual rail */}
-        <div className="relative flex flex-shrink-0 flex-col justify-center overflow-hidden bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-10 md:w-[360px] md:px-9 md:py-11">
+        <div className="relative flex flex-shrink-0 flex-col justify-center overflow-hidden bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-8 md:w-[360px] md:px-9 md:py-8">
           {/* Mobile close button */}
           <button
             type="button"
@@ -133,14 +116,18 @@ export const OpenProposalModal = ({ isOpen, onClose, onConfirm }: OpenProposalMo
           />
 
           <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="mb-2 flex items-center justify-center">
-              <AnimatedProposal scale={0.78} />
+            {/* AnimatedProposal scales via CSS transform, which keeps its full
+                natural layout height (~367px) reserved. We pin the container to
+                the *visual* height so the left rail doesn't tower over the
+                right column and leave whitespace below the CTA. */}
+            <div className="mb-2 flex h-[230px] items-center justify-center">
+              <AnimatedProposal scale={0.66} />
             </div>
             <Dialog.Title
               as="h2"
               className="text-[26px] font-bold leading-[1.12] tracking-[-0.02em] text-gray-900"
             >
-              Crowdfund your research
+              Open a Proposal
             </Dialog.Title>
             <p className="mt-3 text-base leading-[1.5] text-gray-600">
               Turn your proposal into funded science.
@@ -163,7 +150,7 @@ export const OpenProposalModal = ({ isOpen, onClose, onConfirm }: OpenProposalMo
             <>
               <div className="pr-10">
                 <h3 className="text-2xl font-bold tracking-tight text-gray-900">
-                  Why crowdfund on ResearchHub
+                  Why publish on ResearchHub
                 </h3>
               </div>
 

@@ -10,6 +10,7 @@ import {
   Search,
   Settings,
   Bookmark,
+  Notebook,
 } from 'lucide-react';
 import Icon from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -227,6 +228,15 @@ export default function UserMenu({
           </Link>
         )}
 
+        <Link href="/notebook" className="block" onClick={() => setMenuOpenState(false)}>
+          <div className="px-6 py-2 hover:bg-gray-50">
+            <div className="flex items-center">
+              <Notebook className="h-5 w-5 mr-3 text-gray-500" />
+              <span className="text-sm text-gray-700">Notebook</span>
+            </div>
+          </div>
+        </Link>
+
         <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
           <div className="px-6 py-2 hover:bg-gray-50">
             <div className="flex items-center">
@@ -438,6 +448,15 @@ export default function UserMenu({
                 </div>
               </Link>
             )}
+
+            <Link href="/notebook" className="block" onClick={() => setMenuOpenState(false)}>
+              <div className="w-full px-4 py-2 hover:bg-gray-50">
+                <div className="flex items-center">
+                  <Notebook className="h-5 w-5 mr-3 text-gray-500" />
+                  <span className="text-sm text-gray-700">Notebook</span>
+                </div>
+              </div>
+            </Link>
 
             <Link href="/lists" className="block" onClick={() => setMenuOpenState(false)}>
               <div className="w-full px-4 py-2 hover:bg-gray-50">

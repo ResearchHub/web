@@ -8,7 +8,6 @@ import {
   ArrowRight,
   ArrowUpRight,
   Award,
-  File,
   FileText,
   Sparkles,
   Upload,
@@ -88,12 +87,6 @@ const CREATION_OPTIONS: CreationOption[] = [
     title: 'Upload a document',
     description: 'Import a Word, Markdown, or OpenDocument file',
     icon: <Upload className="h-[22px] w-[22px] text-rhBlue-600" />,
-  },
-  {
-    id: 'blank',
-    title: 'Start blank',
-    description: 'Begin with an empty page',
-    icon: <File className="h-[22px] w-[22px] text-rhBlue-600" />,
   },
 ];
 
