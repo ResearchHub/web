@@ -22,14 +22,14 @@ export type InsightTone = 'good' | 'bad' | 'mixed';
 export type RiskTier = 'trusted' | 'moderate' | 'high' | 'unknown' | 'suspended';
 
 export const MISSING_SCORE = -1;
-const TRUSTED_SCORE_MAX = 50;
-const HIGH_RISK_SCORE_MIN = 150;
+const HIGH_RISK_SCORE_MAX = 50;
+const TRUSTED_SCORE_MIN = 150;
 
 export function getRiskTier(score: number, isSuspended: boolean): RiskTier {
   if (isSuspended) return 'suspended';
   if (score === MISSING_SCORE) return 'unknown';
-  if (score <= TRUSTED_SCORE_MAX) return 'trusted';
-  if (score >= HIGH_RISK_SCORE_MIN) return 'high';
+  if (score >= TRUSTED_SCORE_MIN) return 'trusted';
+  if (score <= HIGH_RISK_SCORE_MAX) return 'high';
   return 'moderate';
 }
 
@@ -191,11 +191,11 @@ export function formatInsightLabel(eventType: string, count: number): string {
 }
 
 export function getInsightTone(insight: Insight): InsightTone {
-  const addsRisk = insight.maxDelta > 0;
-  const buildsTrust = insight.minDelta < 0;
-  if (addsRisk && buildsTrust) return 'mixed';
-  if (addsRisk) return 'bad';
+  const buildsTrust = insight.maxDelta > 0;
+  const penalizes = insight.minDelta < 0;
+  if (buildsTrust && penalizes) return 'mixed';
   if (buildsTrust) return 'good';
+  if (penalizes) return 'bad';
   return 'mixed';
 }
 
