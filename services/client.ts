@@ -75,19 +75,41 @@ export class ApiClient {
       ]);
       // next-auth's getToken reads cookie values from `req.cookies` (via its
       // `.getAll()` shape), not from a raw `cookie` header string. Next's
-      // cookie store satisfies that shape, and getToken handles the `__Secure-`
-      // prefix and chunked session cookies automatically. `secret` and
-      // `secureCookie` default to the same env-derived values next-auth used to
-      // set the cookie, so names and the decryption key line up across
-      // prod/preview/dev.
+      // cookie store satisfies that shape, and getToken handles chunked session
+      // cookies automatically.
       const cookieStore = await cookies();
-      const token = await getToken({ req: { cookies: cookieStore } as any });
-      const authToken = token?.authToken;
-      if (typeof authToken === 'string' && authToken.length > 0) {
-        return authToken;
+
+      // getToken derives the cookie name from `secureCookie`
+      // (`__Secure-next-auth.session-token` when true, `next-auth.session-token`
+      // when false). Its default inference (NEXTAUTH_URL / VERCEL) can land on
+      // the wrong name behind a proxy, silently missing the cookie. Try the
+      // secure name first (prod/preview/https), then the non-secure one (local
+      // dev), so this works across every environment.
+      for (const secureCookie of [true, false]) {
+        try {
+          const token = await getToken({ req: { cookies: cookieStore } as any, secureCookie });
+          const authToken = token?.authToken;
+          if (typeof authToken === 'string' && authToken.length > 0) {
+            return authToken;
+          }
+        } catch (error) {
+          console.error(`[auth][ssr] getToken(secureCookie=${secureCookie}) threw`, error);
+        }
       }
+
+      // Reaching here means the session cookie was present but no authToken came
+      // back. Log enough (names only, never values) to diagnose name vs secret.
+      console.error('[auth][ssr] getToken returned no authToken', {
+        sessionCookieNames: cookieStore
+          .getAll()
+          .map((c) => c.name)
+          .filter((n) => n.includes('next-auth.session-token')),
+        hasNextauthUrl: !!process.env.NEXTAUTH_URL,
+        hasSecret: !!(process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET),
+        isVercel: !!process.env.VERCEL,
+      });
     } catch (error) {
-      console.error('Failed to decode auth token from request cookies:', error);
+      console.error('[auth][ssr] failed to read cookies for token', error);
     }
 
     try {
@@ -95,8 +117,9 @@ export class ApiClient {
       if (session?.authToken) {
         return session.authToken;
       }
+      console.error('[auth][ssr] getServerSession fallback returned no authToken');
     } catch (error) {
-      console.error('getServerSession fallback failed:', error);
+      console.error('[auth][ssr] getServerSession fallback threw', error);
     }
 
     return null;
