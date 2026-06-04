@@ -2,12 +2,12 @@ import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PaperService } from '@/services/paper.service';
-import { MetadataService } from '@/services/metadata.service';
 import { buildArticleMetadata } from '@/lib/metadata';
 import { stripHtml } from '@/utils/stringUtils';
 import { PageLayout } from '@/app/layouts/PageLayout';
 import { WorkHeader, WorkTabProvider } from '@/components/work/WorkHeader/index';
 import { WorkRightSidebar } from '@/components/work/WorkRightSidebar';
+import { getPaperMetadata } from './data';
 
 interface Props {
   params: Promise<{
@@ -52,7 +52,8 @@ export default async function PaperSlugLayout({ params, children }: Props) {
   } catch {
     notFound();
   }
-  const metadata = await MetadataService.get(work.unifiedDocumentId?.toString() || '');
+
+  const metadata = await getPaperMetadata(work.unifiedDocumentId);
 
   return (
     <WorkTabProvider>
