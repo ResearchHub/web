@@ -247,11 +247,10 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
           ) : proposals.length > 0 ? (
             proposals.map((proposal) => {
               const isSelected = proposal.id === selectedProposalId && !draftNewSelected;
-              const isDraft = proposal.status === 'draft';
               const requiresPrivate = grantApplicationVisibility === 'PRIVATE';
               const isIneligibleVisibility = requiresPrivate && proposal.isPublic;
-              const isSelectable = !isDraft && !isIneligibleVisibility;
-              const isDimmed = isDraft || isIneligibleVisibility;
+              const isSelectable = !isIneligibleVisibility;
+              const isDimmed = isIneligibleVisibility;
 
               return (
                 <div
@@ -268,15 +267,9 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                   <div className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-0.5">
-                        {isDraft ? (
-                          <Badge variant="default" size="sm">
-                            Draft
-                          </Badge>
-                        ) : (
-                          <Badge variant="success" size="sm">
-                            Published
-                          </Badge>
-                        )}
+                        <Badge variant="success" size="sm">
+                          Published
+                        </Badge>
                         {isIneligibleVisibility && (
                           <Badge variant="default" size="sm">
                             Public — not eligible
