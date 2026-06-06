@@ -126,13 +126,13 @@ function ModerationSkeleton() {
 
 export function ModerationTab({ userId, authorId, refetchAuthorInfo }: ModerationTabProps) {
   const { user: currentUser } = useUser();
+  const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
+  const isModerator = !!currentUser?.isModerator;
   const [{ userDetails, isLoading }, refetchModerationDetails] = useUserDetailsForModerator(userId);
-  const [eventsState, fetchEvents] = useRiskScoreEvents(userId, {
+  const [eventsState, fetchEvents] = useRiskScoreEvents(isModerator ? userId : null, {
     pageSize: EVENTS_PAGE_SIZE,
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
-  const isModerator = !!currentUser?.isModerator;
 
   const [moderationState, { suspendUser, reinstateUser, markProbableSpammer }] =
     useUserModeration();
@@ -246,32 +246,39 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
   return (
     <section className="flex flex-col gap-6 pb-20">
       <div className="rounded-xl border overflow-hidden bg-gray-50/80 border-gray-200">
-        <div className="p-5 pb-0">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-baseline gap-2">
-                <span className={cn('text-3xl font-bold tabular-nums', score.scoreClass)}>
-                  {score.display}
-                </span>
-                <span
-                  className={cn('text-sm font-semibold uppercase tracking-wide', score.scoreClass)}
-                >
-                  {score.label}
-                </span>
+        {(isModerator || hasMenu || isProbableSpammer) && (
+          <div className={cn('px-5', isModerator ? 'pt-5 pb-0' : 'pt-4')}>
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-4">
+                {isModerator && (
+                  <div className="flex items-baseline gap-2">
+                    <span className={cn('text-3xl font-bold tabular-nums', score.scoreClass)}>
+                      {score.display}
+                    </span>
+                    <span
+                      className={cn(
+                        'text-sm font-semibold uppercase tracking-wide',
+                        score.scoreClass
+                      )}
+                    >
+                      {score.label}
+                    </span>
+                  </div>
+                )}
+
+                {isProbableSpammer && (
+                  <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800 border border-orange-200">
+                    Probable Spammer
+                  </span>
+                )}
               </div>
 
-              {isProbableSpammer && (
-                <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800 border border-orange-200">
-                  Probable Spammer
-                </span>
-              )}
+              {actionMenu}
             </div>
-
-            {actionMenu}
           </div>
-        </div>
+        )}
 
-        <div className="px-5 py-4 border-t border-black/5 mt-4">
+        <div className={cn('px-5 py-4', isModerator && 'border-t border-black/5 mt-4')}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
@@ -291,7 +298,7 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
               </div>
             </div>
 
-            {insights.length > 0 && (
+            {isModerator && insights.length > 0 && (
               <div>
                 <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
                   Insights
@@ -321,15 +328,17 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
         </div>
       </div>
 
-      <RiskScoreEvents
-        events={eventsState.events}
-        count={eventsState.count}
-        page={eventsState.page}
-        pageSize={eventsState.pageSize}
-        isLoading={eventsState.isLoading}
-        error={eventsState.error}
-        fetchEvents={fetchEvents}
-      />
+      {isModerator && (
+        <RiskScoreEvents
+          events={eventsState.events}
+          count={eventsState.count}
+          page={eventsState.page}
+          pageSize={eventsState.pageSize}
+          isLoading={eventsState.isLoading}
+          error={eventsState.error}
+          fetchEvents={fetchEvents}
+        />
+      )}
     </section>
   );
 }

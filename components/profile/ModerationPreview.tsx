@@ -1,6 +1,7 @@
 'use client';
 
 import { useUserDetailsForModerator } from '@/hooks/useAuthor';
+import { useUser } from '@/contexts/UserContext';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
 import { DetailValue } from '@/components/ui/CopyableText';
 import { cn } from '@/utils/styles';
@@ -24,6 +25,8 @@ function Row({
 }
 
 export function ModerationPreview({ userId }: ModerationPreviewProps) {
+  const { user: currentUser } = useUser();
+  const isModerator = !!currentUser?.isModerator;
   const [{ userDetails, isLoading }] = useUserDetailsForModerator(userId);
 
   if (isLoading) {
@@ -54,12 +57,14 @@ export function ModerationPreview({ userId }: ModerationPreviewProps) {
     <section>
       <SidebarHeader title="Moderation" />
       <ul className="flex flex-col gap-1.5">
-        <li className="text-sm text-gray-700 flex items-center gap-1">
-          <span className="font-medium shrink-0">Score:</span>
-          <span className={cn('font-semibold tabular-nums', score.scoreClass)}>
-            {score.hasScore ? `${score.display} (${score.label})` : score.display}
-          </span>
-        </li>
+        {isModerator && (
+          <li className="text-sm text-gray-700 flex items-center gap-1">
+            <span className="font-medium shrink-0">Score:</span>
+            <span className={cn('font-semibold tabular-nums', score.scoreClass)}>
+              {score.hasScore ? `${score.display} (${score.label})` : score.display}
+            </span>
+          </li>
+        )}
         <Row label="Persona ID" value={personaId} copyable={!!verification?.externalId} />
         <Row label="User ID" value={userIdDisplay} copyable={userDetails.id != null} />
         <Row label="Verified name" value={verifiedName} />
