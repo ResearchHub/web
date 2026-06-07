@@ -169,16 +169,14 @@ export default function UserMenu({
           </div>
         </div>
 
-        {(user?.isFunder || user?.isModerator) && (
-          <Link href="/fund/dashboard" className="block" onClick={() => setMenuOpenState(false)}>
-            <div className="px-6 py-2 hover:bg-gray-50">
-              <div className="flex items-center">
-                <Icon name="fund" size={20} color="#4B5563" className="mr-3" />
-                <span className="text-sm text-gray-700">Your Funding</span>
-              </div>
+        <Link href="/fund/dashboard" className="block" onClick={() => setMenuOpenState(false)}>
+          <div className="px-6 py-2 hover:bg-gray-50">
+            <div className="flex items-center">
+              <Icon name="fund" size={20} color="#4B5563" className="mr-3" />
+              <span className="text-sm text-gray-700">Your Funding</span>
             </div>
-          </Link>
-        )}
+          </div>
+        </Link>
 
         <Link
           href="/notifications"
@@ -382,20 +380,14 @@ export default function UserMenu({
               </div>
             </BaseMenuItem>
 
-            {(user?.isFunder || user?.isModerator) && (
-              <Link
-                href="/fund/dashboard"
-                className="block"
-                onClick={() => setMenuOpenState(false)}
-              >
-                <div className="w-full px-4 py-2 hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <Icon name="fund" size={20} color="#4B5563" className="mr-3" />
-                    <span className="text-sm text-gray-700">Your Funding</span>
-                  </div>
+            <Link href="/fund/dashboard" className="block" onClick={() => setMenuOpenState(false)}>
+              <div className="w-full px-4 py-2 hover:bg-gray-50">
+                <div className="flex items-center">
+                  <Icon name="fund" size={20} color="#4B5563" className="mr-3" />
+                  <span className="text-sm text-gray-700">Your Funding</span>
                 </div>
-              </Link>
-            )}
+              </div>
+            </Link>
 
             <Link
               href="/notifications"

@@ -12,6 +12,7 @@ import { HeroHeader } from '@/components/ui/HeroHeader';
 import { Button } from '@/components/ui/Button';
 import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalTooltip';
 import { MarketplaceCards } from '@/components/Funding/MarketplaceCards';
+import { FundingHeroPanel } from '@/components/Funding/FundingHeroPanel';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'Proposals',
@@ -21,8 +22,8 @@ export const metadata: Metadata = buildOpenGraphMetadata({
 
 function SubmitProposalCTA() {
   return (
-    <SubmitProposalTooltip>
-      <Link href="/notebook?newFunding=true">
+    <SubmitProposalTooltip wrapperClassName="w-full">
+      <Link href="/notebook?newFunding=true" className="block w-full">
         <Button
           variant="default"
           size="lg"
@@ -47,7 +48,8 @@ export default async function FundProposalsPage() {
               Propose research, get reviewed, receive funding.
             </p>
           }
-          cta={<SubmitProposalCTA />}
+          cta={<FundingHeroPanel primaryCta={<SubmitProposalCTA />} />}
+          alignTop
         >
           <MarketplaceCards selected="proposals" />
         </HeroHeader>

@@ -7,9 +7,17 @@ import { Tooltip } from '@/components/ui/Tooltip';
 
 interface FundingCreditsTooltipProps {
   children: ReactNode;
+  /** Where the tooltip pops relative to the trigger. @default 'top' */
+  position?: 'top' | 'bottom' | 'left' | 'right';
+  /** Class applied to the trigger wrapper (e.g. to make it fill its column). */
+  wrapperClassName?: string;
 }
 
-export function FundingCreditsTooltip({ children }: FundingCreditsTooltipProps) {
+export function FundingCreditsTooltip({
+  children,
+  position = 'top',
+  wrapperClassName,
+}: FundingCreditsTooltipProps) {
   const content = (
     <div className="text-left">
       <div className="text-sm font-bold text-white mb-1">Funding Credits</div>
@@ -42,9 +50,10 @@ export function FundingCreditsTooltip({ children }: FundingCreditsTooltipProps) 
   return (
     <Tooltip
       content={content}
-      position="top"
+      position={position}
       width="w-72"
       className="bg-gray-900 text-white border-gray-900 text-left"
+      wrapperClassName={wrapperClassName}
     >
       {children}
     </Tooltip>

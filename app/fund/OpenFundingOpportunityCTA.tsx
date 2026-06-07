@@ -44,11 +44,6 @@ export function OpenFundingOpportunityCTA() {
           Funding Opportunity
         </Button>
 
-        <p className="mt-2 text-center text-xs text-gray-500">
-          Use your <span className="font-semibold text-rhBlue-600">$2,500</span> in funding credits
-          to open an opportunity.
-        </p>
-
         {showTooltip && (
           <div className="absolute left-0 top-full z-[10000] mt-2 w-full rounded-md border border-gray-900 bg-gray-900 px-4 py-3 text-left text-sm text-white shadow-md">
             <div className="font-medium">Fund research with:</div>

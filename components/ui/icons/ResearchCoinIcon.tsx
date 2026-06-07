@@ -1,6 +1,17 @@
 import { cn } from '@/utils/styles';
 import { PlusIcon } from 'lucide-react';
 
+/**
+ * Canonical ResearchCoin icon/brand colors. Reference these instead of
+ * hardcoding hex values so RSC accents stay consistent across the app.
+ */
+export const RSC_COLORS = {
+  orange: '#F3A113',
+  green: '#22C55E',
+  gray: '#6B7280',
+  blue: '#2563eb',
+} as const;
+
 interface ResearchCoinIconProps {
   /**
    * Size in pixels. Component maintains 1:1 aspect ratio
@@ -82,6 +93,12 @@ export function ResearchCoinIcon({
     return <ContributeVariant size={size} color={color} />;
   }
 
+  // For the outlined icon, let the `variant` drive the color for the green/gray
+  // brand shades so callers can do `variant="green"` instead of passing a hex.
+  // `orange`/`solid` keep the historical behavior of deferring to `color`.
+  const outlinedColor =
+    variant === 'green' ? RSC_COLORS.green : variant === 'gray' ? RSC_COLORS.gray : color;
+
   if (outlined) {
     return (
       <svg
@@ -97,7 +114,7 @@ export function ResearchCoinIcon({
           fillRule="evenodd"
           clipRule="evenodd"
           d="M7.96539 1.07912C11.2355 1.61221 13.4541 4.6951 12.9209 7.96525C12.3877 11.2355 9.30472 13.454 6.03461 12.9209C2.7645 12.3876 0.545902 9.30493 1.07911 6.03456C1.61231 2.7643 4.69517 0.545903 7.96539 1.07912Z"
-          stroke={color}
+          stroke={outlinedColor}
           strokeWidth={strokeWidth}
           fill="white"
         />
@@ -106,11 +123,11 @@ export function ResearchCoinIcon({
             fillRule="evenodd"
             clipRule="evenodd"
             d="M6.76253 6.13023L8.5816 9.00106C8.71656 9.21596 8.74249 9.39999 8.65926 9.55317C8.57612 9.70644 8.40678 9.78308 8.15131 9.78308H3.98532C3.7298 9.78308 3.56043 9.70644 3.47725 9.55317C3.39407 9.39999 3.42 9.21591 3.55497 9.00102L5.37393 6.13019V4.68565L5.37955 4.2511H6.75815L6.76253 4.68564V6.13023ZM5.76572 6.37631L4.90355 7.64457H7.23656L6.37316 6.37631L6.30086 6.26405V6.13013V4.68559H5.83803V6.13013V6.26405L5.76572 6.37631Z"
-            fill={color}
+            fill={outlinedColor}
           />
           <path
             d="M5.36161 6.42662L4.71875 7.92663L7.71875 8.1409L6.43304 6.21233V4.49805H5.57589V4.92662L5.36161 6.42662Z"
-            fill={color}
+            fill={outlinedColor}
           />
           <rect
             x="4.89844"
@@ -118,11 +135,11 @@ export function ResearchCoinIcon({
             width="2.33301"
             height="0.530231"
             rx="0.265115"
-            fill={color}
+            fill={outlinedColor}
           />
-          <rect x="4.64062" y="2.3689" width="1.1" height="1.1" rx="0.55" fill={color} />
-          <rect x="6.5" y="2.3689" width="1.1" height="1.1" rx="0.55" fill={color} />
-          <rect x="5.70469" y="1.2854" width="0.85" height="0.85" rx="0.425" fill={color} />
+          <rect x="4.64062" y="2.3689" width="1.1" height="1.1" rx="0.55" fill={outlinedColor} />
+          <rect x="6.5" y="2.3689" width="1.1" height="1.1" rx="0.55" fill={outlinedColor} />
+          <rect x="5.70469" y="1.2854" width="0.85" height="0.85" rx="0.425" fill={outlinedColor} />
         </g>
       </svg>
     );

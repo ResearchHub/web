@@ -4,6 +4,7 @@ import { PageLayout } from '@/app/layouts/PageLayout';
 import { EarnSidebarPlaceholder } from '@/components/Earn/EarnSidebarPlaceholder';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { EarnDashboard, EARN_BOUNTIES_ANCHOR } from '@/components/Earn/EarnDashboard';
+import { FundingCreditsSnapshot } from '@/components/Funding/FundingCreditsSnapshot';
 import { ReviewsPageContent } from './ReviewsPageContent';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
@@ -52,6 +53,8 @@ export default async function EarnPage() {
           ways it can improve.
         </p>
       </section>
+      <FundingCreditsSnapshot className="mb-6" />
+
       <EarnDashboard />
 
       <div id={EARN_BOUNTIES_ANCHOR} className="scroll-mt-4 mt-6">
