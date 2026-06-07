@@ -381,13 +381,13 @@ export class ExpertFinderService {
    */
   static async sendEmails(payload: {
     generated_email_ids: number[];
-    reply_to?: string;
+    reply_to: string[];
     cc?: string[];
   }): Promise<{ sent: number }> {
     const body: Record<string, unknown> = {
       generated_email_ids: payload.generated_email_ids,
+      reply_to: payload.reply_to,
     };
-    if (payload.reply_to != null) body.reply_to = payload.reply_to;
     if (payload.cc != null && payload.cc.length > 0) body.cc = payload.cc;
     const raw = await ApiClient.post<{ sent: number }>(`${this.BASE_PATH}/emails/send/`, body);
     return { sent: raw.sent ?? 0 };
@@ -399,14 +399,12 @@ export class ExpertFinderService {
    */
   static async previewEmails(payload: {
     generated_email_ids: number[];
-    reply_to?: string;
+    reply_to: string[];
   }): Promise<{ sent: number }> {
     const body: Record<string, unknown> = {
       generated_email_ids: payload.generated_email_ids,
+      reply_to: payload.reply_to,
     };
-    if (payload.reply_to != null && payload.reply_to !== '') {
-      body.reply_to = payload.reply_to;
-    }
     const raw = await ApiClient.post<{ sent: number }>(`${this.BASE_PATH}/emails/preview/`, body);
     return { sent: raw.sent ?? 0 };
   }
