@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { ArrowDownRight, ArrowUpRight, Minus, MoreHorizontal } from 'lucide-react';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { toast } from 'react-hot-toast';
@@ -127,15 +126,13 @@ function ModerationSkeleton() {
 
 export function ModerationTab({ userId, authorId, refetchAuthorInfo }: ModerationTabProps) {
   const { user: currentUser } = useUser();
-  const searchParams = useSearchParams();
-  const showRiskScore = searchParams.get('riskscore') === 'true';
+  const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
+  const isModerator = !!currentUser?.isModerator;
   const [{ userDetails, isLoading }, refetchModerationDetails] = useUserDetailsForModerator(userId);
-  const [eventsState, fetchEvents] = useRiskScoreEvents(showRiskScore ? userId : null, {
+  const [eventsState, fetchEvents] = useRiskScoreEvents(isModerator ? userId : null, {
     pageSize: EVENTS_PAGE_SIZE,
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const isHubEditor = !!currentUser?.authorProfile?.isHubEditor;
-  const isModerator = !!currentUser?.isModerator;
 
   const [moderationState, { suspendUser, reinstateUser, markProbableSpammer }] =
     useUserModeration();
@@ -215,66 +212,73 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
     { label: 'ORCID Email', value: userDetails.orcidVerifiedEduEmail || 'N/A' },
   ];
 
+  const hasMenu = menuItems.length > 0;
+  const isProbableSpammer = userDetails.isProbableSpammer;
+
+  const actionMenu = hasMenu && (
+    <BaseMenu
+      trigger={
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex items-center text-gray-500 hover:text-gray-700"
+        >
+          <MoreHorizontal className="w-5 h-5" />
+        </Button>
+      }
+      align="end"
+      open={isMenuOpen}
+      onOpenChange={setIsMenuOpen}
+    >
+      {menuItems.map((item) => (
+        <BaseMenuItem
+          key={item.id}
+          onClick={item.onClick}
+          className="flex items-center gap-2"
+          disabled={moderationState.isLoading}
+        >
+          <span>{item.label}</span>
+        </BaseMenuItem>
+      ))}
+    </BaseMenu>
+  );
+
   return (
     <section className="flex flex-col gap-6 pb-20">
       <div className="rounded-xl border overflow-hidden bg-gray-50/80 border-gray-200">
-        {showRiskScore && (
-          <div className="p-5 pb-0">
+        {(isModerator || hasMenu || isProbableSpammer) && (
+          <div className={cn('px-5', isModerator ? 'pt-5 pb-0' : 'pt-4')}>
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-4">
-                <div className="flex items-baseline gap-2">
-                  <span className={cn('text-3xl font-bold tabular-nums', score.scoreClass)}>
-                    {score.display}
-                  </span>
-                  <span
-                    className={cn(
-                      'text-sm font-semibold uppercase tracking-wide',
-                      score.scoreClass
-                    )}
-                  >
-                    {score.label}
-                  </span>
-                </div>
+                {isModerator && (
+                  <div className="flex items-baseline gap-2">
+                    <span className={cn('text-3xl font-bold tabular-nums', score.scoreClass)}>
+                      {score.display}
+                    </span>
+                    <span
+                      className={cn(
+                        'text-sm font-semibold uppercase tracking-wide',
+                        score.scoreClass
+                      )}
+                    >
+                      {score.label}
+                    </span>
+                  </div>
+                )}
 
-                {userDetails.isProbableSpammer && (
+                {isProbableSpammer && (
                   <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800 border border-orange-200">
                     Probable Spammer
                   </span>
                 )}
               </div>
 
-              {menuItems.length > 0 && (
-                <BaseMenu
-                  trigger={
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex items-center text-gray-500 hover:text-gray-700"
-                    >
-                      <MoreHorizontal className="w-5 h-5" />
-                    </Button>
-                  }
-                  align="end"
-                  open={isMenuOpen}
-                  onOpenChange={setIsMenuOpen}
-                >
-                  {menuItems.map((item) => (
-                    <BaseMenuItem
-                      key={item.id}
-                      onClick={item.onClick}
-                      className="flex items-center gap-2"
-                      disabled={moderationState.isLoading}
-                    >
-                      <span>{item.label}</span>
-                    </BaseMenuItem>
-                  ))}
-                </BaseMenu>
-              )}
+              {actionMenu}
             </div>
           </div>
         )}
 
-        <div className={cn('px-5 py-4', showRiskScore && 'border-t border-black/5 mt-4')}>
+        <div className={cn('px-5 py-4', isModerator && 'border-t border-black/5 mt-4')}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
@@ -294,7 +298,7 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
               </div>
             </div>
 
-            {showRiskScore && insights.length > 0 && (
+            {isModerator && insights.length > 0 && (
               <div>
                 <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
                   Insights
@@ -324,7 +328,7 @@ export function ModerationTab({ userId, authorId, refetchAuthorInfo }: Moderatio
         </div>
       </div>
 
-      {showRiskScore && (
+      {isModerator && (
         <RiskScoreEvents
           events={eventsState.events}
           count={eventsState.count}
