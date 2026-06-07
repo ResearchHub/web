@@ -26,7 +26,7 @@ import { OutreachMobileCard } from './OutreachMobileCard';
 import { TableSkeleton } from '@/components/ui/Table/TableSkeleton';
 import { ListCardSkeleton } from '@/components/ui/ListCardSkeleton';
 import { toast } from 'react-hot-toast';
-import { isValidEmail } from '@/utils/validation';
+import { parseAndValidateReplyToInput } from '@/app/expert-finder/lib/parseReplyToAddresses';
 import type { GeneratedEmail } from '@/types/expertFinder';
 import { isGeneratedEmailDraftLike } from '@/app/expert-finder/lib/generatedEmailStatus';
 import { cn } from '@/utils/styles';
@@ -180,15 +180,15 @@ export function GeneratedEmailsList({
       toast.error('Select at least one draft to send.');
       return;
     }
-    const trimmedReplyTo = replyTo.trim();
-    if (!trimmedReplyTo || !isValidEmail(trimmedReplyTo)) {
-      toast.error('Please enter a valid Reply To email address.');
+    const replyValidation = parseAndValidateReplyToInput(replyTo);
+    if (!replyValidation.valid) {
+      toast.error(replyValidation.error);
       return;
     }
     try {
       await sendEmails({
         generated_email_ids: ids,
-        reply_to: trimmedReplyTo,
+        reply_to: replyValidation.emails,
       });
       setShowSendConfirm(false);
       toast.success(

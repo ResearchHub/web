@@ -5,7 +5,10 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/form/Input';
 import { Modal } from '@/components/ui/form/Modal';
-import { isValidEmail } from '@/utils/validation';
+import {
+  parseAndValidateReplyToInput,
+  REPLY_TO_MAX,
+} from '@/app/expert-finder/lib/parseReplyToAddresses';
 
 /** Modal to confirm a send/preview action; collects Reply-To for the API. */
 export interface SendConfirmationModalProps {
@@ -38,8 +41,9 @@ export function SendConfirmationModal({
   confirmIcon,
   cancelLabel = 'Cancel',
 }: SendConfirmationModalProps) {
-  const replyValid = replyTo.trim() && isValidEmail(replyTo.trim());
-  const canSubmit = !isSubmitting && replyValid;
+  const replyValidation = parseAndValidateReplyToInput(replyTo);
+  const replyError = replyTo.trim() && !replyValidation.valid ? replyValidation.error : undefined;
+  const canSubmit = !isSubmitting && replyValidation.valid;
 
   return (
     <Modal isOpen={isOpen} onClose={() => !isSubmitting && onClose()} title={title}>
@@ -47,16 +51,12 @@ export function SendConfirmationModal({
       <div className="mb-4">
         <Input
           label="Reply To"
-          type="email"
+          type="text"
           value={replyTo}
           onChange={(e) => onReplyToChange(e.target.value)}
-          placeholder="Email address for replies"
-          helperText={'When experts hit Reply, their response goes to this address.'}
-          error={
-            replyTo.trim() && !isValidEmail(replyTo.trim())
-              ? 'Please enter a valid email address'
-              : undefined
-          }
+          placeholder="you@example.com"
+          helperText={`When experts hit Reply, their response goes to these addresses. Separate multiple with commas (max ${REPLY_TO_MAX}).`}
+          error={replyError}
         />
       </div>
       <div className="flex justify-end gap-2">
