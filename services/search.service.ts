@@ -9,8 +9,9 @@ import {
   PersonSearchResult,
   SearchFilters,
   SearchSortOption,
+  UserSuggestion,
+  mapUserSuggestionToAuthorSuggestion,
 } from '@/types/search';
-import { transformAuthorSuggestions } from '@/types/search';
 import { transformTopic } from '@/types/topic';
 import { Institution } from '@/app/paper/create/components/InstitutionAutocomplete';
 import { FeedEntry, transformFeedEntry } from '@/types/feed';
@@ -81,7 +82,6 @@ export const transformInstitutions = (response: any): Institution[] => {
 
 export class SearchService {
   private static readonly BASE_PATH = '/api';
-  private static readonly PEOPLE_SUGGEST_PATH = '/api/search/people/suggest';
   private static readonly INSTITUTIONS_SUGGEST_PATH = '/api/search/institutions/suggest';
   private static readonly DEFAULT_INDICES: EntityType[] = ['hub', 'paper', 'user', 'post'];
 
@@ -488,11 +488,13 @@ export class SearchService {
   }
 
   static async suggestPeople(query: string): Promise<AuthorSuggestion[]> {
-    const response = await ApiClient.get<any>(
-      `${this.PEOPLE_SUGGEST_PATH}/?suggestion_phrases__completion=${encodeURIComponent(query)}`
-    );
+    const suggestions = await this.getSuggestions(query, 'user');
 
-    return transformAuthorSuggestions(response);
+    return suggestions
+      .filter(
+        (s): s is UserSuggestion => (s.entityType === 'user' || s.entityType === 'author') && !!s.id
+      )
+      .map(mapUserSuggestionToAuthorSuggestion);
   }
 
   static async suggestInstitutions(query: string): Promise<Institution[]> {
