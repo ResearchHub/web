@@ -9,8 +9,8 @@ import {
   transformExpertSearchListItem,
   transformGeneratedEmail,
   transformSavedTemplate,
-  transformInvitedExperts,
-  type InvitedExperts,
+  transformGrantInvitedExpert,
+  type GrantInvitedExpertsList,
   type ExpertResult,
   type ExpertSearchCreated,
   type ExpertSearchResult,
@@ -184,6 +184,8 @@ export interface UpdateSavedTemplatePayload {
 export class ExpertFinderService {
   private static readonly BASE_PATH = '/api/research_ai/expert-finder';
 
+  static readonly GRANT_INVITED_EXPERTS_PAGE_SIZE = 20;
+
   /**
    * Submit a new expert search.
    * POST /api/research_ai/expert-finder/searches/
@@ -303,14 +305,37 @@ export class ExpertFinderService {
   }
 
   /**
-   * Fetch invited experts for a unified document.
-   * GET /api/research_ai/expert-finder/documents/:unifiedDocumentId/invited/
+   * List invited experts for a grant/RFP unified document.
+   * GET /api/research_ai/expert-finder/experts/
    */
-  static async getDocumentInvited(unifiedDocumentId: number): Promise<InvitedExperts> {
-    const raw = await ApiClient.get<Record<string, unknown>>(
-      `${this.BASE_PATH}/documents/${unifiedDocumentId}/invited/`
-    );
-    return transformInvitedExperts(raw);
+  static async listInvitedExperts(params: {
+    unifiedDocumentId: number;
+    limit?: number;
+    offset?: number;
+  }): Promise<GrantInvitedExpertsList> {
+    const limit = params.limit ?? this.GRANT_INVITED_EXPERTS_PAGE_SIZE;
+    const offset = params.offset ?? 0;
+    const searchParams = new URLSearchParams({
+      unified_document_id: String(params.unifiedDocumentId),
+      limit: String(limit),
+      offset: String(offset),
+    });
+
+    const response = await ApiClient.get<{
+      items: Record<string, unknown>[];
+      total: number;
+      limit: number;
+      offset: number;
+    }>(`${this.BASE_PATH}/experts/?${searchParams.toString()}`);
+
+    return {
+      items: Array.isArray(response.items)
+        ? response.items.map((item) => transformGrantInvitedExpert(item))
+        : [],
+      total: response.total ?? 0,
+      limit: response.limit ?? limit,
+      offset: response.offset ?? offset,
+    };
   }
 
   // ── Generated emails ─────────────────────────────────────────────────────
