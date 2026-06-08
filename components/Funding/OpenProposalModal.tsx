@@ -7,6 +7,7 @@ import { BaseModal } from '@/components/ui/BaseModal';
 import { Button } from '@/components/ui/Button';
 import AnimatedProposal from '@/components/Proposal/AnimatedProposal';
 import { DocumentUploadStep } from '@/components/Funding/DocumentUploadStep';
+import { cn } from '@/utils/styles';
 
 export type ProposalCreationMethod = 'template' | 'upload' | 'blank';
 
@@ -14,6 +15,13 @@ interface OpenProposalModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (method: ProposalCreationMethod) => void;
+  /**
+   * Render a compact, single-column modal that jumps straight to the creation
+   * method picker — no benefits step and no decorative left rail. Used by entry
+   * points (e.g. the notebook) where the user has already committed to creating
+   * a proposal.
+   */
+  minimal?: boolean;
 }
 
 interface Benefit {
@@ -74,14 +82,20 @@ const CREATION_OPTIONS: CreationOption[] = [
 
 type Step = 'benefits' | 'method' | 'upload';
 
-export const OpenProposalModal = ({ isOpen, onClose, onConfirm }: OpenProposalModalProps) => {
-  const [step, setStep] = useState<Step>('benefits');
+export const OpenProposalModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  minimal = false,
+}: OpenProposalModalProps) => {
+  const initialStep: Step = minimal ? 'method' : 'benefits';
+  const [step, setStep] = useState<Step>(initialStep);
 
   // Reset to the first step whenever the modal is reopened so a returning user
-  // always starts from the benefits pitch rather than a stale method step.
+  // always starts from the configured entry step rather than a stale step.
   useEffect(() => {
-    if (!isOpen) setStep('benefits');
-  }, [isOpen]);
+    if (!isOpen) setStep(initialStep);
+  }, [isOpen, initialStep]);
 
   return (
     <BaseModal
@@ -89,51 +103,56 @@ export const OpenProposalModal = ({ isOpen, onClose, onConfirm }: OpenProposalMo
       onClose={onClose}
       showCloseButton={false}
       padding="p-0"
-      className="md:!w-auto md:!h-auto md:!max-h-[88vh] md:!max-w-[860px] md:!rounded-2xl"
+      className={cn(
+        'md:!w-auto md:!h-auto md:!max-h-[88vh] md:!rounded-2xl',
+        minimal ? 'md:!max-w-[520px]' : 'md:!max-w-[860px]'
+      )}
     >
       <div className="flex h-full flex-col md:flex-row">
         {/* Left visual rail */}
-        <div className="relative flex flex-shrink-0 flex-col justify-center overflow-hidden bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-8 md:w-[360px] md:px-9 md:py-8">
-          {/* Mobile close button */}
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute top-4 right-4 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-gray-500 transition-colors hover:bg-black/10 hover:text-gray-700 md:hidden"
-            aria-label="Close"
-          >
-            <X className="h-4 w-4" />
-          </button>
-          {/* Soft glow blobs */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-24 -top-24 h-60 w-60 rounded-full opacity-50 blur-[40px]"
-            style={{ background: '#ffd9b0' }}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -bottom-24 -left-20 h-52 w-52 rounded-full opacity-50 blur-[40px]"
-            style={{ background: '#bcd2ff' }}
-          />
+        {!minimal && (
+          <div className="relative flex flex-shrink-0 flex-col justify-center overflow-hidden bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-8 md:w-[360px] md:px-9 md:py-8">
+            {/* Mobile close button */}
+            <button
+              type="button"
+              onClick={onClose}
+              className="absolute top-4 right-4 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-gray-500 transition-colors hover:bg-black/10 hover:text-gray-700 md:hidden"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            {/* Soft glow blobs */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -right-24 -top-24 h-60 w-60 rounded-full opacity-50 blur-[40px]"
+              style={{ background: '#ffd9b0' }}
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -bottom-24 -left-20 h-52 w-52 rounded-full opacity-50 blur-[40px]"
+              style={{ background: '#bcd2ff' }}
+            />
 
-          <div className="relative z-10 flex flex-col items-center text-center">
-            {/* AnimatedProposal scales via CSS transform, which keeps its full
+            <div className="relative z-10 flex flex-col items-center text-center">
+              {/* AnimatedProposal scales via CSS transform, which keeps its full
                 natural layout height (~367px) reserved. We pin the container to
                 the *visual* height so the left rail doesn't tower over the
                 right column and leave whitespace below the CTA. */}
-            <div className="mb-2 flex h-[230px] items-center justify-center">
-              <AnimatedProposal scale={0.66} />
+              <div className="mb-2 flex h-[230px] items-center justify-center">
+                <AnimatedProposal scale={0.66} />
+              </div>
+              <Dialog.Title
+                as="h2"
+                className="text-[26px] font-bold leading-[1.12] tracking-[-0.02em] text-gray-900"
+              >
+                Open a Proposal
+              </Dialog.Title>
+              <p className="mt-3 text-base leading-[1.5] text-gray-600">
+                Turn your proposal into funded science.
+              </p>
             </div>
-            <Dialog.Title
-              as="h2"
-              className="text-[26px] font-bold leading-[1.12] tracking-[-0.02em] text-gray-900"
-            >
-              Open a Proposal
-            </Dialog.Title>
-            <p className="mt-3 text-base leading-[1.5] text-gray-600">
-              Turn your proposal into funded science.
-            </p>
           </div>
-        </div>
+        )}
 
         {/* Right content */}
         <div className="relative flex flex-1 flex-col p-6 md:p-10">
@@ -187,16 +206,18 @@ export const OpenProposalModal = ({ isOpen, onClose, onConfirm }: OpenProposalMo
             </>
           ) : step === 'method' ? (
             <>
-              <button
-                type="button"
-                onClick={() => setStep('benefits')}
-                className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </button>
+              {!minimal && (
+                <button
+                  type="button"
+                  onClick={() => setStep('benefits')}
+                  className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </button>
+              )}
 
-              <div className="mt-5">
+              <div className={minimal ? 'mt-2 pr-10' : 'mt-5'}>
                 <h3 className="text-lg font-semibold text-gray-900">
                   How do you want to start your proposal?
                 </h3>

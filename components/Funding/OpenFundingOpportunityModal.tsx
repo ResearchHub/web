@@ -28,6 +28,13 @@ interface OpenFundingOpportunityModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (method: FundingOpportunityCreationMethod) => void;
+  /**
+   * Render a compact, single-column modal that jumps straight to the creation
+   * method picker — no benefits step and no decorative left rail. Used by entry
+   * points (e.g. the notebook) where the user has already committed to opening
+   * a funding opportunity.
+   */
+  minimal?: boolean;
 }
 
 interface Benefit {
@@ -98,14 +105,16 @@ export const OpenFundingOpportunityModal = ({
   isOpen,
   onClose,
   onConfirm,
+  minimal = false,
 }: OpenFundingOpportunityModalProps) => {
-  const [step, setStep] = useState<Step>('benefits');
+  const initialStep: Step = minimal ? 'method' : 'benefits';
+  const [step, setStep] = useState<Step>(initialStep);
 
   // Reset to the first step whenever the modal is reopened so a returning user
-  // always starts from the benefits pitch rather than a stale step.
+  // always starts from the configured entry step rather than a stale step.
   useEffect(() => {
-    if (!isOpen) setStep('benefits');
-  }, [isOpen]);
+    if (!isOpen) setStep(initialStep);
+  }, [isOpen, initialStep]);
 
   return (
     <BaseModal
@@ -113,46 +122,51 @@ export const OpenFundingOpportunityModal = ({
       onClose={onClose}
       showCloseButton={false}
       padding="p-0"
-      className="md:!w-auto md:!h-auto md:!max-h-[88vh] md:!max-w-[860px] md:!rounded-2xl"
+      className={cn(
+        'md:!w-auto md:!h-auto md:!max-h-[88vh] md:!rounded-2xl',
+        minimal ? 'md:!max-w-[520px]' : 'md:!max-w-[860px]'
+      )}
     >
       <div className="flex h-full flex-col md:flex-row">
         {/* Left gradient rail */}
-        <div className="relative flex flex-shrink-0 flex-col justify-center overflow-hidden bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-10 md:w-[340px] md:px-9 md:py-11">
-          {/* Mobile close button (lives in the title section on small screens) */}
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute top-4 right-4 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-gray-500 transition-colors hover:bg-black/10 hover:text-gray-700 md:hidden"
-            aria-label="Close"
-          >
-            <X className="h-4 w-4" />
-          </button>
-          {/* Soft glow blobs */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-24 -top-24 h-60 w-60 rounded-full opacity-50 blur-[40px]"
-            style={{ background: '#ffd9b0' }}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -bottom-24 -left-20 h-52 w-52 rounded-full opacity-50 blur-[40px]"
-            style={{ background: '#bcd2ff' }}
-          />
-          <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="mb-4 flex h-[235px] items-center justify-center">
-              <AnimatedGlobe size={235} />
-            </div>
-            <Dialog.Title
-              as="h2"
-              className="text-[28px] font-bold leading-[1.12] tracking-[-0.02em] text-gray-900"
+        {!minimal && (
+          <div className="relative flex flex-shrink-0 flex-col justify-center overflow-hidden bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-10 md:w-[340px] md:px-9 md:py-11">
+            {/* Mobile close button (lives in the title section on small screens) */}
+            <button
+              type="button"
+              onClick={onClose}
+              className="absolute top-4 right-4 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-gray-500 transition-colors hover:bg-black/10 hover:text-gray-700 md:hidden"
+              aria-label="Close"
             >
-              Open a funding opportunity
-            </Dialog.Title>
-            <p className="mt-3 text-base leading-[1.5] text-gray-600">
-              The most efficient way to fund science.
-            </p>
+              <X className="h-4 w-4" />
+            </button>
+            {/* Soft glow blobs */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -right-24 -top-24 h-60 w-60 rounded-full opacity-50 blur-[40px]"
+              style={{ background: '#ffd9b0' }}
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -bottom-24 -left-20 h-52 w-52 rounded-full opacity-50 blur-[40px]"
+              style={{ background: '#bcd2ff' }}
+            />
+            <div className="relative z-10 flex flex-col items-center text-center">
+              <div className="mb-4 flex h-[235px] items-center justify-center">
+                <AnimatedGlobe size={235} />
+              </div>
+              <Dialog.Title
+                as="h2"
+                className="text-[28px] font-bold leading-[1.12] tracking-[-0.02em] text-gray-900"
+              >
+                Open a funding opportunity
+              </Dialog.Title>
+              <p className="mt-3 text-base leading-[1.5] text-gray-600">
+                The most efficient way to fund science.
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Right content */}
         <div className="relative flex flex-1 flex-col p-6 md:p-10">
@@ -217,16 +231,18 @@ export const OpenFundingOpportunityModal = ({
             </>
           ) : step === 'method' ? (
             <>
-              <button
-                type="button"
-                onClick={() => setStep('benefits')}
-                className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </button>
+              {!minimal && (
+                <button
+                  type="button"
+                  onClick={() => setStep('benefits')}
+                  className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </button>
+              )}
 
-              <div className="mt-5">
+              <div className={minimal ? 'mt-2 pr-10' : 'mt-5'}>
                 <h3 className="text-lg font-semibold text-gray-900">How do you want to start?</h3>
               </div>
 

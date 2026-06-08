@@ -53,7 +53,7 @@ const PUBLISH_MENU_SECTIONS = [
         description: 'Publish your research as a preprint',
         icon: <Icon name="submit1" size={24} color="#2563eb" />,
         action: 'navigate',
-        path: '/paper/create',
+        path: '/notebook?newResearch=true',
         requiresAuth: true,
       },
     ],

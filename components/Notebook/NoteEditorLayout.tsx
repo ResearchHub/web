@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { BlockEditor } from '@/components/Editor/components/BlockEditor/BlockEditor';
 import { NotePaperWrapper } from './NotePaperWrapper';
 import { NotePaperSkeleton } from './NotePaperSkeleton';
+import { NotebookHome } from './NotebookHome';
 import { NotebookTour } from './NotebookTour';
 import { NotebookTabs, type NotebookTab } from './NotebookTabs';
 import { NotesMenu } from './NotesMenu';
@@ -129,6 +130,12 @@ export function NoteEditorLayout() {
   const workTypeLabel = getWorkTypeLabel(note?.documentType, note?.post?.contentType);
 
   const renderEditor = () => {
+    // No note is targeted (notebook home) — render the landing view directly so
+    // the document skeleton doesn't flash before the empty state resolves.
+    if (!activeNoteId) {
+      return <NotebookHome />;
+    }
+
     if (isLoadingNote || isLegacyNote === undefined) {
       return <NotePaperSkeleton />;
     }
@@ -150,25 +157,7 @@ export function NoteEditorLayout() {
     }
 
     if (!note) {
-      return (
-        <NotePaperWrapper canvas={false}>
-          <div className="flex flex-col items-center justify-center h-full p-8">
-            <div className="max-w-md text-center">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                {selectedOrg?.name ? `Welcome to ${selectedOrg.name}` : 'Welcome'}
-              </h2>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                <p className="text-gray-600 mb-4">
-                  Please select a note from the menu to view or edit its contents.
-                </p>
-                <p className="text-sm text-gray-500">
-                  You can also create a new note from the &quot;Notebook&quot; menu.
-                </p>
-              </div>
-            </div>
-          </div>
-        </NotePaperWrapper>
-      );
+      return <NotebookHome />;
     }
 
     return (

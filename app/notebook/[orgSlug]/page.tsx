@@ -13,7 +13,6 @@ import {
 } from '@/components/Editor/lib/utils/documentTitle';
 import { useCreateNote, useNoteContent } from '@/hooks/useNote';
 import { NoteCreationPopover } from '@/components/Notebook/NoteCreationPopover';
-import { NotePaperSkeleton } from '@/components/Notebook/NotePaperSkeleton';
 
 // An empty document for the "Start blank" funding-opportunity path.
 const BLANK_DOCUMENT = {
@@ -119,8 +118,11 @@ export default function OrganizationPage() {
     });
   };
 
+  // NoteEditorLayout (rendered as a sibling in the layout) already shows the
+  // appropriate UI (NotebookHome here), so rendering the document skeleton here
+  // just produces a redundant outline flash before the org resolves.
   if (isLoadingOrg) {
-    return <NotePaperSkeleton />;
+    return null;
   }
 
   return <NoteCreationPopover isOpen={isCreatingNote || isUpdatingContent} />;
