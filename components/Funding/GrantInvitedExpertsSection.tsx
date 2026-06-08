@@ -5,10 +5,10 @@ import { ChevronDown } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { useGrantInvitedExperts } from '@/hooks/useExpertFinder';
 import {
-  InvitedExpertsGridSkeleton,
-  InvitedExpertsPanel,
-  InvitedExpertsPagination,
-} from './InvitedExpertsPanel';
+  GrantInvitedExpertsGridSkeleton,
+  GrantInvitedExpertsGrid,
+  GrantInvitedExpertsPagination,
+} from './GrantInvitedExpertsGrid';
 
 interface GrantInvitedExpertsSectionProps {
   unifiedDocumentId: number;
@@ -100,7 +100,7 @@ export const GrantInvitedExpertsSection: FC<GrantInvitedExpertsSectionProps> = (
   const panelContent = (
     <>
       {isLoading && !hasLoaded ? (
-        <InvitedExpertsGridSkeleton />
+        <GrantInvitedExpertsGridSkeleton />
       ) : error ? (
         <div className="px-5 py-4 border-b border-gray-100 text-center">
           <p className="text-[11px] text-gray-500 mb-2">Couldn&apos;t load invited experts</p>
@@ -118,8 +118,12 @@ export const GrantInvitedExpertsSection: FC<GrantInvitedExpertsSectionProps> = (
         </div>
       ) : hasLoaded && experts.length > 0 ? (
         <>
-          {isLoading ? <InvitedExpertsGridSkeleton /> : <InvitedExpertsPanel experts={experts} />}
-          <InvitedExpertsPagination
+          {isLoading ? (
+            <GrantInvitedExpertsGridSkeleton />
+          ) : (
+            <GrantInvitedExpertsGrid experts={experts} />
+          )}
+          <GrantInvitedExpertsPagination
             page={page}
             totalPages={totalPages}
             total={total}

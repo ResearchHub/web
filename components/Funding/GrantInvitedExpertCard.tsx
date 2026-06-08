@@ -7,7 +7,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { cn } from '@/utils/styles';
 import type { GrantInvitedExpert } from '@/types/expertFinder';
 
-interface InvitedExpertRowProps {
+interface GrantInvitedExpertCardProps {
   expert: GrantInvitedExpert;
   className?: string;
 }
@@ -44,7 +44,7 @@ function ExpertSourceLinks({ expert }: { expert: GrantInvitedExpert }) {
   );
 }
 
-export function InvitedExpertRow({ expert, className }: InvitedExpertRowProps) {
+export function GrantInvitedExpertCard({ expert, className }: GrantInvitedExpertCardProps) {
   const name = expert.displayName || expert.name;
   const title = expert.title?.trim() || '';
   const university = expert.affiliation?.trim() || '';

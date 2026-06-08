@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
+import { ButtonGroup } from '@/components/ui/ButtonGroup';
 import { ArrowRight, CalendarOff, Star } from 'lucide-react';
 import { cn } from '@/utils/styles';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
@@ -343,33 +344,21 @@ export const FeedItemGrantWithApplicants: FC<FeedItemGrantWithApplicantsProps> =
       {hasProposals && (
         <>
           {showSectionTabs ? (
-            <div className="flex border-b border-gray-100 bg-gray-50/80">
-              <button
-                type="button"
-                onClick={() => setActiveSection('proposals')}
-                className={cn(
-                  'px-5 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer',
-                  activeSection === 'proposals'
-                    ? 'text-gray-900 border-b-2 border-gray-900 -mb-px'
-                    : 'text-gray-500 hover:text-gray-700'
-                )}
-              >
-                Applicant Proposals ({allProposals.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveSection('invited')}
-                className={cn(
-                  'px-5 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer',
-                  activeSection === 'invited'
-                    ? 'text-gray-900 border-b-2 border-gray-900 -mb-px'
-                    : 'text-gray-500 hover:text-gray-700'
-                )}
-              >
-                Invited Experts
-                {invitedTotal != null ? ` (${invitedTotal})` : ''}
-              </button>
-            </div>
+            <ButtonGroup
+              variant="section"
+              value={activeSection}
+              onChange={(value) => setActiveSection(value as 'proposals' | 'invited')}
+              options={[
+                {
+                  value: 'proposals',
+                  label: `Applicant Proposals (${allProposals.length})`,
+                },
+                {
+                  value: 'invited',
+                  label: `Invited Experts${invitedTotal != null ? ` (${invitedTotal})` : ''}`,
+                },
+              ]}
+            />
           ) : (
             <div className="px-5 py-2 border-b border-gray-100 bg-gray-50/80">
               <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">

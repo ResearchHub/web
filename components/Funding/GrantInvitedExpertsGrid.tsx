@@ -5,36 +5,40 @@ import { cn } from '@/utils/styles';
 import { PaginationButton } from '@/components/ui/PaginationButton';
 import { ExpertFinderService } from '@/services/expertFinder.service';
 import type { GrantInvitedExpert } from '@/types/expertFinder';
-import { InvitedExpertRow } from './InvitedExpertRow';
+import { GrantInvitedExpertCard } from './GrantInvitedExpertCard';
 
-export const INVITED_EXPERTS_GRID_CLASS = 'grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4';
+export const GRANT_INVITED_EXPERTS_GRID_CLASS =
+  'grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4';
 
-interface InvitedExpertsPanelProps {
+interface GrantInvitedExpertsGridProps {
   experts: GrantInvitedExpert[];
   className?: string;
 }
 
-export const InvitedExpertsPanel: FC<InvitedExpertsPanelProps> = ({ experts, className }) => {
+export const GrantInvitedExpertsGrid: FC<GrantInvitedExpertsGridProps> = ({
+  experts,
+  className,
+}) => {
   if (experts.length === 0) {
     return null;
   }
 
   return (
     <div className={cn('px-4 pt-3', className)}>
-      <div className={INVITED_EXPERTS_GRID_CLASS}>
+      <div className={GRANT_INVITED_EXPERTS_GRID_CLASS}>
         {experts.map((expert, i) => (
-          <InvitedExpertRow key={`${expert.expertId ?? expert.email}-${i}`} expert={expert} />
+          <GrantInvitedExpertCard key={`${expert.expertId ?? expert.email}-${i}`} expert={expert} />
         ))}
       </div>
     </div>
   );
 };
 
-export function InvitedExpertsGridSkeleton({ count }: { count?: number }) {
+export function GrantInvitedExpertsGridSkeleton({ count }: { count?: number }) {
   const itemCount = count ?? ExpertFinderService.GRANT_INVITED_EXPERTS_PAGE_SIZE;
 
   return (
-    <div className={cn('px-4 py-3', INVITED_EXPERTS_GRID_CLASS)}>
+    <div className={cn('px-4 py-3', GRANT_INVITED_EXPERTS_GRID_CLASS)}>
       {Array.from({ length: itemCount }, (_, i) => (
         <div
           key={i}
@@ -45,7 +49,7 @@ export function InvitedExpertsGridSkeleton({ count }: { count?: number }) {
   );
 }
 
-interface InvitedExpertsPaginationProps {
+interface GrantInvitedExpertsPaginationProps {
   page: number;
   totalPages: number;
   total: number;
@@ -53,13 +57,13 @@ interface InvitedExpertsPaginationProps {
   onPageChange: (page: number) => void;
 }
 
-export function InvitedExpertsPagination({
+export function GrantInvitedExpertsPagination({
   page,
   totalPages,
   total,
   isLoading,
   onPageChange,
-}: InvitedExpertsPaginationProps) {
+}: GrantInvitedExpertsPaginationProps) {
   if (totalPages <= 1) return null;
 
   const hasPrevPage = page > 1;
