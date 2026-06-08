@@ -28,6 +28,20 @@ export const PENDING_MODULES: PendingModule[] = [
   'journal_entries',
 ];
 
+/** Module shown when none is specified in the URL (the first tab). */
+export const DEFAULT_PENDING_MODULE: PendingModule = PENDING_MODULES[0];
+
+/** Maps a module to its URL slug (e.g. "funding_opportunities" → "funding-opportunities"). */
+export function moduleToSlug(module: PendingModule): string {
+  return module.replace(/_/g, '-');
+}
+
+/** Resolves a URL slug back to a module, or undefined when the slug is unknown. */
+export function slugToModule(slug: string): PendingModule | undefined {
+  const candidate = slug.replace(/-/g, '_') as PendingModule;
+  return PENDING_MODULES.includes(candidate) ? candidate : undefined;
+}
+
 export const PENDING_MODULE_CONFIG: Record<PendingModule, PendingModuleConfig> = {
   funding_opportunities: {
     tabLabel: 'Funding Opportunities',
@@ -76,10 +90,9 @@ export class PendingModerationService {
     const config = PENDING_MODULE_CONFIG[module];
     try {
       return await FeedService.getFeed({
-        endpoint: 'feed',
+        endpoint: 'pending_moderation',
         contentType: config.feedContentType,
         page,
-        status: 'PENDING',
       });
     } catch (error) {
       throw new PendingModerationError(

@@ -9,6 +9,7 @@ export class FeedService {
   private static readonly BASE_PATH = '/api/feed';
   private static readonly FUNDING_PATH = '/api/funding_feed';
   private static readonly GRANT_PATH = '/api/grant_feed';
+  private static readonly PENDING_MODERATION_PATH = '/api/feed/pending_moderation';
 
   static async getFeed(params?: {
     page?: number;
@@ -17,7 +18,7 @@ export class FeedService {
     hubSlug?: string;
     contentType?: string;
     source?: 'all' | 'researchhub';
-    endpoint?: 'feed' | 'funding_feed' | 'grant_feed';
+    endpoint?: 'feed' | 'funding_feed' | 'grant_feed' | 'pending_moderation';
     fundraiseStatus?: 'OPEN' | 'CLOSED';
     grantId?: number;
     createdBy?: number;
@@ -58,7 +59,9 @@ export class FeedService {
         ? this.FUNDING_PATH
         : params?.endpoint === 'grant_feed'
           ? this.GRANT_PATH
-          : this.BASE_PATH;
+          : params?.endpoint === 'pending_moderation'
+            ? this.PENDING_MODERATION_PATH
+            : this.BASE_PATH;
     const url = `${basePath}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
 
     try {
