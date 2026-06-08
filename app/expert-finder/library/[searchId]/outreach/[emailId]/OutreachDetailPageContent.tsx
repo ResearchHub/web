@@ -46,7 +46,7 @@ import {
 } from '@/hooks/useExpertFinder';
 import { useUser } from '@/contexts/UserContext';
 import { toast } from 'react-hot-toast';
-import { isValidEmail } from '@/utils/validation';
+import { parseAndValidateReplyToInput } from '@/app/expert-finder/lib/parseReplyToAddresses';
 import { TAB_OUTREACH } from '@/app/expert-finder/lib/searchDetailTabs';
 import { useOutreachReplyTo } from '@/hooks/useOutreachReplyTo';
 
@@ -182,16 +182,16 @@ export function OutreachDetailPageContent({
 
   const handleSendPreview = async () => {
     if (!emailId || !email) return;
-    const trimmedReplyTo = (replyTo ?? '').trim();
-    if (!trimmedReplyTo || !isValidEmail(trimmedReplyTo)) {
-      setActionError('Please enter a valid Reply To email address.');
+    const replyValidation = parseAndValidateReplyToInput(replyTo ?? '');
+    if (!replyValidation.valid) {
+      setActionError(replyValidation.error);
       return;
     }
     setActionError(null);
     try {
       await previewEmails({
         generated_email_ids: [Number(emailId)],
-        reply_to: trimmedReplyTo,
+        reply_to: replyValidation.emails,
       });
       setShowPreviewConfirm(false);
       toast.success('Preview email sent to your email address.');
@@ -202,16 +202,16 @@ export function OutreachDetailPageContent({
 
   const handleSendToExpert = async () => {
     if (!emailId || !email) return;
-    const trimmedReplyTo = (replyTo ?? '').trim();
-    if (!trimmedReplyTo || !isValidEmail(trimmedReplyTo)) {
-      setActionError('Please enter a valid Reply To email address.');
+    const replyValidation = parseAndValidateReplyToInput(replyTo ?? '');
+    if (!replyValidation.valid) {
+      setActionError(replyValidation.error);
       return;
     }
     setActionError(null);
     try {
       await sendEmails({
         generated_email_ids: [Number(emailId)],
-        reply_to: trimmedReplyTo,
+        reply_to: replyValidation.emails,
       });
       setShowSendToExpertConfirm(false);
       refetch();

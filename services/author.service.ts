@@ -7,19 +7,6 @@ import {
 import { ApiClient } from './client';
 import { User, transformUser } from '@/types/user';
 
-interface AuthorResponse {
-  id: number;
-  first_name: string;
-  last_name: string;
-  slug: string;
-  profile_image?: string;
-  description?: string;
-}
-
-interface AuthorsApiResponse {
-  results: AuthorResponse[];
-}
-
 interface FollowResponse {
   id: number;
   content_type: string;
@@ -54,15 +41,6 @@ interface AuthorAchievementsResponse {
   // Add any other fields that come from the API
 }
 
-export interface Author {
-  id: number;
-  name: string;
-  slug: string;
-  imageUrl?: string;
-  description?: string;
-}
-
-// Add this interface for the update payload
 export interface AuthorUpdatePayload {
   first_name?: string;
   last_name?: string;
@@ -87,22 +65,10 @@ export interface AuthorUpdateParams extends AuthorUpdatePayload {
 }
 
 export class AuthorService {
-  private static readonly BASE_PATH = '/api/search/person';
   private static readonly AUTHORS_PATH = '/api/author';
 
   // Cache to store previously fetched author data
   private static authorCache: Record<number, User> = {};
-
-  static async getAuthors(): Promise<Author[]> {
-    const response = await ApiClient.get<AuthorsApiResponse>(`${this.BASE_PATH}/`);
-    return response.results.map((author) => ({
-      id: author.id,
-      name: author.first_name + ' ' + author.last_name,
-      slug: author.slug,
-      imageUrl: author.profile_image,
-      description: author.description,
-    }));
-  }
 
   static async getFollowedAuthors(): Promise<number[]> {
     const response = await ApiClient.get<FollowResponse[]>('/api/author/following/');
