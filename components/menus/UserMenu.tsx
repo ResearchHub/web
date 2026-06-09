@@ -350,7 +350,7 @@ export default function UserMenu({
           align="start"
           sideOffset={0}
           className="w-64 p-0"
-          withOverlay={true}
+          withOverlay={false}
           animate
           open={menuOpenState}
           onOpenChange={setMenuOpenState}

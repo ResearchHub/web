@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, PenLine, UserCircle } from 'lucide-react';
+import { ChevronRight, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
@@ -33,7 +33,7 @@ const PUBLISH_MENU_SECTIONS = [
         id: 'give-funding',
         title: 'Funding Opportunity',
         description: 'Fund specific research you care about',
-        icon: <Icon name="fund" size={24} color="#2563eb" />,
+        icon: <Icon name="fund" size={18} color="#374151" />,
         action: 'function',
         handler: 'handleOpenGrant',
         requiresAuth: true,
@@ -42,7 +42,7 @@ const PUBLISH_MENU_SECTIONS = [
         id: 'request-funding',
         title: 'Proposal',
         description: 'Crowdfund your research',
-        icon: <FundingIcon size={24} color="#2563eb" />,
+        icon: <FundingIcon size={18} color="#374151" />,
         action: 'function',
         handler: 'handleFundResearch',
         requiresAuth: true,
@@ -51,7 +51,7 @@ const PUBLISH_MENU_SECTIONS = [
         id: 'submit-paper',
         title: 'Preprint',
         description: 'Publish your research as a preprint',
-        icon: <Icon name="submit1" size={24} color="#2563eb" />,
+        icon: <Icon name="submit1" size={18} color="#374151" />,
         action: 'navigate',
         path: '/notebook?newResearch=true',
         requiresAuth: true,
@@ -68,16 +68,17 @@ interface MenuItemContentProps {
 
 const MenuItemContent: React.FC<MenuItemContentProps> = ({ icon, title, description }) => {
   return (
-    <div className="flex items-start gap-3">
+    <div className="relative flex w-full items-center gap-3 pr-6">
       <div className="flex-shrink-0">
-        <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+        <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center ring-1 ring-gray-200/70 transition-colors duration-150 group-hover:bg-white group-hover:ring-gray-300">
           {icon}
         </div>
       </div>
-      <div className="flex-1">
-        <div className="text-base font-medium tracking-[0.02em] text-gray-900">{title}</div>
-        <div className="text-sm text-gray-600 mt-0.5">{description}</div>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-semibold tracking-[0.01em] text-gray-900">{title}</div>
+        <div className="text-xs text-gray-600">{description}</div>
       </div>
+      <ChevronRight className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-900 transition-opacity duration-200 opacity-0 group-hover:opacity-100" />
     </div>
   );
 };
@@ -175,20 +176,15 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
   );
 
   const menuContent = (
-    <div className="space-y-4 pt-2">
+    <div className="space-y-3">
       {PUBLISH_MENU_SECTIONS.map((section) => (
         <div key={section.title}>
-          <div className="px-3 mb-2">
-            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {section.title}
-            </h3>
-          </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             {section.items.map((item) => (
               <BaseMenuItem
                 key={item.id}
                 onClick={() => handleMenuItemClick(item)}
-                className="w-full px-2"
+                className="group w-full cursor-pointer px-2 py-2 rounded-lg transition-colors duration-150 hover:bg-gray-100 focus:bg-gray-100"
               >
                 <MenuItemContent
                   icon={item.icon}
@@ -208,11 +204,6 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
     <div className="space-y-4">
       {PUBLISH_MENU_SECTIONS.map((section) => (
         <div key={section.title}>
-          <div className="px-3 mb-2">
-            <h3 className="text-base font-medium text-gray-500 uppercase tracking-wider">
-              {section.title}
-            </h3>
-          </div>
           <div className="space-y-2">
             {section.items.map((item) => (
               <div
@@ -224,7 +215,7 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
                     handleMenuItemClick(item);
                   }
                 }}
-                className="w-full px-3 py-3 hover:bg-gray-50 cursor-pointer rounded-lg"
+                className="group w-full px-3 py-3 cursor-pointer rounded-xl transition-colors duration-150 hover:bg-gray-100 active:bg-gray-100"
                 role="button"
                 tabIndex={0}
                 aria-label={`${item.title}: ${item.description}`}
@@ -281,8 +272,8 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
             trigger={standardTrigger}
             align="start"
             sideOffset={8}
-            className="w-[340px] p-2"
-            withOverlay={true}
+            className="w-[320px] p-1 rounded-xl"
+            withOverlay={false}
             animate
           >
             {menuContent}
@@ -293,8 +284,8 @@ export const PublishMenu: React.FC<PublishMenuProps> = ({ children, forceMinimiz
             trigger={compactTrigger}
             align="start"
             sideOffset={8}
-            className="w-[340px] p-2"
-            withOverlay={true}
+            className="w-[320px] p-1 rounded-xl"
+            withOverlay={false}
             animate
           >
             {menuContent}

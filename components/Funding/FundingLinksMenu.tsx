@@ -8,14 +8,14 @@ import { Icon } from '@/components/ui/icons';
 import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { cn } from '@/utils/styles';
 
-/** Shared muted icon color so both menu icons match exactly when unhovered. */
-const ICON_COLOR = '#6B7280';
+/** Shared icon color so both menu icons match exactly (matches PublishMenu). */
+const ICON_COLOR = '#374151';
 
 const ITEM_CLASS =
-  'group/item cursor-pointer gap-2.5 px-3 py-2.5 text-gray-700 hover:bg-primary-50 hover:text-primary-700 focus:bg-primary-50 focus:text-primary-700';
+  'group/item cursor-pointer gap-2.5 rounded-lg px-3 py-2.5 text-gray-900 transition-colors duration-150 hover:bg-gray-100 focus:bg-gray-100';
 
 const ARROW_CLASS =
-  'ml-auto flex-shrink-0 text-gray-400 transition-all group-hover/item:translate-x-0.5 group-hover/item:text-primary-600';
+  'ml-auto flex-shrink-0 text-gray-900 opacity-0 transition-opacity duration-200 group-hover/item:opacity-100';
 
 interface FundingLinksMenuProps {
   /** The element that toggles the menu open (rendered as the dropdown trigger). */
