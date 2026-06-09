@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Plus, Check, Files, PenLine, HelpCircle } from 'lucide-react';
+import { Plus, Check, Files, PenLine, HelpCircle, Lock } from 'lucide-react';
 import { BaseModal } from '@/components/ui/BaseModal';
 import { Badge } from '@/components/ui/Badge';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -12,6 +12,7 @@ import { setPendingGrant } from '@/components/Editor/lib/utils/publishingFormSto
 import { useUser } from '@/contexts/UserContext';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import type { GrantApplicationVisibility } from '@/types/grant';
 
 const ProposalSkeleton = () => (
   <div className="space-y-2">
@@ -39,6 +40,7 @@ interface ApplyToGrantModalProps {
   grantShortTitle?: string;
   grantImageUrl?: string;
   grantOrganization?: string;
+  grantApplicationVisibility?: GrantApplicationVisibility;
 }
 
 export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
@@ -51,6 +53,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
   grantShortTitle,
   grantImageUrl,
   grantOrganization,
+  grantApplicationVisibility,
 }) => {
   const [proposals, setProposals] = useState<ProposalForModal[]>([]);
   const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
@@ -79,6 +82,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
       imageUrl: grantImageUrl || '',
       fundingAmount: grantAmountUsd || 0,
       organization: grantOrganization || '',
+      applicationVisibility: grantApplicationVisibility,
     });
     onClose();
     router.push('/notebook?newFunding=true');
@@ -186,6 +190,16 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
       footer={footerContent}
     >
       <div className="space-y-3">
+        {grantApplicationVisibility === 'PRIVATE' && (
+          <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+            <Lock className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-700" />
+            <span>
+              Applications to this RFP must be private. Your proposal will only be visible to you
+              and the reviewers.
+            </span>
+          </div>
+        )}
+
         {/* Section title */}
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-medium text-gray-900">Choose how to apply</h3>
@@ -234,14 +248,17 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
             proposals.map((proposal) => {
               const isSelected = proposal.id === selectedProposalId && !draftNewSelected;
               const isDraft = proposal.status === 'draft';
-              const isSelectable = !isDraft;
+              const requiresPrivate = grantApplicationVisibility === 'PRIVATE';
+              const isIneligibleVisibility = requiresPrivate && proposal.isPublic;
+              const isSelectable = !isDraft && !isIneligibleVisibility;
+              const isDimmed = isDraft || isIneligibleVisibility;
 
               return (
                 <div
                   key={proposal.id}
                   onClick={() => isSelectable && handleSelectProposal(proposal.id)}
                   className={`p-3 rounded-xl border-2 transition-all duration-200 ${
-                    isDraft
+                    isDimmed
                       ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
                       : isSelected
                         ? 'border-blue-300 bg-blue-50 cursor-pointer'
@@ -260,6 +277,11 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                             Published
                           </Badge>
                         )}
+                        {isIneligibleVisibility && (
+                          <Badge variant="default" size="sm">
+                            Public — not eligible
+                          </Badge>
+                        )}
                         {proposal.createdDate && (
                           <>
                             <span className="text-gray-300">&middot;</span>
@@ -270,7 +292,7 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                         )}
                       </div>
                       <h4
-                        className={`text-sm font-medium leading-snug ${isDraft ? 'text-gray-500' : 'text-gray-900'}`}
+                        className={`text-sm font-medium leading-snug ${isDimmed ? 'text-gray-500' : 'text-gray-900'}`}
                       >
                         {proposal.title}
                       </h4>
@@ -281,9 +303,9 @@ export const ApplyToGrantModal: React.FC<ApplyToGrantModalProps> = ({
                       value={proposal.id}
                       checked={isSelected}
                       onChange={() => isSelectable && handleSelectProposal(proposal.id)}
-                      disabled={isDraft}
+                      disabled={!isSelectable}
                       className={`w-4 h-4 flex-shrink-0 focus:ring-2 ${
-                        isDraft
+                        isDimmed
                           ? 'text-gray-400 bg-gray-200 border-gray-300 cursor-not-allowed'
                           : 'text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500'
                       }`}

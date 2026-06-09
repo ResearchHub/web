@@ -77,6 +77,7 @@ export default async function GrantSlugLayout({ params, children }: Props) {
             isActive={isActive}
             isPending={isPending}
             organization={grant?.organization}
+            applicationVisibility={grant?.applicationVisibility}
           />
         }
         rightSidebar={

@@ -152,7 +152,95 @@ export type UserDetailsForModerator = {
   } | null;
 };
 
-// Add this after the existing UserDetailsForModerator type definition
+export type DocumentType =
+  | 'PAPER'
+  | 'DISCUSSION'
+  | 'PREREGISTRATION'
+  | 'GRANT'
+  | 'QUESTION'
+  | 'NOTE'
+  | 'BOUNTY'
+  | 'POSTS';
+
+export type CommentType =
+  | 'GENERIC_COMMENT'
+  | 'PEER_REVIEW'
+  | 'REVIEW'
+  | 'ANSWER'
+  | 'SUMMARY'
+  | 'AUTHOR_UPDATE'
+  | 'REPLICABILITY_COMMENT'
+  | 'INNER_CONTENT_COMMENT';
+
+export type SourceDetail = {
+  title: string;
+  text: string;
+  url: string | null;
+  commentType: CommentType | null;
+  documentType: DocumentType | null;
+};
+
+export type RiskScoreEvent = {
+  id: number;
+  eventType: string;
+  delta: number;
+  sourceType: string | null;
+  sourceContentId: number | null;
+  sourceDetail: SourceDetail | null;
+  actionDate: string;
+};
+
+export type Insight = {
+  eventType: string;
+  count: number;
+  totalDelta: number;
+  maxDelta: number;
+  minDelta: number;
+};
+
+export type RiskScoreEventsResponse = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: RiskScoreEvent[];
+  insights: Insight[];
+};
+
+export interface RiskScoreEventsFilters {
+  page?: number;
+  pageSize?: number;
+  eventType?: string;
+  deltaPositive?: boolean;
+  actionDateAfter?: string;
+  actionDateBefore?: string;
+}
+
+export const transformRiskScoreEvent = (raw: any): RiskScoreEvent => ({
+  id: raw.id,
+  eventType: raw.event_type || '',
+  delta: raw.delta ?? 0,
+  sourceType: raw.source_type || null,
+  sourceContentId: raw.source_content_id ?? null,
+  sourceDetail: raw.source_detail
+    ? {
+        title: raw.source_detail.title ?? '',
+        text: raw.source_detail.text ?? '',
+        url: raw.source_detail.url ?? null,
+        commentType: raw.source_detail.comment_type ?? null,
+        documentType: raw.source_detail.document_type ?? null,
+      }
+    : null,
+  actionDate: raw.action_date || '',
+});
+
+export const transformInsight = (raw: any): Insight => ({
+  eventType: raw.event_type || '',
+  count: raw.count ?? 0,
+  totalDelta: raw.total_delta ?? 0,
+  maxDelta: raw.max_delta ?? 0,
+  minDelta: raw.min_delta ?? 0,
+});
+
 export const transformUserDetailsForModerator = (raw: any): UserDetailsForModerator => {
   // Handle null or undefined raw data
   if (!raw) {

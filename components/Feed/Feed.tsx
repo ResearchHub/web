@@ -50,6 +50,11 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData }) => {
   const orderingParam = searchParams.get('ordering');
   const filterParam = searchParams.get('filter');
   const userIdParam = searchParams.get('user_id');
+  const viewAsUserIdParam = searchParams.get('view_as_user_id');
+  const viewAsUserId =
+    viewAsUserIdParam && !Number.isNaN(Number(viewAsUserIdParam))
+      ? Number(viewAsUserIdParam)
+      : undefined;
   const [ordering, setOrdering] = useState<string | undefined>(
     orderingParam || getDefaultOrdering(defaultTab)
   );
@@ -62,6 +67,7 @@ export const Feed: FC<FeedProps> = ({ defaultTab, initialFeedData }) => {
     ordering,
     filter: filterParam || undefined,
     userId: userIdParam || undefined,
+    viewAsUserId,
   };
 
   const {

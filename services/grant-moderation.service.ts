@@ -60,4 +60,15 @@ export class GrantModerationService {
       );
     }
   }
+
+  static async closeGrant(grantId: ID): Promise<void> {
+    try {
+      await ApiClient.post(`${this.BASE_PATH}/${grantId}/close/`, {});
+    } catch (error) {
+      throw new GrantModerationError(
+        error instanceof Error ? error.message : 'Failed to close RFP',
+        error
+      );
+    }
+  }
 }

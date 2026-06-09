@@ -23,6 +23,8 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { cn } from '@/utils/styles';
 import toast from 'react-hot-toast';
 
+import type { GrantApplicationVisibility } from '@/types/grant';
+
 import { useWorkVote, useWorkPermissions } from './WorkHeaderHooks';
 import { useWorkHeaderMenuItems } from './useWorkHeaderMenu';
 import { WorkHeaderVoteWidget } from './WorkHeaderVoteWidget';
@@ -49,6 +51,7 @@ interface WorkHeaderProps {
     grantId: string;
     grantAmountUsd?: number;
     grantOrganization?: string;
+    grantApplicationVisibility?: GrantApplicationVisibility;
   };
 }
 
@@ -94,6 +97,13 @@ export function WorkHeader({
     closeReopenModal,
     confirmReopenFundraise,
     isReopeningFundraise,
+    showCloseGrantModal,
+    closeCloseGrantModal,
+    confirmCloseGrant,
+    isClosingGrant,
+    showInviteExpertsModal,
+    closeInviteExpertsModal,
+    inviteExpertsGrantId,
   } = useWorkHeaderMenuItems({
     work,
     metadata,
@@ -248,10 +258,18 @@ export function WorkHeader({
         grantId={grantModalProps?.grantId}
         grantAmountUsd={grantModalProps?.grantAmountUsd}
         grantOrganization={grantModalProps?.grantOrganization}
+        grantApplicationVisibility={grantModalProps?.grantApplicationVisibility}
         showReopenModal={showReopenModal}
         onCloseReopenModal={closeReopenModal}
         onConfirmReopen={confirmReopenFundraise}
         isReopeningFundraise={isReopeningFundraise}
+        showCloseGrantModal={showCloseGrantModal}
+        onCloseCloseGrantModal={closeCloseGrantModal}
+        onConfirmCloseGrant={confirmCloseGrant}
+        isClosingGrant={isClosingGrant}
+        showInviteExpertsModal={showInviteExpertsModal}
+        onCloseInviteExpertsModal={closeInviteExpertsModal}
+        inviteExpertsGrantId={inviteExpertsGrantId}
       />
     </>
   );

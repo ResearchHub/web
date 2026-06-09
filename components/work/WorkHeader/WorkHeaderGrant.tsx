@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { ArrowUpFromLine } from 'lucide-react';
+import { ArrowUpFromLine, Lock } from 'lucide-react';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Button } from '@/components/ui/Button';
 import { Tabs } from '@/components/ui/Tabs';
 import { SubmitProposalTooltip } from '@/components/tooltips/SubmitProposalTooltip';
 import { useGrantTab, type GrantBannerTab } from '@/components/Funding/GrantPageContent';
+import type { GrantApplicationVisibility } from '@/types/grant';
 import { WorkHeader } from './WorkHeader';
 import { WorkHeaderGrantEyebrow } from './WorkHeaderGrantEyebrow';
 
@@ -19,6 +20,7 @@ interface WorkHeaderGrantProps {
   isActive?: boolean;
   isPending?: boolean;
   organization?: string;
+  applicationVisibility?: GrantApplicationVisibility;
   className?: string;
 }
 
@@ -30,6 +32,7 @@ export function WorkHeaderGrant({
   isActive = true,
   isPending = false,
   organization,
+  applicationVisibility,
   className,
 }: WorkHeaderGrantProps) {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
@@ -44,12 +47,27 @@ export function WorkHeaderGrant({
     <WorkHeaderGrantEyebrow amountUsd={amountUsd} isActive={isActive} isPending={isPending} />
   );
 
-  const subtitle = organization ? (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-      <span className="text-base text-gray-500">Offered by</span>
-      <span className="text-base text-gray-600 font-medium">{organization}</span>
+  const requiresPrivateApplications = applicationVisibility === 'PRIVATE';
+
+  const privateNotice = requiresPrivateApplications ? (
+    <div className="flex items-center gap-1.5 text-sm text-amber-800">
+      <Lock className="h-3.5 w-3.5" />
+      <span>Applications to this RFP must be private.</span>
     </div>
-  ) : undefined;
+  ) : null;
+
+  const subtitle =
+    organization || privateNotice ? (
+      <div className="flex flex-col gap-1">
+        {organization && (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="text-base text-gray-500">Offered by</span>
+            <span className="text-base text-gray-600 font-medium">{organization}</span>
+          </div>
+        )}
+        {privateNotice}
+      </div>
+    ) : undefined;
 
   const primaryAction =
     grantId && isActive ? (
@@ -112,6 +130,7 @@ export function WorkHeaderGrant({
               grantId,
               grantAmountUsd: amountUsd,
               grantOrganization: organization,
+              grantApplicationVisibility: applicationVisibility,
             }
           : undefined
       }

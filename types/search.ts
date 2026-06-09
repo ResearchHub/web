@@ -261,39 +261,20 @@ export interface AuthorSuggestion {
   education: string[];
 }
 
-export const transformAuthorSuggestion = (raw: any): AuthorSuggestion => {
+export function mapUserSuggestionToAuthorSuggestion(suggestion: UserSuggestion): AuthorSuggestion {
+  const profile = suggestion.authorProfile;
   return {
-    id: raw.id,
-    fullName: raw.full_name || `${raw.first_name} ${raw.last_name}`.trim(),
-    profileImage: raw.profile_image,
-    institutions: Array.isArray(raw.institutions) ? raw.institutions : [],
-    education: Array.isArray(raw.education) ? raw.education : [],
-    headline: raw?.author_profile?.headline?.title,
-    reputationHubs: Array.isArray(raw.reputation_hubs) ? raw.reputation_hubs : [],
-    userId: raw.user_id,
-    createdDate: raw.created_date,
+    id: profile?.id ?? suggestion.id!,
+    fullName: suggestion.displayName,
+    profileImage: profile?.profileImage,
+    headline: profile?.headline,
+    userId: profile?.userId,
+    createdDate: suggestion.createdDate,
+    institutions: [],
+    education: [],
+    reputationHubs: [],
   };
-};
-
-export const transformAuthorSuggestions = (raw: any): AuthorSuggestion[] => {
-  const authorSuggestions: AuthorSuggestion[] = [];
-  const suggestions = raw.suggestion_phrases__completion;
-
-  if (Array.isArray(suggestions)) {
-    suggestions.forEach((suggestion: any) => {
-      if (suggestion.options && Array.isArray(suggestion.options)) {
-        suggestion.options.forEach((option: any) => {
-          if (option._source) {
-            const parsed = transformAuthorSuggestion(option._source);
-            authorSuggestions.push(parsed);
-          }
-        });
-      }
-    });
-  }
-
-  return authorSuggestions;
-};
+}
 
 export interface ApiDocumentSearchResult {
   id: number;

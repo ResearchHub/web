@@ -19,7 +19,7 @@ interface PostWithContent {
 
 async function fetchPostWithContent(postId: string): Promise<PostWithContent | null> {
   try {
-    const work = await PostService.get(postId);
+    const work = await PostService.getPublic(postId);
     let content: string | undefined;
 
     if (work.contentUrl) {

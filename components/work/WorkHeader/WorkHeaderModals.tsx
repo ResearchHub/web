@@ -9,6 +9,9 @@ import { AddToListModal } from '@/components/UserList/AddToListModal';
 import { WorkEditModal } from '../WorkEditModal';
 import { ApplyToGrantModal } from '@/components/modals/ApplyToGrantModal';
 import { ReopenFundraiseModal } from '@/components/modals/ReopenFundraiseModal';
+import { InviteExpertsModal } from '@/components/modals/InviteExpertsModal';
+import { ID } from '@/types/root';
+import type { GrantApplicationVisibility } from '@/types/grant';
 
 export interface FundraiseModalConfig {
   title: string;
@@ -39,10 +42,18 @@ export interface WorkHeaderModalsProps {
   grantId?: string;
   grantAmountUsd?: number;
   grantOrganization?: string;
+  grantApplicationVisibility?: GrantApplicationVisibility;
   showReopenModal?: boolean;
   onCloseReopenModal?: () => void;
   onConfirmReopen?: (durationDays: number) => void;
   isReopeningFundraise?: boolean;
+  showCloseGrantModal?: boolean;
+  onCloseCloseGrantModal?: () => void;
+  onConfirmCloseGrant?: () => void;
+  isClosingGrant?: boolean;
+  showInviteExpertsModal?: boolean;
+  onCloseInviteExpertsModal?: () => void;
+  inviteExpertsGrantId?: ID;
 }
 
 export function WorkHeaderModals({
@@ -66,10 +77,18 @@ export function WorkHeaderModals({
   grantId,
   grantAmountUsd,
   grantOrganization,
+  grantApplicationVisibility,
   showReopenModal = false,
   onCloseReopenModal,
   onConfirmReopen,
   isReopeningFundraise = false,
+  showCloseGrantModal = false,
+  onCloseCloseGrantModal,
+  onConfirmCloseGrant,
+  isClosingGrant = false,
+  showInviteExpertsModal = false,
+  onCloseInviteExpertsModal,
+  inviteExpertsGrantId,
 }: WorkHeaderModalsProps) {
   return (
     <>
@@ -120,6 +139,26 @@ export function WorkHeaderModals({
           isLoading={isReopeningFundraise}
         />
       )}
+      {onCloseCloseGrantModal && onConfirmCloseGrant && (
+        <ConfirmModal
+          isOpen={showCloseGrantModal}
+          onClose={onCloseCloseGrantModal}
+          onConfirm={onConfirmCloseGrant}
+          title="Close RFP"
+          message="Are you sure you want to close this RFP? It will stop accepting new proposals."
+          confirmText={isClosingGrant ? 'Closing...' : 'Close RFP'}
+          cancelText="Cancel"
+          confirmButtonClass="bg-red-600 hover:bg-red-700"
+          cancelButtonClass="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+        />
+      )}
+      {inviteExpertsGrantId && onCloseInviteExpertsModal && (
+        <InviteExpertsModal
+          isOpen={showInviteExpertsModal}
+          onClose={onCloseInviteExpertsModal}
+          grantId={inviteExpertsGrantId}
+        />
+      )}
       {grantId && onCloseApplyToGrantModal && (
         <ApplyToGrantModal
           isOpen={isApplyToGrantModalOpen}
@@ -129,6 +168,7 @@ export function WorkHeaderModals({
           grantTitle={work.title}
           grantAmountUsd={grantAmountUsd}
           grantOrganization={grantOrganization}
+          grantApplicationVisibility={grantApplicationVisibility}
         />
       )}
     </>

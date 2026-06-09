@@ -3,6 +3,7 @@ import { ApiClient } from './client';
 import { PaperService } from './paper.service';
 import { PostService } from './post.service';
 import {
+  transformExpertResult,
   transformExpertSearch,
   transformExpertSearchCreateResponse,
   transformExpertSearchListItem,
@@ -10,6 +11,7 @@ import {
   transformSavedTemplate,
   transformInvitedExperts,
   type InvitedExperts,
+  type ExpertResult,
   type ExpertSearchCreated,
   type ExpertSearchResult,
   type ExpertSearchListItem,
@@ -142,10 +144,35 @@ export interface CreateDraftEmailPayload {
 
 export type UpdateGeneratedEmailPayload = Partial<CreateDraftEmailPayload>;
 
+export interface AddExpertPayload {
+  email: string;
+  honorific?: string;
+  first_name?: string;
+  middle_name?: string;
+  last_name?: string;
+  name_suffix?: string;
+  academic_title?: string;
+  affiliation?: string;
+  expertise?: string;
+  notes?: string;
+}
+
 export interface CreateSavedTemplatePayload {
   name: string;
   email_subject?: string;
   email_body?: string;
+}
+
+interface RawInviteApplicantsResponse {
+  queued: number;
+  skipped_existing: string[];
+  generated_email_ids: number[];
+}
+
+export interface InviteApplicantsResponse {
+  queued: number;
+  skippedExisting: string[];
+  generatedEmailIds: number[];
 }
 
 export interface UpdateSavedTemplatePayload {
@@ -184,6 +211,21 @@ export class ExpertFinderService {
    */
   static async patchExpert(expertId: number | string, payload: PatchExpertPayload): Promise<void> {
     await ApiClient.patch<void>(`${this.BASE_PATH}/experts/${expertId}/`, payload);
+  }
+
+  /**
+   * Manually add an expert to an existing search.
+   * POST /api/research_ai/expert-finder/searches/:searchId/experts/
+   */
+  static async addExpert(
+    searchId: number | string,
+    payload: AddExpertPayload
+  ): Promise<ExpertResult> {
+    const raw = await ApiClient.post<Record<string, unknown>>(
+      `${this.BASE_PATH}/searches/${searchId}/experts/`,
+      payload
+    );
+    return transformExpertResult(raw);
   }
 
   /**
@@ -339,13 +381,13 @@ export class ExpertFinderService {
    */
   static async sendEmails(payload: {
     generated_email_ids: number[];
-    reply_to?: string;
+    reply_to: string[];
     cc?: string[];
   }): Promise<{ sent: number }> {
     const body: Record<string, unknown> = {
       generated_email_ids: payload.generated_email_ids,
+      reply_to: payload.reply_to,
     };
-    if (payload.reply_to != null) body.reply_to = payload.reply_to;
     if (payload.cc != null && payload.cc.length > 0) body.cc = payload.cc;
     const raw = await ApiClient.post<{ sent: number }>(`${this.BASE_PATH}/emails/send/`, body);
     return { sent: raw.sent ?? 0 };
@@ -357,14 +399,12 @@ export class ExpertFinderService {
    */
   static async previewEmails(payload: {
     generated_email_ids: number[];
-    reply_to?: string;
+    reply_to: string[];
   }): Promise<{ sent: number }> {
     const body: Record<string, unknown> = {
       generated_email_ids: payload.generated_email_ids,
+      reply_to: payload.reply_to,
     };
-    if (payload.reply_to != null && payload.reply_to !== '') {
-      body.reply_to = payload.reply_to;
-    }
     const raw = await ApiClient.post<{ sent: number }>(`${this.BASE_PATH}/emails/preview/`, body);
     return { sent: raw.sent ?? 0 };
   }
@@ -421,5 +461,30 @@ export class ExpertFinderService {
 
   static async deleteTemplate(templateId: number | string): Promise<void> {
     return ApiClient.deleteNoContent(`${this.BASE_PATH}/templates/${templateId}/`);
+  }
+
+  // ── RFP applicant invitations ────────────────────────────────────────────
+
+  /**
+   * Invite experts to apply to an RFP (grant) by email.
+   * POST /api/research_ai/expert-finder/rfp/:grantId/invite-applicants/
+   */
+  static async inviteApplicants(
+    grantId: string | number,
+    params: { emails: string[]; replyTo?: string; cc?: string[] }
+  ): Promise<InviteApplicantsResponse> {
+    const body: Record<string, unknown> = { emails: params.emails };
+    if (params.replyTo) body.reply_to = params.replyTo;
+    if (params.cc && params.cc.length) body.cc = params.cc;
+
+    const response = await ApiClient.post<RawInviteApplicantsResponse>(
+      `${this.BASE_PATH}/rfp/${grantId}/invite-applicants/`,
+      body
+    );
+    return {
+      queued: response.queued ?? 0,
+      skippedExisting: response.skipped_existing ?? [],
+      generatedEmailIds: response.generated_email_ids ?? [],
+    };
   }
 }

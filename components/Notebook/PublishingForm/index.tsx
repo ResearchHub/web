@@ -11,6 +11,11 @@ import { JournalSection } from './components/JournalSection';
 import { GrantDescriptionSection } from './components/GrantDescriptionSection';
 import { GrantOrganizationSection } from './components/GrantOrganizationSection';
 import { GrantFundingAmountSection } from './components/GrantFundingAmountSection';
+import { GrantApplicationVisibilitySection } from './components/GrantApplicationVisibilitySection';
+import {
+  PreregistrationPrivacySection,
+  PreregistrationPrivacyLockedAlert,
+} from './components/PreregistrationPrivacySection';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/styles';
 import { buildWorkUrl } from '@/utils/url';
@@ -103,6 +108,8 @@ const FORM_DEFAULTS = {
   shortDescription: '',
   organization: '',
   applicationDeadline: null,
+  applicationVisibility: 'OPTIONAL' as const,
+  isPublic: true,
 };
 
 const mapContentTypeToArticleType = (contentType: string): PublishingFormData['articleType'] => {
@@ -136,6 +143,9 @@ const populateGrantFields = (grant: any, setValue: (name: any, value: any) => vo
         label: c.authorProfile?.fullName || c.name,
       }))
     );
+  }
+  if (grant.applicationVisibility) {
+    setValue('applicationVisibility', grant.applicationVisibility);
   }
 };
 
@@ -284,6 +294,9 @@ export function PublishingForm({
     const pending = getPendingGrant();
     if (pending) {
       methods.setValue('selectedGrant', pending);
+      if (pending.applicationVisibility === 'PRIVATE') {
+        methods.setValue('isPublic', false);
+      }
       clearPendingGrant();
     }
 
@@ -467,6 +480,12 @@ export function PublishingForm({
               ? new Date('2029-12-31')
               : formData.applicationDeadline,
           grantId,
+          applicationVisibility:
+            formData.articleType === 'grant' ? formData.applicationVisibility : undefined,
+          isPublic:
+            formData.articleType === 'preregistration' && !formData.workId
+              ? formData.isPublic
+              : undefined,
         },
         formData.workId
       );
@@ -544,7 +563,11 @@ export function PublishingForm({
               </div>
             )}
             {articleType === 'grant' && <GrantFundingAmountSection />}
+            {articleType === 'grant' && <GrantApplicationVisibilitySection />}
             {articleType === 'preregistration' && <FundingSection note={note} />}
+            {articleType === 'preregistration' && !methods.watch('workId') && (
+              <PreregistrationPrivacySection />
+            )}
             {FEATURE_FLAG_RESEARCH_COIN &&
               articleType !== 'preregistration' &&
               articleType !== 'grant' && (
@@ -559,6 +582,9 @@ export function PublishingForm({
 
         <div className="border-t bg-white p-2 lg:p-6 sticky bottom-0">
           <div className="mx-auto w-full max-w-2xl space-y-3">
+            {articleType === 'preregistration' && !methods.watch('workId') && (
+              <PreregistrationPrivacyLockedAlert />
+            )}
             {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled && (
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Payment due:</span>

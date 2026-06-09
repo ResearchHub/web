@@ -34,6 +34,10 @@ export interface PreregistrationPostParams {
   organization?: string | null;
   description?: string | null;
   contacts?: number[];
+  applicationVisibility?: 'OPTIONAL' | 'PRIVATE' | 'PUBLIC';
+
+  // Preregistration specific (create-only — server marks it read-only on update)
+  isPublic?: boolean;
 
   // RFP attachment
   grantId?: string | null;
@@ -98,6 +102,9 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         if (postParams.grantId) {
           payload.grant_id = postParams.grantId;
         }
+        if (typeof postParams.isPublic === 'boolean') {
+          payload.is_public = postParams.isPublic;
+        }
       }
 
       if (postParams.articleType === 'GRANT') {
@@ -107,6 +114,9 @@ export const useUpsertPost = (): UseUpsertPostReturn => {
         payload.grant_description = postParams.description;
         payload.grant_end_date = postParams.applicationDeadline?.toISOString() || null;
         payload.grant_contacts = postParams.contacts;
+        if (postParams.applicationVisibility) {
+          payload.grant_application_visibility = postParams.applicationVisibility;
+        }
       }
 
       const response = (await PostService.upsert(payload)) as TransformedWork;
