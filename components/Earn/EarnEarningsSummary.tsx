@@ -1,13 +1,15 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Sprout, Star } from 'lucide-react';
+import { ArrowRight, Sprout, Star } from 'lucide-react';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { cn } from '@/utils/styles';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
+import { useAuthModalContext } from '@/contexts/AuthModalContext';
 import { UserService, type StakingYieldDetails } from '@/services/user.service';
+import { Button } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
@@ -176,6 +178,93 @@ export function EarnEarningsSummary() {
         cancelText="Cancel"
       />
     </>
+  );
+}
+
+// Logged-out teaser: mirrors the summary card chrome but reframes it as a
+// preview that nudges visitors to create an account before they can earn.
+const TEASER_SOURCES = [
+  {
+    name: 'From Endowment',
+    icon: <Sprout className="h-[18px] w-[18px] text-gray-900" />,
+    amountRsc: 980,
+  },
+  {
+    name: 'Peer Reviews',
+    icon: <Star className="h-[18px] w-[18px] text-gray-900" />,
+    amountRsc: 1240,
+  },
+  {
+    name: 'Funded proposals',
+    icon: <FundingIcon size={18} color="#111827" />,
+    amountRsc: 320,
+  },
+];
+
+export function EarnEarningsSummaryTeaser() {
+  const { exchangeRate } = useExchangeRate();
+  const { showUSD } = useCurrencyPreference();
+  const { showAuthModal } = useAuthModalContext();
+
+  return (
+    <div className="relative bg-white rounded-xl border border-gray-200 overflow-hidden">
+      {/* Header — reframed as an invitation rather than a balance */}
+      <div className="px-4 sm:px-6 py-5 border-b border-gray-100">
+        <div className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
+          Earn ResearchCoin
+        </div>
+        <h2 className="mt-1 text-xl sm:text-2xl font-bold text-gray-900">
+          Start earning ResearchCoin
+        </h2>
+        <p className="mt-1 text-sm text-gray-600 max-w-md">
+          Hold for daily yield, get paid for peer reviews, and raise money for your research.
+        </p>
+      </div>
+
+      {/* First source revealed so the section reads clearly... */}
+      <ul>
+        <EarnSourceRow
+          icon={
+            <span className="flex items-center justify-center h-8 w-8 rounded-full bg-gray-100">
+              {TEASER_SOURCES[0].icon}
+            </span>
+          }
+          name={TEASER_SOURCES[0].name}
+          pair={formatPair(TEASER_SOURCES[0].amountRsc, exchangeRate, showUSD)}
+        />
+      </ul>
+
+      {/* ...then the remaining sources fade out progressively behind the CTA */}
+      <div className="relative">
+        <ul aria-hidden="true" className="select-none pointer-events-none">
+          {TEASER_SOURCES.slice(1).map((source, index) => (
+            <li
+              key={source.name}
+              style={{ filter: `blur(${(index + 1) * 2.5}px)`, opacity: 0.7 - index * 0.2 }}
+            >
+              <EarnSourceRow
+                icon={
+                  <span className="flex items-center justify-center h-8 w-8 rounded-full bg-gray-100">
+                    {source.icon}
+                  </span>
+                }
+                name={source.name}
+                pair={formatPair(source.amountRsc, exchangeRate, showUSD)}
+                isLast={index === TEASER_SOURCES.length - 2}
+              />
+            </li>
+          ))}
+        </ul>
+
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-b from-white/10 via-white/70 to-white/95 px-4 text-center">
+          <Button variant="default" onClick={() => showAuthModal()} className="shadow-sm">
+            Create an account
+            <ArrowRight className="ml-1.5 h-4 w-4" />
+          </Button>
+          <p className="text-xs text-gray-500">Join thousands of researchers on ResearchHub</p>
+        </div>
+      </div>
+    </div>
   );
 }
 

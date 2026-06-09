@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { EarnEarningsSummary } from './EarnEarningsSummary';
+import { EarnEarningsSummary, EarnEarningsSummaryTeaser } from './EarnEarningsSummary';
 import { EarnOpportunities } from './EarnOpportunities';
 
 export const EARN_BOUNTIES_ANCHOR = 'earn-bounties';
@@ -29,7 +29,7 @@ export function EarnDashboard() {
 
   return (
     <div className="mb-6 space-y-6">
-      {status === 'authenticated' && <EarnEarningsSummary />}
+      {status === 'authenticated' ? <EarnEarningsSummary /> : <EarnEarningsSummaryTeaser />}
       <EarnOpportunities onBrowse={scrollToBounties} />
     </div>
   );
