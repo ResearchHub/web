@@ -12,6 +12,7 @@ import {
   PENDING_MODULE_CONFIG,
   type PendingModule,
 } from '@/services/pending-moderation.service';
+import { usePendingCounts } from '@/components/Moderators/PendingCountsContext';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { FlagReasonKey } from '@/types/work';
 import toast from 'react-hot-toast';
@@ -43,6 +44,7 @@ function renderFeedItem(module: PendingModule, entry: FeedEntry, footer: ReactNo
 
 export function PendingModerationList({ module }: PendingModerationListProps) {
   const { itemLabel } = PENDING_MODULE_CONFIG[module];
+  const { refresh: refreshCounts } = usePendingCounts();
   const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -68,6 +70,7 @@ export function PendingModerationList({ module }: PendingModerationListProps) {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
+    refreshCounts();
     await fetchEntries();
   };
 
@@ -77,6 +80,7 @@ export function PendingModerationList({ module }: PendingModerationListProps) {
       await PendingModerationService.approve(module, id);
       toast.success(`${itemLabel} approved`);
       setEntries((prev) => prev.filter((e) => e.id !== entryId));
+      refreshCounts();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : `Failed to approve ${itemLabel}`);
     } finally {
@@ -95,6 +99,7 @@ export function PendingModerationList({ module }: PendingModerationListProps) {
       toast.success(`${itemLabel} declined`);
       setEntries((prev) => prev.filter((e) => e.id !== declineTarget.entryId));
       setDeclineTarget(null);
+      refreshCounts();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : `Failed to decline ${itemLabel}`);
     } finally {

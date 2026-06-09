@@ -7,6 +7,9 @@ export type { PendingWorksResponse };
 
 export type PendingModule = 'funding_opportunities' | 'proposals' | 'posts' | 'journal_entries';
 
+/** Number of pending items per module, as shown on the tab badges. */
+export type PendingModuleCounts = Record<PendingModule, number>;
+
 interface PendingModuleConfig {
   /** Plural label shown in the tab. */
   tabLabel: string;
@@ -78,6 +81,23 @@ export class PendingModerationError extends Error {
 }
 
 export class PendingModerationService {
+  static async fetchCounts(): Promise<PendingModuleCounts> {
+    try {
+      const raw = await ApiClient.get<Partial<PendingModuleCounts>>(
+        '/api/feed/pending_moderation/counts/'
+      );
+      return PENDING_MODULES.reduce((counts, module) => {
+        counts[module] = raw[module] ?? 0;
+        return counts;
+      }, {} as PendingModuleCounts);
+    } catch (error) {
+      throw new PendingModerationError(
+        error instanceof Error ? error.message : 'Failed to fetch pending counts',
+        error
+      );
+    }
+  }
+
   static async fetchPending(
     module: PendingModule,
     page: number = 1
