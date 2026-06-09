@@ -72,16 +72,19 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
     const newParam = searchParams.get('new');
     if (newParam !== 'true') return;
 
-    if (isAuthorPostsExpEnabled) {
-      setVideoModalInitialStep(1);
-      setIsProposalVideoModalOpen(true);
-    } else {
-      showShareModal({
-        action: 'USER_OPENED_PROPOSAL',
-        docTitle: work.title,
-        url: `${window.location.origin}${pathname}`,
-        shouldShowConfetti: true,
-      });
+    // Don't prompt the author to share a proposal that's still pending moderation.
+    if (work.moderationStatus !== 'PENDING') {
+      if (isAuthorPostsExpEnabled) {
+        setVideoModalInitialStep(1);
+        setIsProposalVideoModalOpen(true);
+      } else {
+        showShareModal({
+          action: 'USER_OPENED_PROPOSAL',
+          docTitle: work.title,
+          url: `${window.location.origin}${pathname}`,
+          shouldShowConfetti: true,
+        });
+      }
     }
 
     // Consume the flag so the modal doesn't re-open on subsequent re-renders
@@ -89,7 +92,15 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
     const url = new URL(window.location.href);
     url.searchParams.delete('new');
     router.replace(url.pathname + url.search, { scroll: false });
-  }, [searchParams, router, pathname, work.title, showShareModal, isAuthorPostsExpEnabled]);
+  }, [
+    searchParams,
+    router,
+    pathname,
+    work.title,
+    work.moderationStatus,
+    showShareModal,
+    isAuthorPostsExpEnabled,
+  ]);
 
   const persistVideoCtaDismissal = () => {
     try {
