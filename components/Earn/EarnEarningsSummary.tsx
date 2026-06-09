@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Sprout, Star } from 'lucide-react';
-import Icon from '@/components/ui/icons/Icon';
+import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { cn } from '@/utils/styles';
 import { useUser } from '@/contexts/UserContext';
 import { useExchangeRate } from '@/contexts/ExchangeRateContext';
@@ -14,7 +14,7 @@ import { ConfirmModal } from '@/components/modals/ConfirmModal';
 import { formatRSC, formatUsdValue } from '@/utils/number';
 
 // MOCK: the backend does not yet expose lifetime aggregates per earning source,
-// so we placeholder Peer Reviews and Fundraises until those endpoints land.
+// so we placeholder Peer Reviews and Funded Proposals until those endpoints land.
 const MOCK_LIFETIME_REVIEW_RSC = 1240;
 const MOCK_LIFETIME_FUNDRAISE_RSC = 320;
 
@@ -155,10 +155,10 @@ export function EarnEarningsSummary() {
           <EarnSourceRow
             icon={
               <span className="flex items-center justify-center h-8 w-8 rounded-full bg-gray-100">
-                <Icon name="fund" size={18} color="#111827" />
+                <FundingIcon size={18} color="#111827" />
               </span>
             }
-            name="Fundraises"
+            name="Funded proposals"
             pair={fundraises}
             loading={!isReady}
             isLast

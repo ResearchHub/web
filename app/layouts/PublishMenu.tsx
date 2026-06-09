@@ -41,7 +41,7 @@ const PUBLISH_MENU_SECTIONS = [
       {
         id: 'request-funding',
         title: 'Proposal',
-        description: 'Crowdfund your research',
+        description: 'Raise money for your research',
         icon: <FundingIcon size={18} color="#374151" />,
         action: 'function',
         handler: 'handleFundResearch',

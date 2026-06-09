@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { buildOpenGraphMetadata } from '@/lib/metadata';
 import { PageLayout } from '@/app/layouts/PageLayout';
-import { EarnSidebarPlaceholder } from '@/components/Earn/EarnSidebarPlaceholder';
+import { EarnRightSidebar } from '@/components/Earn/EarnRightSidebar';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { EarnDashboard, EARN_BOUNTIES_ANCHOR } from '@/components/Earn/EarnDashboard';
 import { ReviewsPageContent } from './ReviewsPageContent';
@@ -14,7 +14,7 @@ export const metadata: Metadata = buildOpenGraphMetadata({
 
 export default async function EarnPage() {
   return (
-    <PageLayout rightSidebar={<EarnSidebarPlaceholder />}>
+    <PageLayout rightSidebar={<EarnRightSidebar />}>
       <section className="sr-only">
         <p>
           ResearchHub offers two ways to earn ResearchCoin in one place. You can hold ResearchCoin

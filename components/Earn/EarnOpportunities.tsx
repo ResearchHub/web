@@ -3,10 +3,14 @@
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Sprout, Star } from 'lucide-react';
-import Icon from '@/components/ui/icons/Icon';
 import { Button } from '@/components/ui/Button';
+import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useStakingYieldStats } from '@/hooks/useStakingYield';
+import {
+  OpenProposalModal,
+  type ProposalCreationMethod,
+} from '@/components/Funding/OpenProposalModal';
 import { EarnInfoModal } from './EarnInfoModal';
 
 interface EarnOpportunitiesProps {
@@ -36,6 +40,12 @@ export function EarnOpportunities({ onBrowse }: EarnOpportunitiesProps) {
   const { stats } = useStakingYieldStats();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
+
+  const handleConfirmCreateProposal = (method: ProposalCreationMethod) => {
+    setIsProposalModalOpen(false);
+    router.push(`/notebook?newFunding=true&proposalSource=${method}`);
+  };
 
   const apy = stats?.apy ?? null;
 
@@ -56,7 +66,7 @@ export function EarnOpportunities({ onBrowse }: EarnOpportunitiesProps) {
           <span className="font-semibold text-emerald-700">
             {apy != null ? `up to ${apy.toFixed(1)}% APY` : 'daily yield'}
           </span>{' '}
-          on your ResearchCoin
+          on your ResearchCoin.
         </>
       ),
       cta: {
@@ -73,7 +83,7 @@ export function EarnOpportunities({ onBrowse }: EarnOpportunitiesProps) {
       description: (
         <>
           Earn <span className="font-semibold text-emerald-700">~$150</span> in RSC per approved
-          review
+          review.
         </>
       ),
       cta: { label: 'Browse', onClick: onBrowse },
@@ -83,15 +93,15 @@ export function EarnOpportunities({ onBrowse }: EarnOpportunitiesProps) {
       badgeClassName: 'bg-gray-100',
     },
     {
-      key: 'fund',
-      title: 'Fund science',
-      description: <>Put your funding credits to work backing research</>,
+      key: 'proposal',
+      title: 'Open a proposal',
+      description: <>Raise money for your research.</>,
       cta: {
-        label: 'Fund',
-        onClick: () => executeAuthenticatedAction(() => router.push('/fund')),
+        label: 'Create proposal',
+        onClick: () => executeAuthenticatedAction(() => setIsProposalModalOpen(true)),
       },
       ctaVariant: 'outlined',
-      icon: <Icon name="fund" size={24} color="#111827" />,
+      icon: <FundingIcon size={24} color="#111827" />,
       badgeClassName: 'bg-gray-100',
     },
   ];
@@ -117,12 +127,12 @@ export function EarnOpportunities({ onBrowse }: EarnOpportunitiesProps) {
         {opportunities.map((opp) => (
           <div
             key={opp.key}
-            className="snap-start shrink-0 w-[300px] sm:w-[360px] bg-gray-50 rounded-2xl p-5 flex items-center justify-between gap-4"
+            className="snap-start shrink-0 w-[300px] sm:w-[360px] bg-gray-50 rounded-2xl p-5 flex items-start justify-between gap-4"
           >
-            <div className="min-w-0 flex flex-col">
+            <div className="min-w-0 flex flex-col self-stretch">
               <h3 className="text-[15px] font-semibold text-gray-800">{opp.title}</h3>
               <p className="mt-1 text-sm text-gray-600 leading-snug">{opp.description}</p>
-              <div className="mt-4 flex items-center gap-1">
+              <div className="mt-auto pt-4 flex items-center gap-1">
                 <Button variant={opp.ctaVariant ?? 'default'} size="sm" onClick={opp.cta.onClick}>
                   {opp.cta.label}
                 </Button>
@@ -143,6 +153,11 @@ export function EarnOpportunities({ onBrowse }: EarnOpportunitiesProps) {
       </div>
 
       <EarnInfoModal isOpen={isInfoOpen} onClose={() => setIsInfoOpen(false)} />
+      <OpenProposalModal
+        isOpen={isProposalModalOpen}
+        onClose={() => setIsProposalModalOpen(false)}
+        onConfirm={handleConfirmCreateProposal}
+      />
     </section>
   );
 }

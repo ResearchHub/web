@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ExternalLink, Sprout, Star, Vote } from 'lucide-react';
+import { ExternalLink, Vote } from 'lucide-react';
 import { FundingIcon } from '@/components/ui/icons/FundingIcon';
 import { SidebarHeader } from '@/components/ui/SidebarHeader';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -40,27 +40,6 @@ const useItems: SidebarItem[] = [
     icon: <Vote className="w-4 h-4 text-gray-600" />,
     href: 'https://snapshot.org/#/s:researchhub.eth',
     external: true,
-  },
-];
-
-const earnItems: SidebarItem[] = [
-  {
-    title: 'Create proposal',
-    description: 'Submit a research proposal for community funding.',
-    icon: <FundingIcon size={16} color="#4b5563" />,
-    href: '/fund/proposals',
-  },
-  {
-    title: 'Complete Peer Reviews',
-    description: 'Earn RSC by peer reviewing preprints or proposals on ResearchHub.',
-    icon: <Star className="w-4 h-4 text-gray-600" />,
-    href: '/earn',
-  },
-  {
-    title: 'Create endowment',
-    description: 'Lock RSC in an endowment and earn yield in the form of funding credits.',
-    icon: <Sprout className="w-4 h-4 text-gray-600" />,
-    href: '/researchcoin',
   },
 ];
 
@@ -105,7 +84,7 @@ function SidebarRow({ title, description, icon, href, external }: SidebarItem) {
   );
 }
 
-export const ResearchCoinRightSidebar = () => {
+export function EarnRightSidebar() {
   return (
     <div className="w-full">
       <div className="pb-4">
@@ -114,16 +93,6 @@ export const ResearchCoinRightSidebar = () => {
           <SidebarHeader title="Use ResearchCoin" />
           <div className="pl-1 ml-1">
             {useItems.map((item) => (
-              <SidebarRow key={item.title} {...item} />
-            ))}
-          </div>
-        </div>
-
-        {/* Earn ResearchCoin Section */}
-        <div className="px-6 mb-4">
-          <SidebarHeader title="Earn ResearchCoin" />
-          <div className="pl-1 ml-1">
-            {earnItems.map((item) => (
               <SidebarRow key={item.title} {...item} />
             ))}
           </div>
@@ -151,4 +120,4 @@ export const ResearchCoinRightSidebar = () => {
       </div>
     </div>
   );
-};
+}
