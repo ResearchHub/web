@@ -13,7 +13,7 @@ export type PendingModuleCounts = Record<PendingModule, number>;
 interface PendingModuleConfig {
   /** Plural label shown in the tab. */
   tabLabel: string;
-  /** Singular noun used in toasts and the decline modal (e.g. "RFP"). */
+  /** Singular noun used in toasts and the decline modal (e.g. "Funding Opportunity"). */
   itemLabel: string;
   /**
    * Feed content_type filter and resource base path for the generic flow.
@@ -48,7 +48,7 @@ export function slugToModule(slug: string): PendingModule | undefined {
 export const PENDING_MODULE_CONFIG: Record<PendingModule, PendingModuleConfig> = {
   funding_opportunities: {
     tabLabel: 'Funding Opportunities',
-    itemLabel: 'RFP',
+    itemLabel: 'Funding Opportunity',
   },
   proposals: {
     tabLabel: 'Proposals',
