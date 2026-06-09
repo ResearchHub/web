@@ -23,6 +23,7 @@ import { BaseMenu, BaseMenuItem } from '@/components/ui/form/BaseMenu';
 import { VerifiedBadge } from '@/components/ui/VerifiedBadge';
 import { SwipeableDrawer } from '@/components/ui/SwipeableDrawer';
 import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { ResearchCoinSnapshot } from '@/components/ResearchCoin/ResearchCoinSnapshot';
 import Link from 'next/link';
 import { AuthSharingService } from '@/services/auth-sharing.service';
 import { navigateToAuthorProfile } from '@/utils/navigation';
@@ -142,6 +143,12 @@ export default function UserMenu({
           <FontAwesomeIcon icon={faPen} className="h-3 w-3 mr-2" />
           Edit Profile
         </Button>
+
+        <ResearchCoinSnapshot
+          href="/researchcoin"
+          onClick={() => setMenuOpenState(false)}
+          className="mt-3"
+        />
       </div>
 
       {/* Menu items */}
@@ -366,6 +373,12 @@ export default function UserMenu({
                 <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
               </div>
             </div>
+
+            <ResearchCoinSnapshot
+              href="/researchcoin"
+              onClick={() => setMenuOpenState(false)}
+              className="mt-3"
+            />
           </div>
 
           {/* Menu items */}
