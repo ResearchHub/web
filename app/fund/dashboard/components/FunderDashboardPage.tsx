@@ -160,6 +160,7 @@ export const FunderDashboardPage: FC = () => {
           hasMore={hasMore}
           loadMore={loadMore}
           wideContent
+          grantCardVariant="comprehensive"
           showGrantHeaders={false}
           showPostHeaders={false}
           showFundraiseHeaders={false}
