@@ -19,10 +19,15 @@ export interface RadioGroupProps {
   required?: boolean;
   error?: string;
   helperText?: string;
+  size?: 'default' | 'sm';
 }
 
 export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
-  ({ options, value, onChange, label, className, required, error, helperText }, ref) => {
+  (
+    { options, value, onChange, label, className, required, error, helperText, size = 'default' },
+    ref
+  ) => {
+    const isSm = size === 'sm';
     return (
       <div ref={ref}>
         {label && (
@@ -31,14 +36,15 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
           </label>
         )}
         <HeadlessRadioGroup value={value} onChange={onChange}>
-          <div className={cn('space-y-2', className)}>
+          <div className={cn(isSm ? 'space-y-1.5' : 'space-y-2', className)}>
             {options.map((option) => (
               <Radio
                 key={option.value}
                 value={option.value}
                 className={({ checked }) =>
                   cn(
-                    'flex items-start p-3 gap-3 rounded-lg border cursor-pointer',
+                    'flex items-start rounded-lg border cursor-pointer',
+                    isSm ? 'p-2.5 gap-2.5' : 'p-3 gap-3',
                     checked
                       ? 'border-primary-600 bg-primary-50'
                       : 'border-gray-200 hover:border-gray-300',
@@ -51,17 +57,23 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
                     <div
                       className={cn(
                         'flex-shrink-0 self-center',
-                        'h-6 w-6 rounded-full border flex items-center justify-center',
+                        'rounded-full border flex items-center justify-center',
+                        isSm ? 'h-4 w-4' : 'h-6 w-6',
                         checked ? 'border-primary-600 bg-primary-600' : 'border-gray-300 bg-white'
                       )}
                     >
-                      {checked && <div className="h-3 w-3 rounded-full bg-white" />}
+                      {checked && (
+                        <div
+                          className={cn('rounded-full bg-white', isSm ? 'h-1.5 w-1.5' : 'h-3 w-3')}
+                        />
+                      )}
                     </div>
                     <div className="flex-1">
                       <Label
                         as="p"
                         className={cn(
                           'font-medium',
+                          isSm && 'text-sm',
                           checked ? 'text-primary-900' : 'text-gray-900'
                         )}
                       >
@@ -70,7 +82,10 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
                       {option.description && (
                         <Description
                           as="p"
-                          className={cn('text-sm', checked ? 'text-primary-700' : 'text-gray-500')}
+                          className={cn(
+                            isSm ? 'text-xs' : 'text-sm',
+                            checked ? 'text-primary-700' : 'text-gray-500'
+                          )}
                         >
                           {option.description}
                         </Description>

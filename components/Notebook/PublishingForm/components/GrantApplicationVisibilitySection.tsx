@@ -34,6 +34,7 @@ export function GrantApplicationVisibilitySection() {
           value={value}
           onChange={(next) => setValue('applicationVisibility', next, { shouldValidate: true })}
           helperText="Controls whether applicants must submit public or private preregistrations."
+          size="sm"
         />
       </div>
     </div>
