@@ -2,12 +2,13 @@
 
 import { Description, RadioGroup as HeadlessRadioGroup, Label, Radio } from '@headlessui/react';
 import { cn } from '@/utils/styles';
-import { forwardRef } from 'react';
+import { forwardRef, type ReactNode } from 'react';
 
 export interface RadioOption {
   value: string;
   label: string;
   description?: string;
+  badge?: ReactNode;
 }
 
 export interface RadioGroupProps {
@@ -43,7 +44,7 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
                 value={option.value}
                 className={({ checked }) =>
                   cn(
-                    'flex items-start rounded-lg border cursor-pointer',
+                    'flex flex-wrap items-start rounded-lg border cursor-pointer',
                     isSm ? 'p-2.5 gap-2.5' : 'p-3 gap-3',
                     checked
                       ? 'border-primary-600 bg-primary-50'
@@ -68,7 +69,7 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
                         />
                       )}
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <Label
                         as="p"
                         className={cn(
@@ -91,6 +92,22 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
                         </Description>
                       )}
                     </div>
+                    {option.badge && (
+                      <div
+                        className={cn(
+                          // Mobile: full-width new line, indented to align under the text
+                          // (dot width + gap = 16px + 10px = 26px for sm size, 24px + 12px = 36px for default)
+                          'w-full sm:w-auto',
+                          isSm ? 'pl-[26px] sm:pl-0' : 'pl-9 sm:pl-0',
+                          // Desktop: push to far right, vertically centred
+                          'sm:ml-auto sm:self-center',
+                          // Collapse the wrap gap on mobile so it sits snug under the description
+                          '-mt-1 sm:mt-0'
+                        )}
+                      >
+                        {option.badge}
+                      </div>
+                    )}
                   </>
                 )}
               </Radio>

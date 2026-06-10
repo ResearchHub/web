@@ -100,17 +100,12 @@ export function NoteEditorLayout() {
   const isNoteReady = !isLoadingNote && Boolean(note) && isLegacyNote === false && Boolean(editor);
   useEffect(() => {
     if (isDesktop !== true || tourAutoStarted.current) return;
-    // TEMP (demo): the `useDismissableFeature` gating and new-note check below
-    // are bypassed so the tour replays on every page load of any ready note
-    // (including refresh), not just on creation. Restore the dismiss checks,
-    // the `isNewlyCreatedNote` guard, and the `dismissTour()` call to return to
-    // once-per-user-on-create behavior.
-    // if (tourDismissStatus !== 'checked' || isTourDismissed) return;
-    // if (!isNewlyCreatedNote) return;
+    if (tourDismissStatus !== 'checked' || isTourDismissed) return;
+    if (!isNewlyCreatedNote) return;
     if (!isNoteReady) return;
     tourAutoStarted.current = true;
     setIsTourOpen(true);
-    // dismissTour();
+    dismissTour();
   }, [isDesktop, isNoteReady, tourDismissStatus, isTourDismissed, isNewlyCreatedNote, dismissTour]);
 
   useEffect(() => {

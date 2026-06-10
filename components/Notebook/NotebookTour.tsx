@@ -22,14 +22,14 @@ const STEPS: TourStep[] = [
     selector: '[data-tour="notebook-editor"]',
     title: 'Write in the main area',
     description:
-      'This is your document. Draft your preprint, proposal, or funding opportunity here — everything autosaves as you type.',
+      'This is your document. Draft your document here. Everything autosaves as you type.',
     placement: 'center',
   },
   {
     selector: '[data-tour="notebook-publish"]',
     title: 'Add details & publish',
     description:
-      'Switch to the Details tab to set funding amount, topics, and contacts — then publish from the button at the bottom.',
+      'Switch to the Details tab to set attributes of your document. Once it looks good, click the Publish button.',
     placement: 'bottom',
   },
 ];

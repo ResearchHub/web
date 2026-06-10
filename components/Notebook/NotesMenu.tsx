@@ -2,9 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ChevronDown, X } from 'lucide-react';
 import { NotebookPrimaryNavigation } from '@/components/Notebook/NotebookPrimaryNavigation';
+import { OrganizationSettingsModal } from '@/components/modals/OrganizationSettingsModal';
+import {
+  OpenFundingOpportunityModal,
+  type FundingOpportunityCreationMethod,
+} from '@/components/Funding/OpenFundingOpportunityModal';
+import {
+  OpenProposalModal,
+  type ProposalCreationMethod,
+} from '@/components/Funding/OpenProposalModal';
+import { useOrganizationContext } from '@/contexts/OrganizationContext';
 import Icon from '@/components/ui/icons/Icon';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { cn } from '@/utils/styles';
@@ -25,8 +35,29 @@ export function NotesMenu() {
   // Bottom inset so the mobile sheet stops above the (fixed) bottom nav rather
   // than covering it. The sheet intentionally covers the top bar.
   const [bottomInset, setBottomInset] = useState(0);
+  // The creation modals live here (rather than inside NotebookPrimaryNavigation)
+  // so the menu can close as the modal opens without unmounting the modal.
+  const [isFundingOpportunityModalOpen, setIsFundingOpportunityModalOpen] = useState(false);
+  const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const { smAndDown } = useScreenSize();
+  const { selectedOrg } = useOrganizationContext();
+
+  const isCurrentUserAdmin = selectedOrg?.userPermission?.accessType === 'ADMIN';
+
+  // Mirror PublishMenu: the modal picks a creation method, then we hand off to
+  // the notebook page which scaffolds the document from that method.
+  const handleConfirmOpenGrant = (method: FundingOpportunityCreationMethod) => {
+    setIsFundingOpportunityModalOpen(false);
+    router.push(`/notebook?newGrant=true&grantSource=${method}`);
+  };
+
+  const handleConfirmCreateProposal = (method: ProposalCreationMethod) => {
+    setIsProposalModalOpen(false);
+    router.push(`/notebook?newFunding=true&proposalSource=${method}`);
+  };
 
   useEffect(() => {
     setIsMounted(true);
@@ -48,6 +79,36 @@ export function NotesMenu() {
   }, [isOpen]);
 
   const isMobile = smAndDown === true;
+
+  // Each creation action closes the menu first, then opens its modal / navigates.
+  const handleNewFundingOpportunity = () => {
+    setIsOpen(false);
+    setIsFundingOpportunityModalOpen(true);
+  };
+
+  const handleNewProposal = () => {
+    setIsOpen(false);
+    setIsProposalModalOpen(true);
+  };
+
+  const handleNewPreprint = () => {
+    setIsOpen(false);
+    router.push('/notebook?newResearch=true');
+  };
+
+  const handleInvitePeople = () => {
+    setIsOpen(false);
+    setIsSettingsModalOpen(true);
+  };
+
+  const navigation = (
+    <NotebookPrimaryNavigation
+      onNewFundingOpportunity={handleNewFundingOpportunity}
+      onNewProposal={handleNewProposal}
+      onNewPreprint={handleNewPreprint}
+      onInvitePeople={handleInvitePeople}
+    />
+  );
 
   // Measure the bottom nav while the mobile sheet is open so it stops just
   // above it (accounts for safe areas).
@@ -83,7 +144,7 @@ export function NotesMenu() {
           {/* Click-catcher sits below the panel and any nested menus/modals. */}
           <div className="fixed inset-0 z-30" onClick={() => setIsOpen(false)} aria-hidden />
           <div className="absolute left-0 top-full z-40 mt-0.5 max-h-[72vh] w-[320px] overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg">
-            <NotebookPrimaryNavigation />
+            {navigation}
           </div>
         </>
       )}
@@ -115,12 +176,31 @@ export function NotesMenu() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
-              <NotebookPrimaryNavigation />
-            </div>
+            <div className="flex-1 overflow-y-auto">{navigation}</div>
           </div>,
           document.body
         )}
+
+      <OpenFundingOpportunityModal
+        isOpen={isFundingOpportunityModalOpen}
+        onClose={() => setIsFundingOpportunityModalOpen(false)}
+        onConfirm={handleConfirmOpenGrant}
+        minimal
+      />
+
+      <OpenProposalModal
+        isOpen={isProposalModalOpen}
+        onClose={() => setIsProposalModalOpen(false)}
+        onConfirm={handleConfirmCreateProposal}
+        minimal
+      />
+
+      {selectedOrg && isCurrentUserAdmin && (
+        <OrganizationSettingsModal
+          isOpen={isSettingsModalOpen}
+          onClose={() => setIsSettingsModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
