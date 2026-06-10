@@ -42,7 +42,7 @@ function renderFeedItem(module: PendingModule, entry: FeedEntry, footer: ReactNo
   }
 }
 
-export function PendingModerationList({ module }: PendingModerationListProps) {
+export function PendingModerationList({ module }: Readonly<PendingModerationListProps>) {
   const { itemLabel } = PENDING_MODULE_CONFIG[module];
   const { refresh: refreshCounts } = usePendingCounts();
   const [entries, setEntries] = useState<FeedEntry[]>([]);

@@ -232,7 +232,7 @@ export default function UploadPDFPage() {
     if (validateCurrentStep()) {
       if (currentStepIndex < steps.length - 1) {
         setCurrentStepIndex(currentStepIndex + 1);
-        window.scrollTo(0, 0);
+        globalThis.scrollTo(0, 0);
       } else {
         handleSubmit();
       }
@@ -242,7 +242,7 @@ export default function UploadPDFPage() {
   const handleBack = () => {
     if (currentStepIndex > 0) {
       setCurrentStepIndex(currentStepIndex - 1);
-      window.scrollTo(0, 0);
+      globalThis.scrollTo(0, 0);
     } else {
       router.back();
     }
@@ -306,8 +306,8 @@ export default function UploadPDFPage() {
       const statusParam = `&status=${response.status ?? ''}`;
       if (submitToJournal) {
         try {
-          const successUrl = `${window.location.origin}/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=true${statusParam}`;
-          const failureUrl = `${window.location.origin}/`;
+          const successUrl = `${globalThis.location.origin}/paper/create/success?paperId=${response.id}&paperTitle=${encodeURIComponent(response.title)}&isJournal=true${statusParam}`;
+          const failureUrl = `${globalThis.location.origin}/`;
 
           const checkoutData = await PaperService.payForJournalSubmission(
             response.id,
@@ -316,7 +316,7 @@ export default function UploadPDFPage() {
           );
 
           if (checkoutData.url) {
-            window.location.href = checkoutData.url;
+            globalThis.location.href = checkoutData.url;
             return;
           } else {
             throw new Error('No checkout URL received from server');

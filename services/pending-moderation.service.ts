@@ -36,12 +36,12 @@ export const DEFAULT_PENDING_MODULE: PendingModule = PENDING_MODULES[0];
 
 /** Maps a module to its URL slug (e.g. "funding_opportunities" → "funding-opportunities"). */
 export function moduleToSlug(module: PendingModule): string {
-  return module.replace(/_/g, '-');
+  return module.replaceAll('_', '-');
 }
 
 /** Resolves a URL slug back to a module, or undefined when the slug is unknown. */
 export function slugToModule(slug: string): PendingModule | undefined {
-  const candidate = slug.replace(/-/g, '_') as PendingModule;
+  const candidate = slug.replaceAll('-', '_') as PendingModule;
   return PENDING_MODULES.includes(candidate) ? candidate : undefined;
 }
 

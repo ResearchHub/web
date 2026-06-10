@@ -54,14 +54,12 @@ export class FeedService {
     }
 
     // Determine which endpoint to use
-    const basePath =
-      params?.endpoint === 'funding_feed'
-        ? this.FUNDING_PATH
-        : params?.endpoint === 'grant_feed'
-          ? this.GRANT_PATH
-          : params?.endpoint === 'pending_moderation'
-            ? this.PENDING_MODERATION_PATH
-            : this.BASE_PATH;
+    const endpointToPath: Record<string, string> = {
+      funding_feed: this.FUNDING_PATH,
+      grant_feed: this.GRANT_PATH,
+      pending_moderation: this.PENDING_MODERATION_PATH,
+    };
+    const basePath = endpointToPath[params?.endpoint ?? ''] ?? this.BASE_PATH;
     const url = `${basePath}/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
 
     try {
