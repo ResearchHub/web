@@ -84,7 +84,7 @@ export class PendingModerationService {
   static async fetchCounts(): Promise<PendingModuleCounts> {
     try {
       const raw = await ApiClient.get<Partial<PendingModuleCounts>>(
-        '/api/feed/pending_moderation/counts/'
+        '/api/moderator_feed/pending_moderation/counts/'
       );
       return PENDING_MODULES.reduce((counts, module) => {
         counts[module] = raw[module] ?? 0;

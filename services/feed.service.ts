@@ -9,7 +9,7 @@ export class FeedService {
   private static readonly BASE_PATH = '/api/feed';
   private static readonly FUNDING_PATH = '/api/funding_feed';
   private static readonly GRANT_PATH = '/api/grant_feed';
-  private static readonly PENDING_MODERATION_PATH = '/api/feed/pending_moderation';
+  private static readonly PENDING_MODERATION_PATH = '/api/moderator_feed/pending_moderation';
 
   static async getFeed(params?: {
     page?: number;
