@@ -79,7 +79,9 @@ export function NoteEditorLayout() {
   } = useDismissableFeature(NOTEBOOK_TOUR_FEATURE);
 
   const [isLegacyNote, setIsLegacyNote] = useState<boolean | undefined>(undefined);
-  const [activeTab, setActiveTab] = useState<NotebookTab>('document');
+  const [activeTab, setActiveTab] = useState<NotebookTab>(() =>
+    searchParams?.get('tab') === 'details' ? 'details' : 'document'
+  );
   const [isTourOpen, setIsTourOpen] = useState(false);
   const tourAutoStarted = useRef(false);
 
