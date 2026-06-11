@@ -9,20 +9,28 @@ import { useExchangeRate } from '@/contexts/ExchangeRateContext';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import { useAuthModalContext } from '@/contexts/AuthModalContext';
 import { UserService, type StakingYieldDetails } from '@/services/user.service';
+import { useEarningOverview } from '@/components/Earn/lib/hooks/useEarningOverview';
+import type { EarningAmount } from '@/types/user';
 import { Button } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { RadiatingDot } from '@/components/ui/RadiatingDot';
 import { ConfirmModal } from '@/components/modals/ConfirmModal';
-import { formatRSC, formatUsdValue } from '@/utils/number';
-
-// MOCK: the backend does not yet expose lifetime aggregates per earning source,
-// so we placeholder Peer Reviews and Funded Proposals until those endpoints land.
-const MOCK_LIFETIME_REVIEW_RSC = 1240;
-const MOCK_LIFETIME_FUNDRAISE_RSC = 320;
+import { formatRSC, formatUsdValue, formatLiteralUsd } from '@/utils/number';
 
 interface DisplayPair {
   primary: string;
   secondary: string | null;
+}
+
+function sumEarningAmounts(amounts: (EarningAmount | undefined)[]): EarningAmount {
+  return amounts.reduce<EarningAmount>(
+    (acc, amount) => ({
+      rsc: acc.rsc + (amount?.rsc ?? 0),
+      rscUsdSnapshot: acc.rscUsdSnapshot + (amount?.rscUsdSnapshot ?? 0),
+      usd: acc.usd + (amount?.usd ?? 0),
+    }),
+    { rsc: 0, rscUsdSnapshot: 0, usd: 0 }
+  );
 }
 
 function formatPair(
@@ -38,10 +46,27 @@ function formatPair(
   return showUSD ? { primary: usd, secondary: rsc } : { primary: rsc, secondary: usd };
 }
 
+function formatAmountPair(
+  amountRsc: number,
+  totalUsd: number,
+  showUSD: boolean,
+  withPlus = false
+): DisplayPair {
+  const sign = withPlus && amountRsc > 0 ? '+' : '';
+  const rsc = `${sign}${formatRSC({ amount: amountRsc, decimalPlaces: 2 })} RSC`;
+  const usd = `${sign}${formatLiteralUsd(totalUsd)}`;
+  return showUSD ? { primary: usd, secondary: rsc } : { primary: rsc, secondary: usd };
+}
+
+function formatEarningPair(amount: EarningAmount, showUSD: boolean, withPlus = false): DisplayPair {
+  return formatAmountPair(amount.rsc, amount.rscUsdSnapshot + amount.usd, showUSD, withPlus);
+}
+
 export function EarnEarningsSummary() {
   const { user, isLoading: isUserLoading, refreshUser } = useUser();
   const { exchangeRate, isLoading: isRateLoading } = useExchangeRate();
   const { showUSD } = useCurrencyPreference();
+  const { overview, isLoading: isLoadingOverview } = useEarningOverview(user?.id);
   const [details, setDetails] = useState<StakingYieldDetails | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(true);
   const [isUpdatingStaking, setIsUpdatingStaking] = useState(false);
@@ -55,28 +80,39 @@ export function EarnEarningsSummary() {
   }, []);
 
   const endowmentRsc = details?.totalYieldEarned ?? 0;
-  const reviewRsc = MOCK_LIFETIME_REVIEW_RSC;
-  const fundraiseRsc = MOCK_LIFETIME_FUNDRAISE_RSC;
-  const totalRsc = endowmentRsc + reviewRsc + fundraiseRsc;
+  const reviewAmount = useMemo(
+    () => sumEarningAmounts([overview?.bySource.TIP_REVIEW, overview?.bySource.BOUNTY_PAYOUT]),
+    [overview]
+  );
+  const fundraiseAmount = useMemo(
+    () =>
+      sumEarningAmounts([
+        overview?.bySource.FUNDRAISE_PAYOUT,
+        overview?.bySource.USD_FUNDRAISE_PAYOUT,
+      ]),
+    [overview]
+  );
+  const totalRsc = (overview?.totalEarned.rsc ?? 0) + endowmentRsc;
+  const totalUsd =
+    (overview?.totalEarned.rscUsdSnapshot ?? 0) +
+    (overview?.totalEarned.usd ?? 0) +
+    (exchangeRate ? endowmentRsc * exchangeRate : 0);
 
   const total = useMemo(
-    () => formatPair(totalRsc, exchangeRate, showUSD, true),
-    [totalRsc, exchangeRate, showUSD]
+    () => formatAmountPair(totalRsc, totalUsd, showUSD, true),
+    [totalRsc, totalUsd, showUSD]
   );
   const endowment = useMemo(
     () => formatPair(endowmentRsc, exchangeRate, showUSD),
     [endowmentRsc, exchangeRate, showUSD]
   );
-  const reviews = useMemo(
-    () => formatPair(reviewRsc, exchangeRate, showUSD),
-    [reviewRsc, exchangeRate, showUSD]
-  );
+  const reviews = useMemo(() => formatEarningPair(reviewAmount, showUSD), [reviewAmount, showUSD]);
   const fundraises = useMemo(
-    () => formatPair(fundraiseRsc, exchangeRate, showUSD),
-    [fundraiseRsc, exchangeRate, showUSD]
+    () => formatEarningPair(fundraiseAmount, showUSD),
+    [fundraiseAmount, showUSD]
   );
 
-  const isReady = !isRateLoading && !isLoadingDetails;
+  const isReady = !isRateLoading && !isLoadingDetails && !isLoadingOverview;
 
   // Endowment earning status (mirrors the wallet's opt-in behavior).
   const isOptedIn = user?.isStakingOptedIn ?? false;
