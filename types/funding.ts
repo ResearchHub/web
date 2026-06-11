@@ -9,11 +9,27 @@ export type FundraiseStatus = 'OPEN' | 'COMPLETED' | 'CLOSED';
 
 export interface ApplicationContributor {
   id: number;
+  /**
+   * AuthorProfile id for this contributor when available. Used to match a
+   * contributor against entities keyed by author profile (e.g. the funder who
+   * created a grant). Falls back to `undefined` if the backend payload only
+   * carries the contributor id.
+   */
+  authorProfileId?: number;
   firstName: string;
   lastName: string;
   fullName: string;
   profileImage: string;
-  totalContribution: { usd: number; rsc: number };
+  totalContribution: {
+    usd: number;
+    rsc: number;
+    /**
+     * USD-equivalent of the RSC portion captured at contribution time. Prefer
+     * this over the live exchange rate when displaying historical totals so
+     * the figures don't shift with the RSC price.
+     */
+    rscUsdSnapshot?: number;
+  };
 }
 
 export interface ReviewMetrics {
@@ -56,6 +72,23 @@ function resolveContributionAmounts(totalContribution: any): { usd: number; rsc:
 }
 
 /**
+ * Same as `resolveContributionAmounts` but also keeps `rsc_usd_snapshot`, the
+ * USD value of the RSC portion at contribution time. Required by surfaces that
+ * want a stable historical USD figure rather than one tied to the live rate.
+ */
+function transformApplicationContributionAmounts(totalContribution: any): {
+  usd: number;
+  rsc: number;
+  rscUsdSnapshot?: number;
+} {
+  return {
+    rsc: totalContribution?.rsc ?? 0,
+    usd: totalContribution?.usd ?? 0,
+    rscUsdSnapshot: totalContribution?.rsc_usd_snapshot ?? undefined,
+  };
+}
+
+/**
  * Combine RSC + direct USD contributions into a single display amount, using the
  * provided RSC→USD rate (goal rate for completed fundraises, live rate otherwise).
  */
@@ -80,16 +113,17 @@ export function transformApplicationFundraise(raw: any): ApplicationFundraise {
   const goalRate = computeGoalRate(raw.status, goalUsd, raisedRsc);
 
   const topContributors = (raw.contributors?.top ?? []).map((c: any) => {
-    const firstName = c.first_name ?? '';
-    const lastName = c.last_name ?? '';
+    const firstName = c.first_name ?? c.author_profile?.first_name ?? '';
+    const lastName = c.last_name ?? c.author_profile?.last_name ?? '';
 
     return {
       id: c.id,
+      authorProfileId: c.id || undefined,
       firstName,
       lastName,
       fullName: [firstName, lastName].filter(Boolean).join(' ') || 'Contributor',
-      profileImage: c.profile_image ?? '',
-      totalContribution: resolveContributionAmounts(c.total_contribution),
+      profileImage: c.profile_image ?? c.author_profile?.profile_image ?? '',
+      totalContribution: transformApplicationContributionAmounts(c.total_contribution),
     };
   });
 

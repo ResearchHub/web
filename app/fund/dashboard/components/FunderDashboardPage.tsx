@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FunderHero } from '@/components/Funding/dashboard/FunderHero';
 import { FunderAuthorPostsSection } from '@/components/Funding/dashboard/FunderAuthorPostsSection';
+import { FundedProposalsSection } from '@/components/Funding/dashboard/FundedProposalsSection';
 import { FeedContent } from '@/components/Feed/FeedContent';
 import { FunderService } from '@/services/funder.service';
 import { useFeed } from '@/hooks/useFeed';
@@ -159,6 +160,7 @@ export const FunderDashboardPage: FC = () => {
           hasMore={hasMore}
           loadMore={loadMore}
           wideContent
+          grantCardVariant="comprehensive"
           showGrantHeaders={false}
           showPostHeaders={false}
           showFundraiseHeaders={false}
@@ -180,6 +182,10 @@ export const FunderDashboardPage: FC = () => {
           }
         />
       </div>
+
+      {overview && (
+        <FundedProposalsSection proposals={overview.supportedProposals} className="mt-8" />
+      )}
     </div>
   );
 };

@@ -29,13 +29,18 @@ const marketplaceTabs = [
 ];
 
 export function MarketplaceCards({ selected = 'grants' }: MarketplaceCardsProps) {
+  // On tablet+ the hero CTA column (funding snapshot + primary action) is taller
+  // than the title, which otherwise pushes the tabs down. Pull them back up so
+  // the title and tabs stay close together. Mobile keeps the default spacing.
   return (
-    <Tabs
-      tabs={marketplaceTabs}
-      activeTab={selected}
-      onTabChange={() => {}}
-      variant="primary"
-      className="mt-4"
-    />
+    <div className="sm:-mt-10">
+      <Tabs
+        tabs={marketplaceTabs}
+        activeTab={selected}
+        onTabChange={() => {}}
+        variant="primary"
+        className="mt-4"
+      />
+    </div>
   );
 }

@@ -62,12 +62,12 @@ export function useWorkHeaderMenuItems({
 
   const grant = work.note?.post?.grant;
   const canCloseGrant =
-    isModerator && work.contentType === 'funding_request' && grant?.status === 'OPEN' && !!grant?.id;
-  const canInviteExperts =
+    isModerator &&
     work.contentType === 'funding_request' &&
     grant?.status === 'OPEN' &&
-    !!grant?.id &&
-    canEdit;
+    !!grant?.id;
+  const canInviteExperts =
+    work.contentType === 'funding_request' && grant?.status === 'OPEN' && !!grant?.id && canEdit;
 
   const confirmCloseGrant = useCallback(async () => {
     if (!grant?.id) return;

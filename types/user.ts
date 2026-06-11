@@ -241,6 +241,37 @@ export const transformInsight = (raw: any): Insight => ({
   minDelta: raw.min_delta ?? 0,
 });
 
+export interface EarningAmount {
+  rsc: number;
+  rscUsdSnapshot: number;
+  usd: number;
+}
+
+export type EarningSource =
+  | 'FUNDRAISE_PAYOUT'
+  | 'USD_FUNDRAISE_PAYOUT'
+  | 'TIP_REVIEW'
+  | 'BOUNTY_PAYOUT'
+  | (string & {});
+
+export interface EarningOverview {
+  totalEarned: EarningAmount;
+  bySource: Partial<Record<EarningSource, EarningAmount>>;
+}
+
+const transformEarningAmount = (raw: any): EarningAmount => ({
+  rsc: raw?.rsc ?? 0,
+  rscUsdSnapshot: raw?.rsc_usd_snapshot ?? 0,
+  usd: raw?.usd ?? 0,
+});
+
+export const transformEarningOverview = (raw: any): EarningOverview => ({
+  totalEarned: transformEarningAmount(raw?.total_earned),
+  bySource: Object.fromEntries(
+    Object.entries(raw?.by_source ?? {}).map(([key, value]) => [key, transformEarningAmount(value)])
+  ),
+});
+
 export const transformUserDetailsForModerator = (raw: any): UserDetailsForModerator => {
   // Handle null or undefined raw data
   if (!raw) {

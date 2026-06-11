@@ -7,6 +7,8 @@ import { ActivitySidebarSkeleton } from '@/components/Funding/ActivitySidebarSke
 import { HeroHeader } from '@/components/ui/HeroHeader';
 import { FundGrantsPageContent } from './FundGrantsPageContent';
 import { MarketplaceCards } from '@/components/Funding/MarketplaceCards';
+import { FundingHeroPanel } from '@/components/Funding/FundingHeroPanel';
+import { OpenFundingOpportunityCTA } from './OpenFundingOpportunityCTA';
 
 export const metadata: Metadata = buildOpenGraphMetadata({
   title: 'Funding Opportunities',
@@ -25,6 +27,8 @@ export default async function FundPage() {
               Apply for funding opportunities via proposals.
             </p>
           }
+          cta={<FundingHeroPanel primaryCta={<OpenFundingOpportunityCTA />} />}
+          alignTop
         >
           <MarketplaceCards selected="grants" />
         </HeroHeader>

@@ -7,7 +7,6 @@ import Image from 'next/image';
 import { cn } from '@/utils/styles';
 import { useRef, useState, useEffect } from 'react';
 import { Note } from '@/types/note';
-import { FundraiseSection } from '@/components/work/components/FundraiseSection';
 import { NonprofitSearchSection } from '@/components/Nonprofit';
 import { useNonprofitByFundraiseId } from '@/hooks/useNonprofitByFundraiseId';
 import { useNonprofitSearch } from '@/hooks/useNonprofitSearch';
@@ -183,7 +182,6 @@ export function FundingSection({ note }: Readonly<FundingSectionProps>) {
 
       {fundraise ? (
         <>
-          <FundraiseSection fundraise={fundraise} />
           <div className="pt-4 border-t border-gray-200">
             {isLoadingNonprofit && (
               <p className="text-sm text-gray-500 px-1">Loading nonprofit information...</p>

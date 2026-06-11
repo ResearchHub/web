@@ -140,6 +140,16 @@ export function formatUsdValue(
   return `${usdValue < 0 ? '-$' : '$'}${absValue} USD`;
 }
 
+/**
+ * Formats a value that is already in USD (no RSC conversion).
+ *
+ * @example
+ * formatLiteralUsd(5250.25) // "$5,250.25 USD"
+ */
+export function formatLiteralUsd(amount: number | string): string {
+  return formatUsdValue(amount.toString(), 0, false);
+}
+
 interface BalanceData {
   formatted: string;
   formattedUsd: string;
