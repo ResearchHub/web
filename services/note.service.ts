@@ -116,6 +116,25 @@ export class NoteService {
   }
 
   /**
+   * Accepts a note invitation and grants the matching user access.
+   */
+  static async acceptNoteInvite(inviteKey: string): Promise<boolean> {
+    if (!inviteKey) {
+      throw new NoteError('Missing invitation key', 'INVALID_PARAMS');
+    }
+
+    try {
+      await ApiClient.post<any>(`${this.BASE_PATH}/invite/note/${inviteKey}/accept_invite/`);
+      return true;
+    } catch (error) {
+      throw new NoteError(
+        'Failed to accept note invitation',
+        error instanceof Error ? error.message : 'UNKNOWN_ERROR'
+      );
+    }
+  }
+
+  /**
    * Fetches notes for a specific organization
    * @param orgSlug - The slug of the organization
    * @throws {NoteError} When the request fails or parameters are invalid
