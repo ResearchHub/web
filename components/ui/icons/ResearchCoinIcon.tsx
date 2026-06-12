@@ -7,7 +7,7 @@ import { PlusIcon } from 'lucide-react';
  */
 export const RSC_COLORS = {
   orange: '#F3A113',
-  green: '#22C55E',
+  green: '#19a74e',
   gray: '#6B7280',
   blue: '#2563eb',
 } as const;

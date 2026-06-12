@@ -123,7 +123,7 @@ export const FundedProposalsSection: FC<FundedProposalsSectionProps> = ({
       </div>
 
       {proposals.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 tablet:grid-cols-[1fr_220px] tablet:items-center tablet:gap-8">
+        <div className="grid grid-cols-1 gap-6 tablet:grid-cols-[minmax(0,1fr)_220px] tablet:items-center tablet:gap-8">
           {/* List */}
           <div className="divide-y divide-gray-100 rounded-xl border border-gray-200 bg-white">
             {proposals.map((proposal, i) => (

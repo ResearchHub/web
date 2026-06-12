@@ -88,8 +88,8 @@ export function GiveHero() {
             Funding on ResearchHub
           </div>
           <h1 className="give-hero-h1">
-            <span className="give-h1-line">Highest impact</span>
-            <span className="give-h1-accent">scientific funding.</span>
+            <span className="give-h1-line">Maximize the impact</span>
+            <span className="give-h1-accent">of your science funding.</span>
           </h1>
           <p className="give-hero-lead">
             Fund peer-reviewed research from top scientists around the world.

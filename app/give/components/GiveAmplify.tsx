@@ -87,8 +87,8 @@ export function GiveAmplify() {
       <PixelBackdrop side="bottom-right" className="give-amplify-pixel" />
       <div className="give-amplify-inner">
         <h2 className="give-amplify-h2">
-          On ResearchHub, your contribution{' '}
-          <span className="give-amplify-accent">doesn&rsquo;t work alone.</span>
+          ResearchHub makes your contribution{' '}
+          <span className="give-amplify-accent">go further.</span>
         </h2>
 
         <div className="give-amplify-grid">
