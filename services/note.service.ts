@@ -51,6 +51,12 @@ export interface GetOrganizationNotesParams {
   documentType?: 'PREREGISTRATION' | 'GRANT' | 'DISCUSSION';
 }
 
+export interface NoteInvitePreview {
+  inviteType: string;
+  recipientEmail?: string;
+  note: NoteWithContent;
+}
+
 export class NoteService {
   private static readonly BASE_PATH = '/api';
 
@@ -71,6 +77,41 @@ export class NoteService {
       const { data = {} } = error instanceof ApiError ? JSON.parse(error.message) : {};
       const errorMsg = data?.detail || 'Failed to fetch note content';
       throw new NoteError(errorMsg);
+    }
+  }
+
+  /**
+   * Fetches a note by invitation key.
+   */
+  static async getNoteByInviteKey(inviteKey: string): Promise<NoteInvitePreview> {
+    if (!inviteKey) {
+      throw new NoteError('Missing invitation key', 'INVALID_PARAMS');
+    }
+
+    try {
+      const response = await ApiClient.getPublic<any>(
+        `${this.BASE_PATH}/note/${inviteKey}/get_note_by_key/`
+      );
+
+      if (!response?.note) {
+        throw new NoteError('Invalid invitation response', 'INVALID_RESPONSE');
+      }
+
+      return {
+        inviteType: response.invite_type,
+        recipientEmail: response.recipient_email,
+        note: transformNoteWithContent(response.note),
+      };
+    } catch (error) {
+      if (error instanceof NoteError) {
+        throw error;
+      }
+
+      const errorMsg =
+        error instanceof ApiError && error.status === 403
+          ? 'This invitation link is invalid or has expired.'
+          : 'Failed to fetch invited note';
+      throw new NoteError(errorMsg, error instanceof Error ? error.message : 'UNKNOWN_ERROR');
     }
   }
 
