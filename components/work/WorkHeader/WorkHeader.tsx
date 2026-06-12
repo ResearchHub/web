@@ -149,19 +149,19 @@ export function WorkHeader({
     <WorkHeaderBountyEyebrow bountyDisplay={bountyDisplay} reviewsUrl={reviewsUrl} />
   ) : undefined;
 
-  const resolvedEyebrow = eyebrowOverride !== undefined ? eyebrowOverride : defaultEyebrow;
-
   // Papers, posts, and proposals carry their moderation state at the top level.
   // Grants are exempt (their post stays APPROVED; grant.status drives their own
   // eyebrow), so this badge never double-renders for them.
-  const finalEyebrow =
+  const resolvedEyebrow =
     work.moderationStatus === 'PENDING' ? (
       <div className="flex flex-wrap items-center gap-1.5">
         <PendingReviewBadge />
-        {resolvedEyebrow}
+        {eyebrowOverride !== undefined ? eyebrowOverride : defaultEyebrow}
       </div>
+    ) : eyebrowOverride !== undefined ? (
+      eyebrowOverride
     ) : (
-      resolvedEyebrow
+      defaultEyebrow
     );
   const resolvedSubtitle =
     subtitleOverride !== undefined ? (
@@ -237,7 +237,7 @@ export function WorkHeader({
     <>
       <HeroHeader
         title={work.title}
-        eyebrow={finalEyebrow}
+        eyebrow={resolvedEyebrow}
         subtitle={resolvedSubtitle}
         actions={actionBar}
         cta={primaryAction}

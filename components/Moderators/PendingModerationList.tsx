@@ -11,7 +11,7 @@ import {
   PendingModerationService,
   PENDING_MODULE_CONFIG,
   type PendingModule,
-} from '@/services/pending-moderation.service';
+} from '@/services/content-moderation.service';
 import { usePendingCounts } from '@/components/Moderators/PendingCountsContext';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { FlagReasonKey } from '@/types/work';

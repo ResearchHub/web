@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { PendingModerationTabs } from '@/components/Moderators/PendingModerationTabs';
 import { PendingCountsProvider } from '@/components/Moderators/PendingCountsContext';
-import { DEFAULT_PENDING_MODULE, slugToModule } from '@/services/pending-moderation.service';
+import { DEFAULT_PENDING_MODULE, slugToModule } from '@/services/content-moderation.service';
 
 export default function PendingWorksLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();

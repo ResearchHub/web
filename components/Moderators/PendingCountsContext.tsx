@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import {
   PendingModerationService,
   type PendingModuleCounts,
-} from '@/services/pending-moderation.service';
+} from '@/services/content-moderation.service';
 
 interface PendingCountsValue {
   counts: PendingModuleCounts | null;

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { PendingModerationList } from '@/components/Moderators/PendingModerationList';
-import { slugToModule } from '@/services/pending-moderation.service';
+import { slugToModule } from '@/services/content-moderation.service';
 
 export default async function PendingModulePage({
   params,

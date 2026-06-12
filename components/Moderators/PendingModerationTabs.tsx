@@ -9,7 +9,7 @@ import {
   PENDING_MODULE_CONFIG,
   moduleToSlug,
   type PendingModule,
-} from '@/services/pending-moderation.service';
+} from '@/services/content-moderation.service';
 
 interface PendingModerationTabsProps {
   activeModule: PendingModule;
