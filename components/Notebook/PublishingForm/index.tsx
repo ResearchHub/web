@@ -330,6 +330,10 @@ export function PublishingForm({
 
   const isDeclined = note?.post?.grant?.status === 'DECLINED';
   const isPublishing = isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage;
+  const isPublicValue = watch('isPublic');
+  const selectedGrantValue = watch('selectedGrant');
+  const isLockedPrivate = selectedGrantValue?.applicationVisibility === 'PRIVATE';
+  const showPrivateWarning = !isLockedPrivate && isPublicValue === false && !selectedGrantValue;
 
   useEffect(() => {
     clearErrors();
@@ -595,7 +599,7 @@ export function PublishingForm({
               variant="default"
               onClick={handlePublishClick}
               className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isPublishing || isDeclined}
+              disabled={isPublishing || isDeclined || showPrivateWarning}
             >
               {getButtonText({
                 isLoadingUpsert: isLoadingUpsert || isUploadingImage,

@@ -22,6 +22,16 @@ function useIsLockedPrivate() {
   return selectedGrant?.applicationVisibility === 'PRIVATE';
 }
 
+export function useShowPrivateWarning() {
+  const { watch } = useFormContext();
+  const isPublic = watch('isPublic');
+  const selectedGrant = watch('selectedGrant');
+  const isLockedPrivate = useIsLockedPrivate();
+  if (isLockedPrivate) return false;
+  const value = isPublic === false ? 'private' : 'public';
+  return value === 'private' && !selectedGrant;
+}
+
 export function PreregistrationPrivacyLockedAlert() {
   const isLockedPrivate = useIsLockedPrivate();
 
@@ -43,15 +53,14 @@ export function PreregistrationPrivacyLockedAlert() {
 export function PreregistrationPrivacySection() {
   const { watch, setValue } = useFormContext();
   const isPublic = watch('isPublic');
-  const selectedGrant = watch('selectedGrant');
   const isLockedPrivate = useIsLockedPrivate();
+  const showPrivateWarning = useShowPrivateWarning();
 
   if (isLockedPrivate) {
     return null;
   }
 
   const value = isPublic === false ? 'private' : 'public';
-  const showPrivateWarning = value === 'private' && !selectedGrant;
 
   return (
     <div className="py-3 px-6">
