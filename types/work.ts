@@ -128,6 +128,7 @@ export interface Work {
   aiPeerReview?: ProposalReview | null;
   enrichments?: Enrichment[];
   linkedGrant?: LinkedGrant | null;
+  isPublic?: boolean;
 }
 
 export interface LinkedGrant {
@@ -394,6 +395,7 @@ export const transformPost = createTransformer<any, Work>((raw) => {
     pdfCopyrightAllowsDisplay: true,
     ...(isPreregistration ? { aiPeerReview: pickPreregistrationAiPeerReviewFromGrants(raw) } : {}),
     ...(isPreregistration ? { linkedGrant: transformAndPickLinkedGrant(raw) } : {}),
+    isPublic: raw.unified_document?.is_public ?? true,
   };
 });
 
