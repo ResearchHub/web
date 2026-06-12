@@ -808,7 +808,7 @@ export default function AnimatedGlobe({ size = 280, theme = 'light', className }
   return (
     <div
       className={className}
-      style={{ position: 'relative', width: size, height: size }}
+      style={{ position: 'relative', width: '100%', maxWidth: size, aspectRatio: '1' }}
       role="img"
       aria-label="Wireframe globe; cities light up with running experiments as they receive funding"
     >

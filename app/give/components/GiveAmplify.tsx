@@ -31,12 +31,6 @@ const LEGEND: ReadonlyArray<LegendEntry> = [
     title: 'Funding Credits',
     body: 'Yield from the Endowment flows into live opportunities as Funding Credits.',
   },
-  {
-    key: 'peer',
-    color: '#7c3aed',
-    title: 'Peer reviewer contributions',
-    body: 'Reviewers earn RSC for their work; those credits can flow back into research as an additional layer.',
-  },
 ];
 
 // Stacked segments for the "On ResearchHub" bar, ordered bottom → top so the
@@ -53,12 +47,6 @@ interface Segment {
 const GIFT_HEIGHT = 150;
 
 const RH_SEGMENTS: ReadonlyArray<Segment> = [
-  {
-    label: 'Peer review',
-    height: 42,
-    gradient: 'linear-gradient(180deg, #8b5cf6, #7c3aed)',
-    textColor: '#fff',
-  },
   {
     label: 'Funding Credits',
     height: 56,
