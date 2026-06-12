@@ -2,17 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
-import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import { useSmartBack } from '@/hooks/useSmartBack';
 
+const TALK_TO_TEAM_URL = 'https://cal.com/tyler-diorio/15min';
+
 export function GiveTopBar() {
-  const router = useRouter();
   const goBack = useSmartBack();
-  const { executeAuthenticatedAction } = useAuthenticatedAction();
   // True once the user has scrolled past the hero section. Drives both the
   // white-background fade-in on the bar itself and the "Give now" CTA
   // visibility (kept hidden while the hero CTA is on-screen so there's only
@@ -36,12 +33,6 @@ export function GiveTopBar() {
       window.removeEventListener('resize', update);
     };
   }, []);
-
-  const handleGive = () => {
-    executeAuthenticatedAction(() => {
-      router.push('/fund');
-    });
-  };
 
   return (
     <header
@@ -71,17 +62,15 @@ export function GiveTopBar() {
         </div>
 
         <div className="give-topbar-right">
-          <Button
-            size="sm"
-            onClick={handleGive}
+          <a
+            href={TALK_TO_TEAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             tabIndex={scrolled ? 0 : -1}
-            className="!rounded-[12px] !h-[40px] !px-5 !text-sm !font-semibold
-              bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] hover:from-[#2C5EE8] hover:to-[#3971FF]
-              text-white shadow-[0_6px_16px_-8px_rgba(57,113,255,0.55)]
-              hover:shadow-[0_10px_22px_-8px_rgba(57,113,255,0.7)]"
+            className="give-topbar-talk-btn"
           >
-            Open a funding opportunity
-          </Button>
+            Talk to the Team
+          </a>
         </div>
       </div>
 
@@ -162,6 +151,26 @@ export function GiveTopBar() {
           display: flex;
           align-items: center;
           gap: 12px;
+        }
+        .give-topbar-talk-btn {
+          display: inline-flex;
+          align-items: center;
+          height: 40px;
+          padding: 0 20px;
+          border-radius: 12px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #fff;
+          background: linear-gradient(to right, #3971ff, #4a7fff);
+          box-shadow: 0 6px 16px -8px rgba(57, 113, 255, 0.55);
+          text-decoration: none;
+          transition:
+            background 0.15s ease,
+            box-shadow 0.15s ease;
+        }
+        .give-topbar-talk-btn:hover {
+          background: linear-gradient(to right, #2c5ee8, #3971ff);
+          box-shadow: 0 10px 22px -8px rgba(57, 113, 255, 0.7);
         }
         @media (max-width: 640px) {
           .give-topbar-inner {

@@ -88,7 +88,7 @@ export const ResearchCoinSnapshot: FC<ResearchCoinSnapshotProps> = ({
             creditsDisplay
           )
         }
-        valueClassName={user ? 'text-green-600' : 'text-gray-300'}
+        valueClassName={user ? 'text-[#19a74e]' : 'text-gray-300'}
       />
     </>
   );

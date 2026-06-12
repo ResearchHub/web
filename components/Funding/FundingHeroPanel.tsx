@@ -20,15 +20,19 @@ interface FundingHeroPanelProps {
  * Hero right-rail panel for the Fund/Proposals pages. Surfaces the two pools of
  * money the user can fund science with (RSC balance + funding credits) above
  * the page's primary CTA. The whole snapshot card is clickable, revealing a
- * menu of where each pool is managed. While the user resolves we render a
- * skeleton so the primary CTA below doesn't jump.
+ * menu of where each pool is managed. Hidden entirely while auth resolves to
+ * prevent layout shifts from the snapshot appearing and disappearing.
  */
 export const FundingHeroPanel: FC<FundingHeroPanelProps> = ({ primaryCta }) => {
-  const { isLoading: isLoadingUser } = useUser();
+  const { user, isLoading: isLoadingUser } = useUser();
 
   return (
-    <div className="flex w-full flex-col gap-3 sm:w-72">
-      {isLoadingUser ? <ResearchCoinSnapshotSkeleton /> : <ResearchCoinSnapshot interactive />}
+    <div className="flex w-full flex-col gap-3 sm:w-72 z-[100]">
+      {isLoadingUser ? (
+        <ResearchCoinSnapshotSkeleton />
+      ) : user ? (
+        <ResearchCoinSnapshot interactive />
+      ) : null}
 
       {primaryCta}
     </div>

@@ -2,6 +2,7 @@
 
 import { ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 import { Tabs } from '@/components/ui/Tabs';
+import { useUser } from '@/contexts/UserContext';
 
 export type MarketplaceTab = 'grants' | 'proposals';
 
@@ -29,11 +30,13 @@ const marketplaceTabs = [
 ];
 
 export function MarketplaceCards({ selected = 'grants' }: MarketplaceCardsProps) {
-  // On tablet+ the hero CTA column (funding snapshot + primary action) is taller
-  // than the title, which otherwise pushes the tabs down. Pull them back up so
-  // the title and tabs stay close together. Mobile keeps the default spacing.
+  const { user, isLoading: isLoadingUser } = useUser();
+  // Pull the tabs up only when the panel is or will be taller (snapshot visible).
+  // Logged-out users see just the CTA (shorter panel), so no offset is needed.
+  const snapshotVisible = isLoadingUser || !!user;
+
   return (
-    <div className="sm:-mt-10">
+    <div className={snapshotVisible ? 'sm:-mt-10' : ''}>
       <Tabs
         tabs={marketplaceTabs}
         activeTab={selected}

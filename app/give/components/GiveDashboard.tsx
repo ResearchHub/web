@@ -2,17 +2,7 @@
 
 import { useRef, type ReactNode } from 'react';
 import Image from 'next/image';
-import {
-  LineChart,
-  MessageSquare,
-  BarChart3,
-  ChevronLeft,
-  ChevronRight,
-  Bell,
-  Star,
-} from 'lucide-react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faXTwitter } from '@fortawesome/free-brands-svg-icons';
+import { LineChart, MessageSquare, BarChart3, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 
 interface Feature {
   icon: ReactNode;
@@ -46,68 +36,39 @@ const STACK_AVATARS = [
   '/globe-avatars/6.png',
 ];
 
-type Activity = {
+type VideoUpdate = {
   avatar: string;
   name: string;
   date: string;
-  kind: 'update' | 'review';
-  from: string;
-  preview:
-    | { type: 'x'; title: string; handle: string }
-    | { type: 'article'; source: string; title: string; desc: string; gradient: string }
-    | { type: 'review'; stars: number; text: string };
+  title: string;
+  duration: string;
+  poster: string;
 };
 
-const ACTIVITY: ReadonlyArray<Activity> = [
+const UPDATES: ReadonlyArray<VideoUpdate> = [
   {
     avatar: '/globe-avatars/2.png',
-    name: 'Guy W. Fincham, PhD',
+    name: 'Dr. Sarah Chen',
     date: 'Mar 13, 2026',
-    kind: 'update',
-    from: 'DeSci Fellowship x BreathworkLab',
-    preview: {
-      type: 'x',
-      title: 'Newest member of the Breathwork Lab here, Dr. Evgenii Pashnin, M.D.,…',
-      handle: '@breath_Guy',
-    },
+    title: 'Breathwork Lab: first cohort results',
+    duration: '2:14',
+    poster: 'linear-gradient(135deg, #38bdf8, #6366f1)',
   },
   {
     avatar: '/globe-avatars/9.png',
-    name: 'Fadel Zeidan',
+    name: 'Marcus Okonkwo, PhD',
     date: 'Mar 10, 2026',
-    kind: 'update',
-    from: 'Investigating the Neural and Cerebrovascular Effects of…',
-    preview: {
-      type: 'article',
-      source: 'LOCALLYWELL',
-      title: 'Wim Hof To Bring His Signature Breathwork and Ice Bath…',
-      desc: 'The extreme endurance athlete to host an immersive one-day retreat in San Diego.',
-      gradient: 'linear-gradient(135deg, #38bdf8, #6366f1)',
-    },
+    title: 'Walking you through the latest fMRI findings',
+    duration: '3:48',
+    poster: 'linear-gradient(135deg, #34d399, #0ea5e9)',
   },
   {
     avatar: '/globe-avatars/15.png',
-    name: 'Alfath Center',
+    name: 'Priya Nair',
     date: 'Jun 1, 2026',
-    kind: 'review',
-    from: 'The Cost-Quality Equation in Universal Healthcare…',
-    preview: {
-      type: 'review',
-      stars: 5,
-      text: 'This proposal addresses a key question in health economics by examining quality and affordability, especially for healthcare in…',
-    },
-  },
-  {
-    avatar: '/globe-avatars/14.png',
-    name: 'Brahmani Bajra',
-    date: 'Mar 8, 2026',
-    kind: 'review',
-    from: 'System Dynamics and Configurational Analysis of UHC Policy…',
-    preview: {
-      type: 'review',
-      stars: 4,
-      text: 'A methodologically innovative, well-theorized proposal that bridges an important gap between linear econometric findings and…',
-    },
+    title: 'Field update from the healthcare study',
+    duration: '1:32',
+    poster: 'linear-gradient(135deg, #f0abfc, #7c3aed)',
   },
 ];
 
@@ -146,10 +107,7 @@ export function GiveDashboard() {
         <div className="give-dash-mockwrap">
           <div className="give-dash-mock" role="img" aria-label="Funder dashboard preview">
             <div className="give-dash-mock-head">
-              <div className="give-dash-mock-title">Welcome back, John.</div>
-              <div className="give-dash-mock-sub">
-                Here&rsquo;s where your funding stands today.
-              </div>
+              <div className="give-dash-mock-title">Welcome back, Jennifer.</div>
             </div>
 
             <div className="give-dash-stats">
@@ -171,13 +129,19 @@ export function GiveDashboard() {
                 <span className="give-dash-stat-label">Scientists supported</span>
                 <div className="give-dash-supported">
                   <span className="give-dash-stat-count">22</span>
-                  <div className="give-dash-avatars">
+                  <div className="give-dash-avatars give-dash-avatars-full">
                     {STACK_AVATARS.map((src) => (
                       <span key={src} className="give-dash-avatar">
                         <Image src={src} alt="" width={28} height={28} />
                       </span>
                     ))}
                     <span className="give-dash-avatar give-dash-avatar-more">+15</span>
+                  </div>
+                  <div className="give-dash-avatars give-dash-avatars-compact">
+                    <span className="give-dash-avatar">
+                      <Image src={STACK_AVATARS[0]} alt="" width={28} height={28} />
+                    </span>
+                    <span className="give-dash-avatar give-dash-avatar-more">+21</span>
                   </div>
                 </div>
                 <span className="give-dash-stat-label give-dash-stat-label-mt">Total reviews</span>
@@ -189,7 +153,7 @@ export function GiveDashboard() {
               <span className="give-dash-act-title">Recent activity</span>
               <span className="give-dash-act-count">28 updates</span>
             </div>
-            <div className="give-dash-act-sub">Recent updates from authors and peer-reviewers</div>
+            <div className="give-dash-act-sub">Video updates from the researchers you fund</div>
 
             <div className="give-dash-carousel-wrap">
               <button
@@ -202,70 +166,29 @@ export function GiveDashboard() {
               </button>
 
               <div className="give-dash-carousel" ref={scrollRef}>
-                {ACTIVITY.map((a) => (
-                  <div key={a.name + a.date} className="give-dash-act-card">
-                    <div className="give-dash-act-card-head">
-                      <span className="give-dash-act-avatar">
-                        <Image src={a.avatar} alt="" width={26} height={26} />
+                {UPDATES.map((u) => (
+                  <div key={u.name + u.date} className="give-dash-vid-card">
+                    <button
+                      type="button"
+                      className="give-dash-vid-thumb"
+                      style={{ background: u.poster }}
+                      aria-label={`Play update from ${u.name}`}
+                    >
+                      <span className="give-dash-vid-play">
+                        <Play size={14} fill="currentColor" />
                       </span>
-                      <div className="give-dash-act-meta">
-                        <span className="give-dash-act-name">{a.name}</span>
-                        <span className="give-dash-act-date">{a.date}</span>
+                      <span className="give-dash-vid-duration">{u.duration}</span>
+                    </button>
+                    <div className="give-dash-vid-meta">
+                      <span className="give-dash-act-avatar">
+                        <Image src={u.avatar} alt="" width={26} height={26} />
+                      </span>
+                      <div className="give-dash-vid-text">
+                        <span className="give-dash-vid-title">{u.title}</span>
+                        <span className="give-dash-act-date">
+                          {u.name} &middot; {u.date}
+                        </span>
                       </div>
-                      {a.kind === 'review' ? (
-                        <span className="give-dash-act-badge give-dash-badge-review">
-                          <Star size={10} fill="currentColor" /> Peer review
-                        </span>
-                      ) : (
-                        <span className="give-dash-act-badge give-dash-badge-update">
-                          <Bell size={10} /> Update
-                        </span>
-                      )}
-                    </div>
-
-                    {a.preview.type === 'review' ? (
-                      <div className="give-dash-review">
-                        <span className="give-dash-stars">
-                          {'★'.repeat(a.preview.stars)}
-                          <span className="give-dash-stars-empty">
-                            {'★'.repeat(5 - a.preview.stars)}
-                          </span>
-                        </span>
-                        <p>{a.preview.text}</p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="give-dash-act-line">
-                          Shared content related to their proposal at
-                        </div>
-                        {a.preview.type === 'x' ? (
-                          <div className="give-dash-embed give-dash-embed-x">
-                            <span className="give-dash-x-logo">
-                              <FontAwesomeIcon icon={faXTwitter} />
-                            </span>
-                            <div className="give-dash-embed-text">
-                              <span className="give-dash-embed-title">{a.preview.title}</span>
-                              <span className="give-dash-embed-handle">{a.preview.handle}</span>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="give-dash-embed give-dash-embed-article">
-                            <span
-                              className="give-dash-embed-thumb"
-                              style={{ background: a.preview.gradient }}
-                            />
-                            <div className="give-dash-embed-text">
-                              <span className="give-dash-embed-source">{a.preview.source}</span>
-                              <span className="give-dash-embed-title">{a.preview.title}</span>
-                              <span className="give-dash-embed-desc">{a.preview.desc}</span>
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    <div className="give-dash-act-from">
-                      From: <b>{a.from}</b>
                     </div>
                   </div>
                 ))}
@@ -309,7 +232,7 @@ export function GiveDashboard() {
       <style jsx>{`
         .give-dash {
           position: relative;
-          padding: 96px 28px;
+          padding: 64px 28px;
           background: linear-gradient(180deg, #eef3ff 0%, #f5f8ff 55%, #ffffff 100%);
           overflow: hidden;
         }
@@ -324,21 +247,21 @@ export function GiveDashboard() {
         .give-dash-h2 {
           font-family: 'Cal Sans', var(--font-geist-sans), system-ui, sans-serif;
           font-weight: 700;
-          font-size: 48px;
+          font-size: 40px;
           line-height: 1.08;
           letter-spacing: -0.024em;
           color: #0b1530;
           text-wrap: balance;
-          margin: 0 0 18px;
+          margin: 0 0 14px;
         }
         .give-dash-accent {
           color: #3971ff;
         }
         .give-dash-lead {
-          font-size: 18px;
+          font-size: 17px;
           color: #4b5563;
           line-height: 1.6;
-          margin: 0 0 32px;
+          margin: 0 0 24px;
           max-width: 520px;
         }
         .give-dash-features {
@@ -347,7 +270,7 @@ export function GiveDashboard() {
           padding: 0;
           display: flex;
           flex-direction: column;
-          gap: 22px;
+          gap: 16px;
         }
         @media (max-width: 980px) {
           .give-dash-inner {
@@ -360,7 +283,7 @@ export function GiveDashboard() {
         }
         @media (max-width: 640px) {
           .give-dash {
-            padding: 64px 16px;
+            padding: 48px 16px;
           }
           .give-dash-h2 {
             font-size: 30px;
@@ -370,19 +293,19 @@ export function GiveDashboard() {
       <style jsx global>{`
         .give-dash-feature {
           display: grid;
-          grid-template-columns: 44px 1fr;
-          gap: 16px;
+          grid-template-columns: 40px 1fr;
+          gap: 14px;
           align-items: start;
         }
         .give-dash-feature-icon {
-          width: 44px;
-          height: 44px;
-          border-radius: 12px;
-          background: #e5edff;
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          background: transparent;
           color: #3971ff;
           display: inline-flex;
           align-items: center;
-          justify-content: center;
+          justify-content: flex-start;
         }
         .give-dash-feature strong {
           display: block;
@@ -403,10 +326,10 @@ export function GiveDashboard() {
         }
         .give-dash-mock {
           background: #fff;
-          border: 1px solid #e5e7eb;
-          border-radius: 22px;
+          border: 1px solid #eef2f7;
+          border-radius: 18px;
           padding: 22px 22px 24px;
-          box-shadow: 0 40px 90px -40px rgba(13, 30, 80, 0.4);
+          box-shadow: 0 24px 60px -44px rgba(13, 30, 80, 0.28);
           min-width: 0;
         }
         .give-dash-carousel-wrap {
@@ -414,27 +337,22 @@ export function GiveDashboard() {
         }
         .give-dash-mock-title {
           font-family: 'Cal Sans', var(--font-geist-sans), system-ui, sans-serif;
-          font-size: 22px;
+          font-size: 20px;
           font-weight: 700;
           color: #0b1530;
-        }
-        .give-dash-mock-sub {
-          font-size: 13px;
-          color: #9ca3af;
-          margin-top: 2px;
-          margin-bottom: 16px;
+          margin-bottom: 12px;
         }
         .give-dash-stats {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 18px;
-          background: #f8faff;
-          border: 1px solid #eef2ff;
-          border-radius: 16px;
+          background: transparent;
+          border: 1px solid #eef2f7;
+          border-radius: 14px;
           padding: 18px;
         }
         .give-dash-stat-block-right {
-          border-left: 1px solid #e5e9f5;
+          border-left: 1px solid #eef2f7;
           padding-left: 18px;
         }
         .give-dash-stat-label {
@@ -490,6 +408,17 @@ export function GiveDashboard() {
           display: flex;
           align-items: center;
         }
+        .give-dash-avatars-compact {
+          display: none;
+        }
+        @media (max-width: 1024px) {
+          .give-dash-avatars-full {
+            display: none;
+          }
+          .give-dash-avatars-compact {
+            display: flex;
+          }
+        }
         .give-dash-avatar {
           width: 26px;
           height: 26px;
@@ -516,28 +445,6 @@ export function GiveDashboard() {
           color: #4b5563;
           background: #e5edff;
         }
-        .give-dash-chips {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          flex-wrap: wrap;
-        }
-        .give-dash-chip {
-          font-size: 11px;
-          font-weight: 600;
-          color: #374151;
-          background: #fff;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          padding: 4px 8px;
-          white-space: nowrap;
-        }
-        .give-dash-chip-more {
-          color: #3971ff;
-          border-color: #dbe6ff;
-          background: #f3f7ff;
-        }
-
         /* Recent activity carousel */
         .give-dash-act-head {
           display: flex;
@@ -573,22 +480,54 @@ export function GiveDashboard() {
         .give-dash-carousel::-webkit-scrollbar {
           display: none;
         }
-        .give-dash-act-card {
-          flex: 0 0 202px;
+        .give-dash-vid-card {
+          flex: 0 0 220px;
           scroll-snap-align: start;
-          border: 1px solid #eef2ff;
-          border-radius: 12px;
-          background: #fff;
-          padding: 10px 11px;
-          box-shadow: 0 10px 24px -18px rgba(13, 30, 80, 0.25);
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 9px;
         }
-        .give-dash-act-card-head {
-          display: flex;
+        .give-dash-vid-thumb {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 16 / 9;
+          border: none;
+          border-radius: 12px;
+          padding: 0;
+          overflow: hidden;
+          cursor: pointer;
+          display: block;
+        }
+        .give-dash-vid-play {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.92);
+          color: #0b1530;
+          display: inline-flex;
           align-items: center;
-          gap: 8px;
+          justify-content: center;
+          padding-left: 2px;
+          box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.35);
+          transition: transform 0.15s ease;
+        }
+        .give-dash-vid-thumb:hover .give-dash-vid-play {
+          transform: translate(-50%, -50%) scale(1.08);
+        }
+        .give-dash-vid-duration {
+          position: absolute;
+          right: 6px;
+          bottom: 6px;
+          font-size: 9.5px;
+          font-weight: 600;
+          color: #fff;
+          background: rgba(0, 0, 0, 0.6);
+          padding: 1px 5px;
+          border-radius: 5px;
         }
         .give-dash-act-avatar {
           width: 26px;
@@ -603,144 +542,33 @@ export function GiveDashboard() {
           height: 100%;
           object-fit: cover;
         }
-        .give-dash-act-meta {
+        .give-dash-act-date {
+          font-size: 10.5px;
+          color: #9ca3af;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .give-dash-vid-meta {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .give-dash-vid-text {
           min-width: 0;
           flex: 1;
           display: flex;
           flex-direction: column;
         }
-        .give-dash-act-name {
+        .give-dash-vid-title {
           font-size: 12px;
           font-weight: 700;
           color: #0b1530;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .give-dash-act-date {
-          font-size: 10.5px;
-          color: #9ca3af;
-        }
-        .give-dash-act-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 3px;
-          font-size: 9px;
-          font-weight: 700;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-          padding: 3px 6px;
-          border-radius: 9999px;
-          white-space: nowrap;
-          flex-shrink: 0;
-        }
-        .give-dash-badge-update {
-          color: #6b7280;
-          background: #f3f4f6;
-        }
-        .give-dash-badge-review {
-          color: #b45309;
-          background: #fef3c7;
-        }
-        .give-dash-act-line {
-          font-size: 11.5px;
-          color: #4b5563;
-        }
-        .give-dash-embed {
-          display: flex;
-          gap: 8px;
-          border: 1px solid #eef2ff;
-          border-radius: 10px;
-          padding: 8px;
-        }
-        .give-dash-x-logo {
-          width: 34px;
-          height: 34px;
-          border-radius: 7px;
-          background: #000;
-          color: #fff;
-          font-size: 14px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-        .give-dash-embed-thumb {
-          width: 36px;
-          height: 36px;
-          border-radius: 7px;
-          flex-shrink: 0;
-        }
-        .give-dash-embed-text {
-          min-width: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 1px;
-        }
-        .give-dash-embed-source {
-          font-size: 8.5px;
-          font-weight: 700;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          color: #9ca3af;
-        }
-        .give-dash-embed-title {
-          font-size: 11.5px;
-          font-weight: 700;
-          color: #0b1530;
-          line-height: 1.25;
+          line-height: 1.3;
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
-        }
-        .give-dash-embed-handle {
-          font-size: 10.5px;
-          color: #9ca3af;
-        }
-        .give-dash-embed-desc {
-          font-size: 10px;
-          color: #9ca3af;
-          line-height: 1.35;
-          display: -webkit-box;
-          -webkit-line-clamp: 1;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-        .give-dash-review {
-          display: flex;
-          flex-direction: column;
-          gap: 5px;
-        }
-        .give-dash-stars {
-          font-size: 13px;
-          color: #f59e0b;
-          letter-spacing: 1px;
-        }
-        .give-dash-stars-empty {
-          color: #e5e7eb;
-        }
-        .give-dash-review p {
-          margin: 0;
-          font-size: 11.5px;
-          color: #374151;
-          line-height: 1.45;
-          display: -webkit-box;
-          -webkit-line-clamp: 3;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-        .give-dash-act-from {
-          margin-top: auto;
-          font-size: 10.5px;
-          color: #9ca3af;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .give-dash-act-from b {
-          color: #4b5563;
-          font-weight: 600;
         }
         .give-dash-arrow {
           position: absolute;
@@ -750,14 +578,16 @@ export function GiveDashboard() {
           height: 28px;
           border-radius: 50%;
           background: #fff;
-          border: 1px solid #e5e7eb;
-          color: #4b5563;
+          border: 1px solid #eef2f7;
+          color: #6b7280;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 6px 16px -8px rgba(13, 30, 80, 0.4);
           cursor: pointer;
           z-index: 3;
+          transition:
+            color 0.15s ease,
+            border-color 0.15s ease;
         }
         .give-dash-arrow:hover {
           color: #3971ff;
@@ -777,17 +607,16 @@ export function GiveDashboard() {
           margin: 18px 0 10px;
         }
         .give-dash-opp {
-          border: 1px solid #eef2ff;
-          border-radius: 14px;
+          border: 1px solid #eef2f7;
+          border-radius: 12px;
           overflow: hidden;
         }
         .give-dash-opp-banner {
           position: relative;
           padding: 14px 16px;
-          background:
-            radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.3), transparent 55%),
-            linear-gradient(120deg, #f0abfc 0%, #a78bfa 45%, #7c3aed 100%);
-          color: #fff;
+          background: #fff;
+          border-left: 3px solid #7c3aed;
+          color: #0b1530;
           display: flex;
           flex-direction: column;
           gap: 2px;
@@ -797,7 +626,7 @@ export function GiveDashboard() {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          opacity: 0.85;
+          color: #9ca3af;
         }
         .give-dash-opp-name {
           font-family: 'Cal Sans', var(--font-geist-sans), system-ui, sans-serif;
@@ -815,10 +644,11 @@ export function GiveDashboard() {
           font-size: 9px;
           letter-spacing: 0.06em;
           text-transform: uppercase;
-          opacity: 0.8;
+          color: #9ca3af;
         }
         .give-dash-opp-meta b {
           font-size: 13px;
+          color: #0b1530;
         }
       `}</style>
     </section>

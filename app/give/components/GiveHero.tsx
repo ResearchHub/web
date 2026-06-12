@@ -2,19 +2,15 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Check } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 import { Icon } from '@/components/ui/icons/Icon';
-import { useAuthenticatedAction } from '@/contexts/AuthModalContext';
 import AnimatedGlobe from '@/components/Globe/AnimatedGlobe';
 import { Starfield } from './Starfield';
 
-export function GiveHero() {
-  const router = useRouter();
-  const { executeAuthenticatedAction } = useAuthenticatedAction();
+const TALK_TO_TEAM_URL = 'https://cal.com/tyler-diorio/15min';
 
+export function GiveHero() {
   // The AnimatedGlobe canvas is sized in px, so we measure its column and clamp
   // to keep it crisp on desktop while never overflowing on small screens.
   const globeWrapRef = useRef<HTMLDivElement>(null);
@@ -40,12 +36,6 @@ export function GiveHero() {
       else window.removeEventListener('resize', measure);
     };
   }, []);
-
-  const handleGive = () => {
-    executeAuthenticatedAction(() => {
-      router.push('/fund');
-    });
-  };
 
   const handleSeeHowItWorks = () => {
     const target = document.getElementById('give-ways');
@@ -84,12 +74,12 @@ export function GiveHero() {
       <div className="give-hero-inner">
         <div>
           <div className="give-hero-eyebrow">
-            <Icon name="fund" size={20} />
+            <Icon name="fund" size={20} color="#c7d2fe" />
             Funding on ResearchHub
           </div>
           <h1 className="give-hero-h1">
-            <span className="give-h1-line">Highest impact</span>
-            <span className="give-h1-accent">scientific funding.</span>
+            <span className="give-h1-line">Maximize the impact </span>
+            <span className="give-h1-accent">of your science funding.</span>
           </h1>
           <p className="give-hero-lead">
             Fund peer-reviewed research from top scientists around the world.
@@ -105,25 +95,14 @@ export function GiveHero() {
             </span>
           </div>
           <div className="give-hero-ctas">
-            <Button
-              size="lg"
-              onClick={handleGive}
-              className="!rounded-[14px] !h-[54px] !px-7 !text-base !font-semibold
-                bg-gradient-to-r from-[#3971FF] to-[#4A7FFF] hover:from-[#2C5EE8] hover:to-[#3971FF]
-                text-white shadow-[0_8px_20px_-8px_rgba(57,113,255,0.55)]
-                hover:shadow-[0_12px_24px_-8px_rgba(57,113,255,0.7)]"
+            <a
+              href={TALK_TO_TEAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="give-hero-talk-btn"
             >
-              Open a funding opportunity
-            </Button>
-            <Button
-              variant="outlined"
-              size="lg"
-              onClick={handleSeeHowItWorks}
-              className="!rounded-[14px] !h-[54px] !px-7 !text-base !font-semibold
-                !bg-white/5 !border-white/30 !text-white hover:!bg-white/15 hover:!border-white/50"
-            >
-              See how it works
-            </Button>
+              Talk to the Team
+            </a>
           </div>
         </div>
 
@@ -200,11 +179,11 @@ export function GiveHero() {
           color: #f8fafc;
         }
         .give-h1-line {
-          display: block;
+          display: inline;
           color: #f8fafc;
         }
         .give-h1-accent {
-          display: block;
+          display: inline;
           color: #93c5fd;
         }
         .give-hero-eyebrow {
@@ -307,6 +286,33 @@ export function GiveHero() {
             gap: 10px;
           }
           .give-hero-ctas :global(button) {
+            width: 100%;
+          }
+        }
+        .give-hero-talk-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          height: 54px;
+          padding: 0 28px;
+          border-radius: 14px;
+          font-size: 16px;
+          font-weight: 600;
+          color: #fff;
+          background: linear-gradient(to right, #3971ff, #4a7fff);
+          box-shadow: 0 8px 20px -8px rgba(57, 113, 255, 0.55);
+          text-decoration: none;
+          transition:
+            background 0.15s ease,
+            box-shadow 0.15s ease;
+          white-space: nowrap;
+        }
+        .give-hero-talk-btn:hover {
+          background: linear-gradient(to right, #2c5ee8, #3971ff);
+          box-shadow: 0 12px 24px -8px rgba(57, 113, 255, 0.7);
+        }
+        @media (max-width: 640px) {
+          .give-hero-talk-btn {
             width: 100%;
           }
         }

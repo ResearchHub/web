@@ -475,64 +475,114 @@ function runArcSlots(slots: ArcSlot[], t: number, cb: ArcCallback) {
   }
 }
 
-/* Cartoony scientist avatars that land on a city as funding arrives. The
-   source images are square with the subject framed inside an inscribed circle,
-   so clipping to a circle crops them cleanly. */
-const AVATAR_SRCS = [
-  '/globe-avatars/1.png',
-  '/globe-avatars/2.png',
-  '/globe-avatars/3.png',
-  '/globe-avatars/4.png',
-  '/globe-avatars/5.png',
-  '/globe-avatars/6.png',
-  '/globe-avatars/7.png',
-  '/globe-avatars/8.png',
-  '/globe-avatars/9.png',
-  '/globe-avatars/10.png',
-  '/globe-avatars/11.png',
-  '/globe-avatars/12.png',
-  '/globe-avatars/13.png',
-  '/globe-avatars/14.png',
-  '/globe-avatars/15.png',
-  '/globe-avatars/16.png',
-  '/globe-avatars/17.png',
+/* Real scientists ResearchHub has funded/published, drawn from the Journal
+   editorial board roster (see components/Journal/lib/journalConstants.ts and
+   public/people). Their photo lands on a city as funding arrives, captioned
+   with their name and affiliation. Photos are roughly square head-and-shoulders
+   shots, so clipping to a circle crops them cleanly. */
+type Scientist = { src: string; name: string; affiliation: string };
+const SCIENTISTS: Scientist[] = [
+  {
+    src: '/people/ruslan.jpeg',
+    name: 'Ruslan Rust, PhD',
+    affiliation: 'University of Southern California',
+  },
+  {
+    src: '/people/attila.jpeg',
+    name: 'Attila Karsi, PhD',
+    affiliation: 'Mississippi State University',
+  },
+  { src: '/people/scott.jpeg', name: 'Scott Nelson, PhD', affiliation: 'Iowa State University' },
+  { src: '/people/qingyu.jpeg', name: 'Qingyu Luo, MD, PhD', affiliation: 'Harvard University' },
+  { src: '/people/maulik.jpeg', name: 'Maulik Dhandha, MD', affiliation: 'Saint Louis University' },
+  {
+    src: '/people/emilio.jpeg',
+    name: 'Emilio Merheb, PhD',
+    affiliation: 'Albert Einstein College of Medicine',
+  },
+  {
+    src: '/people/dominikus_brian.jpeg',
+    name: 'Dominikus Brian',
+    affiliation: 'Shanghai Jiao Tong University',
+  },
+  {
+    src: '/people/jeffrey_koury.jpeg',
+    name: 'Jeffrey Koury, PhD',
+    affiliation: 'University of California, Riverside',
+  },
 ];
-const AVATAR_COUNT = AVATAR_SRCS.length;
+const AVATAR_COUNT = SCIENTISTS.length;
 
-/* lucide FlaskConical path data (24x24 viewBox), used for the corner badge. */
-const FLASK_PATH_DATA = [
-  'M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2',
-  'M8.5 2h7',
-  'M7 16h10',
-];
-let flaskPathCache: Path2D[] | null = null;
-function getFlaskPaths(): Path2D[] {
-  if (!flaskPathCache) flaskPathCache = FLASK_PATH_DATA.map((d) => new Path2D(d));
-  return flaskPathCache;
-}
+const CAPTION_FONT =
+  "var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif";
 
-/* A small orange flask badge that sits at the corner of a landed avatar. */
-function drawFlaskBadge(ctx: Ctx, bx: number, by: number, br: number) {
+/* Avatar chip is sized as a fraction of the globe radius so it stays
+   proportional at every size. Anchored at R≈184 (give-hero) → ~30px, which
+   matches the previous hard-coded value and keeps the hero appearance stable. */
+const AVATAR_RADIUS_RATIO = 0.165;
+
+/* Name + affiliation caption on a rounded dark pill, centered under a landed
+   scientist chip so the photo reads as a real, funded researcher. */
+function drawScientistCaption(
+  ctx: Ctx,
+  cx: number,
+  topY: number,
+  name: string,
+  affiliation: string,
+  alpha: number,
+  scale = 1,
+  canvasW = Infinity,
+  canvasH = Infinity
+) {
   ctx.save();
-  ctx.fillStyle = '#F97316';
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'center';
+
+  const namePx = Math.round(12 * scale);
+  const affPx = Math.round(10.5 * scale);
+  const nameFont = `600 ${namePx}px ${CAPTION_FONT}`;
+  const affFont = `500 ${affPx}px ${CAPTION_FONT}`;
+  ctx.font = nameFont;
+  const nameW = ctx.measureText(name).width;
+  ctx.font = affFont;
+  const affW = ctx.measureText(affiliation).width;
+
+  const padX = 10 * scale;
+  const padY = 6 * scale;
+  const lineGap = 3 * scale;
+  const nameH = namePx;
+  const affH = affPx;
+  const boxW = Math.max(nameW, affW) + padX * 2;
+  const boxH = nameH + affH + lineGap + padY * 2;
+  // Clamp center so the pill never bleeds off the canvas edge.
+  const safeCx = Math.max(boxW / 2 + 2, Math.min(canvasW - boxW / 2 - 2, cx));
+  const safeTopY = Math.min(canvasH - boxH - 2, topY);
+  const boxX = safeCx - boxW / 2;
+  const boxY = safeTopY;
+  const r = 8 * scale;
+
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = 'rgba(8,12,34,0.82)';
+  ctx.strokeStyle = 'rgba(147,197,253,0.35)';
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.arc(bx, by, br, 0, TAU);
+  ctx.moveTo(boxX + r, boxY);
+  ctx.arcTo(boxX + boxW, boxY, boxX + boxW, boxY + boxH, r);
+  ctx.arcTo(boxX + boxW, boxY + boxH, boxX, boxY + boxH, r);
+  ctx.arcTo(boxX, boxY + boxH, boxX, boxY, r);
+  ctx.arcTo(boxX, boxY, boxX + boxW, boxY, r);
+  ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = Math.max(1.5, br * 0.18);
-  ctx.beginPath();
-  ctx.arc(bx, by, br, 0, TAU);
   ctx.stroke();
-  const scale = (br * 1.3) / 24;
-  ctx.translate(bx, by);
-  ctx.scale(scale, scale);
-  ctx.translate(-12, -12);
-  ctx.strokeStyle = '#ffffff';
-  ctx.fillStyle = '#ffffff';
-  ctx.lineWidth = 2.3;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  for (const p of getFlaskPaths()) ctx.stroke(p);
+
+  const nameY = boxY + padY + nameH / 2;
+  const affY = nameY + nameH / 2 + lineGap + affH / 2;
+  ctx.font = nameFont;
+  ctx.fillStyle = 'rgba(248,250,252,0.98)';
+  ctx.fillText(name, safeCx, nameY);
+  ctx.font = affFont;
+  ctx.fillStyle = 'rgba(147,197,253,0.95)';
+  ctx.fillText(affiliation, safeCx, affY);
   ctx.restore();
 }
 
@@ -561,9 +611,8 @@ export default function AnimatedGlobe({ size = 280, theme = 'light', className }
     return {
       slots: buildArcSlots(73, 7, 5.5, 4.2, 0.8),
       ph: CITIES.map(() => rnd() * TAU),
-      // Multiple landings can be live simultaneously.
       acts: [] as { t: number; city: number; avatar: number }[],
-      avatarState: { order, pos: 0, last: -1 },
+      avatarState: { order, pos: 0, last: -1, lastSpawn: -Infinity },
     };
   }, []);
 
@@ -574,7 +623,7 @@ export default function AnimatedGlobe({ size = 280, theme = 'light', className }
   // funding lands on a city.
   const avatarsRef = useRef<HTMLImageElement[]>([]);
   useEffect(() => {
-    avatarsRef.current = AVATAR_SRCS.map((src) => {
+    avatarsRef.current = SCIENTISTS.map(({ src }) => {
       const img = new Image();
       img.src = src;
       return img;
@@ -610,6 +659,12 @@ export default function AnimatedGlobe({ size = 280, theme = 'light', className }
       const HOLD = 1.5;
       const FADE_OUT = 1.15;
       const LIFE = FADE_IN + HOLD + FADE_OUT;
+      const MIN_LANDING_GAP = 2;
+
+      // Avatar chip and caption scale proportionally with the globe radius.
+      // captionScale is clamped so text stays readable at very small sizes.
+      const avatarBase = R * AVATAR_RADIUS_RATIO;
+      const captionScale = Math.max(0.7, Math.min(1.1, R / 184));
 
       // Drop landings that have fully faded out.
       for (let k = acts.length - 1; k >= 0; k--) {
@@ -640,9 +695,16 @@ export default function AnimatedGlobe({ size = 280, theme = 'light', className }
           1.8
         );
         if (t01 >= 0.94) {
-          // Only land if this city isn't already showing a live avatar.
+          // Only land if this city isn't already showing a live avatar, and
+          // keep landings in the upper portion of the globe so the name +
+          // affiliation caption below the chip never clips off the canvas.
           const already = acts.some((ac) => ac.city === b);
-          if (pv.z >= 0.12 && !already) {
+          if (
+            pv.z >= 0.12 &&
+            pv.y <= R * 0.35 &&
+            !already &&
+            t - avatarState.lastSpawn >= MIN_LANDING_GAP
+          ) {
             // Step through the shuffled order, skipping the last-shown avatar
             // and any currently-visible one so we cycle without repeats.
             const activeAvatars = new Set(acts.map((ac) => ac.avatar));
@@ -657,6 +719,7 @@ export default function AnimatedGlobe({ size = 280, theme = 'light', className }
             }
             if (pick === -1) pick = (avatarState.last + 1) % AVATAR_COUNT;
             avatarState.last = pick;
+            avatarState.lastSpawn = t;
             acts.push({ t, city: b, avatar: pick });
           }
         }
@@ -675,7 +738,11 @@ export default function AnimatedGlobe({ size = 280, theme = 'light', className }
       for (const ac of acts) {
         const age = t - ac.t;
         const p = applyRot(CITY_VEC[ac.city], rot, R);
-        if (age > LIFE || p.z < 0) continue;
+        if (age > LIFE) continue;
+        // Smoothly fade out as the city rotates toward and behind the limb,
+        // instead of popping off the moment p.z crosses zero.
+        const limbFade = Math.min(1, Math.max(0, p.z / (R * 0.15)));
+        if (limbFade <= 0) continue;
         const sx = cx + p.x;
         const sy = cy + p.y;
         let env: number;
@@ -683,12 +750,13 @@ export default function AnimatedGlobe({ size = 280, theme = 'light', className }
         else if (age < FADE_IN + HOLD) env = 1;
         else env = Math.max(0, 1 - (age - FADE_IN - HOLD) / FADE_OUT);
         env = env * env * (3 - 2 * env);
-        const chipR = 26 * (0.62 + 0.38 * env);
+        env *= limbFade;
+        const chipR = avatarBase * (0.62 + 0.38 * env);
         if (age < FADE_IN) {
           ctx.strokeStyle = rgba(HS.rsc, 0.45 * (1 - age / FADE_IN));
           ctx.lineWidth = 1.5;
           ctx.beginPath();
-          ctx.arc(sx, sy, chipR + age * 34, 0, TAU);
+          ctx.arc(sx, sy, chipR + age * avatarBase * 1.13, 0, TAU);
           ctx.stroke();
         }
         glow(ctx, sx, sy, chipR * 1.55, HS.rsc, 0.22 * env);
@@ -714,8 +782,21 @@ export default function AnimatedGlobe({ size = 280, theme = 'light', className }
         ctx.beginPath();
         ctx.arc(sx, sy, chipR, 0, TAU);
         ctx.stroke();
-        // Flask badge tucked into the bottom-right corner.
-        drawFlaskBadge(ctx, sx + chipR * 0.72, sy + chipR * 0.72, chipR * 0.4);
+        // Name + affiliation caption beneath the chip.
+        const sci = SCIENTISTS[ac.avatar];
+        if (sci) {
+          drawScientistCaption(
+            ctx,
+            sx,
+            sy + chipR + 8 * captionScale,
+            sci.name,
+            sci.affiliation,
+            env,
+            captionScale,
+            w,
+            h
+          );
+        }
         ctx.globalAlpha = 1;
       }
     },
@@ -727,7 +808,7 @@ export default function AnimatedGlobe({ size = 280, theme = 'light', className }
   return (
     <div
       className={className}
-      style={{ position: 'relative', width: size, height: size }}
+      style={{ position: 'relative', width: '100%', maxWidth: size, aspectRatio: '1' }}
       role="img"
       aria-label="Wireframe globe; cities light up with running experiments as they receive funding"
     >

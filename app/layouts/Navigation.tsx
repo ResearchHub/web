@@ -7,14 +7,8 @@ import Link from 'next/link';
 import Icon from '@/components/ui/icons/Icon';
 import { IconName } from '@/components/ui/icons/Icon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faHouse as faHouseSolid,
-  faBookmark as faBookmarkSolid,
-} from '@fortawesome/pro-solid-svg-icons';
-import {
-  faHouse as faHouseLight,
-  faBookmark as faBookmarkLight,
-} from '@fortawesome/pro-light-svg-icons';
+import { faHouse as faHouseSolid } from '@fortawesome/pro-solid-svg-icons';
+import { faHouse as faHouseLight } from '@fortawesome/pro-light-svg-icons';
 import { Sprout } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { useDismissableFeature } from '@/hooks/useDismissableFeature';
@@ -135,13 +129,6 @@ export const Navigation: React.FC<NavigationProps> = ({
       description: 'Read and publish research papers',
     },
     {
-      label: 'Lists',
-      href: '/lists',
-      isFontAwesome: true,
-      description: 'View and manage your saved lists',
-      requiresAuth: true,
-    },
-    {
       label: 'Endowment',
       href: '/endowment',
       isLucideSprout: true,
@@ -184,11 +171,6 @@ export const Navigation: React.FC<NavigationProps> = ({
 
     if (path === '/endowment') {
       return currentPath.startsWith('/endowment');
-    }
-
-    // Special case for lists page - match /lists and /list/[id]
-    if (path === '/lists') {
-      return currentPath === '/lists' || currentPath.startsWith('/list/');
     }
 
     // Default case - exact match
@@ -253,13 +235,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     return (
       <Link href={item.href} onClick={handleClick} className={buttonStyles} scroll={false}>
         <div className={iconContainerClass}>
-          {item.href === '/lists' ? (
-            <FontAwesomeIcon
-              icon={isActive ? faBookmarkSolid : faBookmarkLight}
-              fontSize={24}
-              color={iconColor}
-            />
-          ) : isHomeIcon ? (
+          {isHomeIcon ? (
             <FontAwesomeIcon
               icon={isActive ? faHouseSolid : faHouseLight}
               fontSize={20}

@@ -130,7 +130,7 @@ export const OpenFundingOpportunityModal = ({
       <div className="flex h-full flex-col md:flex-row">
         {/* Left gradient rail */}
         {!minimal && (
-          <div className="relative flex flex-shrink-0 flex-col justify-center overflow-hidden bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-10 md:w-[340px] md:px-9 md:py-11">
+          <div className="relative flex flex-shrink-0 flex-col justify-center bg-[linear-gradient(135deg,#f8fbff,#eef4ff_60%,#e7eeff)] px-8 py-10 md:w-[340px] md:px-9 md:py-11">
             {/* Mobile close button (lives in the title section on small screens) */}
             <button
               type="button"

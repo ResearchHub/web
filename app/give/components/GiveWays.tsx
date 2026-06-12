@@ -17,7 +17,7 @@ const WAYS: ReadonlyArray<Way> = [
     icon: <HandCoins size={26} strokeWidth={1.75} />,
     tag: 'Most direct',
     title: 'Make a one-time contribution',
-    body: 'Back a peer-reviewed funding opportunity directly and follow it all the way from funded to published.',
+    body: 'Back expert-reviewed research directly and follow it all the way from funded to published.',
   },
   {
     icon: (
