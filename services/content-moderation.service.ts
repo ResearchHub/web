@@ -18,7 +18,7 @@ interface PendingModuleConfig {
   /**
    * Feed content_type filter and resource base path for the generic flow.
    * Omitted for funding opportunities, which keep their dedicated
-   * GrantModerationService (grant_feed + /api/grant) setup.
+   * GrantModerationService setup.
    */
   feedContentType?: string;
   resourcePath?: string;
@@ -102,7 +102,6 @@ export class PendingModerationService {
     module: PendingModule,
     page: number = 1
   ): Promise<PendingWorksResponse> {
-    // Grants keep their dedicated feed/endpoint setup.
     if (module === 'funding_opportunities') {
       return GrantModerationService.fetchPendingGrants(page);
     }

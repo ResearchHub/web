@@ -24,9 +24,9 @@ export class GrantModerationService {
   static async fetchPendingGrants(page: number = 1): Promise<PendingWorksResponse> {
     try {
       return await FeedService.getFeed({
-        endpoint: 'grant_feed',
+        endpoint: 'pending_moderation',
+        contentType: 'GRANT',
         page,
-        status: 'PENDING',
       });
     } catch (error) {
       throw new GrantModerationError(
