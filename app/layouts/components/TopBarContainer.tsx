@@ -27,6 +27,7 @@ export function TopBarContainer({
 
   return (
     <div
+      data-top-bar-container
       className={`fixed top-0 right-0 z-[60] tablet:!z-50 tablet:!bg-white
         left-0 tablet:!left-[240px] tablet:sidebar-compact:!left-[240px] tablet:max-sidebar-compact:!left-[70px]
         transition-transform duration-300 ease-in-out tablet:!transform-none

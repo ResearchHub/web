@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useOrganizationContext } from '@/contexts/OrganizationContext';
-import { NotePaperSkeleton } from '@/components/Notebook/NotePaperSkeleton';
 import { Button } from '@/components/ui/Button';
 
 export default function NotebookPage() {
@@ -21,9 +20,10 @@ export default function NotebookPage() {
     return router.replace(`/notebook/${selectedOrg.slug}${queryString}`);
   }, [selectedOrg, router, searchParams]);
 
-  // Loading state
+  // Loading state — defer to NoteEditorLayout (sibling in the layout) to avoid a
+  // redundant document-outline flash while the org loads / redirect happens.
   if (isLoadingOrg) {
-    return <NotePaperSkeleton />;
+    return null;
   }
 
   // Error state
@@ -41,5 +41,5 @@ export default function NotebookPage() {
   }
 
   // This should never render as we redirect in the useEffect
-  return <NotePaperSkeleton />;
+  return null;
 }

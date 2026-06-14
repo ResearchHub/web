@@ -2,7 +2,6 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { publishingFormSchema } from './schema';
 import type { PublishingFormData } from './schema';
-import { WorkTypeSection } from './components/WorkTypeSection';
 import { WorkImageSection } from './components/WorkImageSection';
 import { FundingSection } from './components/FundingSection';
 import { AuthorsSection } from './components/AuthorsSection';
@@ -60,7 +59,6 @@ interface PublishingFormProps {
   bountyAmount?: number | null;
   onBountyClick?: () => void;
   defaultArticleType?: string;
-  isModal?: boolean;
 }
 
 const getButtonText = ({
@@ -251,7 +249,6 @@ export function PublishingForm({
   bountyAmount,
   onBountyClick,
   defaultArticleType,
-  isModal,
 }: Readonly<PublishingFormProps>) {
   const { currentNote: note, editor } = useNotebookContext();
   const { user: currentUser } = useUser();
@@ -331,6 +328,10 @@ export function PublishingForm({
 
   const isDeclined = note?.post?.grant?.status === 'DECLINED';
   const isPublishing = isLoadingUpsert || isRedirecting || isLinkingNonprofit || isUploadingImage;
+  const isPublicValue = watch('isPublic');
+  const selectedGrantValue = watch('selectedGrant');
+  const isLockedPrivate = selectedGrantValue?.applicationVisibility === 'PRIVATE';
+  const showPrivateWarning = !isLockedPrivate && isPublicValue === false && !selectedGrantValue;
 
   useEffect(() => {
     clearErrors();
@@ -537,7 +538,7 @@ export function PublishingForm({
 
   return (
     <FormProvider {...methods}>
-      <div className="w-82 flex flex-col sticky right-0 top-0 bg-white relative h-full">
+      <div className="flex w-full flex-col bg-white relative h-full">
         {isPublishing && (
           <div className="absolute inset-0 bg-white/50 z-50 flex flex-col items-center justify-center">
             <Loader2 className="h-8 w-8 text-indigo-600 animate-spin mb-2" />
@@ -554,8 +555,7 @@ export function PublishingForm({
             isDeclined && 'pointer-events-none opacity-60'
           )}
         >
-          <div className="pb-6">
-            {!isModal && <WorkTypeSection />}
+          <div className="mx-auto w-full max-w-2xl pb-6">
             {(articleType === 'preregistration' || articleType === 'grant') && <WorkImageSection />}
             {articleType === 'grant' && (
               <>
@@ -588,31 +588,33 @@ export function PublishingForm({
           </div>
         </div>
 
-        <div className="border-t bg-white p-2 lg:p-6 space-y-3 sticky bottom-0">
-          {articleType === 'preregistration' && !methods.watch('workId') && (
-            <PreregistrationPrivacyLockedAlert />
-          )}
-          {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">Payment due:</span>
-              <span className="font-medium text-gray-900">$1,000 USD</span>
-            </div>
-          )}
-          <Button
-            variant="default"
-            onClick={handlePublishClick}
-            className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isPublishing || isDeclined}
-          >
-            {getButtonText({
-              isLoadingUpsert: isLoadingUpsert || isUploadingImage,
-              isRedirecting,
-              isLinkingNonprofit,
-              articleType,
-              isJournalEnabled: isJournalEnabled ?? false,
-              hasWorkId: Boolean(methods.watch('workId')),
-            })}
-          </Button>
+        <div className="border-t bg-white p-2 lg:p-6 sticky bottom-0">
+          <div className="mx-auto w-full max-w-2xl space-y-3">
+            {articleType === 'preregistration' && !methods.watch('workId') && (
+              <PreregistrationPrivacyLockedAlert />
+            )}
+            {FEATURE_FLAG_JOURNAL && articleType === 'discussion' && isJournalEnabled && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Payment due:</span>
+                <span className="font-medium text-gray-900">$1,000 USD</span>
+              </div>
+            )}
+            <Button
+              variant="default"
+              onClick={handlePublishClick}
+              className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isPublishing || isDeclined || showPrivateWarning}
+            >
+              {getButtonText({
+                isLoadingUpsert: isLoadingUpsert || isUploadingImage,
+                isRedirecting,
+                isLinkingNonprofit,
+                articleType,
+                isJournalEnabled: isJournalEnabled ?? false,
+                hasWorkId: Boolean(methods.watch('workId')),
+              })}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -636,7 +638,7 @@ export function PublishingForm({
           isUpdate={Boolean(methods.watch('workId'))}
           onTitleChange={(title) => setDocumentTitle(editor, title)}
           variant={articleType === 'grant' ? 'rfp' : 'default'}
-          zIndex={isModal ? 10000 : 100}
+          zIndex={100}
         />
       )}
     </FormProvider>

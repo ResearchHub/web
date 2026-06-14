@@ -131,6 +131,7 @@ export interface Work {
   enrichments?: Enrichment[];
   linkedGrant?: LinkedGrant | null;
   moderationStatus?: ModerationStatus;
+  isPublic?: boolean;
 }
 
 export interface LinkedGrant {
@@ -398,6 +399,7 @@ export const transformPost = createTransformer<any, Work>((raw) => {
     pdfCopyrightAllowsDisplay: true,
     ...(isPreregistration ? { aiPeerReview: pickPreregistrationAiPeerReviewFromGrants(raw) } : {}),
     ...(isPreregistration ? { linkedGrant: transformAndPickLinkedGrant(raw) } : {}),
+    isPublic: raw.unified_document?.is_public ?? true,
   };
 });
 

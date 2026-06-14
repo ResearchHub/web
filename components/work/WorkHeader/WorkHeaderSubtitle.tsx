@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { Star } from 'lucide-react';
+import { Lock, Star } from 'lucide-react';
 import { AuthorList } from '@/components/ui/AuthorList';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { Work } from '@/types/work';
 import { WorkMetadata } from '@/services/metadata.service';
 import { Review } from '@/types/feed';
+import { buildWorkUrl, generateSlug } from '@/utils/url';
 
 interface WorkHeaderSubtitleProps {
   work: Work;
@@ -43,8 +44,38 @@ export function WorkHeaderSubtitle({ work, metadata, reviewsUrl }: WorkHeaderSub
     isAssessed: pr.isAssessed,
   }));
 
+  const isPrivate = work.isPublic === false && work.contentType === 'preregistration';
+  const linkedGrant = work.linkedGrant;
+  const linkedGrantTitle =
+    linkedGrant?.title ||
+    linkedGrant?.shortTitle ||
+    linkedGrant?.organization ||
+    'a funding opportunity';
+  const linkedGrantHref = linkedGrant?.postId
+    ? buildWorkUrl({
+        id: linkedGrant.postId,
+        slug: generateSlug(linkedGrantTitle),
+        contentType: 'funding_request',
+      })
+    : null;
+
   return (
     <div className="flex flex-col gap-2">
+      {isPrivate && (
+        <div className="inline-flex items-center gap-1.5 text-sm text-amber-700">
+          <Lock className="h-3.5 w-3.5 shrink-0" />
+          <span>
+            Proposal submitted privately to{' '}
+            {linkedGrantHref ? (
+              <Link href={linkedGrantHref} className="hover:underline">
+                {linkedGrantTitle}
+              </Link>
+            ) : (
+              linkedGrantTitle
+            )}
+          </span>
+        </div>
+      )}
       {authors.length > 0 && (
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="text-base text-gray-500">By</span>

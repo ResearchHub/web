@@ -39,6 +39,7 @@ interface FeedContentProps {
   showFundraiseHeaders?: boolean;
   showPostHeaders?: boolean;
   showReadMoreCTA?: boolean;
+  grantCardVariant?: 'default' | 'comprehensive';
   ordering?: string;
   restoredScrollPosition?: number | null;
   page?: number;
@@ -73,6 +74,7 @@ export const FeedContent: FC<FeedContentProps> = ({
   showFundraiseHeaders = true,
   showPostHeaders = true,
   showReadMoreCTA = false,
+  grantCardVariant = 'default',
   ordering,
   restoredScrollPosition,
   page,
@@ -195,6 +197,7 @@ export const FeedContent: FC<FeedContentProps> = ({
                   showGrantHeaders={showGrantHeaders}
                   showFundraiseHeaders={showFundraiseHeaders}
                   showReadMoreCTA={showReadMoreCTA}
+                  grantCardVariant={grantCardVariant}
                   feedOrdering={ordering}
                   registerVisibleItem={registerVisibleItem}
                   unregisterVisibleItem={unregisterVisibleItem}

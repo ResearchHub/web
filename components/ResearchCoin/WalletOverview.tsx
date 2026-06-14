@@ -164,7 +164,7 @@ export function WalletOverview({ onTransactionSuccess }: WalletOverviewProps) {
               <AssetRow
                 icon={
                   <span className="inline-block [&>svg]:w-6 [&>svg]:h-6 sm:[&>svg]:w-8 sm:[&>svg]:h-8">
-                    <ResearchCoinIcon size={32} color="#6366f1" outlined />
+                    <ResearchCoinIcon size={32} variant="green" outlined />
                   </span>
                 }
                 name={
