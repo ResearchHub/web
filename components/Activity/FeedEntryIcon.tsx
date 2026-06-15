@@ -3,11 +3,14 @@
 import { FC } from 'react';
 import { Bell, MessageCircle, type LucideIcon } from 'lucide-react';
 import Icon from '@/components/ui/icons/Icon';
-import { ResearchCoinIcon } from '@/components/ui/icons/ResearchCoinIcon';
+import { ResearchCoinIcon, RSC_COLORS } from '@/components/ui/icons/ResearchCoinIcon';
 import { useCurrencyPreference } from '@/contexts/CurrencyPreferenceContext';
 import type { FeedEntryIconName } from './lib/feedEntryAdapters';
 
-const ICONS: Record<Exclude<FeedEntryIconName, 'coins' | 'fund' | 'earn' | null>, LucideIcon> = {
+const ICONS: Record<
+  Exclude<FeedEntryIconName, 'coins' | 'fund' | 'earn' | 'proposal' | null>,
+  LucideIcon
+> = {
   bell: Bell,
   message: MessageCircle,
 };
@@ -32,6 +35,16 @@ export const FeedEntryIcon: FC<FeedEntryIconProps> = ({ name }) => {
   if (name === 'earn') {
     return (
       <Icon name="earn1" size={14} color="#6B7280" className="inline -mt-0.5 ml-1 flex-shrink-0" />
+    );
+  }
+  if (name === 'proposal') {
+    return (
+      <ResearchCoinIcon
+        contribute
+        size={14}
+        color={RSC_COLORS.gray}
+        className="inline -mt-0.5 ml-1 flex-shrink-0"
+      />
     );
   }
   const IconComponent = ICONS[name];

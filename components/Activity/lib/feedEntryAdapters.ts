@@ -218,7 +218,7 @@ export function getEntryMeta(entry: FeedEntry): FeedEntryMeta {
   };
 }
 
-export type FeedEntryIconName = 'coins' | 'fund' | 'earn' | 'bell' | 'message' | null;
+export type FeedEntryIconName = 'coins' | 'fund' | 'earn' | 'proposal' | 'bell' | 'message' | null;
 
 export function getActionIcon(entry: FeedEntry): FeedEntryIconName {
   if (entry.contentType === 'GRANT' || entry.activityContext === 'grant_opened') {
@@ -226,6 +226,9 @@ export function getActionIcon(entry: FeedEntry): FeedEntryIconName {
   }
   if (entry.activityContext === 'bounty_opened') {
     return 'earn';
+  }
+  if (entry.activityContext === 'proposal_submitted' || entry.contentType === 'PREREGISTRATION') {
+    return 'proposal';
   }
   if (
     entry.contentType === 'USDFUNDRAISECONTRIBUTION' ||
