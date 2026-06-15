@@ -218,9 +218,15 @@ export function getEntryMeta(entry: FeedEntry): FeedEntryMeta {
   };
 }
 
-export type FeedEntryIconName = 'coins' | 'bell' | 'message' | null;
+export type FeedEntryIconName = 'coins' | 'fund' | 'earn' | 'bell' | 'message' | null;
 
 export function getActionIcon(entry: FeedEntry): FeedEntryIconName {
+  if (entry.contentType === 'GRANT' || entry.activityContext === 'grant_opened') {
+    return 'fund';
+  }
+  if (entry.activityContext === 'bounty_opened') {
+    return 'earn';
+  }
   if (
     entry.contentType === 'USDFUNDRAISECONTRIBUTION' ||
     entry.contentType === 'PURCHASE' ||

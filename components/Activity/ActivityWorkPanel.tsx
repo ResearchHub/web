@@ -2,7 +2,6 @@
 
 import { FC, ReactNode } from 'react';
 import Link from 'next/link';
-import { FileText } from 'lucide-react';
 import { ImageSection } from '@/components/Feed/ImageSection';
 import { AuthorList } from '@/components/ui/AuthorList';
 import type { ActivityWorkContext } from './lib/activityWorkContext';
@@ -32,9 +31,9 @@ export const ActivityWorkPanel: FC<ActivityWorkPanelProps> = ({ work, children, 
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row md:gap-4">
-        <div className="hidden md:block flex-shrink-0 w-[160px]">
-          {imageUrl ? (
+      <div className={imageUrl ? 'flex flex-col md:flex-row md:gap-4' : undefined}>
+        {imageUrl && (
+          <div className="hidden md:block flex-shrink-0 w-[160px]">
             <div className="relative overflow-hidden rounded-lg w-full min-h-[120px]">
               <ImageSection
                 imageUrl={imageUrl}
@@ -43,15 +42,8 @@ export const ActivityWorkPanel: FC<ActivityWorkPanelProps> = ({ work, children, 
                 previewOnClick={false}
               />
             </div>
-          ) : (
-            <div
-              className="flex items-center justify-center w-full min-h-[120px] rounded-lg bg-gray-100 text-gray-400"
-              aria-hidden
-            >
-              <FileText size={32} />
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="flex-1 min-w-0 flex flex-col gap-2">
           <Link
