@@ -31,6 +31,8 @@ export interface PeerReview {
 
 export type WorkType = 'article' | 'review' | 'preprint' | 'preregistration' | 'funding_request';
 
+export type ModerationStatus = 'PENDING' | 'APPROVED' | 'DECLINED';
+
 export type AuthorPosition = 'first' | 'middle' | 'last';
 
 export type ContentType =
@@ -129,6 +131,7 @@ export interface Work {
   enrichments?: Enrichment[];
   linkedGrant?: LinkedGrant | null;
   grantSummary?: WorkGrantSummary;
+  moderationStatus?: ModerationStatus;
   isPublic?: boolean;
 }
 
@@ -380,6 +383,7 @@ export const transformWork = createTransformer<any, Work>((raw) => {
     peerReviews: Array.isArray(raw.peer_reviews) ? raw.peer_reviews.map(transformPeerReview) : [],
     image: raw.image_url || raw.primary_image,
     enrichments: raw.enrichments || [],
+    moderationStatus: raw.status as ModerationStatus | undefined,
   };
 });
 

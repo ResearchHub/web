@@ -379,6 +379,8 @@ export interface FeedEntry {
   isAssessed?: boolean;
   hotScoreV2?: number;
   hotScoreBreakdown?: HotScoreBreakdown;
+  /** Author's moderation risk score; only present on the pending-moderation feed. */
+  riskScore?: number | null;
   externalMetrics?: ExternalMetrics;
   nonprofit?: Nonprofit;
   associatedGrants?: AssociatedGrant[];
@@ -416,6 +418,7 @@ export interface RawApiFeedEntry {
   };
   hot_score_v2?: number;
   related_work?: any;
+  risk_score?: number | null;
   associated_grants?: Array<{
     id: number;
     post_id: number;
@@ -1249,6 +1252,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     relatedWork,
     contentType,
     hotScoreV2: hot_score_v2,
+    riskScore: feedEntry.risk_score,
     hotScoreBreakdown: hot_score_breakdown,
     externalMetrics: external_metadata?.metrics
       ? {

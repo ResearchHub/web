@@ -81,6 +81,9 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
     // publicly accessible so there is nothing meaningful to share.
     if (work.isPublic === false) return;
 
+    // Don't prompt the author to share a proposal that's still pending moderation.
+    if (work.moderationStatus === 'PENDING') return;
+
     if (isAuthorPostsExpEnabled) {
       setVideoModalInitialStep(1);
       setIsProposalVideoModalOpen(true);
@@ -97,6 +100,7 @@ export const FundDocument = ({ work, metadata, content, authorPosts = [] }: Fund
     router,
     pathname,
     work.title,
+    work.moderationStatus,
     work.isPublic,
     showShareModal,
     isAuthorPostsExpEnabled,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Fragment } from 'react';
+import { useState, Fragment, ReactNode } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import { cn } from 'utils/styles';
 import { VerifiedBadge } from './VerifiedBadge';
@@ -18,6 +18,8 @@ interface AuthorListProps {
   authors: Author[];
   size?: 'xs' | 'sm' | 'base'; // For different text sizes
   timestamp?: string;
+  /** Optional content rendered immediately after the author names and before the timestamp. */
+  afterAuthors?: ReactNode;
   isNested?: boolean;
   /** Class names to apply to author names */
   className?: string;
@@ -41,6 +43,7 @@ export const AuthorList = ({
   authors,
   size = 'base',
   timestamp,
+  afterAuthors,
   className,
   delimiterClassName,
   delimiter = '•',
@@ -336,6 +339,7 @@ export const AuthorList = ({
             )}
           >
             {renderMobileAbbreviatedAuthors()}
+            {afterAuthors}
             {timestamp && (
               <>
                 <span
@@ -358,6 +362,7 @@ export const AuthorList = ({
           {/* Desktop-only full view */}
           <div className="hidden md:!flex md:!flex-wrap md:!items-center min-w-0">
             {renderAuthors()}
+            {afterAuthors}
             {timestamp && (
               <>
                 <span
@@ -381,6 +386,7 @@ export const AuthorList = ({
       ) : (
         <span className="flex flex-wrap items-center min-w-0">
           {renderAuthors()}
+          {afterAuthors}
           {timestamp && (
             <>
               <span
