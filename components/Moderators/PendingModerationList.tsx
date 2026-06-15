@@ -109,7 +109,7 @@ export function PendingModerationList({ module }: Readonly<PendingModerationList
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    void refreshPendingCounts({ force: true });
+    refreshPendingCounts({ force: true }).catch(() => undefined);
     await fetchEntries();
   };
 
@@ -119,7 +119,7 @@ export function PendingModerationList({ module }: Readonly<PendingModerationList
       await PendingModerationService.approve(module, id);
       toast.success(`${itemLabel} approved`);
       setEntries((prev) => prev.filter((e) => e.id !== entryId));
-      void refreshPendingCounts({ force: true });
+      refreshPendingCounts({ force: true }).catch(() => undefined);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : `Failed to approve ${itemLabel}`);
     } finally {
@@ -138,7 +138,7 @@ export function PendingModerationList({ module }: Readonly<PendingModerationList
       toast.success(`${itemLabel} declined`);
       setEntries((prev) => prev.filter((e) => e.id !== declineTarget.entryId));
       setDeclineTarget(null);
-      void refreshPendingCounts({ force: true });
+      refreshPendingCounts({ force: true }).catch(() => undefined);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : `Failed to decline ${itemLabel}`);
     } finally {

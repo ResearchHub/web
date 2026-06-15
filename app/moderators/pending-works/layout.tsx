@@ -13,7 +13,7 @@ export default function PendingWorksLayout({ children }: Readonly<{ children: Re
   const activeModule = slugToModule(slug) ?? DEFAULT_PENDING_MODULE;
 
   useEffect(() => {
-    void refreshPendingCounts();
+    refreshPendingCounts().catch(() => undefined);
   }, [pathname, refreshPendingCounts]);
 
   return (
