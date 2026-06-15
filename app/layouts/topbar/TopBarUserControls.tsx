@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search as SearchIcon } from 'lucide-react';
+import { Search as SearchIcon, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { Icon } from '@/components/ui/icons';
 import { Button } from '@/components/ui/Button';
@@ -13,6 +13,7 @@ interface TopBarUserControlsProps {
   user: User | null;
   isLoading: boolean;
   unreadCount: number;
+  pendingModerationCount: number;
   avatarSize: number;
   profilePercent: number;
   onViewProfile: () => void;
@@ -33,6 +34,7 @@ export const TopBarUserControls = ({
   user,
   isLoading,
   unreadCount,
+  pendingModerationCount,
   avatarSize,
   profilePercent,
   onViewProfile,
@@ -45,6 +47,8 @@ export const TopBarUserControls = ({
   const isMobile = variant === 'mobile';
   const rscDelta = user?.balanceHistory ?? 0;
   const [showDelta, setShowDelta] = useState(rscDelta > 0);
+  const isModerator = !!user?.isModerator;
+  const pendingModerationLabel = pendingModerationCount > 9 ? '9+' : pendingModerationCount;
 
   useEffect(() => {
     setShowDelta(rscDelta > 0);
@@ -63,6 +67,19 @@ export const TopBarUserControls = ({
         <button onClick={onSearchOpen} className="rounded-lg hover:bg-gray-100 p-2">
           <SearchIcon className="text-gray-600 h-6 w-6" />
         </button>
+
+        {isModerator && (
+          <Link href="/moderators" className="flex items-center">
+            <div className="flex items-center justify-center hover:bg-gray-100 rounded-md p-2 relative">
+              <Shield className="text-gray-600 h-6 w-6" />
+              {pendingModerationCount > 0 && (
+                <div className="absolute rounded-full bg-primary-600 text-white flex items-center justify-center top-1 -right-0 h-4 w-4">
+                  <span className="font-medium text-[9px]">{pendingModerationLabel}</span>
+                </div>
+              )}
+            </div>
+          </Link>
+        )}
 
         {isLoading ? (
           <AvatarSkeleton />
@@ -97,6 +114,19 @@ export const TopBarUserControls = ({
 
       {user && (
         <>
+          {isModerator && (
+            <Link href="/moderators" className="flex items-center">
+              <div className="flex items-center justify-center hover:bg-gray-100 rounded-md p-2 relative">
+                <Shield size={28} className="text-gray-500" />
+                {pendingModerationCount > 0 && (
+                  <div className="absolute rounded-full bg-primary-600 text-white flex items-center justify-center top-1 -right-0 h-4 w-4">
+                    <span className="font-medium text-[9px]">{pendingModerationLabel}</span>
+                  </div>
+                )}
+              </div>
+            </Link>
+          )}
+
           <Link href="/researchcoin" className="flex items-center" onClick={handleRscClick}>
             <div className="flex items-center justify-center hover:bg-gray-100 rounded-md p-2 relative">
               <Icon name="rscThin" size={28} className="text-gray-500" />

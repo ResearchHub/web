@@ -5,7 +5,6 @@ import {
   LogOut,
   BadgeCheck,
   Bell,
-  Shield,
   UserPlus,
   Search,
   Settings,
@@ -210,17 +209,6 @@ export default function UserMenu({
             </div>
           </div>
         </Link>
-
-        {user?.isModerator && (
-          <Link href="/moderators" className="block" onClick={() => setMenuOpenState(false)}>
-            <div className="px-6 py-2 hover:bg-gray-50">
-              <div className="flex items-center">
-                <Shield className="h-5 w-5 mr-3 text-gray-500" />
-                <span className="text-sm text-gray-700">Moderator Dashboard</span>
-              </div>
-            </div>
-          </Link>
-        )}
 
         {(user?.isModerator || user?.authorProfile?.isHubEditor) && (
           <Link href="/expert-finder" className="block" onClick={() => setMenuOpenState(false)}>
@@ -431,17 +419,6 @@ export default function UserMenu({
                 </div>
               </div>
             </Link>
-
-            {user?.isModerator && (
-              <Link href="/moderators" className="block" onClick={() => setMenuOpenState(false)}>
-                <div className="w-full px-4 py-2 hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <Shield className="h-5 w-5 mr-3 text-gray-500" />
-                    <span className="text-sm text-gray-700">Moderator Dashboard</span>
-                  </div>
-                </div>
-              </Link>
-            )}
 
             {(user?.isModerator || user?.authorProfile?.isHubEditor) && (
               <Link href="/expert-finder" className="block" onClick={() => setMenuOpenState(false)}>
