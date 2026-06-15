@@ -4,7 +4,7 @@ import { ReactNode, useCallback, useEffect, useState } from 'react';
 import { RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { DeclineModal } from '@/components/Moderators/DeclineModal';
-import { FeedItemGrant } from '@/components/Feed/items/FeedItemGrant';
+import { FeedItemGrantWithApplicants } from '@/components/Feed/items/FeedItemGrantWithApplicants';
 import { FeedItemPost } from '@/components/Feed/items/FeedItemPost';
 import { FeedItemPaper } from '@/components/Feed/items/FeedItemPaper';
 import {
@@ -15,6 +15,7 @@ import {
 import { usePendingCounts } from '@/components/Moderators/PendingCountsContext';
 import { FeedEntry, FeedGrantContent } from '@/types/feed';
 import { FlagReasonKey } from '@/types/work';
+import { formatRiskScore } from '@/components/profile/riskScoreEvents.utils';
 import toast from 'react-hot-toast';
 
 interface PendingModerationListProps {
@@ -28,11 +29,49 @@ function getContentId(module: PendingModule, entry: FeedEntry): number | undefin
   return entry.content.id;
 }
 
+function getGrantEntryWithRiskScore(entry: FeedEntry): FeedEntry {
+  if (entry.riskScore == null) return entry;
+
+  const content = entry.content as FeedGrantContent;
+  const { display, label, hasScore } = formatRiskScore(entry.riskScore, false);
+  const riskScoreText = hasScore ? `${display} (${label})` : display;
+  const organization = [content.grant?.organization || content.organization, riskScoreText]
+    .filter(Boolean)
+    .join(' | ');
+
+  return {
+    ...entry,
+    content: {
+      ...content,
+      organization,
+      grant: {
+        ...content.grant,
+        organization,
+      },
+    },
+  };
+}
+
+function renderPendingGrantItem(entry: FeedEntry, footer: ReactNode): ReactNode {
+  return (
+    <>
+      <div className="[&>div]:rounded-b-none [&>div>div:last-child]:hidden">
+        <FeedItemGrantWithApplicants entry={getGrantEntryWithRiskScore(entry)} />
+      </div>
+      {footer && (
+        <div className="-mt-px overflow-hidden rounded-b-[14px] border border-gray-200 border-t-gray-100 bg-white">
+          {footer}
+        </div>
+      )}
+    </>
+  );
+}
+
 function renderFeedItem(module: PendingModule, entry: FeedEntry, footer: ReactNode): ReactNode {
   const commonProps = { entry, showActions: false, footer };
   switch (module) {
     case 'funding_opportunities':
-      return <FeedItemGrant {...commonProps} showHeader={false} />;
+      return renderPendingGrantItem(entry, footer);
     case 'journal_entries':
       return <FeedItemPaper {...commonProps} />;
     case 'proposals':
