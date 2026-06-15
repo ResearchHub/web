@@ -76,7 +76,6 @@ export const TopBarUserControls = ({
             onViewProfile={onViewProfile}
             avatarSize={avatarSize}
             percent={profilePercent}
-            pendingModerationCount={pendingModerationCount}
           />
         ) : (
           <Button
@@ -149,7 +148,6 @@ export const TopBarUserControls = ({
           onViewProfile={onViewProfile}
           avatarSize={avatarSize}
           percent={profilePercent}
-          pendingModerationCount={pendingModerationCount}
         />
       ) : (
         <div className="flex items-center space-x-2">
