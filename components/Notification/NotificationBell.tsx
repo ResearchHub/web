@@ -10,6 +10,7 @@ import { useWebSocket } from '@/hooks/useWebSocket';
 import { WS_ROUTES } from '@/services/websocket';
 import { transformNotification } from '@/types/notification';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { formatBadgeCount } from '@/utils/number';
 
 interface NotificationBellProps {
   filled?: boolean;
@@ -58,7 +59,7 @@ export function NotificationBell({ filled }: NotificationBellProps) {
         />
         {unreadCountInternal > 0 && (
           <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary-500 text-[9px] font-medium text-white">
-            {unreadCountInternal > 9 ? '9+' : unreadCountInternal}
+            {formatBadgeCount(unreadCountInternal)}
           </span>
         )}
       </Link>

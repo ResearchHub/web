@@ -83,7 +83,7 @@ function renderFeedItem(module: PendingModule, entry: FeedEntry, footer: ReactNo
 
 export function PendingModerationList({ module }: Readonly<PendingModerationListProps>) {
   const { itemLabel } = PENDING_MODULE_CONFIG[module];
-  const { refresh: refreshCounts } = usePendingCounts();
+  const { refreshPendingCounts } = usePendingCounts();
   const [entries, setEntries] = useState<FeedEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -109,7 +109,7 @@ export function PendingModerationList({ module }: Readonly<PendingModerationList
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    refreshCounts();
+    void refreshPendingCounts({ force: true });
     await fetchEntries();
   };
 
@@ -119,7 +119,7 @@ export function PendingModerationList({ module }: Readonly<PendingModerationList
       await PendingModerationService.approve(module, id);
       toast.success(`${itemLabel} approved`);
       setEntries((prev) => prev.filter((e) => e.id !== entryId));
-      refreshCounts();
+      void refreshPendingCounts({ force: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : `Failed to approve ${itemLabel}`);
     } finally {
@@ -138,7 +138,7 @@ export function PendingModerationList({ module }: Readonly<PendingModerationList
       toast.success(`${itemLabel} declined`);
       setEntries((prev) => prev.filter((e) => e.id !== declineTarget.entryId));
       setDeclineTarget(null);
-      refreshCounts();
+      void refreshPendingCounts({ force: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : `Failed to decline ${itemLabel}`);
     } finally {
