@@ -1,6 +1,7 @@
 import { ApiClient } from './client';
 import { ID } from '@/types/root';
-import { FeedApiResponse, FeedEntry, RawApiFeedEntry, transformFeedEntry } from '@/types/feed';
+import { FeedService } from './feed.service';
+import { FeedEntry } from '@/types/feed';
 
 export interface PendingWorksResponse {
   entries: FeedEntry[];
@@ -22,24 +23,11 @@ export class GrantModerationService {
 
   static async fetchPendingGrants(page: number = 1): Promise<PendingWorksResponse> {
     try {
-      const response = await ApiClient.get<FeedApiResponse>(
-        `${this.BASE_PATH}/pending/?page=${page}`
-      );
-      const entries = response.results
-        .map((entry: RawApiFeedEntry) => {
-          try {
-            return transformFeedEntry(entry);
-          } catch (error) {
-            console.error('Error transforming pending grant entry:', error, entry);
-            return null;
-          }
-        })
-        .filter((entry): entry is FeedEntry => entry !== null);
-
-      return {
-        entries,
-        hasMore: !!response.next,
-      };
+      return await FeedService.getFeed({
+        endpoint: 'pending_moderation',
+        contentType: 'GRANT',
+        page,
+      });
     } catch (error) {
       throw new GrantModerationError(
         error instanceof Error ? error.message : 'Failed to fetch pending RFPs',
