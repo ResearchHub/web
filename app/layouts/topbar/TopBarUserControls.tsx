@@ -68,19 +68,6 @@ export const TopBarUserControls = ({
           <SearchIcon className="text-gray-600 h-6 w-6" />
         </button>
 
-        {isModerator && (
-          <Link href="/moderators" className="flex items-center">
-            <div className="flex items-center justify-center hover:bg-gray-100 rounded-md p-2 relative">
-              <Shield className="text-gray-600 h-6 w-6" />
-              {pendingModerationCount > 0 && (
-                <div className="absolute rounded-full bg-primary-600 text-white flex items-center justify-center top-1 -right-0 h-4 w-4">
-                  <span className="font-medium text-[9px]">{pendingModerationLabel}</span>
-                </div>
-              )}
-            </div>
-          </Link>
-        )}
-
         {isLoading ? (
           <AvatarSkeleton />
         ) : user ? (
@@ -89,6 +76,7 @@ export const TopBarUserControls = ({
             onViewProfile={onViewProfile}
             avatarSize={avatarSize}
             percent={profilePercent}
+            pendingModerationCount={pendingModerationCount}
           />
         ) : (
           <Button
@@ -161,6 +149,7 @@ export const TopBarUserControls = ({
           onViewProfile={onViewProfile}
           avatarSize={avatarSize}
           percent={profilePercent}
+          pendingModerationCount={pendingModerationCount}
         />
       ) : (
         <div className="flex items-center space-x-2">
