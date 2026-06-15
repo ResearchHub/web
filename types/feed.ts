@@ -2,7 +2,15 @@ import { AuthorProfile, transformAuthorProfile } from './authorProfile';
 import { ContentMetrics } from './metrics';
 import { Topic, transformTopic } from './topic';
 import { createTransformer, BaseTransformed } from './transformer';
-import { Work, transformPaper, transformPost, FundingRequest, ContentType } from './work';
+import {
+  Work,
+  transformPaper,
+  transformPost,
+  FundingRequest,
+  ContentType,
+  type WorkGrantSummary,
+} from './work';
+import { mapApiDocumentTypeToClientType, type ApiDocumentType } from '@/utils/contentTypeMapping';
 import { Bounty, BountyWithComment, transformBounty } from './bounty';
 import { Comment, CommentType, ContentFormat, transformComment } from './comment';
 import { Fundraise, transformFundraise, Application, transformApplication } from './funding';
@@ -13,6 +21,7 @@ import { stripHtml } from '@/utils/stringUtils';
 import { Tip } from './tip';
 import { FOUNDATION_USER_ID } from '@/config/constants';
 import { GrantStatus } from './grant';
+import { deriveActivityContext } from '@/components/Activity/lib/deriveActivityContext';
 
 export type FeedActionType = 'contribute' | 'open' | 'publish' | 'post';
 
@@ -26,6 +35,52 @@ export interface ParentCommentPreview {
   contentFormat?: ContentFormat;
   createdBy: AuthorProfile;
   parentComment?: ParentCommentPreview | undefined; // Add recursive field
+}
+
+function parseFundingActivityCommentContent(rawContent: unknown): unknown {
+  if (typeof rawContent !== 'string') return rawContent;
+  try {
+    return JSON.parse(rawContent);
+  } catch {
+    return rawContent;
+  }
+}
+
+function transformFundingActivityTippedComment(
+  commentObj: Record<string, unknown>
+): FeedFundingActivityContent['tippedComment'] {
+  const review = commentObj.review as { score?: number; is_assessed?: boolean } | null | undefined;
+  const authorRaw = commentObj.author as Record<string, unknown> | undefined;
+  return {
+    id: commentObj.id as number,
+    content: parseFundingActivityCommentContent(commentObj.comment_content_json),
+    contentFormat: (commentObj.comment_content_type as ContentFormat) || 'QUILL_EDITOR',
+    commentType: commentObj.comment_type as CommentType,
+    score: (commentObj.score as number) || 0,
+    reviewScore: review?.score || 0,
+    isAssessed: review?.is_assessed ?? false,
+    ...(authorRaw ? { createdBy: transformAuthorProfile(authorRaw) } : {}),
+    ...(review ? { review: { score: review.score || 0 } } : {}),
+  };
+}
+
+function transformFundingActivityRecipient(recipients: unknown): AuthorProfile | undefined {
+  const first = Array.isArray(recipients) ? recipients[0] : undefined;
+  if (!first || typeof first !== 'object') return undefined;
+
+  const recipient = first as {
+    recipient_user?: Record<string, unknown>;
+    author_profile?: Record<string, unknown>;
+    author?: Record<string, unknown>;
+  };
+  const profileRaw = recipient.recipient_user ?? recipient.author_profile ?? recipient.author;
+  if (!profileRaw || typeof profileRaw !== 'object') return undefined;
+
+  try {
+    return transformAuthorProfile(profileRaw);
+  } catch {
+    return undefined;
+  }
 }
 
 // Recursive helper function to transform nested parent comments
@@ -141,7 +196,6 @@ export interface FeedCommentContent extends BaseFeedContent {
       objectId: number;
     };
   };
-  hasBounties?: boolean;
   isRemoved?: boolean;
   relatedDocumentId?: number | string;
   relatedDocumentContentType?: ContentType;
@@ -205,6 +259,21 @@ export interface FeedGrantContent extends BaseFeedContent {
   isExpired?: boolean;
 }
 
+export type FundingActivitySourceType = 'BOUNTY_PAYOUT' | 'TIP_REVIEW';
+
+export interface FeedFundingActivityContent extends BaseFeedContent {
+  contentType: 'FUNDINGACTIVITY';
+  sourceType: FundingActivitySourceType;
+  totalAmount: number;
+  totalUsdCents: number;
+  totalUsd: number;
+  recipient?: AuthorProfile;
+  tippedComment?: FeedCommentContent['comment'] & {
+    review?: { score: number };
+    createdBy?: AuthorProfile;
+  };
+}
+
 // Update the Content union type to include the base interface
 export type Content =
   | FeedPostContent
@@ -212,7 +281,8 @@ export type Content =
   | FeedBountyContent
   | FeedCommentContent
   | FeedApplicationContent
-  | FeedGrantContent;
+  | FeedGrantContent
+  | FeedFundingActivityContent;
 
 export type FeedContentType =
   | 'PAPER'
@@ -223,7 +293,8 @@ export type FeedContentType =
   | 'APPLICATION'
   | 'GRANT'
   | 'USDFUNDRAISECONTRIBUTION'
-  | 'PURCHASE';
+  | 'PURCHASE'
+  | 'FUNDINGACTIVITY';
 
 export interface ExternalMetrics {
   score: number;
@@ -280,6 +351,17 @@ export interface AssociatedGrant {
   numApplicants: number;
 }
 
+export type ActivityContext =
+  | 'tip_review'
+  | 'bounty_payout'
+  | 'fundraise_contribution'
+  | 'bounty_opened'
+  | 'bounty_contributed'
+  | 'peer_review_published'
+  | 'comment_published'
+  | 'grant_opened'
+  | 'proposal_submitted';
+
 export interface FeedEntry {
   id: string;
   recommendationId: string | null;
@@ -300,6 +382,7 @@ export interface FeedEntry {
   externalMetrics?: ExternalMetrics;
   nonprofit?: Nonprofit;
   associatedGrants?: AssociatedGrant[];
+  activityContext?: ActivityContext;
   searchMetadata?: {
     highlightedTitle?: string;
     highlightedSnippet?: string;
@@ -332,6 +415,7 @@ export interface RawApiFeedEntry {
     base_wallet_address: string;
   };
   hot_score_v2?: number;
+  related_work?: any;
   associated_grants?: Array<{
     id: number;
     post_id: number;
@@ -429,6 +513,12 @@ export interface FeedApiResponse {
   results: RawApiFeedEntry[];
 }
 
+export interface ActivityFeedApiResponse {
+  next: string | null;
+  previous: string | null;
+  results: RawApiFeedEntry[];
+}
+
 /**
  * Safely extracts the unified document ID from a content object.
  *
@@ -457,6 +547,78 @@ export function getUnifiedDocumentId(content_object: any): string | undefined {
 
 export type TransformedContent = Content & BaseTransformed;
 export type TransformedFeedEntry = FeedEntry & BaseTransformed;
+
+function transformActivityRelatedWorkGrant(rawGrant: unknown): WorkGrantSummary | undefined {
+  if (!rawGrant || typeof rawGrant !== 'object') return undefined;
+
+  const grant = rawGrant as {
+    status?: string;
+    organization?: string;
+    amount?: { usd?: number; rsc?: number | null };
+    application_count?: number;
+    end_date?: string | null;
+  };
+
+  if (typeof grant.amount !== 'object' || grant.amount === null) {
+    return undefined;
+  }
+
+  return {
+    status: grant.status ?? '',
+    organization: grant.organization ?? '',
+    amount: {
+      usd: grant.amount.usd ?? 0,
+      rsc: grant.amount.rsc ?? null,
+    },
+    numApplicants: grant.application_count ?? 0,
+    endDate: grant.end_date ?? undefined,
+  };
+}
+
+function transformActivityRelatedWork(raw: any): Work | undefined {
+  if (!raw) return undefined;
+
+  const contentType =
+    mapApiDocumentTypeToClientType(raw.document_type as ApiDocumentType) ?? 'post';
+
+  let fundraise: Fundraise | undefined;
+  if (raw.fundraise) {
+    try {
+      fundraise = transformFundraise(raw.fundraise);
+    } catch (error) {
+      console.error('Error transforming activity related_work fundraise:', error);
+    }
+  }
+
+  const hubTopic = raw.hub
+    ? raw.hub.id
+      ? transformTopic(raw.hub)
+      : { id: 0, name: raw.hub.name || '', slug: raw.hub.slug || '' }
+    : undefined;
+
+  return {
+    id: raw.id,
+    slug: raw.slug || '',
+    title: stripHtml(raw.title || ''),
+    contentType,
+    createdDate: raw.created_date || '',
+    abstract: '',
+    authors: Array.isArray(raw.authors)
+      ? raw.authors.map((author: unknown) => ({
+          authorProfile: transformAuthorProfile(author),
+          isCorresponding: false,
+          position: 'middle' as const,
+        }))
+      : [],
+    topics: hubTopic ? [hubTopic] : [],
+    formats: [],
+    figures: [],
+    unifiedDocumentId: raw.unified_document_id,
+    image: raw.image_url ?? undefined,
+    fundraise,
+    grantSummary: raw.grant ? transformActivityRelatedWorkGrant(raw.grant) : undefined,
+  };
+}
 
 // Updated transformFeedEntry function to use the simplified Content type
 export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
@@ -730,8 +892,19 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
         // Transform the comment to get score and other properties
         const transformedComment = transformComment(commentData);
 
-        const hasBounties =
-          Array.isArray(content_object.bounties) && content_object.bounties.length > 0;
+        const bounties = Array.isArray(content_object.bounties)
+          ? content_object.bounties.map((bounty: Record<string, unknown>) =>
+              transformBounty({
+                created_by: author || content_object.author || null,
+                ...bounty,
+              })
+            )
+          : undefined;
+
+        const rawCommentType = content_object.comment_type as string | undefined;
+        const normalizedCommentType = (
+          rawCommentType === 'PEER_REVIEW' ? 'REVIEW' : rawCommentType
+        ) as CommentType;
 
         // Create a FeedCommentContent object
         const commentContent: FeedCommentContent = {
@@ -742,12 +915,12 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           updatedDate: content_object.updated_date || action_date || created_date,
           createdBy: transformAuthorProfile(author || content_object.author),
           isRemoved: content_object.is_removed,
-          hasBounties,
+          ...(bounties?.length ? { bounties } : {}),
           comment: {
             id: content_object.id,
             content: content_object.comment_content_json,
             contentFormat: (content_object.comment_content_type as ContentFormat) || 'QUILL_EDITOR',
-            commentType: content_object.comment_type as CommentType,
+            commentType: normalizedCommentType,
             score: transformedComment.score || 0,
             reviewScore: transformedComment.reviewScore || 0,
             isAssessed: transformedComment.isAssessed ?? false,
@@ -949,14 +1122,16 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
     case 'USDFUNDRAISECONTRIBUTION':
       contentType = content_type as 'PURCHASE' | 'USDFUNDRAISECONTRIBUTION';
       try {
+        const relatedWorkRaw = feedEntry.related_work;
         const contributionEntry: FeedPostContent = {
-          id: content_object.post_id ?? content_object.id ?? id,
-          unifiedDocumentId: content_object.unified_document_id,
+          id: content_object.post_id ?? relatedWorkRaw?.id ?? id,
+          unifiedDocumentId:
+            content_object.unified_document_id ?? relatedWorkRaw?.unified_document_id,
           contentType: 'PREREGISTRATION',
           createdDate: action_date || created_date,
           textPreview: '',
-          slug: content_object.proposal_slug || '',
-          title: stripHtml(content_object.proposal_title || ''),
+          slug: content_object.proposal_slug || relatedWorkRaw?.slug || '',
+          title: stripHtml(content_object.proposal_title || relatedWorkRaw?.title || ''),
           authors: [transformAuthorProfile(author)],
           topics: content_object.hub
             ? [
@@ -979,6 +1154,45 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
       } catch (error) {
         console.error(`Error transforming ${content_type}:`, error);
         throw new Error(`Failed to transform ${content_type}: ${error}`);
+      }
+      break;
+
+    case 'FUNDINGACTIVITY':
+      contentType = 'FUNDINGACTIVITY';
+      try {
+        const relatedWorkRaw = feedEntry.related_work;
+
+        let tippedComment: FeedFundingActivityContent['tippedComment'];
+        if (content_object.comment) {
+          tippedComment = transformFundingActivityTippedComment(content_object.comment);
+        }
+
+        const totalAmountRaw = content_object.total_amount;
+        const totalAmount =
+          typeof totalAmountRaw === 'string'
+            ? parseFloat(totalAmountRaw) || 0
+            : totalAmountRaw || 0;
+
+        const fundingActivityContent: FeedFundingActivityContent = {
+          id: content_object.id ?? id,
+          unifiedDocumentId:
+            content_object.unified_document_id ?? relatedWorkRaw?.unified_document_id,
+          contentType: 'FUNDINGACTIVITY',
+          createdDate: action_date || created_date,
+          createdBy: transformAuthorProfile(author),
+          sourceType: content_object.source_type as FundingActivitySourceType,
+          totalAmount,
+          totalUsdCents: content_object.total_usd_cents || 0,
+          totalUsd:
+            content_object.total_usd ??
+            (content_object.total_usd_cents ? content_object.total_usd_cents / 100 : 0),
+          recipient: transformFundingActivityRecipient(content_object.recipients),
+          tippedComment,
+        };
+        content = fundingActivityContent;
+      } catch (error) {
+        console.error('Error transforming FUNDINGACTIVITY:', error);
+        throw new Error(`Failed to transform FUNDINGACTIVITY: ${error}`);
       }
       break;
 
@@ -1024,6 +1238,11 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
   }
 
   // Complete the feed entry
+  const activityRelatedWork = transformActivityRelatedWork(feedEntry.related_work);
+  if (activityRelatedWork) {
+    relatedWork = activityRelatedWork;
+  }
+
   return {
     ...baseFeedEntry,
     content,
@@ -1087,6 +1306,7 @@ export const transformFeedEntry = (feedEntry: RawApiFeedEntry): FeedEntry => {
           baseWalletAddress: nonprofit.base_wallet_address,
         }
       : undefined,
+    activityContext: deriveActivityContext(feedEntry),
   } as FeedEntry;
 };
 

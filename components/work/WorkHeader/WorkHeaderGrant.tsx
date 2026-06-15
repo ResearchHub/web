@@ -80,6 +80,8 @@ export function WorkHeaderGrant({
     ) : undefined;
 
   const activityCount = activity.count;
+  const activityCountLabel =
+    activityCount > 0 && activity.hasMore ? `${activityCount}+` : activityCount;
 
   const grantTabs = [
     { id: 'details' as const, label: 'Details' },
@@ -97,7 +99,7 @@ export function WorkHeaderGrant({
                   : 'bg-gray-100 text-gray-600'
               }`}
             >
-              {activityCount}
+              {activityCountLabel}
             </span>
           )}
         </div>
