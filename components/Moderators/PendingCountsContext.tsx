@@ -15,8 +15,6 @@ import {
 } from '@/services/content-moderation.service';
 import { useUser } from '@/contexts/UserContext';
 
-const PENDING_COUNTS_STALE_MS = 30_000;
-
 type RefreshPendingCountsOptions = { force?: boolean };
 
 interface PendingCountsState {
@@ -38,8 +36,7 @@ type PendingCountsAction =
 interface PendingCountsRequest {
   id: number;
   inFlight: Promise<void> | null;
-  fetchedAt: number;
-  lastRequestFailed: boolean;
+  hasLoaded: boolean;
 }
 
 const INITIAL_PENDING_COUNTS_STATE: PendingCountsState = {
@@ -81,12 +78,11 @@ export function PendingCountsProvider({ children }: Readonly<{ children: ReactNo
   const { user, isLoading: isUserLoading } = useUser();
   const [state, dispatch] = useReducer(pendingCountsReducer, INITIAL_PENDING_COUNTS_STATE);
   const isModerator = !!user?.isModerator;
-  // Tracks freshness, in-flight de-duping, and stale response suppression.
+  // Tracks in-flight de-duping and latest-response wins.
   const requestRef = useRef<PendingCountsRequest>({
     id: 0,
     inFlight: null,
-    fetchedAt: 0,
-    lastRequestFailed: false,
+    hasLoaded: false,
   });
 
   const refreshPendingCounts = useCallback(
@@ -97,14 +93,12 @@ export function PendingCountsProvider({ children }: Readonly<{ children: ReactNo
       if (!isModerator) {
         request.id += 1;
         request.inFlight = null;
-        request.fetchedAt = 0;
-        request.lastRequestFailed = false;
+        request.hasLoaded = false;
         dispatch({ type: 'reset' });
         return Promise.resolve();
       }
 
-      const countsAreFresh = Date.now() - request.fetchedAt < PENDING_COUNTS_STALE_MS;
-      if (!force && !request.lastRequestFailed && countsAreFresh) {
+      if (!force && request.hasLoaded) {
         return Promise.resolve();
       }
 
@@ -113,7 +107,6 @@ export function PendingCountsProvider({ children }: Readonly<{ children: ReactNo
       }
 
       const requestId = ++request.id;
-      request.lastRequestFailed = false;
       dispatch({ type: 'clear-error' });
 
       const inFlight = (async () => {
@@ -121,12 +114,11 @@ export function PendingCountsProvider({ children }: Readonly<{ children: ReactNo
           const nextCounts = await PendingModerationService.fetchCounts();
           if (request.id !== requestId) return;
 
-          request.fetchedAt = Date.now();
+          request.hasLoaded = true;
           dispatch({ type: 'set-counts', counts: nextCounts });
         } catch (refreshError) {
           if (request.id !== requestId) return;
 
-          request.lastRequestFailed = true;
           dispatch({
             type: 'set-error',
             error:
@@ -150,7 +142,7 @@ export function PendingCountsProvider({ children }: Readonly<{ children: ReactNo
   useEffect(() => {
     if (isUserLoading) return;
 
-    refreshPendingCounts({ force: true }).catch(() => undefined);
+    refreshPendingCounts().catch(() => undefined);
   }, [isUserLoading, refreshPendingCounts]);
 
   return (
