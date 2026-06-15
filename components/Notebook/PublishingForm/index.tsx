@@ -41,7 +41,6 @@ import { DOISection } from '@/components/work/components/DOISection';
 import { getFieldErrorMessage } from '@/utils/form';
 import { useNotebookContext } from '@/contexts/NotebookContext';
 import { useUser } from '@/contexts/UserContext';
-import { useVerifiedAction } from '@/hooks/useVerifiedAction';
 import { useAssetUpload } from '@/hooks/useAssetUpload';
 import { useNonprofitLink } from '@/hooks/useNonprofitLink';
 import { NonprofitConfirmModal } from '@/components/Nonprofit';
@@ -323,7 +322,6 @@ export function PublishingForm({
   const selectedNonprofit = watch('selectedNonprofit');
 
   const [{ isLoading: isLoadingUpsert }, upsertPost] = useUpsertPost();
-  const { withVerification } = useVerifiedAction();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const router = useRouter();
@@ -370,13 +368,11 @@ export function PublishingForm({
       return;
     }
 
-    withVerification(() => {
-      if (selectedNonprofit) {
-        setShowNonprofitConfirmModal(true);
-      } else {
-        setShowConfirmModal(true);
-      }
-    });
+    if (selectedNonprofit) {
+      setShowNonprofitConfirmModal(true);
+    } else {
+      setShowConfirmModal(true);
+    }
   };
 
   const handleNonprofitConfirm = () => {
@@ -503,22 +499,30 @@ export function PublishingForm({
       }
 
       setIsRedirecting(true);
-      if (formData.articleType === 'grant' && !formData.workId) {
+      const publishLabel = PUBLISH_LABEL[formData.articleType] ?? 'Post';
+      const isNewGrant = formData.articleType === 'grant' && !formData.workId;
+      const isNewGrantPending = isNewGrant && response.note?.post?.grant?.status !== 'OPEN';
+
+      if (isNewGrantPending) {
         toast.success(
           'Your Funding Opportunity has been submitted and is pending moderator review.',
           {
             duration: 5000,
           }
         );
+      } else if (!isNewGrant && response.moderationStatus === 'PENDING') {
+        toast.success(`Your ${publishLabel} has been submitted and is pending moderator review.`, {
+          duration: 5000,
+        });
       } else {
-        toast.success(`${PUBLISH_LABEL[formData.articleType] ?? 'Post'} published successfully!`);
+        toast.success(`${publishLabel} published successfully!`);
       }
       router.push(getRedirectPath(formData.articleType, String(response.id), response.slug));
     } catch (error: unknown) {
       const fallback = 'Error publishing. Please try again.';
       if (error instanceof ApiError) {
         const errorData = error.errors as Record<string, any> | undefined;
-        toast.error(errorData?.msg || errorData?.message || fallback);
+        toast.error(errorData?.msg || errorData?.message || errorData?.detail || fallback);
       } else {
         toast.error(fallback);
       }

@@ -14,6 +14,7 @@ import { useFeedTabs } from '@/hooks/useFeedTabs';
 import { useFeedTabsVisibility } from '@/contexts/FeedTabsVisibilityContext';
 import { useTopBarSlot } from '@/contexts/TopBarSlotContext';
 import { useSmartBack } from '@/hooks/useSmartBack';
+import { PendingModerationService } from '@/services/content-moderation.service';
 
 import { getPageInfo, isRootNavigationPage } from './topbar/pageRoutes';
 import { TopBarBackButton } from './topbar/TopBarBackButton';
@@ -33,6 +34,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   const goBack = useSmartBack();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [shortcutText, setShortcutText] = useState('Ctrl+K');
+  const [pendingModerationCount, setPendingModerationCount] = useState(0);
   const { showAuthModal } = useAuthModalContext();
 
   const { tabs, activeTab, highlightedTab, handleTabChange, isFeedPage } = useFeedTabs();
@@ -69,6 +71,19 @@ export function TopBar({ onMenuClick }: TopBarProps) {
     const isMac = typeof window !== 'undefined' && /Mac/.test(navigator.platform);
     setShortcutText(isMac ? '⌘K' : 'Ctrl+K');
   }, []);
+
+  useEffect(() => {
+    if (!user?.isModerator) {
+      setPendingModerationCount(0);
+      return;
+    }
+
+    PendingModerationService.fetchCounts()
+      .then((counts) => {
+        setPendingModerationCount(Object.values(counts).reduce((sum, count) => sum + count, 0));
+      })
+      .catch(() => {});
+  }, [user?.isModerator]);
 
   const handleViewProfile = () => {
     if (user?.authorProfile?.profileUrl) {
@@ -124,6 +139,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               user={user}
               isLoading={isLoading}
               unreadCount={unreadCount}
+              pendingModerationCount={pendingModerationCount}
               avatarSize={32}
               profilePercent={profilePercent()}
               onViewProfile={handleViewProfile}
@@ -138,6 +154,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               user={user}
               isLoading={isLoading}
               unreadCount={unreadCount}
+              pendingModerationCount={pendingModerationCount}
               avatarSize={40}
               profilePercent={profilePercent()}
               onViewProfile={handleViewProfile}

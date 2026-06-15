@@ -16,8 +16,9 @@ export function PublishedStatusSection() {
 
   const isPublished = Boolean(workId);
   const grantStatus = note?.post?.grant?.status;
-  const isPending = grantStatus === 'PENDING';
-  const isDeclined = grantStatus === 'DECLINED';
+  const moderationStatus = note?.post?.moderationStatus;
+  const isPending = grantStatus === 'PENDING' || moderationStatus === 'PENDING';
+  const isDeclined = grantStatus === 'DECLINED' || moderationStatus === 'DECLINED';
 
   if (!note && !isLoading) {
     return null;

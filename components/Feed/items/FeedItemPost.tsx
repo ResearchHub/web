@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 import { FeedPostContent, FeedEntry } from '@/types/feed';
 import {
   BaseFeedItem,
@@ -13,6 +13,7 @@ import {
 import { FeedItemAbstractSection } from '@/components/Feed/FeedItemAbstractSection';
 import { FeedItemTopicBadges } from '@/components/Feed/FeedItemTopicBadges';
 import { AuthorList } from '@/components/ui/AuthorList';
+import { RiskScoreBadge } from '@/components/Moderators/RiskScoreBadge';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { PeerReviewTooltip } from '@/components/tooltips/PeerReviewTooltip';
 import { Star } from 'lucide-react';
@@ -31,6 +32,7 @@ interface FeedItemPostProps {
   highlights?: Highlight[];
   showHeader?: boolean;
   showBountyInfo?: boolean;
+  footer?: ReactNode;
 }
 
 /**
@@ -47,6 +49,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
   onAbstractExpanded,
   highlights,
   showBountyInfo,
+  footer,
 }) => {
   // Extract the post from the entry's content
   const post = entry.content as FeedPostContent;
@@ -88,6 +91,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
       showPeerReviews={post.postType !== 'QUESTION'}
       showBountyInfo={showBountyInfo}
       hideReportButton={false}
+      footer={footer}
     >
       {/* Top section with badges and mobile image */}
       <FeedItemTopSection
@@ -133,6 +137,7 @@ export const FeedItemPost: FC<FeedItemPostProps> = ({
                     className="text-gray-500 font-normal text-sm"
                     delimiter="•"
                     timestamp={post.createdDate ? formatTimestamp(post.createdDate) : undefined}
+                    afterAuthors={<RiskScoreBadge score={entry.riskScore} />}
                   />
                 )}
                 {hasReviewScore && (

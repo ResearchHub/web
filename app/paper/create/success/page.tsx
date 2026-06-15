@@ -18,11 +18,13 @@ export default function SubmissionSuccessPage() {
   const [paperTitle, setPaperTitle] = useState<string>('');
   const [paperId, setPaperId] = useState<string | null>(null);
   const [isJournal, setIsJournal] = useState<boolean>(false);
+  const [isPending, setIsPending] = useState<boolean>(false);
 
   useEffect(() => {
     const title = searchParams.get('paperTitle');
     const id = searchParams.get('paperId');
     const journalSubmission = searchParams.get('isJournal') === 'true';
+    setIsPending(searchParams.get('status') === 'PENDING');
     // Parameter to manually override which view to show
     const forceView = searchParams.get('forceView');
 
@@ -58,6 +60,18 @@ export default function SubmissionSuccessPage() {
     }
   };
 
+  let submissionMessage: string;
+  if (isPending) {
+    submissionMessage =
+      "Your research paper has been submitted and is pending moderator review. You'll be notified once it's approved and visible on the platform.";
+  } else if (isJournal) {
+    submissionMessage =
+      'Your research paper has been submitted to the ResearchHub Journal. It will go through peer review before publication.';
+  } else {
+    submissionMessage =
+      'Your research paper has been successfully submitted to ResearchHub as a preprint and is now available on the platform.';
+  }
+
   return (
     <PageLayout>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -70,11 +84,7 @@ export default function SubmissionSuccessPage() {
 
           {paperTitle && <h2 className="text-lg font-medium text-gray-800 mb-4">"{paperTitle}"</h2>}
 
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
-            {isJournal
-              ? 'Your research paper has been submitted to the ResearchHub Journal. It will go through peer review before publication.'
-              : 'Your research paper has been successfully submitted to ResearchHub as a preprint and is now available on the platform.'}
-          </p>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">{submissionMessage}</p>
 
           <div className="flex items-center justify-center mt-8 mb-8">
             {paperId && (
